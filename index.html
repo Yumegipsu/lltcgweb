@@ -22594,7 +22594,7 @@ function liveSetPlacementInProgress(s) {
 /** Either side set a Live card this round — spectacle is mandatory once placement ends. */
 function liveRoundRequiresSpectacle(prev, next, showTurn = null) {
   if (!prev || !next || G.isTutorial) return false;
-  const turn = showTurn ?? inferLiveShowTurn(prev, next);
+  const turn = showTurn ?? primaryLiveShowTurn(prev, next);
   if (liveSpectacleDoneForTurn(turn)) return false;
   if (isEmptyLiveSkipTransition(prev, next)) return false;
   if (isLiveSetPlacementOnly(prev, next)) return false;
@@ -22779,8 +22779,17 @@ function candidateLiveShowTurns(prev, next) {
   return [...turns].filter(t => t >= 1);
 }
 
+/** Single show-turn for this transition — avoids treating an earlier round's done-key as current. */
+function primaryLiveShowTurn(prev, next) {
+  const pending = detectPendingLiveSpectacleTurn(prev, next);
+  if (pending != null) return pending;
+  return inferLiveShowTurn(prev, next);
+}
+
 function spectacleDoneForTransition(prev, next) {
-  return candidateLiveShowTurns(prev, next).some(t => liveSpectacleDoneForTurn(t));
+  const turn = primaryLiveShowTurn(prev, next);
+  if (turn == null) return false;
+  return liveSpectacleDoneForTurn(turn);
 }
 
 function parseTurnMarker(msg) {
@@ -23681,15 +23690,11 @@ function prevWasInLiveSetPlacement(prev) {
 
 function spectacleAlreadyPlayedForState(next, prev = null) {
   if (!next) return false;
-  const perfPrev = buildPerfSpectaclePrev(prev, next);
-  const doneKey = perfSpectacleTurnKey(perfPrev, next);
-  const doneTurn = parseInt(String(doneKey).split(':')[0], 10);
-  if (Number.isFinite(doneTurn) && liveSpectacleDoneForTurn(doneTurn)) {
-    return true;
-  }
-  if (G._perfSpectacleDoneKey === doneKey) {
-    return true;
-  }
+  const showTurn = primaryLiveShowTurn(prev, next);
+  if (showTurn == null) return false;
+  const doneKey = `${showTurn}:live_show`;
+  if (liveSpectacleDoneForTurn(showTurn)) return true;
+  if (G._perfSpectacleDoneKey === doneKey) return true;
   try {
     const raw = sessionStorage.getItem(PERF_SPECTACLE_DONE_STORAGE_KEY);
     if (raw) {
@@ -24249,10 +24254,10 @@ function shouldTriggerPerfSpectacle(prev, next) {
     return false;
   }
   if (spectacleDoneForTransition(prev, next)) {
-    TCG_DEBUG.log('live', 'spectacle skip: already played this round', candidateLiveShowTurns(prev, next));
+    TCG_DEBUG.log('live', 'spectacle skip: already played this round', { showTurn: primaryLiveShowTurn(prev, next) });
     return false;
   }
-  const showTurn = inferLiveShowTurn(prev, next);
+  const showTurn = primaryLiveShowTurn(prev, next);
   if (isEmptyLiveSkipTransition(prev, next)) {
     TCG_DEBUG.log('live', 'spectacle skip: member-only / no Lives round');
     return false;
@@ -24264,6 +24269,12 @@ function shouldTriggerPerfSpectacle(prev, next) {
   const ph = next.phase;
   if (isLiveSetPhase(ph) && !isLeavingLiveSetPhase(prev, next)) {
     return false;
+  }
+  // Leaving live_set with Live cards — always replay spectacle for this round once.
+  if (isLeavingLiveSetPhase(prev, next) && liveRoundHasLiveCardsForRound(prev)
+      && showTurn != null && !liveSpectacleDoneForTurn(showTurn)) {
+    TCG_DEBUG.log('live', 'spectacle trigger (leaving live_set)', { showTurn, phase: ph });
+    return true;
   }
   // CPU/PvP can resolve the whole live pipeline in one poll (log has perf, phase already main_*).
   if (newLogHasLivePerformance(prev, next) && perfRoundHasShow(prev, next)) {
