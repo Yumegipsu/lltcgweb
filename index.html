@@ -12695,6 +12695,41 @@ function wrPickMatchCountClient(cpu, cfg, need = 1) {
   return count;
 }
 
+function cpuStageHasEmptySlot(cpu) {
+  return ['left', 'center', 'right'].some(sl => !cpu?.stage?.[sl]);
+}
+
+function cpuAbilityNeedsEmptyStage(ab) {
+  const t = ab?.type || '';
+  return t === 'pay_energy_play_wr_empty' || t === 'optional_play_wr_empty_slot';
+}
+
+function cpuAbilityBlacklistKey(cardId, abilityIndex) {
+  const s = G.gameState;
+  if (!s || cardId == null || abilityIndex == null) return null;
+  return `${s.turn}|${cardId}|${abilityIndex}`;
+}
+
+function cpuAbilityBlacklisted(cardId, abilityIndex) {
+  const k = cpuAbilityBlacklistKey(cardId, abilityIndex);
+  return !!(k && G._cpuAbilityBlacklist?.has(k));
+}
+
+function cpuBlacklistAbility(cardId, abilityIndex) {
+  const k = cpuAbilityBlacklistKey(cardId, abilityIndex);
+  if (!k) return;
+  if (!G._cpuAbilityBlacklist) G._cpuAbilityBlacklist = new Set();
+  G._cpuAbilityBlacklist.add(k);
+}
+
+function cpuClearAbilityBlacklistIfNewTurn(s) {
+  if (!s) return;
+  if (G._cpuAbilityBlacklistTurn !== s.turn) {
+    G._cpuAbilityBlacklist = new Set();
+    G._cpuAbilityBlacklistTurn = s.turn;
+  }
+}
+
 function abilityWrBlockReason(cpu, ab) {
   if (!cpu || !ab) return null;
   const wr = cpu.waiting_room || [];
@@ -19344,14 +19379,19 @@ function cpuBuildActivatePayload(pick, cpu, tier, winPressure, read) {
 
 function cpuTryActivate(s, cpu, tier, winPressure = 0, read = null) {
   if (tier === 'easy') return false;
+  cpuClearAbilityBlacklistIfNewTurn(s);
   const minScore = tier === 'hard'
     ? (winPressure >= 1 ? 2.2 : winPressure >= 0.45 ? 1.35 : 0.45)
     : (winPressure >= 1 ? 2 : winPressure >= 0.45 ? 1.25 : 0.75);
   const hasViableLive = cpuHandHasViableLive(cpu);
   let abilities = collectActivatableAbilities(s, 'p2')
     .map(a => ({ ...a, score: cpuScoreAbility(a, cpu, tier, read, winPressure) }))
-    .filter(a => a.score > minScore && !a.wrBlock && !abilityWrBlockReason(cpu, a.ability)
-      && cpuCanPayAbilityDiscard(cpu, a.ability))
+    .filter(a => {
+      if (cpuAbilityBlacklisted(a.card?.instance_id, a.idx)) return false;
+      if (cpuAbilityNeedsEmptyStage(a.ability) && !cpuStageHasEmptySlot(cpu)) return false;
+      const wrReason = a.wrBlock || abilityWrBlockReason(cpu, a.ability);
+      return a.score > minScore && !wrReason && cpuCanPayAbilityDiscard(cpu, a.ability);
+    })
     .sort((a, b) => b.score - a.score);
   if (winPressure >= 0.35 && hasViableLive) {
     abilities = abilities.filter(a => {
@@ -21420,6 +21460,9 @@ function cpuActInflightKey(type, data = {}) {
   if (type === 'play_member') {
     return `${seq}|${type}|${data.card_id || ''}|${data.slot || ''}`;
   }
+  if (type === 'activate_ability') {
+    return `${seq}|${type}|${data.card_id || ''}|${data.ability_index ?? ''}`;
+  }
   if (type === 'end_live_set' || type === 'end_main' || type === 'set_live_cards') {
     return `${seq}|${type}`;
   }
@@ -21428,24 +21471,21 @@ function cpuActInflightKey(type, data = {}) {
 
 async function cpuAct(type,data) {
   if (G.replayMode && !G.replayHandoff) return;
+  if (G._cpuActBusy) return;
   const inflightKey = cpuActInflightKey(type, data);
-  if (inflightKey) {
-    if (G._cpuActInflight === inflightKey) return;
-    G._cpuActInflight = inflightKey;
-  }
+  if (inflightKey && G._cpuActInflight === inflightKey) return;
   if (type === 'end_live_set') {
     const cpuId = cpuOpponentId();
     const live = G.gameState;
-    if (live?.phase === 'live_set' && live?.live_ready?.[cpuId]) {
-      if (inflightKey && G._cpuActInflight === inflightKey) G._cpuActInflight = null;
-      return;
-    }
+    if (live?.phase === 'live_set' && live?.live_ready?.[cpuId]) return;
   }
   if (type === 'resolve_prompt' || type === 'anti_softlock_skip') {
     const key = cpuPromptKey(G.gameState);
     if (key && G._cpuResolveBusy === key) return;
     if (key) G._cpuResolveBusy = key;
   }
+  if (inflightKey) G._cpuActInflight = inflightKey;
+  G._cpuActBusy = true;
   tcgDebugRecordAction(type, data, 'cpu');
   TCG_DEBUG.log('action', 'cpuAct →', type, data);
   try {
@@ -21472,20 +21512,27 @@ async function cpuAct(type,data) {
           if (type === 'anti_softlock_skip') armCpuPromptHangWatch(live);
           else cpuSchedulePromptRetryIfStuck(live, cpu);
         }
-      } else if (type === 'activate_ability' && /heart color/i.test(d.error || '')) {
-        G._cpuResolveBusy = null;
-        const live = G.gameState;
-        const cpu = live?.players?.p2;
-        const pr = live?.pending_prompt;
-        if (!pr && cpu && data?.card_id != null && data?.ability_index != null) {
-          const card = Object.values(cpu.stage || {}).find(m => m?.instance_id === data.card_id);
-          const ab = card?.abilities?.[data.ability_index];
-          if (ab?.type === 'wait_self_choose_heart') {
-            cpuAct('activate_ability', {
-              ...data,
-              heart_choice: cpuPickHeartColor(ab.heart_choices, cpu),
-            });
-            return;
+      } else if (type === 'activate_ability') {
+        if (data?.card_id != null && data?.ability_index != null) {
+          cpuBlacklistAbility(data.card_id, data.ability_index);
+        }
+        if (/heart color/i.test(d.error || '')) {
+          G._cpuResolveBusy = null;
+          const live = G.gameState;
+          const cpu = live?.players?.p2;
+          const pr = live?.pending_prompt;
+          if (!pr && cpu && data?.card_id != null && data?.ability_index != null) {
+            const card = Object.values(cpu.stage || {}).find(m => m?.instance_id === data.card_id);
+            const ab = card?.abilities?.[data.ability_index];
+            if (ab?.type === 'wait_self_choose_heart') {
+              G._cpuActBusy = false;
+              if (inflightKey && G._cpuActInflight === inflightKey) G._cpuActInflight = null;
+              cpuAct('activate_ability', {
+                ...data,
+                heart_choice: cpuPickHeartColor(ab.heart_choices, cpu),
+              });
+              return;
+            }
           }
         }
         cpuSchedule(() => doCPU(G.gameState), 500);
@@ -21506,6 +21553,8 @@ async function cpuAct(type,data) {
         const cpuId = cpuOpponentId();
         const live = G.gameState;
         if (live?.phase === 'live_set' && !live?.live_ready?.[cpuId]) {
+          G._cpuActBusy = false;
+          if (inflightKey && G._cpuActInflight === inflightKey) G._cpuActInflight = null;
           cpuAct('end_live_set', {});
         }
       }
@@ -21540,6 +21589,7 @@ async function cpuAct(type,data) {
       }
     }
   } finally {
+    G._cpuActBusy = false;
     if (inflightKey && G._cpuActInflight === inflightKey) G._cpuActInflight = null;
   }
 }

@@ -114,6 +114,11 @@ try {
             http_response_code(404);
             echo json_encode(['error' => 'Unknown action']);
     }
+} catch (Exception $e) {
+    $msg = $e->getMessage();
+    $serverFault = preg_match('/^(Cannot acquire lock|Lock timeout)/', $msg);
+    http_response_code($serverFault ? 500 : 400);
+    echo json_encode(['error' => $msg]);
 } catch (Throwable $e) {
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
