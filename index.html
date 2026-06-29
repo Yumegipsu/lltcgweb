@@ -2680,6 +2680,7 @@ body.deck-card-preview #modal-card{z-index:970}
 .zthumb.portrait{width:calc(var(--menu-card-h) * 63 / 88 * 0.82);height:calc(var(--menu-card-h) * 0.82)}
 .pickcard,.surveilcard,.mullcard,.menu-card{position:relative;border-radius:6px;overflow:hidden;cursor:pointer;
   border:2px solid transparent;transition:border .15s,transform .15s,box-shadow .15s;flex-shrink:0}
+.pickcard.menu-card-hold-pending,.hand-pick-card.menu-card-hold-pending,.surveilcard.menu-card-hold-pending,.zthumb.menu-card-hold-pending{touch-action:none}
 .pickcard.sel,.surveilcard.on-deck,.menu-card.sel{border-color:var(--pink);box-shadow:0 0 0 1px var(--pink)}
 .pickcard.ineligible{opacity:.38;filter:grayscale(.35);cursor:not-allowed}
 .pickcard.ineligible.sel{border-color:rgba(255,255,255,.2);box-shadow:none}
@@ -29796,6 +29797,51 @@ function openRevealFilterPick(ability, onPick){
   openM('overlay-pick');
 }
 
+function showPickMenuCard(card) {
+  if (G.isTutorial || !card) return;
+  const s = G.gameState;
+  if (!s) return;
+  const c = enrichCard(card);
+  showCard(c, c.instance_id || card.instance_id || null, s, G.playerId);
+}
+
+/** Long-press / right-click card detail in pick overlays (WR discard, deck look, etc.). */
+function bindMenuCardPress(node, card, onTap) {
+  if (!node || !card || G.isTutorial) return;
+  node.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    try { node.setPointerCapture(e.pointerId); } catch (_) {}
+    node.classList.add('menu-card-hold-pending');
+    const ptr = { sx: e.clientX, sy: e.clientY, moved: false, longFired: false, longPressTimer: null };
+    ptr.longPressTimer = setTimeout(() => {
+      if (ptr.moved) return;
+      ptr.longFired = true;
+      showPickMenuCard(card);
+    }, LONG_PRESS_MS);
+    const clearHold = () => node.classList.remove('menu-card-hold-pending');
+    const onMove = ev => {
+      if (Math.hypot(ev.clientX - ptr.sx, ev.clientY - ptr.sy) > DRAG_THRESHOLD) ptr.moved = true;
+    };
+    const onUp = ev => {
+      if (ptr.longPressTimer) clearTimeout(ptr.longPressTimer);
+      clearHold();
+      node.removeEventListener('pointermove', onMove);
+      node.removeEventListener('pointerup', onUp);
+      node.removeEventListener('pointercancel', onUp);
+      try { node.releasePointerCapture(ev.pointerId); } catch (_) {}
+      if (!ptr.moved && !ptr.longFired && onTap) onTap();
+    };
+    node.addEventListener('pointermove', onMove);
+    node.addEventListener('pointerup', onUp);
+    node.addEventListener('pointercancel', onUp);
+  });
+  node.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    showPickMenuCard(card);
+  });
+}
+
 function mkPickCardEl(card, cls, onClick){
   const d=document.createElement('div');
   const live=isLiveCard(card);
@@ -29807,7 +29853,7 @@ function mkPickCardEl(card, cls, onClick){
   }
   d.dataset.id=card.instance_id;
   appendCardFace(d, card, { sideways: live && portraitFrame });
-  d.onclick=onClick;
+  bindMenuCardPress(d, card, onClick);
   return d;
 }
 
@@ -30662,30 +30708,62 @@ function mkSurveilCardEl(card, opts = {}) {
   if (G.surveil.drag?.id === card.instance_id) d.classList.add('dragging');
   appendCardFace(d, card);
   d.addEventListener('click', (ev) => {
+    if (d._suppressMenuTap) {
+      d._suppressMenuTap = false;
+      return;
+    }
     ev.stopPropagation();
     onSurveilCardTap(card.instance_id, opts);
   });
-  bindSurveilCardDrag(d, card.instance_id);
+  bindSurveilCardDrag(d, card, card.instance_id);
   return d;
 }
 
-function bindSurveilCardDrag(node, id) {
+function bindSurveilCardDrag(node, card, id) {
   node.addEventListener('pointerdown', (ev) => {
     if (ev.button !== 0) return;
-    G.surveil.drag = { id, startX: ev.clientX, startY: ev.clientY, moved: false };
+    const drag = {
+      id,
+      startX: ev.clientX,
+      startY: ev.clientY,
+      moved: false,
+      longFired: false,
+      longPressTimer: setTimeout(() => {
+        const d = G.surveil.drag;
+        if (!d || d.id !== id || d.moved) return;
+        d.longFired = true;
+        const c = card || G.surveil?.byId?.[id];
+        if (c) showPickMenuCard(c);
+      }, LONG_PRESS_MS),
+    };
+    G.surveil.drag = drag;
     node.setPointerCapture?.(ev.pointerId);
+  });
+  node.addEventListener('contextmenu', (ev) => {
+    ev.preventDefault();
+    const c = card || G.surveil?.byId?.[id];
+    if (c) showPickMenuCard(c);
   });
   node.addEventListener('pointermove', (ev) => {
     const d = G.surveil.drag;
     if (!d || d.id !== id) return;
     if (!d.moved && (Math.abs(ev.clientX - d.startX) > 6 || Math.abs(ev.clientY - d.startY) > 6)) {
       d.moved = true;
+      if (d.longPressTimer) {
+        clearTimeout(d.longPressTimer);
+        d.longPressTimer = null;
+      }
       renderSurveilZones();
     }
   });
   node.addEventListener('pointerup', (ev) => {
     const d = G.surveil.drag;
     if (!d || d.id !== id) return;
+    if (d.longPressTimer) {
+      clearTimeout(d.longPressTimer);
+      d.longPressTimer = null;
+    }
+    if (d.longFired) node._suppressMenuTap = true;
     G.surveil.drag = null;
     if (d.moved) {
       const target = document.elementFromPoint(ev.clientX, ev.clientY);
@@ -30702,6 +30780,8 @@ function bindSurveilCardDrag(node, id) {
     try { node.releasePointerCapture?.(ev.pointerId); } catch (_) {}
   });
   node.addEventListener('pointercancel', () => {
+    const d = G.surveil.drag;
+    if (d?.id === id && d.longPressTimer) clearTimeout(d.longPressTimer);
     if (G.surveil.drag?.id === id) G.surveil.drag = null;
     renderSurveilZones();
   });
@@ -32122,7 +32202,8 @@ function viewZone(who, zoneKey, title){
     const d=document.createElement('div');
     d.className='zthumb ' + menuCardClasses(card);
     appendCardFace(d, card);
-    d.onclick=()=>showCard(card,null,s,myId); g.appendChild(d);
+    bindMenuCardPress(d, card, () => showCard(card, null, s, myId));
+    g.appendChild(d);
   });
   openM('overlay-zone');
 }
