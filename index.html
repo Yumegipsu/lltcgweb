@@ -845,6 +845,44 @@ html:not(.tcg-mobile-viewport) #screen-game .live-score-hud{
   display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;
 }
 .phase-panel-head .pbadge{flex:1;min-width:0}
+.phase-head-stack{
+  position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-end;
+}
+.phase-head-stack .pbadge{align-self:stretch;text-align:center}
+.spectator-count{
+  font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  color:rgba(186,228,255,.78);margin-bottom:3px;white-space:nowrap;
+}
+.spectator-count[hidden]{display:none!important}
+.spectate-match-list{display:flex;flex-direction:column;gap:8px;margin:12px 0 4px;max-height:min(52vh,420px);overflow-y:auto}
+.spectate-match-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.05);
+  border:1px solid var(--ui-panel-border);
+}
+.spectate-match-label{flex:1;min-width:0;font-size:13px;line-height:1.35;color:rgba(255,255,255,.9)}
+.spectate-match-meta{display:block;font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.spectate-bar{
+  position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:950;
+  display:flex;align-items:center;gap:12px;
+  background:rgba(8,18,32,.94);border:1px solid rgba(186,228,255,.28);
+  border-radius:20px;padding:8px 14px;box-shadow:0 8px 28px rgba(0,0,0,.45);
+}
+.spectate-bar[hidden]{display:none!important}
+.spectate-bar-label{font-size:11px;font-weight:700;color:rgba(186,228,255,.88);white-space:nowrap}
+body.tcg-spectator-mode #screen-game .hcard,
+body.tcg-spectator-mode #screen-game .mslot,
+body.tcg-spectator-mode #screen-game .lcard,
+body.tcg-spectator-mode #screen-game .mat-zone.deck-pile,
+body.tcg-spectator-mode #screen-game .mat-baton-toggle,
+body.tcg-spectator-mode #screen-game #btn-resign,
+body.tcg-spectator-mode #screen-game .phase-action-bar{display:none!important}
+body.tcg-spectator-mode #screen-game #btn-phase-primary,
+body.tcg-spectator-mode #screen-game .phase-action-bar,
+body.tcg-spectator-mode #screen-game .tcg-radio-bar,
+body.tcg-spectator-mode #screen-game .tcg-debug-row{pointer-events:none!important}
+body.tcg-spectator-mode #spectate-bar,
+body.tcg-spectator-mode #spectate-bar button{pointer-events:auto}
 .phase-timer-wrap{flex:0 0 auto;line-height:0}
 .phase-timer-wrap[hidden]{display:none!important}
 .phase-timer-wrap.phase-timer-wrap--prompt{
@@ -5607,6 +5645,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       </label>
       <p id="ranked-queue-stats" class="hub-stat ranked-queue-stats">— waiting · — in ranked games</p>
       <button class="btn-grad" id="btn-ranked-search" type="button">Find Match</button>
+      <button class="btn-out" id="btn-ranked-spectate" type="button">Spectate Match</button>
       <button class="btn-out" id="btn-ranked-leaderboard" type="button">Leaderboard</button>
       <button class="btn-ghost" id="btn-ranked-cancel" type="button" hidden>Cancel search</button>
       <p class="lerr" id="ranked-err"></p>
@@ -5698,6 +5737,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
                   style="text-transform:uppercase;letter-spacing:5px;font-family:'Fredoka One',cursive;font-size:22px;text-align:center">
               </div>
               <button class="btn-out" id="btn-join">Join Room</button>
+              <button class="btn-out" id="btn-lobby-spectate" type="button">Spectate Match</button>
               <div class="divider">or match randomly</div>
               <button class="btn-grad" id="btn-casual-search" type="button">Find Random Match</button>
               <p class="hub-stat lobby-casual-hint">Casual PvP — no ELO or ranked record</p>
@@ -5751,7 +5791,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
     <aside class="side-panel side-left">
       <div class="side-block phase-panel">
         <div class="phase-panel-head">
-          <div class="pbadge" id="pbadge">Setup</div>
+          <div class="phase-head-stack">
+            <div class="spectator-count" id="spectator-count" hidden aria-hidden="true"></div>
+            <div class="pbadge" id="pbadge">Setup</div>
+          </div>
           <div class="phase-timer-wrap" id="phase-timer-wrap" hidden aria-hidden="true">
             <div class="time-pie phase-timer-pie" id="phase-timer-pie" style="--time-ratio:1" aria-hidden="true">
               <span id="phase-timer-val">60</span>
@@ -5966,7 +6009,23 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   <p class="replay-handoff-note" id="replay-handoff-note" hidden>Replay complete — you have control. CPU plays the opponent.</p>
 </div>
 
+<div id="spectate-bar" class="spectate-bar" hidden aria-live="polite">
+  <span class="spectate-bar-label" id="spectate-bar-label">Spectating — read only</span>
+  <button type="button" class="btn-ghost" id="btn-spectate-leave">Leave</button>
+</div>
+
 <!-- ══ OVERLAYS ══ -->
+
+<!-- Spectate match list -->
+<div class="overlay" id="overlay-spectate-list">
+  <div class="mbox" style="max-width:480px;width:100%">
+    <button class="mcls" id="btn-spectate-list-close" type="button">✕</button>
+    <h2 id="spectate-list-title">Spectate match</h2>
+    <p class="account-lead">Watch an ongoing match — view only, no interaction.</p>
+    <div id="spectate-match-list" class="spectate-match-list"></div>
+    <p class="lerr" id="spectate-list-err"></p>
+  </div>
+</div>
 
 <!-- Card detail -->
 <div class="overlay" id="modal-card">
@@ -7331,7 +7390,7 @@ async function accountPost(action, body = {}) {
 }
 
 function saveActiveGameSession() {
-  if (G.isTutorial || !G.roomId || !G.token) return;
+  if (G.isTutorial || G.isSpectator || !G.roomId || !G.token) return;
   let screen = 'game';
   if (el('screen-waiting')?.classList.contains('active')) screen = 'waiting';
   try {
@@ -10511,6 +10570,10 @@ function resetMatchTransientState() {
   G.replayHandoff = false;
   G.replayStep = 0;
   G.replayTotal = 0;
+  G.isSpectator = false;
+  document.body.classList.remove('tcg-spectator-mode');
+  const spectateBar = el('spectate-bar');
+  if (spectateBar) spectateBar.hidden = true;
   syncReplayControlBar();
 }
 
@@ -12999,6 +13062,7 @@ function setCardDetailImage(card) {
 let G = {
   roomId:null, token:null, cpuToken:null, playerId:null, isCPU:false, cpuDifficulty:'easy',
   replayMode:false, replayHandoff:false, replayStep:0, replayTotal:0, replayPlaying:false, replayPlayTimer:null,
+  isSpectator:false, _spectateReturnScreen:'lobby',
   cpuPlayerId:null,
   _pendingReplayFile:null,
   gameState:null, allCards:{}, starterDecks:{},
@@ -13208,11 +13272,15 @@ let G = {
     updateDeckPrev();
   });
   on('btn-ranked-search', 'click', startRankedSearch);
+  on('btn-ranked-spectate', 'click', () => { void openSpectateList('ranked'); });
   on('btn-ranked-cancel', 'click', cancelRankedSearch);
   on('btn-ranked-float-cancel', 'click', cancelRankedSearch);
+  on('btn-lobby-spectate', 'click', () => { void openSpectateList('casual'); });
   on('btn-casual-search', 'click', startCasualSearch);
   on('btn-casual-cancel', 'click', cancelCasualSearch);
   on('btn-casual-float-cancel', 'click', cancelCasualSearch);
+  on('btn-spectate-list-close', 'click', () => closeM('overlay-spectate-list'));
+  on('btn-spectate-leave', 'click', () => { void leaveSpectatorMode(); });
   on('btn-anti-softlock', 'click', () => { void antiSoftlockSkipPrompt(); });
   on('sel-ranked-deck', 'change', onRankedDeckChange);
   window.addEventListener('pagehide', (ev) => {
@@ -14620,8 +14688,13 @@ async function doPoll() {
     TCG_DEBUG.log('poll', 'fetch', { seq: G.lastSeq, room: G.roomId });
     const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(G.roomId)}&token=${G.token}&seq=${G.lastSeq}`);
     const d = await r.json();
-    if (!d.error) onState(d);
-    else TCG_DEBUG.warn('poll', 'error', d.error);
+    if (d.error) {
+      if (G.isSpectator) {
+        void leaveSpectatorMode({ toastMsg: d.error || 'Spectator session ended.' });
+        return;
+      }
+      TCG_DEBUG.warn('poll', 'error', d.error);
+    } else onState(d);
   } catch (e) { TCG_DEBUG.warn('poll', 'fetch failed', e); }
   if (G.polling) G.pollTimer = setTimeout(doPoll, 600);
 }
@@ -17524,6 +17597,13 @@ function onState(s) {
 }
 
 async function applyFinishedState(s, prev) {
+  if (G.isSpectator) {
+    G.lastSeq = s.seq;
+    G.gameState = s;
+    renderGame(s, { skipLog: true });
+    await leaveSpectatorMode({ toastMsg: 'Match ended.' });
+    return;
+  }
   G.lastSeq = s.seq;
   G.playerId = s.my_id || G.playerId;
   const cur = document.querySelector('.screen.active')?.id;
@@ -22160,6 +22240,7 @@ function renderGame(s, opts = {}) {
 
   // Phase bar
   renderPhaseBar(s,me,opp,myId,oppId);
+  updateSpectatorCountUI(s);
   updatePhaseTimerUI(s);
 
   // Stages (per-slot on playmat)
@@ -27085,6 +27166,10 @@ function renderPhaseBar(s,me,opp,myId,oppId) {
   el('pbadge').textContent = hPhase(s.phase);
   const msgE=el('pmsg'), btnsE=el('pbtns');
   btnsE.innerHTML='';
+  if (G.isSpectator) {
+    msgE.textContent = `Spectating — ${me.name || 'Player 1'} vs ${opp.name || 'Player 2'} (read only)`;
+    return;
+  }
   const isMe=s.active_player===myId;
   const ae=(me.energy_zone||[]).filter(energyChipActive).length;
   const ph=s.phase;
@@ -33532,9 +33617,135 @@ async function onWinViewLeaderboard() {
   }
 }
 
+// ── SPECTATE ─────────────────────────────────────────
+function spectateEsc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function updateSpectatorCountUI(s) {
+  const node = el('spectator-count');
+  if (!node) return;
+  if (G.isSpectator) {
+    node.hidden = true;
+    node.setAttribute('aria-hidden', 'true');
+    return;
+  }
+  const n = Math.max(0, parseInt(s?.spectator_count, 10) || 0);
+  node.hidden = n < 1;
+  node.setAttribute('aria-hidden', n < 1 ? 'true' : 'false');
+  node.textContent = `Spectators: ${n}`;
+}
+
+function renderSpectateMatchList(matches) {
+  const list = el('spectate-match-list');
+  if (!list) return;
+  if (!matches?.length) {
+    list.innerHTML = '<p class="hub-stat">No ongoing matches right now.</p>';
+    return;
+  }
+  list.innerHTML = '';
+  matches.forEach(m => {
+    const row = document.createElement('div');
+    row.className = 'spectate-match-row';
+    const label = document.createElement('div');
+    label.className = 'spectate-match-label';
+    const turn = m.turn ? `Turn ${m.turn}` : '';
+    const watching = m.spectators ? ` · ${m.spectators} watching` : '';
+    label.innerHTML = `<strong>${spectateEsc(m.p1_name)}</strong> vs <strong>${spectateEsc(m.p2_name)}</strong><span class="spectate-match-meta">${spectateEsc(turn)}${watching}</span>`;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-out';
+    btn.textContent = 'Watch';
+    btn.onclick = () => { void joinSpectateMatch(m.room_id); };
+    row.appendChild(label);
+    row.appendChild(btn);
+    list.appendChild(row);
+  });
+}
+
+async function openSpectateList(category) {
+  G._spectateReturnScreen = category === 'ranked' ? 'ranked' : 'lobby';
+  const errEl = el('spectate-list-err');
+  if (errEl) errEl.textContent = '';
+  const titleEl = el('spectate-list-title');
+  if (titleEl) {
+    titleEl.textContent = category === 'ranked' ? 'Spectate ranked match' : 'Spectate unranked match';
+  }
+  const list = el('spectate-match-list');
+  if (list) list.innerHTML = '<p class="hub-stat">Loading…</p>';
+  openM('overlay-spectate-list');
+  try {
+    const res = await apiPost('spectate_list', { category: category === 'ranked' ? 'ranked' : 'casual' });
+    renderSpectateMatchList(res.matches || []);
+  } catch (e) {
+    if (errEl) errEl.textContent = e.message || String(e);
+    if (list) list.innerHTML = '';
+  }
+}
+
+async function joinSpectateMatch(roomId) {
+  const errEl = el('spectate-list-err');
+  if (errEl) errEl.textContent = '';
+  try {
+    const res = await apiPost('spectate_join', { room_id: roomId });
+    await bootSpectatorSession({
+      roomId: res.room_id,
+      token: res.spectator_token,
+      p1Name: res.p1_name,
+      p2Name: res.p2_name,
+    });
+  } catch (e) {
+    if (errEl) errEl.textContent = e.message || String(e);
+  }
+}
+
+async function bootSpectatorSession({ roomId, token, p1Name, p2Name }) {
+  resetMatchTransientState();
+  G.isSpectator = true;
+  G._spectateReturnScreen = G._spectateReturnScreen || 'lobby';
+  G.roomId = roomId;
+  G.token = token;
+  G.playerId = 'p1';
+  G.isCPU = false;
+  G.cpuToken = null;
+  G.cpuPlayerId = null;
+  document.body.classList.add('tcg-spectator-mode');
+  const bar = el('spectate-bar');
+  const barLabel = el('spectate-bar-label');
+  if (bar) bar.hidden = false;
+  if (barLabel) barLabel.textContent = `Spectating ${p1Name || 'P1'} vs ${p2Name || 'P2'}`;
+  closeM('overlay-spectate-list');
+  const s = await fetchGameStateForReconnect(roomId, token);
+  if (s.error) throw new Error(s.error);
+  showScr('game');
+  onState(s);
+  startPoll();
+}
+
+async function leaveSpectatorMode(opts = {}) {
+  const roomId = G.roomId;
+  const token = G.token;
+  if (G.isSpectator && roomId && token) {
+    try { await apiPost('spectate_leave', { room_id: roomId, token }); } catch (e) {}
+  }
+  stopPoll();
+  document.body.classList.remove('tcg-spectator-mode');
+  const bar = el('spectate-bar');
+  if (bar) bar.hidden = true;
+  G.isSpectator = false;
+  G.roomId = null;
+  G.token = null;
+  G.gameState = null;
+  G.lastSeq = 0;
+  abortGameplayPresentation();
+  if (opts.toastMsg) toast(opts.toastMsg, 3200);
+  showScr(G._spectateReturnScreen === 'ranked' ? 'ranked' : 'lobby');
+}
+
 // ── ACTIONS ──────────────────────────────────────────
 async function sendAct(type,data){
   if (G.isTutorial) return;
+  if (G.isSpectator) return;
   if (G.replayMode && !G.replayHandoff) return;
   if(!G.roomId||!G.token) return;
   if (type === 'resign') abortGameplayPresentation();
@@ -33577,7 +33788,11 @@ function showScr(n){
   const prevActive=document.querySelector('.screen.active')?.id;
   if (n !== 'game') clearCenterBannerQueue();
   if(prevActive==='screen-game'&&n!=='game'){
-    abortGameplayPresentation({ skipAbortFlag: true });
+    if (G.isSpectator) {
+      void leaveSpectatorMode();
+    } else {
+      abortGameplayPresentation({ skipAbortFlag: true });
+    }
     if (typeof window.deactivateTcgRadio === 'function') window.deactivateTcgRadio();
   }
   if (prevActive === 'screen-deck' && n !== 'deck') clearDeckBuilderCardPreview(true);

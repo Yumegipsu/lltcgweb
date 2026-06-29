@@ -58,6 +58,7 @@ require_once __DIR__ . '/experiment_decks.php';
 require_once __DIR__ . '/debug_card_test.php';
 require_once __DIR__ . '/replay.php';
 require_once __DIR__ . '/casual_matchmaking.php';
+require_once __DIR__ . '/spectate.php';
 define('LOCK_TIMEOUT', 5);      // seconds
 define('GAME_TIMEOUT', 3600);   // 1 hour inactivity = cleanup
 define('POLL_TIMEOUT', 25);     // long-poll seconds
@@ -104,6 +105,9 @@ try {
         case 'casual_join':  echo json_encode(apiCasualJoin($body)); break;
         case 'casual_leave': echo json_encode(apiCasualLeave($body)); break;
         case 'casual_status': echo json_encode(apiCasualStatus($body)); break;
+        case 'spectate_list': echo json_encode(apiSpectateList($body)); break;
+        case 'spectate_join': echo json_encode(apiSpectateJoin($body)); break;
+        case 'spectate_leave': echo json_encode(apiSpectateLeave($body)); break;
         case 'ping':         echo json_encode(ping($body));            break;
         case 'cleanup':      echo json_encode(cleanupOldGames());      break;
         default:
@@ -314,6 +318,15 @@ function joinRoom(array $body): array {
 // ─────────────────────────────────────────────
 // Long Polling State
 // ─────────────────────────────────────────────
+function filterStateForClient(array $state, string $roomId, string $token): array {
+    if (tcgIsSpectatorToken($token)) {
+        return filterStateForSpectator($state, $roomId, $token);
+    }
+    $filtered = filterStateForPlayer($state, $token);
+    $filtered['spectator_count'] = tcgLiveSpectatorCount($roomId);
+    return $filtered;
+}
+
 function getStatePolling(): void {
     $roomId      = $_GET['room_id'] ?? '';
     $playerToken = $_GET['token']   ?? $_SERVER['HTTP_X_PLAYER_TOKEN'] ?? '';
@@ -330,6 +343,10 @@ function getStatePolling(): void {
             echo json_encode(['error' => 'Room not found']);
             return;
         }
+        if (tcgIsSpectatorToken($playerToken) && !tcgSpectatorTokenValid($roomId, $playerToken)) {
+            echo json_encode(['error' => 'Spectator session expired']);
+            return;
+        }
         if (applyPhaseTimeouts($state)) {
             saveGame($roomId, $state);
         }
@@ -341,7 +358,13 @@ function getStatePolling(): void {
             maybeApplyRankedFinish($state);
             saveGame($roomId, $state);
         }
-        echo json_encode(filterStateForPlayer($state, $playerToken));
+        echo json_encode(filterStateForClient($state, $roomId, $playerToken));
+        return;
+    }
+
+    $isSpectator = tcgIsSpectatorToken($playerToken);
+    if ($isSpectator && !tcgSpectatorTokenValid($roomId, $playerToken)) {
+        echo json_encode(['error' => 'Spectator session expired']);
         return;
     }
 
@@ -364,11 +387,14 @@ function getStatePolling(): void {
             saveGame($roomId, $state);
         }
         if ($state['seq'] > $lastSeq) {
-            echo json_encode(filterStateForPlayer($state, $playerToken));
+            echo json_encode(filterStateForClient($state, $roomId, $playerToken));
             return;
         }
-        // Touch presence
-        touchPresence($roomId, $playerToken);
+        if ($isSpectator) {
+            tcgTouchSpectatorPresence($roomId, $playerToken);
+        } else {
+            touchPresence($roomId, $playerToken);
+        }
         usleep(800000); // 0.8s
     }
     // Timeout – return current state
@@ -384,7 +410,9 @@ function getStatePolling(): void {
         maybeApplyRankedFinish($state);
         saveGame($roomId, $state);
     }
-    echo json_encode(filterStateForPlayer($state, $playerToken));
+    if ($state) {
+        echo json_encode(filterStateForClient($state, $roomId, $playerToken));
+    }
 }
 
 // ─────────────────────────────────────────────
@@ -398,6 +426,9 @@ function handleAction(array $body): array {
 
     if (!$roomId || !$token || !$type) {
         throw new Exception('room_id, token, and type required');
+    }
+    if (tcgIsSpectatorToken($token)) {
+        throw new Exception('Spectators cannot perform actions');
     }
 
     return withLock($roomId, function() use ($roomId, $token, $type, $data) {
