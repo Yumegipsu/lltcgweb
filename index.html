@@ -17565,10 +17565,8 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
     } else if (G._deferredPromptState && !latestFinal?.pending_prompt) {
       clearDeferredPromptState();
     }
-    const settled = latestFinal;
-    if (settled !== final && G._pendingStateQueue?.length) {
-      G._pendingStateQueue = G._pendingStateQueue.filter(st => st.seq > settled.seq);
-    }
+    // Never commit queued higher-seq snapshots here — flushPendingState applies them with correct prev.
+    const settled = final;
     if (!settled.pending_prompt) clearDeferredPromptState();
     applyTurnPrepEntriesToState(settled, settled, newEntries);
     if (!batchEmpty) {
@@ -17769,13 +17767,14 @@ async function applyStateUpdate(s) {
     G._animHideIids = prev && moves.length ? animHideIidsForMoves(prev, moves) : null;
     G._liveRevealFlips = prev ? collectLiveRevealFlips(prev, s) : new Set();
     rememberPerfSpectacleBaseline(prev, s);
-    const livePlan = liveRoundPresentationPlan(prev, s);
-    const emptySkip = livePlan.wantsEmptyRound || shouldPresentEmptyLiveRound(prev, s);
+    const livePrev = effectiveEmptyLiveRoundPrev(prev, s);
+    const livePlan = liveRoundPresentationPlan(livePrev, s);
+    const emptySkip = livePlan.wantsEmptyRound || shouldPresentEmptyLiveRound(livePrev, s);
     if (livePlan.needsLiveReveal || livePlan.wantsSpectacle || emptySkip) {
-      TCG_DEBUG.log('apply', 'presentLiveRound', { ...livePlan, emptySkip }, TCG_DEBUG.trans(prev, s));
+      TCG_DEBUG.log('apply', 'presentLiveRound', { ...livePlan, emptySkip, solo: isSoloPlayerEmptyLiveRound(livePrev, s) }, TCG_DEBUG.trans(livePrev, s));
       G.animating = true;
       try {
-        await presentLiveRound(prev, s, G.playerId, {
+        await presentLiveRound(livePrev, s, G.playerId, {
           newEntries,
           forceEmptyRound: emptySkip && !livePlan.wantsEmptyRound,
         });
@@ -22565,6 +22564,31 @@ function liveStorageBoardForPlayback(prev) {
   return null;
 }
 
+/** Prev for empty-round playback when G.gameState was already committed to WR (log+0 / queued poll). */
+function effectiveEmptyLiveRoundPrev(prev, next) {
+  if (!prev || !next) return prev;
+  if (!shouldPresentEmptyLiveRound(prev, next) && !emptyLiveRoundPresentationPending(prev, next)) return prev;
+  const baseline = G._liveSetStorageBaseline;
+  if (baseline && liveStorageHasCards(baseline)) {
+    if (!liveStorageHasCards(prev) || prev.seq === next.seq) return baseline;
+  }
+  const board = liveStorageBoardForPlayback(prev);
+  if (board && board !== prev && liveStorageHasCards(board)) return board;
+  return prev;
+}
+
+/** Only one side placed in LIVE storage — no simultaneous flip reveal (solo human vs CPU 0). */
+function isSoloPlayerEmptyLiveRound(prev, next) {
+  if (!isMemberOnlyLiveStorageRound(prev, next)) return false;
+  const board = effectiveEmptyLiveRoundPrev(prev, next) || liveStorageBoardForPlayback(prev) || prev;
+  if (!board?.players) return false;
+  let sides = 0;
+  for (const pid of ['p1', 'p2']) {
+    if ((board.players[pid]?.live_zone?.length || 0) > 0) sides++;
+  }
+  return sides === 1;
+}
+
 function fullLogHasEmptyLiveSkip(s) {
   return (s?.log || []).some(e => e.msg === 'No Lives played this turn.');
 }
@@ -23266,6 +23290,7 @@ function shouldRevealLiveStorageForRound(prev, next, emptyRound = null) {
   if (!prev || !next) return false;
   const empty = emptyRound ?? isEmptyLiveSkipTransition(prev, next);
   if (empty) {
+    if (isSoloPlayerEmptyLiveRound(prev, next)) return false;
     const board = buildEmptyLiveWrPlayback(prev, next) || prev;
     return !!(board && liveStorageHasCards(board));
   }
@@ -24380,6 +24405,7 @@ async function playLiveSuccessDeferredEffects(prev, final, myId, newEntries) {
 
 /** Orchestrate live storage reveal, WR discards, and Performance spectacle for one round. */
 async function presentLiveRound(prev, next, myId, opts = {}) {
+  prev = effectiveEmptyLiveRoundPrev(prev, next);
   const plan = liveRoundPresentationPlan(prev, next, opts);
   const forceEmpty = !!opts.forceEmptyRound;
   const emptySkip = plan.wantsEmptyRound || forceEmpty || isEmptyLiveSkipTransition(prev, next);
@@ -24393,6 +24419,9 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
     clearEmptyLiveRoundPerfState();
     needsLiveReveal = shouldRevealLiveStorageForRound(prev, next, true);
     wantsSpectacle = false;
+    if (isSoloPlayerEmptyLiveRound(prev, next)) {
+      TCG_DEBUG.log('live', 'solo empty round: skip reveal, WR flight only', TCG_DEBUG.trans(prev, next));
+    }
   }
   const allowFinishedSpectacle = next?.status === 'finished' && wantsSpectacle;
   if (isPresentationSuperseded() || (next?.status === 'finished' && !allowFinishedSpectacle)) {
@@ -24468,6 +24497,8 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
         emptyWrPlayed = await playLiveStorageWrDiscards(revealBoard, next, myId, {
           initialDelayMs: LIVE_BLUFF_WR_DELAY_MS,
         });
+      } else if (wrFrom && liveStorageHasCards(wrFrom)) {
+        TCG_DEBUG.warn('live', 'empty round: no WR discards collected', TCG_DEBUG.trans(prev, next));
       }
       G._livePostRevealBoard = null;
       G.gameState = next;
