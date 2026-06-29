@@ -441,7 +441,7 @@ body.tutorial-mode #sb-activatable-wrap.tut-show{outline:2px solid rgba(255,107,
   display:flex;align-items:stretch;justify-content:center;
 }
 #screen-game .game-viewport-frame .game-wide-wrap{flex:1 1 auto}
-:root{--hand-strip-h:132px;--hand-card-pad:24px;--my-hand-card-h:calc((var(--hand-strip-h) - var(--hand-card-pad)) * 1.44);--opp-hand-card-h:calc((var(--hand-strip-h) - var(--hand-card-pad)) * 1.28);--skill-hand-preserve-h:max(var(--hand-strip-h),var(--my-hand-card-h));--mat-seam-h:5px;--menu-card-h:118px;--side-panel-w:440px;--playmat-gutter:880px;--field-card-scale:1.16;--pile-fill-scale:1.14;--flight-ms:300ms;--fan-shift-ms:280ms;--energy-flip-ms:360ms}
+:root{--hand-strip-h:132px;--hand-card-pad:24px;--my-hand-card-h:calc((var(--hand-strip-h) - var(--hand-card-pad)) * 1.44);--opp-hand-card-h:calc((var(--hand-strip-h) - var(--hand-card-pad)) * 1.28);--skill-hand-preserve-h:calc(max(var(--hand-strip-h),var(--my-hand-card-h)) + 30px);--mat-seam-h:5px;--menu-card-h:118px;--side-panel-w:440px;--playmat-gutter:880px;--field-card-scale:1.16;--pile-fill-scale:1.14;--flight-ms:300ms;--fan-shift-ms:280ms;--energy-flip-ms:360ms}
 .game-wide-wrap{
   width:100%;height:100vh;
   display:flex;align-items:center;justify-content:center;
@@ -2512,12 +2512,27 @@ body.tutorial-mode #overlay-coin{pointer-events:none}
   display:none;align-items:center;justify-content:center;
   padding:16px;backdrop-filter:blur(4px)}
 .overlay.open{display:flex}
-/* Skill resolve prompts: clip blur/dim above the live hand strip so hand cards stay sharp for decisions. */
-.overlay.skill-hand-preserve.open{
-  bottom:calc(var(--skill-hand-preserve-h) + env(safe-area-inset-bottom,0px));
+/* Skill resolve prompts: full-screen blur/dim with a bottom cutout so hand cards stay sharp. */
+body:has(.overlay.skill-hand-preserve.open)::before{
+  content:'';
+  position:fixed;inset:0;z-index:899;pointer-events:auto;
+  background:rgba(4,10,24,.82);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+  --skill-hand-cut:calc(var(--skill-hand-preserve-h) + env(safe-area-inset-bottom,0px));
+  mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - var(--skill-hand-cut)),transparent calc(100% - var(--skill-hand-cut)));
+  -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - var(--skill-hand-cut)),transparent calc(100% - var(--skill-hand-cut)));
 }
+.overlay.skill-hand-preserve.open{
+  background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;
+  pointer-events:none;
+}
+.overlay.skill-hand-preserve.open .mbox{pointer-events:auto}
 body:has(.overlay.skill-hand-preserve.open) #screen-game .my-hand-strip{
-  box-shadow:0 -10px 28px rgba(0,0,0,.42);
+  position:relative;z-index:915;
+}
+body:has(.overlay.skill-hand-preserve.open) #screen-game .playmat-column.play-selecting .play-cost-hud,
+body:has(.overlay.skill-hand-preserve.open) #screen-game .playmat-column.live-selecting .live-score-hud{
+  z-index:916;pointer-events:auto;
 }
 #overlay-zone{z-index:910}
 #modal-card{z-index:940}
