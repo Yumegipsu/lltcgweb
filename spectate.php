@@ -77,9 +77,76 @@ function tcgTouchSpectatorPresence(string $roomId, string $token): void {
     tcgWriteSpectators($roomId, $spectators);
 }
 
-function tcgIsSpectatableHumanGame(array $state): bool {
-    $st = $state['status'] ?? '';
-    if ($st === 'waiting' || $st === 'finished') {
+/** Human PvP with at least one player still connected (presence / recent game activity). */
+function tcgPvpLivePlayerCount(array $state, string $roomId, ?int $now = null): int {
+    if (($state['status'] ?? '') !== 'playing') {
+        return 0;
+    }
+    if (($state['mode'] ?? '') === 'replay_view' || !isPvpMatch($state)) {
+        return 0;
+    }
+    if (!function_exists('readPresence')) {
+        if (!defined('TCG_API_LIB_ONLY')) {
+            define('TCG_API_LIB_ONLY', true);
+        }
+        require_once __DIR__ . '/api.php';
+    }
+    $now = $now ?? time();
+    $presence = readPresence($roomId);
+    $path = gameFile($roomId);
+    $gameAge = is_file($path) ? ($now - filemtime($path)) : 0;
+    $grace = defined('PRESENCE_DISCONNECT_SEC') ? PRESENCE_DISCONNECT_SEC : 120;
+    $noShowSec = (defined('PRESENCE_NO_SHOW_SEC') ? PRESENCE_NO_SHOW_SEC : 300) * 2;
+
+    $live = 0;
+    $anyPresenceEver = false;
+    foreach (['p1', 'p2'] as $pid) {
+        $player = $state['players'][$pid] ?? null;
+        if (!$player || isCpuPlayer($player)) {
+            continue;
+        }
+        $token = (string)($player['token'] ?? '');
+        if ($token === '') {
+            continue;
+        }
+        $last = intval($presence[$token] ?? 0);
+        if ($last > 0) {
+            $anyPresenceEver = true;
+            if (($now - $last) < $grace) {
+                $live++;
+            }
+        }
+    }
+
+    if ($live === 0 && !$anyPresenceEver && $gameAge < $grace) {
+        foreach (['p1', 'p2'] as $pid) {
+            $player = $state['players'][$pid] ?? null;
+            if ($player && !isCpuPlayer($player)) {
+                $live++;
+            }
+        }
+        return $live;
+    }
+
+    if ($live === 0 && $gameAge < $noShowSec) {
+        foreach (['p1', 'p2'] as $pid) {
+            $player = $state['players'][$pid] ?? null;
+            if (!$player || isCpuPlayer($player)) {
+                continue;
+            }
+            $token = (string)($player['token'] ?? '');
+            $last = intval($presence[$token] ?? 0);
+            if ($last > 0 && ($now - $last) < 60) {
+                $live++;
+            }
+        }
+    }
+
+    return $live;
+}
+
+function tcgIsSpectatableHumanGame(array $state, string $roomId = ''): bool {
+    if (($state['status'] ?? '') !== 'playing') {
         return false;
     }
     if (($state['mode'] ?? '') === 'replay_view') {
@@ -91,6 +158,9 @@ function tcgIsSpectatableHumanGame(array $state): bool {
     $p1 = $state['players']['p1'] ?? null;
     $p2 = $state['players']['p2'] ?? null;
     if (!$p1 || !$p2 || isCpuPlayer($p1) || isCpuPlayer($p2)) {
+        return false;
+    }
+    if ($roomId !== '' && tcgPvpLivePlayerCount($state, $roomId) < 1) {
         return false;
     }
     return true;
@@ -114,7 +184,7 @@ function tcgListRankedSpectatableMatches(): array {
 
     $matches = [];
     $db = tcgDb();
-    $stmt = $db->query('SELECT room_id FROM tcg_ranked_matches WHERE status = "pending"');
+    $stmt = $db->query('SELECT room_id, created_at, p1_id, p2_id, p1_token, p2_token FROM tcg_ranked_matches WHERE status = "pending"');
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $roomId = (string)($row['room_id'] ?? '');
         if ($roomId === '') {
@@ -122,14 +192,20 @@ function tcgListRankedSpectatableMatches(): array {
         }
         $path = tcgRankedGameFilePath($roomId);
         if (!is_file($path)) {
+            tcgCompleteRankedMatch($roomId);
             continue;
         }
         $state = json_decode((string)file_get_contents($path), true);
         if (!is_array($state) || ($state['mode'] ?? '') !== 'ranked') {
+            tcgCompleteRankedMatch($roomId);
             continue;
         }
-        if (!tcgIsSpectatableHumanGame($state)) {
-            if (($state['status'] ?? '') === 'finished' && $roomId !== '') {
+        if (tcgRankedMatchRowIsStale($roomId, $state, $row)) {
+            tcgCompleteRankedMatch($roomId);
+            continue;
+        }
+        if (!tcgIsSpectatableHumanGame($state, $roomId)) {
+            if (($state['status'] ?? '') === 'finished') {
                 tcgCompleteRankedMatch($roomId);
             }
             continue;
@@ -171,7 +247,7 @@ function tcgListCasualSpectatableMatches(): array {
         if (($state['mode'] ?? '') === 'ranked') {
             continue;
         }
-        if (!tcgIsSpectatableHumanGame($state)) {
+        if (!tcgIsSpectatableHumanGame($state, $roomId)) {
             continue;
         }
         $matches[] = tcgSpectatableMatchRow($roomId, $state, 'casual');
@@ -208,7 +284,7 @@ function tcgJoinSpectator(string $roomId): array {
     if (!$state) {
         throw new Exception('Room not found');
     }
-    if (!tcgIsSpectatableHumanGame($state)) {
+    if (!tcgIsSpectatableHumanGame($state, $roomId)) {
         throw new Exception('This match is not available to spectate');
     }
     $category = (($state['mode'] ?? '') === 'ranked') ? 'ranked' : 'casual';

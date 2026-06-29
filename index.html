@@ -854,14 +854,23 @@ html:not(.tcg-mobile-viewport) #screen-game .live-score-hud{
   color:rgba(186,228,255,.78);margin-bottom:3px;white-space:nowrap;
 }
 .spectator-count[hidden]{display:none!important}
+#overlay-spectate-list .mbox{max-width:min(480px,92vw)}
 .spectate-match-list{display:flex;flex-direction:column;gap:8px;margin:12px 0 4px;max-height:min(52vh,420px);overflow-y:auto}
 .spectate-match-row{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.05);
   border:1px solid var(--ui-panel-border);
 }
-.spectate-match-label{flex:1;min-width:0;font-size:13px;line-height:1.35;color:rgba(255,255,255,.9)}
-.spectate-match-meta{display:block;font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.spectate-match-label{flex:1 1 auto;min-width:0;font-size:13px;line-height:1.4;color:rgba(255,255,255,.9);overflow:hidden}
+.spectate-match-names{display:block;overflow:hidden;text-overflow:ellipsis}
+.spectate-match-meta{display:block;font-size:11px;color:rgba(255,255,255,.45);margin-top:4px;line-height:1.35}
+.spectate-match-row .btn-out{
+  flex:0 0 auto;width:auto;min-width:72px;padding:8px 14px;font-size:12px;align-self:center;
+}
+@media(max-width:420px){
+  .spectate-match-row{flex-wrap:wrap}
+  .spectate-match-row .btn-out{flex:1 1 100%;min-width:0}
+}
 .spectate-bar{
   position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:950;
   display:flex;align-items:center;gap:12px;
@@ -6018,7 +6027,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 
 <!-- Spectate match list -->
 <div class="overlay" id="overlay-spectate-list">
-  <div class="mbox" style="max-width:480px;width:100%">
+  <div class="mbox">
     <button class="mcls" id="btn-spectate-list-close" type="button">✕</button>
     <h2 id="spectate-list-title">Spectate match</h2>
     <p class="account-lead">Watch an ongoing match — view only, no interaction.</p>
@@ -33709,9 +33718,13 @@ function renderSpectateMatchList(matches) {
     row.className = 'spectate-match-row';
     const label = document.createElement('div');
     label.className = 'spectate-match-label';
-    const turn = m.turn ? `Turn ${m.turn}` : '';
-    const watching = m.spectators ? ` · ${m.spectators} watching` : '';
-    label.innerHTML = `<strong>${spectateEsc(m.p1_name)}</strong> vs <strong>${spectateEsc(m.p2_name)}</strong><span class="spectate-match-meta">${spectateEsc(turn)}${watching}</span>`;
+    const metaParts = [];
+    if (m.turn) metaParts.push(`Turn ${m.turn}`);
+    if (m.phase) metaParts.push(String(m.phase).replace(/_/g, ' '));
+    if (m.spectators) metaParts.push(`${m.spectators} watching`);
+    label.innerHTML =
+      `<span class="spectate-match-names"><strong>${spectateEsc(m.p1_name)}</strong> vs <strong>${spectateEsc(m.p2_name)}</strong></span>` +
+      (metaParts.length ? `<span class="spectate-match-meta">${spectateEsc(metaParts.join(' · '))}</span>` : '');
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn-out';
