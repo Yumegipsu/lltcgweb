@@ -1,0 +1,12 @@
+<?php
+/**
+ * Copy to tcg_sync.local.php on Hostinger (gitignored). Do not commit real URLs or secrets.
+ *
+ * TCG_SYNC_PUBLISH_URL — same host as wrapped PYTHON_API_URL, path /api/tcg/sync/notify
+ * TCG_SYNC_INTERNAL_TOKEN — same value as LLR_SITE_INTERNAL_TOKEN in wrapped/api.php
+ * TCG_SYNC_SHARED_SECRET — shared with VPS (TCG_SYNC_SHARED_SECRET env on wrapped-api service)
+ */
+define('TCG_SYNC_ENABLED', true);
+define('TCG_SYNC_PUBLISH_URL', 'http://YOUR_VPS_HOST:5001/api/tcg/sync/notify');
+define('TCG_SYNC_INTERNAL_TOKEN', 'paste-LLR_SITE_INTERNAL_TOKEN-here');
+define('TCG_SYNC_SHARED_SECRET', 'generate-with-openssl-rand-hex-32');

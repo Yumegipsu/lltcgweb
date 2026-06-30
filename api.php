@@ -59,6 +59,7 @@ require_once __DIR__ . '/debug_card_test.php';
 require_once __DIR__ . '/replay.php';
 require_once __DIR__ . '/casual_matchmaking.php';
 require_once __DIR__ . '/spectate.php';
+require_once __DIR__ . '/tcg_sync.php';
 define('LOCK_TIMEOUT', 5);      // seconds
 define('GAME_TIMEOUT', 3600);   // 1 hour inactivity = cleanup
 define('POLL_TIMEOUT', 25);     // long-poll seconds
@@ -109,6 +110,7 @@ try {
         case 'spectate_join': echo json_encode(apiSpectateJoin($body)); break;
         case 'spectate_leave': echo json_encode(apiSpectateLeave($body)); break;
         case 'ping':         echo json_encode(ping($body));            break;
+        case 'sync_ticket':  echo json_encode(apiSyncTicket($body));    break;
         case 'cleanup':      echo json_encode(cleanupOldGames());      break;
         default:
             http_response_code(404);
@@ -260,13 +262,13 @@ function createRoom(array $body): array {
 
     saveGame($roomId, $state);
 
-    return [
+    return tcgSyncAttachMeta([
         'room_id'      => $roomId,
         'player_token' => $playerToken,
         'player_id'    => 'p1',
         'status'       => 'waiting',
         'message'      => "Room $roomId created. Share this code with your opponent!"
-    ];
+    ], $roomId, $playerToken);
 }
 
 function joinRoom(array $body): array {
@@ -311,13 +313,13 @@ function joinRoom(array $body): array {
 
     saveGame($roomId, $state);
 
-    return [
+    return tcgSyncAttachMeta([
         'room_id'      => $roomId,
         'player_token' => $playerToken,
         'player_id'    => 'p2',
         'status'       => 'ready',
         'message'      => 'Joined! Game starting...'
-    ];
+    ], $roomId, $playerToken);
 }
 
 // ─────────────────────────────────────────────
@@ -2796,6 +2798,7 @@ function loadGame(string $roomId): ?array {
 
 function saveGame(string $roomId, array $state): void {
     file_put_contents(gameFile($roomId), json_encode($state), LOCK_EX);
+    tcgSyncNotify($roomId, intval($state['seq'] ?? 0), isset($state['phase']) ? (string)$state['phase'] : null);
 }
 
 function withLock(string $roomId, callable $fn): mixed {

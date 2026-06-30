@@ -11045,6 +11045,8 @@ function resetMatchTransientState() {
   clearActiveGameSession();
   G.gameState = null;
   G.lastSeq = 0;
+  G.syncEnabled = null;
+  G.syncTicket = null;
   abortGameplayPresentation({ skipPerfClose: true, skipAbortFlag: true });
   G._presentationAborted = false;
   clearPerfSpectacleDoneStorage();
@@ -13637,6 +13639,8 @@ let G = {
   _pendingReplayFile:null,
   gameState:null, allCards:{}, starterDecks:{},
   lastSeq:0, polling:false, pollTimer:null,
+  syncEnabled:null, syncTicket:null, syncEventSource:null,
+  presenceTimer:null, syncFallbackTimer:null, _syncReconnectTimer:null, _syncFailCount:0,
   selCard:null, liveSel:[], _liveSetLockPid:null, _oppHandDepartInflight:0, mullMarked:new Set(), mulliganPending:false,
   pickMarked:new Set(), pickCtx:null, heartCtx:null,
   surveil:{slots:[],wr:[],byId:{},selId:null,drag:null},
@@ -15194,6 +15198,7 @@ async function startSoloRematch(rematch) {
   const diffLabel = { easy: 'Easy', normal: 'Normal', hard: 'Hard' }[G.cpuDifficulty];
   const r1 = await apiPost('create_room', { name, ...deckPayloadFromChoice(deckSel), ...timerOpts });
   G.roomId = r1.room_id; G.token = r1.player_token; G.playerId = 'p1'; G.isCPU = true;
+  captureSyncMeta(r1);
   const r2 = await apiPost('join_room', {
     room_id: G.roomId,
     name: `CPU (${diffLabel})`,
@@ -15212,6 +15217,7 @@ async function startUnrankedRematch(rematch) {
     ...timerOpts,
   });
   G.roomId = r.room_id; G.token = r.player_token; G.playerId = r.player_id; G.isCPU = false;
+  captureSyncMeta(r);
   el('disp-code').textContent = r.room_id;
   updateWaitingTimerInfo(timerOpts.phase_timer_enabled
     ? { enabled: true, duration: timerOpts.phase_timer_seconds }
@@ -15271,6 +15277,7 @@ async function doCreate() {
   try {
     const r = await apiPost('create_room',{name,...lobbyDeckPayload(),...timerOpts});
     G.roomId=r.room_id; G.token=r.player_token; G.playerId=r.player_id; G.isCPU=false;
+    captureSyncMeta(r);
     el('disp-code').textContent=r.room_id;
     updateWaitingTimerInfo(timerOpts.phase_timer_enabled
       ? { enabled: true, duration: timerOpts.phase_timer_seconds }
@@ -15288,6 +15295,7 @@ async function doJoin() {
   try {
     const r = await apiPost('join_room',{room_id:code,name,...lobbyDeckPayload()});
     G.token=r.player_token; G.playerId=r.player_id; G.isCPU=false;
+    captureSyncMeta(r);
     showScr('game'); startPoll();
   } catch(e){ setErr(e.message); }
 }
@@ -15305,6 +15313,7 @@ async function doSolo() {
   try {
     const r1 = await apiPost('create_room',{name,...lobbyDeckPayload(),...timerOpts});
     G.roomId=r1.room_id; G.token=r1.player_token; G.playerId='p1'; G.isCPU=true;
+    captureSyncMeta(r1);
     const r2 = await apiPost('join_room', {
       room_id: G.roomId,
       name: `CPU (${diffLabel})`,
@@ -15320,28 +15329,162 @@ function copyCode(){
 }
 function setErr(m){ el('lerr').textContent=m; }
 
-// ── POLLING ──────────────────────────────────────────
+function captureSyncMeta(res) {
+  if (!res || typeof res !== 'object') return;
+  if (res.sync_enabled && res.sync_ticket) {
+    G.syncEnabled = true;
+    G.syncTicket = res.sync_ticket;
+  } else if (res.sync_enabled === false) {
+    G.syncEnabled = false;
+    G.syncTicket = null;
+  }
+}
+
+const TCG_PRESENCE_PING_MS = 30000;
+const TCG_SYNC_FALLBACK_POLL_MS = 3000;
+const TCG_SYNC_MAX_FAILS = 6;
+
+function stopSyncStream() {
+  if (G.syncEventSource) {
+    G.syncEventSource.close();
+    G.syncEventSource = null;
+  }
+  clearTimeout(G.syncFallbackTimer);
+  G.syncFallbackTimer = null;
+  clearTimeout(G._syncReconnectTimer);
+  G._syncReconnectTimer = null;
+  clearInterval(G.presenceTimer);
+  G.presenceTimer = null;
+}
+
+function stopPoll() {
+  G.polling = false;
+  clearTimeout(G.pollTimer);
+  clearTimeout(G.watchdogTimer);
+  stopSyncStream();
+}
+
+async function tcgPresencePing() {
+  if (!G.polling || !G.roomId || !G.token || G.isTutorial) return;
+  try {
+    await apiPost('ping', { room_id: G.roomId, token: G.token });
+  } catch (e) { /* best effort */ }
+}
+
+function startSyncFallbackPoll() {
+  clearTimeout(G.syncFallbackTimer);
+  if (!G.polling || G.isTutorial) return;
+  G.syncFallbackTimer = setTimeout(async () => {
+    G.syncFallbackTimer = null;
+    if (!G.polling || G.isTutorial) return;
+    if (G.animating || G._perfSpectacleActive || G._livePollHold) {
+      startSyncFallbackPoll();
+      return;
+    }
+    await pullLatestState();
+    if (G.polling && G.syncEnabled === false) startSyncFallbackPoll();
+  }, TCG_SYNC_FALLBACK_POLL_MS);
+}
+
+function scheduleSyncReconnect(ms) {
+  clearTimeout(G._syncReconnectTimer);
+  G._syncReconnectTimer = setTimeout(async () => {
+    G._syncReconnectTimer = null;
+    if (!G.polling || G.isTutorial) return;
+    if (!G.syncTicket) {
+      try {
+        const r = await apiPost('sync_ticket', { room_id: G.roomId, token: G.token });
+        captureSyncMeta(r);
+      } catch (e) { /* retry below */ }
+    }
+    if (G.syncEnabled && G.syncTicket) openSyncStream();
+    else if (G.polling) scheduleSyncReconnect(Math.min(12000, ms * 2));
+  }, ms);
+}
+
+function onSyncStateEvent(data) {
+  const seq = parseInt(data?.seq, 10);
+  if (!Number.isFinite(seq) || seq <= (G.lastSeq ?? 0)) return;
+  TCG_DEBUG.log('sync', 'state event', { seq, last: G.lastSeq });
+  void pullLatestState();
+}
+
+function openSyncStream() {
+  stopSyncStream();
+  if (!G.polling || G.isTutorial || !G.roomId || !G.syncTicket) return;
+  const url = `${WRAPPED_API}?action=tcg_sync_stream&room_id=${encodeURIComponent(G.roomId)}`
+    + `&ticket=${encodeURIComponent(G.syncTicket)}&last_seq=${encodeURIComponent(String(G.lastSeq ?? 0))}`;
+  TCG_DEBUG.log('sync', 'connect', { room: G.roomId, seq: G.lastSeq });
+  const es = new EventSource(url);
+  G.syncEventSource = es;
+  es.addEventListener('ready', () => {
+    G._syncFailCount = 0;
+    clearTimeout(G.syncFallbackTimer);
+    G.syncFallbackTimer = null;
+  });
+  es.addEventListener('state', (ev) => {
+    try { onSyncStateEvent(JSON.parse(ev.data)); } catch (e) { /* ignore */ }
+  });
+  es.addEventListener('rotate', () => {
+    es.close();
+    G.syncEventSource = null;
+    if (G.polling) scheduleSyncReconnect(280);
+  });
+  es.onerror = () => {
+    es.close();
+    G.syncEventSource = null;
+    G._syncFailCount = (G._syncFailCount || 0) + 1;
+    if (G._syncFailCount >= TCG_SYNC_MAX_FAILS) {
+      TCG_DEBUG.warn('sync', 'using poll=0 fallback');
+      startSyncFallbackPoll();
+    }
+    if (G.polling) scheduleSyncReconnect(Math.min(8000, 400 * Math.pow(2, G._syncFailCount)));
+  };
+  clearInterval(G.presenceTimer);
+  void tcgPresencePing();
+  G.presenceTimer = setInterval(() => void tcgPresencePing(), TCG_PRESENCE_PING_MS);
+}
+
+async function beginGameSync() {
+  if (!G.syncTicket) {
+    try {
+      const r = await apiPost('sync_ticket', { room_id: G.roomId, token: G.token });
+      captureSyncMeta(r);
+    } catch (e) {
+      TCG_DEBUG.warn('sync', 'sync_ticket failed', e);
+    }
+  }
+  if (G.syncEnabled && G.syncTicket) {
+    openSyncStream();
+    return;
+  }
+  G.syncEnabled = false;
+  doPollLegacy();
+}
+
+// ── POLLING / SSE SYNC ───────────────────────────────
 function startPoll() {
   clearTimeout(G.pollTimer);
   clearTimeout(G.watchdogTimer);
   G.polling = true;
+  G._syncFailCount = 0;
   saveActiveGameSession();
-  doPoll();
+  if (G.isTutorial) return;
+  void beginGameSync();
 }
-function stopPoll() { G.polling=false; clearTimeout(G.pollTimer); clearTimeout(G.watchdogTimer); }
 
-async function doPoll() {
+async function doPollLegacy() {
   if (!G.polling || G.isTutorial) return;
   if (G.animating || G._perfSpectacleActive) {
     TCG_DEBUG.logOnce('poll', `blocked:${G.animating}:${G._perfSpectacleActive}`, 'blocked (animating/spectacle)', { animating: G.animating, spectacle: G._perfSpectacleActive });
-    if (G.polling) G.pollTimer = setTimeout(doPoll, 400);
+    if (G.polling) G.pollTimer = setTimeout(doPollLegacy, 400);
     return;
   }
   ensurePollHoldReleased(G.gameState);
   const blockPoll = G._livePollHold;
   if (blockPoll) {
     TCG_DEBUG.logOnce('poll', 'livePollHold', 'blocked (livePollHold)', TCG_DEBUG.snap(G.gameState));
-    if (G.polling) G.pollTimer = setTimeout(doPoll, 400);
+    if (G.polling) G.pollTimer = setTimeout(doPollLegacy, 400);
     return;
   }
   try {
@@ -15356,7 +15499,7 @@ async function doPoll() {
       TCG_DEBUG.warn('poll', 'error', d.error);
     } else onState(d);
   } catch (e) { TCG_DEBUG.warn('poll', 'fetch failed', e); }
-  if (G.polling) G.pollTimer = setTimeout(doPoll, 600);
+  if (G.polling) G.pollTimer = setTimeout(doPollLegacy, 600);
 }
 
 const ANIM_STEP_MS = 300;
@@ -25988,7 +26131,7 @@ async function pullLatestState() {
   if (!G.polling || G.isTutorial || !G.roomId || !G.token) return;
   TCG_DEBUG.log('poll', 'pullLatestState', { seq: G.lastSeq });
   try {
-    const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(G.roomId)}&token=${G.token}&seq=${G.lastSeq}`);
+    const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(G.roomId)}&token=${encodeURIComponent(G.token)}&seq=${G.lastSeq}&poll=0`);
     const d = await r.json();
     if (!d.error) onState(d);
     else TCG_DEBUG.warn('poll', 'pullLatestState error', d.error);
@@ -35458,6 +35601,8 @@ function freshGameGlobals() {
     roomId:null, token:null, cpuToken:null, playerId:null, isCPU:false, casualRandomMatch:false, cpuDifficulty:'easy',
     gameState:null, allCards:G.allCards, starterDecks:G.starterDecks,
     lastSeq:0, polling:false, pollTimer:null,
+    syncEnabled:null, syncTicket:null, syncEventSource:null,
+    presenceTimer:null, syncFallbackTimer:null, _syncReconnectTimer:null, _syncFailCount:0,
     selCard:null, liveSel:[], _liveSetLockPid:null, _oppHandDepartInflight:0, mullMarked:new Set(), mulliganPending:false,
     pickMarked:new Set(), pickCtx:null, heartCtx:null,
     surveil:{slots:[],wr:[],byId:{},selId:null,drag:null},
@@ -35677,6 +35822,7 @@ async function joinSpectateMatch(roomId) {
   if (errEl) errEl.textContent = '';
   try {
     const res = await apiPost('spectate_join', { room_id: roomId });
+    captureSyncMeta(res);
     await bootSpectatorSession({
       roomId: res.room_id,
       token: res.spectator_token,

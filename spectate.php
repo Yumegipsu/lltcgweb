@@ -456,7 +456,8 @@ function apiSpectateList(array $body): array {
 
 function apiSpectateJoin(array $body): array {
     $roomId = (string)($body['room_id'] ?? '');
-    return tcgJoinSpectator($roomId);
+    $out = tcgJoinSpectator($roomId);
+    return tcgSyncAttachMeta($out, (string)($out['room_id'] ?? ''), (string)($out['spectator_token'] ?? ''));
 }
 
 function apiSpectateLeave(array $body): array {
