@@ -2374,6 +2374,10 @@ html:not(.foil-fx-off) #screen-game .hcard.card-tilt-enabled:not(.play-sel):hove
   transition:transform .55s cubic-bezier(.4,.2,.2,1);
 }
 .hcard.hand-draw-flip.revealed .hand-flip-inner{transform:rotateY(180deg)}
+.hcard.hand-skill-revealed,.opp-hand-card.hand-skill-revealed{
+  box-shadow:0 0 0 2px rgba(251,191,36,.75),0 0 14px rgba(251,191,36,.35);
+}
+.opp-hand-card.hand-draw-flip.revealed .hand-flip-inner{transform:rotateY(180deg)}
 .hcard.hand-draw-flip .hand-flip-face{
   position:absolute;inset:0;border-radius:4px;overflow:hidden;
   backface-visibility:hidden;-webkit-backface-visibility:hidden;
@@ -16345,6 +16349,48 @@ function markHandRevealFlip(iid) {
   G._handRevealFlips.add(iid);
 }
 
+function isHandSkillRevealSpec(spec) {
+  return !!spec?.reveal && spec.from === 'hand' && spec.to === 'hand';
+}
+
+function beginOppHandSkillReveal(iid, state, ownerId) {
+  const card = findCardInState(state, iid, ownerId);
+  if (!card) return;
+  const zone = el('opp-hand-zone');
+  if (!zone) return;
+  let cardEl = zone.querySelector(`.opp-hand-card[data-iid="${CSS.escape(iid)}"]`);
+  if (!cardEl) {
+    renderOpponentHandTracked(state.players?.[ownerId]?.hand || [], state, ownerId, { animate: false });
+    cardEl = zone.querySelector(`.opp-hand-card[data-iid="${CSS.escape(iid)}"]`);
+  }
+  if (!cardEl) return;
+  if (!cardEl.querySelector('.hand-flip-inner')) {
+    cardEl.classList.add('hcard', 'hand-draw-flip');
+    if (isLiveCard(card)) cardEl.classList.add('card-live-hand');
+    buildHandFlipStructure(cardEl, card);
+    ensureHandTypeBadge(cardEl, card);
+  }
+  markHandRevealFlip(iid);
+  scheduleHandDrawReveal(cardEl, iid);
+  cardEl.classList.add('hand-skill-revealed');
+}
+
+async function playHandSkillRevealSpec(spec, finalState, myId, delayMs = 0) {
+  const card = findCardInState(finalState, spec.iid, spec.pid);
+  if (!card) return;
+  if (delayMs > 0) await sleep(delayMs);
+  G.gameState = finalState;
+  renderGame(finalState, { skipLog: true });
+  if (spec.pid === myId) {
+    beginHandDrawReveal(spec.iid, finalState, myId);
+    const elCard = el('hand-row')?.querySelector(`.hcard[data-iid="${CSS.escape(spec.iid)}"]`);
+    elCard?.classList.add('hand-skill-revealed');
+  } else {
+    beginOppHandSkillReveal(spec.iid, finalState, spec.pid);
+  }
+  await sleep(HAND_DRAW_FLIP_MS + 180);
+}
+
 function staggerDelayForDrawMoves(moves, index) {
   let delay = 0;
   for (let i = 0; i < index; i++) {
@@ -17731,6 +17777,10 @@ async function playAnimSpecBatch(specs, playback, finalState, myId) {
 }
 
 async function playAnimSpec(spec, playback, finalState, myId, delayMs = 0) {
+  if (isHandSkillRevealSpec(spec)) {
+    await playHandSkillRevealSpec(spec, finalState, myId, delayMs);
+    return;
+  }
   const card = findCardInState(finalState, spec.iid, spec.pid);
   if (!card) return;
   const prePlayback = deepCloneState(playback);
@@ -22291,8 +22341,17 @@ function cpuResolvePromptSmart(s, cpu, pr, tier) {
       cpuAct('resolve_prompt', { choice: swap ? 'yes' : 'no' });
       return true;
     }
-    const lives = hand.filter(c => c.card_type === 'ライブ').sort((a, b) => (b.score || 0) - (a.score || 0));
-    if (lives[0]) { cpuAct('resolve_prompt', { card_id: lives[0].instance_id }); return true; }
+    if (pr.step === 'pick_hand_live') {
+      const lives = hand.filter(c => c.card_type === 'ライブ').sort((a, b) => (b.score || 0) - (a.score || 0));
+      if (lives[0]) { cpuAct('resolve_prompt', { card_id: lives[0].instance_id }); return true; }
+      return true;
+    }
+    if (pr.step === 'pick_success_live') {
+      const succ = cpu.success_lives || [];
+      const pick = [...succ].sort((a, b) => (a.score || 0) - (b.score || 0))[0];
+      if (pick) { cpuAct('resolve_prompt', { card_id: pick.instance_id }); return true; }
+      return true;
+    }
   }
   if (pr.type === 'optional_pay_play_hand_member') {
     const grp = pr.ability?.group || 'Nijigasaki';
@@ -31606,6 +31665,39 @@ function openJudgeSuccessLivePick(pr, opts = {}) {
   openM('overlay-pick');
 }
 
+function openSuccessLiveAreaPick(pr, opts = {}) {
+  const s = opts.state || G.gameState;
+  const myId = opts.myId || G.playerId;
+  const pool = s?.players?.[myId]?.success_lives || [];
+  const byId = new Map(pool.map(c => [c.instance_id, c]));
+  const cards = (pr.candidates || []).map(c => {
+    const full = byId.get(c.instance_id);
+    return full ? { ...c, ...full } : c;
+  }).filter(c => c.instance_id);
+  if (!cards.length) {
+    toast('No cards in Success Live area', 3200);
+    return;
+  }
+  el('pick-ttl').textContent = pr.source_name || 'Success Live';
+  el('pick-msg').textContent = pr.prompt || 'Choose 1 card from your Success Live area to add to your hand.';
+  const g = el('pick-grid');
+  g.innerHTML = '';
+  G.pickCtx = null;
+  const btnOk = el('btn-pick-ok');
+  const btnCancel = el('btn-pick-cancel');
+  if (btnOk) btnOk.style.display = 'none';
+  if (btnCancel) btnCancel.style.display = 'none';
+  cards.forEach(card => {
+    g.appendChild(mkPickCardEl(card, 'pickcard', () => {
+      closeM('overlay-pick');
+      G.pickCtx = null;
+      sendAct('resolve_prompt', { card_id: card.instance_id });
+    }));
+  });
+  el('pick-count').textContent = '';
+  openM('overlay-pick');
+}
+
 function openWrLivePick(pr, opts = {}){
   openWrToHandPick(pr, opts);
 }
@@ -32849,11 +32941,28 @@ function renderPrompt(s, myId){
     openWrLivePick(pr);
     return;
   }
-  if(pr?.type==='optional_success_live_swap'&&pr.responder===myId
-    &&(pr.step==='pick_hand_live'||pr.step==='pick_success_live')){
+  if(pr?.type==='optional_success_live_swap'&&pr.responder===myId){
+    if(pr.step==='confirm'){
+      ovl.classList.add('open');
+      return;
+    }
     ovl.classList.remove('open');
-    openWrLivePick(pr);
-    return;
+    const me=s.players?.[myId];
+    if(pr.step==='pick_hand_live'){
+      openHandPick({
+        hand: (me?.hand||[]).filter(c=>c.card_type==='ライブ'),
+        count: 1,
+        title: pr.source_name||'Maki Nishikino',
+        msg: pr.prompt||'Choose 1 Live card from your hand to reveal.',
+        onConfirm: (ids)=> sendAct('resolve_prompt',{card_id:ids[0]}),
+        onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); }
+      });
+      return;
+    }
+    if(pr.step==='pick_success_live'){
+      openSuccessLiveAreaPick(pr, { state: s, myId });
+      return;
+    }
   }
   if(pr?.type==='mandatory_discard_after_draw'&&pr.responder===myId){
     ovl.classList.remove('open');

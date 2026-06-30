@@ -13030,6 +13030,11 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 }
             }
             if (!$found) throw new Exception('Choose a Live card from your hand');
+            $srcName = $prompt['source_name'] ?? 'Member';
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . $srcName . '] revealed ' . cardDisplayName($found) . ' from hand.',
+                'effect',
+                [animSpec($handLiveId, 'hand', 'hand', $owner, ['reveal' => true])]);
             $state['pending_prompt'] = [
                 'type'          => 'optional_success_live_swap',
                 'owner'         => $owner,
@@ -13070,10 +13075,16 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             array_splice($ownerP['hand'], $handIdx, 1);
             $ownerP['hand'][] = $successCard;
             $ownerP['success_lives'][] = $handLive;
+            $srcName = $prompt['source_name'] ?? 'Member';
             $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Member') . '] swapped ' .
-                ($handLive['name_en'] ?? $handLive['name']) . ' into Success Live area and added ' .
-                ($successCard['name_en'] ?? $successCard['name']) . ' to hand.');
+                ' — [' . $srcName . '] swapped ' .
+                cardDisplayName($handLive) . ' into Success Live and added ' .
+                cardDisplayName($successCard) . ' to hand.',
+                'effect',
+                [
+                    animSpec($handLiveId, 'hand', 'success', $owner),
+                    animSpec($successId, 'success', 'hand', $owner),
+                ]);
             unset($state['pending_prompt']);
             $state['seq']++;
             return $state;
