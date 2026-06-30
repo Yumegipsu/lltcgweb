@@ -626,26 +626,68 @@ html:not(.tcg-mobile-viewport) #screen-game .opp-hand-strip .opp-hand-card{
   min-height:0;
 }
 #deck-card-hover-panel{
-  flex:0 0 var(--deck-hover-panel-w,240px);
-  width:var(--deck-hover-panel-w,240px);
-  max-width:min(var(--deck-hover-panel-w,240px),34vw);
+  flex:0 0 var(--deck-hover-panel-w,248px);
+  width:var(--deck-hover-panel-w,248px);
+  max-width:min(var(--deck-hover-panel-w,248px),34vw);
   min-width:0;
-  align-self:flex-end;
+  min-height:0;
+  align-self:stretch;
   max-height:100%;
-  overflow-x:hidden;
-  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  overflow:hidden;
   margin-top:0;
+  opacity:1;
+  pointer-events:auto;
   z-index:1;
+  padding:8px 9px;
   background:rgba(4,10,22,.94);
   backdrop-filter:blur(16px);
   border:1px solid var(--ui-panel-border-strong);
   box-shadow:0 0 0 1px rgba(0,0,0,.35),0 10px 36px rgba(0,0,0,.55);
 }
-#deck-card-hover-panel .hc-img{max-width:220px}
-#deck-card-hover-panel .hc-img.landscape{max-width:260px}
-#deck-card-hover-panel .hc-empty{color:rgba(255,255,255,.48)}
-#deck-card-hover-panel .hc-sub{color:rgba(255,255,255,.58)}
-#deck-card-hover-panel .hc-text{color:rgba(255,255,255,.72)}
+#deck-card-hover-panel .hc-img{
+  flex-shrink:0;
+  max-width:118px;
+  margin-bottom:0;
+}
+#deck-card-hover-panel .hc-img.landscape{max-width:138px}
+#deck-card-hover-panel .hc-name{
+  flex-shrink:0;
+  font-size:13px;
+  line-height:1.25;
+}
+#deck-card-hover-panel .hc-sub{
+  flex-shrink:0;
+  font-size:9px;
+  color:rgba(255,255,255,.58);
+}
+#deck-card-hover-panel .hc-stats{
+  flex-shrink:0;
+  gap:3px;
+}
+#deck-card-hover-panel .hc-stats .sbox{padding:3px 2px}
+#deck-card-hover-panel .hc-stats .sk{font-size:7px}
+#deck-card-hover-panel .hc-stats .sv{font-size:11px}
+#deck-card-hover-panel .hc-empty{
+  flex:1 1 auto;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:rgba(255,255,255,.48);
+}
+#deck-card-hover-panel .hc-text{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-x:hidden;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  font-size:11px;
+  line-height:1.5;
+  color:rgba(255,255,255,.78);
+  scrollbar-gutter:stable;
+}
 #cd-actions .deck-copy-id-row{
   display:flex;justify-content:center;margin-top:6px;
 }
@@ -4362,8 +4404,8 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   overflow-y:auto;
   min-height:100%;
   box-sizing:border-box;
-  --deck-grid-cols:4;
-  --deck-hover-panel-w:260px;
+  --deck-grid-cols:5;
+  --deck-hover-panel-w:248px;
 }
 #screen-deck .deck-builder-shell{
   gap:4px;
@@ -4455,21 +4497,38 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 #screen-deck .deck-section-head{
   display:flex;
   flex-direction:column;
-  align-items:center;
+  align-items:stretch;
   text-align:center;
   gap:4px;
   margin:0 0 4px;
   flex:0 0 auto;
 }
-#screen-deck .deck-section-head h4{
-  margin:0 0 6px;
+#screen-deck .deck-section-head--deck{
+  align-items:center;
+}
+#screen-deck .deck-section-head__title-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
   width:100%;
+  min-width:0;
+}
+#screen-deck .deck-section-head h4{
+  margin:0;
+  width:auto;
   font-size:24px;
   font-weight:700;
   line-height:1.2;
-  text-align:center;
+  text-align:left;
   color:rgba(255,255,255,.95);
   letter-spacing:.04em;
+  flex:0 1 auto;
+  min-width:0;
+}
+#screen-deck .deck-section-head--deck h4{
+  width:100%;
+  text-align:center;
 }
 #screen-deck .deck-section-stats{
   margin:0;
@@ -4483,11 +4542,12 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 #screen-deck .deck-collection-sort{
   display:flex;
   align-items:center;
-  justify-content:center;
-  gap:8px;
-  flex-wrap:wrap;
-  width:100%;
-  margin:0 0 2px;
+  justify-content:flex-end;
+  gap:6px;
+  flex-wrap:nowrap;
+  width:auto;
+  margin:0;
+  flex:0 0 auto;
 }
 #screen-deck .deck-collection-sort label{
   font-size:12px;
@@ -4802,7 +4862,7 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   max-height:none;
   align-items:stretch;
   margin-bottom:0;
-  grid-template-columns:minmax(0,1.65fr) minmax(0,1fr);
+  grid-template-columns:minmax(0,1.62fr) minmax(0,1fr);
 }
 #screen-deck .deck-builder-section{
   display:flex;
@@ -4812,8 +4872,8 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   overflow:hidden;
 }
 #screen-deck .deck-card-grid{
-  padding:10px;
-  gap:var(--deck-grid-gap,10px);
+  padding:8px;
+  gap:var(--deck-grid-gap,8px);
   flex:1 1 auto;
   min-height:0;
   max-height:none;
@@ -4830,7 +4890,7 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   overflow-x:hidden;
   overflow-y:auto;
   scrollbar-gutter:stable;
-  grid-template-columns:repeat(var(--deck-grid-cols,4),var(--deck-tile-w));
+  grid-template-columns:repeat(var(--deck-grid-cols,5),var(--deck-tile-w));
   grid-auto-rows:var(--deck-tile-h);
 }
 #screen-deck .deck-slot-row{
@@ -4881,9 +4941,9 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   #screen-deck .deck-builder-lists{grid-template-columns:1fr;gap:8px;max-height:none}
   #screen-deck .deck-builder-section{max-height:none;flex:1 1 0;min-height:0}
   #deck-card-hover-panel{
-    flex:0 0 min(var(--deck-hover-panel-w,240px),34vw);
-    width:min(var(--deck-hover-panel-w,240px),34vw);
-    max-width:min(var(--deck-hover-panel-w,240px),34vw);
+    flex:0 0 min(var(--deck-hover-panel-w,248px),34vw);
+    width:min(var(--deck-hover-panel-w,248px),34vw);
+    max-width:min(var(--deck-hover-panel-w,248px),34vw);
   }
 }
 @media(max-width:520px){
@@ -4906,10 +4966,10 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .deck-builder-hint{font-size:11px;color:rgba(255,255,255,.65);margin:0 0 6px}
 .deck-builder-section{min-width:0}
 .deck-card-grid{
-  --deck-tile-w:96px;
+  --deck-tile-w:77px;
   --deck-tile-h:calc(var(--deck-tile-w) * 88 / 63);
-  --deck-grid-cols:4;
-  --deck-grid-gap:10px;
+  --deck-grid-cols:5;
+  --deck-grid-gap:8px;
   display:grid;
   grid-template-columns:repeat(var(--deck-grid-cols),var(--deck-tile-w));
   grid-auto-rows:var(--deck-tile-h);
@@ -5637,20 +5697,22 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
               <div id="dh-actions" style="display:none"></div>
             </div>
             <div class="deck-builder-pool-main">
-              <div class="deck-section-head">
-                <h4>Collection</h4>
-                <div class="deck-collection-sort" id="deck-collection-sort-wrap">
-                  <label for="sel-deck-pool-sort">Sort by</label>
-                  <div class="llc-select-wrap deck-collection-sort__select">
-                    <select id="sel-deck-pool-sort" aria-label="Collection sort order">
-                      <option value="default">Default</option>
-                      <option value="id">Card ID</option>
-                      <option value="rarity">Rarity</option>
-                      <option value="name">Name (idol)</option>
-                      <option value="type">Card type</option>
-                      <option value="group">Group / school</option>
-                      <option value="recent">Recently acquired</option>
-                    </select>
+              <div class="deck-section-head deck-section-head--pool">
+                <div class="deck-section-head__title-row">
+                  <h4>Collection</h4>
+                  <div class="deck-collection-sort" id="deck-collection-sort-wrap">
+                    <label for="sel-deck-pool-sort">Sort by</label>
+                    <div class="llc-select-wrap deck-collection-sort__select">
+                      <select id="sel-deck-pool-sort" aria-label="Collection sort order">
+                        <option value="default">Default</option>
+                        <option value="id">Card ID</option>
+                        <option value="rarity">Rarity</option>
+                        <option value="name">Name (idol)</option>
+                        <option value="type">Card type</option>
+                        <option value="group">Group / school</option>
+                        <option value="recent">Recently acquired</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
                 <p class="deck-section-stats" id="deck-collection-stats">Total cards owned · 0</p>
@@ -5660,7 +5722,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           </div>
         </div>
         <div class="deck-builder-section deck-builder-section--deck">
-          <div class="deck-section-head">
+          <div class="deck-section-head deck-section-head--deck">
             <h4>Current deck</h4>
             <p class="deck-section-stats" id="deck-current-stats">Total 0/72 · Members 0/48 · Lives 0/12 · Energy 0/12</p>
           </div>
