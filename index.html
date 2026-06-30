@@ -1977,17 +1977,19 @@ html:not(.tcg-compact-desktop):not(.tcg-mobile-viewport) #screen-game .game-view
 .coin-mbox{text-align:center;max-width:360px}
 .coin-stage{perspective:800px;height:120px;display:flex;align-items:center;justify-content:center;margin:18px 0}
 .coin{
-  width:96px;height:96px;position:relative;transform-style:preserve-3d;
-  transition:transform 1.1s cubic-bezier(.2,.85,.25,1);
+  width:96px;height:96px;min-width:96px;min-height:96px;flex-shrink:0;
+  position:relative;transform-style:preserve-3d;
 }
-.coin.flipping{animation:coinFlip 1.1s cubic-bezier(.2,.85,.25,1) forwards}
+.coin:not(.flipping){transition:transform 1.1s cubic-bezier(.2,.85,.25,1)}
+.coin.flipping{animation:coinFlip 1.1s cubic-bezier(.2,.85,.25,1) forwards;transition:none}
 .coin.landed-heads{transform:rotateY(0deg)}
 .coin.landed-tails{transform:rotateY(180deg)}
 .coin-face{
   position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;
   display:flex;align-items:center;justify-content:center;
   font-family:'Fredoka One',cursive;font-size:11px;line-height:1.15;
-  padding:8px;text-align:center;color:#fff;
+  padding:10px;text-align:center;color:#fff;
+  overflow:hidden;word-break:break-word;
   border:3px solid rgba(255,255,255,.35);
   box-shadow:0 6px 20px rgba(0,0,0,.45);
 }
@@ -15543,7 +15545,7 @@ async function doPollLegacy() {
       TCG_DEBUG.warn('poll', 'error', d.error);
     } else onState(d);
   } catch (e) { TCG_DEBUG.warn('poll', 'fetch failed', e); }
-  if (G.polling) G.pollTimer = setTimeout(doPollLegacy, 600);
+  if (G.polling) G.pollTimer = setTimeout(doPollLegacy, G.isCPU ? 280 : 600);
 }
 
 const ANIM_STEP_MS = 300;
@@ -26171,8 +26173,13 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   return { reveal: needsLiveReveal, spectacle: spectacleRan, empty: emptySkip };
 }
 
-async function pullLatestState() {
+async function pullLatestState(force) {
   if (!G.polling || G.isTutorial || !G.roomId || !G.token) return;
+  if (!force && pollPresentationBlocked()) {
+    if (G.syncEnabled && G.syncTicket) scheduleDeferredSyncPull(400);
+    else resumePollingTick(400);
+    return;
+  }
   TCG_DEBUG.log('poll', 'pullLatestState', { seq: G.lastSeq });
   try {
     const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(G.roomId)}&token=${encodeURIComponent(G.token)}&seq=${G.lastSeq}&poll=0`);
@@ -33652,6 +33659,14 @@ function renderPrompt(s, myId){
 // ── COIN FLIP ────────────────────────────────────────
 const COIN_FLIP_ANIM_MS = 1100;
 
+function coinFaceLabel(name) {
+  const n = String(name || '').trim();
+  if (!n) return '?';
+  if (/CPU/i.test(n)) return 'CPU';
+  if (n.length <= 10) return n;
+  return n.slice(0, 9) + '…';
+}
+
 function coinFlipAnimationActive() {
   return el('coin-el')?.classList.contains('flipping');
 }
@@ -33791,8 +33806,8 @@ function startCoinFlipAnimation(s, myId, flipKey) {
   const winner = s.coin_flip.winner;
   const p1 = s.players?.p1?.name || 'Player 1';
   const p2 = s.players?.p2?.name || 'Player 2';
-  el('coin-heads').textContent = winner === 'p1' ? p1 : p2;
-  el('coin-tails').textContent = winner === 'p1' ? p2 : p1;
+  el('coin-heads').textContent = coinFaceLabel(winner === 'p1' ? p1 : p2);
+  el('coin-tails').textContent = coinFaceLabel(winner === 'p1' ? p2 : p1);
   el('coin-msg').textContent = 'Flipping coin…';
   el('coin-result').textContent = '';
   hideCoinChoiceButtons();
@@ -35161,8 +35176,8 @@ function maybeShowTutorialCoinFlip(s) {
 
   const p1 = s.players?.p1?.name || 'Player 1';
   const p2 = s.players?.p2?.name || 'Player 2';
-  el('coin-heads').textContent = winner === 'p1' ? p1 : p2;
-  el('coin-tails').textContent = winner === 'p1' ? p2 : p1;
+  el('coin-heads').textContent = coinFaceLabel(winner === 'p1' ? p1 : p2);
+  el('coin-tails').textContent = coinFaceLabel(winner === 'p1' ? p2 : p1);
   el('coin-msg').textContent = 'Flipping coin…';
   el('coin-result').textContent = '';
   const coin = el('coin-el');

@@ -80,6 +80,11 @@ function tcgSyncAttachMeta(array $resp, string $roomId, string $token): array {
         $resp['sync_enabled'] = false;
         return $resp;
     }
+    $state = loadGame($roomId);
+    if (!$state || !isPvpMatch($state)) {
+        $resp['sync_enabled'] = false;
+        return $resp;
+    }
     $resp['sync_enabled'] = true;
     $resp['sync_ticket'] = tcgSyncIssueTicket($roomId, $token);
     return $resp;

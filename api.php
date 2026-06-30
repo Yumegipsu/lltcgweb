@@ -2798,7 +2798,9 @@ function loadGame(string $roomId): ?array {
 
 function saveGame(string $roomId, array $state): void {
     file_put_contents(gameFile($roomId), json_encode($state), LOCK_EX);
-    tcgSyncNotify($roomId, intval($state['seq'] ?? 0), isset($state['phase']) ? (string)$state['phase'] : null);
+    if (isPvpMatch($state)) {
+        tcgSyncNotify($roomId, intval($state['seq'] ?? 0), isset($state['phase']) ? (string)$state['phase'] : null);
+    }
 }
 
 function withLock(string $roomId, callable $fn): mixed {
