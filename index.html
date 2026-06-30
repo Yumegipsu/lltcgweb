@@ -14418,21 +14418,20 @@ function tcgActionDockActive() {
   return tcgMobileViewportActive();
 }
 
-const COMPACT_ACTION_SELECTORS = [
-  '.tcg-radio-bar',
-  '.tcg-radio-stack',
-  '.phase-action-bar',
-  '.sbfoot',
-];
-
 function syncCompactDesktopLayout() {
+  const compactActionSelectors = [
+    '.tcg-radio-bar',
+    '.tcg-radio-stack',
+    '.phase-action-bar',
+    '.sbfoot',
+  ];
   const host = el('side-left-actions-host');
   const sideLog = document.querySelector('#screen-game .side-panel.side-right .side-log');
   const cardPanel = el('card-hover-panel');
   if (!host || !sideLog) return;
 
   const compact = tcgCompactDesktopActive() && !tcgMobileViewportActive();
-  const actionNodes = COMPACT_ACTION_SELECTORS
+  const actionNodes = compactActionSelectors
     .map(sel => sideLog.querySelector(sel) || host.querySelector(sel))
     .filter(Boolean);
 
@@ -14453,7 +14452,7 @@ function syncCompactDesktopLayout() {
     cardPanel.hidden = false;
     cardPanel.removeAttribute('aria-hidden');
   }
-  COMPACT_ACTION_SELECTORS.forEach(sel => {
+  compactActionSelectors.forEach(sel => {
     const node = host.querySelector(sel);
     if (node) sideLog.appendChild(node);
   });
