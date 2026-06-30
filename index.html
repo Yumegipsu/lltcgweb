@@ -4507,20 +4507,24 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   align-items:center;
 }
 #screen-deck .deck-section-head__title-row{
-  display:grid;
-  grid-template-columns:1fr auto 1fr;
+  display:flex;
+  justify-content:center;
   align-items:center;
-  gap:10px;
   width:100%;
   min-width:0;
 }
+#screen-deck .deck-section-head__title-cluster{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  max-width:100%;
+  flex-wrap:wrap;
+}
 #screen-deck .deck-section-head--pool h4{
-  grid-column:1 / -1;
-  justify-self:center;
-  width:auto;
-  max-width:calc(100% - 280px);
+  margin:0;
   text-align:center;
-  pointer-events:none;
+  flex:0 0 auto;
 }
 #screen-deck .deck-section-head h4{
   margin:0;
@@ -4537,10 +4541,6 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 #screen-deck .deck-section-head--deck h4{
   width:100%;
   text-align:center;
-  grid-column:auto;
-  justify-self:auto;
-  max-width:none;
-  pointer-events:auto;
 }
 #screen-deck .deck-section-stats{
   margin:0;
@@ -4554,31 +4554,13 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 #screen-deck .deck-collection-sort{
   display:flex;
   align-items:center;
-  justify-content:flex-end;
-  gap:6px;
-  flex-wrap:nowrap;
-  width:auto;
-  margin:0;
   flex:0 0 auto;
-  grid-column:3;
-  justify-self:end;
-  z-index:1;
-}
-#screen-deck .deck-collection-sort__select--dir .llc-select-wrap{
-  min-width:min(100%,108px);
-  max-width:min(100%,128px);
-}
-#screen-deck .deck-collection-sort label{
-  font-size:12px;
-  font-weight:600;
-  color:rgba(255,255,255,.78);
   margin:0;
-  white-space:nowrap;
 }
 #screen-deck .deck-collection-sort .llc-select-wrap{
   width:auto;
-  min-width:min(100%,148px);
-  max-width:min(100%,220px);
+  min-width:min(100%,132px);
+  max-width:min(100%,168px);
 }
 #screen-deck .deck-collection-sort select{
   appearance:none;-webkit-appearance:none;-moz-appearance:none;
@@ -5718,24 +5700,12 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
             <div class="deck-builder-pool-main">
               <div class="deck-section-head deck-section-head--pool">
                 <div class="deck-section-head__title-row">
-                  <h4 id="deck-pool-head-title">Collection</h4>
-                  <div class="deck-collection-sort" id="deck-collection-sort-wrap">
-                    <label for="sel-deck-pool-sort">Sort by</label>
-                    <div class="llc-select-wrap deck-collection-sort__select">
-                      <select id="sel-deck-pool-sort" aria-label="Collection sort field">
-                        <option value="id">Card ID</option>
-                        <option value="rarity">Rarity</option>
-                        <option value="name">Name (idol)</option>
-                        <option value="type">Card type</option>
-                        <option value="group">Group / school</option>
-                        <option value="recent">Recently acquired</option>
-                      </select>
-                    </div>
-                    <div class="llc-select-wrap deck-collection-sort__select deck-collection-sort__select--dir">
-                      <select id="sel-deck-pool-sort-dir" aria-label="Collection sort direction">
-                        <option value="asc">Ascending</option>
-                        <option value="desc">Descending</option>
-                      </select>
+                  <div class="deck-section-head__title-cluster">
+                    <h4 id="deck-pool-head-title">Collection</h4>
+                    <div class="deck-collection-sort" id="deck-collection-sort-wrap">
+                      <div class="llc-select-wrap deck-collection-sort__select">
+                        <select id="sel-deck-pool-sort" aria-label="Collection sort and order"></select>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -8793,6 +8763,54 @@ function setDeckPoolSortDir(dir) {
   renderDeckBuilder();
 }
 
+function deckPoolSortFieldSelectValue(mode) {
+  return `field:${normalizeDeckPoolSortMode(mode ?? effectiveDeckPoolSort())}`;
+}
+
+function rebuildDeckPoolSortSelect() {
+  const sel = el('sel-deck-pool-sort');
+  if (!sel) return;
+  const experiment = A.deckBuilderMode === 'experiment';
+  const showValue = deckPoolSortFieldSelectValue();
+  sel.replaceChildren();
+  const sortGroup = document.createElement('optgroup');
+  sortGroup.label = 'Sort by';
+  DECK_POOL_SORT_OPTIONS.forEach(opt => {
+    if (opt.collectionOnly && experiment) return;
+    const o = document.createElement('option');
+    o.value = `field:${opt.id}`;
+    o.textContent = opt.label;
+    sortGroup.appendChild(o);
+  });
+  const orderGroup = document.createElement('optgroup');
+  orderGroup.label = 'Order';
+  [
+    { id: 'asc', label: 'Ascending' },
+    { id: 'desc', label: 'Descending' },
+  ].forEach(opt => {
+    const o = document.createElement('option');
+    o.value = `dir:${opt.id}`;
+    o.textContent = opt.label;
+    orderGroup.appendChild(o);
+  });
+  sel.appendChild(sortGroup);
+  sel.appendChild(orderGroup);
+  sel.value = showValue;
+}
+
+function handleDeckPoolSortPick(raw) {
+  const v = String(raw || '');
+  if (v.startsWith('dir:')) {
+    setDeckPoolSortDir(v.slice(4));
+    return;
+  }
+  if (v.startsWith('field:')) {
+    setDeckPoolSort(v.slice(6));
+    return;
+  }
+  setDeckPoolSort(v);
+}
+
 function effectiveDeckPoolSort() {
   const mode = deckPoolSortMode();
   if (mode === 'recent' && A.deckBuilderMode === 'experiment') return DECK_POOL_SORT_DEFAULT;
@@ -8861,19 +8879,14 @@ function sortDeckPoolEntries(entries, mode, dir) {
 
 function syncDeckPoolSortUi() {
   const sel = el('sel-deck-pool-sort');
-  const dirSel = el('sel-deck-pool-sort-dir');
-  const recentOpt = sel?.querySelector('option[value="recent"]');
   const experiment = A.deckBuilderMode === 'experiment';
-  if (recentOpt) recentOpt.hidden = experiment;
-  if (!sel) return;
   const mode = deckPoolSortMode();
-  const effective = effectiveDeckPoolSort();
-  if (sel.value !== effective) sel.value = effective;
-  if (dirSel && dirSel.value !== deckPoolSortDir()) dirSel.value = deckPoolSortDir();
   if (mode === 'recent' && experiment) {
     A.deckPoolSort = DECK_POOL_SORT_DEFAULT;
     try { sessionStorage.setItem(DECK_POOL_SORT_KEY, DECK_POOL_SORT_DEFAULT); } catch (e) {}
   }
+  if (!sel) return;
+  rebuildDeckPoolSortSelect();
 }
 const DECK_FILTER_TYPES = [
   { id: '', label: 'All types' },
@@ -13603,10 +13616,7 @@ let G = {
     renderDeckBuilder();
   });
   on('sel-deck-pool-sort', 'change', () => {
-    setDeckPoolSort(el('sel-deck-pool-sort')?.value || DECK_POOL_SORT_DEFAULT);
-  });
-  on('sel-deck-pool-sort-dir', 'change', () => {
-    setDeckPoolSortDir(el('sel-deck-pool-sort-dir')?.value || DECK_POOL_SORT_DIR_DEFAULT);
+    handleDeckPoolSortPick(el('sel-deck-pool-sort')?.value);
   });
   on('btn-experiment-load-pwd', 'click', () => {
     loadExperimentDeckByPassword(el('inp-experiment-load-pwd')?.value);
