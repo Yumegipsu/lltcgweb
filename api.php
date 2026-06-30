@@ -2677,6 +2677,10 @@ function filterStateForPlayer(array $state, string $token): array {
         $filtered['live_round_success'] = $state['live_round_success'];
     }
 
+    if (!empty($state['live_attempt']) && isInPerformancePhase($state)) {
+        $filtered['live_attempt'] = array_values($state['live_attempt']);
+    }
+
     if ($exposePerfCarryover && !empty($state['_live_perf_snapshot'])) {
         $filtered['_live_perf_snapshot'] = $state['_live_perf_snapshot'];
     }

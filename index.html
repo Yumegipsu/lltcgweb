@@ -27113,12 +27113,45 @@ function perfOutcomeLabel(att) {
   return '✗ Live Failed';
 }
 
+/** Index of the current Performance round in the log (not prior turns). */
+function currentPerformanceRoundLogStart(next) {
+  const log = next?.log || [];
+  for (let i = log.length - 1; i >= 0; i--) {
+    const msg = log[i]?.msg || '';
+    if (msg === '=== Performance Phase ===' || msg === '=== Live Start Effects ===') return i;
+  }
+  for (let i = log.length - 1; i >= 0; i--) {
+    if ((log[i]?.msg || '') === '=== LIVE Phase ===') return i + 1;
+  }
+  return 0;
+}
+
+function playerAttemptedLiveThisRound(next, pid) {
+  if (Array.isArray(next?.live_attempt)) {
+    return next.live_attempt.includes(pid);
+  }
+  const lrs = next?.live_round_success;
+  if (lrs && typeof lrs === 'object' && Object.keys(lrs).length) {
+    return Object.prototype.hasOwnProperty.call(lrs, pid);
+  }
+  const name = next?.players?.[pid]?.name;
+  if (!name) return false;
+  const start = currentPerformanceRoundLogStart(next);
+  for (let i = start; i < (next?.log || []).length; i++) {
+    const msg = next.log[i]?.msg || '';
+    if (msg.includes(`${name} is performing Live with`)) return true;
+  }
+  return false;
+}
+
 function perfLiveSuccessCountFromLog(next, pid, prev = null) {
   const name = next?.players?.[pid]?.name;
   if (!name) return 0;
+  if (!playerAttemptedLiveThisRound(next, pid)) return 0;
   const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp(`^${esc} performed Live! Blades: \\d+ \\| Hearts: \\[[^\\]]*\\] \\| Live success: (\\d+)`);
-  const log = prev ? (next.log || []).slice(prev.log?.length || 0) : (next.log || []);
+  const start = prev ? (prev.log?.length || 0) : currentPerformanceRoundLogStart(next);
+  const log = (next.log || []).slice(start);
   for (let i = log.length - 1; i >= 0; i--) {
     const m = (log[i].msg || '').match(re);
     if (m) return parseInt(m[1], 10);
@@ -27148,13 +27181,15 @@ function playerLiveRoundSucceeded(next, pid) {
   }
   const snap = next?._live_round_success_snapshot;
   if (snap && pid in snap) return !!snap[pid];
+  if (!playerAttemptedLiveThisRound(next, pid)) return false;
   const name = next?.players?.[pid]?.name;
   if (!name) return false;
   const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const re = new RegExp(
     `^${esc} performed Live! Blades: \\d+ \\| Hearts: \\[[^\\]]*\\] \\| Live success: (\\d+) \\| Failed: (\\d+)(?: \\| Round: failed \\(not all Lives succeeded\\))?`
   );
-  for (let i = (next?.log || []).length - 1; i >= 0; i--) {
+  const start = currentPerformanceRoundLogStart(next);
+  for (let i = (next?.log || []).length - 1; i >= start; i--) {
     const msg = next.log[i].msg || '';
     const m = msg.match(re);
     if (!m) continue;
@@ -27162,10 +27197,6 @@ function playerLiveRoundSucceeded(next, pid) {
     const ok = parseInt(m[1], 10);
     const fail = parseInt(m[2], 10);
     return ok > 0 && fail === 0;
-  }
-  if (isLivePerformancePhase(next?.phase) || next?.phase === 'live_judge') {
-    const zone = next?.players?.[pid]?.live_zone || [];
-    return zone.some(c => isLiveTypeCard(c));
   }
   return false;
 }
@@ -27279,7 +27310,9 @@ function perfLiveScoreBonusForPlayer(ctx, pid) {
 }
 
 function perfJudgeScoresFromLog(next, myId) {
-  for (let i = (next?.log || []).length - 1; i >= 0; i--) {
+  if (!bothPlayersClearedLiveThisRound(next)) return null;
+  const start = currentPerformanceRoundLogStart(next);
+  for (let i = (next?.log || []).length - 1; i >= start; i--) {
     const m = (next.log[i].msg || '').match(/^Live Scores: (.+?) = (\d+) \| (.+?) = (\d+)/);
     if (!m) continue;
     const [, n1, s1, n2, s2] = m;

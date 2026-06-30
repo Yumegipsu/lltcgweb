@@ -14499,6 +14499,13 @@ function beginLiveStartEffectPhase(array $state, bool $p1Attempt = true, bool $p
     if ($p1Attempt) $state['live_attempt'][] = 'p1';
     if ($p2Attempt) $state['live_attempt'][] = 'p2';
 
+    $state['live_round_success'] = [];
+    foreach (['p1', 'p2'] as $pid) {
+        if (!in_array($pid, $state['live_attempt'], true)) {
+            $state['live_round_success'][$pid] = false;
+        }
+    }
+
     $state = initLiveModifiers($state);
     $state['phase'] = 'live_start_effects';
     if (performanceRoundHasLiveCards($state)) {
