@@ -192,7 +192,7 @@ function tcgFoilSlotRarityWeights(): array {
         ['r' => 'P', 'w' => 5000],
         ['r' => 'PE', 'w' => 2000],
         ['r' => 'RE', 'w' => 1500],
-        ['r' => 'L+', 'w' => 1500],
+        ['r' => 'L+', 'w' => 70],
     ];
 }
 
