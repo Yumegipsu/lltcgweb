@@ -23385,9 +23385,11 @@ function logTransitionHasEmptyLiveSkip(prev, next) {
   const from = prev?.log?.length || 0;
   const slice = (next.log || []).slice(from);
   if (slice.some(e => e.msg === 'No Lives played this turn.')) return true;
-  // Batched poll (log+0): client already caught up on log; scan full log for this show turn.
+  // Batched poll (log+0): scan full log directly — must not call emptyLiveRoundShowTurn (mutual recursion).
   if (!slice.length) {
-    const showTurn = emptyLiveRoundShowTurn(prev, next);
+    const fromLog = emptyLiveRoundTurnFromLog(next);
+    if (fromLog != null) return true;
+    const showTurn = inferLiveShowTurn(prev, next);
     if (showTurn != null && fullLogHasEmptyLiveSkipForTurn(next, showTurn)) return true;
   }
   return false;
@@ -23407,7 +23409,6 @@ function emptyLiveRoundShowTurn(prev, next) {
   if (fromLog != null) return fromLog;
   const showTurn = inferLiveShowTurn(prev, next);
   if (showTurn != null && fullLogHasEmptyLiveSkipForTurn(next, showTurn)) return showTurn;
-  if (logTransitionHasEmptyLiveSkip(prev, next)) return showTurn;
   return null;
 }
 
