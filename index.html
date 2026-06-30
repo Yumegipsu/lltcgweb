@@ -30822,6 +30822,7 @@ function renderPromptEffectText(text){
 }
 
 function isSelfActivationPrompt(pr){
+  if(isBranchChoicePrompt(pr)) return false;
   if(!pr?.effect_text) return false;
   return pr.responder===pr.owner;
 }

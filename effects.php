@@ -2020,6 +2020,17 @@ function resolveLiveSuccessAbilities(
     array $yellCards = []
 ): array {
     foreach ($successCards as $lc) {
+        foreach ($lc['granted_live_success_effects'] ?? [] as $eff) {
+            if (($eff['type'] ?? '') !== 'draw_cards') {
+                continue;
+            }
+            $drawn = drawCardsForPlayer($state, $pid, intval($eff['draw'] ?? 1));
+            if ($drawn > 0) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    ' — [' . ($lc['name_en'] ?? $lc['name'] ?? 'Live') .
+                    "] drew $drawn (granted Live Success).");
+            }
+        }
         $abilities = getAbilitiesByTrigger($lc, 'live_success');
         if (empty($abilities)) continue;
         $state = logAbilityChain($state, $pid, $lc, 'live_success');
@@ -14397,11 +14408,11 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             ' answered: "' . $answerText . '" → ' . $outcomeLabel . '.');
         $choiceEntry = $choices[$choice];
         $effect = $choiceEntry['effect'] ?? [];
+        unset($state['pending_prompt']);
         $state = applyChoiceEffect($state, $owner, $ownerP, $effect, $prompt);
         if (!empty($state['pending_prompt'])) {
             return $state;
         }
-        unset($state['pending_prompt']);
         $state['seq']++;
         return finishAfterBranchChoicePrompt($state, $prompt);
     }
@@ -14419,12 +14430,12 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         ' — [' . ($prompt['source_name'] ?? 'Member') . '] chose: ' . $choiceLabel);
 
     $effect = $choiceEntry['effect'] ?? [];
+    unset($state['pending_prompt']);
     $state = applyChoiceEffect($state, $owner, $ownerP, $effect, $prompt);
     if (!empty($state['pending_prompt'])) {
         return $state;
     }
 
-    unset($state['pending_prompt']);
     $state['seq']++;
     return finishAfterBranchChoicePrompt($state, $prompt);
 }
