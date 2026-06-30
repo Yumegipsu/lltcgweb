@@ -6199,24 +6199,12 @@ function resolveAbilityEffect(array $state, string $pid, array $source, array $a
                     " — [$name] paid $energyCost Energy.");
             }
             if (!empty($ctx['confirm']) || !empty($ctx['discard_ids'])) {
-                $liveStart = ($ctx['phase'] ?? '') === 'live_start';
-                $state['pending_prompt'] = buildInternalOptionalDiscardConfirmPrompt(
-                    $state,
-                    $pid,
-                    $source,
-                    $ab,
-                    $name,
-                    $liveStart
-                );
-                try {
-                    return actionResolvePrompt($state, $pid, [
-                        'choice'      => 'yes',
-                        'discard_ids' => $ctx['discard_ids'] ?? [],
-                    ]);
-                } catch (Throwable $e) {
-                    unset($state['pending_prompt']);
-                    throw $e;
-                }
+                return resolveOptionalDiscardPromptChoice($state, $pid, [
+                    'ability'     => $ab,
+                    'source_name' => $name,
+                    'source_id'   => $source['instance_id'] ?? '',
+                    'live_start'  => ($ctx['phase'] ?? '') === 'live_start',
+                ], 'yes', ['discard_ids' => $ctx['discard_ids'] ?? []], true);
             }
             $state['pending_prompt'] = [
                 'type'          => 'optional_discard_prompt',
@@ -10771,6 +10759,399 @@ function actionAntiSoftlockSkipPrompt(array $state, string $pid): array {
 // Dispatches to set-specific handlers first, then generic prompt types (discard, pick,
 // heart color, judge success Live, etc.). Called from api.php action resolve_prompt.
 
+/**
+ * Resolve optional_discard_prompt (yes/no + discard_ids). Shared by actionResolvePrompt,
+ * optional_live_start, and resolveAbilityEffect confirm paths.
+ * When $deferFinish is true, caller must run finishLiveStartEffects / finishPromptEffects.
+ */
+function resolveOptionalDiscardPromptChoice(
+    array $state,
+    string $owner,
+    array $prompt,
+    string $choice,
+    array $data,
+    bool $deferFinish = false
+): array {
+    $promptAbility = $prompt['ability'] ?? [];
+    $ownerP = &$state['players'][$owner];
+
+        if ($choice === 'skip' || $choice === 'cancel') {
+            $choice = 'no';
+        }
+        if (!isset(['yes' => true, 'no' => true][$choice])) {
+            throw new Exception('Invalid choice');
+        }
+        if ($choice === 'yes') {
+            $energyCost = intval($promptAbility['energy_cost'] ?? 0);
+            if ($energyCost > 0 && !payEnergyCost($ownerP, $energyCost)) {
+                throw new Exception("Need $energyCost active Energy");
+            }
+            $then = $promptAbility['then'] ?? [];
+            if (!optionalDiscardThenViable($ownerP, $then)) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional effect (deck empty).');
+                unset($state['pending_prompt']);
+                if (!$deferFinish) {
+                    $state['seq']++;
+                    if (!empty($prompt['live_start'])) {
+                        return finishLiveStartEffects($state);
+                    }
+                    $state = finishPromptEffects($state);
+                }
+                return $state;
+            }
+            $maxDiscard = intval($promptAbility['max_discard'] ?? 0);
+            $need = $maxDiscard > 0 ? $maxDiscard : intval($promptAbility['discard'] ?? 1);
+            $ids = $data['discard_ids'] ?? [];
+            if ($maxDiscard > 0) {
+                if (count($ids) > $maxDiscard) {
+                    throw new Exception("Must select at most $maxDiscard card(s) to discard");
+                }
+            } elseif ($need > 0 && count($ids) !== $need) {
+                throw new Exception("Must select exactly $need card(s) to discard");
+            }
+            if (!empty($ids)) {
+                $discardedCards = takeDiscardedHandCards($ownerP, $ids);
+            } else {
+                $discardedCards = [];
+            }
+            $then = $promptAbility['then'] ?? [];
+            if (($then['type'] ?? '') === 'draw_equal_discarded') {
+                $drawn = drawCardsForPlayer($state, $owner, count($ids));
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] discarded " . count($ids) .
+                    " and drew $drawn.");
+            } elseif (($then['type'] ?? '') === 'wait_opponent_stage_max_cost') {
+                $opp = ($owner === 'p1') ? 'p2' : 'p1';
+                $maxCost = intval($then['max_cost'] ?? 4);
+                $pickCount = isset($then['pick_count']) ? intval($then['pick_count']) : null;
+                $waited = waitOpponentStageByCost(
+                    $state,
+                    $opp,
+                    $maxCost,
+                    $pickCount,
+                    $owner
+                );
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] discarded $need; " .
+                    ($waited > 0
+                        ? "$waited opponent Stage Member" . ($waited === 1 ? '' : 's') . ' put into Wait.'
+                        : 'no opponent Stage Members matched; none put into Wait.'));
+            } elseif (($then['type'] ?? '') === 'look_reveal_filter'
+                || ($then['type'] ?? '') === 'look_reveal_group') {
+                $state = beginLookRevealPick(
+                    $state,
+                    $owner,
+                    $prompt['source_name'] ?? 'Member',
+                    $ownerP,
+                    $then
+                );
+                if (!empty($state['pending_prompt'])) {
+                    $state['seq']++;
+                    return $state;
+                }
+            } elseif (($then['type'] ?? '') === 'blade_bonus') {
+                $state = applyModifierEffect($state, $owner, $then);
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] gained +' .
+                    intval($then['amount'] ?? 0) . ' Blade until Live ends.');
+            } elseif (($then['type'] ?? '') === 'blade_bonus_named_extra') {
+                $state = applyModifierEffect($state, $owner, ['type' => 'blade_bonus', 'amount' => intval($then['amount'] ?? 1)]);
+                $named = $then['named'] ?? '';
+                foreach ($discardedCards as $dc) {
+                    if (cardNameKey($dc) === $named || str_contains(cardNameKey($dc), $named)) {
+                        $state = applyModifierEffect($state, $owner, [
+                            'type'   => 'blade_bonus',
+                            'amount' => intval($then['extra_amount'] ?? 1),
+                        ]);
+                        break;
+                    }
+                }
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] gained Blade until Live ends.');
+            } elseif (($then['type'] ?? '') === 'live_start_self_cost_plus_check') {
+                $srcId = $prompt['source_id'] ?? '';
+                foreach ($ownerP['stage'] as $s => &$mbr) {
+                    if ($mbr && ($mbr['instance_id'] ?? '') === $srcId) {
+                        $mbr['live_cost_bonus'] = intval($mbr['live_cost_bonus'] ?? 0) + intval($then['amount'] ?? 6);
+                        break;
+                    }
+                }
+                unset($mbr);
+                $mySum = sumStageMemberCost($ownerP, $state, $owner);
+                $opp = ($owner === 'p1') ? 'p2' : 'p1';
+                $oppSum = sumStageMemberCost($state['players'][$opp], $state, $opp);
+                if ($mySum > $oppSum) {
+                    $heartColor = $then['heart_color'] ?? $promptAbility['heart_color'] ?? 'pink';
+                    addBonusHeartsToModifier($state, $owner, [['color' => $heartColor, 'count' => 1]]);
+                    $state = applyModifierEffect($state, $owner, ['type' => 'blade_bonus', 'amount' => 1]);
+                }
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] cost increased until Live ends.');
+            } elseif (($then['type'] ?? '') === 'pick_subunit_member_heart'
+                || ($then['type'] ?? '') === 'pick_group_member_heart') {
+                $candidates = [];
+                foreach ($ownerP['stage'] as $slot => $mbr) {
+                    if (!$mbr) continue;
+                    $ok = ($then['type'] ?? '') === 'pick_subunit_member_heart'
+                        ? cardMatchesSubunit($mbr, $then['subunit'] ?? '')
+                        : (($mbr['group'] ?? '') === ($then['group'] ?? ''));
+                    if ($ok) {
+                        $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
+                    }
+                }
+                if (empty($candidates)) {
+                    $state = addLog($state, $state['players'][$owner]['name'] .
+                        ' — [' . ($prompt['source_name'] ?? 'Member') . '] no matching Member on Stage.');
+                } elseif (count($candidates) === 1) {
+                    applyNamedMemberHeartsBlade($state, $owner, $candidates[0]['instance_id'], $then);
+                    $state = addLog($state, $state['players'][$owner]['name'] .
+                        ' — [' . ($prompt['source_name'] ?? 'Member') . '] granted bonus hearts.');
+                } else {
+                    $state['pending_prompt'] = [
+                        'type'        => 'pick_member_grant_hearts',
+                        'owner'       => $owner,
+                        'responder'   => $owner,
+                        'source_name' => $prompt['source_name'] ?? 'Member',
+                        'candidates'  => $candidates,
+                        'hearts'      => $then['hearts'] ?? [],
+                        'prompt'      => 'Choose 1 Member for bonus hearts until Live ends.',
+                    ];
+                    $state['seq']++;
+                    return $state;
+                }
+            } elseif (($then['type'] ?? '') === 'pick_member_heart_blade') {
+                $candidates = [];
+                foreach ($ownerP['stage'] as $slot => $mbr) {
+                    if ($mbr) {
+                        $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
+                    }
+                }
+                if (count($candidates) === 1) {
+                    applyNamedMemberHeartsBlade($state, $owner, $candidates[0]['instance_id'], $then);
+                } elseif (count($candidates) > 1) {
+                    $state['pending_prompt'] = [
+                        'type'        => 'pick_member_grant_hearts',
+                        'owner'       => $owner,
+                        'responder'   => $owner,
+                        'source_name' => $prompt['source_name'] ?? 'Member',
+                        'candidates'  => $candidates,
+                        'hearts'      => $then['hearts'] ?? [],
+                        'blade'       => intval($then['blade'] ?? 1),
+                        'prompt'      => 'Choose 1 Member for bonus hearts and Blade.',
+                    ];
+                    $state['seq']++;
+                    return $state;
+                }
+            } elseif (($then['type'] ?? '') === 'add_live_and_member_from_wr') {
+                $liveAdded = addFromWaitingRoomFiltered($ownerP, '', 'live', 1);
+                $memAdded = addFromWaitingRoomFiltered($ownerP, '', 'member', 1);
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [" . ($prompt['source_name'] ?? 'Member') . "] added $liveAdded Live and $memAdded Member from WR.");
+            } elseif (($then['type'] ?? '') === 'add_from_wr') {
+                $added = addFromWaitingRoomFiltered(
+                    $ownerP,
+                    $then['group'] ?? '',
+                    $then['filter'] ?? '',
+                    intval($then['count'] ?? 1),
+                    null,
+                    array_filter(['subunit' => $then['subunit'] ?? ''])
+                );
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] added $added card(s) from Waiting Room.");
+            } elseif (sSd1IsEffectType($then['type'] ?? '')) {
+                $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '');
+                if ($source) {
+                    $state = sSd1ResolveEffect($state, $owner, $source, $then, []);
+                    if (!empty($state['pending_prompt'])) {
+                        $state['seq']++;
+                        return $state;
+                    }
+                }
+            } elseif (($then['type'] ?? '') === 'member_blade_bonus') {
+                if (!empty($then['all_other'])) {
+                    $then['max_members'] = 99;
+                    $then['exclude_source_id'] = $prompt['source_id'] ?? '';
+                }
+                $n = applyMemberBladeBonus($state, $owner, $then);
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] discarded $need; $n Member(s) gained +" .
+                    intval($then['amount'] ?? 0) . ' Blade.');
+            } elseif (($then['type'] ?? '') === 'other_member_heart') {
+                $n = applyOtherMemberHeartBonus(
+                    $state,
+                    $owner,
+                    $prompt['source_id'] ?? '',
+                    $then['color'] ?? 'yellow',
+                    intval($then['max_members'] ?? 1)
+                );
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [" . ($prompt['source_name'] ?? 'Member') . "] discarded $need; $n Member(s) gained a heart.");
+            } elseif (($then['type'] ?? '') === 'pick_yell_member') {
+                $yellPool = $ownerP['_pending_yell_wr'] ?? [];
+                $candidates = array_values(array_filter(
+                    $yellPool,
+                    fn($c) => cardMatchesYellPick($c, $then)
+                ));
+                if (!empty($candidates)) {
+                    $pickPrompt = ($then['filter'] ?? '') === 'member_or_live'
+                        ? 'Choose 1 Member (cost ≤2) or Live (score ≤2) revealed by Yell to add to your hand.'
+                        : 'Choose 1 μ\'s Member revealed by Yell to add to your hand.';
+                    $state['pending_prompt'] = [
+                        'type'        => 'pick_yell_member',
+                        'owner'       => $owner,
+                        'responder'   => $owner,
+                        'source_name' => $prompt['source_name'] ?? 'Live',
+                        'prompt'      => $pickPrompt,
+                        'candidates'  => array_map('cardPromptSummary', $candidates),
+                        'ability'     => $then,
+                    ];
+                    $state['seq']++;
+                    return $state;
+                }
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Live') . '] no μ\'s Members among Yell cards.');
+            } elseif (($then['type'] ?? '') === 'buff_named_stage_member') {
+                $discardedMember = null;
+                foreach ($discardedCards as $c) {
+                    if (($c['card_type'] ?? '') === 'メンバー') {
+                        $discardedMember = $c;
+                        break;
+                    }
+                }
+                if ($discardedMember) {
+                    $nameKey = cardNameKey($discardedMember);
+                    $candidates = stageMembersMatchingName($ownerP, $nameKey);
+                    if (count($candidates) === 1) {
+                        applyNamedMemberHeartsBlade($state, $owner, $candidates[0]['instance_id'], $then);
+                        $state = addLog($state, $state['players'][$owner]['name'] .
+                            ' — [' . ($prompt['source_name'] ?? 'Member') .
+                            "] buffed Member matching $nameKey.");
+                    } elseif (count($candidates) > 1) {
+                        $state['pending_prompt'] = [
+                            'type'          => 'pick_same_name_member',
+                            'owner'         => $owner,
+                            'responder'     => $owner,
+                            'source_name'   => $prompt['source_name'] ?? 'Member',
+                            'prompt'        => 'Choose 1 Member on your Stage with the same name as the discarded Member.',
+                            'stage_members' => $candidates,
+                            'ability'       => $then,
+                        ];
+                        $state['seq']++;
+                        return $state;
+                    } else {
+                        $state = addLog($state, $state['players'][$owner]['name'] .
+                            ' — [' . ($prompt['source_name'] ?? 'Member') .
+                            '] no matching-name Member on Stage.');
+                    }
+                } else {
+                    $state = addLog($state, $state['players'][$owner]['name'] .
+                        ' — [' . ($prompt['source_name'] ?? 'Member') .
+                        '] discarded card was not a Member.');
+                }
+            } elseif (($then['type'] ?? '') === 'buff_member_matching_discarded_group') {
+                $discGroup = '';
+                foreach ($discardedCards as $dc) {
+                    $discGroup = $dc['group'] ?? '';
+                    if ($discGroup !== '') break;
+                }
+                if ($discGroup === '') {
+                    $state = addLog($state, $state['players'][$owner]['name'] .
+                        ' — [' . ($prompt['source_name'] ?? 'Member') . '] could not match discarded group.');
+                } else {
+                    $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '');
+                    if ($source) {
+                        $state = resolveAbilityEffect($state, $owner, $source, $then, [
+                            'discarded_group' => $discGroup,
+                            'phase'           => !empty($prompt['live_start']) ? 'live_start' : 'on_enter',
+                        ]);
+                        if (!empty($state['pending_prompt'])) {
+                            $state['seq']++;
+                            return $state;
+                        }
+                    }
+                }
+            } elseif (($then['type'] ?? '') === 'live_cost_from_subunit_pick') {
+                $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '');
+                if ($source) {
+                    $state = resolveAbilityEffect($state, $owner, $source, $then, [
+                        'phase' => !empty($prompt['live_start']) ? 'live_start' : 'on_enter',
+                    ]);
+                    if (!empty($state['pending_prompt'])) {
+                        $state['seq']++;
+                        return $state;
+                    }
+                }
+            } elseif (($then['type'] ?? '') === 'energy_wait_from_deck') {
+                $placed = 0;
+                for ($i = 0; $i < intval($then['count'] ?? 1); $i++) {
+                    if (putEnergyFromDeckInWait($ownerP, $state, $owner)) $placed++;
+                }
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [" . ($prompt['source_name'] ?? 'Member') . "] put $placed Energy into Wait.");
+            } elseif (($then['type'] ?? '') === 'draw_until_hand') {
+                $target = intval($then['target'] ?? 5);
+                $drawn = 0;
+                while (count($ownerP['hand']) < $target && !empty($ownerP['main_deck'])) {
+                    $ownerP['hand'][] = array_shift($ownerP['main_deck']);
+                    $drawn++;
+                }
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [" . ($prompt['source_name'] ?? 'Member') . "] drew $drawn (hand size " .
+                    count($ownerP['hand']) . ').');
+            } elseif (($then['type'] ?? '') === 'choose_heart_other_member') {
+                $choices = $then['heart_choices'] ?? ['yellow', 'pink', 'purple', 'green', 'blue', 'red'];
+                $state['pending_prompt'] = [
+                    'type'            => 'choose_heart_other_member',
+                    'owner'           => $owner,
+                    'responder'       => $owner,
+                    'source_id'       => $prompt['source_id'] ?? '',
+                    'source_name'     => $prompt['source_name'] ?? 'Member',
+                    'prompt'          => 'Choose a heart color for another Member on your Stage.',
+                    'choices'         => $choices,
+                    'choice_labels'   => array_map(fn($c) => ucfirst($c) . ' ♡', $choices),
+                    'ability'         => $then,
+                    'after_live_start'=> !empty($prompt['live_start']),
+                ];
+                $state['seq']++;
+                return $state;
+            } elseif (($then['type'] ?? '') === 'blade_per_discarded_pick_member') {
+                $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '');
+                if ($source) {
+                    $state = resolveAbilityEffect($state, $owner, $source, $then, [
+                        'discarded_count' => count($ids),
+                        'phase'           => !empty($prompt['live_start']) ? 'live_start' : ($prompt['phase'] ?? ''),
+                    ]);
+                    if (!empty($state['pending_prompt'])) {
+                        $state['seq']++;
+                        return $state;
+                    }
+                }
+            }
+        } else {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional effect.');
+        }
+        if (!empty($state['pending_prompt'])
+            && ($state['pending_prompt']['type'] ?? '') !== 'optional_discard_prompt') {
+            if (!$deferFinish) {
+                $state['seq']++;
+            }
+            return $state;
+        }
+        unset($state['pending_prompt']);
+        if ($deferFinish) {
+            return $state;
+        }
+        $state['seq']++;
+        if (!empty($prompt['live_start'])) {
+            return finishLiveStartEffects($state);
+        }
+        $state = finishPromptEffects($state);
+        return $state;
+
+}
+
 function actionResolvePrompt(array $state, string $pid, array $data): array {
     $prompt = $state['pending_prompt'] ?? null;
     if (!$prompt) throw new Exception('No pending prompt');
@@ -11006,24 +11387,17 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             }
             if (($ab['type'] ?? '') === 'optional_discard_prompt') {
                 unset($state['pending_prompt']);
-                $state['pending_prompt'] = buildInternalOptionalDiscardConfirmPrompt(
-                    $state,
-                    $owner,
-                    $source,
-                    $ab,
-                    $prompt['source_name'] ?? 'Live',
-                    true
-                );
-                try {
-                    return actionResolvePrompt($state, $owner, [
-                        'choice'      => 'yes',
-                        'discard_ids' => $discardIds,
-                    ]);
-                } catch (Throwable $e) {
-                    unset($state['pending_prompt']);
-                    throw $e;
+                $state = resolveOptionalDiscardPromptChoice($state, $owner, [
+                    'ability'     => $ab,
+                    'source_name' => $prompt['source_name'] ?? 'Live',
+                    'source_id'   => $sourceId,
+                    'live_start'  => true,
+                ], 'yes', ['discard_ids' => $discardIds], true);
+                if (!empty($state['pending_prompt'])) {
+                    $state['seq']++;
+                    return $state;
                 }
-            }
+            } else {
             $ctx = [
                 'phase'        => 'live_start',
                 'confirm'      => true,
@@ -11032,6 +11406,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             ];
             unset($state['pending_prompt']);
             $state = resolveAbilityEffect($state, $owner, $source, $ab, $ctx);
+            }
         } else {
             unset($state['pending_prompt']);
             $state = addLog($state, $state['players'][$owner]['name'] .
@@ -11958,373 +12333,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
     }
 
     if ($promptType === 'optional_discard_prompt') {
-        if ($choice === 'skip' || $choice === 'cancel') {
-            $choice = 'no';
-        }
-        if (!isset(['yes' => true, 'no' => true][$choice])) {
-            throw new Exception('Invalid choice');
-        }
-        if ($choice === 'yes') {
-            $energyCost = intval($ability['energy_cost'] ?? 0);
-            if ($energyCost > 0 && !payEnergyCost($ownerP, $energyCost)) {
-                throw new Exception("Need $energyCost active Energy");
-            }
-            $then = $ability['then'] ?? [];
-            if (!optionalDiscardThenViable($ownerP, $then)) {
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional effect (deck empty).');
-                unset($state['pending_prompt']);
-                $state['seq']++;
-                if (!empty($prompt['live_start'])) {
-                    return finishLiveStartEffects($state);
-                }
-                $state = finishPromptEffects($state);
-                return $state;
-            }
-            $maxDiscard = intval($ability['max_discard'] ?? 0);
-            $need = $maxDiscard > 0 ? $maxDiscard : intval($ability['discard'] ?? 1);
-            $ids = $data['discard_ids'] ?? [];
-            if ($maxDiscard > 0) {
-                if (count($ids) > $maxDiscard) {
-                    throw new Exception("Must select at most $maxDiscard card(s) to discard");
-                }
-            } elseif ($need > 0 && count($ids) !== $need) {
-                throw new Exception("Must select exactly $need card(s) to discard");
-            }
-            if (!empty($ids)) {
-                $discardedCards = takeDiscardedHandCards($ownerP, $ids);
-            } else {
-                $discardedCards = [];
-            }
-            $then = $ability['then'] ?? [];
-            if (($then['type'] ?? '') === 'draw_equal_discarded') {
-                $drawn = drawCardsForPlayer($state, $owner, count($ids));
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] discarded " . count($ids) .
-                    " and drew $drawn.");
-            } elseif (($then['type'] ?? '') === 'wait_opponent_stage_max_cost') {
-                $opp = ($owner === 'p1') ? 'p2' : 'p1';
-                $maxCost = intval($then['max_cost'] ?? 4);
-                $pickCount = isset($then['pick_count']) ? intval($then['pick_count']) : null;
-                $waited = waitOpponentStageByCost(
-                    $state,
-                    $opp,
-                    $maxCost,
-                    $pickCount,
-                    $owner
-                );
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] discarded $need; " .
-                    ($waited > 0
-                        ? "$waited opponent Stage Member" . ($waited === 1 ? '' : 's') . ' put into Wait.'
-                        : 'no opponent Stage Members matched; none put into Wait.'));
-            } elseif (($then['type'] ?? '') === 'look_reveal_filter'
-                || ($then['type'] ?? '') === 'look_reveal_group') {
-                $state = beginLookRevealPick(
-                    $state,
-                    $owner,
-                    $prompt['source_name'] ?? 'Member',
-                    $ownerP,
-                    $then
-                );
-                if (!empty($state['pending_prompt'])) {
-                    $state['seq']++;
-                    return $state;
-                }
-            } elseif (($then['type'] ?? '') === 'blade_bonus') {
-                $state = applyModifierEffect($state, $owner, $then);
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] gained +' .
-                    intval($then['amount'] ?? 0) . ' Blade until Live ends.');
-            } elseif (($then['type'] ?? '') === 'blade_bonus_named_extra') {
-                $state = applyModifierEffect($state, $owner, ['type' => 'blade_bonus', 'amount' => intval($then['amount'] ?? 1)]);
-                $named = $then['named'] ?? '';
-                foreach ($discardedCards as $dc) {
-                    if (cardNameKey($dc) === $named || str_contains(cardNameKey($dc), $named)) {
-                        $state = applyModifierEffect($state, $owner, [
-                            'type'   => 'blade_bonus',
-                            'amount' => intval($then['extra_amount'] ?? 1),
-                        ]);
-                        break;
-                    }
-                }
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] gained Blade until Live ends.');
-            } elseif (($then['type'] ?? '') === 'live_start_self_cost_plus_check') {
-                $srcId = $prompt['source_id'] ?? '';
-                foreach ($ownerP['stage'] as $s => &$mbr) {
-                    if ($mbr && ($mbr['instance_id'] ?? '') === $srcId) {
-                        $mbr['live_cost_bonus'] = intval($mbr['live_cost_bonus'] ?? 0) + intval($then['amount'] ?? 6);
-                        break;
-                    }
-                }
-                unset($mbr);
-                $mySum = sumStageMemberCost($ownerP, $state, $owner);
-                $opp = ($owner === 'p1') ? 'p2' : 'p1';
-                $oppSum = sumStageMemberCost($state['players'][$opp], $state, $opp);
-                if ($mySum > $oppSum) {
-                    $heartColor = $then['heart_color'] ?? $ability['heart_color'] ?? 'pink';
-                    addBonusHeartsToModifier($state, $owner, [['color' => $heartColor, 'count' => 1]]);
-                    $state = applyModifierEffect($state, $owner, ['type' => 'blade_bonus', 'amount' => 1]);
-                }
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] cost increased until Live ends.');
-            } elseif (($then['type'] ?? '') === 'pick_subunit_member_heart'
-                || ($then['type'] ?? '') === 'pick_group_member_heart') {
-                $candidates = [];
-                foreach ($ownerP['stage'] as $slot => $mbr) {
-                    if (!$mbr) continue;
-                    $ok = ($then['type'] ?? '') === 'pick_subunit_member_heart'
-                        ? cardMatchesSubunit($mbr, $then['subunit'] ?? '')
-                        : (($mbr['group'] ?? '') === ($then['group'] ?? ''));
-                    if ($ok) {
-                        $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
-                    }
-                }
-                if (empty($candidates)) {
-                    $state = addLog($state, $state['players'][$owner]['name'] .
-                        ' — [' . ($prompt['source_name'] ?? 'Member') . '] no matching Member on Stage.');
-                } elseif (count($candidates) === 1) {
-                    applyNamedMemberHeartsBlade($state, $owner, $candidates[0]['instance_id'], $then);
-                    $state = addLog($state, $state['players'][$owner]['name'] .
-                        ' — [' . ($prompt['source_name'] ?? 'Member') . '] granted bonus hearts.');
-                } else {
-                    $state['pending_prompt'] = [
-                        'type'        => 'pick_member_grant_hearts',
-                        'owner'       => $owner,
-                        'responder'   => $owner,
-                        'source_name' => $prompt['source_name'] ?? 'Member',
-                        'candidates'  => $candidates,
-                        'hearts'      => $then['hearts'] ?? [],
-                        'prompt'      => 'Choose 1 Member for bonus hearts until Live ends.',
-                    ];
-                    $state['seq']++;
-                    return $state;
-                }
-            } elseif (($then['type'] ?? '') === 'pick_member_heart_blade') {
-                $candidates = [];
-                foreach ($ownerP['stage'] as $slot => $mbr) {
-                    if ($mbr) {
-                        $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
-                    }
-                }
-                if (count($candidates) === 1) {
-                    applyNamedMemberHeartsBlade($state, $owner, $candidates[0]['instance_id'], $then);
-                } elseif (count($candidates) > 1) {
-                    $state['pending_prompt'] = [
-                        'type'        => 'pick_member_grant_hearts',
-                        'owner'       => $owner,
-                        'responder'   => $owner,
-                        'source_name' => $prompt['source_name'] ?? 'Member',
-                        'candidates'  => $candidates,
-                        'hearts'      => $then['hearts'] ?? [],
-                        'blade'       => intval($then['blade'] ?? 1),
-                        'prompt'      => 'Choose 1 Member for bonus hearts and Blade.',
-                    ];
-                    $state['seq']++;
-                    return $state;
-                }
-            } elseif (($then['type'] ?? '') === 'add_live_and_member_from_wr') {
-                $liveAdded = addFromWaitingRoomFiltered($ownerP, '', 'live', 1);
-                $memAdded = addFromWaitingRoomFiltered($ownerP, '', 'member', 1);
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    " — [" . ($prompt['source_name'] ?? 'Member') . "] added $liveAdded Live and $memAdded Member from WR.");
-            } elseif (($then['type'] ?? '') === 'add_from_wr') {
-                $added = addFromWaitingRoomFiltered(
-                    $ownerP,
-                    $then['group'] ?? '',
-                    $then['filter'] ?? '',
-                    intval($then['count'] ?? 1),
-                    null,
-                    array_filter(['subunit' => $then['subunit'] ?? ''])
-                );
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] added $added card(s) from Waiting Room.");
-            } elseif (sSd1IsEffectType($then['type'] ?? '')) {
-                $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '');
-                if ($source) {
-                    $state = sSd1ResolveEffect($state, $owner, $source, $then, []);
-                    if (!empty($state['pending_prompt'])) {
-                        $state['seq']++;
-                        return $state;
-                    }
-                }
-            } elseif (($then['type'] ?? '') === 'member_blade_bonus') {
-                if (!empty($then['all_other'])) {
-                    $then['max_members'] = 99;
-                    $then['exclude_source_id'] = $prompt['source_id'] ?? '';
-                }
-                $n = applyMemberBladeBonus($state, $owner, $then);
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] discarded $need; $n Member(s) gained +" .
-                    intval($then['amount'] ?? 0) . ' Blade.');
-            } elseif (($then['type'] ?? '') === 'other_member_heart') {
-                $n = applyOtherMemberHeartBonus(
-                    $state,
-                    $owner,
-                    $prompt['source_id'] ?? '',
-                    $then['color'] ?? 'yellow',
-                    intval($then['max_members'] ?? 1)
-                );
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    " — [" . ($prompt['source_name'] ?? 'Member') . "] discarded $need; $n Member(s) gained a heart.");
-            } elseif (($then['type'] ?? '') === 'pick_yell_member') {
-                $yellPool = $ownerP['_pending_yell_wr'] ?? [];
-                $candidates = array_values(array_filter(
-                    $yellPool,
-                    fn($c) => cardMatchesYellPick($c, $then)
-                ));
-                if (!empty($candidates)) {
-                    $pickPrompt = ($then['filter'] ?? '') === 'member_or_live'
-                        ? 'Choose 1 Member (cost ≤2) or Live (score ≤2) revealed by Yell to add to your hand.'
-                        : 'Choose 1 μ\'s Member revealed by Yell to add to your hand.';
-                    $state['pending_prompt'] = [
-                        'type'        => 'pick_yell_member',
-                        'owner'       => $owner,
-                        'responder'   => $owner,
-                        'source_name' => $prompt['source_name'] ?? 'Live',
-                        'prompt'      => $pickPrompt,
-                        'candidates'  => array_map('cardPromptSummary', $candidates),
-                        'ability'     => $then,
-                    ];
-                    $state['seq']++;
-                    return $state;
-                }
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Live') . '] no μ\'s Members among Yell cards.');
-            } elseif (($then['type'] ?? '') === 'buff_named_stage_member') {
-                $discardedMember = null;
-                foreach ($discardedCards as $c) {
-                    if (($c['card_type'] ?? '') === 'メンバー') {
-                        $discardedMember = $c;
-                        break;
-                    }
-                }
-                if ($discardedMember) {
-                    $nameKey = cardNameKey($discardedMember);
-                    $candidates = stageMembersMatchingName($ownerP, $nameKey);
-                    if (count($candidates) === 1) {
-                        applyNamedMemberHeartsBlade($state, $owner, $candidates[0]['instance_id'], $then);
-                        $state = addLog($state, $state['players'][$owner]['name'] .
-                            ' — [' . ($prompt['source_name'] ?? 'Member') .
-                            "] buffed Member matching $nameKey.");
-                    } elseif (count($candidates) > 1) {
-                        $state['pending_prompt'] = [
-                            'type'          => 'pick_same_name_member',
-                            'owner'         => $owner,
-                            'responder'     => $owner,
-                            'source_name'   => $prompt['source_name'] ?? 'Member',
-                            'prompt'        => 'Choose 1 Member on your Stage with the same name as the discarded Member.',
-                            'stage_members' => $candidates,
-                            'ability'       => $then,
-                        ];
-                        $state['seq']++;
-                        return $state;
-                    } else {
-                        $state = addLog($state, $state['players'][$owner]['name'] .
-                            ' — [' . ($prompt['source_name'] ?? 'Member') .
-                            '] no matching-name Member on Stage.');
-                    }
-                } else {
-                    $state = addLog($state, $state['players'][$owner]['name'] .
-                        ' — [' . ($prompt['source_name'] ?? 'Member') .
-                        '] discarded card was not a Member.');
-                }
-            } elseif (($then['type'] ?? '') === 'buff_member_matching_discarded_group') {
-                $discGroup = '';
-                foreach ($discardedCards as $dc) {
-                    $discGroup = $dc['group'] ?? '';
-                    if ($discGroup !== '') break;
-                }
-                if ($discGroup === '') {
-                    $state = addLog($state, $state['players'][$owner]['name'] .
-                        ' — [' . ($prompt['source_name'] ?? 'Member') . '] could not match discarded group.');
-                } else {
-                    $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '');
-                    if ($source) {
-                        $state = resolveAbilityEffect($state, $owner, $source, $then, [
-                            'discarded_group' => $discGroup,
-                            'phase'           => !empty($prompt['live_start']) ? 'live_start' : 'on_enter',
-                        ]);
-                        if (!empty($state['pending_prompt'])) {
-                            $state['seq']++;
-                            return $state;
-                        }
-                    }
-                }
-            } elseif (($then['type'] ?? '') === 'live_cost_from_subunit_pick') {
-                $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '');
-                if ($source) {
-                    $state = resolveAbilityEffect($state, $owner, $source, $then, [
-                        'phase' => !empty($prompt['live_start']) ? 'live_start' : 'on_enter',
-                    ]);
-                    if (!empty($state['pending_prompt'])) {
-                        $state['seq']++;
-                        return $state;
-                    }
-                }
-            } elseif (($then['type'] ?? '') === 'energy_wait_from_deck') {
-                $placed = 0;
-                for ($i = 0; $i < intval($then['count'] ?? 1); $i++) {
-                    if (putEnergyFromDeckInWait($ownerP, $state, $owner)) $placed++;
-                }
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    " — [" . ($prompt['source_name'] ?? 'Member') . "] put $placed Energy into Wait.");
-            } elseif (($then['type'] ?? '') === 'draw_until_hand') {
-                $target = intval($then['target'] ?? 5);
-                $drawn = 0;
-                while (count($ownerP['hand']) < $target && !empty($ownerP['main_deck'])) {
-                    $ownerP['hand'][] = array_shift($ownerP['main_deck']);
-                    $drawn++;
-                }
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    " — [" . ($prompt['source_name'] ?? 'Member') . "] drew $drawn (hand size " .
-                    count($ownerP['hand']) . ').');
-            } elseif (($then['type'] ?? '') === 'choose_heart_other_member') {
-                $choices = $then['heart_choices'] ?? ['yellow', 'pink', 'purple', 'green', 'blue', 'red'];
-                $state['pending_prompt'] = [
-                    'type'            => 'choose_heart_other_member',
-                    'owner'           => $owner,
-                    'responder'       => $owner,
-                    'source_id'       => $prompt['source_id'] ?? '',
-                    'source_name'     => $prompt['source_name'] ?? 'Member',
-                    'prompt'          => 'Choose a heart color for another Member on your Stage.',
-                    'choices'         => $choices,
-                    'choice_labels'   => array_map(fn($c) => ucfirst($c) . ' ♡', $choices),
-                    'ability'         => $then,
-                    'after_live_start'=> !empty($prompt['live_start']),
-                ];
-                $state['seq']++;
-                return $state;
-            } elseif (($then['type'] ?? '') === 'blade_per_discarded_pick_member') {
-                $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '');
-                if ($source) {
-                    $state = resolveAbilityEffect($state, $owner, $source, $then, [
-                        'discarded_count' => count($ids),
-                        'phase'           => !empty($prompt['live_start']) ? 'live_start' : ($ctx['phase'] ?? ''),
-                    ]);
-                    if (!empty($state['pending_prompt'])) {
-                        $state['seq']++;
-                        return $state;
-                    }
-                }
-            }
-        } else {
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional effect.');
-        }
-        if (!empty($state['pending_prompt'])
-            && ($state['pending_prompt']['type'] ?? '') !== 'optional_discard_prompt') {
-            $state['seq']++;
-            return $state;
-        }
-        unset($state['pending_prompt']);
-        $state['seq']++;
-        if (!empty($prompt['live_start'])) {
-            return finishLiveStartEffects($state);
-        }
-        $state = finishPromptEffects($state);
-        return $state;
+        return resolveOptionalDiscardPromptChoice($state, $owner, $prompt, $choice, $data);
     }
 
     if ($promptType === 'optional_pay_energy_on_enter') {

@@ -348,6 +348,13 @@ function getStatePolling(): void {
             echo json_encode(['error' => 'Room not found']);
             return;
         }
+        if (tcgIsSpectatorToken($playerToken)) {
+            if (tcgSpectatorTokenValid($roomId, $playerToken)) {
+                tcgTouchSpectatorPresence($roomId, $playerToken);
+            }
+        } else {
+            touchPresence($roomId, $playerToken);
+        }
         if (tcgIsSpectatorToken($playerToken) && !tcgSpectatorTokenValid($roomId, $playerToken)) {
             echo json_encode(['error' => 'Spectator session expired']);
             return;

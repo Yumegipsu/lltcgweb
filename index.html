@@ -7664,6 +7664,53 @@ async function fetchGameStateForReconnect(roomId, token) {
   return r.json();
 }
 
+/** Drop stale client-only flags after refresh/reconnect; server snapshot is authoritative.
+ *  Limitations: card-flight animations and live performance spectacles already completed
+ *  are not replayed (board/log reflect server state). A refresh mid-spectacle may skip
+ *  the in-progress show if the server already advanced. In-flight resolve_prompt POSTs
+ *  from the old page are abandoned; reconnect always pulls the latest server snapshot.
+ */
+function prepareClientReconnectState(s) {
+  abortGameplayPresentation({ skipPerfClose: true, skipAbortFlag: true });
+  G._presentationAborted = false;
+  G._pendingStateQueue = [];
+  G._promptSubmitKey = null;
+  G._deferredPromptState = null;
+  G._deferredLiveState = null;
+  G._deferredHandDrawIids = null;
+  G._deferPerfSpectaclePrev = null;
+  G._livePostRevealBoard = null;
+  G._livePollHold = false;
+  G._liveRoundPlaybackActive = false;
+  G._liveRoundPostSpectacleReady = false;
+  G._liveSpectacleGateRunning = false;
+  G._postSpectacleSplashPause = false;
+  G._perfSpectacleActive = false;
+  G._perfYellRevealCache = null;
+  G._liveSetStorageBaseline = null;
+  G._emptyLiveRoundPresentedTurns = null;
+  G._spectacleRecoveryPending = null;
+  G._skipJudgeOverlay = false;
+  G._liveRevealFlips = new Set();
+  G._stageRevealFlips = null;
+  G._handRevealFlips = null;
+  G._animHideIids = null;
+  G._oppSkillWaitLogKey = null;
+  G.animating = false;
+  G.selCard = null;
+  G.liveSel = [];
+  G._liveSetLockPid = null;
+  G.mullMarked = new Set();
+  G.mulliganPending = false;
+  G.coinFlipAckSent = false;
+  G._coinFlipAnimComplete = false;
+  G._prevLogLen = (s?.log || []).length;
+  G.lastSeq = s?.seq ?? 0;
+  restorePerfSpectacleDoneKey();
+  primePerfSpectacleDoneKeysFromLog(s);
+  markSpectacleDoneFromState(s);
+}
+
 async function reconnectToGame(saved) {
   if (!saved?.roomId || !saved?.token) return false;
   try {
@@ -7680,15 +7727,8 @@ async function reconnectToGame(saved) {
     G.playerId = s.my_id || saved.playerId || 'p1';
     G.isCPU = !!(saved.isCPU || s.cpu_solo);
     G.cpuToken = saved.cpuToken || null;
-    G.lastSeq = 0;
-    G._livePollHold = false;
-    G._liveRoundPlaybackActive = false;
-    G._liveRoundPostSpectacleReady = false;
-    G._deferredHandDrawIids = null;
-    G._deferredPromptState = null;
-    G._deferredLiveState = null;
-    G._liveSpectacleGateRunning = false;
-    G.animating = false;
+    G.cpuPlayerId = G.isCPU ? (G.playerId === 'p1' ? 'p2' : 'p1') : null;
+    prepareClientReconnectState(s);
     G.gameState = s;
     const waiting = saved.screen === 'waiting' && s.status === 'waiting';
     if (waiting) {
@@ -7696,12 +7736,9 @@ async function reconnectToGame(saved) {
       showScr('waiting');
     } else {
       showScr('game');
-      restorePerfSpectacleDoneKey();
-      markSpectacleDoneFromState(s);
       renderGame(s);
       if (s.pending_prompt?.responder === G.playerId) {
         clearLiveSuccessHandDeferral(s);
-        clearDeferredPromptState();
         ensurePendingPromptSurfaced(s, G.playerId);
       }
     }
@@ -14247,8 +14284,12 @@ let G = {
     if (document.visibilityState !== 'visible') return;
     const s = G.gameState;
     const myId = G.playerId;
-    if (s?.phase !== 'coin_flip' || !s.coin_flip || G._coinFlipAnimComplete) return;
-    finishCoinFlipAnimation(s, myId);
+    if (s?.phase === 'coin_flip' && s.coin_flip && !G._coinFlipAnimComplete) {
+      finishCoinFlipAnimation(s, myId);
+    }
+    if (G.polling && G.roomId && G.token && !G.isTutorial && !G.animating && !G._perfSpectacleActive) {
+      void pullLatestState();
+    }
   });
   on('modal-card','click', e => { if(e.target===el('modal-card')) closeM('modal-card'); });
   document.addEventListener('pointermove', onDocPointerMove);
@@ -31955,6 +31996,52 @@ function cardMatchesNamedHand(c, names, includeSelf, sourceId) {
   return !!(includeSelf && sourceId && c.instance_id === sourceId);
 }
 
+function optionalLiveStartDiscardHand(pr, s, myId) {
+  const me = s.players?.[myId];
+  const ab = pr.ability || {};
+  let pickHand = me?.hand || [];
+  const grp = ab.then?.group || ab.group || '';
+  if (ab.type === 'optional_discard_named') {
+    const names = ab.names || [];
+    pickHand = pickHand.filter(c => cardMatchesNamedHand(c, names, ab.include_self, pr.source_id));
+  } else if (grp) {
+    pickHand = pickHand.filter(c => c.card_type === 'メンバー' && (c.group || '') === grp);
+  }
+  return pickHand;
+}
+
+/** Live Start optional_discard_prompt: skip duplicate yes/no, open hand picker (or auto-skip). */
+function openOptionalLiveStartDiscardPick(pr, s, myId) {
+  const ab = pr.ability || {};
+  const discardNeed = promptDiscardCount(pr, 'yes');
+  const pickHand = optionalLiveStartDiscardHand(pr, s, myId);
+  const minPick = ab.max_discard ? 0 : discardNeed;
+  if (!pickHand.length) {
+    G._promptSubmitKey = null;
+    sendAct('resolve_prompt', { choice: 'no' });
+    return true;
+  }
+  if (discardNeed <= 0) return false;
+  closeM('overlay-prompt');
+  openHandPick({
+    hand: pickHand,
+    count: discardNeed,
+    min: minPick,
+    title: pr.source_name || 'Discard from hand',
+    msg: pr.prompt || (minPick === 0
+      ? `Choose up to ${discardNeed} cards to send to the Waiting Room.`
+      : discardNeed === 1
+      ? 'Choose a card to send to the Waiting Room.'
+      : `Choose ${discardNeed} cards to send to the Waiting Room.`),
+    onConfirm: (ids) => sendResolvePrompt('yes', { discard_ids: ids }),
+    onCancel: () => {
+      G._promptSubmitKey = null;
+      if (G.gameState) renderPrompt(G.gameState, myId);
+    },
+  });
+  return true;
+}
+
 function promptDiscardCount(pr, choice){
   if(choice!=='yes' && choice!=='discard') return 0;
   if(pr.type==='optional_live_start') {
@@ -32228,12 +32315,7 @@ function handlePromptChoice(pr, choice, s, myId){
     const minPick=pr.ability?.max_discard?0:discardNeed;
     let pickHand=me.hand||[];
     if(pr.type==='optional_live_start'||(pr.type==='optional_discard_prompt'&&pr.live_start)){
-      const ab = pr.ability || {};
-      const grp=ab.then?.group||ab.group||'';
-      if(ab.type==='optional_discard_named'){
-        const names=ab.names||[];
-        pickHand=pickHand.filter(c=>cardMatchesNamedHand(c,names,ab.include_self,pr.source_id));
-      } else if(grp) pickHand=pickHand.filter(c=>c.card_type==='メンバー'&&(c.group||'')===grp);
+      pickHand=optionalLiveStartDiscardHand(pr,s,myId);
     }
     if(pr.type==='opp_may_discard_or_modifier'){
       pickHand=pickHand.filter(c=>c.card_type==='ライブ');
@@ -32255,7 +32337,10 @@ function handlePromptChoice(pr, choice, s, myId){
         ? 'Choose a card to send to the Waiting Room.'
         : `Choose ${discardNeed} cards to send to the Waiting Room.`),
       onConfirm:(ids)=>sendResolvePrompt(choice,{discard_ids:ids,pay:needsPay}),
-      onCancel:()=>{ if(G.gameState) renderPrompt(G.gameState,myId); }
+      onCancel:()=>{
+        G._promptSubmitKey=null;
+        if(G.gameState) renderPrompt(G.gameState,myId);
+      }
     });
     return;
   }
@@ -33190,6 +33275,10 @@ function renderPrompt(s, myId){
     return;
   }
   hideTextAnswerPrompt();
+  if(pr?.type==='optional_discard_prompt'&&pr.live_start&&pr.responder===myId){
+    ovl.classList.remove('open');
+    if(openOptionalLiveStartDiscardPick(pr,s,myId)) return;
+  }
   if(isSelfActivationPrompt(pr)){
     const box=el('prompt-btns');
     renderSelfActivationPrompt(pr,s,myId,box,false);
