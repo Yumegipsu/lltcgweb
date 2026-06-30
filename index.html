@@ -15998,8 +15998,8 @@ function collectDeferredHandDrawIids(prev, final, myId) {
 function syncDeferredHandDrawMask(prev, final, myId) {
   if (shouldDeferHandDrawsForPrompt(final, myId)) {
     const iids = collectDeferredHandDrawIids(prev, final, myId);
-    if (iids.size) G._deferredHandDrawIids = iids;
-  } else if (!final?.pending_prompt || final.pending_prompt.responder !== myId) {
+    G._deferredHandDrawIids = iids.size ? iids : null;
+  } else {
     G._deferredHandDrawIids = null;
   }
 }
@@ -18399,6 +18399,7 @@ async function applyStateUpdate(s) {
             G._animHideIids = animPrev && moves.length ? animHideIidsForMoves(animPrev, moves) : null;
             flushPostLiveLogBanners(animPrev, s, G.playerId, { emptySkip: true });
             markEmptyLiveRoundPresented(prev, s);
+            clearEmptyLiveRoundPerfState();
           } finally {
             G.animating = false;
           }
@@ -24079,6 +24080,7 @@ function logHasLivePerformanceForShowTurn(prev, next, showTurn) {
 }
 
 function roundHasLivePerformanceSignals(prev, next) {
+  if (isEmptyLiveSkipTransition(prev, next)) return false;
   if (shouldIgnoreStaleLivePerfSignals(prev, next)) return false;
   if (currentRoundHasLivePerformance(prev, next)) return true;
   if (newLogHasLivePerformance(prev, next)) return true;
@@ -24197,7 +24199,6 @@ function markEmptyLiveRoundPresented(prev, next, turn = null) {
 function isEmptyLiveSkipTransition(prev, next) {
   if (!prev || !next) return false;
   const showTurn = emptyLiveRoundShowTurn(prev, next);
-  if (showTurn != null && emptyLiveRoundAlreadyPresented(showTurn)) return false;
   const from = prev.log?.length || 0;
   const slice = (next.log || []).slice(from);
   if (slice.some(e => e.msg === 'No Lives played this turn.')) return true;
@@ -24254,10 +24255,13 @@ function emptyLiveRoundPresentationPending(prev, next) {
 }
 
 function filterEmptyLivePendingWrMoves(prev, moves, next) {
-  if (!emptyLiveRoundPresentationPending(prev, next)) return moves;
+  const suppressLiveWr = isEmptyLiveSkipTransition(prev, next)
+    || emptyLiveRoundPresentationPending(prev, next);
+  if (!suppressLiveWr) return moves;
   return (moves || []).filter(m => {
-    if (m.from?.zone === 'live' && m.to?.zone === 'waiting_room') return false;
-    return true;
+    if (m.from?.zone !== 'live' || m.to?.zone !== 'waiting_room') return true;
+    const card = enrichCard(m.card);
+    return !isLiveTypeCard(card);
   });
 }
 
@@ -24412,8 +24416,7 @@ function playerHadLivePerformanceForTurn(next, pid, turn) {
 
 function playerHasLiveInStorage(state, pid) {
   if (!state?.players?.[pid]) return false;
-  return (state.players[pid].live_zone || []).some(c =>
-    isLiveTypeCard(c) || isRedactedLiveZoneCard(c));
+  return (state.players[pid].live_zone || []).some(c => isLiveTypeCard(c));
 }
 
 function playerHadLivePerformance(next, pid, prev = null, showTurn = null) {
@@ -24502,6 +24505,7 @@ function resolvedPerfSignalsInline(next) {
 /** Post-judge carry-over counts only for spectacle recovery — never during LIVE placement. */
 function resolvedPerfSignalsForTransition(prev, next) {
   if (!resolvedPerfSignalsInline(next)) return false;
+  if (isEmptyLiveSkipTransition(prev, next)) return false;
   if (isLiveSetPlacementOnly(prev, next)) return false;
   if (isMainOrActivePhase(next?.phase)) {
     const undone = scanUndoneLiveSpectacleTurn(next, prev);
@@ -24519,6 +24523,7 @@ function resolvedPerfSignals(next) {
 
 function currentRoundHasLivePerformance(prev, next) {
   if (!next) return false;
+  if (isEmptyLiveSkipTransition(prev, next)) return false;
   if (shouldIgnoreStaleLivePerfSignals(prev, next)) {
     return logTransitionHasLivePerformance(prev, next);
   }
@@ -25478,6 +25483,10 @@ function enteringPerformanceShow(prev, next) {
 function rememberPerfSpectacleBaseline(prev, next) {
   if (G.isTutorial || !prev || !next) return;
   if (isLeavingLiveSetPhase(prev, next)) {
+    if (isEmptyLiveSkipTransition(prev, next) || isMemberOnlyLiveStorageRound(prev, next)) {
+      G._deferPerfSpectaclePrev = null;
+      return;
+    }
     G._deferPerfSpectaclePrev = augmentPerfSpectaclePrev(prev, next);
   } else if (prev.phase === 'live_start_effects' && next.phase !== 'live_start_effects'
       && roundHasLivePerformanceSignals(prev, next) && !G._deferPerfSpectaclePrev) {
