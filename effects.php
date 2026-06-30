@@ -10594,7 +10594,6 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
         case 'optional_pay_energy_live_success':
         case 'optional_pay_play_hand_member':
         case 'optional_discard_blade_draw_if_live':
-        case 'optional_success_wr_live_swap':
         case 'optional_success_live_swap':
         case 'pick_surveil_heart_threshold':
         case 'spbp5_pay_energy_score':
@@ -10619,7 +10618,13 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
             if (($prompt['step'] ?? '') === 'confirm') {
                 return ['choice' => 'no'];
             }
-            $id = $prompt['candidates'][0]['instance_id'] ?? null;
+            $cands = $prompt['candidates'] ?? [];
+            if (($prompt['step'] ?? '') === 'pick_success_live') {
+                usort($cands, fn($a, $b) => intval($a['score'] ?? 0) <=> intval($b['score'] ?? 0));
+            } else {
+                usort($cands, fn($a, $b) => intval($b['score'] ?? 0) <=> intval($a['score'] ?? 0));
+            }
+            $id = $cands[0]['instance_id'] ?? null;
             return $id ? ['card_id' => $id] : ['choice' => 'skip'];
 
         case 'optional_success_live_swap':

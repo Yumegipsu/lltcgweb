@@ -13642,7 +13642,8 @@ let G = {
   surveil:{slots:[],wr:[],byId:{},selId:null,drag:null},
   watchdogTimer:null, watchdogStuckCount:0, lastWatchdogSig:null,
   _cpuPromptTimer:null, _cpuPromptScheduled:null, _cpuResolveBusy:null,
-  _cpuPromptRetryTimer:null, _cpuPromptHangTimer:null, _cpuPromptHangKey:null, _cpuPromptHangSince:0,
+  _cpuPromptRetryTimer:null, _cpuPromptRetryKey:null, _cpuPromptRetryCount:0,
+  _cpuPromptHangTimer:null, _cpuPromptHangKey:null, _cpuPromptHangSince:0,
   animating:false,
   _logFollowTail:true,
   handPointer:null,
@@ -18786,6 +18787,41 @@ function clearCpuPromptTracking() {
   clearCpuPromptHangWatch();
 }
 
+function cpuResetPromptRetry() {
+  G._cpuPromptRetryKey = null;
+  G._cpuPromptRetryCount = 0;
+}
+
+function cpuBumpPromptRetry(s) {
+  const key = cpuPromptKey(s);
+  if (!key) return 0;
+  if (G._cpuPromptRetryKey !== key) {
+    G._cpuPromptRetryKey = key;
+    G._cpuPromptRetryCount = 0;
+  }
+  G._cpuPromptRetryCount = (G._cpuPromptRetryCount || 0) + 1;
+  return G._cpuPromptRetryCount;
+}
+
+async function cpuHandleResolvePromptError() {
+  G._cpuResolveBusy = null;
+  G._cpuPromptScheduled = null;
+  if (G.polling) {
+    ensurePollHoldReleased(G.gameState);
+    await pullLatestState();
+  }
+  const live = G.gameState;
+  const cpu = live?.players?.p2;
+  if (live?.pending_prompt?.responder !== 'p2' || !cpu) return;
+  const retries = cpuBumpPromptRetry(live);
+  if (retries >= 3) {
+    cpuResetPromptRetry();
+    await cpuAct('anti_softlock_skip', {});
+  } else {
+    cpuSchedulePromptRetryIfStuck(live, cpu);
+  }
+}
+
 function armCpuPromptHangWatch(s) {
   clearTimeout(G._cpuPromptHangTimer);
   const key = cpuPromptKey(s);
@@ -19596,6 +19632,7 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'optional_wr_members_deck_bottom_milestones', 'player_choice_wr_members_deck_bottom',
   'sbp5_aqours_blade_or_position', 'sbp6_live_wr_deck_position', 'sbp6_hand_deck_position',
   'choice_energy_or_wr_lives_deck_top', 'activated_swap_area_pick',
+  'optional_success_wr_live_swap',
 ]);
 
 function cpuLiveHand(cpu) {
@@ -21619,8 +21656,44 @@ function cpuResolveSpbp5SurveilPick(pr, cpu, tier, winPressure, read) {
   return false;
 }
 
+function cpuOptionalSuccessWrLiveSwapCfg(pr) {
+  return { group: pr.group || 'Nijigasaki', filter: pr.filter || 'live' };
+}
+
+/** Shioriko PL!N-bp4-010-SEC — Success Live ↔ WR Live swap (confirm + two card picks). */
+function cpuResolveOptionalSuccessWrLiveSwap(pr, cpu, tier) {
+  const cfg = cpuOptionalSuccessWrLiveSwapCfg(pr);
+  const step = pr.step || 'confirm';
+
+  if (step === 'confirm') {
+    const inSucc = (cpu.success_lives || []).some(c => isCpuLiveCard(c) && cardMatchesWrPickClient(c, cfg));
+    const inWr = (cpu.waiting_room || []).some(c => isCpuLiveCard(c) && cardMatchesWrPickClient(c, cfg));
+    cpuAct('resolve_prompt', { choice: (inSucc && inWr) ? 'yes' : 'no' });
+    return true;
+  }
+  if (step === 'pick_success_live') {
+    const sorted = [...(pr.candidates || [])].sort((a, b) => (a.score || 0) - (b.score || 0));
+    const pick = sorted[0];
+    if (pick?.instance_id) cpuAct('resolve_prompt', { card_id: pick.instance_id });
+    else cpuAct('anti_softlock_skip', {});
+    return true;
+  }
+  if (step === 'pick_wr_live') {
+    const sorted = [...(pr.candidates || [])].sort((a, b) => (b.score || 0) - (a.score || 0));
+    const pick = sorted[0];
+    if (pick?.instance_id) cpuAct('resolve_prompt', { card_id: pick.instance_id });
+    else cpuAct('anti_softlock_skip', {});
+    return true;
+  }
+  cpuAct('anti_softlock_skip', {});
+  return true;
+}
+
 /** Step-aware resolver for multi-part skill prompts (surveil chains, discard steps, etc.). */
 function cpuResolveStepPrompt(pr, cpu, tier, winPressure, read) {
+  if (pr.type === 'optional_success_wr_live_swap') {
+    return cpuResolveOptionalSuccessWrLiveSwap(pr, cpu, tier);
+  }
   if (cpuResolveHandPickPrompt(pr, cpu, tier, winPressure, read)) return true;
   if (pr.type === 'ssd1_live_start_draw') {
     if ((pr.step || '') === 'confirm' || !pr.step) {
@@ -21731,7 +21804,8 @@ function cpuResolveStepPrompt(pr, cpu, tier, winPressure, read) {
       return true;
     }
   }
-  if (step === 'confirm' && pr.choices?.includes('yes') && pr.choices?.includes('no')) {
+  if (step === 'confirm' && pr.choices?.includes('yes') && pr.choices?.includes('no')
+      && pr.type !== 'optional_success_wr_live_swap') {
     if (pr.type?.includes('wait') && pr.type?.includes('discard') && pr.type?.includes('look')) {
       const score = cpuSurveilConfirmScore(pr, cpu, tier, winPressure, read);
       cpuAct('resolve_prompt', { choice: score >= cpuOptionalYesThreshold(tier) ? 'yes' : 'no' });
@@ -21893,13 +21967,7 @@ function cpuResolvePromptBody(s, cpu, pr) {
     return;
   }
   if(pr.type==='optional_success_wr_live_swap'){
-    if(pr.step==='confirm'){
-      const hasSucc=(cpu.success_lives||[]).some(c=>(c.group||'')===(pr.group||'Nijigasaki')&&c.card_type==='ライブ');
-      cpuAct('resolve_prompt',{choice:hasSucc?'yes':'no'});
-      return;
-    }
-    const id=pr.candidates?.[0]?.instance_id;
-    if(id) cpuAct('resolve_prompt',{card_id:id});
+    cpuResolveOptionalSuccessWrLiveSwap(pr, cpu, tier);
     return;
   }
   if(pr.type==='optional_success_live_swap'){
@@ -22428,6 +22496,9 @@ function cpuResolvePromptSmart(s, cpu, pr, tier) {
       return true;
     }
   }
+  if (pr.type === 'optional_success_wr_live_swap') {
+    return cpuResolveOptionalSuccessWrLiveSwap(pr, cpu, tier);
+  }
   if (pr.type === 'optional_pay_play_hand_member') {
     const grp = pr.ability?.group || 'Nijigasaki';
     const maxCost = pr.ability?.max_cost ?? 4;
@@ -22731,11 +22802,10 @@ async function cpuAct(type,data) {
     if(d.error){
       TCG_DEBUG.warn('action', 'cpuAct failed', type, d.error);
       if (type === 'resolve_prompt' || type === 'anti_softlock_skip') {
-        G._cpuResolveBusy = null;
-        G._cpuPromptScheduled = null;
-        const live = G.gameState;
-        const cpu = live?.players?.p2;
         if (type === 'resolve_prompt' && /no pending prompt/i.test(d.error || '')) {
+          G._cpuResolveBusy = null;
+          G._cpuPromptScheduled = null;
+          cpuResetPromptRetry();
           clearStaleCpuPromptFromClient();
           if (G.polling) {
             ensurePollHoldReleased(G.gameState);
@@ -22744,9 +22814,13 @@ async function cpuAct(type,data) {
           cpuSchedule(() => doCPU(G.gameState), 300);
           return;
         }
-        if (live?.pending_prompt?.responder === 'p2' && cpu) {
-          if (type === 'anti_softlock_skip') armCpuPromptHangWatch(live);
-          else cpuSchedulePromptRetryIfStuck(live, cpu);
+        if (type === 'resolve_prompt') {
+          await cpuHandleResolvePromptError();
+        } else {
+          G._cpuResolveBusy = null;
+          G._cpuPromptScheduled = null;
+          const live = G.gameState;
+          if (live?.pending_prompt?.responder === 'p2') armCpuPromptHangWatch(live);
         }
       } else if (type === 'activate_ability') {
         if (data?.card_id != null && data?.ability_index != null) {
@@ -22799,10 +22873,15 @@ async function cpuAct(type,data) {
     TCG_DEBUG.log('action', 'cpuAct ok', type, { seq: d.seq ?? G.lastSeq });
     if (type === 'resolve_prompt' || type === 'anti_softlock_skip') {
       clearCpuPromptTracking();
+      cpuResetPromptRetry();
       if (typeof d.seq === 'number' && G.gameState && d.seq >= (G.gameState.seq ?? 0)) {
-        G.gameState = { ...G.gameState, seq: d.seq, pending_prompt: null };
-        if (G.gameState.surveil_stash) delete G.gameState.surveil_stash;
-        purgeStalePendingStatesAfterCpuResolve(d.seq);
+        if (type === 'anti_softlock_skip') {
+          G.gameState = { ...G.gameState, seq: d.seq, pending_prompt: null };
+          if (G.gameState.surveil_stash) delete G.gameState.surveil_stash;
+          purgeStalePendingStatesAfterCpuResolve(d.seq);
+        } else {
+          G.gameState = { ...G.gameState, seq: d.seq };
+        }
       } else {
         cpuClearLocalCpuPromptIfResolved(G.gameState);
       }
@@ -22814,15 +22893,13 @@ async function cpuAct(type,data) {
     scheduleCpuContinueAfterAct(type);
   } catch(e){
     TCG_DEBUG.warn('action', 'cpuAct error', type, e);
-    if (type === 'resolve_prompt' || type === 'anti_softlock_skip') {
+    if (type === 'resolve_prompt') {
+      await cpuHandleResolvePromptError();
+    } else if (type === 'anti_softlock_skip') {
       G._cpuResolveBusy = null;
       G._cpuPromptScheduled = null;
       const live = G.gameState;
-      const cpu = live?.players?.p2;
-      if (live?.pending_prompt?.responder === 'p2' && cpu) {
-        if (type === 'anti_softlock_skip') armCpuPromptHangWatch(live);
-        else cpuSchedulePromptRetryIfStuck(live, cpu);
-      }
+      if (live?.pending_prompt?.responder === 'p2') armCpuPromptHangWatch(live);
     }
   } finally {
     G._cpuActBusy = false;
@@ -35386,7 +35463,8 @@ function freshGameGlobals() {
     surveil:{slots:[],wr:[],byId:{},selId:null,drag:null},
     watchdogTimer:null, watchdogStuckCount:0, lastWatchdogSig:null,
     _cpuPromptTimer:null, _cpuPromptScheduled:null, _cpuResolveBusy:null,
-    _cpuPromptRetryTimer:null, _cpuPromptHangTimer:null, _cpuPromptHangKey:null, _cpuPromptHangSince:0,
+    _cpuPromptRetryTimer:null, _cpuPromptRetryKey:null, _cpuPromptRetryCount:0,
+  _cpuPromptHangTimer:null, _cpuPromptHangKey:null, _cpuPromptHangSince:0,
     _cpuActBusy:false, _cpuActInflight:null,
     animating:false,
   _logFollowTail:true,
