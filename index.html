@@ -18588,7 +18588,7 @@ function isCpuMemberCard(c) {
 
 /** Tier-scaled random jitter so CPU lines differ between games. */
 function cpuLiveJitter(tier) {
-  const spread = tier === 'hard' ? 0.1 : tier === 'normal' ? 0.2 : 0.3;
+  const spread = tier === 'hard' ? 0.06 : tier === 'normal' ? 0.12 : 0.3;
   return (Math.random() - 0.5) * spread;
 }
 
@@ -18703,6 +18703,39 @@ function cpuCtx(s, cpu, cpuPid = 'p2') {
   }
   const sit = cpuSituation(s, cpu, cpuPid);
   return { s, cpu, tier, sit, read: sit.read, winPressure: sit.urgency };
+}
+
+/** ?debug=cpu — log top scored candidates (no behavior change). */
+function cpuTraceScore(phase, label, rows, meta) {
+  if (!TCG_DEBUG.on || !TCG_DEBUG.cats.has('cpu')) return;
+  const candidates = (rows || []).slice(0, 5).map(r => ({
+    ...r,
+    score: typeof r.score === 'number' ? +r.score.toFixed(3) : r.score,
+  }));
+  const tag = label ? `trace ${phase} ${label}` : `trace ${phase}`;
+  TCG_DEBUG.log('cpu', tag, { ...(meta || {}), candidates });
+}
+
+function cpuPosture(ctx) {
+  const sit = ctx?.sit;
+  return {
+    behind: !!sit?.behind,
+    ahead: !!sit?.ahead,
+    critical: !!sit?.critical,
+    even: !sit?.behind && !sit?.ahead,
+    urgency: ctx?.winPressure ?? 0,
+    mustCatchUp: !!sit?.mustCatchUp,
+  };
+}
+
+function cpuLiveHeartEfficiency(c) {
+  const req = cpuLiveRequiredHearts(c);
+  if (!req?.length) return 0;
+  const isWild = (color) => {
+    const n = String(color || '').toLowerCase();
+    return !n || n === 'any' || n === 'wild' || n === '∞' || n === '無';
+  };
+  return req.filter(r => !isWild(r.color)).length / req.length;
 }
 
 function cpuPickOppStageTarget(candidates, read, tier) {
@@ -18909,6 +18942,11 @@ function cpuScoreLiveForSet(c, tier, winPressure, read = null, cpu = null) {
       if (oppBestWr >= 2 && (c.score || 0) >= oppBestWr) score += tier === 'hard' ? 0.5 : 0.25;
     }
   }
+  if (tier === 'hard' || tier === 'normal') {
+    score += cpuLiveHeartEfficiency(c) * (tier === 'hard' ? 0.35 : 0.22);
+    if ((c.score || 0) >= 2) score += tier === 'hard' ? 0.5 : 0.3;
+    if (sit?.behind) score += (c.score || 0) * 0.4;
+  }
   return score;
 }
 
@@ -19070,6 +19108,15 @@ function cpuLiveCommitMin(tier, winPressure) {
   return tier === 'hard' ? 0.45 : tier === 'normal' ? 0.5 : 0.85;
 }
 
+function cpuTierLiveCommitMin(tier, posture, winPressure) {
+  if (tier === 'easy') return cpuLiveCommitMin(tier, winPressure);
+  if (winPressure >= 1) return 0.25;
+  if (winPressure >= 0.45) return tier === 'hard' ? 0.28 : 0.32;
+  if (posture?.behind || posture?.critical) return tier === 'hard' ? 0.22 : 0.30;
+  if (posture?.ahead) return tier === 'hard' ? 0.35 : 0.42;
+  return tier === 'hard' ? 0.30 : 0.38;
+}
+
 /** Absolute target card count in Live storage (0–3), based on board + hand. */
 function cpuDesiredLiveStorageTotal(ctx, hand, viableLives, alreadyStored) {
   const { tier, winPressure, read, sit } = ctx;
@@ -19080,56 +19127,83 @@ function cpuDesiredLiveStorageTotal(ctx, hand, viableLives, alreadyStored) {
   const bestScore = viableLives.length ? Math.max(...viableLives.map(c => c.score || 0)) : 0;
   const strongCount = viableLives.filter(c => (c.score || 0) >= 2).length;
   const viableCount = viableLives.length;
+  const posture = cpuPosture(ctx);
+
+  let target = alreadyStored;
 
   if (winPressure >= 1 || sit?.critical) return 3;
 
   if (viableCount === 0) {
     if (tier === 'easy') return alreadyStored;
-    if (winPressure >= 0.45 && handLen >= 5) return Math.min(3, alreadyStored + 1);
-    if (tier === 'hard' && read?.behind && handLen >= 6) return Math.min(3, alreadyStored + 1);
-    if (tier === 'normal' && sit?.mustCatchUp && handLen >= 6) return Math.min(3, alreadyStored + 1);
-    return alreadyStored;
+    if (winPressure >= 0.45 && handLen >= 5) target = Math.min(3, alreadyStored + 1);
+    else if (tier === 'hard' && read?.behind && handLen >= 6) target = Math.min(3, alreadyStored + 1);
+    else if (tier === 'normal' && sit?.mustCatchUp && handLen >= 6) target = Math.min(3, alreadyStored + 1);
+    return target;
   }
 
   if (winPressure >= 0.45) {
     const livesWanted = tier === 'hard'
       ? (strongCount >= 2 && handLen >= 5 ? 2 : 1)
       : (bestScore >= 2 && handLen >= 6 ? 2 : 1);
-    return Math.min(3, alreadyStored + livesWanted);
-  }
-
-  if (sit?.mustCatchUp || sit?.behind) {
+    target = Math.min(3, alreadyStored + livesWanted);
+  } else if (sit?.mustCatchUp || sit?.behind) {
     const push = tier === 'hard'
       ? Math.min(Math.max(strongCount, 2) + (handLen >= 6 ? 1 : 0), 3)
       : Math.min(Math.max(strongCount, 1) + (handLen >= 7 ? 1 : 0), 2);
-    return Math.min(3, alreadyStored + push);
+    target = Math.min(3, alreadyStored + push);
+  } else if (tier === 'hard') {
+    if (read?.ahead && handLen <= 5) target = Math.min(3, alreadyStored + (viableCount ? 1 : 0));
+    else if (strongCount >= 2 && handLen >= 5) target = Math.min(3, alreadyStored + Math.min(3, strongCount));
+    else if (viableCount >= 2 && handLen >= 5 && bestScore >= 1) target = Math.min(3, alreadyStored + 2);
+    else if (viableCount >= 1 && handLen >= 4) target = Math.min(3, alreadyStored + 1);
+  } else if (tier === 'normal') {
+    if (bestScore >= 2) target = Math.min(3, alreadyStored + 1);
+    else if (handLen >= 6 && viableCount >= 2 && bestScore >= 1) target = Math.min(3, alreadyStored + 2);
+    else if (handLen >= 5 && viableCount >= 1 && bestScore >= 1) target = Math.min(3, alreadyStored + 1);
+    else if (viableCount >= 1 && handLen >= 4) target = Math.min(3, alreadyStored + 1);
+  } else {
+    target = Math.min(3, alreadyStored + (viableCount ? 1 : 0));
   }
 
-  if (tier === 'hard') {
-    if (read?.ahead && handLen <= 5) return Math.min(3, alreadyStored + (viableCount ? 1 : 0));
-    if (strongCount >= 2 && handLen >= 5) return Math.min(3, alreadyStored + Math.min(3, strongCount));
-    if (viableCount >= 2 && handLen >= 5 && bestScore >= 1) return Math.min(3, alreadyStored + 2);
-    if (viableCount >= 1 && handLen >= 4) return Math.min(3, alreadyStored + 1);
-    return alreadyStored;
+  if (tier !== 'easy' && viableCount >= 1 && bestScore >= 2 && handLen > 3) {
+    target = Math.max(target, Math.min(3, alreadyStored + 1));
+  }
+  if (tier !== 'easy' && (posture.behind || sit?.mustCatchUp) && strongCount >= 1) {
+    const behindTarget = tier === 'hard'
+      ? Math.min(3, alreadyStored + Math.min(strongCount, 3))
+      : Math.min(3, alreadyStored + Math.min(strongCount, 2));
+    target = Math.max(target, behindTarget);
+  }
+  if (tier === 'hard' && posture.ahead && strongCount >= 1 && handLen >= 4) {
+    target = Math.max(target, Math.min(3, alreadyStored + 1));
   }
 
-  if (tier === 'normal') {
-    if (bestScore >= 2) return Math.min(3, alreadyStored + 1);
-    if (handLen >= 6 && viableCount >= 2 && bestScore >= 1) return Math.min(3, alreadyStored + 2);
-    if (handLen >= 5 && viableCount >= 1 && bestScore >= 1) return Math.min(3, alreadyStored + 1);
-    if (viableCount >= 1 && handLen >= 4) return Math.min(3, alreadyStored + 1);
-    return alreadyStored;
-  }
-
-  return Math.min(3, alreadyStored + (viableCount ? 1 : 0));
+  return Math.min(3, target);
 }
 
 function cpuBluffSlotsWanted(ctx, chosenLiveCount, desiredTotal, handLen, bestLiveScore) {
   const gap = Math.max(0, desiredTotal - chosenLiveCount);
   if (gap <= 0) return 0;
   const { tier, winPressure, read, sit } = ctx;
+  const posture = cpuPosture(ctx);
+
+  if (tier === 'easy') {
+    if (chosenLiveCount === 0) return handLen >= 5 ? Math.min(gap, 1) : 0;
+    return 0;
+  }
+
+  if (posture.behind || posture.critical) {
+    if (chosenLiveCount >= 1) return 0;
+    return handLen >= 5 ? Math.min(gap, 1) : 0;
+  }
+  if (posture.ahead && chosenLiveCount === 0) {
+    return handLen >= 5 ? Math.min(gap, 1) : 0;
+  }
+  if (tier === 'hard' && chosenLiveCount >= 2 && posture.ahead) {
+    return Math.min(gap, 1);
+  }
+
   if (chosenLiveCount === 0) {
-    if (tier === 'easy') return handLen >= 5 ? Math.min(gap, 1) : 0;
     if (winPressure >= 0.45 || sit?.mustCatchUp) return Math.min(gap, 1);
     if (tier === 'hard' && handLen >= 5) return Math.min(gap, 1);
     if (tier === 'normal' && handLen >= 5) return Math.min(gap, 1);
@@ -19735,12 +19809,28 @@ function cpuBuildActivatePayload(pick, cpu, tier, winPressure, read) {
   return payload;
 }
 
-function cpuTryActivate(s, cpu, tier, winPressure = 0, read = null) {
-  if (tier === 'easy') return false;
-  cpuClearAbilityBlacklistIfNewTurn(s);
-  const minScore = tier === 'hard'
+function cpuMainActionMinScore(tier, posture) {
+  if (tier === 'easy') return 99;
+  if (posture?.behind || posture?.critical) return tier === 'hard' ? 0.25 : 0.4;
+  return tier === 'hard' ? 0.4 : 0.55;
+}
+
+function cpuActivateMinScore(tier, winPressure, posture) {
+  let min = tier === 'hard'
     ? (winPressure >= 1 ? 2.2 : winPressure >= 0.45 ? 1.35 : 0.45)
     : (winPressure >= 1 ? 2 : winPressure >= 0.45 ? 1.25 : 0.75);
+  if (posture?.behind) {
+    if (tier === 'hard') min -= 0.12;
+    else if (tier === 'normal') min -= 0.08;
+  }
+  return min;
+}
+
+function cpuListActivateCandidates(s, cpu, ctx) {
+  const { tier, winPressure, read } = ctx;
+  const posture = cpuPosture(ctx);
+  const minScore = cpuActivateMinScore(tier, winPressure, posture);
+  cpuClearAbilityBlacklistIfNewTurn(s);
   const hasViableLive = cpuHandHasViableLive(cpu);
   let abilities = collectActivatableAbilities(s, 'p2')
     .map(a => ({ ...a, score: cpuScoreAbility(a, cpu, tier, read, winPressure) }))
@@ -19759,12 +19849,20 @@ function cpuTryActivate(s, cpu, tier, winPressure = 0, read = null) {
       return true;
     });
   }
-  if (!abilities.length) return false;
-  cpuAct('activate_ability', cpuBuildActivatePayload(abilities[0], cpu, tier, winPressure, read));
-  return true;
+  cpuTraceScore('main', 'activate', abilities.slice(0, 5).map(a => ({
+    score: a.score,
+    label: a.ability?.type || 'ability',
+  })), { minScore });
+  return abilities.map(a => ({
+    kind: 'activate',
+    score: a.score,
+    payload: cpuBuildActivatePayload(a, cpu, tier, winPressure, read),
+    label: a.ability?.type || 'ability',
+  }));
 }
 
-function cpuPlayMemberFromHand(s, cpu, hand, tier, read = null) {
+function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
+  const { suboptimalPick = false } = opts;
   const ae = (cpu.energy_zone || []).filter(energyChipActive).length;
   const stageColors = cpuStageColors(cpu);
   const cmp = tier === 'easy'
@@ -19777,41 +19875,44 @@ function cpuPlayMemberFromHand(s, cpu, hand, tier, read = null) {
   const aff = hand
     .filter(c => isCpuMemberCard(c) && effectiveCost(c, hand) <= ae)
     .sort(cmp);
-  if (!aff.length) return false;
+  if (!aff.length) return null;
   let pickIdx = 0;
-  if (tier !== 'easy' && aff.length >= 2 && Math.random() < (tier === 'hard' ? 0.18 : 0.28)) {
+  if (suboptimalPick && tier === 'normal' && aff.length >= 2 && Math.random() < 0.28) {
     const top = cpuScoreMember(aff[0], cpu, hand, stageColors, tier, read);
     const second = cpuScoreMember(aff[1], cpu, hand, stageColors, tier, read);
     if (top - second <= 1.25) pickIdx = 1;
   }
   const c = aff[pickIdx];
   const ec = effectiveCost(c, hand);
+  const score = tier === 'easy'
+    ? cpuMemberNovelty(c, stageColors) + (c.blade || 0) * 0.1
+    : cpuScoreMember(c, cpu, hand, stageColors, tier, read);
   const preferCenter = read && tier !== 'easy' && (c.blade || 0) >= (read.strongestActive?.blade || 0);
-  const slotOrder = preferCenter
-    ? ['center', 'left', 'right']
-    : ['center', 'left', 'right'];
+  const slotOrder = preferCenter ? ['center', 'left', 'right'] : ['center', 'left', 'right'];
   const empty = slotOrder.find(s2 => !cpu.stage?.[s2]);
+  const label = `member c${c.cost || 0}/b${c.blade || 0}`;
   if (empty) {
-    cpuAct('play_member', { card_id: c.instance_id, slot: empty });
-    return true;
+    return { kind: 'play_member', score, payload: { card_id: c.instance_id, slot: empty }, label };
   }
-  const slots = slotOrder;
-  for (const slot of slots) {
+  for (const slot of slotOrder) {
     const existing = cpu.stage?.[slot];
     if (!existing || stageMemberEnteredThisTurn(existing, s.turn)) continue;
     if (!memberBlocksBaton(existing) && !memberBatonRestricted(existing, c) && ec >= 1) {
       const batonCost = Math.max(0, ec - stageMemberEffectiveCost(existing, cpu));
       if (batonCost <= affordableEnergyForBatonPlay(cpu, existing, c)) {
-        cpuAct('play_member', { card_id: c.instance_id, slot, baton_id: existing.instance_id });
-        return true;
+        return {
+          kind: 'play_member',
+          score,
+          payload: { card_id: c.instance_id, slot, baton_id: existing.instance_id },
+          label: `${label} baton@${slot}`,
+        };
       }
     }
     if (ae >= ec) {
-      cpuAct('play_member', { card_id: c.instance_id, slot });
-      return true;
+      return { kind: 'play_member', score, payload: { card_id: c.instance_id, slot }, label: `${label}@${slot}` };
     }
   }
-  const cheapestSlot = slots.reduce((best, sl) =>
+  const cheapestSlot = slotOrder.reduce((best, sl) =>
     (cpu.stage[sl]?.cost || 99) < (cpu.stage[best]?.cost || 99) ? sl : best, 'center');
   const existing = cpu.stage[cheapestSlot];
   if (existing && !stageMemberEnteredThisTurn(existing, s.turn)) {
@@ -19826,36 +19927,128 @@ function cpuPlayMemberFromHand(s, cpu, hand, tier, read = null) {
       : ae >= ec;
     if (afford && isUpgrade) {
       if (canBaton) {
-        cpuAct('play_member', { card_id: c.instance_id, slot: cheapestSlot, baton_id: existing.instance_id });
-      } else {
-        cpuAct('play_member', { card_id: c.instance_id, slot: cheapestSlot });
+        return {
+          kind: 'play_member',
+          score,
+          payload: { card_id: c.instance_id, slot: cheapestSlot, baton_id: existing.instance_id },
+          label: `${label} upgrade@${cheapestSlot}`,
+        };
       }
-      return true;
+      return {
+        kind: 'play_member',
+        score,
+        payload: { card_id: c.instance_id, slot: cheapestSlot },
+        label: `${label} replace@${cheapestSlot}`,
+      };
     }
   }
-  return false;
+  return null;
+}
+
+function cpuListMainActions(s, cpu, ctx) {
+  const actions = cpuListActivateCandidates(s, cpu, ctx);
+  const memberPlan = cpuPlanMemberPlay(s, cpu, cpu.hand || [], ctx.tier, ctx.read, { suboptimalPick: false });
+  if (memberPlan) actions.push(memberPlan);
+  return actions;
+}
+
+function cpuBestMainAction(actions, ctx) {
+  if (!actions.length) return null;
+  const posture = cpuPosture(ctx);
+  const min = cpuMainActionMinScore(ctx.tier, posture);
+  const sorted = [...actions].sort((a, b) => b.score - a.score);
+  if (sorted.length >= 2 && posture.behind) {
+    const top = sorted[0];
+    const second = sorted[1];
+    if (Math.abs(top.score - second.score) <= 0.15 && top.kind === 'play_member' && second.kind === 'activate') {
+      sorted[0] = second;
+      sorted[1] = top;
+    }
+  }
+  const best = sorted[0];
+  return best.score >= min ? best : null;
+}
+
+function cpuTryActivate(s, cpu, tier, winPressure = 0, read = null) {
+  if (tier === 'easy') return false;
+  const ctx = {
+    tier,
+    winPressure,
+    read,
+    sit: read ? {
+      behind: (read.successCount ?? 0) > (cpu.success_lives?.length ?? 0),
+      critical: (read.successCount ?? 0) >= 2,
+    } : null,
+  };
+  const candidates = cpuListActivateCandidates(s, cpu, ctx);
+  if (!candidates.length) return false;
+  cpuAct('activate_ability', candidates[0].payload);
+  return true;
+}
+
+function cpuPlayMemberFromHand(s, cpu, hand, tier, read = null) {
+  const ae = (cpu.energy_zone || []).filter(energyChipActive).length;
+  const stageColors = cpuStageColors(cpu);
+  const memberRows = hand
+    .filter(c => isCpuMemberCard(c) && effectiveCost(c, hand) <= ae)
+    .map(c => ({
+      score: tier === 'easy'
+        ? cpuMemberNovelty(c, stageColors)
+        : cpuScoreMember(c, cpu, hand, stageColors, tier, read),
+      label: `member c${c.cost || 0}/b${c.blade || 0}`,
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+  const plan = cpuPlanMemberPlay(s, cpu, hand, tier, read, { suboptimalPick: tier === 'normal' });
+  cpuTraceScore('main', 'play_member_pick', memberRows, {
+    picked: plan?.label || null,
+    slot: plan?.payload?.slot || null,
+  });
+  if (!plan) return false;
+  cpuAct('play_member', plan.payload);
+  return true;
 }
 
 function cpuMulligan() {
   const snap = cpuSnapshot();
   if (!snap) return;
-  const { cpu } = snap;
+  const { cpu, s } = snap;
   const hand = cpu.hand || [];
   const tier = cpuDiff();
   if (tier === 'easy' || !hand.length) {
     cpuAct('mulligan', { card_ids: [] });
     return;
   }
+  const protectedLiveIds = new Set(
+    hand.filter(c => c.card_type === 'ライブ' && (c.score || 0) >= 2).map(c => c.instance_id)
+  );
   const members = hand.filter(c => c.card_type === 'メンバー');
   const cheapMembers = members.filter(c => (c.cost || 0) <= 2);
+  const ctx = cpuCtx(s, cpu);
+  const read = ctx.read;
+  const behind = ctx.sit?.behind;
   let toSwap = [];
   if (members.length === 0 && hand.length >= 4) {
-    toSwap = hand.map(c => c.instance_id);
+    toSwap = hand.filter(c => !protectedLiveIds.has(c.instance_id)).map(c => c.instance_id);
   } else if (members.length <= 1 && hand.length >= 6) {
-    toSwap = hand.filter(c => c.card_type !== 'メンバー' || (c.cost || 0) >= 4).map(c => c.instance_id);
+    toSwap = hand.filter(c => {
+      if (protectedLiveIds.has(c.instance_id)) return false;
+      return c.card_type !== 'メンバー' || (c.cost || 0) >= 4;
+    }).map(c => c.instance_id);
   } else if (tier === 'hard' && cheapMembers.length >= 2 && hand.length >= 7) {
     const lowLives = hand.filter(c => c.card_type === 'ライブ' && (c.score || 0) <= 1);
     if (lowLives.length >= 2) toSwap = lowLives.map(c => c.instance_id);
+  }
+  if (!toSwap.length && behind && members.length) {
+    const stageColors = cpuStageColors(cpu);
+    const badMembers = members
+      .filter(c => (c.cost || 0) >= 4 || cpuScoreMember(c, cpu, hand, stageColors, tier, read) < 1.5)
+      .map(c => c.instance_id);
+    if (badMembers.length) toSwap = badMembers;
+  }
+  if (!toSwap.length) {
+    const lowLives = hand.filter(c => c.card_type === 'ライブ' && (c.score || 0) <= 1 && !protectedLiveIds.has(c.instance_id));
+    if (lowLives.length) toSwap = lowLives.map(c => c.instance_id);
   }
   cpuAct('mulligan', { card_ids: toSwap.slice(0, tier === 'hard' ? 4 : 3) });
 }
@@ -20054,12 +20247,33 @@ function cpuMain() {
   if (s.pending_prompt?.responder === 'p2') return;
   if (!s.pending_prompt) clearDeferredPromptState();
   if (s.debug_card_test && cpuTryDebugTestCard(s, cpu, ctx.tier, ctx.winPressure, ctx.read)) return;
-  if (ctx.tier !== 'easy' && cpuTryActivate(s, cpu, ctx.tier, ctx.winPressure, ctx.read)) return;
-  if (cpuPlayMemberFromHand(s, cpu, hand, ctx.tier, ctx.read)) return;
+  if (ctx.tier === 'easy') {
+    if (cpuPlayMemberFromHand(s, cpu, hand, ctx.tier, ctx.read)) return;
+    cpuAct('end_main', {});
+    return;
+  }
+  const actions = cpuListMainActions(s, cpu, ctx);
+  const best = cpuBestMainAction(actions, ctx);
+  const posture = cpuPosture(ctx);
+  cpuTraceScore('main', 'decision', actions.slice(0, 5).map(a => ({
+    kind: a.kind,
+    score: a.score,
+    label: a.label,
+  })), {
+    picked: best ? best.kind : null,
+    minScore: cpuMainActionMinScore(ctx.tier, posture),
+    ending: !best,
+  });
+  if (best) {
+    if (best.kind === 'activate') cpuAct('activate_ability', best.payload);
+    else cpuAct('play_member', best.payload);
+    return;
+  }
+  cpuTraceScore('main', 'end_main', [], { reason: 'no candidate above threshold' });
   cpuAct('end_main', {});
 }
 
-function cpuSelectIndependentLives(pool, liveInHand, targetLiveCount, tier, winPressure = 0, read = null, handLen = 0, cpu = null) {
+function cpuSelectIndependentLives(pool, liveInHand, targetLiveCount, tier, winPressure = 0, read = null, handLen = 0, cpu = null, ctx = null) {
   if (targetLiveCount <= 0) return [];
   const scoreLive = (c) => cpuScoreLiveForSet(c, tier, winPressure, read, cpu) + cpuLiveJitter(tier);
   const viable = liveInHand
@@ -20067,7 +20281,10 @@ function cpuSelectIndependentLives(pool, liveInHand, targetLiveCount, tier, winP
     .sort((a, b) => scoreLive(b) - scoreLive(a));
   if (!viable.length) return [];
 
-  const minVal = cpuLiveCommitMin(tier, winPressure);
+  const posture = ctx ? cpuPosture(ctx) : null;
+  const minVal = tier === 'easy'
+    ? cpuLiveCommitMin(tier, winPressure)
+    : cpuTierLiveCommitMin(tier, posture, winPressure);
   const handRetainPenalty = (n) => {
     let p = n * (tier === 'hard' ? 0.15 : tier === 'normal' ? 0.24 : 0.4);
     if (handLen > 0 && handLen - n < 3) p += tier === 'hard' ? 0.25 : 0.45;
@@ -20076,9 +20293,9 @@ function cpuSelectIndependentLives(pool, liveInHand, targetLiveCount, tier, winP
   const comboValue = (cards) =>
     cards.reduce((s, c) => s + scoreLive(c), 0) - handRetainPenalty(cards.length);
 
+  let bestCombo = [];
+  let bestComboVal = -99;
   if ((tier === 'hard' || tier === 'normal') && viable.length > 1) {
-    let best = [];
-    let bestVal = -99;
     const limit = Math.min(targetLiveCount, viable.length, 3);
     for (let mask = 1; mask < (1 << Math.min(viable.length, 6)); mask++) {
       const pick = [];
@@ -20088,13 +20305,16 @@ function cpuSelectIndependentLives(pool, liveInHand, targetLiveCount, tier, winP
       if (pick.length > limit || pick.length === 0) continue;
       if (pick.every(c => cpuCheckHearts(pool, cpuLiveRequiredHearts(c)))) {
         const val = comboValue(pick);
-        if (val > bestVal) { bestVal = val; best = pick; }
+        if (val > bestComboVal) { bestComboVal = val; bestCombo = pick; }
       }
     }
-    if (best.length && bestVal >= minVal) return best;
+    if (bestCombo.length && bestComboVal >= minVal) return bestCombo;
   }
 
   const top = viable[0];
+  if ((tier === 'hard' || tier === 'normal') && top && (top.score || 0) >= 2) {
+    return viable.slice(0, Math.min(targetLiveCount, viable.length));
+  }
   if (scoreLive(top) >= minVal) {
     return viable.slice(0, Math.min(targetLiveCount, viable.length));
   }
@@ -20164,8 +20384,12 @@ function cpuLiveSet() {
 
   const needToAdd = desiredTotal - alreadyStored;
   const targetLives = Math.min(needToAdd, viableLives.length);
+  const posture = cpuPosture(ctx);
+  const commitMin = tier === 'easy'
+    ? cpuLiveCommitMin(tier, winPressure)
+    : cpuTierLiveCommitMin(tier, posture, winPressure);
   let chosenLives = cpuSelectIndependentLives(
-    pool, liveInHand, targetLives, tier, winPressure, read, hand.length, cpu
+    pool, liveInHand, targetLives, tier, winPressure, read, hand.length, cpu, ctx
   );
   if (!chosenLives.length && viableLives.length && needToAdd > 0 && tier !== 'easy') {
     chosenLives = [...viableLives]
@@ -20175,6 +20399,7 @@ function cpuLiveSet() {
   }
   const toAdd = chosenLives.map(c => c.instance_id);
   const bestLiveScore = chosenLives.reduce((m, c) => Math.max(m, c.score || 0), 0);
+  const comboVal = chosenLives.reduce((s, c) => s + cpuScoreLiveForSet(c, tier, winPressure, read, cpu), 0);
 
   const bluffWanted = cpuBluffSlotsWanted(ctx, chosenLives.length, desiredTotal, hand.length, bestLiveScore);
   if (bluffWanted > 0 && members.length) {
@@ -20186,6 +20411,19 @@ function cpuLiveSet() {
     const bluff = cpuLiveBluffMembers(members, tier, 1, hand.length, winPressure, read)[0];
     if (bluff) toAdd.push(bluff.instance_id);
   }
+
+  cpuTraceScore('live_set', '', viableLives.map(c => ({
+    score: cpuScoreLiveForSet(c, tier, winPressure, read, cpu),
+    cardScore: c.score || 0,
+    id: c.instance_id,
+  })), {
+    viableCount: viableLives.length,
+    comboValue: comboVal,
+    commitMin,
+    desiredTotal,
+    chosenIds: toAdd,
+    bluffCount: Math.max(0, toAdd.length - chosenLives.length),
+  });
 
   if (toAdd.length) {
     cpuAct('set_live_cards', { card_ids: toAdd });
