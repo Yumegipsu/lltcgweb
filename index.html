@@ -13640,7 +13640,7 @@ let G = {
   gameState:null, allCards:{}, starterDecks:{},
   lastSeq:0, polling:false, pollTimer:null,
   syncEnabled:null, syncTicket:null, syncEventSource:null,
-  presenceTimer:null, syncFallbackTimer:null, _syncReconnectTimer:null, _syncFailCount:0,
+  presenceTimer:null, syncFallbackTimer:null, _syncReconnectTimer:null, _syncPullTimer:null, _syncFailCount:0,
   selCard:null, liveSel:[], _liveSetLockPid:null, _oppHandDepartInflight:0, mullMarked:new Set(), mulliganPending:false,
   pickMarked:new Set(), pickCtx:null, heartCtx:null,
   surveil:{slots:[],wr:[],byId:{},selId:null,drag:null},
@@ -15354,8 +15354,36 @@ function stopSyncStream() {
   G.syncFallbackTimer = null;
   clearTimeout(G._syncReconnectTimer);
   G._syncReconnectTimer = null;
+  clearTimeout(G._syncPullTimer);
+  G._syncPullTimer = null;
   clearInterval(G.presenceTimer);
   G.presenceTimer = null;
+}
+
+/** Match doPollLegacy gates — avoid fetching mid-animation (queues states and stacks anims). */
+function pollPresentationBlocked() {
+  return !!(G.animating || G._perfSpectacleActive || G._livePollHold);
+}
+
+function scheduleDeferredSyncPull(delayMs = 400) {
+  clearTimeout(G._syncPullTimer);
+  if (!G.polling || G.isTutorial || !G.syncEnabled) return;
+  G._syncPullTimer = setTimeout(async () => {
+    G._syncPullTimer = null;
+    if (!G.polling || G.isTutorial) return;
+    if (pollPresentationBlocked()) {
+      scheduleDeferredSyncPull(400);
+      return;
+    }
+    await pullLatestState();
+  }, delayMs);
+}
+
+function resumePollingTick(delayMs = 120) {
+  if (!G.polling || G.isTutorial) return;
+  clearTimeout(G.pollTimer);
+  if (G.syncEnabled && G.syncTicket) scheduleDeferredSyncPull(Math.max(delayMs, 150));
+  else G.pollTimer = setTimeout(doPollLegacy, delayMs);
 }
 
 function stopPoll() {
@@ -15407,6 +15435,10 @@ function onSyncStateEvent(data) {
   const seq = parseInt(data?.seq, 10);
   if (!Number.isFinite(seq) || seq <= (G.lastSeq ?? 0)) return;
   TCG_DEBUG.log('sync', 'state event', { seq, last: G.lastSeq });
+  if (pollPresentationBlocked()) {
+    scheduleDeferredSyncPull(400);
+    return;
+  }
   void pullLatestState();
 }
 
@@ -15454,6 +15486,15 @@ async function beginGameSync() {
     } catch (e) {
       TCG_DEBUG.warn('sync', 'sync_ticket failed', e);
     }
+  }
+  // CPU solo: no opponent to push — legacy poll paces updates and waits for animations.
+  if (G.isCPU && !G.isSpectator) {
+    G.syncEnabled = false;
+    G.syncTicket = null;
+    stopSyncStream();
+    await pullLatestState();
+    doPollLegacy();
+    return;
   }
   if (G.syncEnabled && G.syncTicket) {
     openSyncStream();
@@ -26304,8 +26345,7 @@ function releaseLivePolls() {
   TCG_DEBUG.log('poll', 'releaseLivePolls');
   G._livePollHold = false;
   if (G.polling && !G._perfSpectacleActive && !G.animating) {
-    clearTimeout(G.pollTimer);
-    G.pollTimer = setTimeout(doPoll, 120);
+    resumePollingTick(120);
   }
 }
 
@@ -26360,7 +26400,10 @@ function tryFlushSpectacleRecovery() {
 function flushPendingState() {
   if (G.animating || isPresentationSuperseded()) return;
   const q = G._pendingStateQueue;
-  if (!q?.length) return;
+  if (!q?.length) {
+    if (G.syncEnabled && G.syncTicket) scheduleDeferredSyncPull(120);
+    return;
+  }
   const next = q.shift();
   TCG_DEBUG.log('state', 'flush pending', { seq: next?.seq, remaining: q.length });
   if (next && next.seq > G.lastSeq) applyStateUpdate(next);
@@ -35605,7 +35648,7 @@ function freshGameGlobals() {
     gameState:null, allCards:G.allCards, starterDecks:G.starterDecks,
     lastSeq:0, polling:false, pollTimer:null,
     syncEnabled:null, syncTicket:null, syncEventSource:null,
-    presenceTimer:null, syncFallbackTimer:null, _syncReconnectTimer:null, _syncFailCount:0,
+    presenceTimer:null, syncFallbackTimer:null, _syncReconnectTimer:null, _syncPullTimer:null, _syncFailCount:0,
     selCard:null, liveSel:[], _liveSetLockPid:null, _oppHandDepartInflight:0, mullMarked:new Set(), mulliganPending:false,
     pickMarked:new Set(), pickCtx:null, heartCtx:null,
     surveil:{slots:[],wr:[],byId:{},selId:null,drag:null},
