@@ -626,9 +626,9 @@ html:not(.tcg-mobile-viewport) #screen-game .opp-hand-strip .opp-hand-card{
   min-height:0;
 }
 #deck-card-hover-panel{
-  flex:0 0 260px;
-  width:260px;
-  max-width:min(260px,38vw);
+  flex:0 0 var(--deck-hover-panel-w,240px);
+  width:var(--deck-hover-panel-w,240px);
+  max-width:min(var(--deck-hover-panel-w,240px),34vw);
   min-width:0;
   align-self:flex-end;
   max-height:100%;
@@ -4362,6 +4362,9 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   overflow-y:auto;
   min-height:100%;
   box-sizing:border-box;
+  --deck-grid-cols:4;
+  --deck-hover-panel-w:240px;
+  --deck-pool-layout-gap:8px;
 }
 #screen-deck .deck-builder-shell{
   gap:4px;
@@ -4777,7 +4780,7 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   overflow-x:hidden;
   overflow-y:auto;
   scrollbar-gutter:stable;
-  grid-auto-rows:var(--deck-tile-h);
+  grid-auto-rows:auto;
 }
 #screen-deck .deck-card-grid--deck,
 #screen-deck .deck-card-grid--pool{
@@ -4787,6 +4790,13 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   overflow-x:hidden;
   overflow-y:auto;
   scrollbar-gutter:stable;
+  grid-template-columns:repeat(var(--deck-grid-cols,4),minmax(0,1fr));
+  grid-auto-rows:auto;
+}
+#screen-deck .deck-card-grid--deck{
+  margin-left:calc(var(--deck-hover-panel-w,240px) + var(--deck-pool-layout-gap,8px));
+  width:calc(100% - var(--deck-hover-panel-w,240px) - var(--deck-pool-layout-gap,8px));
+  max-width:calc(100% - var(--deck-hover-panel-w,240px) - var(--deck-pool-layout-gap,8px));
 }
 #screen-deck .deck-slot-row{
   margin:4px 0;
@@ -4836,13 +4846,19 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   #screen-deck .deck-builder-lists{grid-template-columns:1fr;gap:8px;max-height:none}
   #screen-deck .deck-builder-section{max-height:none;flex:1 1 0;min-height:0}
   #deck-card-hover-panel{
-    flex:0 0 min(240px,38vw);
-    width:min(240px,38vw);
-    max-width:min(240px,38vw);
+    flex:0 0 min(var(--deck-hover-panel-w,240px),34vw);
+    width:min(var(--deck-hover-panel-w,240px),34vw);
+    max-width:min(var(--deck-hover-panel-w,240px),34vw);
   }
 }
 @media(max-width:520px){
+  #screen-deck{--deck-grid-cols:3}
   #screen-deck .deck-builder-pool-layout{flex-direction:column}
+  #screen-deck .deck-card-grid--deck{
+    margin-left:0;
+    width:100%;
+    max-width:none;
+  }
   #deck-card-hover-panel{
     flex:0 0 auto;
     width:100%;
@@ -4852,25 +4868,27 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
     max-height:min(38vh,320px);
   }
 }
+@media(max-width:380px){
+  #screen-deck{--deck-grid-cols:2}
+}
 .deck-builder-lists{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
 .deck-builder-lists h4{color:rgba(255,255,255,.95);font-size:13px;margin:0 0 6px}
 .deck-builder-hint{font-size:11px;color:rgba(255,255,255,.65);margin:0 0 6px}
 .deck-builder-section{min-width:0}
 .deck-card-grid{
-  --deck-tile-w:96px;
-  --deck-tile-h:calc(var(--deck-tile-w) * 88 / 63);
-  --deck-grid-gap:10px;
+  --deck-grid-cols:4;
+  --deck-grid-gap:8px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,var(--deck-tile-w));
-  grid-auto-rows:var(--deck-tile-h);
+  grid-template-columns:repeat(var(--deck-grid-cols),minmax(0,1fr));
+  grid-auto-rows:auto;
   gap:var(--deck-grid-gap);
   justify-content:start;align-content:start;
   border:1px solid rgba(255,255,255,.16);border-radius:8px;padding:10px;background:rgba(0,0,0,.18)}
 .deck-card-grid--deck,.deck-card-grid--pool{overflow:visible}
 .deck-card-tile{
-  width:var(--deck-tile-w);max-width:var(--deck-tile-w);min-width:0;
-  height:var(--deck-tile-h);min-height:var(--deck-tile-h);max-height:var(--deck-tile-h);
-  justify-self:start;align-self:start;aspect-ratio:63/88;border-radius:6px;overflow:hidden;
+  width:100%;max-width:100%;min-width:0;
+  height:auto;min-height:0;max-height:none;
+  justify-self:stretch;align-self:start;aspect-ratio:63/88;border-radius:6px;overflow:hidden;
   position:relative;cursor:pointer;border:2px solid transparent;background:rgba(0,0,0,.35);
   flex-shrink:0;transition:border-color .12s,box-shadow .12s;box-sizing:border-box}
 #screen-deck .deck-live-tile .deck-live-art{
