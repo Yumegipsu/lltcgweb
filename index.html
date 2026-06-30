@@ -19332,6 +19332,9 @@ function cpuDesiredLiveStorageTotal(ctx, hand, viableLives, alreadyStored) {
     target = Math.min(3, alreadyStored + (viableCount ? 1 : 0));
   }
 
+  if (tier !== 'easy' && viableCount >= 1 && handLen >= 3) {
+    target = Math.max(target, Math.min(3, alreadyStored + 1));
+  }
   if (tier !== 'easy' && viableCount >= 1 && bestScore >= 2 && handLen > 3) {
     target = Math.max(target, Math.min(3, alreadyStored + 1));
   }
