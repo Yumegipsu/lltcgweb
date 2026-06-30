@@ -1266,5 +1266,5 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
         }
     }
 
-    return $state;
+    return null;
 }

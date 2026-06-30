@@ -1,5 +1,6 @@
 # Production auth (operator-only; contributors use llr_auth_offline.php via llr_auth_load.php)
 llr_auth.php
+tcg_sync.local.php
 
 # Secrets & local config
 .env

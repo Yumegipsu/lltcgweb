@@ -135,7 +135,7 @@ Split by product line / import batch. Each is `require_once` from `effects.php`.
 |----------|----------|
 | **Game art & audio** | `assets/`, `bg/`, `icons/`, `cardimg/`, root `*.png` / `*.jpg` / `*.m4a` — supply on the server locally; not redistributed in this repo. |
 | **Runtime state** | `data/tcg.db`, `games/*.json`, `experiment_decks/*.json`, `exports/` |
-| **Secrets & deploy config** | `llr_auth.php`, `.env`, `.env.deploy` |
+| **Secrets & deploy config** | `llr_auth.php`, `tcg_sync.local.php`, `.env`, `.env.deploy` |
 | **Local dev tooling** | `/*.py`, `/scripts/`, `audit_*`, `build_tutorial.php`, `build_tutorial.py`, `audit_tutorial_browser.js` |
 | **Scratch / operator notes** | `import_card_progress.txt`, `CARD_AUDIT_PROGRESS.txt`, `_live_titles_export.txt`, calibration `*_scan.png`, etc. |
 | **Private docs** | `ACCOUNT_README.md` |
@@ -165,7 +165,21 @@ Guest lobby, CPU, tutorial (`?tutorial`), and `?debug` work without accounts. Co
 
 ## Deploy note (loveliveradio.ca)
 
-Production deploy is handled from the **Chiichan** repo (`scripts/deploy-loveliveradio-ca.sh`). List **remote** paths with the `tcg/` prefix (e.g. `LLR_SITE_FILES="tcg/index.html tcg/api.php"`); files are read from this **lltcgweb** checkout (`LLR_TCG_ROOT`, default `../lltcgweb` next to Chiichan). Set **`LLR_LLTCGWEB_COMMIT_SUMMARY`** to a brief description of the change — the deploy script commits committable files here and **pushes to GitHub** after a successful Hostinger upload (`LLR_SKIP_LLTCGWEB_PUSH=1` to skip). **Docs-only** changes (e.g. `README.md`, `LICENSE`) are not deployed to the site but should still be pushed via `LLR_LLTCGWEB_REPO_FILES='README.md'` and the same push script. Ensure `data/`, `games/`, `cardimg/`, and `experiment_decks/` are writable on the host; art dirs must already be populated on the server.
+Production deploy is handled from the **Chiichan** repo (`scripts/deploy-loveliveradio-ca.sh`). List **remote** paths with the `tcg/` prefix (e.g. `LLR_SITE_FILES="tcg/index.html tcg/api.php tcg/tcg_sync.php"`); files are read from this **lltcgweb** checkout (`LLR_TCG_ROOT`, default `../lltcgweb` next to Chiichan). Set **`LLR_LLTCGWEB_COMMIT_SUMMARY`** to a brief description of the change — the deploy script commits committable files here and **pushes to GitHub** after a successful Hostinger upload (`LLR_SKIP_LLTCGWEB_PUSH=1` to skip). **Docs-only** changes (e.g. `README.md`, `LICENSE`) are not deployed to the site but should still be pushed via `LLR_LLTCGWEB_REPO_FILES='README.md'` and the same push script. Ensure `data/`, `games/`, `cardimg/`, and `experiment_decks/` are writable on the host; art dirs must already be populated on the server.
+
+### Multiplayer sync (SSE via wrapped → VPS)
+
+PvP state sync uses **Server-Sent Events** through `https://loveliveradio.ca/wrapped/api.php?action=tcg_sync_stream` (same Hostinger→VPS path as radio chat). Game rules and room JSON stay on Hostinger `tcg/api.php`.
+
+**On Hostinger (`tcg/`):** copy [`tcg_sync.local.php.example`](tcg_sync.local.php.example) to gitignored `tcg_sync.local.php`:
+
+- `TCG_SYNC_PUBLISH_URL` — same host as `PYTHON_API_URL` in Chiichan `wrapped/api.php`, path `/api/tcg/sync/notify` (e.g. `http://YOUR_VPS:5001/api/tcg/sync/notify`).
+- `TCG_SYNC_INTERNAL_TOKEN` — same value as `LLR_SITE_INTERNAL_TOKEN` in `wrapped/api.php`.
+- `TCG_SYNC_SHARED_SECRET` — random hex; must match VPS env below.
+
+**On VPS:** deploy Chiichan `wrapped/tcg_sync.py` + `wrapped/wrapped_api.py`; set `TCG_SYNC_SHARED_SECRET` in the `wrapped-api` systemd unit (or environment) to the same secret as Hostinger. Restart **`wrapped-api`** after deploy.
+
+If `tcg_sync.local.php` is missing or disabled, clients fall back to legacy long-poll automatically.
 
 ---
 
