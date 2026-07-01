@@ -6743,7 +6743,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=4"></script>
+<script src="i18n.js?v=5"></script>
 <script src="log_i18n.js?v=4"></script>
 <script src="sfx.js?v=14"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
@@ -9777,14 +9777,7 @@ function deckFilterGroupLabel(groupId) {
 
 function deckFilterSubunitLabel(subunit) {
   if (!subunit) return t('deck.filters.all');
-  if (getLocale() === 'ja') {
-    if (SUBUNIT_JA[subunit]) return SUBUNIT_JA[subunit];
-    for (const [jp, en] of Object.entries(SUBUNIT_EN)) {
-      if (en === subunit && jp !== en && /[\u3040-\u309f\u30a0-\u30ff\u4e00-\u9fff]/.test(jp)) return jp;
-    }
-    return subunit;
-  }
-  return SUBUNIT_EN[subunit] || SUBUNIT_EN[String(subunit).replace(/！/g, '!')] || subunit;
+  return subunitFilterLabel(canonicalSubunitKey(subunit));
 }
 
 function deckFilterChipLabel(filterKey, value) {
@@ -10065,8 +10058,8 @@ function syncDeckFilterUi() {
 
 function ensureDeckFilterPanel() {
   const panel = el('deck-filter-panel');
-  if (!panel || panel.dataset.built === '4') return;
-  panel.dataset.built = '4';
+  if (!panel || panel.dataset.built === '5') return;
+  panel.dataset.built = '5';
   panel.replaceChildren();
 
   const head = document.createElement('div');
@@ -10074,13 +10067,13 @@ function ensureDeckFilterPanel() {
   const headTitle = document.createElement('div');
   headTitle.className = 'deck-filter-title';
   const headLbl = document.createElement('label');
-  headLbl.textContent = 'Filters';
+  headLbl.textContent = t('deck.filters.title');
   headTitle.appendChild(headLbl);
   const advToggle = document.createElement('button');
   advToggle.type = 'button';
   advToggle.id = 'btn-deck-filter-advanced';
   advToggle.className = 'btn-ghost deck-filter-advanced-toggle';
-  advToggle.textContent = 'Show Advanced Filters';
+  advToggle.textContent = t('deck.filters.showAdvanced');
   advToggle.setAttribute('aria-expanded', 'false');
   advToggle.onclick = () => {
     A.deckFilterAdvancedOpen = !A.deckFilterAdvancedOpen;
@@ -10093,7 +10086,7 @@ function ensureDeckFilterPanel() {
   const clearBtn = document.createElement('button');
   clearBtn.type = 'button';
   clearBtn.className = 'btn-ghost deck-filter-clear';
-  clearBtn.textContent = 'Clear';
+  clearBtn.textContent = t('deck.clear');
   clearBtn.onclick = () => clearDeckPoolFilters();
   headActions.appendChild(clearBtn);
   head.appendChild(headActions);
@@ -10106,24 +10099,25 @@ function ensureDeckFilterPanel() {
   advanced.className = 'deck-filter-advanced';
   advanced.hidden = true;
 
-  function addChipRow(label, key, items, { titleFn, target } = {}) {
+  function addChipRow(labelKey, key, items, { titleFn, target } = {}) {
     const row = document.createElement('div');
     row.className = 'deck-filter-row';
     const lbl = document.createElement('p');
     lbl.className = 'deck-filter-row-label';
-    lbl.textContent = label;
+    lbl.dataset.filterLabel = labelKey;
+    lbl.textContent = t('deck.filters.label.' + labelKey);
     row.appendChild(lbl);
     items.forEach(item => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'deck-filter-chip';
       btn.dataset.filter = key;
-      btn.dataset.value = item.id ?? item;
-      btn.textContent = item.label ?? item;
+      const val = item.id ?? item;
+      btn.dataset.value = val;
+      btn.textContent = deckFilterChipLabel(key, val);
       if (titleFn) btn.title = titleFn(item);
       btn.onclick = () => {
         const f = deckPoolFilterState();
-        const val = item.id ?? item;
         if (f[key] === val) {
           if (key === 'searchMode') f.searchMode = 'all';
           else f[key] = '';
@@ -10141,12 +10135,13 @@ function ensureDeckFilterPanel() {
     (target || rows).appendChild(row);
   }
 
-  function addHeartCountGrid(sectionLabel, gridKey, { leadRows = [], colorRows = DECK_HEART_FILTER_COLORS, trailRows = [], iconForColor } = {}) {
+  function addHeartCountGrid(sectionLabelKey, gridKey, { leadRows = [], colorRows = DECK_HEART_FILTER_COLORS, trailRows = [], iconForColor } = {}) {
     const section = document.createElement('div');
     section.className = 'deck-heart-section';
     const lbl = document.createElement('p');
     lbl.className = 'deck-filter-row-label';
-    lbl.textContent = sectionLabel;
+    lbl.dataset.filterLabel = sectionLabelKey;
+    lbl.textContent = t('deck.filters.label.' + sectionLabelKey);
     section.appendChild(lbl);
     const grid = document.createElement('div');
     grid.className = 'deck-heart-grid';
@@ -10159,8 +10154,9 @@ function ensureDeckFilterPanel() {
     DECK_HEART_COUNT_MODES.forEach(m => {
       const span = document.createElement('span');
       span.className = 'deck-heart-mode-lbl';
+      span.dataset.heartMode = m.id;
       span.textContent = m.label;
-      if (m.title) span.title = m.title;
+      if (m.titleKey) span.title = t('deck.filters.' + m.titleKey);
       header.appendChild(span);
     });
     grid.appendChild(header);
@@ -10180,7 +10176,8 @@ function ensureDeckFilterPanel() {
         btn.dataset.heartColor = colorKey;
         btn.dataset.heartMode = m.id;
         btn.textContent = m.label;
-        btn.title = m.title || `${colorKey} × ${m.label}`;
+        if (m.titleKey) btn.title = t('deck.filters.' + m.titleKey);
+        else btn.title = `${colorKey} × ${m.label}`;
         btn.onclick = () => {
           const f = deckPoolFilterState();
           const storageKey = gridKey === 'printed' ? 'printedHearts'
@@ -10200,7 +10197,7 @@ function ensureDeckFilterPanel() {
 
     leadRows.forEach(er => {
       const icon = er.icon
-        ? mkGameIcon(er.icon, 'hicon fld', er.title || er.id)
+        ? mkGameIcon(er.icon, 'hicon fld', er.titleKey ? t('deck.filters.' + er.titleKey) : er.id)
         : mkBladeHeartIcon(er.id, false);
       addGridRow(er.id, icon);
     });
@@ -10210,7 +10207,7 @@ function ensureDeckFilterPanel() {
     });
     trailRows.forEach(er => {
       const icon = er.icon
-        ? mkGameIcon(er.icon, 'hicon fld', er.title || er.id)
+        ? mkGameIcon(er.icon, 'hicon fld', er.titleKey ? t('deck.filters.' + er.titleKey) : er.id)
         : mkBladeHeartIcon(er.id, false);
       addGridRow(er.id, icon);
     });
@@ -10226,7 +10223,7 @@ function ensureDeckFilterPanel() {
     anyBtn.dataset.rangeFilter = key;
     anyBtn.dataset.rangeValue = '';
     anyBtn.textContent = '—';
-    anyBtn.title = 'Any';
+    anyBtn.title = t('deck.filters.any');
     anyBtn.onclick = () => {
       deckPoolFilterState()[key] = '';
       syncDeckFilterUi();
@@ -10250,12 +10247,13 @@ function ensureDeckFilterPanel() {
     });
   }
 
-  function addRangeChipBlock(sectionLabel, minKey, maxKey, values, { minLabel = 'Min', maxLabel = 'Max', layout = 'split' } = {}) {
+  function addRangeChipBlock(sectionLabelKey, minKey, maxKey, values, { layout = 'split' } = {}) {
     const section = document.createElement('div');
     section.className = 'deck-heart-section';
     const lbl = document.createElement('p');
     lbl.className = 'deck-filter-row-label';
-    lbl.textContent = sectionLabel;
+    lbl.dataset.filterLabel = sectionLabelKey;
+    lbl.textContent = t('deck.filters.label.' + sectionLabelKey);
     section.appendChild(lbl);
     const wrap = document.createElement('div');
     wrap.className = 'deck-filter-range-chips';
@@ -10272,13 +10270,14 @@ function ensureDeckFilterPanel() {
       wrap.appendChild(row);
     } else {
       [
-        [minKey, minLabel],
-        [maxKey, maxLabel],
-      ].forEach(([key, rowLabel]) => {
+        [minKey, 'min'],
+        [maxKey, 'max'],
+      ].forEach(([key, rangeLabel]) => {
         const row = document.createElement('div');
         row.className = 'deck-filter-range-chip-row';
         const span = document.createElement('span');
-        span.textContent = rowLabel;
+        span.dataset.rangeLabel = rangeLabel;
+        span.textContent = t('deck.filters.' + rangeLabel);
         row.appendChild(span);
         addRangeChipSide(key, values, row);
         wrap.appendChild(row);
@@ -10288,55 +10287,53 @@ function ensureDeckFilterPanel() {
     return section;
   }
 
-  addChipRow('Type', 'type', DECK_FILTER_TYPES);
-  addChipRow('Group', 'group', [{ id: '', label: 'All' }].concat(
-    DECK_FILTER_GROUPS.map(g => ({ id: g, label: g }))
+  addChipRow('type', 'type', DECK_FILTER_TYPES);
+  addChipRow('group', 'group', [{ id: '' }].concat(
+    DECK_FILTER_GROUPS.map(g => ({ id: g }))
   ));
-  addChipRow('Rarity', 'rarity', [{ id: '', label: 'All' }].concat(
-    DECK_FILTER_RARITIES.map(r => ({ id: r, label: r }))
+  addChipRow('rarity', 'rarity', [{ id: '' }].concat(
+    DECK_FILTER_RARITIES.map(r => ({ id: r }))
   ));
 
-  addChipRow('Keyword in', 'searchMode', DECK_FILTER_SEARCH_MODES, { target: advanced });
-  addChipRow('Product', 'productKind', DECK_FILTER_PRODUCT_KINDS, { target: advanced });
+  addChipRow('keywordIn', 'searchMode', DECK_FILTER_SEARCH_MODES, { target: advanced });
+  addChipRow('product', 'productKind', DECK_FILTER_PRODUCT_KINDS, { target: advanced });
 
   const packRow = document.createElement('div');
   packRow.className = 'deck-filter-row';
-  packRow.innerHTML = '<p class="deck-filter-row-label">Product set</p>';
+  const packLbl = document.createElement('p');
+  packLbl.className = 'deck-filter-row-label';
+  packLbl.dataset.filterLabel = 'productSet';
+  packLbl.textContent = t('deck.filters.label.productSet');
+  packRow.appendChild(packLbl);
   const packSel = document.createElement('select');
   packSel.id = 'deck-filter-pack';
   packSel.className = 'deck-filter-pack';
   packRow.appendChild(packSel);
   advanced.appendChild(packRow);
 
-  addChipRow('Subunit', 'subunit', [{ id: '', label: 'All' }].concat(
-    deckFilterSubunitOptions().map(s => ({
-      id: s,
-      label: subunitFilterLabel(s),
-    }))
+  addChipRow('subunit', 'subunit', [{ id: '' }].concat(
+    deckFilterSubunitOptions().map(s => ({ id: s }))
   ), { target: advanced });
 
-  addChipRow('Parallel', 'parallel', DECK_FILTER_PARALLEL, { target: advanced });
+  addChipRow('parallel', 'parallel', DECK_FILTER_PARALLEL, { target: advanced });
 
   const heartWrap = document.createElement('div');
   heartWrap.className = 'deck-heart-filters-wrap';
-  heartWrap.appendChild(addHeartCountGrid('Printed hearts', 'printed'));
-  heartWrap.appendChild(addHeartCountGrid('Required hearts', 'required'));
-  heartWrap.appendChild(addHeartCountGrid('Blade hearts', 'blade', {
-    leadRows: [{ id: 'all', title: 'All (すべて)' }],
+  heartWrap.appendChild(addHeartCountGrid('printedHearts', 'printed'));
+  heartWrap.appendChild(addHeartCountGrid('requiredHearts', 'required'));
+  heartWrap.appendChild(addHeartCountGrid('bladeHearts', 'blade', {
+    leadRows: [{ id: 'all', titleKey: 'heartAll' }],
     iconForColor: color => mkBladeHeartIcon(color, false),
     trailRows: [
-      { id: 'draw', title: 'Draw icon', icon: 'sp_draw.png' },
-      { id: 'score', title: 'Score icon', icon: 'sp_score.png' },
+      { id: 'draw', titleKey: 'drawIcon', icon: 'sp_draw.png' },
+      { id: 'score', titleKey: 'scoreIcon', icon: 'sp_score.png' },
     ],
   }));
-  heartWrap.appendChild(addRangeChipBlock('Blade', 'bladeMin', 'bladeMax', DECK_BLADE_VALUES, {
-    minLabel: 'Min',
-    maxLabel: 'Max',
-  }));
+  heartWrap.appendChild(addRangeChipBlock('blade', 'bladeMin', 'bladeMax', DECK_BLADE_VALUES));
   advanced.appendChild(heartWrap);
 
-  advanced.appendChild(addRangeChipBlock('Cost', 'costMin', 'costMax', DECK_COST_VALUES, { layout: 'tilde' }));
-  advanced.appendChild(addRangeChipBlock('Score', 'scoreMin', 'scoreMax', DECK_SCORE_VALUES, { layout: 'tilde' }));
+  advanced.appendChild(addRangeChipBlock('cost', 'costMin', 'costMax', DECK_COST_VALUES, { layout: 'tilde' }));
+  advanced.appendChild(addRangeChipBlock('score', 'scoreMin', 'scoreMax', DECK_SCORE_VALUES, { layout: 'tilde' }));
 
   packSel.addEventListener('change', () => {
     const f = deckPoolFilterState();
