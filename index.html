@@ -1622,87 +1622,22 @@ html.tcg-mobile-viewport body.perf-spectacle-active #center-banner{
 }
 
 /* ── Sub-1080p desktop: log hidden; radio / phase / resign in left pane; playmat fills viewport ── */
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame,
 html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .game-wide-wrap{
-  width:100vw;max-width:100vw;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .game-wide-wrap{
-  --side-panel-w:min(260px, 24vw);
-  --playmat-gutter:var(--side-panel-w);
-  border-left:none;border-right:none;box-shadow:none;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-panel.side-left{
-  flex:0 0 var(--side-panel-w);
-  overflow-y:auto;overflow-x:hidden;
-  min-height:0;padding-bottom:12px;
+  --side-panel-w:min(320px, 28vw);
+  --playmat-gutter:calc(2 * var(--side-panel-w));
 }
 html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-panel.side-left .card-hover-panel{
   display:none!important;
 }
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-panel.side-right{
-  display:none!important;
-}
 html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-left-actions-host{
-  display:flex!important;flex-direction:column;gap:8px;
-  flex:0 0 auto;margin-top:auto;
-  padding:0;background:transparent;border:none;box-shadow:none;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-left-actions-host[hidden]{
   display:none!important;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-left-actions-host .tcg-radio-bar{
-  padding:0;flex-shrink:0;border:none;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-left-actions-host .tcg-radio-bar .tcg-radio-toggle{
-  width:100%;font-size:11px;padding:7px;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-left-actions-host .tcg-radio-stack:not([hidden]){
-  flex-shrink:0;min-height:140px;max-height:min(32vh, 240px);
-  background:rgba(255,255,255,.04);border:1px solid var(--ui-panel-border);border-radius:12px;
-  overflow:hidden;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-left-actions-host .phase-action-bar{
-  padding:0;margin:0;background:transparent;border:none;box-shadow:none;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-left-actions-host .phase-action-bar .btn-phase-primary{
-  width:100%;font-size:13px;padding:10px 8px;min-height:42px;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-left-actions-host .sbfoot{
-  padding:0;gap:6px;background:transparent;border:none;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-left-actions-host .phase-action-bar.show ~ .sbfoot .tcg-debug-row{
-  display:none;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-left-actions-host .sbfoot button{
-  width:100%;font-size:11px;padding:7px;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .playmat-column{
-  flex:1 1 auto;
-  width:var(--playmat-col-max-w)!important;
-  max-width:var(--playmat-col-max-w)!important;
-  min-width:0;
-  margin-inline:auto;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .playmat-frame{
-  align-self:center;
-  width:min(100%, calc(var(--playmat-mat-max-h) * 1024 / 563));
-  max-width:100%;
-  aspect-ratio:var(--playmat-aspect);
-  height:auto;
-  max-height:var(--playmat-mat-max-h);
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) .side-log.radio-open{
-  display:flex;flex-direction:column;
-}
-html.tcg-compact-desktop:not(.tcg-mobile-viewport) #side-left-actions-host.side-log.radio-open{
-  display:flex!important;flex-direction:column;gap:8px;
 }
 
 /* Full desktop: never show compact action host; keep standard three-column game layout */
 html:not(.tcg-compact-desktop):not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-left-actions-host{
   display:none!important;
 }
-html:not(.tcg-compact-desktop):not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-panel.side-right{
+html:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame .side-panel.side-right{
   display:flex!important;
 }
 
@@ -1738,8 +1673,8 @@ html.tcg-desktop-scaled:not(.tcg-mobile-viewport):not(.tcg-compact-desktop) #scr
   --playmat-gutter:calc(2 * var(--side-panel-w));
 }
 html.tcg-desktop-scaled:not(.tcg-mobile-viewport).tcg-compact-desktop #screen-game .game-viewport-frame .game-wide-wrap{
-  --side-panel-w:min(calc(260px * var(--desktop-ui-scale, 1)), 24vw);
-  --playmat-gutter:var(--side-panel-w);
+  --side-panel-w:min(calc(320px * var(--desktop-ui-scale, 1)), 28vw);
+  --playmat-gutter:calc(2 * var(--side-panel-w));
 }
 
 .playmat-img{
@@ -14496,9 +14431,9 @@ function syncDesktopUniformScale(w, h, useFixedFrame, portraitBlock, compactDesk
   const seam = 5 * scale;
   const matMaxH = Math.max(80, (frameH - 2 * handStrip - seam - 8) / 2);
   const sidePanel = compactDesktop
-    ? Math.min(260 * scale, w * 0.24)
+    ? Math.min(320 * scale, w * 0.28)
     : 440 * scale;
-  const gutter = compactDesktop ? sidePanel : sidePanel * 2;
+  const gutter = sidePanel * 2;
   const colMaxW = Math.min(Math.max(0, frameW - gutter), matMaxH * (1024 / 563));
   root.style.setProperty('--playmat-mat-max-h', `${matMaxH.toFixed(1)}px`);
   root.style.setProperty('--playmat-col-max-w', `${colMaxW.toFixed(1)}px`);
@@ -14620,51 +14555,33 @@ function syncCompactDesktopLayout() {
   const cardPanel = el('card-hover-panel');
   if (!host || !sideLog) return;
 
-  const compact = tcgCompactDesktopActive() && !tcgMobileViewportActive();
+  const anchor = sideLog.querySelector('.logscroll') || sideLog.querySelector('.sbs');
+  let insertBefore = anchor?.nextElementSibling || null;
+  compactActionSelectors.forEach(sel => {
+    const node = host.querySelector(sel);
+    if (!node) return;
+    sideLog.insertBefore(node, insertBefore);
+    insertBefore = node.nextElementSibling;
+  });
+  if (host.classList.contains('radio-open')) {
+    host.classList.remove('radio-open', 'side-log');
+    sideLog.classList.add('radio-open');
+  } else {
+    host.classList.remove('side-log');
+  }
+  host.hidden = true;
+  host.setAttribute('aria-hidden', 'true');
 
-  const restoreActionsToSideLog = () => {
-    const anchor = sideLog.querySelector('.logscroll') || sideLog.querySelector('.sbs');
-    let insertBefore = anchor?.nextElementSibling || null;
-    compactActionSelectors.forEach(sel => {
-      const node = host.querySelector(sel);
-      if (!node) return;
-      sideLog.insertBefore(node, insertBefore);
-      insertBefore = node.nextElementSibling;
-    });
-    if (host.classList.contains('radio-open')) {
-      host.classList.remove('radio-open', 'side-log');
-      sideLog.classList.add('radio-open');
+  const compact = tcgCompactDesktopActive() && !tcgMobileViewportActive();
+  if (cardPanel) {
+    if (compact) {
+      cardPanel.hidden = true;
+      cardPanel.setAttribute('aria-hidden', 'true');
     } else {
-      host.classList.remove('side-log');
-    }
-    host.hidden = true;
-    host.setAttribute('aria-hidden', 'true');
-    if (cardPanel) {
       cardPanel.hidden = false;
       cardPanel.removeAttribute('aria-hidden');
     }
-  };
-
-  if (!compact) {
-    restoreActionsToSideLog();
-    return;
   }
-
-  host.hidden = false;
-  host.setAttribute('aria-hidden', 'false');
-  host.classList.add('side-log');
-  if (sideLog.classList.contains('radio-open')) {
-    sideLog.classList.remove('radio-open');
-    host.classList.add('radio-open');
-  }
-  if (cardPanel) {
-    cardPanel.hidden = true;
-    cardPanel.setAttribute('aria-hidden', 'true');
-  }
-  compactActionSelectors.forEach(sel => {
-    const node = sideLog.querySelector(sel);
-    if (node) host.appendChild(node);
-  });
 }
 
 function syncMobilePhaseDock() {
