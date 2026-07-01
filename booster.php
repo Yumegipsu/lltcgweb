@@ -90,7 +90,7 @@ function tcgBoosterBoxes(): array {
          'filter' => 'プレミアムブースター ラブライブ！スーパースター!! DUO', 'kind' => 'pb_duo',
          'pack_size' => 3,
          'packs_per_box' => 20,
-         'image' => 'https://llofficial-cardgame.com/wordpress/wp-content/uploads/2024/10/29101931/LLC_Web_PBSPDUO_banner_2_01.png',
+         'image' => 'https://bushiroad-store.com/cdn/shop/files/PBSP2_0208_1024x.jpg',
          'pack_style' => 'photo',
          'pack_images' => ['assets/packs/pb_superstar_duo-a.jpg']],
         ['id' => 'pb_hasunosora', 'name_en' => 'Premium Booster Hasunosora', 'name_jp' => 'プレミアムブースター 蓮ノ空女学院スクールアイドルクラブ',

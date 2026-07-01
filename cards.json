@@ -58918,6 +58918,63 @@
       "yell_score_icon": true
     },
     {
+      "card_no": "PL!SP-bp1-023-SRL",
+      "name": "START!! True dreams",
+      "name_en": "START!! True dreams",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "SRL",
+      "text": "[Live Success] If your total Live Score beats your opponent's, put 1 Energy card from your Energy deck into Wait.",
+      "text_jp": "ライブの合計スコアが相手より高い場合、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp1-023-SRL.png",
+      "abilities": [
+        {
+          "trigger": "live_success",
+          "type": "live_success_energy_wait_if_winning"
+        }
+      ],
+      "score": 1,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 1
+        }
+      ]
+    },
+    {
       "card_no": "PL!SP-bp1-024-L",
       "name": "Tiny Stars",
       "name_en": "Tiny Stars",
@@ -59019,6 +59076,107 @@
       ]
     },
     {
+      "card_no": "PL!SP-bp1-024-SRL",
+      "name": "Tiny Stars",
+      "name_en": "Tiny Stars",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "pink",
+          "count": 1
+        },
+        {
+          "color": "blue",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 6
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "SRL",
+      "text": "[Live Start] Until this Live ends, 1 \"Kanon Shibuya\" on your Stage gains +1 Blade and 1 Blue heart, and 1 \"Keke Tang\" on your Stage gains +1 Blade and 1 Pink heart.\n[Live Success] If you have both \"Kanon Shibuya\" and \"Keke Tang\" on your Stage, draw 1 card.",
+      "text_jp": "ライブ終了時まで、自分のステージにいる「澁谷かのん」1人はを、「唐 可可」1人はを得る。\n\n自分のステージに「澁谷かのん」と「唐 可可」がいる場合、カードを1枚引く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp1-024-SRL.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "grant_named_members_blade",
+          "grants": [
+            {
+              "names": [
+                "Kanon Shibuya",
+                "澁谷かのん"
+              ],
+              "amount": 1,
+              "max": 1,
+              "hearts": [
+                {
+                  "color": "blue",
+                  "count": 1
+                }
+              ]
+            },
+            {
+              "names": [
+                "Keke Tang",
+                "唐 可可"
+              ],
+              "amount": 1,
+              "max": 1,
+              "hearts": [
+                {
+                  "color": "pink",
+                  "count": 1
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "trigger": "live_success",
+          "type": "draw_if_named_on_stage",
+          "names": [
+            "Kanon Shibuya",
+            "澁谷かのん",
+            "Keke Tang",
+            "唐 可可"
+          ],
+          "require_all_names": true,
+          "name_pairs": [
+            [
+              "Kanon Shibuya",
+              "澁谷かのん"
+            ],
+            [
+              "Keke Tang",
+              "唐 可可"
+            ]
+          ],
+          "draw": 1
+        }
+      ],
+      "score": 2,
+      "required_hearts": [
+        {
+          "color": "pink",
+          "count": 1
+        },
+        {
+          "color": "blue",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 6
+        }
+      ]
+    },
+    {
       "card_no": "PL!SP-bp1-025-L",
       "name": "Starlight Prologue",
       "name_en": "Starlight Prologue",
@@ -59088,6 +59246,92 @@
       "text": "",
       "text_jp": "",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP/PL!SP-bp1-025-L2.png",
+      "score": 2,
+      "required_hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-bp1-025-SECL",
+      "name": "Starlight Prologue",
+      "name_en": "Starlight Prologue",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "L",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp1-025-SECL.png",
+      "score": 2,
+      "required_hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-bp1-025-SRL",
+      "name": "Starlight Prologue",
+      "name_en": "Starlight Prologue",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "SRL",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp1-025-SRL.png",
       "score": 2,
       "required_hearts": [
         {
@@ -59179,6 +59423,154 @@
       ]
     },
     {
+      "card_no": "PL!SP-bp1-026-SECL",
+      "name": "未来予報ハレルヤ！",
+      "name_en": "Mirai Yohou Hallelujah!",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "L",
+      "text": "[Live Start] If you have 5 or more differently named Liella! Members on your Stage and Waiting Room combined, this card's Required Hearts become 2 Red, 2 Yellow, and 2 Purple.",
+      "text_jp": "自分の、ステージと控え室に名前の異なる『Liella!』のメンバーが5人以上いる場合、このカードを使用するためのコストはになる。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp1-026-SECL.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "set_required_hearts_if_distinct_group",
+          "group": "Superstar",
+          "filter": "member",
+          "min_distinct": 5,
+          "hearts": [
+            {
+              "color": "red",
+              "count": 2
+            },
+            {
+              "color": "yellow",
+              "count": 2
+            },
+            {
+              "color": "purple",
+              "count": 2
+            }
+          ]
+        }
+      ],
+      "score": 3,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-bp1-026-SRL",
+      "name": "未来予報ハレルヤ！",
+      "name_en": "Mirai Yohou Hallelujah!",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "SRL",
+      "text": "[Live Start] If you have 5 or more differently named Liella! Members on your Stage and Waiting Room combined, this card's Required Hearts become 2 Red, 2 Yellow, and 2 Purple.",
+      "text_jp": "自分の、ステージと控え室に名前の異なる『Liella!』のメンバーが5人以上いる場合、このカードを使用するためのコストはになる。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp1-026-SRL.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "set_required_hearts_if_distinct_group",
+          "group": "Superstar",
+          "filter": "member",
+          "min_distinct": 5,
+          "hearts": [
+            {
+              "color": "red",
+              "count": 2
+            },
+            {
+              "color": "yellow",
+              "count": 2
+            },
+            {
+              "color": "purple",
+              "count": 2
+            }
+          ]
+        }
+      ],
+      "score": 3,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 2
+        }
+      ]
+    },
+    {
       "card_no": "PL!SP-bp1-027-L",
       "name": "Sing！Shine！Smile！",
       "name_en": "Sing! Shine! Smile!",
@@ -59244,6 +59636,71 @@
       ],
       "special_heart": "icon_draw.png",
       "yell_draw_icon": true
+    },
+    {
+      "card_no": "PL!SP-bp1-027-SRL",
+      "name": "Sing！Shine！Smile！",
+      "name_en": "Sing! Shine! Smile!",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 3
+        },
+        {
+          "color": "purple",
+          "count": 3
+        },
+        {
+          "color": "any",
+          "count": 5
+        }
+      ],
+      "blade_hearts": [
+        "yellow"
+      ],
+      "rarity": "SRL",
+      "text": "[Live Start] If you have 12 or more Energy, this card's score +1.",
+      "text_jp": "自分のエネルギーが12枚以上ある場合、このカードのスコアを＋１する。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp1-027-SRL.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "score_if_min_energy",
+          "min_energy": 12,
+          "amount": 1
+        },
+        {
+          "trigger": "continuous",
+          "type": "draw_per_yell_card"
+        }
+      ],
+      "score": 6,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 3
+        },
+        {
+          "color": "purple",
+          "count": 3
+        },
+        {
+          "color": "any",
+          "count": 5
+        }
+      ]
     },
     {
       "card_no": "PL!SP-bp1-028-SECE",
@@ -59483,18 +59940,9 @@
         "red"
       ],
       "rarity": "P",
-      "text": "[On Enter] You may negate all [Live Start] abilities of 1 Liella! Member on your Stage until this Live ends. If you do, add 1 Liella! card from your Waiting Room to your hand.",
+      "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
       "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-P.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "optional_negate_member_live_start_add_wr",
-          "group": "Superstar",
-          "filter": "member",
-          "wr_count": 1
-        }
-      ],
       "subunit": "CatChu!"
     },
     {
@@ -59525,18 +59973,9 @@
         "red"
       ],
       "rarity": "P+",
-      "text": "[On Enter] You may negate all [Live Start] abilities of 1 Liella! Member on your Stage until this Live ends. If you do, add 1 Liella! card from your Waiting Room to your hand.",
+      "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
       "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-P2.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "optional_negate_member_live_start_add_wr",
-          "group": "Superstar",
-          "filter": "member",
-          "wr_count": 1
-        }
-      ],
       "subunit": "CatChu!"
     },
     {
@@ -59567,18 +60006,9 @@
         "red"
       ],
       "rarity": "R+",
-      "text": "[On Enter] You may negate all [Live Start] abilities of 1 Liella! Member on your Stage until this Live ends. If you do, add 1 Liella! card from your Waiting Room to your hand.",
+      "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
       "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-R2.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "optional_negate_member_live_start_add_wr",
-          "group": "Superstar",
-          "filter": "member",
-          "wr_count": 1
-        }
-      ],
       "subunit": "CatChu!"
     },
     {
@@ -59609,18 +60039,9 @@
         "red"
       ],
       "rarity": "SEC",
-      "text": "[On Enter] You may negate all [Live Start] abilities of 1 Liella! Member on your Stage until this Live ends. If you do, add 1 Liella! card from your Waiting Room to your hand.",
+      "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
       "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-SEC.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "optional_negate_member_live_start_add_wr",
-          "group": "Superstar",
-          "filter": "member",
-          "wr_count": 1
-        }
-      ],
       "subunit": "CatChu!"
     },
     {
@@ -59643,18 +60064,9 @@
         "purple"
       ],
       "rarity": "P",
-      "text": "[On Enter] Look at the top 3 cards of your deck. You may reveal 1 card with cost 11 or more and add it to your hand. Put the rest into the Waiting Room.",
+      "text": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "text_jp": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-002-P.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "look_reveal_filter",
-          "look": 3,
-          "min_cost": 11,
-          "pick": 1
-        }
-      ],
       "subunit": "KALEIDOSCORE"
     },
     {
@@ -59677,18 +60089,9 @@
         "purple"
       ],
       "rarity": "R",
-      "text": "[On Enter] Look at the top 3 cards of your deck. You may reveal 1 card with cost 11 or more and add it to your hand. Put the rest into the Waiting Room.",
+      "text": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "text_jp": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-002-R.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "look_reveal_filter",
-          "look": 3,
-          "min_cost": 11,
-          "pick": 1
-        }
-      ],
       "subunit": "KALEIDOSCORE"
     },
     {
@@ -59713,16 +60116,9 @@
       ],
       "blade_hearts": [],
       "rarity": "P",
-      "text": "[Auto] [Once per turn] When this Member moves to a different area, put 1 Energy card from your Energy deck into Wait.",
+      "text": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
       "text_jp": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-003-P.png",
-      "abilities": [
-        {
-          "trigger": "auto",
-          "type": "auto_area_move_energy_wait",
-          "once_per_turn": true
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -59747,16 +60143,9 @@
       ],
       "blade_hearts": [],
       "rarity": "R",
-      "text": "[Auto] [Once per turn] When this Member moves to a different area, put 1 Energy card from your Energy deck into Wait.",
+      "text": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
       "text_jp": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-003-R.png",
-      "abilities": [
-        {
-          "trigger": "auto",
-          "type": "auto_area_move_energy_wait",
-          "once_per_turn": true
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -59785,21 +60174,9 @@
       ],
       "blade_hearts": [],
       "rarity": "P",
-      "text": "[Always] While the Member in your Center area has the highest cost among Members on your Stage, gain 1 Yellow heart.",
+      "text": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
       "text_jp": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-004-P.png",
-      "abilities": [
-        {
-          "trigger": "continuous",
-          "type": "hearts_if_center_highest_cost",
-          "hearts": [
-            {
-              "color": "yellow",
-              "count": 1
-            }
-          ]
-        }
-      ],
       "subunit": "CatChu!"
     },
     {
@@ -59828,21 +60205,9 @@
       ],
       "blade_hearts": [],
       "rarity": "R",
-      "text": "[Always] While the Member in your Center area has the highest cost among Members on your Stage, gain 1 Yellow heart.",
+      "text": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
       "text_jp": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-004-R.png",
-      "abilities": [
-        {
-          "trigger": "continuous",
-          "type": "hearts_if_center_highest_cost",
-          "hearts": [
-            {
-              "color": "yellow",
-              "count": 1
-            }
-          ]
-        }
-      ],
       "subunit": "CatChu!"
     },
     {
@@ -59865,23 +60230,9 @@
         "yellow"
       ],
       "rarity": "P",
-      "text": "[On Enter] You may pay 2 Energy: look at the top 7 cards of your deck. You may reveal 1 Liella! card and add it to your hand. Put the rest into the Waiting Room.",
+      "text": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "text_jp": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-005-P.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "optional_pay_energy",
-          "cost": 2,
-          "then": {
-            "type": "look_reveal_filter",
-            "look": 7,
-            "group": "Superstar",
-            "filter": "",
-            "pick": 1
-          }
-        }
-      ],
       "subunit": "KALEIDOSCORE"
     },
     {
@@ -59904,23 +60255,9 @@
         "yellow"
       ],
       "rarity": "R",
-      "text": "[On Enter] You may pay 2 Energy: look at the top 7 cards of your deck. You may reveal 1 Liella! card and add it to your hand. Put the rest into the Waiting Room.",
+      "text": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "text_jp": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-005-R.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "optional_pay_energy",
-          "cost": 2,
-          "then": {
-            "type": "look_reveal_filter",
-            "look": 7,
-            "group": "Superstar",
-            "filter": "",
-            "pick": 1
-          }
-        }
-      ],
       "subunit": "KALEIDOSCORE"
     },
     {
@@ -59949,24 +60286,9 @@
       ],
       "blade_hearts": [],
       "rarity": "P",
-      "text": "[On Enter] If you entered via Baton Touch, add 1 Liella! Member card put into the Waiting Room by that Baton Touch to your hand.\n[Activated] [Once per turn] Put 1 Liella! Member card with cost 4 or less from your hand into the Waiting Room: activate 1 of that card's [On Enter] abilities (pay any Energy cost that ability requires).",
+      "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
       "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-P.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "if_baton_wr_group_to_hand",
-          "group": "Superstar",
-          "filter": "member"
-        },
-        {
-          "trigger": "activated",
-          "type": "activated_discard_trigger_on_enter",
-          "group": "Superstar",
-          "max_cost": 4,
-          "once_per_turn": true
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -59995,24 +60317,9 @@
       ],
       "blade_hearts": [],
       "rarity": "P+",
-      "text": "[On Enter] If you entered via Baton Touch, add 1 Liella! Member card put into the Waiting Room by that Baton Touch to your hand.\n[Activated] [Once per turn] Put 1 Liella! Member card with cost 4 or less from your hand into the Waiting Room: activate 1 of that card's [On Enter] abilities (pay any Energy cost that ability requires).",
+      "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
       "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-P2.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "if_baton_wr_group_to_hand",
-          "group": "Superstar",
-          "filter": "member"
-        },
-        {
-          "trigger": "activated",
-          "type": "activated_discard_trigger_on_enter",
-          "group": "Superstar",
-          "max_cost": 4,
-          "once_per_turn": true
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60041,24 +60348,9 @@
       ],
       "blade_hearts": [],
       "rarity": "R+",
-      "text": "[On Enter] If you entered via Baton Touch, add 1 Liella! Member card put into the Waiting Room by that Baton Touch to your hand.\n[Activated] [Once per turn] Put 1 Liella! Member card with cost 4 or less from your hand into the Waiting Room: activate 1 of that card's [On Enter] abilities (pay any Energy cost that ability requires).",
+      "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
       "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-R2.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "if_baton_wr_group_to_hand",
-          "group": "Superstar",
-          "filter": "member"
-        },
-        {
-          "trigger": "activated",
-          "type": "activated_discard_trigger_on_enter",
-          "group": "Superstar",
-          "max_cost": 4,
-          "once_per_turn": true
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60087,24 +60379,9 @@
       ],
       "blade_hearts": [],
       "rarity": "SEC",
-      "text": "[On Enter] If you entered via Baton Touch, add 1 Liella! Member card put into the Waiting Room by that Baton Touch to your hand.\n[Activated] [Once per turn] Put 1 Liella! Member card with cost 4 or less from your hand into the Waiting Room: activate 1 of that card's [On Enter] abilities (pay any Energy cost that ability requires).",
+      "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
       "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-SEC.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "if_baton_wr_group_to_hand",
-          "group": "Superstar",
-          "filter": "member"
-        },
-        {
-          "trigger": "activated",
-          "type": "activated_discard_trigger_on_enter",
-          "group": "Superstar",
-          "max_cost": 4,
-          "once_per_turn": true
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60129,24 +60406,9 @@
       ],
       "blade_hearts": [],
       "rarity": "P",
-      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand. Put the rest into the Waiting Room.",
+      "text": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "text_jp": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-007-P.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "optional_discard_prompt",
-          "discard": 1,
-          "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand?",
-          "then": {
-            "type": "look_reveal_filter",
-            "look": 5,
-            "group": "Superstar",
-            "filter": "member",
-            "pick": 1
-          }
-        }
-      ],
       "subunit": "CatChu!"
     },
     {
@@ -60171,24 +60433,9 @@
       ],
       "blade_hearts": [],
       "rarity": "R",
-      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand. Put the rest into the Waiting Room.",
+      "text": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "text_jp": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-007-R.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "optional_discard_prompt",
-          "discard": 1,
-          "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand?",
-          "then": {
-            "type": "look_reveal_filter",
-            "look": 5,
-            "group": "Superstar",
-            "filter": "member",
-            "pick": 1
-          }
-        }
-      ],
       "subunit": "CatChu!"
     },
     {
@@ -60217,17 +60464,9 @@
       ],
       "blade_hearts": [],
       "rarity": "P",
-      "text": "[Activated] [Once per turn] Pay 1 Energy: choose 1 of your areas other than this Member's area. Move this Member to that area. If a Member is in that area, move that Member to this Member's former area.",
+      "text": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
       "text_jp": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-008-P.png",
-      "abilities": [
-        {
-          "trigger": "activated",
-          "type": "activated_swap_area_member",
-          "cost": 1,
-          "once_per_turn": true
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60256,17 +60495,9 @@
       ],
       "blade_hearts": [],
       "rarity": "R",
-      "text": "[Activated] [Once per turn] Pay 1 Energy: choose 1 of your areas other than this Member's area. Move this Member to that area. If a Member is in that area, move that Member to this Member's former area.",
+      "text": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
       "text_jp": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-008-R.png",
-      "abilities": [
-        {
-          "trigger": "activated",
-          "type": "activated_swap_area_member",
-          "cost": 1,
-          "once_per_turn": true
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60297,23 +60528,9 @@
         "yellow"
       ],
       "rarity": "P",
-      "text": "[Live Start] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[Live Success] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
+      "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
       "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-P.png",
-      "abilities": [
-        {
-          "trigger": "live_start",
-          "type": "blade_per_hand_cards",
-          "per_cards": 2,
-          "amount": 1
-        },
-        {
-          "trigger": "live_success",
-          "type": "draw_and_discard",
-          "draw": 2,
-          "discard": 1
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60344,23 +60561,9 @@
         "yellow"
       ],
       "rarity": "P+",
-      "text": "[Live Start] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[Live Success] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
+      "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
       "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-P2.png",
-      "abilities": [
-        {
-          "trigger": "live_start",
-          "type": "blade_per_hand_cards",
-          "per_cards": 2,
-          "amount": 1
-        },
-        {
-          "trigger": "live_success",
-          "type": "draw_and_discard",
-          "draw": 2,
-          "discard": 1
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60391,23 +60594,9 @@
         "yellow"
       ],
       "rarity": "R+",
-      "text": "[Live Start] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[Live Success] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
+      "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
       "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-R2.png",
-      "abilities": [
-        {
-          "trigger": "live_start",
-          "type": "blade_per_hand_cards",
-          "per_cards": 2,
-          "amount": 1
-        },
-        {
-          "trigger": "live_success",
-          "type": "draw_and_discard",
-          "draw": 2,
-          "discard": 1
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60438,23 +60627,9 @@
         "yellow"
       ],
       "rarity": "SEC",
-      "text": "[Live Start] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[Live Success] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
+      "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
       "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-SEC.png",
-      "abilities": [
-        {
-          "trigger": "live_start",
-          "type": "blade_per_hand_cards",
-          "per_cards": 2,
-          "amount": 1
-        },
-        {
-          "trigger": "live_success",
-          "type": "draw_and_discard",
-          "draw": 2,
-          "discard": 1
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60483,22 +60658,9 @@
       ],
       "blade_hearts": [],
       "rarity": "P",
-      "text": "[Always] All Live cards in your opponent's Live area require +1 Gray Heart each to succeed.\n[Live Start] If you have 1 or more other Members on your Stage, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
+      "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-P.png",
-      "abilities": [
-        {
-          "trigger": "continuous",
-          "type": "aura_opp_live_required_gray",
-          "amount": 1
-        },
-        {
-          "trigger": "live_start",
-          "type": "reduce_yell_reveal_count",
-          "amount": 8,
-          "requires_other_members": true
-        }
-      ],
       "subunit": "KALEIDOSCORE"
     },
     {
@@ -60527,22 +60689,9 @@
       ],
       "blade_hearts": [],
       "rarity": "P+",
-      "text": "[Always] All Live cards in your opponent's Live area require +1 Gray Heart each to succeed.\n[Live Start] If you have 1 or more other Members on your Stage, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
+      "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-P2.png",
-      "abilities": [
-        {
-          "trigger": "continuous",
-          "type": "aura_opp_live_required_gray",
-          "amount": 1
-        },
-        {
-          "trigger": "live_start",
-          "type": "reduce_yell_reveal_count",
-          "amount": 8,
-          "requires_other_members": true
-        }
-      ],
       "subunit": "KALEIDOSCORE"
     },
     {
@@ -60571,22 +60720,9 @@
       ],
       "blade_hearts": [],
       "rarity": "R+",
-      "text": "[Always] All Live cards in your opponent's Live area require +1 Gray Heart each to succeed.\n[Live Start] If you have 1 or more other Members on your Stage, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
+      "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-R2.png",
-      "abilities": [
-        {
-          "trigger": "continuous",
-          "type": "aura_opp_live_required_gray",
-          "amount": 1
-        },
-        {
-          "trigger": "live_start",
-          "type": "reduce_yell_reveal_count",
-          "amount": 8,
-          "requires_other_members": true
-        }
-      ],
       "subunit": "KALEIDOSCORE"
     },
     {
@@ -60615,22 +60751,9 @@
       ],
       "blade_hearts": [],
       "rarity": "SEC",
-      "text": "[Always] All Live cards in your opponent's Live area require +1 Gray Heart each to succeed.\n[Live Start] If you have 1 or more other Members on your Stage, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
+      "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-SEC.png",
-      "abilities": [
-        {
-          "trigger": "continuous",
-          "type": "aura_opp_live_required_gray",
-          "amount": 1
-        },
-        {
-          "trigger": "live_start",
-          "type": "reduce_yell_reveal_count",
-          "amount": 8,
-          "requires_other_members": true
-        }
-      ],
       "subunit": "KALEIDOSCORE"
     },
     {
@@ -60661,16 +60784,9 @@
         "yellow"
       ],
       "rarity": "P",
-      "text": "[On Enter] Choose 2 Live cards with different names from your Waiting Room. Your opponent chooses 1 of them; add the chosen card to your hand.",
+      "text": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
       "text_jp": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-011-P.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "pick_wr_distinct_lives_opp_choice",
-          "count": 2
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60701,16 +60817,9 @@
         "yellow"
       ],
       "rarity": "R",
-      "text": "[On Enter] Choose 2 Live cards with different names from your Waiting Room. Your opponent chooses 1 of them; add the chosen card to your hand.",
+      "text": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
       "text_jp": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-011-R.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "pick_wr_distinct_lives_opp_choice",
-          "count": 2
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60764,16 +60873,9 @@
       ],
       "blade_hearts": [],
       "rarity": "N",
-      "text": "[On Enter] You may put 1 card from your Waiting Room on top of your deck.",
+      "text": "自分の控え室からカードを1枚までデッキの一番上に置く。",
       "text_jp": "自分の控え室からカードを1枚までデッキの一番上に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-013-N.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "optional_wr_to_deck_top",
-          "count": 1
-        }
-      ],
       "subunit": "KALEIDOSCORE"
     },
     {
@@ -60802,16 +60904,9 @@
       ],
       "blade_hearts": [],
       "rarity": "N",
-      "text": "[On Enter] You may put 1 card from your Waiting Room on top of your deck.",
+      "text": "自分の控え室からカードを1枚までデッキの一番上に置く。",
       "text_jp": "自分の控え室からカードを1枚までデッキの一番上に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-014-N.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "optional_wr_to_deck_top",
-          "count": 1
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -60836,22 +60931,9 @@
       ],
       "blade_hearts": [],
       "rarity": "N",
-      "text": "[Auto] [Once per turn] When cards revealed for Yell include no Blade-heart cards, until this Live ends, gain 1 Purple heart.",
+      "text": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
       "text_jp": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-015-N.png",
-      "abilities": [
-        {
-          "trigger": "auto",
-          "type": "auto_yell_no_blade_heart",
-          "hearts": [
-            {
-              "color": "purple",
-              "count": 1
-            }
-          ],
-          "once_per_turn": true
-        }
-      ],
       "subunit": "CatChu!"
     },
     {
@@ -60930,16 +61012,9 @@
       ],
       "blade_hearts": [],
       "rarity": "N",
-      "text": "[On Enter] You may put 1 card from your Waiting Room on top of your deck.",
+      "text": "自分の控え室からカードを1枚までデッキの一番上に置く。",
       "text_jp": "自分の控え室からカードを1枚までデッキの一番上に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-018-N.png",
-      "abilities": [
-        {
-          "trigger": "on_enter",
-          "type": "optional_wr_to_deck_top",
-          "count": 1
-        }
-      ],
       "subunit": "CatChu!"
     },
     {
@@ -60965,20 +61040,9 @@
         "yellow"
       ],
       "rarity": "N",
-      "text": "[Live Start] You may pay 1 Energy: until this Live ends, gain +2 Blade.",
+      "text": "支払ってもよい：ライブ終了時まで、を得る。",
       "text_jp": "支払ってもよい：ライブ終了時まで、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-019-N.png",
-      "abilities": [
-        {
-          "trigger": "live_start",
-          "type": "optional_pay_energy",
-          "cost": 1,
-          "then": {
-            "type": "blade_bonus",
-            "amount": 2
-          }
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -61003,22 +61067,9 @@
       ],
       "blade_hearts": [],
       "rarity": "N",
-      "text": "[Auto] [Once per turn] When cards revealed for Yell include no Blade-heart cards, until this Live ends, gain 1 Red heart.",
+      "text": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
       "text_jp": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-020-N.png",
-      "abilities": [
-        {
-          "trigger": "auto",
-          "type": "auto_yell_no_blade_heart",
-          "hearts": [
-            {
-              "color": "red",
-              "count": 1
-            }
-          ],
-          "once_per_turn": true
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -61043,22 +61094,9 @@
       ],
       "blade_hearts": [],
       "rarity": "N",
-      "text": "[Auto] [Once per turn] When cards revealed for Yell include no Blade-heart cards, until this Live ends, gain 1 Yellow heart.",
+      "text": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
       "text_jp": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-021-N.png",
-      "abilities": [
-        {
-          "trigger": "auto",
-          "type": "auto_yell_no_blade_heart",
-          "hearts": [
-            {
-              "color": "yellow",
-              "count": 1
-            }
-          ],
-          "once_per_turn": true
-        }
-      ],
       "subunit": "KALEIDOSCORE"
     },
     {
@@ -61084,20 +61122,9 @@
         "red"
       ],
       "rarity": "N",
-      "text": "[Live Start] You may pay 1 Energy: until this Live ends, gain +2 Blade.",
+      "text": "支払ってもよい：ライブ終了時まで、を得る。",
       "text_jp": "支払ってもよい：ライブ終了時まで、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-022-N.png",
-      "abilities": [
-        {
-          "trigger": "live_start",
-          "type": "optional_pay_energy",
-          "cost": 1,
-          "then": {
-            "type": "blade_bonus",
-            "amount": 2
-          }
-        }
-      ],
       "subunit": "5yncri5e!"
     },
     {
@@ -61161,8 +61188,66 @@
       "yell_score_icon": true
     },
     {
+      "card_no": "PL!SP-bp2-023-SRL",
+      "name": "Go!! リスタート",
+      "name_en": "Go!! Restart",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "SRL",
+      "text": "[Live Start] If you have fewer cards in your Success Live area than your opponent, this card's score +1.",
+      "text_jp": "自分の成功ライブカード置き場のカード枚数が相手より少ない場合、このカードのスコアを＋１する。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp2-023-SRL.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "score_if_fewer_success_lives",
+          "amount": 1
+        }
+      ],
+      "score": 1,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 1
+        }
+      ]
+    },
+    {
       "card_no": "PL!SP-bp2-024-L",
-      "name": "ビタミンSUMMER！",
+      "name": "ビタミンSUMMER!",
       "name_en": "Vitamin SUMMER!",
       "card_type": "ライブ",
       "card_type_en": "Live",
@@ -61283,6 +61368,66 @@
       ]
     },
     {
+      "card_no": "PL!SP-bp2-024-SRL",
+      "name": "ビタミンSUMMER!",
+      "name_en": "Vitamin SUMMER!",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 4
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 6
+        }
+      ],
+      "blade_hearts": [
+        "yellow"
+      ],
+      "rarity": "SRL",
+      "text": "[Live Success] If you have more cards in hand than your opponent, this card's score +1.",
+      "text_jp": "自分の手札の枚数が相手より多い場合、このカードのスコアを＋１する。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp2-024-SRL.png",
+      "abilities": [
+        {
+          "trigger": "live_success",
+          "type": "score_if_hand_more_than_opp",
+          "amount": 1
+        }
+      ],
+      "score": 5,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 4
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 6
+        }
+      ]
+    },
+    {
       "card_no": "PL!SP-bp2-025-L",
       "name": "Bubble Rise",
       "name_en": "Bubble Rise",
@@ -61313,6 +61458,69 @@
       "text": "[Live Success] If you have 2 or more differently named Members among \"Kanon Shibuya\", \"Wien Margarete\", and \"Tomari Onitsuka\" on your Stage, add 1 card revealed by Yell to your hand.",
       "text_jp": "自分のステージに「澁谷かのん」、「ウィーン・マルガレーテ」、「鬼塚冬毬」のうち、名前の異なるメンバーが2人以上いる場合、エールにより公開された自分のカードの中から、カードを1枚手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-025-L.png",
+      "abilities": [
+        {
+          "trigger": "live_success",
+          "type": "live_success_pick_yell_card",
+          "min_distinct_named_on_stage": 2,
+          "names": [
+            "Kanon Shibuya",
+            "ウィーン・マルガレーテ",
+            "鬼塚冬毬"
+          ]
+        }
+      ],
+      "score": 4,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 4
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-bp2-025-SRL",
+      "name": "Bubble Rise",
+      "name_en": "Bubble Rise",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 4
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "SRL",
+      "text": "[Live Success] If you have 2 or more differently named Members among \"Kanon Shibuya\", \"Wien Margarete\", and \"Tomari Onitsuka\" on your Stage, add 1 card revealed by Yell to your hand.",
+      "text_jp": "自分のステージに「澁谷かのん」、「ウィーン・マルガレーテ」、「鬼塚冬毬」のうち、名前の異なるメンバーが2人以上いる場合、エールにより公開された自分のカードの中から、カードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp2-025-SRL.png",
       "abilities": [
         {
           "trigger": "live_success",
@@ -61381,6 +61589,41 @@
       ]
     },
     {
+      "card_no": "PL!SP-bp2-026-SRL",
+      "name": "笑顔のPromise",
+      "name_en": "Egao no Promise",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 6
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "SRL",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp2-026-SRL.png",
+      "score": 4,
+      "required_hearts": [
+        {
+          "color": "yellow",
+          "count": 6
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ]
+    },
+    {
       "card_no": "PL!SP-bp2-027-L",
       "name": "UNIVERSE!!",
       "name_en": "UNIVERSE!!",
@@ -61434,6 +61677,59 @@
       ],
       "special_heart": "icon_draw.png",
       "yell_draw_icon": true
+    },
+    {
+      "card_no": "PL!SP-bp2-027-SRL",
+      "name": "UNIVERSE!!",
+      "name_en": "UNIVERSE!!",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 3
+        },
+        {
+          "color": "purple",
+          "count": 3
+        },
+        {
+          "color": "any",
+          "count": 7
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "SRL",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp2-027-SRL.png",
+      "score": 7,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 3
+        },
+        {
+          "color": "purple",
+          "count": 3
+        },
+        {
+          "color": "any",
+          "count": 7
+        }
+      ]
     },
     {
       "card_no": "PL!SP-bp2-028-SECE",
@@ -68992,6 +69288,3116 @@
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP/PL!SP-pb1-500-LLE.png"
     },
     {
+      "card_no": "PL!SP-pb2-000-DUO",
+      "name": "嵐 千砂都＆鬼塚夏美",
+      "name_en": "Chisato Arashi ＆ Natsumi Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 15,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "yellow"
+      ],
+      "rarity": "DUO",
+      "text": "[On Play] You may Baton Touch with 2 Members.\n[On Enter] If you entered via Baton Touch, draw 1 card for each Liella! Member put into the Waiting Room by that Baton Touch. For each Liella! Member card without a Blade heart among them, gain 1 heart of your choice until this Live ends.",
+      "text_jp": "このカードのプレイに際し、2人のメンバーとバトンタッチしてもよい。\n\nバトンタッチして登場した場合、このバトンタッチによって控え室に置かれた『Liella!』のメンバーカード1枚につき、カードを1枚引く。ブレードハートを持たない『Liella!』のメンバーカード1枚につき、ライブ終了時まで、を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-000-DUO.png",
+      "blade": 6,
+      "abilities": [
+        {
+          "trigger": "continuous",
+          "type": "allows_double_baton"
+        },
+        {
+          "trigger": "on_enter",
+          "type": "if_double_baton_group_bonus",
+          "group": "Superstar",
+          "min_baton": 2,
+          "draw": 2,
+          "max_cost": 4
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-000-R",
+      "name": "嵐 千砂都＆鬼塚夏美",
+      "name_en": "Chisato Arashi ＆ Natsumi Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 15,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "yellow"
+      ],
+      "rarity": "R",
+      "text": "[On Play] You may Baton Touch with 2 Members.\n[On Enter] If you entered via Baton Touch, draw 1 card for each Liella! Member put into the Waiting Room by that Baton Touch. For each Liella! Member card without a Blade heart among them, gain 1 heart of your choice until this Live ends.",
+      "text_jp": "このカードのプレイに際し、2人のメンバーとバトンタッチしてもよい。\n\nバトンタッチして登場した場合、このバトンタッチによって控え室に置かれた『Liella!』のメンバーカード1枚につき、カードを1枚引く。ブレードハートを持たない『Liella!』のメンバーカード1枚につき、ライブ終了時まで、を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-000-R.png",
+      "blade": 6,
+      "abilities": [
+        {
+          "trigger": "continuous",
+          "type": "allows_double_baton"
+        },
+        {
+          "trigger": "on_enter",
+          "type": "if_double_baton_group_bonus",
+          "group": "Superstar",
+          "min_baton": 2,
+          "draw": 2,
+          "max_cost": 4
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-001-PP",
+      "name": "澁谷かのん",
+      "name_en": "Kanon Shibuya",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 15,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "PP",
+      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal up to 1 Liella! Member with cost 4 or less and play it to an empty Member area on your Stage.",
+      "text_jp": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中からコスト4以下の『Liella!』のメンバーカードを1枚まで公開する。そのカードを自分のステージのメンバーのいないエリアに登場させるか、手札に加える。残りを控え室に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-001-PP.png",
+      "subunit": "CatChu!",
+      "blade": 5,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member (cost 4 or less) and add it to your hand?",
+          "then": {
+            "type": "look_reveal_filter",
+            "look": 5,
+            "group": "Superstar",
+            "filter": "member",
+            "pick": 1,
+            "max_cost": 4
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-001-R",
+      "name": "澁谷かのん",
+      "name_en": "Kanon Shibuya",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 15,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "R",
+      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal up to 1 Liella! Member with cost 4 or less and play it to an empty Member area on your Stage.",
+      "text_jp": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中からコスト4以下の『Liella!』のメンバーカードを1枚まで公開する。そのカードを自分のステージのメンバーのいないエリアに登場させるか、手札に加える。残りを控え室に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-001-R.png",
+      "subunit": "CatChu!",
+      "blade": 5,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member (cost 4 or less) and add it to your hand?",
+          "then": {
+            "type": "look_reveal_filter",
+            "look": 5,
+            "group": "Superstar",
+            "filter": "member",
+            "pick": 1,
+            "max_cost": 4
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-002-PP",
+      "name": "唐 可可",
+      "name_en": "Keke Tang",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "PP",
+      "text": "[On Enter] Put 1 Liella! card from your hand into the Waiting Room: choose one — put 1 Energy from your Energy deck into Wait; or look at the top 3 cards of your deck, reveal 1, add it to your hand, and put the rest into the Waiting Room.",
+      "text_jp": "手札の『Liella!』のカードを1枚控え室に置く：以下から1つを選ぶ。これにより控え室に置いたカードがブレードハートを持たないメンバーカードの場合、代わりに1つ以上を選ぶ。\n\n・自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。\n\n・ライブ終了時まで、自分のステージにいるこのメンバー以外の『Liella!』のメンバー1人は、を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-002-PP.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 1,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 Liella! card from your hand into the Waiting Room: put 1 Energy from your Energy deck into Wait?",
+          "then": {
+            "type": "energy_wait_from_deck",
+            "count": 1
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-002-R",
+      "name": "唐 可可",
+      "name_en": "Keke Tang",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "R",
+      "text": "[On Enter] Put 1 Liella! card from your hand into the Waiting Room: choose one — put 1 Energy from your Energy deck into Wait; or look at the top 3 cards of your deck, reveal 1, add it to your hand, and put the rest into the Waiting Room.",
+      "text_jp": "手札の『Liella!』のカードを1枚控え室に置く：以下から1つを選ぶ。これにより控え室に置いたカードがブレードハートを持たないメンバーカードの場合、代わりに1つ以上を選ぶ。\n\n・自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。\n\n・ライブ終了時まで、自分のステージにいるこのメンバー以外の『Liella!』のメンバー1人は、を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-002-R.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 1,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 Liella! card from your hand into the Waiting Room: put 1 Energy from your Energy deck into Wait?",
+          "then": {
+            "type": "energy_wait_from_deck",
+            "count": 1
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-003-PP",
+      "name": "嵐 千砂都",
+      "name_en": "Chisato Arashi",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "PP",
+      "text": "[Live Success] If this Member moved areas this turn due to a Liella! card effect, this Live's total score +1.",
+      "text_jp": "このターン、自分の『Liella!』のカードの効果によってこのメンバーがエリアを移動していた場合、ライブの合計スコアを＋１する。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-003-PP.png",
+      "subunit": "5yncri5e!",
+      "blade": 3
+    },
+    {
+      "card_no": "PL!SP-pb2-003-R",
+      "name": "嵐 千砂都",
+      "name_en": "Chisato Arashi",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "R",
+      "text": "[Live Success] If this Member moved areas this turn due to a Liella! card effect, this Live's total score +1.",
+      "text_jp": "このターン、自分の『Liella!』のカードの効果によってこのメンバーがエリアを移動していた場合、ライブの合計スコアを＋１する。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-003-R.png",
+      "subunit": "5yncri5e!",
+      "blade": 3
+    },
+    {
+      "card_no": "PL!SP-pb2-004-PP",
+      "name": "平安名すみれ",
+      "name_en": "Sumire Heanna",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "PP",
+      "text": "[On Enter] If your Live area or cards revealed for Yell include a Live with higher score than this card's printed score, or a Live with a Yell score icon, draw 1 card.",
+      "text_jp": "自分のライブカード置き場の中に元々のスコアより高いスコアのライブカードがあるか、エールにより公開された自分のカードの中にを持つライブカードがある場合、カードを1枚引く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-004-PP.png",
+      "subunit": "CatChu!",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-004-R",
+      "name": "平安名すみれ",
+      "name_en": "Sumire Heanna",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "R",
+      "text": "[On Enter] If your Live area or cards revealed for Yell include a Live with higher score than this card's printed score, or a Live with a Yell score icon, draw 1 card.",
+      "text_jp": "自分のライブカード置き場の中に元々のスコアより高いスコアのライブカードがあるか、エールにより公開された自分のカードの中にを持つライブカードがある場合、カードを1枚引く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-004-R.png",
+      "subunit": "CatChu!",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-005-PP",
+      "name": "葉月 恋",
+      "name_en": "Ren Hazuki",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 20,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 3
+        },
+        {
+          "color": "purple",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "PP",
+      "text": "[On Enter] If you entered via Baton Touch, put 1 Liella! Member put into the Waiting Room by that Baton Touch under this Member.",
+      "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚、このメンバーの下に置く。\n\nこのメンバーは、このメンバーの下に置かれている『Liella!』のメンバーカードが持つ能力をすべて得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-005-PP.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 6
+    },
+    {
+      "card_no": "PL!SP-pb2-005-R",
+      "name": "葉月 恋",
+      "name_en": "Ren Hazuki",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 20,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 3
+        },
+        {
+          "color": "purple",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "R",
+      "text": "[On Enter] If you entered via Baton Touch, put 1 Liella! Member put into the Waiting Room by that Baton Touch under this Member.",
+      "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚、このメンバーの下に置く。\n\nこのメンバーは、このメンバーの下に置かれている『Liella!』のメンバーカードが持つ能力をすべて得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-005-R.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 6
+    },
+    {
+      "card_no": "PL!SP-pb2-006-PP",
+      "name": "桜小路きな子",
+      "name_en": "Kinako Sakurakoji",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "yellow"
+      ],
+      "rarity": "PP",
+      "text": "[Continuous] This Member's cost +1 for each Liella! Member card under it.\n[Auto] When your Live succeeds or this Member moves areas, add 1 Liella! card from your Waiting Room to your hand.",
+      "text_jp": "このメンバーの下にある『Liella!』のメンバーカード1枚につき、このメンバーのコストを＋１する。\n\n自分のライブが成功するか、このメンバーがエリアを移動したとき、自分の控え室にある『Liella!』のメンバーカードを1枚、このメンバーの下に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-006-PP.png",
+      "subunit": "5yncri5e!"
+    },
+    {
+      "card_no": "PL!SP-pb2-006-R",
+      "name": "桜小路きな子",
+      "name_en": "Kinako Sakurakoji",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "yellow"
+      ],
+      "rarity": "R",
+      "text": "[Continuous] This Member's cost +1 for each Liella! Member card under it.\n[Auto] When your Live succeeds or this Member moves areas, add 1 Liella! card from your Waiting Room to your hand.",
+      "text_jp": "このメンバーの下にある『Liella!』のメンバーカード1枚につき、このメンバーのコストを＋１する。\n\n自分のライブが成功するか、このメンバーがエリアを移動したとき、自分の控え室にある『Liella!』のメンバーカードを1枚、このメンバーの下に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-006-R.png",
+      "subunit": "5yncri5e!"
+    },
+    {
+      "card_no": "PL!SP-pb2-007-PP",
+      "name": "米女メイ",
+      "name_en": "Mei Yoneme",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "PP",
+      "text": "[Activated] You may pay 1 Energy: add 1 Liella! Live card from your Waiting Room to your hand.",
+      "text_jp": "支払ってもよい：自分の控え室から『Liella!』のライブカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-007-PP.png",
+      "subunit": "CatChu!",
+      "blade": 5,
+      "abilities": [
+        {
+          "trigger": "activated",
+          "type": "pay_energy_add_from_wr",
+          "cost": 1,
+          "group": "Superstar",
+          "filter": "live",
+          "count": 1,
+          "once_per_turn": true
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-007-R",
+      "name": "米女メイ",
+      "name_en": "Mei Yoneme",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "R",
+      "text": "[Activated] You may pay 1 Energy: add 1 Liella! Live card from your Waiting Room to your hand.",
+      "text_jp": "支払ってもよい：自分の控え室から『Liella!』のライブカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-007-R.png",
+      "subunit": "CatChu!",
+      "blade": 5,
+      "abilities": [
+        {
+          "trigger": "activated",
+          "type": "pay_energy_add_from_wr",
+          "cost": 1,
+          "group": "Superstar",
+          "filter": "live",
+          "count": 1,
+          "once_per_turn": true
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-008-PP",
+      "name": "若菜四季",
+      "name_en": "Shiki Wakana",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 17,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 3
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "PP",
+      "text": "[Live Start] For every 2 Liella! Members without Blade hearts among cards revealed for Yell, this Live's total score +1 (max +2 from this ability).",
+      "text_jp": "エールにより公開された自分のカードの中にあるブレードハートを持たない『Liella!』のメンバーカード2枚につき、ライブの合計スコアを＋１する。この能力では合計スコアは２までしか増えない。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-008-PP.png",
+      "subunit": "5yncri5e!",
+      "blade": 7
+    },
+    {
+      "card_no": "PL!SP-pb2-008-R",
+      "name": "若菜四季",
+      "name_en": "Shiki Wakana",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 17,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 3
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "R",
+      "text": "[Live Start] For every 2 Liella! Members without Blade hearts among cards revealed for Yell, this Live's total score +1 (max +2 from this ability).",
+      "text_jp": "エールにより公開された自分のカードの中にあるブレードハートを持たない『Liella!』のメンバーカード2枚につき、ライブの合計スコアを＋１する。この能力では合計スコアは２までしか増えない。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-008-R.png",
+      "subunit": "5yncri5e!",
+      "blade": 7
+    },
+    {
+      "card_no": "PL!SP-pb2-009-PP",
+      "name": "鬼塚夏美",
+      "name_en": "Natsumi Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "PP",
+      "text": "[On Enter] You may put 1 Liella! Member on your Stage into Wait: put 1 opponent Member with at least 2 fewer printed hearts than that Member into Wait.",
+      "text_jp": "/『Liella!』のメンバー1人をウェイトにしてもよい：相手のステージにいる元々持つの数がこれによりウェイトにしたメンバーが元々持つの数より2つ以上少ないメンバー1人をウェイトにする。（ウェイト状態のメンバーが持つは、エールで公開する枚数を増やさない。）",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-009-PP.png",
+      "subunit": "5yncri5e!",
+      "blade": 2
+    },
+    {
+      "card_no": "PL!SP-pb2-009-R",
+      "name": "鬼塚夏美",
+      "name_en": "Natsumi Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "R",
+      "text": "[On Enter] You may put 1 Liella! Member on your Stage into Wait: put 1 opponent Member with at least 2 fewer printed hearts than that Member into Wait.",
+      "text_jp": "/『Liella!』のメンバー1人をウェイトにしてもよい：相手のステージにいる元々持つの数がこれによりウェイトにしたメンバーが元々持つの数より2つ以上少ないメンバー1人をウェイトにする。（ウェイト状態のメンバーが持つは、エールで公開する枚数を増やさない。）",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-009-R.png",
+      "subunit": "5yncri5e!",
+      "blade": 2
+    },
+    {
+      "card_no": "PL!SP-pb2-010-PP",
+      "name": "ウィーン・マルガレーテ",
+      "name_en": "Wien Margarete",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "PP",
+      "text": "[On Enter] Unless you put 1 card from your hand into the Waiting Room, put 1 of your Energy into your Energy deck. Choose one — draw 2 cards; or put 1 Energy from your Energy deck into Wait.",
+      "text_jp": "手札を1枚控え室に置かないかぎり、自分のエネルギー1枚をエネルギーデッキに置く。\n\n以下から1つを選ぶ。\n\n・カードを2枚引く。\n\n・自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-010-PP.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 5,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: draw 2 cards?",
+          "then": {
+            "type": "draw_cards",
+            "count": 2
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-010-R",
+      "name": "ウィーン・マルガレーテ",
+      "name_en": "Wien Margarete",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "R",
+      "text": "[On Enter] Unless you put 1 card from your hand into the Waiting Room, put 1 of your Energy into your Energy deck. Choose one — draw 2 cards; or put 1 Energy from your Energy deck into Wait.",
+      "text_jp": "手札を1枚控え室に置かないかぎり、自分のエネルギー1枚をエネルギーデッキに置く。\n\n以下から1つを選ぶ。\n\n・カードを2枚引く。\n\n・自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-010-R.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 5,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: draw 2 cards?",
+          "then": {
+            "type": "draw_cards",
+            "count": 2
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-011-PP",
+      "name": "鬼塚冬毬",
+      "name_en": "Tomari Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "PP",
+      "text": "[Auto] When the Member in your Center area moves, choose one — gain 1 heart until this Live ends; or put 1 opponent Member with 2 or fewer printed hearts into Wait; or draw 1 card.",
+      "text_jp": "自分のステージのセンターエリアにいるメンバーがエリアを移動したとき、以下から1つを選ぶ。\n\n・ライブ終了時まで、を得る。\n\n・相手のステージにいる元々持つの数が2つ以下のメンバー1人をウェイトにする。\n\n・カードを1枚引く。\n\nこのメンバーをポジションチェンジしてもよい。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-011-PP.png",
+      "subunit": "5yncri5e!",
+      "blade": 4
+    },
+    {
+      "card_no": "PL!SP-pb2-011-R",
+      "name": "鬼塚冬毬",
+      "name_en": "Tomari Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "R",
+      "text": "[Auto] When the Member in your Center area moves, choose one — gain 1 heart until this Live ends; or put 1 opponent Member with 2 or fewer printed hearts into Wait; or draw 1 card.",
+      "text_jp": "自分のステージのセンターエリアにいるメンバーがエリアを移動したとき、以下から1つを選ぶ。\n\n・ライブ終了時まで、を得る。\n\n・相手のステージにいる元々持つの数が2つ以下のメンバー1人をウェイトにする。\n\n・カードを1枚引く。\n\nこのメンバーをポジションチェンジしてもよい。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-011-R.png",
+      "subunit": "5yncri5e!",
+      "blade": 4
+    },
+    {
+      "card_no": "PL!SP-pb2-012-P＋",
+      "name": "澁谷かのん",
+      "name_en": "Kanon Shibuya",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "P＋",
+      "text": "[Activated] Put this Member from your Stage into the Waiting Room: add 1 Live card from your Waiting Room to your hand.",
+      "text_jp": "このメンバーをステージから控え室に置く：自分の控え室からライブカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-012-P2.png",
+      "abilities": [
+        {
+          "trigger": "activated",
+          "type": "leave_stage_add_from_wr",
+          "filter": "live",
+          "count": 1
+        }
+      ],
+      "subunit": "CatChu!",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-012-R",
+      "name": "澁谷かのん",
+      "name_en": "Kanon Shibuya",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "R",
+      "text": "[Activated] Put this Member from your Stage into the Waiting Room: add 1 Live card from your Waiting Room to your hand.",
+      "text_jp": "このメンバーをステージから控え室に置く：自分の控え室からライブカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-012-R.png",
+      "abilities": [
+        {
+          "trigger": "activated",
+          "type": "leave_stage_add_from_wr",
+          "filter": "live",
+          "count": 1
+        }
+      ],
+      "subunit": "CatChu!",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-013-P＋",
+      "name": "唐 可可",
+      "name_en": "Keke Tang",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 10,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "P＋",
+      "text": "[On Enter] You may put 1 KALEIDOSCORE card from your hand into the Waiting Room: put 1 Energy from your Energy deck into Wait.",
+      "text_jp": "手札の『KALEIDOSCORE』のカードを1枚控え室に置いてもよい：自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。これにより控え室に置いたカードがブレードハートを持たない場合、カードを1枚引く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-013-P2.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 2,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: put 1 Energy from your Energy deck into Wait?",
+          "then": {
+            "type": "energy_wait_from_deck",
+            "count": 1
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-013-R",
+      "name": "唐 可可",
+      "name_en": "Keke Tang",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 10,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "R",
+      "text": "[On Enter] You may put 1 KALEIDOSCORE card from your hand into the Waiting Room: put 1 Energy from your Energy deck into Wait.",
+      "text_jp": "手札の『KALEIDOSCORE』のカードを1枚控え室に置いてもよい：自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。これにより控え室に置いたカードがブレードハートを持たない場合、カードを1枚引く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-013-R.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 2,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: put 1 Energy from your Energy deck into Wait?",
+          "then": {
+            "type": "energy_wait_from_deck",
+            "count": 1
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-014-P＋",
+      "name": "嵐 千砂都",
+      "name_en": "Chisato Arashi",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "P＋",
+      "text": "[On Enter] If every Member on your Stage is 5yncri5e!, you may Formation Change your Stage Members.",
+      "text_jp": "自分のステージにいるメンバーが『5yncri5e!』のみの場合、自分のステージにいるメンバーをフォーメーションチェンジしてもよい。(メンバーをそれぞれ好きなエリアに移動させてもよい。)",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-014-P2.png",
+      "subunit": "5yncri5e!",
+      "blade": 4,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "formation_rotate_all",
+          "requires_subunit_only": "5yncri5e!"
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-014-R",
+      "name": "嵐 千砂都",
+      "name_en": "Chisato Arashi",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "R",
+      "text": "[On Enter] If every Member on your Stage is 5yncri5e!, you may Formation Change your Stage Members.",
+      "text_jp": "自分のステージにいるメンバーが『5yncri5e!』のみの場合、自分のステージにいるメンバーをフォーメーションチェンジしてもよい。(メンバーをそれぞれ好きなエリアに移動させてもよい。)",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-014-R.png",
+      "subunit": "5yncri5e!",
+      "blade": 4,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "formation_rotate_all",
+          "requires_subunit_only": "5yncri5e!"
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-015-P＋",
+      "name": "平安名すみれ",
+      "name_en": "Sumire Heanna",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "P＋",
+      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: add 1 CatChu! card from your Waiting Room to your hand.",
+      "text_jp": "手札を1枚控え室に置いてもよい：自分の控え室から『CatChu!』のカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-015-P2.png",
+      "subunit": "CatChu!",
+      "blade": 4,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: add 1 CatChu! card from your Waiting Room to your hand?",
+          "then": {
+            "type": "add_from_wr",
+            "subunit": "CatChu!",
+            "filter": "",
+            "count": 1
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-015-R",
+      "name": "平安名すみれ",
+      "name_en": "Sumire Heanna",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "R",
+      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: add 1 CatChu! card from your Waiting Room to your hand.",
+      "text_jp": "手札を1枚控え室に置いてもよい：自分の控え室から『CatChu!』のカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-015-R.png",
+      "subunit": "CatChu!",
+      "blade": 4,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: add 1 CatChu! card from your Waiting Room to your hand?",
+          "then": {
+            "type": "add_from_wr",
+            "subunit": "CatChu!",
+            "filter": "",
+            "count": 1
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-016-P＋",
+      "name": "葉月 恋",
+      "name_en": "Ren Hazuki",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "P＋",
+      "text": "[Activated] Put this Member from your Stage into the Waiting Room: add 1 Live card from your Waiting Room to your hand.",
+      "text_jp": "このメンバーをステージから控え室に置く：自分の控え室からライブカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-016-P2.png",
+      "abilities": [
+        {
+          "trigger": "activated",
+          "type": "leave_stage_add_from_wr",
+          "filter": "live",
+          "count": 1
+        }
+      ],
+      "subunit": "KALEIDOSCORE",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-016-R",
+      "name": "葉月 恋",
+      "name_en": "Ren Hazuki",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "R",
+      "text": "[Activated] Put this Member from your Stage into the Waiting Room: add 1 Live card from your Waiting Room to your hand.",
+      "text_jp": "このメンバーをステージから控え室に置く：自分の控え室からライブカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-016-R.png",
+      "abilities": [
+        {
+          "trigger": "activated",
+          "type": "leave_stage_add_from_wr",
+          "filter": "live",
+          "count": 1
+        }
+      ],
+      "subunit": "KALEIDOSCORE",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-017-P＋",
+      "name": "桜小路きな子",
+      "name_en": "Kinako Sakurakoji",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 7,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "P＋",
+      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand. Put the rest into the Waiting Room.",
+      "text_jp": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-017-P2.png",
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand?",
+          "then": {
+            "type": "look_reveal_filter",
+            "look": 5,
+            "group": "Superstar",
+            "filter": "member",
+            "pick": 1
+          }
+        }
+      ],
+      "subunit": "5yncri5e!",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-017-R",
+      "name": "桜小路きな子",
+      "name_en": "Kinako Sakurakoji",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 7,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "R",
+      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand. Put the rest into the Waiting Room.",
+      "text_jp": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-017-R.png",
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand?",
+          "then": {
+            "type": "look_reveal_filter",
+            "look": 5,
+            "group": "Superstar",
+            "filter": "member",
+            "pick": 1
+          }
+        }
+      ],
+      "subunit": "5yncri5e!",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-018-P＋",
+      "name": "米女メイ",
+      "name_en": "Mei Yoneme",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "P＋",
+      "text": "[On Enter] Activate 1 Energy for each differently named CatChu! Member on your Stage besides this Member.",
+      "text_jp": "自分のステージにいるこのメンバーと名前の異なる『CatChu!』のメンバー1人につき、エネルギーを1枚アクティブにする。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-018-P2.png",
+      "subunit": "CatChu!",
+      "blade": 1,
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "activate_energy_up_to_if_distinct_subunit",
+          "subunit": "CatChu!",
+          "min_distinct": 1,
+          "max": 5
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-018-R",
+      "name": "米女メイ",
+      "name_en": "Mei Yoneme",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "R",
+      "text": "[On Enter] Activate 1 Energy for each differently named CatChu! Member on your Stage besides this Member.",
+      "text_jp": "自分のステージにいるこのメンバーと名前の異なる『CatChu!』のメンバー1人につき、エネルギーを1枚アクティブにする。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-018-R.png",
+      "subunit": "CatChu!",
+      "blade": 1,
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "activate_energy_up_to_if_distinct_subunit",
+          "subunit": "CatChu!",
+          "min_distinct": 1,
+          "max": 5
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-019-P＋",
+      "name": "若菜四季",
+      "name_en": "Shiki Wakana",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "P＋",
+      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: add 1 5yncri5e! card from your Waiting Room to your hand.",
+      "text_jp": "手札を1枚控え室に置いてもよい：自分の控え室から『5yncri5e!』のカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-019-P2.png",
+      "subunit": "5yncri5e!",
+      "blade": 4,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: add 1 5yncri5e! card from your Waiting Room to your hand?",
+          "then": {
+            "type": "add_from_wr",
+            "subunit": "5yncri5e!",
+            "filter": "",
+            "count": 1
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-019-R",
+      "name": "若菜四季",
+      "name_en": "Shiki Wakana",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "R",
+      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: add 1 5yncri5e! card from your Waiting Room to your hand.",
+      "text_jp": "手札を1枚控え室に置いてもよい：自分の控え室から『5yncri5e!』のカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-019-R.png",
+      "subunit": "5yncri5e!",
+      "blade": 4,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: add 1 5yncri5e! card from your Waiting Room to your hand?",
+          "then": {
+            "type": "add_from_wr",
+            "subunit": "5yncri5e!",
+            "filter": "",
+            "count": 1
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-020-P＋",
+      "name": "鬼塚夏美",
+      "name_en": "Natsumi Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "P＋",
+      "text": "[Auto] When you Yell, you may put 1 Liella! Live card from your hand into the Waiting Room. If you do, perform 2 additional Yells.",
+      "text_jp": "自分がエールしたとき、手札にある『Liella!』のライブカードを1枚控え室に置いてもよい。そうした場合、追加で2枚エールを行う。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-020-P2.png",
+      "subunit": "5yncri5e!",
+      "blade": 2,
+      "abilities": [
+        {
+          "trigger": "auto",
+          "type": "auto_yell_mill_extra_yell",
+          "group": "Superstar",
+          "filter": "live",
+          "extra_yell": 2,
+          "once_per_turn": true
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-020-R",
+      "name": "鬼塚夏美",
+      "name_en": "Natsumi Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "R",
+      "text": "[Auto] When you Yell, you may put 1 Liella! Live card from your hand into the Waiting Room. If you do, perform 2 additional Yells.",
+      "text_jp": "自分がエールしたとき、手札にある『Liella!』のライブカードを1枚控え室に置いてもよい。そうした場合、追加で2枚エールを行う。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-020-R.png",
+      "subunit": "5yncri5e!",
+      "blade": 2,
+      "abilities": [
+        {
+          "trigger": "auto",
+          "type": "auto_yell_mill_extra_yell",
+          "group": "Superstar",
+          "filter": "live",
+          "extra_yell": 2,
+          "once_per_turn": true
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-021-P＋",
+      "name": "ウィーン・マルガレーテ",
+      "name_en": "Wien Margarete",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "P＋",
+      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: add 1 KALEIDOSCORE card from your Waiting Room to your hand.",
+      "text_jp": "手札を1枚控え室に置いてもよい：自分の控え室から『KALEIDOSCORE』のカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-021-P2.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 4,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: add 1 KALEIDOSCORE card from your Waiting Room to your hand?",
+          "then": {
+            "type": "add_from_wr",
+            "subunit": "KALEIDOSCORE",
+            "filter": "",
+            "count": 1
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-021-R",
+      "name": "ウィーン・マルガレーテ",
+      "name_en": "Wien Margarete",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "R",
+      "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: add 1 KALEIDOSCORE card from your Waiting Room to your hand.",
+      "text_jp": "手札を1枚控え室に置いてもよい：自分の控え室から『KALEIDOSCORE』のカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-021-R.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 4,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: add 1 KALEIDOSCORE card from your Waiting Room to your hand?",
+          "then": {
+            "type": "add_from_wr",
+            "subunit": "KALEIDOSCORE",
+            "filter": "",
+            "count": 1
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-022-P＋",
+      "name": "鬼塚冬毬",
+      "name_en": "Tomari Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 15,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "yellow"
+      ],
+      "rarity": "P＋",
+      "text": "[Auto] When a 5yncri5e! Member on your Stage moves to Center, gain 1 heart until this Live ends.",
+      "text_jp": "自分のステージにいる『5yncri5e!』のメンバーがセンターエリアに移動したとき、ライブ終了時まで、を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-022-P2.png",
+      "subunit": "5yncri5e!",
+      "blade": 5
+    },
+    {
+      "card_no": "PL!SP-pb2-022-R",
+      "name": "鬼塚冬毬",
+      "name_en": "Tomari Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 15,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "yellow"
+      ],
+      "rarity": "R",
+      "text": "[Auto] When a 5yncri5e! Member on your Stage moves to Center, gain 1 heart until this Live ends.",
+      "text_jp": "自分のステージにいる『5yncri5e!』のメンバーがセンターエリアに移動したとき、ライブ終了時まで、を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-022-R.png",
+      "subunit": "5yncri5e!",
+      "blade": 5
+    },
+    {
+      "card_no": "PL!SP-pb2-023-N",
+      "name": "澁谷かのん",
+      "name_en": "Kanon Shibuya",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "N",
+      "text": "[Continuous] While you have 6+ Energy, gain 1 heart. While you have 8+ Energy, gain 1 more heart.",
+      "text_jp": "自分のエネルギーが6枚以上あるかぎり、を得る。8枚以上あるかぎり、さらにを得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-023-N.png",
+      "subunit": "CatChu!",
+      "abilities": [
+        {
+          "trigger": "continuous",
+          "type": "hearts_if_min_energy",
+          "min_energy": 6,
+          "hearts": [
+            {
+              "color": "any",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "trigger": "continuous",
+          "type": "hearts_if_min_energy",
+          "min_energy": 8,
+          "hearts": [
+            {
+              "color": "any",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-024-N",
+      "name": "唐 可可",
+      "name_en": "Keke Tang",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "N",
+      "text": "[On Enter] Put 1 opponent Member with cost 2 or less into Wait.",
+      "text_jp": "相手のステージにいるコスト2以下のメンバー1人をウェイトにする。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-024-N.png",
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "wait_opponent_stage_max_cost",
+          "max_cost": 2,
+          "pick_count": 1
+        }
+      ],
+      "subunit": "KALEIDOSCORE"
+    },
+    {
+      "card_no": "PL!SP-pb2-025-N",
+      "name": "嵐 千砂都",
+      "name_en": "Chisato Arashi",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "N",
+      "text": "[Activated] You may move this Member to another area on your Stage, swapping with any Member in that area.",
+      "text_jp": "このメンバーをポジションチェンジしてもよい。(このメンバーを今いるエリア以外のエリアに移動させる。そのエリアにメンバーがいる場合、そのメンバーはこのメンバーがいたエリアに移動させる。)",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-025-N.png",
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "optional_swap_area_on_enter"
+        }
+      ],
+      "subunit": "5yncri5e!",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-026-N",
+      "name": "平安名すみれ",
+      "name_en": "Sumire Heanna",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 15,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "N",
+      "text": "[Continuous] While you have 1 or more Active Energy, gain 1 heart.",
+      "text_jp": "自分のアクティブ状態のエネルギーがあるかぎり、を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-026-N.png",
+      "subunit": "CatChu!",
+      "blade": 4
+    },
+    {
+      "card_no": "PL!SP-pb2-027-N",
+      "name": "葉月 恋",
+      "name_en": "Ren Hazuki",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "yellow"
+      ],
+      "rarity": "N",
+      "text": "[Continuous] While you have 6+ Energy, gain 1 heart. While you have 8+ Energy, gain 1 more heart.",
+      "text_jp": "自分のエネルギーが6枚以上あるかぎり、を得る。8枚以上あるかぎり、さらにを得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-027-N.png",
+      "subunit": "KALEIDOSCORE",
+      "abilities": [
+        {
+          "trigger": "continuous",
+          "type": "hearts_if_min_energy",
+          "min_energy": 6,
+          "hearts": [
+            {
+              "color": "any",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "trigger": "continuous",
+          "type": "hearts_if_min_energy",
+          "min_energy": 8,
+          "hearts": [
+            {
+              "color": "any",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-028-N",
+      "name": "桜小路きな子",
+      "name_en": "Kinako Sakurakoji",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 5,
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "N",
+      "text": "[Auto] During your Main Phase, when this Member moves areas, activate 2 Energy.",
+      "text_jp": "自分のメインフェイズの間、このメンバーがエリアを移動したとき、エネルギーを2枚アクティブにする。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-028-N.png",
+      "subunit": "5yncri5e!",
+      "blade": 2,
+      "abilities": [
+        {
+          "trigger": "auto",
+          "type": "auto_area_move_energy_wait",
+          "once_per_turn": true
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-029-N",
+      "name": "米女メイ",
+      "name_en": "Mei Yoneme",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 9,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "N",
+      "text": "[On Enter] Put 1 opponent Member with cost 2 or less into Wait.",
+      "text_jp": "/相手のステージにいるコスト2以下のメンバー1人をウェイトにする。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-029-N.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "wait_opponent_stage_max_cost",
+          "max_cost": 2,
+          "pick_count": 1
+        }
+      ],
+      "subunit": "CatChu!",
+      "blade": 4
+    },
+    {
+      "card_no": "PL!SP-pb2-030-N",
+      "name": "若菜四季",
+      "name_en": "Shiki Wakana",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "N",
+      "text": "[Live Start] Choose 1 heart color. Until this Live ends, this Member's printed hearts become hearts of the chosen color.",
+      "text_jp": "かかのうち1つを選ぶ。ライブ終了時まで、このメンバーが元々持つハートは選んだハートになる。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-030-N.png",
+      "subunit": "5yncri5e!",
+      "blade": 1,
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "optional_discard_hand",
+          "discard": 0,
+          "then": {
+            "type": "choose_heart_modifier"
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-031-N",
+      "name": "鬼塚夏美",
+      "name_en": "Natsumi Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "N",
+      "text": "[Activated] Put this Member from your Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
+      "text_jp": "このメンバーをステージから控え室に置く：自分の控え室からメンバーカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-031-N.png",
+      "subunit": "5yncri5e!",
+      "blade": 1,
+      "abilities": [
+        {
+          "trigger": "activated",
+          "type": "leave_stage_add_from_wr",
+          "filter": "member",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-032-N",
+      "name": "ウィーン・マルガレーテ",
+      "name_en": "Wien Margarete",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "N",
+      "text": "[Continuous] While you have 6+ Energy, gain 1 heart. While you have 8+ Energy, gain 1 more heart.",
+      "text_jp": "自分のエネルギーが6枚以上あるかぎり、を得る。8枚以上あるかぎり、さらにを得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-032-N.png",
+      "subunit": "KALEIDOSCORE",
+      "abilities": [
+        {
+          "trigger": "continuous",
+          "type": "hearts_if_min_energy",
+          "min_energy": 6,
+          "hearts": [
+            {
+              "color": "any",
+              "count": 1
+            }
+          ]
+        },
+        {
+          "trigger": "continuous",
+          "type": "hearts_if_min_energy",
+          "min_energy": 8,
+          "hearts": [
+            {
+              "color": "any",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-033-N",
+      "name": "鬼塚冬毬",
+      "name_en": "Tomari Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "N",
+      "text": "[Activated] Put this Member from your Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
+      "text_jp": "このメンバーをステージから控え室に置く：自分の控え室からメンバーカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-033-N.png",
+      "subunit": "5yncri5e!",
+      "blade": 1,
+      "abilities": [
+        {
+          "trigger": "activated",
+          "type": "leave_stage_add_from_wr",
+          "filter": "member",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-034-N",
+      "name": "澁谷かのん",
+      "name_en": "Kanon Shibuya",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "N",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-034-N.png",
+      "subunit": "CatChu!"
+    },
+    {
+      "card_no": "PL!SP-pb2-035-N",
+      "name": "唐 可可",
+      "name_en": "Keke Tang",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 9,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "N",
+      "text": "[Always] [Left Side] Gain 1 Red heart.",
+      "text_jp": "を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-035-N.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 2,
+      "abilities": [
+        {
+          "trigger": "continuous",
+          "type": "continuous_hearts_in_slot",
+          "slot": "left",
+          "hearts": [
+            {
+              "color": "red",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-036-N",
+      "name": "嵐 千砂都",
+      "name_en": "Chisato Arashi",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 5,
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "N",
+      "text": "[On Enter] [Left Side] [Right Side] Draw 2 cards and put 2 cards from your hand into the Waiting Room.",
+      "text_jp": "カードを2枚引き、手札を2枚控え室に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-036-N.png",
+      "subunit": "5yncri5e!",
+      "blade": 2,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "on_enter_side_area",
+          "slots": [
+            "left",
+            "right"
+          ],
+          "effect": {
+            "type": "draw_and_discard",
+            "draw": 2,
+            "discard": 2
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-037-N",
+      "name": "平安名すみれ",
+      "name_en": "Sumire Heanna",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 5,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "N",
+      "text": "[On Enter] [Left Side] [Right Side] Draw 2 cards and put 2 cards from your hand into the Waiting Room.",
+      "text_jp": "カードを2枚引き、手札を2枚控え室に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-037-N.png",
+      "subunit": "CatChu!",
+      "blade": 2,
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "on_enter_side_area",
+          "slots": [
+            "left",
+            "right"
+          ],
+          "effect": {
+            "type": "draw_and_discard",
+            "draw": 2,
+            "discard": 2
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-038-N",
+      "name": "葉月 恋",
+      "name_en": "Ren Hazuki",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 7,
+      "hearts": [
+        {
+          "color": "purple",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "N",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-038-N.png",
+      "subunit": "KALEIDOSCORE",
+      "blade": 2
+    },
+    {
+      "card_no": "PL!SP-pb2-039-N",
+      "name": "桜小路きな子",
+      "name_en": "Kinako Sakurakoji",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "N",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-039-N.png",
+      "subunit": "5yncri5e!",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-040-N",
+      "name": "米女メイ",
+      "name_en": "Mei Yoneme",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "N",
+      "text": "[Live Start] You may pay 1 Energy: until this Live ends, gain 1 heart of your choice.",
+      "text_jp": "支払ってもよい：ライブ終了時まで、を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-040-N.png",
+      "subunit": "CatChu!",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "optional_pay_energy",
+          "cost": 1,
+          "then": {
+            "type": "grant_bonus_hearts",
+            "hearts": [
+              {
+                "color": "any",
+                "count": 1
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-041-N",
+      "name": "若菜四季",
+      "name_en": "Shiki Wakana",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 9,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "N",
+      "text": "[Always] [Right Side] Gain 1 Blue heart.",
+      "text_jp": "を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-041-N.png",
+      "subunit": "5yncri5e!",
+      "blade": 2,
+      "abilities": [
+        {
+          "trigger": "continuous",
+          "type": "continuous_hearts_in_slot",
+          "slot": "right",
+          "hearts": [
+            {
+              "color": "blue",
+              "count": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-042-N",
+      "name": "鬼塚夏美",
+      "name_en": "Natsumi Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 7,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "N",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-042-N.png",
+      "subunit": "5yncri5e!",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-043-N",
+      "name": "ウィーン・マルガレーテ",
+      "name_en": "Wien Margarete",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "N",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-043-N.png",
+      "subunit": "KALEIDOSCORE"
+    },
+    {
+      "card_no": "PL!SP-pb2-044-N",
+      "name": "鬼塚冬毬",
+      "name_en": "Tomari Onitsuka",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "yellow"
+      ],
+      "rarity": "N",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-044-N.png",
+      "subunit": "5yncri5e!",
+      "blade": 1
+    },
+    {
+      "card_no": "PL!SP-pb2-045-L",
+      "name": "絶対的LOVER",
+      "name_en": "絶対的LOVER",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 3
+        },
+        {
+          "color": "purple",
+          "count": 4
+        },
+        {
+          "color": "any",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "L",
+      "text": "[Live Start] For each Liella! Member on your Stage with 4+ hearts, this card's score +1.",
+      "text_jp": "自分のステージにいるハートを4つ以上持つ『Liella!』のメンバー1人につき、このカードのスコアを＋１する。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-045-L.png",
+      "score": 4,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 3
+        },
+        {
+          "color": "purple",
+          "count": 4
+        },
+        {
+          "color": "any",
+          "count": 2
+        }
+      ],
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "score_if_stage_member_hearts",
+          "group": "Superstar",
+          "min_blades": 4,
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-046-L",
+      "name": "Butterfly Wing",
+      "name_en": "Butterfly Wing",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "purple",
+          "count": 3
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "L",
+      "text": "自分のステージにいるメンバーが持つ能力は発動しない。\n\n自分のステージに能力を持つメンバーがいる場合、このカードのスコアを＋１する。",
+      "text_jp": "自分のステージにいるメンバーが持つ能力は発動しない。\n\n自分のステージに能力を持つメンバーがいる場合、このカードのスコアを＋１する。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-046-L.png",
+      "score": 2,
+      "required_hearts": [
+        {
+          "color": "purple",
+          "count": 3
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-047-L",
+      "name": "Welcome to 僕らのセカイ",
+      "name_en": "Welcome to 僕らのセカイ",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "L",
+      "text": "[Live Start] You may put 1 card from your hand into the Waiting Room: put 1 opponent Member with cost 2 or less into Wait.",
+      "text_jp": "手札を1枚控え室に置いてもよい：自分のステージにいるメンバーが『Liella!』のみの場合、相手のステージにいるコスト2以下のメンバー1人をウェイトにする。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-047-L.png",
+      "score": 1,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "optional_discard_prompt",
+          "discard": 1,
+          "prompt": "Put 1 card from your hand into the Waiting Room: put 1 opponent Member (cost 2 or less) into Wait?",
+          "then": {
+            "type": "wait_opponent_stage_max_cost",
+            "max_cost": 2,
+            "pick_count": 1
+          }
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-048-L",
+      "name": "ディストーション",
+      "name_en": "Distortion",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 6
+        },
+        {
+          "color": "any",
+          "count": 9
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "L",
+      "text": "[Live Start] For each differently named CatChu! Member on your Stage, reduce this card's Required Hearts by 1 Gray Heart.",
+      "text_jp": "自分のステージにいる名前の異なる『CatChu!』のメンバー1人につき、このカードの必要ハートを減らし、増やす。その後、このカードの必要ハートに含まれるが9以上の場合、このカードのスコアを＋１する。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-048-L.png",
+      "subunit": "CatChu!",
+      "score": 6,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 6
+        },
+        {
+          "color": "any",
+          "count": 9
+        }
+      ],
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "reduce_hearts_per_entered_moved_subunit",
+          "subunit": "CatChu!",
+          "per_member": 1,
+          "reduce_heart_color": "gray"
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-049-L",
+      "name": "ニュートラル",
+      "name_en": "Neutral",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 6
+        },
+        {
+          "color": "any",
+          "count": 4
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "L",
+      "text": "[Live Success] If you have 11 or more Energy, this card's score +1.",
+      "text_jp": "エールにより公開された自分のカードの中に『KALEIDOSCORE』のカードが5枚以上ある場合、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。\n\n自分のエネルギーが11枚以上ある場合、このカードのスコアを＋１する。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-049-L.png",
+      "subunit": "KALEIDOSCORE",
+      "score": 5,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 6
+        },
+        {
+          "color": "any",
+          "count": 4
+        }
+      ],
+      "abilities": [
+        {
+          "trigger": "live_success",
+          "type": "score_if_min_energy",
+          "min_energy": 11,
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-050-L",
+      "name": "Jellyfish",
+      "name_en": "Jellyfish",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "L",
+      "text": "[Live Start] You may Formation Change your Stage Members.",
+      "text_jp": "自分のステージに『5yncri5e!』のメンバーが2人以上いる場合、自分のステージにいるメンバーをフォーメーションチェンジしてもよい。(メンバーをそれぞれ好きなエリアに移動させてもよい。)",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-050-L.png",
+      "subunit": "5yncri5e!",
+      "score": 2,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 2
+        }
+      ],
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "optional_formation_change_group",
+          "group": "Superstar"
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-pb2-E00-SECE",
+      "name": "嵐 千砂都＆鬼塚夏美",
+      "name_en": "Chisato Arashi ＆ Natsumi Onitsuka",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "SECE",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E00-SECE.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E00-SECS",
+      "name": "嵐 千砂都＆鬼塚夏美",
+      "name_en": "Chisato Arashi ＆ Natsumi Onitsuka",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "SECS",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E00-SECS.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E01-PE＋",
+      "name": "澁谷かのん",
+      "name_en": "Kanon Shibuya",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "PE+",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E01-PE2.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E02-PE＋",
+      "name": "唐 可可",
+      "name_en": "Keke Tang",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "PE+",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E02-PE2.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E03-PE＋",
+      "name": "嵐 千砂都",
+      "name_en": "Chisato Arashi",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "PE+",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E03-PE2.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E04-PE＋",
+      "name": "平安名すみれ",
+      "name_en": "Sumire Heanna",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "PE+",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E04-PE2.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E05-PE＋",
+      "name": "葉月 恋",
+      "name_en": "Ren Hazuki",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "PE+",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E05-PE2.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E06-PE＋",
+      "name": "桜小路きな子",
+      "name_en": "Kinako Sakurakoji",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "PE+",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E06-PE2.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E07-PE＋",
+      "name": "米女メイ",
+      "name_en": "Mei Yoneme",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "PE+",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E07-PE2.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E08-PE＋",
+      "name": "若菜四季",
+      "name_en": "Shiki Wakana",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "PE+",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E08-PE2.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E09-PE＋",
+      "name": "鬼塚夏美",
+      "name_en": "Natsumi Onitsuka",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "PE+",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E09-PE2.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E10-PE＋",
+      "name": "ウィーン・マルガレーテ",
+      "name_en": "Wien Margarete",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "PE+",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E10-PE2.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E11-PE＋",
+      "name": "鬼塚冬毬",
+      "name_en": "Tomari Onitsuka",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "PE+",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E11-PE2.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E12-LLE",
+      "name": "Liella!",
+      "name_en": "Liella!",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "LLE",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E12-LLE.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E13-LLE",
+      "name": "Liella!",
+      "name_en": "Liella!",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "LLE",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E13-LLE.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E14-LLE",
+      "name": "Liella!",
+      "name_en": "Liella!",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "LLE",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E14-LLE.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E15-LLE",
+      "name": "Liella!",
+      "name_en": "Liella!",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "LLE",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E15-LLE.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E16-LLE",
+      "name": "Liella!",
+      "name_en": "Liella!",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "LLE",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E16-LLE.png"
+    },
+    {
+      "card_no": "PL!SP-pb2-E17-LLE",
+      "name": "Liella!",
+      "name_en": "Liella!",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "rarity": "LLE",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-E17-LLE.png"
+    },
+    {
       "card_no": "PL!SP-sd1-001-SD",
       "name": "澁谷かのん",
       "name_en": "Kanon Shibuya",
@@ -70056,6 +73462,49 @@
       "yell_score_icon": true
     },
     {
+      "card_no": "PL!SP-sd1-023-SRL",
+      "name": "WE WILL!!",
+      "name_en": "WE WILL!!",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "SRL",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-sd1-023-SRL.png",
+      "score": 1,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 1
+        }
+      ]
+    },
+    {
       "card_no": "PL!SP-sd1-024-P",
       "name": "シェキラ☆☆☆",
       "name_en": "Sekira☆☆☆",
@@ -70185,6 +73634,49 @@
       ]
     },
     {
+      "card_no": "PL!SP-sd1-024-SRL",
+      "name": "シェキラ☆☆☆",
+      "name_en": "Sekira☆☆☆",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "SRL",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-sd1-024-SRL.png",
+      "score": 2,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ]
+    },
+    {
       "card_no": "PL!SP-sd1-025-SD",
       "name": "未来は風のように",
       "name_en": "Mirai wa Kaze no You ni",
@@ -70211,6 +73703,49 @@
       "text": "",
       "text_jp": "",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/SPSD01/PL!SP-sd1-025-SD.png",
+      "score": 3,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ]
+    },
+    {
+      "card_no": "PL!SP-sd1-025-SRL",
+      "name": "未来は風のように",
+      "name_en": "Mirai wa Kaze no You ni",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "purple",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "SRL",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-sd1-025-SRL.png",
       "score": 3,
       "required_hearts": [
         {
@@ -70285,6 +73820,51 @@
       ],
       "special_heart": "icon_draw.png",
       "yell_draw_icon": true
+    },
+    {
+      "card_no": "PL!SP-sd1-026-SRL",
+      "name": "私のSymphony 〜澁谷かのんVer.〜",
+      "name_en": "Watashi no Symphony ~Kanon Shibuya Ver.~",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Superstar",
+      "booster_pack": "プレミアムブースター ラブライブ！スーパースター!! DUO",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 4
+        },
+        {
+          "color": "purple",
+          "count": 4
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "SRL",
+      "text": "自分のエネルギーが9枚以上ある場合、このカードのスコアを＋１する。",
+      "text_jp": "自分のエネルギーが9枚以上ある場合、このカードのスコアを＋１する。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-sd1-026-SRL.png",
+      "score": 4,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 4
+        },
+        {
+          "color": "purple",
+          "count": 4
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ]
     },
     {
       "card_no": "PL!SP-sd1-027-P",
