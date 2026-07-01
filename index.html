@@ -24455,7 +24455,7 @@ const RULE_KEYWORD_TIPS = {
   },
 };
 
-const RULE_KW_BRACKET_LABELS_EN = 'On Enter|On Leave|Live Start|Live Success|Activated|Always|Once per turn|Automatic|Auto|Center';
+const RULE_KW_BRACKET_LABELS_EN = 'On Enter|On Leave|Live Start|Live Success|Activated|Always|Continuous|Once per turn|Automatic|Auto|Center';
 const RULE_KW_BRACKET_LABELS_JA = '登場時|退場時|ライブ開始時|ライブ開始|ライブ成功時|ライブ成功|起動|常時|ターン1回|自動|センター';
 
 const RULE_KW_JA_TO_EN = {
@@ -24639,6 +24639,7 @@ const RULE_KEYWORD_COLORS = {
 
 function resolveRuleKwKey(raw) {
   if (raw === 'Auto') return 'Automatic';
+  if (raw === 'Continuous') return 'Always';
   return raw;
 }
 
@@ -24710,6 +24711,7 @@ function renderCardRulesText(text, container) {
   container.innerHTML = '';
   if (!text) return;
   text = localizeSubunitText(text);
+  text = text.replace(/\[Continuous\]/gi, '[Always]');
   const lines = text.split('\n');
   const bracketRe = getRuleKwBracketPattern();
   lines.forEach((line, lineIdx) => {

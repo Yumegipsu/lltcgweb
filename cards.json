@@ -70471,7 +70471,7 @@
         "yellow"
       ],
       "rarity": "PP",
-      "text": "[Continuous] This Member's cost +1 for each Liella! Member card under it.\n[Auto] When your Live succeeds or this Member moves areas, put 1 Liella! Member card from your Waiting Room under this Member.",
+      "text": "[Always] This Member's cost +1 for each Liella! Member card under it.\n[Auto] When your Live succeeds or this Member moves areas, put 1 Liella! Member card from your Waiting Room under this Member.",
       "text_jp": "このメンバーの下にある『Liella!』のメンバーカード1枚につき、このメンバーのコストを＋１する。\n\n自分のライブが成功するか、このメンバーがエリアを移動したとき、自分の控え室にある『Liella!』のメンバーカードを1枚、このメンバーの下に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-006-PP.png",
       "subunit": "5yncri5e!",
@@ -70510,7 +70510,7 @@
         "yellow"
       ],
       "rarity": "R",
-      "text": "[Continuous] This Member's cost +1 for each Liella! Member card under it.\n[Auto] When your Live succeeds or this Member moves areas, put 1 Liella! Member card from your Waiting Room under this Member.",
+      "text": "[Always] This Member's cost +1 for each Liella! Member card under it.\n[Auto] When your Live succeeds or this Member moves areas, put 1 Liella! Member card from your Waiting Room under this Member.",
       "text_jp": "このメンバーの下にある『Liella!』のメンバーカード1枚につき、このメンバーのコストを＋１する。\n\n自分のライブが成功するか、このメンバーがエリアを移動したとき、自分の控え室にある『Liella!』のメンバーカードを1枚、このメンバーの下に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-006-R.png",
       "subunit": "5yncri5e!",
@@ -71871,7 +71871,7 @@
         "red"
       ],
       "rarity": "N",
-      "text": "[Continuous] While you have 6+ Energy, gain 1 heart. While you have 8+ Energy, gain 1 more heart.",
+      "text": "[Always] While you have 6+ Energy, gain 1 heart. While you have 8+ Energy, gain 1 more heart.",
       "text_jp": "自分のエネルギーが6枚以上あるかぎり、を得る。8枚以上あるかぎり、さらにを得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-023-N.png",
       "subunit": "CatChu!",
@@ -71990,7 +71990,7 @@
         "red"
       ],
       "rarity": "N",
-      "text": "[Continuous] While you have 1 or more Active Energy, gain 1 heart.",
+      "text": "[Always] While you have 1 or more Active Energy, gain 1 heart.",
       "text_jp": "自分のアクティブ状態のエネルギーがあるかぎり、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-026-N.png",
       "subunit": "CatChu!",
@@ -72028,7 +72028,7 @@
         "yellow"
       ],
       "rarity": "N",
-      "text": "[Continuous] While you have 6+ Energy, gain 1 heart. While you have 8+ Energy, gain 1 more heart.",
+      "text": "[Always] While you have 6+ Energy, gain 1 heart. While you have 8+ Energy, gain 1 more heart.",
       "text_jp": "自分のエネルギーが6枚以上あるかぎり、を得る。8枚以上あるかぎり、さらにを得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-027-N.png",
       "subunit": "KALEIDOSCORE",
@@ -72217,7 +72217,7 @@
         "purple"
       ],
       "rarity": "N",
-      "text": "[Continuous] While you have 6+ Energy, gain 1 heart. While you have 8+ Energy, gain 1 more heart.",
+      "text": "[Always] While you have 6+ Energy, gain 1 heart. While you have 8+ Energy, gain 1 more heart.",
       "text_jp": "自分のエネルギーが6枚以上あるかぎり、を得る。8枚以上あるかぎり、さらにを得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-032-N.png",
       "subunit": "KALEIDOSCORE",
@@ -72735,7 +72735,7 @@
       ],
       "blade_hearts": [],
       "rarity": "L",
-      "text": "[Continuous] Abilities of Members on your Stage do not activate.\n[Continuous] If you have any Members with abilities on your Stage, this card's score +1.",
+      "text": "[Always] Abilities of Members on your Stage do not activate.\n[Always] If you have any Members with abilities on your Stage, this card's score +1.",
       "text_jp": "自分のステージにいるメンバーが持つ能力は発動しない。\n\n自分のステージに能力を持つメンバーがいる場合、このカードのスコアを＋１する。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-046-L.png",
       "score": 2,
