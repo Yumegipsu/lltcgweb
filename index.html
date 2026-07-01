@@ -123,19 +123,6 @@ body{font-family:'Nunito',sans-serif;background:transparent;color:#fff;
 @media (prefers-reduced-motion:reduce){
   .llc-sky-deco-lower,.llc-sky-wing{animation:none!important}
 }
-/* Firefox: backdrop-filter on game UI breaks compositing of the global fixed sky */
-@supports (-moz-appearance:none){
-  .panel,.wait-box,.side-panel,.overlay,.mbox,.side-block,.phase-action-bar,
-  .account-shell,.deck-hover-panel,.card-modal,.win-box,.surveil-overlay,
-  .hand-pick-overlay,.zone-pick-overlay,.heart-pick-overlay,.prompt-box,
-  .live-judge-box,.opp-skill-wait-box,.rule-kw-tip,.toast,
-  #deck-card-hover-panel,#live-judge-overlay .ljo-inner,#overlay-win{
-    backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
-  }
-  #screen-game *{
-    backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
-  }
-}
 .screen{position:relative;z-index:1}
 button{cursor:pointer;font-family:'Nunito',sans-serif;border:none;
   transition:all .15s ease;outline:none}
@@ -451,16 +438,7 @@ body.tutorial-mode #sb-activatable-wrap.tut-show{outline:2px solid rgba(255,107,
 #screen-game{
   align-items:stretch;justify-content:center;
   background:transparent;overflow:hidden;
-  position:relative;
 }
-/* In-game sky: Firefox WebRender fails to paint #llc-sky-bg under the game layer stack */
-.game-sky-bg{
-  display:none;position:absolute;inset:0;z-index:0;
-  pointer-events:none;overflow:hidden;
-}
-#screen-game.active .game-sky-bg{display:block}
-#screen-game.active .game-viewport-frame{position:relative;z-index:1}
-body:has(#screen-game.active) #llc-sky-bg{visibility:hidden}
 .game-viewport-frame{
   flex:1 1 auto;width:100%;min-height:100vh;
   display:flex;align-items:stretch;justify-content:center;
@@ -6077,15 +6055,6 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 
 <!-- ══ GAME ══ -->
 <div id="screen-game" class="screen">
-  <div class="game-sky-bg" aria-hidden="true">
-    <div class="llc-sky-base"></div>
-    <div class="llc-sky-cloud"></div>
-    <div class="llc-sky-deco-lower"></div>
-    <div class="llc-sky-wing llc-sky-wing-a"></div>
-    <div class="llc-sky-wing llc-sky-wing-b"></div>
-    <div class="llc-sky-wing llc-sky-wing-c"></div>
-    <div class="llc-sky-dim"></div>
-  </div>
   <div class="game-viewport-frame" id="game-viewport-frame">
   <div class="game-wide-wrap">
     <!-- Left panel: phase + you -->
@@ -14514,7 +14483,10 @@ function syncDesktopUniformScale(w, h, useFixedFrame, portraitBlock, compactDesk
   const frameW = Math.min(w, h * (16 / 9));
   const frameH = Math.min(h, w * (9 / 16));
   const scale = Math.min(1, frameW / refW, frameH / refH);
-  if (scale >= 0.998) {
+  // 1080p-class desktops (1920×1080, 1600×900, …): innerHeight is often 880–1040
+  // because of browser chrome — treat as full layout, not sub-1080 letterbox/scaling.
+  const desktop1080Class = w >= 1600 && h >= 880;
+  if (scale >= 0.998 || desktop1080Class) {
     clear();
     return;
   }
