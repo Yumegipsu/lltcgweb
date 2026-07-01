@@ -20,12 +20,110 @@
 
   var SLOT_JA = { left: '左', center: 'センター', right: '右' };
 
-  /** Full-line / anchored regex rules (order matters). */
+  var HEART_COLOR_JA = {
+    red: '赤',
+    blue: '青',
+    green: '緑',
+    yellow: '黄',
+    purple: '紫',
+    pink: 'ピンク',
+    any: '任意',
+  };
+
+  /** English server message → i18n.js log key (exact match before regex). */
+  var EXACT_LOG_KEYS = {
+    'Game started! Coin flip — winner chooses who goes first.': 'log.gameStartedCoinFlip',
+    'Preparation: each player drew 6 cards and placed 3 Energy in storage.': 'log.preparationDrawEnergy',
+    'Preparation — Mulligan: you may replace any number of opening hand cards once.': 'log.preparationMulligan',
+    'LIVE Phase: place 0–3 cards (Live or Member) face-down in Live storage (draw 1 per card placed), then end LIVE Phase.': 'log.livePhaseIntro',
+    'Both players reveal Live storage simultaneously.': 'log.bothRevealLive',
+    'No Lives played this turn.': 'log.noLivesThisTurn',
+    'Remaining Live storage sent to Waiting Room.': 'log.remainingLiveToWr',
+    'Neither player had cards in hand to put into the Waiting Room.': 'log.neitherWrFromHand',
+    'Neither player could draw (deck empty).': 'log.neitherCouldDraw',
+    'Neither player succeeds — no Live winner this turn.': 'log.neitherLiveWinner',
+    'Coin flip — continued automatically (player did not respond in time).': 'log.coinFlipAuto',
+    '=== LIVE Phase ===': 'log.dividerLive',
+    '=== Performance Phase ===': 'log.dividerPerformance',
+    '=== Live Show ===': 'log.dividerLiveShow',
+    '=== Live Win/Loss Check Phase ===': 'log.dividerLiveJudge',
+    '=== Live Win/Loss Check ===': 'log.dividerLiveJudge',
+  };
+
+  function tLog(key, vars) {
+    var i18n = global.LLTCG_I18N;
+    if (i18n && typeof i18n.t === 'function') return i18n.t(key, vars);
+    return key;
+  }
+
+  function translateExact(msg) {
+    var key = EXACT_LOG_KEYS[msg];
+    if (key) return tLog(key);
+    var cpu = msg.match(/^CPU deck: (.+)$/);
+    if (cpu) return tLog('log.cpuDeck', { label: cpu[1] });
+    var turnBegin = msg.match(/^=== Turn (\d+) begins ===$/);
+    if (turnBegin) return tLog('log.dividerTurnBegin', { turn: turnBegin[1] });
+    var turnDash = msg.match(/^--- Turn (\d+) ---$/);
+    if (turnDash) return tLog('log.dividerTurn', { turn: turnDash[1] });
+    var disc = msg.match(/^(.+) disconnected\. (.+) wins!$/);
+    if (disc) return tLog('log.disconnectedWin', { loser: disc[1], winner: disc[2] });
+    return null;
+  }
+
+  function translateHeartList(raw) {
+    if (!raw || !raw.trim()) return raw;
+    return raw.split(/\s*,\s*/).map(function (part) {
+      var p = part.trim().toLowerCase();
+      return HEART_COLOR_JA[p] || part;
+    }).join(', ');
+  }
+
+  function translateStructuredLine(msg) {
+    var m;
+
+    m = msg.match(/^(.+?) performed Live! Blades: (\d+) \| Hearts: \[([^\]]*)\] \| Live success: (\d+) \| Failed: (\d+)( \| Round: failed \(not all Lives succeeded\))?$/);
+    if (m) {
+      var roundNote = m[6] ? ' | ラウンド失敗（全ライブ成功が必要）' : '';
+      return m[1] + ' ライブ披露！ 刃: ' + m[2] +
+        ' | ハート: [' + translateHeartList(m[3]) + ']' +
+        ' | ライブ成功: ' + m[4] + ' | 失敗: ' + m[5] + roundNote;
+    }
+
+    m = msg.match(/^Live Scores: (.+?) = (\d+) \| (.+?) = (\d+)$/);
+    if (m) return 'ライブスコア: ' + m[1] + ' = ' + m[2] + ' | ' + m[3] + ' = ' + m[4];
+
+    m = msg.match(/^(.+?) wins the Live — (.+) failed\.$/);
+    if (m) return m[1] + ' のライブ勝利 — ' + m[2] + 'は失敗。';
+
+    m = msg.match(/^(.+?) wins this Live! "(.+)" added to successes\.$/);
+    if (m) return m[1] + ' このライブ勝利！「' + m[2] + '」を成功ライブに追加。';
+
+    m = msg.match(/^(.+) has no valid Live cards!$/);
+    if (m) return m[1] + tLog('log.hasNoValidLive');
+
+    m = msg.match(/^(.+) — choose a Live card for Success Live\.$/);
+    if (m) return m[1] + tLog('log.chooseSuccessLive');
+
+    if (msg.endsWith(' — score tied; Success Live blocked; Live cards sent to Waiting Room.')) {
+      return msg.slice(0, -' — score tied; Success Live blocked; Live cards sent to Waiting Room.'.length) +
+        tLog('log.scoreTiedBlocked');
+    }
+    if (msg.endsWith(' — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room.')) {
+      return msg.slice(0, -' — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room.'.length) +
+        tLog('log.scoreTiedCap');
+    }
+
+    m = msg.match(/^🪙 Coin flip: (.+) won — first player chosen automatically \(time expired\)\.$/);
+    if (m) return '🪙 コイントス：' + m[1] + ' の勝ち — 時間切れのため先攻を自動選択。';
+
+    return null;
+  }
+
+  /** Regex rules applied after card-name swap (order matters). */
   var PHRASE_RULES = [
     [/^=== LIVE Phase ===$/, '=== ライブフェイズ ==='],
     [/^=== Performance Phase ===$/, '=== パフォーマンスフェイズ ==='],
     [/^=== Live Show ===$/, '=== ライブショー ==='],
-    [/^=== Live Start Effects ===$/, '=== ライブ開始効果 ==='],
     [/^=== Live Win\/Loss Check Phase ===$/, '=== ライブ勝敗判定 ==='],
     [/^=== Live Win\/Loss Check ===$/, '=== ライブ勝敗判定 ==='],
     [/^=== Turn (\d+) begins ===$/, '=== ターン$1 開始 ==='],
@@ -40,64 +138,56 @@
     [/^Neither player had cards in hand to put into the Waiting Room\.$/, '手札を控え室に置けるカードがどちらもありませんでした。'],
     [/^Neither player could draw \(deck empty\)\.$/, 'どちらもドローできませんでした（デッキが空）。'],
     [/^Neither player succeeds — no Live winner this turn\.$/, 'どちらも成功せず — このターンのライブ勝者なし。'],
-    [/^Coin flip — continued automatically \(player did not respond in time\)\.$/, 'コイントス — 応答がなかったため自動で続行。'],
+    [/^Coin flip — continued automatically \(player did not respond in time\)\.$/, 'コイントス — 時間切れのため自動続行。'],
     [/^CPU deck: (.+)$/, 'CPUデッキ：$1'],
-    [/^Live Scores: (.+) = (\d+) \| (.+) = (\d+)$/, 'ライブスコア：$1 = $2 | $3 = $4'],
-    [/^(.+) disconnected\. (.+) wins!$/, '$1 が切断。$2 の勝利！'],
-    [/^(.+) wins the Live — (.+) failed\.$/, '$1 のライブ勝利 — $2 は失敗。'],
-    [/^(.+) wins this Live! "(.+)" added to successes\.$/, '$1 ライブ勝利！「$2」を成功ライブに追加。'],
-    [/^(.+) placed (\d+) card\(s\) face-down in storage \((\d+)\/3\)\.$/, '$1 が置き場に$2枚を裏向きで配置（$3/3）。'],
-    [/^(.+) — locked in LIVE selection \((\d+) card\(s\) in storage\)\.$/, '$1 — ライブ選択を確定（置き場$2枚）。'],
-    [/^(.+) — locked in LIVE selection\.$/, '$1 — ライブ選択を確定。'],
-    [/^(.+) is performing Live with (.+)\.$/, '$1 がライブ実施：$2。'],
-    [/^(.+) — Yell retry: drew (\d+) card\(s\) for Blade\.$/, '$1 — エールリトライ：刃$2枚分ドロー。'],
-    [/^(.+) — Yell retry reduced by (\d+) \(drew 0 of (\d+) Blade\)\.$/, '$1 — エールリトライを$2減少（刃$3枚中0枚ドロー）。'],
-    [/^(.+) — choose a Live card for Success Live\.$/, '$1 — 成功ライブに置くライブカードを選択。'],
-    [/^(.+) — Main Phase time expired \(auto end\)\.$/, '$1 — メインフェイズ時間切れ（自動終了）。'],
-    [/^(.+) — LIVE Phase time expired \(auto lock-in\)\.$/, '$1 — ライブフェイズ時間切れ（自動確定）。'],
-    [/^(.+) — CPU hung on skill; auto-skipped optional effect\.$/, '$1 — CPUがスキルで停止；任意効果を自動スキップ。'],
-    [/^(.+) — Anti-softlock: skipped optional skill\.$/, '$1 — ソフトロック防止：任意スキルをスキップ。'],
-    [/^(.+) — score tied; Success Live blocked; Live cards sent to Waiting Room\.$/, '$1 — スコア同点；成功ライブ不可；ライブカードを控え室へ。'],
-    [/^(.+) — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room\.$/, '$1 — スコア同点だが成功ライブ2枚済み；ライブカードを控え室へ。'],
-    [/^(.+) — (\d+) other successful Live\(s\) in storage cannot be placed \(only 1 Success Live per Judge win\); sent to Waiting Room\.$/, '$1 — 置き場の他の成功ライブ$2枚は配置不可（判定勝利ごとに成功ライブ1枚のみ）；控え室へ。'],
-    [/^(.+) has no valid Live cards!$/, '$1 に有効なライブカードがありません！'],
-    [/^(.+) performed Live! Blades: (\d+) \| Live success: (yes|no)$/i, function (_m, who, blades, ok) {
-      return who + ' ライブ実施！刃：' + blades + ' | ライブ成功：' + (String(ok).toLowerCase() === 'yes' ? '成功' : '失敗');
-    }],
-    [/^🪙 Coin flip: (.+) won — first player chosen automatically \(time expired\)\.$/, '🪙 コイントス：$1 の勝ち — 先攻を自動選択（時間切れ）。'],
     [/ — End Main Phase\.$/, ' — メインフェイズ終了。'],
     [/ completed mulligan\.$/, ' マリガン完了。'],
     [/ resigned\. (.+) wins!$/, ' リタイア。$1 の勝利！'],
     [/ WINS with 3 successful Lives!$/, ' ライブ3回成功で勝利！'],
-    [/ used Baton Touch! Cost reduced to (\d+)\./, ' バトンタッチ！コストが$1に減少。'],
-    [/ used second Baton Touch! Cost reduced to (\d+)\./, ' 2枚目のバトンタッチ！コストが$1に減少。'],
+    [/ used Baton Touch! Cost reduced to (\d+)\.$/, ' バトンタッチ！コストが$1に減少。'],
+    [/ used Baton Touch! Cost reduced to (\d+)\. \((\d+) Energy under replaced Member carried over\.\)$/, ' バトンタッチ！コストが$1に減少。（置き換えメンバー下のエネルギー$2枚を引き継ぎ）'],
+    [/ used second Baton Touch! Cost reduced to (\d+)\.$/, ' 2枚目のバトンタッチ！コストが$1に減少。'],
     [/ overplayed onto (.+)\.$/, ' $1の上に上書きプレイ。'],
     [/ played (.+) to (left|center|right) area\.$/, function (_m, card, slot) {
       return ' ' + card + 'を' + (SLOT_JA[slot] || slot) + 'エリアにプレイ。';
     }],
-    [/ \((\d+) Energy under replaced Member carried over\.\)/, '（置き換えメンバー下のエネルギー$1枚を引き継ぎ）'],
+    [/ placed (\d+) card\(s\) face-down in storage \((\d+)\/3\)\.$/, ' $1枚を置き場に裏向きでセット（$2/3）。'],
+    [/ placed card\(s\) in Live storage\.$/, ' ライブ置き場にカードをセット。'],
+    [/ — locked in LIVE selection \((\d+) card\(s\) in storage\)\.$/, ' — ライブ選択を確定（置き場$1枚）。'],
+    [/ — locked in LIVE selection\.$/, ' — ライブ選択を確定。'],
+    [/ is performing Live with (.+)\.$/, ' がライブを披露：$1。'],
     [/ — Draw Phase: could not draw \(deck and Waiting Room empty\)\.$/, ' — ドローフェイズ：ドロー不可（デッキと控え室が空）。'],
     [/ — Draw Phase\.$/, ' — ドローフェイズ。'],
     [/ — Active Phase: Energy and Members refreshed\.$/, ' — アクティブフェイズ：エネルギーとメンバーをアクティブに。'],
     [/ — Energy Phase: storage full \((\d+)\/(\d+)\), no Energy added\.$/, ' — エネルギーフェイズ：置き場満杯（$1/$2）、エネルギー追加なし。'],
     [/ — Energy Phase: no cards left in Energy deck\.$/, ' — エネルギーフェイズ：エネルギーデッキにカードなし。'],
     [/ — Energy Phase: placed 1 Energy in storage \((\d+)\/(\d+)\)\.$/, ' — エネルギーフェイズ：エネルギー1枚を置き場に（$1/$2）。'],
+    [/ — Main Phase time expired \(auto end\)\.$/, ' — メインフェイズ時間切れ（自動終了）。'],
+    [/ — LIVE Phase time expired \(auto lock-in\)\.$/, ' — ライブフェイズ時間切れ（自動確定）。'],
+    [/ — Yell retry: drew (\d+) card\(s\) for Blade\.$/, ' — エール再試行：刃$1枚分$1枚ドロー。'],
+    [/ — Yell retry reduced by (\d+) \(drew 0 of (\d+) Blade\)\.$/, ' — エール再試行：$1減少（刃$2枚中0枚ドロー）。'],
+    [/ — Yell reduced by (\d+) \(drew (\d+) of (\d+) Blade\)\.$/, ' — エール：$1減少（刃$3枚中$2枚ドロー）。'],
+    [/ — Support LIVE \(Yell\): drew (\d+) card\(s\) for Blade\.$/, ' — サポートライブ（エール）：刃$1枚分$1枚ドロー。'],
+    [/ — Drew (\d+) card\(s\) from Yell draw icon\(s\)\.$/, ' — エールドローアイコンから$1枚ドロー。'],
+    [/ — (\d+) non-Live card\(s\) from storage sent to Waiting Room\.$/, ' — 置き場の非ライブカード$1枚を控え室へ。'],
+    [/ — (\d+) other successful Live\(s\) in storage cannot be placed \(only 1 Success Live per Judge win\); sent to Waiting Room\.$/, ' — 置き場の他の成功ライブ$1枚は追加不可（判定勝利ごとに成功ライブ1枚）、控え室へ。'],
     [/ — \[([^\]]+)\] drew (\d+) \(Active → Wait\)\.$/, ' — [$1] $2枚ドロー（アクティブ→ウェイト）。'],
     [/ — \[([^\]]+)\] optional skill skipped\.$/, ' — [$1] スキルをスキップ。'],
     [/ — \[([^\]]+)\] activated\.$/, ' — [$1] 起動。'],
     [/ — \[([^\]]+)\] Live Start skipped\.$/, ' — [$1] ライブ開始スキップ。'],
     [/ — \[([^\]]+)\] Live Success skipped\.$/, ' — [$1] ライブ成功スキップ。'],
-    [/ — \[([^\]]+)\] Yell cards to Waiting Room; Yell again \(Blade hearts from prior Yell lost\)\.$/, ' — [$1] エールカードを控え室へ；エール再実行（前回エールの刃ハート消失）。'],
-    [/ — kept Yell cards \(declined retry\)\.$/, ' — エールカードを維持（リトライ拒否）。'],
+    [/ — \[([^\]]+)\] Yell cards to Waiting Room; Yell again \(Blade hearts from prior Yell lost\)\.$/, ' — [$1] エールカードを控え室へ、再エール（前回エールの刃ハート消失）。'],
     [/put 1 Energy from Energy deck into Wait\./, 'エネルギーデッキからエネルギー1枚をウェイトに。'],
+    [/put 1 Energy from Energy deck into Wait \(excess hearts\)\./, 'エネルギーデッキからエネルギー1枚をウェイトに（余剰ハート）。'],
+    [/put 1 Energy from Energy deck into Wait \(fewer Energy\)\./, 'エネルギーデッキからエネルギー1枚をウェイトに（エネルギー不足）。'],
+    [/put 1 Energy from Energy deck into Wait \(Yell revealed Live\)\./, 'エネルギーデッキからエネルギー1枚をウェイトに（エールで公開したライブ）。'],
     [/could not put Energy into Wait \(Energy deck empty\)\./, 'エネルギーをウェイトに置けません（エネルギーデッキが空）。'],
     [/added (\d+) Member cards? from Waiting Room to hand\./, '控え室からメンバーカード$1枚を手札に加えた。'],
-    [/added (\d+) Member card from Waiting Room to hand\./, '控え室からメンバーカード$1枚を手札に加えた。'],
     [/no Member card in Waiting Room to add to hand\./, '控え室に手札へ加えるメンバーカードがない。'],
-    [/Live SUCCESS/i, 'ライブ成功'],
-    [/Live FAIL/i, 'ライブ失敗'],
-    [/Live failed/i, 'ライブ失敗'],
-    [/Live succeeded/i, 'ライブ成功'],
+    [/Live SUCCESS/, 'ライブ成功'],
+    [/Live FAIL/, 'ライブ失敗'],
+    [/Live failed/, 'ライブ失敗'],
+    [/Live succeeded/, 'ライブ成功'],
     [/ is activating a skill \(([^)]+)\)…$/, ' がスキルを発動中（$1）…'],
     [/ is activating a skill…$/, ' がスキルを発動中…'],
     [/^🪙 Coin flip: (.+) won and chose to go first!$/, '🪙 コイントス：$1 の勝ち — 自分が先攻！'],
@@ -110,170 +200,113 @@
     [/Both players drew \(([^)]+)\)\.$/, '両プレイヤーがドロー（$1）。'],
     [/Both players' Stage Members gain \+(\d+) Blade\.?$/, '両プレイヤーのステージのメンバー全員が刃+$1。'],
     [/put (\d+) opponent Stage Member\(s\) into Wait\.?$/, '相手ステージのメンバー$1体をウェイトに。'],
-    [/(\d+) non-Live card\(s\) from storage sent to Waiting Room\./, '置き場の非ライブカード$1枚を控え室へ。'],
-    [/ — discarded Live card \((.+)\)\./, ' — ライブカードを捨てた（$1）。'],
-    [/ — discarded (\d+) card \((.+)\)\./, ' — カード$1枚を捨てた（$2）。'],
-    [/ — Yell: gained \+(\d+) Blade\./, ' — エール：刃+$1。'],
-    [/ — named Member gained \+(\d+) Blade\./, ' — 指定メンバーが刃+$1。'],
+    [/ had no card in hand to discard\.$/, ' 手札に捨てるカードがなかった。'],
+    [/ had no cards in hand to discard\.$/, ' 手札に捨てるカードがなかった。'],
+    [/ drew (\d+) but had no cards in hand to discard\.$/, ' $1枚ドローしたが手札に捨てるカードがなかった。'],
+    [/ disconnected\. (.+) wins!$/, ' 切断。$1 の勝利！'],
+    [/ wins the Live — (.+) failed\.$/, ' のライブ勝利 — $1は失敗。'],
+    [/ wins this Live! "/, ' このライブ勝利！「'],
+    [/" added to successes\.$/, '」を成功ライブに追加。'],
+    [/Live Scores: /, 'ライブスコア: '],
+    [/Waiting Room/g, '控え室'],
+    [/Live storage/g, 'ライブ置き場'],
+    [/Success Live card storage/g, '成功ライブ置き場'],
+    [/Success Live/g, '成功ライブ'],
+    [/Energy deck/g, 'エネルギーデッキ'],
+    [/Main Deck/g, 'メインデッキ'],
+    [/Stage Member/g, 'ステージのメンバー'],
+    [/Baton Touch/g, 'バトンタッチ'],
   ];
 
-  /** Fragment glossary for effect tails (longest match first). */
-  var DETAIL_GLOSSARY = [
-    ['Success Live card storage', '成功ライブ置き場'],
-    ['into the Waiting Room', '控え室へ'],
-    ['from the Waiting Room', '控え室から'],
-    ['into Waiting Room', '控え室へ'],
-    ['from Waiting Room', '控え室から'],
-    ['to Waiting Room', '控え室へ'],
-    ['Waiting Room', '控え室'],
-    ['Success Live area', '成功ライブ置き場'],
-    ['Success Live', '成功ライブ'],
-    ['Success Lives', '成功ライブ'],
-    ['successful Lives', '成功ライブ'],
-    ['Live storage', 'ライブ置き場'],
-    ['Energy deck', 'エネルギーデッキ'],
-    ['Main Deck', 'メインデッキ'],
-    ['main deck', 'メインデッキ'],
-    ['on the bottom of the deck', 'デッキの下に'],
-    ['on top of deck', 'デッキの上に'],
-    ['on deck bottom', 'デッキ下に'],
-    ['on deck top', 'デッキ上に'],
-    ['deck bottom', 'デッキ下'],
-    ['deck top', 'デッキ上'],
-    ['Stage Members', 'ステージのメンバー'],
-    ['Stage Member', 'ステージのメンバー'],
-    ['opponent Stage Members', '相手ステージのメンバー'],
-    ['opponent Stage Member', '相手ステージのメンバー'],
-    ['opponent hand', '相手の手札'],
-    ['active Stage Members', 'アクティブなステージメンバー'],
-    ['active Energy', 'アクティブなエネルギー'],
-    ['until this Live ends', 'このライブ終了まで'],
-    ['until Live ends', 'ライブ終了まで'],
-    ['Required Gray Hearts', '必要グレーハート'],
-    ['Required any-color hearts', '必要任意色ハート'],
-    ['Required Hearts', '必要ハート'],
-    ['Blade hearts', '刃ハート'],
-    ['bonus hearts', 'ボーナスハート'],
-    ['bonus heart', 'ボーナスハート'],
-    ['surplus hearts', '余剰ハート'],
-    ['excess hearts', '超過ハート'],
-    ['Wild heart', 'ワイルドハート'],
-    ['Live Score', 'ライブスコア'],
-    ['Live Success', 'ライブ成功'],
-    ['Live Start', 'ライブ開始'],
-    ['Live card', 'ライブカード'],
-    ['Live cards', 'ライブカード'],
-    ['Member cards', 'メンバーカード'],
-    ['Member card', 'メンバーカード'],
-    ['Yell Live cards', 'エールライブカード'],
-    ['Yell Live card', 'エールライブカード'],
-    ['Yell Live', 'エールライブ'],
-    ['Yell cards', 'エールカード'],
-    ['Yell card', 'エールカード'],
-    ['Yell retry', 'エールリトライ'],
-    ['Yell reveal', 'エール公開'],
-    ['Yell again', 'エール再実行'],
-    ['Yell member', 'エールメンバー'],
-    ['Yell Member', 'エールメンバー'],
-    ['Position Change', 'ポジションチェンジ'],
-    ['position change', 'ポジションチェンジ'],
-    ['position-changed', 'ポジションチェンジ'],
-    ['formation-changed', 'フォーメーション変更'],
-    ['formation change', 'フォーメーション変更'],
-    ['Baton Touch', 'バトンタッチ'],
-    ['looked at deck top', 'デッキ上を確認'],
-    ['searched the deck', 'デッキをサーチ'],
-    ['no cards left in deck', 'デッキにカードなし'],
-    ['no cards in hand', '手札にカードなし'],
-    ['no Stage Members', 'ステージにメンバーなし'],
-    ['no matching', '一致なし'],
-    ['no valid', '有効なものなし'],
-    ['no effect', '効果なし'],
-    ['not a Live card', 'ライブカードではない'],
-    ['not in Center', 'センターにいない'],
-    ['no longer in Center', 'センターにいない'],
-    ['must be in Center', 'センターである必要あり'],
-    ['in Center', 'センターに'],
-    ['left Stage', 'ステージを離脱'],
-    ['entered Stage', 'ステージに登場'],
-    ['on Stage', 'ステージに'],
-    ['from Stage', 'ステージから'],
-    ['into hand', '手札へ'],
-    ['to hand', '手札へ'],
-    ['from hand', '手札から'],
-    ['in hand', '手札に'],
-    ['into Wait', 'ウェイトへ'],
-    ['to Wait', 'ウェイトへ'],
-    ['into Wait.', 'ウェイトへ。'],
-    ['put self into Wait', '自身をウェイトに'],
-    ['optional skill skipped', '任意スキルをスキップ'],
-    ['optional effect skipped', '任意効果をスキップ'],
-    ['optional On Enter skipped', '任意登場時をスキップ'],
-    ['skipped optional', '任意をスキップ'],
-    ['skipped formation change', 'フォーメーション変更をスキップ'],
-    ['skipped position change', 'ポジションチェンジをスキップ'],
-    ['skipped optional effect', '任意効果をスキップ'],
-    ['skipped optional negate', '任意無効化をスキップ'],
-    ['skipped optional reposition', '任意再配置をスキップ'],
-    ['skipped optional Wait effect', '任意ウェイト効果をスキップ'],
-    ['skipped Yell member pick', 'エールメンバー選択をスキップ'],
-    ['skipped Yell Live pick', 'エールライブ選択をスキップ'],
-    ['skipped Blade bonus', '刃ボーナスをスキップ'],
-    ['effect skipped', '効果スキップ'],
-    ['effect cancelled', '効果キャンセル'],
-    ['could not discard', '捨て札不可'],
-    ['could not match', '一致せず'],
-    ['could not put', '置けず'],
-    ['could not', 'できず'],
-    ['auto-skipped', '自動スキップ'],
-    ['time expired', '時間切れ'],
-    ['disconnected', '切断'],
-    ['activated:', '起動：'],
-    ['activated', '起動'],
-    ['negated', '無効化'],
-    ['cancelled', 'キャンセル'],
-    ['revealed', '公開'],
-    ['discarded', '捨てた'],
-    ['performed Live', 'ライブ実施'],
-    ['added to successes', '成功ライブに追加'],
-    ['added to hand', '手札に追加'],
-    ['added itself to hand', '自身を手札に追加'],
-    ['carried over', '引き継ぎ'],
-    ['face-down', '裏向き'],
-    ['locked in', '確定'],
-    ['this turn', 'このターン'],
-    ['opponent', '相手'],
-    ['optional', '任意'],
-    ['skipped', 'スキップ'],
-    ['choose', '選択'],
-    ['granted', '付与'],
-    ['gained', '獲得'],
-    ['granted bonus', 'ボーナス付与'],
-    ['gained bonus', 'ボーナス獲得'],
-    ['Members', 'メンバー'],
-    ['Member', 'メンバー'],
-    ['hearts', 'ハート'],
-    ['heart', 'ハート'],
-    ['Blade', '刃'],
-    ['Blades', '刃'],
-    ['Energy', 'エネルギー'],
-    ['storage', '置き場'],
-    ['Waited', 'ウェイトに'],
-    ['Wait.', 'ウェイト。'],
-    ['Wait', 'ウェイト'],
-    ['drew', 'ドロー'],
-    ['draw', 'ドロー'],
-    ['placed', '配置'],
-    ['resigned', 'リタイア'],
-    ['mulligan', 'マリガン'],
-    ['surveil', 'サーベイル'],
-    ['(choose)', '（選択）'],
-    ['(deck empty)', '（デッキが空）'],
-    ['(no Success Live)', '（成功ライブなし）'],
-    ['(pay Energy)', '（エネルギー支払い）'],
-    ['(pay or discard)', '（支払いまたは捨て札）'],
-    ['(discard)', '（捨て札）'],
-    ['(no effect)', '（効果なし）'],
+  /** Effect-detail suffix rules (after card names are localized). */
+  var EFFECT_RULES = [
+    [/gained \+(\d+) Blade until Live ends \(Yell\)\./, 'ライブ終了まで刃+$1（エール）。'],
+    [/gained \+(\d+) Blade until Live ends \(Baton Touch\)\./, 'ライブ終了まで刃+$1（バトンタッチ）。'],
+    [/gained \+(\d+) Blade until Live ends \(moved in slot\)\./, 'ライブ終了まで刃+$1（スロット移動）。'],
+    [/gained \+(\d+) Blade until Live ends\./, 'ライブ終了まで刃+$1。'],
+    [/gained \+(\d+) Blade until this Live ends\./, 'このライブ終了まで刃+$1。'],
+    [/gained \+(\d+) Blade \(moved\)\./, '刃+$1（移動）。'],
+    [/gained \+(\d+) bonus heart\(s\) \(all milled Members matched\)\./, 'ボーナスハート+$1（ミルした全メンバー一致）。'],
+    [/gained \+(\d+) Blade \(all milled Members had hearts\)\./, '刃+$1（ミルした全メンバーにハート）。'],
+    [/gains \+(\d+) Blade until this Live ends\./, 'このライブ終了まで刃+$1。'],
+    [/gains \+(\d+) total Live Score until this Live ends\./, 'このライブ終了まで合計ライブスコア+$1。'],
+    [/Live total score \+(\d+) until Live ends\./, 'ライブ終了まで合計スコア+$1。'],
+    [/(\d+) other Member\(s\) gained \+(\d+) Blade until Live ends\./, '他メンバー$1体がライブ終了まで刃+$2。'],
+    [/(\d+) Member\(s\) gained \+(\d+) Blade until Live ends\./, 'メンバー$1体がライブ終了まで刃+$2。'],
+    [/score \+(\d+) until Live ends\./, 'ライブ終了までスコア+$1。'],
+    [/score \+(\d+) \(([^)]+)\)\./, 'スコア+$1（$2）。'],
+    [/score \+(\d+)\./, 'スコア+$1。'],
+    [/score set to (\d+)\./, 'スコアを$1に設定。'],
+    [/revealed Live; score \+(\d+)\./, 'ライブ公開、スコア+$1。'],
+    [/revealed top of deck \(not a Live card\)\./, 'デッキトップ公開（ライブカードではない）。'],
+    [/revealed (.+) from deck top\./, '$1をデッキトップから公開。'],
+    [/revealed a card from deck top\./, 'デッキトップから1枚公開。'],
+    [/looked at (\d+) card\(s\); none eligible\./, '$1枚確認、対象なし。'],
+    [/looked at (\d+) card\(s\) \(choose\)\./, '$1枚確認（選択）。'],
+    [/looked at top (\d+) — arrange them\./, '上$1枚確認 — 順序を決定。'],
+    [/looked at deck top \(empty\)\./, 'デッキトップ確認（空）。'],
+    [/drew (\d+) \(opponent active Member put into Wait by your effect\)\./, '$1枚ドロー（相手アクティブメンバーをウェイトに）。'],
+    [/drew a card\./, '1枚ドロー。'],
+    [/drew (.+)\./, '$1をドロー。'],
+    [/put (.+) into the Waiting Room\./, '$1を控え室へ。'],
+    [/put a card into the Waiting Room\./, '1枚を控え室へ。'],
+    [/put (\d+) card\(s\) from deck top into Waiting Room\./, 'デッキトップ$1枚を控え室へ。'],
+    [/put (\d+) card\(s\) into Waiting Room\./, '$1枚を控え室へ。'],
+    [/put (\d+) opponent Stage Member(s?) into Wait\./, '相手ステージのメンバー$1体をウェイトに。'],
+    [/Put 1 opponent Stage Member with cost (\d+) or less into Wait\./, 'コスト$1以下の相手ステージメンバー1体をウェイトに。'],
+    [/Put all opponent Stage Members with cost (\d+) or less into Wait\./, 'コスト$1以下の相手ステージメンバー全員をウェイトに。'],
+    [/from Waiting Room onto Stage in Wait\./, '控え室からステージへ（ウェイト）。'],
+    [/from Waiting Room onto Stage\./, '控え室からステージへ。'],
+    [/added (.+) from Yell to hand\./, 'エールから$1を手札に加えた。'],
+    [/added (.+) from Baton Touch to hand\./, 'バトンタッチから$1を手札に加えた。'],
+    [/added 1 card from surveil to hand\./, '見た1枚を手札に加えた。'],
+    [/added a card from Waiting Room to hand\./, '控え室から1枚を手札に加えた。'],
+    [/added a card on top of deck\./, '1枚をデッキトップに加えた。'],
+    [/discarded a card\./, '1枚を捨てた。'],
+    [/discarded (\d+); (\d+) Member\(s\) gained \+(\d+) Blade\./, '$1枚捨て、メンバー$2体が刃+$3。'],
+    [/paid (\d+) Energy; placed Live card from Waiting Room into storage\./, 'エネルギー$1支払い、控え室のライブを置き場へ。'],
+    [/activated (\d+) (.+?) Member\(s\)\./, '$2メンバー$1体をアクティブに。'],
+    [/optional Live Start \(choose\)\./, 'ライブ開始（任意・選択）。'],
+    [/optional Live Start effect \(choose\)\./, 'ライブ開始効果（任意・選択）。'],
+    [/optional On Enter \(pay Energy\)\./, '登場時（任意・エネルギー支払い）。'],
+    [/optional On Enter \(choose\)\./, '登場時（任意・選択）。'],
+    [/optional On Enter \(choose Member\)\./, '登場時（任意・メンバー選択）。'],
+    [/optional On Enter effect \(choose\)\./, '登場時効果（任意・選択）。'],
+    [/optional On Enter skipped \(no cards left in deck\)\./, '登場時スキップ（デッキ残りなし）。'],
+    [/optional Wait effect \(choose\)\./, 'ウェイト効果（任意・選択）。'],
+    [/optional effect \(choose\)\./, '任意効果（選択）。'],
+    [/optional Stage reposition \(choose\)\./, 'ステージ移動（任意・選択）。'],
+    [/optional position change \(choose\)\./, '位置変更（任意・選択）。'],
+    [/optional Success \/ WR Live swap \(choose\)\./, '成功ライブ／控え室ライブ入替（任意・選択）。'],
+    [/effect skipped \(need (\d+)\+ Energy\)\./, '効果スキップ（エネルギー$1以上必要）。'],
+    [/Baton Touch effect resolved\./, 'バトンタッチ効果解決。'],
+    [/Live Start: choose a heart color\./, 'ライブ開始：ハート色を選択。'],
+    [/Live Start: choose a heart for a μ's Member\./, 'ライブ開始：μ\'sメンバーのハートを選択。'],
+    [/Live Start: choose a player\./, 'ライブ開始：プレイヤーを選択。'],
+    [/Live Start: choose an effect\./, 'ライブ開始：効果を選択。'],
+    [/Live Success choice\./, 'ライブ成功：選択。'],
+    [/Live Success \(optional deck bottom\)\./, 'ライブ成功（任意・デッキ底）。'],
+    [/choose a Live card from Waiting Room\./, '控え室からライブカードを選択。'],
+    [/choose a Live card\./, 'ライブカードを選択。'],
+    [/choose a Yell card\./, 'エールカードを選択。'],
+    [/choose a heart color to waive\./, '免除するハート色を選択。'],
+    [/choose a heart color\./, 'ハート色を選択。'],
+    [/choose required heart pattern\./, '必要なハートパターンを選択。'],
+    [/choose Members for \+Blade\./, '刃+対象メンバーを選択。'],
+    [/choose Waiting Room Lives for opponent to pick\./, '相手に選ばせる控え室ライブを選択。'],
+    [/opponent must choose an effect\./, '相手が効果を選択。'],
+    [/choose one effect\./, '効果を1つ選択。'],
+    [/asks opponent: "/, '相手に確認：「'],
+    [/Waited a μ's Member for bonus hearts\./, 'μ\'sメンバー1体をウェイトにしてボーナスハート。'],
+    [/Yell Blade hearts become Blue until Live ends\./, 'エール刃ハートが青扱いになる（ライブ終了まで）。'],
+    [/Yell reveal count reduced by (\d+) until Live ends\./, 'エール公開枚数-$1（ライブ終了まで）。'],
+    [/\+1 Blade per (\d+) cards in hand until Live ends\./, '手札$1枚ごとに刃+1（ライブ終了まで）。'],
+    [/Optional effect — see card text\./, '任意効果 — カードテキスト参照。'],
+    [/Live Success ability negated \(Aqours stage hearts\)\./, 'ライブ成功能力無効（Aqoursステージハート）。'],
+    [/if Live scores tie, neither player adds Success Lives this turn\./, 'ライブスコア同点のため、双方成功ライブ追加なし。'],
+    [/arranged (\d+) looked card\(s\)\./, '確認した$1枚の順序を決定。'],
+    [/granted bonus hearts to /, 'ボーナスハート付与：'],
+    [/granted \+(\d+) Blade to /, '刃+$1付与：'],
   ];
 
   function clearLogNameCache() {
@@ -321,56 +354,36 @@
     });
   }
 
-  function applyPhraseRules(msg) {
+  function applyRules(msg, rules) {
     var out = msg;
-    PHRASE_RULES.forEach(function (rule) {
+    rules.forEach(function (rule) {
       var re = rule[0];
       var rep = rule[1];
-      if (typeof rep === 'function') out = out.replace(re, rep);
-      else out = out.replace(re, rep);
+      if (typeof rep === 'function') {
+        out = out.replace(re, rep);
+      } else {
+        out = out.replace(re, rep);
+      }
     });
     return out;
-  }
-
-  function applyGlossaryToTail(tail) {
-    var out = tail;
-    DETAIL_GLOSSARY.forEach(function (pair) {
-      if (out.indexOf(pair[0]) === -1) return;
-      out = out.split(pair[0]).join(pair[1]);
-    });
-    return out;
-  }
-
-  /** Translate effect/action tails without touching player names in the prefix. */
-  function applyDetailGlossary(msg) {
-    var parts = msg.split(' — ');
-    if (parts.length === 1) {
-      var only = parts[0];
-      var bi = only.indexOf('] ');
-      if (bi >= 0) {
-        return only.slice(0, bi + 2) + applyGlossaryToTail(only.slice(bi + 2));
-      }
-      return only;
-    }
-    return parts.map(function (seg, i) {
-      if (i === 0) return seg;
-      var bracketIdx = seg.indexOf('] ');
-      if (bracketIdx >= 0) {
-        return seg.slice(0, bracketIdx + 2) + applyGlossaryToTail(seg.slice(bracketIdx + 2));
-      }
-      return applyGlossaryToTail(seg);
-    }).join(' — ');
   }
 
   function localizeLogMessage(msg, catalog) {
     if (!msg) return msg;
     var i18n = global.LLTCG_I18N;
     if (!i18n || i18n.getLocale() !== 'ja') return msg;
+
+    var exact = translateExact(msg);
+    if (exact != null) return exact;
+
+    var structured = translateStructuredLine(msg);
+    if (structured != null) return structured;
+
     catalog = catalog || (global.G && global.G.allCards);
     var out = replaceCardNames(String(msg), catalog);
     out = replaceSkillBrackets(out);
-    out = applyPhraseRules(out);
-    out = applyDetailGlossary(out);
+    out = applyRules(out, PHRASE_RULES);
+    out = applyRules(out, EFFECT_RULES);
     return out;
   }
 

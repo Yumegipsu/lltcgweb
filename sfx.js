@@ -42,7 +42,7 @@
 
   function loadManifest() {
     if (manifest) return Promise.resolve(manifest);
-    return fetch('./sfx_manifest.web.json?v=2', { cache: 'no-store' })
+    return fetch('./sfx_manifest.web.json?v=3', { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('sfx manifest HTTP ' + r.status);
         return r.json();
@@ -66,7 +66,7 @@
     if (!ev) return null;
     var variants = ev.variants;
     if (variants && variants.length) {
-      return variants[Math.floor(Math.random() * variants.length)];
+      return variants[0];
     }
     if (ev.file) {
       return {
