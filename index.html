@@ -3863,8 +3863,17 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .booster-rates-card:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.08)}
 .booster-rates-thumb{
   width:44px;height:62px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.12);cursor:pointer;padding:0}
-.booster-rates-thumb img{width:100%;height:100%;object-fit:contain;display:block}
+  border:1px solid rgba(255,255,255,.12);cursor:pointer;padding:0;position:relative}
+.booster-rates-thumb > img,
+.booster-rates-thumb > .card-face-fill,
+.booster-rates-thumb > .noimg{width:100%;height:100%;object-fit:contain;display:block}
+.booster-rates-thumb .card-landscape-in-portrait,
+.booster-rates-thumb .card-art.live-sideways{
+  border-radius:inherit}
+.booster-rates-thumb .card-landscape-in-portrait img,
+.booster-rates-thumb .card-landscape-in-portrait .noimg,
+.booster-rates-thumb .card-art.live-sideways img,
+.booster-rates-thumb .card-art.live-sideways .noimg{object-fit:contain}
 .booster-rates-meta{min-width:0}
 .booster-rates-id{font-size:10px;color:rgba(255,255,255,.55);font-family:ui-monospace,monospace;word-break:break-all}
 .booster-rates-name{font-size:12px;font-weight:700;color:#fff;line-height:1.3;margin-top:2px}
@@ -8719,11 +8728,8 @@ function renderBoosterRatesModal(rates) {
     thumbBtn.type = 'button';
     thumbBtn.className = 'booster-rates-thumb';
     thumbBtn.title = 'View card details';
-    const img = document.createElement('img');
-    img.alt = '';
-    const cardObj = G.allCards[row.card_no] || row;
-    applyCardImageToImg(img, enrichCard(cardObj), () => img.style.opacity = '0.35');
-    thumbBtn.appendChild(img);
+    const cardObj = enrichCard(G.allCards[row.card_no] || row);
+    appendCardFace(thumbBtn, cardObj, { sideways: isLiveCard(cardObj), lazy: true });
     thumbBtn.addEventListener('click', ev => {
       ev.stopPropagation();
       showCatalogCard(cardObj);
