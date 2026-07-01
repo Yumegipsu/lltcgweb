@@ -19891,6 +19891,12 @@ async function cpuAutoSkipHungPrompt() {
   clearCpuPromptHangWatch();
   G._cpuResolveBusy = null;
   G._cpuPromptScheduled = null;
+  const tier = cpuDiff();
+  const read = tier === 'easy' ? null : cpuReadOpponent(s, 'p2');
+  const cpu = s.players?.p2;
+  if (cpu && cpuGenericPromptFallback(pr, cpu, tier, cpuWinPressure(cpu), read, s)) {
+    return;
+  }
   try {
     await cpuAct('anti_softlock_skip', {});
     toast('CPU skipped a stuck skill — see game log.', 3600);
@@ -20571,21 +20577,124 @@ function cpuScoreLiveForSet(c, tier, winPressure, read = null, cpu = null) {
 function cpuPickDiscardIds(hand, count, tier, winPressure = 0, read = null) {
   const n = Math.min(count || 0, (hand || []).length);
   if (!n) return [];
-  if (tier === 'easy') return hand.slice(0, n).map(c => c.instance_id);
+  const toIds = (cards) => cards.map(c => c.instance_id).filter(Boolean);
+  if (tier === 'easy') return toIds(hand.slice(0, n));
   const protectLives = winPressure >= 0.35 || tier === 'hard' || (read?.successCount ?? 0) >= 1;
   const ranked = [...hand].map(c => {
     let keep = 0;
-    if (c.card_type === 'メンバー') keep += 3 + (c.blade || 0) + (4 - Math.min(4, c.cost || 0));
-    else if (c.card_type === 'ライブ') {
+    if (c.card_type === 'メンバー' || c.card_type_en === 'Member') {
+      keep += 3 + (c.blade || 0) + (4 - Math.min(4, c.cost || 0));
+    } else if (c.card_type === 'ライブ' || c.card_type_en === 'Live') {
       keep += (c.score || 0) * 1.5 + (protectLives ? 12 + winPressure * 8 : 0);
     } else keep += 1;
     return { c, keep };
   }).sort((a, b) => a.keep - b.keep);
   if (protectLives) {
-    const nonLives = ranked.filter(x => x.c.card_type !== 'ライブ');
-    if (nonLives.length >= n) return nonLives.slice(0, n).map(x => x.c.instance_id);
+    const nonLives = ranked.filter(x => x.c.card_type !== 'ライブ' && x.c.card_type_en !== 'Live');
+    if (nonLives.length >= n) return toIds(nonLives.slice(0, n).map(x => x.c));
   }
-  return ranked.slice(0, n).map(x => x.c.instance_id);
+  return toIds(ranked.slice(0, n).map(x => x.c));
+}
+
+/** First N hand instance_ids — used when heuristic pick fails but hand is large enough. */
+function cpuHandDiscardFallback(hand, need) {
+  if (!need || (hand || []).length < need) return [];
+  return hand.slice(0, need).map(c => c.instance_id).filter(Boolean);
+}
+
+function cpuRandomLegalChoice(choices) {
+  const legal = (choices || []).filter(c => c != null && c !== '');
+  if (!legal.length) return null;
+  return legal[Math.floor(Math.random() * legal.length)];
+}
+
+/**
+ * Last-resort CPU prompt resolver: pick any legal option (heuristic first, random fallback).
+ * Returns true when an action was submitted.
+ */
+function cpuGenericPromptFallback(pr, cpu, tier, winPressure, read, s) {
+  if (!pr || pr.responder !== 'p2') return false;
+  const hand = cpuLiveHand(cpu);
+  const discardNeed = pr.discard_count || pr.count
+    || (pr.step === 'discard' || pr.step === 'discard_hand' || pr.step === 'pick_discard'
+      ? (pr.ability?.discard || pr.ability?.max_discard || 1) : 0);
+  if (discardNeed > 0) {
+    let ids = cpuPickDiscardIds(hand, discardNeed, tier, winPressure, read);
+    if (ids.length < discardNeed) ids = cpuHandDiscardFallback(hand, discardNeed);
+    if (ids.length >= discardNeed) {
+      const slice = ids.slice(0, discardNeed);
+      const payload = (pr.pick_mode === 'deck_top')
+        ? { card_ids: slice }
+        : { discard_ids: slice };
+      cpuAct('resolve_prompt', payload);
+      return true;
+    }
+    if (!hand.length) {
+      cpuAct('anti_softlock_skip', {});
+      return true;
+    }
+  }
+  if (pr.type === 'spbp2_stack_wr_member' || pr.type === 'batch99_stack_wr_member') {
+    const id = pr.candidates?.[0]?.instance_id;
+    if (id) { cpuAct('resolve_prompt', { pick_id: id }); return true; }
+    if (pr.choices?.includes('skip')) { cpuAct('resolve_prompt', { choice: 'skip' }); return true; }
+  }
+  const slotCands = pr.self_candidates || pr.candidates || pr.stage_members || [];
+  const slotPick = slotCands.find(c => c?.slot)?.slot
+    || pr.target_slots?.[0] || pr.slots?.[0];
+  if (slotPick) {
+    if (pr.type === 'spbp2_center_move_position' && pr.choices?.includes('yes')) {
+      cpuAct('resolve_prompt', { choice: 'yes', target_slot: slotPick });
+    } else {
+      cpuAct('resolve_prompt', { slot: slotPick });
+    }
+    return true;
+  }
+  const cardCands = pr.candidates || pr.look_cards || pr.looked_cards || [];
+  if (cardCands.length) {
+    const pick = cpuPickBestCandidate(cardCands, cpu, hand, tier, read)
+      || cardCands[Math.floor(Math.random() * cardCands.length)];
+    if (pick?.instance_id) {
+      const payload = { card_id: pick.instance_id };
+      if (pr.pick_count > 1) payload.card_ids = [pick.instance_id];
+      cpuAct('resolve_prompt', payload);
+      return true;
+    }
+  }
+  const eligible = pr.eligible_ids || [];
+  if (eligible.length) {
+    cpuAct('resolve_prompt', { card_id: eligible[0] });
+    return true;
+  }
+  if (pr.choices?.length) {
+    if (pr.choices.includes('yes') && pr.choices.includes('no') && pr.ability) {
+      const ae = (cpu.energy_zone || []).filter(energyChipActive).length;
+      const score = cpuScoreOptionalAbility(
+        pr.ability, cpu, tier, ae, hand, winPressure, read
+      );
+      cpuAct('resolve_prompt', { choice: score >= cpuOptionalYesThreshold(tier) ? 'yes' : 'no' });
+      return true;
+    }
+    const ctx = cpuAbilityCtx(cpu, tier, read, winPressure, (cpu.energy_zone || []).filter(energyChipActive).length,
+      read ? { mustCatchUp: winPressure >= 0.45, behind: read.behind } : null);
+    if (cpuResolveScoredChoicePrompt(pr, cpu, tier, ctx)) return true;
+    const pick = cpuRandomLegalChoice(pr.choices);
+    if (pick != null) {
+      cpuAct('resolve_prompt', { choice: pick });
+      return true;
+    }
+  }
+  if (pr.choices?.includes('skip')) {
+    cpuAct('resolve_prompt', { choice: 'skip' });
+    return true;
+  }
+  if (pr.choices?.includes('no')) {
+    cpuAct('resolve_prompt', { choice: 'no' });
+    return true;
+  }
+  TCG_DEBUG.warn('cpu', 'generic prompt fallback → anti_softlock_skip', { type: pr.type, step: pr.step });
+  cpuAct('anti_softlock_skip', {});
+  return true;
 }
 
 function cpuSurveilConfirmPayload(pr, cpu, tier) {
@@ -20620,6 +20729,18 @@ function cpuPickDeckBottomIds(hand, count, tier, winPressure = 0, read = null) {
 function cpuSchedulePromptRetryIfStuck(s, cpu) {
   const key = cpuPromptKey(s);
   if (!key) return;
+  const retries = cpuBumpPromptRetry(s);
+  if (retries >= 2) {
+    const pr = s?.pending_prompt;
+    if (pr?.responder === 'p2') {
+      const tier = cpuDiff();
+      const read = tier === 'easy' ? null : cpuReadOpponent(s, 'p2');
+      if (cpuGenericPromptFallback(pr, cpu, tier, cpuWinPressure(cpu), read, s)) {
+        cpuResetPromptRetry();
+        return;
+      }
+    }
+  }
   clearTimeout(G._cpuPromptRetryTimer);
   G._cpuPromptRetryTimer = setTimeout(() => {
     G._cpuPromptRetryTimer = null;
@@ -20663,6 +20784,8 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'choice_energy_or_wr_lives_deck_top', 'activated_swap_area_pick',
   'optional_success_wr_live_swap',
   'optional_discard_prompt', 'pick_looked_deck_hand',
+  'spbp2_stack_wr_member', 'spbp2_wait_self_opp_heart_gap',
+  'spbp2_center_move_choose', 'spbp2_center_move_position',
 ]);
 
 function cpuLiveHand(cpu) {
@@ -20693,9 +20816,14 @@ function cpuResolveHandPickPrompt(pr, cpu, tier, winPressure, read) {
   }
   if (pr.type === 'sbp6_discard_after_draw' || pr.type === 'mandatory_discard_after_draw') {
     const need = pr.discard_count || 1;
-    const ids = pick(need);
+    let ids = pick(need).filter(Boolean);
+    if (ids.length < need) ids = cpuHandDiscardFallback(hand, need);
     if (ids.length >= need) {
       cpuAct('resolve_prompt', { discard_ids: ids.slice(0, need) });
+      return true;
+    }
+    if (!hand.length || hand.length < need) {
+      cpuAct('anti_softlock_skip', {});
       return true;
     }
     cpuSchedulePromptRetryIfStuck(G.gameState, cpu);
@@ -20704,7 +20832,8 @@ function cpuResolveHandPickPrompt(pr, cpu, tier, winPressure, read) {
   if (pr.type === 'effect_discard_hand' || pr.type === 'mandatory_discard_look_reveal') {
     const need = pr.count || pr.discard_count || 1;
     const handNow = cpuLiveHand(cpu);
-    const ids = pick(need);
+    let ids = pick(need).filter(Boolean);
+    if (ids.length < need) ids = cpuHandDiscardFallback(handNow, need);
     if (ids.length >= need) {
       const payload = (pr.pick_mode === 'deck_top')
         ? { card_ids: ids.slice(0, need) }
@@ -22833,9 +22962,10 @@ function cpuResolveStepPrompt(pr, cpu, tier, winPressure, read) {
   const step = pr.step || '';
   if (step === 'discard' || step === 'discard_hand' || step === 'pick_discard') {
     const need = pr.discard_count || pr.ability?.discard || pr.ability?.max_discard || 1;
-    const ids = cpuPickDiscardIds(cpu.hand || [], need, tier, winPressure, read);
+    let ids = cpuPickDiscardIds(cpu.hand || [], need, tier, winPressure, read).filter(Boolean);
+    if (ids.length < need) ids = cpuHandDiscardFallback(cpu.hand || [], need);
     if (ids.length >= need) {
-      cpuAct('resolve_prompt', { discard_ids: ids });
+      cpuAct('resolve_prompt', { discard_ids: ids.slice(0, need) });
       return true;
     }
   }
@@ -23340,14 +23470,17 @@ function cpuResolvePromptBody(s, cpu, pr) {
     }
     if(pr.step==='pick_self'){
       const slot=pr.self_candidates?.[0]?.slot||pr.candidates?.[0]?.slot;
-      if(slot) cpuAct('resolve_prompt',{slot});
+      if(slot) { cpuAct('resolve_prompt',{slot}); return; }
+      cpuAct('resolve_prompt',{choice: pr.choices?.includes('no') ? 'no' : 'skip'});
       return;
     }
     if(pr.step==='pick_opp'){
       const slot=pr.candidates?.[0]?.slot;
-      if(slot) cpuAct('resolve_prompt',{slot});
+      if(slot) { cpuAct('resolve_prompt',{slot}); return; }
+      cpuAct('resolve_prompt',{choice: pr.choices?.includes('skip') ? 'skip' : 'no'});
       return;
     }
+    cpuGenericPromptFallback(pr, cpu, tier, winPressure, read, s);
     return;
   }
   if(pr.type==='spbp2_center_move_choose'){
@@ -23410,6 +23543,7 @@ function cpuResolvePromptBody(s, cpu, pr) {
     if (cpuResolveScoredChoicePrompt(pr, cpu, tier, ctx)) return;
   }
   if (CPU_NO_GENERIC_YESNO.has(pr.type)) {
+    if (cpuGenericPromptFallback(pr, cpu, tier, winPressure, read, s)) return;
     cpuSchedulePromptRetryIfStuck(s, cpu);
     return;
   }
@@ -23433,7 +23567,7 @@ function cpuResolvePromptBody(s, cpu, pr) {
     const need=pr.discard_count||pr.ability?.discard||pr.ability?.max_discard||0;
     if(need>0){
       const n=pr.ability?.max_discard?Math.min(need,(cpu.hand||[]).length):need;
-      data.discard_ids=(cpu.hand||[]).slice(0,n).map(c=>c.instance_id);
+      data.discard_ids=(cpu.hand||[]).slice(0,n).map(c=>c.instance_id).filter(Boolean);
     }
     if(pr.needs_pay) data.pay=true;
   }
