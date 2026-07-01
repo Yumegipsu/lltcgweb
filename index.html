@@ -5556,14 +5556,14 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <img class="logo-img" src="tcglogo.png" alt="">
       <div class="logo-foot">
         <span class="logo-version">v0.1.0</span>
-        <p class="logo-tagline">The Unofficial Web Player</p>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
       </div>
     </div>
     <div class="panel account-panel">
-      <h2>Choose Your Starter Deck</h2>
-      <p class="account-lead">Pick one official start deck as your collection base. This choice is permanent.</p>
+      <h2 data-i18n="starter.title">Choose Your Starter Deck</h2>
+      <p class="account-lead" data-i18n="starter.lead">Pick one official start deck as your collection base. This choice is permanent.</p>
       <div class="starter-grid" id="starter-grid"></div>
-      <button class="btn-grad" id="btn-starter-confirm" type="button" style="margin-top:16px" disabled>Confirm Starter</button>
+      <button class="btn-grad" id="btn-starter-confirm" type="button" style="margin-top:16px" disabled data-i18n="starter.confirm">Confirm Starter</button>
       <p class="lerr" id="starter-err"></p>
     </div>
   </div>
@@ -5657,7 +5657,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <img class="logo-img" src="tcglogo.png" alt="">
       <div class="logo-foot">
         <span class="logo-version">v0.1.0</span>
-        <p class="logo-tagline">The Unofficial Web Player</p>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
       </div>
     </div>
     <div class="panel account-panel">
@@ -5700,18 +5700,18 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <img class="logo-img" src="tcglogo.png" alt="">
       <div class="logo-foot">
         <span class="logo-version">v0.1.0</span>
-        <p class="logo-tagline">The Unofficial Web Player</p>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
       </div>
     </div>
     <div class="panel account-panel">
       <div class="account-screen-head">
-        <button class="btn-ghost" id="btn-booster-back" type="button">← Hub</button>
-        <h2>Open Boosters</h2>
+        <button class="btn-ghost" id="btn-booster-back" type="button" data-i18n="booster.backHub">← Hub</button>
+        <h2 data-i18n="booster.title">Open Boosters</h2>
       </div>
       <p id="booster-daily-info" class="hub-stat"></p>
       <p id="booster-star-gems-info" class="hub-stat" hidden></p>
       <div class="box-grid" id="box-grid"></div>
-      <button class="btn-grad" id="btn-open-pack" type="button" disabled>Open Pack (5 cards)</button>
+      <button class="btn-grad" id="btn-open-pack" type="button" disabled data-i18n="booster.openPack">Open Pack (5 cards)</button>
       <div class="pack-reveal" id="pack-reveal"></div>
       <p class="lerr" id="booster-err"></p>
     </div>
@@ -5725,20 +5725,20 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <img class="logo-img" src="tcglogo.png" alt="">
       <div class="logo-foot">
         <span class="logo-version">v0.1.0</span>
-        <p class="logo-tagline">The Unofficial Web Player</p>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
       </div>
     </div>
     <div class="panel account-panel">
-      <h2 id="pack-results-title">Pack Opened</h2>
-      <p class="pack-results-god-banner" id="pack-results-god" hidden>GOD PACK!</p>
+      <h2 id="pack-results-title" data-i18n="pack.opened">Pack Opened</h2>
+      <p class="pack-results-god-banner" id="pack-results-god" hidden data-i18n="booster.godPack">GOD PACK!</p>
       <p id="pack-results-sub" class="hub-stat"></p>
       <div class="pack-results-cards-block">
         <div class="pack-results-grid" id="pack-results-grid"></div>
       </div>
       <div class="pack-results-actions">
-        <button class="btn-grad" id="btn-pack-again" type="button" hidden>Open same again</button>
-        <button class="btn-grad" id="btn-pack-another" type="button">Open another pack</button>
-        <button class="btn-out" id="btn-pack-hub" type="button">Main menu</button>
+        <button class="btn-grad" id="btn-pack-again" type="button" hidden data-i18n="booster.openSameAgain">Open same again</button>
+        <button class="btn-grad" id="btn-pack-another" type="button" data-i18n="booster.openAnother">Open another pack</button>
+        <button class="btn-out" id="btn-pack-hub" type="button" data-i18n="booster.mainMenu">Main menu</button>
       </div>
       <p class="lerr" id="pack-results-err"></p>
     </div>
@@ -5752,50 +5752,50 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <img class="logo-img" src="tcglogo.png" alt="">
       <div class="logo-foot">
         <span class="logo-version">v0.1.0</span>
-        <p class="logo-tagline">The Unofficial Web Player</p>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
       </div>
     </div>
     <div class="panel account-panel">
       <div class="account-screen-head">
-        <button class="btn-ghost" id="btn-deck-back" type="button">← Hub</button>
-        <h2 id="deck-screen-title">Deck Builder</h2>
+        <button class="btn-ghost" id="btn-deck-back" type="button" data-i18n="deck.backHub">← Hub</button>
+        <h2 id="deck-screen-title" data-i18n="deck.title">Deck Builder</h2>
       </div>
       <div class="deck-builder-meta" id="deck-builder-meta">
         <div class="field deck-builder-meta__name" id="deck-builder-name-wrap">
-          <label>Deck name</label>
+          <label data-i18n="deck.deckName">Deck name</label>
           <input type="text" id="inp-deck-name" maxlength="40" value="My Deck">
         </div>
         <div class="field deck-builder-meta__slots" id="deck-builder-slots-wrap">
-          <label>Preset slot (max 10)</label>
+          <label data-i18n="deck.presetSlot">Preset slot (max 10)</label>
           <div class="deck-slot-row" id="deck-slots"></div>
         </div>
         <div class="field deck-builder-meta__experiment" id="deck-experiment-pwd-wrap" hidden>
-          <label for="inp-experiment-load-pwd">Deck password</label>
+          <label for="inp-experiment-load-pwd" data-i18n="deck.deckPassword">Deck password</label>
           <div class="experiment-pwd-row">
-            <input type="text" id="inp-experiment-load-pwd" placeholder="Enter password to load" maxlength="16" autocomplete="off" spellcheck="false">
-            <button class="btn-out" id="btn-experiment-load-pwd" type="button">Load</button>
+            <input type="text" id="inp-experiment-load-pwd" placeholder="Enter password to load" maxlength="16" autocomplete="off" spellcheck="false" data-i18n-placeholder="deck.deckPasswordPlaceholder">
+            <button class="btn-out" id="btn-experiment-load-pwd" type="button" data-i18n="deck.load">Load</button>
           </div>
           <div class="experiment-pwd-active" id="experiment-pwd-active" hidden>
-            <span>Saved password:</span>
+            <span data-i18n="deck.savedPassword">Saved password:</span>
             <code id="experiment-pwd-display"></code>
-            <button class="btn-ghost" id="btn-experiment-copy-pwd" type="button">Copy</button>
+            <button class="btn-ghost" id="btn-experiment-copy-pwd" type="button" data-i18n="deck.copy">Copy</button>
           </div>
         </div>
         <div class="field deck-builder-meta__search" id="deck-pool-search-wrap">
-          <label for="inp-deck-card-search">Search cards</label>
-          <input type="search" id="inp-deck-card-search" placeholder="Name, ID, or rules text…" maxlength="80" autocomplete="off" spellcheck="false">
+          <label for="inp-deck-card-search" data-i18n="deck.search">Search cards</label>
+          <input type="search" id="inp-deck-card-search" placeholder="Name, ID, or rules text…" maxlength="80" autocomplete="off" spellcheck="false" data-i18n-placeholder="deck.searchPlaceholder">
         </div>
       </div>
       <div class="deck-pool-tools">
         <div class="deck-filter-panel" id="deck-filter-panel"></div>
       </div>
       <p class="deck-builder-hint" id="deck-starter-hint"></p>
-      <p class="deck-builder-hint deck-builder-hint--compact" id="deck-builder-hint-compact">Auto-build optimizes from your collection · tap to add/remove · hover to preview</p>
+      <p class="deck-builder-hint deck-builder-hint--compact" id="deck-builder-hint-compact" data-i18n="deck.hint">Auto-build optimizes from your collection · tap to add/remove · hover to preview</p>
       <div class="deck-builder-lists">
         <div class="deck-builder-section deck-builder-section--pool">
           <div class="deck-builder-pool-layout">
             <div class="side-block card-hover-panel" id="deck-card-hover-panel" aria-live="polite">
-              <p class="hc-empty" id="dh-empty">Hover a deck card to preview it here.</p>
+              <p class="hc-empty" id="dh-empty" data-i18n="deck.hoverEmpty">Hover a deck card to preview it here.</p>
               <img class="hc-img" id="dh-img" src="" alt="" onerror="this.classList.remove('show')">
               <div class="hc-name" id="dh-name"></div>
               <div class="hc-sub" id="dh-sub"></div>
@@ -5806,7 +5806,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
             <div class="deck-builder-pool-main">
               <div class="deck-section-head deck-section-head--pool">
                 <div class="deck-section-head__title-row">
-                  <h4 id="deck-pool-head-title">Collection</h4>
+                  <h4 id="deck-pool-head-title" data-i18n="deck.collection">Collection</h4>
                   <div class="deck-collection-sort" id="deck-collection-sort-wrap">
                     <div class="llc-select-wrap deck-collection-sort__select">
                       <select id="sel-deck-pool-sort" aria-label="Collection sort and order"></select>
@@ -5821,18 +5821,18 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         </div>
         <div class="deck-builder-section deck-builder-section--deck">
           <div class="deck-section-head deck-section-head--deck">
-            <h4>Current deck</h4>
+            <h4 data-i18n="deck.currentDeck">Current deck</h4>
             <p class="deck-section-stats" id="deck-current-stats">Total 0/72 · Members 0/48 · Lives 0/12 · Energy 0/12</p>
           </div>
           <div class="deck-card-grid deck-card-grid--deck" id="deck-current-list"></div>
         </div>
       </div>
       <div class="deck-builder-actions">
-        <button class="btn-grad" id="btn-deck-save" type="button">Save preset</button>
-        <button class="btn-out" id="btn-deck-equip" type="button">Equip ranked</button>
-        <button class="btn-out" id="btn-deck-reset-starter" type="button">Reset starter</button>
-        <button class="btn-out" id="btn-deck-auto-build" type="button">Auto-build</button>
-        <button class="btn-ghost" id="btn-deck-clear" type="button">Clear</button>
+        <button class="btn-grad" id="btn-deck-save" type="button" data-i18n="deck.savePreset">Save preset</button>
+        <button class="btn-out" id="btn-deck-equip" type="button" data-i18n="deck.equipRanked">Equip ranked</button>
+        <button class="btn-out" id="btn-deck-reset-starter" type="button" data-i18n="deck.resetStarter">Reset starter</button>
+        <button class="btn-out" id="btn-deck-auto-build" type="button" data-i18n="deck.autoBuild">Auto-build</button>
+        <button class="btn-ghost" id="btn-deck-clear" type="button" data-i18n="deck.clear">Clear</button>
       </div>
       <p class="lerr" id="deck-err"></p>
     </div>
@@ -5842,10 +5842,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <!-- Deck Experiment — starter base picker -->
 <div class="overlay" id="modal-experiment-starter-pick">
   <div class="mbox" style="max-width:520px;text-align:center">
-    <h2>Choose starter deck</h2>
-    <p style="font-size:13px;color:rgba(255,255,255,.65);margin-bottom:12px">Load an official starter list as your base — edit freely from the full card pool.</p>
+    <h2 data-i18n="deck.experimentStarterTitle">Choose starter deck</h2>
+    <p style="font-size:13px;color:rgba(255,255,255,.65);margin-bottom:12px" data-i18n="deck.experimentStarterLead">Load an official starter list as your base — edit freely from the full card pool.</p>
     <div class="pickgrid" id="experiment-starter-grid"></div>
-    <button class="btn-ghost" id="btn-experiment-starter-cancel" type="button" style="width:auto;padding:8px 18px;margin-top:8px">Cancel</button>
+    <button class="btn-ghost" id="btn-experiment-starter-cancel" type="button" style="width:auto;padding:8px 18px;margin-top:8px" data-i18n="common.cancel">Cancel</button>
   </div>
 </div>
 
@@ -5856,32 +5856,32 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <img class="logo-img" src="tcglogo.png" alt="">
       <div class="logo-foot">
         <span class="logo-version">v0.1.0</span>
-        <p class="logo-tagline">The Unofficial Web Player</p>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
       </div>
     </div>
     <div class="panel account-panel">
       <div class="account-screen-head">
-        <button class="btn-ghost" id="btn-ranked-back" type="button">← Hub</button>
-        <h2>Ranked PvP</h2>
+        <button class="btn-ghost" id="btn-ranked-back" type="button" data-i18n="ranked.backHub">← Hub</button>
+        <h2 data-i18n="ranked.title">Ranked PvP</h2>
       </div>
       <p id="ranked-info" class="hub-stat"></p>
-      <p class="hub-stat">Main &amp; LIVE phases use a 120s timer.</p>
+      <p class="hub-stat" data-i18n="ranked.timerNote">Main &amp; LIVE phases use a 120s timer.</p>
       <div class="field ranked-deck-field">
-        <label for="sel-ranked-deck">Ranked deck</label>
+        <label for="sel-ranked-deck" data-i18n="ranked.deckLabel">Ranked deck</label>
         <div class="llc-select-wrap">
           <select id="sel-ranked-deck"></select>
         </div>
-        <div class="deck-prev" id="ranked-deck-prev">Loading…</div>
+        <div class="deck-prev" id="ranked-deck-prev" data-i18n="common.loading">Loading…</div>
       </div>
       <p id="ranked-status">—</p>
       <label class="ranked-sound-opt" for="chk-ranked-match-sound">
-        <input type="checkbox" id="chk-ranked-match-sound"> Play sound when match is found
+        <input type="checkbox" id="chk-ranked-match-sound"> <span data-i18n="ranked.matchSound">Play sound when match is found</span>
       </label>
       <p id="ranked-queue-stats" class="hub-stat ranked-queue-stats">— waiting · — in ranked games</p>
-      <button class="btn-grad" id="btn-ranked-search" type="button">Find Match</button>
-      <button class="btn-out" id="btn-ranked-spectate" type="button">Spectate Match</button>
-      <button class="btn-out" id="btn-ranked-leaderboard" type="button">Leaderboard</button>
-      <button class="btn-ghost" id="btn-ranked-cancel" type="button" hidden>Cancel search</button>
+      <button class="btn-grad" id="btn-ranked-search" type="button" data-i18n="ranked.findMatch">Find Match</button>
+      <button class="btn-out" id="btn-ranked-spectate" type="button" data-i18n="ranked.spectate">Spectate Match</button>
+      <button class="btn-out" id="btn-ranked-leaderboard" type="button" data-i18n="ranked.leaderboard">Leaderboard</button>
+      <button class="btn-ghost" id="btn-ranked-cancel" type="button" hidden data-i18n="ranked.cancelSearch">Cancel search</button>
       <p class="lerr" id="ranked-err"></p>
     </div>
   </div>
@@ -5894,17 +5894,17 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <img class="logo-img" src="tcglogo.png" alt="">
       <div class="logo-foot">
         <span class="logo-version">v0.1.0</span>
-        <p class="logo-tagline">The Unofficial Web Player</p>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
       </div>
     </div>
     <div class="panel account-panel">
       <div class="account-screen-head">
-        <button class="btn-ghost" id="btn-leaderboard-back" type="button">← Hub</button>
-        <h2>Ranked Leaderboard</h2>
+        <button class="btn-ghost" id="btn-leaderboard-back" type="button" data-i18n="ranked.backHub">← Hub</button>
+        <h2 data-i18n="leaderboard.title">Ranked Leaderboard</h2>
       </div>
-      <p class="account-lead">Highest ELO from ranked PvP. Set a card banner for your profile row.</p>
+      <p class="account-lead" data-i18n="leaderboard.lead">Highest ELO from ranked PvP. Set a card banner for your profile row.</p>
       <div class="leaderboard-actions">
-        <button class="btn-out" id="btn-leaderboard-banner" type="button">Edit profile banner</button>
+        <button class="btn-out" id="btn-leaderboard-banner" type="button" data-i18n="leaderboard.editBanner">Edit profile banner</button>
       </div>
       <div class="leaderboard-list" id="leaderboard-list"></div>
       <p class="lerr" id="leaderboard-err"></p>
@@ -5919,7 +5919,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <img class="logo-img" src="tcglogo.png" alt="Love Live! School idol project series Official Card Game">
       <div class="logo-foot">
         <span class="logo-version">v0.1.0</span>
-        <p class="logo-tagline">The Unofficial Web Player</p>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
       </div>
     </div>
     <div class="panel account-panel">
@@ -5939,12 +5939,12 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
               <select id="sel-deck"></select>
             </div>
             <div class="deck-prev" id="deck-prev">Loading…</div>
-            <button class="btn-ghost lobby-deck-experiment" id="btn-lobby-deck-experiment" type="button" hidden>Deck Experiment</button>
+            <button class="btn-ghost lobby-deck-experiment" id="btn-lobby-deck-experiment" type="button" hidden data-i18n="lobby.experimentDeckBtn">Deck Experiment</button>
           </div>
           <div class="field" id="lobby-experiment-pwd-field" hidden>
-            <label for="inp-lobby-experiment-pwd">Experiment deck password</label>
-            <input type="text" id="inp-lobby-experiment-pwd" placeholder="8-letter code" maxlength="16" autocomplete="off" spellcheck="false">
-            <p class="deck-builder-hint deck-builder-hint--compact">Build in Deck Experiment, generate a password, then enter it here — or pick a saved deck below.</p>
+            <label for="inp-lobby-experiment-pwd" data-i18n="lobby.experimentDeckPassword">Experiment deck password</label>
+            <input type="text" id="inp-lobby-experiment-pwd" placeholder="8-letter code" maxlength="16" autocomplete="off" spellcheck="false" data-i18n-placeholder="lobby.experimentPasswordPlaceholder">
+            <p class="deck-builder-hint deck-builder-hint--compact" data-i18n="lobby.experimentDeckHint">Build in Deck Experiment, generate a password, then enter it here — or pick a saved deck below.</p>
           </div>
           <div class="field phase-timer-lobby">
             <label class="phase-timer-toggle">
@@ -5952,7 +5952,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
               <span data-i18n="lobby.phaseTimer">Phase timer (Main &amp; LIVE)</span>
             </label>
             <div class="phase-timer-duration" id="phase-timer-duration-wrap" hidden>
-              <label for="inp-phase-timer-sec">Seconds per phase (10–120)</label>
+              <label for="inp-phase-timer-sec" data-i18n="lobby.phaseTimerSec">Seconds per phase (10–120)</label>
               <input type="range" id="inp-phase-timer-sec" min="10" max="120" step="5" value="60">
               <span class="phase-timer-sec-label" id="phase-timer-sec-label">60s</span>
             </div>
@@ -5976,7 +5976,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
               <button class="btn-grad" id="btn-casual-search" type="button" data-i18n="lobby.findRandomMatch">Find Random Match</button>
               <p class="hub-stat lobby-casual-hint" data-i18n="lobby.casualHint">Casual PvP — no ELO or ranked record</p>
               <p id="casual-queue-stats" class="hub-stat ranked-queue-stats">— waiting · — in casual games</p>
-              <button class="btn-ghost" id="btn-casual-cancel" type="button" hidden>Cancel search</button>
+              <button class="btn-ghost" id="btn-casual-cancel" type="button" hidden data-i18n="lobby.cancelSearch">Cancel search</button>
             </div>
           </div>
 
@@ -6006,14 +6006,14 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <!-- ══ WAITING ══ -->
 <div id="screen-waiting" class="screen llc-menu-screen">
   <div class="wait-box">
-    <h2>Room Created!</h2>
-    <p>Share this code with your opponent:</p>
-    <div class="code-disp llc-menu-hover" id="disp-code" title="Click to copy">——</div>
-    <p class="wait-hint">Tap to copy 📋</p>
+    <h2 data-i18n="waiting.roomCreated">Room Created!</h2>
+    <p data-i18n="waiting.shareCode">Share this code with your opponent:</p>
+    <div class="code-disp llc-menu-hover" id="disp-code" data-i18n-title="waiting.clickCopy" title="Click to copy">——</div>
+    <p class="wait-hint" data-i18n="waiting.tapCopy">Tap to copy 📋</p>
     <p class="wait-timer-info" id="wait-timer-info" hidden></p>
     <div class="spinner"></div>
-    <p>Waiting for opponent to join…</p>
-    <div class="wait-actions"><button class="btn-ghost" id="btn-cancel" type="button">Cancel</button></div>
+    <p data-i18n="waiting.waitingOpponent">Waiting for opponent to join…</p>
+    <div class="wait-actions"><button class="btn-ghost" id="btn-cancel" type="button" data-i18n="waiting.cancel">Cancel</button></div>
   </div>
 </div>
 
@@ -6035,26 +6035,26 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
             </div>
           </div>
         </div>
-        <div class="pmsg" id="pmsg">Starting…</div>
+        <div class="pmsg" id="pmsg" data-i18n="game.starting">Starting…</div>
         <div class="pbtns" id="pbtns"></div>
       </div>
       <div class="side-block players-stats-panel">
         <div class="player-stat-strip mine">
-          <h3 id="my-name">You</h3>
+          <h3 id="my-name" data-i18n="game.you">You</h3>
           <div class="cpills cpills-inline">
             <div class="cpill nrg"><img class="pill-ico" src="icons/icon_energy.png" alt=""> <b id="my-en">0/0</b></div>
-            <div class="cpill">Hand <b id="hand-n">0</b></div>
+            <div class="cpill"><span data-i18n="game.hand">Hand</span> <b id="hand-n">0</b></div>
             <div class="cpill"><img class="pill-ico" src="icons/sp_draw.png" alt=""> <b id="my-dn-side">0</b></div>
-            <div class="cpill cpill-wr"><span class="pill-lbl">WR</span> <b id="my-wn-side">0</b></div>
+            <div class="cpill cpill-wr"><span class="pill-lbl" data-i18n="game.wr">WR</span> <b id="my-wn-side">0</b></div>
           </div>
         </div>
         <div class="player-stat-strip opp">
-          <h3 id="opp-name">Opponent</h3>
+          <h3 id="opp-name" data-i18n="game.opponent">Opponent</h3>
           <div class="cpills cpills-inline">
             <div class="cpill nrg"><img class="pill-ico" src="icons/icon_energy.png" alt=""> <b id="opp-en">0/0</b></div>
-            <div class="cpill">Hand <b id="opp-hn">0</b></div>
+            <div class="cpill"><span data-i18n="game.hand">Hand</span> <b id="opp-hn">0</b></div>
             <div class="cpill"><img class="pill-ico" src="icons/sp_draw.png" alt=""> <b id="opp-dn-side">0</b></div>
-            <div class="cpill cpill-wr"><span class="pill-lbl">WR</span> <b id="opp-wn-side">0</b></div>
+            <div class="cpill cpill-wr"><span class="pill-lbl" data-i18n="game.wr">WR</span> <b id="opp-wn-side">0</b></div>
           </div>
         </div>
       </div>
@@ -6062,31 +6062,31 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         <div class="tline tline-inline" id="sb-info">—</div>
       </div>
       <div class="side-block stage-board-panel" id="stage-board-panel">
-        <h4>Stage Board</h4>
+        <h4 data-i18n="game.stageBoard">Stage Board</h4>
         <div class="stage-board-grid">
           <div class="stage-board-side mine">
-            <div class="stage-board-side-lbl">You</div>
+            <div class="stage-board-side-lbl" data-i18n="game.you">You</div>
             <div class="stage-board-hearts" id="sb-my-hearts"></div>
             <div class="stage-board-yell" id="sb-my-yell">—</div>
           </div>
           <div class="stage-board-side opp">
-            <div class="stage-board-side-lbl">Opp</div>
+            <div class="stage-board-side-lbl" data-i18n="game.opp">Opp</div>
             <div class="stage-board-hearts" id="sb-opp-hearts"></div>
             <div class="stage-board-yell" id="sb-opp-yell">—</div>
           </div>
         </div>
         <div class="stage-board-active" id="sb-active-wrap" hidden>
-          <div class="stage-board-lbl">Active effects</div>
+          <div class="stage-board-lbl" data-i18n="game.activeEffects">Active effects</div>
           <div id="sb-active-list"></div>
         </div>
         <div class="stage-board-abilities" id="sb-activatable-wrap" hidden>
-          <div class="stage-board-lbl">Activatable skills</div>
+          <div class="stage-board-lbl" data-i18n="game.activatableSkills">Activatable skills</div>
           <div id="sb-activatable"></div>
         </div>
       </div>
       <div class="side-block side-left-actions-host" id="side-left-actions-host" hidden aria-hidden="true"></div>
       <div class="side-block card-hover-panel" id="card-hover-panel">
-        <p class="hc-empty" id="hc-empty">Hover a card in your hand to preview it here.</p>
+        <p class="hc-empty" id="hc-empty" data-i18n="game.hoverHandEmpty">Hover a card in your hand to preview it here.</p>
         <img class="hc-img" id="hc-img" src="" alt="" onerror="this.classList.remove('show')">
         <div class="hc-name" id="hc-name"></div>
         <div class="hc-sub" id="hc-sub"></div>
@@ -6101,13 +6101,13 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <div class="playmat-mat-viewport" id="playmat-mat-viewport">
       <div class="playmat-mat-stack" id="playmat-mat-stack">
       <div class="hand-strip opp-hand-strip">
-        <span class="hand-strip-label" id="opp-hand-label">Opponent</span>
+        <span class="hand-strip-label" id="opp-hand-label" data-i18n="game.opponent">Opponent</span>
         <div class="hand-fan" id="opp-hand-zone"></div>
           </div>
 
       <!-- Opponent playmat (image flipped 180°; zones mirrored in JS) -->
       <div class="playmat-frame opp-mat" id="opp-stage">
-        <span class="mat-owner-label" id="opp-mat-label">Opponent</span>
+        <span class="mat-owner-label" id="opp-mat-label" data-i18n="game.opponent">Opponent</span>
         <img class="playmat-img playmat-img-flipped" src="playmat.png" width="1024" height="563" alt="" draggable="false">
         <div class="playmat-overlay">
           <div class="mat-zone success-col slot-fill z-opp-success" id="opp-pips"></div>
@@ -6169,9 +6169,9 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
             <div class="pch-inner">
               <img class="pch-icon" src="icons/icon_energy.png" alt="">
               <span class="pch-cost" id="pch-cost">0</span>
-              <span class="pch-hint" id="pch-hint">Pick a slot</span>
+              <span class="pch-hint" id="pch-hint" data-i18n="game.pickSlot">Pick a slot</span>
             </div>
-            <div class="pch-have">active <b id="pch-have">0</b></div>
+            <div class="pch-have"><span data-i18n="game.activeEnergy">active</span> <b id="pch-have">0</b></div>
           </div>
         </div>
       </div>
@@ -6184,7 +6184,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
             <span class="lsh-score-bonus" id="lsh-score-bonus" hidden></span>
           </div>
         </div>
-        <div class="lsh-hint" id="lsh-hint">Live score</div>
+        <div class="lsh-hint" id="lsh-hint" data-i18n="live.liveScore">Live score</div>
       </div>
 
       <div class="hand-strip my-hand-strip">
@@ -6298,7 +6298,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <img src="assets/Star_Gem.png" alt="" aria-hidden="true">
       <span id="star-gem-migration-amount">0</span>
     </div>
-    <button class="btn-grad" id="btn-star-gem-migration-ok" type="button" style="margin-top:16px">OK</button>
+    <button class="btn-grad" id="btn-star-gem-migration-ok" type="button" style="margin-top:16px" data-i18n="common.ok">OK</button>
   </div>
 </div>
 
@@ -6318,13 +6318,13 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <div class="overlay" id="modal-banner-crop">
   <div class="mbox">
     <button class="mcls" id="btn-banner-crop-close" type="button">✕</button>
-    <h2 style="margin:0 0 8px;text-align:center;color:#fff">Profile banner</h2>
-    <p class="banner-crop-lead">Choose a card you own, then drag the strip vertically to pick the art shown on your leaderboard card.</p>
+    <h2 style="margin:0 0 8px;text-align:center;color:#fff" data-i18n="leaderboard.profileBanner">Profile banner</h2>
+    <p class="banner-crop-lead" data-i18n="leaderboard.bannerLead">Choose a card you own, then drag the strip vertically to pick the art shown on your leaderboard card.</p>
     <div class="banner-crop-workspace">
       <div class="banner-pick-wrap">
-        <input type="search" class="banner-card-search" id="banner-card-search" placeholder="Search by card name…" autocomplete="off">
+        <input type="search" class="banner-card-search" id="banner-card-search" placeholder="Search by card name…" autocomplete="off" data-i18n-placeholder="leaderboard.bannerSearchPlaceholder">
         <div class="banner-card-grid" id="banner-card-grid"></div>
-        <p class="banner-card-pick-empty" id="banner-card-pick-empty" hidden>No cards match your search.</p>
+        <p class="banner-card-pick-empty" id="banner-card-pick-empty" hidden data-i18n="leaderboard.bannerNoMatch">No cards match your search.</p>
       </div>
       <div class="banner-crop-align-col">
         <div class="banner-crop-stage" id="banner-crop-stage">
@@ -6332,14 +6332,14 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <div class="banner-crop-window" id="banner-crop-window"></div>
         </div>
         <div class="banner-crop-preview-wrap">
-          <div class="banner-crop-preview-label">Preview</div>
+          <div class="banner-crop-preview-label" data-i18n="leaderboard.bannerPreview">Preview</div>
           <div class="banner-crop-preview rank-banner-wrap" id="banner-crop-preview"></div>
         </div>
       </div>
     </div>
     <div class="banner-crop-actions">
-      <button class="btn-grad" id="btn-banner-save" type="button">Save banner</button>
-      <button class="btn-ghost" id="btn-banner-cancel" type="button">Cancel</button>
+      <button class="btn-grad" id="btn-banner-save" type="button" data-i18n="leaderboard.saveBanner">Save banner</button>
+      <button class="btn-ghost" id="btn-banner-cancel" type="button" data-i18n="common.cancel">Cancel</button>
     </div>
     <p class="lerr" id="banner-crop-err"></p>
   </div>
@@ -6483,17 +6483,17 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 <div id="opp-skill-wait" aria-live="polite" hidden>
   <div class="osw-inner">
-    <div class="osw-title llc-splash-title" id="opp-skill-wait-title" data-text="Opponent is activating a skill…">Opponent is activating a skill…</div>
+    <div class="osw-title llc-splash-title" id="opp-skill-wait-title" data-i18n="game.oppActivatingSkill" data-text="Opponent is activating a skill…">Opponent is activating a skill…</div>
     <div class="osw-sub" id="opp-skill-wait-sub"></div>
   </div>
 </div>
 <div id="live-judge-overlay" aria-live="polite" hidden>
   <div class="ljo-inner">
-    <div class="ljo-title llc-splash-title" data-text="Live Win/Loss Check">Live Win/Loss Check</div>
+    <div class="ljo-title llc-splash-title" data-i18n="live.liveJudge" data-text="Live Win/Loss Check">Live Win/Loss Check</div>
     <div class="ljo-scores">
-      <div class="sblock"><div class="snum mine" id="ljo-my-scr">0</div><div class="slbl">Your Score</div></div>
+      <div class="sblock"><div class="snum mine" id="ljo-my-scr">0</div><div class="slbl" data-i18n="live.yourScore">Your Score</div></div>
       <div class="vssep">VS</div>
-      <div class="sblock"><div class="snum opp" id="ljo-op-scr">0</div><div class="slbl">Opp Score</div></div>
+      <div class="sblock"><div class="snum opp" id="ljo-op-scr">0</div><div class="slbl" data-i18n="live.oppScore">Opp Score</div></div>
     </div>
     <p class="judge-hint" id="judge-hint"></p>
   </div>
@@ -7156,15 +7156,70 @@ function syncFoilFxSetting() {
 }
 
 function onLocaleChanged() {
+  refreshDynamicI18n();
+}
+
+function updateHubDynamicStats(me) {
+  const profile = me || A.profile;
+  if (!profile) return;
+  const d = profile.daily || {};
+  el('hub-daily').textContent = t('hub.daily', {
+    remaining: d.remaining ?? 0,
+    limit: d.limit ?? 5,
+  }) + (d.first_day_bonus ? t('hub.dailyBonus') : '');
+  const r = profile.rank || {};
+  const elo = r.elo ?? r.rating ?? 1000;
+  const winPct = r.win_rate ?? (r.wins + r.losses > 0 ? Math.round((r.wins / (r.wins + r.losses)) * 10) / 10 : 0);
+  el('hub-rank').textContent = t('hub.rankLine', {
+    elo,
+    wins: r.wins ?? 0,
+    losses: r.losses ?? 0,
+    winPct,
+  });
+}
+
+function updateRankedScreenDynamic(me) {
+  const r = me?.rank || {};
+  const record = t('ranked.record', {
+    wins: r.wins ?? 0,
+    losses: r.losses ?? 0,
+    winPct: r.win_rate ?? 0,
+  });
+  el('ranked-info').textContent = t('ranked.infoLine', {
+    elo: r.elo ?? r.rating ?? 1000,
+    record,
+  });
+  syncRankedScreenSearchControls(!!A.rankedSearching);
+}
+
+function refreshDynamicI18n() {
   applyI18n();
   clearLogNameCache();
+  if (A.profile) {
+    const userName = A.profile?.user?.username || A.user?.username || 'Player';
+    el('hub-user').innerHTML = t('hub.signedInAsHtml', { name: escapeHtmlText(userName) });
+    if (el('screen-hub')?.classList.contains('active')) updateHubDynamicStats(A.profile);
+    if (el('screen-ranked')?.classList.contains('active')) updateRankedScreenDynamic(A.profile);
+  }
+  if (el('screen-deck')?.classList.contains('active')) {
+    syncDeckBuilderChrome();
+    renderDeckBuilder({ deferPool: true });
+  }
+  if (el('screen-booster')?.classList.contains('active')) {
+    const info = A.profile?.daily || {};
+    el('booster-daily-info').textContent = t('booster.packsLeft', { n: info.remaining ?? 0 });
+  }
+  if (el('screen-leaderboard')?.classList.contains('active') && A.lastLeaderboardData) {
+    renderLeaderboardRows(A.lastLeaderboardData);
+  }
+  if (el('screen-lobby')?.classList.contains('active')) void refreshCasualQueueStatsQuiet();
+  renderLobbyDeckOptions();
+  updateDeckPrev();
   if (G.gameState) {
     resyncGameLogFromState(G.gameState);
     renderGame(G.gameState);
   }
   if (G.isTutorial && G.tutorialData?.steps) renderTutorialStep(G.tutorialStep, { textOnly: false });
-  renderLobbyDeckOptions();
-  updateDeckPrev();
 }
 
 function initFoilFxSetting() {
@@ -7211,7 +7266,7 @@ function showPackResults(cards, boxName, { godPack = false, faceSrcByIndex = nul
     : (boxMode ? t('pack.boxOpened') : t('pack.opened'));
   if (godEl) {
     godEl.hidden = !godPack;
-    godEl.textContent = boxMode ? 'GOD PACK!' : 'GOD PACK!';
+    godEl.textContent = t('booster.godPack');
   }
   sub.textContent = packResultsSubText(cards, { godPack, boxMode, starGemsEarned });
   const grid = el('pack-results-grid');
@@ -7767,7 +7822,7 @@ async function reconnectToGame(saved) {
       }
     }
     startPoll();
-    toast('Reconnected to your game', 2600);
+    toast(t('toast.reconnected'), 2600);
     return true;
   } catch (e) {
     clearActiveGameSession();
@@ -7959,7 +8014,7 @@ async function leaveActiveGame() {
     G.lastSeq = 0;
     const res = await accountPost('leave_active_game', {});
     if (leaveBtn) leaveBtn.hidden = true;
-    toast(res.left ? 'Left active match' : 'No active match found', 2600);
+    toast(res.left ? t('toast.leftActiveMatch') : t('toast.noActiveMatch'), 2600);
     enterHub(A.profile);
   } catch (e) {
     el('options-err').textContent = e.message || String(e);
@@ -7996,11 +8051,11 @@ async function resetAccount() {
 function enterHub(me) {
   A.profile = me || A.profile;
   syncStarGemsFromProfile(A.profile);
-  el('hub-user').innerHTML = (getLocale() === 'ja' ? 'サインイン中：<b>' : 'Signed in as <b>')
-    + (A.profile?.user?.username || A.user?.username || 'Player') + '</b>';
+  const userName = A.profile?.user?.username || A.user?.username || 'Player';
+  el('hub-user').innerHTML = t('hub.signedInAsHtml', { name: escapeHtmlText(userName) });
   const d = A.profile?.daily || {};
-  el('hub-daily').textContent = 'Daily boosters: ' + (d.remaining ?? 0) + ' / ' + (d.limit ?? 5) + ' remaining today (JST)'
-    + (d.first_day_bonus ? ' (welcome bonus!)' : '');
+  el('hub-daily').textContent = t('hub.dailyBoosters', { remaining: d.remaining ?? 0, limit: d.limit ?? 5 })
+    + (d.first_day_bonus ? t('hub.dailyWelcomeBonus') : '');
   updateStarGemsUI();
   if (A.profile?.dupe_migration?.migrated && !A.dupeMigrationShown) {
     A.dupeMigrationShown = true;
@@ -8009,7 +8064,7 @@ function enterHub(me) {
   const r = A.profile?.rank || {};
   const elo = r.elo ?? r.rating ?? 1000;
   const winPct = r.win_rate ?? (r.wins + r.losses > 0 ? Math.round((r.wins / (r.wins + r.losses)) * 10) / 10 : 0);
-  el('hub-rank').textContent = 'ELO ' + elo + ' · ' + (r.wins ?? 0) + 'W-' + (r.losses ?? 0) + 'L · ' + winPct + '% win';
+  el('hub-rank').textContent = t('hub.rankLine', { elo, wins: r.wins ?? 0, losses: r.losses ?? 0, winPct });
   if (A.user?.username) el('inp-name').value = A.user.username.slice(0, 20);
   if (getAuthToken()) {
     accountGet('deck_list').then(dl => {
@@ -8417,11 +8472,11 @@ function countInDeck(cardNo) {
 function copyCardNoToClipboard(cardNo) {
   const text = String(cardNo || '').trim();
   if (!text) {
-    toast('No card ID to copy', 2000);
+    toast(t('toast.noCardId'), 2000);
     return;
   }
-  const done = () => toast('Card ID copied', 2000);
-  const fail = () => toast('Could not copy card ID', 2500);
+  const done = () => toast(t('toast.cardIdCopied'), 2000);
+  const fail = () => toast(t('toast.couldNotCopyCardId'), 2500);
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(text).then(done).catch(fail);
     return;
@@ -8810,8 +8865,8 @@ function syncDeckBuilderChrome() {
   const metaRow = el('deck-builder-meta');
   const hintCompact = el('deck-builder-hint-compact');
   const poolHead = document.querySelector('#screen-deck .deck-builder-section--pool h4');
-  if (title) title.textContent = experiment ? 'Deck Experiment' : 'Deck Builder';
-  if (backBtn) backBtn.textContent = experiment ? '← Menu' : '← Hub';
+  if (title) title.textContent = experiment ? t('deck.experimentTitle') : t('deck.title');
+  if (backBtn) backBtn.textContent = experiment ? t('deck.backMenu') : t('deck.backHub');
   if (searchWrap) searchWrap.hidden = false;
   if (pwdWrap) pwdWrap.hidden = !experiment;
   if (slotsWrap) slotsWrap.hidden = experiment;
@@ -8820,14 +8875,12 @@ function syncDeckBuilderChrome() {
   const starterHint = el('deck-starter-hint');
   if (starterHint) starterHint.hidden = experiment;
   if (hintCompact) {
-    hintCompact.textContent = experiment
-      ? 'Full card pool · build a legal deck to generate a password · hold or right-click cards for details'
-      : 'Auto-build optimizes from your collection · tap to add/remove · hold or right-click for card details';
+    hintCompact.textContent = experiment ? t('deck.experimentHint') : t('deck.hint');
   }
   ensureDeckFilterPanel();
   syncDeckFilterUi();
   syncDeckPoolSortUi();
-  if (poolHead) poolHead.textContent = experiment ? 'Card pool' : 'Collection';
+  if (poolHead) poolHead.textContent = experiment ? t('deck.cardPool') : t('deck.collection');
   const equipBtn = el('btn-deck-equip');
   if (equipBtn) equipBtn.hidden = experiment;
   const resetBtn = el('btn-deck-reset-starter');
@@ -8835,10 +8888,10 @@ function syncDeckBuilderChrome() {
     resetBtn.hidden = false;
     resetBtn.removeAttribute('hidden');
     if (experiment) {
-      resetBtn.textContent = 'Use starter';
+      resetBtn.textContent = t('deck.useStarter');
       resetBtn.disabled = false;
     } else {
-      resetBtn.textContent = 'Reset starter';
+      resetBtn.textContent = t('deck.resetStarter');
       resetBtn.disabled = !A.profile?.user?.starter_deck;
     }
   }
@@ -8846,7 +8899,7 @@ function syncDeckBuilderChrome() {
   if (autoBtn) {
     autoBtn.hidden = false;
     autoBtn.removeAttribute('hidden');
-    autoBtn.textContent = experiment ? 'Random deck' : 'Auto-build';
+    autoBtn.textContent = experiment ? t('deck.randomDeck') : t('deck.autoBuild');
     autoBtn.disabled = !experiment && !A.profile?.user?.starter_deck;
     autoBtn.classList.toggle('btn-grad', experiment);
     autoBtn.classList.toggle('btn-out', !experiment);
@@ -8854,11 +8907,11 @@ function syncDeckBuilderChrome() {
   const saveBtn = el('btn-deck-save');
   if (saveBtn) {
     if (experiment) {
-      saveBtn.textContent = A.experimentPassword ? 'Update saved deck' : 'Generate password';
+      saveBtn.textContent = A.experimentPassword ? t('deck.updateSavedDeck') : t('deck.generatePassword');
       saveBtn.hidden = !legal;
     } else {
       saveBtn.hidden = false;
-      saveBtn.textContent = 'Save preset';
+      saveBtn.textContent = t('deck.savePreset');
     }
   }
   layoutDeckBuilderActions(experiment);
@@ -9916,11 +9969,12 @@ function renderExperimentPoolChunked(searchQ) {
 
 function renderDeckCurrentList(experiment) {
   const c = deckCounts();
-  el('deck-current-stats').textContent =
-    'Total ' + (c.members + c.lives + c.energy) + '/72'
-    + ' · Members ' + c.members + '/48'
-    + ' · Lives ' + c.lives + '/12'
-    + ' · Energy ' + c.energy + '/12';
+  el('deck-current-stats').textContent = t('deck.deckStats', {
+    total: c.members + c.lives + c.energy,
+    members: c.members,
+    lives: c.lives,
+    energy: c.energy,
+  });
   const cur = el('deck-current-list');
   if (!cur) return;
   cur.replaceChildren();
@@ -9934,8 +9988,8 @@ function renderDeckCurrentList(experiment) {
     const empty = document.createElement('div');
     empty.className = 'deck-card-empty';
     empty.textContent = experiment
-      ? 'Tap cards from the pool to build a legal 60+12 deck.'
-      : 'Tap cards from your collection to build a deck.';
+      ? t('deck.deckEmptyExperiment')
+      : t('deck.deckEmpty');
     cur.appendChild(empty);
     return;
   }
@@ -9971,10 +10025,10 @@ function renderDeckBuilder(opts = {}) {
   const filtered = deckPoolFiltersActive(filters, searchQ);
   if (experiment) {
     if (!searchQ && !filtered) {
-      el('deck-collection-stats').textContent = 'Full card pool · loading…';
+      el('deck-collection-stats').textContent = t('deck.collectionLoading');
     }
   } else {
-    el('deck-collection-stats').textContent = 'Total cards owned · ' + totalCollectionCardCount();
+    el('deck-collection-stats').textContent = t('deck.collectionOwned', { count: totalCollectionCardCount() });
   }
   renderDeckCurrentList(experiment);
   const pool = el('deck-pool');
@@ -10085,7 +10139,7 @@ function removeCardFromDeck(cardNo, zone) {
 
 async function openDeckBuilder() {
   if (!isSignedInAccount()) {
-    toast('Sign in to use the Deck Builder.');
+    toast(t('toast.signInDeckBuilder'));
     return;
   }
   A.deckBuilderMode = 'account';
@@ -10564,9 +10618,9 @@ function renderBugReportsList() {
       copyBtn.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(r.log_text);
-          toast('Log copied', 2200);
+          toast(t('toast.logCopied'), 2200);
         } catch (e) {
-          toast('Could not copy log', 2500);
+          toast(t('toast.couldNotCopyLog'), 2500);
         }
       });
       const toggleBtn = document.createElement('button');
@@ -11412,7 +11466,7 @@ async function equipDeck() {
       A.profile.equipped_loadout = res.equipped_loadout ?? 'preset';
     }
     renderDeckBuilder();
-    el('deck-err').textContent = 'Equipped for ranked.';
+    el('deck-err').textContent = t('deck.equippedRanked');
   } catch (e) { el('deck-err').textContent = e.message; }
 }
 
@@ -11454,13 +11508,14 @@ function applyRankBanner(container, banner) {
 }
 
 function renderLeaderboardRows(data) {
+  A.lastLeaderboardData = data;
   const list = el('leaderboard-list');
   list.replaceChildren();
   const rows = data?.leaderboard || [];
   if (!rows.length) {
     const empty = document.createElement('div');
     empty.className = 'leaderboard-empty';
-    empty.textContent = 'No ranked games yet — play ranked PvP to appear here.';
+    empty.textContent = t('leaderboard.empty');
     list.appendChild(empty);
     return;
   }
@@ -11499,7 +11554,7 @@ function renderLeaderboardRows(data) {
 
     const elo = document.createElement('div');
     elo.className = 'rank-elo';
-    elo.textContent = (row.elo ?? row.rating ?? 1000) + ' ELO';
+    elo.textContent = (row.elo ?? row.rating ?? 1000) + t('leaderboard.eloSuffix');
     meta.appendChild(elo);
 
     const rec = document.createElement('div');
@@ -11823,7 +11878,7 @@ async function openBannerCropModal() {
 async function saveBannerCrop() {
   el('banner-crop-err').textContent = '';
   const cardNo = bannerCropState.cardNo;
-  if (!cardNo) { el('banner-crop-err').textContent = 'Select a card first'; return; }
+  if (!cardNo) { el('banner-crop-err').textContent = t('leaderboard.selectCardFirst'); return; }
   try {
     const crop = bannerCropFromWindow();
     const res = await accountPost('rank_banner_set', { card_no: cardNo, crop });
@@ -11930,15 +11985,18 @@ function playRankedMatchSound() {
 function updateRankedQueueStats(stats) {
   const node = el('ranked-queue-stats');
   if (!node || !stats) return;
-  node.textContent = (stats.waiting ?? 0) + ' waiting · ' + (stats.in_game ?? 0) + ' in ranked games';
+  node.textContent = t('ranked.queueStats', {
+    waiting: stats.waiting ?? 0,
+    inGame: stats.in_game ?? 0,
+  });
 }
 
 function syncRankedScreenSearchControls(searching) {
   const statusEl = el('ranked-status');
   if (statusEl) {
     statusEl.textContent = searching
-      ? ('Searching… (' + rankedSearchDisplaySeconds(A.rankedWaitSeconds) + 's)')
-      : 'Ready to search';
+      ? t('ranked.searching', { seconds: rankedSearchDisplaySeconds(A.rankedWaitSeconds) })
+      : t('ranked.readySearch');
   }
   if (el('btn-ranked-search')) el('btn-ranked-search').hidden = searching;
   if (el('btn-ranked-cancel')) el('btn-ranked-cancel').hidden = !searching;
@@ -12000,7 +12058,7 @@ async function enterRankedMatch(st) {
   setRankedSearchingUI(false);
   await leaveSideGameForRankedMatch();
   playRankedMatchSound();
-  toast('Ranked match found!', 2800);
+  toast(t('toast.rankedMatchFound'), 2800);
   G.roomId = st.room_id;
   G.token = st.player_token;
   G.playerId = st.player_id;
@@ -12217,9 +12275,14 @@ async function openRankedScreen() {
   A.profile = me;
   const dl = await accountGet('deck_list');
   A.decks = dl.decks || [];
-  el('ranked-info').textContent = 'ELO ' + (me.rank?.elo ?? me.rank?.rating ?? 1000)
-    + ' · ' + (me.rank?.wins ?? 0) + 'W-' + (me.rank?.losses ?? 0) + 'L · '
-    + (me.rank?.win_rate ?? 0) + '% win';
+  el('ranked-info').textContent = t('ranked.infoLine', {
+    elo: me.rank?.elo ?? me.rank?.rating ?? 1000,
+    record: t('ranked.record', {
+      wins: me.rank?.wins ?? 0,
+      losses: me.rank?.losses ?? 0,
+      winPct: me.rank?.win_rate ?? 0,
+    }),
+  });
   initRankedMatchSoundCheckbox();
   renderRankedDeckOptions();
   await pollRankedStatus();
@@ -12302,7 +12365,10 @@ function stopCasualPoll() {
 function updateCasualQueueStats(stats) {
   const node = el('casual-queue-stats');
   if (!node || !stats) return;
-  node.textContent = (stats.waiting ?? 0) + ' waiting · ' + (stats.in_game ?? 0) + ' in casual games';
+  node.textContent = t('lobby.casualQueueStats', {
+    waiting: stats.waiting ?? 0,
+    inGame: stats.in_game ?? 0,
+  });
 }
 
 function stopCasualLobbyStatsPoll() {
@@ -12448,7 +12514,7 @@ async function enterCasualMatch(st) {
     G.lastSeq = 0;
   }
   playRankedMatchSound();
-  toast('Casual match found!', 2800);
+  toast(t('toast.casualMatchFound'), 2800);
   G.roomId = st.room_id;
   G.token = st.player_token;
   G.playerId = st.player_id || 'p1';
@@ -13864,9 +13930,9 @@ let G = {
     if (!pwd) return;
     try {
       await navigator.clipboard.writeText(pwd);
-      toast('Password copied', 1800);
+      toast(t('toast.passwordCopied'), 1800);
     } catch (e) {
-      toast('Copy failed', 1800);
+      toast(t('toast.copyFailed'), 1800);
     }
   });
   on('inp-lobby-experiment-pwd', 'input', () => {
@@ -15300,7 +15366,7 @@ function syncLobbyPhaseTimerUI() {
   if (wrap) wrap.hidden = !enabled;
   const sec = parseInt(el('inp-phase-timer-sec')?.value, 10);
   const label = el('phase-timer-sec-label');
-  if (label && Number.isFinite(sec)) label.textContent = `${sec}s`;
+  if (label && Number.isFinite(sec)) label.textContent = t('lobby.secondsLabel', { n: sec });
 }
 
 function lobbyPhaseTimerOpts() {
@@ -15321,7 +15387,7 @@ function updateWaitingTimerInfo(cfg) {
   }
   const sec = Number(cfg.duration) || PHASE_TIMER_SEC;
   node.hidden = false;
-  node.textContent = `Phase timer: ${sec}s per Main & LIVE turn`;
+  node.textContent = t('waiting.phaseTimerInfo', { sec });
 }
 
 async function doCreate() {
@@ -15380,7 +15446,7 @@ async function doSolo() {
 }
 
 function copyCode(){
-  navigator.clipboard?.writeText(G.roomId||'').then(()=>toast('Copied! 📋')).catch(()=>toast(G.roomId));
+  navigator.clipboard?.writeText(G.roomId||'').then(()=>toast(t('toast.copied'))).catch(()=>toast(G.roomId));
 }
 function setErr(m){ el('lerr').textContent=m; }
 
@@ -25409,17 +25475,25 @@ function shouldSkipPhaseBanner(phase, s) {
 }
 
 function hPhase(p){
-  return {waiting:'Waiting',coin_flip:'Coin Flip',setup:'Preparation (Mulligan)',
-    active_first:'Active Phase',active_second:'Active Phase',
-    main_first:'Main Phase',main_second:'Main Phase',
-    live_set:'LIVE Phase',
-    live_set_first:'LIVE Phase',
-    live_set_second:'LIVE Phase',
-    live_start_effects:'Live Start',
-    live_success_effects:'Live Success',
-    live_performance_first:'Performance Phase',
-    live_performance_second:'Performance Phase',
-    live_judge:'Live Win/Loss Check'}[p]||p;
+  const key = 'phaseId.' + p;
+  const val = t(key);
+  return val !== key ? val : p;
+}
+
+function phaseBannerMainTitle(activePid, myId, activeName) {
+  const isMe = activePid === (myId || G.playerId);
+  if (isMe) return t('phaseBanner.yourMain');
+  const name = activeName || '—';
+  const last = name.slice(-1);
+  const bannerKey = (last === 's' || last === 'S') ? 'phaseBanner.theirMainS' : 'phaseBanner.theirMain';
+  return t(bannerKey, { name });
+}
+
+function phaseBarOppMainText(name) {
+  if (!name) return t('phaseMsg.mainOpp', { name: '—' });
+  const last = name.slice(-1);
+  const key = (last === 's' || last === 'S') ? 'phaseMsg.mainOppS' : 'phaseMsg.mainOpp';
+  return t(key, { name });
 }
 
 function isActiveGameplay(s) {
@@ -25452,23 +25526,22 @@ function possessiveName(name) {
 function phaseBannerCopy(phase, s, myId) {
   const activePid = s?.active_player;
   const active = s?.players?.[activePid]?.name || '—';
-  const isMe = activePid === (myId || G.playerId);
-  const mainTitle = isMe ? 'Your Main Phase' : `${possessiveName(active)} Main Phase`;
+  const mainTitle = phaseBannerMainTitle(activePid, myId, active);
   const map = {
-    coin_flip: { title: 'Coin Flip', subtitle: 'Winner chooses who goes first' },
-    setup: { title: 'Preparation', subtitle: 'Optional mulligan (one swap)' },
-    active_first: { title: 'Active Phase', subtitle: 'Refresh Energy & Members' },
-    active_second: { title: 'Active Phase', subtitle: 'Refresh Energy & Members' },
+    coin_flip: { title: t('phaseBanner.coinFlipTitle'), subtitle: t('phaseBanner.coinFlipSub') },
+    setup: { title: t('phaseBanner.setupTitle'), subtitle: t('phaseBanner.setupSub') },
+    active_first: { title: t('phaseBanner.activeTitle'), subtitle: t('phaseBanner.activeSub') },
+    active_second: { title: t('phaseBanner.activeTitle'), subtitle: t('phaseBanner.activeSub') },
     main_first: { title: mainTitle, subtitle: '' },
     main_second: { title: mainTitle, subtitle: '' },
-    live_set: { title: 'LIVE Phase', subtitle: 'Place 0–3 cards (Live or Member), then end LIVE Phase' },
-    live_set_first: { title: 'LIVE Phase', subtitle: 'Place 0–3 cards (Live or Member), then end LIVE Phase' },
-    live_set_second: { title: 'LIVE Phase', subtitle: 'Place 0–3 cards (Live or Member), then end LIVE Phase' },
-    live_start_effects: { title: 'Live Start', subtitle: 'Optional effects before Performance' },
-    live_success_effects: { title: 'Live Success', subtitle: 'Optional effects after hearts' },
-    live_performance_first: { title: 'Performance Phase', subtitle: 'Reveal · Yell · Hearts' },
-    live_performance_second: { title: 'Performance Phase', subtitle: 'Reveal · Yell · Hearts' },
-    live_judge: { title: 'Live Win/Loss Check', subtitle: 'Comparing Live scores…' },
+    live_set: { title: t('phaseBanner.liveTitle'), subtitle: t('phaseBanner.liveSub') },
+    live_set_first: { title: t('phaseBanner.liveTitle'), subtitle: t('phaseBanner.liveSub') },
+    live_set_second: { title: t('phaseBanner.liveTitle'), subtitle: t('phaseBanner.liveSub') },
+    live_start_effects: { title: t('phaseBanner.liveStartTitle'), subtitle: t('phaseBanner.liveStartSub') },
+    live_success_effects: { title: t('phaseBanner.liveSuccessTitle'), subtitle: t('phaseBanner.liveSuccessSub') },
+    live_performance_first: { title: t('phaseBanner.performanceTitle'), subtitle: t('phaseBanner.performanceSub') },
+    live_performance_second: { title: t('phaseBanner.performanceTitle'), subtitle: t('phaseBanner.performanceSub') },
+    live_judge: { title: t('phaseBanner.liveJudgeTitle'), subtitle: t('phaseBanner.liveJudgeSub') },
   };
   return map[phase] || { title: hPhase(phase), subtitle: '' };
 }
@@ -29355,7 +29428,10 @@ function renderPhaseBar(s,me,opp,myId,oppId) {
   const msgE=el('pmsg'), btnsE=el('pbtns');
   btnsE.innerHTML='';
   if (G.isSpectator) {
-    msgE.textContent = `Spectating — ${me.name || 'Player 1'} vs ${opp.name || 'Player 2'} (read only)`;
+    msgE.textContent = t('phaseMsg.spectating', {
+      p1: me.name || 'Player 1',
+      p2: opp.name || 'Player 2',
+    });
     return;
   }
   const isMe=s.active_player===myId;
@@ -29370,16 +29446,16 @@ function renderPhaseBar(s,me,opp,myId,oppId) {
 
   if(ph==='setup'){
     if(me.ready_mulligan && !opp.ready_mulligan){
-      msgE.textContent='Waiting for opponent to finish mulligan…';
+      msgE.textContent = t('phaseMsg.setupWaitMulligan');
     } else {
-      msgE.textContent='Preparation — review your opening hand, mulligan any cards, then confirm.';
+      msgE.textContent = t('phaseMsg.setupMulligan');
     }
   }
-  else if(ph==='coin_flip'){msgE.textContent='Coin flip — winner chooses who goes first…';}
+  else if(ph==='coin_flip'){msgE.textContent = t('phaseMsg.coinFlip');}
   else if(ph==='main_first'||ph==='main_second'){
     if(isMe){
-      msgE.innerHTML=`Your Main Phase — play Members (${energyCostHtml(ae)} available). End Main Phase when ready.`;
-    } else { msgE.textContent=`${possessiveName(opp.name)} turn — Main Phase…`; }
+      msgE.innerHTML = t('phaseMsg.mainYour', { energy: '__ENERGY__' }).replace('__ENERGY__', energyCostHtml(ae));
+    } else { msgE.textContent = phaseBarOppMainText(opp.name); }
   }
   else if(ph==='live_set'){
     const ready = s.live_ready || {};
@@ -29389,29 +29465,29 @@ function renderPhaseBar(s,me,opp,myId,oppId) {
     const sel = G.liveSel.length;
     if(!myReady){
       if (sel) {
-        msgE.textContent = `LIVE Phase — ${sel} card${sel > 1 ? 's' : ''} raised · tap hand to adjust · confirm with the button below the log`;
+        msgE.textContent = t(sel > 1 ? 'phaseMsg.liveRaisedPlural' : 'phaseMsg.liveRaised', { count: sel });
       } else if (stored) {
         const slots = liveSlotsLeft(s, myId);
-        msgE.textContent = `LIVE Phase — ${stored} in storage · place up to ${slots} more (Live or Member), or end LIVE Phase below the log`;
+        msgE.textContent = t('phaseMsg.liveStored', { stored, slots });
       } else {
         const slots = liveSlotsLeft(s, myId);
-        msgE.textContent = `LIVE Phase — place 0–${slots} cards (Live or Member), then end LIVE Phase · button below the log`;
+        msgE.textContent = t('phaseMsg.livePlace', { slots });
       }
     } else {
       msgE.textContent = oppReady
-        ? 'Both players locked in — Performance starting…'
-        : 'You locked in — waiting for opponent to finish LIVE selection…';
+        ? t('phaseMsg.liveBothLocked')
+        : t('phaseMsg.liveYouLocked');
     }
   }
   else if(ph==='live_start_effects'){
-    msgE.textContent='Resolve Live Start prompts — optional effects will appear as overlays.';
+    msgE.textContent = t('phaseMsg.liveStartEffects');
   }
   else if(ph==='live_success_effects'){
-    msgE.textContent='Resolve Live Success prompts — optional effects will appear as overlays.';
+    msgE.textContent = t('phaseMsg.liveSuccessEffects');
   }
   else if(ph==='live_performance_first'||ph==='live_performance_second')
-    {msgE.textContent='Performance Phase — Yell · hearts · Live success check';}
-  else if(ph==='live_judge'){msgE.textContent='Live Win/Loss Check Phase…';}
+    {msgE.textContent = t('phaseMsg.performance');}
+  else if(ph==='live_judge'){msgE.textContent = t('phaseMsg.liveJudge');}
   else {msgE.textContent='';}
   updatePhaseActionButton(s, myId);
 }
@@ -29525,7 +29601,7 @@ function updateOpponentSkillWaitBanner(s, myId) {
   const src = pr?.source_name || '';
   root.hidden = false;
   root.classList.add('show');
-  if (titleEl) setSplashTitle(titleEl, `${oppName} is activating a skill…`);
+  if (titleEl) setSplashTitle(titleEl, t('game.oppActivatingSkill', { name: oppName }));
   if (sub) sub.textContent = src ? `${oppName} — ${src}` : '';
   appendOpponentSkillWaitLog(s, myId, pr);
 }
@@ -32440,10 +32516,10 @@ function openHandPick({hand,count,title,msg,onConfirm,onCancel,min,allowCancel=t
   const singleTap=!forceConfirm&&need===1&&minPick===1;
   G.handPickCtx={count:need,min:minPick,singleTap,onConfirm,onCancel};
   G.pickMarked.clear();
-  el('hpick-ttl').textContent=title||'Choose from hand';
+  el('hpick-ttl').textContent=title||t('prompt.chooseFromHand');
   el('hpick-msg').textContent=localizeSubunitText(msg||(singleTap
-    ? 'Choose a card to send to the Waiting Room.'
-    : `Choose ${need} card(s) to send to the Waiting Room.`));
+    ? t('prompt.discardOne')
+    : t('prompt.discardMany', { count: need })));
   const fan=el('hpick-fan'); fan.innerHTML='';
   (hand||[]).forEach(card=>{
     fan.appendChild(mkPickCardEl(card,'hand-pick-card',()=>{
@@ -32465,7 +32541,7 @@ function openHandPick({hand,count,title,msg,onConfirm,onCancel,min,allowCancel=t
     }));
   });
   el('hpick-count').textContent=singleTap
-    ? (confirmLabel || 'Tap a card to confirm.')
+    ? (confirmLabel || t('prompt.tapCardConfirm'))
     : `Selected: 0/${need}`;
   const showActions = !singleTap;
   el('hpick-actions').style.display = showActions ? 'flex' : 'none';
@@ -32661,10 +32737,10 @@ function ensurePromptChoices(pr){
     choices:['yes','no'],
     choice_labels:Array.isArray(pr.choice_labels)&&pr.choice_labels.length>=2
       ?pr.choice_labels
-      :['Yes','No — Skip'],
+      :[t('prompt.yes'), t('prompt.noSkip')],
     prompt:pr.prompt||(type==='optional_live_start'
-      ?'Use this Live Start effect?'
-      :'Use this effect?'),
+      ? t('prompt.useLiveStart')
+      : t('prompt.useEffect')),
   };
 }
 
@@ -32673,11 +32749,11 @@ function renderSelfActivationPrompt(pr, s, myId, box, branch){
   el('prompt-ttl').textContent=pr.source_name||'Card';
   renderPromptEffectText(pr.effect_text||'');
   const msgEl=el('prompt-msg');
-  msgEl.textContent=localizeSubunitText(pr.prompt||'Use this effect?');
+  msgEl.textContent=localizeSubunitText(pr.prompt||t('prompt.useEffect'));
   msgEl.className='prompt-cost-question';
   const subEl=el('prompt-sub');
   subEl.hidden=false;
-  subEl.textContent='Choose whether to activate this effect.';
+  subEl.textContent=t('prompt.activateSub');
   box.className='prompt-choice-list';
   box.innerHTML='';
   (pr.choices||[]).forEach((key,i)=>{
@@ -32697,7 +32773,7 @@ function sendResolvePrompt(choice, extra={}){
 function submitTextAnswerPrompt(pr, myId){
   const input=el('prompt-text-input');
   const text=(input?.value||'').trim();
-  if(!text){ toast('Type an answer first'); input?.focus(); return; }
+  if(!text){ toast(t('prompt.typeAnswer')); input?.focus(); return; }
   closeM('overlay-prompt');
   sendAct('resolve_prompt',{answer_text:text});
 }
@@ -33215,13 +33291,13 @@ function renderPrompt(s, myId){
       hand: me?.hand||[],
       count: need,
       min: need,
-      title: pr.source_name||'Discard from hand',
+      title: pr.source_name||t('prompt.discardFromHand'),
       msg: pr.prompt||((need)===1
-        ? 'Choose a card to send to the Waiting Room.'
-        : `Choose ${need} cards to send to the Waiting Room.`),
+        ? t('prompt.discardOne')
+        : t('prompt.discardMany', { count: need })),
       allowCancel: false,
       forceConfirm,
-      confirmLabel: forceConfirm && need > 1 ? 'Select cards, then tap Confirm.' : undefined,
+      confirmLabel: forceConfirm && need > 1 ? t('prompt.selectThenConfirm') : undefined,
       onConfirm: (ids)=> sendAct('resolve_prompt',{discard_ids:ids}),
     });
     return;
@@ -33946,25 +34022,25 @@ function syncCoinFlipChoiceUi(s, myId) {
 
   if (!coinFlipBothReady(s)) {
     el('coin-msg').textContent = winner === myId
-      ? 'Waiting for opponent to finish watching the flip…'
-      : 'Waiting for opponent…';
-    el('coin-result').textContent = `${winName} won the coin flip!`;
+      ? t('coin.waitingOppFlip')
+      : t('coin.waitingOpp');
+    el('coin-result').textContent = t('coin.wonFlip', { name: winName });
     openM('overlay-coin');
     return;
   }
 
   if (winner !== myId) {
-    el('coin-msg').textContent = `${winName} won the coin flip`;
-    el('coin-result').textContent = 'Choosing who goes first…';
+    el('coin-msg').textContent = t('coin.wonFlipShort', { name: winName });
+    el('coin-result').textContent = t('coin.winnerChoosing');
     openM('overlay-coin');
     return;
   }
 
-  el('coin-msg').textContent = 'Choose who goes first';
-  el('coin-result').textContent = 'You won the coin flip!';
+  el('coin-msg').textContent = t('coin.chooseFirst');
+  el('coin-result').textContent = t('coin.youWon');
   if (showCoinChoiceButtons()) {
-    el('btn-coin-first-self').textContent = "I'll go first";
-    el('btn-coin-first-opp').textContent = `${oppName} goes first`;
+    el('btn-coin-first-self').textContent = t('coin.goFirst');
+    el('btn-coin-first-opp').textContent = t('coin.oppGoesFirst', { name: oppName });
   }
   openM('overlay-coin');
 }
@@ -34379,7 +34455,7 @@ function toggleLiveSelect(iid, s, myId) {
   if (G.isTutorial) return;
   const card = findHand(iid, s, myId);
   if (!isLiveHandSelectable(card)) {
-    toast('Only Live or Member cards can go to Live storage');
+    toast(t('toast.onlyLiveOrMember'));
     return;
   }
   const slots = liveSlotsLeft(s, myId);
@@ -34390,7 +34466,7 @@ function toggleLiveSelect(iid, s, myId) {
     G.liveSel.push(iid);
     showHoverCardPreview(card, s, myId);
   } else {
-    toast(slots ? `Max ${slots} card${slots > 1 ? 's' : ''} for Live storage` : 'Live storage is full');
+    toast(slots ? t(slots > 1 ? 'toast.maxLiveStoragePlural' : 'toast.maxLiveStorage', { slots }) : t('toast.liveStorageFull'));
   }
   syncHandSelectionClasses(s, myId);
   updateLiveSetButton(s, myId);
@@ -34541,26 +34617,28 @@ function showWin(s){
   G.lastFinishedPvp = pvp;
   G.lastFinishedRematch = captureRematchSettings(s);
   if (s.end_reason === 'disconnect') {
-    el('wtitle').textContent = win ? 'You Win!' : 'You Lose!';
+    el('wtitle').textContent = win ? t('win.youWin') : t('win.youLose');
     el('wtitle').style.color = win ? 'var(--pink)' : 'rgba(255,255,255,.5)';
     el('wsub').textContent = iDisconnected
-      ? 'You were disconnected from the match.'
-      : `${oppName} disconnected.`;
+      ? t('win.disconnectedYou')
+      : t('win.disconnectedOpp', { name: oppName });
   } else if (resignedBy) {
-    el('wtitle').textContent=iResigned?'You Resigned':(win?'You Win!':'You Lose!');
-    el('wtitle').style.color=iResigned?'rgba(255,255,255,.55)':(win?'var(--pink)':'rgba(255,255,255,.5)');
-    el('wsub').textContent=iResigned?'You conceded the match.':`${oppName} resigned.`;
+    el('wtitle').textContent = iResigned ? t('win.resigned') : (win ? t('win.youWin') : t('win.youLose'));
+    el('wtitle').style.color = iResigned ? 'rgba(255,255,255,.55)' : (win ? 'var(--pink)' : 'rgba(255,255,255,.5)');
+    el('wsub').textContent = iResigned ? t('win.conceded') : t('win.oppResigned', { name: oppName });
   } else {
-    el('wtitle').textContent=win?'You Win!':'You Lose!';
-    el('wtitle').style.color=win?'var(--pink)':'rgba(255,255,255,.5)';
-    el('wsub').textContent=`${wName} achieved 3 successful Lives!`;
+    el('wtitle').textContent = win ? t('win.youWin') : t('win.youLose');
+    el('wtitle').style.color = win ? 'var(--pink)' : 'rgba(255,255,255,.5)';
+    el('wsub').textContent = t('win.threeLives', { name: wName });
   }
-  el('wstats').innerHTML=`Turn: <b>${s.turn||'?'}</b> &nbsp;|&nbsp; `+
-    `Your successes: <b>${(me?.success_lives||[]).length}/3</b> &nbsp;|&nbsp; `+
-    `Opp successes: <b>${(opp?.success_lives||[]).length}/3</b>`;
+  el('wstats').textContent = t('win.statsLine', {
+    turn: s.turn || '?',
+    yours: (me?.success_lives || []).length,
+    opp: (opp?.success_lives || []).length,
+  });
   el('btn-win-hub').hidden = false;
   el('btn-win-leaderboard').hidden = !(pvp && s.mode === 'ranked');
-  el('btn-again').textContent = (pvp && (s.mode === 'ranked' || G.casualRandomMatch)) ? 'Find Another Match' : 'Play Again';
+  el('btn-again').textContent = (pvp && (s.mode === 'ranked' || G.casualRandomMatch)) ? t('win.findAnother') : t('win.playAgain');
   el('overlay-win').classList.add('open');
 }
 // ── TUTORIAL MODE ────────────────────────────────────

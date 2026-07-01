@@ -27,6 +27,13 @@
     },
     "hub": {
       "signedIn": "Signed in",
+      "signedInAs": "Signed in as",
+      "signedInAsHtml": "Signed in as <b>{name}</b>",
+      "dailyBoosters": "Daily boosters: {remaining} / {limit} remaining today (JST)",
+      "dailyWelcomeBonus": " (welcome bonus!)",
+      "daily": "Daily boosters: {remaining} / {limit} remaining today (JST)",
+      "dailyBonus": " (welcome bonus!)",
+      "rankLine": "ELO {elo} · {wins}W-{losses}L · {winPct}% win",
       "options": "Options",
       "signOut": "Sign out",
       "openBoosters": "Open Boosters",
@@ -69,7 +76,14 @@
       "backHub": "← Hub",
       "orJoinFriend": "or join a friend",
       "orMatchRandomly": "or match randomly",
-      "casualHint": "Casual PvP — no ELO or ranked record"
+      "casualHint": "Casual PvP — no ELO or ranked record",
+      "experimentDeckPassword": "Experiment deck password",
+      "experimentPasswordPlaceholder": "8-letter code",
+      "experimentDeckBtn": "Deck Experiment",
+      "experimentDeckHint": "Build in Deck Experiment, generate a password, then enter it here — or pick a saved deck below.",
+      "secondsLabel": "{n}s",
+      "casualQueueStats": "{waiting} waiting · {inGame} in casual games",
+      "casualSearching": "Searching for opponent… ({seconds}s)"
     },
     "deck": {
       "title": "Deck Builder",
@@ -86,7 +100,29 @@
       "clear": "Clear",
       "hint": "Auto-build optimizes from your collection · tap to add/remove · hover to preview",
       "hoverEmpty": "Hover a deck card to preview it here.",
-      "backHub": "← Hub"
+      "backHub": "← Hub",
+      "backMenu": "← Menu",
+      "deckPassword": "Deck password",
+      "deckPasswordPlaceholder": "Enter password to load",
+      "load": "Load",
+      "savedPassword": "Saved password:",
+      "copy": "Copy",
+      "cardPool": "Card pool",
+      "resetStarter": "Reset starter",
+      "useStarter": "Use starter",
+      "randomDeck": "Random deck",
+      "updateSavedDeck": "Update saved deck",
+      "generatePassword": "Generate password",
+      "experimentHint": "Full card pool · build a legal deck to generate a password · hold or right-click cards for details",
+      "collectionOwned": "Total cards owned · {count}",
+      "collectionLoading": "Full card pool · loading…",
+      "collectionMatch": "Collection · {match} match",
+      "deckStats": "Total {total}/72 · Members {members}/48 · Lives {lives}/12 · Energy {energy}/12",
+      "deckEmpty": "Tap cards from your collection to build a deck.",
+      "deckEmptyExperiment": "Tap cards from the pool to build a legal 60+12 deck.",
+      "experimentStarterTitle": "Choose starter deck",
+      "experimentStarterLead": "Load an official starter list as your base — edit freely from the full card pool.",
+      "equippedRanked": "Equipped for ranked."
     },
     "booster": {
       "title": "Open Boosters",
@@ -94,6 +130,8 @@
       "packOpened": "Pack Opened",
       "godPack": "GOD PACK!",
       "openAnother": "Open another pack",
+      "openSameAgain": "Open same again",
+      "packsLeft": "{n} pack(s) left today (JST)",
       "mainMenu": "Main menu",
       "backHub": "← Hub"
     },
@@ -107,7 +145,28 @@
       "matchSound": "Play sound when match is found",
       "leaderboard": "Leaderboard",
       "leaderboardTitle": "Ranked Leaderboard",
-      "backHub": "← Hub"
+      "backHub": "← Hub",
+      "infoLine": "ELO {elo} · {record}",
+      "record": "{wins}W-{losses}L · {winPct}% win",
+      "recordFull": "{wins}W-{losses}L · {winPct}% win · {lossPct}% loss",
+      "queueStats": "{waiting} waiting · {inGame} in ranked games",
+      "searching": "Searching… ({seconds}s)",
+      "readySearch": "Ready to search"
+    },
+    "leaderboard": {
+      "title": "Ranked Leaderboard",
+      "lead": "Highest ELO from ranked PvP. Set a card banner for your profile row.",
+      "empty": "No ranked games yet — play ranked PvP to appear here.",
+      "editBanner": "Edit profile banner",
+      "eloSuffix": " ELO",
+      "eloLabel": "{elo} ELO",
+      "profileBanner": "Profile banner",
+      "bannerLead": "Choose a card you own, then drag the strip vertically to pick the art shown on your leaderboard card.",
+      "bannerSearchPlaceholder": "Search by card name…",
+      "bannerNoMatch": "No cards match your search.",
+      "bannerPreview": "Preview",
+      "saveBanner": "Save banner",
+      "selectCardFirst": "Select a card first"
     },
     "options": {
       "title": "Options",
@@ -128,8 +187,10 @@
       "roomCreated": "Room Created!",
       "shareCode": "Share this code with your opponent:",
       "tapCopy": "Tap to copy 📋",
+      "clickCopy": "Click to copy",
       "waitingOpponent": "Waiting for opponent to join…",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "phaseTimerInfo": "Phase timer: {sec}s per Main & LIVE turn"
     },
     "game": {
       "you": "You",
@@ -156,16 +217,104 @@
       "activatableSkills": "Activatable skills",
       "activeEffects": "Active effects",
       "hoverHandEmpty": "Hover a card in your hand to preview it here.",
-      "starting": "Starting…"
+      "starting": "Starting…",
+      "hand": "Hand",
+      "wr": "WR",
+      "spectating": "Spectating — {p1} vs {p2} (read only)",
+      "oppActivatingSkill": "{name} is activating a skill…",
+      "activeEnergy": "active",
+      "pickSlot": "Pick a slot",
+      "baton": "Baton",
+      "opponentSkillWait": "{name} is activating a skill…",
+      "perfYou": "You",
+      "perfOpp": "Opponent"
+    },
+    "slot": {
+      "left": "Left",
+      "center": "Center",
+      "right": "Right"
     },
     "phase": {
-      "setup": "Setup",
+      "waiting": "Waiting",
+      "setup": "Preparation (Mulligan)",
       "main": "Main Phase",
+      "main_first": "Main Phase",
+      "main_second": "Main Phase",
       "live": "LIVE Phase",
+      "live_set": "LIVE Phase",
+      "live_set_first": "LIVE Phase",
+      "live_set_second": "LIVE Phase",
+      "live_start_effects": "Live Start",
+      "live_success_effects": "Live Success",
       "performance": "Performance Phase",
+      "live_performance_first": "Performance Phase",
+      "live_performance_second": "Performance Phase",
       "coinFlip": "Coin Flip",
       "preparation": "Preparation",
-      "active": "Active Phase"
+      "active": "Active Phase",
+      "active_first": "Active Phase",
+      "active_second": "Active Phase",
+      "live_judge": "Live Win/Loss Check"
+    },
+    "phaseId": {
+      "waiting": "Waiting",
+      "coin_flip": "Coin Flip",
+      "setup": "Preparation (Mulligan)",
+      "active_first": "Active Phase",
+      "active_second": "Active Phase",
+      "main_first": "Main Phase",
+      "main_second": "Main Phase",
+      "live_set": "LIVE Phase",
+      "live_set_first": "LIVE Phase",
+      "live_set_second": "LIVE Phase",
+      "live_start_effects": "Live Start",
+      "live_success_effects": "Live Success",
+      "live_performance_first": "Performance Phase",
+      "live_performance_second": "Performance Phase",
+      "live_judge": "Live Win/Loss Check"
+    },
+    "phaseBar": {
+      "spectating": "Spectating — {p1} vs {p2} (read only)",
+      "setupWaitMulligan": "Waiting for opponent to finish mulligan…",
+      "setupMulligan": "Preparation — review your opening hand, mulligan any cards, then confirm.",
+      "coinFlip": "Coin flip — winner chooses who goes first…",
+      "mainYour": "Your Main Phase — play Members ({energy} available). End Main Phase when ready.",
+      "mainOpp": "{name}'s turn — Main Phase…",
+      "mainOppS": "{name}' turn — Main Phase…",
+      "liveRaised": "LIVE Phase — {count} card raised · tap hand to adjust · confirm with the button below the log",
+      "liveRaisedPlural": "LIVE Phase — {count} cards raised · tap hand to adjust · confirm with the button below the log",
+      "liveStored": "LIVE Phase — {stored} in storage · place up to {slots} more (Live or Member), or end LIVE Phase below the log",
+      "livePlace": "LIVE Phase — place 0–{slots} cards (Live or Member), then end LIVE Phase · button below the log",
+      "liveBothLocked": "Both players locked in — Performance starting…",
+      "liveYouLocked": "You locked in — waiting for opponent to finish LIVE selection…",
+      "liveStartEffects": "Resolve Live Start prompts — optional effects will appear as overlays.",
+      "liveSuccessEffects": "Resolve Live Success prompts — optional effects will appear as overlays.",
+      "performance": "Performance Phase — Yell · hearts · Live success check",
+      "liveJudge": "Live Win/Loss Check Phase…"
+    },
+    "phaseBanner": {
+      "coinFlipTitle": "Coin Flip",
+      "coinFlipSub": "Winner chooses who goes first",
+      "setupTitle": "Preparation",
+      "setupSub": "Optional mulligan (one swap)",
+      "activeTitle": "Active Phase",
+      "activeSub": "Refresh Energy & Members",
+      "mainYour": "Your Main Phase",
+      "mainOpp": "{name}'s Main Phase",
+      "mainOppS": "{name}' Main Phase",
+      "liveTitle": "LIVE Phase",
+      "liveSub": "Place 0–3 cards (Live or Member), then end LIVE Phase",
+      "liveStartTitle": "Live Start",
+      "liveStartSub": "Optional effects before Performance",
+      "liveSuccessTitle": "Live Success",
+      "liveSuccessSub": "Optional effects after hearts",
+      "performanceTitle": "Performance Phase",
+      "performanceSub": "Reveal · Yell · Hearts",
+      "liveJudgeTitle": "Live Win/Loss Check",
+      "liveJudgeSub": "Comparing Live scores…",
+      "yourMain": "Your Main Phase",
+      "theirMain": "{name}'s Main Phase",
+      "theirMainS": "{name}' Main Phase"
     },
     "mulligan": {
       "title": "Opening Hand 🌸",
@@ -177,7 +326,15 @@
       "flipping": "Flipping coin…",
       "goFirst": "I'll go first",
       "escortFirst": "Escort goes first",
-      "opponentFirst": "Opponent goes first"
+      "opponentFirst": "Opponent goes first",
+      "waitingOppFlip": "Waiting for opponent to finish watching the flip…",
+      "waitingOpp": "Waiting for opponent…",
+      "wonFlip": "{name} won the coin flip!",
+      "wonFlipShort": "{name} won the coin flip",
+      "winnerChoosing": "Choosing who goes first…",
+      "chooseFirst": "Choose who goes first",
+      "youWon": "You won the coin flip!",
+      "oppGoesFirst": "{name} goes first"
     },
     "live": {
       "overlayTitle": "LIVE Phase — Set Cards",
@@ -197,7 +354,21 @@
       "respond": "Respond",
       "chooseCards": "Choose cards",
       "chooseFromHand": "Choose from hand",
-      "chooseHeart": "Choose a heart"
+      "chooseHeart": "Choose a heart",
+      "discardFromHand": "Discard from hand",
+      "discardOne": "Choose a card to send to the Waiting Room.",
+      "discardMany": "Choose {count} cards to send to the Waiting Room.",
+      "selectThenConfirm": "Select cards, then tap Confirm.",
+      "tapCardConfirm": "Tap a card to confirm.",
+      "yes": "Yes",
+      "noSkip": "No — Skip",
+      "skip": "Skip",
+      "tapOption": "Tap an option below.",
+      "useLiveStart": "Use this Live Start effect?",
+      "useEffect": "Use this effect?",
+      "answer": "Answer",
+      "typeAnswer": "Type your answer…",
+      "activateSub": "Choose whether to activate this effect."
     },
     "card": {
       "cost": "Cost",
@@ -215,7 +386,16 @@
       "youWin": "You Win!",
       "youLose": "You Lose!",
       "playAgain": "Play Again",
-      "returnMenu": "Return to Menu"
+      "returnMenu": "Return to Menu",
+      "viewLeaderboard": "View Leaderboard",
+      "resigned": "You Resigned",
+      "conceded": "You conceded the match.",
+      "oppResigned": "{name} resigned.",
+      "threeLives": "{name} achieved 3 successful Lives!",
+      "findAnother": "Find Another Match",
+      "disconnectedYou": "You were disconnected from the match.",
+      "disconnectedOpp": "{name} disconnected.",
+      "statsLine": "Turn: {turn} | Your successes: {yours}/3 | Opp successes: {opp}/3"
     },
     "tutorial": {
       "exitTitle": "Exit to Title",
@@ -306,7 +486,37 @@
       "back": "← Back",
       "hubBack": "← Hub",
       "confirm": "Confirm",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "copy": "Copy",
+      "load": "Load",
+      "preview": "Preview",
+      "menu": "Main menu",
+      "seconds": "{n}s",
+      "ok": "OK"
+    },
+    "toast": {
+      "reconnected": "Reconnected to your game",
+      "leftActiveMatch": "Left active match",
+      "noActiveMatch": "No active match found",
+      "noCardId": "No card ID to copy",
+      "cardIdCopied": "Card ID copied",
+      "couldNotCopyCardId": "Could not copy card ID",
+      "signInDeckBuilder": "Sign in to use the Deck Builder.",
+      "signOutDeckExperiment": "Sign out to use Deck Experiment.",
+      "rankedMatchFound": "Ranked match found!",
+      "casualMatchFound": "Casual match found!",
+      "passwordCopied": "Password copied",
+      "copyFailed": "Copy failed",
+      "copied": "Copied! 📋",
+      "liveOnly": "Only Live or Member cards can go to Live storage",
+      "onlyLiveOrMember": "Only Live or Member cards can go to Live storage",
+      "maxLiveCards": "Max {slots} card for Live storage",
+      "maxLiveCardsPlural": "Max {slots} cards for Live storage",
+      "maxLiveStorage": "Max {slots} card for Live storage",
+      "maxLiveStoragePlural": "Max {slots} cards for Live storage",
+      "liveStorageFull": "Live storage is full",
+      "logCopied": "Log copied",
+      "couldNotCopyLog": "Could not copy log"
     },
     "tutorialUi": {
       "exitTitle": "Exit to Title",
@@ -334,6 +544,13 @@
     },
     "hub": {
       "signedIn": "サインイン済み",
+      "signedInAs": "サインイン中：",
+      "signedInAsHtml": "サインイン中：<b>{name}</b>",
+      "dailyBoosters": "デイリーブースター：本日（JST）残り {remaining} / {limit}",
+      "dailyWelcomeBonus": "（ウェルカムボーナス！）",
+      "daily": "デイリーブースター：本日（JST）残り {remaining} / {limit}",
+      "dailyBonus": "（ウェルカムボーナス！）",
+      "rankLine": "ELO {elo} · {wins}勝-{losses}敗 · 勝率 {winPct}%",
       "options": "オプション",
       "signOut": "サインアウト",
       "openBoosters": "ブースターを開封",
@@ -376,7 +593,14 @@
       "backHub": "← ハブ",
       "orJoinFriend": "またはフレンドのルームに参加",
       "orMatchRandomly": "またはランダムマッチ",
-      "casualHint": "カジュアルPvP——ELOやランク記録なし"
+      "casualHint": "カジュアルPvP——ELOやランク記録なし",
+      "experimentDeckPassword": "実験デッキパスワード",
+      "experimentPasswordPlaceholder": "8文字コード",
+      "experimentDeckBtn": "デッキ実験",
+      "experimentDeckHint": "デッキ実験で構築しパスワードを発行してここに入力——または下から保存済みデッキを選択。",
+      "secondsLabel": "{n}秒",
+      "casualQueueStats": "待機 {waiting} · カジュアル対戦中 {inGame}",
+      "casualSearching": "相手を検索中…（{seconds}秒）"
     },
     "deck": {
       "title": "デッキビルダー",
@@ -393,7 +617,29 @@
       "clear": "クリア",
       "hint": "自動構築はコレクションから最適化 · タップで追加/削除 · ホバーでプレビュー",
       "hoverEmpty": "デッキのカードにホバーしてプレビュー。",
-      "backHub": "← ハブ"
+      "backHub": "← ハブ",
+      "backMenu": "← メニュー",
+      "deckPassword": "デッキパスワード",
+      "deckPasswordPlaceholder": "読み込み用パスワードを入力",
+      "load": "読み込み",
+      "savedPassword": "保存済みパスワード：",
+      "copy": "コピー",
+      "cardPool": "カードプール",
+      "resetStarter": "スターターリセット",
+      "useStarter": "スターターを使用",
+      "randomDeck": "ランダムデッキ",
+      "updateSavedDeck": "保存デッキを更新",
+      "generatePassword": "パスワード発行",
+      "experimentHint": "全カードプール · 合法デッキを組んでパスワード発行 · 長押しまたは右クリックで詳細",
+      "collectionOwned": "所持カード合計 · {count}",
+      "collectionLoading": "全カードプール · 読み込み中…",
+      "collectionMatch": "コレクション · {match} 件一致",
+      "deckStats": "合計 {total}/72 · メンバー {members}/48 · ライブ {lives}/12 · エネルギー {energy}/12",
+      "deckEmpty": "コレクションからカードをタップしてデッキを構築。",
+      "deckEmptyExperiment": "プールからカードをタップして合法60+12デッキを構築。",
+      "experimentStarterTitle": "スターターデッキを選ぶ",
+      "experimentStarterLead": "公式スターターリストを基盤に読み込み——全カードプールから自由に編集。",
+      "equippedRanked": "ランク用に装備しました。"
     },
     "booster": {
       "title": "ブースターを開封",
@@ -401,6 +647,8 @@
       "packOpened": "パック開封完了",
       "godPack": "GOD PACK!",
       "openAnother": "もう1パック開封",
+      "openSameAgain": "同じパックをもう一度",
+      "packsLeft": "本日（JST）残り {n} パック",
       "mainMenu": "メインメニュー",
       "backHub": "← ハブ"
     },
@@ -414,7 +662,28 @@
       "matchSound": "マッチ成立時に音を鳴らす",
       "leaderboard": "リーダーボード",
       "leaderboardTitle": "ランクリーダーボード",
-      "backHub": "← ハブ"
+      "backHub": "← ハブ",
+      "infoLine": "ELO {elo} · {record}",
+      "record": "{wins}勝-{losses}敗 · 勝率 {winPct}%",
+      "recordFull": "{wins}勝-{losses}敗 · 勝率 {winPct}% · 敗率 {lossPct}%",
+      "queueStats": "待機 {waiting} · ランク対戦中 {inGame}",
+      "searching": "検索中…（{seconds}秒）",
+      "readySearch": "検索可能"
+    },
+    "leaderboard": {
+      "title": "ランクリーダーボード",
+      "lead": "ランクPvPの最高ELO。プロフィール行にカードバナーを設定できます。",
+      "empty": "ランク対戦の記録がまだありません——ランクPvPでプレイして掲載しましょう。",
+      "editBanner": "プロフィールバナーを編集",
+      "eloSuffix": " ELO",
+      "eloLabel": "ELO {elo}",
+      "profileBanner": "プロフィールバナー",
+      "bannerLead": "所持カードを選び、縦にドラッグしてリーダーボードカードに表示するアートを選んでください。",
+      "bannerSearchPlaceholder": "カード名で検索…",
+      "bannerNoMatch": "検索に一致するカードがありません。",
+      "bannerPreview": "プレビュー",
+      "saveBanner": "バナーを保存",
+      "selectCardFirst": "先にカードを選択してください"
     },
     "options": {
       "title": "オプション",
@@ -435,8 +704,10 @@
       "roomCreated": "ルーム作成完了！",
       "shareCode": "相手にこのコードを共有：",
       "tapCopy": "タップでコピー 📋",
+      "clickCopy": "クリックでコピー",
       "waitingOpponent": "相手の参加を待っています…",
-      "cancel": "キャンセル"
+      "cancel": "キャンセル",
+      "phaseTimerInfo": "フェイズタイマー：メイン＆ライブ各ターン {sec}秒"
     },
     "game": {
       "you": "あなた",
@@ -463,16 +734,104 @@
       "activatableSkills": "起動可能スキル",
       "activeEffects": "有効な効果",
       "hoverHandEmpty": "手札のカードにホバーしてプレビュー。",
-      "starting": "開始中…"
+      "starting": "開始中…",
+      "hand": "手札",
+      "wr": "控え室",
+      "spectating": "観戦中 — {p1} vs {p2}（閲覧のみ）",
+      "oppActivatingSkill": "{name}がスキルを発動中…",
+      "activeEnergy": "使用可能",
+      "pickSlot": "スロットを選択",
+      "baton": "バトン",
+      "opponentSkillWait": "{name}がスキルを発動中…",
+      "perfYou": "あなた",
+      "perfOpp": "相手"
+    },
+    "slot": {
+      "left": "左",
+      "center": "センター",
+      "right": "右"
     },
     "phase": {
-      "setup": "セットアップ",
+      "waiting": "待機",
+      "setup": "準備（マリガン）",
       "main": "メインフェイズ",
+      "main_first": "メインフェイズ",
+      "main_second": "メインフェイズ",
       "live": "ライブフェイズ",
+      "live_set": "ライブフェイズ",
+      "live_set_first": "ライブフェイズ",
+      "live_set_second": "ライブフェイズ",
+      "live_start_effects": "ライブ開始時",
+      "live_success_effects": "ライブ成功時",
       "performance": "パフォーマンスフェイズ",
+      "live_performance_first": "パフォーマンスフェイズ",
+      "live_performance_second": "パフォーマンスフェイズ",
       "coinFlip": "コイントス",
       "preparation": "準備",
-      "active": "アクティブフェイズ"
+      "active": "アクティブフェイズ",
+      "active_first": "アクティブフェイズ",
+      "active_second": "アクティブフェイズ",
+      "live_judge": "ライブ勝敗判定"
+    },
+    "phaseId": {
+      "waiting": "待機",
+      "coin_flip": "コイントス",
+      "setup": "準備（マリガン）",
+      "active_first": "アクティブフェイズ",
+      "active_second": "アクティブフェイズ",
+      "main_first": "メインフェイズ",
+      "main_second": "メインフェイズ",
+      "live_set": "ライブフェイズ",
+      "live_set_first": "ライブフェイズ",
+      "live_set_second": "ライブフェイズ",
+      "live_start_effects": "ライブ開始時",
+      "live_success_effects": "ライブ成功時",
+      "live_performance_first": "パフォーマンスフェイズ",
+      "live_performance_second": "パフォーマンスフェイズ",
+      "live_judge": "ライブ勝敗判定"
+    },
+    "phaseBar": {
+      "spectating": "観戦中 — {p1} vs {p2}（閲覧のみ）",
+      "setupWaitMulligan": "相手のマリガン完了を待っています…",
+      "setupMulligan": "準備 — 初期手札を確認し、交換するカードを選んで確定してください。",
+      "coinFlip": "コイントス — 勝者が先攻を選びます…",
+      "mainYour": "あなたのメインフェイズ — メンバーを出せます（{energy} 使用可能）。終わったらメインフェイズ終了。",
+      "mainOpp": "{name}のターン — メインフェイズ…",
+      "mainOppS": "{name}のターン — メインフェイズ…",
+      "liveRaised": "ライブフェイズ — {count}枚レイズ中 · 手札をタップで調整 · ログ下のボタンで確定",
+      "liveRaisedPlural": "ライブフェイズ — {count}枚レイズ中 · 手札をタップで調整 · ログ下のボタンで確定",
+      "liveStored": "ライブフェイズ — 置き場 {stored}枚 · あと{slots}枚まで（ライブまたはメンバー）、またはログ下でライブフェイズ終了",
+      "livePlace": "ライブフェイズ — 0〜{slots}枚を置いてライブフェイズ終了 · ボタンはログ下",
+      "liveBothLocked": "両者確定 — パフォーマンス開始…",
+      "liveYouLocked": "確定済み — 相手のライブ選択完了を待っています…",
+      "liveStartEffects": "ライブ開始時のプロンプトを解決 — 任意効果はオーバーレイで表示されます。",
+      "liveSuccessEffects": "ライブ成功時のプロンプトを解決 — 任意効果はオーバーレイで表示されます。",
+      "performance": "パフォーマンスフェイズ — エール · ハート · ライブ成功判定",
+      "liveJudge": "ライブ勝敗判定フェイズ…"
+    },
+    "phaseBanner": {
+      "coinFlipTitle": "コイントス",
+      "coinFlipSub": "勝者が先攻を選びます",
+      "setupTitle": "準備",
+      "setupSub": "任意のマリガン（1回交換）",
+      "activeTitle": "アクティブフェイズ",
+      "activeSub": "エネルギーとメンバーをリフレッシュ",
+      "mainYour": "あなたのメインフェイズ",
+      "mainOpp": "{name}のメインフェイズ",
+      "mainOppS": "{name}のメインフェイズ",
+      "liveTitle": "ライブフェイズ",
+      "liveSub": "0〜3枚（ライブまたはメンバー）を置き、ライブフェイズ終了",
+      "liveStartTitle": "ライブ開始時",
+      "liveStartSub": "パフォーマンス前の任意効果",
+      "liveSuccessTitle": "ライブ成功時",
+      "liveSuccessSub": "ハート判定後の任意効果",
+      "performanceTitle": "パフォーマンスフェイズ",
+      "performanceSub": "公開 · エール · ハート",
+      "liveJudgeTitle": "ライブ勝敗判定",
+      "liveJudgeSub": "ライブスコアを比較中…",
+      "yourMain": "あなたのメインフェイズ",
+      "theirMain": "{name}のメインフェイズ",
+      "theirMainS": "{name}のメインフェイズ"
     },
     "mulligan": {
       "title": "初期手札 🌸",
@@ -484,7 +843,15 @@
       "flipping": "コイントス中…",
       "goFirst": "自分が先攻",
       "escortFirst": "エスコートが先攻",
-      "opponentFirst": "相手が先攻"
+      "opponentFirst": "相手が先攻",
+      "waitingOppFlip": "相手がコイントス演出の完了を待っています…",
+      "waitingOpp": "相手を待っています…",
+      "wonFlip": "{name}がコイントスに勝利！",
+      "wonFlipShort": "{name}がコイントスに勝利",
+      "winnerChoosing": "先攻を選んでいます…",
+      "chooseFirst": "先攻を選んでください",
+      "youWon": "コイントスに勝利しました！",
+      "oppGoesFirst": "{name}が先攻"
     },
     "live": {
       "overlayTitle": "ライブフェイズ——カードをセット",
@@ -504,7 +871,21 @@
       "respond": "応答",
       "chooseCards": "カードを選ぶ",
       "chooseFromHand": "手札から選ぶ",
-      "chooseHeart": "ハートを選ぶ"
+      "chooseHeart": "ハートを選ぶ",
+      "discardFromHand": "手札から捨てる",
+      "discardOne": "控え室に送るカードを1枚選んでください。",
+      "discardMany": "控え室に送るカードを{count}枚選んでください。",
+      "selectThenConfirm": "カードを選び、確定をタップしてください。",
+      "tapCardConfirm": "カードをタップして確定。",
+      "yes": "はい",
+      "noSkip": "いいえ — スキップ",
+      "skip": "スキップ",
+      "tapOption": "下のオプションをタップしてください。",
+      "useLiveStart": "このライブ開始時効果を使いますか？",
+      "useEffect": "この効果を使いますか？",
+      "answer": "回答",
+      "typeAnswer": "回答を入力…",
+      "activateSub": "この効果を発動するか選んでください。"
     },
     "card": {
       "cost": "コスト",
@@ -522,7 +903,16 @@
       "youWin": "勝利！",
       "youLose": "敗北…",
       "playAgain": "もう一度",
-      "returnMenu": "メニューに戻る"
+      "returnMenu": "メニューに戻る",
+      "viewLeaderboard": "リーダーボードを見る",
+      "resigned": "降参しました",
+      "conceded": "対戦を降参しました。",
+      "oppResigned": "{name}が降参しました。",
+      "threeLives": "{name}がライブを3回成功しました！",
+      "findAnother": "別のマッチを探す",
+      "disconnectedYou": "対戦から切断されました。",
+      "disconnectedOpp": "{name}が切断しました。",
+      "statsLine": "ターン：{turn} | あなたの成功：{yours}/3 | 相手の成功：{opp}/3"
     },
     "tutorial": {
       "intro_welcome": "こんにちは！**渋谷かのん**です。**ラブライブ！オフィシャルカードゲーム**のチュートリアルへようこそ！",
@@ -615,8 +1005,38 @@
       "back": "← 戻る",
       "hubBack": "← ハブ",
       "confirm": "確定",
-      "cancel": "キャンセル"
-    }
+      "cancel": "キャンセル",
+      "copy": "コピー",
+      "load": "読み込み",
+      "preview": "プレビュー",
+      "menu": "メインメニュー",
+      "seconds": "{n}秒",
+      "ok": "OK"
+    },
+    "toast": {
+      "reconnected": "ゲームに再接続しました",
+      "leftActiveMatch": "進行中の対戦を退出しました",
+      "noActiveMatch": "進行中の対戦が見つかりません",
+      "noCardId": "コピーするカードIDがありません",
+      "cardIdCopied": "カードIDをコピーしました",
+      "couldNotCopyCardId": "カードIDをコピーできませんでした",
+      "signInDeckBuilder": "デッキビルダーを使うにはサインインしてください。",
+      "signOutDeckExperiment": "デッキ実験を使うにはサインアウトしてください。",
+      "rankedMatchFound": "ランクマッチが見つかりました！",
+      "casualMatchFound": "カジュアルマッチが見つかりました！",
+      "passwordCopied": "パスワードをコピーしました",
+      "copyFailed": "コピーに失敗しました",
+      "copied": "コピーしました 📋",
+      "liveOnly": "ライブ置き場にはライブまたはメンバーカードのみ置けます",
+      "onlyLiveOrMember": "ライブ置き場にはライブまたはメンバーカードのみ置けます",
+      "maxLiveCards": "ライブ置き場は最大{slots}枚です",
+      "maxLiveCardsPlural": "ライブ置き場は最大{slots}枚です",
+      "maxLiveStorage": "ライブ置き場は最大{slots}枚です",
+      "maxLiveStoragePlural": "ライブ置き場は最大{slots}枚です",
+      "liveStorageFull": "ライブ置き場がいっぱいです",
+      "logCopied": "ログをコピーしました",
+      "couldNotCopyLog": "ログをコピーできませんでした"
+    },
   }
 };
 
@@ -673,6 +1093,23 @@
       next: loc.tutorialUi && loc.tutorialUi.next,
       finish: loc.tutorialUi && loc.tutorialUi.finish,
     };
+    if (loc.phaseBar) loc.phaseMsg = Object.assign({}, loc.phaseBar);
+    if (loc.lobby) {
+      loc.lobby.experimentPwd = loc.lobby.experimentDeckPassword;
+      loc.lobby.experimentPwdPlaceholder = loc.lobby.experimentPasswordPlaceholder;
+      loc.lobby.experimentHint = loc.lobby.experimentDeckHint;
+      loc.lobby.deckExperiment = loc.lobby.experimentDeckBtn;
+    }
+    if (loc.deck) {
+      loc.deck.loadPwdPlaceholder = loc.deck.deckPasswordPlaceholder;
+    }
+    if (loc.hub) {
+      if (!loc.hub.dailyBoosters) loc.hub.dailyBoosters = loc.hub.daily;
+      if (!loc.hub.dailyWelcomeBonus) loc.hub.dailyWelcomeBonus = loc.hub.dailyBonus;
+    }
+    if (loc.game && loc.game.oppActivatingSkill && !loc.game.opponentSkillWait) {
+      loc.game.opponentSkillWait = loc.game.oppActivatingSkill;
+    }
   }
 
   mergeLocaleAliases(STRINGS.en);
