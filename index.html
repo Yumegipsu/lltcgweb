@@ -14053,7 +14053,10 @@ let G = {
   bindPlaymatResize();
   bindMobilePhaseDock();
   await Promise.all([loadCards(), accountReady]);
+  if (window.LLTCG_SFX?.init) await window.LLTCG_SFX.init();
   initFoilFxSetting();
+  initSfxSetting();
+  bindMenuSfx();
   initLocale(onLocaleChanged);
   try {
     const savedDiff = localStorage.getItem('tcg_cpu_difficulty');
@@ -31491,12 +31494,14 @@ function playToSlot(card, slot, s, myId, existing) {
         return;
       }
       sendAct('play_member',{card_id:card.instance_id,slot,baton_id:exist2.instance_id});
+      sfxPlay('card_play');
       return;
     }
     if (mode === 'overplay') {
       const ae=(me.energy_zone||[]).filter(energyChipActive).length;
       if(ae<ec){ toast(`Need ${energyCostHtml(ec)} to overplay`, 2500, true); return; }
       sendAct('play_member',{card_id:card.instance_id,slot});
+      sfxPlay('card_play');
       return;
     }
     toast('Cannot play to this slot');
@@ -31505,6 +31510,7 @@ function playToSlot(card, slot, s, myId, existing) {
     const ae=(me.energy_zone||[]).filter(energyChipActive).length;
     if(ae<ec){ toast(`Need ${energyCostHtml(ec)}`, 2500, true); return; }
     sendAct('play_member',{card_id:card.instance_id,slot});
+    sfxPlay('card_play');
   }
 }
 
@@ -34148,6 +34154,7 @@ function finishCoinFlipAnimation(s, myId) {
     return;
   }
   G._coinFlipAnimComplete = true;
+  sfxPlay('coin_land');
   const coin = el('coin-el');
   if (coin) coin.classList.remove('flipping');
   ensureCoinFlipAcked(G.gameState || s, myId);
@@ -34264,6 +34271,7 @@ function openMull(hand, opts = {}){
 function confirmMull(){
   const ids=[...G.mullMarked]; closeM('overlay-mull'); G.mullMarked.clear();
   G.mulliganPending = true;
+  sfxPlay('mulligan_keep');
   sendAct('mulligan',{card_ids:ids});
 }
 
@@ -36379,6 +36387,10 @@ function showScr(n){
     clearMatHands();
     el('screen-game')?.classList.add('prep-hands-hidden');
     syncCompactDesktopLayout();
+    G._sfxPhase = null;
+  } else if (n !== prevActive?.replace('screen-', '')) {
+    const menuScreens = new Set(['hub', 'deck', 'booster', 'ranked', 'leaderboard', 'lobby', 'options', 'starter', 'pack-results', 'waiting']);
+    if (menuScreens.has(n)) sfxPlay('screen_open', { volume: 0.75 });
   }
   tcgUpdatePhoneFsUI();
 }
@@ -36399,6 +36411,7 @@ let _tt;
 function toast(m, ms, asHtml=false){
   const text = asHtml ? String(m ?? '') : String(m ?? '').trim();
   if (!text) return;
+  if (!asHtml && /^error[:\s]/i.test(text)) sfxPlay('error', { volume: 0.8 });
   const t=el('toast');
   if(asHtml) t.innerHTML=m; else t.textContent=m;
   t.classList.add('show');
