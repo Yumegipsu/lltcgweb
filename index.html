@@ -13102,7 +13102,7 @@ function mergePerfYellRevealState(next, yellReveal) {
 }
 
 function liveStorageSideways(card) {
-  // Face-down opponent storage is redacted (card_no '?') — use landscape Live back, not member spin.
+  // Redacted opponent storage (card_no '?') — no storage-sideways-member shell spin.
   if (card?.card_no === '?' && !card.revealed) return false;
   if (!isLiveTypeCard(card)) return true;
   return !card.revealed;
@@ -13117,9 +13117,12 @@ function liveStorageUseCardSpin(card) {
   return false;
 }
 
-/** Portrait card back/face in a landscape live-storage frame (88:63 slot). */
+/** Portrait card back rotated into a landscape live-storage frame (88:63 slot). */
 function liveStorageBackLandscape(card) {
-  return liveStorageSideways(card);
+  if (!card) return false;
+  if (card.card_no === '?' && !card.revealed) return true;
+  if (!isLiveTypeCard(card)) return true;
+  return !card.revealed;
 }
 
 function appendCardBack(parent, { landscapeFrame = false } = {}) {
@@ -13144,7 +13147,7 @@ function appendLiveStorageBack(parent, card) {
 
 /** Flat card back for 3D flip faces (both sides rendered; back removed after flip). */
 function appendFlipBackFill(parent, card = null) {
-  if (card && liveStorageSideways(card)) {
+  if (card && liveStorageBackLandscape(card)) {
     return appendLiveStorageBack(parent, card);
   }
   const b = document.createElement('div');
@@ -15916,6 +15919,11 @@ function isMemberHandToLiveFlight(card, fromZone, toZone) {
   return isMemberCard(card) && fromZone === 'hand' && toZone === 'live';
 }
 
+/** Portrait (member or redacted) hand → landscape live storage — includes PvP opponent '?'. */
+function isPortraitHandToLiveFlight(card, fromZone, toZone) {
+  return fromZone === 'hand' && toZone === 'live' && !isLiveCard(card);
+}
+
 function isMemberLiveToHandFlight(card, fromZone, toZone) {
   return isMemberCard(card) && fromZone === 'live' && toZone === 'hand';
 }
@@ -15925,7 +15933,7 @@ function isMemberLiveToWrFlight(card, fromZone, toZone) {
 }
 
 function isMemberStorageCrossFlight(card, fromZone, toZone) {
-  return isMemberHandToLiveFlight(card, fromZone, toZone)
+  return isPortraitHandToLiveFlight(card, fromZone, toZone)
     || isMemberLiveToHandFlight(card, fromZone, toZone)
     || isMemberLiveToWrFlight(card, fromZone, toZone);
 }
@@ -15955,7 +15963,7 @@ function findLiveStorageCardNode(m) {
 
 function buildLiveStorageFlightBackNode(card, { portraitHandFill = false } = {}) {
   card = enrichCard(card);
-  if (liveStorageSideways(card)) {
+  if (liveStorageBackLandscape(card)) {
     const wrap = document.createElement('div');
     wrap.className = 'card-portrait-in-landscape' + (portraitHandFill ? ' member-flight-from-portrait' : '');
     const b = document.createElement('div');
@@ -15978,7 +15986,7 @@ function cloneHandLiveCrossBack(cardNode, card) {
     const existing = cardNode.querySelector('.card-portrait-in-landscape');
     if (existing) return existing.cloneNode(true);
   }
-  return buildLiveStorageFlightBackNode(card, { portraitHandFill: liveStorageSideways(card) });
+  return buildLiveStorageFlightBackNode(card, { portraitHandFill: liveStorageBackLandscape(card) });
 }
 
 function cloneHandLiveCrossFace(cardNode) {
@@ -16135,7 +16143,7 @@ function captureFlightArtClones(moves, myId = G.playerId, stateBefore = G.gameSt
         ? cloneHandLiveCrossBack(node, m.card)
         : cloneHandLiveCrossFace(node);
       if (clone) G._flightHandArtClones.set(m.iid, clone);
-    } else if (isMemberHandToLiveFlight(m.card, fromZone, toZone)) {
+    } else if (isPortraitHandToLiveFlight(m.card, fromZone, toZone)) {
       const node = findHandCardNode(m, stateBefore, myId);
       const clone = faceDown
         ? cloneHandMemberCrossBack(node, m.card)
@@ -16169,7 +16177,7 @@ function appendFlightFace(parent, card, orientClass, opts = {}) {
       return;
     }
   }
-  if (isMemberHandToLiveFlight(card, fromZone, toZone)) {
+  if (isPortraitHandToLiveFlight(card, fromZone, toZone)) {
     const handClone = iid && G._flightHandArtClones?.get(iid);
     if (handClone) {
       parent.appendChild(handClone);
@@ -16236,7 +16244,7 @@ function appendFlightFace(parent, card, orientClass, opts = {}) {
 function appendFlightLiveCrossBack(parent, card, opts = {}) {
   const { fromZone, toZone, iid = card?.instance_id } = opts;
   if (fromZone === 'hand') {
-    if (isMemberHandToLiveFlight(card, fromZone, toZone)) {
+    if (isPortraitHandToLiveFlight(card, fromZone, toZone)) {
       const handClone = iid && G._flightHandArtClones?.get(iid);
       if (handClone) {
         parent.appendChild(handClone);
@@ -16266,9 +16274,7 @@ function appendFlightLiveCrossBack(parent, card, opts = {}) {
       return;
     }
   }
-  const portraitHandFill = fromZone === 'hand'
-    && isLiveHandToLiveFlight(card, fromZone, toZone)
-    && liveStorageSideways(card);
+  const portraitHandFill = fromZone === 'hand' && toZone === 'live' && liveStorageBackLandscape(card);
   parent.appendChild(buildLiveStorageFlightBackNode(card, { portraitHandFill }));
 }
 
@@ -23571,7 +23577,7 @@ function flyCard(card, fromRect, toRect, delayMs = 0, opts = {}) {
               ghost.classList.add('member-storage-morph');
               const wrap = inner.querySelector('.card-portrait-in-landscape');
               if (wrap) {
-                if (isMemberHandToLiveFlight(card, fromZone, toZone)) {
+                if (isPortraitHandToLiveFlight(card, fromZone, toZone)) {
                   wrap.classList.remove('member-flight-from-portrait');
                 } else if (isMemberLiveToWrFlight(card, fromZone, toZone)
                     || isMemberLiveToHandFlight(card, fromZone, toZone)) {
