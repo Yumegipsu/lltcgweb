@@ -3698,24 +3698,29 @@ function addFromWaitingRoomFiltered(array &$p, string $group, string $filter, in
 
 function wrPickMatchCount(array $p, array $cfg, int $need = 1): int {
     $count = 0;
-    foreach ($p['waiting_room'] ?? [] as $c) {
+    foreach ($p['waiting_room'] ?? [] as &$c) {
+        hydrateWrCardForPick($c);
         if (cardMatchesWrPick($c, $cfg)) {
             $count++;
             if ($count >= $need) {
+                unset($c);
                 return $count;
             }
         }
     }
+    unset($c);
     return $count;
 }
 
 function wrCandidatesMatching(array $p, array $cfg): array {
     $out = [];
-    foreach ($p['waiting_room'] ?? [] as $c) {
+    foreach ($p['waiting_room'] ?? [] as &$c) {
+        hydrateWrCardForPick($c);
         if (cardMatchesWrPick($c, $cfg)) {
             $out[] = $c;
         }
     }
+    unset($c);
     return $out;
 }
 
@@ -3734,6 +3739,19 @@ function wrPickCfgFromAbility(array $ab): array {
         $cfg['min_required_heart_color'] = (string)$ab['min_required_heart_color'];
     }
     return $cfg;
+}
+
+/** leave_stage_add_from_wr defaults to Live when filter omitted; other WR picks default to Member. */
+function wrPickCfgForLeaveStageAbility(array $ab): array {
+    $cfg = wrPickCfgFromAbility($ab);
+    if (($ab['type'] ?? '') === 'leave_stage_add_from_wr' && !isset($ab['filter'])) {
+        $cfg['filter'] = 'live';
+    }
+    return $cfg;
+}
+
+function hydrateWrCardForPick(array &$card): void {
+    mergeCardCatalogFields($card);
 }
 
 /**
@@ -3919,7 +3937,7 @@ function activatedAbilityWrBlockReason(array $p, array $ab): ?string {
             return 'no matching card in Waiting Room.';
 
         case 'leave_stage_add_from_wr':
-            $cfg = ['group' => $ab['group'] ?? '', 'filter' => $ab['filter'] ?? 'live'];
+            $cfg = wrPickCfgForLeaveStageAbility($ab);
             if (wrPickMatchCount($p, $cfg, 1) >= 1) {
                 return null;
             }
@@ -9747,6 +9765,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
     $onEnterWr = !empty($data['_on_enter_wr_activate']);
     if (!$onEnterWr) {
         validateTurn($state, $pid, 'main');
+        assertNoPendingPromptForPlayerAction($state, $pid);
     }
 
     $instanceId = $data['card_id'] ?? '';
@@ -9768,6 +9787,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
     } else {
         $member = $found['card'];
     }
+    mergeCardCatalogFields($member);
 
     $abilities = $member['abilities'] ?? [];
     if (!isset($abilities[$abilityIdx])) throw new Exception('Invalid ability');
@@ -9920,7 +9940,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         $state = addLog($state, $state['players'][$pid]['name'] .
             ' — [' . ($member['name_en'] ?? $member['name']) . '] choose a card from Waiting Room.');
     } elseif (($ab['type'] ?? '') === 'leave_stage_add_from_wr') {
-        $cfg = ['group' => $ab['group'] ?? '', 'filter' => $ab['filter'] ?? 'live'];
+        $cfg = wrPickCfgForLeaveStageAbility($ab);
         startPickWrToHandPrompt($state, $pid, $member, $slot, $abilityIdx, $ab, $cfg, true);
         $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
         $state = addLog($state, $state['players'][$pid]['name'] .
@@ -10874,6 +10894,18 @@ function actionAntiSoftlockSkipPrompt(array $state, string $pid): array {
     }
     $isCpu = playerLooksLikeCpu($state['players'][$pid] ?? []);
     $dismissLabel = $isCpu ? 'CPU hung on skill; auto-skipped' : 'Anti-softlock';
+    if (in_array($prompt['type'] ?? '', ['pick_wr_to_hand', 'pick_wr_leave_stage_add'], true)) {
+        foreach ($prompt['candidates'] ?? [] as $cand) {
+            $id = $cand['instance_id'] ?? '';
+            if ($id === '') {
+                continue;
+            }
+            try {
+                return actionResolvePrompt($state, $pid, ['card_id' => $id]);
+            } catch (Throwable $ignored) {
+            }
+        }
+    }
     if (!isMandatorySkillPrompt($prompt)) {
         try {
             $state = actionResolvePrompt($state, $pid, ['choice' => 'no']);
@@ -12270,10 +12302,11 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         }
         $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgFromAbility($ability);
         $picked = null;
-        foreach ($ownerP['waiting_room'] as $i => $c) {
+        foreach ($ownerP['waiting_room'] as $i => &$c) {
             if (($c['instance_id'] ?? '') !== $pickId) {
                 continue;
             }
+            hydrateWrCardForPick($c);
             if (!cardMatchesWrPick($c, $cfg)) {
                 throw new Exception('Invalid Waiting Room card');
             }
@@ -12281,6 +12314,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             array_splice($ownerP['waiting_room'], $i, 1);
             break;
         }
+        unset($c);
         if (!$picked) {
             throw new Exception('Invalid Waiting Room card');
         }
@@ -12298,20 +12332,23 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         if ($pickId === '') {
             throw new Exception('Choose a card');
         }
-        $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgFromAbility($ability);
+        $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgForLeaveStageAbility($ability);
+        $pickIndex = null;
         $picked = null;
-        foreach ($ownerP['waiting_room'] as $i => $c) {
+        foreach ($ownerP['waiting_room'] as $i => &$c) {
             if (($c['instance_id'] ?? '') !== $pickId) {
                 continue;
             }
+            hydrateWrCardForPick($c);
             if (!cardMatchesWrPick($c, $cfg)) {
                 throw new Exception('Invalid Waiting Room card');
             }
             $picked = $c;
-            array_splice($ownerP['waiting_room'], $i, 1);
+            $pickIndex = $i;
             break;
         }
-        if (!$picked) {
+        unset($c);
+        if (!$picked || $pickIndex === null) {
             throw new Exception('Invalid Waiting Room card');
         }
         $slot = $prompt['source_slot'] ?? '';
@@ -12323,7 +12360,14 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         }
         $leavingMember = $ownerP['stage'][$slot];
         $ownerP['stage'][$slot] = null;
+        $pickPromptType = $prompt['type'] ?? '';
         $state = resolveOnLeaveStageAbilities($state, $owner, $leavingMember);
+        if (!empty($state['pending_prompt']) && ($state['pending_prompt']['type'] ?? '') !== $pickPromptType) {
+            $ownerP['stage'][$slot] = $leavingMember;
+            $state['seq']++;
+            return $state;
+        }
+        array_splice($ownerP['waiting_room'], $pickIndex, 1);
         $ownerP['waiting_room'][] = $leavingMember;
         $ownerP['hand'][] = $picked;
         $mName = $leavingMember['name_en'] ?? $leavingMember['name'] ?? 'Member';
