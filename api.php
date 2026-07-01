@@ -757,6 +757,7 @@ function actionMulligan(array $state, string $pid, array $data): array {
 
 function actionPlayMember(array $state, string $pid, array $data): array {
     validateTurn($state, $pid, 'main');
+    assertNoPendingPromptForPlayerAction($state, $pid);
 
     $instanceId  = $data['card_id']  ?? '';
     $targetSlot  = $data['slot']     ?? 'center';
@@ -2391,6 +2392,17 @@ function validateTurn(array $state, string $pid, string $expectedPhaseKey): void
 function assertNoPendingPromptForPhaseAdvance(array $state): void {
     if (!empty($state['pending_prompt'])) {
         throw new Exception('Resolve the pending skill prompt before continuing.');
+    }
+}
+
+/** Block new plays/activations while this player must answer a skill prompt. */
+function assertNoPendingPromptForPlayerAction(array $state, string $pid): void {
+    $prompt = $state['pending_prompt'] ?? null;
+    if (!$prompt) {
+        return;
+    }
+    if (($prompt['responder'] ?? '') === $pid) {
+        throw new Exception('Resolve the pending skill prompt before taking another action.');
     }
 }
 

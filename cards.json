@@ -61246,7 +61246,7 @@
     },
     {
       "card_no": "PL!SP-bp2-024-L",
-      "name": "ビタミンSUMMER!",
+      "name": "ビタミンSUMMER！",
       "name_en": "Vitamin SUMMER!",
       "card_type": "ライブ",
       "card_type_en": "Live",
@@ -69967,7 +69967,7 @@
         "yellow"
       ],
       "rarity": "DUO",
-      "text": "[Activated] You may Baton Touch with 2 Members.\n[On Enter] If you entered via Baton Touch, draw 1 card for each Liella! Member put into the Waiting Room by that Baton Touch. For each Liella! Member card without a Blade heart among them, gain 1 heart of your choice until this Live ends.",
+      "text": "[Always] You may Baton Touch with 2 Members.\n[On Enter] If you entered via Baton Touch, draw 1 card for each Liella! Member put into the Waiting Room by that Baton Touch. For each Liella! Member card without a Blade heart among them, gain 1 heart of your choice until this Live ends.",
       "text_jp": "このカードのプレイに際し、2人のメンバーとバトンタッチしてもよい。\n\nバトンタッチして登場した場合、このバトンタッチによって控え室に置かれた『Liella!』のメンバーカード1枚につき、カードを1枚引く。ブレードハートを持たない『Liella!』のメンバーカード1枚につき、ライブ終了時まで、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-000-DUO.png",
       "blade": 6,
@@ -70013,7 +70013,7 @@
         "yellow"
       ],
       "rarity": "R",
-      "text": "[Activated] You may Baton Touch with 2 Members.\n[On Enter] If you entered via Baton Touch, draw 1 card for each Liella! Member put into the Waiting Room by that Baton Touch. For each Liella! Member card without a Blade heart among them, gain 1 heart of your choice until this Live ends.",
+      "text": "[Always] You may Baton Touch with 2 Members.\n[On Enter] If you entered via Baton Touch, draw 1 card for each Liella! Member put into the Waiting Room by that Baton Touch. For each Liella! Member card without a Blade heart among them, gain 1 heart of your choice until this Live ends.",
       "text_jp": "このカードのプレイに際し、2人のメンバーとバトンタッチしてもよい。\n\nバトンタッチして登場した場合、このバトンタッチによって控え室に置かれた『Liella!』のメンバーカード1枚につき、カードを1枚引く。ブレードハートを持たない『Liella!』のメンバーカード1枚につき、ライブ終了時まで、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-000-R.png",
       "blade": 6,
@@ -70153,7 +70153,7 @@
         "purple"
       ],
       "rarity": "PP",
-      "text": "[On Enter] Put 1 Liella! card from your hand into the Waiting Room: choose one — put 1 Energy from your Energy deck into Wait; or look at the top 3 cards of your deck, reveal 1, add it to your hand, and put the rest into the Waiting Room.",
+      "text": "[Activated] [Once per turn] Put 1 Liella! card from your hand into the Waiting Room: choose one — put 1 Energy from your Energy deck into Wait; or until this Live ends, 1 other Liella! Member on your Stage gains 2 hearts of your choice. If the card you put into the Waiting Room is a Member without a Blade heart, you may choose both instead.",
       "text_jp": "手札の『Liella!』のカードを1枚控え室に置く：以下から1つを選ぶ。これにより控え室に置いたカードがブレードハートを持たないメンバーカードの場合、代わりに1つ以上を選ぶ。\n\n・自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。\n\n・ライブ終了時まで、自分のステージにいるこのメンバー以外の『Liella!』のメンバー1人は、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-002-PP.png",
       "subunit": "KALEIDOSCORE",
@@ -70198,7 +70198,7 @@
         "purple"
       ],
       "rarity": "R",
-      "text": "[On Enter] Put 1 Liella! card from your hand into the Waiting Room: choose one — put 1 Energy from your Energy deck into Wait; or look at the top 3 cards of your deck, reveal 1, add it to your hand, and put the rest into the Waiting Room.",
+      "text": "[Activated] [Once per turn] Put 1 Liella! card from your hand into the Waiting Room: choose one — put 1 Energy from your Energy deck into Wait; or until this Live ends, 1 other Liella! Member on your Stage gains 2 hearts of your choice. If the card you put into the Waiting Room is a Member without a Blade heart, you may choose both instead.",
       "text_jp": "手札の『Liella!』のカードを1枚控え室に置く：以下から1つを選ぶ。これにより控え室に置いたカードがブレードハートを持たないメンバーカードの場合、代わりに1つ以上を選ぶ。\n\n・自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。\n\n・ライブ終了時まで、自分のステージにいるこのメンバー以外の『Liella!』のメンバー1人は、を得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-002-R.png",
       "subunit": "KALEIDOSCORE",
@@ -70317,14 +70317,14 @@
         "red"
       ],
       "rarity": "PP",
-      "text": "[On Enter] If your Live area or cards revealed for Yell include a Live with higher score than this card's printed score, or a Live with a Yell score icon, draw 1 card.",
+      "text": "[Live Success] If your Live area or cards revealed for Yell include a Live with higher score than this card's printed score, or a Live with a Yell score icon, draw 1 card.",
       "text_jp": "自分のライブカード置き場の中に元々のスコアより高いスコアのライブカードがあるか、エールにより公開された自分のカードの中にを持つライブカードがある場合、カードを1枚引く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-004-PP.png",
       "subunit": "CatChu!",
       "blade": 1,
       "abilities": [
         {
-          "trigger": "on_enter",
+          "trigger": "live_success",
           "type": "draw_if_live_zone_score_up_or_yell_score_icon",
           "draw": 1
         }
@@ -70349,14 +70349,14 @@
         "red"
       ],
       "rarity": "R",
-      "text": "[On Enter] If your Live area or cards revealed for Yell include a Live with higher score than this card's printed score, or a Live with a Yell score icon, draw 1 card.",
+      "text": "[Live Success] If your Live area or cards revealed for Yell include a Live with higher score than this card's printed score, or a Live with a Yell score icon, draw 1 card.",
       "text_jp": "自分のライブカード置き場の中に元々のスコアより高いスコアのライブカードがあるか、エールにより公開された自分のカードの中にを持つライブカードがある場合、カードを1枚引く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-004-R.png",
       "subunit": "CatChu!",
       "blade": 1,
       "abilities": [
         {
-          "trigger": "on_enter",
+          "trigger": "live_success",
           "type": "draw_if_live_zone_score_up_or_yell_score_icon",
           "draw": 1
         }
@@ -70389,7 +70389,7 @@
         "purple"
       ],
       "rarity": "PP",
-      "text": "[On Enter] If you entered via Baton Touch, put 1 Liella! Member put into the Waiting Room by that Baton Touch under this Member.",
+      "text": "[On Enter] If you entered via Baton Touch, put 1 Liella! Member put into the Waiting Room by that Baton Touch under this Member.\n[Always] This Member gains all Activated abilities of Liella! Member cards stacked under it.",
       "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚、このメンバーの下に置く。\n\nこのメンバーは、このメンバーの下に置かれている『Liella!』のメンバーカードが持つ能力をすべて得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-005-PP.png",
       "subunit": "KALEIDOSCORE",
@@ -70434,7 +70434,7 @@
         "purple"
       ],
       "rarity": "R",
-      "text": "[On Enter] If you entered via Baton Touch, put 1 Liella! Member put into the Waiting Room by that Baton Touch under this Member.",
+      "text": "[On Enter] If you entered via Baton Touch, put 1 Liella! Member put into the Waiting Room by that Baton Touch under this Member.\n[Always] This Member gains all Activated abilities of Liella! Member cards stacked under it.",
       "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚、このメンバーの下に置く。\n\nこのメンバーは、このメンバーの下に置かれている『Liella!』のメンバーカードが持つ能力をすべて得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-005-R.png",
       "subunit": "KALEIDOSCORE",
@@ -70557,16 +70557,16 @@
         "red"
       ],
       "rarity": "PP",
-      "text": "[Activated] You may pay 1 Energy: add 1 Liella! Live card from your Waiting Room to your hand.",
+      "text": "[Live Success] You may pay 3 Energy: add 1 Liella! Live card from your Waiting Room to your hand.",
       "text_jp": "支払ってもよい：自分の控え室から『Liella!』のライブカードを1枚手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-007-PP.png",
       "subunit": "CatChu!",
       "blade": 5,
       "abilities": [
         {
-          "trigger": "activated",
+          "trigger": "live_success",
           "type": "pay_energy_add_from_wr",
-          "cost": 1,
+          "cost": 3,
           "group": "Superstar",
           "filter": "live",
           "count": 1,
@@ -70601,16 +70601,16 @@
         "red"
       ],
       "rarity": "R",
-      "text": "[Activated] You may pay 1 Energy: add 1 Liella! Live card from your Waiting Room to your hand.",
+      "text": "[Live Success] You may pay 3 Energy: add 1 Liella! Live card from your Waiting Room to your hand.",
       "text_jp": "支払ってもよい：自分の控え室から『Liella!』のライブカードを1枚手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-007-R.png",
       "subunit": "CatChu!",
       "blade": 5,
       "abilities": [
         {
-          "trigger": "activated",
+          "trigger": "live_success",
           "type": "pay_energy_add_from_wr",
-          "cost": 1,
+          "cost": 3,
           "group": "Superstar",
           "filter": "live",
           "count": 1,
@@ -70643,14 +70643,14 @@
       ],
       "blade_hearts": [],
       "rarity": "PP",
-      "text": "[Live Start] For every 2 Liella! Members without Blade hearts among cards revealed for Yell, this Live's total score +1 (max +2 from this ability).",
+      "text": "[Live Success] For every 2 Liella! Members without Blade hearts among cards revealed for Yell, this Live's total score +1 (max +2 from this ability).",
       "text_jp": "エールにより公開された自分のカードの中にあるブレードハートを持たない『Liella!』のメンバーカード2枚につき、ライブの合計スコアを＋１する。この能力では合計スコアは２までしか増えない。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-008-PP.png",
       "subunit": "5yncri5e!",
       "blade": 7,
       "abilities": [
         {
-          "trigger": "live_start",
+          "trigger": "live_success",
           "type": "score_per_yell_group_no_blade",
           "group": "Superstar",
           "per_count": 2,
@@ -70684,14 +70684,14 @@
       ],
       "blade_hearts": [],
       "rarity": "R",
-      "text": "[Live Start] For every 2 Liella! Members without Blade hearts among cards revealed for Yell, this Live's total score +1 (max +2 from this ability).",
+      "text": "[Live Success] For every 2 Liella! Members without Blade hearts among cards revealed for Yell, this Live's total score +1 (max +2 from this ability).",
       "text_jp": "エールにより公開された自分のカードの中にあるブレードハートを持たない『Liella!』のメンバーカード2枚につき、ライブの合計スコアを＋１する。この能力では合計スコアは２までしか増えない。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-008-R.png",
       "subunit": "5yncri5e!",
       "blade": 7,
       "abilities": [
         {
-          "trigger": "live_start",
+          "trigger": "live_success",
           "type": "score_per_yell_group_no_blade",
           "group": "Superstar",
           "per_count": 2,
@@ -70721,14 +70721,14 @@
       ],
       "blade_hearts": [],
       "rarity": "PP",
-      "text": "[On Enter] You may put 1 Liella! Member on your Stage into Wait: put 1 opponent Member with at least 2 fewer printed hearts than that Member into Wait.",
+      "text": "[On Enter] / [Live Start] You may put 1 Liella! Member on your Stage into Wait: put 1 opponent Member with at least 2 fewer printed Blade than that Member into Wait. (Blade on a Member in Wait does not increase Yell reveal count.)",
       "text_jp": "/『Liella!』のメンバー1人をウェイトにしてもよい：相手のステージにいる元々持つの数がこれによりウェイトにしたメンバーが元々持つの数より2つ以上少ないメンバー1人をウェイトにする。（ウェイト状態のメンバーが持つは、エールで公開する枚数を増やさない。）",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-009-PP.png",
       "subunit": "5yncri5e!",
       "blade": 2,
       "abilities": [
         {
-          "trigger": "on_enter",
+          "trigger": "on_enter_or_live_start",
           "type": "optional_wait_self_opp_heart_gap",
           "group": "Superstar",
           "heart_gap": 2
@@ -70756,14 +70756,14 @@
       ],
       "blade_hearts": [],
       "rarity": "R",
-      "text": "[On Enter] You may put 1 Liella! Member on your Stage into Wait: put 1 opponent Member with at least 2 fewer printed hearts than that Member into Wait.",
+      "text": "[On Enter] / [Live Start] You may put 1 Liella! Member on your Stage into Wait: put 1 opponent Member with at least 2 fewer printed Blade than that Member into Wait. (Blade on a Member in Wait does not increase Yell reveal count.)",
       "text_jp": "/『Liella!』のメンバー1人をウェイトにしてもよい：相手のステージにいる元々持つの数がこれによりウェイトにしたメンバーが元々持つの数より2つ以上少ないメンバー1人をウェイトにする。（ウェイト状態のメンバーが持つは、エールで公開する枚数を増やさない。）",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-009-R.png",
       "subunit": "5yncri5e!",
       "blade": 2,
       "abilities": [
         {
-          "trigger": "on_enter",
+          "trigger": "on_enter_or_live_start",
           "type": "optional_wait_self_opp_heart_gap",
           "group": "Superstar",
           "heart_gap": 2
@@ -70797,7 +70797,7 @@
         "purple"
       ],
       "rarity": "PP",
-      "text": "[On Enter] Unless you put 1 card from your hand into the Waiting Room, put 1 of your Energy into your Energy deck. Choose one — draw 2 cards; or put 1 Energy from your Energy deck into Wait.",
+      "text": "[Live Start] Unless you put 1 card from your hand into the Waiting Room, put 1 of your Energy into your Energy deck.\n[Live Success] Choose one — draw 2 cards; or put 1 Energy from your Energy deck into Wait.",
       "text_jp": "手札を1枚控え室に置かないかぎり、自分のエネルギー1枚をエネルギーデッキに置く。\n\n以下から1つを選ぶ。\n\n・カードを2枚引く。\n\n・自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-010-PP.png",
       "subunit": "KALEIDOSCORE",
@@ -70842,7 +70842,7 @@
         "purple"
       ],
       "rarity": "R",
-      "text": "[On Enter] Unless you put 1 card from your hand into the Waiting Room, put 1 of your Energy into your Energy deck. Choose one — draw 2 cards; or put 1 Energy from your Energy deck into Wait.",
+      "text": "[Live Start] Unless you put 1 card from your hand into the Waiting Room, put 1 of your Energy into your Energy deck.\n[Live Success] Choose one — draw 2 cards; or put 1 Energy from your Energy deck into Wait.",
       "text_jp": "手札を1枚控え室に置かないかぎり、自分のエネルギー1枚をエネルギーデッキに置く。\n\n以下から1つを選ぶ。\n\n・カードを2枚引く。\n\n・自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-010-R.png",
       "subunit": "KALEIDOSCORE",
@@ -70885,7 +70885,7 @@
       ],
       "blade_hearts": [],
       "rarity": "PP",
-      "text": "[Auto] When the Member in your Center area moves, choose one — gain 1 heart until this Live ends; or put 1 opponent Member with 2 or fewer printed hearts into Wait; or draw 1 card.",
+      "text": "[Automatic] [Once per turn] When the Member in your Center area moves, choose one — gain 1 heart until this Live ends; or put 1 opponent Member with 2 or fewer printed Blade into Wait; or draw 1 card.\n[Live Start] You may position-change this Member (swap with the Member in the destination area if any).",
       "text_jp": "自分のステージのセンターエリアにいるメンバーがエリアを移動したとき、以下から1つを選ぶ。\n\n・ライブ終了時まで、を得る。\n\n・相手のステージにいる元々持つの数が2つ以下のメンバー1人をウェイトにする。\n\n・カードを1枚引く。\n\nこのメンバーをポジションチェンジしてもよい。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-011-PP.png",
       "subunit": "5yncri5e!",
@@ -70893,7 +70893,12 @@
       "abilities": [
         {
           "trigger": "auto",
-          "type": "auto_on_center_move_choose"
+          "type": "auto_on_center_move_choose",
+          "once_per_turn": true
+        },
+        {
+          "trigger": "live_start",
+          "type": "optional_swap_area_on_enter"
         }
       ]
     },
@@ -70922,7 +70927,7 @@
       ],
       "blade_hearts": [],
       "rarity": "R",
-      "text": "[Auto] When the Member in your Center area moves, choose one — gain 1 heart until this Live ends; or put 1 opponent Member with 2 or fewer printed hearts into Wait; or draw 1 card.",
+      "text": "[Automatic] [Once per turn] When the Member in your Center area moves, choose one — gain 1 heart until this Live ends; or put 1 opponent Member with 2 or fewer printed Blade into Wait; or draw 1 card.\n[Live Start] You may position-change this Member (swap with the Member in the destination area if any).",
       "text_jp": "自分のステージのセンターエリアにいるメンバーがエリアを移動したとき、以下から1つを選ぶ。\n\n・ライブ終了時まで、を得る。\n\n・相手のステージにいる元々持つの数が2つ以下のメンバー1人をウェイトにする。\n\n・カードを1枚引く。\n\nこのメンバーをポジションチェンジしてもよい。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-011-R.png",
       "subunit": "5yncri5e!",
@@ -70930,7 +70935,12 @@
       "abilities": [
         {
           "trigger": "auto",
-          "type": "auto_on_center_move_choose"
+          "type": "auto_on_center_move_choose",
+          "once_per_turn": true
+        },
+        {
+          "trigger": "live_start",
+          "type": "optional_swap_area_on_enter"
         }
       ]
     },
@@ -71437,7 +71447,7 @@
         "red"
       ],
       "rarity": "P＋",
-      "text": "[On Enter] Activate 1 Energy for each differently named CatChu! Member on your Stage besides this Member.",
+      "text": "[Live Start] Activate 1 Energy for each differently named CatChu! Member on your Stage besides this Member.",
       "text_jp": "自分のステージにいるこのメンバーと名前の異なる『CatChu!』のメンバー1人につき、エネルギーを1枚アクティブにする。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-018-P2.png",
       "subunit": "CatChu!",
@@ -71471,7 +71481,7 @@
         "red"
       ],
       "rarity": "R",
-      "text": "[On Enter] Activate 1 Energy for each differently named CatChu! Member on your Stage besides this Member.",
+      "text": "[Live Start] Activate 1 Energy for each differently named CatChu! Member on your Stage besides this Member.",
       "text_jp": "自分のステージにいるこのメンバーと名前の異なる『CatChu!』のメンバー1人につき、エネルギーを1枚アクティブにする。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-018-R.png",
       "subunit": "CatChu!",
@@ -71951,7 +71961,7 @@
         "purple"
       ],
       "rarity": "N",
-      "text": "[Activated] You may move this Member to another area on your Stage, swapping with any Member in that area.",
+      "text": "[On Enter] You may position-change this Member (swap with the Member in the destination area if any).",
       "text_jp": "このメンバーをポジションチェンジしてもよい。(このメンバーを今いるエリア以外のエリアに移動させる。そのエリアにメンバーがいる場合、そのメンバーはこのメンバーがいたエリアに移動させる。)",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-025-N.png",
       "abilities": [
@@ -72116,12 +72126,12 @@
       ],
       "blade_hearts": [],
       "rarity": "N",
-      "text": "[On Enter] Put 1 opponent Member with cost 2 or less into Wait.",
+      "text": "[On Enter] / [Live Start] Put 1 opponent Member with cost 2 or less into Wait.",
       "text_jp": "/相手のステージにいるコスト2以下のメンバー1人をウェイトにする。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-029-N.png",
       "abilities": [
         {
-          "trigger": "live_start",
+          "trigger": "on_enter_or_live_start",
           "type": "wait_opponent_stage_max_cost",
           "max_cost": 2,
           "pick_count": 1
@@ -72735,7 +72745,7 @@
       ],
       "blade_hearts": [],
       "rarity": "L",
-      "text": "[Always] Abilities of Members on your Stage do not activate.\n[Always] If you have any Members with abilities on your Stage, this card's score +1.",
+      "text": "[Always] [Live Start] abilities of Members on your Stage do not activate.\n[Live Success] If you have any Members with Live Start abilities on your Stage, this card's score +1.",
       "text_jp": "自分のステージにいるメンバーが持つ能力は発動しない。\n\n自分のステージに能力を持つメンバーがいる場合、このカードのスコアを＋１する。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-046-L.png",
       "score": 2,
@@ -72755,7 +72765,7 @@
           "type": "continuous_negate_stage_member_abilities"
         },
         {
-          "trigger": "continuous",
+          "trigger": "live_success",
           "type": "live_score_if_stage_has_ability_members",
           "amount": 1
         }

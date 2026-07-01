@@ -24645,6 +24645,7 @@ const RULE_KEYWORD_COLORS = {
 function resolveRuleKwKey(raw) {
   if (raw === 'Auto') return 'Automatic';
   if (raw === 'Continuous') return 'Always';
+  if (raw === 'On Play') return 'Always';
   return raw;
 }
 
@@ -24717,6 +24718,7 @@ function renderCardRulesText(text, container) {
   if (!text) return;
   text = localizeSubunitText(text);
   text = text.replace(/\[Continuous\]/gi, '[Always]');
+  text = text.replace(/\[On Play\]/gi, '[Always]');
   const lines = text.split('\n');
   const bracketRe = getRuleKwBracketPattern();
   lines.forEach((line, lineIdx) => {
@@ -32637,11 +32639,12 @@ function showCard(card, iid, s, myId, forceSlot) {
       : null;
     collectActivatableAbilities(s, myId)
       .filter(a => a.card.instance_id === card.instance_id)
-      .forEach(({ card: c, idx, ability, used, needEnergy }) => {
+      .forEach(({ card: c, idx, ability, used, needEnergy, wrBlock }) => {
       const b=document.createElement('button');
       b.className='btn-phase'; b.style.marginTop='8px'; b.style.width='100%';
       if(used) b.disabled=true;
       if(needEnergy) b.disabled=true;
+      if(wrBlock) b.disabled=true;
       b.appendChild(mkSkillTypeIcons('Activated', 'ticon'));
       b.appendChild(document.createTextNode(' ' + abilityLabel(ability)));
       b.onclick=()=> activateAbilityFromCard(c, idx, ability, s, myId);
@@ -33223,6 +33226,10 @@ function getAbilityActivationNeeds(ability, s, myId){
 
 function activateAbilityFromCard(card, idx, ability, s, myId){
   if (G.isTutorial) return;
+  if (hasOpenSkillPrompt(s)) {
+    toast('Resolve the pending skill before using another ability.', 2800);
+    return;
+  }
   closeM('modal-card');
   const need=getAbilityActivationNeeds(ability, s, myId);
   const hand=s.players[myId].hand||[];
@@ -33471,20 +33478,23 @@ function wrPickCfgFromPrompt(pr) {
 
 function wrToHandPickCards(pr, s, myId) {
   const wr = s?.players?.[myId]?.waiting_room || [];
-  return wr.map(c => ({
-    instance_id: c.instance_id,
-    name_en: c.name_en || c.name,
-    name: c.name,
-    card_no: c.card_no,
-    image: c.image,
-    card_type: c.card_type,
-    card_type_en: c.card_type_en,
-    cost: c.cost,
-    group: c.group,
-    score: c.score,
-    subunit: c.subunit,
-    required_hearts: c.required_hearts,
-  }));
+  return wr.map(c => {
+    const card = enrichCard(c);
+    return {
+      instance_id: card.instance_id,
+      name_en: card.name_en || card.name,
+      name: card.name,
+      card_no: card.card_no,
+      image: card.image,
+      card_type: card.card_type,
+      card_type_en: card.card_type_en,
+      cost: card.cost,
+      group: card.group,
+      score: card.score,
+      subunit: card.subunit,
+      required_hearts: card.required_hearts,
+    };
+  });
 }
 
 function openWrToHandPick(pr, opts = {}) {
@@ -33513,7 +33523,7 @@ function openWrToHandPick(pr, opts = {}) {
   cards.forEach(card => {
     const ok = cardMatchesWrPickClient(card, cfg);
     const elCard = mkPickCardEl(card, 'pickcard', () => {
-      if (!ok) return;
+      if (!ok || isPromptSubmitting(s)) return;
       closeM('overlay-pick');
       G.pickCtx = null;
       sendAct('resolve_prompt', { card_id: card.instance_id });
