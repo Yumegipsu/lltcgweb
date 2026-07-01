@@ -6712,7 +6712,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 
 <script src="i18n.js?v=3"></script>
 <script src="log_i18n.js?v=2"></script>
-<script src="sfx.js?v=13"></script>
+<script src="sfx.js?v=14"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -7356,7 +7356,7 @@ function sfxForZoneMove(fromZone, toZone) {
 }
 
 function sfxCardPick() {
-  sfxPlayCard('card_slide', { volume: 0.34 });
+  sfxPlayCard('card_pick', { volume: 0.58 });
 }
 
 let _sfxCardHoverKey = '';
@@ -31582,6 +31582,7 @@ function cloneCardFaceForDrag(srcEl, face, card) {
 
 function startHandDrag(hp, e) {
   const { card, el: srcEl, s, myId } = hp;
+  sfxCardPick();
   G.selCard = null;
   G.previewSlot = null;
   if (tcgMobileViewportActive()) clearHoverCardPreview();
@@ -33474,6 +33475,7 @@ function bindSurveilCardDrag(node, card, id) {
     if (!d || d.id !== id) return;
     if (!d.moved && (Math.abs(ev.clientX - d.startX) > 6 || Math.abs(ev.clientY - d.startY) > 6)) {
       d.moved = true;
+      sfxCardPick();
       if (d.longPressTimer) {
         clearTimeout(d.longPressTimer);
         d.longPressTimer = null;

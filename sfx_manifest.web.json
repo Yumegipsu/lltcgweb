@@ -171,6 +171,26 @@
         }
       ]
     },
+    "card_pick": {
+      "variants": [
+        {
+          "file": "notify.wav",
+          "source": "se_010_0010.wav",
+          "source_category": "Menu",
+          "duration_ms": 321.3,
+          "tags": [
+            "short",
+            "rustle",
+            "quiet",
+            "pick",
+            "menu"
+          ],
+          "score": 0.9263,
+          "volume": 0.24,
+          "centroid_hz": 2424.6
+        }
+      ]
+    },
     "card_flip": {
       "variants": [
         {
