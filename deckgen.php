@@ -310,6 +310,52 @@ function deckgenFilterOwnedPool(array $pool, array $owned): array {
     }));
 }
 
+/** Starter/plain SD energy — fallback once fancy options are exhausted. */
+function deckgenIsStandardBasicEnergy(array $card): bool {
+    $no = trim($card['card_no'] ?? '');
+    if ($no === '') {
+        return false;
+    }
+    if (function_exists('tcgIsStarterBasicEnergyCard') && tcgIsStarterBasicEnergyCard($no)) {
+        return true;
+    }
+    $nameJp = $card['name'] ?? '';
+    $nameEn = $card['name_en'] ?? '';
+    if (str_contains($nameJp, '無地') || str_contains($nameEn, 'Plain')) {
+        return true;
+    }
+    if (preg_match('/^LL-E-\d+-SD$/i', $no)) {
+        return true;
+    }
+    $plainName = preg_match('/^(Energy Card|Energy|エネルギー(カード)?)(\s|$|\()/iu', trim($nameEn . ' ' . $nameJp));
+    return $plainName && (($card['rarity'] ?? '') === 'SD');
+}
+
+function deckgenEnergyBuildScore(array $card): int {
+    if (deckgenIsStandardBasicEnergy($card)) {
+        return 4;
+    }
+    $score = 100;
+    $rarity = (string)($card['rarity'] ?? '');
+    if (preg_match('/^(SEC|SECE|SECL|LLE?|RM)/', $rarity) || str_contains($rarity, 'SEC')) {
+        $score += 24;
+    } elseif (preg_match('/^(RE|L\+)/', $rarity)) {
+        $score += 18;
+    } elseif (preg_match('/^(PR|AR)/', $rarity)) {
+        $score += 14;
+    } elseif ($rarity !== '' && $rarity !== 'SD') {
+        $score += 10;
+    }
+    $label = trim($card['name_en'] ?? $card['name'] ?? '');
+    if ($label !== '' && !preg_match('/^(Energy Card|Energy|エネルギー)/iu', $label)) {
+        $score += 16;
+    }
+    if (($card['group'] ?? '') === '') {
+        $score += 6;
+    }
+    return $score;
+}
+
 function deckgenBuildEnergyDeck(array $energies, ?string $group, ?array $owned = null): array {
     $pool = $energies;
     if ($owned !== null) {
@@ -319,9 +365,18 @@ function deckgenBuildEnergyDeck(array $energies, ?string $group, ?array $owned =
         return [];
     }
 
-    // Energy has no strategic distinction for auto-build beyond "own 12 legal cards",
-    // so prefer the most plentiful owned energies and ignore group/theme.
+    if ($group !== null && $group !== '' && $group !== 'mixed') {
+        $groupPool = array_values(array_filter($pool, fn($c) => ($c['group'] ?? '') === $group));
+        if (!empty($groupPool)) {
+            $pool = $groupPool;
+        }
+    }
+
     usort($pool, function ($a, $b) use ($owned) {
+        $scoreDiff = deckgenEnergyBuildScore($b) <=> deckgenEnergyBuildScore($a);
+        if ($scoreDiff !== 0) {
+            return $scoreDiff;
+        }
         $qtyA = $owned !== null ? intval($owned[$a['card_no'] ?? ''] ?? 0) : DECKGEN_MAX_ENERGY_COPIES;
         $qtyB = $owned !== null ? intval($owned[$b['card_no'] ?? ''] ?? 0) : DECKGEN_MAX_ENERGY_COPIES;
         if ($qtyA !== $qtyB) {
@@ -332,17 +387,16 @@ function deckgenBuildEnergyDeck(array $energies, ?string $group, ?array $owned =
 
     $deck   = [];
     $counts = [];
-    foreach ($pool as $c) {
-        if (count($deck) >= DECKGEN_ENERGY_SLOTS) {
-            break;
-        }
+
+    $tryAdd = function (array $c, int $want) use (&$deck, &$counts, $owned): int {
         $no = $c['card_no'] ?? '';
         if ($no === '') {
-            continue;
+            return 0;
         }
         $have   = $counts[$no] ?? 0;
         $maxOwn = $owned !== null ? intval($owned[$no] ?? 0) : DECKGEN_MAX_ENERGY_COPIES;
         $room   = min(
+            $want,
             DECKGEN_MAX_ENERGY_COPIES - $have,
             $maxOwn - $have,
             DECKGEN_ENERGY_SLOTS - count($deck)
@@ -350,6 +404,32 @@ function deckgenBuildEnergyDeck(array $energies, ?string $group, ?array $owned =
         for ($i = 0; $i < $room; $i++) {
             $deck[] = $no;
             $counts[$no] = ($counts[$no] ?? 0) + 1;
+        }
+        return $room;
+    };
+
+    // Pass 1: one copy of each unique energy (fancy first) before any duplicates.
+    foreach ($pool as $c) {
+        if (count($deck) >= DECKGEN_ENERGY_SLOTS) {
+            break;
+        }
+        $tryAdd($c, 1);
+    }
+
+    // Pass 2: round-robin extras — spread copies before stacking the same card.
+    $guard = 0;
+    while (count($deck) < DECKGEN_ENERGY_SLOTS && $guard++ < 500) {
+        $progress = false;
+        foreach ($pool as $c) {
+            if (count($deck) >= DECKGEN_ENERGY_SLOTS) {
+                break;
+            }
+            if ($tryAdd($c, 1) > 0) {
+                $progress = true;
+            }
+        }
+        if (!$progress) {
+            break;
         }
     }
 
