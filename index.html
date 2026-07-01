@@ -29,10 +29,9 @@ html{height:100%;overflow:hidden;background-color:#329dff}
 body{height:100%;overflow:hidden}
 body{font-family:'Nunito',sans-serif;background:transparent;color:#fff;
   user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;
-  -webkit-tap-highlight-color:transparent;position:relative;z-index:0}
+  -webkit-tap-highlight-color:transparent;position:relative}
 #llc-sky-bg{
-  position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
-  transform:translateZ(0);backface-visibility:hidden;
+  position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
 }
 /* Official site body: ptn.png tile + #4ec5ff → #329dff gradient */
 .llc-sky-base{
@@ -124,12 +123,16 @@ body{font-family:'Nunito',sans-serif;background:transparent;color:#fff;
 @media (prefers-reduced-motion:reduce){
   .llc-sky-deco-lower,.llc-sky-wing{animation:none!important}
 }
-/* Firefox: backdrop-filter on panels breaks WebRender compositing of fixed #llc-sky-bg */
+/* Firefox: backdrop-filter on game UI breaks compositing of the global fixed sky */
 @supports (-moz-appearance:none){
   .panel,.wait-box,.side-panel,.overlay,.mbox,.side-block,.phase-action-bar,
   .account-shell,.deck-hover-panel,.card-modal,.win-box,.surveil-overlay,
   .hand-pick-overlay,.zone-pick-overlay,.heart-pick-overlay,.prompt-box,
-  .live-judge-box,.opp-skill-wait-box,.rule-kw-tip,.toast{
+  .live-judge-box,.opp-skill-wait-box,.rule-kw-tip,.toast,
+  #deck-card-hover-panel,#live-judge-overlay .ljo-inner,#overlay-win{
+    backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  }
+  #screen-game *{
     backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
   }
 }
@@ -448,7 +451,16 @@ body.tutorial-mode #sb-activatable-wrap.tut-show{outline:2px solid rgba(255,107,
 #screen-game{
   align-items:stretch;justify-content:center;
   background:transparent;overflow:hidden;
+  position:relative;
 }
+/* In-game sky: Firefox WebRender fails to paint #llc-sky-bg under the game layer stack */
+.game-sky-bg{
+  display:none;position:absolute;inset:0;z-index:0;
+  pointer-events:none;overflow:hidden;
+}
+#screen-game.active .game-sky-bg{display:block}
+#screen-game.active .game-viewport-frame{position:relative;z-index:1}
+body:has(#screen-game.active) #llc-sky-bg{visibility:hidden}
 .game-viewport-frame{
   flex:1 1 auto;width:100%;min-height:100vh;
   display:flex;align-items:stretch;justify-content:center;
@@ -1725,7 +1737,7 @@ html.tcg-desktop-scaled:not(.tcg-mobile-viewport){
 }
 html.tcg-desktop-scaled:not(.tcg-mobile-viewport) #screen-game.active{
   align-items:center;justify-content:center;
-  background:#060810;
+  background:transparent;
 }
 html.tcg-desktop-scaled:not(.tcg-mobile-viewport) #screen-game .game-viewport-frame{
   flex:0 0 auto;
@@ -6065,6 +6077,15 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 
 <!-- ══ GAME ══ -->
 <div id="screen-game" class="screen">
+  <div class="game-sky-bg" aria-hidden="true">
+    <div class="llc-sky-base"></div>
+    <div class="llc-sky-cloud"></div>
+    <div class="llc-sky-deco-lower"></div>
+    <div class="llc-sky-wing llc-sky-wing-a"></div>
+    <div class="llc-sky-wing llc-sky-wing-b"></div>
+    <div class="llc-sky-wing llc-sky-wing-c"></div>
+    <div class="llc-sky-dim"></div>
+  </div>
   <div class="game-viewport-frame" id="game-viewport-frame">
   <div class="game-wide-wrap">
     <!-- Left panel: phase + you -->
