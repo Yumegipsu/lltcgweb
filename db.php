@@ -38,7 +38,8 @@ function tcgStarGemsForDupe(?array $card, string $cardNo = ''): int {
     if ($typeEn === 'Energy') {
         return match ($rarity) {
             'PE' => 10,
-            'PR', 'PR+' => 10,
+            'PR' => 10,
+            'PR+' => 30,
             'P', 'RE' => 30,
             'PE+' => 50,
             'SRE' => 80,
