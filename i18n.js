@@ -5,6 +5,7 @@
   var LLTCG_LOCALE_KEY = 'lltcg_locale';
   var LOCALES = ['en', 'ja'];
   var localeChangeCallbacks = [];
+  var _tutorialJa = null;
 
   var STRINGS = {
   "en": {
@@ -777,6 +778,7 @@
   function tutorialDialogue(step) {
     if (!step) return '';
     if (getLocale() === 'ja') {
+      if (_tutorialJa && _tutorialJa[step.id]) return _tutorialJa[step.id];
       var translated = t('tutorial.' + step.id);
       if (translated !== 'tutorial.' + step.id) return translated;
     }
@@ -813,7 +815,20 @@
   }
 
   function loadTutorialJa() {
-    return Promise.resolve();
+    if (_tutorialJa) return Promise.resolve(_tutorialJa);
+    return fetch('./tutorial_ja.json?v=1', { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('tutorial_ja HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        _tutorialJa = data && typeof data === 'object' ? data : {};
+        return _tutorialJa;
+      })
+      .catch(function () {
+        _tutorialJa = {};
+        return _tutorialJa;
+      });
   }
 
   function initLocale(onChange) {
@@ -828,6 +843,7 @@
       }
     });
     applyI18n();
+    void loadTutorialJa();
   }
 
   function initLocaleUi() {
