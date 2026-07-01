@@ -114,6 +114,24 @@
       "variants": [
         {
           "file": "card_draw.wav",
+          "source": "se_110_0028.wav",
+          "source_category": "Story",
+          "duration_ms": 351.9,
+          "tags": [
+            "short",
+            "loud",
+            "story"
+          ],
+          "score": 0.5171,
+          "volume": 0.5,
+          "centroid_hz": 2911.5
+        }
+      ]
+    },
+    "card_slide": {
+      "variants": [
+        {
+          "file": "card_slide.wav",
           "source": "se_110_0317.wav",
           "source_category": "Story",
           "duration_ms": 236.6,
@@ -123,29 +141,9 @@
             "rustle",
             "story"
           ],
-          "score": 1.5109,
-          "volume": 0.42,
+          "score": 0.2542,
+          "volume": 0.28,
           "centroid_hz": 2634.4
-        }
-      ]
-    },
-    "card_slide": {
-      "variants": [
-        {
-          "file": "card_slide.wav",
-          "source": "se_110_0265.wav",
-          "source_category": "Story",
-          "duration_ms": 211.8,
-          "tags": [
-            "click",
-            "loud",
-            "noisy",
-            "rustle",
-            "story"
-          ],
-          "score": 0.6329,
-          "volume": 0.26,
-          "centroid_hz": 3283.6
         }
       ]
     },
@@ -153,17 +151,18 @@
       "variants": [
         {
           "file": "card_flip.wav",
-          "source": "se_120_0058.wav",
+          "source": "se_120_0020.wav",
           "source_category": "Story",
-          "duration_ms": 199.5,
+          "duration_ms": 40.2,
           "tags": [
             "click",
+            "quiet",
             "rustle",
             "story"
           ],
-          "score": 1.4083,
-          "volume": 0.34,
-          "centroid_hz": 2776.2
+          "score": 0.1761,
+          "volume": 0.72,
+          "centroid_hz": 2804.4
         }
       ]
     },
@@ -171,60 +170,6 @@
       "variants": [
         {
           "file": "card_place.wav",
-          "source": "se_120_0070.wav",
-          "source_category": "Story",
-          "duration_ms": 301.3,
-          "tags": [
-            "short",
-            "quiet",
-            "story"
-          ],
-          "score": 1.0992,
-          "volume": 0.36,
-          "centroid_hz": 2850.0
-        }
-      ]
-    },
-    "card_fly": {
-      "variants": [
-        {
-          "file": "card_fly.wav",
-          "source": "se_120_0074.wav",
-          "source_category": "Story",
-          "duration_ms": 301.3,
-          "tags": [
-            "short",
-            "quiet",
-            "story"
-          ],
-          "score": 0.535,
-          "volume": 0.3,
-          "centroid_hz": 2991.4
-        }
-      ]
-    },
-    "card_to_wr": {
-      "variants": [
-        {
-          "file": "card_to_wr.wav",
-          "source": "se_010_0117 (4).wav",
-          "source_category": "Menu",
-          "duration_ms": 158.3,
-          "tags": [
-            "click",
-            "rustle",
-            "menu"
-          ],
-          "score": 0.5554,
-          "volume": 0.32,
-          "centroid_hz": 3250.5
-        }
-      ]
-    },
-    "card_play": {
-      "variants": [
-        {
-          "file": "card_play.wav",
           "source": "se_010_0010.wav",
           "source_category": "Menu",
           "duration_ms": 321.3,
@@ -233,9 +178,63 @@
             "rustle",
             "menu"
           ],
-          "score": 1.0,
-          "volume": 0.48,
+          "score": 0.692,
+          "volume": 0.4,
           "centroid_hz": 2424.6
+        }
+      ]
+    },
+    "card_fly": {
+      "variants": [
+        {
+          "file": "card_fly.wav",
+          "source": "se_110_0318.wav",
+          "source_category": "Story",
+          "duration_ms": 412.1,
+          "tags": [
+            "short",
+            "rustle",
+            "story"
+          ],
+          "score": 0.0847,
+          "volume": 0.38,
+          "centroid_hz": 2473.2
+        }
+      ]
+    },
+    "card_to_wr": {
+      "variants": [
+        {
+          "file": "card_to_wr.wav",
+          "source": "se_120_0058.wav",
+          "source_category": "Story",
+          "duration_ms": 199.5,
+          "tags": [
+            "click",
+            "rustle",
+            "story"
+          ],
+          "score": 1.3505,
+          "volume": 0.36,
+          "centroid_hz": 2776.2
+        }
+      ]
+    },
+    "card_play": {
+      "variants": [
+        {
+          "file": "card_play.wav",
+          "source": "se_110_0214.wav",
+          "source_category": "Story",
+          "duration_ms": 256.3,
+          "tags": [
+            "short",
+            "bright",
+            "story"
+          ],
+          "score": 0.7538,
+          "volume": 0.48,
+          "centroid_hz": 3644.4
         }
       ]
     },
@@ -243,20 +242,17 @@
       "variants": [
         {
           "file": "card_discard.wav",
-          "source": "se_010_0020.wav",
-          "source_category": "Menu",
-          "duration_ms": 233.4,
+          "source": "se_110_0214.wav",
+          "source_category": "Story",
+          "duration_ms": 256.3,
           "tags": [
             "short",
-            "quiet",
             "bright",
-            "noisy",
-            "digital",
-            "menu"
+            "story"
           ],
-          "score": 0.989,
+          "score": 0.6914,
           "volume": 0.4,
-          "centroid_hz": 5505.4
+          "centroid_hz": 3644.4
         }
       ]
     },
@@ -264,18 +260,17 @@
       "variants": [
         {
           "file": "energy_chip.wav",
-          "source": "se_010_0117 (3).wav",
+          "source": "se_010_0117 (4).wav",
           "source_category": "Menu",
-          "duration_ms": 152.6,
+          "duration_ms": 158.3,
           "tags": [
             "click",
-            "loud",
             "rustle",
             "menu"
           ],
-          "score": 1.3126,
+          "score": 1.3196,
           "volume": 0.38,
-          "centroid_hz": 2987.4
+          "centroid_hz": 3250.5
         }
       ]
     },
@@ -418,7 +413,7 @@
       "variants": [
         {
           "file": "turn_tick.wav",
-          "source": "se_120_0075.wav",
+          "source": "se_120_0070.wav",
           "source_category": "Story",
           "duration_ms": 301.3,
           "tags": [
@@ -428,7 +423,7 @@
           ],
           "score": 1.1975,
           "volume": 0.36,
-          "centroid_hz": 2991.4
+          "centroid_hz": 2850.0
         }
       ]
     },
@@ -494,18 +489,17 @@
       "variants": [
         {
           "file": "hearts_gain.wav",
-          "source": "se_110_0213.wav",
+          "source": "se_120_0074.wav",
           "source_category": "Story",
-          "duration_ms": 293.8,
+          "duration_ms": 301.3,
           "tags": [
             "short",
-            "bright",
-            "noisy",
+            "quiet",
             "story"
           ],
-          "score": 1.1984,
+          "score": 1.1999,
           "volume": 0.44,
-          "centroid_hz": 4170.1
+          "centroid_hz": 2991.4
         }
       ]
     },
