@@ -1343,6 +1343,164 @@ function doDrawPhase(array $state, string $pid): array {
     return $state;
 }
 
+/** Queue Dia Kurosawa optional Yell retry until both players finish Yell reveal. */
+function queueYellRetryOffer(
+    array $state,
+    string $pid,
+    string $slot,
+    int $idx,
+    array $ab,
+    string $mName
+): array {
+    $state['_yell_retry_offers'] = $state['_yell_retry_offers'] ?? [];
+    $state['_yell_retry_offers'][] = [
+        'owner'         => $pid,
+        'member_slot'   => $slot,
+        'ability_index' => $idx,
+        'ability'       => $ab,
+        'source_name'   => $mName,
+    ];
+    return $state;
+}
+
+function openNextYellRetryPrompt(array $state): array {
+    $offers = $state['_yell_retry_offers'] ?? [];
+    if (empty($offers)) {
+        return finishYellRetryAndHearts($state);
+    }
+    $offer = array_shift($offers);
+    $state['_yell_retry_offers'] = $offers;
+    $pid = $offer['owner'];
+    $state['pending_prompt'] = [
+        'type'          => 'auto_yell_no_live_retry',
+        'owner'         => $pid,
+        'responder'     => $pid,
+        'source_name'   => $offer['source_name'] ?? 'Member',
+        'prompt'        => 'Put all cards revealed for Yell into the Waiting Room, lose Blade hearts from that Yell, and perform Yell again?',
+        'choices'       => ['yes', 'no'],
+        'choice_labels' => ['Yes — Retry Yell', 'No — Keep Yell'],
+        'ability'       => $offer['ability'] ?? [],
+        'member_slot'   => $offer['member_slot'] ?? '',
+        'ability_index' => $offer['ability_index'] ?? 0,
+    ];
+    $state['phase'] = 'live_success_effects';
+    $state['_perf_yell_both_done'] = true;
+    return $state;
+}
+
+/** Draw Yell cards for a player (shared by initial Yell and retry). */
+function drawYellCardsForPlayer(array $state, string $pid): array {
+    $p = &$state['players'][$pid];
+    $totalBlade = computeYellBladeTotal($state, $pid);
+    $state = initLiveModifiers($state);
+    $yellReduction = intval($state['live_modifiers'][$pid]['yell_reveal_reduction'] ?? 0);
+    $drawBlade = max(0, $totalBlade - $yellReduction);
+    $yellCards = [];
+    if ($drawBlade > 0) {
+        $yellCards = drawMainDeckCards($state, $pid, $drawBlade);
+    }
+    foreach ($yellCards as &$yc) {
+        mergeYellCardCatalogFields($yc);
+    }
+    unset($yc);
+    return [$state, $yellCards, $totalBlade, $drawBlade, $yellReduction];
+}
+
+/** WR prior Yell cards and perform a fresh Yell draw (Blade hearts from prior Yell lost). */
+function executeYellRetry(array $state, string $pid, array $prompt): array {
+    $p = &$state['players'][$pid];
+    $prior = $p['yell_cards'] ?? $state['yell_reveal'][$pid] ?? [];
+    if (!empty($prior)) {
+        $p['waiting_room'] = array_merge($p['waiting_room'], $prior);
+    }
+    $p['yell_cards'] = [];
+    if (!isset($state['yell_reveal'])) {
+        $state['yell_reveal'] = [];
+    }
+    $state['yell_reveal'][$pid] = [];
+
+    [$state, $yellCards, $totalBlade, $drawBlade, $yellReduction] = drawYellCardsForPlayer($state, $pid);
+    $p = &$state['players'][$pid];
+    $p['yell_cards'] = $yellCards;
+    $state['yell_reveal'][$pid] = $yellCards;
+
+    if ($drawBlade > 0) {
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — Yell retry: drew $drawBlade card(s) for Blade.");
+    } elseif ($yellReduction > 0 && $totalBlade > 0) {
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — Yell retry reduced by $yellReduction (drew 0 of $totalBlade Blade).");
+    }
+
+    $state['_last_yell_live_count'] = countYellLiveCards($yellCards);
+    $state['_last_yell_live_count_' . $pid] = countYellLiveCards($yellCards);
+    $state['_last_yell_cards'] = $yellCards;
+    $state = resolveAutoYellAbilities($state, $pid, $yellCards);
+
+    $mName = $prompt['source_name'] ?? 'Member';
+    $state = addLog($state, $state['players'][$pid]['name'] .
+        " — [$mName] Yell cards to Waiting Room; Yell again (Blade hearts from prior Yell lost).");
+    return $state;
+}
+
+function finishYellRetryAndHearts(array $state): array {
+    unset($state['_yell_retry_offers']);
+    $state['_perf_yell_both_done'] = true;
+    $first  = $state['first_player'];
+    $second = ($first === 'p1') ? 'p2' : 'p1';
+    $attempting = $state['live_attempt'] ?? ['p1', 'p2'];
+    $resolved = $state['_perf_hearts_resolved'] ?? [];
+
+    foreach ([$first, $second] as $pid) {
+        if (!in_array($pid, $attempting, true)) {
+            continue;
+        }
+        if (!empty($resolved[$pid])) {
+            continue;
+        }
+        $liveCards = array_values(array_filter(
+            $state['players'][$pid]['live_zone'] ?? [],
+            fn($c) => isLiveTypeCard($c)
+        ));
+        if (empty($liveCards)) {
+            $resolved[$pid] = true;
+            continue;
+        }
+        $state = resolvePerformanceHeartCheck($state, $pid, false);
+        if (!empty($state['pending_prompt'])) {
+            $state['phase'] = 'live_success_effects';
+            $state['_performance_continue'] = $pid;
+            $state['_perf_hearts_resolved'] = $resolved;
+            return $state;
+        }
+        $state = flushPendingYellToWr($state, $pid);
+        $resolved[$pid] = true;
+    }
+
+    unset($state['_perf_hearts_resolved'], $state['_perf_yell_both_done']);
+    $state['phase'] = 'live_judge';
+    return resolveLiveJudge($state);
+}
+
+function continuePerformanceYellPhase(array $state, string $justPlayed): array {
+    $first  = $state['first_player'];
+    $second = ($first === 'p1') ? 'p2' : 'p1';
+    $attempting = $state['live_attempt'] ?? ['p1', 'p2'];
+
+    if ($justPlayed === $first && ($state['phase'] ?? '') === 'live_performance_first') {
+        $state['phase'] = 'live_performance_second';
+        if (in_array($second, $attempting, true)) {
+            return resolvePerformancePhase($state, $second);
+        }
+        return continuePerformanceYellPhase($state, $second);
+    }
+
+    if (!empty($state['_yell_retry_offers'])) {
+        return openNextYellRetryPrompt($state);
+    }
+    return finishYellRetryAndHearts($state);
+}
+
 /** Run one player's Performance: filter non-Lives to WR, Yell draw, heart check, success/fail. */
 function resolvePerformancePhase(array $state, string $pid, bool $continueAfter = true): array {
     $p = &$state['players'][$pid];
@@ -1372,25 +1530,14 @@ function resolvePerformancePhase(array $state, string $pid, bool $continueAfter 
 
     if (empty($liveCards)) {
         $state = addLog($state, $state['players'][$pid]['name'] . ' has no valid Live cards!');
-        $state = continuePerformancePhase($state, $pid);
+        if ($continueAfter) {
+            $state = continuePerformanceYellPhase($state, $pid);
+        }
         return $state;
     }
 
-    // Calculate Yell (エール): sum of active member blades + player-wide Live modifiers (once).
-    $totalBlade = computeYellBladeTotal($state, $pid);
-
-    // Draw Yell cards from deck
-    $yellCards = [];
-    $state = initLiveModifiers($state);
-    $yellReduction = intval($state['live_modifiers'][$pid]['yell_reveal_reduction'] ?? 0);
-    $drawBlade = max(0, $totalBlade - $yellReduction);
-    if ($drawBlade > 0) {
-        $yellCards = drawMainDeckCards($state, $pid, $drawBlade);
-    }
-    foreach ($yellCards as &$yc) {
-        mergeYellCardCatalogFields($yc);
-    }
-    unset($yc);
+    [$state, $yellCards, $totalBlade, $drawBlade, $yellReduction] = drawYellCardsForPlayer($state, $pid);
+    $p = &$state['players'][$pid];
     if ($yellReduction > 0 && $totalBlade > 0) {
         $state = addLog($state, $state['players'][$pid]['name'] .
             " — Yell reduced by $yellReduction (drew $drawBlade of $totalBlade Blade).");
@@ -1416,7 +1563,29 @@ function resolvePerformancePhase(array $state, string $pid, bool $continueAfter 
         return $state;
     }
 
-    // N-bp4-025: convert Yell blade hearts to blue for this attempt
+    if ($continueAfter) {
+        $state = continuePerformanceYellPhase($state, $pid);
+    }
+    return $state;
+}
+
+/** Heart check, Live success/fail, and success effects for one player (after Yell reveal). */
+function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueAfter = true): array {
+    $p = &$state['players'][$pid];
+    $liveCards = array_values(array_filter(
+        $p['live_zone'] ?? [],
+        fn($c) => isLiveTypeCard($c)
+    ));
+    if (empty($liveCards)) {
+        if ($continueAfter) {
+            $state = continuePerformancePhase($state, $pid);
+        }
+        return $state;
+    }
+
+    $yellCards = $p['yell_cards'] ?? $state['yell_reveal'][$pid] ?? [];
+    $totalBlade = computeYellBladeTotal($state, $pid);
+
     $state = initLiveModifiers($state);
     if (!empty($state['live_modifiers'][$pid]['yell_blades_to_blue'])) {
         foreach ($yellCards as &$yc) {

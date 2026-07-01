@@ -542,7 +542,7 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                 $p['stage'][$slot] = $member;
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$mName] drew $drawn (fewer Yell cards than opponent).");
-            } elseif ($type === 'auto_yell_no_live_retry' && $myCount >= 1) {
+            } elseif ($type === 'auto_yell_no_live_retry' && !$hasLive && $myCount >= 1) {
                 $maxBlade = intval($ab['max_blade_hearts'] ?? 99);
                 $bladeCnt = 0;
                 foreach ($yellCards as $yc) {
@@ -551,22 +551,11 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                     }
                 }
                 if ($bladeCnt > $maxBlade) continue;
-                if (!empty($state['pending_prompt'])) continue;
-                $state['pending_prompt'] = [
-                    'type'          => 'auto_yell_no_live_retry',
-                    'owner'         => $pid,
-                    'responder'     => $pid,
-                    'source_name'   => $mName,
-                    'prompt'        => 'Put all cards revealed for Yell into the Waiting Room, lose Blade hearts from that Yell, and perform Yell again?',
-                    'choices'       => ['yes', 'no'],
-                    'choice_labels' => ['Yes — Retry Yell', 'No — Keep Yell'],
-                    'ability'       => $ab,
-                    'member_slot'   => $slot,
-                    'ability_index' => $idx,
-                ];
+                markAbilityUsed($member, $idx);
+                $p['stage'][$slot] = $member;
+                $state = queueYellRetryOffer($state, $pid, $slot, $idx, $ab, $mName);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$mName] optional Yell retry (no Live revealed).");
-                return $state;
             } elseif ($type === 'auto_yell_no_blade_heart' && !yellCardsHaveBladeHeart($yellCards)) {
                 addBonusHeartsToModifier($state, $pid, $ab['hearts'] ?? []);
                 markAbilityUsed($member, $idx);
@@ -2090,6 +2079,10 @@ function finishLiveSuccessEffects(array $state): array {
     if ($pid && empty($GLOBALS['TUT_PERF_MANUAL_PHASES'])) {
         $state = flushPendingYellToWr($state, $pid);
         unset($state['_performance_continue']);
+        if (!empty($state['_perf_yell_both_done'])) {
+            $state['_perf_hearts_resolved'][$pid] = true;
+            return finishYellRetryAndHearts($state);
+        }
         $state = continuePerformancePhase($state, $pid);
     }
     return $state;
@@ -14402,20 +14395,24 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
     }
 
     if ($promptType === 'auto_yell_no_live_retry') {
-        if ($choice === 'yes') {
-            $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $ownerP['yell_cards'] ?? []);
-            $ownerP['yell_cards'] = [];
-            $slot = $prompt['member_slot'] ?? '';
-            if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
-                markAbilityUsed($ownerP['stage'][$slot], intval($prompt['ability_index'] ?? 0));
-            }
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — Yell cards to Waiting Room; Yell again (Blade hearts from prior Yell lost).');
-            $state['_yell_retry'] = $owner;
-        }
         unset($state['pending_prompt']);
+        if ($choice === 'yes') {
+            $state = executeYellRetry($state, $owner, $prompt);
+            if (!empty($state['pending_prompt'])) {
+                $state['phase'] = 'live_success_effects';
+                $state['_performance_continue'] = $owner;
+                $state['seq']++;
+                return $state;
+            }
+        } else {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — kept Yell cards (declined retry).');
+        }
         $state['seq']++;
-        return $state;
+        if (!empty($state['_yell_retry_offers'])) {
+            return openNextYellRetryPrompt($state);
+        }
+        return finishYellRetryAndHearts($state);
     }
 
     if ($promptType === 'opponent_text_answer') {

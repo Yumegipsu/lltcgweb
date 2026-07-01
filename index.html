@@ -22409,6 +22409,13 @@ function cpuResolvePromptBody(s, cpu, pr) {
   if(pr.type==='auto_yell_no_blade_heart'){
     return;
   }
+  if(pr.type==='auto_yell_no_live_retry'){
+    const owner = pr.owner || pr.responder || 'p2';
+    const yellCards = s.yell_reveal?.[owner] || [];
+    const hasLive = yellCards.some(c => isLiveTypeCard(c));
+    cpuAct('resolve_prompt', { choice: hasLive ? 'no' : 'yes' });
+    return;
+  }
   if(pr.type==='ssd1_play_wr_empty'){
     if(pr.step==='pick_wr'){
       const id=pr.candidates?.[0]?.instance_id;
@@ -24494,7 +24501,7 @@ async function awaitResolvePostLivePrompts(prev, next, myId, opts = {}) {
     return;
   }
   const postLive = pr.type === 'pick_judge_success_live'
-    || next.phase === 'live_success_effects'
+    || (next.phase === 'live_success_effects' && !isMidSpectacleYellRetryPrompt(next))
     || isLiveSuccessDiscardPrompt(next);
   if (!postLive) {
     ensurePendingPromptSurfaced(next, myId);
@@ -25120,16 +25127,26 @@ function emptyLiveRoundScenario(prev, next) {
   return mine ? 'solo-human' : 'solo-cpu';
 }
 
-/** Prompts that appear after judge/performance — spectacle replays first, then these surface. */
+/** Prompts deferred until after judge/performance spectacle completes. */
 const PERF_SPECTACLE_DEFERRED_PROMPTS = new Set([
   'pick_judge_success_live',
 ]);
+
+/** Prompts that pause spectacle after yell_opp, before live outcomes. */
+const PERF_SPECTACLE_MID_PROMPTS = new Set([
+  'auto_yell_no_live_retry',
+]);
+
+function isMidSpectacleYellRetryPrompt(s) {
+  return PERF_SPECTACLE_MID_PROMPTS.has(s?.pending_prompt?.type);
+}
 
 function pendingPromptBlocksPerfSpectacle(next) {
   const pr = next?.pending_prompt;
   if (!pr) return false;
   if (next.phase === 'live_success_effects') return false;
   if (PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type)) return false;
+  if (PERF_SPECTACLE_MID_PROMPTS.has(pr.type)) return false;
   return true;
 }
 
@@ -25900,6 +25917,7 @@ function shouldDeferPromptForLivePresentation(s, myId) {
   if (shouldDeferLiveSuccessDiscardUi(s, myId)) return true;
   const pr = s?.pending_prompt;
   if (!pr || pr.responder !== myId) return false;
+  if (isMidSpectacleYellRetryPrompt(s)) return true;
   if (G._liveRoundPlaybackActive && !G._liveRoundPostSpectacleReady) {
     if (s.phase === 'live_start_effects') return false;
     if (PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type) || isLiveSuccessDiscardPrompt(s)) return true;
@@ -28514,6 +28532,49 @@ async function perfAnimateJudge(ctx) {
   await perfSleep(reduced ? 400 : 950);
 }
 
+function perfYellRevealSignature(state, pid) {
+  return (state?.yell_reveal?.[pid] || []).map(c => c?.instance_id || '').join(',');
+}
+
+async function perfReAnimateYellSideIfChanged(ctx, nextState, pid, prevSig) {
+  const newSig = perfYellRevealSignature(nextState, pid);
+  if (!newSig || newSig === prevSig) return ctx;
+  Object.assign(ctx, perfBuildContext(ctx.prev, nextState, ctx.myId));
+  perfClearYellUi();
+  await perfAnimateYellSide(ctx, pid);
+  return ctx;
+}
+
+async function awaitMidSpectacleYellRetryPrompts(ctx, myId) {
+  let cur = G._deferredLiveState || G.gameState || ctx.next;
+  while (isMidSpectacleYellRetryPrompt(cur)) {
+    const pr = cur.pending_prompt;
+    const owner = pr.owner || pr.responder;
+    const sigBefore = perfYellRevealSignature(cur, owner);
+    ensurePendingPromptSurfaced(cur, myId);
+    await waitForPipelinePromptResolution(myId, {
+      targetState: cur,
+      isResolved: (s) => {
+        if (!s?.pending_prompt) return true;
+        if (s.pending_prompt.type !== 'auto_yell_no_live_retry') return true;
+        return false;
+      },
+    });
+    cur = G._deferredLiveState || G.gameState || cur;
+    if (G._deferredLiveState) {
+      G.gameState = cur;
+    }
+    ctx = await perfReAnimateYellSideIfChanged(ctx, cur, owner, sigBefore);
+    G._perfSpectaclePhase = owner === perfFirstPlayerId(ctx) ? 'yell_mine' : 'yell_opp';
+  }
+  const final = G._deferredLiveState || G.gameState || cur;
+  if (final && final !== ctx.next) {
+    Object.assign(ctx, perfBuildContext(ctx.prev, final, ctx.myId));
+    if (G._deferredLiveState) G._deferredLiveState = final;
+  }
+  return ctx;
+}
+
 async function perfSeekPhase(prev, next, myId, targetPhase, { forward = true, animate = true } = {}) {
   if (targetPhase === 'closed' || !targetPhase) {
     perfCloseSpectacle();
@@ -28653,6 +28714,10 @@ async function perfSeekPhase(prev, next, myId, targetPhase, { forward = true, an
       repositionTutorialPerfYellBubble(G.tutorialData?.steps?.[G.tutorialStep]);
     }
     if (aborted) return;
+    if (tgtIdx > yellOppIdx) {
+      ctx = await awaitMidSpectacleYellRetryPrompts(ctx, myId);
+      if (aborted) return;
+    }
     if (tgtIdx <= yellOppIdx) return;
   }
   if (curIdx < perfPhaseIdx('outcomes_mine') && tgtIdx >= perfPhaseIdx('outcomes_mine') && tgtIdx < perfPhaseIdx('outcomes')) {
