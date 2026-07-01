@@ -33921,12 +33921,6 @@ function syncCoinFlipChoiceUi(s, myId) {
     el('coin-msg').textContent = `${winName} won the coin flip`;
     el('coin-result').textContent = 'Choosing who goes first…';
     openM('overlay-coin');
-    G._coinFlipLoserDismissTimer = setTimeout(() => {
-      G._coinFlipLoserDismissTimer = null;
-      if (G.gameState?.phase === 'coin_flip' && G.gameState?.coin_flip?.winner !== myId) {
-        closeM('overlay-coin');
-      }
-    }, 2200);
     return;
   }
 
