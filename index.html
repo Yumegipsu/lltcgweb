@@ -9229,6 +9229,7 @@ function syncDeckBuilderChrome() {
   if (metaRow) metaRow.classList.toggle('deck-experiment-meta', experiment);
   const starterHint = el('deck-starter-hint');
   if (starterHint) starterHint.hidden = experiment;
+  syncDeckStarterHint();
   if (hintCompact) {
     hintCompact.textContent = experiment ? t('deck.experimentHint') : t('deck.hint');
   }
@@ -9826,6 +9827,19 @@ function deckSearchPlaceholder(mode) {
   const key = 'deck.filters.searchPlaceholder.' + m;
   const val = t(key);
   return val !== key ? val : t('deck.filters.searchPlaceholder.all');
+}
+
+function syncDeckStarterHint() {
+  const hint = el('deck-starter-hint');
+  if (!hint) return;
+  if (A.deckBuilderMode === 'experiment') {
+    hint.textContent = '';
+    return;
+  }
+  const starterLabel = A.profile?.user?.starter_deck_label || '';
+  hint.textContent = starterLabel
+    ? t('deck.accountStarterHint', { starter: starterLabel })
+    : '';
 }
 
 function syncDeckFilterLabels() {
@@ -10619,14 +10633,9 @@ async function openDeckBuilder() {
   await refreshCollection();
   const dl = await accountGet('deck_list');
   A.decks = dl.decks || [];
-  const starterLabel = A.profile?.user?.starter_deck_label || '';
   const hint = el('deck-starter-hint');
-  if (hint) {
-    hint.textContent = starterLabel
-      ? 'Your account starter: ' + starterLabel + ' · preset #1 starts from this list.'
-      : '';
-    hint.hidden = false;
-  }
+  if (hint) hint.hidden = false;
+  syncDeckStarterHint();
   const resetBtn = el('btn-deck-reset-starter');
   if (resetBtn) resetBtn.disabled = !A.profile?.user?.starter_deck;
   const autoBtn = el('btn-deck-auto-build');
@@ -11846,7 +11855,7 @@ async function openExperimentStarterPicker() {
     grid.appendChild(b);
   });
   if (!grid.children.length) {
-    el('deck-err').textContent = 'Starter decks not loaded yet.';
+    el('deck-err').textContent = t('deck.starterDecksNotLoaded');
     return;
   }
   openM('modal-experiment-starter-pick');
@@ -11858,7 +11867,7 @@ async function resetDeckToStarter() {
     return openExperimentStarterPicker();
   }
   if (!A.profile?.user?.starter_deck) {
-    el('deck-err').textContent = 'No starter deck on this account';
+    el('deck-err').textContent = t('deck.noStarterOnAccount');
     return;
   }
   try {
@@ -11866,7 +11875,10 @@ async function resetDeckToStarter() {
     const dl = await accountGet('deck_list');
     A.decks = dl.decks || [];
     selectDeckSlot(res.slot || A.deckSlot);
-    el('deck-err').textContent = 'Loaded ' + (res.name || 'starter deck') + ' into preset #' + (res.slot || A.deckSlot) + '.';
+    el('deck-err').textContent = t('deck.loadedStarterIntoPreset', {
+      name: res.name || t('deck.loadedStarterFallbackName'),
+      slot: res.slot || A.deckSlot,
+    });
   } catch (e) { el('deck-err').textContent = e.message; }
 }
 
@@ -11896,11 +11908,11 @@ async function autoBuildDeckFromCollection() {
   const btn = el('btn-deck-auto-build');
   el('deck-err').textContent = '';
   if (!A.profile?.user?.starter_deck) {
-    el('deck-err').textContent = 'Choose a starter deck first.';
+    el('deck-err').textContent = t('deck.chooseStarterFirst');
     return;
   }
   const prevLabel = btn?.textContent;
-  if (btn) { btn.disabled = true; btn.textContent = 'Building…'; }
+  if (btn) { btn.disabled = true; btn.textContent = t('deck.building'); }
   try {
     await refreshCollection();
     const res = await accountPost('deck_auto_build', {});
@@ -11912,11 +11924,11 @@ async function autoBuildDeckFromCollection() {
       el('inp-deck-name').value = build.name || curName || 'My Deck';
     }
     renderDeckBuilder();
-    el('deck-err').textContent = 'Auto-built a legal deck from your collection.';
+    el('deck-err').textContent = t('deck.autoBuiltSuccess');
   } catch (e) {
     el('deck-err').textContent = e.message;
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = prevLabel || 'Auto-build'; }
+    if (btn) { btn.disabled = false; btn.textContent = prevLabel || t('deck.autoBuild'); }
   }
 }
 
