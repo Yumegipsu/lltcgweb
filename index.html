@@ -24209,9 +24209,163 @@ const RULE_KEYWORD_TIPS = {
   },
 };
 
-const RULE_KW_BRACKET_PATTERN = /\[(On Enter|On Leave|Live Start|Live Success|Activated|Always|Once per turn|Automatic|Auto|Center)\]/g;
-const RULE_KW_YELL_PATTERN = /\bYell\b/g;
-const RULE_KW_YOU_MAY_PATTERN = /\byou may\b/gi;
+const RULE_KW_BRACKET_LABELS_EN = 'On Enter|On Leave|Live Start|Live Success|Activated|Always|Once per turn|Automatic|Auto|Center';
+const RULE_KW_BRACKET_LABELS_JA = '登場時|退場時|ライブ開始時|ライブ開始|ライブ成功時|ライブ成功|起動|常時|ターン1回|自動|センター';
+
+const RULE_KW_JA_TO_EN = {
+  '登場時': 'On Enter',
+  '退場時': 'On Leave',
+  'ライブ開始時': 'Live Start',
+  'ライブ開始': 'Live Start',
+  'ライブ成功時': 'Live Success',
+  'ライブ成功': 'Live Success',
+  '起動': 'Activated',
+  '常時': 'Always',
+  'ターン1回': 'Once per turn',
+  '自動': 'Automatic',
+  'センター': 'Center',
+  'エール': 'Yell',
+};
+
+const RULE_KW_EN_TO_JA = {
+  'On Enter': '登場時',
+  'On Leave': '退場時',
+  'Live Start': 'ライブ開始時',
+  'Live Success': 'ライブ成功時',
+  'Activated': '起動',
+  'Always': '常時',
+  'Once per turn': 'ターン1回',
+  'Automatic': '自動',
+  'Center': 'センター',
+  'Yell': 'エール',
+};
+
+const RULE_KW_TIP_I18N = {
+  'On Enter': 'skillKw.onEnter',
+  'On Leave': 'skillKw.onLeave',
+  'Live Start': 'skillKw.liveStart',
+  'Live Success': 'skillKw.liveSuccess',
+  'Activated': 'skillKw.activated',
+  'Always': 'skillKw.always',
+  'Once per turn': 'skillKw.oncePerTurn',
+  'Automatic': 'skillKw.automatic',
+  'Center': 'skillKw.center',
+  'Yell': 'skillKw.yell',
+};
+
+const RULE_KW_BRACKET_PATTERN = new RegExp(`\\[(?:${RULE_KW_BRACKET_LABELS_EN})\\]`, 'g');
+
+function getRuleKwBracketPattern() {
+  if (getLocale() === 'ja') {
+    return new RegExp(
+      `(?:\\[(?:${RULE_KW_BRACKET_LABELS_JA}|${RULE_KW_BRACKET_LABELS_EN})\\]|［(?:${RULE_KW_BRACKET_LABELS_JA})］)`,
+      'g'
+    );
+  }
+  return RULE_KW_BRACKET_PATTERN;
+}
+
+function ruleKwKeyFromBracketLabel(label) {
+  return RULE_KW_JA_TO_EN[label] || resolveRuleKwKey(label);
+}
+
+function ruleKeywordInfo(key) {
+  const canon = resolveRuleKwKey(key);
+  const i18nKey = RULE_KW_TIP_I18N[canon];
+  if (getLocale() === 'ja' && i18nKey) {
+    const title = t(`${i18nKey}.title`);
+    const body = t(`${i18nKey}.body`);
+    if (title && body && !String(title).startsWith('skillKw.')) {
+      return { title, body };
+    }
+  }
+  return RULE_KEYWORD_TIPS[canon] || null;
+}
+
+function ruleKwJaBracketLabel(enKey) {
+  const key = resolveRuleKwKey(enKey);
+  return `[${RULE_KW_EN_TO_JA[key] || key}]`;
+}
+
+function triggerToRuleKwKey(trigger) {
+  const map = {
+    on_enter: 'On Enter',
+    on_enter_or_live_start: 'Live Start',
+    live_start: 'Live Start',
+    live_success: 'Live Success',
+    on_leave: 'On Leave',
+    on_leave_stage: 'On Leave',
+    activated: 'Activated',
+    continuous: 'Always',
+    auto: 'Automatic',
+    automatic: 'Automatic',
+  };
+  return map[trigger] || null;
+}
+
+function stripEnRuleKwPrefixes(text) {
+  return String(text || '')
+    .replace(new RegExp(`\\[(?:${RULE_KW_BRACKET_LABELS_EN})\\]`, 'g'), '')
+    .replace(/^[\s/]+/, '')
+    .trim();
+}
+
+function cardRulesDisplayText(card) {
+  if (!card) return '';
+  const en = (card.text || '').trim();
+  const jp = (card.text_jp || '').trim();
+  if (getLocale() !== 'ja') return en || jp;
+  if (!jp) return en;
+  if (jp.match(getRuleKwBracketPattern())) return jp;
+
+  const jpParas = jp.split(/\n\n+/).map(p => p.trim()).filter(Boolean);
+  const enBlocks = splitCardTextAbilityBlocks(en);
+  const kwBlocks = enBlocks.filter(b => b.kw);
+  if (kwBlocks.length) {
+    const segments = [];
+    let currentKw = null;
+    let currentText = '';
+    for (const b of enBlocks) {
+      if (b.kw) {
+        if (currentKw) segments.push({ kw: currentKw, text: currentText.trim() });
+        currentKw = b.kw;
+        currentText = b.text;
+      } else if (currentKw) {
+        currentText += `\n${b.text}`;
+      }
+    }
+    if (currentKw) segments.push({ kw: currentKw, text: currentText.trim() });
+    return segments.map((seg, i) => {
+      const body = jpParas[i] || stripEnRuleKwPrefixes(seg.text) || jp;
+      return `${ruleKwJaBracketLabel(seg.kw)} ${body}`.trim();
+    }).join('\n\n');
+  }
+
+  const abilities = card.abilities || [];
+  if (abilities.length && jpParas.length) {
+    if (jpParas.length === abilities.length || jpParas.length === 1) {
+      return jpParas.map((para, i) => {
+        const ab = abilities[i] || abilities[0];
+        const kw = ab && triggerToRuleKwKey(ab.trigger);
+        if (!kw) return para;
+        return `${ruleKwJaBracketLabel(kw)} ${para}`;
+      }).join('\n\n');
+    }
+  }
+  if (abilities.length === 1) {
+    const kw = triggerToRuleKwKey(abilities[0].trigger);
+    if (kw) return `${ruleKwJaBracketLabel(kw)} ${jp}`;
+  }
+  return jp;
+}
+
+function getRuleKwYellPattern() {
+  return getLocale() === 'ja' ? /\bYell\b|エール/g : /\bYell\b/g;
+}
+
+function getRuleKwYouMayPattern() {
+  return getLocale() === 'ja' ? /\byou may\b|してもよい/gi : /\byou may\b/gi;
+}
 
 const SKILL_TYPE_ICON_FILES = {
   'On Enter': ['toujyou1.png', 'toujyou2.png'],
@@ -24274,8 +24428,9 @@ function appendRuleKwSpan(container, label, kwKey) {
   lbl.textContent = label;
   span.appendChild(lbl);
   span.dataset.kw = key;
-  if (RULE_KEYWORD_TIPS[key]) {
-    span.setAttribute('aria-label', `${key}: ${RULE_KEYWORD_TIPS[key].body}`);
+  const tip = ruleKeywordInfo(key);
+  if (tip) {
+    span.setAttribute('aria-label', `${tip.title}: ${tip.body}`);
   }
   span.tabIndex = 0;
   container.appendChild(span);
@@ -24284,13 +24439,13 @@ function appendRuleKwSpan(container, label, kwKey) {
 function appendPlainTextWithYell(container, text) {
   if (!text) return;
   let last = 0;
-  const re = new RegExp(`${RULE_KW_YELL_PATTERN.source}|${RULE_KW_YOU_MAY_PATTERN.source}`, 'gi');
+  const re = new RegExp(`${getRuleKwYellPattern().source}|${getRuleKwYouMayPattern().source}`, 'gi');
   let match;
   while ((match = re.exec(text)) !== null) {
     if (match.index > last) {
       container.appendChild(document.createTextNode(text.slice(last, match.index)));
     }
-    if (/^yell$/i.test(match[0])) {
+    if (/^yell$/i.test(match[0]) || match[0] === 'エール') {
       appendRuleKwSpan(container, match[0], 'Yell');
     } else {
       const span = document.createElement('span');
@@ -24310,16 +24465,17 @@ function renderCardRulesText(text, container) {
   if (!text) return;
   text = localizeSubunitText(text);
   const lines = text.split('\n');
+  const bracketRe = getRuleKwBracketPattern();
   lines.forEach((line, lineIdx) => {
     if (lineIdx > 0) container.appendChild(document.createElement('br'));
     let last = 0;
-    const re = new RegExp(RULE_KW_BRACKET_PATTERN.source, 'g');
     let match;
-    while ((match = re.exec(line)) !== null) {
+    while ((match = bracketRe.exec(line)) !== null) {
+      const rawLabel = match[0].replace(/^[\[［]|[\]］]$/g, '');
       if (match.index > last) {
         appendPlainTextWithYell(container, line.slice(last, match.index));
       }
-      appendRuleKwSpan(container, match[0], match[1]);
+      appendRuleKwSpan(container, match[0], ruleKwKeyFromBracketLabel(rawLabel));
       last = match.index + match[0].length;
     }
     if (last < line.length) {
@@ -24340,7 +24496,7 @@ function hideRuleKwTip() {
 function positionRuleKwTip(anchor) {
   const tip = el('rule-kw-tip');
   if (!tip || !anchor) return;
-  const info = RULE_KEYWORD_TIPS[anchor.dataset.kw];
+  const info = ruleKeywordInfo(anchor.dataset.kw);
   if (!info) return;
   el('rkt-title').textContent = info.title;
   el('rkt-body').textContent = info.body;
@@ -24379,7 +24535,7 @@ function positionRuleKwTip(anchor) {
 }
 
 function showRuleKwTip(anchor) {
-  if (!anchor?.dataset?.kw || !RULE_KEYWORD_TIPS[anchor.dataset.kw]) return;
+  if (!anchor?.dataset?.kw || !ruleKeywordInfo(anchor.dataset.kw)) return;
   G._ruleKwAnchor = anchor;
   positionRuleKwTip(anchor);
 }
@@ -31364,8 +31520,9 @@ function fillCardDetailPanel(prefix, card, s, myId) {
     yi.style.alignItems = 'center';
     appendYellSpecialIcons(yi, card, { lg: false });
   }
-  const skillText = cardLocaleText(card).trim()
-    || ((card.abilities?.length && !cardLocaleText(card).trim())
+  const rulesDisplay = cardRulesDisplayText(card).trim();
+  const skillText = rulesDisplay
+    || ((card.abilities?.length && !rulesDisplay)
       ? card.abilities.map(ab => abilityLabel(ab)).filter(Boolean).join('\n')
       : '');
   if (tx) {
@@ -32594,11 +32751,12 @@ const RULE_KW_TO_TRIGGER = {
 
 function splitCardTextAbilityBlocks(text) {
   if (!text?.trim()) return [];
-  const re = /\[(On Enter|On Leave|Live Start|Live Success|Activated|Always|Once per turn|Automatic|Auto|Center)\]/g;
+  const re = getRuleKwBracketPattern();
   const starts = [];
   let match;
   while ((match = re.exec(text)) !== null) {
-    starts.push({ index: match.index, kw: match[1] });
+    const rawLabel = match[0].replace(/^[\[［]|[\]］]$/g, '');
+    starts.push({ index: match.index, kw: ruleKwKeyFromBracketLabel(rawLabel) });
   }
   if (!starts.length) return [{ kw: null, text: text.trim() }];
   const blocks = [];
@@ -32614,7 +32772,7 @@ function abilityRulesTextFor(card, abilityIdx) {
   const abilities = card?.abilities || [];
   const ab = abilities[abilityIdx];
   if (!ab) return '';
-  const full = (card.text || '').trim();
+  const full = cardRulesDisplayText(card).trim();
   if (!full) return abilityLabel(ab);
   const blocks = splitCardTextAbilityBlocks(full);
   const trigger = ab.trigger;

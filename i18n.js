@@ -385,6 +385,48 @@
       "needEnergy": "Need {n} active Energy",
       "tutorialDemo": "Tutorial demo — use Next to continue"
     },
+    "skillKw": {
+      "onEnter": {
+        "title": "On Enter",
+        "body": "Triggers once when this Member is played from your hand onto your Stage."
+      },
+      "onLeave": {
+        "title": "On Leave",
+        "body": "Triggers when this Member leaves your Stage (sent to the Waiting Room, Baton Pass, etc.)."
+      },
+      "liveStart": {
+        "title": "Live Start",
+        "body": "Resolves during the Live Start step after a Live is attempted. Many effects are optional — look for \"you may\"."
+      },
+      "liveSuccess": {
+        "title": "Live Success",
+        "body": "Resolves when your Live Performance succeeds — required hearts were met for the attempted Live cards."
+      },
+      "activated": {
+        "title": "Activated",
+        "body": "You choose to use this during your Main Phase while the Member is active on Stage. Pay any listed costs first."
+      },
+      "always": {
+        "title": "Always",
+        "body": "Passive effect that stays on while this Member is in play and its conditions are met. Nothing to activate."
+      },
+      "oncePerTurn": {
+        "title": "Once per turn",
+        "body": "You can only use this effect one time each turn."
+      },
+      "automatic": {
+        "title": "Automatic",
+        "body": "Fires by itself when the listed condition happens — no activation required."
+      },
+      "center": {
+        "title": "Center",
+        "body": "Only applies if this Member is in the center Stage slot when the effect resolves."
+      },
+      "yell": {
+        "title": "Yell (エール)",
+        "body": "During Live Performance, draw cards from your deck equal to your total Blade (from active Stage Members). Those cards are revealed — hearts shown on them count toward meeting your Live cards' required hearts. Yell cards are sent to the Waiting Room afterward."
+      }
+    },
     "heart": {
       "pickColor": "Pick a heart color for this effect.",
       "yellow": "Yellow",
@@ -950,6 +992,48 @@
       "alreadyUsed": "このターンは使用済み",
       "needEnergy": "アクティブなエネルギーが{n}必要",
       "tutorialDemo": "チュートリアルデモ — 次へで続行"
+    },
+    "skillKw": {
+      "onEnter": {
+        "title": "登場時",
+        "body": "手札からステージにメンバーをプレイしたときに1回発動します。"
+      },
+      "onLeave": {
+        "title": "退場時",
+        "body": "メンバーがステージを離れるとき（控え室、バトンタッチ、除去など）に発動します。"
+      },
+      "liveStart": {
+        "title": "ライブ開始時",
+        "body": "ライブが試行されたあとのライブ開始ステップで解決します。多くは任意効果です（「してもよい」）。"
+      },
+      "liveSuccess": {
+        "title": "ライブ成功時",
+        "body": "ライブパフォーマンスが成功したとき（必要ハートを満たしたとき）に解決します。"
+      },
+      "activated": {
+        "title": "起動",
+        "body": "メインフェイズ中、ステージ上のアクティブなメンバーとして自分で発動します。先にコストを支払います。"
+      },
+      "always": {
+        "title": "常時",
+        "body": "条件を満たしている間ずっと有効なパッシブ効果です。発動操作は不要です。"
+      },
+      "oncePerTurn": {
+        "title": "ターン1回",
+        "body": "この効果は1ターンに1回だけ使えます。"
+      },
+      "automatic": {
+        "title": "自動",
+        "body": "条件が満たされると自動で発動します。発動操作は不要です。"
+      },
+      "center": {
+        "title": "センター",
+        "body": "効果解決時にこのメンバーがセンタースロットにいる場合のみ適用されます。"
+      },
+      "yell": {
+        "title": "エール",
+        "body": "ライブパフォーマンス中、ステージ上のアクティブメンバーの合計ブレード枚数だけデッキからカードを公開します。公開カードのハートは必要ハート判定に使えます。エール後、公開カードは控え室へ送られます。"
+      }
     },
     "heart": {
       "pickColor": "この効果のハート色を選んでください。",
