@@ -380,6 +380,18 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
         ? collectContinuousPerformanceHeartGrants($state, $oppId) : [];
     $mineContinuousHearts = aggregateFlatHeartColors(getContinuousPerformanceHearts($state, $viewPid));
     $oppContinuousHearts = aggregateFlatHeartColors(getContinuousPerformanceHearts($state, $oppId));
+    $carryPhase = $state['phase'] ?? '';
+    $exposePerfCarryover = in_array($carryPhase, [
+        'main_first', 'main_second', 'active_first', 'active_second',
+        'live_start_effects', 'live_performance_first', 'live_performance_second',
+        'live_success_effects', 'live_judge',
+    ], true) || ($state['status'] ?? '') === 'finished';
+    $yellBladeMine = computeYellBladeTotal($state, $viewPid);
+    $yellBladeOpp = computeYellBladeTotal($state, $oppId);
+    if ($exposePerfCarryover && !empty($state['_yell_blade_snapshot'])) {
+        $yellBladeMine = intval($state['_yell_blade_snapshot'][$viewPid] ?? $yellBladeMine);
+        $yellBladeOpp = intval($state['_yell_blade_snapshot'][$oppId] ?? $yellBladeOpp);
+    }
     $filtered['stage_board'] = [
         'mine' => [
             'hearts' => mergeHeartColorCounts(
@@ -390,7 +402,7 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
             'yell_hearts' => $mineYellHearts,
             'continuous_hearts' => $mineContinuousHearts,
             'continuous_heart_grants' => $mineContinuousGrants,
-            'yell'   => computeYellBladeTotal($state, $viewPid),
+            'yell'   => $yellBladeMine,
             'live_score_bonus' => getLiveScoreBonus($state, $viewPid),
             'active_effects' => collectActiveContinuousEffects($state, $viewPid),
         ],
@@ -403,18 +415,11 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
             'yell_hearts' => $oppYellHearts,
             'continuous_hearts' => $oppContinuousHearts,
             'continuous_heart_grants' => $oppContinuousGrants,
-            'yell'   => computeYellBladeTotal($state, $oppId),
+            'yell'   => $yellBladeOpp,
             'live_score_bonus' => getLiveScoreBonus($state, $oppId),
             'active_effects' => collectActiveContinuousEffects($state, $oppId),
         ],
     ];
-
-    $carryPhase = $state['phase'] ?? '';
-    $exposePerfCarryover = in_array($carryPhase, [
-        'main_first', 'main_second', 'active_first', 'active_second',
-        'live_start_effects', 'live_performance_first', 'live_performance_second',
-        'live_success_effects', 'live_judge',
-    ], true) || ($state['status'] ?? '') === 'finished';
 
     if (!empty($state['yell_reveal']) && isInPerformancePhase($state)) {
         $filtered['yell_reveal'] = $state['yell_reveal'];
@@ -433,6 +438,9 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
     if ($exposePerfCarryover && !empty($state['_live_round_success_snapshot'])) {
         $filtered['_live_round_success_snapshot'] = $state['_live_round_success_snapshot'];
     }
+    if ($exposePerfCarryover && !empty($state['_yell_blade_snapshot'])) {
+        $filtered['_yell_blade_snapshot'] = $state['_yell_blade_snapshot'];
+    }
     if (($filtered['phase'] ?? '') === 'live_set') {
         unset(
             $filtered['live_perf_success'],
@@ -440,6 +448,7 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
             $filtered['_live_perf_snapshot'],
             $filtered['_live_round_success_snapshot'],
             $filtered['_yell_reveal_snapshot'],
+            $filtered['_yell_blade_snapshot'],
             $filtered['yell_reveal']
         );
     }

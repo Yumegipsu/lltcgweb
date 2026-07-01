@@ -2839,6 +2839,12 @@ function filterStateForPlayer(array $state, string $token): array {
     }
 
     if ($myId && $oppId) {
+        $carryPhase = $state['phase'] ?? '';
+        $exposePerfCarryover = in_array($carryPhase, [
+            'main_first', 'main_second', 'active_first', 'active_second',
+            'live_start_effects', 'live_performance_first', 'live_performance_second',
+            'live_success_effects', 'live_judge',
+        ], true) || ($state['status'] ?? '') === 'finished';
         $mineStageHearts = aggregateStageHeartsByColor($state['players'][$myId]['stage'] ?? []);
         $oppStageHearts = aggregateStageHeartsByColor($state['players'][$oppId]['stage'] ?? []);
         $showYellHearts = isInPerformancePhase($state);
@@ -2854,6 +2860,12 @@ function filterStateForPlayer(array $state, string $token): array {
             ? collectContinuousPerformanceHeartGrants($state, $oppId) : [];
         $mineContinuousHearts = aggregateFlatHeartColors(getContinuousPerformanceHearts($state, $myId));
         $oppContinuousHearts = aggregateFlatHeartColors(getContinuousPerformanceHearts($state, $oppId));
+        $yellBladeMine = computeYellBladeTotal($state, $myId);
+        $yellBladeOpp = computeYellBladeTotal($state, $oppId);
+        if ($exposePerfCarryover && !empty($state['_yell_blade_snapshot'])) {
+            $yellBladeMine = intval($state['_yell_blade_snapshot'][$myId] ?? $yellBladeMine);
+            $yellBladeOpp = intval($state['_yell_blade_snapshot'][$oppId] ?? $yellBladeOpp);
+        }
         $filtered['stage_board'] = [
             'mine' => [
                 'hearts' => mergeHeartColorCounts(
@@ -2864,7 +2876,7 @@ function filterStateForPlayer(array $state, string $token): array {
                 'yell_hearts' => $mineYellHearts,
                 'continuous_hearts' => $mineContinuousHearts,
                 'continuous_heart_grants' => $mineContinuousGrants,
-                'yell'   => computeYellBladeTotal($state, $myId),
+                'yell'   => $yellBladeMine,
                 'live_score_bonus' => getLiveScoreBonus($state, $myId),
                 'active_effects' => collectActiveContinuousEffects($state, $myId),
             ],
@@ -2877,19 +2889,21 @@ function filterStateForPlayer(array $state, string $token): array {
                 'yell_hearts' => $oppYellHearts,
                 'continuous_hearts' => $oppContinuousHearts,
                 'continuous_heart_grants' => $oppContinuousGrants,
-                'yell'   => computeYellBladeTotal($state, $oppId),
+                'yell'   => $yellBladeOpp,
                 'live_score_bonus' => getLiveScoreBonus($state, $oppId),
                 'active_effects' => collectActiveContinuousEffects($state, $oppId),
             ],
         ];
     }
 
-    $carryPhase = $state['phase'] ?? '';
-    $exposePerfCarryover = in_array($carryPhase, [
-        'main_first', 'main_second', 'active_first', 'active_second',
-        'live_start_effects', 'live_performance_first', 'live_performance_second',
-        'live_success_effects', 'live_judge',
-    ], true) || ($state['status'] ?? '') === 'finished';
+    if (!isset($exposePerfCarryover)) {
+        $carryPhase = $state['phase'] ?? '';
+        $exposePerfCarryover = in_array($carryPhase, [
+            'main_first', 'main_second', 'active_first', 'active_second',
+            'live_start_effects', 'live_performance_first', 'live_performance_second',
+            'live_success_effects', 'live_judge',
+        ], true) || ($state['status'] ?? '') === 'finished';
+    }
 
     if (!empty($state['yell_reveal']) && isInPerformancePhase($state)) {
         $filtered['yell_reveal'] = $state['yell_reveal'];
@@ -2919,6 +2933,10 @@ function filterStateForPlayer(array $state, string $token): array {
         $filtered['_live_round_success_snapshot'] = $state['_live_round_success_snapshot'];
     }
 
+    if ($exposePerfCarryover && !empty($state['_yell_blade_snapshot'])) {
+        $filtered['_yell_blade_snapshot'] = $state['_yell_blade_snapshot'];
+    }
+
     if (($filtered['phase'] ?? '') === 'live_set') {
         unset(
             $filtered['live_perf_success'],
@@ -2926,6 +2944,7 @@ function filterStateForPlayer(array $state, string $token): array {
             $filtered['_live_perf_snapshot'],
             $filtered['_live_round_success_snapshot'],
             $filtered['_yell_reveal_snapshot'],
+            $filtered['_yell_blade_snapshot'],
             $filtered['yell_reveal']
         );
     }

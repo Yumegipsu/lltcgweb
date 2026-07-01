@@ -28823,9 +28823,7 @@ function perfSetYellSideInstant(ctx, pid, showAllCards) {
     ? (board?.mine?.stage_hearts || aggregateStageHeartsFromStage(ctx.next.players[pid]?.stage))
     : (board?.opp?.stage_hearts || aggregateStageHeartsFromStage(ctx.next.players[pid]?.stage));
   const yellCards = ctx.next.yell_reveal?.[pid] || [];
-  const totalBlade = isMine
-    ? (board?.mine?.yell ?? estimateYellBlade(ctx.next, pid))
-    : (board?.opp?.yell ?? estimateYellBlade(ctx.next, pid));
+  const totalBlade = stageYellBladeFor(ctx.next, pid, ctx.myId);
   const heartsEl = el(isMine ? 'perf-mine-hearts' : 'perf-opp-hearts');
   const bladeEl = el(isMine ? 'perf-mine-blade' : 'perf-opp-blade');
   const deckEl = el(isMine ? 'perf-mine-deck' : 'perf-opp-deck');
@@ -28982,9 +28980,7 @@ async function perfAnimateYellSide(ctx, pid) {
     ? (board?.mine?.stage_hearts || aggregateStageHeartsFromStage(ctx.next.players[pid]?.stage))
     : (board?.opp?.stage_hearts || aggregateStageHeartsFromStage(ctx.next.players[pid]?.stage));
   const yellCards = ctx.next.yell_reveal?.[pid] || [];
-  const totalBlade = isMine
-    ? (board?.mine?.yell ?? estimateYellBlade(ctx.next, pid))
-    : (board?.opp?.yell ?? estimateYellBlade(ctx.next, pid));
+  const totalBlade = stageYellBladeFor(ctx.next, pid, ctx.myId);
   const heartsEl = el(isMine ? 'perf-mine-hearts' : 'perf-opp-hearts');
   const bladeEl = el(isMine ? 'perf-mine-blade' : 'perf-opp-blade');
   const deckEl = el(isMine ? 'perf-mine-deck' : 'perf-opp-deck');
@@ -32177,6 +32173,35 @@ function stageLiveScoreBonusFor(s, pid, myId) {
   return Math.max(fromBoard, computeLiveScoreStageBonus(s, pid));
 }
 
+function perfYellBladeFromLog(s, pid) {
+  const name = s?.players?.[pid]?.name;
+  if (!name || !s?.log?.length) return 0;
+  const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(`^${esc} performed Live! Blades: (\\d+)`);
+  for (let i = s.log.length - 1; i >= 0; i--) {
+    const m = (s.log[i]?.msg || '').match(re);
+    if (m) return Number(m[1]) || 0;
+  }
+  return 0;
+}
+
+function stageYellBladeFor(s, pid, myId) {
+  const board = s?.stage_board;
+  const side = pid === myId ? board?.mine : board?.opp;
+  const fromBoard = Number(side?.yell);
+  const fromSnap = Number(s?._yell_blade_snapshot?.[pid]);
+  const fromLog = perfYellBladeFromLog(s, pid);
+  const estimated = estimateYellBlade(s, pid);
+  const yellCards = perfYellRevealFor(s)?.[pid]?.length || 0;
+  return Math.max(
+    Number.isFinite(fromBoard) ? fromBoard : 0,
+    Number.isFinite(fromSnap) ? fromSnap : 0,
+    fromLog || 0,
+    estimated,
+    yellCards,
+  );
+}
+
 /** Client mirror of server getLiveScoreBonus for HUD/storage previews when stage_board is stale. */
 function computeLiveScoreStageBonus(s, pid) {
   let bonus = Number(s?.live_modifiers?.[pid]?.score_bonus ?? 0);
@@ -32338,8 +32363,8 @@ function renderStageBoardPanel(s, myId) {
   const oppHearts = mergeHeartStatRows(oppStageHearts, oppContinuousHearts, oppYellHearts);
   renderStageBoardHeartRow(el('sb-my-hearts'), mineHearts);
   renderStageBoardHeartRow(el('sb-opp-hearts'), oppHearts);
-  renderStageBoardYell(el('sb-my-yell'), board?.mine?.yell ?? estimateYellBlade(s, myId));
-  renderStageBoardYell(el('sb-opp-yell'), board?.opp?.yell ?? estimateYellBlade(s, oppId));
+  renderStageBoardYell(el('sb-my-yell'), stageYellBladeFor(s, myId, myId));
+  renderStageBoardYell(el('sb-opp-yell'), stageYellBladeFor(s, oppId, myId));
   renderStageBoardActiveEffects(board);
   const activeCount = (board?.mine?.active_effects?.length || 0) + (board?.opp?.active_effects?.length || 0);
 
