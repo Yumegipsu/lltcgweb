@@ -19057,6 +19057,7 @@ async function applyStateUpdate(s) {
   if (G.isTutorial) return;
   syncPromptSubmitState(s);
   if (!s?.pending_prompt) clearDeferredPromptState();
+  clearStaleOpponentSkillWaitIfResolved(s, G.playerId);
   const prev = G.gameState;
   restorePerfSpectacleDoneKey();
   markSpectacleDoneFromState(s, prev);
@@ -19421,6 +19422,18 @@ function clearStaleCpuPromptBusyIfResolved(s) {
     clearDeferredPromptState();
     closeM('overlay-surveil');
     if (G.playerId) updateOpponentSkillWaitBanner(s, G.playerId);
+  }
+}
+
+/** Drop opponent skill-wait UI once the server (or replay step) cleared their prompt. */
+function clearStaleOpponentSkillWaitIfResolved(s, myId) {
+  if (!s || !myId) return;
+  const oppId = myId === 'p1' ? 'p2' : 'p1';
+  const pr = s.pending_prompt;
+  if (pr?.responder === oppId) return;
+  if (G._deferredPromptState?.pending_prompt?.responder === oppId) {
+    clearDeferredPromptState();
+    updateOpponentSkillWaitBanner(s, myId);
   }
 }
 
@@ -25027,6 +25040,42 @@ async function awaitLiveStartPromptsIfNeeded(prev, next, myId) {
   });
 }
 
+/** Batched polls skip live_start_effects — show the Live Start banner before the spectacle. */
+async function presentSkippedLiveStartBanners(prev, next, myId) {
+  if (!prev || !next) return;
+  if (liveStartPromptNeedsWait(next, myId)) return;
+  const logFrom = prev.log?.length || 0;
+  const slice = (next.log || []).slice(logFrom);
+  if (!slice.some(e => e.msg === '=== Live Start Effects ===')) return;
+  if (G._liveStartBannerPresentedSeq === (next.seq ?? 0)) return;
+  const banner = parseLogToBanner('=== Live Start Effects ===', 'live', next, myId, prev, logFrom);
+  if (!banner) return;
+  G._liveStartBannerPresentedSeq = next.seq ?? 0;
+  queueCenterBanner(banner);
+  await waitForBannersIdle();
+}
+
+function pickSpectacleStateForPerf(finalNext) {
+  const candidates = [finalNext, G._deferredLiveState, G.gameState].filter(Boolean);
+  if (!candidates.length) return finalNext;
+  const hasPerfFields = (st) => !!(
+    st?._live_perf_snapshot || st?.live_perf_success
+    || st?._live_round_success_snapshot || st?.live_round_success
+    || st?._yell_reveal_snapshot || st?.yell_reveal
+  );
+  let best = finalNext || candidates[0];
+  for (const c of candidates) {
+    const cSeq = c.seq ?? 0;
+    const bestSeq = best.seq ?? 0;
+    if (cSeq > bestSeq) {
+      best = c;
+      continue;
+    }
+    if (cSeq === bestSeq && hasPerfFields(c) && !hasPerfFields(best)) best = c;
+  }
+  return best;
+}
+
 async function awaitResolvePostLivePrompts(prev, next, myId, opts = {}) {
   if (!G._liveRoundPostSpectacleReady) return;
   await playLiveSuccessDeferredEffects(prev, next, myId, opts.newEntries || []);
@@ -25220,6 +25269,7 @@ function detectPendingLiveSpectacleTurn(prev, next) {
   }
 
   if (isLeavingLiveSetPhase(prev, next) && !isEmptyLiveSkipTransition(prev, next)) {
+    if (next.phase === 'live_start_effects' || pendingPromptBlocksPerfSpectacle(next)) return null;
     if (!liveSpectacleDoneForTurn(showTurn)
         && (newLogHasLivePerformance(prev, next) || logHasLivePerformanceForShowTurn(prev, next, showTurn))) {
       return showTurn;
@@ -26117,6 +26167,7 @@ function parseLogToBanner(msg, kind, s, myId, prev = null, logFrom = 0) {
   if (msg === '=== Live Round ===') return null;
   if (msg === '=== Live Start Effects ===') {
     if (!liveRoundHasLiveCards(s)) return null;
+    if (G._liveStartBannerPresentedSeq === (s?.seq ?? 0)) return null;
     return { title: 'Live Start', subtitle: '', kind: 'live', duration: LIVE_BANNER_MS };
   }
   if (msg === 'No Lives played this turn.') {
@@ -26811,6 +26862,7 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
     }
 
     await awaitLiveStartPromptsIfNeeded(prev, next, myId);
+    await presentSkippedLiveStartBanners(prev, next, myId);
 
     if (!wantsSpectacle && !emptySkip && (opts.forceSpectacleTurn != null || plan.showTurn != null)) {
       const replayPlan = liveRoundPresentationPlan(prev, G.gameState || next, {
@@ -26848,7 +26900,7 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       markEmptyLiveRoundPresented(prev, next);
     } else if (wantsSpectacle) {
       G._deferredLiveState = next;
-      const spectacleNext = (G.gameState?.seq ?? 0) >= (next?.seq ?? 0) ? G.gameState : next;
+      const spectacleNext = pickSpectacleStateForPerf(next);
       const perfPrev = buildPerfSpectaclePrev(prev, spectacleNext);
       TCG_DEBUG.log('live', 'runPerformanceSpectacle', {
         perfPrevSeq: perfPrev?.seq,
@@ -27043,9 +27095,13 @@ function shouldTriggerPerfSpectacle(prev, next) {
   if (isLiveSetPhase(ph) && !isLeavingLiveSetPhase(prev, next)) {
     return false;
   }
-  // Leaving live_set with Live cards — always replay spectacle for this round once.
+  // Leaving live_set with Live cards — replay spectacle once Live Start effects finish.
   if (isLeavingLiveSetPhase(prev, next) && liveRoundHasLiveCardsForRound(prev)
       && showTurn != null && !liveSpectacleDoneForTurn(showTurn)) {
+    if (next.phase === 'live_start_effects' || pendingPromptBlocksPerfSpectacle(next)) {
+      TCG_DEBUG.log('live', 'spectacle defer (leaving live_set): live_start_effects or prompt', { phase: ph });
+      return false;
+    }
     TCG_DEBUG.log('live', 'spectacle trigger (leaving live_set)', { showTurn, phase: ph });
     return true;
   }
@@ -28248,15 +28304,36 @@ function bothPlayersClearedLiveThisRound(next) {
 function perfSucceededLiveIids(next, pid, beforeZone) {
   const perfOkIds = perfLivePerfSuccessIds(next, pid);
   if (perfOkIds?.size) return perfOkIds;
-  if (!playerLiveRoundSucceeded(next, pid)) return new Set();
+
+  const beforeLive = (beforeZone || []).filter(c => isLiveTypeCard(c));
   const liveIds = new Set((next.players?.[pid]?.live_zone || []).map(c => c.instance_id));
   const successLiveIds = new Set((next.players?.[pid]?.success_lives || []).map(c => c.instance_id));
-  const beforeLive = (beforeZone || []).filter(c => isLiveTypeCard(c));
-  const succeeded = new Set();
+  const fromState = new Set();
+  beforeLive.forEach(c => {
+    const iid = c.instance_id;
+    if (!iid) return;
+    if (successLiveIds.has(iid) || liveIds.has(iid)) fromState.add(iid);
+  });
+
+  const logOk = perfLiveSuccessCountFromLog(next, pid);
+  if (logOk > 0) {
+    let assigned = fromState.size;
+    for (const c of beforeLive) {
+      if (fromState.has(c.instance_id)) continue;
+      if (assigned < logOk) {
+        fromState.add(c.instance_id);
+        assigned++;
+      }
+    }
+    if (fromState.size) return fromState;
+  }
+  if (fromState.size && playerLiveRoundSucceeded(next, pid)) return fromState;
+
+  if (!playerLiveRoundSucceeded(next, pid)) return new Set();
+  const succeeded = new Set(fromState);
   beforeLive.forEach(c => {
     if (liveIds.has(c.instance_id) || successLiveIds.has(c.instance_id)) succeeded.add(c.instance_id);
   });
-  const logOk = perfLiveSuccessCountFromLog(next, pid);
   if (logOk <= 0) return succeeded;
   let assigned = succeeded.size;
   for (const c of beforeLive) {
@@ -28684,6 +28761,9 @@ function perfCloseSpectacle() {
     const node = el(id);
     if (node) node.innerHTML = '';
   });
+  if (G.playerId && G.gameState) {
+    updateOpponentSkillWaitBanner(G.gameState, G.playerId);
+  }
 }
 
 function perfOpenSpectacle() {
@@ -30068,12 +30148,16 @@ function skillPromptUiState(s) {
   if (!def?.pending_prompt) return best;
   const bestSeq = best?.seq ?? 0;
   const defSeq = def.seq ?? 0;
-  const presentationActive = G.animating || G._perfSpectacleActive || G._liveRoundPlaybackActive;
-  if (!best?.pending_prompt && bestSeq >= defSeq && !presentationActive) {
+  const queued = G._pendingStateQueue;
+  const queuedCleared = queued?.length
+    && !queued[queued.length - 1]?.pending_prompt
+    && (queued[queued.length - 1].seq ?? 0) >= defSeq;
+  if ((!best?.pending_prompt && bestSeq >= defSeq) || queuedCleared) {
     clearDeferredPromptState({ skipBannerRefresh: true });
     return best;
   }
   if (best?.pending_prompt) return best;
+  const presentationActive = G.animating || G._perfSpectacleActive || G._liveRoundPlaybackActive;
   if (presentationActive && def.pending_prompt) return def;
   clearDeferredPromptState({ skipBannerRefresh: true });
   return best;
@@ -30164,9 +30248,10 @@ function updateOpponentSkillWaitBanner(s, myId) {
     return;
   }
   const auth = G.gameState && (!s || (G.gameState.seq ?? 0) >= (s.seq ?? 0)) ? G.gameState : (s || G.gameState);
-  const pr = skillPromptUiState(auth)?.pending_prompt;
   const oppId = myId === 'p1' ? 'p2' : 'p1';
-  const show = shouldShowOpponentSkillWait(auth, myId);
+  const pr = skillPromptUiState(auth)?.pending_prompt;
+  const show = shouldShowOpponentSkillWait(auth, myId)
+    && pr?.responder === oppId;
   if (!show) {
     root.hidden = true;
     root.classList.remove('show');
