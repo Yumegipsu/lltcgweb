@@ -1106,10 +1106,31 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
         $mill = intval($ability['mill'] ?? 2);
         $milled = array_splice($ownerP['main_deck'], 0, min($mill, count($ownerP['main_deck'])));
         $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $milled);
-        addFromWaitingRoomFiltered($ownerP, '', 'member', 1);
-        unset($state['pending_prompt']);
+        $srcName = $prompt['source_name'] ?? 'Member';
+        $cfg = wrPickCfgFromAbility(array_merge($ability, ['filter' => 'member']));
+        $candidates = wrCandidatesMatching($ownerP, $cfg);
+        if (empty($candidates)) {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$srcName] milled " . count($milled) . ' card(s); no Member in Waiting Room to add.');
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            $state = finishPromptEffects($state);
+            return $state;
+        }
+        $state['pending_prompt'] = [
+            'type'        => 'pick_wr_to_hand',
+            'owner'       => $owner,
+            'responder'   => $owner,
+            'source_name' => $srcName,
+            'prompt'      => 'Choose 1 Member card from your Waiting Room to add to your hand.',
+            'candidates'  => array_map('cardPromptSummary', $candidates),
+            'ability'     => $ability,
+            'wr_pick_cfg' => $cfg,
+        ];
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            " — [$srcName] discarded and milled " . count($milled) .
+            '; choose a Member from Waiting Room.');
         $state['seq']++;
-        $state = finishPromptEffects($state);
         return $state;
     }
 

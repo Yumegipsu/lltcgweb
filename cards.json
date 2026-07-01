@@ -43059,17 +43059,11 @@
       "abilities": [
         {
           "trigger": "activated",
-          "type": "optional_discard_prompt",
-          "energy_cost": 2,
+          "type": "activated_pay_discard_add_wr_live",
+          "cost": 2,
           "discard": 1,
-          "once_per_turn": true,
-          "prompt": "Pay 2 Energy and put 1 card from your hand into the Waiting Room: add 1 Nijigasaki Live card from your Waiting Room to your hand?",
-          "then": {
-            "type": "add_from_wr",
-            "group": "Nijigasaki",
-            "filter": "live",
-            "count": 1
-          }
+          "group": "Nijigasaki",
+          "once_per_turn": true
         }
       ],
       "subunit": "QU4RTZ"

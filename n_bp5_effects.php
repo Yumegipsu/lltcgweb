@@ -515,7 +515,11 @@ function nBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
                     " — [$name] revealed $look; choose Kasumi.");
                 break;
             }
-            if (!empty($revealed) && empty($state['pending_prompt'])) {
+            if (count($matches) === 0 && !empty($revealed) && empty($state['pending_prompt'])) {
+                $p['waiting_room'] = array_merge($p['waiting_room'], $revealed);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] revealed $look; no matching Kasumi card found.");
+            } elseif (!empty($revealed) && empty($state['pending_prompt'])) {
                 $p['waiting_room'] = array_merge($p['waiting_room'], $revealed);
             }
             break;
@@ -786,18 +790,25 @@ function nBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
                 fn($c) => cardMatchesGroup($c, $ability['group'] ?? 'Nijigasaki', 'member')
                     && intval($c['cost'] ?? 0) >= intval($ability['min_cost'] ?? 9)
             ));
+            $srcName = $prompt['source_name'] ?? 'Member';
             if (count($matches) === 1) {
                 $pick = $matches[0];
                 $ownerP['hand'][] = $pick;
                 $pickId = $pick['instance_id'] ?? '';
                 $rest = array_values(array_filter($top, fn($c) => ($c['instance_id'] ?? '') !== $pickId));
                 $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $rest);
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . $srcName . '] looked at top ' . count($top) .
+                    '; revealed ' . cardDisplayName($pick) . ' to hand.');
                 unset($state['pending_prompt']);
                 $state['seq']++;
                 return finishPromptEffects($state);
             }
             if (count($matches) === 0) {
                 $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $top);
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . $srcName . '] looked at top ' . count($top) .
+                    '; no matching Member to reveal.');
                 unset($state['pending_prompt']);
                 $state['seq']++;
                 return finishPromptEffects($state);
@@ -832,10 +843,16 @@ function nBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
                 }
             }
             $looked = $state['surveil_stash'] ?? [];
+            $srcName = $prompt['source_name'] ?? 'Member';
             if ($cardId !== '') {
                 applyLookPickHand($ownerP, $looked, [$cardId]);
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . $srcName . '] revealed 1 matching Member to hand.');
             } else {
                 $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $looked);
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . $srcName . '] looked at top ' . count($looked) .
+                    '; no Member revealed (all to Waiting Room).');
             }
             unset($state['surveil_stash']);
             unset($state['pending_prompt']);
