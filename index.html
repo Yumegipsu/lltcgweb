@@ -6205,7 +6205,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
             <div class="deck-stack"><span class="deck-count" id="my-nrg-deck-n">0</span></div>
           </div>
           <div class="mat-zone z-baton-toggle" id="baton-touch-toggle-wrap" hidden aria-hidden="true">
-            <button type="button" id="baton-touch-toggle" class="mat-baton-toggle baton-on" aria-pressed="true" title="Baton ON — tap for overplay mode">Baton</button>
+            <button type="button" id="baton-touch-toggle" class="mat-baton-toggle baton-on" aria-pressed="true" data-i18n-title-on="game.batonToggleOn" data-i18n-title-off="game.batonToggleOff" data-i18n="game.baton">Baton</button>
           </div>
         </div>
       </div>
@@ -7347,6 +7347,7 @@ function syncGameplayChromeI18n() {
   if (el('opp-skill-wait')?.classList.contains('show') && G.gameState && G.playerId) {
     updateOpponentSkillWaitBanner(G.gameState, G.playerId);
   }
+  syncBatonTouchToggleUi();
   refreshBannerQueueI18n();
   refreshCenterBannerI18n();
 }
@@ -30281,10 +30282,8 @@ function syncBatonTouchToggleUi() {
   btn.setAttribute('aria-pressed', on ? 'true' : 'false');
   btn.classList.toggle('baton-on', on);
   btn.classList.toggle('baton-off', !on);
-  btn.title = on
-    ? 'Baton ON — tap for overplay mode'
-    : 'Baton OFF (overplay) — tap to enable Baton';
-  btn.textContent = 'Baton';
+  btn.title = on ? t('game.batonToggleOn') : t('game.batonToggleOff');
+  btn.textContent = t('game.baton');
 }
 function toggleBatonTouchMode() {
   G.batonTouchEnabled = !G.batonTouchEnabled;
