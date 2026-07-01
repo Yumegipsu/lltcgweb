@@ -188,7 +188,10 @@
           "nijigasaki": "Nijigasaki",
           "sunshine": "Sunshine",
           "superstar": "Superstar",
-          "hasunosora": "Hasunosora"
+          "hasunosora": "Hasunosora",
+          "saintsnow": "Saint Snow",
+          "arise": "A-RISE",
+          "sunnypassion": "Sunny Passion"
         },
         "sort": {
           "aria": "Collection sort and order",
@@ -914,7 +917,10 @@
           "nijigasaki": "虹ヶ咲学園スクールアイドル同好会",
           "sunshine": "Aqours",
           "superstar": "Liella!",
-          "hasunosora": "蓮ノ空女学院スクールアイドルクラブ"
+          "hasunosora": "蓮ノ空女学院スクールアイドルクラブ",
+          "saintsnow": "Saint Snow",
+          "arise": "A-RISE",
+          "sunnypassion": "Sunny Passion"
         },
         "sort": {
           "aria": "コレクションの並べ替え",

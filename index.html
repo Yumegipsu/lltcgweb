@@ -9275,7 +9275,9 @@ function syncDeckBuilderChrome() {
 
 let _experimentPoolGen = 0;
 
-const DECK_FILTER_GROUPS = ["μ's", 'Nijigasaki', 'Sunshine', 'Superstar', 'Hasunosora'];
+const DECK_FILTER_GROUPS = ["μ's", 'Nijigasaki', 'Sunshine', 'Superstar', 'Hasunosora', 'Saint Snow', 'A-RISE', 'Sunny Passion'];
+/** Units stored on cards as subunit but exposed as deck group filters (not subunit chips). */
+const DECK_FILTER_SUBUNIT_GROUPS = new Set(['Saint Snow', 'A-RISE', 'Sunny Passion']);
 const DECK_FILTER_RARITIES = ['N', 'R', 'R+', 'L', 'L+', 'P', 'P+', 'PR', 'PR+', 'PE', 'PE+', 'SEC', 'LLE', 'RM', 'AR'];
 const DECK_POOL_SORT_KEY = 'tcg_deck_pool_sort';
 const DECK_POOL_SORT_DIR_KEY = 'tcg_deck_pool_sort_dir';
@@ -9530,6 +9532,9 @@ const DECK_FILTER_GROUP_SLUG = {
   Sunshine: 'sunshine',
   Superstar: 'superstar',
   Hasunosora: 'hasunosora',
+  'Saint Snow': 'saintsnow',
+  'A-RISE': 'arise',
+  'Sunny Passion': 'sunnypassion',
 };
 const PARALLEL_RARITIES = new Set(['P', 'P+', 'PE', 'PE+', 'L+', 'R+', 'SEC+', 'PR+', 'RM', 'AR', 'SRE', 'RE', 'LLE', 'SECE', 'SECL']);
 
@@ -9753,13 +9758,30 @@ function deckFilterPackOptionsForKind(kind) {
   return all.filter(p => cardProductKind(p) === kind);
 }
 
+function isDeckFilterSubunitOption(canonicalKey) {
+  if (!canonicalKey) return false;
+  if (DECK_FILTER_SUBUNIT_GROUPS.has(canonicalKey)) return false;
+  if (canonicalKey.includes('/')) return false;
+  return true;
+}
+
+function cardMatchesDeckGroupFilter(card, groupFilter) {
+  if (!groupFilter) return true;
+  const c = enrichCard(card);
+  if ((c.group || '') === groupFilter) return true;
+  if (!DECK_FILTER_SUBUNIT_GROUPS.has(groupFilter)) return false;
+  const want = canonicalSubunitKey(groupFilter);
+  if (canonicalSubunitKey(c.subunit || '') === want) return true;
+  return (c.subunits || []).some(s => canonicalSubunitKey(s) === want);
+}
+
 function deckFilterSubunitOptions() {
   const seen = new Set();
   Object.values(G.allCards).forEach(c => {
     if (c?.subunit) seen.add(canonicalSubunitKey(c.subunit));
     (c?.subunits || []).forEach(s => { if (s) seen.add(canonicalSubunitKey(s)); });
   });
-  return [...seen].filter(Boolean).sort((a, b) =>
+  return [...seen].filter(isDeckFilterSubunitOption).sort((a, b) =>
     a.localeCompare(b, undefined, { sensitivity: 'base' })
   );
 }
@@ -9915,7 +9937,7 @@ function cardMatchesDeckPoolFilters(card, filters, searchQ) {
     if (filters.type === 'live' && !isLiveCard(c)) return false;
     if (filters.type === 'energy' && !isEnergyCard(c)) return false;
   }
-  if (filters.group && (c.group || '') !== filters.group) return false;
+  if (filters.group && !cardMatchesDeckGroupFilter(c, filters.group)) return false;
   if (filters.rarity && (c.rarity || '') !== filters.rarity) return false;
   if (filters.productKind && cardProductKind(c.booster_pack) !== filters.productKind) return false;
   if (filters.pack && (c.booster_pack || '') !== filters.pack) return false;
