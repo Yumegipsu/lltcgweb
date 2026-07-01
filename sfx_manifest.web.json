@@ -656,6 +656,185 @@
           "centroid_hz": 5327.7
         }
       ]
+    },
+    "splash_phase": {
+      "variants": [
+        {
+          "file": "screen_open.wav",
+          "source": "se_110_0164.wav",
+          "source_category": "Story",
+          "duration_ms": 554.6,
+          "tags": [
+            "medium",
+            "loud",
+            "bright",
+            "story",
+            "splash"
+          ],
+          "score": 0.9594,
+          "volume": 0.9,
+          "centroid_hz": 4771.6
+        }
+      ]
+    },
+    "splash_live": {
+      "variants": [
+        {
+          "file": "phase_live.wav",
+          "source": "se_120_0050.wav",
+          "source_category": "Story",
+          "duration_ms": 705.4,
+          "tags": [
+            "medium",
+            "loud",
+            "bright",
+            "noisy",
+            "story",
+            "splash"
+          ],
+          "score": 1.2097,
+          "volume": 0.95,
+          "centroid_hz": 4263.7
+        }
+      ]
+    },
+    "splash_performance": {
+      "variants": [
+        {
+          "file": "phase_performance.wav",
+          "source": "se_110_0021.wav",
+          "source_category": "Story",
+          "duration_ms": 852.6,
+          "tags": [
+            "medium",
+            "loud",
+            "bright",
+            "story",
+            "splash"
+          ],
+          "score": 1.2,
+          "volume": 0.92,
+          "centroid_hz": 3696.8
+        }
+      ]
+    },
+    "splash_live_start": {
+      "variants": [
+        {
+          "file": "match_found.wav",
+          "source": "se_110_0132.wav",
+          "source_category": "Story",
+          "duration_ms": 851.4,
+          "tags": [
+            "medium",
+            "loud",
+            "bright",
+            "story",
+            "splash"
+          ],
+          "score": 1.7425,
+          "volume": 0.95,
+          "centroid_hz": 3830.8
+        }
+      ]
+    },
+    "splash_judge": {
+      "variants": [
+        {
+          "file": "pack_open.wav",
+          "source": "se_110_0232.wav",
+          "source_category": "Story",
+          "duration_ms": 555.6,
+          "tags": [
+            "medium",
+            "bright",
+            "noisy",
+            "digital",
+            "story",
+            "splash"
+          ],
+          "score": 1.0996,
+          "volume": 0.88,
+          "centroid_hz": 5028.6
+        }
+      ]
+    },
+    "splash_success": {
+      "variants": [
+        {
+          "file": "live_success.wav",
+          "source": "se_110_0181.wav",
+          "source_category": "Story",
+          "duration_ms": 1100.0,
+          "tags": [
+            "medium",
+            "loud",
+            "bright",
+            "story",
+            "splash"
+          ],
+          "score": 1.1891,
+          "volume": 0.88,
+          "centroid_hz": 3629.9
+        }
+      ]
+    },
+    "splash_turn": {
+      "variants": [
+        {
+          "file": "turn_tick.wav",
+          "source": "se_120_0070.wav",
+          "source_category": "Story",
+          "duration_ms": 301.3,
+          "tags": [
+            "short",
+            "story",
+            "splash"
+          ],
+          "score": 1.1975,
+          "volume": 0.72,
+          "centroid_hz": 2850.0
+        }
+      ]
+    },
+    "splash_action": {
+      "variants": [
+        {
+          "file": "notify.wav",
+          "source": "se_010_0010.wav",
+          "source_category": "Menu",
+          "duration_ms": 321.3,
+          "tags": [
+            "short",
+            "rustle",
+            "menu",
+            "splash"
+          ],
+          "score": 0.9263,
+          "volume": 0.88,
+          "centroid_hz": 2424.6
+        }
+      ]
+    },
+    "splash_live_attempt": {
+      "variants": [
+        {
+          "file": "yell_reveal.wav",
+          "source": "se_010_0070.wav",
+          "source_category": "Menu",
+          "duration_ms": 449.2,
+          "tags": [
+            "short",
+            "bright",
+            "noisy",
+            "menu",
+            "splash"
+          ],
+          "score": 1.1,
+          "volume": 0.85,
+          "centroid_hz": 4526.1
+        }
+      ]
     }
   }
 }

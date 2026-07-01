@@ -13,6 +13,8 @@
   var CARD_GAP_MS = 22;
   var CARD_MOVE_GAP_MS = 100;
   var CARD_MOVE_DEBOUNCE_KEY = '__card_move__';
+  var SPLASH_DEBOUNCE_KEY = '__splash__';
+  var SPLASH_GAP_MS = 80;
   var CARD_MOVE_IDS = {
     card_draw: true,
     card_slide: true,
@@ -52,7 +54,7 @@
 
   function loadManifest() {
     if (manifest) return Promise.resolve(manifest);
-    return fetch('./sfx_manifest.web.json?v=8', { cache: 'no-store' })
+    return fetch('./sfx_manifest.web.json?v=9', { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('sfx manifest HTTP ' + r.status);
         return r.json();
@@ -103,12 +105,14 @@
 
   function debounceKeyFor(id, pick) {
     if (CARD_MOVE_IDS[id]) return CARD_MOVE_DEBOUNCE_KEY;
+    if (id && String(id).indexOf('splash_') === 0) return SPLASH_DEBOUNCE_KEY;
     return pick.file;
   }
 
   function gapFor(id) {
     if (CARD_MOVE_IDS[id]) return CARD_MOVE_GAP_MS;
     if (id && String(id).indexOf('card_') === 0) return CARD_GAP_MS;
+    if (id && String(id).indexOf('splash_') === 0) return SPLASH_GAP_MS;
     return DEFAULT_GAP_MS;
   }
 
@@ -143,6 +147,8 @@
         'card_place', 'match_found', 'card_play', 'card_fly', 'card_to_wr',
         'energy_chip', 'phase_live', 'phase_performance', 'turn_tick', 'skill_tick',
         'yell_reveal', 'hearts_gain', 'live_success', 'live_fail',
+        'splash_phase', 'splash_live', 'splash_performance', 'splash_live_start',
+        'splash_success', 'splash_turn',
       ].forEach(warm);
       return m;
     });
