@@ -7,6 +7,12 @@
 const TCG_SPECTATOR_IDLE_SEC = 120;
 const TCG_SPECTATOR_MAX_PER_ROOM = 32;
 
+/** In-progress matches use status "setup", not "playing" (matches client isActiveGameplay). */
+function tcgIsActiveGameplayStatus(array $state): bool {
+    $st = $state['status'] ?? '';
+    return $st !== '' && !in_array($st, ['waiting', 'ready', 'finished'], true);
+}
+
 function tcgIsSpectatorToken(string $token): bool {
     return str_starts_with($token, 'spec_');
 }
@@ -79,7 +85,7 @@ function tcgTouchSpectatorPresence(string $roomId, string $token): void {
 
 /** Human PvP with at least one player still connected (presence / recent game activity). */
 function tcgPvpLivePlayerCount(array $state, string $roomId, ?int $now = null): int {
-    if (($state['status'] ?? '') !== 'playing') {
+    if (!tcgIsActiveGameplayStatus($state)) {
         return 0;
     }
     if (($state['mode'] ?? '') === 'replay_view' || !isPvpMatch($state)) {
@@ -157,7 +163,7 @@ function tcgPvpLivePlayerCount(array $state, string $roomId, ?int $now = null): 
 }
 
 function tcgIsSpectatableHumanGame(array $state, string $roomId = ''): bool {
-    if (($state['status'] ?? '') !== 'playing') {
+    if (!tcgIsActiveGameplayStatus($state)) {
         return false;
     }
     if (($state['mode'] ?? '') === 'replay_view') {
@@ -170,6 +176,10 @@ function tcgIsSpectatableHumanGame(array $state, string $roomId = ''): bool {
     $p2 = $state['players']['p2'] ?? null;
     if (!$p1 || !$p2 || isCpuPlayer($p1) || isCpuPlayer($p2)) {
         return false;
+    }
+    // Ranked rows are DB-backed; queue stats already treat pending + non-finished as in-game.
+    if (($state['mode'] ?? '') === 'ranked' && $roomId !== '') {
+        return true;
     }
     if ($roomId !== '' && tcgPvpLivePlayerCount($state, $roomId) < 1) {
         return false;
