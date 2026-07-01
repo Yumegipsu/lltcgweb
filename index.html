@@ -6,6 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Love Live! TCG — The Unofficial Web Player</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
@@ -6516,7 +6517,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 <div id="opp-skill-wait" aria-live="polite" hidden>
   <div class="osw-inner">
-    <div class="osw-title llc-splash-title" id="opp-skill-wait-title" data-i18n="game.oppActivatingSkill" data-text="Opponent is activating a skill…">Opponent is activating a skill…</div>
+    <div class="osw-title llc-splash-title" id="opp-skill-wait-title" data-text="Opponent is activating a skill…">Opponent is activating a skill…</div>
     <div class="osw-sub" id="opp-skill-wait-sub"></div>
   </div>
 </div>
@@ -6710,8 +6711,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=3"></script>
-<script src="log_i18n.js?v=3"></script>
+<script src="i18n.js?v=4"></script>
+<script src="log_i18n.js?v=4"></script>
 <script src="sfx.js?v=14"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -7316,6 +7317,9 @@ function syncGameplayChromeI18n() {
   }
   if (G.pickCtx?.count && el('overlay-pick')?.classList.contains('open')) {
     el('pick-count').textContent = formatSelectedCount(G.pickMarked.size, G.pickCtx.count);
+  }
+  if (el('opp-skill-wait')?.classList.contains('show') && G.gameState && G.playerId) {
+    updateOpponentSkillWaitBanner(G.gameState, G.playerId);
   }
 }
 
@@ -8073,6 +8077,7 @@ function prepareClientReconnectState(s) {
   G._handRevealFlips = null;
   G._animHideIids = null;
   G._oppSkillWaitLogKey = null;
+  G._sfxOppSkillWait = false;
   G.animating = false;
   G.selCard = null;
   G.liveSel = [];
@@ -8086,6 +8091,8 @@ function prepareClientReconnectState(s) {
   restorePerfSpectacleDoneKey();
   primePerfSpectacleDoneKeysFromLog(s);
   markSpectacleDoneFromState(s);
+  dismissAllGameplayOverlays();
+  if (!s?.pending_prompt) clearDeferredPromptState();
 }
 
 async function reconnectToGame(saved) {
@@ -8118,6 +8125,7 @@ async function reconnectToGame(saved) {
         clearLiveSuccessHandDeferral(s);
         ensurePendingPromptSurfaced(s, G.playerId);
       }
+      updateOpponentSkillWaitBanner(s, G.playerId);
     }
     startPoll();
     toast(t('toast.reconnected'), 2600);
@@ -18218,6 +18226,13 @@ function dismissAllGameplayOverlays() {
     'overlay-zone', 'modal-card',
   ];
   ids.forEach(id => closeM(id));
+  const osw = el('opp-skill-wait');
+  if (osw) {
+    osw.classList.remove('show');
+    osw.hidden = true;
+  }
+  clearOpponentSkillWaitLogKey();
+  G._sfxOppSkillWait = false;
   const btn = el('btn-anti-softlock');
   if (btn) btn.hidden = true;
 }
@@ -19031,6 +19046,8 @@ async function applyFinishedState(s, prev) {
 /** Apply one server state snapshot: spectacle gate, log anims, or direct render. */
 async function applyStateUpdate(s) {
   if (G.isTutorial) return;
+  syncPromptSubmitState(s);
+  if (!s?.pending_prompt) clearDeferredPromptState();
   const prev = G.gameState;
   restorePerfSpectacleDoneKey();
   markSpectacleDoneFromState(s, prev);
@@ -19327,6 +19344,7 @@ async function applyStateUpdate(s) {
     ensurePendingPromptSurfaced(s, G.playerId);
   }
   clearStaleCpuPromptBusyIfResolved(G.gameState || s);
+  if (G.playerId) updateOpponentSkillWaitBanner(G.gameState || s, G.playerId);
   if (G.isCPU && !G.animating) { doCPU(G.gameState || s); armWatchdog(G.gameState || s); }
   else if (G.isCPU && (G.gameState || s)?.pending_prompt?.responder === 'p2') {
     scheduleCpuResolvePrompt(G.gameState || s, (G.gameState || s).players?.p2);
@@ -23258,6 +23276,20 @@ function cpuResolvePromptSmart(s, cpu, pr, tier) {
     const id = ranked[0]?.instance_id;
     if (pr.optional && !id) { cpuAct('resolve_prompt', { choice: 'skip' }); return true; }
     if (id) { cpuAct('resolve_prompt', { card_id: id }); return true; }
+    if (pr.optional) { cpuAct('resolve_prompt', { choice: 'skip' }); return true; }
+  }
+  if (pr.type === 'pay_energy_reveal_live_wr_superset') {
+    if (pr.step === 'pick_wr_live') {
+      const id = pr.candidates?.[0]?.instance_id;
+      if (id) { cpuAct('resolve_prompt', { card_id: id }); return true; }
+      return true;
+    }
+    const live = (pr.candidates || []).find(c => c.card_type === 'ライブ')
+      || (cpu.hand || []).find(c => c.card_type === 'ライブ');
+    if (live && (cpu.energy_zone || []).filter(energyChipActive).length >= (pr.pay_cost || 2)) {
+      cpuAct('resolve_prompt', { card_id: live.instance_id });
+    }
+    return true;
   }
   if (pr.type === 'wait_swap_wr_member_center' && pr.step === 'discard_hand') {
     const ids = discard(1);
@@ -27169,6 +27201,13 @@ function isMyBlockingPromptOpen(s) {
   return isBlockingOverlayOpen();
 }
 
+function shouldHideOpponentLiveStorageFaces(s) {
+  if (!s?.players) return false;
+  if (isLiveSetPhase(s.phase) && liveSetPlacementInProgress(s)) return true;
+  if (G._liveRoundPlaybackActive && !G._livePostRevealBoard) return true;
+  return false;
+}
+
 function shouldHoldStateForLocalPrompt(incoming) {
   const cur = G.gameState;
   if (!cur || !isMyBlockingPromptOpen(cur)) return false;
@@ -27176,6 +27215,18 @@ function shouldHoldStateForLocalPrompt(incoming) {
   const pr = cur.pending_prompt;
   if (!pr) return false;
   const inPr = incoming.pending_prompt;
+  if (inPr?.type === 'pick_looked_deck_hand' && pr.responder === inPr.responder) {
+    closeM('overlay-hand-pick');
+    G._promptSubmitKey = null;
+    return false;
+  }
+  if (inPr?.type === 'pay_energy_reveal_live_wr_superset'
+      && (inPr.step === 'pick_wr_live' || pr.type === 'pay_energy_reveal_live_wr_superset')) {
+    closeM('overlay-hand-pick');
+    closeM('overlay-pick');
+    G._promptSubmitKey = null;
+    return false;
+  }
   // Server cleared or replaced our prompt (e.g. phase timer auto-resolve) — apply immediately.
   if (!inPr || inPr.responder !== pr.responder) {
     closeM('overlay-surveil');
@@ -28662,7 +28713,14 @@ function perfSecondPlayerId(ctx) {
 
 function perfSecondPlayerHasYellCards(ctx) {
   const pid = perfSecondPlayerId(ctx);
-  return (ctx?.next?.yell_reveal?.[pid]?.length || 0) > 0;
+  if ((ctx?.next?.yell_reveal?.[pid]?.length || 0) > 0) return true;
+  return estimateYellBlade(ctx?.next, pid) > 0;
+}
+
+function perfFirstPlayerHasYellCards(ctx) {
+  const pid = perfFirstPlayerId(ctx);
+  if ((ctx?.next?.yell_reveal?.[pid]?.length || 0) > 0) return true;
+  return estimateYellBlade(ctx?.next, pid) > 0;
 }
 
 function perfLiveZoneCards(state, pid) {
@@ -28968,12 +29026,20 @@ async function perfAnimateYellSide(ctx, pid) {
   }
 
   let remaining = totalBlade;
-  for (let i = 0; i < yellCards.length; i++) {
+  const drawSteps = Math.max(yellCards.length, totalBlade);
+  for (let i = 0; i < drawSteps; i++) {
     if (G._perfSpectacleAborted) return;
     const cardPace = perfYellPaceScale(totalBlade, i, yellSteps);
     remaining = Math.max(0, totalBlade - (i + 1));
     if (bladeNum) bladeNum.textContent = String(remaining);
-    const card = enrichCard(yellCards[i]);
+    const card = yellCards[i] ? enrichCard(yellCards[i]) : null;
+    if (!card) {
+      deckEl?.classList.add('perf-deck-draw');
+      sfxPerf('turn_tick', 0.32);
+      await perfSleepYell(180, cardPace);
+      deckEl?.classList.remove('perf-deck-draw');
+      continue;
+    }
     await ensureCardImageLoaded(card);
     const chip = document.createElement('div');
     chip.className = 'perf-yell-card';
@@ -29984,26 +30050,34 @@ function renderPhaseBar(s,me,opp,myId,oppId) {
 }
 
 function skillPromptUiState(s) {
-  const live = s || G.gameState;
+  const gs = G.gameState;
+  let best = gs || s || null;
+  if (gs && s) best = (gs.seq ?? 0) >= (s.seq ?? 0) ? gs : s;
   const def = G._deferredPromptState;
-  if (!def?.pending_prompt) return live;
-  if (!live) return def;
+  if (!def?.pending_prompt) return best;
+  const bestSeq = best?.seq ?? 0;
   const defSeq = def.seq ?? 0;
-  const liveSeq = live.seq ?? 0;
-  if (liveSeq > defSeq || (liveSeq >= defSeq && !live.pending_prompt)) {
-    clearDeferredPromptState();
-    return live;
+  const presentationActive = G.animating || G._perfSpectacleActive || G._liveRoundPlaybackActive;
+  if (!best?.pending_prompt && bestSeq >= defSeq && !presentationActive) {
+    clearDeferredPromptState({ skipBannerRefresh: true });
+    return best;
   }
-  if (live.pending_prompt) return live;
-  return def;
+  if (best?.pending_prompt) return best;
+  if (presentationActive && def.pending_prompt) return def;
+  clearDeferredPromptState({ skipBannerRefresh: true });
+  return best;
 }
 
 function hasOpenSkillPrompt(s) {
   return !!skillPromptUiState(s)?.pending_prompt;
 }
 
-function clearDeferredPromptState() {
+function clearDeferredPromptState(opts = {}) {
+  if (!G._deferredPromptState) return;
   G._deferredPromptState = null;
+  if (!opts.skipBannerRefresh && G.playerId && G.gameState) {
+    updateOpponentSkillWaitBanner(G.gameState, G.playerId);
+  }
 }
 
 /** Show a pending On Enter / skill prompt as soon as the triggering play animation lands. */
@@ -30078,9 +30152,10 @@ function updateOpponentSkillWaitBanner(s, myId) {
     if (sub) sub.textContent = '';
     return;
   }
-  const pr = skillPromptUiState(s)?.pending_prompt;
+  const auth = G.gameState && (!s || (G.gameState.seq ?? 0) >= (s.seq ?? 0)) ? G.gameState : (s || G.gameState);
+  const pr = skillPromptUiState(auth)?.pending_prompt;
   const oppId = myId === 'p1' ? 'p2' : 'p1';
-  const show = shouldShowOpponentSkillWait(s, myId);
+  const show = shouldShowOpponentSkillWait(auth, myId);
   if (!show) {
     root.hidden = true;
     root.classList.remove('show');
@@ -30093,13 +30168,13 @@ function updateOpponentSkillWaitBanner(s, myId) {
     G._sfxOppSkillWait = true;
     sfxPlayCard('skill_tick');
   }
-  const oppName = s.players?.[oppId]?.name || 'Opponent';
+  const oppName = auth?.players?.[oppId]?.name || 'Opponent';
   const src = pr?.source_name || '';
   root.hidden = false;
   root.classList.add('show');
   if (titleEl) setSplashTitle(titleEl, t('game.opponentSkillWait', { name: oppName }));
   if (sub) sub.textContent = src ? `${oppName} — ${src}` : '';
-  appendOpponentSkillWaitLog(s, myId, pr);
+  appendOpponentSkillWaitLog(auth, myId, pr);
 }
 
 // Stage — one mat slot per stage position
@@ -30946,7 +31021,8 @@ function renderLiveSlots(prefix, zone, isMe, pid){
     }
 
     const flipKey = `${pid}:${card.instance_id}`;
-    const showFace = isMe || !!card.revealed;
+    const hideOppFace = !isMe && shouldHideOpponentLiveStorageFaces(s);
+    const showFace = isMe || (!hideOppFace && !!card.revealed);
     const doFlip = !isMe && showFace && flipKeys.has(flipKey);
 
     if (existingCard?.dataset.iid === card.instance_id) {
@@ -33471,6 +33547,7 @@ function handlePromptChoice(pr, choice, s, myId){
       onConfirm:(ids)=>sendResolvePrompt(choice,{discard_ids:ids,pay:needsPay}),
       onCancel:()=>{
         G._promptSubmitKey=null;
+        closeM('overlay-hand-pick');
         if(G.gameState) renderPrompt(G.gameState,myId);
       }
     });
@@ -34011,7 +34088,31 @@ function renderPrompt(s, myId){
   }
   if(pr?.type==='pick_looked_deck_hand'&&pr.responder===myId){
     ovl.classList.remove('open');
+    closeM('overlay-hand-pick');
+    G._promptSubmitKey = null;
     openLookedDeckPick(pr);
+    return;
+  }
+  if(pr?.type==='pay_energy_reveal_live_wr_superset'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    if(pr.step==='pick_wr_live'){
+      openWrLivePick(pr);
+      return;
+    }
+    const lives=(pr.candidates||[]).filter(c=>c.card_type==='ライブ');
+    if(!lives.length){
+      sendAct('resolve_prompt',{choice:'no'});
+      return;
+    }
+    openHandPick({
+      hand: lives,
+      count: 1,
+      min: 1,
+      title: pr.source_name||'Reveal Live',
+      msg: pr.prompt||'Choose 1 Live card from your hand to reveal.',
+      onConfirm: (ids)=> sendAct('resolve_prompt',{card_id: ids[0]}),
+      onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); },
+    });
     return;
   }
   if(pr?.type==='live_success_pick_yell_live'&&pr.responder===myId){

@@ -9451,6 +9451,8 @@ function resolveAbilityEffect(array $state, string $pid, array $source, array $a
                 'source_id'   => $source['instance_id'] ?? '',
                 'source_name' => $name,
                 'ability_idx' => $ctx['ability_index'] ?? 0,
+                'slot'        => $ctx['slot'] ?? null,
+                'step'        => 'reveal_hand_live',
                 'pay_cost'    => intval($ab['cost'] ?? 2),
                 'candidates'  => array_map('cardPromptSummary', $lives),
                 'prompt'      => 'Pay ' . intval($ab['cost'] ?? 2) .
@@ -10239,6 +10241,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             'source_name'  => $member['name_en'] ?? $member['name'] ?? 'Member',
             'ability_idx'  => $abilityIdx,
             'slot'         => $slot,
+            'step'         => 'reveal_hand_live',
             'pay_cost'     => intval($ab['cost'] ?? 2),
             'candidates'   => array_map('cardPromptSummary', $lives),
             'prompt'       => 'Pay ' . intval($ab['cost'] ?? 2) .
@@ -11490,11 +11493,15 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                     return $state;
                 }
             } else {
+            $needsPay = ($choice === 'yes' && !empty($prompt['needs_pay']));
+            if ($needsPay && empty($data['pay'])) {
+                throw new Exception('Must confirm Energy payment');
+            }
             $ctx = [
                 'phase'        => 'live_start',
                 'confirm'      => true,
                 'discard_ids'  => $discardIds,
-                'pay'          => !empty($prompt['needs_pay']),
+                'pay'          => $needsPay,
             ];
             unset($state['pending_prompt']);
             $state = resolveAbilityEffect($state, $owner, $source, $ab, $ctx);
@@ -13669,6 +13676,9 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         $optional = !empty($prompt['optional']);
         $srcName = $prompt['source_name'] ?? 'Member';
         $resolveChoice = $data['choice'] ?? $choice;
+        if ($optional && ($resolveChoice === 'no' || $resolveChoice === 'cancel')) {
+            $resolveChoice = 'skip';
+        }
 
         if ($resolveChoice === 'skip') {
             if (!$optional) {
@@ -13694,6 +13704,13 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             if (!$optional && count($pickIds) !== $pickCount) {
                 throw new Exception("Must select exactly $pickCount card(s)");
             }
+            if ($optional && empty($pickIds)) {
+                if (!empty($looked)) {
+                    $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $looked);
+                }
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [$srcName] put all looked cards into the Waiting Room.");
+            } else {
             $lookedIds = array_map(fn($c) => $c['instance_id'] ?? '', $looked);
             foreach ($pickIds as $id) {
                 if (!in_array($id, $lookedIds, true)) {
@@ -13704,8 +13721,9 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 }
             }
             applyLookPickHand($ownerP, $looked, $pickIds);
+            $pickedN = count($pickIds);
             $state = addLog($state, $state['players'][$owner]['name'] .
-                " — [$srcName] added $pickCount card(s) from looked deck to hand.");
+                " — [$srcName] added $pickedN card(s) from looked deck to hand.");
             $ability = $prompt['ability'] ?? [];
             if (!empty($ability['hearts_if_group_picked']) && !empty($pickIds)) {
                 foreach ($looked as $c) {
@@ -13739,6 +13757,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                         break;
                     }
                 }
+            }
             }
         }
         unset($state['surveil_stash'], $state['pending_prompt']);
@@ -14093,6 +14112,40 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
     }
 
     if ($promptType === 'pay_energy_reveal_live_wr_superset') {
+        $step = $prompt['step'] ?? 'reveal_hand_live';
+        $slot = $prompt['slot'] ?? null;
+        $abilityIdx = intval($prompt['ability_idx'] ?? 0);
+        $srcName = $prompt['source_name'] ?? 'Member';
+
+        if ($step === 'pick_wr_live') {
+            $cardId = $data['card_id'] ?? $choice;
+            $needle = $prompt['revealed_needle'] ?? '';
+            $wrLive = null;
+            foreach ($ownerP['waiting_room'] as $i => $c) {
+                if (($c['instance_id'] ?? '') !== $cardId) continue;
+                if (($c['card_type'] ?? '') !== 'ライブ') continue;
+                $label = $c['name_en'] ?? $c['name'] ?? '';
+                if ($needle !== '' && !wrLiveNameContainsNeedle($label, $needle)) {
+                    throw new Exception('Choose a matching Live card from your Waiting Room');
+                }
+                $wrLive = $c;
+                array_splice($ownerP['waiting_room'], $i, 1);
+                break;
+            }
+            if (!$wrLive) {
+                throw new Exception('Choose a Live card from your Waiting Room');
+            }
+            $ownerP['hand'][] = $wrLive;
+            if ($slot !== null && !empty($ownerP['stage'][$slot])) {
+                markAbilityUsed($ownerP['stage'][$slot], $abilityIdx);
+            }
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . $srcName . '] added ' . cardDisplayName($wrLive) . ' from Waiting Room to hand.');
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return $state;
+        }
+
         $liveId = $data['card_id'] ?? $choice;
         $cost = intval($prompt['pay_cost'] ?? 2);
         if (!payEnergyCost($ownerP, $cost)) {
@@ -14105,18 +14158,60 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 break;
             }
         }
-        if (!$revealed) throw new Exception('Choose a Live card from your hand');
-        $needle = $revealed['name_en'] ?? $revealed['name'] ?? '';
-        $added = addWrLiveNameSuperset($ownerP, $needle);
-        $slot = $prompt['slot'] ?? null;
-        $abilityIdx = intval($prompt['ability_idx'] ?? 0);
-        if ($slot !== null && !empty($ownerP['stage'][$slot])) {
-            markAbilityUsed($ownerP['stage'][$slot], $abilityIdx);
+        if (!$revealed) {
+            throw new Exception('Choose a Live card from your hand');
         }
+        $needle = $revealed['name_en'] ?? $revealed['name'] ?? '';
+        $wrLives = array_values(array_filter(
+            $ownerP['waiting_room'],
+            fn($c) => ($c['card_type'] ?? '') === 'ライブ'
+                && wrLiveNameContainsNeedle($c['name_en'] ?? $c['name'] ?? '', $needle)
+        ));
+        if (empty($wrLives)) {
+            if ($slot !== null && !empty($ownerP['stage'][$slot])) {
+                markAbilityUsed($ownerP['stage'][$slot], $abilityIdx);
+            }
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . $srcName . '] revealed ' . cardDisplayName($revealed) .
+                '; no matching Live in Waiting Room.');
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return $state;
+        }
+        if (count($wrLives) === 1) {
+            $ownerP['hand'][] = $wrLives[0];
+            $ownerP['waiting_room'] = array_values(array_filter(
+                $ownerP['waiting_room'],
+                fn($c) => ($c['instance_id'] ?? '') !== ($wrLives[0]['instance_id'] ?? '')
+            ));
+            if ($slot !== null && !empty($ownerP['stage'][$slot])) {
+                markAbilityUsed($ownerP['stage'][$slot], $abilityIdx);
+            }
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . $srcName . '] revealed ' . cardDisplayName($revealed) .
+                '; added ' . cardDisplayName($wrLives[0]) . ' from Waiting Room.');
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return $state;
+        }
+        $state['pending_prompt'] = [
+            'type'            => 'pay_energy_reveal_live_wr_superset',
+            'owner'           => $owner,
+            'responder'       => $owner,
+            'source_id'       => $prompt['source_id'] ?? '',
+            'source_name'     => $srcName,
+            'ability_idx'     => $abilityIdx,
+            'slot'            => $slot,
+            'pay_cost'        => $cost,
+            'step'            => 'pick_wr_live',
+            'revealed_needle' => $needle,
+            'revealed_live'   => cardPromptSummary($revealed),
+            'candidates'      => array_map('cardPromptSummary', $wrLives),
+            'prompt'          => 'Choose 1 Live from your Waiting Room whose name contains ' .
+                cardDisplayName($revealed) . '.',
+        ];
         $state = addLog($state, $state['players'][$owner]['name'] .
-            ' — [' . ($prompt['source_name'] ?? 'Member') . "] revealed " . cardDisplayName($revealed) .
-            "; added $added Live card(s) from Waiting Room.");
-        unset($state['pending_prompt']);
+            ' — [' . $srcName . '] revealed ' . cardDisplayName($revealed) . ' (choose WR Live).');
         $state['seq']++;
         return $state;
     }

@@ -1114,6 +1114,7 @@ function beginPerformancePhase(array $state): array {
         $state['live_perf_success'],
         $state['live_round_success'],
         $state['_yell_reveal_snapshot'],
+        $state['_yell_blade_snapshot'],
         $state['_live_perf_snapshot'],
         $state['_live_round_success_snapshot']
     );
@@ -2134,6 +2135,10 @@ function finalizeLiveJudge(array $state, array $ctx): array {
     if (!empty($state['yell_reveal'])) {
         $state['_yell_reveal_snapshot'] = $state['yell_reveal'];
     }
+    $state['_yell_blade_snapshot'] = [
+        'p1' => computeYellBladeTotal($state, 'p1'),
+        'p2' => computeYellBladeTotal($state, 'p2'),
+    ];
     unset(
         $state['live_attempt'],
         $state['live_perf_success'],
