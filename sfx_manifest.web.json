@@ -152,6 +152,26 @@
         }
       ]
     },
+    "card_hover": {
+      "variants": [
+        {
+          "file": "card_slide.wav",
+          "source": "se_010_0020.wav",
+          "source_category": "Menu",
+          "duration_ms": 233.4,
+          "tags": [
+            "short",
+            "quiet",
+            "bright",
+            "rustle",
+            "menu"
+          ],
+          "score": 0.0068,
+          "volume": 0.18,
+          "centroid_hz": 5505.4
+        }
+      ]
+    },
     "card_flip": {
       "variants": [
         {
