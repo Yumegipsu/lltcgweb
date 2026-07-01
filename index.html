@@ -460,7 +460,7 @@ body.tutorial-mode #sb-activatable-wrap.tut-show{outline:2px solid rgba(255,107,
   display:flex;align-items:stretch;justify-content:center;
 }
 #screen-game .game-viewport-frame .game-wide-wrap{flex:1 1 auto}
-:root{--hand-strip-h:132px;--hand-card-pad:24px;--my-hand-card-h:calc((var(--hand-strip-h) - var(--hand-card-pad)) * 1.44);--opp-hand-card-h:calc((var(--hand-strip-h) - var(--hand-card-pad)) * 1.28);--skill-hand-preserve-h:calc(max(var(--hand-strip-h),var(--my-hand-card-h)) + 30px);--mat-seam-h:5px;--menu-card-h:118px;--side-panel-w:440px;--playmat-gutter:880px;--playmat-aspect:1024/563;--playmat-mat-max-h:calc((100vh - 2 * var(--hand-strip-h) - var(--mat-seam-h) - 8px) / 2);--playmat-col-max-w:min(calc(100vw - var(--playmat-gutter)),calc(var(--playmat-mat-max-h) * 1024 / 563));--field-card-scale:1.16;--pile-fill-scale:1.14;--flight-ms:300ms;--fan-shift-ms:280ms;--energy-flip-ms:360ms}
+:root{--hand-strip-h:132px;--hand-card-pad:24px;--my-hand-card-h:calc((var(--hand-strip-h) - var(--hand-card-pad)) * 1.44);--opp-hand-card-h:calc((var(--hand-strip-h) - var(--hand-card-pad)) * 1.28);--skill-hand-preserve-h:calc(max(var(--hand-strip-h),var(--my-hand-card-h)) + 30px);--skill-hand-blur-feather:min(88px,14vh);--mat-seam-h:5px;--menu-card-h:118px;--side-panel-w:440px;--playmat-gutter:880px;--playmat-aspect:1024/563;--playmat-mat-max-h:calc((100vh - 2 * var(--hand-strip-h) - var(--mat-seam-h) - 8px) / 2);--playmat-col-max-w:min(calc(100vw - var(--playmat-gutter)),calc(var(--playmat-mat-max-h) * 1024 / 563));--field-card-scale:1.16;--pile-fill-scale:1.14;--flight-ms:300ms;--fan-shift-ms:280ms;--energy-flip-ms:360ms}
 .game-wide-wrap{
   width:100%;height:100vh;
   display:flex;align-items:center;justify-content:center;
@@ -1664,6 +1664,7 @@ html.tcg-desktop-scaled:not(.tcg-mobile-viewport){
   --hand-card-pad:calc(24px * var(--desktop-ui-scale, 1));
   --mat-seam-h:calc(5px * var(--desktop-ui-scale, 1));
   --skill-hand-preserve-h:calc(max(var(--hand-strip-h), var(--my-hand-card-h)) + calc(30px * var(--desktop-ui-scale, 1)));
+  --skill-hand-blur-feather:min(calc(88px * var(--desktop-ui-scale, 1)),14vh);
 }
 html.tcg-desktop-scaled:not(.tcg-mobile-viewport) #screen-game.active{
   align-items:center;justify-content:center;
@@ -2684,15 +2685,30 @@ body.tutorial-mode #overlay-coin{pointer-events:none}
   display:none;align-items:center;justify-content:center;
   padding:16px;backdrop-filter:blur(4px)}
 .overlay.open{display:flex}
-/* Skill resolve prompts: full-screen blur/dim with a bottom cutout so hand cards stay sharp. */
+/* Skill resolve prompts: full-screen blur/dim with a feathered cutout so hand cards stay sharp. */
 body:has(.overlay.skill-hand-preserve.open)::before{
   content:'';
   position:fixed;inset:0;z-index:899;pointer-events:auto;
   background:rgba(4,10,24,.82);
   backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
   --skill-hand-cut:calc(var(--skill-hand-preserve-h) + env(safe-area-inset-bottom,0px));
-  mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - var(--skill-hand-cut)),transparent calc(100% - var(--skill-hand-cut)));
-  -webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - var(--skill-hand-cut)),transparent calc(100% - var(--skill-hand-cut)));
+  --skill-hand-feather:var(--skill-hand-blur-feather,72px);
+  mask-image:linear-gradient(
+    to bottom,
+    #000 0,
+    #000 max(0px,calc(100% - var(--skill-hand-cut) - var(--skill-hand-feather))),
+    rgba(0,0,0,.72) calc(100% - var(--skill-hand-cut) - calc(var(--skill-hand-feather) * .45)),
+    rgba(0,0,0,.28) calc(100% - var(--skill-hand-cut) - calc(var(--skill-hand-feather) * .12)),
+    transparent calc(100% - var(--skill-hand-cut))
+  );
+  -webkit-mask-image:linear-gradient(
+    to bottom,
+    #000 0,
+    #000 max(0px,calc(100% - var(--skill-hand-cut) - var(--skill-hand-feather))),
+    rgba(0,0,0,.72) calc(100% - var(--skill-hand-cut) - calc(var(--skill-hand-feather) * .45)),
+    rgba(0,0,0,.28) calc(100% - var(--skill-hand-cut) - calc(var(--skill-hand-feather) * .12)),
+    transparent calc(100% - var(--skill-hand-cut))
+  );
 }
 .overlay.skill-hand-preserve.open{
   background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;
@@ -7348,6 +7364,9 @@ function syncGameplayChromeI18n() {
     updateOpponentSkillWaitBanner(G.gameState, G.playerId);
   }
   syncBatonTouchToggleUi();
+  if (el('overlay-prompt')?.classList.contains('open') && G.gameState && G.playerId && !isPromptSubmitting(G.gameState)) {
+    renderPrompt(G.gameState, G.playerId);
+  }
   refreshBannerQueueI18n();
   refreshCenterBannerI18n();
 }
@@ -33741,16 +33760,110 @@ function hidePromptEffectText(){
   box.innerHTML='';
 }
 
-function renderPromptEffectText(text){
+function findPromptSourceCard(pr, s) {
+  if (!pr?.source_id || !s) return null;
+  const pid = pr.owner || pr.responder;
+  const p = s.players?.[pid];
+  if (!p) return null;
+  const id = pr.source_id;
+  const zones = [
+    ...(p.hand || []),
+    ...(p.waiting_room || []),
+    ...Object.values(p.stage || {}).filter(Boolean),
+    ...(p.live_zone || []),
+    ...(p.energy_zone || []),
+  ];
+  for (const c of zones) {
+    if (c?.instance_id === id) return enrichCard(c);
+  }
+  return null;
+}
+
+function promptAbilityIndex(card, pr) {
+  if (typeof pr?.ability_index === 'number') return pr.ability_index;
+  const ab = pr?.ability;
+  if (!ab || !card?.abilities?.length) return -1;
+  return card.abilities.findIndex(a => a.type === ab.type && a.trigger === ab.trigger);
+}
+
+function promptSourceDisplayName(pr, s) {
+  const card = findPromptSourceCard(pr, s);
+  if (card) return cardLocaleName(card);
+  return pr?.source_name || t('prompt.respond');
+}
+
+function localizePromptDisplayText(text, pr, s) {
+  if (!text) return text;
+  if (getLocale() !== 'ja') return localizeSubunitText(text);
+  const card = findPromptSourceCard(pr, s);
+  const idx = card ? promptAbilityIndex(card, pr) : -1;
+  if (card && idx >= 0) {
+    const fromAbility = abilityRulesTextFor(card, idx);
+    const raw = String(text).trim();
+    const enLine = (card.text || '').split(/\n/).map(l => l.trim()).find(l => l && raw.includes(l.slice(0, Math.min(24, l.length))));
+    if (fromAbility && (!raw || raw === (pr?.effect_text || '').trim() || enLine)) return fromAbility;
+  }
+  if (card && text === (card.text || '').trim()) return cardRulesDisplayText(card);
+  if (window.LLTCG_LOG_I18N?.localizePromptText) {
+    return LLTCG_LOG_I18N.localizePromptText(text, G.allCards);
+  }
+  if (window.LLTCG_LOG_I18N?.localizeLogMessage) {
+    return LLTCG_LOG_I18N.localizeLogMessage(text, G.allCards);
+  }
+  return text;
+}
+
+function localizePromptEffectText(pr, s) {
+  const card = findPromptSourceCard(pr, s);
+  const idx = card ? promptAbilityIndex(card, pr) : -1;
+  if (card && idx >= 0) {
+    const fromAbility = abilityRulesTextFor(card, idx);
+    if (fromAbility) return fromAbility;
+  }
+  if (card && !pr?.effect_text) return cardRulesDisplayText(card);
+  return localizePromptDisplayText(pr?.effect_text || '', pr, s);
+}
+
+function isYesNoPromptChoices(choices) {
+  if (!choices || choices.length !== 2) return false;
+  const a = String(choices[0]).toLowerCase();
+  const b = String(choices[1]).toLowerCase();
+  return (a === 'yes' && b === 'no') || (a === 'no' && b === 'yes');
+}
+
+function promptChoiceLabel(key, i, pr) {
+  const k = String(key).toLowerCase();
+  if (k === 'yes') return t('prompt.yes');
+  if (k === 'no') return t('prompt.noSkip');
+  if (k === 'skip') return t('prompt.skip');
+  const raw = pr?.choice_labels?.[i];
+  if (raw && getLocale() === 'ja') return localizePromptDisplayText(raw, pr, G.gameState);
+  return raw || key;
+}
+
+function promptQuestionText(pr, effectDisplay, s) {
+  const raw = (pr?.prompt || '').trim();
+  const effect = (pr?.effect_text || '').trim();
+  if (!raw || raw === effect || raw === effectDisplay) {
+    return pr?.type === 'optional_live_start' ? t('prompt.useLiveStart') : t('prompt.useEffect');
+  }
+  return localizePromptDisplayText(raw, pr, s);
+}
+
+function renderPromptEffectText(text, pr, s){
   const box=el('prompt-effect');
   if(!box) return;
-  if(!text){
+  const display = text
+    ? (pr ? localizePromptDisplayText(text, pr, s) : (getLocale() === 'ja' && window.LLTCG_LOG_I18N?.localizePromptText
+      ? LLTCG_LOG_I18N.localizePromptText(text, G.allCards) : text))
+    : '';
+  if(!display){
     box.hidden=true;
     box.innerHTML='';
     return;
   }
   box.hidden=false;
-  renderCardRulesText(text, box);
+  renderCardRulesText(display, box);
 }
 
 function isSelfActivationPrompt(pr){
@@ -33762,19 +33875,22 @@ function isSelfActivationPrompt(pr){
 function ensurePromptChoices(pr){
   if(!pr) return pr;
   const choices=Array.isArray(pr.choices)?pr.choices:[];
-  if(choices.length) return pr;
   const type=pr.type||'';
   const optionalType=isSelfActivationPrompt(pr)
     ||type==='optional_live_start'
     ||type==='optional_discard_prompt'
     ||type.startsWith('optional_');
+  if(choices.length){
+    if(isYesNoPromptChoices(choices)){
+      return {...pr, choice_labels:[t('prompt.yes'), t('prompt.noSkip')]};
+    }
+    return pr;
+  }
   if(!optionalType) return pr;
   return {
     ...pr,
     choices:['yes','no'],
-    choice_labels:Array.isArray(pr.choice_labels)&&pr.choice_labels.length>=2
-      ?pr.choice_labels
-      :[t('prompt.yes'), t('prompt.noSkip')],
+    choice_labels:[t('prompt.yes'), t('prompt.noSkip')],
     prompt:pr.prompt||(type==='optional_live_start'
       ? t('prompt.useLiveStart')
       : t('prompt.useEffect')),
@@ -33783,10 +33899,11 @@ function ensurePromptChoices(pr){
 
 function renderSelfActivationPrompt(pr, s, myId, box, branch){
   pr=ensurePromptChoices(pr);
-  el('prompt-ttl').textContent=pr.source_name||'Card';
-  renderPromptEffectText(pr.effect_text||'');
+  el('prompt-ttl').textContent=promptSourceDisplayName(pr, s);
+  const effectDisplay=localizePromptEffectText(pr, s);
+  renderPromptEffectText(effectDisplay, pr, s);
   const msgEl=el('prompt-msg');
-  msgEl.textContent=localizeSubunitText(pr.prompt||t('prompt.useEffect'));
+  msgEl.textContent=promptQuestionText(pr, effectDisplay, s);
   msgEl.className='prompt-cost-question';
   const subEl=el('prompt-sub');
   subEl.hidden=false;
@@ -33796,7 +33913,7 @@ function renderSelfActivationPrompt(pr, s, myId, box, branch){
   (pr.choices||[]).forEach((key,i)=>{
     const b=document.createElement('button');
     b.className='btn-grad';
-    b.textContent=(pr.choice_labels&&pr.choice_labels[i])||key;
+    b.textContent=promptChoiceLabel(key, i, pr);
     b.onclick=()=> handlePromptChoice(pr,key,s,myId);
     box.appendChild(b);
   });
@@ -33872,7 +33989,7 @@ function isBranchChoicePrompt(pr){
 function renderBranchChoiceButtons(pr, s, myId, box){
   box.innerHTML='';
   (pr.choices||[]).forEach((key,i)=>{
-    const label=(pr.choice_labels&&pr.choice_labels[i])||key;
+    const label=promptChoiceLabel(key, i, pr);
     const b=document.createElement('button');
     b.type='button';
     b.className='prompt-choice-btn';
@@ -34986,8 +35103,8 @@ function renderPrompt(s, myId){
   hidePromptEffectText();
   const branch=isBranchChoicePrompt(pr);
   const subEl=el('prompt-sub');
-  el('prompt-ttl').textContent=pr.source_name||t('prompt.respond');
-  el('prompt-msg').textContent=localizeSubunitText(pr.prompt||'Choose a response:');
+  el('prompt-ttl').textContent=promptSourceDisplayName(pr, s);
+  el('prompt-msg').textContent=localizePromptDisplayText(pr.prompt||t('prompt.tapOption'), pr, s);
   el('prompt-msg').className='prompt-branch-msg';
   if(branch){
     subEl.hidden=false;
@@ -35005,7 +35122,7 @@ function renderPrompt(s, myId){
     (pr.choices||[]).forEach((key,i)=>{
       const b=document.createElement('button');
       b.className='btn-grad';
-      b.textContent=(pr.choice_labels&&pr.choice_labels[i])||key;
+      b.textContent=promptChoiceLabel(key, i, pr);
       b.onclick=()=> handlePromptChoice(pr,key,s,myId);
       box.appendChild(b);
     });

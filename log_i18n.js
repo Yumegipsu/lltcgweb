@@ -346,6 +346,12 @@
     [/named Members in position/g, '指定メンバーが配置'],
     [/distinct Members/g, '異なるメンバー'],
     [/turn 1/g, 'ターン1'],
+    [/Put 1 card from your hand into the Waiting Room: look at the top (\d+) cards of your deck, add 1 to your hand, and put the rest into the Waiting Room\?$/,
+      '手札1枚を控え室に：デッキ上$1枚を見て1枚を手札に加え、残りを控え室へ？'],
+    [/Put 1 card from your hand into the Waiting Room: look at the top (\d+) cards of your deck, add 1 to your hand, and put the rest into the Waiting Room\./,
+      '手札1枚を控え室に：デッキ上$1枚を見て1枚を手札に加え、残りを控え室へ。'],
+    [/Use optional Live Start effect\?/, 'このライブ開始時効果を使いますか？'],
+    [/Use optional effect\?/, 'この効果を使いますか？'],
   ];
 
   function clearLogNameCache() {
@@ -407,6 +413,19 @@
     return out;
   }
 
+  function localizePromptText(msg, catalog) {
+    if (!msg) return msg;
+    var i18n = global.LLTCG_I18N;
+    if (!i18n || i18n.getLocale() !== 'ja') return msg;
+    catalog = catalog || (global.G && global.G.allCards);
+    var out = String(msg);
+    out = replaceCardNames(out, catalog);
+    out = replaceSkillBrackets(out);
+    out = applyRules(out, PHRASE_RULES);
+    out = applyRules(out, EFFECT_RULES);
+    return out;
+  }
+
   function localizeLogMessage(msg, catalog) {
     if (!msg) return msg;
     var i18n = global.LLTCG_I18N;
@@ -433,5 +452,6 @@
   global.LLTCG_LOG_I18N = {
     clearLogNameCache: clearLogNameCache,
     localizeLogMessage: localizeLogMessage,
+    localizePromptText: localizePromptText,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
