@@ -17668,7 +17668,7 @@ function syncLiveStorageSlotsFromState(state, myId) {
 
 /** Live storage zone for renderGame — keeps post-reveal cards visible until WR flights start. */
 function liveZoneForRender(s, pid) {
-  const current = s?.players?.[pid]?.live_zone || [];
+  const current = clampLiveZoneCards(s?.players?.[pid]?.live_zone || []);
   if (G._liveWrDiscardInProgress) return current;
   if (G._deferredLiveState && G._livePostRevealBoard?.players?.[pid]) {
     const held = clampLiveZoneCards(G._livePostRevealBoard.players[pid].live_zone || []);
