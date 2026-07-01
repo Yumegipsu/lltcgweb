@@ -7,7 +7,22 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta name="application-name" content="Love Live! TCG">
+<meta name="color-scheme" content="dark">
 <title>Love Live! TCG — The Unofficial Web Player</title>
+<style id="tcg-shell-guard">
+  /* Hide debug/article-like screens before JS — keeps Firefox Reader View from surfacing them on refresh. */
+  html[data-tcg-app] .screen[hidden]{display:none!important}
+  html:not([data-tcg-debug]) #screen-debug-card-test,
+  html:not([data-tcg-debug]) #screen-debug-replay,
+  html:not([data-tcg-debug]) #screen-bug-reports{display:none!important;visibility:hidden!important}
+</style>
+<script>
+document.documentElement.setAttribute('data-tcg-app','1');
+if (/[?&]debug(?:=|&|$)/.test(location.search)) {
+  document.documentElement.setAttribute('data-tcg-debug','1');
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
 <style>
@@ -5209,7 +5224,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 }
 </style>
 </head>
-<body>
+<body role="application" aria-label="Love Live! TCG web player">
 <div id="llc-sky-bg" aria-hidden="true">
   <div class="llc-sky-base"></div>
   <div class="llc-sky-cloud"></div>
@@ -5286,7 +5301,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ DEBUG CARD TEST (guest + ?debug) ══ -->
-<div id="screen-debug-card-test" class="screen llc-menu-screen">
+<div id="screen-debug-card-test" class="screen llc-menu-screen tcg-debug-only" hidden aria-hidden="true">
   <div class="account-shell">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
@@ -5523,7 +5538,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ DEBUG BUG REPORTS (?debug) ══ -->
-<div id="screen-bug-reports" class="screen llc-menu-screen tcg-debug-only">
+<div id="screen-bug-reports" class="screen llc-menu-screen tcg-debug-only" hidden aria-hidden="true">
   <div class="account-shell">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
@@ -5549,7 +5564,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ DEBUG REPLAY (guest + ?debug) ══ -->
-<div id="screen-debug-replay" class="screen llc-menu-screen tcg-debug-only">
+<div id="screen-debug-replay" class="screen llc-menu-screen tcg-debug-only" hidden aria-hidden="true">
   <div class="account-shell">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
@@ -5576,7 +5591,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ STARTER PICK ══ -->
-<div id="screen-starter" class="screen llc-menu-screen">
+<div id="screen-starter" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="account-shell">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
@@ -5596,7 +5611,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ HUB ══ -->
-<div id="screen-hub" class="screen llc-menu-screen">
+<div id="screen-hub" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="account-shell">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
@@ -5677,7 +5692,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ OPTIONS ══ -->
-<div id="screen-options" class="screen llc-menu-screen">
+<div id="screen-options" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="account-shell">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
@@ -5729,7 +5744,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ DAILY BOOSTER ══ -->
-<div id="screen-booster" class="screen llc-menu-screen">
+<div id="screen-booster" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="account-shell booster-shell">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
@@ -5754,7 +5769,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ PACK RESULTS ══ -->
-<div id="screen-pack-results" class="screen llc-menu-screen">
+<div id="screen-pack-results" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="account-shell wide">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
@@ -5781,7 +5796,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ DECK BUILDER ══ -->
-<div id="screen-deck" class="screen llc-menu-screen">
+<div id="screen-deck" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="account-shell wide deck-builder-shell">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
@@ -5885,7 +5900,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ RANKED ══ -->
-<div id="screen-ranked" class="screen llc-menu-screen">
+<div id="screen-ranked" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="account-shell">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
@@ -5923,7 +5938,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ LEADERBOARD ══ -->
-<div id="screen-leaderboard" class="screen llc-menu-screen">
+<div id="screen-leaderboard" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="account-shell wide">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
@@ -5948,7 +5963,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ LOBBY (unranked) ══ -->
-<div id="screen-lobby" class="screen llc-menu-screen">
+<div id="screen-lobby" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="account-shell wide">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="Love Live! School idol project series Official Card Game">
@@ -6039,7 +6054,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ WAITING ══ -->
-<div id="screen-waiting" class="screen llc-menu-screen">
+<div id="screen-waiting" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="wait-box">
     <h2 data-i18n="waiting.roomCreated">Room Created!</h2>
     <p data-i18n="waiting.shareCode">Share this code with your opponent:</p>
@@ -6053,7 +6068,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- ══ GAME ══ -->
-<div id="screen-game" class="screen">
+<div id="screen-game" class="screen" hidden aria-hidden="true">
   <div class="game-viewport-frame" id="game-viewport-frame">
   <div class="game-wide-wrap">
     <!-- Left panel: phase + you -->
@@ -13267,6 +13282,7 @@ const TCG_DEBUG = (() => {
   }
 
   if (on) {
+    document.documentElement.setAttribute('data-tcg-debug', '1');
     document.body.classList.add('tcg-debug-on');
     syncDebugCardTestButton(true);
     console.log('%c[TCG debug ON]', style, 'categories:', [...cats].join(', '),
@@ -37051,6 +37067,9 @@ function el(id){ return document.getElementById(id); }
 function on(id,ev,fn){ el(id)?.addEventListener(ev,fn); }
 function showScr(n){
   const prevActive=document.querySelector('.screen.active')?.id;
+  if ((n === 'debug-card-test' || n === 'debug-replay' || n === 'bug-reports') && !debugCardTestEnabled()) {
+    n = 'auth';
+  }
   if (n !== 'game') clearCenterBannerQueue();
   if(prevActive==='screen-game'&&n!=='game'){
     if (G.isSpectator) {
@@ -37062,9 +37081,18 @@ function showScr(n){
   }
   if (prevActive === 'screen-deck' && n !== 'deck') clearDeckBuilderCardPreview(true);
   if (n !== 'lobby') stopCasualLobbyStatsPoll();
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  el(`screen-${n}`)?.classList.add('active');
-  applyI18n(el(`screen-${n}`));
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active');
+    s.hidden = true;
+    s.setAttribute('aria-hidden', 'true');
+  });
+  const target = el(`screen-${n}`);
+  if (target) {
+    target.hidden = false;
+    target.removeAttribute('aria-hidden');
+    target.classList.add('active');
+  }
+  applyI18n(target);
   if (n === 'lobby') {
     if (prevActive !== 'screen-lobby') void refreshCasualQueueStatsQuiet();
     startCasualLobbyStatsPoll();
