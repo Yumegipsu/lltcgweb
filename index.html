@@ -19251,7 +19251,14 @@ async function applyStateUpdate(s) {
           G.animating = true;
           if (!(deferHand || deferOppHand)) markHandDepartRemovals(moves);
           try {
-            await playCardMoveAnimations(animPrev, s, G._prevRects, G.playerId, G._handSlotsBefore, handSlotsAfter, moves);
+            const liveSetPlacements = isLiveSetPhase(s.phase)
+              && moves.length > 0
+              && moves.every(m => m.from?.zone === 'hand' && m.to?.zone === 'live');
+            if (liveSetPlacements) {
+              await playHandToLiveStoragePlacements(animPrev, s, G.playerId, moves);
+            } else {
+              await playCardMoveAnimations(animPrev, s, G._prevRects, G.playerId, G._handSlotsBefore, handSlotsAfter, moves);
+            }
           } finally {
             clearWrPileAnimPending();
             if (wrCardsAddedWithoutAnimMoves(animPrev, s, moves).length) {
@@ -25348,6 +25355,54 @@ function applyOptimisticLiveSetPlacements(s, myId, selectedIds) {
   }
 }
 
+function handToLiveStorageMoves(prev, next, pid = null) {
+  return diffCardMoves(prev, next).filter(m => {
+    if (m.from?.zone !== 'hand' || m.to?.zone !== 'live') return false;
+    if (pid && m.from?.pid !== pid) return false;
+    return true;
+  });
+}
+
+/** Face-down hand → live storage flights (live_set placement, same morph as WR discards). */
+async function playHandToLiveStoragePlacements(prev, next, myId, movesOverride = null) {
+  const moves = movesOverride || handToLiveStorageMoves(prev, next);
+  if (!moves.length) return false;
+  const prevRects = collectCardRects();
+  const handBefore = collectHandSlotRects();
+  captureHandShiftBaselines(moves, myId);
+  captureFlightArtClones(moves, myId, prev);
+  G._animHideIids = animHideIidsForMoves(prev, moves);
+  const deferHand = handLayoutDeferForPlayer(moves, myId);
+  const deferOpp = shouldDeferOpponentHandLayout(moves, prev, myId);
+  G.gameState = prev;
+  renderGame(prev, { skipLog: true, skipHand: deferHand, skipOppHand: deferOpp });
+  layoutLiveSlots('my');
+  layoutLiveSlots('opp');
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  const handAfter = (deferHand || deferOpp)
+    ? projectHandSlotRects(next, myId)
+    : collectHandSlotRects();
+  try {
+    await Promise.all(moves.map((m, i) => executeCardMoveAnimation(m, {
+      myId,
+      stateBefore: prev,
+      stateAfter: next,
+      prevRects,
+      handBefore,
+      handAfter,
+      delayMs: i * LIVE_BLUFF_WR_STAGGER_MS,
+      renderState: next,
+    })));
+  } finally {
+    finalizeDeferredHandLayouts(next, myId, { deferMine: deferHand, deferOpp });
+    clearHandShiftBaselines();
+    G._animHideIids = null;
+    clearHandArrivingFlags();
+  }
+  G.gameState = next;
+  return true;
+}
+
 function shouldRevealLiveStorageForRound(prev, next, emptyRound = null) {
   if (!prev || !next) return false;
   const empty = emptyRound ?? isEmptyLiveSkipTransition(prev, next);
@@ -26134,6 +26189,9 @@ function collectPerfSpectacleDoneTurnsFromLog(s) {
 function primePerfSpectacleDoneKeysFromLog(s) {
   const turns = collectPerfSpectacleDoneTurnsFromLog(s);
   if (!turns.size) return;
+  const pending = detectPendingLiveSpectacleTurn(null, s);
+  if (pending != null) turns.delete(pending);
+  if (!turns.size) return;
   G._perfSpectacleDoneTurns = turns;
   const keys = [...turns].sort((a, b) => a - b).map(t => `${t}:live_show`);
   G._perfSpectacleDoneKey = keys[keys.length - 1];
@@ -26226,6 +26284,7 @@ function spectacleAlreadyPlayedForState(next, prev = null) {
 
 function markSpectacleDoneFromState(s, prev = null) {
   if (!s || G._perfSpectacleDoneKey) return;
+  if (detectPendingLiveSpectacleTurn(prev, s) != null) return;
   if (!spectacleAlreadyPlayedForState(s, prev)) return;
   savePerfSpectacleDoneKey(buildPerfSpectaclePrev(prev, s), s);
 }
@@ -26315,6 +26374,36 @@ function clearCenterBannerQueue() {
 async function waitForCenterBannersClear() {
   await waitForBannersIdle();
   clearCenterBannerQueue();
+}
+
+/** Wait for any active splash, dismiss it, but keep queued pipeline banners. */
+async function prepareLiveRoundBannerSlot() {
+  await waitForBannersIdle();
+  dismissCenterBannerIfShowing();
+}
+
+function performancePhaseBannerShowing() {
+  const root = el('center-banner');
+  if (!root?.classList.contains('show')) return false;
+  return (el('cb-title')?.textContent || '').trim() === 'Performance Phase';
+}
+
+function performancePhaseBannerQueued() {
+  return (G._bannerQueue || []).some(b => b.title === 'Performance Phase');
+}
+
+async function ensurePerformancePhaseSplash() {
+  if (!shouldShowMatchSplash()) return;
+  if (performancePhaseBannerShowing() || performancePhaseBannerQueued()) {
+    await waitForBannersIdle();
+    return;
+  }
+  await showCenterBannerNow({
+    title: 'Performance Phase',
+    subtitle: '',
+    kind: 'live',
+    duration: LIVE_BANNER_MS,
+  });
 }
 
 /** Decide reveal flip, empty-round skip, and whether to run Performance spectacle. */
@@ -26601,7 +26690,7 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   const deferStorageOutcomes = wantsSpectacle
     || (emptySkip && shouldAnimateEmptyLiveStorageWr(prev, next));
   try {
-    await waitForCenterBannersClear();
+    await prepareLiveRoundBannerSlot();
     await waitForBlockingOverlaysIdle(next);
 
     if (runStorageReveal) {
@@ -26659,6 +26748,9 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       spectacleRan = await runPerformanceSpectacle(perfPrev, spectacleNext, myId, {
         forceShowTurn: opts.forceSpectacleTurn ?? plan.showTurn,
       });
+      if (!spectacleRan && !emptySkip && roundHasLivePerformanceSignals(prev, next)) {
+        await ensurePerformancePhaseSplash();
+      }
       commitDeferredLiveState(next);
       G._liveRoundPostSpectacleReady = true;
     } else {
@@ -26982,8 +27074,7 @@ async function runPerformanceSpectacle(perfPrev, next, myId, opts = {}) {
   G._skipJudgeOverlay = true;
   let ran = false;
   try {
-    queuePerformancePhaseBanner();
-    await waitForBannersIdle();
+    await ensurePerformancePhaseSplash();
     await perfSeekPhase(perfPrev, next, myId, 'judge', { forward: true, animate: true });
     await perfSleep(500);
     ran = G._perfSpectaclePhase === 'judge';
@@ -34840,14 +34931,30 @@ async function confirmLiveSetFromHand() {
   syncHandSelectionClasses(s, myId);
   G._liveSetLockPid = myId;
   const cur = G.gameState;
-  applyOptimisticLiveSetPlacements(cur, myId, ids);
-  if (cur?.phase === 'live_set') {
-    cur.live_ready = { ...(cur.live_ready || {}), [myId]: true };
-    updateLiveSetButton(cur, myId);
-    updateLiveScoreHud(cur, myId);
+  const before = deepCloneState(cur);
+  const after = deepCloneState(cur);
+  applyOptimisticLiveSetPlacements(after, myId, ids);
+  const placementMoves = handToLiveStorageMoves(before, after, myId);
+  if (placementMoves.length) {
+    G.animating = true;
+    try {
+      await playHandToLiveStoragePlacements(before, after, myId, placementMoves);
+    } finally {
+      G.animating = false;
+    }
+  } else if (ids.length) {
+    applyOptimisticLiveSetPlacements(cur, myId, ids);
+    G.gameState = cur;
+  }
+  const settled = G.gameState || after;
+  if (settled?.phase === 'live_set') {
+    settled.live_ready = { ...(settled.live_ready || {}), [myId]: true };
+    updateLiveSetButton(settled, myId);
+    updateLiveScoreHud(settled, myId);
     const oppId = myId === 'p1' ? 'p2' : 'p1';
-    renderPhaseBar(cur, cur.players[myId], cur.players[oppId], myId, oppId);
-    renderGame(cur, { skipLog: true });
+    renderPhaseBar(settled, settled.players[myId], settled.players[oppId], myId, oppId);
+    G.gameState = settled;
+    renderGame(settled, { skipLog: true });
   }
   if (ids.length) {
     await sendAct('set_live_cards', { card_ids: ids });
