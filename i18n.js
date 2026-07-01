@@ -616,7 +616,11 @@
       "findAnother": "Find Another Match",
       "disconnectedYou": "You were disconnected from the match.",
       "disconnectedOpp": "{name} disconnected.",
-      "statsLine": "Turn: {turn} | Your successes: {yours}/3 | Opp successes: {opp}/3"
+      "statsLine": "Turn: {turn} | Your successes: {yours}/3 | Opp successes: {opp}/3",
+      "debugSaveReplay": "💾 Save replay",
+      "debugSaveLog": "💾 Save debug log",
+      "debugCopyLog": "📋 Copy log",
+      "debugSaveBundle": "📦 Export debug bundle"
     },
     "tutorial": {
       "exitTitle": "Exit to Title",
@@ -1354,7 +1358,11 @@
       "findAnother": "別のマッチを探す",
       "disconnectedYou": "対戦から切断されました。",
       "disconnectedOpp": "{name}が切断しました。",
-      "statsLine": "ターン：{turn} | あなたの成功：{yours}/3 | 相手の成功：{opp}/3"
+      "statsLine": "ターン：{turn} | あなたの成功：{yours}/3 | 相手の成功：{opp}/3",
+      "debugSaveReplay": "💾 リプレイを保存",
+      "debugSaveLog": "💾 デバッグログを保存",
+      "debugCopyLog": "📋 ログをコピー",
+      "debugSaveBundle": "📦 デバッグ一式を出力"
     },
     "tutorial": {
       "intro_welcome": "こんにちは！**渋谷かのん**です。**ラブライブ！オフィシャルカードゲーム**のチュートリアルへようこそ！",

@@ -6747,8 +6747,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
     <button class="btn-out" id="btn-win-leaderboard" type="button" hidden>View Leaderboard</button>
   </div>
   <div class="win-debug-row tcg-debug-only tcg-debug-row" id="win-debug-log-tools">
-    <button type="button" class="btn-ghost" id="btn-win-debug-save-log">💾 Save debug log</button>
-    <button type="button" class="btn-ghost" id="btn-win-debug-copy-log">📋 Copy log</button>
+    <button type="button" class="btn-ghost" id="btn-win-debug-save-replay" data-i18n="win.debugSaveReplay">💾 Save replay</button>
+    <button type="button" class="btn-ghost" id="btn-win-debug-save-log" data-i18n="win.debugSaveLog">💾 Save debug log</button>
+    <button type="button" class="btn-ghost" id="btn-win-debug-copy-log" data-i18n="win.debugCopyLog">📋 Copy log</button>
+    <button type="button" class="btn-ghost" id="btn-win-debug-save-bundle" data-i18n="win.debugSaveBundle">📦 Export debug bundle</button>
   </div>
 </div>
 
@@ -10765,8 +10767,28 @@ function replayLoadEnabled() {
   return debugCardTestEnabled() && !isSignedInAccount();
 }
 
+function getReplayExportCredentials() {
+  if (G.roomId && G.token) return { roomId: G.roomId, token: G.token };
+  const fin = G.lastFinishedExport;
+  if (fin?.roomId && fin?.token) return { roomId: fin.roomId, token: fin.token };
+  return null;
+}
+
 function replaySaveEnabled() {
-  return debugCardTestEnabled() && !!G.roomId && !!G.token && !G.isTutorial && !G.replayMode;
+  return debugCardTestEnabled() && !!getReplayExportCredentials() && !G.isTutorial && !G.replayMode;
+}
+
+function syncWinDebugTools(s) {
+  const row = el('win-debug-log-tools');
+  if (!row) return;
+  const on = TCG_DEBUG.on;
+  row.setAttribute('aria-hidden', on ? 'false' : 'true');
+  if (!on) return;
+  const replayBtn = el('btn-win-debug-save-replay');
+  if (replayBtn) replayBtn.hidden = !replaySaveEnabled();
+  const bundleBtn = el('btn-win-debug-save-bundle');
+  if (bundleBtn) bundleBtn.hidden = false;
+  if (typeof applyI18n === 'function') applyI18n(row);
 }
 
 function syncDebugReplayButtons(forceShow) {
@@ -10790,10 +10812,15 @@ async function saveReplayFile() {
     toast('Save replay needs ?debug and an active match.');
     return;
   }
+  const creds = getReplayExportCredentials();
+  if (!creds) {
+    toast('Save replay needs ?debug and an active match.');
+    return;
+  }
   try {
     const r = await apiPost('replay_export', {
-      room_id: G.roomId,
-      token: G.token,
+      room_id: creds.roomId,
+      token: creds.token,
       debug_mode: true,
     });
     if (r.error) throw new Error(r.error);
@@ -10806,6 +10833,54 @@ async function saveReplayFile() {
   } catch (e) {
     toast(e.message || 'Could not save replay', 4200);
   }
+}
+
+async function saveDebugBundle() {
+  if (!TCG_DEBUG.on) {
+    toast('Add ?debug to the URL.');
+    return;
+  }
+  const creds = getReplayExportCredentials();
+  let replay = null;
+  let replayError = null;
+  if (creds && !G.isTutorial && !G.replayMode) {
+    try {
+      const r = await apiPost('replay_export', {
+        room_id: creds.roomId,
+        token: creds.token,
+        debug_mode: true,
+      });
+      if (r.error) replayError = r.error;
+      else if (r.replay) replay = r.replay;
+      else replayError = 'No replay payload';
+    } catch (e) {
+      replayError = e.message || String(e);
+    }
+  } else if (!G.isTutorial && !G.replayMode) {
+    replayError = 'No room credentials for replay export';
+  }
+  const fin = G.lastFinishedExport;
+  const bundle = {
+    schema_version: 1,
+    exported_at: new Date().toISOString(),
+    finished: fin ? {
+      room_id: fin.roomId,
+      player_id: fin.playerId,
+      winner: fin.winner,
+      end_reason: fin.endReason,
+      resigned_by: fin.resignedBy,
+      finished_at: fin.finishedAt,
+      mode: fin.mode,
+      pvp: fin.pvp,
+    } : null,
+    debug: TCG_DEBUG.buildExportPayload(),
+    replay,
+    replay_error: replayError,
+  };
+  const room = creds?.roomId || bundle.debug?.room_id || 'session';
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  downloadJsonFile(`tcg-debug-bundle-${room}-${stamp}.json`, bundle);
+  toast(replay ? 'Debug bundle saved 📦' : 'Debug bundle saved (no replay) 📦', 2600);
 }
 
 function renderReplayFileMeta(replay) {
@@ -14927,8 +15002,10 @@ let G = {
   }
   on('btn-debug-save-log', 'click', onDebugSaveLogClick);
   on('btn-debug-copy-log', 'click', onDebugCopyLogClick);
+  on('btn-win-debug-save-replay', 'click', saveReplayFile);
   on('btn-win-debug-save-log', 'click', onDebugSaveLogClick);
   on('btn-win-debug-copy-log', 'click', onDebugCopyLogClick);
+  on('btn-win-debug-save-bundle', 'click', () => { void saveDebugBundle(); });
   on('btn-resign','click', () => { if (G.isTutorial) return; confirm('Resign?') && sendAct('resign',{}); });
   on('btn-again', 'click', onWinPlayAgain);
   on('btn-win-hub', 'click', onWinReturnToMenu);
@@ -36150,6 +36227,19 @@ function showWin(s){
   G.lastFinishedMode = s.mode || null;
   G.lastFinishedPvp = pvp;
   G.lastFinishedRematch = captureRematchSettings(s);
+  if (TCG_DEBUG.on && G.roomId && G.token && !G.isTutorial && !G.replayMode) {
+    G.lastFinishedExport = {
+      roomId: G.roomId,
+      token: G.token,
+      playerId: G.playerId || s.my_id,
+      winner: s.winner || null,
+      endReason: s.end_reason || null,
+      resignedBy: gameResignedBy(s),
+      finishedAt: new Date().toISOString(),
+      mode: s.mode || null,
+      pvp,
+    };
+  }
   if (s.end_reason === 'disconnect') {
     el('wtitle').textContent = win ? t('win.youWin') : t('win.youLose');
     el('wtitle').style.color = win ? 'var(--pink)' : 'rgba(255,255,255,.5)';
@@ -36173,6 +36263,7 @@ function showWin(s){
   el('btn-win-hub').hidden = false;
   el('btn-win-leaderboard').hidden = !(pvp && s.mode === 'ranked');
   el('btn-again').textContent = (pvp && (s.mode === 'ranked' || G.casualRandomMatch)) ? t('win.findAnother') : t('win.playAgain');
+  syncWinDebugTools(s);
   el('overlay-win').classList.add('open');
   sfxPlay(win ? 'win' : 'lose');
 }
@@ -37559,6 +37650,7 @@ function freshGameGlobals() {
     lastFinishedMode:null,
     lastFinishedPvp:false,
     lastFinishedRematch:null,
+    lastFinishedExport:null,
   };
 }
 
