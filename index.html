@@ -19474,7 +19474,7 @@ async function applyStateUpdate(s) {
   maybeToastWrFizzleFromLog(newEntries);
 
   G.lastSeq = s.seq;
-  G.playerId = s.my_id || G.playerId;
+  G.playerId = G.isSpectator ? (s.view_as || 'p1') : (s.my_id || G.playerId);
   maybeResetBatonTouchToggle(prev, s);
   applyReplayStateFromPoll(s);
   stashPerfYellRevealCache(s);
