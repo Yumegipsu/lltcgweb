@@ -3500,6 +3500,10 @@ function cardMatchesWrPick(array $card, array $cfg): bool {
     return true;
 }
 
+function filterYellPoolForAbility(array $pool, array $ab): array {
+    return array_values(array_filter($pool, fn($c) => cardMatchesYellPick($c, $ab)));
+}
+
 function cardMatchesYellPick(array $card, array $cfg): bool {
     $subunit = $cfg['subunit'] ?? '';
     if ($subunit !== '' && !cardMatchesSubunit($card, $subunit)) return false;
@@ -4842,9 +4846,36 @@ function isLiveModifierEffectType(string $type): bool {
 
 function finishAfterBranchChoicePrompt(array $state, array $prompt): array {
     if (($state['phase'] ?? '') === 'live_start_effects' || !empty($prompt['live_start'])) {
-        return finishLiveStartEffects($state);
+        return resumeLiveStartEffectPhase($state);
     }
     return finishPromptEffects($state);
+}
+
+/** After a Live Start prompt resolves, finish remaining players' mandatory Live Start abilities. */
+function resumeLiveStartEffectPhase(array $state): array {
+    if (($state['phase'] ?? '') !== 'live_start_effects') {
+        return finishPromptEffects($state);
+    }
+    $fromPid = $state['_live_start_resume_from'] ?? null;
+    unset($state['_live_start_resume_from']);
+    if ($fromPid) {
+        $attempting = $state['live_attempt'] ?? [];
+        $resume = false;
+        foreach ($attempting as $pid) {
+            if (!$resume) {
+                if ($pid === $fromPid) {
+                    $resume = true;
+                }
+                continue;
+            }
+            $state = resolveLiveStartAbilities($state, $pid);
+            if (!empty($state['pending_prompt'])) {
+                $state['_live_start_resume_from'] = $pid;
+                return $state;
+            }
+        }
+    }
+    return finishLiveStartEffects($state);
 }
 
 function beginWaitOpponentStagePick(
@@ -4955,6 +4986,9 @@ function resolveLiveStartAbilities(array $state, string $pid): array {
         foreach ($abilities as $ab) {
             $state = resolveAbilityEffect($state, $pid, $member, $ab, ['phase' => 'live_start']);
             $state = nBp5NotifyMemberAbilityResolved($state, $pid, $member, 'live_start');
+            if (!empty($state['pending_prompt'])) {
+                return $state;
+            }
         }
     }
 
@@ -4968,6 +5002,9 @@ function resolveLiveStartAbilities(array $state, string $pid): array {
         $state = logAbilityChain($state, $pid, $live, 'live_start');
         foreach ($abilities as $ab) {
             $state = resolveAbilityEffect($state, $pid, $live, $ab, ['phase' => 'live_start']);
+            if (!empty($state['pending_prompt'])) {
+                return $state;
+            }
         }
     }
 
@@ -8626,20 +8663,32 @@ function resolveAbilityEffect(array $state, string $pid, array $source, array $a
             }
             $yellPool = $ctx['yell_cards'] ?? $p['_pending_yell_wr'] ?? [];
             if (empty($yellPool)) break;
-            if (count($yellPool) === 1) {
-                $p['hand'][] = $yellPool[0];
+            $eligible = filterYellPoolForAbility($yellPool, $ab);
+            if (empty($eligible)) break;
+            if (count($eligible) === 1) {
+                $picked = $eligible[0];
+                $pickId = $picked['instance_id'] ?? '';
+                $p['_pending_yell_wr'] = array_values(array_filter(
+                    $p['_pending_yell_wr'] ?? $yellPool,
+                    fn($c) => ($c['instance_id'] ?? '') !== $pickId
+                ));
+                $p['hand'][] = $picked;
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] added 1 Yell card to hand.');
+                    ' — [' . $name . '] added ' . cardDisplayName($picked) . ' from Yell to hand.');
                 break;
             }
+            $subunit = trim($ab['subunit'] ?? '');
+            $pickLabel = $subunit !== ''
+                ? 'Choose 1 ' . $subunit . ' Member card revealed by Yell to add to your hand.'
+                : 'Choose 1 card revealed by Yell to add to your hand.';
             $state['pending_prompt'] = [
                 'type'        => 'pick_yell_member',
                 'owner'       => $pid,
                 'responder'   => $pid,
                 'source_name' => $name,
-                'prompt'      => 'Choose 1 card revealed by Yell to add to your hand.',
-                'candidates'  => array_map('cardPromptSummary', $yellPool),
-                'ability'     => array_merge($ab, ['filter' => 'any']),
+                'prompt'      => $pickLabel,
+                'candidates'  => array_map('cardPromptSummary', $eligible),
+                'ability'     => $ab,
             ];
             $state = addLog($state, $state['players'][$pid]['name'] .
                 ' — [' . $name . '] choose a Yell card.');
@@ -12647,14 +12696,9 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             }
             throw new Exception('Invalid Yell card');
         }
-        $ok = (($ability['filter'] ?? '') === 'member_or_live')
-            ? cardMatchesYellPick($picked, $ability)
-            : cardMatchesGroup(
-                $picked,
-                $ability['group'] ?? 'μ\'s',
-                $ability['filter'] ?? 'member'
-            );
-        if (!$ok) throw new Exception('Must pick a qualifying card');
+        if (!cardMatchesYellPick($picked, $ability)) {
+            throw new Exception('Must pick a qualifying card');
+        }
         $ownerP['hand'][] = $picked;
         $state = addLog($state, $state['players'][$owner]['name'] .
             ' — [' . ($prompt['source_name'] ?? 'Live') . '] added ' .
@@ -12913,7 +12957,11 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 fn($c) => cardMatchesGroup($c, $group, $filter)
             ));
             if (empty($succ)) {
-                throw new Exception('No matching Live in Success Live area');
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional effect (no Success Live).');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishPromptEffects($state);
             }
             $state['pending_prompt'] = [
                 'type'          => 'optional_success_wr_live_swap',
@@ -14516,6 +14564,7 @@ function beginLiveStartEffectPhase(array $state, bool $p1Attempt = true, bool $p
     foreach ($state['live_attempt'] as $pid) {
         $state = resolveLiveStartAbilities($state, $pid);
         if (!empty($state['pending_prompt'])) {
+            $state['_live_start_resume_from'] = $pid;
             if (!array_key_exists('live_start_optional_queue', $state)) {
                 $state['live_start_optional_queue'] = collectOptionalLiveStartAbilities($state);
             }

@@ -24503,9 +24503,7 @@ async function awaitResolvePostLivePrompts(prev, next, myId, opts = {}) {
     ensurePendingPromptSurfaced(next, myId);
     return;
   }
-  const postLive = pr.type === 'pick_judge_success_live'
-    || (next.phase === 'live_success_effects' && !isMidSpectacleYellRetryPrompt(next))
-    || isLiveSuccessDiscardPrompt(next);
+  const postLive = isPostLiveSkillPrompt(G.gameState || next);
   if (!postLive) {
     ensurePendingPromptSurfaced(next, myId);
     return;
@@ -25903,7 +25901,19 @@ function syncLogAfterLivePresentation(next, prev) {
 
 function isLiveSuccessDiscardPrompt(state) {
   const pr = state?.pending_prompt;
-  return state?.phase === 'live_success_effects' && pr?.type === 'effect_discard_hand';
+  if (pr?.type !== 'effect_discard_hand') return false;
+  if (state?.phase === 'live_success_effects') return true;
+  if (state?._performance_continue) return true;
+  return isLiveSpectaclePipelinePhase(state?.phase);
+}
+
+function isPostLiveSkillPrompt(state) {
+  const pr = state?.pending_prompt;
+  if (!pr) return false;
+  if (pr.type === 'pick_judge_success_live') return true;
+  if (isLiveSuccessDiscardPrompt(state)) return true;
+  if (state?.phase === 'live_success_effects' && !isMidSpectacleYellRetryPrompt(state)) return true;
+  return false;
 }
 
 function shouldDeferLiveSuccessDiscardUi(s, myId) {
@@ -32091,10 +32101,21 @@ function judgeSuccessLivePickCards(pr, s, myId) {
 function yellRevealPickCards(pr, s, myId) {
   const yell = s?.yell_reveal?.[myId] || s?._yell_reveal_snapshot?.[myId] || [];
   const byId = new Map(yell.map(c => [c.instance_id, c]));
+  const ab = pr.ability || {};
   return (pr.candidates || []).map(c => {
     const full = byId.get(c.instance_id);
     return full ? { ...c, ...full } : c;
-  }).filter(c => c.instance_id);
+  }).filter(c => {
+    if (!c.instance_id) return false;
+    if (ab.subunit || ab.group || ab.filter) {
+      return cardMatchesWrPickClient(c, {
+        group: ab.group || '',
+        filter: ab.filter || 'member',
+        subunit: ab.subunit || '',
+      });
+    }
+    return true;
+  });
 }
 
 function openYellRevealPick(pr, opts = {}) {
@@ -33313,7 +33334,16 @@ function renderPrompt(s, myId){
   }
   if(pr?.type==='pick_yell_member'&&pr.responder===myId){
     ovl.classList.remove('open');
-    openYellRevealPick(pr, { state: s, myId });
+    const yellCards = yellRevealPickCards(pr, s, myId);
+    if (!yellCards.length) {
+      sendAct('resolve_prompt', { choice: 'skip' });
+      return;
+    }
+    openYellRevealPick(pr, {
+      state: s,
+      myId,
+      onCancel: () => sendAct('resolve_prompt', { choice: 'skip' }),
+    });
     return;
   }
   if(pr?.type==='pick_looked_deck_hand'&&pr.responder===myId){
