@@ -15950,7 +15950,15 @@ async function beginGameSync() {
     return;
   }
   G.syncEnabled = false;
+  ensurePresencePingTimer();
   doPollLegacy();
+  return;
+}
+
+function ensurePresencePingTimer() {
+  if (G.presenceTimer || !G.polling || G.isTutorial || !G.roomId || !G.token) return;
+  void tcgPresencePing();
+  G.presenceTimer = setInterval(() => void tcgPresencePing(), TCG_PRESENCE_PING_MS);
 }
 
 // ── POLLING / SSE SYNC ───────────────────────────────

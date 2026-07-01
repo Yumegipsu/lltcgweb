@@ -118,7 +118,18 @@ function tcgPvpLivePlayerCount(array $state, string $roomId, ?int $now = null): 
         }
     }
 
-    if ($live === 0 && !$anyPresenceEver && $gameAge < $grace) {
+    if ($live === 0 && $gameAge < $grace) {
+        foreach (['p1', 'p2'] as $pid) {
+            $player = $state['players'][$pid] ?? null;
+            if ($player && !isCpuPlayer($player)) {
+                $live++;
+            }
+        }
+        return $live;
+    }
+
+    // Long turns between saves: ranked rows stay pending while the file is still fresh.
+    if ($live === 0 && ($state['mode'] ?? '') === 'ranked' && $gameAge < 45 * 60) {
         foreach (['p1', 'p2'] as $pid) {
             $player = $state['players'][$pid] ?? null;
             if ($player && !isCpuPlayer($player)) {
@@ -186,28 +197,23 @@ function tcgListRankedSpectatableMatches(): array {
     $db = tcgDb();
     $stmt = $db->query('SELECT room_id, created_at, p1_id, p2_id, p1_token, p2_token FROM tcg_ranked_matches WHERE status = "pending"');
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $row = tcgSanitizeRankedMatchRow($row);
+        if (!$row) {
+            continue;
+        }
         $roomId = (string)($row['room_id'] ?? '');
         if ($roomId === '') {
             continue;
         }
         $path = tcgRankedGameFilePath($roomId);
         if (!is_file($path)) {
-            tcgCompleteRankedMatch($roomId);
             continue;
         }
         $state = json_decode((string)file_get_contents($path), true);
         if (!is_array($state) || ($state['mode'] ?? '') !== 'ranked') {
-            tcgCompleteRankedMatch($roomId);
-            continue;
-        }
-        if (tcgRankedMatchRowIsStale($roomId, $state, $row)) {
-            tcgCompleteRankedMatch($roomId);
             continue;
         }
         if (!tcgIsSpectatableHumanGame($state, $roomId)) {
-            if (($state['status'] ?? '') === 'finished') {
-                tcgCompleteRankedMatch($roomId);
-            }
             continue;
         }
         $matches[] = tcgSpectatableMatchRow($roomId, $state, 'ranked');
