@@ -17680,11 +17680,22 @@ function liveStorageWrMoveIids(moves) {
 async function playPreLiveRevealPlacements(prev, final, myId) {
   const moves = preLiveRevealMoves(prev, final);
   if (!moves.length) return false;
+  if (moves.every(m => m.from?.zone === 'hand' && m.to?.zone === 'live')) {
+    return playHandToLiveStoragePlacements(prev, final, myId, moves);
+  }
   const prevRects = collectCardRects();
   const handBefore = collectHandSlotRects();
   G._animHideIids = animHideIidsForMoves(prev, moves);
   G.gameState = prev;
   renderGame(prev, { skipLog: true });
+  const handToLive = moves.filter(m => m.from?.zone === 'hand' && m.to?.zone === 'live');
+  if (handToLive.length) {
+    enrichHandToLiveMoveTargets(final, handToLive);
+    primeHandToLiveStorageDestinations(prev, final, myId, handToLive);
+    layoutLiveSlots('my');
+    layoutLiveSlots('opp');
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  }
   await playCardMoveAnimations(prev, final, prevRects, myId, handBefore, collectHandSlotRects(), moves);
   G._animHideIids = null;
   clearHandArrivingFlags();
@@ -27939,6 +27950,8 @@ function isMyBlockingPromptOpen(s) {
 
 function shouldHideOpponentLiveStorageFaces(s) {
   if (!s?.players) return false;
+  // Reveal playback owns opponent face visibility — do not suppress during flip sequence.
+  if (G._liveRevealFlips?.size) return false;
   if (isLiveSetPhase(s.phase) && liveSetPlacementInProgress(s)) return true;
   if (G._liveRoundPlaybackActive && !G._livePostRevealBoard) return true;
   return false;
@@ -31789,9 +31802,11 @@ function renderLiveSlots(prefix, zone, isMe, pid){
     }
 
     const flipKey = `${pid}:${card.instance_id}`;
-    const hideOppFace = !isMe && shouldHideOpponentLiveStorageFaces(s);
-    const showFace = isMe || (!hideOppFace && !!card.revealed);
-    const doFlip = !isMe && showFace && flipKeys.has(flipKey);
+    const flipPending = !isMe && flipKeys.has(flipKey)
+      && !(isLiveSetPhase(s?.phase) && liveSetPlacementInProgress(s));
+    const hideOppFace = !isMe && !flipPending && shouldHideOpponentLiveStorageFaces(s);
+    const showFace = isMe || flipPending || (!hideOppFace && !!card.revealed);
+    const doFlip = flipPending;
 
     if (existingCard?.dataset.iid === card.instance_id) {
       if (existingCard.classList.contains('live-storage-flip')) {
