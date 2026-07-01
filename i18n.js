@@ -226,6 +226,8 @@
       "oppActivatingSkill": "Opponent is activating a skill…",
       "activeEnergy": "active",
       "pickSlot": "Pick a slot",
+      "batonPassHint": "Baton Pass — pay {cost} Active Energy",
+      "overplayHint": "Overplay — pay {cost} Active Energy",
       "slotLeft": "Left Side",
       "slotCenter": "Center",
       "slotRight": "Right Side",
@@ -442,7 +444,10 @@
       "score": "Score",
       "requiredHearts": "Required hearts",
       "hearts": "Hearts",
-      "yellIcons": "Yell icons"
+      "yellIcons": "Yell icons",
+      "playToSlot": "Play to slot:",
+      "needEnergy": "Need",
+      "haveEnergy": "have"
     },
     "pack": {
       "opened": "Pack Opened",
@@ -834,6 +839,8 @@
       "oppActivatingSkill": "相手がスキルを発動中…",
       "activeEnergy": "使用可能",
       "pickSlot": "スロットを選択",
+      "batonPassHint": "バトンタッチ — 使用可能エネルギー{cost}",
+      "overplayHint": "上書き — 使用可能エネルギー{cost}",
       "slotLeft": "左サイド",
       "slotCenter": "センター",
       "slotRight": "右サイド",
@@ -1050,7 +1057,10 @@
       "score": "スコア",
       "requiredHearts": "必要ハート",
       "hearts": "ハート",
-      "yellIcons": "エールアイコン"
+      "yellIcons": "エールアイコン",
+      "playToSlot": "配置スロット：",
+      "needEnergy": "必要",
+      "haveEnergy": "所持"
     },
     "pack": {
       "opened": "パック開封",

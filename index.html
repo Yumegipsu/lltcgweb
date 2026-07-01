@@ -7317,6 +7317,16 @@ function syncGameplayChromeI18n() {
   }
   if (G.gameState && G.playerId) {
     updatePhaseActionButton(G.gameState, G.playerId);
+    updatePlayTargetChrome(G.gameState, G.playerId);
+    const previewId = pinnedHandPreviewIid() || G.hoverCardId;
+    if (previewId) {
+      const card = findHand(previewId, G.gameState, G.playerId);
+      if (card) refreshHandPreviewPanel(card, G.gameState, G.playerId);
+    }
+    if (el('modal-card')?.classList.contains('open') && G._modalCardRef) {
+      const { card, iid, s, myId, forceSlot } = G._modalCardRef;
+      showCard(card, iid, s || G.gameState, myId || G.playerId, forceSlot);
+    }
   }
   syncPickOverlayButtons();
   syncHandPickOverlayButtons();
@@ -31790,22 +31800,16 @@ function updatePlayCostHud(s, myId) {
   hud.classList.toggle('cost-ok', ae >= cost);
   hud.classList.toggle('cost-no', ae < cost);
   if (haveEl) {
-    haveEl.innerHTML = `active <b>${ae}</b>`;
+    haveEl.innerHTML = formatActiveEnergyHave(ae);
   }
   if (hintEl) {
     if (G.previewSlot) {
       const exist = me?.stage?.[G.previewSlot];
       const mode = exist ? memberPlayModeForSlot(card, G.previewSlot, s, myId) : 'empty';
-      if (mode === 'baton' && cost < baseCost) {
-        hintEl.textContent = `Baton Pass - Pay ${cost} Active Energy`;
-      } else if (mode === 'overplay' && exist) {
-        hintEl.textContent = `Overplay - Pay ${cost} Active Energy`;
-      } else {
-        hintEl.textContent = G.previewSlot.charAt(0).toUpperCase() + G.previewSlot.slice(1);
-      }
+      hintEl.textContent = playCostHudHintText(G.previewSlot, mode, cost, baseCost, exist);
       hintEl.style.display = '';
     } else {
-      hintEl.textContent = 'Pick a slot';
+      hintEl.textContent = t('game.pickSlot');
       hintEl.style.display = '';
     }
   }
@@ -31851,7 +31855,7 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
   wrap.className = 'hc-play-actions';
   const label = document.createElement('p');
   label.className = 'hc-play-label';
-  label.textContent = 'Play to slot:';
+  label.textContent = t('card.playToSlot');
   wrap.appendChild(label);
   const row = document.createElement('div');
   row.className = 'slotrow hc-slotrow';
@@ -31866,7 +31870,7 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
     const canDo = mode === 'empty' ? slotAe >= ec : !!mode && slotAe >= slotCost;
     const b = document.createElement('button');
     b.className = 'btn-smol';
-    b.appendChild(document.createTextNode(slot.charAt(0).toUpperCase() + slot.slice(1)));
+    b.appendChild(document.createTextNode(slotLabel(slot, false)));
     if (mode === 'baton') appendEnergyCost(b, bc, { prefix: ' BT' });
     else if (mode === 'overplay') appendEnergyCost(b, ec, { prefix: ' OP' });
     else appendEnergyCost(b, ec, { prefix: ' ' });
@@ -31883,12 +31887,7 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
   if (ae < ec) {
     const w = document.createElement('p');
     w.className = 'hc-play-warn';
-    w.textContent = '';
-    w.appendChild(document.createTextNode('⚠ Need '));
-    appendEnergyCost(w, ec);
-    w.appendChild(document.createTextNode(' (have '));
-    appendEnergyCost(w, ae);
-    w.appendChild(document.createTextNode(')'));
+    appendPlayEnergyNeedWarn(w, ec, ae);
     wrap.appendChild(w);
   }
   container.appendChild(wrap);
@@ -32236,6 +32235,8 @@ function showCard(card, iid, s, myId, forceSlot) {
   const ae=(me?.energy_zone||[]).filter(energyChipActive).length;
 
   fillCardDetailPanel('cd', card, s, myId);
+
+  G._modalCardRef = { card, iid, s, myId, forceSlot: forceSlot || null };
 
   const actionsEl=el('cd-actions'); actionsEl.innerHTML='';
   const isMain=ph==='main_first'||ph==='main_second';
@@ -37315,6 +37316,7 @@ function closeM(id){
   if (id === 'modal-card') {
     document.body.classList.remove('mulligan-card-preview');
     document.body.classList.remove('deck-card-preview');
+    G._modalCardRef = null;
   }
   bumpAntiSoftlockButton();
 }
@@ -37399,6 +37401,26 @@ function appendEnergyCost(parent, n, { prefix='', suffix='', cls='ticon' }={}){
   if(prefix) parent.appendChild(document.createTextNode(prefix));
   parent.appendChild(mkGameIcon(ENERGY_ICON, cls, 'Energy'));
   parent.appendChild(document.createTextNode(String(n) + suffix));
+}
+
+function formatActiveEnergyHave(ae) {
+  return `${t('game.activeEnergy')} <b>${ae}</b>`;
+}
+
+function appendPlayEnergyNeedWarn(parent, need, have) {
+  parent.textContent = '';
+  parent.appendChild(document.createTextNode(`⚠ ${t('card.needEnergy')} `));
+  appendEnergyCost(parent, need);
+  parent.appendChild(document.createTextNode(` (${t('card.haveEnergy')} `));
+  appendEnergyCost(parent, have);
+  parent.appendChild(document.createTextNode(')'));
+}
+
+function playCostHudHintText(previewSlot, mode, cost, baseCost, exist) {
+  if (!previewSlot) return t('game.pickSlot');
+  if (mode === 'baton' && cost < baseCost) return t('game.batonPassHint', { cost });
+  if (mode === 'overplay' && exist) return t('game.overplayHint', { cost });
+  return slotLabel(previewSlot, false);
 }
 
 function mkHeartIcon(color, lg=false, field=false){
