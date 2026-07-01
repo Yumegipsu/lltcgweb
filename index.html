@@ -14458,12 +14458,11 @@ function bindGameImageGuard() {
   document.addEventListener('dragstart', blockNative, { capture: true });
 }
 
-const DESKTOP_REF_W = 1920;
-const DESKTOP_REF_H = 1080;
-const DESKTOP_REF_HAND_STRIP = 132;
-
 /** Sub-1080p desktop: letterbox to 16:9 and scale hand strips / panels with the playmat. */
 function syncDesktopUniformScale(w, h, useFixedFrame, portraitBlock, compactDesktop) {
+  const refW = 1920;
+  const refH = 1080;
+  const refHandStrip = 132;
   const root = document.documentElement;
   const clear = () => {
     root.classList.remove('tcg-desktop-scaled');
@@ -14477,14 +14476,14 @@ function syncDesktopUniformScale(w, h, useFixedFrame, portraitBlock, compactDesk
   }
   const frameW = Math.min(w, h * (16 / 9));
   const frameH = Math.min(h, w * (9 / 16));
-  const scale = Math.min(1, frameW / DESKTOP_REF_W, frameH / DESKTOP_REF_H);
+  const scale = Math.min(1, frameW / refW, frameH / refH);
   if (scale >= 0.998) {
     clear();
     return;
   }
   root.classList.add('tcg-desktop-scaled');
   root.style.setProperty('--desktop-ui-scale', scale.toFixed(4));
-  const handStrip = DESKTOP_REF_HAND_STRIP * scale;
+  const handStrip = refHandStrip * scale;
   const seam = 5 * scale;
   const matMaxH = Math.max(80, (frameH - 2 * handStrip - seam - 8) / 2);
   const sidePanel = compactDesktop
