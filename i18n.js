@@ -171,6 +171,7 @@
     "options": {
       "title": "Options",
       "enhancedTextures": "Enhanced textures on high rarity cards",
+      "soundEffects": "Sound effects",
       "stuckTitle": "Stuck in a match?",
       "stuckLead": "If ranked reconnects you to a broken or finished game, leave the active match record here. This counts as a resign if the game is still in progress.",
       "resetTitle": "Reset account",
@@ -688,6 +689,7 @@
     "options": {
       "title": "オプション",
       "enhancedTextures": "高レアリティカードのテクスチャ強化",
+      "soundEffects": "効果音",
       "stuckTitle": "マッチで固まった？",
       "stuckLead": "ランクで壊れた、または終了済みのゲームに再接続された場合、ここでアクティブなマッチ記録を離脱できます。進行中のゲームでは降参扱いになります。",
       "resetTitle": "アカウントリセット",

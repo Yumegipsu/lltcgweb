@@ -5677,6 +5677,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <input type="checkbox" id="chk-foil-fx" checked>
           <span data-i18n="options.foil">Enhanced textures on high rarity cards</span>
         </label>
+        <label class="options-toggle">
+          <input type="checkbox" id="chk-sfx" checked>
+          <span data-i18n="options.soundEffects">Sound effects</span>
+        </label>
       </div>
       <div class="options-section">
         <h3 data-i18n="options.stuck.title">Stuck in a match?</h3>
@@ -6679,6 +6683,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 
 <script src="i18n.js?v=1"></script>
 <script src="log_i18n.js?v=1"></script>
+<script src="sfx.js?v=1"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -7159,14 +7164,18 @@ function onLocaleChanged() {
   refreshDynamicI18n();
 }
 
+function escapeHtmlText(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 function updateHubDynamicStats(me) {
   const profile = me || A.profile;
   if (!profile) return;
   const d = profile.daily || {};
-  el('hub-daily').textContent = t('hub.daily', {
+  el('hub-daily').textContent = t('hub.dailyBoosters', {
     remaining: d.remaining ?? 0,
     limit: d.limit ?? 5,
-  }) + (d.first_day_bonus ? t('hub.dailyBonus') : '');
+  }) + (d.first_day_bonus ? t('hub.dailyWelcomeBonus') : '');
   const r = profile.rank || {};
   const elo = r.elo ?? r.rating ?? 1000;
   const winPct = r.win_rate ?? (r.wins + r.losses > 0 ? Math.round((r.wins / (r.wins + r.losses)) * 10) / 10 : 0);
