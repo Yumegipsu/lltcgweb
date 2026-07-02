@@ -23,7 +23,7 @@ final class BoosterSmokeTest extends TestCase
 
         $out = tcgOpenBoosterPack($discordId, 'pb_superstar_duo', $cardsData, 'gems');
         $this->assertSame('pack', $out['mode'] ?? '');
+        $this->assertSame('pb_superstar_duo', $out['box']['id'] ?? '');
         $this->assertCount(3, $out['card_nos'] ?? []);
-        $this->assertSame(3, intval($out['box']['pack_size'] ?? 0));
     }
 }
