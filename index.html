@@ -8175,6 +8175,7 @@ function prepareClientReconnectState(s) {
   G.mulliganPending = false;
   G.coinFlipAckSent = false;
   G._coinFlipAnimComplete = false;
+  G._cpuCoinFlipChooseKey = null;
   G._prevLogLen = (s?.log || []).length;
   G.lastSeq = s?.seq ?? 0;
   restorePerfSpectacleDoneKey();
@@ -14451,6 +14452,7 @@ let G = {
   _coinFlipAnimComplete:false,
   _coinFlipTimer:null,
   _coinFlipLoserDismissTimer:null,
+  _cpuCoinFlipChooseKey:null,
   _announceBaseline:null,
   _cbTimer:null,
   _judgeHintTimer:null,
@@ -19793,6 +19795,20 @@ function armWatchdog(s) {
       TCG_DEBUG.warn('cpu', 'watchdog nudge (cpu main)', sig);
       doCPU(live);
     }
+    const cpuId = cpuOpponentId();
+    const flip = live?.coin_flip;
+    const stuckOnCpuCoinChoice = live?.phase === 'coin_flip'
+      && flip?.winner === cpuId
+      && flip?.ready?.p1
+      && flip?.ready?.p2
+      && !G.animating
+      && !G._perfSpectacleActive
+      && !G._liveSpectacleGateRunning;
+    if (stuckOnCpuCoinChoice) {
+      TCG_DEBUG.warn('cpu', 'watchdog nudge (coin flip)', sig);
+      G._cpuCoinFlipChooseKey = null;
+      doCPU(live);
+    }
     if(G.watchdogStuckCount >= 3) {
       TCG_DEBUG.warnOnce('cpu', `watchdog-retry:${sig}`, 'watchdog forcing retry', sig, TCG_DEBUG.snap(G.gameState));
       G.watchdogStuckCount = 0;
@@ -22164,13 +22180,20 @@ function doCPU(s) {
     const flip = s.coin_flip;
     if (!flip.ready?.[cpuId]) {
       TCG_DEBUG.log('cpu', 'ack_coin_flip');
-      cpuSchedule(() => cpuAct('ack_coin_flip', {}), 1400);
+      cpuSchedule(() => cpuAct('ack_coin_flip', {}), 1100);
       return;
     }
-    if (flip.winner === cpuId && flip.ready?.p1 && flip.ready?.p2) {
+    if (flip.winner === cpuId) {
+      if (!flip.ready?.p1 || !flip.ready?.p2) {
+        cpuSchedule(() => doCPU(G.gameState), 480);
+        return;
+      }
+      const chooseKey = `${s.seq}|${flip.winner}`;
+      if (G._cpuCoinFlipChooseKey === chooseKey) return;
+      G._cpuCoinFlipChooseKey = chooseKey;
       const pick = cpuPickCoinFirstPlayer(s);
       TCG_DEBUG.log('cpu', 'choose_first_player', { pick, diff: cpuDiff() });
-      cpuSchedule(() => cpuAct('choose_first_player', { first_player: pick }), 900);
+      cpuSchedule(() => cpuAct('choose_first_player', { first_player: pick }), 600);
       return;
     }
     return;
@@ -24270,6 +24293,9 @@ async function cpuAct(type,data) {
           const live = G.gameState;
           if (live?.pending_prompt?.responder === 'p2') armCpuPromptHangWatch(live);
         }
+      } else if (type === 'ack_coin_flip' || type === 'choose_first_player') {
+        G._cpuCoinFlipChooseKey = null;
+        cpuSchedule(() => doCPU(G.gameState), 400);
       } else if (type === 'activate_ability') {
         if (data?.card_id != null && data?.ability_index != null) {
           cpuBlacklistAbility(data.card_id, data.ability_index);
@@ -35948,6 +35974,7 @@ function resetCoinFlipPresentation() {
   G._coinFlipAnimComplete = false;
   G.coinFlipAckSent = false;
   G._coinFlipAckLastTry = 0;
+  G._cpuCoinFlipChooseKey = null;
   hideCoinChoiceButtons();
   el('overlay-coin')?.classList.remove('open');
 }
@@ -36014,7 +36041,11 @@ function ensureCoinFlipAcked(s, myId) {
   apiPost('action', { room_id: G.roomId, token: G.token, type: 'ack_coin_flip', data: {} })
     .then(() => {
       G.coinFlipAckSent = true;
-      if (G.polling) return pullLatestState();
+      if (G.polling) return pullLatestState(true);
+      if (G.isCPU) {
+        doCPU(G.gameState || gs);
+        armWatchdog(G.gameState || gs);
+      }
     })
     .catch(() => { G.coinFlipAckSent = false; });
 }
@@ -36024,6 +36055,7 @@ function finishCoinFlipAnimation(s, myId) {
     ensureCoinFlipAcked(G.gameState || s, myId);
     syncCoinFlipChoiceUi(G.gameState || s, myId);
     if (!G.animating) flushPendingState();
+    scheduleCpuCoinFlipAfterAnim();
     return;
   }
   G._coinFlipAnimComplete = true;
@@ -36033,6 +36065,18 @@ function finishCoinFlipAnimation(s, myId) {
   ensureCoinFlipAcked(G.gameState || s, myId);
   syncCoinFlipChoiceUi(G.gameState || s, myId);
   if (!G.animating) flushPendingState();
+  scheduleCpuCoinFlipAfterAnim();
+}
+
+function scheduleCpuCoinFlipAfterAnim() {
+  if (!G.isCPU || G.gameState?.phase !== 'coin_flip') return;
+  const run = () => {
+    if (G.gameState?.phase !== 'coin_flip') return;
+    doCPU(G.gameState);
+    armWatchdog(G.gameState);
+  };
+  if (!G.animating) run();
+  else cpuSchedule(run, 320);
 }
 
 function startCoinFlipAnimation(s, myId, flipKey) {
@@ -37996,6 +38040,7 @@ function freshGameGlobals() {
     _coinFlipAnimComplete:false,
     _coinFlipTimer:null,
     _coinFlipLoserDismissTimer:null,
+    _cpuCoinFlipChooseKey:null,
     _announceBaseline:null,
     _cbTimer:null,
     _judgeHintTimer:null,

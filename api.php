@@ -2431,6 +2431,19 @@ function isPvpMatch(array $state): bool {
     return !isCpuPlayer($p1) && !isCpuPlayer($p2);
 }
 
+function isCpuSoloMatch(array $state): bool {
+    $st = $state['status'] ?? '';
+    if (in_array($st, ['waiting', 'ready', 'finished'], true)) {
+        return false;
+    }
+    $p1 = $state['players']['p1'] ?? null;
+    $p2 = $state['players']['p2'] ?? null;
+    if (!$p1 || !$p2) {
+        return false;
+    }
+    return isCpuPlayer($p1) xor isCpuPlayer($p2);
+}
+
 function parsePhaseTimerConfigFromBody(array $body): array {
     $enabled = filter_var($body['phase_timer_enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
     $duration = intval($body['phase_timer_seconds'] ?? PHASE_TIMER_SEC);
@@ -2658,9 +2671,14 @@ function dismissPendingPromptBeforePhaseTimeout(array $state, string $pid): arra
     return $state;
 }
 
-/** Unstick PvP coin flip when a client never acks or the winner never chooses. */
+/** Unstick coin flip when a client never acks or the winner never chooses. */
 function applyCoinFlipStalemate(array &$state): bool {
-    if (($state['phase'] ?? '') !== 'coin_flip' || !isPvpMatch($state)) {
+    if (($state['phase'] ?? '') !== 'coin_flip') {
+        return false;
+    }
+    $isPvp = isPvpMatch($state);
+    $isCpuSolo = isCpuSoloMatch($state);
+    if (!$isPvp && !$isCpuSolo) {
         return false;
     }
     $flip = &$state['coin_flip'];
@@ -2697,7 +2715,15 @@ function applyCoinFlipStalemate(array &$state): bool {
             return $changed;
         }
         $choiceElapsed = $now - intval($flip['both_ready_since']);
-        if ($choiceElapsed >= 35) {
+        $choiceTimeout = 35;
+        if ($isCpuSolo) {
+            $cpuId = isCpuPlayer($state['players']['p1'] ?? null) ? 'p1'
+                : (isCpuPlayer($state['players']['p2'] ?? null) ? 'p2' : null);
+            if ($cpuId && ($flip['winner'] ?? '') === $cpuId) {
+                $choiceTimeout = 4;
+            }
+        }
+        if ($choiceElapsed >= $choiceTimeout) {
             $winner = $flip['winner'] ?? 'p1';
             $state['first_player'] = $winner;
             $state['active_player'] = $winner;
