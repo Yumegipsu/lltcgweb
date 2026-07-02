@@ -952,6 +952,18 @@ body.tcg-spectator-mode #screen-game .hand-strip .hcard,
 body.tcg-spectator-mode #screen-game .hand-strip .opp-hand-card{pointer-events:none!important}
 body.tcg-spectator-mode #spectate-bar,
 body.tcg-spectator-mode #spectate-bar button{pointer-events:auto}
+body.tcg-replay-view-mode #screen-game #btn-resign,
+body.tcg-replay-view-mode #screen-game .phase-action-bar{display:none!important}
+body.tcg-replay-view-mode #screen-game .mat-zone.deck-pile,
+body.tcg-replay-view-mode #screen-game .mat-baton-toggle,
+body.tcg-replay-view-mode #screen-game .mslot,
+body.tcg-replay-view-mode #screen-game .lcard,
+body.tcg-replay-view-mode #screen-game .hand-strip .hcard,
+body.tcg-replay-view-mode #screen-game .hand-strip .opp-hand-card{pointer-events:none!important}
+body.tcg-replay-view-mode #replay-control-bar,
+body.tcg-replay-view-mode #replay-control-bar button,
+body.tcg-replay-view-mode #screen-game .tcg-debug-row,
+body.tcg-replay-view-mode #screen-game .tcg-debug-row button{pointer-events:auto!important}
 .phase-timer-wrap{flex:0 0 auto;line-height:0}
 .phase-timer-wrap[hidden]{display:none!important}
 .phase-timer-wrap.phase-timer-wrap--prompt{
@@ -8074,6 +8086,10 @@ function saveActiveGameSession() {
       isCPU: !!G.isCPU,
       cpuToken: G.cpuToken || null,
       screen,
+      replayMode: !!G.replayMode,
+      replayHandoff: !!G.replayHandoff,
+      replayStep: G.replayStep || 0,
+      replayTotal: G.replayTotal || 0,
     }));
   } catch (e) {}
 }
@@ -8202,8 +8218,15 @@ async function reconnectToGame(saved) {
     G.isCPU = !!(saved.isCPU || s.cpu_solo);
     G.cpuToken = saved.cpuToken || null;
     G.cpuPlayerId = G.isCPU ? (G.playerId === 'p1' ? 'p2' : 'p1') : null;
+    if (saved.replayMode && !saved.replayHandoff) {
+      G.replayMode = true;
+      G.replayStep = saved.replayStep ?? 0;
+      G.replayTotal = saved.replayTotal ?? 0;
+      G.replayHandoff = false;
+    }
     prepareClientReconnectState(s);
     G.gameState = s;
+    applyReplayStateFromPoll(s);
     const waiting = saved.screen === 'waiting' && s.status === 'waiting';
     if (waiting) {
       el('disp-code').textContent = G.roomId;
@@ -11043,14 +11066,22 @@ async function startDebugReplayFromFile() {
   }
 }
 
+function isReplayViewing() {
+  if (G.replayHandoff) return false;
+  if (G.replayMode) return true;
+  return (G.gameState?.mode || '') === 'replay_view';
+}
+
 function syncReplayControlBar() {
   if (typeof G === 'undefined') return;
+  const viewing = isReplayViewing();
+  document.body.classList.toggle('tcg-replay-view-mode', viewing);
   const bar = el('replay-control-bar');
   if (!bar) return;
-  const active = G.replayMode || G.replayHandoff;
-  const inReplay = G.replayMode && !G.replayHandoff;
+  const active = viewing || G.replayHandoff;
+  const inReplay = viewing;
   bar.hidden = !active;
-  bar.classList.toggle('show', active && debugCardTestEnabled());
+  bar.classList.toggle('show', active);
   bar.setAttribute('aria-hidden', active ? 'false' : 'true');
   const label = el('replay-step-label');
   if (label) {
@@ -11078,17 +11109,17 @@ function stopReplayAutoPlay() {
 
 function scheduleReplayAutoPlay() {
   stopReplayAutoPlay();
-  if (!G.replayMode || G.replayHandoff) return;
+  if (!isReplayViewing()) return;
   G.replayPlaying = true;
   syncReplayControlBar();
   const tick = async () => {
-    if (!G.replayPlaying || G.replayHandoff) return;
+    if (!G.replayPlaying || !isReplayViewing()) return;
     if (G.replayStep >= G.replayTotal) {
       stopReplayAutoPlay();
       return;
     }
     await replayGotoStep(G.replayStep + 1);
-    if (G.replayPlaying && !G.replayHandoff && G.replayStep < G.replayTotal) {
+    if (G.replayPlaying && isReplayViewing() && G.replayStep < G.replayTotal) {
       G.replayPlayTimer = setTimeout(tick, 900);
     } else {
       stopReplayAutoPlay();
@@ -11098,13 +11129,13 @@ function scheduleReplayAutoPlay() {
 }
 
 function toggleReplayAutoPlay() {
-  if (!G.replayMode || G.replayHandoff) return;
+  if (!isReplayViewing()) return;
   if (G.replayPlaying) stopReplayAutoPlay();
   else scheduleReplayAutoPlay();
 }
 
 async function replayGotoStep(step) {
-  if (!G.replayMode || G.replayHandoff) return;
+  if (!isReplayViewing()) return;
   if (!G.roomId || !G.token) return;
   stopReplayAutoPlay();
   try {
@@ -11141,11 +11172,15 @@ async function replayGotoStep(step) {
 
 function applyReplayStateFromPoll(s) {
   if (!s) return;
-  if (s.replay && !G.replayHandoff) {
-    G.replayMode = true;
-    G.replayStep = s.replay.step ?? G.replayStep;
-    G.replayTotal = s.replay.total ?? G.replayTotal;
-    G.replayHandoff = !!s.replay.handoff;
+  if (!G.replayHandoff) {
+    if (s.replay) {
+      G.replayMode = true;
+      G.replayStep = s.replay.step ?? G.replayStep;
+      G.replayTotal = s.replay.total ?? G.replayTotal;
+      G.replayHandoff = !!s.replay.handoff;
+    } else if ((s.mode || '') === 'replay_view') {
+      G.replayMode = true;
+    }
   }
   if (s.replay_handoff) {
     G.replayHandoff = true;
@@ -11794,6 +11829,7 @@ function resetMatchTransientState() {
   G._spectateP2Name = null;
   clearSpectatorSession();
   document.body.classList.remove('tcg-spectator-mode');
+  document.body.classList.remove('tcg-replay-view-mode');
   const spectateBar = el('spectate-bar');
   if (spectateBar) spectateBar.hidden = true;
   syncReplayControlBar();
@@ -15088,13 +15124,13 @@ let G = {
   on('btn-win-debug-save-log', 'click', onDebugSaveLogClick);
   on('btn-win-debug-copy-log', 'click', onDebugCopyLogClick);
   on('btn-win-debug-save-bundle', 'click', () => { void saveDebugBundle(); });
-  on('btn-resign','click', () => { if (G.isTutorial || G.isSpectator) return; confirm('Resign?') && sendAct('resign',{}); });
+  on('btn-resign','click', () => { if (G.isTutorial || G.isSpectator || isReplayViewing()) return; confirm('Resign?') && sendAct('resign',{}); });
   on('btn-again', 'click', onWinPlayAgain);
   on('btn-win-hub', 'click', onWinReturnToMenu);
   on('btn-win-leaderboard', 'click', onWinViewLeaderboard);
   on('btn-mull',  'click', confirmMull);
   on('btn-phase-primary', 'click', () => {
-    if (G.isTutorial || G.isSpectator) return;
+    if (G.isTutorial || G.isSpectator || isReplayViewing()) return;
     const s = G.gameState;
     const myId = G.playerId;
     if (!s) return;
@@ -22162,7 +22198,7 @@ function cpuOpponentId() {
 }
 
 function doCPU(s) {
-  if (G.replayMode && !G.replayHandoff) return;
+  if (isReplayViewing()) return;
   if (G.isTutorial) return;
   ensurePollHoldReleased(s);
   clearStaleCpuPromptBusyIfResolved(s);
@@ -24245,7 +24281,7 @@ function cpuActUsesBusyGuard(s, type) {
 }
 
 async function cpuAct(type,data) {
-  if (G.replayMode && !G.replayHandoff) return;
+  if (isReplayViewing()) return;
   if (G._cpuActBusy && cpuActUsesBusyGuard(G.gameState, type)) {
     cpuSchedule(() => cpuAct(type, data), 150);
     return;
@@ -31139,6 +31175,11 @@ function renderPhaseBar(s,me,opp,myId,oppId) {
     });
     return;
   }
+  if (isReplayViewing()) {
+    msgE.textContent = `Replay ${G.replayStep} / ${G.replayTotal} — use the replay bar below to step through recorded actions.`;
+    updatePhaseActionButton(s, myId);
+    return;
+  }
   const isMe=s.active_player===myId;
   const ae=(me.energy_zone||[]).filter(energyChipActive).length;
   const ph=s.phase;
@@ -36410,6 +36451,14 @@ function updatePhaseActionButton(s, myId) {
   const bar = el('phase-action-bar');
   const btn = el('btn-phase-primary');
   if (!bar || !btn) return;
+  if (isReplayViewing()) {
+    bar.hidden = true;
+    bar.classList.remove('show');
+    bar.setAttribute('aria-hidden', 'true');
+    btn.disabled = true;
+    document.querySelector('.playmat-column')?.classList.remove('live-selecting');
+    return;
+  }
   const ph = s?.phase;
   const isMe = s?.active_player === myId;
   const pr = skillPromptUiState(s)?.pending_prompt;
@@ -36466,7 +36515,7 @@ function updateLiveSetButton(s, myId) {
 }
 
 function toggleLiveSelect(iid, s, myId) {
-  if (G.isTutorial) return;
+  if (G.isTutorial || isReplayViewing()) return;
   if (!iid) return;
   G.liveSel = G.liveSel.filter(id => id && (s?.players?.[myId]?.hand || []).some(c => c.instance_id === id));
   const card = findHand(iid, s, myId);
@@ -36493,7 +36542,7 @@ function toggleLiveSelect(iid, s, myId) {
 }
 
 async function confirmLiveSetFromHand() {
-  if (G.isTutorial) return;
+  if (G.isTutorial || isReplayViewing()) return;
   const s = G.gameState;
   const myId = G.playerId;
   if (!isLiveSetSelecting(s, myId)) return;
@@ -38301,7 +38350,7 @@ async function leaveSpectatorMode(opts = {}) {
 async function sendAct(type,data){
   if (G.isTutorial) return;
   if (G.isSpectator) return;
-  if (G.replayMode && !G.replayHandoff) return;
+  if (isReplayViewing()) return;
   if(!G.roomId||!G.token) return;
   if (type === 'resign') abortGameplayPresentation();
   if ((type === 'end_main' || type === 'end_live_set') && hasOpenSkillPrompt(G.gameState)) {
