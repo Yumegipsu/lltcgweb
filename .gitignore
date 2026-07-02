@@ -15,9 +15,9 @@ data/*.db-*
 data/*.db-journal
 data/*.db-wal
 data/*.db-shm
-games/
-experiment_decks/
-exports/
+games/*
+experiment_decks/*
+exports/*
 
 # Love Live / official game art & audio (not in git; obtain locally or scrape)
 /assets/**
@@ -42,13 +42,21 @@ exports/
 !cardimg/.gitkeep
 !data/.htaccess
 !data/.gitkeep
+!games/.htaccess
 !games/.gitkeep
+!experiment_decks/.htaccess
 !experiment_decks/.gitkeep
 !exports/.gitkeep
 
-# Python / tooling (dev-only; game runtime is PHP + index.html)
+vendor/
+composer.phar
+.phpunit.cache/
+
+sfx_analysis/
+sfx_manifest.json
+
 /*.py
-/scripts/
+/scripts/*.py
 audit_tutorial_browser.js
 build_tutorial.php
 build_tutorial.py

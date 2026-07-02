@@ -46,6 +46,10 @@ function tcgSyncInternalToken(): string {
 
 function tcgSyncEnabled(): bool {
     tcgSyncLoadConfig();
+    $env = getenv('TCG_SYNC_ENABLED');
+    if ($env === '0' || $env === 'false') {
+        return false;
+    }
     if (defined('TCG_SYNC_ENABLED') && !TCG_SYNC_ENABLED) {
         return false;
     }

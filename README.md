@@ -147,10 +147,25 @@ See `.gitignore` for the full list.
 ## Local development
 
 ```bash
+# Docker (recommended)
+docker compose up
+# http://localhost:8080/index.html
+
+# PHP built-in server (fallback)
 cd lltcgweb
 php -S localhost:8080
-# Open http://localhost:8080/index.html
 ```
+
+Verification before deploy:
+
+```bash
+composer install
+composer test
+php scripts/validate_json.php
+php scripts/validate_cards.php
+```
+
+See [docs/RUNTIME.md](docs/RUNTIME.md) and [docs/SECURITY.md](docs/SECURITY.md).
 
 Guest lobby, CPU, tutorial (`?tutorial`), and `?debug` work without accounts. Collection, boosters, and ranked need a writable `data/` directory and art under `assets/`, `bg/`, `icons/`, and `cardimg/`.
 

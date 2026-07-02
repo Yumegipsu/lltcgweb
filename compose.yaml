@@ -1,0 +1,20 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - tcg_data:/var/www/html/data
+      - tcg_games:/var/www/html/games
+      - tcg_experiment_decks:/var/www/html/experiment_decks
+      - tcg_cardimg:/var/www/html/cardimg
+    environment:
+      TCG_SYNC_ENABLED: "0"
+      TCG_CORS_ORIGINS: "http://localhost:8080,https://loveliveradio.ca"
+
+volumes:
+  tcg_data:
+  tcg_games:
+  tcg_experiment_decks:
+  tcg_cardimg:

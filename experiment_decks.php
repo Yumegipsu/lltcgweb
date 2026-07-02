@@ -2,9 +2,10 @@
 /**
  * Guest Deck Experiment — save/load legal decks by short password (unranked only).
  */
+require_once __DIR__ . '/config/paths.php';
 require_once __DIR__ . '/deck_validate.php';
+tcgDefinePathConstants();
 
-define('EXPERIMENT_DECKS_DIR', __DIR__ . '/experiment_decks/');
 define('EXPERIMENT_PASSWORD_LEN', 8);
 define('EXPERIMENT_PASSWORD_CHARS', 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789');
 define('EXPERIMENT_PASSWORD_MAX', 16);

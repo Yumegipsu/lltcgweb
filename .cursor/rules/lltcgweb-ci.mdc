@@ -1,0 +1,35 @@
+---
+description: CI, scripts, and test requirements for lltcgweb
+globs: "tests/**,scripts/**,.github/**,composer.json,phpunit.xml"
+alwaysApply: false
+---
+
+# lltcgweb CI
+
+## Required checks
+
+GitHub Actions (`.github/workflows/ci.yml`) runs:
+
+1. `php scripts/validate_json.php`
+2. `bash scripts/lint_php.sh`
+3. `composer test`
+4. Docker build + `api.php?action=ping` smoke (on `main`/PR)
+
+## Adding tests
+
+| Area | Location |
+|------|----------|
+| API smoke | `tests/Smoke/` |
+| Deck legality | `tests/Deck/` |
+| Booster | `tests/Booster/` |
+| Golden replays | `tests/fixtures/replays/` + `tests/Replay/` |
+
+Use `tests/bootstrap.php` temp runtime dirs — never write tests under production `data/` or `games/`.
+
+## Scripts
+
+- `scripts/validate_json.php` — data file JSON parse
+- `scripts/validate_cards.php` — ability schema vs effects handlers
+- `scripts/lint_php.sh` — `php -l` all PHP files
+
+Keep CI green before deploy.

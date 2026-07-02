@@ -1,0 +1,28 @@
+---
+description: PHP conventions for lltcgweb — src modules, shims, tests
+globs: "**/*.php"
+alwaysApply: false
+---
+
+# lltcgweb PHP
+
+## Where code goes
+
+- **New modules:** `src/` under namespace `LLTCG\` (register in `composer.json` autoload).
+- **Root `*.php`:** HTTP entry shims and legacy includes only — avoid adding large new functions at root.
+- **Set effects:** `*_effects.php` at root until further split; wire through `effects.php`.
+
+## Paths and config
+
+- Load runtime dirs via `config/paths.php` — no new hardcoded `__DIR__ . '/games/'`.
+- CORS: `config/cors.php` allowlist — never restore `Access-Control-Allow-Origin: *`.
+- Secrets: env (`TCG_LLR_AUTH_FILE`, `TCG_SYNC_*`) or gitignored local files.
+
+## Database
+
+- Schema changes: add `migrations/NNN_description.sql` + rely on `LLTCG\Db\Migrator`.
+- Keep one-time data migrations in `db.php` only when they need PHP logic.
+
+## Before changing `effects.php`
+
+Run `composer test` (especially `tests/Replay/`). Engine changes need regression coverage.

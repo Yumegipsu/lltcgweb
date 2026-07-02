@@ -8,7 +8,7 @@ require_once __DIR__ . '/db.php';
 const TCG_CASUAL_QUEUE_MAX_WAIT = 300;
 
 function tcgCasualGameFilePath(string $roomId): string {
-    return __DIR__ . '/games/' . preg_replace('/[^A-Z0-9]/', '', strtoupper($roomId)) . '.json';
+    return tcgPath('games') . preg_replace('/[^A-Z0-9]/', '', strtoupper($roomId)) . '.json';
 }
 
 function tcgLoadAuthBootstrap(): void {
@@ -317,7 +317,7 @@ function tcgCasualPurgeExpiredQueue(int $now): void {
 }
 
 function tcgCasualQueuePublicStats(): array {
-    $cacheFile = __DIR__ . '/data/casual_queue_stats_cache.json';
+    $cacheFile = tcgPath('data') . 'casual_queue_stats_cache.json';
     if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < 5) {
         $cached = json_decode((string)file_get_contents($cacheFile), true);
         if (is_array($cached) && isset($cached['waiting'], $cached['in_game'])) {

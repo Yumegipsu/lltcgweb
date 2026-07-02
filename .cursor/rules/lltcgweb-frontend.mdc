@@ -1,0 +1,28 @@
+---
+description: Frontend module boundaries — client/js vs index.html
+globs: "index.html,client/**"
+alwaysApply: false
+---
+
+# lltcgweb frontend
+
+## Module layout
+
+| Module | File | Responsibility |
+|--------|------|----------------|
+| API client | `client/js/api-client.js` | `apiPost`, account fetch, sync meta |
+| Replay debug | `client/js/replay-debug.js` | `?debug` replay export |
+| Prompt UI state | `client/js/prompt-renderer.js` | Prompt submit / overlay guards |
+| CPU entry | `client/js/cpu-ai.js` | `cpuResolvePrompt` entry (handlers may stay inline until extracted) |
+
+Load order in `index.html`: i18n → sfx → **client/js/** → main inline script → `cpu-ai.js` (after CPU helpers).
+
+## Rules
+
+- **Do not** add large new features inline in `index.html` — add a `client/js/*.js` module and a thin wrapper if needed.
+- **Do not** introduce a bundler for Hostinger deploy unless explicitly requested.
+- i18n remains `i18n.js` / `log_i18n.js`.
+
+## Deploy
+
+Include changed `client/js/*` and `index.html` in `LLR_SITE_FILES` when deploying via Chiichan.

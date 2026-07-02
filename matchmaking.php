@@ -188,7 +188,7 @@ function tcgRankedMatchRowIsStale(string $roomId, array $state, array $row): boo
 
     $p1Token = $state['players']['p1']['token'] ?? '';
     $p2Token = $state['players']['p2']['token'] ?? '';
-    $presenceFile = __DIR__ . '/games/presence_' . preg_replace('/[^A-Z0-9]/', '', strtoupper($roomId)) . '.json';
+    $presenceFile = tcgPath('games') . 'presence_' . preg_replace('/[^A-Z0-9]/', '', strtoupper($roomId)) . '.json';
     if (!is_file($presenceFile)) {
         return $matchAge >= 5 * 60;
     }
@@ -253,12 +253,12 @@ function tcgAbandonActiveRankedGame(string $discordId): array {
 }
 
 function tcgRankedGameFilePath(string $roomId): string {
-    return __DIR__ . '/games/' . preg_replace('/[^A-Z0-9]/', '', strtoupper($roomId)) . '.json';
+    return tcgPath('games') . preg_replace('/[^A-Z0-9]/', '', strtoupper($roomId)) . '.json';
 }
 
 /** Public queue stats for the ranked menu (waiting in lobby vs in active ranked games). */
 function tcgQueuePublicStats(): array {
-    $cacheFile = __DIR__ . '/data/queue_stats_cache.json';
+    $cacheFile = tcgPath('data') . 'queue_stats_cache.json';
     if (is_file($cacheFile) && (time() - filemtime($cacheFile)) < 5) {
         $cached = json_decode((string)file_get_contents($cacheFile), true);
         if (is_array($cached) && isset($cached['waiting'], $cached['in_game'])) {

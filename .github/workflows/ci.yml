@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo_sqlite, curl, mbstring
+          coverage: none
+
+      - name: Install Composer deps
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Validate JSON
+        run: php scripts/validate_json.php
+
+      - name: Validate cards
+        run: php scripts/validate_cards.php
+
+      - name: PHP lint
+        run: bash scripts/lint_php.sh
+
+      - name: PHPUnit
+        run: composer test
+
+  docker-smoke:
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and smoke test container
+        run: |
+          docker compose build
+          docker compose up -d
+          for i in $(seq 1 30); do
+            if curl -sf "http://localhost:8080/api.php?action=ping" | grep -q '"ok"'; then
+              echo "Smoke OK"
+              docker compose down
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs
+          docker compose down
+          exit 1

@@ -1,0 +1,61 @@
+{
+    "schema_version": 1,
+    "meta": {
+        "saver_player_id": "p1",
+        "saver_name": "Fixture P1",
+        "cpu_difficulty": "easy",
+        "room_id": "FIXTURE1"
+    },
+    "baseline": {
+        "room_id": "FIXTURE1",
+        "status": "playing",
+        "seq": 3,
+        "turn": 1,
+        "phase": "main_p1",
+        "first_player": "p1",
+        "active_player": "p1",
+        "players": {
+            "p1": {
+                "id": "p1",
+                "name": "Fixture P1",
+                "hand": [],
+                "stage": [
+                    null,
+                    null,
+                    null
+                ],
+                "live_zone": [],
+                "live_storage": [],
+                "waiting_room": [],
+                "main_deck": [],
+                "energy_deck": [],
+                "discard": [],
+                "energy_zone": []
+            },
+            "p2": {
+                "id": "p2",
+                "name": "Fixture P2",
+                "hand": [],
+                "stage": [
+                    null,
+                    null,
+                    null
+                ],
+                "live_zone": [],
+                "live_storage": [],
+                "waiting_room": [],
+                "main_deck": [],
+                "energy_deck": [],
+                "discard": [],
+                "energy_zone": []
+            }
+        }
+    },
+    "actions": [],
+    "expected": {
+        "final_phase": "main_p1",
+        "status": "playing",
+        "winner": null,
+        "pending_prompt": null
+    }
+}

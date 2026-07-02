@@ -1,0 +1,26 @@
+---
+description: Card abilities and effects — validation and regression requirements
+globs: "cards.json,*_effects.php,effects.php,import_from_db.py"
+alwaysApply: false
+---
+
+# lltcgweb cards & effects
+
+## Ability changes
+
+1. Update `cards.json` (and `import_from_db.py` if importing from DB).
+2. Implement handler in `effects.php` or set-specific `*_effects.php`.
+3. Add client prompts in `index.html` or `client/js/` when interactive.
+4. Run `php scripts/validate_cards.php` — every `abilities[].type` should map to a known handler.
+
+## Effect registry
+
+Known types are discovered from `effects.php` via `LLTCG\Game\EffectRegistry`. New `type` strings must add a `case` in `resolveAbilityEffect` (or set module).
+
+## Regression
+
+Engine / prompt lifecycle changes: add or update `tests/fixtures/replays/*.json` and run `composer test`.
+
+## Chiichan parity
+
+Discord card import (`LoveLiveTCG.py`, `tcg_cards_en_bridge.py`) is separate from web `cards.json` deploy — see Chiichan `.cursorrules`.
