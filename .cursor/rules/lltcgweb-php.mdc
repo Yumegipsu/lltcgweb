@@ -12,6 +12,18 @@ alwaysApply: false
 - **Root `*.php`:** HTTP entry shims and legacy includes only — avoid adding large new functions at root.
 - **Set effects:** `*_effects.php` at root until further split; wire through `effects.php`.
 
+## Game engine modules (`src/Game/`)
+
+Procedural `require_once` modules loaded from `effects.php` (global functions, not PSR-4 classes):
+
+| File | Role |
+|------|------|
+| `ZoneMovement.php` | Deck/hand/WR zone moves |
+| `LiveModifiers.php` | `live_modifiers` state, `applyModifierEffect` |
+| `AbilityResolver.php` | `resolveAbilityEffect` type switch |
+| `PromptResolver.php` | `actionResolvePrompt` — client `resolve_prompt` completion |
+| `PromptLifecycle.php` | Small helpers (`finishPromptEffects`, pick prompts) |
+
 ## Paths and config
 
 - Load runtime dirs via `config/paths.php` — no new hardcoded `__DIR__ . '/games/'`.
