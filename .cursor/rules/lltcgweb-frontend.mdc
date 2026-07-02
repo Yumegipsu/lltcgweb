@@ -14,7 +14,7 @@ alwaysApply: false
 | Game sync | `client/js/game-sync.js` | Poll loop, SSE sync, `pullLatestState`, `startPoll`/`stopPoll` |
 | State apply | `client/js/state-apply.js` | `onState`, `applyStateUpdate`, pending state queue |
 | Replay debug | `client/js/replay-debug.js` | `?debug` replay export |
-| Prompt UI | `client/js/prompt-renderer.js` | Submit guards, prompt helpers, `openHandPick`, surveil overlay, choice handler, first `renderPrompt` branch extractions |
+| Prompt UI | `client/js/prompt-renderer.js` | Full prompt UI: submit guards, pick openers, `handlePromptChoice`, **`renderPrompt`** |
 | CPU entry | `client/js/cpu-ai.js` | `cpuResolvePrompt` entry (handlers may stay inline until extracted) |
 
 Load order in `index.html`: i18n → sfx → **client/js/** (`api-client` → `game-sync` → `state-apply` → …) → main inline script → `cpu-ai.js` (after CPU helpers).

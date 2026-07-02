@@ -1,5 +1,5 @@
 /**
- * Prompt UI: submit guards, helpers, hand-pick, surveil, choice handler.
+ * Prompt UI: submit guards, pick openers, renderPrompt, choice handler.
  */
 (function (global) {
   'use strict';
@@ -45,6 +45,421 @@
   const show = !!(onGame && !G.isSpectator && hasAntiSoftlockTarget(s, myId));
   btn.hidden = !show;
 }
+
+global.mkPickCardEl = function mkPickCardEl(card, cls, onClick){
+  const d=document.createElement('div');
+  const live=isLiveCard(card);
+  const portraitFrame=cls==='hand-pick-card';
+  if(portraitFrame&&live){
+    d.className=cls+' portrait card-live-hand';
+  } else {
+    d.className=cls+' '+menuCardClasses(card);
+  }
+  d.dataset.id=card.instance_id;
+  appendCardFace(d, card, { sideways: live && portraitFrame });
+  bindMenuCardPress(d, card, onClick);
+  return d;
+}
+
+
+global.openSurveilPickOne = function openSurveilPickOne(pr){
+  const cards=pr.look_cards||pr.candidates||[];
+  openLookedDeckPick({
+    ...pr,
+    candidates: cards,
+    pick_count: 1,
+    eligible_ids: cards.map(c=>c.instance_id),
+  });
+}
+
+
+global.openLookedDeckPick = function openLookedDeckPick(pr){
+  const cards=pr.candidates||[];
+  const eligible=new Set(pr.eligible_ids||[]);
+  const need=pr.pick_count||1;
+  const optional=!!pr.optional;
+  const singleTap=need===1;
+  el('pick-ttl').textContent=pr.source_name||'Choose from deck';
+  el('pick-msg').textContent=pr.prompt||'Choose card(s) to add to your hand.';
+  const g=el('pick-grid'); g.innerHTML='';
+  const btnOk=el('btn-pick-ok');
+  const btnCancel=el('btn-pick-cancel');
+  if(btnOk) btnOk.style.display=singleTap?'none':'inline-block';
+  if(btnCancel) btnCancel.style.display=singleTap?'none':'inline-block';
+  if(singleTap){
+    G.pickCtx=null;
+    cards.forEach(card=>{
+      const ok=eligible.has(card.instance_id);
+      const elCard=mkPickCardEl(card,'pickcard',()=>{
+        if(!ok) return;
+        closeM('overlay-pick');
+        sendAct('resolve_prompt',{card_id:card.instance_id});
+      });
+      if(!ok) elCard.classList.add('ineligible');
+      g.appendChild(elCard);
+    });
+    if(optional){
+      const skipBtn=document.createElement('button');
+      skipBtn.className='btn-ghost';
+      skipBtn.style.width='100%'; skipBtn.style.marginTop='10px';
+      skipBtn.textContent='Skip — put all in Waiting Room';
+      skipBtn.onclick=()=>{
+        closeM('overlay-pick');
+        sendAct('resolve_prompt',{choice:'skip'});
+      };
+      g.appendChild(skipBtn);
+    }
+    el('pick-count').textContent='';
+  }else{
+    G.pickCtx={count:need,min:optional?0:need,onConfirm:(ids)=>sendAct('resolve_prompt',{card_ids:ids})};
+    G.pickMarked.clear();
+    cards.forEach(card=>{
+      const ok=eligible.has(card.instance_id);
+      const elCard=mkPickCardEl(card,'pickcard',()=>{
+        if(!ok) return;
+        if(G.pickMarked.has(card.instance_id)) G.pickMarked.delete(card.instance_id);
+        else {
+          if(G.pickMarked.size>=need){ toast(`Select at most ${need}`); return; }
+          G.pickMarked.add(card.instance_id);
+          sfxCardPick();
+        }
+        [...g.children].forEach(c=>{
+          if(c.classList?.contains('pickcard'))
+            c.classList.toggle('sel',G.pickMarked.has(c.dataset.id));
+        });
+        el('pick-count').textContent=formatSelectedCount(G.pickMarked.size, need);
+      });
+      if(!ok) elCard.classList.add('ineligible');
+      g.appendChild(elCard);
+    });
+    if(optional){
+      const skipBtn=document.createElement('button');
+      skipBtn.className='btn-ghost';
+      skipBtn.style.width='100%'; skipBtn.style.marginTop='10px';
+      skipBtn.textContent='Skip — put all in Waiting Room';
+      skipBtn.onclick=()=>{
+        closeM('overlay-pick');
+        G.pickCtx=null; G.pickMarked.clear();
+        sendAct('resolve_prompt',{choice:'skip'});
+      };
+      g.appendChild(skipBtn);
+    }
+    el('pick-count').textContent=formatSelectedCount(0, need);
+    syncPickOverlayButtons();
+  }
+  openM('overlay-pick');
+}
+
+
+global.openStageMemberPickById = function openStageMemberPickById(pr){
+  const cards=pr.candidates||[];
+  el('pick-ttl').textContent=pr.source_name||'Choose Member';
+  el('pick-msg').textContent=pr.prompt||'Choose 1 Member on your Stage.';
+  const g=el('pick-grid'); g.innerHTML='';
+  cards.forEach(card=>{
+    g.appendChild(mkPickCardEl(card,'pickcard',()=>{
+      closeM('overlay-pick');
+      sendAct('resolve_prompt',{card_id:card.instance_id});
+    }));
+  });
+  el('pick-count').textContent='';
+  openM('overlay-pick');
+}
+
+
+global.openStageSlotPick = function openStageSlotPick(pr){
+  const step=pr.step||'pick_named';
+  const cards=(pr.candidates||[]).filter(c=>step==='pick_named'?c.named:!c.named);
+  el('pick-ttl').textContent=pr.source_name||'Choose Member';
+  el('pick-msg').textContent=pr.prompt||'Choose a Member on your Stage.';
+  const g=el('pick-grid'); g.innerHTML='';
+  cards.forEach(card=>{
+    g.appendChild(mkPickCardEl(card,'pickcard',()=>{
+      closeM('overlay-pick');
+      sendAct('resolve_prompt',{slot:card.slot});
+    }));
+  });
+  el('pick-count').textContent='';
+  openM('overlay-pick');
+}
+
+
+global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
+  const s = opts.state || G.gameState;
+  const myId = opts.myId || G.playerId;
+  const cfg = wrPickCfgFromPrompt(pr);
+  const cards = wrToHandPickCards(pr, s, myId);
+  if (!cards.length) {
+    toast('Waiting Room is empty', 3200);
+    return;
+  }
+  if (!cards.some(c => cardMatchesWrPickClient(c, cfg))) {
+    toast('No matching cards in Waiting Room', 3200);
+    return;
+  }
+  el('pick-ttl').textContent = pr.source_name || 'Waiting Room';
+  el('pick-msg').textContent = pr.prompt || 'Choose a card from your Waiting Room to add to your hand.';
+  const g = el('pick-grid');
+  g.innerHTML = '';
+  const onCancel = opts.onCancel;
+  G.pickCtx = onCancel ? { onCancel } : null;
+  const btnOk = el('btn-pick-ok');
+  const btnCancel = el('btn-pick-cancel');
+  if (btnOk) btnOk.style.display = 'none';
+  if (btnCancel) btnCancel.style.display = onCancel ? '' : 'none';
+  cards.forEach(card => {
+    const ok = cardMatchesWrPickClient(card, cfg);
+    const elCard = mkPickCardEl(card, 'pickcard', () => {
+      if (!ok || isPromptSubmitting(s)) return;
+      closeM('overlay-pick');
+      G.pickCtx = null;
+      sendAct('resolve_prompt', { card_id: card.instance_id });
+    });
+    if (!ok) elCard.classList.add('ineligible');
+    g.appendChild(elCard);
+  });
+  el('pick-count').textContent = '';
+  openM('overlay-pick');
+}
+
+
+global.openYellRevealPick = function openYellRevealPick(pr, opts = {}) {
+  const s = opts.state || G.gameState;
+  const myId = opts.myId || G.playerId;
+  const cards = yellRevealPickCards(pr, s, myId);
+  const onCancel = opts.onCancel;
+  if (!cards.length) {
+    if (onCancel) onCancel();
+    else toast('No Yell cards to choose from', 3200);
+    return;
+  }
+  el('pick-ttl').textContent = pr.source_name || 'Yell';
+  el('pick-msg').textContent = pr.prompt || 'Choose 1 card revealed by Yell.';
+  const g = el('pick-grid');
+  g.innerHTML = '';
+  G.pickCtx = onCancel ? { onCancel } : null;
+  const btnOk = el('btn-pick-ok');
+  const btnCancel = el('btn-pick-cancel');
+  if (btnOk) btnOk.style.display = 'none';
+  if (btnCancel) btnCancel.style.display = onCancel ? '' : 'none';
+  cards.forEach(card => {
+    g.appendChild(mkPickCardEl(card, 'pickcard', () => {
+      closeM('overlay-pick');
+      G.pickCtx = null;
+      sendAct('resolve_prompt', { card_id: card.instance_id });
+    }));
+  });
+  el('pick-count').textContent = '';
+  openM('overlay-pick');
+}
+
+
+global.openJudgeSuccessLivePick = function openJudgeSuccessLivePick(pr, opts = {}) {
+  const s = opts.state || G.gameState;
+  const myId = opts.myId || G.playerId;
+  const cards = judgeSuccessLivePickCards(pr, s, myId);
+  if (!cards.length) {
+    toast('No Live cards to place in Success Live', 3200);
+    return;
+  }
+  el('pick-ttl').textContent = pr.source_name || 'Success Live';
+  el('pick-msg').textContent = pr.prompt || 'Choose 1 Live card to place in Success Live.';
+  const g = el('pick-grid');
+  g.innerHTML = '';
+  G.pickCtx = null;
+  const btnOk = el('btn-pick-ok');
+  const btnCancel = el('btn-pick-cancel');
+  if (btnOk) btnOk.style.display = 'none';
+  if (btnCancel) btnCancel.style.display = 'none';
+  cards.forEach(card => {
+    g.appendChild(mkPickCardEl(card, 'pickcard', () => {
+      closeM('overlay-pick');
+      G.pickCtx = null;
+      sendAct('resolve_prompt', { card_id: card.instance_id });
+    }));
+  });
+  el('pick-count').textContent = '';
+  openM('overlay-pick');
+}
+
+
+global.openSuccessLiveAreaPick = function openSuccessLiveAreaPick(pr, opts = {}) {
+  const s = opts.state || G.gameState;
+  const myId = opts.myId || G.playerId;
+  const pool = s?.players?.[myId]?.success_lives || [];
+  const byId = new Map(pool.map(c => [c.instance_id, c]));
+  const cards = (pr.candidates || []).map(c => {
+    const full = byId.get(c.instance_id);
+    return full ? { ...c, ...full } : c;
+  }).filter(c => c.instance_id);
+  if (!cards.length) {
+    toast('No cards in Success Live area', 3200);
+    return;
+  }
+  el('pick-ttl').textContent = pr.source_name || 'Success Live';
+  el('pick-msg').textContent = pr.prompt || 'Choose 1 card from your Success Live area to add to your hand.';
+  const g = el('pick-grid');
+  g.innerHTML = '';
+  G.pickCtx = null;
+  const btnOk = el('btn-pick-ok');
+  const btnCancel = el('btn-pick-cancel');
+  if (btnOk) btnOk.style.display = 'none';
+  if (btnCancel) btnCancel.style.display = 'none';
+  cards.forEach(card => {
+    g.appendChild(mkPickCardEl(card, 'pickcard', () => {
+      closeM('overlay-pick');
+      G.pickCtx = null;
+      sendAct('resolve_prompt', { card_id: card.instance_id });
+    }));
+  });
+  el('pick-count').textContent = '';
+  openM('overlay-pick');
+}
+
+
+global.openWrLivePick = function openWrLivePick(pr, opts = {}){
+  openWrToHandPick(pr, opts);
+}
+
+
+global.openActivateWrMemberPick = function openActivateWrMemberPick(pr){
+  openWrToHandPick(pr, {});
+}
+
+
+global.openWrMembersDeckTopPick = function openWrMembersDeckTopPick(pr){
+  const cards=pr.candidates||[];
+  const need=pr.pick_count||2;
+  G.pickCtx={count:need, min:need, onConfirm:(ids)=>sendAct('resolve_prompt',{card_ids:ids})};
+  G.pickMarked.clear();
+  el('pick-ttl').textContent=pr.source_name||'Choose Members';
+  el('pick-msg').textContent=pr.prompt||`Choose ${need} Member card(s) from your Waiting Room (order = deck top).`;
+  const g=el('pick-grid'); g.innerHTML='';
+  cards.forEach(card=>{
+    g.appendChild(mkPickCardEl(card,'pickcard',()=>{
+      if(G.pickMarked.has(card.instance_id)) G.pickMarked.delete(card.instance_id);
+      else {
+        if(G.pickMarked.size>=need){ toast(`Select at most ${need}`); return; }
+        G.pickMarked.add(card.instance_id);
+        sfxCardPick();
+      }
+      [...g.children].forEach(c=>c.classList.toggle('sel',G.pickMarked.has(c.dataset.id)));
+      el('pick-count').textContent=formatSelectedCount(G.pickMarked.size, need);
+    }));
+  });
+  el('pick-count').textContent=formatSelectedCount(0, need);
+  syncPickOverlayButtons();
+  openM('overlay-pick');
+}
+
+
+global.openBatch99StackWrPick = function openBatch99StackWrPick(pr){
+  const cards=pr.candidates||[];
+  el('pick-ttl').textContent=pr.source_name||'Stack Member';
+  el('pick-msg').textContent=pr.prompt||'Choose a Member from your Waiting Room to stack under this Member.';
+  const g=el('pick-grid'); g.innerHTML='';
+  const btnOk=el('btn-pick-ok');
+  const btnCancel=el('btn-pick-cancel');
+  if(btnOk) btnOk.style.display='none';
+  if(btnCancel) btnCancel.style.display='none';
+  G.pickCtx=null;
+  cards.forEach(card=>{
+    g.appendChild(mkPickCardEl(card,'pickcard',()=>{
+      closeM('overlay-pick');
+      sendAct('resolve_prompt',{pick_id:card.instance_id});
+    }));
+  });
+  const skipBtn=document.createElement('button');
+  skipBtn.className='btn-ghost';
+  skipBtn.style.width='100%'; skipBtn.style.marginTop='10px';
+  skipBtn.textContent='Skip';
+  skipBtn.onclick=()=>{
+    closeM('overlay-pick');
+    sendAct('resolve_prompt',{choice:'skip'});
+  };
+  g.appendChild(skipBtn);
+  el('pick-count').textContent='';
+  openM('overlay-pick');
+}
+
+
+global.openMemberWaitPick = function openMemberWaitPick(pr, myId){
+  const max=pr.max_members||3;
+  const min=pr.min_members??0;
+  G.pickCtx={count:max, min, onConfirm:(ids)=>sendAct('resolve_prompt',{member_ids:ids})};
+  G.pickMarked.clear();
+  el('pick-ttl').textContent=pr.source_name||'Wait Members';
+  el('pick-msg').textContent=pr.prompt||`Choose up to ${max} Member(s) to put into Wait.`;
+  const g=el('pick-grid'); g.innerHTML='';
+  (pr.stage_members||[]).forEach(card=>{
+    g.appendChild(mkPickCardEl(card,'pickcard',()=>{
+      if(G.pickMarked.has(card.instance_id)) G.pickMarked.delete(card.instance_id);
+      else {
+        if(G.pickMarked.size>=max){ toast(`Select at most ${max}`); return; }
+        G.pickMarked.add(card.instance_id);
+        sfxCardPick();
+      }
+      [...g.children].forEach(c=>c.classList.toggle('sel',G.pickMarked.has(c.dataset.id)));
+      el('pick-count').textContent=formatSelectedCount(G.pickMarked.size, max);
+    }));
+  });
+  el('pick-count').textContent=formatSelectedCount(0, max);
+  syncPickOverlayButtons();
+  const btn=el('pick-confirm');
+  if(btn){
+    btn.onclick=()=>{
+      if(G.pickMarked.size<min){ toast(`Select at least ${min}`); return; }
+      closeM('overlay-pick');
+      G.pickCtx.onConfirm([...G.pickMarked]);
+    };
+  }
+  openM('overlay-pick');
+}
+
+
+function mkHiddenHandPickEl(slot, onClick){
+  const d=document.createElement('div');
+  d.className='pickcard hidden-hand-pick';
+  d.dataset.id=slot.instance_id;
+  d.title='Face-down hand card';
+  d.onclick=()=>{
+    onClick(slot);
+  };
+  return d;
+}
+
+
+global.openHiddenHandPick = function openHiddenHandPick(pr){
+  el('pick-ttl').textContent=pr.source_name||'Opponent hand';
+  el('pick-msg').textContent=pr.prompt||'Choose 1 card without looking.';
+  const g=el('pick-grid'); g.innerHTML='';
+  (pr.hand_slots||[]).forEach(slot=>{
+    const elCard=mkHiddenHandPickEl(slot, ()=>{
+      closeM('overlay-pick');
+      sendAct('resolve_prompt',{card_id:slot.instance_id});
+    });
+    g.appendChild(elCard);
+  });
+  el('pick-count').textContent='';
+  openM('overlay-pick');
+}
+
+
+global.openOppActiveMemberPick = function openOppActiveMemberPick(pr){
+  const cards=pr.stage_members||[];
+  el('pick-ttl').textContent=pr.source_name||'Choose Member';
+  el('pick-msg').textContent=pr.prompt||'Choose 1 active Member on your Stage to put into Wait.';
+  const g=el('pick-grid'); g.innerHTML='';
+  cards.forEach(card=>{
+    g.appendChild(mkPickCardEl(card,'pickcard',()=>{
+      closeM('overlay-pick');
+      sendAct('resolve_prompt',{member_id:card.instance_id});
+    }));
+  });
+  el('pick-count').textContent='';
+  openM('overlay-pick');
+}
+
 
 global.openPickMemberReturnEnergy = function openPickMemberReturnEnergy(pr){
   const members=pr.members||[];
@@ -550,6 +965,202 @@ global.confirmSurveil = async function confirmSurveil(){
   }
 }
 
+function cardMatchesNamedHand(c, names, includeSelf, sourceId) {
+  const label = c.name_en || c.name || '';
+  for (const n of (names || [])) {
+    if (label === n || label.includes(n)) return true;
+    if (label.includes('&') || label.includes('＆')) {
+      for (const part of label.split(/[&＆]/)) {
+        if (part.trim() === n) return true;
+      }
+    }
+  }
+  return !!(includeSelf && sourceId && c.instance_id === sourceId);
+}
+
+
+function optionalLiveStartDiscardHand(pr, s, myId) {
+  const me = s.players?.[myId];
+  const ab = pr.ability || {};
+  let pickHand = me?.hand || [];
+  const grp = ab.then?.group || ab.group || '';
+  if (ab.type === 'optional_discard_named') {
+    const names = ab.names || [];
+    pickHand = pickHand.filter(c => cardMatchesNamedHand(c, names, ab.include_self, pr.source_id));
+  } else if (grp) {
+    pickHand = pickHand.filter(c => c.card_type === 'メンバー' && (c.group || '') === grp);
+  }
+  return pickHand;
+}
+
+
+global.openOptionalLiveStartDiscardPick = function openOptionalLiveStartDiscardPick(pr, s, myId) {
+  const ab = pr.ability || {};
+  const discardNeed = promptDiscardCount(pr, 'yes');
+  const pickHand = optionalLiveStartDiscardHand(pr, s, myId);
+  const minPick = ab.max_discard ? 0 : discardNeed;
+  if (!pickHand.length) {
+    G._promptSubmitKey = null;
+    sendAct('resolve_prompt', { choice: 'no' });
+    return true;
+  }
+  if (discardNeed <= 0) return false;
+  closeM('overlay-prompt');
+  openHandPick({
+    hand: pickHand,
+    count: discardNeed,
+    min: minPick,
+    title: pr.source_name || 'Discard from hand',
+    msg: pr.prompt || (minPick === 0
+      ? `Choose up to ${discardNeed} cards to send to the Waiting Room.`
+      : discardNeed === 1
+      ? 'Choose a card to send to the Waiting Room.'
+      : `Choose ${discardNeed} cards to send to the Waiting Room.`),
+    onConfirm: (ids) => sendResolvePrompt('yes', { discard_ids: ids }),
+    onCancel: () => {
+      G._promptSubmitKey = null;
+      if (G.gameState) renderPrompt(G.gameState, myId);
+    },
+  });
+  return true;
+}
+
+
+function promptDiscardCount(pr, choice){
+  if(choice!=='yes' && choice!=='discard') return 0;
+  if(pr.type==='optional_live_start') {
+    const ab = pr.ability || {};
+    if (ab.type === 'optional_discard_named') {
+      if (ab.exact_total) return ab.exact_total;
+      if (pr.max_discard) return pr.max_discard;
+      return 0;
+    }
+    return pr.discard_count||ab.discard||0;
+  }
+  if(pr.type==='optional_discard_blade_draw_if_live') return pr.ability?.discard||1;
+  if(pr.type==='live_start_pay_or_discard'&&choice==='discard') return pr.discard_count||2;
+  if(pr.type==='optional_discard_prompt'){
+    if(pr.ability?.max_discard) return pr.ability.max_discard;
+    return pr.ability?.discard||1;
+  }
+  if(pr.type==='discard_member_add_lower_wr_member') return 1;
+  if(pr.type==='optional_discard_mill_wr_add_member') return 1;
+  if(pr.type==='optional_discard_grant_heart_other_member') return 1;
+  if(pr.type==='optional_discard_activate_wait_blade'||pr.type==='optional_discard_activate_wait_hearts') return 2;
+  if(pr.type==='wait_self_discard_add_wr_live') return pr.ability?.discard||1;
+  if(pr.type==='optional_discard_look_reveal_subunit') return pr.ability?.discard||1;
+  if(pr.type==='optional_discard_mill_add_wr_subunit_live') return pr.ability?.discard||1;
+  if(pr.type==='optional_discard_add_cb_member_hs_live') return pr.discard||2;
+  if(pr.type==='optional_wait_self_look_reveal') return pr.discard_count||pr.ability?.discard||0;
+  if(pr.type==='mandatory_discard_after_draw') return pr.discard_count||1;
+  if(pr.type==='opp_may_discard_or_modifier') return 1;
+  if(pr.type==='reveal_live_opp_discard_or_blade') return 1;
+  return 0;
+}
+
+
+function hidePromptEffectText(){
+  const box=el('prompt-effect');
+  if(!box) return;
+  box.hidden=true;
+  box.innerHTML='';
+}
+
+
+global.sendResolvePrompt = function sendResolvePrompt(choice, extra={}){
+  markPromptSubmitting(G.gameState);
+  sendAct('resolve_prompt',{choice,...extra});
+}
+
+
+global.renderSelfActivationPrompt = function renderSelfActivationPrompt(pr, s, myId, box, branch){
+  pr=ensurePromptChoices(pr);
+  el('prompt-ttl').textContent=promptSourceDisplayName(pr, s);
+  const effectDisplay=localizePromptEffectText(pr, s);
+  renderPromptEffectText(effectDisplay, pr, s);
+  const msgEl=el('prompt-msg');
+  msgEl.textContent=promptQuestionText(pr, effectDisplay, s);
+  msgEl.className='prompt-cost-question';
+  const subEl=el('prompt-sub');
+  subEl.hidden=false;
+  subEl.textContent=t('prompt.activateSub');
+  box.className='prompt-choice-list';
+  box.innerHTML='';
+  (pr.choices||[]).forEach((key,i)=>{
+    const b=document.createElement('button');
+    b.className='btn-grad';
+    b.textContent=promptChoiceLabel(key, i, pr);
+    b.onclick=()=> handlePromptChoice(pr,key,s,myId);
+    box.appendChild(b);
+  });
+}
+
+
+function submitTextAnswerPrompt(pr, myId){
+  const input=el('prompt-text-input');
+  const text=(input?.value||'').trim();
+  if(!text){ toast(t('prompt.typeAnswer')); input?.focus(); return; }
+  closeM('overlay-prompt');
+  sendAct('resolve_prompt',{answer_text:text});
+}
+
+
+global.renderTextAnswerPrompt = function renderTextAnswerPrompt(pr){
+  const wrap=el('prompt-text-wrap');
+  const input=el('prompt-text-input');
+  const hintsEl=el('prompt-outcome-hints');
+  const box=el('prompt-btns');
+  wrap.hidden=false;
+  box.innerHTML='';
+  box.className='';
+  el('prompt-sub').hidden=false;
+  el('prompt-sub').textContent=t('prompt.typeAnswerHint');
+  hintsEl.innerHTML='';
+  (pr.outcome_hints||[]).forEach(line=>{
+    const li=document.createElement('li');
+    li.textContent=line;
+    hintsEl.appendChild(li);
+  });
+  input.value='';
+  const submit=el('prompt-text-submit');
+  submit.textContent=t('prompt.answer');
+  submit.onclick=()=> submitTextAnswerPrompt(pr);
+  input.onkeydown=(e)=>{
+    if(e.key==='Enter'){ e.preventDefault(); submitTextAnswerPrompt(pr); }
+  };
+  setTimeout(()=> input.focus(), 80);
+}
+
+
+global.hideTextAnswerPrompt = function hideTextAnswerPrompt(){
+  const wrap=el('prompt-text-wrap');
+  if(wrap) wrap.hidden=true;
+  const input=el('prompt-text-input');
+  if(input) input.onkeydown=null;
+}
+
+
+global.renderBranchChoiceButtons = function renderBranchChoiceButtons(pr, s, myId, box){
+  box.innerHTML='';
+  (pr.choices||[]).forEach((key,i)=>{
+    const label=promptChoiceLabel(key, i, pr);
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='prompt-choice-btn';
+    const num=document.createElement('span');
+    num.className='prompt-choice-num';
+    num.textContent=String(i+1);
+    const text=document.createElement('span');
+    text.className='prompt-choice-text';
+    text.textContent=label;
+    b.appendChild(num);
+    b.appendChild(text);
+    b.onclick=()=> handlePromptChoice(pr,key,s,myId);
+    box.appendChild(b);
+  });
+}
+
+
 global.handlePromptChoice = function handlePromptChoice(pr, choice, s, myId){
   if (choice === 'no' && pr?.type === 'optional_swap_area_on_enter') choice = 'skip';
   const me=s.players[myId];
@@ -703,5 +1314,766 @@ global.renderPromptDiscardHandBranch = function renderPromptDiscardHandBranch(s,
     onConfirm: (ids) => sendAct('resolve_prompt', { discard_ids: ids }),
   });
 };
+
+global.renderPrompt = function renderPrompt(s, myId){
+  syncAntiSoftlockButton(s, myId);
+  syncPromptSubmitState(s);
+  if (isPromptSubmitting(s)) {
+    const submittingSurveil = s.pending_prompt?.type === 'surveil_arrange'
+      && el('overlay-surveil')?.classList.contains('open');
+    if (!submittingSurveil) suppressPromptOverlaysWhileSubmitting();
+    return;
+  }
+  let pr=s.pending_prompt;
+  if(pr) pr=ensurePromptChoices(pr);
+  if (pr) TCG_DEBUG.log('prompt', pr.type, { responder: pr.responder, me: myId, seq: s.seq, step: pr.step });
+  const ovl=el('overlay-prompt');
+  if (pr?.responder === myId && shouldDeferPromptForLivePresentation(s, myId)) {
+    ovl?.classList.remove('open');
+    if (pr.type === 'effect_discard_hand') closeM('overlay-hand-pick');
+    return;
+  }
+  if(pr?.type==='surveil_arrange'&&pr.responder===myId){
+    renderPromptSurveilBranch(s, myId, pr);
+    return;
+  }
+  closeM('overlay-surveil');
+  if(pr?.type==='effect_discard_hand'&&pr.responder===myId){
+    renderPromptDiscardHandBranch(s, myId, pr);
+    return;
+  }
+  if(pr?.type==='blade_per_discarded_pick_member'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const cands=pr.candidates||[];
+    if(!cands.length){
+      sendAct('resolve_prompt',{choice:'skip'});
+      return;
+    }
+    openStageMemberPickById(pr);
+    return;
+  }
+  if(pr?.type==='pick_same_name_member'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openMemberWaitPick({...pr, max_members:1, min_members:1}, myId);
+    return;
+  }
+  if(pr?.type==='pick_member_return_energy'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openPickMemberReturnEnergy(pr);
+    return;
+  }
+  if(pr?.type==='wait_members_pick'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openMemberWaitPick(pr, myId);
+    return;
+  }
+  if(pr?.type==='wait_subunit_member_pick'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openMemberWaitPick({...pr, min_members:1}, myId);
+    return;
+  }
+  if(pr?.type==='opp_pick_hidden_hand'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openHiddenHandPick(pr);
+    return;
+  }
+  if(pr?.type==='opp_pick_stage_active'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openOppActiveMemberPick(pr);
+    return;
+  }
+  if((pr?.type==='surveil_pick_one_deck_top'||pr?.type==='surveil_pick_one_hand_rest_top'
+    ||pr?.type==='surveil_pick_one'||pr?.type==='surveil_pick_one_hand_rest_wr')&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openSurveilPickOne(pr);
+    return;
+  }
+  if(pr?.type==='surveil2_mus_ability_choice'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const looked = pr.look_cards || [];
+    const eligible = (pr.candidates || []).map(c => c.instance_id).filter(Boolean);
+    if (!looked.length || !eligible.length) {
+      sendAct('resolve_prompt', { choice: 'skip' });
+      return;
+    }
+    openLookedDeckPick({
+      ...pr,
+      candidates: looked,
+      pick_count: 1,
+      optional: true,
+      eligible_ids: eligible,
+      prompt: pr.prompt || 'Look at the top 2 cards. You may add 1 μ\'s card to your hand, or send both to the Waiting Room.',
+    });
+    return;
+  }
+  if(pr?.type==='optional_leave_mus_score_add_wr_live'&&pr.step==='pick_member'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openStageMemberPickById(pr);
+    return;
+  }
+  if(pr?.type==='pick_named_member_blade'||pr?.type==='pick_member_cost_bonus'){
+    ovl.classList.remove('open');
+    openHandPick({
+      hand: pr.candidates||[],
+      count: 1,
+      min: 1,
+      title: pr.source_name||'Choose Member',
+      msg: pr.prompt||'Choose 1 Member on your Stage.',
+      onConfirm: (picked)=>{
+        const c=(pr.candidates||[]).find(x=>x.instance_id===picked[0]);
+        sendAct('resolve_prompt',{slot:c?.slot||'center'});
+      },
+    });
+    return;
+  }
+  if(pr?.type==='sbp6_leave_play_wr_slot'&&pr.step==='pick'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    const ids=new Set((pr.candidates||[]).map(c=>c.instance_id));
+    const pool=(me?.waiting_room||[]).filter(c=>ids.has(c.instance_id));
+    openActivateWrMemberPick({
+      ...pr,
+      candidates: pool.length ? pool.map(enrichCard) : (pr.candidates||[]),
+      prompt: pr.prompt||'Choose 1 Aqours Member from your Waiting Room.',
+    });
+    return;
+  }
+  if(pr?.type==='sbp6_pick_members_live_score'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const max=pr.max_pick||2;
+    openHandPick({
+      hand: pr.candidates||[],
+      count: max,
+      min: 1,
+      title: pr.source_name||'Choose Members',
+      msg: pr.prompt||`Choose up to ${max} Member(s).`,
+      onConfirm: (picked)=> sendAct('resolve_prompt',{card_ids:picked}),
+    });
+    return;
+  }
+  if(pr?.type==='sbp5_pick_yell_members'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const max=pr.max_pick||2;
+    openHandPick({
+      hand: pr.candidates||[],
+      count: max,
+      min: 1,
+      title: pr.source_name||'Choose Members',
+      msg: pr.prompt||`Choose up to ${max} Yell Member(s).`,
+      onConfirm: (picked)=> sendAct('resolve_prompt',{card_ids:picked}),
+    });
+    return;
+  }
+  if(pr?.type==='pick_wr_live_deck_top'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openWrLivePick(pr);
+    return;
+  }
+  if(pr?.type==='pick_judge_success_live'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openJudgeSuccessLivePick({
+      ...pr,
+      prompt: pr.prompt || 'Choose 1 Live card to place in Success Live.',
+      source_name: pr.source_name || 'Success Live',
+    }, { state: s, myId });
+    return;
+  }
+  if((pr?.type==='pick_wr_to_hand'||pr?.type==='pick_wr_leave_stage_add')&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const filter=pr.ability?.filter||pr.wr_pick_cfg?.filter||'live';
+    if(filter==='live') openWrLivePick(pr, { state: s, myId });
+    else openActivateWrMemberPick(pr);
+    return;
+  }
+  if(pr?.type==='pick_wr_members_deck_top'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openWrMembersDeckTopPick(pr);
+    return;
+  }
+  if(pr?.type==='pick_live_match_success_heart'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openWrLivePick(pr);
+    return;
+  }
+  if(pr?.type==='optional_pay_play_hand_member'&&pr.responder===myId){
+    if(pr.step==='pick_slot'){
+      ovl.classList.remove('open');
+      el('prompt-ttl').textContent=pr.source_name||'Play Member';
+      el('prompt-msg').textContent=pr.prompt||'Choose an area:';
+      const box=el('prompt-btns'); box.innerHTML='';
+      (pr.slots||[]).forEach(slot=>{
+        const b=document.createElement('button');
+        b.className='btn-grad';
+        b.textContent=slotLabel(slot);
+        b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{choice:slot}); };
+        box.appendChild(b);
+      });
+      ovl.classList.add('open');
+      return;
+    }
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    const grp=pr.ability?.group||'Nijigasaki';
+    const maxCost=pr.ability?.max_cost??4;
+    openHandPick({
+      hand: (me?.hand||[]).filter(c=>c.card_type==='メンバー'&&(c.group||'')===grp&&(c.cost||0)<=maxCost),
+      count: 1,
+      title: pr.source_name||'Play Member',
+      msg: pr.prompt||`Choose a ${grp} Member (cost ≤${maxCost}) from hand.`,
+      onConfirm: (ids)=> sendAct('resolve_prompt',{choice:'yes',card_id:ids[0]}),
+      onCancel: ()=> sendAct('resolve_prompt',{choice:'no'})
+    });
+    return;
+  }
+  if(pr?.type==='pick_yell_member'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const yellCards = yellRevealPickCards(pr, s, myId);
+    if (!yellCards.length) {
+      sendAct('resolve_prompt', { choice: 'skip' });
+      return;
+    }
+    openYellRevealPick(pr, {
+      state: s,
+      myId,
+      onCancel: () => sendAct('resolve_prompt', { choice: 'skip' }),
+    });
+    return;
+  }
+  if(pr?.type==='pick_looked_deck_hand'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    closeM('overlay-hand-pick');
+    G._promptSubmitKey = null;
+    openLookedDeckPick(pr);
+    return;
+  }
+  if(pr?.type==='pay_energy_reveal_live_wr_superset'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    if(pr.step==='pick_wr_live'){
+      openWrLivePick(pr);
+      return;
+    }
+    const lives=(pr.candidates||[]).filter(c=>c.card_type==='ライブ');
+    if(!lives.length){
+      sendAct('resolve_prompt',{choice:'no'});
+      return;
+    }
+    openHandPick({
+      hand: lives,
+      count: 1,
+      min: 1,
+      title: pr.source_name||'Reveal Live',
+      msg: pr.prompt||'Choose 1 Live card from your hand to reveal.',
+      onConfirm: (ids)=> sendAct('resolve_prompt',{card_id: ids[0]}),
+      onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); },
+    });
+    return;
+  }
+  if(pr?.type==='live_success_pick_yell_live'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openYellRevealPick(pr, { state: s, myId });
+    return;
+  }
+  if(pr?.type==='mandatory_discard_look_reveal'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    openHandPick({
+      hand: me?.hand||[],
+      count: pr.discard_count||1,
+      title: pr.source_name||'Discard',
+      msg: pr.prompt||'Choose a card to send to the Waiting Room.',
+      onConfirm: (ids)=> sendAct('resolve_prompt',{discard_ids:ids}),
+      onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); }
+    });
+    return;
+  }
+  if(pr?.type==='optional_wait_self_look_reveal'&&pr.step==='discard'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    const need=pr.discard_count||pr.ability?.discard||1;
+    openHandPick({
+      hand: me?.hand||[],
+      count: need,
+      min: need,
+      title: pr.source_name||'Discard',
+      msg: pr.prompt||`Discard ${need} card(s) from your hand to look at your deck.`,
+      allowCancel: false,
+      onConfirm: (ids)=> sendAct('resolve_prompt',{discard_ids:ids}),
+    });
+    return;
+  }
+  if(pr?.type==='reveal_hand_member_cost_live_score'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    openHandPick({
+      hand: (me?.hand||[]).filter(c=>c.card_type==='メンバー'),
+      count: (me?.hand||[]).length,
+      min: 0,
+      title: pr.source_name||'Reveal Members',
+      msg: pr.prompt||'Select Member cards to reveal from hand.',
+      onConfirm: (ids)=> sendAct('resolve_prompt',{card_ids:ids}),
+      onCancel: ()=> sendAct('resolve_prompt',{card_ids:[]})
+    });
+    return;
+  }
+  if(pr?.type==='on_enter_draw_swap_area'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    el('prompt-ttl').textContent=pr.source_name||'Move Member';
+    el('prompt-msg').textContent=pr.prompt||'Choose an area:';
+    const box=el('prompt-btns'); box.innerHTML='';
+    (pr.slots||[]).forEach(slot=>{
+      const b=document.createElement('button');
+      b.className='btn-grad';
+      b.textContent=slotLabel(slot);
+      b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{choice:slot}); };
+      box.appendChild(b);
+    });
+    ovl.classList.add('open');
+    return;
+  }
+  if(pr?.type==='optional_wr_member_reenter'&&pr.responder===myId&&pr.step==='pick_stage'){
+    ovl.classList.remove('open');
+    openStageSlotPick({...pr, candidates: pr.candidates});
+    return;
+  }
+  if(pr?.type==='activate_energy_up_to'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    el('prompt-ttl').textContent=pr.source_name||'Activate Energy';
+    el('prompt-msg').textContent=pr.prompt||'How many Energy to activate?';
+    const box=el('prompt-btns'); box.innerHTML='';
+    const max=pr.max||6;
+    for(let i=0;i<=max;i++){
+      const b=document.createElement('button');
+      b.className='btn-grad';
+      b.textContent=String(i);
+      b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{choice:String(i)}); };
+      box.appendChild(b);
+    }
+    ovl.classList.add('open');
+    return;
+  }
+  if(pr?.type==='pick_baton_entered_member_heart'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openStageSlotPick(pr);
+    return;
+  }
+  if(pr?.type==='pick_named_members_grant_hearts'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openStageSlotPick(pr);
+    return;
+  }
+  if(pr?.type==='optional_reveal_live_deck_bottom_surveil'&&pr.step==='pick_hand_live'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    openHandPick({
+      hand: (me?.hand||[]).filter(c=>c.card_type==='ライブ'),
+      count: 1,
+      title: pr.source_name||'Reveal Live',
+      msg: pr.prompt||'Choose 1 Live card from your hand.',
+      onConfirm: (ids)=> sendAct('resolve_prompt',{card_id:ids[0]}),
+      onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); }
+    });
+    return;
+  }
+  if(pr?.type==='optional_wr_member_deck_top_blade'&&pr.step==='pick_wr_member'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openWrLivePick(pr);
+    return;
+  }
+  if((pr?.type==='optional_wr_member_deck_top_blade'||pr?.type==='live_start_center_cost_choice'||pr?.type==='wait_opponent_stage_pick')
+    &&(pr.step==='pick_stage_blade'||pr.step==='pick_opp_wait')&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openStageSlotPick(pr);
+    return;
+  }
+  if(pr?.type==='player_choice_wr_live_deck_bottom_draw'&&pr.step==='pick_wr_live'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openWrLivePick(pr);
+    return;
+  }
+  if(pr?.type==='wait_swap_wr_member_center'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    if(pr.step==='discard_hand'){
+      const me=s.players?.[myId];
+      openHandPick({
+        hand: me?.hand||[],
+        count: 1,
+        title: pr.source_name||'Discard',
+        msg: pr.prompt||'Choose 1 card to send to the Waiting Room.',
+        onConfirm: (ids)=> sendAct('resolve_prompt',{discard_ids:ids}),
+        onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); }
+      });
+      return;
+    }
+    if(pr.step==='pick_stage_member'){
+      openStageSlotPick(pr);
+      return;
+    }
+    if(pr.step==='pick_wr_member'){
+      openWrLivePick(pr);
+      return;
+    }
+  }
+  if(pr?.type==='optional_success_wr_live_swap'&&pr.responder===myId){
+    if(pr.step==='confirm'){
+      ovl.classList.add('open');
+      return;
+    }
+    ovl.classList.remove('open');
+    openWrLivePick(pr);
+    return;
+  }
+  if(pr?.type==='optional_success_live_swap'&&pr.responder===myId){
+    if(pr.step==='confirm'){
+      ovl.classList.add('open');
+      return;
+    }
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    if(pr.step==='pick_hand_live'){
+      openHandPick({
+        hand: (me?.hand||[]).filter(c=>c.card_type==='ライブ'),
+        count: 1,
+        title: pr.source_name||'Maki Nishikino',
+        msg: pr.prompt||'Choose 1 Live card from your hand to reveal.',
+        onConfirm: (ids)=> sendAct('resolve_prompt',{card_id:ids[0]}),
+        onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); }
+      });
+      return;
+    }
+    if(pr.step==='pick_success_live'){
+      openSuccessLiveAreaPick(pr, { state: s, myId });
+      return;
+    }
+  }
+  if(pr?.type==='mandatory_discard_after_draw'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    openHandPick({
+      hand: me?.hand||[],
+      count: pr.discard_count||1,
+      title: pr.source_name||'Discard',
+      msg: pr.prompt||'Choose card(s) to send to the Waiting Room.',
+      onConfirm: (ids)=> sendAct('resolve_prompt',{discard_ids:ids}),
+      onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); }
+    });
+    return;
+  }
+  if(pr?.type==='reveal_hand_named_stack_under'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const ids=new Set((pr.candidates||[]).map(c=>c.instance_id));
+    const me=s.players?.[myId];
+    openHandPick({
+      hand: (me?.hand||[]).filter(c=>ids.has(c.instance_id)),
+      count: 1,
+      title: pr.source_name||'Reveal Member',
+      msg: pr.prompt||'Choose a matching Member from your hand to stack under this Member.',
+      onConfirm: (picked)=> sendAct('resolve_prompt',{card_id:picked[0]}),
+      onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); }
+    });
+    return;
+  }
+  if(pr?.type==='activate_wr_member_pick'&&pr.responder===myId){
+    if(pr.step==='pick_member'){
+      ovl.classList.remove('open');
+      openActivateWrMemberPick(pr);
+      return;
+    }
+    if(pr.step==='pick_discard'){
+      ovl.classList.remove('open');
+      const me=s.players?.[myId];
+      const need=pr.discard_count||1;
+      openHandPick({
+        hand: me?.hand||[],
+        count: need,
+        min: need,
+        title: pr.wr_member_name||pr.source_name||'Discard',
+        msg: pr.prompt||(`Choose ${need} card(s) to send to the Waiting Room.`),
+        allowCancel: false,
+        onConfirm: (picked)=> sendAct('resolve_prompt',{discard_ids:picked}),
+      });
+      return;
+    }
+  }
+  if(pr?.type==='batch99_stack_wr_member'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openBatch99StackWrPick(pr);
+    return;
+  }
+  if(pr?.type==='spbp2_stack_wr_member'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openBatch99StackWrPick(pr);
+    return;
+  }
+  if(pr?.type==='spbp2_wait_self_opp_heart_gap'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    if(pr.step==='confirm'){
+      el('prompt-ttl').textContent=pr.source_name||'Wait chain';
+      el('prompt-msg').textContent=pr.prompt||'Optional Wait effect';
+      const box=el('prompt-btns'); box.innerHTML='';
+      (pr.choice_labels||['Yes','No']).forEach((label,i)=>{
+        const b=document.createElement('button');
+        b.className='btn-grad';
+        b.textContent=label;
+        b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{choice:i===0?'yes':'no'}); };
+        box.appendChild(b);
+      });
+      ovl.classList.add('open');
+      return;
+    }
+    openStageSlotPick(pr);
+    return;
+  }
+  if((pr?.type==='spbp2_center_move_choose'||pr?.type==='spbp2_center_move_position')&&pr.responder===myId){
+    ovl.classList.remove('open');
+    if(pr.type==='spbp2_center_move_position'&&pr.choices?.includes('yes')){
+      el('prompt-ttl').textContent=pr.source_name||'Position change';
+      el('prompt-msg').textContent=pr.prompt||'Position-change this Member?';
+      const box=el('prompt-btns'); box.innerHTML='';
+      ['Yes — Position change','No — Done'].forEach((label,i)=>{
+        const b=document.createElement('button');
+        b.className='btn-grad';
+        b.textContent=label;
+        b.onclick=()=>{
+          closeM('overlay-prompt');
+          if(i===0&&pr.target_slots?.length){
+            openStageSlotPick({...pr, candidates:pr.target_slots.map(s=>({slot:s,name_en:slotLabel(s)}))});
+          } else {
+            sendAct('resolve_prompt',{choice:'no'});
+          }
+        };
+        box.appendChild(b);
+      });
+      ovl.classList.add('open');
+      return;
+    }
+    el('prompt-ttl').textContent=pr.source_name||'Center moved';
+    el('prompt-msg').textContent=pr.prompt||'Choose one effect';
+    const box=el('prompt-btns'); box.innerHTML='';
+    const choices=pr.choices||['heart','wait_opp','draw'];
+    const labels=pr.choice_labels||choices;
+    choices.forEach((c,i)=>{
+      const b=document.createElement('button');
+      b.className='btn-grad';
+      b.textContent=labels[i]||c;
+      b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{choice:c}); };
+      box.appendChild(b);
+    });
+    ovl.classList.add('open');
+    return;
+  }
+  if(pr?.type==='discard_subunit_hand_draw'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const ids=new Set((pr.candidates||[]).map(c=>c.instance_id));
+    const me=s.players?.[myId];
+    const pool=(me?.hand||[]).filter(c=>ids.has(c.instance_id));
+    openHandPick({
+      hand: pool,
+      count: pool.length,
+      min: 0,
+      title: pr.source_name||'Discard subunit',
+      msg: pr.prompt||'Choose any number of subunit Members to discard, then draw that many +1.',
+      onConfirm: (picked)=> sendAct('resolve_prompt',{discard_ids:picked}),
+      onCancel: ()=> sendAct('resolve_prompt',{discard_ids:[]})
+    });
+    return;
+  }
+  if(pr?.type==='pick_number_reveal_deck_top'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    el('prompt-ttl').textContent=pr.source_name||'Pick a number';
+    el('prompt-msg').textContent=pr.prompt||'Choose a number, then reveal your deck top.';
+    const box=el('prompt-btns'); box.innerHTML='';
+    (pr.numbers||[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]).forEach(num=>{
+      const b=document.createElement('button');
+      b.className='btn-grad';
+      b.textContent=String(num);
+      b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{choice:String(num)}); };
+      box.appendChild(b);
+    });
+    ovl.classList.add('open');
+    return;
+  }
+  if((pr?.type==='pick_other_blade_member_bonus'
+    ||pr?.type==='pick_other_heart_member_bonus'
+    ||pr?.type==='live_start_wr_group_member_count_pick_heart'
+    ||pr?.type==='live_start_activate_stage_live_start_ability'
+    ||pr?.type==='live_start_edel_note_dual_pick_buff'
+    ||pr?.type==='treat_pick_group_member_hearts_as'
+    ||pr?.type==='cl1_pick_stage_member_blade')&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openStageSlotPick(pr);
+    return;
+  }
+  if(pr?.type==='optional_pos_change_subunit_blade'&&pr.responder===myId&&pr.step==='pick_target'){
+    ovl.classList.remove('open');
+    openStageSlotPick({
+      ...pr,
+      candidates: (pr.target_slots||[]).map(slot=>({slot, name_en: slotLabel(slot)}))
+    });
+    return;
+  }
+  if((pr?.type==='bp5_wr_live_deck_position'||pr?.type==='bp5_pick_kasumi_reveal'||pr?.type==='sbp5_pick_revealed_member'||pr?.type==='sbp5_pick_yell_members'||pr?.type==='sbp5_wr_lives_deck_top'||pr?.type==='sbp6_pick_revealed_member'||pr?.type==='sbp6_swap_pick_wr_member'||pr?.type==='sbp6_live_zone_deck_top_hearts'||pr?.type==='sbp6_swap_pick_stage_member'||pr?.type==='ssd1_play_wr_empty'&&pr.step==='pick_wr'||pr?.type==='ssd1_reveal_group_deck'&&pr.step==='pick_hand'||pr?.type==='spbp5_distinct_groups'||pr?.type==='spbp5_subunit_blade_pick'||pr?.type==='spbp5_pick_wr_live'||pr?.type==='spbp5_wait_discard_surveil'&&pr.step==='pick')&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openHandPick({
+      hand: pr.candidates||[],
+      count: 1,
+      min: 1,
+      title: pr.source_name||'Choose card',
+      msg: pr.prompt||'Choose a card.',
+      onConfirm: (picked)=> sendAct('resolve_prompt',{card_id:picked[0]}),
+      onCancel: ()=> sendAct('resolve_prompt',{choice:'no'})
+    });
+    return;
+  }
+  if(pr?.type==='sbp5_draw_deck_bottom'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    const need=pr.bottom_count||1;
+    openHandPick({
+      hand: me?.hand||[],
+      count: need,
+      min: need,
+      title: pr.source_name||'Deck bottom',
+      msg: pr.prompt||`Choose ${need} card(s) to put on the bottom of your deck.`,
+      confirmLabel: need===1?'Tap a card to put it on the bottom of your deck.':undefined,
+      allowCancel: false,
+      onConfirm: (picked)=> sendAct('resolve_prompt',{discard_ids:picked}),
+    });
+    return;
+  }
+  if(pr?.type==='sbp6_discard_after_draw'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    const need=pr.discard_count||1;
+    openHandPick({
+      hand: me?.hand||[],
+      count: need,
+      min: need,
+      title: pr.source_name||'Discard',
+      msg: pr.prompt||`Discard ${need} card(s).`,
+      allowCancel: false,
+      onConfirm: (picked)=> sendAct('resolve_prompt',{discard_ids:picked}),
+    });
+    return;
+  }
+  if((pr?.type==='bp5_wait_discard_look_reveal'||pr?.type==='sbp5_discard_bladeless_wr_live'||pr?.type==='sbp5_live_start_discard_heart'||pr?.type==='spbp5_wait_draw_discard'||pr?.type==='spbp5_wait_discard_surveil'||pr?.type==='spbp5_wait_or_discard_activate')&&pr.step==='discard'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    openHandPick({
+      hand: me?.hand||[],
+      count: pr.discard_count||1,
+      min: pr.discard_count||1,
+      title: pr.source_name||'Discard',
+      msg: pr.prompt||'Discard from hand.',
+      onConfirm: (picked)=> sendAct('resolve_prompt',{discard_ids:picked}),
+    });
+    return;
+  }
+  if(pr?.type==='bp5_wait_discard_look_reveal'&&pr.step==='pick'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openHandPick({
+      hand: pr.candidates||[],
+      count: 1,
+      min: 0,
+      title: pr.source_name||'Reveal Member',
+      msg: pr.prompt||'Choose a matching Member to add to your hand, or skip.',
+      onConfirm: (picked)=> sendAct('resolve_prompt', picked.length ? { card_id: picked[0] } : { choice: 'skip' }),
+      onCancel: ()=> sendAct('resolve_prompt',{choice:'skip'}),
+    });
+    return;
+  }
+  if(pr?.type==='spbp5_mill_swap_pick'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    el('prompt-ttl').textContent=pr.source_name||'Position change';
+    el('prompt-msg').textContent=pr.prompt||'Choose an area:';
+    const box=el('prompt-btns'); box.innerHTML='';
+    (pr.choices||[]).forEach((slot,i)=>{
+      const b=document.createElement('button');
+      b.className='btn-grad';
+      b.textContent=(pr.choice_labels&&pr.choice_labels[i])||slot;
+      b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{choice:slot}); };
+      box.appendChild(b);
+    });
+    ovl.classList.add('open');
+    return;
+  }
+  if(pr?.type==='spbp5_pay_energy_score'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    el('prompt-ttl').textContent=pr.source_name||'Pay Energy';
+    el('prompt-msg').textContent=pr.prompt||'How much Energy to pay?';
+    const box=el('prompt-btns'); box.innerHTML='';
+    const me=s.players?.[myId];
+    const max=(me?.energy_zone||[]).filter(energyChipActive).length;
+    for(let i=0;i<=max;i++){
+      const b=document.createElement('button');
+      b.className='btn-grad';
+      b.textContent=String(i);
+      b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{choice:'pay',energy_count:i}); };
+      box.appendChild(b);
+    }
+    const skip=document.createElement('button');
+    skip.className='btn-grad';
+    skip.textContent='Skip';
+    skip.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{choice:'skip'}); };
+    box.appendChild(skip);
+    ovl.classList.add('open');
+    return;
+  }
+  if(!pr||pr.responder!==myId){
+    ovl.classList.remove('open');
+    hideTextAnswerPrompt();
+    hidePromptEffectText();
+    closeM('overlay-hand-pick');
+    return;
+  }
+  if(pr.type==='opponent_text_answer'){
+    el('prompt-ttl').textContent=pr.source_name||'Live Start';
+    el('prompt-msg').textContent=localizeSubunitText(pr.prompt||'What do you like?');
+    renderTextAnswerPrompt(pr);
+    ovl.classList.add('open');
+    return;
+  }
+  hideTextAnswerPrompt();
+  if(pr?.type==='optional_discard_prompt'
+    &&(pr.live_start||s.phase==='live_start_effects')&&pr.responder===myId){
+    ovl.classList.remove('open');
+    if(openOptionalLiveStartDiscardPick(pr,s,myId)) return;
+  }
+  if(isSelfActivationPrompt(pr)){
+    const box=el('prompt-btns');
+    renderSelfActivationPrompt(pr,s,myId,box,false);
+    ovl.classList.add('open');
+    return;
+  }
+  hidePromptEffectText();
+  const branch=isBranchChoicePrompt(pr);
+  const subEl=el('prompt-sub');
+  el('prompt-ttl').textContent=promptSourceDisplayName(pr, s);
+  el('prompt-msg').textContent=localizePromptDisplayText(pr.prompt||t('prompt.tapOption'), pr, s);
+  el('prompt-msg').className='prompt-branch-msg';
+  if(branch){
+    subEl.hidden=false;
+    subEl.textContent=t('prompt.tapOption');
+  } else {
+    subEl.hidden=true;
+    subEl.textContent='';
+  }
+  const box=el('prompt-btns');
+  box.className=branch?'prompt-choice-list':'';
+  box.innerHTML='';
+  if(branch){
+    renderBranchChoiceButtons(pr,s,myId,box);
+  } else {
+    (pr.choices||[]).forEach((key,i)=>{
+      const b=document.createElement('button');
+      b.className='btn-grad';
+      b.textContent=promptChoiceLabel(key, i, pr);
+      b.onclick=()=> handlePromptChoice(pr,key,s,myId);
+      box.appendChild(b);
+    });
+  }
+  ovl.classList.add('open');
+  bumpAntiSoftlockButton();
+}
+
 
 })(window);
