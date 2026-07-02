@@ -6,7 +6,8 @@
  * URLs in cards.json when missing locally; dedupes by safe card_no basename.
  */
 
-define('CARDIMG_DIR', __DIR__ . '/cardimg/');
+require_once __DIR__ . '/config/paths.php';
+tcgDefinePathConstants();
 
 function ensureCardimgDir(): void {
     if (!is_dir(CARDIMG_DIR)) {
@@ -43,7 +44,7 @@ function lookupCardImageUrl(string $cardNo): string {
     if ($cardNo === '') {
         return '';
     }
-    $cardsFile = __DIR__ . '/cards.json';
+    $cardsFile = tcgPath('cards');
     if (!is_file($cardsFile)) {
         return '';
     }
@@ -56,13 +57,49 @@ function lookupCardImageUrl(string $cardNo): string {
     return '';
 }
 
+function tcgCardImageAllowedHosts(): array {
+    static $hosts = null;
+    if ($hosts !== null) {
+        return $hosts;
+    }
+    $hosts = [];
+    $cardsFile = tcgPath('cards');
+    if (!is_file($cardsFile)) {
+        return $hosts;
+    }
+    $data = json_decode(file_get_contents($cardsFile), true);
+    foreach ($data['cards'] ?? [] as $c) {
+        $image = (string)($c['image'] ?? '');
+        if ($image === '') {
+            continue;
+        }
+        $host = parse_url($image, PHP_URL_HOST);
+        if (is_string($host) && $host !== '') {
+            $hosts[strtolower($host)] = true;
+        }
+    }
+    return array_keys($hosts);
+}
+
+function tcgAssertCardImageUrlAllowed(string $url): void {
+    if (!preg_match('#^https?://#i', $url)) {
+        throw new InvalidArgumentException('Invalid image url');
+    }
+    $host = parse_url($url, PHP_URL_HOST);
+    if (!is_string($host) || $host === '') {
+        throw new InvalidArgumentException('Invalid image url host');
+    }
+    $allowed = tcgCardImageAllowedHosts();
+    if ($allowed !== [] && !in_array(strtolower($host), array_map('strtolower', $allowed), true)) {
+        throw new InvalidArgumentException('Image host not allowed');
+    }
+}
+
 function cacheCardImageFromUrl(string $cardNo, string $url): array {
     if ($cardNo === '' || $url === '') {
         throw new InvalidArgumentException('card_no and url required');
     }
-    if (!preg_match('#^https?://#i', $url)) {
-        throw new InvalidArgumentException('Invalid image url');
-    }
+    tcgAssertCardImageUrlAllowed($url);
 
     ensureCardimgDir();
 

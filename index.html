@@ -6769,6 +6769,9 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="i18n.js?v=6"></script>
 <script src="log_i18n.js?v=4"></script>
 <script src="sfx.js?v=14"></script>
+<script src="client/js/api-client.js?v=1"></script>
+<script src="client/js/replay-debug.js?v=1"></script>
+<script src="client/js/prompt-renderer.js?v=1"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -6820,9 +6823,11 @@ const { localizeLogMessage, clearLogNameCache } = window.LLTCG_LOG_I18N;
 // G holds match session; A holds account/deck builder state. Major subsystems below
 // are marked with // --- Section --- blocks (state sync, LIVE spectacle, CPU, phase bar).
 
-const API = './api.php';
-const ACCOUNT_API = './account.php';
-const WRAPPED_API = '/wrapped/api.php';
+// API paths + fetch helpers: client/js/api-client.js
+const API = window.API;
+const ACCOUNT_API = window.ACCOUNT_API;
+const WRAPPED_API = window.WRAPPED_API;
+
 const DISCORD_CLIENT_ID = '1439716818058088612';
 const WRAPPED_OAUTH_REDIRECT = 'https://loveliveradio.ca/wrapped';
 const DISCORD_OAUTH_STATE_TCG = 'tcg';
@@ -8058,42 +8063,16 @@ function discordAuthUrl() {
     + '&response_type=code&scope=identify&state=' + encodeURIComponent(DISCORD_OAUTH_STATE_TCG);
 }
 async function fetchWithTimeout(url, options = {}, ms = AUTH_FETCH_TIMEOUT_MS) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), ms);
-  try {
-    return await fetch(url, { ...options, signal: ctrl.signal });
-  } catch (e) {
-    if (e && e.name === 'AbortError') throw new Error('Request timed out');
-    throw e;
-  } finally {
-    clearTimeout(timer);
-  }
+  return window.fetchWithTimeout(url, options, ms);
 }
 async function parseAccountJson(r) {
-  let d;
-  try {
-    d = await r.json();
-  } catch (e) {
-    throw new Error(r.ok ? 'Invalid account response' : ('Account error (' + r.status + ')'));
-  }
-  return d;
+  return window.parseAccountJson(r);
 }
 async function accountGet(action, extra = {}) {
-  const token = getAuthToken();
-  const q = new URLSearchParams({ action, token, ...extra });
-  const r = await fetchWithTimeout(ACCOUNT_API + '?' + q);
-  return parseAccountJson(r);
+  return window.accountGet(action, extra);
 }
 async function accountPost(action, body = {}) {
-  const token = getAuthToken();
-  const r = await fetchWithTimeout(ACCOUNT_API + '?action=' + encodeURIComponent(action), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Auth-Token': token },
-    body: JSON.stringify({ ...body, token }),
-  });
-  const d = await parseAccountJson(r);
-  if (!d.success && d.error) throw new Error(d.error);
-  return d;
+  return window.accountPost(action, body);
 }
 
 function saveActiveGameSession() {
@@ -10887,24 +10866,7 @@ function enrichAntiSoftlockBugReport(base, s, myId, pr) {
   };
 }
 
-function debugCardTestEnabled() {
-  return TCG_DEBUG.on || new URLSearchParams(location.search).has('debug');
-}
-
-function replayLoadEnabled() {
-  return debugCardTestEnabled() && !isSignedInAccount();
-}
-
-function getReplayExportCredentials() {
-  if (G.roomId && G.token) return { roomId: G.roomId, token: G.token };
-  const fin = G.lastFinishedExport;
-  if (fin?.roomId && fin?.token) return { roomId: fin.roomId, token: fin.token };
-  return null;
-}
-
-function replaySaveEnabled() {
-  return debugCardTestEnabled() && !!getReplayExportCredentials() && !G.isTutorial && !G.replayMode;
-}
+// Replay debug helpers: client/js/replay-debug.js
 
 function syncWinDebugTools(s) {
   const row = el('win-debug-log-tools');
@@ -10917,50 +10879,6 @@ function syncWinDebugTools(s) {
   const bundleBtn = el('btn-win-debug-save-bundle');
   if (bundleBtn) bundleBtn.hidden = false;
   if (typeof applyI18n === 'function') applyI18n(row);
-}
-
-function syncDebugReplayButtons(forceShow) {
-  const show = forceShow === true || window.TCG_DEBUG?.on === true;
-  const replayBtn = document.getElementById('btn-auth-debug-replay');
-  if (replayBtn) replayBtn.hidden = !(show && !isSignedInAccount());
-}
-
-function downloadJsonFile(filename, data) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-async function saveReplayFile() {
-  if (!replaySaveEnabled()) {
-    toast('Save replay needs ?debug and an active match.');
-    return;
-  }
-  const creds = getReplayExportCredentials();
-  if (!creds) {
-    toast('Save replay needs ?debug and an active match.');
-    return;
-  }
-  try {
-    const r = await apiPost('replay_export', {
-      room_id: creds.roomId,
-      token: creds.token,
-      debug_mode: true,
-    });
-    if (r.error) throw new Error(r.error);
-    const replay = r.replay;
-    if (!replay) throw new Error('No replay payload');
-    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const room = replay.meta?.room_id || G.roomId || 'room';
-    downloadJsonFile(`tcg-replay-${room}-${stamp}.json`, replay);
-    toast('Replay saved 💾', 2400);
-  } catch (e) {
-    toast(e.message || 'Could not save replay', 4200);
-  }
 }
 
 async function saveDebugBundle() {
@@ -13721,7 +13639,7 @@ function queuePersistCardImage(card) {
   fetch(`${API}?action=cache_card_image`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ card_no: card.card_no, url: card.image }),
+    body: JSON.stringify({ card_no: card.card_no }),
   }).catch(() => _imgPersistQueued.delete(card.card_no));
 }
 
@@ -16222,14 +16140,7 @@ function copyCode(){
 function setErr(m){ el('lerr').textContent=m; }
 
 function captureSyncMeta(res) {
-  if (!res || typeof res !== 'object') return;
-  if (res.sync_enabled && res.sync_ticket) {
-    G.syncEnabled = true;
-    G.syncTicket = res.sync_ticket;
-  } else if (res.sync_enabled === false) {
-    G.syncEnabled = false;
-    G.syncTicket = null;
-  }
+  return window.captureSyncMeta(res);
 }
 
 const TCG_PRESENCE_PING_MS = 30000;
@@ -18670,39 +18581,7 @@ function finalizeCardFlip(cardEl) {
   }
 }
 
-function promptSubmitKey(s) {
-  const pr = s?.pending_prompt;
-  if (!pr || !s) return null;
-  return `${s.seq}:${pr.type}:${pr.step ?? ''}:${pr.responder ?? ''}`;
-}
-
-function markPromptSubmitting(s) {
-  G._promptSubmitKey = promptSubmitKey(s || G.gameState);
-}
-
-function syncPromptSubmitState(s) {
-  const pr = s?.pending_prompt;
-  if (!pr) {
-    G._promptSubmitKey = null;
-    if (G._deferredPromptState?.pending_prompt) clearDeferredPromptState();
-    return;
-  }
-  if (!G._promptSubmitKey) return;
-  if (promptSubmitKey(s) !== G._promptSubmitKey) G._promptSubmitKey = null;
-}
-
-function isPromptSubmitting(s) {
-  if (!G._promptSubmitKey) return false;
-  const key = promptSubmitKey(s);
-  return !!key && key === G._promptSubmitKey;
-}
-
-function suppressPromptOverlaysWhileSubmitting() {
-  el('overlay-prompt')?.classList.remove('open');
-  closeM('overlay-hand-pick');
-  closeM('overlay-pick');
-  closeM('overlay-heart');
-}
+// Prompt submit helpers: client/js/prompt-renderer.js
 
 function dismissAllGameplayOverlays() {
   G._promptSubmitKey = null;
@@ -24223,16 +24102,7 @@ function cpuResolvePromptSmart(s, cpu, pr, tier) {
   return false;
 }
 
-function cpuResolvePrompt(s, cpu) {
-  const pr = s.pending_prompt;
-  if (!pr) return;
-  const tier = cpuDiff();
-  const winPressure = cpuWinPressure(cpu);
-  const read = tier === 'easy' ? null : cpuReadOpponent(s, 'p2');
-  if (cpuResolveStepPrompt(pr, cpu, tier, winPressure, read)) return;
-  if (tier !== 'easy' && cpuResolvePromptSmart(s, cpu, pr, tier)) return;
-  cpuResolvePromptBody(s, cpu, pr);
-}
+// CPU prompt entry: client/js/cpu-ai.js (loaded after handler helpers below)
 
 function cpuClearLocalCpuPromptIfResolved(nextState) {
   const s = nextState || G.gameState;
@@ -38529,8 +38399,7 @@ function toast(m, ms, asHtml=false){
 }
 
 async function apiPost(action,body){
-  const r=await fetch(`${API}?action=${action}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const d=await r.json(); if(d.error) throw new Error(d.error); return d;
+  return window.apiPost(action, body);
 }
 
 function findHand(iid,s,myId){ return (s?.players?.[myId]?.hand||[]).find(c=>c.instance_id===iid)||null; }
@@ -38708,5 +38577,6 @@ function mkNoImg(card){
   return d;
 }
 </script>
+<script src="client/js/cpu-ai.js?v=1"></script>
 </body>
 </html>

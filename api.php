@@ -22,18 +22,22 @@
  * Define TCG_API_LIB_ONLY before require to load rules without HTTP router (CLI/tutorial).
  */
 
+require_once __DIR__ . '/config/paths.php';
+require_once __DIR__ . '/config/cors.php';
+require_once __DIR__ . '/config/rate_limit.php';
+tcgDefinePathConstants();
+
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+tcgSendCorsHeaders();
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Player-Token');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    tcgSendCorsPreflight('GET, POST, OPTIONS', 'Content-Type, X-Player-Token');
     http_response_code(200);
     exit;
 }
 
-define('GAMES_DIR', __DIR__ . '/games/');
-define('CARDS_FILE', __DIR__ . '/cards.json');
 define('ENERGY_ZONE_MAX', 12);
 
 function tcgRequireAuthLoader(): void {
@@ -137,16 +141,14 @@ function getCards(): string {
 }
 
 function cacheCardImage(array $body): array {
+    tcgRateLimitCheck('cache_card_image', tcgRateLimitClientKey(), 120, 600);
     $cardNo = trim((string)($body['card_no'] ?? ''));
-    $url    = trim((string)($body['url'] ?? ''));
-    if ($url === '' && $cardNo !== '' && file_exists(CARDS_FILE)) {
-        $data = json_decode(file_get_contents(CARDS_FILE), true);
-        foreach ($data['cards'] ?? [] as $c) {
-            if (($c['card_no'] ?? '') === $cardNo) {
-                $url = (string)($c['image'] ?? '');
-                break;
-            }
-        }
+    if ($cardNo === '') {
+        throw new InvalidArgumentException('card_no required');
+    }
+    $url = lookupCardImageUrl($cardNo);
+    if ($url === '') {
+        throw new InvalidArgumentException('Unknown card_no or missing image in cards.json');
     }
     return cacheCardImageFromUrl($cardNo, $url);
 }
@@ -242,7 +244,8 @@ function resolveExperimentDeckLists(array $body, array $cardsData): array {
 }
 
 function createRoom(array $body): array {
-    $roomId    = strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
+    tcgRateLimitCheck('create_room', tcgRateLimitClientKey(), 30, 600);
+    $roomId    = strtoupper(bin2hex(random_bytes(4)));
     $playerToken = generateToken();
     $playerName  = htmlspecialchars($body['name'] ?? 'Player 1', ENT_QUOTES);
 

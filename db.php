@@ -5,7 +5,9 @@
  * tcg_users, collection, deck presets, booster box pity, ranked ELO (tcg_rank),
  * and matchmaking queue rows. WAL mode; migrations in tcgDbMigrate().
  */
-define('TCG_DATA_DIR', __DIR__ . '/data/');
+require_once __DIR__ . '/config/paths.php';
+tcgDefinePathConstants();
+
 define('TCG_DB_PATH', TCG_DATA_DIR . 'tcg.db');
 
 require_once __DIR__ . '/deck_validate.php';
@@ -88,6 +90,11 @@ function tcgDb(): PDO {
 }
 
 function tcgDbMigrate(PDO $db): void {
+    if (is_file(__DIR__ . '/vendor/autoload.php')) {
+        require_once __DIR__ . '/vendor/autoload.php';
+        \LLTCG\Db\Migrator::run($db);
+    }
+
     $db->exec('CREATE TABLE IF NOT EXISTS tcg_users (
         discord_id TEXT PRIMARY KEY,
         username TEXT NOT NULL DEFAULT "Player",

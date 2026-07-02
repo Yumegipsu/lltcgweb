@@ -5,10 +5,10 @@
  */
 
 require_once __DIR__ . '/cardimg_cache.php';
+require_once __DIR__ . '/config/cors.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: GET, OPTIONS');
+    tcgSendCorsPreflight('GET, OPTIONS', 'Content-Type');
     http_response_code(200);
     exit;
 }
@@ -29,7 +29,7 @@ if (!$file && $cardNo !== '') {
 }
 
 if (!$file) {
-    header('Access-Control-Allow-Origin: *');
+    tcgSendCorsHeaders();
     http_response_code(404);
     exit;
 }
@@ -45,5 +45,5 @@ $types = [
 
 header('Content-Type: ' . ($types[$ext] ?? 'application/octet-stream'));
 header('Cache-Control: public, max-age=31536000, immutable');
-header('Access-Control-Allow-Origin: *');
+tcgSendCorsHeaders();
 readfile($file);

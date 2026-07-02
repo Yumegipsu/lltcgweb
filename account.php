@@ -11,17 +11,21 @@
  *   deck_list, deck_save, deck_delete, deck_equip, deck_equip_starter, deck_reset_starter, deck_auto_build, reset_account,
  *   ranked_join, ranked_leave, ranked_status, rank_stats, rank_banner_set, active_game, leave_active_game
  */
+require_once __DIR__ . '/config/paths.php';
+require_once __DIR__ . '/config/cors.php';
+tcgDefinePathConstants();
+
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+tcgSendCorsHeaders();
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Auth-Token, Authorization');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    tcgSendCorsPreflight('GET, POST, OPTIONS', 'Content-Type, X-Auth-Token, Authorization');
     http_response_code(200);
     exit;
 }
 
-define('TCG_CARDS_FILE', __DIR__ . '/cards.json');
 define('TCG_MAX_DECK_PRESETS', 10);
 
 require_once __DIR__ . '/llr_auth_load.php';

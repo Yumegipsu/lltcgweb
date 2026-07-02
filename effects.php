@@ -12,6 +12,7 @@
  */
 
 require_once __DIR__ . '/subunits.php';
+require_once __DIR__ . '/src/Game/PromptLifecycle.php';
 require_once __DIR__ . '/nijigasaki_effects.php';
 require_once __DIR__ . '/hs_bp6_effects.php';
 require_once __DIR__ . '/hs_pb1_effects.php';
@@ -10692,24 +10693,6 @@ function isMandatorySkillPrompt(array $prompt): bool {
         }
     }
     return true;
-}
-
-/** Whether the phase timer should run while this prompt is pending. */
-function promptUsesPhaseTimer(array $prompt): bool {
-    return in_array($prompt['responder'] ?? '', ['p1', 'p2'], true);
-}
-
-function promptTimerKey(?array $prompt): string {
-    if (!$prompt) {
-        return '';
-    }
-    return implode('|', [
-        $prompt['type'] ?? '',
-        $prompt['responder'] ?? '',
-        $prompt['step'] ?? '',
-        $prompt['source_id'] ?? '',
-        $prompt['prompt'] ?? '',
-    ]);
 }
 
 /** Default resolution when a PvP phase timer expires during a pending skill prompt. */
