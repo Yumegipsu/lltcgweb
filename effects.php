@@ -14366,6 +14366,13 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
     }
 
     if ($promptType === 'live_start_edel_choice') {
+        if ($choice === 'no' || $choice === 'skip' || $choice === 'cancel') {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Live') . '] skipped optional Live Start effect.');
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishLiveStartEffects($state);
+        }
         if ($choice === 'reduce') {
             $liveId = $prompt['source_id'] ?? '';
             bumpLiveCardColorReduction(

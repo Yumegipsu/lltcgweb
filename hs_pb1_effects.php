@@ -1014,7 +1014,15 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
     }
 
     if ($promptType === 'live_start_activate_stage_live_start_ability') {
-        $slot = $data['slot'] ?? '';
+        $choice = $data['choice'] ?? $choice;
+        if ($choice === 'no' || $choice === 'skip' || $choice === 'cancel') {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Live') . '] skipped optional Live Start effect.');
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishLiveStartEffects($state);
+        }
+        $slot = $data['slot'] ?? $choice;
         if ($slot === '' || empty($ownerP['stage'][$slot])) throw new Exception('Choose a Member');
         $mbr = $ownerP['stage'][$slot];
         foreach ($mbr['abilities'] ?? [] as $ab) {

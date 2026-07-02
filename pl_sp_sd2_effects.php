@@ -209,6 +209,9 @@ function plSpSd2ResolvePrompt(array $state, string $owner, array $prompt, string
     $type = $prompt['type'] ?? '';
     if ($type === 'optional_swap_area_on_enter') {
         $allowed = $prompt['choices'] ?? ['skip', 'left', 'center', 'right'];
+        if ($choice === 'no' || $choice === 'cancel') {
+            $choice = 'skip';
+        }
         if ($choice === 'skip') {
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped position change.');

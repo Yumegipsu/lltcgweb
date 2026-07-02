@@ -17923,15 +17923,17 @@ function syncHandSelectionClasses(s, myId) {
   const ae = (s?.players?.[myId]?.energy_zone || []).filter(energyChipActive).length;
   const hand = s?.players?.[myId]?.hand || [];
   document.querySelectorAll('#hand-row .hcard').forEach(d => {
-    const card = hand.find(c => c.instance_id === d.dataset.iid);
+    const iid = d.dataset.iid;
+    if (!iid) return;
+    const card = hand.find(c => c.instance_id === iid);
     if (!card) return;
-    const liveSelected = livePick && G.liveSel.includes(card.instance_id);
-    const tutPinned = G.isTutorial && card.instance_id === G.tutPreviewIid;
-    d.classList.toggle('play-sel', !tutPinned && (G.selCard === card.instance_id || liveSelected));
-    d.classList.toggle('hover-sel', G.hoverCardId === card.instance_id && !liveSelected);
-  d.classList.toggle('playable', card.card_type === 'メンバー' && isMe && isMain && effectiveCost(card, hand) <= ae);
-  applyCardFoilFx(d, card);
-});
+    const liveSelected = livePick && G.liveSel.includes(iid);
+    const tutPinned = G.isTutorial && iid === G.tutPreviewIid;
+    d.classList.toggle('play-sel', !tutPinned && (G.selCard === iid || liveSelected));
+    d.classList.toggle('hover-sel', G.hoverCardId === iid && !liveSelected);
+    d.classList.toggle('playable', card.card_type === 'メンバー' && isMe && isMain && effectiveCost(card, hand) <= ae);
+    applyCardFoilFx(d, card);
+  });
   if (livePick) layoutHandFan(el('hand-row'));
 }
 
@@ -31789,18 +31791,23 @@ function renderHand(hand,s,myId, opts = {}){
   existing.forEach((node,iid)=>{ if(!keep.has(iid)) node.remove(); });
 
   hand.forEach((card,idx)=>{
-    let d=existing.get(card.instance_id);
-    const needsFlip = flipKeys.has(card.instance_id);
-    const incomingHide = !!(G._animHideIids?.has(card.instance_id));
+    const iid=card?.instance_id;
+    if(!iid) return;
+    let d=existing.get(iid);
+    const needsFlip = flipKeys.has(iid);
+    const incomingHide = !!(G._animHideIids?.has(iid));
     if(!d){
       d=document.createElement('div');
       d.className='hcard';
-      d.dataset.iid=card.instance_id;
+      d.dataset.iid=iid;
       if (needsFlip) buildHandFlipStructure(d, card);
       else appendCardFace(d, card, { sideways: isLiveCard(card) });
       ensureHandTypeBadge(d, card);
       bindHandCardEvents(d, card, s, myId);
-    } else if (needsFlip && !d.querySelector('.hand-flip-inner')) {
+    } else {
+      if(d.dataset.iid!==iid) d.dataset.iid=iid;
+    }
+    if(d && needsFlip && !d.querySelector('.hand-flip-inner')) {
       d.querySelectorAll(':scope > img, :scope > .card-art, :scope > .noimg').forEach(n => n.remove());
       buildHandFlipStructure(d, card);
       ensureHandTypeBadge(d, card);
@@ -33018,7 +33025,7 @@ function bindHandCardEvents(d, card, s, myId) {
     try { d.setPointerCapture(e.pointerId); } catch (_) {}
     const state = liveGameState(s);
     G.handPointer = {
-      iid: card.instance_id,
+      iid: d.dataset.iid || card.instance_id,
       card, el: d, s: state, myId,
       sx: e.clientX, sy: e.clientY,
       pointerId: e.pointerId,
@@ -33036,14 +33043,16 @@ function bindHandCardEvents(d, card, s, myId) {
   });
   d.addEventListener('pointerup', e => {
     const hp = G.handPointer;
-    if (hp?.iid === card.instance_id && hp.pointerId === e.pointerId && !hp.moved && !hp.longFired && !G.drag) {
+    const tapIid = d.dataset.iid || hp?.iid;
+    if (hp?.el === d && hp.pointerId === e.pointerId && !hp.moved && !hp.longFired && !G.drag && tapIid) {
       if (hp.longPressTimer) clearTimeout(hp.longPressTimer);
       G.handPointer = null;
       const state = liveGameState(hp.s);
-      if (isLiveSetSelecting(state, myId) && isLiveHandSelectable(card)) {
-        toggleLiveSelect(card.instance_id, state, myId);
-      } else if (canSelectMemberForPlay(card, state, myId)) {
-        togglePlaySelect(card.instance_id, state, myId);
+      const tapCard = findHand(tapIid, state, myId) || card;
+      if (isLiveSetSelecting(state, myId) && isLiveHandSelectable(tapCard)) {
+        toggleLiveSelect(tapIid, state, myId);
+      } else if (canSelectMemberForPlay(tapCard, state, myId)) {
+        togglePlaySelect(tapIid, state, myId);
       }
     }
   });
@@ -34563,7 +34572,10 @@ function renderPromptEffectText(text, pr, s){
 function isSelfActivationPrompt(pr){
   if(isBranchChoicePrompt(pr)) return false;
   if(!pr?.effect_text) return false;
-  return pr.responder===pr.owner;
+  if(pr.responder!==pr.owner) return false;
+  const choices=Array.isArray(pr.choices)?pr.choices:[];
+  if(choices.length&&!isYesNoPromptChoices(choices)) return false;
+  return true;
 }
 
 function ensurePromptChoices(pr){
@@ -34701,6 +34713,7 @@ function renderBranchChoiceButtons(pr, s, myId, box){
 }
 
 function handlePromptChoice(pr, choice, s, myId){
+  if (choice === 'no' && pr?.type === 'optional_swap_area_on_enter') choice = 'skip';
   const me=s.players[myId];
   const discardNeed=promptDiscardCount(pr,choice);
   const needsPay=(choice==='yes'&&!!pr.needs_pay)
@@ -36410,6 +36423,8 @@ function updateLiveSetButton(s, myId) {
 
 function toggleLiveSelect(iid, s, myId) {
   if (G.isTutorial) return;
+  if (!iid) return;
+  G.liveSel = G.liveSel.filter(id => id && (s?.players?.[myId]?.hand || []).some(c => c.instance_id === id));
   const card = findHand(iid, s, myId);
   if (!isLiveHandSelectable(card)) {
     toast(t('toast.onlyLiveOrMember'));
