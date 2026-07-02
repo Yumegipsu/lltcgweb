@@ -13,6 +13,7 @@
 
 require_once __DIR__ . '/subunits.php';
 require_once __DIR__ . '/src/Game/PromptLifecycle.php';
+require_once __DIR__ . '/src/Game/ZoneMovement.php';
 require_once __DIR__ . '/nijigasaki_effects.php';
 require_once __DIR__ . '/hs_bp6_effects.php';
 require_once __DIR__ . '/hs_pb1_effects.php';
@@ -2099,28 +2100,6 @@ function finishLiveSuccessEffects(array $state): array {
     return $state;
 }
 
-function finishPromptEffects(array $state): array {
-    $phase = $state['phase'] ?? '';
-    if ($phase === 'live_success_effects') {
-        return finishLiveSuccessEffects($state);
-    }
-    if ($phase === 'live_start_effects') {
-        return finishLiveStartEffects($state);
-    }
-    return $state;
-}
-
-/** After placing a Member from a prompt: keep chained On Enter prompts. */
-function returnAfterPlacedMemberEnter(array $state, bool $finishLiveStart = false): array {
-    if (!empty($state['pending_prompt'])) {
-        $state['seq']++;
-        return $state;
-    }
-    unset($state['pending_prompt']);
-    $state['seq']++;
-    return $finishLiveStart ? finishLiveStartEffects($state) : finishPromptEffects($state);
-}
-
 function cardMatchesNames(array $card, array $names): bool {
     $label = $card['name_en'] ?? $card['name'] ?? '';
     foreach ($names as $n) {
@@ -3706,114 +3685,8 @@ function addFromWaitingRoomFiltered(array &$p, string $group, string $filter, in
     return count($picked);
 }
 
-function wrPickMatchCount(array $p, array $cfg, int $need = 1): int {
-    $count = 0;
-    foreach ($p['waiting_room'] ?? [] as &$c) {
-        hydrateWrCardForPick($c);
-        if (cardMatchesWrPick($c, $cfg)) {
-            $count++;
-            if ($count >= $need) {
-                unset($c);
-                return $count;
-            }
-        }
-    }
-    unset($c);
-    return $count;
-}
-
-function wrCandidatesMatching(array $p, array $cfg): array {
-    $out = [];
-    foreach ($p['waiting_room'] ?? [] as &$c) {
-        hydrateWrCardForPick($c);
-        if (cardMatchesWrPick($c, $cfg)) {
-            $out[] = $c;
-        }
-    }
-    unset($c);
-    return $out;
-}
-
-function wrPickCfgFromAbility(array $ab): array {
-    $cfg = ['group' => $ab['group'] ?? '', 'filter' => $ab['filter'] ?? 'member'];
-    if (isset($ab['max_cost'])) {
-        $cfg['max_cost'] = intval($ab['max_cost']);
-    }
-    if (isset($ab['max_live_score'])) {
-        $cfg['max_live_score'] = intval($ab['max_live_score']);
-    }
-    if (isset($ab['min_required_hearts'])) {
-        $cfg['min_required_hearts'] = intval($ab['min_required_hearts']);
-    }
-    if (!empty($ab['min_required_heart_color'])) {
-        $cfg['min_required_heart_color'] = (string)$ab['min_required_heart_color'];
-    }
-    return $cfg;
-}
-
-/** leave_stage_add_from_wr defaults to Live when filter omitted; other WR picks default to Member. */
-function wrPickCfgForLeaveStageAbility(array $ab): array {
-    $cfg = wrPickCfgFromAbility($ab);
-    if (($ab['type'] ?? '') === 'leave_stage_add_from_wr' && !isset($ab['filter'])) {
-        $cfg['filter'] = 'live';
-    }
-    return $cfg;
-}
-
 function hydrateWrCardForPick(array &$card): void {
     mergeCardCatalogFields($card);
-}
-
-/**
- * Player chooses which Waiting Room card to add to hand (never auto-first-match).
- * Sets pending_prompt pick_wr_to_hand or pick_wr_leave_stage_add.
- */
-function startPickWrToHandPrompt(
-    array &$state,
-    string $pid,
-    array &$member,
-    string $slot,
-    int $abilityIdx,
-    array $ab,
-    array $cfg,
-    bool $leaveStage = false
-): void {
-    $p = &$state['players'][$pid];
-    $candidates = wrCandidatesMatching($p, $cfg);
-    if (empty($candidates)) {
-        throw new Exception('No matching card in Waiting Room');
-    }
-    $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
-    $filter = $cfg['filter'] ?? 'member';
-    if (!empty($ab['once_per_turn'])) {
-        markAbilityUsed($member, $abilityIdx);
-    }
-    $p['stage'][$slot] = $member;
-    $promptType = $leaveStage ? 'pick_wr_leave_stage_add' : 'pick_wr_to_hand';
-    $state['pending_prompt'] = [
-        'type'          => $promptType,
-        'owner'         => $pid,
-        'responder'     => $pid,
-        'source_id'     => $member['instance_id'] ?? '',
-        'source_slot'   => $slot,
-        'source_name'   => $mName,
-        'ability_index' => $abilityIdx,
-        'prompt'        => 'Choose 1 ' . wrPickFilterLabel($filter) .
-            ' card from your Waiting Room to add to your hand.',
-        'candidates'    => array_map('cardPromptSummary', $candidates),
-        'ability'       => $ab,
-        'wr_pick_cfg'   => $cfg,
-    ];
-}
-
-function wrPickFilterLabel(string $filter): string {
-    if ($filter === 'live') {
-        return 'Live';
-    }
-    if ($filter === 'member') {
-        return 'Member';
-    }
-    return 'card';
 }
 
 function hasWrLiveWithMinHearts(array $p, int $minHearts, string $color = ''): bool {
@@ -4123,40 +3996,6 @@ function addEffectLog(
         $opts = ['owner' => $pid, 'msg_public' => $prefix . $detailPublic];
     }
     return addLog($state, $prefix . $detailPrivate, 'effect', $anim, $opts);
-}
-
-function startEffectDiscardHandPrompt(
-    array $state,
-    string $pid,
-    string $name,
-    int $count,
-    string $msg = '',
-    array $extra = []
-): array {
-    if ($count < 1) {
-        return $state;
-    }
-    $prompt = array_merge([
-        'type'        => 'effect_discard_hand',
-        'owner'       => $pid,
-        'responder'   => $pid,
-        'source_name' => $name,
-        'count'       => $count,
-        'prompt'      => $msg !== '' ? $msg : (
-            $count === 1
-                ? 'Choose a card to send to the Waiting Room.'
-                : "Choose $count cards to send to the Waiting Room."
-        ),
-        'pick_mode'   => 'hand_discard',
-    ], $extra);
-    if (!empty($prompt['ability'])) {
-        $prompt = enrichAbilityContextPrompt($state, $prompt);
-    }
-    $state['pending_prompt'] = $prompt;
-    $state = logEffectStep($state, $pid, $name,
-        'choose ' . $count . ' card(s) to put into the Waiting Room.');
-    $state['seq']++;
-    return $state;
 }
 
 function playerChoiceLabelText(array $choice): string {
@@ -4572,34 +4411,6 @@ function logEffectStep(
     return addLog($state, $prefix . $detail, 'effect', $anim, $opts);
 }
 
-function drawCardInstances(array &$p, int $count): array {
-    $drawn = [];
-    for ($i = 0; $i < $count; $i++) {
-        if (empty($p['main_deck'])) {
-            break;
-        }
-        $c = array_shift($p['main_deck']);
-        $p['hand'][] = $c;
-        $drawn[] = $c;
-    }
-    return $drawn;
-}
-
-function discardHandCardsByIds(array &$p, array $ids): array {
-    $moved = [];
-    $idSet = array_flip($ids);
-    $p['hand'] = array_values(array_filter($p['hand'], function ($c) use ($idSet, &$moved, &$p) {
-        $iid = $c['instance_id'] ?? '';
-        if (isset($idSet[$iid])) {
-            $p['waiting_room'][] = $c;
-            $moved[] = $c;
-            return false;
-        }
-        return true;
-    }));
-    return $moved;
-}
-
 function resolveOnLeaveStageAbilities(array $state, string $pid, array &$member, array $ctx = []): array {
     $p = &$state['players'][$pid];
     mergeCardCatalogFields($member);
@@ -4621,208 +4432,6 @@ function resolveOnLeaveStageAbilities(array $state, string $pid, array &$member,
         }
     }
     return $state;
-}
-
-function discardFromHandByIds(array &$p, array $ids, ?array &$notifyState = null, ?string $notifyPid = null): int {
-    $count = 0;
-    $p['hand'] = array_values(array_filter($p['hand'], function ($c) use ($ids, &$count, &$p) {
-        if (in_array($c['instance_id'] ?? '', $ids, true)) {
-            $p['waiting_room'][] = $c;
-            $count++;
-            return false;
-        }
-        return true;
-    }));
-    if ($count > 0 && $notifyState !== null && $notifyPid !== null) {
-        hsPb1NotifyHandDiscard($notifyState, $notifyPid);
-    }
-    return $count;
-}
-
-/** Shuffle all Waiting Room cards into main deck when the deck is empty (deck refresh). */
-function refreshMainDeckFromWaitingRoom(array &$state, string $pid): int {
-    $p = &$state['players'][$pid];
-    if (!empty($p['main_deck'])) {
-        return 0;
-    }
-    $wr = $p['waiting_room'] ?? [];
-    if (empty($wr)) {
-        return 0;
-    }
-    $count = count($wr);
-    $p['main_deck'] = $wr;
-    $p['waiting_room'] = [];
-    shuffle($p['main_deck']);
-    $p['_deck_refreshed_turn'] = intval($state['turn'] ?? 0);
-    $name = $p['name'] ?? 'Player';
-    $state = addLog(
-        $state,
-        "$name — Deck refresh: shuffled $count card(s) from Waiting Room into a new deck.",
-        'action'
-    );
-    return $count;
-}
-
-/** Draw from main deck to hand, refreshing from Waiting Room when the deck runs out. */
-function drawCardsForPlayer(array &$state, string $pid, int $count): int {
-    $p = &$state['players'][$pid];
-    $drawn = 0;
-    for ($i = 0; $i < $count; $i++) {
-        if (empty($p['main_deck'])) {
-            if (refreshMainDeckFromWaitingRoom($state, $pid) <= 0) {
-                break;
-            }
-        }
-        if (empty($p['main_deck'])) {
-            break;
-        }
-        $p['hand'][] = array_shift($p['main_deck']);
-        $drawn++;
-    }
-    return $drawn;
-}
-
-/** Draw to hand with per-card effect log + deck→hand animation (for draw-then-pick prompts). */
-function drawCardsForPlayerWithEffectLog(
-    array &$state,
-    string $pid,
-    string $sourceName,
-    int $count
-): array {
-    $p = &$state['players'][$pid];
-    $drawnCards = [];
-    for ($i = 0; $i < $count; $i++) {
-        if (empty($p['main_deck'])) {
-            if (refreshMainDeckFromWaitingRoom($state, $pid) <= 0) {
-                break;
-            }
-        }
-        if (empty($p['main_deck'])) {
-            break;
-        }
-        $c = array_shift($p['main_deck']);
-        $p['hand'][] = $c;
-        $drawnCards[] = $c;
-        $state = logEffectDraw($state, $pid, $sourceName, $c,
-            [animSpec($c['instance_id'], 'main_deck', 'hand', $pid)]);
-    }
-    return $drawnCards;
-}
-
-/** Draw from main deck (not to hand), refreshing from Waiting Room when empty. */
-function drawMainDeckCards(array &$state, string $pid, int $count): array {
-    $p = &$state['players'][$pid];
-    $drawn = [];
-    for ($i = 0; $i < $count; $i++) {
-        if (empty($p['main_deck'])) {
-            if (refreshMainDeckFromWaitingRoom($state, $pid) <= 0) {
-                break;
-            }
-        }
-        if (empty($p['main_deck'])) {
-            break;
-        }
-        $drawn[] = array_shift($p['main_deck']);
-    }
-    return $drawn;
-}
-
-/** Take cards from the top of main deck (mills, reveals), refreshing when empty. */
-function takeFromMainDeckTop(array &$state, string $pid, int $count): array {
-    if ($count <= 0) {
-        return [];
-    }
-    $p = &$state['players'][$pid];
-    $taken = [];
-    while (count($taken) < $count) {
-        if (empty($p['main_deck'])) {
-            if (refreshMainDeckFromWaitingRoom($state, $pid) <= 0) {
-                break;
-            }
-        }
-        $need = $count - count($taken);
-        $batch = array_splice($p['main_deck'], 0, min($need, count($p['main_deck'])));
-        if (empty($batch)) {
-            break;
-        }
-        $taken = array_merge($taken, $batch);
-    }
-    return $taken;
-}
-
-function activateEnergyForPlayer(array &$p, int $max): int {
-    $n = 0;
-    foreach ($p['energy_zone'] as &$e) {
-        if ($n >= $max) break;
-        if (!($e['active'] ?? false)) {
-            $e['active'] = true;
-            $n++;
-        }
-    }
-    unset($e);
-    return $n;
-}
-
-function countActiveEnergyInZone(array $p): int {
-    return count(array_filter($p['energy_zone'] ?? [], fn($e) => $e['active'] ?? false));
-}
-
-function affordableEnergyForBatonPlay(array $p, ?array $occupant, ?array $incoming = null): int {
-    $active = countActiveEnergyInZone($p);
-    if ($occupant && $incoming) {
-        $active += estimateBatonWrEnergyActivation($occupant, $incoming, $p);
-    }
-    return $active;
-}
-
-function computeMemberPlayCostWithBaton(array $state, string $pid, array $card, ?array $occupant): int {
-    $cost = getEffectiveHandCost($state, $pid, $card);
-    if ($occupant) {
-        $cost = max(0, $cost - getEffectiveStageMemberCost($state, $pid, $occupant));
-    }
-    return $cost;
-}
-
-function payEnergyCost(array &$p, int $cost, array $preferIds = []): bool {
-    return count(payEnergyCostIds($p, $cost, $preferIds)) >= $cost;
-}
-
-function payEnergyCostIds(array &$p, int $cost, array $preferIds = []): array {
-    if ($cost <= 0) {
-        return [];
-    }
-    $paidIds = [];
-    $preferIds = array_values(array_filter($preferIds));
-    if (!empty($preferIds)) {
-        foreach ($p['energy_zone'] as &$e) {
-            if (count($paidIds) >= $cost) {
-                break;
-            }
-            $id = $e['instance_id'] ?? '';
-            if ($id !== '' && in_array($id, $preferIds, true) && ($e['active'] ?? false)) {
-                $e['active'] = false;
-                $paidIds[] = $id;
-            }
-        }
-        unset($e);
-    }
-    if (count($paidIds) < $cost) {
-        foreach ($p['energy_zone'] as &$e) {
-            if (count($paidIds) >= $cost) {
-                break;
-            }
-            $id = $e['instance_id'] ?? '';
-            if ($id !== '' && ($e['active'] ?? false)) {
-                $e['active'] = false;
-                $paidIds[] = $id;
-            }
-        }
-        unset($e);
-    }
-    if (count($paidIds) < $cost) {
-        return [];
-    }
-    return $paidIds;
 }
 
 function applyModifierEffect(array $state, string $pid, array $effect): array {
@@ -4890,13 +4499,6 @@ function isLiveModifierEffectType(string $type): bool {
         'grant_bonus_hearts',
         'blade_bonus_per_paid',
     ], true);
-}
-
-function finishAfterBranchChoicePrompt(array $state, array $prompt): array {
-    if (($state['phase'] ?? '') === 'live_start_effects' || !empty($prompt['live_start'])) {
-        return resumeLiveStartEffectPhase($state);
-    }
-    return finishPromptEffects($state);
 }
 
 /** After a Live Start prompt resolves, finish remaining players' mandatory Live Start abilities. */
@@ -5538,31 +5140,6 @@ function applySurveilArrangement(array &$p, array $lookedCards, array $topIds, a
     if (!empty($top)) {
         $p['main_deck'] = array_merge($top, $p['main_deck']);
     }
-}
-
-function surveilArrangePromptText(int $count): string {
-    $n = max(1, $count);
-    if ($n === 1) {
-        return 'Look at the top card of your deck. You may put it on top of your deck or put it into the Waiting Room.';
-    }
-    return "Look at the top {$n} cards of your deck. You may put any number of them on top of your deck in any order and put the rest into the Waiting Room.";
-}
-
-function startSurveilArrangePrompt(array $state, string $pid, string $name, array $looked, ?array $chain = null, ?string $sourceId = null): array {
-    $state['surveil_stash'] = $looked;
-    if ($chain !== null) {
-        $state['_surveil_chain'] = $chain;
-    }
-    $state['pending_prompt'] = [
-        'type'          => 'surveil_arrange',
-        'owner'         => $pid,
-        'responder'     => $pid,
-        'source_id'     => $sourceId ?? ($chain['source_id'] ?? ''),
-        'source_name'   => $name,
-        'prompt'        => surveilArrangePromptText(count($looked)),
-        'looked_cards'  => array_map('cardPromptSummary', $looked),
-    ];
-    return $state;
 }
 
 function finishLiveStartEffects(array $state, bool $advancePerformance = true): array {
