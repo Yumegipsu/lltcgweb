@@ -266,18 +266,22 @@ function hsPb1ExtendAutoOnOtherMemberEnter(array $state, string $pid, array $ent
                     $used = intval($member['_auto_uses_' . $idx] ?? 0);
                     if ($used >= intval($ab['max_uses_per_turn'])) continue;
                 }
-                $state = applyModifierEffect($state, $pid, [
-                    'type'   => 'blade_bonus',
-                    'amount' => intval($ab['amount'] ?? 1),
-                ]);
+                $amt = intval($ab['amount'] ?? 1);
+                $srcSlot = findMemberSlot($state['players'][$pid], $member['instance_id'] ?? '');
+                if ($srcSlot !== '') {
+                    $state['players'][$pid]['stage'][$srcSlot]['live_blade_bonus'] =
+                        intval($state['players'][$pid]['stage'][$srcSlot]['live_blade_bonus'] ?? 0) + $amt;
+                }
                 if (!empty($ab['max_uses_per_turn'])) {
-                    $member['_auto_uses_' . $idx] = intval($member['_auto_uses_' . $idx] ?? 0) + 1;
-                    $p['stage'][$slot] = $member;
+                    if ($srcSlot !== '') {
+                        $state['players'][$pid]['stage'][$srcSlot]['_auto_uses_' . $idx] =
+                            intval($state['players'][$pid]['stage'][$srcSlot]['_auto_uses_' . $idx] ?? 0) + 1;
+                    }
                 }
                 $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$mName] gained +" . intval($ab['amount'] ?? 1) .
-                    ' Blade (' . ($entered['name_en'] ?? $entered['name']) . ' entered).');
+                    " — [$mName] gained +$amt Blade (" .
+                    ($entered['name_en'] ?? $entered['name'] ?? 'Member') . ' entered).');
             }
         }
     }
@@ -436,11 +440,15 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
             break;
 
         case 'draw_discard_if_blade_count':
-            if (hsPb1MemberEffectiveBladeCount($source) >= intval($ab['min_blades'] ?? 8)) {
+            $srcSlot = findMemberSlot($state['players'][$pid], $source['instance_id'] ?? '');
+            $bladeCount = getMemberBlade($source, $state, $pid, $srcSlot);
+            if ($bladeCount >= intval($ab['min_blades'] ?? 8)) {
                 $drawCount = intval($ab['draw'] ?? 2);
                 $drawnCards = drawCardsForPlayerWithEffectLog($state, $pid, $name, $drawCount);
                 $drawn = count($drawnCards);
                 $discardNeed = intval($ab['discard'] ?? 0);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] Live Start ($bladeCount Blades): drew $drawn card(s).");
                 if ($drawCount > 0 && $drawn === 0) {
                     $state = addLog($state, $state['players'][$pid]['name'] .
                         " — [$name] could not draw (deck empty).");
@@ -453,8 +461,12 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
                         'responder'     => $pid,
                         'source_name'   => $name,
                         'discard_count' => $discardNeed,
+                        'live_start'    => ($ctx['phase'] ?? '') === 'live_start',
                         'prompt'        => "Drew $drawn — put $discardNeed card(s) from hand into the Waiting Room.",
                     ];
+                } elseif ($discardNeed > 0) {
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] could not discard (not enough cards in hand).");
                 }
             }
             break;
@@ -1081,9 +1093,11 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
         $need = intval($prompt['discard_count'] ?? 1);
         if (count($ids) !== $need) throw new Exception("Discard exactly $need card(s)");
         discardFromHandByIds($ownerP, $ids);
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Member') . "] put $need card(s) into the Waiting Room.");
         unset($state['pending_prompt']);
         $state['seq']++;
-        return $state;
+        return finishAfterBranchChoicePrompt($state, $prompt);
     }
 
     return null;

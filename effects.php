@@ -2667,6 +2667,15 @@ function markAbilityUsed(array &$member, int $idx): void {
     $member['abilities_used'][abilityUsedKey($member['instance_id'] ?? '', $idx)] = true;
 }
 
+/** Reset per-turn Auto counters (e.g. max_uses_per_turn on stage Members). */
+function clearMemberPerTurnAutoUses(array &$member): void {
+    foreach (array_keys($member) as $key) {
+        if (str_starts_with((string)$key, '_auto_uses_')) {
+            unset($member[$key]);
+        }
+    }
+}
+
 function waitMember(array &$member): void {
     $member['_was_active_before_wait'] = $member['active'] ?? true;
     $member['active'] = false;

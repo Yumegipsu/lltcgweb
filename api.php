@@ -1298,21 +1298,32 @@ function doActivePhase(array $state, string $pid): array {
             if (!empty($m['skip_activate_next_turn'])) {
                 $m['skip_activate_next_turn'] = false;
                 unset($m['abilities_used']);
+                clearMemberPerTurnAutoUses($m);
                 continue;
             }
             if (nBp5MemberSkipsActivePhase($m)) {
                 unset($m['abilities_used']);
+                clearMemberPerTurnAutoUses($m);
                 continue;
             }
             if (hsPb1OpponentStageBlockedFromActivate($state, $pid)) {
                 unset($m['abilities_used']);
+                clearMemberPerTurnAutoUses($m);
                 continue;
             }
             $m['active'] = true;
             unset($m['abilities_used']);
+            clearMemberPerTurnAutoUses($m);
         }
     }
     unset($m);
+    $p['members_entered_this_turn'] = 0;
+    foreach ($p['stage'] as &$mbr) {
+        if ($mbr) {
+            unset($mbr['entered_this_turn'], $mbr['moved_this_turn']);
+        }
+    }
+    unset($mbr);
     return $state;
 }
 
