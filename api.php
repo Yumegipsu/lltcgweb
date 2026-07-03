@@ -780,6 +780,7 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     $cardIdx = findInHand($p['hand'], $instanceId);
     if ($cardIdx === false) throw new Exception('Card not in hand');
     $card = $p['hand'][$cardIdx];
+    mergeCardCatalogFields($card);
     if ($card['card_type'] !== 'メンバー') throw new Exception('Not a member card');
 
     $allowsDoubleBaton = false;

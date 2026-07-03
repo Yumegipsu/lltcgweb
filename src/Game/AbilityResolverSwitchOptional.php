@@ -934,6 +934,9 @@ function tryResolveAbilityEffectSwitchOptional(
                 ' — [' . $name . '] optional WR member re-enter (choose).');
             break;
 
+        default:
+            return null;
+
     }
-    return null;
+    return $state;
 }
