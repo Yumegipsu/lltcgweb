@@ -21,6 +21,7 @@ require_once __DIR__ . '/AbilityResolverSwitchBaton.php';
 require_once __DIR__ . '/AbilityResolverSwitchEnergyWait.php';
 require_once __DIR__ . '/AbilityResolverSwitchSet.php';
 require_once __DIR__ . '/AbilityResolverSwitchMemberBlade.php';
+require_once __DIR__ . '/AbilityResolverSwitchOnEnter.php';
 
 function resolveAbilityEffectSwitch(
     array $state,
@@ -124,6 +125,10 @@ function resolveAbilityEffectSwitch(
 
     if (str_starts_with($type, 'member_blade_bonus')) {
         return tryResolveAbilityEffectSwitchMemberBlade($state, $pid, $source, $ab, $ctx, $type, $p, $name);
+    }
+
+    if (str_starts_with($type, 'on_enter_')) {
+        return tryResolveAbilityEffectSwitchOnEnter($state, $pid, $source, $ab, $ctx, $type, $p, $name);
     }
 
     switch ($type) {
@@ -311,21 +316,6 @@ function resolveAbilityEffectSwitch(
                 }
             }
             break;
-
-        case 'on_enter_if_named_activate_add_wr':
-            if (!stageHasNamedMember($p, $ab['names'] ?? [])) break;
-            $activated = activateEnergyForPlayer($p, intval($ab['activate'] ?? 1));
-            $added = addFromWaitingRoomFiltered(
-                $p,
-                $ab['group'] ?? '',
-                $ab['filter'] ?? 'live',
-                intval($ab['count'] ?? 1)
-            );
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$name] activated $activated Energy; added $added card(s) from Waiting Room.");
-            break;
-
-
 
         case 'pick_yell_member':
             if (($ctx['phase'] ?? '') !== 'live_success') break;
@@ -577,11 +567,6 @@ function resolveAbilityEffectSwitch(
                 ' — [' . $name . '] choose Waiting Room Lives for opponent to pick.');
             break;
 
-        case 'on_enter_side_area':
-            $slot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
-            $state = applyOnEnterSideEffect($state, $pid, $p, $name, $ab, $slot);
-            break;
-
         case 'pick_named_members_grant_blade':
             if (!empty($state['pending_prompt'])) break;
             $candidates = [];
@@ -716,30 +701,6 @@ function resolveAbilityEffectSwitch(
             spBp2ClearEffectAreaMove($state);
             $state = addLog($state, $state['players'][$pid]['name'] .
                 ' — [' . $name . '] both players rotated Stage formation.');
-            break;
-
-
-        case 'on_enter_draw_swap_area':
-            $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$name] drew $drawn.");
-            if (!empty($state['pending_prompt'])) break;
-            $slots = [];
-            $mySlot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
-            foreach (['center', 'left', 'right'] as $s) {
-                if ($s !== $mySlot) $slots[] = $s;
-            }
-            $state['pending_prompt'] = [
-                'type'          => 'on_enter_draw_swap_area',
-                'owner'         => $pid,
-                'responder'     => $pid,
-                'source_id'     => $source['instance_id'] ?? '',
-                'source_slot'   => $mySlot,
-                'source_name'   => $name,
-                'slots'         => $slots,
-                'prompt'        => 'Choose an area to move this Member to (swap if occupied).',
-                'ability'       => $ab,
-            ];
             break;
 
 
