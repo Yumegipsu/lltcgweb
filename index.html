@@ -6931,6 +6931,7 @@ const A = {
   casualWaitSeconds: 0,
   casualWaitSecondsShown: null,
 };
+window.A = A;
 
 function boxById(boxId) {
   return A.boxes.find(b => b.id === boxId) || null;
@@ -14516,6 +14517,7 @@ let G = {
   deckPreviewPinned:false,
   deckPreviewCardNo:null,
 };
+window.G = G;
 
 // ── BOOT ─────────────────────────────────────────────
 (async () => {
