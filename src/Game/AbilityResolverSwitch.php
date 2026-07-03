@@ -15,6 +15,7 @@ require_once __DIR__ . '/AbilityResolverSwitchReduceHearts.php';
 require_once __DIR__ . '/AbilityResolverSwitchMandatoryDiscard.php';
 require_once __DIR__ . '/AbilityResolverSwitchBlade.php';
 require_once __DIR__ . '/AbilityResolverSwitchGrant.php';
+require_once __DIR__ . '/AbilityResolverSwitchAddFromWr.php';
 
 function resolveAbilityEffectSwitch(
     array $state,
@@ -86,6 +87,13 @@ function resolveAbilityEffectSwitch(
 
     if (str_starts_with($type, 'grant_')) {
         return tryResolveAbilityEffectSwitchGrant($state, $pid, $source, $ab, $ctx, $type, $p, $name);
+    }
+
+    if (str_starts_with($type, 'add_from_wr')
+        || str_starts_with($type, 'add_wr_live')
+        || $type === 'discard_add_from_wr'
+        || $type === 'both_add_wr_live_to_hand') {
+        return tryResolveAbilityEffectSwitchAddFromWr($state, $pid, $source, $ab, $ctx, $type, $p, $name);
     }
 
     switch ($type) {
@@ -308,26 +316,6 @@ function resolveAbilityEffectSwitch(
             }
             break;
 
-        case 'add_from_wr_max_cost':
-            $added = addFromWaitingRoomFiltered(
-                $p,
-                $ab['group'] ?? '',
-                $ab['filter'] ?? 'member',
-                intval($ab['count'] ?? 1),
-                intval($ab['max_cost'] ?? 2)
-            );
-            if ($added > 0) {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] added $added Member(s) from Waiting Room.");
-            } else {
-                $maxCost = intval($ab['max_cost'] ?? 2);
-                $group = $ab['group'] ?? '';
-                $groupLabel = $group !== '' ? $group . ' ' : '';
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] no matching {$groupLabel}Member (cost ≤$maxCost) in Waiting Room.");
-            }
-            break;
-
         case 'position_change_off_center':
             $group = $ab['group'] ?? 'μ\'s';
             $minBlades = intval($ab['min_original_blades'] ?? 0);
@@ -386,21 +374,6 @@ function resolveAbilityEffectSwitch(
             }
             break;
 
-
-        case 'add_from_wr_if_success_count':
-            if (count($p['success_lives'] ?? []) >= intval($ab['min_success_count'] ?? 2)) {
-                $added = addFromWaitingRoomFiltered(
-                    $p,
-                    $ab['group'] ?? '',
-                    $ab['filter'] ?? 'live',
-                    intval($ab['count'] ?? 1)
-                );
-                if ($added > 0) {
-                    $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] added $added Live card(s) from Waiting Room (2+ Success Lives).");
-                }
-            }
-            break;
 
         case 'if_baton_wr_add_live_not_self':
             if (empty($source['entered_via_baton'])) break;
@@ -472,45 +445,6 @@ function resolveAbilityEffectSwitch(
                 ' — [' . $name . '] choose a Yell card.');
             break;
 
-        case 'discard_add_from_wr':
-            return startEffectDiscardHandPrompt(
-                $state,
-                $pid,
-                $name,
-                intval($ab['discard'] ?? 1),
-                '',
-                ['then' => [
-                    'type'   => 'add_from_wr',
-                    'group'  => $ab['group'] ?? '',
-                    'filter' => $ab['filter'] ?? 'member',
-                    'count'  => intval($ab['count'] ?? 1),
-                ]]
-            );
-
-        case 'add_from_wr':
-            $extra = [];
-            if (isset($ab['min_score'])) {
-                $extra['min_score'] = intval($ab['min_score']);
-            }
-            if (isset($ab['min_live_score'])) {
-                $extra['min_live_score'] = intval($ab['min_live_score']);
-            }
-            $added = addFromWaitingRoomFiltered(
-                $p,
-                $ab['group'] ?? '',
-                $ab['filter'] ?? '',
-                intval($ab['count'] ?? 1),
-                isset($ab['max_cost']) ? intval($ab['max_cost']) : null,
-                $extra
-            );
-            if ($added > 0) {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] added $added card(s) from Waiting Room.");
-            }
-            break;
-
-
-
         case 'both_wr_member_to_empty_stage':
             $maxCost = intval($ab['max_cost'] ?? 2);
             foreach (['p1', 'p2'] as $id) {
@@ -570,18 +504,6 @@ function resolveAbilityEffectSwitch(
             $p['main_deck'] = array_merge(array_reverse($picked), $p['main_deck']);
             $state = addLog($state, $state['players'][$pid]['name'] .
                 " — [$name] put $pick Member(s) from Waiting Room on deck top.");
-            break;
-
-        case 'both_add_wr_live_to_hand':
-            foreach (['p1', 'p2'] as $id) {
-                $pl = &$state['players'][$id];
-                $added = addFromWaitingRoomFiltered($pl, '', 'live', 1);
-                if ($added > 0) {
-                    $state = addLog($state, $state['players'][$id]['name'] .
-                        " — [$name] added 1 Live card from Waiting Room to hand.");
-                }
-                unset($pl);
-            }
             break;
 
         case 'both_energy_wait_from_deck':
@@ -737,18 +659,6 @@ function resolveAbilityEffectSwitch(
                 unset($lc);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     ' — [' . $name . '] score set to ' . intval($ab['score'] ?? 4) . '.');
-            }
-            break;
-
-        case 'add_wr_live_if_opp_hand_ahead':
-            $opp = ($pid === 'p1') ? 'p2' : 'p1';
-            $diff = count($state['players'][$opp]['hand'] ?? []) - count($p['hand'] ?? []);
-            if ($diff >= intval($ab['min_hand_diff'] ?? 2)) {
-                $added = addFromWaitingRoomFiltered($p, '', 'live', intval($ab['count'] ?? 1));
-                if ($added > 0) {
-                    $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] added $added Live card(s) from Waiting Room (opponent hand +$diff).");
-                }
             }
             break;
 
@@ -1077,15 +987,6 @@ function resolveAbilityEffectSwitch(
             ];
             $state = addLog($state, $state['players'][$pid]['name'] .
                 ' — [' . $name . '] reveal hand Members (choose).');
-            break;
-
-        case 'add_wr_live_if_min_energy':
-            if (countEnergyInZone($p) < intval($ab['min_energy'] ?? 11)) break;
-            $added = addFromWaitingRoomFiltered($p, $ab['group'] ?? '', 'live', intval($ab['count'] ?? 1));
-            if ($added > 0) {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] added $added Live card(s) from Waiting Room.");
-            }
             break;
 
         case 'energy_wait_from_deck':
