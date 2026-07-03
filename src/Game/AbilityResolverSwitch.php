@@ -33,6 +33,7 @@ require_once __DIR__ . '/AbilityResolverSwitchPickYellMember.php';
 require_once __DIR__ . '/AbilityResolverSwitchFormationDiscarded.php';
 require_once __DIR__ . '/AbilityResolverSwitchMemberHeartsLiveSuccess.php';
 require_once __DIR__ . '/AbilityResolverSwitchYellAdjunct.php';
+require_once __DIR__ . '/AbilityResolverSwitchWrMemberStage.php';
 
 function resolveAbilityEffectSwitch(
     array $state,
@@ -195,6 +196,13 @@ function resolveAbilityEffectSwitch(
         return tryResolveAbilityEffectSwitchYellAdjunct($state, $pid, $source, $ab, $ctx, $type, $p, $name);
     }
 
+    if (in_array($type, [
+        'both_wr_member_to_empty_stage',
+        'play_wr_members_combined_cost',
+    ], true)) {
+        return tryResolveAbilityEffectSwitchWrMemberStage($state, $pid, $source, $ab, $ctx, $type, $p, $name);
+    }
+
     switch ($type) {
         case 'add_from_waiting_room':
             $candidates = array_values(array_filter($p['waiting_room'], function ($c) use ($ab) {
@@ -327,24 +335,6 @@ function resolveAbilityEffectSwitch(
             }
             break;
 
-        case 'both_wr_member_to_empty_stage':
-            $maxCost = intval($ab['max_cost'] ?? 2);
-            foreach (['p1', 'p2'] as $id) {
-                $placed = putWrMemberToEmptyStageWait($state['players'][$id], $maxCost);
-                if ($placed) {
-                    $m = $placed['member'];
-                    $state = addLog($state, $state['players'][$id]['name'] .
-                        ' — [' . $name . '] put ' . ($m['name_en'] ?? $m['name']) .
-                        ' from Waiting Room onto Stage in Wait.');
-                }
-            }
-            break;
-
-
-
-
-
-
         case 'turn_one_live_score_member_blade':
             if (intval($state['turn'] ?? 1) !== 1) {
                 break;
@@ -359,26 +349,6 @@ function resolveAbilityEffectSwitch(
                 " — [$name] score +1; $n Member(s) gained +" . intval($ab['blade'] ?? 1) . ' Blade (turn 1).');
             break;
 
-
-        case 'play_wr_members_combined_cost':
-            if (!empty($state['pending_prompt'])) break;
-            $cands = array_values(array_filter($p['waiting_room'], function ($c) use ($ab) {
-                return ($c['card_type'] ?? '') === 'メンバー'
-                    && cardMatchesGroup($c, $ab['group'] ?? '', 'member');
-            }));
-            if (empty($cands)) break;
-            $state['pending_prompt'] = [
-                'type'               => 'play_wr_members_combined_cost',
-                'owner'              => $pid,
-                'responder'          => $pid,
-                'source_name'        => $name,
-                'max_combined_cost'  => intval($ab['max_combined_cost'] ?? 4),
-                'max_count'          => intval($ab['count'] ?? 2),
-                'prompt'             => 'Choose Member(s) from Waiting Room (combined cost ≤' .
-                    intval($ab['max_combined_cost'] ?? 4) . ') to put on Stage in Wait.',
-                'ability'            => $ab,
-            ];
-            break;
 
     }
     return $state;
