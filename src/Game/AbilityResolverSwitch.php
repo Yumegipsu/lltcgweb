@@ -18,6 +18,7 @@ require_once __DIR__ . '/AbilityResolverSwitchGrant.php';
 require_once __DIR__ . '/AbilityResolverSwitchAddFromWr.php';
 require_once __DIR__ . '/AbilityResolverSwitchPlayerChoice.php';
 require_once __DIR__ . '/AbilityResolverSwitchBaton.php';
+require_once __DIR__ . '/AbilityResolverSwitchEnergyWait.php';
 
 function resolveAbilityEffectSwitch(
     array $state,
@@ -107,6 +108,12 @@ function resolveAbilityEffectSwitch(
         || $type === 'allows_double_baton'
         || str_starts_with($type, 'if_double_baton_')) {
         return tryResolveAbilityEffectSwitchBaton($state, $pid, $source, $ab, $ctx, $type, $p, $name);
+    }
+
+    if (str_starts_with($type, 'energy_wait_')
+        || str_starts_with($type, 'both_energy_wait_')
+        || str_starts_with($type, 'opp_energy_wait_')) {
+        return tryResolveAbilityEffectSwitchEnergyWait($state, $pid, $source, $ab, $ctx, $type, $p, $name);
     }
 
     switch ($type) {
@@ -408,19 +415,6 @@ function resolveAbilityEffectSwitch(
                 " — [$name] put $pick Member(s) from Waiting Room on deck top.");
             break;
 
-        case 'both_energy_wait_from_deck':
-            foreach (['p1', 'p2'] as $id) {
-                $pl = &$state['players'][$id];
-                if (putEnergyFromDeckInWait($pl)) {
-                    $state = addLog($state, $state['players'][$id]['name'] .
-                        " — [$name] put 1 Energy into Wait.");
-                }
-                unset($pl);
-            }
-            break;
-
-
-
         case 'turn_one_live_score_member_blade':
             if (intval($state['turn'] ?? 1) !== 1) {
                 break;
@@ -576,22 +570,6 @@ function resolveAbilityEffectSwitch(
             }
             break;
 
-        case 'opp_energy_wait_from_deck':
-            if (!empty($ab['skip_if_negated'])) {
-                foreach ($p['live_zone'] as $lc) {
-                    if ($lc && ($lc['instance_id'] ?? '') === ($source['instance_id'] ?? '')
-                        && !empty($lc['live_success_negated'])) {
-                        break 2;
-                    }
-                }
-            }
-            $opp = ($pid === 'p1') ? 'p2' : 'p1';
-            if (putEnergyFromDeckInWait($state['players'][$opp])) {
-                $state = addLog($state, $state['players'][$opp]['name'] .
-                    ' — [' . $name . '] put 1 Energy from Energy deck into Wait.');
-            }
-            break;
-
         case 'block_success_live_on_tie':
             $state = initLiveModifiers($state);
             $state['live_modifiers']['both']['block_success_live_on_tie'] = true;
@@ -647,37 +625,10 @@ function resolveAbilityEffectSwitch(
                 ' — [' . $name . '] choose Waiting Room Lives for opponent to pick.');
             break;
 
-        case 'energy_wait_if_group_only_min_energy':
-            if (stageAllMembersInGroup($p, $ab['group'] ?? '')
-                && countEnergyInZone($p) >= intval($ab['min_energy'] ?? 7)) {
-                $n = intval($ab['count'] ?? 1);
-                for ($i = 0; $i < $n; $i++) {
-                    putEnergyFromDeckInWait($p, $state, $pid);
-                }
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] put $n Energy into Wait (Liella! only, Energy threshold).");
-            }
-            break;
-
         case 'on_enter_side_area':
             $slot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
             $state = applyOnEnterSideEffect($state, $pid, $p, $name, $ab, $slot);
             break;
-
-        case 'energy_wait_if_baton_group_min_energy':
-            if (empty($source['entered_via_baton'])) break;
-            $batonGroup = $source['baton_from_group'] ?? '';
-            if ($batonGroup !== ($ab['group'] ?? '')) break;
-            if (countEnergyInZone($p) < intval($ab['min_energy'] ?? 7)) break;
-            $n = intval($ab['count'] ?? 2);
-            for ($i = 0; $i < $n; $i++) {
-                putEnergyFromDeckInWait($p, $state, $pid);
-            }
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$name] put $n Energy into Wait (Baton Touch + Energy).");
-            break;
-
-
 
         case 'set_center_group_hearts':
             $center = $p['stage']['center'] ?? null;
@@ -803,19 +754,6 @@ function resolveAbilityEffectSwitch(
             $state = addLog($state, $state['players'][$pid]['name'] .
                 ' — [' . $name . '] reveal hand Members (choose).');
             break;
-
-        case 'energy_wait_from_deck':
-            $n = intval($ab['count'] ?? 1);
-            $placed = 0;
-            for ($i = 0; $i < $n; $i++) {
-                if (putEnergyFromDeckInWait($p, $state, $pid)) $placed++;
-            }
-            if ($placed > 0) {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] put $placed Energy into Wait.");
-            }
-            break;
-
 
         case 'set_required_hearts_if_distinct_group':
             if (countDistinctGroupStageWr(
