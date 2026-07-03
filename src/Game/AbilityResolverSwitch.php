@@ -25,6 +25,7 @@ require_once __DIR__ . '/AbilityResolverSwitchOnEnter.php';
 require_once __DIR__ . '/AbilityResolverSwitchTreat.php';
 require_once __DIR__ . '/AbilityResolverSwitchPickNamedMembersGrant.php';
 require_once __DIR__ . '/AbilityResolverSwitchPayEnergy.php';
+require_once __DIR__ . '/AbilityResolverSwitchBlock.php';
 
 function resolveAbilityEffectSwitch(
     array $state,
@@ -146,6 +147,10 @@ function resolveAbilityEffectSwitch(
         return tryResolveAbilityEffectSwitchPayEnergy($state, $pid, $source, $ab, $ctx, $type, $p, $name);
     }
 
+    if (str_starts_with($type, 'block_')) {
+        return tryResolveAbilityEffectSwitchBlock($state, $pid, $source, $ab, $ctx, $type, $p, $name);
+    }
+
     switch ($type) {
         case 'add_from_waiting_room':
             $candidates = array_values(array_filter($p['waiting_room'], function ($c) use ($ab) {
@@ -246,12 +251,6 @@ function resolveAbilityEffectSwitch(
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] drew $drawn (opponent has a Member in Wait).");
             }
-            break;
-
-        case 'block_effect_member_activate_turn':
-            $state['block_effect_member_activate'] = true;
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$name] Members cannot become Active by effects this turn.");
             break;
 
         case 'reveal_hand_look_live_if_no_live':
@@ -522,13 +521,6 @@ function resolveAbilityEffectSwitch(
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     ' — [' . $name . '] Live Success ability negated (Aqours stage hearts).');
             }
-            break;
-
-        case 'block_success_live_on_tie':
-            $state = initLiveModifiers($state);
-            $state['live_modifiers']['both']['block_success_live_on_tie'] = true;
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                ' — [' . $name . '] if Live scores tie, neither player adds Success Lives this turn.');
             break;
 
         case 'reduce_yell_reveal_count':
