@@ -932,5 +932,5 @@ function tryResolveAbilityEffectSwitchOptional(
             break;
 
     }
-    return null;
+    return $state;
 }
