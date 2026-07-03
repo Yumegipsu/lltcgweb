@@ -19,6 +19,7 @@ require_once __DIR__ . '/AbilityResolverSwitchAddFromWr.php';
 require_once __DIR__ . '/AbilityResolverSwitchPlayerChoice.php';
 require_once __DIR__ . '/AbilityResolverSwitchBaton.php';
 require_once __DIR__ . '/AbilityResolverSwitchEnergyWait.php';
+require_once __DIR__ . '/AbilityResolverSwitchSet.php';
 
 function resolveAbilityEffectSwitch(
     array $state,
@@ -114,6 +115,10 @@ function resolveAbilityEffectSwitch(
         || str_starts_with($type, 'both_energy_wait_')
         || str_starts_with($type, 'opp_energy_wait_')) {
         return tryResolveAbilityEffectSwitchEnergyWait($state, $pid, $source, $ab, $ctx, $type, $p, $name);
+    }
+
+    if (str_starts_with($type, 'set_')) {
+        return tryResolveAbilityEffectSwitchSet($state, $pid, $source, $ab, $ctx, $type, $p, $name);
     }
 
     switch ($type) {
@@ -498,28 +503,6 @@ function resolveAbilityEffectSwitch(
             ];
             break;
 
-        case 'set_live_score_if_yell_or_excess':
-            $noBlade = true;
-            foreach ($state['_last_yell_cards'] ?? [] as $yc) {
-                if (!empty($yc['blade_hearts'])) {
-                    $noBlade = false;
-                    break;
-                }
-            }
-            $excessOk = intval($ctx['excess_hearts'] ?? 0) >= intval($ab['min_excess_hearts'] ?? 2);
-            if ($noBlade || $excessOk) {
-                foreach ($p['live_zone'] as &$lc) {
-                    if ($lc && ($lc['instance_id'] ?? '') === ($source['instance_id'] ?? '')) {
-                        $lc['score'] = intval($ab['score'] ?? 4);
-                        break;
-                    }
-                }
-                unset($lc);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] score set to ' . intval($ab['score'] ?? 4) . '.');
-            }
-            break;
-
         case 'opp_may_discard_or_modifier':
             if (!empty($state['pending_prompt'])) {
                 break;
@@ -630,29 +613,6 @@ function resolveAbilityEffectSwitch(
             $state = applyOnEnterSideEffect($state, $pid, $p, $name, $ab, $slot);
             break;
 
-        case 'set_center_group_hearts':
-            $center = $p['stage']['center'] ?? null;
-            if ($center && ($center['group'] ?? '') === ($ab['group'] ?? '')) {
-                $cnt = intval($ab['heart_count'] ?? 3);
-                $center['printed_heart_override'] = $cnt;
-                $p['stage']['center'] = $center;
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] Center Member printed hearts set to $cnt.");
-            }
-            break;
-
-        case 'set_center_group_blades':
-            $center = $p['stage']['center'] ?? null;
-            if ($center && ($center['group'] ?? '') === ($ab['group'] ?? '')) {
-                $cnt = intval($ab['blade_count'] ?? 3);
-                $center['printed_blade_override'] = $cnt;
-                $p['stage']['center'] = $center;
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] Center Member printed Blades set to $cnt.");
-            }
-            break;
-
-
         case 'pick_named_members_grant_blade':
             if (!empty($state['pending_prompt'])) break;
             $candidates = [];
@@ -753,25 +713,6 @@ function resolveAbilityEffectSwitch(
             ];
             $state = addLog($state, $state['players'][$pid]['name'] .
                 ' — [' . $name . '] reveal hand Members (choose).');
-            break;
-
-        case 'set_required_hearts_if_distinct_group':
-            if (countDistinctGroupStageWr(
-                $p,
-                $ab['group'] ?? '',
-                $ab['filter'] ?? 'member'
-            ) < intval($ab['min_distinct'] ?? 5)) {
-                break;
-            }
-            foreach ($p['live_zone'] as &$lc) {
-                if ($lc && ($lc['instance_id'] ?? '') === ($source['instance_id'] ?? '')) {
-                    $lc['required_hearts'] = $ab['hearts'] ?? [];
-                    break;
-                }
-            }
-            unset($lc);
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                ' — [' . $name . '] Required Hearts modified (distinct group).');
             break;
 
         case 'formation_rotate_all':
