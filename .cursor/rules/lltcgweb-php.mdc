@@ -21,7 +21,8 @@ Procedural `require_once` modules loaded from `effects.php` (global functions, n
 | `ZoneMovement.php` | Deck/hand/WR zone moves |
 | `LiveModifiers.php` | `live_modifiers` state, `applyModifierEffect` |
 | `LiveScoreBonus.php` | `getLiveScoreBonus`, `getLiveScoreBonusBreakdown`, `collectActiveContinuousEffects` — Performance score + HUD |
-| `AbilityResolver.php` | `resolveAbilityEffect` type switch |
+| `AbilityResolver.php` | `resolveAbilityEffect` orchestrator + set-module delegation |
+| `AbilityResolverSwitch.php` | Core `switch` over 237 ability `type` values |
 | `PromptResolver.php` | `actionResolvePrompt` — client `resolve_prompt` completion |
 | `ActivateAbility.php` | `actionActivateAbility` — client `activate_ability` and WR on-enter activate |
 | `LiveStartEffects.php` | `beginLiveStartEffectPhase`, `actionLiveStartChoice`, `finishLiveStartEffects`, optional Live Start queue |

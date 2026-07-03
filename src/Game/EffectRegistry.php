@@ -14,7 +14,7 @@ final class EffectRegistry
             return $types;
         }
         $root = dirname(__DIR__, 2);
-        $src = (string)file_get_contents($root . '/src/Game/AbilityResolver.php');
+        $src = (string)file_get_contents($root . '/src/Game/AbilityResolverSwitch.php');
         if (!preg_match_all("/case '([a-z0-9_]+)':/", $src, $m)) {
             $types = [];
             return $types;

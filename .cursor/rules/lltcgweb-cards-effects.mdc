@@ -15,7 +15,7 @@ alwaysApply: false
 
 ## Effect registry
 
-Known types are discovered from `src/Game/AbilityResolver.php` via `LLTCG\Game\EffectRegistry`. New core `type` strings must add a `case` in `resolveAbilityEffect` there (or set module if set-specific).
+Known types are discovered from `src/Game/AbilityResolverSwitch.php` via `LLTCG\Game\EffectRegistry`. New core `type` strings must add a `case` in `resolveAbilityEffectSwitch` there (or set module if set-specific).
 
 ## Live modifiers
 
