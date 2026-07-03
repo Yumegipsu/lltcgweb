@@ -14,7 +14,6 @@
   /* Hide debug/article-like screens before JS — keeps Firefox Reader View from surfacing them on refresh. */
   html[data-tcg-app] .screen[hidden]{display:none!important}
   html:not([data-tcg-debug]) #screen-debug-card-test,
-  html:not([data-tcg-debug]) #screen-debug-replay,
   html:not([data-tcg-debug]) #screen-bug-reports{display:none!important;visibility:hidden!important}
 </style>
 <script>
@@ -1103,6 +1102,9 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   font-size:11px;font-weight:700;color:rgba(255,255,255,.85);min-width:72px;text-align:center;
 }
 .replay-control-bar button{font-size:11px;padding:6px 10px}
+.replay-control-bar input[type=range]{
+  flex:1 1 240px;min-width:180px;max-width:min(54vw,420px);accent-color:var(--pink);
+}
 .replay-control-bar .replay-handoff-note{
   font-size:10px;color:rgba(186,228,255,.75);width:100%;text-align:center;margin:0;
 }
@@ -5323,10 +5325,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
             <span class="llc-menu-item-sub">Debug only — place a card by ID vs CPU</span>
           </span>
         </button>
-        <button class="llc-menu-item llc-menu-hover tcg-debug-only" id="btn-auth-debug-replay" type="button" hidden>
+        <button class="llc-menu-item llc-menu-hover" id="btn-auth-debug-replay" type="button">
           <span class="llc-menu-item-body">
-            <span class="llc-menu-item-title">Debug Replay</span>
-            <span class="llc-menu-item-sub">Guests only — load a saved replay file</span>
+            <span class="llc-menu-item-title">Replay Viewer</span>
+            <span class="llc-menu-item-sub">Load a saved match replay and watch it in realtime</span>
           </span>
         </button>
         <button class="llc-menu-item llc-menu-hover" id="btn-auth-tutorial" type="button">
@@ -5603,22 +5605,22 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<!-- ══ DEBUG REPLAY (guest + ?debug) ══ -->
-<div id="screen-debug-replay" class="screen llc-menu-screen tcg-debug-only" hidden aria-hidden="true">
+<!-- ══ REPLAY VIEWER ══ -->
+<div id="screen-debug-replay" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="account-shell">
     <div class="logo">
       <img class="logo-img" src="tcglogo.png" alt="">
       <div class="logo-foot">
         <span class="logo-version">v0.1.1</span>
-        <p class="logo-tagline">Debug — Replay</p>
+        <p class="logo-tagline">Replay Viewer</p>
       </div>
     </div>
     <div class="panel account-panel">
       <div class="llc-menu-back-row">
         <button class="btn-ghost" id="btn-debug-replay-back" type="button">← Back</button>
       </div>
-      <h2>Debug Replay</h2>
-      <p class="account-lead">Load a <code>.json</code> replay saved from an in-progress match (<strong>Save replay</strong> in the sidebar while <code>?debug</code> is on). Step through recorded actions, then take control as the saver vs CPU. Requires <code>?debug</code> and a <strong>guest</strong> session (signed out).</p>
+      <h2>Replay Viewer</h2>
+      <p class="account-lead">Load a <code>.json</code> replay saved after a match. Playback follows the saved action timing, and the seekbar can jump to any point in the replay.</p>
       <div class="field">
         <label for="inp-replay-file">Replay file</label>
         <input type="file" id="inp-replay-file" accept=".json,application/json">
@@ -6325,12 +6327,9 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div><!-- /screen-game -->
 
 <div id="replay-control-bar" class="replay-control-bar" hidden aria-hidden="true">
-  <button type="button" class="btn-ghost" id="btn-replay-first" title="Jump to start">⏮</button>
-  <button type="button" class="btn-ghost" id="btn-replay-prev" title="Previous step">◀</button>
   <button type="button" class="btn-ghost" id="btn-replay-play" title="Play / Pause">▶</button>
-  <button type="button" class="btn-ghost" id="btn-replay-next" title="Next step">⏩</button>
-  <button type="button" class="btn-ghost" id="btn-replay-last" title="Jump to end / take control">⏭</button>
-  <span class="replay-step-label" id="replay-step-label">0 / 0</span>
+  <input type="range" id="replay-step-range" min="0" max="0" value="0" step="1" aria-label="Replay position">
+  <span class="replay-step-label" id="replay-step-label">0 / 0 · 0:00</span>
   <p class="replay-handoff-note" id="replay-handoff-note" hidden>Replay complete — you have control. CPU plays the opponent.</p>
 </div>
 
@@ -6758,6 +6757,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   <div class="wstats" id="wstats"></div>
   <div class="win-actions">
     <button class="btn-grad" id="btn-again" style="width:auto;padding:13px 36px;font-size:17px" data-i18n="win.playAgain">Play Again</button>
+    <button class="btn-out" id="btn-win-save-replay" type="button">Save Replay</button>
     <button class="btn-out" id="btn-win-hub" type="button" data-i18n="win.returnMenu">Return to Menu</button>
     <button class="btn-out" id="btn-win-leaderboard" type="button" hidden>View Leaderboard</button>
   </div>
@@ -6775,7 +6775,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/api-client.js?v=2"></script>
 <script src="client/js/game-sync.js?v=3"></script>
 <script src="client/js/state-apply.js?v=2"></script>
-<script src="client/js/replay-debug.js?v=2"></script>
+<script src="client/js/replay-debug.js?v=3"></script>
 <script src="client/js/prompt-renderer.js?v=4"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -10986,21 +10986,19 @@ function renderReplayFileMeta(replay) {
   }
   const m = replay.meta;
   const actionCount = Array.isArray(replay.actions) ? replay.actions.length : 0;
+  const duration = Number(m.duration_seconds || 0);
   node.textContent = [
     `Saver: ${m.saver_name || m.saver_player_id || '?'}`,
     `Perspective: ${m.saver_player_id || '?'}`,
     `Saved: ${m.saved_at || '?'}`,
     `Snapshot: turn ${m.turn ?? '?'}, phase ${m.phase || '?'}`,
+    duration > 0 ? `Duration: ${formatReplayElapsed(duration)}` : null,
     `Actions: ${actionCount}`,
-  ].join(' · ');
+  ].filter(Boolean).join(' · ');
   if (startBtn) startBtn.disabled = actionCount < 0;
 }
 
 function openDebugReplayScreen() {
-  if (!replayLoadEnabled()) {
-    toast('Debug replay requires ?debug while signed out.');
-    return;
-  }
   el('debug-replay-err').textContent = '';
   G._pendingReplayFile = null;
   renderReplayFileMeta(null);
@@ -11026,10 +11024,6 @@ async function onReplayFileSelected(file) {
 }
 
 async function startDebugReplayFromFile() {
-  if (!replayLoadEnabled()) {
-    toast('Debug replay requires ?debug while signed out.');
-    return;
-  }
   const replay = G._pendingReplayFile;
   if (!replay) {
     el('debug-replay-err').textContent = 'Choose a replay file first.';
@@ -11037,7 +11031,7 @@ async function startDebugReplayFromFile() {
   }
   el('debug-replay-err').textContent = '';
   try {
-    const r = await apiPost('replay_start', { debug_mode: true, replay });
+    const r = await apiPost('replay_start', { replay });
     if (r.error) throw new Error(r.error);
     await bootMatchSession({
       roomId: r.room_id,
@@ -11047,12 +11041,15 @@ async function startDebugReplayFromFile() {
       cpuToken: r.cpu_token,
     });
     stopReplayAutoPlay();
+    G.replayTimeline = replayTimingFromActions(replay.actions);
+    G.replayLoadedMeta = replay.meta || null;
     G.replayMode = true;
     G.replayHandoff = false;
     G.replayStep = 0;
     G.replayTotal = r.total_steps ?? (replay.actions?.length || 0);
     syncReplayControlBar();
     toast(`Replay loaded — ${G.replayTotal} action(s)`, 2800);
+    if (G.replayTotal > 0) scheduleReplayAutoPlay();
   } catch (e) {
     el('debug-replay-err').textContent = e.message || 'Could not start replay';
   }
@@ -11077,7 +11074,13 @@ function syncReplayControlBar() {
   bar.setAttribute('aria-hidden', active ? 'false' : 'true');
   const label = el('replay-step-label');
   if (label) {
-    label.textContent = `${G.replayStep} / ${G.replayTotal}`;
+    label.textContent = `${G.replayStep} / ${G.replayTotal} · ${formatReplayElapsed(replayElapsedSeconds(G.replayStep))}`;
+  }
+  const range = el('replay-step-range');
+  if (range) {
+    range.max = String(Math.max(0, G.replayTotal || 0));
+    range.value = String(Math.max(0, Math.min(G.replayStep || 0, G.replayTotal || 0)));
+    range.disabled = !inReplay;
   }
   const note = el('replay-handoff-note');
   if (note) note.hidden = !G.replayHandoff;
@@ -11088,6 +11091,32 @@ function syncReplayControlBar() {
     btn.disabled = !inReplay;
   });
   if (playBtn) playBtn.disabled = !inReplay || G.replayStep >= G.replayTotal;
+}
+
+function formatReplayElapsed(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const mins = Math.floor(total / 60);
+  const secs = total % 60;
+  return `${mins}:${String(secs).padStart(2, '0')}`;
+}
+
+function replayElapsedSeconds(step) {
+  const timeline = Array.isArray(G.replayTimeline) ? G.replayTimeline : [];
+  const idx = Math.max(0, Math.min(Number(step) || 0, timeline.length)) - 1;
+  if (idx < 0 || !timeline.length) return 0;
+  const firstTs = Number(timeline[0]?.ts || 0);
+  const curTs = Number(timeline[idx]?.ts || 0);
+  if (firstTs <= 0 || curTs <= 0) return 0;
+  return Math.max(0, curTs - firstTs);
+}
+
+function replayDelayMsForNextStep(nextStep) {
+  const timeline = Array.isArray(G.replayTimeline) ? G.replayTimeline : [];
+  const idx = Math.max(0, Number(nextStep) - 1);
+  if (idx <= 0 || !timeline[idx]) return 700;
+  const delta = Number(timeline[idx]?.delta || 0);
+  if (!Number.isFinite(delta) || delta <= 0) return 700;
+  return Math.max(350, Math.min(delta * 1000, 120000));
 }
 
 function stopReplayAutoPlay() {
@@ -11104,20 +11133,20 @@ function scheduleReplayAutoPlay() {
   if (!isReplayViewing()) return;
   G.replayPlaying = true;
   syncReplayControlBar();
-  const tick = async () => {
+  const tick = () => {
     if (!G.replayPlaying || !isReplayViewing()) return;
     if (G.replayStep >= G.replayTotal) {
       stopReplayAutoPlay();
       return;
     }
-    await replayGotoStep(G.replayStep + 1);
-    if (G.replayPlaying && isReplayViewing() && G.replayStep < G.replayTotal) {
-      G.replayPlayTimer = setTimeout(tick, 900);
-    } else {
-      stopReplayAutoPlay();
-    }
+    const nextStep = G.replayStep + 1;
+    G.replayPlayTimer = setTimeout(async () => {
+      await replayGotoStep(nextStep, { keepPlaying: true });
+      if (G.replayPlaying && isReplayViewing() && G.replayStep < G.replayTotal) tick();
+      else stopReplayAutoPlay();
+    }, replayDelayMsForNextStep(nextStep));
   };
-  G.replayPlayTimer = setTimeout(tick, 900);
+  tick();
 }
 
 function toggleReplayAutoPlay() {
@@ -11126,10 +11155,10 @@ function toggleReplayAutoPlay() {
   else scheduleReplayAutoPlay();
 }
 
-async function replayGotoStep(step) {
+async function replayGotoStep(step, opts = {}) {
   if (!isReplayViewing()) return;
   if (!G.roomId || !G.token) return;
-  stopReplayAutoPlay();
+  if (!opts.keepPlaying) stopReplayAutoPlay();
   try {
     const r = await apiPost('replay_goto', {
       room_id: G.roomId,
@@ -11158,6 +11187,7 @@ async function replayGotoStep(step) {
       armWatchdog(G.gameState);
     }
   } catch (e) {
+    if (opts.keepPlaying) stopReplayAutoPlay();
     toast(e.message || 'Replay step failed', 4200);
   }
 }
@@ -11816,6 +11846,8 @@ function resetMatchTransientState() {
   G.replayHandoff = false;
   G.replayStep = 0;
   G.replayTotal = 0;
+  G.replayTimeline = null;
+  G.replayLoadedMeta = null;
   G.isSpectator = false;
   G._spectateP1Name = null;
   G._spectateP2Name = null;
@@ -14445,6 +14477,7 @@ function setCardDetailImage(card) {
 let G = {
   roomId:null, token:null, cpuToken:null, playerId:null, isCPU:false, cpuDifficulty:'easy',
   replayMode:false, replayHandoff:false, replayStep:0, replayTotal:0, replayPlaying:false, replayPlayTimer:null,
+  replayTimeline:null, replayLoadedMeta:null,
   isSpectator:false, _spectateReturnScreen:'lobby', _spectateP1Name:null, _spectateP2Name:null,
   cpuPlayerId:null,
   _pendingReplayFile:null,
@@ -14561,7 +14594,10 @@ window.G = G;
   on('btn-auth-debug-card-test', 'click', openDebugCardTestScreen);
   on('btn-auth-debug-replay', 'click', openDebugReplayScreen);
   on('btn-auth-tutorial', 'click', startTutorial);
-  on('btn-debug-replay-back', 'click', () => showGuestAuth(null, 'auth.guestPlayHint'));
+  on('btn-debug-replay-back', 'click', () => {
+    if (A.profile) enterHub(A.profile);
+    else showGuestAuth(null, 'auth.guestPlayHint');
+  });
   on('inp-replay-file', 'change', (e) => onReplayFileSelected(e.target.files?.[0] || null));
   on('btn-debug-replay-start', 'click', startDebugReplayFromFile);
   on('btn-debug-save-replay', 'click', saveReplayFile);
@@ -14570,6 +14606,7 @@ window.G = G;
   on('btn-replay-next', 'click', () => replayGotoStep(Math.min(G.replayTotal, G.replayStep + 1)));
   on('btn-replay-last', 'click', () => replayGotoStep(G.replayTotal));
   on('btn-replay-play', 'click', toggleReplayAutoPlay);
+  on('replay-step-range', 'change', (e) => replayGotoStep(Number(e.target?.value || 0)));
   on('btn-debug-card-test-back', 'click', () => showGuestAuth(null, 'auth.guestPlayHint'));
   on('btn-debug-card-test-start', 'click', startDebugCardTest);
   document.querySelectorAll('#screen-debug-card-test .debug-stage-select').forEach((sel) => {
@@ -15114,6 +15151,7 @@ window.G = G;
   on('btn-debug-save-log', 'click', onDebugSaveLogClick);
   on('btn-debug-copy-log', 'click', onDebugCopyLogClick);
   on('btn-win-debug-save-replay', 'click', saveReplayFile);
+  on('btn-win-save-replay', 'click', saveReplayFile);
   on('btn-win-debug-save-log', 'click', onDebugSaveLogClick);
   on('btn-win-debug-copy-log', 'click', onDebugCopyLogClick);
   on('btn-win-debug-save-bundle', 'click', () => { void saveDebugBundle(); });
@@ -34230,7 +34268,7 @@ function showWin(s){
   G.lastFinishedMode = s.mode || null;
   G.lastFinishedPvp = pvp;
   G.lastFinishedRematch = captureRematchSettings(s);
-  if (TCG_DEBUG.on && G.roomId && G.token && !G.isTutorial && !G.replayMode) {
+  if (G.roomId && G.token && !G.isTutorial && !G.replayMode) {
     G.lastFinishedExport = {
       roomId: G.roomId,
       token: G.token,
@@ -34265,6 +34303,7 @@ function showWin(s){
   });
   el('btn-win-hub').hidden = false;
   el('btn-win-leaderboard').hidden = !(pvp && s.mode === 'ranked');
+  el('btn-win-save-replay').hidden = !replaySaveEnabled();
   el('btn-again').textContent = (pvp && (s.mode === 'ranked' || G.casualRandomMatch)) ? t('win.findAnother') : t('win.playAgain');
   syncWinDebugTools(s);
   el('overlay-win').classList.add('open');
@@ -35917,7 +35956,7 @@ function el(id){ return document.getElementById(id); }
 function on(id,ev,fn){ el(id)?.addEventListener(ev,fn); }
 function showScr(n){
   const prevActive=document.querySelector('.screen.active')?.id;
-  if ((n === 'debug-card-test' || n === 'debug-replay' || n === 'bug-reports') && !debugCardTestEnabled()) {
+  if ((n === 'debug-card-test' || n === 'bug-reports') && !debugCardTestEnabled()) {
     n = 'auth';
   }
   if (n !== 'game') clearCenterBannerQueue();

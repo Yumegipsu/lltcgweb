@@ -1,5 +1,5 @@
 /**
- * Debug replay export/load helpers (?debug mode).
+ * Replay export/load helpers.
  */
 (function (global) {
   'use strict';
@@ -9,7 +9,7 @@
   };
 
   global.replayLoadEnabled = function replayLoadEnabled() {
-    return global.debugCardTestEnabled() && !global.isSignedInAccount();
+    return true;
   };
 
   global.getReplayExportCredentials = function getReplayExportCredentials() {
@@ -20,7 +20,7 @@
   };
 
   global.replaySaveEnabled = function replaySaveEnabled() {
-    return global.debugCardTestEnabled() && !!global.getReplayExportCredentials() && !global.G?.isTutorial && !global.G?.replayMode;
+    return !!global.getReplayExportCredentials() && !global.G?.isTutorial && !global.G?.replayMode;
   };
 
   global.downloadJsonFile = function downloadJsonFile(filename, data) {
@@ -35,19 +35,18 @@
 
   global.saveReplayFile = async function saveReplayFile() {
     if (!global.replaySaveEnabled()) {
-      global.toast('Save replay needs ?debug and an active match.');
+      global.toast('Save replay is available after the match finishes.');
       return;
     }
     const creds = global.getReplayExportCredentials();
     if (!creds) {
-      global.toast('Save replay needs ?debug and an active match.');
+      global.toast('No match credentials found for replay export.');
       return;
     }
     try {
       const r = await global.apiPost('replay_export', {
         room_id: creds.roomId,
         token: creds.token,
-        debug_mode: true,
       });
       if (r.error) throw new Error(r.error);
       const replay = r.replay;
@@ -62,8 +61,23 @@
   };
 
   global.syncDebugReplayButtons = function syncDebugReplayButtons(forceShow) {
-    const show = forceShow === true || global.TCG_DEBUG?.on === true;
     const replayBtn = document.getElementById('btn-auth-debug-replay');
-    if (replayBtn) replayBtn.hidden = !(show && !global.isSignedInAccount());
+    if (replayBtn) replayBtn.hidden = false;
+  };
+
+  global.replayTimingFromActions = function replayTimingFromActions(actions) {
+    if (!Array.isArray(actions)) return [];
+    return actions.map((a, idx) => {
+      const ts = Number(a?.ts || 0);
+      const prevTs = idx > 0 ? Number(actions[idx - 1]?.ts || 0) : 0;
+      const delta = ts > 0 && prevTs > 0 ? Math.max(0, ts - prevTs) : 0;
+      return {
+        step: idx + 1,
+        ts,
+        delta,
+        player: a?.player || '',
+        type: a?.type || '',
+      };
+    });
   };
 })(window);

@@ -12,6 +12,13 @@ function assertReplayDebugAllowed(array $body): void {
     }
 }
 
+function assertReplayExportAllowed(array $body, array $state): void {
+    if (($state['status'] ?? '') === 'finished') {
+        return;
+    }
+    assertReplayDebugAllowed($body);
+}
+
 function replayShouldRecordActions(array $state): bool {
     $mode = $state['mode'] ?? '';
     if ($mode === 'replay_view') {
@@ -102,10 +109,31 @@ function buildReplayExportPayload(array $state, string $saverPid): array {
             'client_version'   => '0.1.1',
             'mode'             => $state['mode'] ?? null,
             'cpu_difficulty'   => $state['cpu_difficulty'] ?? null,
+            'timing_source'    => !empty($state['phase_timer']) ? 'phase_timer' : 'action_timestamps',
+            'duration_seconds' => replayDurationSeconds($actions),
         ],
         'baseline' => $baseline,
         'actions'  => $actions,
     ];
+}
+
+function replayDurationSeconds(array $actions): int {
+    $first = null;
+    $last = null;
+    foreach ($actions as $a) {
+        $ts = intval($a['ts'] ?? 0);
+        if ($ts <= 0) {
+            continue;
+        }
+        if ($first === null) {
+            $first = $ts;
+        }
+        $last = $ts;
+    }
+    if ($first === null || $last === null) {
+        return 0;
+    }
+    return max(0, $last - $first);
 }
 
 function replayRestoreFromBaseline(
@@ -155,7 +183,6 @@ function replayApplyActionsThrough(array $state, array $actions, int $step): arr
 }
 
 function apiReplayExport(array $body): array {
-    assertReplayDebugAllowed($body);
     $roomId = strtoupper(trim((string)($body['room_id'] ?? '')));
     $token = (string)($body['token'] ?? '');
     if ($roomId === '' || $token === '') {
@@ -169,6 +196,7 @@ function apiReplayExport(array $body): array {
     if (!$playerId) {
         throw new Exception('Invalid player token');
     }
+    assertReplayExportAllowed($body, $state);
     if (($state['mode'] ?? '') === 'replay_view') {
         throw new Exception('Cannot export from a replay viewer room');
     }
@@ -183,7 +211,6 @@ function apiReplayExport(array $body): array {
 }
 
 function apiReplayStart(array $body): array {
-    assertReplayDebugAllowed($body);
     $replay = $body['replay'] ?? null;
     if (!is_array($replay)) {
         throw new Exception('replay object required');
@@ -211,7 +238,7 @@ function apiReplayStart(array $body): array {
         'step'      => 0,
         'handoff'   => false,
     ];
-    $state = addLog($state, 'Replay loaded — ' . count($actions) . ' action(s). Use replay controls to step.');
+    $state = addLog($state, 'Replay loaded — ' . count($actions) . ' action(s). Use replay controls to play or seek.');
     $state['seq']++;
 
     saveGame($roomId, $state);
@@ -234,6 +261,7 @@ function apiReplayGoto(array $body): array {
     $roomId = strtoupper(trim((string)($body['room_id'] ?? '')));
     $token = (string)($body['token'] ?? '');
     $step = intval($body['step'] ?? -1);
+    $wantsHandoff = !empty($body['handoff']);
     if ($roomId === '' || $token === '') {
         throw new Exception('room_id and token required');
     }
@@ -241,7 +269,7 @@ function apiReplayGoto(array $body): array {
         throw new Exception('step required');
     }
 
-    return withLock($roomId, function () use ($roomId, $token, $step) {
+    return withLock($roomId, function () use ($roomId, $token, $step, $wantsHandoff) {
         $state = loadGame($roomId);
         if (!$state) {
             throw new Exception('Room not found');
@@ -274,7 +302,7 @@ function apiReplayGoto(array $body): array {
         $newState['cpu_difficulty'] = $cpuDiff;
         $newState = replayApplyActionsThrough($newState, $actions, $step);
 
-        $handoff = ($step >= $maxStep);
+        $handoff = $wantsHandoff && $step >= $maxStep;
         if ($handoff) {
             unset($newState['replay']);
             $newState['mode'] = null;
