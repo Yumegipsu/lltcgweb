@@ -8255,6 +8255,7 @@ function prepareClientReconnectState(s) {
   G._deferredHandDrawIids = null;
   G._deferPerfSpectaclePrev = null;
   G._livePostRevealBoard = null;
+  G._liveStorageOutcomePending = false;
   G._livePollHold = false;
   G._liveRoundPlaybackActive = false;
   G._liveRoundPostSpectacleReady = false;
@@ -11446,6 +11447,7 @@ function finalizeReplayHandoff(s) {
   primePerfSpectacleDoneKeysFromLog(s);
   G._deferPerfSpectaclePrev = null;
   G._livePostRevealBoard = null;
+  G._liveStorageOutcomePending = false;
   G._liveRoundPlaybackActive = false;
   G._liveRoundPostSpectacleReady = false;
   G._liveSpectacleGateRunning = false;
@@ -12102,6 +12104,7 @@ function abortGameplayPresentation(opts = {}) {
   G._deferredHandDrawIids = null;
   G._animHideIids = null;
   G._livePostRevealBoard = null;
+  G._liveStorageOutcomePending = false;
   G._liveRevealFlips = new Set();
   G.animating = false;
   G._livePollHold = false;
@@ -14760,6 +14763,7 @@ let G = {
   _livePollHold:false,
   _liveRoundPlaybackActive:false,
   _liveRoundPostSpectacleReady:false,
+  _liveStorageOutcomePending:false,
   _liveSetStorageBaseline:null,
   _emptyLiveRoundPresentedTurns:null,
   _deferredLiveState:null,
@@ -17782,6 +17786,7 @@ function filterLiveStorageDeferredMoves(prev, moves, next) {
 }
 
 function liveStorageOutcomePlaybackPending(prev, next) {
+  if (G._liveStorageOutcomePending) return true;
   if (!prev || !next) return false;
   if (isEmptyLiveSkipTransition(prev, next) || isMemberOnlyLiveStorageRound(prev, next)) return false;
   if (G._liveRoundPlaybackActive || G._perfSpectacleActive || G._liveSpectacleGateRunning) return true;
@@ -18117,15 +18122,43 @@ function syncLiveStorageSlotsFromState(state, myId) {
   renderLiveSlots('opp', state?.players?.[oppId]?.live_zone || [], false, oppId);
 }
 
-/** Live storage zone for renderGame — keeps post-reveal cards visible until WR flights start. */
+/** Live storage zone for renderGame — keeps post-reveal cards visible until WR/success flights. */
 function liveZoneForRender(s, pid) {
   const current = clampLiveZoneCards(s?.players?.[pid]?.live_zone || []);
   if (G._liveWrDiscardInProgress) return current;
-  if (G._deferredLiveState && G._livePostRevealBoard?.players?.[pid]) {
-    const held = clampLiveZoneCards(G._livePostRevealBoard.players[pid].live_zone || []);
-    if (held.length > current.length) return held;
-  }
+  const heldRaw = G._livePostRevealBoard?.players?.[pid]?.live_zone;
+  if (!heldRaw?.length) return current;
+  const held = clampLiveZoneCards(heldRaw);
+  if (G._liveStorageOutcomePending || held.length > current.length) return held;
+  if (G._deferredLiveState && held.length > current.length) return held;
   return current;
+}
+
+function ensureLivePostRevealBoardSnapshot(fallbackState) {
+  if (G._livePostRevealBoard && liveStorageHasCards(G._livePostRevealBoard)) return;
+  const candidates = [G.gameState, G._deferredLiveState, fallbackState].filter(Boolean);
+  for (const src of candidates) {
+    if (liveStorageHasCards(src)) {
+      G._livePostRevealBoard = deepCloneState(src);
+      return;
+    }
+  }
+}
+
+/** After performance: keep live storage on the mat while post-live prompts resolve. */
+function holdLiveRoundBoardForPrompts(next, myId) {
+  G._liveStorageOutcomePending = true;
+  G._deferredLiveState = next;
+  ensureLivePostRevealBoardSnapshot(next);
+  const skipPrompt = shouldDeferPromptForLivePresentation(next, myId);
+  G.gameState = next;
+  renderGame(next, { skipLog: true, skipPrompt });
+}
+
+function commitLiveRoundAfterOutcomes(fallback) {
+  G._liveStorageOutcomePending = false;
+  G._livePostRevealBoard = null;
+  commitDeferredLiveState(fallback || G.gameState);
 }
 
 /** Reveal destination card under the fading flight ghost (avoids blank gap before flip). */
@@ -25570,7 +25603,7 @@ function liveRoundRequiresSpectacle(prev, next, showTurn = null) {
  * 3 Live Start prompts (live_start_effects; block spectacle until cleared)
  * 3A Performance spectacle (queuePerformancePhaseBanner + runPerformanceSpectacle)
  * 4-5 Yells, outcomes, judge (inside spectacle)
- * 6 Normal mat view (close spectacle; commitDeferredLiveState; no main/turn banners)
+ * 6 Normal mat view (hold live storage; defer turn commit until step 9)
  * 7-8 Post-live prompts (live_success_effects, pick_judge_success_live)
  * 9 Storage to WR / Success (playDeferredLiveStorageOutcomes)
  * 3B No Lives: empty splash, then step 9 for member bluffs only
@@ -25584,6 +25617,7 @@ function isLiveRoundPlaybackActive() {
 
 function livePlaybackBlocksMainPhaseUi(s, prev) {
   if (isLiveRoundPlaybackActive()) return true;
+  if (G._liveStorageOutcomePending) return true;
   if (!prev || !s) return false;
   const ph = s.phase;
   if (ph !== 'main_first' && ph !== 'main_second' && ph !== 'active_first' && ph !== 'active_second') {
@@ -25694,34 +25728,36 @@ function pickSpectacleStateForPerf(finalNext) {
 }
 
 async function awaitResolvePostLivePrompts(prev, next, myId, opts = {}) {
-  if (!G._liveRoundPostSpectacleReady) return;
+  if (!G._liveRoundPostSpectacleReady) return next;
   await playLiveSuccessDeferredEffects(prev, next, myId, opts.newEntries || []);
   clearLiveSuccessHandDeferral(next);
   clearDeferredPromptState();
   const pr = (G.gameState || next)?.pending_prompt;
   if (!pr) {
     ensurePendingPromptSurfaced(next, myId);
-    return;
+    return G.gameState || next;
   }
   const postLive = isPostLiveSkillPrompt(G.gameState || next);
   if (!postLive) {
     ensurePendingPromptSurfaced(next, myId);
-    return;
+    return G.gameState || next;
   }
   TCG_DEBUG.log('live', 'awaitResolvePostLivePrompts', { type: pr.type, phase: next.phase });
   ensurePendingPromptSurfaced(G.gameState || next, myId);
   await waitForPipelinePromptResolution(myId, {
     targetState: next,
     isResolved: (s) => {
-      if (!s?.pending_prompt) return true;
-      if (s.phase !== 'live_success_effects' && s.phase !== next.phase) return true;
-      if (PERF_SPECTACLE_DEFERRED_PROMPTS.has(s.pending_prompt.type)) {
-        return s.pending_prompt.responder !== myId && s.pending_prompt.responder !== 'p2';
+      if (!s) return true;
+      const ph = s.phase;
+      if (ph === 'live_success_effects' || ph === 'live_judge') {
+        return !s.pending_prompt;
       }
-      return false;
+      if (s.pending_prompt && isPostLiveSkillPrompt(s)) return false;
+      return true;
     },
   });
-  ensurePendingPromptSurfaced(next, myId);
+  ensurePendingPromptSurfaced(G.gameState || next, myId);
+  return G.gameState || next;
 }
 
 function newLogEntries(prev, next) {
@@ -26404,6 +26440,7 @@ function clearEmptyLiveRoundPerfState() {
 function clearLiveRoundTransientCaches() {
   G._liveSetStorageBaseline = null;
   G._livePostRevealBoard = null;
+  G._liveStorageOutcomePending = false;
 }
 
 /** Turn of the most recent unreplayed empty LIVE skip in the full log (log+0 batched polls). */
@@ -27711,7 +27748,7 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       if (!spectacleRan && !emptySkip && roundHasLivePerformanceSignals(prev, next)) {
         await ensurePerformancePhaseSplash();
       }
-      commitDeferredLiveState(next);
+      holdLiveRoundBoardForPrompts(next, myId);
       G._liveRoundPostSpectacleReady = true;
     } else {
       let wrAnimated = false;
@@ -27720,6 +27757,10 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       }
       G.gameState = wrAnimated ? G.gameState : next;
       renderGame(G.gameState, { skipLog: true });
+      if (liveStorageHasCards(G._livePostRevealBoard || G.gameState)) {
+        G._liveStorageOutcomePending = true;
+        ensureLivePostRevealBoardSnapshot(G.gameState);
+      }
       G._liveRoundPostSpectacleReady = true;
     }
 
@@ -27727,15 +27768,25 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       applyTurnPrepEntriesToState(G.gameState || next, next, opts.newEntries);
     }
 
-    await awaitResolvePostLivePrompts(prev, next, myId, opts);
+    const settledNext = await awaitResolvePostLivePrompts(prev, next, myId, opts);
+    const latest = (G.gameState && (G.gameState.seq ?? 0) >= (settledNext?.seq ?? 0))
+      ? G.gameState
+      : (settledNext || next);
 
     if (!emptyWrPlayed) {
-      const storageBoard = G._livePostRevealBoard || G.gameState;
-      if (await playDeferredLiveStorageOutcomes(storageBoard, next, myId)) {
+      const storageBoard = G._livePostRevealBoard || latest;
+      if (G._liveStorageOutcomePending) {
+        if (await playDeferredLiveStorageOutcomes(storageBoard, latest, myId)) {
+          commitLiveRoundAfterOutcomes(latest);
+        } else {
+          commitLiveRoundAfterOutcomes(latest);
+        }
+      } else if (await playDeferredLiveStorageOutcomes(storageBoard, latest, myId)) {
         G._livePostRevealBoard = null;
       }
     } else {
-      G._livePostRevealBoard = null;
+      if (G._liveStorageOutcomePending) commitLiveRoundAfterOutcomes(latest);
+      else G._livePostRevealBoard = null;
     }
 
     syncLogAfterLivePresentation(next, prev);
@@ -27755,11 +27806,11 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
     g.end();
   }
 
-  flushPostLiveLogBanners(prev, next, myId, { emptySkip });
-  if (emptySkip && prev?.phase !== next?.phase) {
-    queueMainPhaseBannerAfterEmptyLiveSkip(next, myId);
+  flushPostLiveLogBanners(prev, G.gameState || next, myId, { emptySkip });
+  if (emptySkip && prev?.phase !== (G.gameState || next)?.phase) {
+    queueMainPhaseBannerAfterEmptyLiveSkip(G.gameState || next, myId);
   }
-  ensureLiveRoundStateCommitted(prev, next, myId);
+  ensureLiveRoundStateCommitted(prev, G.gameState || next, myId);
   TCG_DEBUG.log('live', 'presentLiveRound done', { reveal: needsLiveReveal, spectacle: spectacleRan, empty: emptySkip });
   return { reveal: needsLiveReveal, spectacle: spectacleRan, empty: emptySkip };
 }
@@ -28004,7 +28055,6 @@ async function runPerformanceSpectacle(perfPrev, next, myId, opts = {}) {
       G._postSpectacleSplashPause = true;
       G._perfYellRevealCache = null;
       G._deferPerfSpectaclePrev = null;
-      clearLiveRoundTransientCaches();
     }
     TCG_DEBUG.log('live', 'spectacle end', { ran, doneKey: G._perfSpectacleDoneKey });
   }
@@ -28029,7 +28079,7 @@ function shouldHideOpponentLiveStorageFaces(s) {
   // Reveal playback owns opponent face visibility — do not suppress during flip sequence.
   if (G._liveRevealFlips?.size) return false;
   if (isLiveSetPhase(s.phase) && liveSetPlacementInProgress(s)) return true;
-  if (G._liveRoundPlaybackActive && !G._livePostRevealBoard) return true;
+  if (G._liveRoundPlaybackActive && !G._livePostRevealBoard && !G._liveStorageOutcomePending) return true;
   return false;
 }
 
