@@ -41,6 +41,9 @@
     const me = s.players?.[myId];
     switch (goal.type) {
       case 'ack_coin_flip':
+        if (G()?.tutorialLive) {
+          return !!(s.coin_flip?.ready?.[myId]) && !!G()?._coinFlipAnimComplete;
+        }
         return !!(s.coin_flip?.ready?.[myId]) || s.phase !== 'coin_flip';
       case 'choose_first_player':
         return s.phase === 'setup' && s.first_player != null;
@@ -252,13 +255,13 @@
     try {
       if (typeof global.resetMatchTransientState === 'function') global.resetMatchTransientState();
       if (typeof global.loadTutorialJa === 'function') await global.loadTutorialJa();
-      const r = await fetch('./tutorial_guide.json?v=2', { cache: 'no-store' });
+      const r = await fetch('./tutorial_guide.json?v=3', { cache: 'no-store' });
       if (!r.ok) throw new Error('Could not load tutorial guide (HTTP ' + r.status + ')');
       const data = await r.json();
       if (!data?.steps?.length) throw new Error('Tutorial guide has no steps');
 
       G().tutorialData = data;
-      G().tutorialLabels = data.initial_labels || { p1: 'You', p2: 'Opponent' };
+      G().tutorialLabels = data.initial_labels || { p1: 'You', p2: 'Player2' };
       G().isTutorial = true;
       G().tutorialLive = true;
       G().tutorialStep = 0;
@@ -281,7 +284,7 @@
 
       const p2Payload = {
         room_id: G().roomId,
-        name: "μ's",
+        name: 'Player2',
         deck: 'cpu',
         cpu_difficulty: 'easy',
         cpu_group_hint: cfg().p2_deck || 'muse',

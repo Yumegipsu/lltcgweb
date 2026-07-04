@@ -3,7 +3,7 @@
   "title": "Beginner Tutorial",
   "initial_labels": {
     "p1": "You",
-    "p2": "Opponent"
+    "p2": "Player2"
   },
   "config": {
     "p1_deck": "liella",

@@ -402,7 +402,15 @@ body.tutorial-live-mode #overlay-mull .btn-grad{opacity:1;pointer-events:auto}
 body.tutorial-live-mode #overlay-mull:not(.tut-mull-readonly) .mullcard{pointer-events:auto;cursor:pointer}
 body.tutorial-live-mode #overlay-coin{pointer-events:auto}
 body.tutorial-live-coin #overlay-coin,
-body.tutorial-live-mulligan #overlay-mull{z-index:8700}
+body.tutorial-live-mulligan #overlay-mull{z-index:8300}
+body.tutorial-live-coin #tutorial-spotlight,
+body.tutorial-live-coin #tutorial-spotlight.show,
+body.tutorial-live-mulligan #tutorial-spotlight,
+body.tutorial-live-mulligan #tutorial-spotlight.show{pointer-events:none!important}
+body.tutorial-live-coin #overlay-tutorial,
+body.tutorial-live-coin #overlay-tutorial.open,
+body.tutorial-live-mulligan #overlay-tutorial,
+body.tutorial-live-mulligan #overlay-tutorial.open{z-index:8600}
 body.tutorial-live-coin #overlay-coin,
 body.tutorial-live-coin #overlay-coin *,
 body.tutorial-live-mulligan #overlay-mull,
@@ -6845,7 +6853,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=3"></script>
 <script src="client/js/replay-debug.js?v=3"></script>
 <script src="client/js/prompt-renderer.js?v=7"></script>
-<script src="client/js/tutorial-interactive.js?v=2"></script>
+<script src="client/js/tutorial-interactive.js?v=3"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -14792,6 +14800,8 @@ let G = {
   _stageRevealFlips:null,
   _handRevealFlips:null,
   _promptSubmitKey:null,
+  _lastSurfacedPromptKey:null,
+  _perfSplashShownForTurn:null,
   _oppSkillWaitLogKey:null,
   _bannerIdleWaiters:[],
   isTutorial:false,
@@ -21937,13 +21947,14 @@ function doCPU(s) {
   }
   clearCpuPromptTracking();
   if (ph === 'coin_flip' && s.coin_flip) {
-    if (G.tutorialLive && !tutorialLiveCoinActive()) return;
     const flip = s.coin_flip;
     if (!flip.ready?.[cpuId]) {
+      if (G.tutorialLive && !tutorialLiveCoinActive()) return;
       TCG_DEBUG.log('cpu', 'ack_coin_flip');
       cpuSchedule(() => cpuAct('ack_coin_flip', {}), 1100);
       return;
     }
+    if (G.tutorialLive && !tutorialLiveCoinActive()) return;
     if (flip.winner === cpuId) {
       if (!flip.ready?.p1 || !flip.ready?.p2) {
         cpuSchedule(() => doCPU(G.gameState), 480);
@@ -25951,13 +25962,14 @@ function detectPendingLiveSpectacleTurn(prev, next) {
   // Match done-key turn (state.turn during live_set) — not log --- Turn N --- markers,
   // which lag behind state.turn until after the Live round resolves.
   if (slice.some(e => / performed Live! Blades: /.test(e.msg || ''))) {
-    if (!liveSpectacleDoneForTurn(showTurn)) return showTurn;
+    if (!liveSpectacleDoneForTurn(showTurn) && liveRoundJudgeReady(next)) return showTurn;
     return null;
   }
 
   if (isLeavingLiveSetPhase(prev, next) && !isEmptyLiveSkipTransition(prev, next)) {
     if (next.phase === 'live_start_effects' || pendingPromptBlocksPerfSpectacle(next)) return null;
     if (!liveSpectacleDoneForTurn(showTurn)
+        && liveRoundJudgeReady(next)
         && (newLogHasLivePerformance(prev, next) || logHasLivePerformanceForShowTurn(prev, next, showTurn))) {
       return showTurn;
     }
@@ -25998,6 +26010,7 @@ function shouldRecoverMissedLiveSpectacle(prev, next) {
   if (isLiveSetPlacementOnly(prev, next) || liveSetPlacementInProgress(next)) return false;
   if (!spectacleRecoveryContext(prev, next)) return false;
   if (spectacleDoneForTransition(prev, next)) return false;
+  if (!liveRoundJudgeReady(next)) return false;
   const showTurn = detectPendingLiveSpectacleTurn(prev, next)
     ?? scanUndoneLiveSpectacleTurn(next, prev);
   if (showTurn == null || liveSpectacleDoneForTurn(showTurn)) return false;
@@ -26519,9 +26532,9 @@ function isMidSpectacleYellRetryPrompt(s) {
 }
 
 function pendingPromptBlocksPerfSpectacle(next) {
+  if (!liveRoundJudgeReady(next)) return true;
   const pr = next?.pending_prompt;
   if (!pr) return false;
-  if (next.phase === 'live_success_effects') return false;
   if (PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type)) return false;
   if (PERF_SPECTACLE_MID_PROMPTS.has(pr.type)) return false;
   return true;
@@ -26612,10 +26625,17 @@ function collectPerfRoundLiveCards(next, pid, prev = null, showTurn = null) {
     (deferred.players[pid].live_zone || []).forEach(add);
   }
   (next.players[pid].live_zone || []).forEach(add);
-  // WR / success only when this round's Live iids are known — avoids prior-round stale lives.
+  // WR / success when this round's Live iids are known, or log confirms performance.
   if (okIds?.size) {
     (next.players[pid].success_lives || []).forEach(add);
     (next.players[pid].waiting_room || []).forEach(add);
+  } else {
+    const performed = playerHadLivePerformanceForTurn(next, pid, turn);
+    const logSuccess = perfLiveSuccessCountFromLog(next, pid, prev);
+    if (performed && (logSuccess > 0 || playerLiveRoundSucceeded(next, pid))) {
+      (next.players[pid].success_lives || []).forEach(add);
+      (next.players[pid].waiting_room || []).forEach(add);
+    }
   }
   let cards = [...byId.values()];
   if (okIds?.size) {
@@ -27415,10 +27435,13 @@ function performancePhaseBannerQueued() {
   return (G._bannerQueue || []).some(b => isSplashPerformanceBanner(b));
 }
 
-async function ensurePerformancePhaseSplash() {
+async function ensurePerformancePhaseSplash(showTurn) {
   if (!shouldShowMatchSplash()) return;
+  const turn = showTurn ?? inferLiveShowTurn(G.gameState, G.gameState);
+  if (turn != null && G._perfSplashShownForTurn === turn) return;
   if (performancePhaseBannerShowing() || performancePhaseBannerQueued()) {
     await waitForBannersIdle();
+    if (turn != null) G._perfSplashShownForTurn = turn;
     return;
   }
   await showCenterBannerNow(splashBanner({
@@ -27427,6 +27450,7 @@ async function ensurePerformancePhaseSplash() {
     kind: 'live',
     duration: LIVE_BANNER_MS,
   }));
+  if (turn != null) G._perfSplashShownForTurn = turn;
 }
 
 /** Decide reveal flip, empty-round skip, and whether to run Performance spectacle. */
@@ -27914,9 +27938,8 @@ function buildPerfSpectaclePrev(prev, next) {
 function performanceSpectacleReady(prev, next) {
   const ph = next?.phase;
   if (ph === 'live_judge') return true;
-  // Live Success prompts (e.g. draw-then-discard) run after the performance show.
-  if (ph === 'live_success_effects') return true;
-  if (newLogHasLivePerformance(prev, next)) return true;
+  if (ph === 'live_success_effects') return liveRoundJudgeReady(next);
+  if (newLogHasLivePerformance(prev, next) && liveRoundJudgeReady(next)) return true;
   if (isLeavingLiveSetPhase(prev, next) && liveRoundHasLiveCardsForRound(prev)) return true;
   const prevPh = prev?.phase;
   const leavingLivePipeline = (isLiveSetPhase(prevPh) || prevPh === 'live_start_effects')
@@ -27982,7 +28005,7 @@ function shouldTriggerPerfSpectacle(prev, next) {
   }
   // CPU/PvP can resolve the whole live pipeline in one poll (log has perf, phase already main_*).
   if (newLogHasLivePerformance(prev, next) && perfRoundHasShow(prev, next)) {
-    if (!pendingPromptBlocksPerfSpectacle(next)) {
+    if (liveRoundJudgeReady(next) && !pendingPromptBlocksPerfSpectacle(next)) {
       return true;
     }
   }
@@ -28077,7 +28100,7 @@ async function runPerformanceSpectacle(perfPrev, next, myId, opts = {}) {
   G._skipJudgeOverlay = true;
   let ran = false;
   try {
-    await ensurePerformancePhaseSplash();
+    await ensurePerformancePhaseSplash(inferLiveShowTurn(perfPrev, next));
     await perfSeekPhase(perfPrev, next, myId, 'judge', { forward: true, animate: true });
     await perfSleep(500);
     ran = G._perfSpectaclePhase === 'judge';
@@ -28182,6 +28205,9 @@ function waitForBlockingOverlaysIdle(state) {
 function ensurePendingPromptSurfaced(s, myId) {
   const pr = s?.pending_prompt;
   if (!pr || pr.responder !== myId) return;
+  const surfKey = `${s.seq}:${pr.type}:${pr.step || ''}:${pr.card_instance_id || pr.source_instance_id || ''}`;
+  if (G._lastSurfacedPromptKey === surfKey && el('overlay-prompt')?.classList.contains('open')) return;
+  G._lastSurfacedPromptKey = surfKey;
   if (isLiveSuccessDiscardPrompt(s)) clearLiveSuccessHandDeferral(s);
   if (pr.type === 'pick_judge_success_live') G._deferPerfSpectaclePrev = null;
   if (G.gameState?.seq !== s.seq || G.gameState?.pending_prompt?.type !== pr.type) {
@@ -29078,6 +29104,46 @@ function playerAttemptedLiveThisRound(next, pid) {
   return false;
 }
 
+/** True when this player's performance result is logged for the current Live round. */
+function playerHasPerfLogThisRound(next, pid) {
+  const name = next?.players?.[pid]?.name;
+  if (!name) return false;
+  const start = currentPerformanceRoundLogStart(next);
+  for (let i = start; i < (next?.log || []).length; i++) {
+    const msg = next.log[i]?.msg || '';
+    if (!msg.startsWith(name)) continue;
+    if (msg.includes(' performed Live! Blades: ')) return true;
+    if (msg.includes(' has no valid Live cards')) return true;
+  }
+  return false;
+}
+
+/** Both sides that attempted a Live this round have a performance log line. */
+function liveRoundPerfLogsComplete(next) {
+  if (!next?.players) return false;
+  const attempted = ['p1', 'p2'].filter(pid => playerAttemptedLiveThisRound(next, pid));
+  if (!attempted.length) {
+    const start = currentPerformanceRoundLogStart(next);
+    return (next.log || []).slice(start).some(e => e.msg === 'No Lives played this turn.');
+  }
+  return attempted.every(pid => playerHasPerfLogThisRound(next, pid));
+}
+
+/** Judge / full spectacle replay may run — all perf logs in, no mid-pipeline blocker prompt. */
+function liveRoundJudgeReady(next) {
+  if (!next) return false;
+  if (next.phase === 'live_judge') return true;
+  if (!liveRoundPerfLogsComplete(next)) return false;
+  const pr = next.pending_prompt;
+  if (pr && !PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type)
+      && !PERF_SPECTACLE_MID_PROMPTS.has(pr.type)) {
+    return false;
+  }
+  if (next.phase === 'live_success_effects') return true;
+  const start = currentPerformanceRoundLogStart(next);
+  return (next.log || []).slice(start).some(e => /^Live Scores: /.test(e.msg || ''));
+}
+
 function perfLiveSuccessCountFromLog(next, pid, prev = null) {
   const name = next?.players?.[pid]?.name;
   if (!name) return 0;
@@ -29366,7 +29432,13 @@ function perfJudgeVerdict(ctx) {
     const tieVerdict = perfTieSuccessLiveVerdict(ctx);
     return { text: tieVerdict.text + modifierNote, cls: tieVerdict.cls };
   }
-  if (mineOk) return { text: 'You win the Live!', cls: 'win' };
+  if (mineOk) {
+    if (playerAttemptedLiveThisRound(ctx.next, ctx.oppId)
+        && !playerHasPerfLogThisRound(ctx.next, ctx.oppId)) {
+      return { text: '', cls: 'tie' };
+    }
+    return { text: 'You win the Live!', cls: 'win' };
+  }
   if (oppOk) {
     if (!ctx.mineAttempts.length) {
       return { text: `${opp?.name || 'Opponent'} wins the Live!`, cls: 'lose' };
@@ -29711,7 +29783,13 @@ function perfSpectacleLiveCards(prev, next, pid) {
   const perfPrev = buildPerfSpectaclePrev(prev, next);
   const lockCards = perfMergedLiveZone(perfPrev, next, pid)
     .filter(c => isPerfSpectacleLiveSlotCard(c, next, pid));
-  if (!lockCards.length) return clampLiveZoneLive(perfLiveZoneCards(next, pid));
+  if (!lockCards.length) {
+    const roundCards = collectPerfRoundLiveCards(next, pid, prev, inferLiveShowTurn(prev, next));
+    if (roundCards.length) {
+      return roundCards.map(c => ({ ...c, revealed: true }));
+    }
+    return clampLiveZoneLive(perfLiveZoneCards(next, pid));
+  }
   const nextById = new Map(perfLiveZoneCards(next, pid).map(c => [c.instance_id, c]));
   const revealed = lockCards.map(c => {
     let meta = nextById.get(c.instance_id);
@@ -33942,6 +34020,11 @@ function coinFaceLabel(name) {
   return n.slice(0, 9) + '…';
 }
 
+function tutorialPlayerDisplayName(s, pid) {
+  if (G.isTutorial && G.tutorialLabels?.[pid]) return G.tutorialLabels[pid];
+  return s?.players?.[pid]?.name || (pid === 'p1' ? 'Player 1' : 'Player 2');
+}
+
 function coinFlipAnimationActive() {
   return el('coin-el')?.classList.contains('flipping');
 }
@@ -33995,9 +34078,9 @@ function syncCoinFlipChoiceUi(s, myId) {
 
   const flip = s.coin_flip;
   const winner = flip.winner;
-  const winName = s.players?.[winner]?.name || 'Winner';
+  const winName = tutorialPlayerDisplayName(s, winner);
   const oppId = winner === 'p1' ? 'p2' : 'p1';
-  const oppName = s.players?.[oppId]?.name || 'Opponent';
+  const oppName = tutorialPlayerDisplayName(s, oppId);
   const coin = el('coin-el');
   if (coin) coin.className = 'coin landed-heads';
 
@@ -34116,8 +34199,8 @@ function startCoinFlipAnimation(s, myId, flipKey) {
   }
 
   const winner = s.coin_flip.winner;
-  const p1 = s.players?.p1?.name || 'Player 1';
-  const p2 = s.players?.p2?.name || 'Player 2';
+  const p1 = tutorialPlayerDisplayName(s, 'p1');
+  const p2 = tutorialPlayerDisplayName(s, 'p2');
   el('coin-heads').textContent = coinFaceLabel(winner === 'p1' ? p1 : p2);
   el('coin-tails').textContent = coinFaceLabel(winner === 'p1' ? p2 : p1);
   el('coin-msg').textContent = t('coin.flipping');
@@ -34145,6 +34228,7 @@ function startCoinFlipAnimation(s, myId, flipKey) {
 
 function submitCoinFirstPlayerChoice(selfFirst) {
   if (isReplayViewing()) return;
+  if (typeof tutBlocks === 'function' && tutBlocks('choose_first_player')) return;
   const s = G.gameState;
   const winner = s?.coin_flip?.winner;
   if (!winner || s.phase !== 'coin_flip') return;
@@ -35534,8 +35618,8 @@ function prepareTutorialState(raw) {
   const s = deepCloneState(raw);
   s.my_id = 'p1';
   s.cpu_solo = true;
-  if (s.players?.p1) s.players.p1.name = G.tutorialLabels?.p1 || 'Liella!';
-  if (s.players?.p2) s.players.p2.name = G.tutorialLabels?.p2 || "μ's";
+  if (s.players?.p1) s.players.p1.name = G.tutorialLabels?.p1 || 'You';
+  if (s.players?.p2) s.players.p2.name = G.tutorialLabels?.p2 || 'Player2';
   ['p1', 'p2'].forEach(pid => {
     const p = s.players?.[pid];
     if (!p) return;
@@ -35767,15 +35851,15 @@ function renderTutorialStep(idx, opts = {}) {
   if (G.tutorialLive && window.TutorialInteractive?.syncStepUi) TutorialInteractive.syncStepUi();
   if (G.tutorialLive && G.gameState) {
     syncTutorialLivePresentation(G.gameState, G.playerId || 'p1');
-    if (step.id === 'coin' && G.gameState.phase === 'coin_flip') {
-      const flipKey = `${G.roomId || 'game'}:${G.gameState.coin_flip?.winner || ''}`;
-      if (!G._coinFlipAnimComplete || G.coinFlipSeq !== flipKey) {
-        resetCoinFlipPresentation();
-        G.coinFlipSeq = null;
+    if ((step.id === 'coin' || step.id === 'choose_first') && G.gameState.phase === 'coin_flip') {
+      maybeShowCoinFlip(G.gameState, G.playerId || 'p1');
+      if (step.id === 'coin' && G.isCPU) {
+        const cpuId = cpuOpponentId();
+        if (!G.gameState.coin_flip?.ready?.[cpuId]) {
+          doCPU(G.gameState);
+          armWatchdog(G.gameState);
+        }
       }
-      maybeShowCoinFlip(G.gameState, G.playerId || 'p1');
-    } else if (step.id === 'choose_first' && G.gameState.phase === 'coin_flip') {
-      maybeShowCoinFlip(G.gameState, G.playerId || 'p1');
     }
   }
   if (opts.textOnly) return;
@@ -36028,7 +36112,7 @@ async function startTutorial() {
     const data = await r.json();
     if (!data?.steps?.length) throw new Error('Tutorial has no steps');
     G.tutorialData = data;
-    G.tutorialLabels = data.initial_labels || { p1: 'Liella!', p2: "μ's" };
+    G.tutorialLabels = data.initial_labels || { p1: 'You', p2: 'Player2' };
     G.isTutorial = true;
     G.isCPU = false;
     G.playerId = 'p1';
@@ -36147,6 +36231,8 @@ function freshGameGlobals() {
     _stageRevealFlips:null,
     _handRevealFlips:null,
     _promptSubmitKey:null,
+    _lastSurfacedPromptKey:null,
+    _perfSplashShownForTurn:null,
     _bannerIdleWaiters:[],
     isTutorial:false,
     tutorialData:null,
