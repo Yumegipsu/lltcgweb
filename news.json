@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "posts": [
+    {
+      "id": "2026-07-ui-update",
+      "date": "2026-07-04",
+      "banner": "tcglogo.png",
+      "title": {
+        "en": "News & patch notes",
+        "ja": "お知らせ・パッチノート"
+      },
+      "body": {
+        "en": "Welcome to the **News** section on the title screen.\n\nAdd posts in `news.json` with **English and Japanese** copy for each title and body. Banner images are optional paths relative to the site root (e.g. `news/my-banner.jpg`).\n\nRecent updates include replay viewer improvements, translated tutorials, and clearer server error messages when something goes wrong.",
+        "ja": "タイトル画面の**お知らせ**へようこそ。\n\n`news.json` に投稿を追加するときは、各タイトルと本文に**英語と日本語**の両方を入れてください。バナー画像はサイトルートからの相対パス（例：`news/my-banner.jpg`）で指定できます。\n\n最近の更新には、リプレイビューアの改善、チュートリアルの翻訳、問題発生時のサーバーエラー表示の改善などがあります。"
+      }
+    }
+  ]
+}

@@ -12,6 +12,14 @@
     "logo": {
       "tagline": "The Unofficial Web Player"
     },
+    "news": {
+      "label": "News",
+      "title": "News",
+      "close": "Close",
+      "backToList": "← All news",
+      "empty": "No news posts yet.",
+      "untitled": "Untitled"
+    },
     "auth": {
       "checking": "Checking Discord sign-in…",
       "signingIn": "Signing in…",
@@ -829,6 +837,14 @@
   "ja": {
     "logo": {
       "tagline": "非公式ウェブプレイヤー"
+    },
+    "news": {
+      "label": "News",
+      "title": "お知らせ",
+      "close": "閉じる",
+      "backToList": "← 一覧へ",
+      "empty": "お知らせはまだありません。",
+      "untitled": "無題"
     },
     "auth": {
       "checking": "Discordサインインを確認中…",
