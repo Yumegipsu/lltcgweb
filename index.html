@@ -19440,14 +19440,18 @@ function armWatchdog(s) {
   G.watchdogTimer = setTimeout(() => {
     if(!G.polling || !G.isCPU) return;
     const live = G.gameState || s;
-    const stuckOnCpuTurn = live?.active_player === 'p2'
+    const cpuId = cpuOpponentId();
+    const stuckOnCpuTurn = live?.active_player === cpuId
       && (live?.phase === 'main_first' || live?.phase === 'main_second')
-      && live?.pending_prompt?.responder !== 'p2';
-    if (stuckOnCpuTurn && !G.animating && !G._perfSpectacleActive && !G._liveSpectacleGateRunning) {
-      TCG_DEBUG.warn('cpu', 'watchdog nudge (cpu main)', sig);
+      && live?.pending_prompt?.responder !== cpuId;
+    const stuckOnCpuLive = live?.active_player === cpuId
+      && live?.phase === 'live_set'
+      && !live?.live_ready?.[cpuId]
+      && live?.pending_prompt?.responder !== cpuId;
+    if ((stuckOnCpuTurn || stuckOnCpuLive) && !G.animating && !G._perfSpectacleActive && !G._liveSpectacleGateRunning) {
+      TCG_DEBUG.warn('cpu', stuckOnCpuLive ? 'watchdog nudge (cpu live)' : 'watchdog nudge (cpu main)', sig);
       doCPU(live);
     }
-    const cpuId = cpuOpponentId();
     const flip = live?.coin_flip;
     const stuckOnCpuCoinChoice = live?.phase === 'coin_flip'
       && flip?.winner === cpuId
@@ -21876,7 +21880,7 @@ function doCPU(s) {
     cpuSchedule(() => cpuMain(), 900);
     return;
   }
-  if (ph === 'live_set' && !s.live_ready?.[cpuId]) {
+  if (ph === 'live_set' && s.active_player === cpuId && !s.live_ready?.[cpuId]) {
     TCG_DEBUG.log('cpu', 'live_set', { hand: cpu.hand?.length, liveZone: cpu.live_zone?.length, diff: cpuDiff() });
     cpuSchedule(() => cpuLiveSet(), 750);
     return;
@@ -22068,7 +22072,7 @@ function cpuLiveSet() {
   const snap = cpuSnapshot();
   if (!snap) return;
   const { s, cpu, cpuId } = snap;
-  if (s.phase !== 'live_set' || s.live_ready?.[cpuId]) return;
+  if (s.phase !== 'live_set' || s.active_player !== cpuId || s.live_ready?.[cpuId]) return;
   const storage = cpu.live_zone || [];
   const alreadyStored = storage.length;
   const canAdd = 3 - alreadyStored;
@@ -26697,6 +26701,25 @@ function phaseBannerMainTitle(activePid, myId, activeName) {
   return t(bannerKey, { name });
 }
 
+function phaseBannerLiveTitle(activeName) {
+  const name = activeName || '—';
+  if (name === '—') return t('phaseBanner.liveTitle');
+  const last = name.slice(-1);
+  const bannerKey = (last === 's' || last === 'S') ? 'phaseBanner.livePlayerS' : 'phaseBanner.livePlayer';
+  return t(bannerKey, { name });
+}
+
+function livePhaseTitleForState(s) {
+  const activePid = s?.active_player;
+  return phaseBannerLiveTitle(s?.players?.[activePid]?.name || '');
+}
+
+function livePhaseMessage(title, text) {
+  return String(text || '')
+    .replace(/^LIVE Phase\s+—\s+/, `${title} — `)
+    .replace(/^ライブフェイズ\s*—\s*/, `${title} — `);
+}
+
 function phaseBarOppMainText(name) {
   if (!name) return t('phaseMsg.mainOpp', { name: '—' });
   const last = name.slice(-1);
@@ -26747,7 +26770,7 @@ function phaseBannerCopy(phase, s, myId) {
     active_second: { titleKey: 'phaseBanner.activeTitle', subtitleKey: 'phaseBanner.activeSub' },
     main_first: { ...mainEntry, subtitleKey: null },
     main_second: { ...mainEntry, subtitleKey: null },
-    live_set: { titleKey: 'phaseBanner.liveTitle', subtitleKey: 'phaseBanner.liveSub' },
+    live_set: { title: phaseBannerLiveTitle(active), subtitleKey: 'phaseBanner.liveSub' },
     live_set_first: { titleKey: 'phaseBanner.liveTitle', subtitleKey: 'phaseBanner.liveSub' },
     live_set_second: { titleKey: 'phaseBanner.liveTitle', subtitleKey: 'phaseBanner.liveSub' },
     live_start_effects: { titleKey: 'phaseBanner.liveStartTitle', subtitleKey: 'phaseBanner.liveStartSub' },
@@ -26842,6 +26865,14 @@ function parseLogToBanner(msg, kind, s, myId, prev = null, logFrom = 0) {
   }
   if (msg === '=== LIVE Phase ===') {
     return null;
+  }
+  if ((m = msg.match(/^(.+? Live Phase)\.$/))) {
+    return splashBanner({
+      title: m[1],
+      subtitleKey: 'phaseBanner.liveSub',
+      kind: 'live',
+      duration: LIVE_BANNER_MS,
+    });
   }
   if (/— LIVE Phase\./.test(msg) || /secretly place 0–3 cards/.test(msg)) return null;
   if (msg === '=== Performance Phase ===') {
@@ -30771,7 +30802,8 @@ function judgeLiveTotalScore(s, pid, zone) {
 // confirmLiveSetFromHand: face-down placement and end LIVE Phase below the log.
 
 function renderPhaseBar(s,me,opp,myId,oppId) {
-  el('pbadge').textContent = hPhase(s.phase);
+  const ph=s.phase;
+  el('pbadge').textContent = ph === 'live_set' ? livePhaseTitleForState(s) : hPhase(ph);
   const msgE=el('pmsg'), btnsE=el('pbtns');
   btnsE.innerHTML='';
   if (G.isSpectator) {
@@ -30788,7 +30820,6 @@ function renderPhaseBar(s,me,opp,myId,oppId) {
   }
   const isMe=s.active_player===myId;
   const ae=(me.energy_zone||[]).filter(energyChipActive).length;
-  const ph=s.phase;
 
   const addBtn=(lbl,cls,fn,dis=false)=>{
     const b=document.createElement('button');
@@ -30813,22 +30844,29 @@ function renderPhaseBar(s,me,opp,myId,oppId) {
     const ready = s.live_ready || {};
     const myReady = !!ready[myId];
     const oppReady = !!ready[oppId];
+    const activeLivePid = s.active_player;
+    const activeLiveName = s.players?.[activeLivePid]?.name || (activeLivePid === myId ? me.name : opp.name) || 'Opponent';
+    const liveTitle = livePhaseTitleForState(s);
     const stored = (me.live_zone||[]).length;
     const sel = G.liveSel.length;
-    if(!myReady){
+    if(isMe && !myReady){
       if (sel) {
-        msgE.textContent = t(sel > 1 ? 'phaseMsg.liveRaisedPlural' : 'phaseMsg.liveRaised', { count: sel });
+        msgE.textContent = livePhaseMessage(liveTitle, t(sel > 1 ? 'phaseMsg.liveRaisedPlural' : 'phaseMsg.liveRaised', { count: sel }));
       } else if (stored) {
         const slots = liveSlotsLeft(s, myId);
-        msgE.textContent = t('phaseMsg.liveStored', { stored, slots });
+        msgE.textContent = livePhaseMessage(liveTitle, t('phaseMsg.liveStored', { stored, slots }));
       } else {
         const slots = liveSlotsLeft(s, myId);
-        msgE.textContent = t('phaseMsg.livePlace', { slots });
+        msgE.textContent = livePhaseMessage(liveTitle, t('phaseMsg.livePlace', { slots }));
       }
+    } else if (!isMe) {
+      msgE.textContent = myReady
+        ? `${liveTitle} — you locked in; waiting for ${activeLiveName}.`
+        : `${liveTitle} — waiting for ${activeLiveName} to finish LIVE selection.`;
     } else {
-      msgE.textContent = oppReady
+      msgE.textContent = livePhaseMessage(liveTitle, oppReady
         ? t('phaseMsg.liveBothLocked')
-        : t('phaseMsg.liveYouLocked');
+        : t('phaseMsg.liveYouLocked'));
     }
   }
   else if(ph==='live_start_effects'){
@@ -34039,7 +34077,7 @@ function confirmMull(){
 
 function isLiveSetSelecting(s, myId) {
   if (G._liveSetLockPid === myId) return false;
-  return s?.phase === 'live_set' && !s.live_ready?.[myId];
+  return s?.phase === 'live_set' && s.active_player === myId && !s.live_ready?.[myId];
 }
 
 function isLiveHandSelectable(card) {
@@ -34188,7 +34226,7 @@ function phaseTimerShouldShow(s, myId) {
     return flip.winner === myId;
   }
   if (ph === 'main_first' || ph === 'main_second') return s.active_player === myId;
-  if (ph === 'live_set') return !s.live_ready?.[myId];
+  if (ph === 'live_set') return s.active_player === myId && !s.live_ready?.[myId];
   if (ph === 'setup') return !s.players?.[myId]?.ready_mulligan;
   return false;
 }
@@ -34317,6 +34355,7 @@ function updateLiveSetButton(s, myId) {
 
 function toggleLiveSelect(iid, s, myId) {
   if (G.isTutorial || isReplayViewing()) return;
+  if (!isLiveSetSelecting(s, myId)) return;
   if (!iid) return;
   G.liveSel = G.liveSel.filter(id => id && (s?.players?.[myId]?.hand || []).some(c => c.instance_id === id));
   const card = findHand(iid, s, myId);

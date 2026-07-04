@@ -980,15 +980,67 @@ function isLiveSetPhase(string $phase): bool {
     return $phase === 'live_set';
 }
 
+function liveSetTurnOrder(array $state): array {
+    $first = in_array($state['first_player'] ?? '', ['p1', 'p2'], true)
+        ? $state['first_player']
+        : 'p1';
+    $second = ($first === 'p1') ? 'p2' : 'p1';
+    return [$first, $second];
+}
+
+function ensureLiveSetReadyState(array &$state): void {
+    if (!isset($state['live_ready']) || !is_array($state['live_ready'])) {
+        $state['live_ready'] = ['p1' => false, 'p2' => false];
+        return;
+    }
+    foreach (['p1', 'p2'] as $pid) {
+        $state['live_ready'][$pid] = !empty($state['live_ready'][$pid]);
+    }
+}
+
+function currentLiveSetPlayer(array $state): ?string {
+    ensureLiveSetReadyState($state);
+    $active = $state['active_player'] ?? null;
+    if (in_array($active, ['p1', 'p2'], true) && empty($state['live_ready'][$active])) {
+        return $active;
+    }
+    foreach (liveSetTurnOrder($state) as $pid) {
+        if (empty($state['live_ready'][$pid])) {
+            return $pid;
+        }
+    }
+    return null;
+}
+
+function setNextLiveSetPlayer(array &$state): ?string {
+    ensureLiveSetReadyState($state);
+    foreach (liveSetTurnOrder($state) as $pid) {
+        if (empty($state['live_ready'][$pid])) {
+            $state['active_player'] = $pid;
+            return $pid;
+        }
+    }
+    return null;
+}
+
+function liveSetPhaseLog(array $state, string $pid): string {
+    $name = $state['players'][$pid]['name'] ?? $pid;
+    return possessiveName($name) . ' Live Phase.';
+}
+
 // ─────────────────────────────────────────────
 // LIVE Phase (live_set) — face-down Live storage
 // ─────────────────────────────────────────────
-// Each player places 0–3 Live or Member cards; draw 1 per card placed. end_live_set
-// locks selection; when both ready, beginPerformancePhase runs reveal + Live Start queue.
+// Each player, in turn order, places 0–3 Live or Member cards; draw 1 per card
+// placed. end_live_set advances to the next player, then Performance reveals once both are ready.
 
 function actionSetLiveCards(array $state, string $pid, array $data): array {
     if (($state['phase'] ?? '') !== 'live_set') {
         throw new Exception('Not in LIVE Phase');
+    }
+    ensureLiveSetReadyState($state);
+    if (currentLiveSetPlayer($state) !== $pid) {
+        throw new Exception('Not your turn');
     }
     if (!empty($state['live_ready'][$pid])) {
         throw new Exception('Already locked in LIVE selection');
@@ -1081,6 +1133,10 @@ function actionEndLiveSet(array $state, string $pid): array {
     if (($state['phase'] ?? '') !== 'live_set') {
         throw new Exception('Not in LIVE Phase');
     }
+    ensureLiveSetReadyState($state);
+    if (currentLiveSetPlayer($state) !== $pid) {
+        throw new Exception('Not your turn');
+    }
     assertNoPendingPromptForPhaseAdvance($state);
     if (!empty($state['live_ready'][$pid])) {
         throw new Exception('Already locked in LIVE selection');
@@ -1100,6 +1156,11 @@ function actionEndLiveSet(array $state, string $pid): array {
     if (!empty($state['live_ready']['p1']) && !empty($state['live_ready']['p2'])) {
         unset($state['live_ready']);
         $state = beginPerformancePhase($state);
+    } else {
+        $nextPid = setNextLiveSetPlayer($state);
+        if ($nextPid) {
+            $state = addLog($state, liveSetPhaseLog($state, $nextPid), 'info');
+        }
     }
     refreshPvpPhaseTimers($state);
     $state['seq']++;
@@ -2577,7 +2638,8 @@ function refreshPvpPhaseTimers(array &$state): void {
             refreshPromptPhaseTimer($state, $promptResponder);
             return;
         }
-        unset($state['phase_timer']['prompt_key'], $state['phase_timer']['live_keys']);
+        unset($state['phase_timer']['prompt_key'], $state['phase_timer']['live_key'],
+            $state['phase_timer']['live_keys']);
         $ap = $state['active_player'] ?? '';
         $turn = intval($state['turn'] ?? 0);
         $mainKey = $ph . '|' . $ap . '|t' . $turn;
@@ -2607,28 +2669,29 @@ function refreshPvpPhaseTimers(array &$state): void {
             return;
         }
         unset($state['phase_timer']['prompt_key'], $state['phase_timer']['main_key']);
-        if (!isset($state['phase_timer']['live_keys']) || !is_array($state['phase_timer']['live_keys'])) {
-            $state['phase_timer']['live_keys'] = [];
-        }
+        unset($state['phase_timer']['live_keys']);
         $turn = intval($state['turn'] ?? 0);
+        $ap = currentLiveSetPlayer($state);
         foreach (['p1', 'p2'] as $pid) {
-            if (!empty($state['live_ready'][$pid]) || !playerUsesPhaseTimer($state, $pid)) {
+            if ($pid !== $ap) {
                 clearPhaseDeadline($state, $pid);
-                unset($state['phase_timer']['live_keys'][$pid]);
-                continue;
             }
-            $liveKey = 'live_set|t' . $turn . '|' . $pid;
-            $prevLiveKey = $state['phase_timer']['live_keys'][$pid] ?? '';
-            if ($liveKey !== $prevLiveKey || empty($state['phase_timer']['deadlines'][$pid])) {
-                $state['phase_timer']['live_keys'][$pid] = $liveKey;
-                setPhaseDeadline($state, $pid);
-            }
+        }
+        if (!$ap || !playerUsesPhaseTimer($state, $ap)) {
+            return;
+        }
+        $liveKey = 'live_set|t' . $turn . '|' . $ap;
+        $prevLiveKey = $state['phase_timer']['live_key'] ?? '';
+        if ($liveKey !== $prevLiveKey || empty($state['phase_timer']['deadlines'][$ap])) {
+            $state['phase_timer']['live_key'] = $liveKey;
+            setPhaseDeadline($state, $ap);
         }
         return;
     }
     if ($ph === 'setup') {
         unset($state['phase_timer']['prompt_key'], $state['phase_timer']['main_key'],
-            $state['phase_timer']['live_keys'], $state['phase_timer']['coin_key']);
+            $state['phase_timer']['live_key'], $state['phase_timer']['live_keys'],
+            $state['phase_timer']['coin_key']);
         $mullKey = 'setup|mulligan';
         $prevMullKey = $state['phase_timer']['mull_key'] ?? '';
         if ($mullKey !== $prevMullKey) {
@@ -2647,7 +2710,8 @@ function refreshPvpPhaseTimers(array &$state): void {
         return;
     }
     if ($ph === 'coin_flip') {
-        unset($state['phase_timer']['prompt_key'], $state['phase_timer']['main_key'], $state['phase_timer']['live_keys']);
+        unset($state['phase_timer']['prompt_key'], $state['phase_timer']['main_key'],
+            $state['phase_timer']['live_key'], $state['phase_timer']['live_keys']);
         $flip = $state['coin_flip'] ?? null;
         if (!$flip || !coinFlipBothReady($state)) {
             clearAllPhaseDeadlines($state);
@@ -2674,7 +2738,8 @@ function refreshPvpPhaseTimers(array &$state): void {
         refreshPromptPhaseTimer($state, $promptResponder);
         return;
     }
-    unset($state['phase_timer']['prompt_key'], $state['phase_timer']['main_key'], $state['phase_timer']['live_keys']);
+    unset($state['phase_timer']['prompt_key'], $state['phase_timer']['main_key'],
+        $state['phase_timer']['live_key'], $state['phase_timer']['live_keys']);
     clearAllPhaseDeadlines($state);
 }
 
@@ -2806,23 +2871,19 @@ function applyPhaseTimeouts(array &$state): bool {
             $state = actionEndMain($state, $ap);
             $changed = $did = true;
         } elseif ($ph === 'live_set') {
-            foreach (['p1', 'p2'] as $pid) {
-                if (!playerUsesPhaseTimer($state, $pid)) {
-                    continue;
-                }
-                if (!empty($state['live_ready'][$pid])) {
-                    continue;
-                }
-                $dl = $state['phase_timer']['deadlines'][$pid] ?? null;
-                if (!$dl || $now < $dl) {
-                    continue;
-                }
-                $name = $state['players'][$pid]['name'] ?? $pid;
-                $state = addLog($state, "$name — LIVE Phase time expired (auto lock-in).", 'info');
-                $state = dismissPendingPromptBeforePhaseTimeout($state, $pid);
-                $state = actionEndLiveSet($state, $pid);
-                $changed = $did = true;
+            $pid = currentLiveSetPlayer($state);
+            if (!$pid || !playerUsesPhaseTimer($state, $pid)) {
+                break;
             }
+            $dl = $state['phase_timer']['deadlines'][$pid] ?? null;
+            if (!$dl || $now < $dl) {
+                break;
+            }
+            $name = $state['players'][$pid]['name'] ?? $pid;
+            $state = addLog($state, "$name — LIVE Phase time expired (auto lock-in).", 'info');
+            $state = dismissPendingPromptBeforePhaseTimeout($state, $pid);
+            $state = actionEndLiveSet($state, $pid);
+            $changed = $did = true;
         } elseif ($ph === 'coin_flip') {
             $flip = $state['coin_flip'] ?? null;
             if (!$flip || !coinFlipBothReady($state)) {
