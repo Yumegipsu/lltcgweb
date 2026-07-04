@@ -14264,7 +14264,8 @@ function abilityWrBlockReason(cpu, ab) {
   const t = ab.type || '';
   switch (t) {
     case 'shuffle_named_from_waiting':
-      return wr.some(c => c.card_type === 'メンバー') ? null : 'No matching Members in Waiting Room.';
+      return wr.some(c => c.card_type === 'メンバー' && cardMatchesNamedHand(c, ab.names || [], false, ''))
+        ? null : 'No matching Members in Waiting Room.';
     case 'discard_hand_add_live_from_wr':
       if (ab.group) {
         return wrPickMatchCountClient(cpu, { group: ab.group, filter: ab.filter || 'live' }, ab.count || 1) >= 1
@@ -20912,8 +20913,15 @@ function cpuScoreOptionalAbility(ab, cpu, tier, ae, hand, winPressure = 0, read 
       score += tier === 'hard' ? 1.2 : 0.65;
     }
   }
-  if (type.includes('discard_named') || type === 'optional_discard_same_group') {
-    const need = ab.exact_total || ab.discard || ab.max_discard || 1;
+  if (type === 'optional_discard_named') {
+    const matches = (hand || []).filter(c => cardMatchesNamedHand(c, ab.names || [], ab.include_self, '')).length;
+    if (ab.exact_total) {
+      if (matches < ab.exact_total) return -1;
+    } else if (matches < 1) {
+      return -1;
+    }
+  } else if (type.includes('discard_named') || type === 'optional_discard_same_group') {
+    const need = ab.discard || ab.max_discard || 1;
     if (handLen < need + 1) return -1;
   }
   if (type === 'optional_wait_subunit_opp_pick_active' || type === 'optional_wait_subunit_opp_active') {
@@ -20942,7 +20950,7 @@ function cpuOptionalYesThreshold(tier) {
 function cpuBuildOptionalYesPayload(pr, cpu, tier, winPressure, discardFn) {
   const ab = pr.ability || {};
   const hand = cpu.hand || [];
-  const needFixed = pr.discard_count || (ab.max_discard ? 0 : (ab.discard || 0));
+  const needFixed = ab.exact_total || pr.discard_count || (ab.max_discard ? 0 : (ab.discard || 0));
   const maxDiscard = ab.max_discard || pr.max_discard || 0;
   const data = { choice: 'yes' };
   const discardGroup = ab.discard_group || ab.then?.group || '';
@@ -21452,6 +21460,15 @@ function cpuBuildActivatePayload(pick, cpu, tier, winPressure, read) {
       || (t.includes('discard') && !t.includes('add_from_wr') && !t.includes('from_wr')))) {
     const need = Math.max(needDiscard || 1, ab?.discard || 1);
     payload.discard_ids = cpuPickDiscardIds(cpu.hand || [], need, tier, winPressure, read);
+  }
+  if (t === 'shuffle_named_from_waiting') {
+    const max = ab.max_total || 6;
+    const picked = (cpu.waiting_room || [])
+      .filter(c => c.card_type === 'メンバー' && cardMatchesNamedHand(c, ab.names || [], false, ''))
+      .slice(0, max)
+      .map(c => c.instance_id)
+      .filter(Boolean);
+    if (picked.length) payload.wr_ids = picked;
   }
   return payload;
 }
@@ -22972,6 +22989,12 @@ function cpuResolvePromptBody(s, cpu, pr) {
     if(ids.length) cpuAct('resolve_prompt',{card_ids:ids});
     return;
   }
+  if(pr.type==='shuffle_named_from_waiting_pick'){
+    const max=pr.max_pick||pr.ability?.max_total||6;
+    const ids=(pr.candidates||[]).slice(0,max).map(c=>c.instance_id).filter(Boolean);
+    if(ids.length) cpuAct('resolve_prompt',{card_ids:ids});
+    return;
+  }
   if(pr.type==='pick_live_match_success_heart'){
     const id=pr.candidates?.[0]?.instance_id;
     if(id) cpuAct('resolve_prompt',{card_id:id});
@@ -23520,10 +23543,13 @@ function cpuResolvePromptSmart(s, cpu, pr, tier) {
   if (cpuResolveBranchPickPrompts(pr, cpu, tier, winPressure, read, s)) return true;
   if (cpuResolveHangRiskPrompts(pr, cpu, tier, read, s)) return true;
   if (pr.type === 'pick_wr_live_deck_top' || pr.type === 'pick_wr_members_deck_top'
+    || pr.type === 'shuffle_named_from_waiting_pick'
     || pr.type === 'pick_wr_to_hand' || pr.type === 'pick_wr_leave_stage_add'
     || pr.type === 'pick_judge_success_live') {
     const cands = pr.candidates || [];
-    const pickN = pr.pick_count || 1;
+    const pickN = pr.type === 'shuffle_named_from_waiting_pick'
+      ? (pr.max_pick || pr.ability?.max_total || 6)
+      : (pr.pick_count || 1);
     const scoreCard = c => isCpuLiveCard(c)
       ? (c.score || 0) + (cpuCheckHearts(stageHeartPool(cpu), cpuLiveRequiredHearts(c)) ? 2 : 0)
       : cpuScoreMember(c, cpu, hand, cpuStageColors(cpu), tier, read);

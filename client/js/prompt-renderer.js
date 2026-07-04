@@ -1039,7 +1039,7 @@ global.openOptionalLiveStartDiscardPick = function openOptionalLiveStartDiscardP
   const ab = pr.ability || {};
   const discardNeed = promptDiscardCount(pr, 'yes');
   const pickHand = optionalLiveStartDiscardHand(pr, s, myId);
-  const minPick = ab.max_discard ? 0 : discardNeed;
+  const minPick = (pr.max_discard || ab.max_discard) ? 0 : discardNeed;
   if (!pickHand.length) {
     if (isReplayPromptReadOnlyState(s)) return false;
     G._promptSubmitKey = null;
@@ -1291,7 +1291,7 @@ global.handlePromptChoice = function handlePromptChoice(pr, choice, s, myId){
   }
   if(discardNeed>0){
     closeM('overlay-prompt');
-    const minPick=pr.ability?.max_discard?0:discardNeed;
+    const minPick=(pr.max_discard||pr.ability?.max_discard)?0:discardNeed;
     let pickHand=me.hand||[];
     if(pr.type==='optional_live_start'
       ||(pr.type==='optional_discard_prompt'&&(pr.live_start||s.phase==='live_start_effects'))){
@@ -1536,6 +1536,24 @@ global.renderPrompt = function renderPrompt(s, myId){
     const filter=pr.ability?.filter||pr.wr_pick_cfg?.filter||'live';
     if(filter==='live') openWrLivePick(pr, { state: s, myId });
     else openActivateWrMemberPick(pr);
+    return;
+  }
+  if(pr?.type==='shuffle_named_from_waiting_pick'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const max=pr.max_pick||pr.ability?.max_total||6;
+    openHandPick({
+      hand: pr.candidates||[],
+      count: max,
+      min: 1,
+      title: pr.source_name||'Waiting Room',
+      msg: pr.prompt||`Choose up to ${max} matching Member card(s) from your Waiting Room.`,
+      onConfirm: (ids)=>sendAct('resolve_prompt',{card_ids:ids}),
+      onCancel: ()=>{
+        G._promptSubmitKey=null;
+        if(G.gameState) renderPrompt(G.gameState,myId);
+      },
+      forceConfirm: true,
+    });
     return;
   }
   if(pr?.type==='pick_wr_members_deck_top'&&pr.responder===myId){

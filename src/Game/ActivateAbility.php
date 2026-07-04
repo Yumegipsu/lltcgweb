@@ -124,25 +124,69 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
     if (($ab['type'] ?? '') === 'shuffle_named_from_waiting') {
         $names = $ab['names'] ?? [];
         $max = intval($ab['max_total'] ?? 6);
-        $picked = [];
-        $rest = [];
-        foreach ($p['waiting_room'] as $c) {
-            if (count($picked) < $max && ($c['card_type'] ?? '') === 'メンバー' && cardMatchesNames($c, $names)) {
-                $picked[] = $c;
-            } else {
-                $rest[] = $c;
+        $candidates = [];
+        foreach ($p['waiting_room'] as &$c) {
+            hydrateWrCardForPick($c);
+            if (($c['card_type'] ?? '') === 'メンバー' && cardMatchesNames($c, $names)) {
+                $candidates[] = $c;
             }
         }
-        if (empty($picked)) throw new Exception('No matching Members in Waiting Room');
-        shuffle($picked);
-        $p['waiting_room'] = $rest;
-        $p['main_deck'] = array_merge($p['main_deck'], $picked);
-        $activated = activateEnergyForPlayer($p, intval($ab['then']['max'] ?? 6));
-        markAbilityUsed($member, $abilityIdx);
-        $p['stage'][$slot] = $member;
-        $state = addLog($state, $state['players'][$pid]['name'] .
-            ' — [' . ($member['name_en'] ?? $member['name']) . '] shuffled ' . count($picked) .
-            " Member(s) to deck bottom and activated $activated Energy.");
+        unset($c);
+        if (empty($candidates)) throw new Exception('No matching Members in Waiting Room');
+        $pickedIds = $data['wr_ids'] ?? $data['card_ids'] ?? [];
+        if (empty($pickedIds)) {
+            $p['stage'][$slot] = $member;
+            $state['pending_prompt'] = [
+                'type'          => 'shuffle_named_from_waiting_pick',
+                'owner'         => $pid,
+                'responder'     => $pid,
+                'source_id'     => $member['instance_id'] ?? '',
+                'source_slot'   => $slot,
+                'source_name'   => $member['name_en'] ?? $member['name'] ?? 'Member',
+                'ability_index' => $abilityIdx,
+                'ability'       => $ab,
+                'max_pick'      => $max,
+                'candidates'    => array_map('cardPromptSummary', $candidates),
+                'prompt'        => "Choose up to $max matching Member card(s) from your Waiting Room to shuffle into your deck.",
+            ];
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                ' — [' . ($member['name_en'] ?? $member['name']) . '] choose matching Waiting Room Members.');
+        } else {
+            if (count($pickedIds) > $max) {
+                throw new Exception("Choose at most $max matching Member(s)");
+            }
+            $picked = [];
+            $rest = [];
+            $seen = [];
+            foreach ($p['waiting_room'] as $c) {
+                $cid = $c['instance_id'] ?? '';
+                if ($cid !== '' && in_array($cid, $pickedIds, true)) {
+                    if (isset($seen[$cid])) {
+                        throw new Exception('Duplicate Waiting Room card selected');
+                    }
+                    if (($c['card_type'] ?? '') !== 'メンバー' || !cardMatchesNames($c, $names)) {
+                        throw new Exception('Invalid Waiting Room card');
+                    }
+                    $picked[] = $c;
+                    $seen[$cid] = true;
+                } else {
+                    $rest[] = $c;
+                }
+            }
+            if (empty($picked)) throw new Exception('No matching Members in Waiting Room');
+            if (count($picked) !== count($pickedIds)) {
+                throw new Exception('Invalid Waiting Room card');
+            }
+            shuffle($picked);
+            $p['waiting_room'] = $rest;
+            $p['main_deck'] = array_merge($p['main_deck'], $picked);
+            $activated = activateEnergyForPlayer($p, intval($ab['then']['max'] ?? 6));
+            markAbilityUsed($member, $abilityIdx);
+            $p['stage'][$slot] = $member;
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                ' — [' . ($member['name_en'] ?? $member['name']) . '] shuffled ' . count($picked) .
+                " Member(s) to deck bottom and activated $activated Energy.");
+        }
     } elseif (($ab['type'] ?? '') === 'activated_pay_energy_mill') {
         $cost = intval($ab['cost'] ?? 2);
         if (!payEnergyCost($p, $cost)) {

@@ -228,10 +228,15 @@ function buildOptionalLiveStartPrompt(array $state, array $item): array {
     if (($ab['type'] ?? '') === 'optional_discard_blade_named_extra') {
         $discardCount = 1;
     }
-    if (($ab['type'] ?? '') === 'optional_discard_named' && empty($ab['exact_total'])) {
-        $matchCount = countOptionalNamedDiscardMatches($ownerP, $ab, $item['source_id'] ?? '');
-        $maxDiscard = $matchCount;
-        $discardCount = $matchCount;
+    if (($ab['type'] ?? '') === 'optional_discard_named') {
+        if (!empty($ab['exact_total'])) {
+            $discardCount = intval($ab['exact_total']);
+            $maxDiscard = 0;
+        } else {
+            $matchCount = countOptionalNamedDiscardMatches($ownerP, $ab, $item['source_id'] ?? '');
+            $maxDiscard = $matchCount;
+            $discardCount = $matchCount;
+        }
     }
     $prompt = [
         'type'          => 'optional_live_start',

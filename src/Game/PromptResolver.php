@@ -197,6 +197,10 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $ab = $prompt['ability'] ?? [];
             $need = intval($prompt['discard_count'] ?? $ab['discard'] ?? 0);
             $maxDiscard = intval($prompt['max_discard'] ?? $ab['max_discard'] ?? 0);
+            if (($ab['type'] ?? '') === 'optional_discard_named' && !empty($ab['exact_total'])) {
+                $need = intval($ab['exact_total']);
+                $maxDiscard = 0;
+            }
             $discardIds = $data['discard_ids'] ?? [];
             if ($maxDiscard > 0) {
                 if (count($discardIds) > $maxDiscard) {
@@ -1019,6 +1023,57 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             ' — [' . ($prompt['source_name'] ?? 'Member') . '] added ' .
             cardDisplayName($picked) . ' from Waiting Room to hand.');
         unset($state['pending_prompt']);
+        $state['seq']++;
+        return $state;
+    }
+
+    if ($promptType === 'shuffle_named_from_waiting_pick') {
+        $ids = $data['card_ids'] ?? $data['wr_ids'] ?? [];
+        $max = intval($prompt['max_pick'] ?? $ability['max_total'] ?? 6);
+        if (empty($ids)) {
+            throw new Exception('Choose at least 1 matching Member');
+        }
+        if (count($ids) > $max) {
+            throw new Exception("Choose at most $max matching Member(s)");
+        }
+        $picked = [];
+        $rest = [];
+        $seen = [];
+        foreach ($ownerP['waiting_room'] as $c) {
+            $cid = $c['instance_id'] ?? '';
+            if ($cid !== '' && in_array($cid, $ids, true)) {
+                if (isset($seen[$cid])) {
+                    throw new Exception('Duplicate Waiting Room card selected');
+                }
+                hydrateWrCardForPick($c);
+                if (($c['card_type'] ?? '') !== 'メンバー' || !cardMatchesNames($c, $ability['names'] ?? [])) {
+                    throw new Exception('Invalid Waiting Room card');
+                }
+                $picked[] = $c;
+                $seen[$cid] = true;
+            } else {
+                $rest[] = $c;
+            }
+        }
+        if (count($picked) !== count($ids)) {
+            throw new Exception('Invalid Waiting Room card');
+        }
+        shuffle($picked);
+        $ownerP['waiting_room'] = $rest;
+        $ownerP['main_deck'] = array_merge($ownerP['main_deck'], $picked);
+        $activated = activateEnergyForPlayer($ownerP, intval($ability['then']['max'] ?? 6));
+        $sourceId = $prompt['source_id'] ?? '';
+        $abilityIdx = intval($prompt['ability_index'] ?? 0);
+        foreach ($ownerP['stage'] as &$mbr) {
+            if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
+                markAbilityUsed($mbr, $abilityIdx);
+                break;
+            }
+        }
+        unset($mbr, $state['pending_prompt']);
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Member') . '] shuffled ' . count($picked) .
+            " Member(s) to deck bottom and activated $activated Energy.");
         $state['seq']++;
         return $state;
     }
