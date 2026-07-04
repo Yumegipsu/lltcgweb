@@ -75,7 +75,7 @@
   async function tcgPresencePing() {
     if (!G.polling || !G.roomId || !G.token || (G.isTutorial && !G.tutorialLive)) return;
     try {
-      await apiPost('ping', { room_id: G.roomId, token: G.token });
+      await apiPost('ping', { room_id: G.roomId, token: G.token }, { silent: true });
     } catch (e) { /* best effort */ }
   }
 
@@ -101,7 +101,7 @@
       if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
       if (!G.syncTicket) {
         try {
-          const r = await apiPost('sync_ticket', { room_id: G.roomId, token: G.token });
+          const r = await apiPost('sync_ticket', { room_id: G.roomId, token: G.token }, { silent: true });
           captureSyncMeta(r);
         } catch (e) { /* retry below */ }
       }
@@ -160,7 +160,7 @@
   global.beginGameSync = async function beginGameSync() {
     if (!G.syncTicket) {
       try {
-        const r = await apiPost('sync_ticket', { room_id: G.roomId, token: G.token });
+        const r = await apiPost('sync_ticket', { room_id: G.roomId, token: G.token }, { silent: true });
         captureSyncMeta(r);
       } catch (e) {
         TCG_DEBUG.warn('sync', 'sync_ticket failed', e);
@@ -222,16 +222,20 @@
     try {
       TCG_DEBUG.log('poll', 'fetch', { seq: G.lastSeq, room: G.roomId });
       const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(G.roomId)}&token=${G.token}&seq=${G.lastSeq}`);
-      const d = await r.json();
-      if (d.error) {
-        if (handleSpectatorPollError(d.error)) return;
-        pollError = d.error;
-        TCG_DEBUG.warn('poll', 'error', d.error);
+      const d = await parseGameApiResponse(r);
+      G._pollRateLimitBackoff = 0;
+      onState(d);
+    } catch (e) {
+      if (e && e.httpStatus >= 400) {
+        if (handleSpectatorPollError(e.message)) return;
+        reportApiError(e, { source: 'poll' });
+        pollError = e.message;
       } else {
-        G._pollRateLimitBackoff = 0;
-        onState(d);
+        TCG_DEBUG.warn('poll', 'fetch failed', e);
+        reportApiError(createApiError('Could not reach the server. Try refreshing the page.', 503), { source: 'poll' });
+        pollError = e && e.message ? e.message : 'fetch failed';
       }
-    } catch (e) { TCG_DEBUG.warn('poll', 'fetch failed', e); }
+    }
     if (G.polling) G.pollTimer = setTimeout(doPollLegacy, nextPollDelayMs(pollError));
   };
 
@@ -245,14 +249,19 @@
     TCG_DEBUG.log('poll', 'pullLatestState', { seq: G.lastSeq, force: !!force });
     try {
       const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(G.roomId)}&token=${encodeURIComponent(G.token)}&seq=${G.lastSeq}&poll=0`);
-      const d = await r.json();
-      if (!d.error) {
-        if (force && d.status === 'finished') {
-          G._pendingStateQueue = (G._pendingStateQueue || []).filter(st => (st.seq ?? 0) > (d.seq ?? 0));
-        }
-        onState(d);
-      } else if (!handleSpectatorPollError(d.error)) TCG_DEBUG.warn('poll', 'pullLatestState error', d.error);
-    } catch (e) { TCG_DEBUG.warn('poll', 'pullLatestState failed', e); }
+      const d = await parseGameApiResponse(r);
+      if (force && d.status === 'finished') {
+        G._pendingStateQueue = (G._pendingStateQueue || []).filter(st => (st.seq ?? 0) > (d.seq ?? 0));
+      }
+      onState(d);
+    } catch (e) {
+      if (e && e.httpStatus >= 400) {
+        if (!handleSpectatorPollError(e.message)) reportApiError(e, { source: 'pullLatestState' });
+      } else {
+        TCG_DEBUG.warn('poll', 'pullLatestState failed', e);
+        reportApiError(createApiError('Could not reach the server. Try refreshing the page.', 503), { source: 'pullLatestState' });
+      }
+    }
   };
 
 })(window);

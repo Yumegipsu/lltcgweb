@@ -3024,6 +3024,19 @@ body.deck-card-preview #modal-card{z-index:970}
 .toast:empty{display:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
 
+#overlay-api-error{z-index:9800}
+#overlay-api-error .mbox{max-width:min(420px,92vw);width:100%;text-align:center;padding:26px 22px 20px}
+#overlay-api-error .api-error-title{
+  font-family:'Fredoka One',cursive;font-size:22px;color:#fff;margin:0 0 10px;
+}
+#overlay-api-error .api-error-msg{
+  font-size:13px;color:rgba(255,255,255,.88);line-height:1.55;margin:0 0 10px;white-space:pre-wrap;
+}
+#overlay-api-error .api-error-hint{
+  font-size:11px;color:rgba(255,255,255,.5);line-height:1.45;margin:0 0 18px;
+}
+#overlay-api-error .btn-grad{min-width:120px;margin:0 auto}
+
 /* Center-screen game announcements — borderless outlined text */
 #center-banner{
   position:fixed;left:50%;top:44%;z-index:6800;pointer-events:none;
@@ -6639,6 +6652,14 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 
 <!-- Toast & Win -->
 <div class="toast" id="toast"></div>
+<div class="overlay" id="overlay-api-error" aria-live="assertive" aria-modal="true">
+  <div class="mbox">
+    <h2 class="api-error-title" id="api-error-title">Something went wrong</h2>
+    <p class="api-error-msg" id="api-error-msg"></p>
+    <p class="api-error-hint" id="api-error-hint">Try refreshing the page if the game looks stuck.</p>
+    <button type="button" class="btn-grad" id="btn-api-error-ok">OK</button>
+  </div>
+</div>
 <div id="center-banner" aria-live="polite" aria-atomic="true">
   <div class="cb-inner">
     <div class="cb-title llc-splash-title" id="cb-title"></div>
@@ -6848,8 +6869,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="i18n.js?v=8"></script>
 <script src="log_i18n.js?v=5"></script>
 <script src="sfx.js?v=15"></script>
-<script src="client/js/api-client.js?v=2"></script>
-<script src="client/js/game-sync.js?v=3"></script>
+<script src="client/js/api-client.js?v=3"></script>
+<script src="client/js/game-sync.js?v=4"></script>
 <script src="client/js/state-apply.js?v=3"></script>
 <script src="client/js/replay-debug.js?v=3"></script>
 <script src="client/js/prompt-renderer.js?v=7"></script>
@@ -13344,7 +13365,7 @@ function stopCasualLobbyStatsPoll() {
 
 async function refreshCasualQueueStatsQuiet() {
   try {
-    const res = await apiPost('casual_status', { queue_id: getCasualQueueId() });
+    const res = await apiPost('casual_status', { queue_id: getCasualQueueId() }, { silent: true });
     if (res.queue_stats) updateCasualQueueStats(res.queue_stats);
   } catch (e) {}
 }
@@ -13493,7 +13514,7 @@ async function enterCasualMatch(st) {
 
 async function pollCasualStatus() {
   try {
-    const res = await apiPost('casual_status', { queue_id: getCasualQueueId() });
+    const res = await apiPost('casual_status', { queue_id: getCasualQueueId() }, { silent: true });
     const outcome = applyCasualStatusResponse(res);
     if (outcome === 'matched') {
       const st = res.casual;
@@ -13513,7 +13534,7 @@ async function pollCasualStatus() {
 async function resumeCasualSearchIfQueued() {
   if (!isCasualSearchActiveLocally()) return;
   try {
-    const res = await apiPost('casual_status', { queue_id: getCasualQueueId() });
+    const res = await apiPost('casual_status', { queue_id: getCasualQueueId() }, { silent: true });
     const outcome = applyCasualStatusResponse(res);
     if (outcome === 'idle') markCasualSearchActive(false);
     else if (outcome === 'searching') startCasualPoll();
@@ -13551,7 +13572,7 @@ async function cancelCasualSearch() {
   stopCasualPoll();
   setCasualSearchingUI(false);
   try {
-    const res = await apiPost('casual_status', { queue_id: getCasualQueueId() });
+    const res = await apiPost('casual_status', { queue_id: getCasualQueueId() }, { silent: true });
     applyCasualStatusResponse(res);
   } catch (e) {}
 }
@@ -36442,7 +36463,7 @@ async function leaveSpectatorMode(opts = {}) {
   const token = G.token;
   const explicitLeave = opts.explicitLeave !== false;
   if (explicitLeave && G.isSpectator && roomId && token) {
-    try { await apiPost('spectate_leave', { room_id: roomId, token }); } catch (e) {}
+    try { await apiPost('spectate_leave', { room_id: roomId, token }, { silent: true }); } catch (e) {}
   }
   clearSpectatorSession();
   stopPoll();
@@ -36496,8 +36517,9 @@ async function sendAct(type,data){
     }
     TCG_DEBUG.warn('action', 'sendAct failed', type, e.message);
     const msg = e.message || '';
+    const status = e.httpStatus || 0;
     if (/no matching/i.test(msg) && /waiting room/i.test(msg)) toast(msg, 3200);
-    else toast('Error: ' + msg, 6000);
+    else if (status < 400) toast('Error: ' + msg, 6000);
   }
 }
 

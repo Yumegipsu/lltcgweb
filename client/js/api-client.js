@@ -52,15 +52,89 @@
     return d;
   };
 
-  global.apiPost = async function apiPost(action, body) {
+  global.createApiError = function createApiError(message, status) {
+    const err = new Error(message || 'Request failed');
+    err.httpStatus = Number(status) || 0;
+    return err;
+  };
+
+  /** Parse game API JSON; throws createApiError with httpStatus on failure. */
+  global.parseGameApiResponse = async function parseGameApiResponse(r) {
+    const status = r.status || 0;
+    let d;
+    try {
+      d = await r.json();
+    } catch (e) {
+      const msg = status >= 500 ? 'Server error' : (status >= 400 ? `Request failed (${status})` : 'Invalid server response');
+      throw global.createApiError(msg, status >= 400 ? status : 500);
+    }
+    if (d && d.error) {
+      throw global.createApiError(d.error, status >= 400 ? status : 400);
+    }
+    if (!r.ok) {
+      throw global.createApiError(`Request failed (${status})`, status || 500);
+    }
+    return d;
+  };
+
+  global.closeApiErrorPopup = function closeApiErrorPopup() {
+    const ov = document.getElementById('overlay-api-error');
+    if (ov) ov.classList.remove('open');
+    global._apiErrorPopupOpen = false;
+  };
+
+  global.showApiErrorPopup = function showApiErrorPopup(message, opts = {}) {
+    const status = Number(opts.status) || 0;
+    const msg = String(message || 'Request failed').trim();
+    if (!msg) return;
+
+    const key = `${status}|${msg.slice(0, 240)}`;
+    const now = Date.now();
+    if (global._apiErrorPopupOpen && global._lastApiErrorPopupKey === key) return;
+    if (global._lastApiErrorPopupKey === key && global._lastApiErrorPopupAt && now - global._lastApiErrorPopupAt < 8000) return;
+    global._lastApiErrorPopupKey = key;
+    global._lastApiErrorPopupAt = now;
+
+    let ov = document.getElementById('overlay-api-error');
+    if (!ov) return;
+    const titleEl = ov.querySelector('#api-error-title');
+    const msgEl = ov.querySelector('#api-error-msg');
+    const hintEl = ov.querySelector('#api-error-hint');
+    if (titleEl) titleEl.textContent = status >= 500 ? 'Server error' : 'Something went wrong';
+    if (msgEl) msgEl.textContent = msg;
+    if (hintEl) {
+      hintEl.textContent = status >= 500
+        ? 'Try refreshing the page. If it keeps happening, wait a moment and try again.'
+        : 'Try refreshing the page if the game looks stuck.';
+    }
+    ov.classList.add('open');
+    global._apiErrorPopupOpen = true;
+    if (typeof global.sfxPlay === 'function') global.sfxPlay('error', { volume: 0.8 });
+  };
+
+  global.reportApiError = function reportApiError(err, opts = {}) {
+    if (!err || opts.silent) return;
+    const status = err.httpStatus || opts.status || 0;
+    const msg = err.message || 'Request failed';
+    if (global.TCG_DEBUG && typeof global.TCG_DEBUG.warn === 'function') {
+      global.TCG_DEBUG.warn('api', opts.source || 'error', msg, status);
+    }
+    if (!opts.force && status < 400) return;
+    global.showApiErrorPopup(msg, { status });
+  };
+
+  global.apiPost = async function apiPost(action, body, opts = {}) {
     const r = await fetch(`${global.API}?action=${action}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
-    const d = await r.json();
-    if (d.error) throw new Error(d.error);
-    return d;
+    try {
+      return await global.parseGameApiResponse(r);
+    } catch (e) {
+      global.reportApiError(e, { source: 'apiPost:' + action, silent: !!opts.silent });
+      throw e;
+    }
   };
 
   global.captureSyncMeta = function captureSyncMeta(res) {
@@ -73,4 +147,16 @@
       global.G.syncTicket = null;
     }
   };
+
+  function initApiErrorPopup() {
+    const ov = document.getElementById('overlay-api-error');
+    const btn = document.getElementById('btn-api-error-ok');
+    if (!ov || ov.dataset.apiErrorBound) return;
+    ov.dataset.apiErrorBound = '1';
+    const close = () => global.closeApiErrorPopup();
+    btn?.addEventListener('click', close);
+    ov.addEventListener('click', (ev) => { if (ev.target === ov) close(); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initApiErrorPopup);
+  else initApiErrorPopup();
 })(window);
