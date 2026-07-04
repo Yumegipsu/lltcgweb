@@ -4,7 +4,7 @@
 (function (global) {
   'use strict';
 
-  const NEWS_JSON = './news.json?v=1';
+  const NEWS_JSON = './news.json?v=2';
   let _posts = null;
   let _loadPromise = null;
   let _view = 'list';
@@ -34,6 +34,11 @@
     if (!block || typeof block !== 'object') return '';
     const loc = locale();
     return block[loc] || block.en || '';
+  }
+
+  function bannerStyle(post) {
+    const raw = String(post?.bannerStyle ?? post?.banner_style ?? 'crop').trim().toLowerCase();
+    return raw === 'full' ? 'full' : 'crop';
   }
 
   function formatPostDate(dateStr) {
@@ -134,20 +139,25 @@
 
   function renderDetail(post) {
     const titleEl = document.getElementById('news-detail-title');
+    const bannerWrapEl = document.getElementById('news-detail-banner-wrap');
     const bannerEl = document.getElementById('news-detail-banner');
     const bodyEl = document.getElementById('news-detail-body');
     const dateEl = document.getElementById('news-detail-date');
     if (!post) return;
     if (titleEl) titleEl.textContent = postField(post, 'title') || post.id || '';
     if (dateEl) dateEl.textContent = formatPostDate(post.date);
-    if (bannerEl) {
+    if (bannerWrapEl && bannerEl) {
       const src = String(post.banner || '').trim();
+      const style = bannerStyle(post);
+      bannerWrapEl.classList.remove('news-detail-banner-wrap--crop', 'news-detail-banner-wrap--full');
+      bannerWrapEl.classList.add(style === 'full' ? 'news-detail-banner-wrap--full' : 'news-detail-banner-wrap--crop');
       if (src) {
+        bannerWrapEl.hidden = false;
         bannerEl.hidden = false;
         bannerEl.src = src;
         bannerEl.alt = '';
       } else {
-        bannerEl.hidden = true;
+        bannerWrapEl.hidden = true;
         bannerEl.removeAttribute('src');
       }
     }

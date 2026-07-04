@@ -5,6 +5,7 @@
       "id": "2026-07-ui-update",
       "date": "2026-07-04",
       "banner": "tcglogo.png",
+      "bannerStyle": "full",
       "title": {
         "en": "News & patch notes",
         "ja": "お知らせ・パッチノート"
