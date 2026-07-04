@@ -16,7 +16,12 @@ function tryResolveAbilityEffectSwitchOptional(
     switch ($type) {
         case 'optional_discard_named':
             $ids = $ctx['discard_ids'] ?? [];
-            if (empty($ids)) break;
+            if (empty($ids)) {
+                if (!empty($ab['exact_total'])) {
+                    throw new Exception('Must discard exactly ' . $ab['exact_total'] . ' matching cards');
+                }
+                break;
+            }
             $names = $ab['names'] ?? [];
             $valid = [];
             foreach ($p['hand'] as $c) {

@@ -15,23 +15,25 @@ function tryResolveAbilityEffectSwitchWaitingRoomSuccess(
 ): array {
     switch ($type) {
         case 'add_from_waiting_room':
-            $candidates = array_values(array_filter($p['waiting_room'], function ($c) use ($ab) {
-                if (($ab['filter'] ?? '') === 'member') {
-                    return ($c['card_type'] ?? '') === 'メンバー';
-                }
-                return true;
-            }));
-            $take = min(intval($ab['count'] ?? 1), count($candidates));
-            if ($take > 0) {
-                $picked = array_slice($candidates, 0, $take);
-                $pickedIds = array_column($picked, 'instance_id');
-                $p['waiting_room'] = array_values(array_filter(
-                    $p['waiting_room'],
-                    fn($c) => !in_array($c['instance_id'] ?? '', $pickedIds, true)
-                ));
-                $p['hand'] = array_merge($p['hand'], $picked);
+            $cfg = wrPickCfgFromAbility($ab);
+            $candidates = wrCandidatesMatching($p, $cfg);
+            if (!empty($candidates)) {
+                $filter = $cfg['filter'] ?? 'member';
+                $state['pending_prompt'] = [
+                    'type'          => 'pick_wr_to_hand',
+                    'owner'         => $pid,
+                    'responder'     => $pid,
+                    'source_id'     => $source['instance_id'] ?? '',
+                    'source_slot'   => $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? ''),
+                    'source_name'   => $name,
+                    'prompt'        => 'Choose 1 ' . wrPickFilterLabel($filter) .
+                        ' card from your Waiting Room to add to your hand.',
+                    'candidates'    => array_map('cardPromptSummary', $candidates),
+                    'ability'       => $ab,
+                    'wr_pick_cfg'   => $cfg,
+                ];
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] added $take Member(s) from Waiting Room to hand.");
+                    " — [$name] choose a card from Waiting Room.");
             }
             break;
 
