@@ -67,7 +67,7 @@ function clearLiveModifiers(array $state): array {
         $state['_last_yell_cards']
     );
     foreach (['p1', 'p2'] as $pid) {
-        unset($state['_last_yell_live_count_' . $pid]);
+        unset($state['_last_yell_live_count_' . $pid], $state['_last_yell_score_icons_' . $pid]);
     }
     return $state;
 }

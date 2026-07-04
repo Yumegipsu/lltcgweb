@@ -6832,7 +6832,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/game-sync.js?v=3"></script>
 <script src="client/js/state-apply.js?v=3"></script>
 <script src="client/js/replay-debug.js?v=3"></script>
-<script src="client/js/prompt-renderer.js?v=5"></script>
+<script src="client/js/prompt-renderer.js?v=6"></script>
 <script src="client/js/tutorial-interactive.js?v=1"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -30878,7 +30878,7 @@ function estimateBatonWrEnergyActivation(me, occupant, incomingCard) {
 function affordableEnergyForBatonPlay(me, occupant, incomingCard = null) {
   return (me?.energy_zone || []).filter(energyChipActive).length;
 }
-function sumSc(z){ return (z||[]).reduce((s,c)=>s+(c.score||0),0); }
+function sumSc(z){ return (z||[]).reduce((s,c)=>s+(Number(c.score)||0)+Number(c.live_score_bonus||0),0); }
 
 function judgeLiveTotalScore(s, pid, zone) {
   if (!zone?.length) return 0;
@@ -33735,7 +33735,14 @@ function wrPickCfgFromPrompt(pr) {
 
 function wrToHandPickCards(pr, s, myId) {
   const wr = s?.players?.[myId]?.waiting_room || [];
-  return wr.map(c => {
+  const byId = new Map(wr.map(c => [c.instance_id, c]));
+  const source = (pr.candidates || []).length
+    ? (pr.candidates || []).map(c => {
+        const full = byId.get(c.instance_id);
+        return enrichCard(full ? { ...c, ...full } : c);
+      })
+    : wr;
+  return source.map(c => {
     const card = enrichCard(c);
     return {
       instance_id: card.instance_id,

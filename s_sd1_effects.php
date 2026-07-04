@@ -121,6 +121,9 @@ function sSd1ResolveEffect(array $state, string $pid, array $source, array $ab, 
                 }
                 $played['active'] = true;
                 $played['entered_turn'] = intval($state['turn'] ?? 1);
+                if (!empty($ab['block_entered_this_turn'])) {
+                    $played['blocks_slot_entries'] = true;
+                }
                 $p['stage'][$emptySlots[0]] = $played;
                 $state = resolveOnEnterAbilities($state, $pid, $played, $emptySlots[0]);
                 $state = addLog($state, $state['players'][$pid]['name'] .
@@ -337,6 +340,9 @@ function sSd1ResolvePrompt(
             array_splice($ownerP['waiting_room'], $i, 1);
             $played['active'] = true;
             $played['entered_turn'] = intval($state['turn'] ?? 1);
+            if (!empty($ability['block_entered_this_turn'])) {
+                $played['blocks_slot_entries'] = true;
+            }
             $ownerP['stage'][$slot] = $played;
             $state = resolveOnEnterAbilities($state, $owner, $played, $slot);
             break;
@@ -355,6 +361,8 @@ function sSd1ResolvePrompt(
             }
             unset($mbr);
         }
+        unset($state['pending_prompt']);
+        $state['seq']++;
         return returnAfterPlacedMemberEnter($state);
     }
 

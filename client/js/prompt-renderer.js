@@ -1216,8 +1216,7 @@ global.handlePromptChoice = function handlePromptChoice(pr, choice, s, myId){
   const discardNeed=promptDiscardCount(pr,choice);
   const needsPay=(choice==='yes'&&!!pr.needs_pay)
     ||(pr.type==='optional_pay_energy_on_enter'&&choice==='yes')
-    ||(pr.type==='live_start_pay_or_discard'&&choice==='pay')
-    ||(pr.type==='sbp6_leave_play_wr_slot'&&choice==='yes'&&(pr.step||'')!=='pick');
+    ||(pr.type==='live_start_pay_or_discard'&&choice==='pay');
   if(needsPay){
     const ae=(me.energy_zone||[]).filter(energyChipActive).length;
     const cost=pr.pay_cost||pr.ability?.cost||0;

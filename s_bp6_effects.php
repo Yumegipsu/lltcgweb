@@ -1010,10 +1010,6 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
             if ($choice !== 'yes') {
                 throw new Exception('Choose Yes or No');
             }
-            $cost = intval($ability['cost'] ?? 2);
-            if (!payEnergyCost($ownerP, $cost)) {
-                throw new Exception("Need $cost active Energy");
-            }
             $eligible = wrCandidatesMatching($ownerP, $cfg);
             if (empty($eligible)) {
                 throw new Exception('No matching Member in Waiting Room');
@@ -1030,6 +1026,10 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
         $cardId = $data['card_id'] ?? '';
         if ($cardId === '') {
             throw new Exception('Choose a Member from your Waiting Room');
+        }
+        $cost = intval($ability['cost'] ?? 2);
+        if ($cost > 0 && !payEnergyCost($ownerP, $cost)) {
+            throw new Exception("Need $cost active Energy");
         }
         if ($slot === '' || empty($ownerP['stage'][$slot])) {
             throw new Exception('Member no longer on Stage');
@@ -1060,6 +1060,8 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
         $state = addLog($state, $state['players'][$owner]['name'] .
             ' — [' . ($leaving['name_en'] ?? $leaving['name'] ?? 'Member') . '] left Stage; played ' .
             cardDisplayName($played) . ' from Waiting Room.');
+        unset($state['pending_prompt']);
+        $state['seq']++;
         return returnAfterPlacedMemberEnter($state);
     }
 

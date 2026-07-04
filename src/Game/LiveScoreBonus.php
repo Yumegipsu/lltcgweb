@@ -146,7 +146,7 @@ function getLiveScoreBonusBreakdown(array $state, string $pid): array {
     }
     unset($member);
     if (isLiveScoreYellContext($state)) {
-        $yellScoreIcons = intval($state['_last_yell_score_icons'] ?? 0);
+        $yellScoreIcons = yellScoreIconsForPlayer($state, $pid);
         if ($yellScoreIcons > 0) {
             pushLiveScoreBonusEntry(
                 $entries,
@@ -155,6 +155,28 @@ function getLiveScoreBonusBreakdown(array $state, string $pid): array {
                 $yellScoreIcons,
                 "+{$yellScoreIcons} Live Score per Yell Score icon"
             );
+        }
+    }
+    foreach ($p['live_zone'] ?? [] as $live) {
+        if (!$live) {
+            continue;
+        }
+        mergeCardCatalogFields($live);
+        $who = $live['name_en'] ?? $live['name'] ?? 'Live';
+        foreach ($live['abilities'] ?? [] as $ab) {
+            if (($ab['trigger'] ?? '') !== 'continuous') {
+                continue;
+            }
+            $amt = 0;
+            $text = continuousEffectDescription($ab);
+            if (($ab['type'] ?? '') === 'success_score_per_yell_score' && isLiveScoreYellContext($state)) {
+                $icons = yellScoreIconsForPlayer($state, $pid);
+                if ($icons > 0) {
+                    $amt = intval($ab['amount'] ?? 1) * $icons;
+                    $text = "+{$amt} Live Score per Yell Score icon";
+                }
+            }
+            pushLiveScoreBonusEntry($entries, $bonus, $who, $amt, $text);
         }
     }
     return ['total' => $bonus, 'entries' => $entries];

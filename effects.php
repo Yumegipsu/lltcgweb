@@ -366,13 +366,43 @@ function countOppWaitMembers(array $state, string $opp): int {
     return $n;
 }
 
+function liveCardScoreForJudge(array $card): int {
+    mergeCardCatalogFields($card);
+    return intval($card['score'] ?? 0) + intval($card['live_score_bonus'] ?? 0);
+}
+
+function sumLiveZoneCardScores(array $zone): int {
+    $sum = 0;
+    foreach ($zone as $c) {
+        if ($c) {
+            $sum += liveCardScoreForJudge($c);
+        }
+    }
+    return $sum;
+}
+
+function yellScoreIconsForPlayer(array $state, string $pid): int {
+    $key = '_last_yell_score_icons_' . $pid;
+    if (array_key_exists($key, $state)) {
+        return intval($state[$key]);
+    }
+    return intval($state['_last_yell_score_icons'] ?? 0);
+}
+
+function stageSlotBlocksAdditionalEnterThisTurn(?array $occupant, array $state): bool {
+    if (!$occupant || empty($occupant['blocks_slot_entries'])) {
+        return false;
+    }
+    return intval($occupant['entered_turn'] ?? 0) === intval($state['turn'] ?? 1);
+}
+
 function getLiveTotalScore(array $state, string $pid): int {
     $p = $state['players'][$pid] ?? [];
     $zone = $p['live_zone'] ?? [];
     if (empty($zone)) {
         return 0;
     }
-    return array_sum(array_column($zone, 'score')) + getLiveScoreBonus($state, $pid);
+    return sumLiveZoneCardScores($zone) + getLiveScoreBonus($state, $pid);
 }
 
 function countDistinctWrLives(array $p, string $group): int {

@@ -58,9 +58,9 @@ function tryResolveAbilityEffectSwitchLive(
             $myZone = $p['live_zone'] ?? [];
             $oppZone = $state['players'][$opp]['live_zone'] ?? [];
             $myScore = empty($myZone) ? 0
-                : array_sum(array_column($myZone, 'score')) + getLiveScoreBonus($state, $pid);
+                : sumLiveZoneCardScores($myZone) + getLiveScoreBonus($state, $pid);
             $oppScore = empty($oppZone) ? 0
-                : array_sum(array_column($oppZone, 'score')) + getLiveScoreBonus($state, $opp);
+                : sumLiveZoneCardScores($oppZone) + getLiveScoreBonus($state, $opp);
             if ($myScore <= $oppScore) break;
             if (($ab['group'] ?? '') !== '' && !stageHasGroupMember($p, $ab['group'])) break;
             if (putEnergyFromDeckInWait($p)) {

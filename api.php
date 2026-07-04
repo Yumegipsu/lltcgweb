@@ -795,6 +795,9 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     $isBaton = $batonCardId && $occupant;
     $isOverplay = $occupant && !$batonCardId;
 
+    if ($isOverplay && stageSlotBlocksAdditionalEnterThisTurn($occupant, $state)) {
+        throw new Exception('Cannot enter this Stage area this turn');
+    }
     if ($occupant && stageMemberEnteredThisTurn($occupant, $state)) {
         throw new Exception('Cannot replace a Member that was played this turn');
     }
@@ -1770,7 +1773,9 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     }
     $yellDrawIcons = countYellDrawIcons($yellCards);
     $drawBonus += $yellDrawIcons;
-    $state['_last_yell_score_icons'] = countYellScoreIcons($yellCards);
+    $yellScoreIcons = countYellScoreIcons($yellCards);
+    $state['_last_yell_score_icons'] = $yellScoreIcons;
+    $state['_last_yell_score_icons_' . $pid] = $yellScoreIcons;
     if ($yellWildcard) {
         $yellHearts = resolveSmartYellWildcardHeartColors(
             $yellHearts,
@@ -1949,10 +1954,7 @@ function playerLiveRoundSucceeded(array $state, string $pid): bool {
     if (isset($state['live_round_success'][$pid])) {
         return (bool)$state['live_round_success'][$pid];
     }
-    if (!playerAttemptedLiveRound($state, $pid)) {
-        return false;
-    }
-    return !empty($state['players'][$pid]['live_zone']);
+    return false;
 }
 
 // ─────────────────────────────────────────────
@@ -1988,7 +1990,7 @@ function resolveLiveJudge(array $state): array {
             $zone = $state['players'][$pid]['live_zone'] ?? [];
             $scores[$pid] = empty($zone)
                 ? 0
-                : array_sum(array_column($zone, 'score')) + getLiveScoreBonus($state, $pid);
+                : sumLiveZoneCardScores($zone) + getLiveScoreBonus($state, $pid);
         }
 
         $state = addLog($state, 'Live Scores: ' .
