@@ -47,7 +47,12 @@
   ];
 
   function isReplayPromptReadOnlyState(s) {
-    return !!(s?.pending_prompt && typeof global.isReplayViewing === 'function' && global.isReplayViewing());
+    const pr = s?.pending_prompt;
+    if (!pr || typeof global.isReplayViewing !== 'function' || !global.isReplayViewing()) {
+      return false;
+    }
+    const viewerId = global.G?.playerId;
+    return !!viewerId && pr.responder === viewerId;
   }
 
   function scheduleReplayPromptReadOnlyUi(readOnly) {
@@ -1370,15 +1375,28 @@ global.renderPromptDiscardHandBranch = function renderPromptDiscardHandBranch(s,
 
 global.renderPrompt = function renderPrompt(s, myId){
   let pr=s.pending_prompt;
-  const replayReadOnly = isReplayPromptReadOnlyState(s);
-  if (replayReadOnly) {
+  const viewerId = myId;
+  const replayViewing = typeof global.isReplayViewing === 'function' && global.isReplayViewing();
+  const ovl=el('overlay-prompt');
+  if (replayViewing && pr) {
     global.G._promptSubmitKey = null;
-    myId = pr?.responder || myId;
+    if (pr.responder !== viewerId) {
+      ovl?.classList.remove('open');
+      hideTextAnswerPrompt();
+      hidePromptEffectText();
+      closeM('overlay-hand-pick');
+      closeM('overlay-pick');
+      closeM('overlay-heart');
+      closeM('overlay-surveil');
+      global.syncReplayPromptReadOnlyUi?.(false);
+      return;
+    }
     scheduleReplayPromptReadOnlyUi(true);
   } else {
     global.syncReplayPromptReadOnlyUi?.(false);
   }
-  syncAntiSoftlockButton(s, myId);
+  const replayReadOnly = isReplayPromptReadOnlyState(s);
+  syncAntiSoftlockButton(s, viewerId);
   if (!replayReadOnly) syncPromptSubmitState(s);
   if (!replayReadOnly && isPromptSubmitting(s)) {
     const submittingSurveil = s.pending_prompt?.type === 'surveil_arrange'
@@ -1387,9 +1405,8 @@ global.renderPrompt = function renderPrompt(s, myId){
     return;
   }
   if(pr) pr=ensurePromptChoices(pr);
-  if (pr) TCG_DEBUG.log('prompt', pr.type, { responder: pr.responder, me: myId, seq: s.seq, step: pr.step });
-  const ovl=el('overlay-prompt');
-  if (!replayReadOnly && pr?.responder === myId && shouldDeferPromptForLivePresentation(s, myId)) {
+  if (pr) TCG_DEBUG.log('prompt', pr.type, { responder: pr.responder, me: viewerId, seq: s.seq, step: pr.step });
+  if (!replayReadOnly && pr?.responder === viewerId && shouldDeferPromptForLivePresentation(s, viewerId)) {
     ovl?.classList.remove('open');
     if (pr.type === 'effect_discard_hand') closeM('overlay-hand-pick');
     return;

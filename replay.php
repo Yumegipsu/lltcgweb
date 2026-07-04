@@ -140,7 +140,22 @@ function replayActionBlockedByPendingPrompt(Throwable $e): bool {
     return str_contains($e->getMessage(), 'pending skill prompt');
 }
 
+function replayPrepareStateForRecordedAction(array $state, string $pid, string $type): array {
+    if (in_array($type, ['resolve_prompt', 'anti_softlock_skip'], true)) {
+        return $state;
+    }
+    $pr = $state['pending_prompt'] ?? null;
+    if (!is_array($pr)) {
+        return $state;
+    }
+    if (($pr['responder'] ?? '') !== $pid) {
+        unset($state['pending_prompt']);
+    }
+    return $state;
+}
+
 function replayApplyRecordedAction(array $state, string $pid, string $type, array $data, int $index): array {
+    $state = replayPrepareStateForRecordedAction($state, $pid, $type);
     try {
         return applyAction($state, $pid, $type, $data);
     } catch (Throwable $e) {
