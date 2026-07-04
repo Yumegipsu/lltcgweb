@@ -302,12 +302,15 @@ function joinRoom(array $body): array {
 
     $firstPlayer = in_array($body['first_player'] ?? '', ['p1', 'p2'], true)
         ? $body['first_player'] : null;
+    $coinFlipWinner = in_array($body['coin_flip_winner'] ?? '', ['p1', 'p2'], true)
+        ? $body['coin_flip_winner'] : null;
 
     $state = addSecondPlayer($state,
         ['id' => 'p2', 'token' => $playerToken, 'name' => $playerName,
          'deck_choice' => $resolved['deck_choice'], 'deck_label' => $resolved['deck_label'],
          'main_deck' => $mainDeck, 'energy_deck' => $energyDeck],
-        $firstPlayer
+        $firstPlayer,
+        $coinFlipWinner
     );
 
     if (($body['deck'] ?? '') === 'cpu') {
@@ -553,7 +556,7 @@ function initPlayerState(array $p): array {
     ];
 }
 
-function addSecondPlayer(array $state, array $p2, ?string $firstPlayerOverride = null): array {
+function addSecondPlayer(array $state, array $p2, ?string $firstPlayerOverride = null, ?string $coinFlipWinner = null): array {
     $state['players']['p2'] = initPlayerState($p2);
     $state['status']        = 'setup';
     $state['phase']         = 'setup';
@@ -564,7 +567,9 @@ function addSecondPlayer(array $state, array $p2, ?string $firstPlayerOverride =
         $state['active_player'] = $firstPlayerOverride;
         $state['phase']         = 'setup';
     } else {
-        $winner = (rand(0, 1) === 0) ? 'p1' : 'p2';
+        $winner = ($coinFlipWinner === 'p1' || $coinFlipWinner === 'p2')
+            ? $coinFlipWinner
+            : ((rand(0, 1) === 0) ? 'p1' : 'p2');
         $state['first_player']  = null;
         $state['active_player'] = null;
         $state['coin_flip'] = [

@@ -351,7 +351,7 @@ body.tutorial-spotlight-light #tutorial-spotlight .tut-hole,
 .tut-btn-back:disabled{opacity:.35;cursor:not-allowed}
 .tut-btn-next{background:linear-gradient(135deg,var(--pink),var(--pink-d));color:#fff;border:none;
   box-shadow:0 3px 12px rgba(214,51,132,.3)}
-.tut-step{font-size:12px;color:rgba(73,73,73,.55);font-weight:700;white-space:nowrap}
+.tut-step{display:none!important}
 /* Tutorial: only Kanon bubble nav (Back / Next / Exit) receives clicks */
 body.tutorial-mode #screen-game,
 body.tutorial-mode #screen-game *,
@@ -401,6 +401,12 @@ body.tutorial-live-mode #phase-action-bar .btn-phase-primary.tut-locked{
 body.tutorial-live-mode #overlay-mull .btn-grad{opacity:1;pointer-events:auto}
 body.tutorial-live-mode #overlay-mull:not(.tut-mull-readonly) .mullcard{pointer-events:auto;cursor:pointer}
 body.tutorial-live-mode #overlay-coin{pointer-events:auto}
+body.tutorial-live-coin #overlay-coin,
+body.tutorial-live-mulligan #overlay-mull{z-index:8700}
+body.tutorial-live-coin #overlay-coin,
+body.tutorial-live-coin #overlay-coin *,
+body.tutorial-live-mulligan #overlay-mull,
+body.tutorial-live-mulligan #overlay-mull *{pointer-events:auto!important}
 body.tutorial-live-action .tut-btn-next{opacity:.35;pointer-events:none}
 body.tutorial-mode .side-log .sbfoot{pointer-events:none!important}
 body.tutorial-mode .side-log .sbfoot button{
@@ -6833,7 +6839,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=3"></script>
 <script src="client/js/replay-debug.js?v=3"></script>
 <script src="client/js/prompt-renderer.js?v=6"></script>
-<script src="client/js/tutorial-interactive.js?v=1"></script>
+<script src="client/js/tutorial-interactive.js?v=2"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -21925,6 +21931,7 @@ function doCPU(s) {
   }
   clearCpuPromptTracking();
   if (ph === 'coin_flip' && s.coin_flip) {
+    if (G.tutorialLive && !tutorialLiveCoinActive()) return;
     const flip = s.coin_flip;
     if (!flip.ready?.[cpuId]) {
       TCG_DEBUG.log('cpu', 'ack_coin_flip');
@@ -21947,6 +21954,7 @@ function doCPU(s) {
     return;
   }
   if (ph === 'setup' && !cpu.ready_mulligan) {
+    if (G.tutorialLive && tutorialLiveStepId() !== 'mulligan') return;
     TCG_DEBUG.log('cpu', 'mulligan', { diff: cpuDiff() });
     cpuSchedule(() => cpuMulligan(), 700);
     return;
@@ -25138,15 +25146,21 @@ function renderGame(s, opts = {}) {
 
   // Conditional overlays
   if (!G.isTutorial || G.tutorialLive) {
-    maybeShowCoinFlip(s, myId);
+    const tutStepId = G.tutorialLive ? tutorialLiveStepId() : '';
+    const showCoin = !G.tutorialLive || tutStepId === 'coin' || tutStepId === 'choose_first';
+    if (showCoin) maybeShowCoinFlip(s, myId);
+    else el('overlay-coin')?.classList.remove('open');
     if (s.phase === 'setup') {
+      const showMull = !G.tutorialLive || tutStepId === 'mulligan';
       if (me.ready_mulligan) {
         G.mulliganPending = false;
         el('overlay-mull').classList.remove('open');
       } else if (G.mulliganPending) {
         el('overlay-mull').classList.remove('open');
-      } else {
+      } else if (showMull) {
         openMull(me.hand || []);
+      } else {
+        el('overlay-mull').classList.remove('open');
       }
     } else {
       G.mulliganPending = false;
@@ -34008,8 +34022,28 @@ function syncCoinFlipChoiceUi(s, myId) {
   updatePhaseTimerUI(s);
 }
 
+function tutorialLiveStepId() {
+  return G.tutorialData?.steps?.[G.tutorialStep]?.id || '';
+}
+
+function tutorialLiveCoinActive() {
+  const id = tutorialLiveStepId();
+  return id === 'coin' || id === 'choose_first';
+}
+
+function syncTutorialLivePresentation(s, myId) {
+  if (!G.tutorialLive) {
+    document.body.classList.remove('tutorial-live-coin', 'tutorial-live-mulligan');
+    return;
+  }
+  const id = tutorialLiveStepId();
+  document.body.classList.toggle('tutorial-live-coin', id === 'coin' || id === 'choose_first');
+  document.body.classList.toggle('tutorial-live-mulligan', id === 'mulligan');
+}
+
 function ensureCoinFlipAcked(s, myId) {
   const gs = s || G.gameState;
+  if (G.tutorialLive && tutorialLiveStepId() !== 'coin') return;
   if (gs?.phase !== 'coin_flip' || !gs.coin_flip || !G._coinFlipAnimComplete) return;
   if (gs.coin_flip.ready?.[myId]) {
     G.coinFlipAckSent = true;
@@ -34114,6 +34148,11 @@ function submitCoinFirstPlayerChoice(selfFirst) {
 function maybeShowCoinFlip(s, myId) {
   if (s.phase !== 'coin_flip' || !s.coin_flip) {
     resetCoinFlipPresentation();
+    return;
+  }
+
+  if (G.tutorialLive && !tutorialLiveCoinActive()) {
+    el('overlay-coin')?.classList.remove('open');
     return;
   }
 
@@ -35709,11 +35748,23 @@ function renderTutorialStep(idx, opts = {}) {
   if (!step) return;
   G.tutorialStep = idx;
   el('tut-text').innerHTML = formatTutorialDialogue(tutorialDialogue(step));
-  el('tut-step').textContent = `${idx + 1} / ${steps.length}`;
   el('btn-tut-back').disabled = idx <= 0 || !!G.tutorialAnimating;
   el('btn-tut-next').disabled = !!G.tutorialAnimating;
   el('btn-tut-next').textContent = idx >= steps.length - 1 ? t('tut.finish') : t('tut.next');
   if (G.tutorialLive && window.TutorialInteractive?.syncStepUi) TutorialInteractive.syncStepUi();
+  if (G.tutorialLive && G.gameState) {
+    syncTutorialLivePresentation(G.gameState, G.playerId || 'p1');
+    if (step.id === 'coin' && G.gameState.phase === 'coin_flip') {
+      const flipKey = `${G.roomId || 'game'}:${G.gameState.coin_flip?.winner || ''}`;
+      if (!G._coinFlipAnimComplete || G.coinFlipSeq !== flipKey) {
+        resetCoinFlipPresentation();
+        G.coinFlipSeq = null;
+      }
+      maybeShowCoinFlip(G.gameState, G.playerId || 'p1');
+    } else if (step.id === 'choose_first' && G.gameState.phase === 'coin_flip') {
+      maybeShowCoinFlip(G.gameState, G.playerId || 'p1');
+    }
+  }
   if (opts.textOnly) return;
   const hl = tutorialSpotlightHighlights(step);
   renderTutorialSpotlight(hl);
@@ -35997,7 +36048,7 @@ async function startTutorial() {
 function exitTutorial() {
   const wasLive = !!G.tutorialLive;
   G.tutorialLive = false;
-  document.body.classList.remove('tutorial-live-mode', 'tutorial-live-action');
+  document.body.classList.remove('tutorial-live-mode', 'tutorial-live-action', 'tutorial-live-coin', 'tutorial-live-mulligan');
   perfCloseSpectacle();
   el('overlay-tutorial').classList.remove('open');
   el('tutorial-spotlight').classList.remove('show');

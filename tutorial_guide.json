@@ -161,13 +161,14 @@
       "LL-E-001-SD",
       "LL-E-001-SD"
     ],
-    "phase_timer_enabled": false
+    "phase_timer_enabled": false,
+    "coin_flip_winner": "p1"
   },
   "steps": [
     {
       "id": "welcome",
       "kind": "info",
-      "dialogue": "Hi! I'm **Shibuya Kanon**. Let's learn **Loveca** together — you'll play a real turn, not just read rules!",
+      "dialogue": "Hi! I'm **Shibuya Kanon**. Welcome to the **Love Live! Official Card Game**! I'll teach you the basics as we play.",
       "highlights": [
         {
           "target": "playmat-column",
@@ -179,7 +180,7 @@
     {
       "id": "goal",
       "kind": "info",
-      "dialogue": "**Goal:** be the first to place **3 Live cards** in your Success pile by performing successful Lives!",
+      "dialogue": "**Win condition:** Successfully perform **3 Lives** before your opponent. When your Live succeeds, that card moves to your **Success** pile — first to three wins!",
       "highlights": [
         {
           "target": "my-pips",
@@ -191,7 +192,7 @@
     {
       "id": "card_types",
       "kind": "info",
-      "dialogue": "Three card types: **Member** (idols on Stage), **Live** (songs you perform), and **Energy** (pays Member costs).",
+      "dialogue": "This game uses three card types. **Member** cards, **Live** cards, and **Energy** cards. Pay **Energy** equal to a Member's cost to play them from your hand.",
       "highlights": [
         {
           "target": "hand-row",
@@ -208,7 +209,7 @@
     {
       "id": "zones",
       "kind": "info",
-      "dialogue": "Your **Stage** supplies **Hearts** for Lives. **Live storage** holds face-down cards during the Live Phase.",
+      "dialogue": "The **Stage** (Left / Center / Right) is where Members sit. Their **Hearts** fuel Lives during Performance. **Live storage** holds face-down cards during the Live Phase.",
       "highlights": [
         {
           "target": "my-stage-center",
@@ -225,22 +226,23 @@
     {
       "id": "coin",
       "kind": "action",
-      "dialogue": "Every match starts with a **coin flip**. Watch the flip, then tap to continue!",
+      "dialogue": "Before play begins, a **coin flip** picks a winner — they **choose** who goes first. Watch the flip!",
       "highlights": [
         {
-          "target": "sb-info",
+          "target": "overlay-coin",
           "shape": "rounded",
           "padding": 12
         }
       ],
       "goal": {
         "type": "ack_coin_flip"
-      }
+      },
+      "bubbleAnchor": "overlay-coin"
     },
     {
       "id": "choose_first",
       "kind": "action",
-      "dialogue": "You won the flip! Choose who takes the **first turn** — pick **You go first** for this lesson.",
+      "dialogue": "You won the flip! Choose who takes the **first turn** — tap **Go first** to play first.",
       "highlights": [
         {
           "target": "overlay-coin",
@@ -257,7 +259,7 @@
     {
       "id": "mulligan",
       "kind": "action",
-      "dialogue": "You draw **6** cards. Unhappy with your hand? Tap cards to swap them, or tap **Keep Hand** to continue.",
+      "dialogue": "You start with **6** cards. Tap any cards you want to replace, then tap **Keep Hand** — or keep all six as they are.",
       "highlights": [
         {
           "target": "mulligan-overlay",
@@ -267,12 +269,13 @@
       ],
       "goal": {
         "type": "mulligan"
-      }
+      },
+      "bubbleAnchor": "overlay-mull"
     },
     {
       "id": "main_intro",
       "kind": "info",
-      "dialogue": "**Main Phase** — play **Members** from your hand by spending **Energy** (flip cards sideways). Do as many plays as you like, in any order!",
+      "dialogue": "**Main Phase** — play **Members** from your hand by spending **Energy** (flip those cards sideways). You can make as many plays as you like, in any order!",
       "highlights": [
         {
           "target": "hand-row",
@@ -289,7 +292,7 @@
     {
       "id": "play_member",
       "kind": "action",
-      "dialogue": "Play **Shiki Wakana** to **Center** — cost **2**. Tap her in your hand, then tap the **Center** stage slot!",
+      "dialogue": "Let's play **Shiki Wakana** to **Center** — she costs **2 Energy**. Tap her in your hand, then tap the **Center** stage slot!",
       "highlights": [
         {
           "target": "my-stage-center",
@@ -308,7 +311,7 @@
     {
       "id": "energy_tip",
       "kind": "info",
-      "dialogue": "Spent Energy rests **sideways**. Members on Stage show **Hearts** (top-left) you'll need when performing Lives!",
+      "dialogue": "Spent Energy rests **sideways**. Members on Stage show **Hearts** you'll need when performing Lives!",
       "highlights": [
         {
           "target": "my-energy",
@@ -325,7 +328,7 @@
     {
       "id": "end_main",
       "kind": "action",
-      "dialogue": "When you're done in Main Phase, press **End Main Phase**.",
+      "dialogue": "When you're finished in Main Phase, press **End Main Phase**.",
       "highlights": [
         {
           "target": "phase-action-bar",
@@ -403,7 +406,7 @@
     {
       "id": "perf_watch",
       "kind": "watch",
-      "dialogue": "**Performance!** Lives flip face-up. Compare **required hearts** on the Live with hearts from your Stage. **Yell** lets you flip your deck for extra hearts using **Blade** icons!",
+      "dialogue": "**Performance!** Lives flip face-up. Match each Live's **required hearts** with hearts from your Stage. **Yell** flips cards from your deck — **Blade** icons on those cards can help pay hearts!",
       "highlights": [
         {
           "target": "perf-spectacle",
@@ -419,7 +422,7 @@
     {
       "id": "success",
       "kind": "info",
-      "dialogue": "A successful Live moves to your **Success** pile! Win **3** Lives to take the match. If both succeed, higher **score** wins the round.",
+      "dialogue": "A successful Live joins your **Success** pile! Win **3** Lives to take the match. If both players succeed, whoever has the higher **score** wins the round.",
       "highlights": [
         {
           "target": "my-pips",
@@ -431,7 +434,7 @@
     {
       "id": "outro",
       "kind": "info",
-      "dialogue": "Core loop: **Main → Live → Performance**. Try **Practice vs CPU** next — we'll cover skills and baton pass in advanced lessons!",
+      "dialogue": "Each turn flows **Main → Live → Performance**. When you're ready, try **Practice vs CPU** — skills and baton pass come up naturally as you play.",
       "highlights": []
     }
   ]

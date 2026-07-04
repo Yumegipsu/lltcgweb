@@ -252,7 +252,7 @@
     try {
       if (typeof global.resetMatchTransientState === 'function') global.resetMatchTransientState();
       if (typeof global.loadTutorialJa === 'function') await global.loadTutorialJa();
-      const r = await fetch('./tutorial_guide.json?v=1', { cache: 'no-store' });
+      const r = await fetch('./tutorial_guide.json?v=2', { cache: 'no-store' });
       if (!r.ok) throw new Error('Could not load tutorial guide (HTTP ' + r.status + ')');
       const data = await r.json();
       if (!data?.steps?.length) throw new Error('Tutorial guide has no steps');
@@ -290,6 +290,9 @@
         energy_order: cfg().p2_energy_order,
         phase_timer_enabled: false,
       };
+      if (cfg().coin_flip_winner === 'p1' || cfg().coin_flip_winner === 'p2') {
+        p2Payload.coin_flip_winner = cfg().coin_flip_winner;
+      }
       const r2 = await global.apiPost('join_room', p2Payload);
       G().cpuToken = r2.player_token;
       G().cpuPlayerId = 'p2';
