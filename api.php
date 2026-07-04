@@ -2591,8 +2591,18 @@ function isCpuPlayer(?array $player): bool {
     if (!$player) {
         return false;
     }
+    $deckChoice = (string)($player['deck_choice'] ?? '');
+    if ($deckChoice === 'cpu' || str_starts_with($deckChoice, 'cpu:')) {
+        return true;
+    }
     $name = (string)($player['name'] ?? '');
-    return str_contains($name, 'CPU') || str_contains($name, '🤖');
+    if ($name === '') {
+        return false;
+    }
+    if (str_contains($name, 'CPU') || str_contains($name, '🤖')) {
+        return true;
+    }
+    return str_starts_with($name, 'COM') || str_starts_with($name, 'COM（');
 }
 
 function isPvpMatch(array $state): bool {

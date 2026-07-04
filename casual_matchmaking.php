@@ -332,9 +332,23 @@ function tcgCasualQueuePublicStats(): array {
     return $stats;
 }
 
+/** True when this room is an active unranked human-vs-human casual match (not CPU / replay). */
+function tcgCasualHumanPvpRoom(array $state): bool {
+    if (($state['mode'] ?? '') === 'ranked' || ($state['mode'] ?? '') === 'replay_view') {
+        return false;
+    }
+    if (!empty($state['cpu_difficulty']) || !empty($state['cpu_solo'])) {
+        return false;
+    }
+    if (($state['status'] ?? '') === 'finished') {
+        return false;
+    }
+    return isPvpMatch($state);
+}
+
 /** Live human players in one unranked PvP room (presence-aware; excludes stale abandoned games). */
 function tcgCasualLivePlayersInRoom(array $state, string $roomId, int $now): int {
-    if (($state['mode'] ?? '') === 'ranked' || ($state['status'] ?? '') === 'finished' || !isPvpMatch($state)) {
+    if (!tcgCasualHumanPvpRoom($state)) {
         return 0;
     }
 
