@@ -1,0 +1,438 @@
+{
+  "version": 2,
+  "title": "Beginner Tutorial",
+  "initial_labels": {
+    "p1": "You",
+    "p2": "Opponent"
+  },
+  "config": {
+    "p1_deck": "liella",
+    "p2_deck": "muse",
+    "shuffle": false,
+    "p1_main_order": [
+      "PL!SP-sd1-019-SD",
+      "PL!SP-sd1-007-SD",
+      "PL!SP-sd1-023-SD",
+      "PL!SP-sd1-012-SD",
+      "PL!SP-sd1-006-SD",
+      "PL!SP-sd1-008-SD",
+      "PL!SP-sd1-020-SD",
+      "PL!SP-sd1-010-SD",
+      "PL!SP-sd1-020-SD",
+      "PL!SP-sd1-024-SD",
+      "PL!SP-sd1-014-SD",
+      "PL!SP-sd1-026-SD",
+      "PL!SP-sd1-001-SD",
+      "PL!SP-sd1-019-SD",
+      "PL!SP-sd1-023-SD",
+      "PL!SP-sd1-023-SD",
+      "PL!SP-sd1-016-SD",
+      "PL!SP-sd1-002-SD",
+      "PL!SP-sd1-009-SD",
+      "PL!SP-sd1-009-SD",
+      "PL!SP-sd1-022-SD",
+      "PL!SP-sd1-025-SD",
+      "PL!SP-sd1-012-SD",
+      "PL!SP-sd1-012-SD",
+      "PL!SP-sd1-014-SD",
+      "PL!SP-sd1-025-SD",
+      "PL!SP-sd1-013-SD",
+      "PL!SP-sd1-022-SD",
+      "PL!SP-sd1-018-SD",
+      "PL!SP-sd1-024-SD",
+      "PL!SP-sd1-017-SD",
+      "PL!SP-sd1-004-SD",
+      "PL!SP-sd1-012-SD",
+      "PL!SP-sd1-023-SD",
+      "PL!SP-sd1-018-SD",
+      "PL!SP-sd1-001-SD",
+      "PL!SP-sd1-003-SD",
+      "PL!SP-sd1-024-SD",
+      "PL!SP-sd1-011-SD",
+      "PL!SP-sd1-005-SD",
+      "PL!SP-sd1-006-SD",
+      "PL!SP-sd1-024-SD",
+      "PL!SP-sd1-001-SD",
+      "PL!SP-sd1-004-SD",
+      "PL!SP-sd1-016-SD",
+      "PL!SP-sd1-026-SD",
+      "PL!SP-sd1-013-SD",
+      "PL!SP-sd1-001-SD",
+      "PL!SP-sd1-015-SD",
+      "PL!SP-sd1-007-SD",
+      "PL!SP-sd1-008-SD",
+      "PL!SP-sd1-010-SD",
+      "PL!SP-sd1-002-SD",
+      "PL!SP-sd1-015-SD",
+      "PL!SP-sd1-021-SD",
+      "PL!SP-sd1-017-SD",
+      "PL!SP-sd1-005-SD",
+      "PL!SP-sd1-003-SD",
+      "PL!SP-sd1-011-SD",
+      "PL!SP-sd1-021-SD"
+    ],
+    "p1_energy_order": [
+      "LL-E-005-SD",
+      "LL-E-005-SD",
+      "LL-E-005-SD",
+      "LL-E-005-SD",
+      "LL-E-005-SD",
+      "LL-E-005-SD",
+      "LL-E-005-SD",
+      "LL-E-005-SD",
+      "LL-E-005-SD",
+      "LL-E-005-SD",
+      "LL-E-005-SD",
+      "LL-E-005-SD"
+    ],
+    "p2_main_order": [
+      "PL!-sd1-013-SD",
+      "PL!-sd1-020-SD",
+      "PL!-sd1-002-SD",
+      "PL!-sd1-010-SD",
+      "PL!-sd1-019-SD",
+      "PL!-sd1-001-SD",
+      "PL!-sd1-012-SD",
+      "PL!-sd1-008-SD",
+      "PL!-sd1-020-SD",
+      "PL!-sd1-014-SD",
+      "PL!-sd1-005-SD",
+      "PL!-sd1-013-SD",
+      "PL!-sd1-019-SD",
+      "PL!-sd1-004-SD",
+      "PL!-sd1-012-SD",
+      "PL!-sd1-018-SD",
+      "PL!-sd1-022-SD",
+      "PL!-sd1-007-SD",
+      "PL!-sd1-006-SD",
+      "PL!-sd1-013-SD",
+      "PL!-sd1-021-SD",
+      "PL!-sd1-005-SD",
+      "PL!-sd1-013-SD",
+      "PL!-sd1-016-SD",
+      "PL!-sd1-020-SD",
+      "PL!-sd1-015-SD",
+      "PL!-sd1-009-SD",
+      "PL!-sd1-001-SD",
+      "PL!-sd1-019-SD",
+      "PL!-sd1-016-SD",
+      "PL!-sd1-010-SD",
+      "PL!-sd1-011-SD",
+      "PL!-sd1-021-SD",
+      "PL!-sd1-017-SD",
+      "PL!-sd1-004-SD",
+      "PL!-sd1-010-SD",
+      "PL!-sd1-019-SD",
+      "PL!-sd1-002-SD",
+      "PL!-sd1-014-SD",
+      "PL!-sd1-003-SD",
+      "PL!-sd1-020-SD",
+      "PL!-sd1-017-SD",
+      "PL!-sd1-011-SD",
+      "PL!-sd1-007-SD",
+      "PL!-sd1-022-SD",
+      "PL!-sd1-004-SD",
+      "PL!-sd1-009-SD",
+      "PL!-sd1-006-SD",
+      "PL!-sd1-015-SD",
+      "PL!-sd1-010-SD",
+      "PL!-sd1-012-SD",
+      "PL!-sd1-012-SD",
+      "PL!-sd1-001-SD",
+      "PL!-sd1-004-SD",
+      "PL!-sd1-003-SD",
+      "PL!-sd1-003-SD",
+      "PL!-sd1-001-SD",
+      "PL!-sd1-018-SD",
+      "PL!-sd1-003-SD",
+      "PL!-sd1-008-SD"
+    ],
+    "p2_energy_order": [
+      "LL-E-001-SD",
+      "LL-E-001-SD",
+      "LL-E-001-SD",
+      "LL-E-001-SD",
+      "LL-E-001-SD",
+      "LL-E-001-SD",
+      "LL-E-001-SD",
+      "LL-E-001-SD",
+      "LL-E-001-SD",
+      "LL-E-001-SD",
+      "LL-E-001-SD",
+      "LL-E-001-SD"
+    ],
+    "phase_timer_enabled": false
+  },
+  "steps": [
+    {
+      "id": "welcome",
+      "kind": "info",
+      "dialogue": "Hi! I'm **Shibuya Kanon**. Let's learn **Loveca** together — you'll play a real turn, not just read rules!",
+      "highlights": [
+        {
+          "target": "playmat-column",
+          "shape": "rounded",
+          "padding": 8
+        }
+      ]
+    },
+    {
+      "id": "goal",
+      "kind": "info",
+      "dialogue": "**Goal:** be the first to place **3 Live cards** in your Success pile by performing successful Lives!",
+      "highlights": [
+        {
+          "target": "my-pips",
+          "shape": "circle",
+          "padding": 14
+        }
+      ]
+    },
+    {
+      "id": "card_types",
+      "kind": "info",
+      "dialogue": "Three card types: **Member** (idols on Stage), **Live** (songs you perform), and **Energy** (pays Member costs).",
+      "highlights": [
+        {
+          "target": "hand-row",
+          "shape": "rounded",
+          "padding": 12
+        },
+        {
+          "target": "my-energy",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ]
+    },
+    {
+      "id": "zones",
+      "kind": "info",
+      "dialogue": "Your **Stage** supplies **Hearts** for Lives. **Live storage** holds face-down cards during the Live Phase.",
+      "highlights": [
+        {
+          "target": "my-stage-center",
+          "shape": "rounded",
+          "padding": 12
+        },
+        {
+          "target": "my-live-1",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ]
+    },
+    {
+      "id": "coin",
+      "kind": "action",
+      "dialogue": "Every match starts with a **coin flip**. Watch the flip, then tap to continue!",
+      "highlights": [
+        {
+          "target": "sb-info",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ],
+      "goal": {
+        "type": "ack_coin_flip"
+      }
+    },
+    {
+      "id": "choose_first",
+      "kind": "action",
+      "dialogue": "You won the flip! Choose who takes the **first turn** — pick **You go first** for this lesson.",
+      "highlights": [
+        {
+          "target": "overlay-coin",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ],
+      "goal": {
+        "type": "choose_first_player",
+        "pick": "self"
+      },
+      "bubbleAnchor": "overlay-coin"
+    },
+    {
+      "id": "mulligan",
+      "kind": "action",
+      "dialogue": "You draw **6** cards. Unhappy with your hand? Tap cards to swap them, or tap **Keep Hand** to continue.",
+      "highlights": [
+        {
+          "target": "mulligan-overlay",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ],
+      "goal": {
+        "type": "mulligan"
+      }
+    },
+    {
+      "id": "main_intro",
+      "kind": "info",
+      "dialogue": "**Main Phase** — play **Members** from your hand by spending **Energy** (flip cards sideways). Do as many plays as you like, in any order!",
+      "highlights": [
+        {
+          "target": "hand-row",
+          "shape": "rounded",
+          "padding": 12
+        },
+        {
+          "target": "my-energy",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ]
+    },
+    {
+      "id": "play_member",
+      "kind": "action",
+      "dialogue": "Play **Shiki Wakana** to **Center** — cost **2**. Tap her in your hand, then tap the **Center** stage slot!",
+      "highlights": [
+        {
+          "target": "my-stage-center",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ],
+      "select_hand": "PL!SP-sd1-019-SD",
+      "goal": {
+        "type": "play_member",
+        "card_no": "PL!SP-sd1-019-SD",
+        "slot": "center"
+      },
+      "bubblePlacement": "playmat-left"
+    },
+    {
+      "id": "energy_tip",
+      "kind": "info",
+      "dialogue": "Spent Energy rests **sideways**. Members on Stage show **Hearts** (top-left) you'll need when performing Lives!",
+      "highlights": [
+        {
+          "target": "my-energy",
+          "shape": "rounded",
+          "padding": 12
+        },
+        {
+          "target": "sb-my-hearts",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ]
+    },
+    {
+      "id": "end_main",
+      "kind": "action",
+      "dialogue": "When you're done in Main Phase, press **End Main Phase**.",
+      "highlights": [
+        {
+          "target": "phase-action-bar",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ],
+      "goal": {
+        "type": "end_main"
+      },
+      "cpu_after": [
+        {
+          "type": "play_member",
+          "card_no": "PL!-sd1-002-SD",
+          "slot": "center"
+        },
+        {
+          "type": "end_main"
+        }
+      ]
+    },
+    {
+      "id": "live_intro",
+      "kind": "info",
+      "dialogue": "**Live Phase** — place **0 to 3** cards face-down in Live storage. You draw **1** card from your deck for each card you place.",
+      "highlights": [
+        {
+          "target": "my-live-0",
+          "shape": "rounded",
+          "padding": 12
+        },
+        {
+          "target": "my-live-1",
+          "shape": "rounded",
+          "padding": 12
+        },
+        {
+          "target": "my-live-2",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ]
+    },
+    {
+      "id": "set_live",
+      "kind": "action",
+      "dialogue": "Select **WE WILL!!** from your hand, then press **Lock Live Selection** to place it face-down. You draw **1** card for each Live you set!",
+      "highlights": [
+        {
+          "target": "my-live-0",
+          "shape": "rounded",
+          "padding": 12
+        },
+        {
+          "target": "phase-action-bar",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ],
+      "select_hand": "PL!SP-sd1-023-SD",
+      "goal": {
+        "type": "end_live_set"
+      },
+      "bubblePlacement": "playmat-left",
+      "cpu_after": [
+        {
+          "type": "set_live_cards",
+          "card_no": "PL!-sd1-019-SD"
+        },
+        {
+          "type": "end_live_set"
+        }
+      ]
+    },
+    {
+      "id": "perf_watch",
+      "kind": "watch",
+      "dialogue": "**Performance!** Lives flip face-up. Compare **required hearts** on the Live with hearts from your Stage. **Yell** lets you flip your deck for extra hearts using **Blade** icons!",
+      "highlights": [
+        {
+          "target": "perf-spectacle",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ],
+      "goal": {
+        "type": "live_judge_reached"
+      },
+      "spotlightDim": "light"
+    },
+    {
+      "id": "success",
+      "kind": "info",
+      "dialogue": "A successful Live moves to your **Success** pile! Win **3** Lives to take the match. If both succeed, higher **score** wins the round.",
+      "highlights": [
+        {
+          "target": "my-pips",
+          "shape": "circle",
+          "padding": 14
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "kind": "info",
+      "dialogue": "Core loop: **Main → Live → Performance**. Try **Practice vs CPU** next — we'll cover skills and baton pass in advanced lessons!",
+      "highlights": []
+    }
+  ]
+}

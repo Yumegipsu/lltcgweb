@@ -27,7 +27,7 @@
   }
 
   global.onState = function onState(s) {
-    if (G.isTutorial) return;
+    if (G.isTutorial && !G.tutorialLive) return;
     if (isReplayViewingState(s)) {
       TCG_DEBUG.log('state', 'apply replay snapshot', TCG_DEBUG.snap(s));
       applyStateUpdate(s);
@@ -102,7 +102,7 @@
 
   /** Apply one server state snapshot: spectacle gate, log anims, or direct render. */
   global.applyStateUpdate = async function applyStateUpdate(s) {
-    if (G.isTutorial) return;
+    if (G.isTutorial && !G.tutorialLive) return;
     if (isReplayViewingState(s)) {
       applyReplayViewingState(s);
       return;
@@ -161,7 +161,7 @@
           && live.pending_prompt?.type === 'pick_judge_success_live') {
         ensurePendingPromptSurfaced(live, G.playerId);
       }
-      if (G.isCPU && !G.animating) { doCPU(live); armWatchdog(live); }
+      if (G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) { doCPU(live); armWatchdog(live); }
       return;
     }
 
@@ -380,7 +380,7 @@
       TCG_DEBUG.warn('live', 'abort stuck presentation during live_set placement');
       abortGameplayPresentation({ skipAbortFlag: true });
     }
-    if (G.isTutorial) return;
+    if (G.isTutorial && !G.tutorialLive) return;
     tcgDebugOnStateApplied(prev, s, newEntries);
     ensurePollHoldReleased(G.gameState || s);
     if (!G.animating && !G._perfSpectacleActive && !G._liveSpectacleGateRunning) {
@@ -410,12 +410,18 @@
     }
     clearStaleCpuPromptBusyIfResolved(G.gameState || s);
     if (G.playerId) updateOpponentSkillWaitBanner(G.gameState || s, G.playerId);
-    if (G.isCPU && !G.animating) { doCPU(G.gameState || s); armWatchdog(G.gameState || s); }
-    else if (G.isCPU && (G.gameState || s)?.pending_prompt?.responder === 'p2') {
+    if (G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) {
+      doCPU(G.gameState || s);
+      armWatchdog(G.gameState || s);
+    } else if (G.isCPU && (G.gameState || s)?.pending_prompt?.responder === 'p2'
+        && !(G.tutorialLive && G.tutorialHoldCpu)) {
       scheduleCpuResolvePrompt(G.gameState || s, (G.gameState || s).players?.p2);
       armCpuPromptHangWatch(G.gameState || s);
     } else if (!G.isCPU && !G.isSpectator) {
       armPvPWatchdog(G.gameState || s);
+    }
+    if (G.tutorialLive && typeof global.TutorialInteractive?.onStateApplied === 'function') {
+      global.TutorialInteractive.onStateApplied(G.gameState || s, prev);
     }
   };
 

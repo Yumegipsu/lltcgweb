@@ -387,10 +387,21 @@ body.tutorial-mode #card-flight-layer{
 body.tutorial-mode #tutorial-spotlight.show{pointer-events:auto}
 body.tutorial-mode #overlay-tutorial,
 body.tutorial-mode #overlay-tutorial *{pointer-events:auto}
-body.tutorial-mode #phase-action-bar{pointer-events:none!important}
-body.tutorial-mode #phase-action-bar .btn-phase-primary{
+body.tutorial-mode:not(.tutorial-live-mode) #phase-action-bar{pointer-events:none!important}
+body.tutorial-mode:not(.tutorial-live-mode) #phase-action-bar .btn-phase-primary{
   opacity:1;cursor:not-allowed;transform:none!important;filter:saturate(.92);
 }
+body.tutorial-live-mode #phase-action-bar{pointer-events:auto!important}
+body.tutorial-live-mode #phase-action-bar .btn-phase-primary:not(.tut-locked){
+  opacity:1;cursor:pointer;transform:none!important;filter:none;
+}
+body.tutorial-live-mode #phase-action-bar .btn-phase-primary.tut-locked{
+  opacity:.45;cursor:not-allowed;pointer-events:none!important;
+}
+body.tutorial-live-mode #overlay-mull .btn-grad{opacity:1;pointer-events:auto}
+body.tutorial-live-mode #overlay-mull:not(.tut-mull-readonly) .mullcard{pointer-events:auto;cursor:pointer}
+body.tutorial-live-mode #overlay-coin{pointer-events:auto}
+body.tutorial-live-action .tut-btn-next{opacity:.35;pointer-events:none}
 body.tutorial-mode .side-log .sbfoot{pointer-events:none!important}
 body.tutorial-mode .side-log .sbfoot button{
   opacity:.72;cursor:not-allowed;transform:none!important;
@@ -2478,11 +2489,11 @@ html:not(.foil-fx-off) #screen-game .hcard.card-tilt-enabled:not(.play-sel):hove
 .stage-board-hearts .heart-stat-row .hicon{width:22px;height:22px}
 .stage-board-yell{display:flex;align-items:center;gap:5px;font-weight:800;color:#fff;font-size:15px}
 .stage-board-yell .bicon{width:20px;height:20px}
-body.tutorial-mode #overlay-mull .btn-grad{opacity:.45;pointer-events:none}
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-mull .btn-grad{opacity:.45;pointer-events:none}
 body.tutorial-mode #overlay-mull.tut-mull-readonly .mullcard{pointer-events:none;cursor:default}
 body.tutorial-mode #overlay-prompt.tut-prompt-readonly{pointer-events:none}
 body.tutorial-mode #overlay-prompt.tut-prompt-readonly .btn-grad{opacity:.72;cursor:default}
-body.tutorial-mode #overlay-coin{pointer-events:none}
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-coin{pointer-events:none}
 .stage-board-abilities{margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)}
 .stage-board-abilities[hidden]{display:none!important}
 .stage-board-active{margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.1)}
@@ -6811,6 +6822,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=3"></script>
 <script src="client/js/replay-debug.js?v=3"></script>
 <script src="client/js/prompt-renderer.js?v=5"></script>
+<script src="client/js/tutorial-interactive.js?v=1"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -12037,6 +12049,9 @@ function resetMatchTransientState() {
   G.coinFlipAckSent = false;
   G._coinFlipAnimComplete = false;
   G.isTutorial = false;
+  G.tutorialLive = false;
+  G.tutorialHoldCpu = false;
+  G.tutorialAdvancing = false;
   closeM('overlay-mull');
   closeM('overlay-coin');
   closeM('overlay-prompt');
@@ -15371,7 +15386,13 @@ window.G = G;
   on('btn-win-leaderboard', 'click', onWinViewLeaderboard);
   on('btn-mull',  'click', confirmMull);
   on('btn-phase-primary', 'click', () => {
-    if (G.isTutorial || G.isSpectator || isReplayViewing()) return;
+    if (G.isSpectator || isReplayViewing()) return;
+    if (G.isTutorial && !G.tutorialLive) return;
+    if (typeof tutBlocks === 'function') {
+      const s0 = G.gameState;
+      if (s0?.phase === 'live_set' && tutBlocks('confirm_live_set')) return;
+      if ((s0?.phase === 'main_first' || s0?.phase === 'main_second') && tutBlocks('end_main')) return;
+    }
     const s = G.gameState;
     const myId = G.playerId;
     if (!s) return;
@@ -17915,7 +17936,7 @@ function clearPlaySelection() {
 }
 
 function syncMyStagePlayHints(s, myId) {
-  if (G.isTutorial) {
+  if (G.isTutorial && !G.tutorialLive) {
     ['left', 'center', 'right'].forEach(slot => {
       const outer = el(`my-stage-${slot}`)?.querySelector('.stage-slot');
       const mslot = outer?.querySelector('.mslot');
@@ -21835,7 +21856,8 @@ function cpuOpponentId() {
 
 function doCPU(s) {
   if (isReplayViewing()) return;
-  if (G.isTutorial) return;
+  if (G.isTutorial && !G.tutorialLive) return;
+  if (G.tutorialLive && G.tutorialHoldCpu) return;
   ensurePollHoldReleased(s);
   clearStaleCpuPromptBusyIfResolved(s);
   const cpuId = cpuOpponentId();
@@ -25061,21 +25083,21 @@ function renderGame(s, opts = {}) {
   if (G.isSpectator) bindSpectatorInspectOnRenderedCards(s);
 
   // Conditional overlays
-  if (!G.isTutorial) {
+  if (!G.isTutorial || G.tutorialLive) {
     maybeShowCoinFlip(s, myId);
-  if (s.phase === 'setup') {
-    if (me.ready_mulligan) {
+    if (s.phase === 'setup') {
+      if (me.ready_mulligan) {
+        G.mulliganPending = false;
+        el('overlay-mull').classList.remove('open');
+      } else if (G.mulliganPending) {
+        el('overlay-mull').classList.remove('open');
+      } else {
+        openMull(me.hand || []);
+      }
+    } else {
       G.mulliganPending = false;
       el('overlay-mull').classList.remove('open');
-    } else if (G.mulliganPending) {
-      el('overlay-mull').classList.remove('open');
-    } else {
-      openMull(me.hand || []);
     }
-  } else {
-    G.mulliganPending = false;
-    el('overlay-mull').classList.remove('open');
-  }
   } else {
     maybeShowTutorialFlowScreens(s, myId);
   }
@@ -25088,8 +25110,8 @@ function renderGame(s, opts = {}) {
   }
 
   const deferPromptForPresentation = !isReplayViewing() && shouldDeferPromptForLivePresentation(s, myId);
-  if (!G.isTutorial && !opts.skipPrompt && !deferPromptForPresentation) renderPrompt(s, myId);
-  else showTutorialPromptIfNeeded(G.tutorialData?.steps?.[G.tutorialStep], s, myId);
+  if ((!G.isTutorial || G.tutorialLive) && !opts.skipPrompt && !deferPromptForPresentation) renderPrompt(s, myId);
+  else if (G.isTutorial && !G.tutorialLive) showTutorialPromptIfNeeded(G.tutorialData?.steps?.[G.tutorialStep], s, myId);
 
   syncAntiSoftlockButton(s, myId);
 
@@ -32451,7 +32473,7 @@ function refreshHandPreviewPanel(card, s, myId) {
   }
   fillCardDetailPanel('hc', card, s, myId);
   fillMemberPlayActions(el('hc-actions'), card, s, myId, {
-    interactive: !G.isTutorial && (G.selCard === card.instance_id || G.drag?.iid === card.instance_id),
+    interactive: (!G.isTutorial || G.tutorialLive) && (G.selCard === card.instance_id || G.drag?.iid === card.instance_id),
   });
   const panel = el('card-hover-panel');
   const empty = el('hc-empty');
@@ -32509,7 +32531,7 @@ function canSelectMemberForPlay(card, s, myId) {
 }
 
 function togglePlaySelect(iid, s, myId) {
-  if (G.isTutorial) return;
+  if (typeof tutBlocks === 'function' && tutBlocks('play_member')) return;
   if (G.selCard === iid) {
     clearPlaySelection();
   } else {
@@ -32678,7 +32700,7 @@ function finishHandDrag(e) {
 }
 
 function onDocPointerMove(e) {
-  if (G.isTutorial) return;
+  if (typeof tutBlocks === 'function' && tutBlocks('hand')) return;
   if (G.drag && e.pointerId === G.drag.pointerId) {
     positionDragGhost(e.clientX, e.clientY);
     const slot = stageSlotAtPoint(e.clientX, e.clientY);
@@ -32725,7 +32747,7 @@ function liveGameState(fallback) {
 }
 
 function bindHandCardEvents(d, card, s, myId) {
-  if (G.isTutorial) return;
+  if (typeof tutBlocks === 'function' && tutBlocks('hand')) return;
   if (G.isSpectator) return;
   d.addEventListener('pointerenter', () => {
     if (!G.drag && !(tcgMobileViewportActive() && G.selCard)) showHoverCardPreview(card, liveGameState(s), myId);
@@ -32767,8 +32789,10 @@ function bindHandCardEvents(d, card, s, myId) {
       const state = liveGameState(hp.s);
       const tapCard = findHand(tapIid, state, myId) || card;
       if (isLiveSetSelecting(state, myId) && isLiveHandSelectable(tapCard)) {
+        if (typeof tutBlocks === 'function' && tutBlocks('set_live_cards')) return;
         toggleLiveSelect(tapIid, state, myId);
       } else if (canSelectMemberForPlay(tapCard, state, myId)) {
+        if (window.TutorialInteractive?.handCardAllowed && !TutorialInteractive.handCardAllowed(tapCard)) return;
         togglePlaySelect(tapIid, state, myId);
       }
     }
@@ -32946,7 +32970,7 @@ function showCard(card, iid, s, myId, forceSlot) {
 }
 
 function playToSlot(card, slot, s, myId, existing) {
-  if (G.isTutorial) return;
+  if (typeof tutBlocks === 'function' && tutBlocks('play_member')) return;
   const me=s.players[myId];
   const exist2=existing||me.stage?.[slot];
   const ec=effectiveCost(card,me.hand||[]);
@@ -34382,7 +34406,7 @@ function toggleLiveSelect(iid, s, myId) {
 }
 
 async function confirmLiveSetFromHand() {
-  if (G.isTutorial || isReplayViewing()) return;
+  if ((G.isTutorial && !G.tutorialLive) || isReplayViewing()) return;
   const s = G.gameState;
   const myId = G.playerId;
   if (!isLiveSetSelecting(s, myId)) return;
@@ -35606,13 +35630,14 @@ function renderTutorialStep(idx, opts = {}) {
   el('btn-tut-back').disabled = idx <= 0 || !!G.tutorialAnimating;
   el('btn-tut-next').disabled = !!G.tutorialAnimating;
   el('btn-tut-next').textContent = idx >= steps.length - 1 ? t('tut.finish') : t('tut.next');
+  if (G.tutorialLive && window.TutorialInteractive?.syncStepUi) TutorialInteractive.syncStepUi();
   if (opts.textOnly) return;
   const hl = tutorialSpotlightHighlights(step);
   renderTutorialSpotlight(hl);
   applyTutorialStepUi(step);
   if (G.gameState) renderStageBoardPanel(G.gameState, G.playerId || 'p1');
   requestAnimationFrame(() => {
-    if (G.isTutorial && G.gameState) {
+    if (G.isTutorial && G.gameState && !G.tutorialLive) {
       if (step.id === 'setup_coin_p1') G.coinFlipSeq = null;
       maybeShowTutorialFlowScreens(G.gameState, G.playerId || 'p1');
     }
@@ -35806,6 +35831,9 @@ async function applyTutorialStep(idx, animated) {
 }
 
 async function tutorialNav(dir) {
+  if (G.tutorialLive && window.TutorialInteractive?.tutorialNav) {
+    return TutorialInteractive.tutorialNav(dir);
+  }
   if (G.tutorialAnimating) {
     G._perfSpectacleAbort?.();
     G.tutorialQueuedDir = dir;
@@ -35842,6 +35870,9 @@ async function tutorialNav(dir) {
 }
 
 async function startTutorial() {
+  if (window.TutorialInteractive?.boot) {
+    return TutorialInteractive.boot();
+  }
   try {
     resetMatchTransientState();
     await loadTutorialJa();
@@ -35881,6 +35912,9 @@ async function startTutorial() {
 }
 
 function exitTutorial() {
+  const wasLive = !!G.tutorialLive;
+  G.tutorialLive = false;
+  document.body.classList.remove('tutorial-live-mode', 'tutorial-live-action');
   perfCloseSpectacle();
   el('overlay-tutorial').classList.remove('open');
   el('tutorial-spotlight').classList.remove('show');
@@ -35893,6 +35927,11 @@ function exitTutorial() {
   G.tutorialStep = 0;
   G.tutorialLabels = null;
   G.tutorialAnimating = false;
+  G.tutorialHoldCpu = false;
+  if (wasLive && G.roomId) {
+    stopPoll();
+    clearActiveGameSession();
+  }
   resetLobby();
 }
 
@@ -36191,7 +36230,8 @@ async function leaveSpectatorMode(opts = {}) {
 
 // ── ACTIONS ──────────────────────────────────────────
 async function sendAct(type,data){
-  if (G.isTutorial) return;
+  if (typeof tutBlocks === 'function' && tutBlocks(type)) return;
+  if (G.isTutorial && !G.tutorialLive) return;
   if (G.isSpectator) return;
   if (isReplayViewing()) return;
   if(!G.roomId||!G.token) return;

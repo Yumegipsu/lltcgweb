@@ -28,7 +28,7 @@
       "deckExperiment": "Deck Experiment",
       "deckExperimentSub": "Build with every card — guests only, unranked",
       "howToPlay": "How to Play",
-      "howToPlaySub": "Interactive rules walkthrough"
+      "howToPlaySub": "Hands-on beginner lesson with Kanon"
     },
     "hub": {
       "signedIn": "Signed in",
@@ -52,7 +52,7 @@
       "unranked": "Unranked Play",
       "unrankedSub": "Rooms, friends, or practice vs CPU",
       "howToPlay": "How to Play",
-      "howToPlaySub": "Interactive rules walkthrough",
+      "howToPlaySub": "Hands-on beginner lesson with Kanon",
       "backHub": "← Hub"
     },
     "language": {
@@ -779,7 +779,7 @@
       "deckExperiment": "デッキ実験",
       "deckExperimentSub": "全カードで構築——ゲスト限定、非ランク",
       "howToPlay": "遊び方",
-      "howToPlaySub": "インタラクティブなルール解説"
+      "howToPlaySub": "かのんと一緒に体験する初心者レッスン"
     },
     "hub": {
       "signedIn": "サインイン済み",
@@ -803,7 +803,7 @@
       "unranked": "カジュアル対戦",
       "unrankedSub": "ルーム作成、フレンド対戦、CPU練習",
       "howToPlay": "遊び方",
-      "howToPlaySub": "インタラクティブなルール解説",
+      "howToPlaySub": "かのんと一緒に体験する初心者レッスン",
       "backHub": "← ハブ"
     },
     "language": {

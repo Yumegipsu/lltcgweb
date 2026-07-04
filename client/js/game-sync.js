@@ -30,10 +30,10 @@
 
   global.scheduleDeferredSyncPull = function scheduleDeferredSyncPull(delayMs = 400) {
     clearTimeout(G._syncPullTimer);
-    if (!G.polling || G.isTutorial || !G.syncEnabled) return;
+    if (!G.polling || (G.isTutorial && !G.tutorialLive) || !G.syncEnabled) return;
     G._syncPullTimer = setTimeout(async () => {
       G._syncPullTimer = null;
-      if (!G.polling || G.isTutorial) return;
+      if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
       if (pollPresentationBlocked()) {
         scheduleDeferredSyncPull(400);
         return;
@@ -43,7 +43,7 @@
   };
 
   global.resumePollingTick = function resumePollingTick(delayMs = 120) {
-    if (!G.polling || G.isTutorial) return;
+    if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
     clearTimeout(G.pollTimer);
     if (G.syncEnabled && G.syncTicket) scheduleDeferredSyncPull(Math.max(delayMs, 150));
     else G.pollTimer = setTimeout(doPollLegacy, delayMs);
@@ -73,7 +73,7 @@
   };
 
   async function tcgPresencePing() {
-    if (!G.polling || !G.roomId || !G.token || G.isTutorial) return;
+    if (!G.polling || !G.roomId || !G.token || (G.isTutorial && !G.tutorialLive)) return;
     try {
       await apiPost('ping', { room_id: G.roomId, token: G.token });
     } catch (e) { /* best effort */ }
@@ -81,10 +81,10 @@
 
   global.startSyncFallbackPoll = function startSyncFallbackPoll() {
     clearTimeout(G.syncFallbackTimer);
-    if (!G.polling || G.isTutorial) return;
+    if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
     G.syncFallbackTimer = setTimeout(async () => {
       G.syncFallbackTimer = null;
-      if (!G.polling || G.isTutorial) return;
+      if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
       if (G.animating || G._perfSpectacleActive || G._livePollHold) {
         startSyncFallbackPoll();
         return;
@@ -98,7 +98,7 @@
     clearTimeout(G._syncReconnectTimer);
     G._syncReconnectTimer = setTimeout(async () => {
       G._syncReconnectTimer = null;
-      if (!G.polling || G.isTutorial) return;
+      if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
       if (!G.syncTicket) {
         try {
           const r = await apiPost('sync_ticket', { room_id: G.roomId, token: G.token });
@@ -123,7 +123,7 @@
 
   global.openSyncStream = function openSyncStream() {
     stopSyncStream();
-    if (!G.polling || G.isTutorial || !G.roomId || !G.syncTicket) return;
+    if (!G.polling || (G.isTutorial && !G.tutorialLive) || !G.roomId || !G.syncTicket) return;
     const url = `${WRAPPED_API}?action=tcg_sync_stream&room_id=${encodeURIComponent(G.roomId)}`
       + `&ticket=${encodeURIComponent(G.syncTicket)}&last_seq=${encodeURIComponent(String(G.lastSeq ?? 0))}`;
     TCG_DEBUG.log('sync', 'connect', { room: G.roomId, seq: G.lastSeq });
@@ -188,7 +188,7 @@
   };
 
   global.ensurePresencePingTimer = function ensurePresencePingTimer() {
-    if (G.presenceTimer || !G.polling || G.isTutorial || !G.roomId || !G.token) return;
+    if (G.presenceTimer || !G.polling || (G.isTutorial && !G.tutorialLive) || !G.roomId || !G.token) return;
     void tcgPresencePing();
     G.presenceTimer = setInterval(() => void tcgPresencePing(), TCG_PRESENCE_PING_MS);
   };
@@ -200,12 +200,12 @@
     G._syncFailCount = 0;
     if (G.isSpectator) saveSpectatorSession();
     else saveActiveGameSession();
-    if (G.isTutorial) return;
+    if ((G.isTutorial && !G.tutorialLive)) return;
     void beginGameSync();
   };
 
   global.doPollLegacy = async function doPollLegacy() {
-    if (!G.polling || G.isTutorial) return;
+    if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
     if (G.animating || G._perfSpectacleActive) {
       TCG_DEBUG.logOnce('poll', `blocked:${G.animating}:${G._perfSpectacleActive}`, 'blocked (animating/spectacle)', { animating: G.animating, spectacle: G._perfSpectacleActive });
       if (G.polling) G.pollTimer = setTimeout(doPollLegacy, 400);
@@ -236,7 +236,7 @@
   };
 
   global.pullLatestState = async function pullLatestState(force) {
-    if (!G.polling || G.isTutorial || !G.roomId || !G.token) return;
+    if (!G.polling || (G.isTutorial && !G.tutorialLive) || !G.roomId || !G.token) return;
     if (!force && pollPresentationBlocked()) {
       if (G.syncEnabled && G.syncTicket) scheduleDeferredSyncPull(400);
       else resumePollingTick(400);
