@@ -30802,11 +30802,7 @@ function estimateBatonWrEnergyActivation(me, occupant, incomingCard) {
   return 0;
 }
 function affordableEnergyForBatonPlay(me, occupant, incomingCard = null) {
-  let active = (me?.energy_zone || []).filter(energyChipActive).length;
-  if (occupant && incomingCard) {
-    active += estimateBatonWrEnergyActivation(me, occupant, incomingCard);
-  }
-  return active;
+  return (me?.energy_zone || []).filter(energyChipActive).length;
 }
 function sumSc(z){ return (z||[]).reduce((s,c)=>s+(c.score||0),0); }
 

@@ -833,6 +833,7 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     $batonCount = 0;
     $batonGroups = [];
     $batonTransferredEnergyCards = [];
+    $batonOnLeavePending = [];
     if ($isOverplay) {
         $existing = $occupant;
         $p['waiting_room'][] = $existing;
@@ -862,11 +863,10 @@ function actionPlayMember(array $state, string $pid, array $data): array {
         $anims[] = animSpec($existing['instance_id'], 'stage', 'waiting_room', $pid, [
             'slot' => $targetSlot,
         ]);
-        $state = resolveOnLeaveStageAbilities($state, $pid, $existing, ['baton_incoming' => $card]);
-        $wrIdx = count($p['waiting_room']) - 1;
-        if ($wrIdx >= 0) {
-            $p['waiting_room'][$wrIdx] = $existing;
-        }
+        $batonOnLeavePending[] = [
+            'wr_idx' => count($p['waiting_room']) - 1,
+            'ctx' => ['baton_incoming' => $card],
+        ];
         $card['baton_from_subunit'] = $existing['subunit'] ?? '';
         $card['baton_from_cost'] = getEffectiveStageMemberCost($state, $pid, $existing);
         $card['baton_from_group'] = $existing['group'] ?? '';
@@ -897,11 +897,10 @@ function actionPlayMember(array $state, string $pid, array $data): array {
             $anims[] = animSpec($existing2['instance_id'], 'stage', 'waiting_room', $pid, [
                 'slot' => $slot,
             ]);
-            $state = resolveOnLeaveStageAbilities($state, $pid, $existing2, ['baton_incoming' => $card]);
-            $wrIdx2 = count($p['waiting_room']) - 1;
-            if ($wrIdx2 >= 0) {
-                $p['waiting_room'][$wrIdx2] = $existing2;
-            }
+            $batonOnLeavePending[] = [
+                'wr_idx' => count($p['waiting_room']) - 1,
+                'ctx' => ['baton_incoming' => $card],
+            ];
             $batonCount++;
             if (!empty($existing2['group'])) $batonGroups[] = $existing2['group'];
             if ($batonCount === 2) {
@@ -925,6 +924,18 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     if (count($paidIds) < $cost) {
         throw new Exception('Not enough active energy (need ' . $cost . ', have ' .
             countActiveEnergyInZone($p) . ')');
+    }
+    foreach ($batonOnLeavePending as $pending) {
+        $wrIdx = $pending['wr_idx'];
+        if ($wrIdx < 0 || !isset($p['waiting_room'][$wrIdx])) {
+            continue;
+        }
+        $leaving = $p['waiting_room'][$wrIdx];
+        $state = resolveOnLeaveStageAbilities($state, $pid, $leaving, $pending['ctx']);
+        $p['waiting_room'][$wrIdx] = $leaving;
+        if (!empty($state['pending_prompt'])) {
+            break;
+        }
     }
     if (!empty($batonTransferredEnergyCards)) {
         attachStackedEnergyCardsToMember($card, $batonTransferredEnergyCards);
