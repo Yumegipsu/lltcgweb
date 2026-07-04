@@ -1729,23 +1729,7 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     // Process blade hearts from yell cards (draw bonus)
     $drawBonus = 0;
     $yellHearts = [];
-    $yellResolvePool = [];
-    foreach ($p['stage'] as $member) {
-        if (!$member) {
-            continue;
-        }
-        foreach ($member['hearts'] ?? [] as $hGroup) {
-            for ($i = 0; $i < ($hGroup['count'] ?? 1); $i++) {
-                $yellResolvePool[] = normalizeHeartColor((string)($hGroup['color'] ?? 'any'));
-            }
-        }
-        foreach ($member['bonus_hearts'] ?? [] as $color) {
-            $yellResolvePool[] = normalizeHeartColor((string)$color);
-        }
-        foreach (hsPb1ApplyContinuousPurpleHeart($member, $state, $pid) as $color) {
-            $yellResolvePool[] = normalizeHeartColor((string)$color);
-        }
-    }
+    $yellResolvePool = collectStageHeartPoolForYellResolve($state, $pid);
     foreach ($yellCards as $yc) {
         $bh = $yc['blade_hearts'] ?? [];
         foreach ($bh as $bh_item) {
@@ -1753,14 +1737,20 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
                 if ($bh_item === 'draw' || $bh_item === 'score') {
                     continue;
                 }
-                $yellHearts = array_merge($yellHearts, getHeartIconsFromBladeHeart($bh_item, $yellResolvePool, $liveCards));
+                $yellHearts = array_merge(
+                    $yellHearts,
+                    getHeartIconsFromBladeHeart($bh_item, $yellResolvePool, $liveCards, $state, $pid)
+                );
                 continue;
             }
             $bhType = $bh_item['type'] ?? '';
             if ($bhType === 'draw' || $bhType === 'score') {
                 continue;
             }
-            $yellHearts = array_merge($yellHearts, getHeartIconsFromBladeHeart($bh_item, $yellResolvePool, $liveCards));
+            $yellHearts = array_merge(
+                $yellHearts,
+                getHeartIconsFromBladeHeart($bh_item, $yellResolvePool, $liveCards, $state, $pid)
+            );
         }
     }
 
@@ -1778,7 +1768,13 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     $drawBonus += $yellDrawIcons;
     $state['_last_yell_score_icons'] = countYellScoreIcons($yellCards);
     if ($yellWildcard) {
-        $yellHearts = array_fill(0, count($yellHearts), 'any');
+        $yellHearts = resolveSmartYellWildcardHeartColors(
+            $yellHearts,
+            $yellResolvePool,
+            $liveCards,
+            $state,
+            $pid
+        );
     }
     $yellHasPrintedHearts = false;
     foreach ($yellCards as $yc) {
@@ -1844,7 +1840,6 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     $remaining    = $ownedHearts;
 
     foreach ($liveCards as $li => $lc) {
-        $required = $lc['required_hearts'] ?? [];
         $required = plMuseGapApplySuccessLivePassiveReductions($state, $pid, $lc);
         $required = applyLiveHeartReductions($required, $lc);
         [$ok, $newRemaining] = checkHearts($remaining, $required);
@@ -2306,61 +2301,83 @@ function sortHeartRequirements(array $required): array {
     return array_merge($colored, $wild);
 }
 
-function checkHearts(array $available, array $required): array {
-    $available = array_map(fn($h) => normalizeHeartColor((string)$h), $available);
-    $pool = $available;
-    $wilds = array_filter($pool, fn($h) => isWildcardHeartColor((string)$h));
-    $nonWild = array_filter($pool, fn($h) => !isWildcardHeartColor((string)$h));
-    $pool = array_values($nonWild);
-    $wildCount = count($wilds);
+function liveHeartRequirementsForCheck(array $state, string $pid, array $liveCard): array {
+    $required = $liveCard['required_hearts'] ?? $liveCard['hearts'] ?? [];
+    $required = plMuseGapApplySuccessLivePassiveReductions($state, $pid, $liveCard);
+    return applyLiveHeartReductions($required, $liveCard);
+}
 
+function expandHeartRequirementSlots(array $required): array {
+    $slots = [];
     foreach (sortHeartRequirements($required) as $req) {
-        $color = $req['color'];
-        $need  = $req['count'] ?? 1;
-
-        if (isWildcardHeartColor($color)) {
-            // Any color hearts
-            $toRemove = min($need, count($pool));
-            array_splice($pool, 0, $toRemove);
-            $need -= $toRemove;
-            if ($need > 0) {
-                if ($wildCount >= $need) { $wildCount -= $need; $need = 0; }
-                else return [false, $available];
-            }
-        } else {
-            // Specific color
-            $found = array_keys(array_filter($pool, fn($h) => $h === $color));
-            $canFill = count($found);
-            if ($canFill >= $need) {
-                $toRemove = array_slice($found, 0, $need);
-                foreach (array_reverse($toRemove) as $idx) {
-                    array_splice($pool, $idx, 1);
-                }
-            } else {
-                // Try wilds for remainder
-                $needWild = $need - $canFill;
-                if ($wildCount >= $needWild) {
-                    foreach (array_reverse($found) as $idx) {
-                        array_splice($pool, $idx, 1);
-                    }
-                    $wildCount -= $needWild;
-                } else {
-                    return [false, $available];
-                }
-            }
+        $color = normalizeHeartColor((string)($req['color'] ?? 'any'));
+        $count = intval($req['count'] ?? 1);
+        for ($i = 0; $i < $count; $i++) {
+            $slots[] = $color;
         }
     }
+    return $slots;
+}
 
-    // Rebuild remaining
-    $remaining = array_values($pool);
-    for ($i = 0; $i < $wildCount; $i++) $remaining[] = 'any';
+function heartSlotCandidateIndices(array $pool, string $needColor): array {
+    if ($needColor !== 'any') {
+        $indices = [];
+        foreach ($pool as $i => $h) {
+            if ($h === $needColor) {
+                $indices[] = $i;
+            }
+        }
+        foreach ($pool as $i => $h) {
+            if (isWildcardHeartColor((string)$h)) {
+                $indices[] = $i;
+            }
+        }
+        return $indices;
+    }
+    $nonWild = [];
+    $wild = [];
+    foreach ($pool as $i => $h) {
+        if (isWildcardHeartColor((string)$h)) {
+            $wild[] = $i;
+        } else {
+            $nonWild[] = $i;
+        }
+    }
+    return array_merge($nonWild, $wild);
+}
+
+function tryConsumeHeartsForRequirementSlots(array $pool, array $slots): ?array {
+    if (empty($slots)) {
+        return array_values($pool);
+    }
+    $need = $slots[0];
+    $rest = array_slice($slots, 1);
+    foreach (heartSlotCandidateIndices($pool, $need) as $idx) {
+        $nextPool = $pool;
+        array_splice($nextPool, $idx, 1);
+        $result = tryConsumeHeartsForRequirementSlots(array_values($nextPool), $rest);
+        if ($result !== null) {
+            return $result;
+        }
+    }
+    return null;
+}
+
+function checkHearts(array $available, array $required): array {
+    $available = array_values(array_map(fn($h) => normalizeHeartColor((string)$h), $available));
+    $remaining = tryConsumeHeartsForRequirementSlots($available, expandHeartRequirementSlots($required));
+    if ($remaining === null) {
+        return [false, $available];
+    }
     return [true, $remaining];
 }
 
+/** First colored live requirement not covered by exact matches (wildcards reserved for checkHearts). */
 function firstMissingColoredHeartForRequirements(array $pool, array $required): ?string {
-    $norm = array_map(fn($h) => normalizeHeartColor((string)$h), $pool);
-    $specifics = array_values(array_filter($norm, fn($h) => $h !== 'any'));
-    $wildCount = count($norm) - count($specifics);
+    $specifics = array_values(array_filter(
+        array_map(fn($h) => normalizeHeartColor((string)$h), $pool),
+        fn($h) => !isWildcardHeartColor((string)$h)
+    ));
 
     foreach (sortHeartRequirements($required) as $req) {
         $color = normalizeHeartColor((string)($req['color'] ?? 'any'));
@@ -2372,8 +2389,6 @@ function firstMissingColoredHeartForRequirements(array $pool, array $required): 
             $idx = array_search($color, $specifics, true);
             if ($idx !== false) {
                 array_splice($specifics, $idx, 1);
-            } elseif ($wildCount > 0) {
-                $wildCount--;
             } else {
                 return $color;
             }
@@ -2382,10 +2397,17 @@ function firstMissingColoredHeartForRequirements(array $pool, array $required): 
     return null;
 }
 
-/** Pick a color for an ALL blade heart: missing live colors first, then any. */
-function resolveAllBladeHeartColor(array $pool, array $liveCards): string {
+/** Pick a color for an ALL / wildcard blade heart: missing live colors first, then any. */
+function resolveAllBladeHeartColor(
+    array $pool,
+    array $liveCards,
+    ?array $state = null,
+    ?string $pid = null
+): string {
     foreach ($liveCards as $lc) {
-        $required = applyLiveHeartReductions($lc['required_hearts'] ?? [], $lc);
+        $required = ($state !== null && $pid !== null)
+            ? liveHeartRequirementsForCheck($state, $pid, $lc)
+            : applyLiveHeartReductions($lc['required_hearts'] ?? [], $lc);
         $missing = firstMissingColoredHeartForRequirements($pool, $required);
         if ($missing !== null) {
             return $missing;
@@ -2394,12 +2416,62 @@ function resolveAllBladeHeartColor(array $pool, array $liveCards): string {
     return 'any';
 }
 
-function getHeartIconsFromBladeHeart(string|array $bh, ?array &$resolvePool = null, ?array $liveCards = null): array {
+function resolveSmartYellWildcardHeartColors(
+    array $yellHearts,
+    array &$resolvePool,
+    array $liveCards,
+    ?array $state = null,
+    ?string $pid = null
+): array {
+    $resolved = [];
+    foreach ($yellHearts as $_) {
+        $color = resolveAllBladeHeartColor($resolvePool, $liveCards, $state, $pid);
+        $color = normalizeHeartColor($color);
+        $resolvePool[] = $color;
+        $resolved[] = $color;
+    }
+    return $resolved;
+}
+
+function collectStageHeartPoolForYellResolve(array $state, string $pid): array {
+    $pool = [];
+    $p = $state['players'][$pid] ?? [];
+    foreach ($p['stage'] ?? [] as $member) {
+        if (!$member) {
+            continue;
+        }
+        $treatAs = $member['hearts_treat_as'] ?? null;
+        foreach ($member['hearts'] ?? [] as $hGroup) {
+            $color = $treatAs ?: normalizeHeartColor((string)($hGroup['color'] ?? 'any'));
+            for ($i = 0; $i < ($hGroup['count'] ?? 1); $i++) {
+                $pool[] = normalizeHeartColor((string)$color);
+            }
+        }
+        foreach ($member['bonus_hearts'] ?? [] as $color) {
+            $pool[] = normalizeHeartColor($treatAs ?: (string)$color);
+        }
+        foreach (hsPb1ApplyContinuousPurpleHeart($member, $state, $pid) as $color) {
+            $pool[] = normalizeHeartColor((string)$color);
+        }
+    }
+    return $pool;
+}
+
+function getHeartIconsFromBladeHeart(
+    string|array $bh,
+    ?array &$resolvePool = null,
+    ?array $liveCards = null,
+    ?array $state = null,
+    ?string $pid = null
+): array {
     // Blade hearts may be plain color strings ("red") or objects ({type: "red"} / {type: "draw"})
     $type = is_string($bh) ? $bh : ($bh['type'] ?? $bh['color'] ?? '');
-    if ($type === 'draw') return [];
-    if ($type === 'all' && $resolvePool !== null && $liveCards !== null) {
-        $color = resolveAllBladeHeartColor($resolvePool, $liveCards);
+    if ($type === 'draw' || $type === 'score') {
+        return [];
+    }
+    if ($resolvePool !== null && $liveCards !== null
+        && in_array($type, ['all', 'gray', 'wild', 'any'], true)) {
+        $color = resolveAllBladeHeartColor($resolvePool, $liveCards, $state, $pid);
         $resolvePool[] = normalizeHeartColor($color);
         return [$color];
     }
@@ -2409,7 +2481,9 @@ function getHeartIconsFromBladeHeart(string|array $bh, ?array &$resolvePool = nu
         'blue'   => 'blue',   'purple' => 'purple',
         'any'    => 'any',    'gray'   => 'any', 'wild' => 'any', 'all' => 'any',
     ];
-    if (isset($heartsMap[$type])) return [$heartsMap[$type]];
+    if (isset($heartsMap[$type])) {
+        return [$heartsMap[$type]];
+    }
     return [];
 }
 
