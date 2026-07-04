@@ -127,6 +127,58 @@ final class ActionSmokeTest extends TestCase
         $this->assertSame('test_followup_live', $state['pending_prompt']['source_id'] ?? null);
     }
 
+    public function testLiveSetRunsSequentiallyByTurnOrder(): void {
+        $state = $this->joinedMulliganState();
+        $state = applyAction($state, 'p1', 'mulligan', ['card_ids' => []]);
+        $state = applyAction($state, 'p2', 'mulligan', ['card_ids' => []]);
+        $state = applyAction($state, 'p1', 'end_main', []);
+        $state = applyAction($state, 'p2', 'end_main', []);
+
+        $this->assertSame('live_set', $state['phase'] ?? '');
+        $this->assertSame('p1', $state['active_player'] ?? null);
+
+        $live = [
+            'instance_id' => 'test_live_p1',
+            'card_no' => 'TEST-LIVE',
+            'name_en' => 'Test Live',
+            'card_type' => 'ライブ',
+            'card_type_en' => 'Live',
+            'score' => 1,
+            'hearts' => [],
+            'abilities' => [],
+        ];
+        $drawn = $this->cardByNo('PL!HS-pb1-011-R', 'test_draw_after_live_set');
+        $state['players']['p1']['hand'] = [$live];
+        $state['players']['p1']['main_deck'] = [$drawn];
+
+        try {
+            applyAction($state, 'p2', 'end_live_set', []);
+            $this->fail('Waiting player should not be able to end LIVE Phase first');
+        } catch (\Exception $e) {
+            $this->assertStringContainsString('Not your turn', $e->getMessage());
+        }
+
+        $state = applyAction($state, 'p1', 'set_live_cards', ['card_ids' => ['test_live_p1']]);
+        $this->assertSame('test_live_p1', $state['players']['p1']['live_zone'][0]['instance_id'] ?? null);
+        $this->assertContains(
+            'test_draw_after_live_set',
+            array_column($state['players']['p1']['hand'] ?? [], 'instance_id')
+        );
+
+        $state = applyAction($state, 'p1', 'end_live_set', []);
+        $this->assertSame('live_set', $state['phase'] ?? '');
+        $this->assertSame('p2', $state['active_player'] ?? null);
+        $this->assertTrue($state['live_ready']['p1'] ?? false);
+        $this->assertFalse($state['live_ready']['p2'] ?? true);
+        $this->assertFalse($state['players']['p1']['live_zone'][0]['revealed'] ?? true);
+        $this->assertFalse($this->logContains($state, 'Both players reveal Live storage simultaneously.'));
+
+        $state = applyAction($state, 'p2', 'end_live_set', []);
+        $this->assertNotSame('live_set', $state['phase'] ?? '');
+        $this->assertArrayNotHasKey('live_ready', $state);
+        $this->assertTrue($this->logContains($state, 'Both players reveal Live storage simultaneously.'));
+    }
+
     public function testPlayMemberLegalFromHand(): void {
         $state = $this->joinedMulliganState();
         $state = applyAction($state, 'p1', 'mulligan', ['card_ids' => []]);
@@ -187,5 +239,15 @@ final class ActionSmokeTest extends TestCase
         $this->assertSame('optional_discard_prompt', $state['pending_prompt']['type'] ?? null);
         $this->assertSame('test_rurino_missing_abilities', $state['pending_prompt']['source_id'] ?? null);
         $this->assertSame('look_reveal_filter', $state['pending_prompt']['ability']['then']['type'] ?? null);
+    }
+
+    private function logContains(array $state, string $needle): bool {
+        foreach ($state['log'] ?? [] as $entry) {
+            $msg = is_array($entry) ? ($entry['msg'] ?? '') : (string)$entry;
+            if ($msg === $needle) {
+                return true;
+            }
+        }
+        return false;
     }
 }
