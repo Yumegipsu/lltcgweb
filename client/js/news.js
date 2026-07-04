@@ -95,10 +95,10 @@
     _activeId = _view === 'detail' ? postId : null;
     const listPane = document.getElementById('news-list-pane');
     const detailPane = document.getElementById('news-detail-pane');
-    const shell = document.getElementById('news-panel');
+    const shell = document.querySelector('#overlay-news .news-shell');
     if (listPane) listPane.hidden = _view !== 'list';
     if (detailPane) detailPane.hidden = _view !== 'detail';
-    if (shell) shell.classList.toggle('news-panel--detail', _view === 'detail');
+    if (shell) shell.classList.toggle('news-shell--detail', _view === 'detail');
   }
 
   function renderList(posts) {

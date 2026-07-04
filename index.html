@@ -3598,7 +3598,8 @@ body.perf-spectacle-active #center-banner.show{z-index:8750}
 }
 
 /* ── Official-site menu chrome (hub / account screens only; not gameplay) ── */
-body:has(.llc-menu-screen.active) .llc-sky-dim{
+body:has(.llc-menu-screen.active) .llc-sky-dim,
+body.news-overlay-open .llc-sky-dim{
   background:
     linear-gradient(180deg,rgba(255,255,255,.08) 0%,rgba(78,197,255,.12) 42%,rgba(50,157,255,.18) 100%),
     radial-gradient(ellipse 90% 60% at 72% 8%,rgba(255,255,255,.14) 0%,transparent 58%)}
@@ -3850,38 +3851,30 @@ body:has(#screen-game.active) #casual-search-float{top:68px}
 .news-fab-label{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
   color:rgba(255,255,255,.92);text-shadow:0 1px 8px rgba(0,0,0,.45)}
 body.news-overlay-open{overflow:hidden}
-#overlay-news{
+#overlay-news.llc-menu-screen{
   position:fixed;inset:0;z-index:8750;display:none;align-items:center;justify-content:center;
-  padding:clamp(12px,3vw,24px);background:rgba(4,10,24,.78);backdrop-filter:blur(5px)}
+  overflow-y:auto;padding:clamp(12px,2vh,24px) 16px;background:transparent}
 #overlay-news.open{display:flex}
-.news-panel{
-  width:min(480px,94vw);max-height:min(72vh,640px);display:flex;flex-direction:column;
-  background:var(--ui-panel-bg);backdrop-filter:blur(14px);
-  border:1px solid var(--ui-panel-border-strong);border-radius:16px;padding:18px 16px 14px;
-  box-shadow:var(--ui-panel-glow);position:relative;overflow:hidden}
-.news-panel--detail{width:min(640px,96vw);max-height:min(86vh,820px);padding:16px}
-.news-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-shrink:0}
-.news-panel-head h2{
-  font-family:'Fredoka One',cursive;font-size:20px;color:#fff;margin:0;letter-spacing:.04em}
-.news-panel-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.news-scroll{
+#overlay-news .news-shell{max-width:min(480px,94vw);margin-block:auto}
+#overlay-news .news-shell.news-shell--detail{max-width:min(640px,96vw)}
+#overlay-news .news-panel-shell{
+  display:flex;flex-direction:column;max-height:min(72vh,640px);min-height:0;width:100%}
+#overlay-news .news-shell--detail .news-panel-shell{max-height:min(86vh,820px)}
+#overlay-news .news-scroll{
   flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
   padding-right:4px;margin-right:-2px}
-.news-scroll .llc-menu-list{margin-top:0}
-.news-empty{font-size:13px;color:rgba(255,255,255,.62);text-align:center;margin:18px 8px;line-height:1.5}
-.news-list-item{min-height:58px}
-.news-detail-title{
-  font-family:'Fredoka One',cursive;font-size:20px;color:#fff;margin:0 0 4px;line-height:1.35}
-.news-detail-date{font-size:11px;color:rgba(255,255,255,.55);margin:0 0 12px;letter-spacing:.04em}
-.news-detail-banner{
+#overlay-news .news-scroll .llc-menu-list{margin-top:0}
+#overlay-news .news-empty{font-size:14px;color:rgba(255,255,255,.94);text-align:center;margin:18px 8px;line-height:1.55;letter-spacing:.04em}
+#overlay-news .news-list-item{min-height:58px}
+#overlay-news .account-screen-head .news-head-close{
+  grid-column:3;justify-self:end;flex:0 0 auto;width:auto;max-width:none;white-space:nowrap}
+#overlay-news .news-detail-banner{
   display:block;width:100%;height:clamp(120px,22vw,180px);object-fit:cover;object-position:center;
-  border-radius:10px;margin:0 0 14px;background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.12)}
-.news-detail-banner[hidden]{display:none!important}
-.news-detail-body{
-  font-size:13px;line-height:1.62;color:rgba(255,255,255,.88);text-align:left;
-  padding-bottom:8px}
-.news-detail-body strong{color:#fff;font-weight:700}
+  border-radius:10px;margin:0 0 14px;
+  border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.08)}
+#overlay-news .news-detail-banner[hidden]{display:none!important}
+#overlay-news .news-detail-body{margin:0;padding-bottom:8px}
+#overlay-news .news-detail-body strong{font-weight:700;color:#fff}
 body.locale-ja{font-family:'Zen Kaku Gothic New','Nunito',sans-serif}
 body.locale-ja .llc-menu-item-title{font-family:'Zen Kaku Gothic New','Nunito',sans-serif}
 .llc-menu-screen .lerr{color:#ffd6e8;font-weight:700}
@@ -6734,31 +6727,30 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
     <button type="button" class="btn-grad" id="btn-api-error-ok" data-i18n="common.ok">OK</button>
   </div>
 </div>
-<div id="overlay-news" class="news-overlay" aria-modal="true" aria-labelledby="news-panel-title" aria-hidden="true">
-  <div class="news-panel" id="news-panel">
-    <div id="news-list-pane">
-      <div class="news-panel-head">
-        <h2 id="news-panel-title" data-i18n="news.title">News</h2>
-        <div class="news-panel-actions">
+<div id="overlay-news" class="llc-menu-screen news-overlay" aria-modal="true" aria-labelledby="news-panel-title" aria-hidden="true">
+  <div class="account-shell news-shell">
+    <div class="panel account-panel news-panel-shell" id="news-panel">
+      <div id="news-list-pane">
+        <div class="account-screen-head">
           <button type="button" class="btn-ghost" id="btn-news-close" data-i18n="news.close">Close</button>
+          <h2 id="news-panel-title" data-i18n="news.title">News</h2>
+        </div>
+        <div class="news-scroll" id="news-list-scroll">
+          <div class="llc-menu-list" id="news-list"></div>
         </div>
       </div>
-      <div class="news-scroll" id="news-list-scroll">
-        <div class="llc-menu-list" id="news-list"></div>
-      </div>
-    </div>
-    <div id="news-detail-pane" hidden>
-      <div class="news-panel-head">
-        <button type="button" class="btn-ghost" id="btn-news-back" data-i18n="news.backToList">← All news</button>
-        <div class="news-panel-actions">
-          <button type="button" class="btn-ghost" id="btn-news-close-detail" data-i18n="news.close">Close</button>
+      <div id="news-detail-pane" hidden>
+        <div class="account-screen-head">
+          <button type="button" class="btn-ghost" id="btn-news-back" data-i18n="news.backToList">← All news</button>
+          <h2 data-i18n="news.title">News</h2>
+          <button type="button" class="btn-ghost news-head-close" id="btn-news-close-detail" data-i18n="news.close">Close</button>
         </div>
-      </div>
-      <div class="news-scroll" id="news-detail-scroll">
-        <h3 class="news-detail-title" id="news-detail-title"></h3>
-        <p class="news-detail-date" id="news-detail-date"></p>
-        <img class="news-detail-banner" id="news-detail-banner" alt="" decoding="async">
-        <div class="news-detail-body" id="news-detail-body"></div>
+        <div class="news-scroll" id="news-detail-scroll">
+          <h3 id="news-detail-title"></h3>
+          <p class="hub-stat" id="news-detail-date"></p>
+          <img class="news-detail-banner" id="news-detail-banner" alt="" decoding="async">
+          <div class="account-lead news-detail-body" id="news-detail-body"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -6972,7 +6964,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="i18n.js?v=10"></script>
 <script src="log_i18n.js?v=5"></script>
 <script src="sfx.js?v=15"></script>
-<script src="client/js/news.js?v=1"></script>
+<script src="client/js/news.js?v=2"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=5"></script>
 <script src="client/js/state-apply.js?v=3"></script>
