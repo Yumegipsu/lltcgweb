@@ -992,6 +992,17 @@ body.tcg-replay-view-mode .overlay.replay-prompt-readonly .heart-btn{cursor:defa
 .phase-timer-wrap.phase-timer-wrap--prompt{
   position:fixed;top:12px;right:12px;z-index:965;pointer-events:none;
 }
+.phase-timer-wrap.phase-timer-wrap--opp .phase-timer-pie{
+  border-color:rgba(255,200,120,.62);
+}
+.time-pie.phase-timer-pie.phase-timer-pie--opp{
+  background:conic-gradient(
+    from -90deg,
+    #ffc878 0turn,
+    #ffc878 calc(var(--time-ratio, 1) * 1turn),
+    #5c4a52 0
+  );
+}
 .time-pie.phase-timer-pie{
   position:relative;width:52px;height:52px;border-radius:999px;
   background:conic-gradient(
@@ -34235,23 +34246,24 @@ function phaseTimerSignature(s, myId) {
   return `${s.phase}|${s.active_player}|${prSig}|${JSON.stringify(s.live_ready || {})}|${dl.p1 ?? ''}|${dl.p2 ?? ''}${coinSig}${mullSig}`;
 }
 
+function phaseTimerDeadlinePid(s, myId) {
+  const dl = s?.phase_timer?.deadlines;
+  if (!dl) return null;
+  const active = ['p1', 'p2'].filter((pid) => {
+    const d = dl[pid];
+    return d != null && d !== '' && Number(d) > 0;
+  });
+  if (!active.length) return null;
+  if (active.length === 1) return active[0];
+  // Parallel clocks (mulligan): each player keeps their own; finished players see the other.
+  if (active.includes(myId)) return myId;
+  return active.find((pid) => pid !== myId) || active[0];
+}
+
 function phaseTimerShouldShow(s, myId) {
   if (G.isTutorial || !isActiveGameplay(s)) return false;
   if (!phaseTimerEnabledOnState(s)) return false;
-  const dl = s.phase_timer?.deadlines?.[myId];
-  if (!dl) return false;
-  const pr = s.pending_prompt;
-  if (pr && pr.responder === myId && promptUsesPhaseTimerClient(pr)) return true;
-  const ph = s.phase;
-  if (ph === 'coin_flip') {
-    const flip = s.coin_flip;
-    if (!flip || !coinFlipBothReady(s)) return false;
-    return flip.winner === myId;
-  }
-  if (ph === 'main_first' || ph === 'main_second') return s.active_player === myId;
-  if (ph === 'live_set') return s.active_player === myId && !s.live_ready?.[myId];
-  if (ph === 'setup') return !s.players?.[myId]?.ready_mulligan;
-  return false;
+  return phaseTimerDeadlinePid(s, myId) != null;
 }
 
 function stopPhaseTimerTick() {
@@ -34264,15 +34276,19 @@ function paintPhaseTimer(s, myId) {
   const pie = el('phase-timer-pie');
   const val = el('phase-timer-val');
   if (!wrap || !pie || !val || !s) return;
-  const show = phaseTimerShouldShow(s, myId);
+  const subjectId = phaseTimerDeadlinePid(s, myId);
+  const show = subjectId != null;
+  const viewingOpp = show && subjectId !== myId;
   wrap.hidden = !show;
   wrap.setAttribute('aria-hidden', show ? 'false' : 'true');
-  wrap.classList.toggle('phase-timer-wrap--prompt', show && phaseTimerOverPromptOverlay(s, myId));
+  wrap.classList.toggle('phase-timer-wrap--prompt', show && !viewingOpp && phaseTimerOverPromptOverlay(s, myId));
+  wrap.classList.toggle('phase-timer-wrap--opp', viewingOpp);
   if (!show) {
     stopPhaseTimerTick();
+    pie.classList.remove('phase-timer-pie--opp');
     return;
   }
-  const deadline = Number(s.phase_timer.deadlines[myId]);
+  const deadline = Number(s.phase_timer.deadlines[subjectId]);
   const duration = statePhaseTimerDuration(s);
   const left = Math.max(0, deadline - Date.now() / 1000);
   const ratio = Math.max(0, Math.min(1, left / duration));
@@ -34280,6 +34296,7 @@ function paintPhaseTimer(s, myId) {
   pie.style.setProperty('--time-ratio', String(ratio));
   val.textContent = String(sec);
   pie.classList.toggle('phase-timer-pie--urgent', sec <= 10);
+  pie.classList.toggle('phase-timer-pie--opp', viewingOpp);
   if (sec <= 0 && G.polling && !G._phaseTimerNudgeAt) {
     G._phaseTimerNudgeAt = Date.now();
     pullLatestState();
