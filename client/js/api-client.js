@@ -97,16 +97,14 @@
 
     let ov = document.getElementById('overlay-api-error');
     if (!ov) return;
+    const tFn = global.LLTCG_I18N && global.LLTCG_I18N.t;
+    const t = typeof tFn === 'function' ? tFn : (_k, _v) => _k;
     const titleEl = ov.querySelector('#api-error-title');
     const msgEl = ov.querySelector('#api-error-msg');
     const hintEl = ov.querySelector('#api-error-hint');
-    if (titleEl) titleEl.textContent = status >= 500 ? 'Server error' : 'Something went wrong';
+    if (titleEl) titleEl.textContent = status >= 500 ? t('apiError.titleServer') : t('apiError.titleClient');
     if (msgEl) msgEl.textContent = msg;
-    if (hintEl) {
-      hintEl.textContent = status >= 500
-        ? 'Try refreshing the page. If it keeps happening, wait a moment and try again.'
-        : 'Try refreshing the page if the game looks stuck.';
-    }
+    if (hintEl) hintEl.textContent = status >= 500 ? t('apiError.hintServer') : t('apiError.hintClient');
     ov.classList.add('open');
     global._apiErrorPopupOpen = true;
     if (typeof global.sfxPlay === 'function') global.sfxPlay('error', { volume: 0.8 });

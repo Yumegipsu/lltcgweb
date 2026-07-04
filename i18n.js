@@ -627,9 +627,76 @@
       "disconnectedOpp": "{name} disconnected.",
       "statsLine": "Turn: {turn} | Your successes: {yours}/3 | Opp successes: {opp}/3",
       "debugSaveReplay": "💾 Save replay",
+      "saveReplay": "Save Replay",
       "debugSaveLog": "💾 Save debug log",
       "debugCopyLog": "📋 Copy log",
       "debugSaveBundle": "📦 Export debug bundle"
+    },
+    "replay": {
+      "menuTitle": "Replay Viewer",
+      "menuSubAuth": "Load a saved match replay and watch it in realtime",
+      "menuSubHub": "Watch saved match replays from your library",
+      "title": "Replay Viewer",
+      "back": "← Back",
+      "lead": "Watch saved match replays from your account library. Playback follows the saved action timing, and the seekbar can jump to any point in the replay.",
+      "refreshLibrary": "Refresh library",
+      "importLead": "Have an exported replay file? Import JSON here as a secondary option.",
+      "fileLabel": "Replay file",
+      "noFileSelected": "No file selected.",
+      "startImported": "Start imported replay",
+      "playPause": "Play / Pause",
+      "positionAria": "Replay position",
+      "handoffNote": "Replay complete — you have control. CPU plays the opponent.",
+      "exitReplay": "Exit Replay",
+      "phaseBarHint": "Replay {step} / {total} — use the replay bar below to step through recorded actions.",
+      "signInLibrary": "Sign in to save and view replays in your library.",
+      "emptyLibrary": "No saved replays yet. Finish a match and choose Save Replay.",
+      "watch": "Watch",
+      "downloadJson": "Download JSON",
+      "loadingLibrary": "Loading saved replays...",
+      "loadLibraryFailed": "Could not load saved replays.",
+      "win": "Win",
+      "loss": "Loss",
+      "replayLabel": "Replay",
+      "resultAs": "{result} as {name}",
+      "summarySaved": "Saved {date}",
+      "summaryRoom": "Room {room}",
+      "summaryVs": "vs {name}",
+      "summaryTurn": "Turn {turn}",
+      "summaryActions": "{count} action",
+      "summaryActionsPlural": "{count} actions",
+      "metaSaver": "Saver: {name}",
+      "metaPerspective": "Perspective: {id}",
+      "metaSavedAt": "Saved: {at}",
+      "metaSnapshot": "Snapshot: turn {turn}, phase {phase}",
+      "metaDuration": "Duration: {duration}",
+      "metaActions": "Actions: {count}",
+      "unknownDate": "Unknown date",
+      "loadedToast": "Replay loaded — {count} action(s)",
+      "downloadedJson": "Replay JSON downloaded",
+      "downloadFailed": "Could not download replay",
+      "payloadMissing": "Replay payload missing",
+      "startSavedFailed": "Could not start saved replay",
+      "unsupportedSchema": "Unsupported replay schema",
+      "invalidFile": "Invalid replay file",
+      "chooseFileFirst": "Choose a replay file first.",
+      "saveAfterFinish": "Save replay is available after the match finishes.",
+      "noCredentials": "No match credentials found for replay export.",
+      "savedToLibrary": "Replay saved to your library",
+      "savedToLibraryId": "Replay saved to your library (#{id})",
+      "downloadedAsJson": "Replay downloaded as JSON",
+      "couldNotSave": "Could not save replay"
+    },
+    "apiError": {
+      "titleClient": "Something went wrong",
+      "titleServer": "Server error",
+      "hintClient": "Try refreshing the page if the game looks stuck.",
+      "hintServer": "Try refreshing the page. If it keeps happening, wait a moment and try again.",
+      "connectionFailed": "Could not reach the server. Try refreshing the page."
+    },
+    "tutorialMeta": {
+      "title": "Beginner Tutorial",
+      "labelOpponent": "Player2"
     },
     "tutorial": {
       "exitTitle": "Exit to Title",
@@ -1378,9 +1445,76 @@
       "disconnectedOpp": "{name}が切断しました。",
       "statsLine": "ターン：{turn} | あなたの成功：{yours}/3 | 相手の成功：{opp}/3",
       "debugSaveReplay": "💾 リプレイを保存",
+      "saveReplay": "リプレイを保存",
       "debugSaveLog": "💾 デバッグログを保存",
       "debugCopyLog": "📋 ログをコピー",
       "debugSaveBundle": "📦 デバッグ一式を出力"
+    },
+    "replay": {
+      "menuTitle": "リプレイビューア",
+      "menuSubAuth": "保存した対戦リプレイを読み込み、リアルタイムで再生",
+      "menuSubHub": "ライブラリから保存済みリプレイを視聴",
+      "title": "リプレイビューア",
+      "back": "← 戻る",
+      "lead": "アカウントのライブラリから保存済みリプレイを視聴できます。再生は記録されたタイミングに従い、シークバーで任意の地点へジャンプできます。",
+      "refreshLibrary": "ライブラリを更新",
+      "importLead": "エクスポートしたリプレイファイルがありますか？ JSONをここから読み込めます（サブオプション）。",
+      "fileLabel": "リプレイファイル",
+      "noFileSelected": "ファイルが選択されていません。",
+      "startImported": "読み込んだリプレイを開始",
+      "playPause": "再生 / 一時停止",
+      "positionAria": "リプレイ位置",
+      "handoffNote": "リプレイ完了 — 操作可能です。COMが相手をプレイします。",
+      "exitReplay": "リプレイを終了",
+      "phaseBarHint": "リプレイ {step} / {total} — 下のリプレイバーで記録された操作を進めてください。",
+      "signInLibrary": "リプレイを保存・閲覧するにはサインインしてください。",
+      "emptyLibrary": "保存済みリプレイはまだありません。対戦を終えて「リプレイを保存」を選んでください。",
+      "watch": "視聴",
+      "downloadJson": "JSONをダウンロード",
+      "loadingLibrary": "保存済みリプレイを読み込み中…",
+      "loadLibraryFailed": "保存済みリプレイを読み込めませんでした。",
+      "win": "勝利",
+      "loss": "敗北",
+      "replayLabel": "リプレイ",
+      "resultAs": "{name}として{result}",
+      "summarySaved": "保存 {date}",
+      "summaryRoom": "ルーム {room}",
+      "summaryVs": "対 {name}",
+      "summaryTurn": "ターン {turn}",
+      "summaryActions": "{count} アクション",
+      "summaryActionsPlural": "{count} アクション",
+      "metaSaver": "保存者: {name}",
+      "metaPerspective": "視点: {id}",
+      "metaSavedAt": "保存日時: {at}",
+      "metaSnapshot": "スナップショット: ターン {turn}、フェイズ {phase}",
+      "metaDuration": "長さ: {duration}",
+      "metaActions": "アクション: {count}",
+      "unknownDate": "日付不明",
+      "loadedToast": "リプレイを読み込みました — {count} アクション",
+      "downloadedJson": "リプレイJSONをダウンロードしました",
+      "downloadFailed": "リプレイをダウンロードできませんでした",
+      "payloadMissing": "リプレイデータがありません",
+      "startSavedFailed": "保存済みリプレイを開始できませんでした",
+      "unsupportedSchema": "未対応のリプレイ形式です",
+      "invalidFile": "無効なリプレイファイルです",
+      "chooseFileFirst": "先にリプレイファイルを選んでください。",
+      "saveAfterFinish": "リプレイの保存は対戦終了後に利用できます。",
+      "noCredentials": "リプレイ出力用の対戦情報が見つかりません。",
+      "savedToLibrary": "リプレイをライブラリに保存しました",
+      "savedToLibraryId": "リプレイをライブラリに保存しました（#{id}）",
+      "downloadedAsJson": "リプレイをJSONでダウンロードしました",
+      "couldNotSave": "リプレイを保存できませんでした"
+    },
+    "apiError": {
+      "titleClient": "問題が発生しました",
+      "titleServer": "サーバーエラー",
+      "hintClient": "ゲームが止まって見える場合は、ページを更新してください。",
+      "hintServer": "ページを更新してください。続く場合は少し待ってから再試行してください。",
+      "connectionFailed": "サーバーに接続できませんでした。ページを更新してください。"
+    },
+    "tutorialMeta": {
+      "title": "初心者チュートリアル",
+      "labelOpponent": "Player2"
     },
     "tutorial": {
       "intro_welcome": "こんにちは！**渋谷かのん**です。**ラブライブ！オフィシャルカードゲーム**のチュートリアルへようこそ！",
@@ -1544,6 +1678,12 @@
     loc.hub.tutorial = loc.hub.tutorial || {};
     loc.hub.tutorial.title = loc.menu && loc.menu.howToPlay;
     loc.hub.tutorial.sub = loc.menu && loc.menu.howToPlaySub;
+    loc.auth.replay = loc.auth.replay || {};
+    loc.auth.replay.title = loc.replay && loc.replay.menuTitle;
+    loc.auth.replay.sub = loc.replay && loc.replay.menuSubAuth;
+    loc.hub.replay = loc.hub.replay || {};
+    loc.hub.replay.title = loc.replay && loc.replay.menuTitle;
+    loc.hub.replay.sub = loc.replay && loc.replay.menuSubHub;
     loc.options = loc.options || {};
     loc.options.back = loc.options.backHub;
     loc.options.foil = loc.options.enhancedTextures;
@@ -1721,7 +1861,7 @@
 
   function loadTutorialJa() {
     if (_tutorialJa) return Promise.resolve(_tutorialJa);
-    return fetch('./tutorial_ja.json?v=1', { cache: 'no-store' })
+    return fetch('./tutorial_ja.json?v=2', { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('tutorial_ja HTTP ' + r.status);
         return r.json();

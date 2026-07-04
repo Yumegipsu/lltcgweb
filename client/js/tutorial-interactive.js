@@ -261,7 +261,9 @@
       if (!data?.steps?.length) throw new Error('Tutorial guide has no steps');
 
       G().tutorialData = data;
-      G().tutorialLabels = data.initial_labels || { p1: 'You', p2: 'Player2' };
+      G().tutorialLabels = typeof global.tutorialInitialLabels === 'function'
+        ? global.tutorialInitialLabels(data.initial_labels)
+        : { p1: 'You', p2: 'Player2' };
       G().isTutorial = true;
       G().tutorialLive = true;
       G().tutorialStep = 0;

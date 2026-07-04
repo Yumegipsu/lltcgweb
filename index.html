@@ -5401,8 +5401,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         </button>
         <button class="llc-menu-item llc-menu-hover" id="btn-auth-debug-replay" type="button">
           <span class="llc-menu-item-body">
-            <span class="llc-menu-item-title">Replay Viewer</span>
-            <span class="llc-menu-item-sub">Load a saved match replay and watch it in realtime</span>
+            <span class="llc-menu-item-title" data-i18n="auth.replay.title">Replay Viewer</span>
+            <span class="llc-menu-item-sub" data-i18n="auth.replay.sub">Load a saved match replay and watch it in realtime</span>
           </span>
         </button>
         <button class="llc-menu-item llc-menu-hover" id="btn-auth-tutorial" type="button">
@@ -5686,29 +5686,29 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <img class="logo-img" src="tcglogo.png" alt="">
       <div class="logo-foot">
         <span class="logo-version">v0.1.1</span>
-        <p class="logo-tagline">Replay Viewer</p>
+        <p class="logo-tagline" data-i18n="replay.title">Replay Viewer</p>
       </div>
     </div>
     <div class="panel account-panel">
       <div class="llc-menu-back-row">
-        <button class="btn-ghost" id="btn-debug-replay-back" type="button">← Back</button>
+        <button class="btn-ghost" id="btn-debug-replay-back" type="button" data-i18n="replay.back">← Back</button>
       </div>
-      <h2>Replay Viewer</h2>
-      <p class="account-lead">Watch saved match replays from your account library. Playback follows the saved action timing, and the seekbar can jump to any point in the replay.</p>
+      <h2 data-i18n="replay.title">Replay Viewer</h2>
+      <p class="account-lead" data-i18n="replay.lead">Watch saved match replays from your account library. Playback follows the saved action timing, and the seekbar can jump to any point in the replay.</p>
       <div id="replay-library-section">
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
-          <button class="btn-ghost" id="btn-replay-library-refresh" type="button">Refresh library</button>
+          <button class="btn-ghost" id="btn-replay-library-refresh" type="button" data-i18n="replay.refreshLibrary">Refresh library</button>
         </div>
         <div id="replay-library-list" class="replay-library-list"></div>
       </div>
       <div class="replay-import-box">
-        <p class="account-lead">Have an exported replay file? Import JSON here as a secondary option.</p>
+        <p class="account-lead" data-i18n="replay.importLead">Have an exported replay file? Import JSON here as a secondary option.</p>
         <div class="field">
-          <label for="inp-replay-file">Replay file</label>
+          <label for="inp-replay-file" data-i18n="replay.fileLabel">Replay file</label>
           <input type="file" id="inp-replay-file" accept=".json,application/json">
         </div>
-        <div id="replay-file-meta" class="replay-file-meta">No file selected.</div>
-        <button class="btn-grad" id="btn-debug-replay-start" type="button" disabled>Start imported replay</button>
+        <div id="replay-file-meta" class="replay-file-meta" data-i18n="replay.noFileSelected">No file selected.</div>
+        <button class="btn-grad" id="btn-debug-replay-start" type="button" disabled data-i18n="replay.startImported">Start imported replay</button>
       </div>
       <p class="lerr" id="debug-replay-err"></p>
     </div>
@@ -5801,8 +5801,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         </button>
         <button class="llc-menu-item llc-menu-hover" id="btn-hub-replay" type="button">
           <span class="llc-menu-item-body">
-            <span class="llc-menu-item-title">Replay Viewer</span>
-            <span class="llc-menu-item-sub">Watch saved match replays from your library</span>
+            <span class="llc-menu-item-title" data-i18n="hub.replay.title">Replay Viewer</span>
+            <span class="llc-menu-item-sub" data-i18n="hub.replay.sub">Watch saved match replays from your library</span>
           </span>
         </button>
         <button class="llc-menu-item llc-menu-hover" id="btn-hub-tutorial" type="button">
@@ -6403,7 +6403,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         </div>
         <div class="sbfoot">
           <div class="tcg-debug-only tcg-debug-row" id="debug-log-tools">
-            <button type="button" class="btn-ghost" id="btn-debug-save-replay">💾 Save replay</button>
+            <button type="button" class="btn-ghost" id="btn-debug-save-replay" data-i18n="win.debugSaveReplay">💾 Save replay</button>
             <button type="button" class="btn-ghost" id="btn-debug-save-log">💾 Save debug log</button>
             <button type="button" class="btn-ghost" id="btn-debug-copy-log">📋 Copy log</button>
           </div>
@@ -6416,10 +6416,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div><!-- /screen-game -->
 
 <div id="replay-control-bar" class="replay-control-bar" hidden aria-hidden="true">
-  <button type="button" class="btn-ghost" id="btn-replay-play" title="Play / Pause">▶</button>
-  <input type="range" id="replay-step-range" min="0" max="0" value="0" step="1" aria-label="Replay position">
+  <button type="button" class="btn-ghost" id="btn-replay-play" data-i18n-title="replay.playPause">▶</button>
+  <input type="range" id="replay-step-range" min="0" max="0" value="0" step="1" data-i18n-aria-label="replay.positionAria">
   <span class="replay-step-label" id="replay-step-label">0 / 0 · 0:00</span>
-  <p class="replay-handoff-note" id="replay-handoff-note" hidden>Replay complete — you have control. CPU plays the opponent.</p>
+  <p class="replay-handoff-note" id="replay-handoff-note" hidden data-i18n="replay.handoffNote">Replay complete — you have control. CPU plays the opponent.</p>
 </div>
 
 <div id="spectate-bar" class="spectate-bar" hidden aria-live="polite">
@@ -6654,10 +6654,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <div class="toast" id="toast"></div>
 <div class="overlay" id="overlay-api-error" aria-live="assertive" aria-modal="true">
   <div class="mbox">
-    <h2 class="api-error-title" id="api-error-title">Something went wrong</h2>
+    <h2 class="api-error-title" id="api-error-title" data-i18n="apiError.titleClient">Something went wrong</h2>
     <p class="api-error-msg" id="api-error-msg"></p>
-    <p class="api-error-hint" id="api-error-hint">Try refreshing the page if the game looks stuck.</p>
-    <button type="button" class="btn-grad" id="btn-api-error-ok">OK</button>
+    <p class="api-error-hint" id="api-error-hint" data-i18n="apiError.hintClient">Try refreshing the page if the game looks stuck.</p>
+    <button type="button" class="btn-grad" id="btn-api-error-ok" data-i18n="common.ok">OK</button>
   </div>
 </div>
 <div id="center-banner" aria-live="polite" aria-atomic="true">
@@ -6854,7 +6854,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   <div class="wstats" id="wstats"></div>
   <div class="win-actions">
     <button class="btn-grad" id="btn-again" style="width:auto;padding:13px 36px;font-size:17px" data-i18n="win.playAgain">Play Again</button>
-    <button class="btn-out" id="btn-win-save-replay" type="button">Save Replay</button>
+    <button class="btn-out" id="btn-win-save-replay" type="button" data-i18n="win.saveReplay">Save Replay</button>
     <button class="btn-out" id="btn-win-hub" type="button" data-i18n="win.returnMenu">Return to Menu</button>
     <button class="btn-out" id="btn-win-leaderboard" type="button" hidden>View Leaderboard</button>
   </div>
@@ -6866,15 +6866,15 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=8"></script>
+<script src="i18n.js?v=9"></script>
 <script src="log_i18n.js?v=5"></script>
 <script src="sfx.js?v=15"></script>
-<script src="client/js/api-client.js?v=3"></script>
-<script src="client/js/game-sync.js?v=4"></script>
+<script src="client/js/api-client.js?v=4"></script>
+<script src="client/js/game-sync.js?v=5"></script>
 <script src="client/js/state-apply.js?v=3"></script>
-<script src="client/js/replay-debug.js?v=3"></script>
+<script src="client/js/replay-debug.js?v=4"></script>
 <script src="client/js/prompt-renderer.js?v=7"></script>
-<script src="client/js/tutorial-interactive.js?v=3"></script>
+<script src="client/js/tutorial-interactive.js?v=4"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -7478,7 +7478,19 @@ function refreshDynamicI18n() {
     resyncGameLogFromState(G.gameState);
     renderGame(G.gameState);
   }
-  if (G.isTutorial && G.tutorialData?.steps) renderTutorialStep(G.tutorialStep, { textOnly: false });
+  if (G.isTutorial && G.tutorialData?.steps) {
+    if (G.tutorialLabels) {
+      G.tutorialLabels.p1 = t('game.you');
+      G.tutorialLabels.p2 = t('tutorialMeta.labelOpponent');
+    }
+    renderTutorialStep(G.tutorialStep, { textOnly: false });
+  }
+  if (el('screen-debug-replay')?.classList.contains('active')) {
+    renderReplayLibraryList();
+    if (G._pendingReplayFile) renderReplayFileMeta(G._pendingReplayFile);
+    else renderReplayFileMeta(null);
+  }
+  if (isReplayViewing() || G.replayHandoff) syncReplayControlBar();
 }
 
 function formatSelectedCount(n, max) {
@@ -11088,7 +11100,7 @@ function renderReplayFileMeta(replay) {
   const startBtn = el('btn-debug-replay-start');
   if (!node) return;
   if (!replay?.meta) {
-    node.textContent = 'No file selected.';
+    node.textContent = t('replay.noFileSelected');
     if (startBtn) startBtn.disabled = true;
     return;
   }
@@ -11096,23 +11108,23 @@ function renderReplayFileMeta(replay) {
   const actionCount = Array.isArray(replay.actions) ? replay.actions.length : 0;
   const duration = Number(m.duration_seconds || 0);
   node.textContent = [
-    `Saver: ${m.saver_name || m.saver_player_id || '?'}`,
-    `Perspective: ${m.saver_player_id || '?'}`,
-    `Saved: ${m.saved_at || '?'}`,
-    `Snapshot: turn ${m.turn ?? '?'}, phase ${m.phase || '?'}`,
-    duration > 0 ? `Duration: ${formatReplayElapsed(duration)}` : null,
-    `Actions: ${actionCount}`,
+    t('replay.metaSaver', { name: m.saver_name || m.saver_player_id || '?' }),
+    t('replay.metaPerspective', { id: m.saver_player_id || '?' }),
+    t('replay.metaSavedAt', { at: m.saved_at || '?' }),
+    t('replay.metaSnapshot', { turn: m.turn ?? '?', phase: m.phase || '?' }),
+    duration > 0 ? t('replay.metaDuration', { duration: formatReplayElapsed(duration) }) : null,
+    t('replay.metaActions', { count: actionCount }),
   ].filter(Boolean).join(' · ');
   if (startBtn) startBtn.disabled = actionCount < 0;
 }
 
 function formatReplaySavedAt(ts) {
   const n = Number(ts || 0);
-  if (!n) return 'Unknown date';
+  if (!n) return t('replay.unknownDate');
   try {
     return new Date(n * 1000).toLocaleString();
   } catch (e) {
-    return 'Unknown date';
+    return t('replay.unknownDate');
   }
 }
 
@@ -11120,12 +11132,12 @@ function replaySummaryLine(r) {
   const actions = Number(r?.action_count || 0);
   const duration = Number(r?.duration_seconds || 0);
   return [
-    `Saved ${formatReplaySavedAt(r?.saved_at)}`,
-    `Room ${r?.room_id || '?'}`,
-    `vs ${r?.opponent_name || 'Opponent'}`,
-    `Turn ${r?.turn || '?'}`,
+    t('replay.summarySaved', { date: formatReplaySavedAt(r?.saved_at) }),
+    t('replay.summaryRoom', { room: r?.room_id || '?' }),
+    t('replay.summaryVs', { name: r?.opponent_name || t('game.opponent') }),
+    t('replay.summaryTurn', { turn: r?.turn || '?' }),
     duration > 0 ? formatReplayElapsed(duration) : null,
-    `${actions} action${actions === 1 ? '' : 's'}`,
+    t(actions === 1 ? 'replay.summaryActions' : 'replay.summaryActionsPlural', { count: actions }),
   ].filter(Boolean).join(' · ');
 }
 
@@ -11137,14 +11149,14 @@ function renderReplayLibraryList() {
   if (!isSignedInAccount()) {
     const empty = document.createElement('div');
     empty.className = 'replay-file-meta';
-    empty.textContent = 'Sign in to save and view replays in your library.';
+    empty.textContent = t('replay.signInLibrary');
     box.appendChild(empty);
     return;
   }
   if (!list.length) {
     const empty = document.createElement('div');
     empty.className = 'replay-file-meta';
-    empty.textContent = 'No saved replays yet. Finish a match and choose Save Replay.';
+    empty.textContent = t('replay.emptyLibrary');
     box.appendChild(empty);
     return;
   }
@@ -11153,8 +11165,8 @@ function renderReplayLibraryList() {
     card.className = 'replay-library-card';
     const body = document.createElement('div');
     const title = document.createElement('strong');
-    const result = r.winner ? (r.winner === r.saver_player_id ? 'Win' : 'Loss') : 'Replay';
-    title.textContent = `${result} as ${r.saver_name || r.saver_player_id || 'Player'}`;
+    const result = r.winner ? (r.winner === r.saver_player_id ? t('replay.win') : t('replay.loss')) : t('replay.replayLabel');
+    title.textContent = t('replay.resultAs', { result, name: r.saver_name || r.saver_player_id || t('game.you') });
     const sub = document.createElement('span');
     sub.textContent = replaySummaryLine(r);
     body.append(title, sub);
@@ -11164,12 +11176,12 @@ function renderReplayLibraryList() {
     const watch = document.createElement('button');
     watch.className = 'btn-grad';
     watch.type = 'button';
-    watch.textContent = 'Watch';
+    watch.textContent = t('replay.watch');
     watch.addEventListener('click', () => startSavedReplay(r.id));
     const dl = document.createElement('button');
     dl.className = 'btn-ghost';
     dl.type = 'button';
-    dl.textContent = 'Download JSON';
+    dl.textContent = t('replay.downloadJson');
     dl.addEventListener('click', () => downloadSavedReplay(r.id));
     actions.append(watch, dl);
     card.append(body, actions);
@@ -11184,13 +11196,13 @@ async function refreshReplayLibrary() {
     return;
   }
   const box = el('replay-library-list');
-  if (box) box.textContent = 'Loading saved replays...';
+  if (box) box.textContent = t('replay.loadingLibrary');
   try {
     const res = await accountPost('replay_list', { limit: 50 });
     A.replays = res.replays || [];
     renderReplayLibraryList();
   } catch (e) {
-    if (box) box.textContent = e.message || 'Could not load saved replays.';
+    if (box) box.textContent = e.message || t('replay.loadLibraryFailed');
   }
 }
 
@@ -11210,7 +11222,7 @@ async function bootReplayFromPayload(startResult, replay) {
   G.replayStep = 0;
   G.replayTotal = startResult.total_steps ?? (replay.actions?.length || 0);
   syncReplayControlBar();
-  toast(`Replay loaded — ${G.replayTotal} action(s)`, 2800);
+  toast(t('replay.loadedToast', { count: G.replayTotal }), 2800);
   if (G.replayTotal > 0) scheduleReplayAutoPlay();
 }
 
@@ -11218,25 +11230,25 @@ async function startSavedReplay(replayId) {
   el('debug-replay-err').textContent = '';
   try {
     const got = await accountPost('replay_get', { replay_id: replayId });
-    if (!got.replay) throw new Error('Replay payload missing');
+    if (!got.replay) throw new Error(t('replay.payloadMissing'));
     const started = await accountPost('replay_start', { replay_id: replayId });
     if (started.error) throw new Error(started.error);
     await bootReplayFromPayload(started, got.replay);
   } catch (e) {
-    el('debug-replay-err').textContent = e.message || 'Could not start saved replay';
+    el('debug-replay-err').textContent = e.message || t('replay.startSavedFailed');
   }
 }
 
 async function downloadSavedReplay(replayId) {
   try {
     const got = await accountPost('replay_get', { replay_id: replayId });
-    if (!got.replay) throw new Error('Replay payload missing');
+    if (!got.replay) throw new Error(t('replay.payloadMissing'));
     const room = got.replay.meta?.room_id || got.summary?.room_id || 'room';
     const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     downloadJsonFile(`tcg-replay-${room}-${stamp}.json`, got.replay);
-    toast('Replay JSON downloaded', 2200);
+    toast(t('replay.downloadedJson'), 2200);
   } catch (e) {
-    toast(e.message || 'Could not download replay', 4200);
+    toast(e.message || t('replay.downloadFailed'), 4200);
   }
 }
 
@@ -11258,18 +11270,18 @@ async function onReplayFileSelected(file) {
   try {
     const text = await file.text();
     const replay = JSON.parse(text);
-    if (Number(replay.schema_version) !== 1) throw new Error('Unsupported replay schema');
+    if (Number(replay.schema_version) !== 1) throw new Error(t('replay.unsupportedSchema'));
     G._pendingReplayFile = replay;
     renderReplayFileMeta(replay);
   } catch (e) {
-    el('debug-replay-err').textContent = e.message || 'Invalid replay file';
+    el('debug-replay-err').textContent = e.message || t('replay.invalidFile');
   }
 }
 
 async function startDebugReplayFromFile() {
   const replay = G._pendingReplayFile;
   if (!replay) {
-    el('debug-replay-err').textContent = 'Choose a replay file first.';
+    el('debug-replay-err').textContent = t('replay.chooseFileFirst');
     return;
   }
   el('debug-replay-err').textContent = '';
@@ -11325,10 +11337,10 @@ function syncReplayExitButton() {
   const btn = el('btn-resign');
   if (!btn) return;
   if (isReplayViewing()) {
-    btn.textContent = 'Exit Replay';
+    btn.textContent = t('replay.exitReplay');
     btn.classList.remove('btn-danger');
     btn.classList.add('btn-ghost');
-    btn.setAttribute('aria-label', 'Exit Replay');
+    btn.setAttribute('aria-label', t('replay.exitReplay'));
     return;
   }
   btn.textContent = typeof t === 'function' ? t('game.resign') : 'Resign';
@@ -31029,7 +31041,7 @@ function renderPhaseBar(s,me,opp,myId,oppId) {
     return;
   }
   if (isReplayViewing()) {
-    msgE.textContent = `Replay ${G.replayStep} / ${G.replayTotal} — use the replay bar below to step through recorded actions.`;
+    msgE.textContent = t('replay.phaseBarHint', { step: G.replayStep, total: G.replayTotal });
     updatePhaseActionButton(s, myId);
     return;
   }
@@ -34041,6 +34053,15 @@ function coinFaceLabel(name) {
   return n.slice(0, 9) + '…';
 }
 
+function tutorialInitialLabels(fallback) {
+  const base = fallback && typeof fallback === 'object' ? fallback : {};
+  return {
+    p1: t('game.you'),
+    p2: base.p2 || t('tutorialMeta.labelOpponent'),
+  };
+}
+window.tutorialInitialLabels = tutorialInitialLabels;
+
 function tutorialPlayerDisplayName(s, pid) {
   if (G.isTutorial && G.tutorialLabels?.[pid]) return G.tutorialLabels[pid];
   return s?.players?.[pid]?.name || (pid === 'p1' ? 'Player 1' : 'Player 2');
@@ -36133,7 +36154,7 @@ async function startTutorial() {
     const data = await r.json();
     if (!data?.steps?.length) throw new Error('Tutorial has no steps');
     G.tutorialData = data;
-    G.tutorialLabels = data.initial_labels || { p1: 'You', p2: 'Player2' };
+    G.tutorialLabels = tutorialInitialLabels(data.initial_labels);
     G.isTutorial = true;
     G.isCPU = false;
     G.playerId = 'p1';

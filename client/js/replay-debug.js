@@ -4,6 +4,11 @@
 (function (global) {
   'use strict';
 
+  function t(key, vars) {
+    const fn = global.LLTCG_I18N && global.LLTCG_I18N.t;
+    return typeof fn === 'function' ? fn(key, vars) : key;
+  }
+
   global.debugCardTestEnabled = function debugCardTestEnabled() {
     return global.TCG_DEBUG?.on || new URLSearchParams(location.search).has('debug');
   };
@@ -35,12 +40,12 @@
 
   global.saveReplayFile = async function saveReplayFile() {
     if (!global.replaySaveEnabled()) {
-      global.toast('Save replay is available after the match finishes.');
+      global.toast(t('replay.saveAfterFinish'));
       return;
     }
     const creds = global.getReplayExportCredentials();
     if (!creds) {
-      global.toast('No match credentials found for replay export.');
+      global.toast(t('replay.noCredentials'));
       return;
     }
     try {
@@ -51,7 +56,12 @@
         });
         if (saved.error) throw new Error(saved.error);
         const summary = saved.replay;
-        global.toast(summary?.id ? `Replay saved to your library (#${summary.id})` : 'Replay saved to your library', 2800);
+        global.toast(
+          summary?.id
+            ? t('replay.savedToLibraryId', { id: summary.id })
+            : t('replay.savedToLibrary'),
+          2800
+        );
         return;
       }
 
@@ -65,9 +75,9 @@
       const stamp = new Date().toISOString().replace(/[:.]/g, '-');
       const room = replay.meta?.room_id || global.G.roomId || 'room';
       global.downloadJsonFile(`tcg-replay-${room}-${stamp}.json`, replay);
-      global.toast('Replay downloaded as JSON', 2400);
+      global.toast(t('replay.downloadedAsJson'), 2400);
     } catch (e) {
-      global.toast(e.message || 'Could not save replay', 4200);
+      global.toast(e.message || t('replay.couldNotSave'), 4200);
     }
   };
 

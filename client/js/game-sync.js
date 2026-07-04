@@ -232,7 +232,12 @@
         pollError = e.message;
       } else {
         TCG_DEBUG.warn('poll', 'fetch failed', e);
-        reportApiError(createApiError('Could not reach the server. Try refreshing the page.', 503), { source: 'poll' });
+        reportApiError(createApiError(
+          (global.LLTCG_I18N && typeof global.LLTCG_I18N.t === 'function')
+            ? global.LLTCG_I18N.t('apiError.connectionFailed')
+            : 'Could not reach the server. Try refreshing the page.',
+          503
+        ), { source: 'poll' });
         pollError = e && e.message ? e.message : 'fetch failed';
       }
     }
@@ -259,7 +264,12 @@
         if (!handleSpectatorPollError(e.message)) reportApiError(e, { source: 'pullLatestState' });
       } else {
         TCG_DEBUG.warn('poll', 'pullLatestState failed', e);
-        reportApiError(createApiError('Could not reach the server. Try refreshing the page.', 503), { source: 'pullLatestState' });
+        reportApiError(createApiError(
+          (global.LLTCG_I18N && typeof global.LLTCG_I18N.t === 'function')
+            ? global.LLTCG_I18N.t('apiError.connectionFailed')
+            : 'Could not reach the server. Try refreshing the page.',
+          503
+        ), { source: 'pullLatestState' });
       }
     }
   };
