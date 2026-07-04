@@ -34,11 +34,16 @@ function tryResolveAbilityEffectSwitchWrMemberStage(
 
         case 'play_wr_members_combined_cost':
             if (!empty($state['pending_prompt'])) break;
-            $cands = array_values(array_filter($p['waiting_room'], function ($c) use ($ab) {
-                return ($c['card_type'] ?? '') === 'メンバー'
-                    && cardMatchesGroup($c, $ab['group'] ?? '', 'member');
-            }));
+            $cands = wrCandidatesMatching($p, [
+                'filter' => 'member',
+                'group'  => $ab['group'] ?? '',
+            ]);
             if (empty($cands)) break;
+            $emptySlots = array_values(array_filter(
+                ['left', 'center', 'right'],
+                fn($slot) => empty($p['stage'][$slot])
+            ));
+            if (empty($emptySlots)) break;
             $state['pending_prompt'] = [
                 'type'               => 'play_wr_members_combined_cost',
                 'owner'              => $pid,
@@ -46,7 +51,10 @@ function tryResolveAbilityEffectSwitchWrMemberStage(
                 'source_name'        => $name,
                 'max_combined_cost'  => intval($ab['max_combined_cost'] ?? 4),
                 'max_count'          => intval($ab['count'] ?? 2),
-                'prompt'             => 'Choose Member(s) from Waiting Room (combined cost ≤' .
+                'candidates'         => array_map('cardPromptSummary', $cands),
+                'slots'              => $emptySlots,
+                'prompt'             => 'Choose up to ' . intval($ab['count'] ?? 2) .
+                    ' Member(s) from Waiting Room (combined cost ≤' .
                     intval($ab['max_combined_cost'] ?? 4) . ') to put on Stage in Wait.',
                 'ability'            => $ab,
             ];

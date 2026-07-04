@@ -1580,6 +1580,10 @@ function finishYellRetryAndHearts(array $state): array {
     }
 
     unset($state['_perf_hearts_resolved'], $state['_perf_yell_both_done']);
+    if (!empty($state['pending_prompt'])) {
+        $state['phase'] = 'live_success_effects';
+        return $state;
+    }
     $state['phase'] = 'live_judge';
     return resolveLiveJudge($state);
 }

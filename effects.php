@@ -4281,7 +4281,13 @@ function yellPromptCandidateIds(array $prompt): array {
 }
 
 /** Remove one card from _pending_yell_wr; validates against prompt candidates when set. */
-function takeFromPendingYellPool(array &$ownerP, string $cardId, array $prompt): ?array {
+function takeFromPendingYellPool(
+    array &$ownerP,
+    string $cardId,
+    array $prompt,
+    ?array $state = null,
+    ?string $owner = null
+): ?array {
     $eligibleIds = yellPromptCandidateIds($prompt);
     if ($cardId === '' && count($eligibleIds) === 1) {
         $cardId = $eligibleIds[0];
@@ -4292,19 +4298,60 @@ function takeFromPendingYellPool(array &$ownerP, string $cardId, array $prompt):
     if (!empty($eligibleIds) && !in_array($cardId, $eligibleIds, true)) {
         return null;
     }
-    $yellPool = $ownerP['_pending_yell_wr'] ?? [];
+
+    $searchPools = [];
+    if (!empty($ownerP['_pending_yell_wr'])) {
+        $searchPools[] = $ownerP['_pending_yell_wr'];
+    }
+    if ($state !== null && $owner !== null) {
+        if (!empty($state['_last_yell_cards'])) {
+            $searchPools[] = $state['_last_yell_cards'];
+        }
+        if (!empty($state['yell_reveal'][$owner])) {
+            $searchPools[] = $state['yell_reveal'][$owner];
+        }
+        if (!empty($ownerP['yell_cards'])) {
+            $searchPools[] = $ownerP['yell_cards'];
+        }
+    }
+
     $picked = null;
+    foreach ($searchPools as $pool) {
+        foreach ($pool as $c) {
+            if (($c['instance_id'] ?? '') === $cardId) {
+                $picked = $c;
+                break 2;
+            }
+        }
+    }
+    if (!$picked) {
+        foreach ($ownerP['waiting_room'] ?? [] as $c) {
+            if (($c['instance_id'] ?? '') === $cardId) {
+                $picked = $c;
+                break;
+            }
+        }
+    }
+    if (!$picked) {
+        foreach ($prompt['candidates'] ?? [] as $c) {
+            if (($c['instance_id'] ?? '') === $cardId) {
+                $picked = $c;
+                mergeYellCardCatalogFields($picked);
+                break;
+            }
+        }
+    }
+    if (!$picked) {
+        return null;
+    }
+
     $rest = [];
-    foreach ($yellPool as $c) {
-        if (($c['instance_id'] ?? '') === $cardId) {
-            $picked = $c;
-        } else {
+    foreach ($ownerP['_pending_yell_wr'] ?? [] as $c) {
+        if (($c['instance_id'] ?? '') !== $cardId) {
             $rest[] = $c;
         }
     }
-    if ($picked) {
-        $ownerP['_pending_yell_wr'] = $rest;
-    }
+    $ownerP['_pending_yell_wr'] = $rest;
     return $picked;
 }
 

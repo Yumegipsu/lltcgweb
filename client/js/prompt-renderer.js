@@ -1360,7 +1360,12 @@ global.renderPromptDiscardHandBranch = function renderPromptDiscardHandBranch(s,
     allowCancel: false,
     forceConfirm,
     confirmLabel: forceConfirm && need > 1 ? t('prompt.selectThenConfirm') : undefined,
-    onConfirm: (ids) => sendAct('resolve_prompt', { discard_ids: ids }),
+    onConfirm: (ids) => {
+      const payload = (pr.pick_mode === 'deck_top')
+        ? { card_ids: ids }
+        : { discard_ids: ids };
+      sendAct('resolve_prompt', payload);
+    },
   });
 };
 
@@ -1646,6 +1651,35 @@ global.renderPrompt = function renderPrompt(s, myId){
   if(pr?.type==='live_success_pick_yell_live'&&pr.responder===myId){
     ovl.classList.remove('open');
     openYellRevealPick(pr, { state: s, myId });
+    return;
+  }
+  if(pr?.type==='play_wr_members_combined_cost'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const maxCount = pr.max_count || 2;
+    const maxCombined = pr.max_combined_cost || 4;
+    openHandPick({
+      hand: pr.candidates || [],
+      count: maxCount,
+      min: 0,
+      title: pr.source_name || 'Waiting Room',
+      msg: pr.prompt || `Choose up to ${maxCount} Member(s) (combined cost ≤${maxCombined}).`,
+      allowCancel: true,
+      forceConfirm: maxCount > 1,
+      onConfirm: (ids) => {
+        const picked = (ids || []).map(id => (pr.candidates || []).find(c => c.instance_id === id)).filter(Boolean);
+        const total = picked.reduce((sum, c) => sum + Number(c.cost || 0), 0);
+        if (total > maxCombined) {
+          toast(`Combined cost must be ≤${maxCombined}`, 2800, true);
+          return;
+        }
+        if (!ids?.length) {
+          sendAct('resolve_prompt', { choice: 'skip' });
+          return;
+        }
+        sendAct('resolve_prompt', { card_ids: ids });
+      },
+      onCancel: () => sendAct('resolve_prompt', { choice: 'skip' }),
+    });
     return;
   }
   if(pr?.type==='mandatory_discard_look_reveal'&&pr.responder===myId){

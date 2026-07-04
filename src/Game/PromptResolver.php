@@ -1601,9 +1601,9 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         }
         $cardId = $data['card_id'] ?? '';
         $eligibleIds = yellPromptCandidateIds($prompt);
-        $picked = takeFromPendingYellPool($ownerP, $cardId, $prompt);
+        $picked = takeFromPendingYellPool($ownerP, $cardId, $prompt, $state, $owner);
         if (!$picked && count($eligibleIds) === 1) {
-            $picked = takeFromPendingYellPool($ownerP, $eligibleIds[0], $prompt);
+            $picked = takeFromPendingYellPool($ownerP, $eligibleIds[0], $prompt, $state, $owner);
         }
         if (!$picked) {
             if (empty($eligibleIds)) {
@@ -2643,9 +2643,9 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         }
         $cardId = $data['card_id'] ?? $choice;
         $eligibleIds = yellPromptCandidateIds($prompt);
-        $picked = takeFromPendingYellPool($ownerP, $cardId, $prompt);
+        $picked = takeFromPendingYellPool($ownerP, $cardId, $prompt, $state, $owner);
         if (!$picked && count($eligibleIds) === 1) {
-            $picked = takeFromPendingYellPool($ownerP, $eligibleIds[0], $prompt);
+            $picked = takeFromPendingYellPool($ownerP, $eligibleIds[0], $prompt, $state, $owner);
         }
         if (!$picked) {
             if (empty($eligibleIds)) {
@@ -2657,7 +2657,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             }
             throw new Exception('Choose a Live card revealed by Yell');
         }
-        if (($picked['card_type'] ?? '') !== 'ライブ') {
+        if (($picked['card_type'] ?? '') !== 'ライブ' && !isLiveTypeCard($picked)) {
             throw new Exception('Choose a Live card revealed by Yell');
         }
         $ownerP['hand'][] = $picked;
@@ -3454,6 +3454,89 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         unset($state['pending_prompt']);
         $state['seq']++;
         return $state;
+    }
+
+    if ($promptType === 'play_wr_members_combined_cost') {
+        if (($data['choice'] ?? $choice) === 'skip' || ($data['choice'] ?? $choice) === 'no') {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped WR Member play.');
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
+        $cardIds = array_values(array_filter($data['card_ids'] ?? []));
+        if (empty($cardIds) && ($data['card_id'] ?? '') !== '') {
+            $cardIds = [$data['card_id']];
+        }
+        $maxCount = intval($prompt['max_count'] ?? 2);
+        $maxCombined = intval($prompt['max_combined_cost'] ?? 4);
+        if (count($cardIds) > $maxCount) {
+            throw new Exception("Choose at most $maxCount Member(s)");
+        }
+        $ab = $prompt['ability'] ?? [];
+        $group = $ab['group'] ?? '';
+        $picked = [];
+        foreach ($cardIds as $id) {
+            $found = null;
+            foreach ($ownerP['waiting_room'] as $c) {
+                if (($c['instance_id'] ?? '') !== $id) {
+                    continue;
+                }
+                if (($c['card_type'] ?? '') !== 'メンバー') {
+                    throw new Exception('Choose Member cards from Waiting Room');
+                }
+                if ($group !== '' && !cardMatchesGroup($c, $group, 'member')) {
+                    throw new Exception('Choose matching Members from Waiting Room');
+                }
+                $found = $c;
+                break;
+            }
+            if (!$found) {
+                throw new Exception('Invalid Waiting Room selection');
+            }
+            $picked[] = $found;
+        }
+        $totalCost = array_sum(array_map(fn($c) => intval($c['cost'] ?? 0), $picked));
+        if ($totalCost > $maxCombined) {
+            throw new Exception("Combined cost must be $maxCombined or less");
+        }
+        $emptySlots = array_values(array_filter(
+            ['left', 'center', 'right'],
+            fn($slot) => empty($ownerP['stage'][$slot])
+        ));
+        if (count($picked) > count($emptySlots)) {
+            throw new Exception('Not enough empty Stage areas');
+        }
+        unset($state['pending_prompt']);
+        $names = [];
+        foreach ($picked as $i => $member) {
+            $slot = $emptySlots[$i];
+            foreach ($ownerP['waiting_room'] as $wi => $c) {
+                if (($c['instance_id'] ?? '') === ($member['instance_id'] ?? '')) {
+                    array_splice($ownerP['waiting_room'], $wi, 1);
+                    break;
+                }
+            }
+            $member['active'] = false;
+            $member['entered_turn'] = intval($state['turn'] ?? 1);
+            $ownerP['stage'][$slot] = $member;
+            $names[] = cardDisplayName($member);
+            $state = resolveOnEnterAbilities($state, $owner, $member, $slot);
+            if (!empty($state['pending_prompt'])) {
+                return $state;
+            }
+        }
+        if (!empty($names)) {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') . '] played ' .
+                implode(', ', $names) . ' from Waiting Room in Wait.');
+        } else {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') . '] chose no Waiting Room Members.');
+        }
+        unset($state['pending_prompt']);
+        $state['seq']++;
+        return finishPromptEffects($state);
     }
 
     if ($promptType === 'auto_yell_no_live_retry') {
