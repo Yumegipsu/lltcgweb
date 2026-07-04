@@ -6183,7 +6183,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
             </div>
           </div>
         </div>
-        <div class="pmsg" id="pmsg" data-i18n="game.starting">Starting…</div>
+        <div class="pmsg" id="pmsg">Starting…</div>
         <div class="pbtns" id="pbtns"></div>
       </div>
       <div class="side-block players-stats-panel">
@@ -7481,6 +7481,13 @@ function syncGameplayChromeI18n() {
     updateMulliganButtonText(G.mullMarked?.size || 0);
   }
   if (G.gameState && G.playerId) {
+    if (el('screen-game')?.classList.contains('active')) {
+      const myId = G.playerId;
+      const oppId = myId === 'p1' ? 'p2' : 'p1';
+      const me = G.gameState.players?.[myId];
+      const opp = G.gameState.players?.[oppId];
+      if (me && opp) renderPhaseBar(G.gameState, me, opp, myId, oppId);
+    }
     updatePhaseActionButton(G.gameState, G.playerId);
     updatePlayTargetChrome(G.gameState, G.playerId);
     const previewId = pinnedHandPreviewIid() || G.hoverCardId;
@@ -14973,6 +14980,9 @@ window.G = G;
   bindMenuSfx();
   bindGameplayCardHoverSfx();
   initLocale(onLocaleChanged);
+  if (G.gameState?.players && el('screen-game')?.classList.contains('active')) {
+    renderGame(G.gameState);
+  }
   try {
     const savedDiff = localStorage.getItem('tcg_cpu_difficulty');
     if (savedDiff === 'easy' || savedDiff === 'normal' || savedDiff === 'hard') {
