@@ -1080,7 +1080,11 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
 
     if ($promptType === 'pick_wr_leave_stage_add') {
         $pickId = $data['card_id'] ?? '';
-        if ($pickId === '') {
+        $needsPick = intval($prompt['pick_count'] ?? 1) > 0;
+        if (!$needsPick) {
+            $pickId = 'NO_CARD_NEEDED';
+        }
+        if ($needsPick && $pickId === '') {
             throw new Exception('Choose a card');
         }
         $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgForLeaveStageAbility($ability);
@@ -1099,7 +1103,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             break;
         }
         unset($c);
-        if (!$picked || $pickIndex === null) {
+        if ((!$picked || $pickIndex === null) && $pickId !== 'NO_CARD_NEEDED') {
             throw new Exception('Invalid Waiting Room card');
         }
         $slot = $prompt['source_slot'] ?? '';
@@ -1118,16 +1122,23 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $state['seq']++;
             return $state;
         }
-        array_splice($ownerP['waiting_room'], $pickIndex, 1);
+        if ($pickId !== 'NO_CARD_NEEDED') {
+            array_splice($ownerP['waiting_room'], $pickIndex, 1);
+        }
         $ownerP['waiting_room'][] = $leavingMember;
-        $ownerP['hand'][] = $picked;
+        if ($pickId !== 'NO_CARD_NEEDED') {
+            $ownerP['hand'][] = $picked;
+        }
         $mName = $leavingMember['name_en'] ?? $leavingMember['name'] ?? 'Member';
-        $state = addLog($state, $state['players'][$owner]['name'] .
-            ' — [' . $mName . '] left Stage; added ' .
-            cardDisplayName($picked) . ' from Waiting Room to hand.');
+        $state = ($pickId !== 'NO_CARD_NEEDED')
+            ? addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . $mName . '] left Stage; added ' .
+                cardDisplayName($picked) . ' from Waiting Room to hand.')
+            : addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . $mName . '] left Stage; no card added from Waiting Room.');
         $group = $ability['group'] ?? '';
         $minScore = intval($ability['activate_energy_if_score_min'] ?? 0);
-        if ($minScore > 0 && ($picked['card_type'] ?? '') === 'ライブ'
+        if ($pickId !== 'NO_CARD_NEEDED' && $minScore > 0 && ($picked['card_type'] ?? '') === 'ライブ'
             && intval($picked['score'] ?? 0) >= $minScore
             && cardMatchesGroup($picked, $group, 'live')) {
             $activated = activateEnergyForPlayer($ownerP, intval($ability['activate_energy_count'] ?? 4));

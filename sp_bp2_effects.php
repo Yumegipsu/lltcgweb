@@ -76,6 +76,7 @@ function spBp2HandlerTypes(): array {
         'score_if_moved_by_group_effect',
         'score_per_yell_group_no_blade',
         'stack_baton_wr_member_under',
+        'leave_stage_add_from_wr',
     ];
 }
 
@@ -665,6 +666,26 @@ function spBp2ResolveEffect(array $state, string $pid, array $source, array $ab,
                 " — [$name] optional Wait chain (choose).");
             break;
 
+        case 'leave_stage_add_from_wr':
+            $cfg = wrPickCfgForLeaveStageAbility($ab);
+            $found = findActivatedAbilitySource($p, $source['instance_id'] ?? '');
+            $slot = $found['slot'] ?? null;
+            $zone = $found['zone'] ?? 'stage';
+            $wrIndex = $found['wr_index'] ?? null;
+            if ($zone === 'stage' && $slot !== null && !empty($p['stage'][$slot])) {
+                $member2 = &$p['stage'][$slot];
+            } elseif ($zone === 'waiting_room' && $wrIndex !== null && isset($p['waiting_room'][$wrIndex])) {
+                $member2 = &$p['waiting_room'][$wrIndex];
+            } elseif ($zone === 'hand' && isset($found['hand_index'], $p['hand'][$found['hand_index']])) {
+                $member2 = &$p['hand'][$found['hand_index']];
+            } else {
+                $member2 = $found['card'];
+            }
+            $mName = $member2['name_en'] ?? $member2['name'] ?? 'Member';
+            startPickWrToHandPrompt($state, $pid, $member2, $slot, 0, $ab, $cfg, true, $ab['count'] ?? 1);
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                ' — [' . $mName . '] choose a card from Waiting Room.');
+            break;
         case 'auto_on_center_move_choose':
         case 'auto_on_move_to_center_subunit_heart':
         case 'auto_stack_wr_group_member_under':

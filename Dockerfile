@@ -5,9 +5,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     && docker-php-ext-install pdo_sqlite \
     && a2enmod rewrite \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && rm /etc/apache2/mods-available/alias.conf
 
 COPY docker/apache.conf /etc/apache2/conf-available/lltcgweb.conf
+COPY docker/alias.conf /etc/apache2/mods-available/alias.conf
 RUN a2enconf lltcgweb
 
 WORKDIR /var/www/html

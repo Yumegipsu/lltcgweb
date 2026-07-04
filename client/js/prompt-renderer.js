@@ -226,6 +226,10 @@ global.openStageSlotPick = function openStageSlotPick(pr){
 
 
 global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
+  if ((Number(pr.pick_count) || 0) <= 0) {
+    sendAct('resolve_prompt', { card_id: 'NO_CARD_NEEDED' });
+    return;
+  }
   const s = opts.state || G.gameState;
   const myId = opts.myId || G.playerId;
   const cfg = wrPickCfgFromPrompt(pr);
