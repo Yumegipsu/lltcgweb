@@ -7023,7 +7023,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=18"></script>
+<script src="i18n.js?v=19"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=7"></script>
@@ -7671,6 +7671,7 @@ function refreshDynamicI18n() {
     else renderReplayFileMeta(null);
   }
   if (isReplayViewing() || G.replayHandoff) syncReplayControlBar();
+  if (el('overlay-win')?.classList.contains('open')) syncWinSaveReplayButton();
 }
 
 function formatSelectedCount(n, max) {
@@ -7707,6 +7708,14 @@ function syncHandPickOverlayButtons() {
   const hpickCancel = el('btn-hpick-cancel');
   if (hpickOk) hpickOk.textContent = t('prompt.confirm');
   if (hpickCancel) hpickCancel.textContent = t('prompt.cancel');
+}
+
+function syncWinSaveReplayButton() {
+  const saveReplayBtn = el('btn-win-save-replay');
+  if (!saveReplayBtn || saveReplayBtn.hidden) return;
+  saveReplayBtn.textContent = isSignedInAccount()
+    ? t('win.saveReplayToLibrary')
+    : t('win.downloadReplayJson');
 }
 
 function syncGameplayChromeI18n() {
@@ -15692,7 +15701,7 @@ window.G = G;
       exitReplayViewing();
       return;
     }
-    confirm('Resign?') && sendAct('resign',{});
+    confirm(t('game.resignConfirm')) && sendAct('resign',{});
   });
   on('btn-again', 'click', onWinPlayAgain);
   on('btn-win-hub', 'click', onWinReturnToMenu);
@@ -35310,7 +35319,7 @@ function showWin(s){
   el('btn-win-leaderboard').hidden = !(pvp && s.mode === 'ranked');
   const saveReplayBtn = el('btn-win-save-replay');
   saveReplayBtn.hidden = !replaySaveEnabled();
-  saveReplayBtn.textContent = isSignedInAccount() ? 'Save Replay to Library' : 'Download Replay JSON';
+  syncWinSaveReplayButton();
   el('btn-again').textContent = (pvp && (s.mode === 'ranked' || G.casualRandomMatch))
     ? t('win.findAnother')
     : (isFriendPvpRematchEligible(G.lastFinishedRematch) ? t('win.rematchOffer') : t('win.playAgain'));
