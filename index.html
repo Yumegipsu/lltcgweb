@@ -3869,18 +3869,24 @@ body.news-overlay-open{overflow:hidden}
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 #overlay-news .news-shell.news-shell--detail{max-width:min(640px,96vw)}
 #overlay-news .account-shell{
-  width:100%;max-width:none;margin-block:0;gap:0;flex:0 1 auto;min-height:0}
+  width:100%;margin-block:0;gap:0;flex:0 1 auto;min-height:0}
 #overlay-news .news-panel-shell{
-  display:flex;flex-direction:column;max-height:min(68vh,600px);min-height:0;overflow:hidden;width:100%;
+  display:flex;flex-direction:column;min-height:0;overflow:hidden;width:100%;
   background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;backdrop-filter:none}
-#overlay-news .news-shell--detail .news-panel-shell{max-height:min(82vh,760px)}
+#overlay-news .news-shell:not(.news-shell--detail) .news-panel-shell{
+  max-height:min(68vh,600px);height:auto;flex:0 1 auto}
+#overlay-news .news-shell--detail .news-panel-shell{max-height:min(82vh,760px);flex:1 1 auto}
 #overlay-news #news-list-pane,
 #overlay-news #news-detail-pane{
-  display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden}
+  display:flex;flex-direction:column;min-height:0;overflow:hidden}
+#overlay-news .news-shell:not(.news-shell--detail) #news-list-pane{flex:0 1 auto;max-height:min(calc(68vh - 56px),544px)}
+#overlay-news .news-shell--detail #news-detail-pane{flex:1 1 auto}
 #overlay-news .account-screen-head{margin-bottom:8px;flex:0 0 auto}
 #overlay-news .news-scroll{
   flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
   padding-right:4px;margin-right:-2px;-webkit-overflow-scrolling:touch}
+#overlay-news .news-shell:not(.news-shell--detail) #news-list-scroll{
+  flex:0 1 auto;max-height:min(calc(68vh - 56px),544px)}
 #overlay-news .news-scroll .llc-menu-list{margin-top:0}
 #overlay-news .news-empty{font-size:14px;color:rgba(255,255,255,.94);text-align:center;margin:18px 8px;line-height:1.55;letter-spacing:.04em}
 #overlay-news .news-list-item{min-height:58px}
