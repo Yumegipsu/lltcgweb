@@ -4279,22 +4279,23 @@ function logAbilityChain(array $state, string $pid, array $source, string $trigg
 
 function resolveOnEnterAbilities(array $state, string $pid, array $member, string $slot = ''): array {
     $abilities = getAbilitiesByTrigger($member, 'on_enter');
-    if (empty($abilities)) {
-        return $state;
-    }
-    $state = logAbilityChain($state, $pid, $member, 'on_enter');
-    foreach ($abilities as $ab) {
-        if (($ab['trigger'] ?? '') === 'on_enter_or_live_start') {
-            $state = markMemberDualEnterLiveStartFired($state, $pid, $member['instance_id'] ?? '');
+    if (!empty($abilities)) {
+        $state = logAbilityChain($state, $pid, $member, 'on_enter');
+        foreach ($abilities as $ab) {
+            if (($ab['trigger'] ?? '') === 'on_enter_or_live_start') {
+                $state = markMemberDualEnterLiveStartFired($state, $pid, $member['instance_id'] ?? '');
+            }
+            $state = resolveAbilityEffect($state, $pid, $member, $ab, [
+                'slot'  => $slot,
+                'phase' => 'on_enter',
+            ]);
+            if (!empty($state['pending_prompt'])) {
+                break;
+            }
         }
-        $state = resolveAbilityEffect($state, $pid, $member, $ab, [
-            'slot'  => $slot,
-            'phase' => 'on_enter',
-        ]);
-        if (!empty($state['pending_prompt'])) {
-            break;
-        }
     }
+    // Auto-on-other-enter must run for every Stage enter, even when the entering Member
+    // has no On Enter abilities (e.g. SD Kaho with only Automatic/on-leave text).
     $state = hsResolveAutoOnOtherMemberEnter($state, $pid, $member);
     $state = hsPb1ExtendAutoOnOtherMemberEnter($state, $pid, $member);
     return $state;
