@@ -261,7 +261,8 @@ function createRoom(array $body): array {
         $roomId,
         ['id' => 'p1', 'token' => $playerToken, 'name' => $playerName,
          'deck_choice' => $resolved['deck_choice'], 'deck_label' => $resolved['deck_label'],
-         'main_deck' => $mainDeck, 'energy_deck' => $energyDeck]
+         'main_deck' => $mainDeck, 'energy_deck' => $energyDeck,
+         'deck_snapshot' => ['main_nos' => $resolved['main_nos'], 'energy_nos' => $resolved['energy_nos']]]
     );
     $state['phase_timer_cfg'] = parsePhaseTimerConfigFromBody($body);
 
@@ -308,7 +309,8 @@ function joinRoom(array $body): array {
     $state = addSecondPlayer($state,
         ['id' => 'p2', 'token' => $playerToken, 'name' => $playerName,
          'deck_choice' => $resolved['deck_choice'], 'deck_label' => $resolved['deck_label'],
-         'main_deck' => $mainDeck, 'energy_deck' => $energyDeck],
+         'main_deck' => $mainDeck, 'energy_deck' => $energyDeck,
+         'deck_snapshot' => ['main_nos' => $resolved['main_nos'], 'energy_nos' => $resolved['energy_nos']]],
         $firstPlayer,
         $coinFlipWinner
     );
@@ -548,6 +550,8 @@ function initPlayerState(array $p): array {
         'token'        => $p['token'],
         'name'         => $p['name'],
         'deck_choice'  => $p['deck_choice'],
+        'deck_label'   => $p['deck_label'] ?? null,
+        'deck_snapshot'=> $p['deck_snapshot'] ?? null,
         'main_deck'    => $p['main_deck'],
         'energy_deck'  => $p['energy_deck'],
         'hand'         => [],
@@ -663,6 +667,9 @@ function applyAction(array $state, string $playerId, string $type, array $data):
             $state['winner'] = $winner;
             $state['seq']++;
             return $state;
+
+        case 'request_rematch':
+            return actionRequestRematch($state, $playerId);
 
         default:
             throw new Exception("Unknown action: $type");
@@ -2610,17 +2617,99 @@ function isCpuPlayer(?array $player): bool {
     return str_starts_with($name, 'COM') || str_starts_with($name, 'COM（');
 }
 
-function isPvpMatch(array $state): bool {
-    $st = $state['status'] ?? '';
-    if (in_array($st, ['waiting', 'ready', 'finished'], true)) {
-        return false;
-    }
+function isHumanVsHumanRoster(array $state): bool {
     $p1 = $state['players']['p1'] ?? null;
     $p2 = $state['players']['p2'] ?? null;
     if (!$p1 || !$p2) {
         return false;
     }
     return !isCpuPlayer($p1) && !isCpuPlayer($p2);
+}
+
+function isPvpMatch(array $state): bool {
+    $st = $state['status'] ?? '';
+    if (in_array($st, ['waiting', 'ready'], true)) {
+        return false;
+    }
+    return isHumanVsHumanRoster($state);
+}
+
+function rebuildRematchPlayer(array $old, array $cardsData): array {
+    $snapshot = $old['deck_snapshot'] ?? null;
+    if (is_array($snapshot) && !empty($snapshot['main_nos']) && !empty($snapshot['energy_nos'])) {
+        $mainNos = $snapshot['main_nos'];
+        $energyNos = $snapshot['energy_nos'];
+    } else {
+        $resolved = resolvePlayerDeckLists($cardsData, (string)($old['deck_choice'] ?? 'nijigasaki'), null);
+        $mainNos = $resolved['main_nos'];
+        $energyNos = $resolved['energy_nos'];
+    }
+    $body = ['shuffle' => true];
+    $mainDeck = buildDeckForRoom($cardsData['cards'], $mainNos, $body, 'main_order');
+    $energyDeck = buildDeckForRoom($cardsData['cards'], $energyNos, $body, 'energy_order');
+    return [
+        'id'            => $old['id'],
+        'token'         => $old['token'],
+        'name'          => $old['name'],
+        'deck_choice'   => $old['deck_choice'],
+        'deck_label'    => $old['deck_label'] ?? null,
+        'main_deck'     => $mainDeck,
+        'energy_deck'   => $energyDeck,
+        'deck_snapshot' => ['main_nos' => $mainNos, 'energy_nos' => $energyNos],
+    ];
+}
+
+function startRematchGame(array $state): array {
+    if (($state['status'] ?? '') !== 'finished') {
+        throw new Exception('Game is not finished');
+    }
+    if (($state['mode'] ?? '') === 'ranked') {
+        throw new Exception('Use ranked queue for a new match');
+    }
+    if (!isHumanVsHumanRoster($state)) {
+        throw new Exception('Rematch only available for player vs player');
+    }
+
+    $cards = json_decode(file_get_contents(CARDS_FILE), true);
+    $roomId = (string)($state['room_id'] ?? '');
+    $phaseTimerCfg = $state['phase_timer_cfg'] ?? null;
+
+    $p1Data = rebuildRematchPlayer($state['players']['p1'], $cards);
+    $p2Data = rebuildRematchPlayer($state['players']['p2'], $cards);
+
+    $newState = initGameState($roomId, $p1Data);
+    if (is_array($phaseTimerCfg)) {
+        $newState['phase_timer_cfg'] = $phaseTimerCfg;
+    }
+    $newState = addSecondPlayer($newState, $p2Data);
+    $newState = addLog($newState, 'Rematch started!', 'info');
+    return $newState;
+}
+
+function actionRequestRematch(array $state, string $playerId): array {
+    if (($state['status'] ?? '') !== 'finished') {
+        throw new Exception('Game is not finished');
+    }
+    if (($state['mode'] ?? '') === 'ranked') {
+        throw new Exception('Use ranked queue for a new match');
+    }
+    if (!isHumanVsHumanRoster($state)) {
+        throw new Exception('Rematch only available for player vs player');
+    }
+
+    if (!isset($state['rematch']) || !is_array($state['rematch'])) {
+        $state['rematch'] = ['p1' => false, 'p2' => false];
+    }
+
+    $state['rematch'][$playerId] = true;
+    $other = ($playerId === 'p1') ? 'p2' : 'p1';
+    if (!empty($state['rematch'][$other])) {
+        return startRematchGame($state);
+    }
+
+    $state = addLog($state, ($state['players'][$playerId]['name'] ?? 'Player') . ' wants a rematch.', 'info');
+    $state['seq']++;
+    return $state;
 }
 
 function isCpuSoloMatch(array $state): bool {
@@ -3094,6 +3183,14 @@ function filterStateForPlayer(array $state, string $token): array {
     $filtered['pvp'] = isPvpMatch($state);
     $filtered['mode'] = $state['mode'] ?? null;
     $filtered['phase_timer_cfg'] = getPhaseTimerCfg($state);
+
+    if (($state['status'] ?? '') === 'finished' && $myId && $oppId && isHumanVsHumanRoster($state)) {
+        $rematch = is_array($state['rematch'] ?? null) ? $state['rematch'] : [];
+        $filtered['rematch'] = [
+            'mine' => !empty($rematch[$myId]),
+            'opp'  => !empty($rematch[$oppId]),
+        ];
+    }
 
     if ($myId && !empty($filtered['log'])) {
         $filtered['log'] = array_map(

@@ -40,9 +40,22 @@
     }
     if (s.status === 'finished') {
       clearPvPWatchdog();
+      if (G.rematchWaiting && s.seq <= G.lastSeq && G.gameState?.status === 'finished') {
+        if (s.seq > G.lastSeq) {
+          G.lastSeq = s.seq;
+          G.gameState = s;
+          if (typeof global.syncWinRematchUi === 'function') global.syncWinRematchUi(s);
+        }
+        return;
+      }
       TCG_DEBUG.log('state', 'apply finished (immediate)', TCG_DEBUG.snap(s));
       void applyStateUpdate(s);
       return;
+    }
+    if (G.rematchWaiting && s.status !== 'finished') {
+      G.rematchWaiting = false;
+      G.rematchRequested = false;
+      global.el?.('overlay-win')?.classList.remove('open');
     }
     if (shouldHoldStateForLocalPrompt(s)) {
       TCG_DEBUG.log('state', 'queue (local prompt open)', { seq: s.seq, phase: s.phase, q: (G._pendingStateQueue?.length || 0) + 1 });
@@ -80,7 +93,16 @@
     }
 
     abortGameplayPresentation();
-    stopPoll();
+    const rematchSettings = typeof global.captureRematchSettings === 'function'
+      ? global.captureRematchSettings(s) : null;
+    const rematchEligible = typeof global.isFriendPvpRematchEligible === 'function'
+      && global.isFriendPvpRematchEligible(rematchSettings);
+    if (rematchEligible) {
+      G.rematchWaiting = true;
+      resumePollingTick(400);
+    } else {
+      stopPoll();
+    }
 
     if (shouldPlaySuccessLiveTriumph(prev, s)) {
       G.animating = true;
@@ -99,6 +121,9 @@
     catchUpGameLog(s, prev);
     if (prev && !resigned) flushPostLiveLogBanners(prev, s, G.playerId);
     showWin(s);
+    if (G.rematchWaiting && typeof global.syncWinRematchUi === 'function') {
+      global.syncWinRematchUi(s);
+    }
   };
 
   /** Apply one server state snapshot: spectacle gate, log anims, or direct render. */

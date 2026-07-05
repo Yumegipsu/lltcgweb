@@ -3586,6 +3586,7 @@ body.perf-spectacle-active #center-banner.show{z-index:8750}
   line-height:2.1;text-align:center}
 .wstats b{color:#fff}
 .win-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:4px}
+.win-rematch-hint{font-size:13px;color:rgba(255,200,220,.92);margin:10px 0 0;line-height:1.45;text-align:center;max-width:min(360px,88vw)}
 #overlay-win .win-debug-row{flex-wrap:wrap;gap:8px;justify-content:center;margin-top:2px}
 #overlay-win .win-debug-row button{font-size:12px;padding:8px 14px;width:auto}
 
@@ -7007,6 +7008,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   <div class="wtitle" id="wtitle" style="color:var(--pink)" data-i18n="win.youWin">You Win!</div>
   <div class="wsub"   id="wsub"></div>
   <div class="wstats" id="wstats"></div>
+  <p class="win-rematch-hint" id="win-rematch-hint" hidden></p>
   <div class="win-actions">
     <button class="btn-grad" id="btn-again" style="width:auto;padding:13px 36px;font-size:17px" data-i18n="win.playAgain">Play Again</button>
     <button class="btn-out" id="btn-win-save-replay" type="button" data-i18n="win.saveReplay">Save Replay</button>
@@ -7027,7 +7029,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=5"></script>
-<script src="client/js/state-apply.js?v=4"></script>
+<script src="client/js/state-apply.js?v=5"></script>
 <script src="client/js/replay-debug.js?v=4"></script>
 <script src="client/js/prompt-renderer.js?v=10"></script>
 <script src="client/js/tutorial-interactive.js?v=4"></script>
@@ -16577,10 +16579,35 @@ function rematchPhaseTimerOpts(rematch) {
   return phaseTimerOptsFromCfg(rematch?.phaseTimer);
 }
 
+function isCpuPlayerName(name) {
+  const n = String(name || '');
+  if (!n) return false;
+  if (n.includes('CPU') || n.includes('🤖')) return true;
+  return n.startsWith('COM') || n.startsWith('COM（');
+}
+
+function isHumanPvpFinishedState(s) {
+  if (G.isCPU || G.isTutorial || G.isSpectator) return false;
+  const myId = s?.my_id || G.playerId;
+  if (!myId) return false;
+  const oppId = myId === 'p1' ? 'p2' : 'p1';
+  const me = s?.players?.[myId];
+  const opp = s?.players?.[oppId];
+  if (!me || !opp) return false;
+  if ((me.deck_choice || '') === 'cpu' || (opp.deck_choice || '') === 'cpu') return false;
+  return !isCpuPlayerName(me.name) && !isCpuPlayerName(opp.name);
+}
+
+function isFriendPvpRematchEligible(rematch) {
+  return !!(rematch?.pvp && !rematch?.cpuSolo && rematch?.mode !== 'ranked' && !rematch?.casualRandom);
+}
+window.isFriendPvpRematchEligible = isFriendPvpRematchEligible;
+
 function captureRematchSettings(s) {
   const myId = G.playerId || s.my_id || 'p1';
   const me = s.players?.[myId];
-  const pvp = !!(s.pvp && !s.cpu_solo);
+  let pvp = !!(s.pvp && !s.cpu_solo);
+  if (!pvp && isHumanPvpFinishedState(s)) pvp = true;
   let cpuDiff = G.cpuDifficulty || 'easy';
   try {
     const stored = localStorage.getItem('tcg_cpu_difficulty');
@@ -16597,6 +16624,39 @@ function captureRematchSettings(s) {
     phaseTimer: s.phase_timer_cfg ? { ...s.phase_timer_cfg } : null,
   };
 }
+window.captureRematchSettings = captureRematchSettings;
+
+function syncWinRematchUi(s) {
+  if (!G.rematchWaiting || !s || s.status !== 'finished') return;
+  const rem = s.rematch;
+  const btn = el('btn-again');
+  const hint = el('win-rematch-hint');
+  const oppId = G.playerId === 'p1' ? 'p2' : 'p1';
+  const oppName = s.players?.[oppId]?.name || 'Opponent';
+  if (!rem || !btn) return;
+  if (rem.mine && rem.opp) return;
+  if (rem.mine && !rem.opp) {
+    btn.textContent = t('win.rematchWaiting');
+    btn.disabled = true;
+    if (hint) {
+      hint.hidden = false;
+      hint.textContent = t('win.rematchWaitingHint');
+    }
+    return;
+  }
+  if (rem.opp && !rem.mine) {
+    btn.textContent = t('win.rematchAccept');
+    btn.disabled = false;
+    if (hint) {
+      hint.hidden = false;
+      hint.textContent = t('win.rematchOppWants', { name: oppName });
+    }
+    return;
+  }
+  btn.disabled = false;
+  if (hint) hint.hidden = true;
+}
+window.syncWinRematchUi = syncWinRematchUi;
 
 function applyRematchToLobbyUI(rematch) {
   if (!rematch) return;
@@ -35147,7 +35207,7 @@ function showWin(s){
   const wName=s.players?.[s.winner]?.name||'?';
   const me=s.players?.[myId], opp=s.players?.[myId==='p1'?'p2':'p1'];
   const oppName=opp?.name||'Player';
-  const pvp = !!(s.pvp && !s.cpu_solo);
+  const pvp = !!(s.pvp && !s.cpu_solo) || isHumanPvpFinishedState(s);
   const resignedBy=gameResignedBy(s);
   const iResigned=resignedBy===myId;
   const oppResigned=!!resignedBy&&!iResigned;
@@ -35195,7 +35255,12 @@ function showWin(s){
   const saveReplayBtn = el('btn-win-save-replay');
   saveReplayBtn.hidden = !replaySaveEnabled();
   saveReplayBtn.textContent = isSignedInAccount() ? 'Save Replay to Library' : 'Download Replay JSON';
-  el('btn-again').textContent = (pvp && (s.mode === 'ranked' || G.casualRandomMatch)) ? t('win.findAnother') : t('win.playAgain');
+  el('btn-again').textContent = (pvp && (s.mode === 'ranked' || G.casualRandomMatch))
+    ? t('win.findAnother')
+    : (isFriendPvpRematchEligible(G.lastFinishedRematch) ? t('win.rematchOffer') : t('win.playAgain'));
+  el('btn-again').disabled = false;
+  const remHint = el('win-rematch-hint');
+  if (remHint) { remHint.hidden = true; remHint.textContent = ''; }
   syncWinDebugTools(s);
   el('overlay-win').classList.add('open');
   sfxPlay(win ? 'win' : 'lose');
@@ -36615,6 +36680,8 @@ function freshGameGlobals() {
     lastFinishedPvp:false,
     lastFinishedRematch:null,
     lastFinishedExport:null,
+    rematchWaiting:false,
+    rematchRequested:false,
   };
 }
 
@@ -36644,6 +36711,19 @@ async function onWinPlayAgain() {
     deckChoice: el('sel-deck')?.value || 'nijigasaki',
     phaseTimer: null,
   };
+  if (isFriendPvpRematchEligible(rematch) && G.roomId && G.token) {
+    const btn = el('btn-again');
+    if (btn) btn.disabled = true;
+    try {
+      await apiPost('action', { room_id: G.roomId, token: G.token, type: 'request_rematch', data: {} });
+      G.rematchRequested = true;
+      await pullLatestState();
+    } catch (e) {
+      if (btn) btn.disabled = false;
+      toast(e.message || String(e), 3200);
+    }
+    return;
+  }
   endGameSession();
   G = freshGameGlobals();
   try {
