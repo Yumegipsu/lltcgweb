@@ -36,10 +36,6 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
     }
     mergeCardCatalogFields($member);
 
-    if ($zone === 'stage' && memberIsInWait($member)) {
-        throw new Exception('This Member is in Wait');
-    }
-
     $abilities = $member['abilities'] ?? [];
     if (!isset($abilities[$abilityIdx])) throw new Exception('Invalid ability');
 

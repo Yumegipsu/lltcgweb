@@ -17242,6 +17242,37 @@ function isMemberLiveToHandFlight(card, fromZone, toZone) {
   return isMemberCard(card) && fromZone === 'live' && toZone === 'hand';
 }
 
+function isMemberStageWaitToWrFlight(card, fromZone, toZone, sourceNode = null) {
+  if (!isMemberCard(card) || fromZone !== 'stage' || toZone !== 'waiting_room') return false;
+  if (memberInWait(card)) return true;
+  return !!sourceNode?.classList?.contains('member-in-wait');
+}
+
+function findStageCardNode(m, myId) {
+  const pid = m.from?.pid;
+  const slot = m.from?.slot;
+  if (!pid || !slot || !m.iid) return null;
+  const pre = pid === myId ? 'my' : 'opp';
+  const wrap = el(`${pre}-stage-${slot}`);
+  return wrap?.querySelector(`.mslot[data-iid="${CSS.escape(m.iid)}"]`) || null;
+}
+
+function cloneStageWaitMemberFace(node, card) {
+  if (node) {
+    const img = node.querySelector('.live-flip-front img, .live-flip-front .noimg, img.card-face-fill, .noimg.card-face-fill, img, .noimg');
+    if (img) {
+      const wrap = document.createElement('div');
+      wrap.className = 'card-portrait-in-landscape storage-member-art member-flight-from-portrait';
+      wrap.appendChild(img.cloneNode(true));
+      return wrap;
+    }
+  }
+  const wrap = document.createElement('div');
+  wrap.className = 'card-portrait-in-landscape storage-member-art member-flight-from-portrait';
+  appendCardFaceFill(wrap, card);
+  return wrap;
+}
+
 function isMemberLiveToWrFlight(card, fromZone, toZone) {
   return isMemberCard(card) && fromZone === 'live' && toZone === 'waiting_room';
 }
@@ -17479,6 +17510,10 @@ function captureFlightArtClones(moves, myId = G.playerId, stateBefore = G.gameSt
         ? cloneMemberLiveStorageBack(node, m.card)
         : cloneMemberLiveStorageFace(node, m.card);
       if (clone) G._flightLiveArtClones.set(m.iid, clone);
+    } else if (isMemberStageWaitToWrFlight(m.card, fromZone, toZone, findStageCardNode(m, myId))) {
+      const node = findStageCardNode(m, myId);
+      const clone = cloneStageWaitMemberFace(node, m.card);
+      if (clone) G._flightHandArtClones.set(m.iid, clone);
     }
   }
 }
@@ -17549,6 +17584,18 @@ function appendFlightFace(parent, card, orientClass, opts = {}) {
     }
     return;
   }
+  if (isMemberStageWaitToWrFlight(card, fromZone, toZone)) {
+    const stageClone = iid && G._flightHandArtClones?.get(iid);
+    if (stageClone) {
+      parent.appendChild(stageClone);
+      return;
+    }
+    const wrap = document.createElement('div');
+    wrap.className = 'card-portrait-in-landscape storage-member-art member-flight-from-portrait';
+    appendCardFaceFill(wrap, card);
+    parent.appendChild(wrap);
+    return;
+  }
   if (isEnergyCard(card)) {
     appendEnergyChipFace(parent, card, false);
     return;
@@ -17589,6 +17636,14 @@ function appendFlightLiveCrossBack(parent, card, opts = {}) {
       parent.appendChild(liveClone);
       return;
     }
+  } else if (fromZone === 'stage' && isMemberStageWaitToWrFlight(card, fromZone, toZone)) {
+    const stageClone = iid && G._flightHandArtClones?.get(iid);
+    if (stageClone) {
+      parent.appendChild(stageClone);
+      return;
+    }
+    parent.appendChild(cloneStageWaitMemberFace(null, card));
+    return;
   }
   const portraitHandFill = fromZone === 'hand' && toZone === 'live' && liveStorageBackLandscape(card);
   parent.appendChild(buildLiveStorageFlightBackNode(card, { portraitHandFill }));
@@ -19360,6 +19415,7 @@ async function executeCardMoveAnimation(m, opts) {
         preloadReveal: playerHandReveal,
         deferSourceHide,
         sourceIid: m.iid,
+        sourceNode: cardEl?.closest?.('.mslot') || null,
         flightMs: opts.flightMs,
         onHandoff: runHandoff,
       });
@@ -19807,6 +19863,10 @@ function memberInWait(mbr) {
 }
 
 function memberActiveForGame(mbr) {
+  return !!mbr && (mbr.active ?? true);
+}
+
+function memberContributesBladeToYell(mbr) {
   return !!mbr && !memberInWait(mbr) && (mbr.active ?? true);
 }
 
@@ -20462,7 +20522,7 @@ function cpuReadOpponent(s, cpuPid = 'p2') {
       blade: (m.blade || 0) + (m.live_blade_bonus || 0),
       cost: m.cost || 0,
     }));
-  const activeStage = stageEntries.filter(x => x.active && !x.waited);
+  const activeStage = stageEntries.filter(x => memberContributesBladeToYell(x.member));
   const stageBlade = activeStage.reduce((t, x) => t + x.blade, 0);
   const yellBlade = estimateYellBlade(s, oppId);
   const wr = opp.waiting_room || [];
@@ -24984,7 +25044,8 @@ function flyCard(card, fromRect, toRect, delayMs = 0, opts = {}) {
   const toClass = flightOrientClass(card, toZone);
   const startInnerRot = flightInnerRotation(card, fromZone, faceDown);
   const endInnerRot = flightInnerRotation(card, toZone, faceDown);
-  const memberShellSpin = isMemberLiveToWrFlight(card, fromZone, toZone);
+  const memberWaitUnspin = isMemberStageWaitToWrFlight(card, fromZone, toZone, opts.sourceNode);
+  const memberShellSpin = isMemberLiveToWrFlight(card, fromZone, toZone) || memberWaitUnspin;
   const memberArtMorph = isMemberStorageCrossFlight(card, fromZone, toZone) && !memberShellSpin;
   const liveArtMorph = isLiveHandLiveCrossFlight(card, fromZone, toZone) || memberArtMorph;
   const innerSpinMorph = !liveArtMorph && !memberShellSpin && startInnerRot !== endInnerRot;
@@ -28987,7 +29048,7 @@ function computeContinuousHeartGrantsClient(state, pid) {
   if (!p) return [];
   const grants = [];
   Object.entries(p.stage || {}).forEach(([slot, member]) => {
-    if (!member || memberInWait(member)) return;
+    if (!member) return;
     const memberHearts = [];
     for (const ab of member.abilities || []) {
       if ((ab.trigger || '') !== 'continuous') continue;
@@ -33785,7 +33846,7 @@ function playToSlot(card, slot, s, myId, existing) {
 function aggregateStageHeartsFromStage(stage) {
   const map = new Map();
   Object.values(stage || {}).forEach(m => {
-    if (!m || memberInWait(m)) return;
+    if (!m) return;
     (m.hearts || []).forEach(hg => {
       const c = normalizeHeartColor(hg.color || 'any');
       map.set(c, (map.get(c) || 0) + (hg.count || 1));
@@ -33882,7 +33943,7 @@ function estimateYellBlade(s, pid) {
   if (!p) return 0;
   let total = 0;
   Object.entries(p.stage || {}).forEach(([slot, m]) => {
-    if (!m || !memberActiveForGame(m)) return;
+    if (!m || !memberContributesBladeToYell(m)) return;
     total += (m.blade || 0) + (m.live_blade_bonus || 0);
     total += clientMemberContinuousBladeBonus(m, s, pid, slot);
     if (m.hearts_as_blade_color) {
@@ -34093,7 +34154,6 @@ function collectActivatableAbilities(s, myId) {
     if (!card || card.card_type !== 'メンバー') return;
     const onStage = location === 'stage';
     const inWr = location === 'wr';
-    if (onStage && memberInWait(card)) return;
     (card.abilities || []).forEach((ability, idx) => {
       if (ability.trigger !== 'activated') return;
       if (ability.from_wr_only && !inWr) return;

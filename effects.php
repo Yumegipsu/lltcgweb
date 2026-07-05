@@ -1160,7 +1160,7 @@ function aggregateStageHeartsByColor(?array $stage): array {
         return [];
     }
     foreach ($stage as $member) {
-        if (!$member || !memberIsActiveForGame($member)) {
+        if (!$member) {
             continue;
         }
         foreach ($member['hearts'] ?? [] as $hg) {
@@ -1183,7 +1183,7 @@ function computeYellBladeTotal(array $state, string $pid): int {
     }
     $total = 0;
     foreach ($state['players'][$pid]['stage'] ?? [] as $slot => $member) {
-        if (!$member || !memberIsActiveForGame($member)) {
+        if (!$member || !memberContributesBladeToYell($member)) {
             continue;
         }
         $total += getMemberBlade($member, $state, $pid, (string)$slot);
@@ -1288,7 +1288,7 @@ function waitOpponentActiveMembers(array &$state, string $oppId, int $count, ?st
     $waited = 0;
     foreach ($state['players'][$oppId]['stage'] as $slot => &$mbr) {
         if (!$mbr) continue;
-        if (!memberIsActiveForGame($mbr)) continue;
+        if (memberIsInWait($mbr)) continue;
         $snap = memberSnapshot($mbr);
         waitMember($mbr, $state);
         if ($effectSourcePid) {
@@ -1853,7 +1853,7 @@ function appendContinuousHeartsFromSpec(array &$hearts, array $spec): void {
 function collectContinuousPerformanceHeartGrants(array $state, string $pid): array {
     $grants = [];
     foreach ($state['players'][$pid]['stage'] as $slot => $member) {
-        if (!$member || !memberIsActiveForGame($member)) {
+        if (!$member) {
             continue;
         }
         $memberHearts = [];
@@ -2424,8 +2424,13 @@ function memberIsInWait(array $member): bool {
     return !empty($member['in_wait']);
 }
 
-/** Active for rules: not in Wait (other inactive states may still be inactive until Active Phase). */
+/** Stood / not rested for unrelated reasons (Wait uses active=false but is handled separately). */
 function memberIsActiveForGame(array $member): bool {
+    return $member['active'] ?? true;
+}
+
+/** Wait only blocks blade contribution to Yell — not hearts, skills, or baton. */
+function memberContributesBladeToYell(array $member): bool {
     if (memberIsInWait($member)) {
         return false;
     }
@@ -2532,7 +2537,7 @@ function waitOpponentMemberAtSlot(
     ?string $effectSourcePid = null
 ): bool {
     $mbr = &$state['players'][$oppId]['stage'][$slot];
-    if (!$mbr || !memberIsActiveForGame($mbr)) {
+    if (!$mbr || memberIsInWait($mbr)) {
         return false;
     }
     $snap = memberSnapshot($mbr);
@@ -2599,11 +2604,8 @@ function activateMembersForPlayer(array &$p, int $max): int {
     foreach ($p['stage'] as &$mbr) {
         if ($n >= $max) break;
         if (!$mbr || memberIsActiveForGame($mbr)) continue;
-        if (memberIsInWait($mbr)) {
-            clearMemberWait($mbr);
-        } else {
-            $mbr['active'] = true;
-        }
+        if (memberIsInWait($mbr)) continue;
+        $mbr['active'] = true;
         $n++;
     }
     unset($mbr);
