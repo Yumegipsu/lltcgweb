@@ -24246,7 +24246,7 @@
                     }
                 }
             ],
-            "text_es": "[Automático] [Twice per turn] Siempre que otro Miembro Cerise Bouquet entre en tu Escenario, puedes pagar 1 Energía: activa 2 Energía.\n[Inicio de Live] Puedes pagar 2 Energía: hasta que termine este Live, obtienes 1 ♡ verde y +1 Blade."
+            "text_es": "[Automático] [Dos veces por turno] Siempre que otro Miembro Cerise Bouquet entre en tu Escenario, puedes pagar 1 Energía: activa 2 Energía.\n[Inicio de Live] Puedes pagar 2 Energía: hasta que termine este Live, obtienes 1 ♡ verde y +1 Blade."
         },
         {
             "card_no": "PL!HS-pb1-001-R",
@@ -24301,7 +24301,7 @@
                     }
                 }
             ],
-            "text_es": "[Automático] [Twice per turn] Siempre que otro Miembro Cerise Bouquet entre en tu Escenario, puedes pagar 1 Energía: activa 2 Energía.\n[Inicio de Live] Puedes pagar 2 Energía: hasta que termine este Live, obtienes 1 ♡ verde y +1 Blade."
+            "text_es": "[Automático] [Dos veces por turno] Siempre que otro Miembro Cerise Bouquet entre en tu Escenario, puedes pagar 1 Energía: activa 2 Energía.\n[Inicio de Live] Puedes pagar 2 Energía: hasta que termine este Live, obtienes 1 ♡ verde y +1 Blade."
         },
         {
             "card_no": "PL!HS-pb1-002-P＋",
@@ -24432,7 +24432,7 @@
                     ]
                 }
             ],
-            "text_es": "[Al entrar] Coloca cualquier cantidad de cartas de Miembro de Mira-Cra Park! de tu mano en la Sala de espera y luego roba esa cantidad +1.\n[Automático] [Twice per turn] Siempre que se coloque 1 o más cartas de tu mano en la Sala de espera, hasta que termine este Live, obtienes +1 Blade y 1 Corazón rosa."
+            "text_es": "[Al entrar] Coloca cualquier cantidad de cartas de Miembro de Mira-Cra Park! de tu mano en la Sala de espera y luego roba esa cantidad +1.\n[Automático] [Dos veces por turno] Siempre que se coloque 1 o más cartas de tu mano en la Sala de espera, hasta que termine este Live, obtienes +1 Blade y 1 Corazón rosa."
         },
         {
             "card_no": "PL!HS-pb1-003-R",
@@ -24483,7 +24483,7 @@
                     ]
                 }
             ],
-            "text_es": "[Al entrar] Coloca cualquier cantidad de cartas de Miembro de Mira-Cra Park! de tu mano en la Sala de espera y luego roba esa cantidad +1.\n[Automático] [Twice per turn] Siempre que se coloque 1 o más cartas de tu mano en la Sala de espera, hasta que termine este Live, obtienes +1 Blade y 1 Corazón rosa."
+            "text_es": "[Al entrar] Coloca cualquier cantidad de cartas de Miembro de Mira-Cra Park! de tu mano en la Sala de espera y luego roba esa cantidad +1.\n[Automático] [Dos veces por turno] Siempre que se coloque 1 o más cartas de tu mano en la Sala de espera, hasta que termine este Live, obtienes +1 Blade y 1 Corazón rosa."
         },
         {
             "card_no": "PL!HS-pb1-004-P＋",
@@ -24998,7 +24998,7 @@
                     "discard": 1
                 }
             ],
-            "text_es": "[Automático] [Centro] [Twice per turn] Siempre que un Miembro Hasunosora entre en tu Escenario, hasta que termine este Live, obtienes +2 Blade.\n[Inicio de Live] Si este Miembro tiene 8 o más Blade, roba 2 cartas y coloca 1 carta de tu mano en la Sala de espera."
+            "text_es": "[Automático] [Centro] [Dos veces por turno] Siempre que un Miembro Hasunosora entre en tu Escenario, hasta que termine este Live, obtienes +2 Blade.\n[Inicio de Live] Si este Miembro tiene 8 o más Blade, roba 2 cartas y coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!HS-pb1-009-R",
@@ -25049,7 +25049,7 @@
                     "discard": 1
                 }
             ],
-            "text_es": "[Automático] [Centro] [Twice per turn] Siempre que un Miembro Hasunosora entre en tu Escenario, hasta que termine este Live, obtienes +2 Blade.\n[Inicio de Live] Si este Miembro tiene 8 o más Blade, roba 2 cartas y coloca 1 carta de tu mano en la Sala de espera."
+            "text_es": "[Automático] [Centro] [Dos veces por turno] Siempre que un Miembro Hasunosora entre en tu Escenario, hasta que termine este Live, obtienes +2 Blade.\n[Inicio de Live] Si este Miembro tiene 8 o más Blade, roba 2 cartas y coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!HS-pb1-010-P＋",
@@ -28829,7 +28829,7 @@
                 }
             ],
             "subunit": "A・ZU・NA",
-            "text_es": "[Automático] [Twice per turn] Cuando este Miembro u otro Miembro entra en tu Escenario mediante Baton Touch, roba 1 carta."
+            "text_es": "[Automático] [Dos veces por turno] Cuando este Miembro u otro Miembro entra en tu Escenario mediante Baton Touch, roba 1 carta."
         },
         {
             "card_no": "PL!N-PR-026-PR",
@@ -29634,7 +29634,7 @@
                 }
             ],
             "subunit": "QU4RTZ",
-            "text_es": "[Activada] [Una vez por turno] Coloca 1 card de tu mano en la Sala de espera: if a Miembro de Nijigasaki entró en tu Escenario este turno, activa 2 Energía.\n[Activada] [Una vez por turno] Paga 2 Energía: roba 1 carta."
+            "text_es": "[Activada] [Una vez por turno] Coloca 1 carta de tu mano en la Sala de espera: si un Miembro de Nijigasaki entró en tu Escenario este turno, activa 2 Energía.\n[Activada] [Una vez por turno] Paga 2 Energía: roba 1 carta."
         },
         {
             "card_no": "PL!N-bp1-006-P＋",
@@ -29685,7 +29685,7 @@
                 }
             ],
             "subunit": "QU4RTZ",
-            "text_es": "[Activada] [Una vez por turno] Coloca 1 card de tu mano en la Sala de espera: if a Miembro de Nijigasaki entró en tu Escenario este turno, activa 2 Energía.\n[Activada] [Una vez por turno] Paga 2 Energía: roba 1 carta."
+            "text_es": "[Activada] [Una vez por turno] Coloca 1 carta de tu mano en la Sala de espera: si un Miembro de Nijigasaki entró en tu Escenario este turno, activa 2 Energía.\n[Activada] [Una vez por turno] Paga 2 Energía: roba 1 carta."
         },
         {
             "card_no": "PL!N-bp1-006-R＋",
@@ -29736,7 +29736,7 @@
                 }
             ],
             "subunit": "QU4RTZ",
-            "text_es": "[Activada] [Una vez por turno] Coloca 1 card de tu mano en la Sala de espera: if a Miembro de Nijigasaki entró en tu Escenario este turno, activa 2 Energía.\n[Activada] [Una vez por turno] Paga 2 Energía: roba 1 carta."
+            "text_es": "[Activada] [Una vez por turno] Coloca 1 carta de tu mano en la Sala de espera: si un Miembro de Nijigasaki entró en tu Escenario este turno, activa 2 Energía.\n[Activada] [Una vez por turno] Paga 2 Energía: roba 1 carta."
         },
         {
             "card_no": "PL!N-bp1-006-SEC",
@@ -29787,7 +29787,7 @@
                 }
             ],
             "subunit": "QU4RTZ",
-            "text_es": "[Activada] [Una vez por turno] Coloca 1 card de tu mano en la Sala de espera: if a Miembro de Nijigasaki entró en tu Escenario este turno, activa 2 Energía.\n[Activada] [Una vez por turno] Paga 2 Energía: roba 1 carta."
+            "text_es": "[Activada] [Una vez por turno] Coloca 1 carta de tu mano en la Sala de espera: si un Miembro de Nijigasaki entró en tu Escenario este turno, activa 2 Energía.\n[Activada] [Una vez por turno] Paga 2 Energía: roba 1 carta."
         },
         {
             "card_no": "PL!N-bp1-007-P",
@@ -59293,7 +59293,7 @@
                     "once_per_turn": true
                 }
             ],
-            "text_es": "[Activada] [Una vez por turno] Paga 1 Energía: roba 1 carta, then colocar 1 carta de tu mano en la Sala de espera."
+            "text_es": "[Activada] [Una vez por turno] Paga 1 Energía: roba 1 carta y luego coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp1-009-R",
@@ -59335,7 +59335,7 @@
                     "once_per_turn": true
                 }
             ],
-            "text_es": "[Activada] [Una vez por turno] Paga 1 Energía: roba 1 carta, then colocar 1 carta de tu mano en la Sala de espera."
+            "text_es": "[Activada] [Una vez por turno] Paga 1 Energía: roba 1 carta y luego coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp1-010-P",
@@ -59459,7 +59459,7 @@
                     "count": 1
                 }
             ],
-            "text_es": "[Activada] Coloca this Miembro de tu Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano."
+            "text_es": "[Activada] Coloca este Miembro de tu Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!SP-bp1-011-R",
@@ -59493,7 +59493,7 @@
                     "count": 1
                 }
             ],
-            "text_es": "[Activada] Coloca this Miembro de tu Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano."
+            "text_es": "[Activada] Coloca este Miembro de tu Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!SP-bp1-012-N",
