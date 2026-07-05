@@ -3431,11 +3431,11 @@ function saveGame(string $roomId, array $state): void {
     }
 }
 
-function withLock(string $roomId, callable $fn): mixed {
+function withLock(string $roomId, callable $fn, ?float $timeoutSec = null): mixed {
     $lockFile = GAMES_DIR . 'lock_' . preg_replace('/[^A-Z0-9]/', '', strtoupper($roomId));
     $lock = fopen($lockFile, 'w');
     if (!$lock) throw new Exception('Cannot acquire lock');
-    $deadline = microtime(true) + LOCK_TIMEOUT;
+    $deadline = microtime(true) + ($timeoutSec ?? LOCK_TIMEOUT);
     while (!flock($lock, LOCK_EX | LOCK_NB)) {
         if (microtime(true) > $deadline) {
             fclose($lock);

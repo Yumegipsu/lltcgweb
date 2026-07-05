@@ -11582,6 +11582,10 @@ async function bootReplayFromPayload(startResult, replay) {
   G.replayHandoff = false;
   G.replayStep = 0;
   G.replayTotal = startResult.total_steps ?? (replay.actions?.length || 0);
+  G._replaySeekGen = 0;
+  G._replaySeekAppliedStep = 0;
+  G._replaySeekInFlight = false;
+  G._replaySeekTarget = 0;
   syncReplayControlBar();
   toast(t('replay.loadedToast', { count: G.replayTotal }), 2800);
   if (G.replayTotal > 0) scheduleReplayAutoPlay();
@@ -11661,7 +11665,7 @@ function isReplayViewing() {
   return (G.gameState?.mode || '') === 'replay_view';
 }
 
-function syncReplayControlBar() {
+function syncReplayControlBar(previewStep) {
   if (typeof G === 'undefined') return;
   const viewing = isReplayViewing();
   document.body.classList.toggle('tcg-replay-view-mode', viewing);
@@ -11672,15 +11676,16 @@ function syncReplayControlBar() {
   bar.hidden = !active;
   bar.classList.toggle('show', active);
   bar.setAttribute('aria-hidden', active ? 'false' : 'true');
+  const displayStep = previewStep != null ? previewStep : G.replayStep;
   const label = el('replay-step-label');
   if (label) {
-    label.textContent = `${G.replayStep} / ${G.replayTotal} · ${formatReplayElapsed(replayElapsedSeconds(G.replayStep))}`;
+    label.textContent = `${displayStep} / ${G.replayTotal} · ${formatReplayElapsed(replayElapsedSeconds(displayStep))}`;
   }
   const range = el('replay-step-range');
   if (range) {
     range.max = String(Math.max(0, G.replayTotal || 0));
-    range.value = String(Math.max(0, Math.min(G.replayStep || 0, G.replayTotal || 0)));
-    range.disabled = !inReplay;
+    range.value = String(Math.max(0, Math.min(displayStep || 0, G.replayTotal || 0)));
+    range.disabled = !inReplay || !!G._replaySeekInFlight;
   }
   const note = el('replay-handoff-note');
   if (note) note.hidden = !G.replayHandoff;
@@ -11772,19 +11777,50 @@ function toggleReplayAutoPlay() {
   else scheduleReplayAutoPlay();
 }
 
+function scheduleReplaySeekFromScrub(step) {
+  if (!isReplayViewing()) return;
+  step = Math.max(0, Math.min(step, G.replayTotal || 0));
+  G._replaySeekTarget = step;
+  syncReplayControlBar(step);
+  if (G._replayScrubTimer) clearTimeout(G._replayScrubTimer);
+  G._replayScrubTimer = setTimeout(() => {
+    G._replayScrubTimer = null;
+    void replayGotoStep(step);
+  }, 160);
+}
+
 async function replayGotoStep(step, opts = {}) {
   if (!isReplayViewing()) return;
   if (!G.roomId || !G.token) return;
+  step = Math.max(0, Math.min(step, G.replayTotal || 0));
+  G._replaySeekTarget = step;
+  if (G._replayScrubTimer) {
+    clearTimeout(G._replayScrubTimer);
+    G._replayScrubTimer = null;
+  }
   if (!opts.keepPlaying) stopReplayAutoPlay();
+  G._replaySeekGen = (G._replaySeekGen || 0) + 1;
+  const gen = G._replaySeekGen;
+  G._replaySeekInFlight = true;
+  syncReplayControlBar(step);
+  if (typeof holdLivePolls === 'function') holdLivePolls();
   try {
     const r = await apiPost('replay_goto', {
       room_id: G.roomId,
       token: G.token,
       step,
-    });
+    }, { silent: gen !== G._replaySeekGen });
+    if (gen !== G._replaySeekGen) {
+      if (G._replaySeekTarget !== G.replayStep) {
+        return replayGotoStep(G._replaySeekTarget, opts);
+      }
+      return;
+    }
     if (r.error) throw new Error(r.error);
     G.replayStep = r.step ?? step;
     G.replayTotal = r.total ?? G.replayTotal;
+    G._replaySeekAppliedStep = G.replayStep;
+    if (typeof r.seq === 'number') G.lastSeq = r.seq;
     if (r.handoff) {
       G.replayHandoff = true;
       G.replayMode = false;
@@ -11798,14 +11834,30 @@ async function replayGotoStep(step, opts = {}) {
       const s = await fetchGameStateForReconnect(G.roomId, G.token);
       if (!s.error) onState(s);
     }
+    if (gen !== G._replaySeekGen && G._replaySeekTarget !== G.replayStep) {
+      return replayGotoStep(G._replaySeekTarget, opts);
+    }
     if (r.handoff && G.gameState) {
       finalizeReplayHandoff(G.gameState);
       doCPU(G.gameState);
       armWatchdog(G.gameState);
     }
   } catch (e) {
+    if (gen !== G._replaySeekGen) {
+      if (G._replaySeekTarget !== G.replayStep) {
+        return replayGotoStep(G._replaySeekTarget, opts);
+      }
+      return;
+    }
     if (opts.keepPlaying) stopReplayAutoPlay();
     toast(e.message || 'Replay step failed', 4200);
+    syncReplayControlBar();
+  } finally {
+    if (gen === G._replaySeekGen) {
+      G._replaySeekInFlight = false;
+      syncReplayControlBar();
+      if (typeof releaseLivePolls === 'function') releaseLivePolls();
+    }
   }
 }
 
@@ -15271,6 +15323,7 @@ window.G = G;
   on('btn-replay-next', 'click', () => replayGotoStep(Math.min(G.replayTotal, G.replayStep + 1)));
   on('btn-replay-last', 'click', () => replayGotoStep(G.replayTotal));
   on('btn-replay-play', 'click', toggleReplayAutoPlay);
+  on('replay-step-range', 'input', (e) => scheduleReplaySeekFromScrub(Number(e.target?.value || 0)));
   on('replay-step-range', 'change', (e) => replayGotoStep(Number(e.target?.value || 0)));
   on('btn-debug-card-test-back', 'click', () => showGuestAuth(null, 'auth.guestPlayHint'));
   on('btn-debug-card-test-start', 'click', startDebugCardTest);

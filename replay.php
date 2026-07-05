@@ -5,6 +5,7 @@
  */
 
 const REPLAY_SCHEMA_VERSION = 1;
+const REPLAY_LOCK_TIMEOUT = 120.0;
 
 function assertReplayDebugAllowed(array $body): void {
     if (empty($body['debug_mode'])) {
@@ -343,27 +344,61 @@ function replayPrepareStateForRecordedAction(array $state, string $pid, string $
     return $state;
 }
 
-function replayApplyRecordedAction(array $state, string $pid, string $type, array $data, int $index): array {
-    $state = replayPrepareStateForRecordedAction($state, $pid, $type);
-    $state = replayPrepareRecordedPlayAction($state, $pid, $type, $data);
+/** Best-effort state repair before retrying a desynced recorded action. */
+function replayApplyFixForRetry(array $state, string $pid, string $type, array $data, Throwable $e): array {
+    $msg = $e->getMessage();
+    if (str_contains($msg, 'Not your turn')) {
+        $state['active_player'] = $pid;
+        $pr = $state['pending_prompt'] ?? null;
+        if (is_array($pr) && !empty($pr['responder'])) {
+            $state['active_player'] = (string)$pr['responder'];
+        }
+    }
+    if (str_contains($msg, 'Card not in hand') || str_contains($msg, 'Not a member card')) {
+        if (!empty($data['card_id'])) {
+            replayEnsureCardInHand($state, $pid, (string)$data['card_id']);
+        }
+    }
+    if ($type === 'set_live_cards') {
+        foreach ($data['card_ids'] ?? [] as $cid) {
+            replayEnsureCardInHand($state, $pid, (string)$cid);
+        }
+    }
+    if ($type === 'play_member' && !empty($data['card_id'])) {
+        replayEnsureCardInHand($state, $pid, (string)$data['card_id']);
+    }
+    if ($type === 'activate_ability' && !empty($data['card_id'])) {
+        replayEnsureCardInHand($state, $pid, (string)$data['card_id']);
+    }
+    if ($type === 'resolve_prompt' && str_contains($msg, 'Not your turn')) {
+        $pr = $state['pending_prompt'] ?? null;
+        if (is_array($pr) && !empty($pr['responder'])) {
+            $state['active_player'] = (string)$pr['responder'];
+        } else {
+            $state['active_player'] = $pid;
+        }
+    }
+    return $state;
+}
+
+function replayFinishRecordedAction(array $state, string $pid, string $type, array $data): array {
+    if ($type === 'mulligan' && !empty($data['main_deck_order']) && is_array($data['main_deck_order'])) {
+        $state = replayRestoreMainDeckOrder($state, $pid, $data['main_deck_order']);
+    }
+    return $state;
+}
+
+function replayTryApplyRecordedActionOnce(array $state, string $pid, string $type, array $data): array {
     try {
         $state = applyAction($state, $pid, $type, $data);
-        if ($type === 'mulligan' && !empty($data['main_deck_order']) && is_array($data['main_deck_order'])) {
-            $state = replayRestoreMainDeckOrder($state, $pid, $data['main_deck_order']);
-        }
-        return $state;
+        return replayFinishRecordedAction($state, $pid, $type, $data);
     } catch (Throwable $e) {
         if ($type !== 'resolve_prompt'
             && !empty($state['pending_prompt'])
             && replayActionBlockedByPendingPrompt($e)) {
-            // Older saved replays may be missing the prompt-resolution action that happened
-            // before the next recorded action. Drop only that replay-local stale prompt.
             unset($state['pending_prompt']);
             $state = applyAction($state, $pid, $type, $data);
-            if ($type === 'mulligan' && !empty($data['main_deck_order']) && is_array($data['main_deck_order'])) {
-                $state = replayRestoreMainDeckOrder($state, $pid, $data['main_deck_order']);
-            }
-            return $state;
+            return replayFinishRecordedAction($state, $pid, $type, $data);
         }
         if ($type === 'resolve_prompt') {
             $msg = $e->getMessage();
@@ -379,6 +414,24 @@ function replayApplyRecordedAction(array $state, string $pid, string $type, arra
         }
         throw $e;
     }
+}
+
+function replayApplyRecordedAction(array $state, string $pid, string $type, array $data, int $index): array {
+    $lastError = null;
+    for ($attempt = 0; $attempt < 3; $attempt++) {
+        $state = replayPrepareStateForRecordedAction($state, $pid, $type);
+        $state = replayPrepareRecordedPlayAction($state, $pid, $type, $data);
+        try {
+            return replayTryApplyRecordedActionOnce($state, $pid, $type, $data);
+        } catch (Throwable $e) {
+            $lastError = $e;
+            if ($attempt >= 2) {
+                break;
+            }
+            $state = replayApplyFixForRetry($state, $pid, $type, $data, $e);
+        }
+    }
+    throw $lastError ?? new Exception('Replay action #' . $index . ' failed');
 }
 
 function replayRestoreFromBaseline(
@@ -582,7 +635,7 @@ function apiReplayGoto(array $body): array {
             'handoff' => $handoff,
             'seq'     => $newState['seq'],
         ];
-    });
+    }, REPLAY_LOCK_TIMEOUT);
 }
 
 function enrichReplayFieldsForClient(array $filtered, array $state): array {

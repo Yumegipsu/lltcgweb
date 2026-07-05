@@ -30,6 +30,27 @@
   global.onState = function onState(s) {
     if (G.isTutorial && !G.tutorialLive) return;
     if (isReplayViewingState(s)) {
+      if (typeof G._replaySeekAppliedStep === 'number' && s.replay) {
+        const pollStep = s.replay.step ?? 0;
+        if (pollStep < G._replaySeekAppliedStep) {
+          TCG_DEBUG.logOnce('state', `replay-stale:${pollStep}`, 'skip stale replay poll', {
+            pollStep,
+            applied: G._replaySeekAppliedStep,
+          });
+          return;
+        }
+      }
+      if (G._replaySeekInFlight && s.replay) {
+        const pollStep = s.replay.step ?? 0;
+        const target = G._replaySeekTarget ?? G.replayStep;
+        if (pollStep < target) {
+          TCG_DEBUG.logOnce('state', `replay-inflight:${pollStep}`, 'skip replay poll during seek', {
+            pollStep,
+            target,
+          });
+          return;
+        }
+      }
       TCG_DEBUG.log('state', 'apply replay snapshot', TCG_DEBUG.snap(s));
       applyStateUpdate(s);
       return;
