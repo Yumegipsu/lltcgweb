@@ -3828,7 +3828,7 @@ body:has(#screen-game.active) #casual-search-float{top:68px}
 .locale-wrap label{font-weight:700;white-space:nowrap}
 .sel-locale{appearance:none;-webkit-appearance:none;background:rgba(8,16,32,.72);color:#fff;border:1px solid rgba(186,228,255,.35);border-radius:999px;padding:6px 28px 6px 12px;font:inherit;font-weight:700;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23fff' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
 .sel-locale:focus{outline:2px solid var(--pink);outline-offset:2px}
-.logo-foot .locale-wrap{margin-top:8px;justify-content:center}
+.logo-foot .locale-wrap{grid-column:1 / -1;margin-top:10px;justify-content:center;width:100%}
 .hub-top-actions .locale-wrap{margin-right:4px}
 /* Title logo row — centered art + news button on the right */
 .logo-row{
@@ -7019,7 +7019,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=15"></script>
+<script src="i18n.js?v=16"></script>
 <script src="log_i18n.js?v=6"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=6"></script>
@@ -7106,8 +7106,27 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script>
 'use strict';
 
-const { getLocale, setLocale, t, cardLocaleName, cardLocaleText, cardLocaleType, deckLocaleName, loadTutorialJa, loadTutorialEs, tutorialDialogue, applyI18n, initLocale } = window.LLTCG_I18N;
-const { localizeLogMessage, clearLogNameCache } = window.LLTCG_LOG_I18N;
+if (!window.LLTCG_I18N) {
+  console.error('LLTCG_I18N failed to load — check i18n.js for syntax errors');
+}
+const { getLocale, setLocale, t, cardLocaleName, cardLocaleText, cardLocaleType, deckLocaleName, loadTutorialJa, loadTutorialEs, tutorialDialogue, applyI18n, initLocale } = window.LLTCG_I18N || {
+  getLocale: () => 'en',
+  setLocale: () => {},
+  t: (k) => k,
+  cardLocaleName: (c) => (c && (c.name_en || c.name)) || '',
+  cardLocaleText: (c) => (c && (c.text || '')) || '',
+  cardLocaleType: (c) => (c && (c.card_type_en || c.card_type)) || '',
+  deckLocaleName: (d, id) => id || '',
+  loadTutorialJa: () => Promise.resolve({}),
+  loadTutorialEs: () => Promise.resolve({}),
+  tutorialDialogue: (s) => (s && s.dialogue) || '',
+  applyI18n: () => {},
+  initLocale: () => {},
+};
+const { localizeLogMessage, clearLogNameCache } = window.LLTCG_LOG_I18N || {
+  localizeLogMessage: (m) => m,
+  clearLogNameCache: () => {},
+};
 
 // --- Love Live TCG client (index.html) -----------------------------------------
 // Single-page app: lobby/account UI, in-game playmat, long-poll sync with api.php.

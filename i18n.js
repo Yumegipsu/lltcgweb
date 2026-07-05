@@ -252,7 +252,8 @@
       "openSameAgain": "Open same again",
       "packsLeft": "{n} pack(s) left today (JST)",
       "mainMenu": "Main menu",
-      "backHub": "← Hub"      "noDailyPacks": "No daily packs left",
+      "backHub": "← Hub",
+      "noDailyPacks": "No daily packs left",
       "paidLead": "Spend Star Gems to keep opening packs today.",
       "openOnePack": "Open 1 pack",
       "starGemsLabel": "Star Gems:",
@@ -368,7 +369,8 @@
       "opponentSkillWait": "{name} is activating a skill…",
       "perfYou": "You",
       "perfOpp": "Opponent",
-      "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>Phase: {phase}<span class=\"turn-sep\">·</span>Active: {active}<span class=\"turn-sep\">·</span>First: {first}"      "deckTopLabel": "Deck top",
+      "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>Phase: {phase}<span class=\"turn-sep\">·</span>Active: {active}<span class=\"turn-sep\">·</span>First: {first}",
+      "deckTopLabel": "Deck top",
 
     },
     "slot": {
@@ -546,7 +548,8 @@
       "typeAnswerHint": "Type your answer — spelling and wording can vary.",
       "confirmArrangement": "Confirm arrangement",
       "selectedCount": "Selected: {n}/{max}",
-      "activateSub": "Choose whether to activate this effect."      "lookAtDeck": "Look at deck",
+      "activateSub": "Choose whether to activate this effect.",
+      "lookAtDeck": "Look at deck",
       "surveilHint": "Spot 1 is the top of your deck. Drag cards between numbered spots and the Waiting Room, tap two cards to swap, or tap a spot / the Waiting Room while a card is selected.",
       "wrPickTitle": "Waiting Room",
       "wrPickMsg": "Choose a card from your Waiting Room to add to your hand.",
@@ -874,7 +877,7 @@
       "back": "← Back",
       "next": "Next →",
       "finish": "Finish"
-    }
+    },
     "spectate": {
       "listTitle": "Spectate match",
       "listTitleRanked": "Spectate ranked match",
@@ -1133,7 +1136,8 @@
       "openSameAgain": "同じパックをもう一度",
       "packsLeft": "本日（JST）残り {n} パック",
       "mainMenu": "メインメニュー",
-      "backHub": "← ハブ"      "noDailyPacks": "本日の無料パックはありません",
+      "backHub": "← ハブ",
+      "noDailyPacks": "本日の無料パックはありません",
       "paidLead": "スタージェムを使って本日もパックを開けられます。",
       "openOnePack": "パックを1つ開ける",
       "starGemsLabel": "スタージェム：",
@@ -1249,7 +1253,8 @@
       "opponentSkillWait": "{name}がスキルを発動中…",
       "perfYou": "あなた",
       "perfOpp": "相手",
-      "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>フェイズ：{phase}<span class=\"turn-sep\">·</span>アクティブ：{active}<span class=\"turn-sep\">·</span>先攻：{first}"      "deckTopLabel": "デッキトップ",
+      "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>フェイズ：{phase}<span class=\"turn-sep\">·</span>アクティブ：{active}<span class=\"turn-sep\">·</span>先攻：{first}",
+      "deckTopLabel": "デッキトップ",
 
     },
     "slot": {
@@ -1427,7 +1432,8 @@
       "typeAnswerHint": "回答を入力してください。表記や言い回しは多少異なっても構いません。",
       "confirmArrangement": "配置を確定",
       "selectedCount": "選択中：{n}/{max}",
-      "activateSub": "この効果を発動するか選んでください。"      "lookAtDeck": "デッキを見る",
+      "activateSub": "この効果を発動するか選んでください。",
+      "lookAtDeck": "デッキを見る",
       "surveilHint": "番号1がデッキの一番上です。番号付きスポットと控え室の間でカードをドラッグし、2枚タップで入れ替え、またはカード選択中にスポット／控え室をタップしてください。",
       "wrPickTitle": "控え室",
       "wrPickMsg": "控え室から手札に加えるカードを1枚選んでください。",
