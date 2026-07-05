@@ -20,8 +20,9 @@
     G.playerId = G.isSpectator ? (s.view_as || 'p1') : (s.my_id || G.playerId);
     if (typeof applyReplayStateFromPoll === 'function') applyReplayStateFromPoll(s);
     if (document.querySelector('.screen.active')?.id !== 'screen-game') showScr('game');
+    if (typeof dismissAllGameplayOverlays === 'function') dismissAllGameplayOverlays();
     G.gameState = s;
-    renderGame(s, { skipPrompt: false });
+    renderGame(s, { skipPrompt: true });
     if (typeof syncReplayPromptReadOnlyUi === 'function') syncReplayPromptReadOnlyUi(true);
     if (typeof syncReplayControlBar === 'function') syncReplayControlBar();
   }

@@ -56,6 +56,13 @@ function appendReplayAction(array $state, string $playerId, string $type, array 
     if (!replayShouldRecordActions($state)) {
         return $state;
     }
+    if ($type === 'mulligan') {
+        $deck = $state['players'][$playerId]['main_deck'] ?? [];
+        $order = array_column($deck, 'instance_id');
+        if ($order !== []) {
+            $data['main_deck_order'] = $order;
+        }
+    }
     if (!isset($state['action_log']) || !is_array($state['action_log'])) {
         $state['action_log'] = [];
     }
@@ -140,6 +147,188 @@ function replayActionBlockedByPendingPrompt(Throwable $e): bool {
     return str_contains($e->getMessage(), 'pending skill prompt');
 }
 
+function replayTransientPromptStateKeys(): array {
+    return [
+        'pending_prompt',
+        'surveil_stash',
+        '_surveil_chain',
+        'look_stash',
+        '_look_chain',
+    ];
+}
+
+/** Strip unresolved prompt UI state — replay viewing is passive playback only. */
+function replaySanitizeViewingState(array $state): array {
+    foreach (replayTransientPromptStateKeys() as $key) {
+        unset($state[$key]);
+    }
+    return $state;
+}
+
+function replayRestoreMainDeckOrder(array $state, string $pid, array $order): array {
+    if ($pid !== 'p1' && $pid !== 'p2') {
+        return $state;
+    }
+    $p = &$state['players'][$pid];
+    $byId = [];
+    foreach ($p['main_deck'] ?? [] as $c) {
+        $id = $c['instance_id'] ?? '';
+        if ($id !== '') {
+            $byId[$id] = $c;
+        }
+    }
+    $ordered = [];
+    foreach ($order as $id) {
+        if (isset($byId[$id])) {
+            $ordered[] = $byId[$id];
+            unset($byId[$id]);
+        }
+    }
+    foreach ($byId as $c) {
+        $ordered[] = $c;
+    }
+    $p['main_deck'] = $ordered;
+    return $state;
+}
+
+function replayExtractCardFromPlayer(array &$player, string $instanceId): ?array {
+    foreach (['main_deck', 'hand', 'waiting_room'] as $zone) {
+        foreach ($player[$zone] ?? [] as $i => $c) {
+            if (($c['instance_id'] ?? '') === $instanceId) {
+                array_splice($player[$zone], $i, 1);
+                return $c;
+            }
+        }
+    }
+    return null;
+}
+
+/** Best-effort: put a recorded card back in hand when replay state drifted (legacy exports). */
+function replayEnsureCardInHand(array &$state, string $pid, string $cardId): void {
+    if ($cardId === '' || ($pid !== 'p1' && $pid !== 'p2')) {
+        return;
+    }
+    $p = &$state['players'][$pid];
+    if (findInHand($p['hand'], $cardId) !== false) {
+        return;
+    }
+    foreach (['main_deck', 'waiting_room'] as $zone) {
+        foreach ($p[$zone] ?? [] as $i => $c) {
+            if (($c['instance_id'] ?? '') === $cardId) {
+                $p['hand'][] = $c;
+                array_splice($p[$zone], $i, 1);
+                return;
+            }
+        }
+    }
+}
+
+function replayPrepareRecordedPlayAction(array $state, string $pid, string $type, array $data): array {
+    if ($type === 'set_live_cards') {
+        foreach ($data['card_ids'] ?? [] as $cid) {
+            replayEnsureCardInHand($state, $pid, (string)$cid);
+        }
+    } elseif ($type === 'play_member' && !empty($data['card_id'])) {
+        replayEnsureCardInHand($state, $pid, (string)$data['card_id']);
+    }
+    return $state;
+}
+
+/** Apply surveil_arrange from recorded top/wr ids when stash cards diverged (e.g. mulligan shuffle). */
+function replayApplySurveilArrangeFromRecorded(array $state, string $owner, array $data): array {
+    $prompt = $state['pending_prompt'] ?? null;
+    if (!is_array($prompt) || ($prompt['type'] ?? '') !== 'surveil_arrange') {
+        throw new Exception('Replay surveil fallback: no surveil_arrange prompt');
+    }
+    $topIds = $data['top_ids'] ?? [];
+    $wrIds = $data['wr_ids'] ?? [];
+    $allIds = array_merge($topIds, $wrIds);
+    if ($allIds === []) {
+        throw new Exception('Replay surveil fallback: missing card ids');
+    }
+    $chain = $state['_surveil_chain'] ?? null;
+    $arrangeTarget = $chain['target'] ?? $owner;
+    $p = &$state['players'][$arrangeTarget];
+    $looked = [];
+    foreach ($allIds as $id) {
+        $card = replayExtractCardFromPlayer($p, $id);
+        if ($card) {
+            $looked[] = $card;
+        }
+    }
+    if (count($looked) < count($allIds)) {
+        foreach ($state['surveil_stash'] ?? [] as $c) {
+            $id = $c['instance_id'] ?? '';
+            if ($id !== '' && in_array($id, $allIds, true)) {
+                $have = array_column($looked, 'instance_id');
+                if (!in_array($id, $have, true)) {
+                    $looked[] = $c;
+                }
+            }
+        }
+    }
+    applySurveilArrangement($p, $looked, $topIds, $wrIds);
+    unset($state['surveil_stash'], $state['pending_prompt'], $state['_surveil_chain']);
+    $state = addLog($state, $state['players'][$owner]['name'] .
+        ' — [' . ($prompt['source_name'] ?? 'Member') . '] arranged ' . count($looked) . ' looked card(s).');
+    if ($chain && ($chain['type'] ?? '') === 'reveal_top_live_score') {
+        $source = findSourceCard($state, $owner, $chain['source_id'] ?? '');
+        if ($source) {
+            $state = revealDeckTopLiveScore(
+                $state,
+                $owner,
+                $source,
+                intval($chain['score_amount'] ?? 1)
+            );
+        }
+    }
+    $state['seq']++;
+    $state = finishPromptEffects($state);
+    return $state;
+}
+
+/** Apply surveil_pick_one_* from recorded card_id when look_cards diverged. */
+function replayApplySurveilPickOneFromRecorded(array $state, string $owner, array $data): array {
+    $prompt = $state['pending_prompt'] ?? null;
+    if (!is_array($prompt)) {
+        throw new Exception('Replay surveil pick fallback: no pending prompt');
+    }
+    $pickId = (string)($data['card_id'] ?? $data['choice'] ?? '');
+    if ($pickId === '' || $pickId === 'pick') {
+        throw new Exception('Choose 1 looked card');
+    }
+    $ownerP = &$state['players'][$owner];
+    $looked = $prompt['look_cards'] ?? $state['surveil_stash'] ?? [];
+    $picked = null;
+    $rest = [];
+    foreach ($looked as $c) {
+        if (($c['instance_id'] ?? '') === $pickId) {
+            $picked = $c;
+        } else {
+            $rest[] = $c;
+        }
+    }
+    if (!$picked) {
+        $picked = replayExtractCardFromPlayer($ownerP, $pickId);
+        if (!$picked) {
+            throw new Exception('Choose 1 looked card');
+        }
+        $rest = array_values(array_filter(
+            $looked,
+            static fn(array $c): bool => ($c['instance_id'] ?? '') !== $pickId
+        ));
+    }
+    array_unshift($ownerP['main_deck'], $picked);
+    if ($rest !== []) {
+        $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'] ?? [], $rest);
+    }
+    unset($state['pending_prompt'], $state['surveil_stash']);
+    $state = addLog($state, $state['players'][$owner]['name'] .
+        ' — [' . ($prompt['source_name'] ?? 'Member') . '] arranged deck top.');
+    $state['seq']++;
+    return $state;
+}
+
 function replayPrepareStateForRecordedAction(array $state, string $pid, string $type): array {
     if (in_array($type, ['resolve_prompt', 'anti_softlock_skip'], true)) {
         return $state;
@@ -156,8 +345,13 @@ function replayPrepareStateForRecordedAction(array $state, string $pid, string $
 
 function replayApplyRecordedAction(array $state, string $pid, string $type, array $data, int $index): array {
     $state = replayPrepareStateForRecordedAction($state, $pid, $type);
+    $state = replayPrepareRecordedPlayAction($state, $pid, $type, $data);
     try {
-        return applyAction($state, $pid, $type, $data);
+        $state = applyAction($state, $pid, $type, $data);
+        if ($type === 'mulligan' && !empty($data['main_deck_order']) && is_array($data['main_deck_order'])) {
+            $state = replayRestoreMainDeckOrder($state, $pid, $data['main_deck_order']);
+        }
+        return $state;
     } catch (Throwable $e) {
         if ($type !== 'resolve_prompt'
             && !empty($state['pending_prompt'])
@@ -165,7 +359,23 @@ function replayApplyRecordedAction(array $state, string $pid, string $type, arra
             // Older saved replays may be missing the prompt-resolution action that happened
             // before the next recorded action. Drop only that replay-local stale prompt.
             unset($state['pending_prompt']);
-            return applyAction($state, $pid, $type, $data);
+            $state = applyAction($state, $pid, $type, $data);
+            if ($type === 'mulligan' && !empty($data['main_deck_order']) && is_array($data['main_deck_order'])) {
+                $state = replayRestoreMainDeckOrder($state, $pid, $data['main_deck_order']);
+            }
+            return $state;
+        }
+        if ($type === 'resolve_prompt') {
+            $msg = $e->getMessage();
+            if (str_contains($msg, 'Must assign every looked card')) {
+                return replayApplySurveilArrangeFromRecorded($state, $pid, $data);
+            }
+            if (str_contains($msg, 'Choose 1 looked card')) {
+                return replayApplySurveilPickOneFromRecorded($state, $pid, $data);
+            }
+            if (str_contains($msg, 'No pending prompt')) {
+                return $state;
+            }
         }
         throw $e;
     }
@@ -275,6 +485,7 @@ function apiReplayStart(array $body): array {
     ];
     $state = addLog($state, 'Replay loaded — ' . count($actions) . ' action(s). Use replay controls to play or seek.');
     $state['seq']++;
+    $state = replaySanitizeViewingState($state);
 
     saveGame($roomId, $state);
 
@@ -336,6 +547,7 @@ function apiReplayGoto(array $body): array {
         $newState = replayRestoreFromBaseline($baseline, $roomId, $p1Token, $p2Token);
         $newState['cpu_difficulty'] = $cpuDiff;
         $newState = replayApplyActionsThrough($newState, $actions, $step);
+        $newState = replaySanitizeViewingState($newState);
 
         $handoff = $wantsHandoff && $step >= $maxStep;
         if ($handoff) {

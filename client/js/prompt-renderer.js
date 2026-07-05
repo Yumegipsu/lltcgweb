@@ -52,12 +52,10 @@
   ];
 
   function isReplayPromptReadOnlyState(s) {
-    const pr = s?.pending_prompt;
-    if (!pr || typeof global.isReplayViewing !== 'function' || !global.isReplayViewing()) {
+    if (typeof global.isReplayViewing !== 'function' || !global.isReplayViewing()) {
       return false;
     }
-    const viewerId = global.G?.playerId;
-    return !!viewerId && pr.responder === viewerId;
+    return !!s?.pending_prompt;
   }
 
   function scheduleReplayPromptReadOnlyUi(readOnly) {

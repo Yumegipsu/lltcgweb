@@ -7025,9 +7025,9 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=5"></script>
-<script src="client/js/state-apply.js?v=3"></script>
+<script src="client/js/state-apply.js?v=4"></script>
 <script src="client/js/replay-debug.js?v=4"></script>
-<script src="client/js/prompt-renderer.js?v=9"></script>
+<script src="client/js/prompt-renderer.js?v=10"></script>
 <script src="client/js/tutorial-interactive.js?v=4"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -8559,7 +8559,7 @@ async function reconnectToGame(saved) {
     } else {
       showScr('game');
       const replayViewing = isReplayViewing();
-      renderGame(s, { skipPrompt: false });
+      renderGame(s, { skipPrompt: replayViewing });
       if (!replayViewing && s.pending_prompt?.responder === G.playerId) {
         clearLiveSuccessHandDeferral(s);
         ensurePendingPromptSurfaced(s, G.playerId);
@@ -25479,7 +25479,7 @@ function renderGame(s, opts = {}) {
   }
 
   const deferPromptForPresentation = !isReplayViewing() && shouldDeferPromptForLivePresentation(s, myId);
-  if ((!G.isTutorial || G.tutorialLive) && !opts.skipPrompt && !deferPromptForPresentation) renderPrompt(s, myId);
+  if ((!G.isTutorial || G.tutorialLive) && !isReplayViewing() && !opts.skipPrompt && !deferPromptForPresentation) renderPrompt(s, myId);
   else if (G.isTutorial && !G.tutorialLive) showTutorialPromptIfNeeded(G.tutorialData?.steps?.[G.tutorialStep], s, myId);
 
   syncAntiSoftlockButton(s, myId);
