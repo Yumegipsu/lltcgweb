@@ -18,7 +18,8 @@
       "close": "Close",
       "backToList": "← All news",
       "empty": "No news posts yet.",
-      "untitled": "Untitled"
+      "untitled": "Untitled",
+      "cardUnknown": "Card not found: {id}"
     },
     "auth": {
       "checking": "Checking Discord sign-in…",
@@ -850,7 +851,8 @@
       "close": "閉じる",
       "backToList": "← 一覧へ",
       "empty": "お知らせはまだありません。",
-      "untitled": "無題"
+      "untitled": "無題",
+      "cardUnknown": "カードが見つかりません：{id}"
     },
     "auth": {
       "checking": "Discordサインインを確認中…",

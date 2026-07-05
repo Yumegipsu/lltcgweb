@@ -3896,6 +3896,13 @@ body.news-overlay-open{overflow:hidden}
   border:none;border-radius:0;background:transparent;box-shadow:none}
 #overlay-news .news-detail-body{margin:0;padding-bottom:8px}
 #overlay-news .news-detail-body strong{font-weight:700;color:#fff}
+#overlay-news .news-card-id{
+  display:inline;padding:1px 6px;margin:0 1px;border-radius:6px;border:1px solid rgba(186,228,255,.45);
+  background:rgba(52,163,243,.35);color:#fff;font:inherit;font-size:.92em;font-weight:700;
+  letter-spacing:.02em;cursor:pointer;vertical-align:baseline;line-height:1.45}
+#overlay-news .news-card-id:hover{
+  background:url("bg/ptn.png") top center/200px 200px repeat,#bae4ff;color:#4a5c80}
+body.news-overlay-open #modal-card.open{z-index:8900}
 body.locale-ja{font-family:'Zen Kaku Gothic New','Nunito',sans-serif}
 body.locale-ja .llc-menu-item-title{font-family:'Zen Kaku Gothic New','Nunito',sans-serif}
 .llc-menu-screen .lerr{color:#ffd6e8;font-weight:700}
@@ -6987,10 +6994,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=11"></script>
+<script src="i18n.js?v=12"></script>
 <script src="log_i18n.js?v=5"></script>
 <script src="sfx.js?v=15"></script>
-<script src="client/js/news.js?v=4"></script>
+<script src="client/js/news.js?v=5"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=5"></script>
 <script src="client/js/state-apply.js?v=3"></script>
