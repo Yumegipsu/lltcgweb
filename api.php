@@ -489,6 +489,11 @@ function handleAction(array $body): array {
         $prevStatus = $state['status'] ?? '';
         $state = captureReplayBaselineIfNeeded($state);
         $state = applyAction($state, $playerId, $type, $data);
+        // Stale/duplicate resolve_prompt: leave game state untouched (no replay
+        // record, no save) so the client just resyncs to the current seq.
+        if (!empty($state['_resolve_prompt_noop'])) {
+            return ['ok' => true, 'seq' => $state['seq'], 'noop' => true];
+        }
         $state = appendReplayAction($state, $playerId, $type, $data);
         if (empty($state['pending_prompt'])) {
             $state = flushAutoOnWaitAbilities($state);

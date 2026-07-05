@@ -25953,12 +25953,30 @@ function livePlaybackBlocksMainPhaseUi(s, prev) {
   return false;
 }
 
+/**
+ * True when the CURRENT performance round already logged a performance result.
+ * Round-scoped (anchored at the latest Performance Phase / Live Start Effects
+ * marker) so an earlier turn's "performed Live!" never suppresses this round's
+ * pre-performance Live Start prompt wait.
+ */
+function currentRoundLogHasPerformance(next) {
+  const log = next?.log || [];
+  if (!log.length) return false;
+  const start = currentPerformanceRoundLogStart(next);
+  for (let i = start; i < log.length; i++) {
+    if (/ performed Live! Blades: /.test(log[i]?.msg || '')) return true;
+  }
+  return false;
+}
+
 function liveStartPromptNeedsWait(next, myId) {
   if (!next?.pending_prompt) return false;
   const pr = next.pending_prompt;
   if (PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type)) return false;
   if (next.phase === 'live_success_effects') return false;
-  if (newLogHasLivePerformance(null, next)) return false;
+  // Only bail once THIS round has actually performed — pre-performance Live Start
+  // skills (e.g. optional [Live Start] choices) must resolve before the spectacle.
+  if (currentRoundLogHasPerformance(next)) return false;
   if (next.phase === 'live_start_effects') return true;
   const from = next.log?.length ? Math.max(0, next.log.length - 24) : 0;
   const slice = (next.log || []).slice(from);
@@ -26005,7 +26023,9 @@ async function waitForPipelinePromptResolution(myId, opts = {}) {
 
 async function awaitLiveStartPromptsIfNeeded(prev, next, myId) {
   if (!liveStartPromptNeedsWait(next, myId)) return;
-  if (newLogHasLivePerformance(prev, next)) return;
+  // Round-scoped: only skip the wait if THIS round already performed (whole
+  // pipeline resolved in one poll), not because an earlier round performed.
+  if (currentRoundLogHasPerformance(next)) return;
   TCG_DEBUG.log('live', 'awaitLiveStartPromptsIfNeeded');
   G.gameState = next;
   renderGame(next, { skipLog: true, skipPrompt: false });
@@ -28369,6 +28389,12 @@ function perfSpectacleHasContent(prev, next) {
 async function runPerformanceSpectacle(perfPrev, next, myId, opts = {}) {
   if (isLiveSetPlacementOnly(perfPrev, next) || liveSetPlacementInProgress(next)) {
     TCG_DEBUG.log('live', 'spectacle skip: live_set placement open');
+    return false;
+  }
+  // Defense-in-depth: never open the spectacle while pre-performance Live Start
+  // effects are still resolving this round (owner must clear their prompt first).
+  if (next?.phase === 'live_start_effects' && !currentRoundLogHasPerformance(next)) {
+    TCG_DEBUG.log('live', 'spectacle skip: live_start_effects still resolving');
     return false;
   }
   if (!perfSpectacleHasContent(perfPrev, next)) {

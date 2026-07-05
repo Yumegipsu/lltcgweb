@@ -47,8 +47,14 @@ function applyWaitGroupMemberDrawDiscard(
 
 function actionResolvePrompt(array $state, string $pid, array $data): array {
     $prompt = $state['pending_prompt'] ?? null;
-    if (!$prompt) throw new Exception('No pending prompt');
-    if (($prompt['responder'] ?? '') !== $pid) throw new Exception('Not your prompt to answer');
+    // Stale/duplicate submission: the prompt this player answered was already
+    // resolved (poll/submit race or double-click), or it now belongs to the
+    // opponent. Treat as an idempotent no-op so the client silently resyncs
+    // instead of surfacing a "Not your prompt to answer" error toast.
+    if (!$prompt || ($prompt['responder'] ?? '') !== $pid) {
+        $state['_resolve_prompt_noop'] = true;
+        return $state;
+    }
 
     $choice = $data['choice'] ?? '';
     $promptType = $prompt['type'] ?? '';
