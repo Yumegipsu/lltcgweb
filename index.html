@@ -3853,6 +3853,7 @@ body:has(#screen-game.active) #casual-search-float{top:68px}
 .news-fab:hover .news-fab-icon{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.34)}
 .news-fab-label{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
   color:rgba(255,255,255,.92);text-shadow:0 1px 8px rgba(0,0,0,.45)}
+html[lang="ja"] .news-fab-label{text-transform:none;letter-spacing:.04em;font-size:11px}
 body.news-overlay-open{overflow:hidden}
 #overlay-news.llc-menu-screen{
   position:fixed;inset:0;z-index:8750;display:none;align-items:center;justify-content:center;
@@ -5479,7 +5480,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         </div>
       </div>
       <div class="logo-row-side logo-row-side--right">
-        <button type="button" class="news-fab" aria-haspopup="dialog" aria-controls="overlay-news">
+        <button type="button" class="news-fab" aria-haspopup="dialog" aria-controls="overlay-news" data-i18n-aria-label="news.label">
           <span class="news-fab-icon" aria-hidden="true">!</span>
           <span class="news-fab-label" data-i18n="news.label">News</span>
         </button>
@@ -5858,7 +5859,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         </div>
       </div>
       <div class="logo-row-side logo-row-side--right">
-        <button type="button" class="news-fab" aria-haspopup="dialog" aria-controls="overlay-news">
+        <button type="button" class="news-fab" aria-haspopup="dialog" aria-controls="overlay-news" data-i18n-aria-label="news.label">
           <span class="news-fab-icon" aria-hidden="true">!</span>
           <span class="news-fab-label" data-i18n="news.label">News</span>
         </button>
@@ -7015,7 +7016,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=12"></script>
+<script src="i18n.js?v=13"></script>
 <script src="log_i18n.js?v=5"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=6"></script>

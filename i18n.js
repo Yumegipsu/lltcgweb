@@ -846,7 +846,7 @@
       "tagline": "非公式ウェブプレイヤー"
     },
     "news": {
-      "label": "News",
+      "label": "お知らせ",
       "title": "お知らせ",
       "close": "閉じる",
       "backToList": "← 一覧へ",
