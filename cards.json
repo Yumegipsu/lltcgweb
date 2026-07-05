@@ -389,7 +389,8 @@
                     }
                 }
             ],
-            "loveca_point": 3
+            "loveca_point": 3,
+            "text_es": "[Always] El costo de este Miembro en tu mano se reduce en 1 por cada otra carta en tu mano.\n[Always] Este Miembro no puede enviarse a la Sala de espera mediante Baton Touch.\n[Live Start] Puedes colocar cualquier cantidad de cartas llamadas \"You Watanabe\", \"Natsumi Onitsuka\" y/o \"Rurino Osawa\" de tu mano en la Sala de espera: hasta que termine este Live, obtienes +1 Blade por cada carta descartada de esta forma.\n(Puedes incluir esta carta al descartar para este efecto.)"
         },
         {
             "card_no": "LL-bp2-E01-RE",
@@ -458,7 +459,8 @@
                         "amount": 3
                     }
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Baraja hasta 6 cartas en total llamadas \"Umi Sonoda\", \"Yoshiko Tsushima\" y/o \"Rina Tennoji\" de tu Sala de espera en la parte inferior de tu mazo: activa hasta 6 Energía.\n[Live Start] Puedes pagar 6 Energía: hasta que termine este Live, obtienes +3 Blade."
         },
         {
             "card_no": "LL-bp3-E01-RE",
@@ -518,7 +520,8 @@
                         "max_blade": 3
                     }
                 }
-            ]
+            ],
+            "text_es": "[On Enter] / [Live Start] Mira las 5 cartas superiores de tu mazo. Puedes revelar 1 Miembro llamado \"Eli Ayase\", \"Karin Asaka\" o \"Ren Hazuki\" y añadirlo a tu mano. Coloca el resto en la Sala de espera. Luego coloca en Wait a cada Miembro del Escenario del oponente cuyo costo sea menor o igual al de la carta revelada y cuyo conteo de Blade original sea 3 o menos."
         },
         {
             "card_no": "LL-bp4-E01-RE",
@@ -1335,7 +1338,8 @@
                     "type": "activate_members",
                     "max": 1
                 }
-            ]
+            ],
+            "text_es": "[Activated] Coloca este Miembro en Wait: roba 1 carta y coloca 1 carta de tu mano en la Sala de espera.\n(Los corazones de Blade en Miembros en Wait no aumentan las cartas reveladas para Yell.)\n[Live Start] Activa hasta 1 Miembro en tu Escenario."
         },
         {
             "card_no": "PL!-bp3-001-R",
@@ -1381,7 +1385,8 @@
                     "type": "activate_members",
                     "max": 1
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Coloca este Miembro en Wait: roba 1 carta y coloca 1 carta de tu mano en la Sala de espera.\n(Los corazones de Blade en Miembros en Wait no aumentan las cartas reveladas para Yell.)\n[Live Start] Activa hasta 1 Miembro en tu Escenario."
         },
         {
             "card_no": "PL!-bp3-002-P",
@@ -1429,7 +1434,8 @@
                     "type": "blade_per_opp_wait",
                     "amount": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: coloca hasta 2 Miembros del Escenario del oponente con costo 4 o menos en Wait.\n(Los corazones de Blade en Miembros en Wait no aumentan las cartas reveladas para Yell.)\n[Always] Este Miembro obtiene +1 Blade por cada Miembro del Escenario del oponente en Wait."
         },
         {
             "card_no": "PL!-bp3-002-R",
@@ -1477,7 +1483,8 @@
                     "type": "blade_per_opp_wait",
                     "amount": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: coloca hasta 2 Miembros del Escenario del oponente con costo 4 o menos en Wait.\n(Los corazones de Blade en Miembros en Wait no aumentan las cartas reveladas para Yell.)\n[Always] Este Miembro obtiene +1 Blade por cada Miembro del Escenario del oponente en Wait."
         },
         {
             "card_no": "PL!-bp3-003-P",
@@ -1518,7 +1525,8 @@
                     "group": "μ's",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Puedes colocar este Miembro en Wait: añade 1 carta de Miembro de μ's de tu Sala de espera a tu mano.\n(Los corazones de Blade en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!-bp3-003-R",
@@ -1559,7 +1567,8 @@
                     "group": "μ's",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Puedes colocar este Miembro en Wait: añade 1 carta de Miembro de μ's de tu Sala de espera a tu mano.\n(Los corazones de Blade en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!-bp3-004-P",
@@ -1605,7 +1614,8 @@
                     "group": "μ's",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Roba 1 carta por cada Miembro en tu Escenario y luego coloca 1 carta de tu mano en la Sala de espera.\n[Live Start] Si tienes cartas de Live exitoso, puedes colocar 1 carta de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!-bp3-004-P＋",
@@ -1651,7 +1661,8 @@
                     "group": "μ's",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Roba 1 carta por cada Miembro en tu Escenario y luego coloca 1 carta de tu mano en la Sala de espera.\n[Live Start] Si tienes cartas de Live exitoso, puedes colocar 1 carta de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!-bp3-004-R＋",
@@ -1697,7 +1708,8 @@
                     "group": "μ's",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Roba 1 carta por cada Miembro en tu Escenario y luego coloca 1 carta de tu mano en la Sala de espera.\n[Live Start] Si tienes cartas de Live exitoso, puedes colocar 1 carta de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!-bp3-004-SEC",
@@ -1743,7 +1755,8 @@
                     "group": "μ's",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Roba 1 carta por cada Miembro en tu Escenario y luego coloca 1 carta de tu mano en la Sala de espera.\n[Live Start] Si tienes cartas de Live exitoso, puedes colocar 1 carta de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!-bp3-005-P",
@@ -1773,7 +1786,8 @@
                     "trigger": "on_enter",
                     "type": "activate_all_members"
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Activa todos los Miembros en tu Escenario."
         },
         {
             "card_no": "PL!-bp3-005-R",
@@ -1803,7 +1817,8 @@
                     "trigger": "on_enter",
                     "type": "activate_all_members"
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Activa todos los Miembros en tu Escenario."
         },
         {
             "card_no": "PL!-bp3-006-P",
@@ -1844,7 +1859,8 @@
                         "amount": 2
                     }
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 1 carta de tu mano en la Sala de espera: hasta que termine este Live, obtienes +2 Blade por cada carta en tu área de Live exitoso."
         },
         {
             "card_no": "PL!-bp3-006-R",
@@ -1885,7 +1901,8 @@
                         "amount": 2
                     }
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 1 carta de tu mano en la Sala de espera: hasta que termine este Live, obtienes +2 Blade por cada carta en tu área de Live exitoso."
         },
         {
             "card_no": "PL!-bp3-007-P",
@@ -1923,7 +1940,8 @@
                     "discard": 2,
                     "look": 3
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 2 cartas de tu mano en la Sala de espera: mira las 3 cartas superiores de tu mazo, añade 1 a tu mano, coloca 1 en la parte superior de tu mazo y coloca 1 en la Sala de espera."
         },
         {
             "card_no": "PL!-bp3-007-R",
@@ -1961,7 +1979,8 @@
                     "discard": 2,
                     "look": 3
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 2 cartas de tu mano en la Sala de espera: mira las 3 cartas superiores de tu mazo, añade 1 a tu mano, coloca 1 en la parte superior de tu mazo y coloca 1 en la Sala de espera."
         },
         {
             "card_no": "PL!-bp3-008-P",
@@ -2014,7 +2033,8 @@
                         }
                     ]
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Coloca este Miembro en Wait: añade 1 carta Live de μ's de tu Sala de espera a tu mano.\n[Live Start] Puedes colocar 1 Miembro de μ's en tu Escenario en Wait: hasta que termine este Live, obtienes 2 corazones amarillos."
         },
         {
             "card_no": "PL!-bp3-008-P＋",
@@ -2067,7 +2087,8 @@
                         }
                     ]
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Coloca este Miembro en Wait: añade 1 carta Live de μ's de tu Sala de espera a tu mano.\n[Live Start] Puedes colocar 1 Miembro de μ's en tu Escenario en Wait: hasta que termine este Live, obtienes 2 corazones amarillos."
         },
         {
             "card_no": "PL!-bp3-008-R＋",
@@ -2120,7 +2141,8 @@
                         }
                     ]
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Coloca este Miembro en Wait: añade 1 carta Live de μ's de tu Sala de espera a tu mano.\n[Live Start] Puedes colocar 1 Miembro de μ's en tu Escenario en Wait: hasta que termine este Live, obtienes 2 corazones amarillos."
         },
         {
             "card_no": "PL!-bp3-008-SEC",
@@ -2173,7 +2195,8 @@
                         }
                     ]
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Coloca este Miembro en Wait: añade 1 carta Live de μ's de tu Sala de espera a tu mano.\n[Live Start] Puedes colocar 1 Miembro de μ's en tu Escenario en Wait: hasta que termine este Live, obtienes 2 corazones amarillos."
         },
         {
             "card_no": "PL!-bp3-009-P",
@@ -2213,7 +2236,8 @@
                     ],
                     "once_per_turn": true
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Si tienes un Miembro en el Escenario con costo 13 o más, roba 1 carta.\n[Activated] [Once per turn] Coloca este Miembro en Wait: elige rosa, amarillo o morado — hasta que termine este Live, obtienes 1 de ese corazón."
         },
         {
             "card_no": "PL!-bp3-009-P＋",
@@ -2253,7 +2277,8 @@
                     ],
                     "once_per_turn": true
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Si tienes un Miembro en el Escenario con costo 13 o más, roba 1 carta.\n[Activated] [Once per turn] Coloca este Miembro en Wait: elige rosa, amarillo o morado — hasta que termine este Live, obtienes 1 de ese corazón."
         },
         {
             "card_no": "PL!-bp3-009-R＋",
@@ -2293,7 +2318,8 @@
                     ],
                     "once_per_turn": true
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Si tienes un Miembro en el Escenario con costo 13 o más, roba 1 carta.\n[Activated] [Once per turn] Coloca este Miembro en Wait: elige rosa, amarillo o morado — hasta que termine este Live, obtienes 1 de ese corazón."
         },
         {
             "card_no": "PL!-bp3-009-SEC",
@@ -2333,7 +2359,8 @@
                     ],
                     "once_per_turn": true
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Si tienes un Miembro en el Escenario con costo 13 o más, roba 1 carta.\n[Activated] [Once per turn] Coloca este Miembro en Wait: elige rosa, amarillo o morado — hasta que termine este Live, obtienes 1 de ese corazón."
         },
         {
             "card_no": "PL!-bp3-010-N",
@@ -2373,7 +2400,8 @@
                         "pick": 1
                     }
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 5 cartas superiores de tu mazo. Puedes revelar 1 carta Live y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!-bp3-011-N",
@@ -2411,7 +2439,8 @@
                     ],
                     "per_success": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Elige rosa, amarillo o morado: hasta que termine este Live, obtienes 1 de ese corazón por cada carta en tu área de Live exitoso."
         },
         {
             "card_no": "PL!-bp3-012-N",
@@ -2442,7 +2471,8 @@
                     ],
                     "per_success": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Elige rosa, amarillo o morado: hasta que termine este Live, obtienes 1 de ese corazón por cada carta en tu área de Live exitoso."
         },
         {
             "card_no": "PL!-bp3-012-PR",
@@ -2473,7 +2503,8 @@
                     ],
                     "per_success": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Elige rosa, amarillo o morado: hasta que termine este Live, obtienes 1 de ese corazón por cada carta en tu área de Live exitoso."
         },
         {
             "card_no": "PL!-bp3-012-RM",
@@ -2505,7 +2536,8 @@
                     "per_success": 1
                 }
             ],
-            "subunit": "Printemps"
+            "subunit": "Printemps",
+            "text_es": "[Live Start] Elige rosa, amarillo o morado: hasta que termine este Live, obtienes 1 de ese corazón por cada carta en tu área de Live exitoso."
         },
         {
             "card_no": "PL!-bp3-013-N",
@@ -2549,7 +2581,8 @@
                     ],
                     "per_success": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Elige rosa, amarillo o morado: hasta que termine este Live, obtienes 1 de ese corazón por cada carta en tu área de Live exitoso."
         },
         {
             "card_no": "PL!-bp3-014-N",
@@ -2580,7 +2613,8 @@
                     "type": "optional_wait_self_surveil",
                     "look": 2
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Puedes colocar este Miembro en Wait: mira las 2 cartas superiores de tu mazo y devuélvelas a la parte superior en cualquier orden. Coloca las que no devolviste a la parte superior en la Sala de espera.\n(Los corazones de Blade en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!-bp3-014-PR",
@@ -2612,7 +2646,8 @@
                     "look": 2
                 }
             ],
-            "subunit": "lily white"
+            "subunit": "lily white",
+            "text_es": "[On Enter] Puedes colocar este Miembro en Wait: mira las 2 cartas superiores de tu mazo y devuélvelas a la parte superior en cualquier orden. Coloca las que no devolviste a la parte superior en la Sala de espera.\n(Los corazones de Blade en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!-bp3-015-N",
@@ -2697,7 +2732,8 @@
                     "type": "optional_wait_self_surveil",
                     "look": 2
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Puedes colocar este Miembro en Wait: mira las 2 cartas superiores de tu mazo y devuélvelas a la parte superior en cualquier orden. Coloca las que no devolviste a la parte superior en la Sala de espera.\n(Los corazones de Blade en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!-bp3-018-N",
@@ -2728,7 +2764,8 @@
                     "type": "optional_wait_self_surveil",
                     "look": 2
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Puedes colocar este Miembro en Wait: mira las 2 cartas superiores de tu mazo y devuélvelas a la parte superior en cualquier orden. Coloca las que no devolviste a la parte superior en la Sala de espera.\n(Los corazones de Blade en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!-bp3-019-L",
@@ -2772,7 +2809,8 @@
                     "color": "purple",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes 2 o más cartas de μ's en tu Live, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!-bp3-020-L",
@@ -3008,7 +3046,8 @@
                     "color": "gray",
                     "count": 4
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Revela 1 carta de tu mazo por cada Miembro en ambos Escenarios. La puntuación de esta carta +1 por cada carta Live revelada. Coloca las cartas reveladas en la Sala de espera."
         },
         {
             "card_no": "PL!-bp3-023-L",
@@ -3062,7 +3101,8 @@
                     "color": "gray",
                     "count": 4
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si el Blade total en tu Escenario es 10 o más, los Corazones grises requeridos de esta carta −2."
         },
         {
             "card_no": "PL!-bp3-024-L",
@@ -3125,7 +3165,8 @@
                     "color": "purple",
                     "count": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes cartas de Live exitoso, elige rosa, amarillo o morado: 1 Miembro de μ's en tu Escenario obtiene ese corazón hasta que termine este Live.\n[Live Start] Si tienes 2 o más cartas de Live exitoso, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!-bp3-025-L",
@@ -3185,7 +3226,8 @@
                     "color": "gray",
                     "count": 4
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Si no tuviste corazones excedentes este turno, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!-bp3-026-L",
@@ -3256,7 +3298,8 @@
                     "color": "gray",
                     "count": 6
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 2 cartas de tu mano en la Sala de espera: hasta que termine este Live, 1 Miembro en tu Escenario obtiene +3 Blade.\n[Live Success] Si tu Escenario tiene más corazones totales que el Escenario de tu oponente, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!-bp3-027-SECE",
@@ -3450,7 +3493,8 @@
                     "type": "draw_if_stage_cost_less_than_opp",
                     "draw": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si el costo total de los Miembros en tu Escenario es menor que el de tu oponente, roba 1 carta."
         },
         {
             "card_no": "PL!-bp4-001-R",
@@ -3487,7 +3531,8 @@
                     "type": "draw_if_stage_cost_less_than_opp",
                     "draw": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si el costo total de los Miembros en tu Escenario es menor que el de tu oponente, roba 1 carta."
         },
         {
             "card_no": "PL!-bp4-002-P",
@@ -3541,7 +3586,8 @@
                     "once_per_turn": true,
                     "min_success_score_sum": 6
                 }
-            ]
+            ],
+            "text_es": "[Always] Mientras tengas una carta Live en tu Live sin habilidades Live Start ni Live Success, obtienes 2 corazones morados.\n[Activated] [Once per turn] Coloca 2 cartas de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano. Solo usable si la puntuación total de tus cartas de Live exitoso es 6 o más."
         },
         {
             "card_no": "PL!-bp4-002-P＋",
@@ -3595,7 +3641,8 @@
                     "once_per_turn": true,
                     "min_success_score_sum": 6
                 }
-            ]
+            ],
+            "text_es": "[Always] Mientras tengas una carta Live en tu Live sin habilidades Live Start ni Live Success, obtienes 2 corazones morados.\n[Activated] [Once per turn] Coloca 2 cartas de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano. Solo usable si la puntuación total de tus cartas de Live exitoso es 6 o más."
         },
         {
             "card_no": "PL!-bp4-002-R＋",
@@ -3649,7 +3696,8 @@
                     "once_per_turn": true,
                     "min_success_score_sum": 6
                 }
-            ]
+            ],
+            "text_es": "[Always] Mientras tengas una carta Live en tu Live sin habilidades Live Start ni Live Success, obtienes 2 corazones morados.\n[Activated] [Once per turn] Coloca 2 cartas de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano. Solo usable si la puntuación total de tus cartas de Live exitoso es 6 o más."
         },
         {
             "card_no": "PL!-bp4-002-SEC",
@@ -3703,7 +3751,8 @@
                     "once_per_turn": true,
                     "min_success_score_sum": 6
                 }
-            ]
+            ],
+            "text_es": "[Always] Mientras tengas una carta Live en tu Live sin habilidades Live Start ni Live Success, obtienes 2 corazones morados.\n[Activated] [Once per turn] Coloca 2 cartas de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano. Solo usable si la puntuación total de tus cartas de Live exitoso es 6 o más."
         },
         {
             "card_no": "PL!-bp4-003-P",
@@ -3735,7 +3784,8 @@
                     "filter": "live",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!-bp4-003-R",
@@ -3767,7 +3817,8 @@
                     "filter": "live",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!-bp4-004-P",
@@ -3799,7 +3850,8 @@
                     "min_success_score_sum": 6,
                     "count": 2
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Si la puntuación total de tus cartas de Live exitoso es 6 o más, activa 2 Energía."
         },
         {
             "card_no": "PL!-bp4-004-R",
@@ -3831,7 +3883,8 @@
                     "min_success_score_sum": 6,
                     "count": 2
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Si la puntuación total de tus cartas de Live exitoso es 6 o más, activa 2 Energía."
         },
         {
             "card_no": "PL!-bp4-005-P",
@@ -3884,7 +3937,8 @@
                     "group": "μ's",
                     "min_original_blades": 5
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Añade 1 carta de Miembro con costo 2 o menos de tu Sala de espera a tu mano.\n[Always] [Center] Tu puntuación total de Live +1.\n[On Enter] Si no tienes un Miembro de μ's en tu Escenario con 5 o más iconos de Blade originales, este Miembro cambia de posición a un área que no sea Centro (intercámbialo con cualquier Miembro que ya esté allí)."
         },
         {
             "card_no": "PL!-bp4-005-P＋",
@@ -3937,7 +3991,8 @@
                     "group": "μ's",
                     "min_original_blades": 5
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Añade 1 carta de Miembro con costo 2 o menos de tu Sala de espera a tu mano.\n[Always] [Center] Tu puntuación total de Live +1.\n[On Enter] Si no tienes un Miembro de μ's en tu Escenario con 5 o más iconos de Blade originales, este Miembro cambia de posición a un área que no sea Centro (intercámbialo con cualquier Miembro que ya esté allí)."
         },
         {
             "card_no": "PL!-bp4-005-R＋",
@@ -3990,7 +4045,8 @@
                     "group": "μ's",
                     "min_original_blades": 5
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Añade 1 carta de Miembro con costo 2 o menos de tu Sala de espera a tu mano.\n[Always] [Center] Tu puntuación total de Live +1.\n[On Enter] Si no tienes un Miembro de μ's en tu Escenario con 5 o más iconos de Blade originales, este Miembro cambia de posición a un área que no sea Centro (intercámbialo con cualquier Miembro que ya esté allí)."
         },
         {
             "card_no": "PL!-bp4-005-SEC",
@@ -4043,7 +4099,8 @@
                     "group": "μ's",
                     "min_original_blades": 5
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Añade 1 carta de Miembro con costo 2 o menos de tu Sala de espera a tu mano.\n[Always] [Center] Tu puntuación total de Live +1.\n[On Enter] Si no tienes un Miembro de μ's en tu Escenario con 5 o más iconos de Blade originales, este Miembro cambia de posición a un área que no sea Centro (intercámbialo con cualquier Miembro que ya esté allí)."
         },
         {
             "card_no": "PL!-bp4-006-P",
@@ -4078,7 +4135,8 @@
                     "filter": "member",
                     "pick": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Si la puntuación total de tus cartas de Live exitoso es 3 o más, mira las 5 cartas superiores de tu mazo. Puedes revelar 1 Miembro de μ's entre ellas y añadirlo a tu mano. Coloca el resto en tu Sala de espera."
         },
         {
             "card_no": "PL!-bp4-006-R",
@@ -4113,7 +4171,8 @@
                     "filter": "member",
                     "pick": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Si la puntuación total de tus cartas de Live exitoso es 3 o más, mira las 5 cartas superiores de tu mazo. Puedes revelar 1 Miembro de μ's entre ellas y añadirlo a tu mano. Coloca el resto en tu Sala de espera."
         },
         {
             "card_no": "PL!-bp4-007-P",
@@ -4154,7 +4213,8 @@
                     "max_success_score_sum": 1,
                     "amount": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Si tienes 1 o más cartas en tu área de Live exitoso y su puntuación total es 1 o menos, hasta que termine este Live, obtienes \"[Always] +1 puntuación total de Live.\""
         },
         {
             "card_no": "PL!-bp4-007-R",
@@ -4195,7 +4255,8 @@
                     "max_success_score_sum": 1,
                     "amount": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Si tienes 1 o más cartas en tu área de Live exitoso y su puntuación total es 1 o menos, hasta que termine este Live, obtienes \"[Always] +1 puntuación total de Live.\""
         },
         {
             "card_no": "PL!-bp4-008-P",
@@ -4225,7 +4286,8 @@
                     "min_success_score_sum": 6,
                     "amount": 3
                 }
-            ]
+            ],
+            "text_es": "[Always] Mientras la puntuación total de tus cartas de Live exitoso sea 6 o más, el costo de este Miembro en el Escenario es +3."
         },
         {
             "card_no": "PL!-bp4-008-R",
@@ -4255,7 +4317,8 @@
                     "min_success_score_sum": 6,
                     "amount": 3
                 }
-            ]
+            ],
+            "text_es": "[Always] Mientras la puntuación total de tus cartas de Live exitoso sea 6 o más, el costo de este Miembro en el Escenario es +3."
         },
         {
             "card_no": "PL!-bp4-009-P",
@@ -4292,7 +4355,8 @@
                     "type": "wait_opponent_active",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Tu oponente coloca 1 Miembro activo en su Escenario en Wait."
         },
         {
             "card_no": "PL!-bp4-009-R",
@@ -4329,7 +4393,8 @@
                     "type": "wait_opponent_active",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Tu oponente coloca 1 Miembro activo en su Escenario en Wait."
         },
         {
             "card_no": "PL!-bp4-010-N",
@@ -4372,7 +4437,8 @@
                         "amount": 2
                     }
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade."
         },
         {
             "card_no": "PL!-bp4-011-N",
@@ -4406,7 +4472,8 @@
                     "group": "μ's",
                     "amount": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar este Miembro en Wait: hasta que termine este Live, el Miembro de μ's en tu área Centro obtiene +2 Blade."
         },
         {
             "card_no": "PL!-bp4-012-N",
@@ -4471,7 +4538,8 @@
                         "max_members": 1
                     }
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 1 carta de tu mano en la Sala de espera: hasta que termine este Live, 1 otro Miembro en tu Escenario obtiene 1 corazón rosa."
         },
         {
             "card_no": "PL!-bp4-014-N",
@@ -4509,7 +4577,8 @@
                     "amount": 2,
                     "max_members": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si una carta Live en tu Live no tiene habilidades Live Start ni Live Success, hasta que termine este Live, 1 otro Miembro en tu Escenario obtiene +2 Blade."
         },
         {
             "card_no": "PL!-bp4-015-N",
@@ -4567,7 +4636,8 @@
                     "min_success_score_sum": 3,
                     "draw": 1
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Si la puntuación total de tus cartas de Live exitoso es 3 o más, roba 1 carta."
         },
         {
             "card_no": "PL!-bp4-017-N",
@@ -4599,7 +4669,8 @@
                     "group": "μ's",
                     "amount": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar este Miembro en Wait: hasta que termine este Live, el Miembro de μ's en tu área Centro obtiene +1 Blade."
         },
         {
             "card_no": "PL!-bp4-018-N",
@@ -4638,7 +4709,8 @@
                     "type": "blade_if_success_score_higher",
                     "amount": 2
                 }
-            ]
+            ],
+            "text_es": "[Always] Mientras la puntuación total de tus cartas de Live exitoso sea mayor que la de tu oponente, obtienes +2 Blade."
         },
         {
             "card_no": "PL!-bp4-019-L",
@@ -4699,7 +4771,8 @@
                     "color": "gray",
                     "count": 4
                 }
-            ]
+            ],
+            "text_es": "[Always] Mientras esta carta esté en tu área de Live exitoso y tengas un Miembro de μ's en tu Escenario, la puntuación de esta carta en tu área de Live exitoso es +5."
         },
         {
             "card_no": "PL!-bp4-020-L",
@@ -4756,7 +4829,8 @@
                     "color": "gray",
                     "count": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si todos los Miembros en tu Escenario son de μ's, puedes cambiar la posición de 1 Miembro en tu Escenario.\n[Always] Mientras esta carta esté en tu área de Live exitoso, el Miembro de μ's en tu área Centro obtiene +1 Blade."
         },
         {
             "card_no": "PL!-bp4-021-L",
@@ -4820,7 +4894,8 @@
                     "color": "gray",
                     "count": 8
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si la puntuación total de tus cartas de Live exitoso es 6 o más, reduce los corazones requeridos de esta carta en 1 Corazón gris. Si el total es 9 o más, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!-bp4-022-L",
@@ -4880,7 +4955,8 @@
                     "color": "gray",
                     "count": 9
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si un Miembro de μ's en tu área Centro tiene 9 o más Blade, la puntuación de esta carta +2."
         },
         {
             "card_no": "PL!-bp4-022-SECL",
@@ -4940,7 +5016,8 @@
                     "min_blade": 9,
                     "amount": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si un Miembro de μ's en tu área Centro tiene 9 o más Blade, la puntuación de esta carta +2."
         },
         {
             "card_no": "PL!-bp4-023-L",
@@ -5001,7 +5078,8 @@
                     "color": "gray",
                     "count": 3
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Si tienes 1 o más corazones rosas excedentes, roba 1 carta."
         },
         {
             "card_no": "PL!-bp4-024-L",
@@ -5055,7 +5133,8 @@
                     "color": "gray",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Hasta que termine este Live, 1 Miembro de μ's en tu Escenario obtiene +1 Blade."
         },
         {
             "card_no": "PL!-bp4-025-L",
@@ -16744,7 +16823,8 @@
                     "once_per_turn": true
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[Activated] [Once per turn] Paga 2 Energía: añade 1 carta Live Hasunosora con puntuación 3 o menos de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!HS-bp2-001-R",
@@ -16789,7 +16869,8 @@
                     "once_per_turn": true
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[Activated] [Once per turn] Paga 2 Energía: añade 1 carta Live Hasunosora con puntuación 3 o menos de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!HS-bp2-002-P",
@@ -16828,7 +16909,8 @@
                     "amount": 3
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[On Enter] Añade hasta 2 cartas de Miembro con costo 2 o menos de tu Sala de espera a tu mano.\n[Always] Si tienes un Miembro en tu Escenario con costo mayor que este Miembro, obtienes +3 Blade."
         },
         {
             "card_no": "PL!HS-bp2-002-P＋",
@@ -16867,7 +16949,8 @@
                     "amount": 3
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[On Enter] Añade hasta 2 cartas de Miembro con costo 2 o menos de tu Sala de espera a tu mano.\n[Always] Si tienes un Miembro en tu Escenario con costo mayor que este Miembro, obtienes +3 Blade."
         },
         {
             "card_no": "PL!HS-bp2-002-R＋",
@@ -16906,7 +16989,8 @@
                     "amount": 3
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[On Enter] Añade hasta 2 cartas de Miembro con costo 2 o menos de tu Sala de espera a tu mano.\n[Always] Si tienes un Miembro en tu Escenario con costo mayor que este Miembro, obtienes +3 Blade."
         },
         {
             "card_no": "PL!HS-bp2-002-SEC",
@@ -16945,7 +17029,8 @@
                     "amount": 3
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[On Enter] Añade hasta 2 cartas de Miembro con costo 2 o menos de tu Sala de espera a tu mano.\n[Always] Si tienes un Miembro en tu Escenario con costo mayor que este Miembro, obtienes +3 Blade."
         },
         {
             "card_no": "PL!HS-bp2-003-P",
@@ -16980,7 +17065,8 @@
                     "look": 3
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[Live Start] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 3 cartas superiores de tu mazo. Puedes colocar cualquier cantidad de ellas en la parte superior de tu mazo en cualquier orden y colocar el resto en la Sala de espera."
         },
         {
             "card_no": "PL!HS-bp2-003-R",
@@ -17015,7 +17101,8 @@
                     "look": 3
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[Live Start] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 3 cartas superiores de tu mazo. Puedes colocar cualquier cantidad de ellas en la parte superior de tu mazo en cualquier orden y colocar el resto en la Sala de espera."
         },
         {
             "card_no": "PL!HS-bp2-004-P",
@@ -17048,7 +17135,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!HS-bp2-004-R",
@@ -17081,7 +17169,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!HS-bp2-005-P",
@@ -17129,7 +17218,8 @@
                     }
                 }
             ],
-            "subunit": "みらくらぱーく!"
+            "subunit": "みらくらぱーく!",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: si tienes otro Miembro en tu Escenario, añade 1 carta de Mira-Cra Park! de tu Sala de espera a tu mano.\n[Live Start] Puedes pagar 1 Energía: si cada área de tu Escenario tiene un Miembro, hasta que termine este Live, obtienes +2 Blade."
         },
         {
             "card_no": "PL!HS-bp2-005-P＋",
@@ -17177,7 +17267,8 @@
                     }
                 }
             ],
-            "subunit": "みらくらぱーく!"
+            "subunit": "みらくらぱーく!",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: si tienes otro Miembro en tu Escenario, añade 1 carta de Mira-Cra Park! de tu Sala de espera a tu mano.\n[Live Start] Puedes pagar 1 Energía: si cada área de tu Escenario tiene un Miembro, hasta que termine este Live, obtienes +2 Blade."
         },
         {
             "card_no": "PL!HS-bp2-005-R＋",
@@ -17225,7 +17316,8 @@
                     }
                 }
             ],
-            "subunit": "みらくらぱーく!"
+            "subunit": "みらくらぱーく!",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: si tienes otro Miembro en tu Escenario, añade 1 carta de Mira-Cra Park! de tu Sala de espera a tu mano.\n[Live Start] Puedes pagar 1 Energía: si cada área de tu Escenario tiene un Miembro, hasta que termine este Live, obtienes +2 Blade."
         },
         {
             "card_no": "PL!HS-bp2-005-SEC",
@@ -17273,7 +17365,8 @@
                     }
                 }
             ],
-            "subunit": "みらくらぱーく!"
+            "subunit": "みらくらぱーく!",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: si tienes otro Miembro en tu Escenario, añade 1 carta de Mira-Cra Park! de tu Sala de espera a tu mano.\n[Live Start] Puedes pagar 1 Energía: si cada área de tu Escenario tiene un Miembro, hasta que termine este Live, obtienes +2 Blade."
         },
         {
             "card_no": "PL!HS-bp2-006-P",
@@ -17318,7 +17411,8 @@
                     "amount": 1
                 }
             ],
-            "subunit": "みらくらぱーく!"
+            "subunit": "みらくらぱーく!",
+            "text_es": "[On Enter] Puedes mover cada Miembro en tu Escenario a cualquier área que quieras.\n[Always] Obtienes +1 Blade por cada otro Miembro de Mira-Cra Park! en tu Escenario."
         },
         {
             "card_no": "PL!HS-bp2-006-R",
@@ -17363,7 +17457,8 @@
                     "amount": 1
                 }
             ],
-            "subunit": "みらくらぱーく!"
+            "subunit": "みらくらぱーく!",
+            "text_es": "[On Enter] Puedes mover cada Miembro en tu Escenario a cualquier área que quieras.\n[Always] Obtienes +1 Blade por cada otro Miembro de Mira-Cra Park! en tu Escenario."
         },
         {
             "card_no": "PL!HS-bp2-007-P",
@@ -17415,7 +17510,8 @@
                     }
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[On Enter] Si entraste mediante Baton Touch desde un Miembro Cerise Bouquet con costo menor que este Miembro, añade 1 carta Live Hasunosora de tu Sala de espera a tu mano.\n[Live Start] Puedes colocar 1 carta de tu mano en la Sala de espera: si la carta descartada de esta forma es un Miembro, elige 1 Miembro en tu Escenario con el mismo nombre — hasta que termine este Live, ese Miembro obtiene +1 ♡ verde y +1 Blade."
         },
         {
             "card_no": "PL!HS-bp2-007-P＋",
@@ -17467,7 +17563,8 @@
                     }
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[On Enter] Si entraste mediante Baton Touch desde un Miembro Cerise Bouquet con costo menor que este Miembro, añade 1 carta Live Hasunosora de tu Sala de espera a tu mano.\n[Live Start] Puedes colocar 1 carta de tu mano en la Sala de espera: si la carta descartada de esta forma es un Miembro, elige 1 Miembro en tu Escenario con el mismo nombre — hasta que termine este Live, ese Miembro obtiene +1 ♡ verde y +1 Blade."
         },
         {
             "card_no": "PL!HS-bp2-007-R＋",
@@ -17519,7 +17616,8 @@
                     }
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[On Enter] Si entraste mediante Baton Touch desde un Miembro Cerise Bouquet con costo menor que este Miembro, añade 1 carta Live Hasunosora de tu Sala de espera a tu mano.\n[Live Start] Puedes colocar 1 carta de tu mano en la Sala de espera: si la carta descartada de esta forma es un Miembro, elige 1 Miembro en tu Escenario con el mismo nombre — hasta que termine este Live, ese Miembro obtiene +1 ♡ verde y +1 Blade."
         },
         {
             "card_no": "PL!HS-bp2-007-SEC",
@@ -17571,7 +17669,8 @@
                     }
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[On Enter] Si entraste mediante Baton Touch desde un Miembro Cerise Bouquet con costo menor que este Miembro, añade 1 carta Live Hasunosora de tu Sala de espera a tu mano.\n[Live Start] Puedes colocar 1 carta de tu mano en la Sala de espera: si la carta descartada de esta forma es un Miembro, elige 1 Miembro en tu Escenario con el mismo nombre — hasta que termine este Live, ese Miembro obtiene +1 ♡ verde y +1 Blade."
         },
         {
             "card_no": "PL!HS-bp2-008-P",
@@ -17605,7 +17704,8 @@
                     }
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[On Enter] Si entraste mediante Baton Touch desde un Miembro DOLLCHESTRA con costo menor que este Miembro, hasta que termine este Live, obtienes +2 Blade."
         },
         {
             "card_no": "PL!HS-bp2-008-R",
@@ -17639,7 +17739,8 @@
                     }
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[On Enter] Si entraste mediante Baton Touch desde un Miembro DOLLCHESTRA con costo menor que este Miembro, hasta que termine este Live, obtienes +2 Blade."
         },
         {
             "card_no": "PL!HS-bp2-009-P",
@@ -17689,7 +17790,8 @@
                     }
                 }
             ],
-            "subunit": "みらくらぱーく!"
+            "subunit": "みらくらぱーく!",
+            "text_es": "[On Enter] Puedes pagar 1 Energía: si entraste mediante Baton Touch desde un Miembro de Mira-Cra Park! con costo menor que este Miembro, hasta que termine este Live, obtienes +2 ♡ rosa."
         },
         {
             "card_no": "PL!HS-bp2-009-R",
@@ -17739,7 +17841,8 @@
                     }
                 }
             ],
-            "subunit": "みらくらぱーく!"
+            "subunit": "みらくらぱーく!",
+            "text_es": "[On Enter] Puedes pagar 1 Energía: si entraste mediante Baton Touch desde un Miembro de Mira-Cra Park! con costo menor que este Miembro, hasta que termine este Live, obtienes +2 ♡ rosa."
         },
         {
             "card_no": "PL!HS-bp2-010-N",
@@ -17780,7 +17883,8 @@
                     }
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 5 cartas superiores de tu mazo. Puedes revelar 1 carta de Miembro y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!HS-bp2-010-PR",
@@ -17821,7 +17925,8 @@
                     }
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 5 cartas superiores de tu mazo. Puedes revelar 1 carta de Miembro y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!HS-bp2-011-N",
@@ -17853,7 +17958,8 @@
                     "count": 5
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[On Enter] Coloca las 5 cartas superiores de tu mazo en la Sala de espera."
         },
         {
             "card_no": "PL!HS-bp2-011-PR",
@@ -17885,7 +17991,8 @@
                     "count": 5
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[On Enter] Coloca las 5 cartas superiores de tu mazo en la Sala de espera."
         },
         {
             "card_no": "PL!HS-bp2-012-N",
@@ -17917,7 +18024,8 @@
                     "pick": 1
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[Automatic] Cuando este Miembro se coloca del Escenario en la Sala de espera, mira las 5 cartas superiores de tu mazo. Puedes revelar 1 carta de Miembro y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!HS-bp2-013-N",
@@ -17949,7 +18057,8 @@
                     "pick": 1
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[Automatic] Cuando este Miembro se coloca del Escenario en la Sala de espera, mira las 5 cartas superiores de tu mazo. Puedes revelar 1 carta Live y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!HS-bp2-014-N",
@@ -17986,7 +18095,8 @@
                 }
             ],
             "subunit": "みらくらぱーく!",
-            "loveca_point": 2
+            "loveca_point": 2,
+            "text_es": "[On Enter] Roba 1 carta. Hasta que termine este Live, no puedes intentar un Live."
         },
         {
             "card_no": "PL!HS-bp2-015-N",
@@ -18017,7 +18127,8 @@
                     "discard": 1
                 }
             ],
-            "subunit": "みらくらぱーく!"
+            "subunit": "みらくらぱーく!",
+            "text_es": "[Automatic] Cuando este Miembro se coloca del Escenario en la Sala de espera, roba 2 cartas y coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!HS-bp2-016-N",
@@ -18049,7 +18160,8 @@
                     "look": 2
                 }
             ],
-            "subunit": "スリーズブーケ"
+            "subunit": "スリーズブーケ",
+            "text_es": "[On Enter] Mira las 2 cartas superiores de tu mazo. Puedes colocar cualquier cantidad de ellas en la parte superior de tu mazo en cualquier orden y colocar el resto en la Sala de espera."
         },
         {
             "card_no": "PL!HS-bp2-017-N",
@@ -18084,7 +18196,8 @@
                     "draw": 1
                 }
             ],
-            "subunit": "DOLLCHESTRA"
+            "subunit": "DOLLCHESTRA",
+            "text_es": "[On Enter] Si tienes 10 o más cartas en tu Sala de espera, roba 1 carta."
         },
         {
             "card_no": "PL!HS-bp2-018-N",
@@ -18122,7 +18235,8 @@
                     "next_live_set_cap_penalty": 1
                 }
             ],
-            "subunit": "みらくらぱーく!"
+            "subunit": "みらくらぱーく!",
+            "text_es": "[Activated] En tu Fase principal, puedes pagar 2 Energía: coloca 1 carta Live Hasunosora de tu Sala de espera boca arriba en tu Zona de cartas Live. Durante tu próxima Fase de colocación de cartas Live, el número máximo de cartas Live que puedes colocar en almacenamiento se reduce en 1."
         },
         {
             "card_no": "PL!HS-bp2-019-L",
@@ -18187,7 +18301,8 @@
                 }
             ],
             "special_heart": "icon_score.png",
-            "yell_score_icon": true
+            "yell_score_icon": true,
+            "text_es": "[Live Start] Si tienes un Miembro Hasunosora en tu Escenario, puedes elegir 1 de rosa, verde o azul — los corazones requeridos de este Live pasan a ser 2 de ese color y 1 Corazón gris en su lugar."
         },
         {
             "card_no": "PL!HS-bp2-020-L",
@@ -18256,7 +18371,8 @@
                     "color": "any",
                     "count": 8
                 }
-            ]
+            ],
+            "text_es": "[Always] Esta carta en todas las áreas se trata como Cerise Bouquet, DOLLCHESTRA y Mira-Cra Park!.\n[Live Start] Por cada Miembro Hasunosora con un nombre distinto en tu Escenario, la puntuación de esta carta +2."
         },
         {
             "card_no": "PL!HS-bp2-021-L",
@@ -18306,7 +18422,8 @@
                 }
             ],
             "special_heart": "icon_draw.png",
-            "yell_draw_icon": true
+            "yell_draw_icon": true,
+            "text_es": "[Live Start] Si tienes 2 o más Miembros Hasunosora en tu Escenario que entraron mediante Baton Touch este turno, reduce los corazones verdes requeridos de este Live en 1."
         },
         {
             "card_no": "PL!HS-bp2-022-L",
@@ -18352,7 +18469,8 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes 3 o más cartas Live Cerise Bouquet en tu Sala de espera, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!HS-bp2-022-L＋",
@@ -18398,7 +18516,8 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes 3 o más cartas Live Cerise Bouquet en tu Sala de espera, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!HS-bp2-023-L",
@@ -18444,7 +18563,8 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes 2 o más Miembros Hasunosora en tu Escenario que entraron mediante Baton Touch este turno, reduce los corazones azules requeridos de este Live en 1."
         },
         {
             "card_no": "PL!HS-bp2-024-L",
@@ -18496,7 +18616,8 @@
                     "color": "any",
                     "count": 5
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si Kosuzu Kachimachi está en tu Escenario y Sayaka Murano con costo mayor que Kosuzu Kachimachi está en tu Escenario, reduce los corazones requeridos de cualquier color de este Live en 3."
         },
         {
             "card_no": "PL!HS-bp2-024-L＋",
@@ -18548,7 +18669,8 @@
                     "color": "any",
                     "count": 5
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si Kosuzu Kachimachi está en tu Escenario y Sayaka Murano con costo mayor que Kosuzu Kachimachi está en tu Escenario, reduce los corazones requeridos de cualquier color de este Live en 3."
         },
         {
             "card_no": "PL!HS-bp2-025-L",
@@ -18594,7 +18716,8 @@
                     "color": "any",
                     "count": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes 2 o más Miembros Hasunosora en tu Escenario que entraron mediante Baton Touch este turno, reduce los corazones rosas requeridos de este Live en 1."
         },
         {
             "card_no": "PL!HS-bp2-026-L",
@@ -18656,7 +18779,8 @@
                 }
             ],
             "special_heart": "icon_draw.png",
-            "yell_draw_icon": true
+            "yell_draw_icon": true,
+            "text_es": "[Live Start] Si Rurino Osawa está en tu área derecha, Hime Anyoji está en tu área izquierda y Megumi Fujishima está en tu área centro, la puntuación de esta carta +2."
         },
         {
             "card_no": "PL!HS-bp2-026-L＋",
@@ -18716,7 +18840,8 @@
                     "color": "any",
                     "count": 7
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si Rurino Osawa está en tu área derecha, Hime Anyoji está en tu área izquierda y Megumi Fujishima está en tu área centro, la puntuación de esta carta +2."
         },
         {
             "card_no": "PL!HS-bp2-027-SECE",
@@ -31167,7 +31292,8 @@
                     "draw": 1,
                     "blade": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 1 Energía de tu Zona de Energía bajo este Miembro. Si lo haces, roba 1 carta. Hasta que termine este Live, cada Miembro en tu Escenario obtiene +2 Blade.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)"
         },
         {
             "card_no": "PL!N-bp3-001-P＋",
@@ -31209,7 +31335,8 @@
                     "draw": 1,
                     "blade": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 1 Energía de tu Zona de Energía bajo este Miembro. Si lo haces, roba 1 carta. Hasta que termine este Live, cada Miembro en tu Escenario obtiene +2 Blade.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)"
         },
         {
             "card_no": "PL!N-bp3-001-R＋",
@@ -31251,7 +31378,8 @@
                     "draw": 1,
                     "blade": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 1 Energía de tu Zona de Energía bajo este Miembro. Si lo haces, roba 1 carta. Hasta que termine este Live, cada Miembro en tu Escenario obtiene +2 Blade.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)"
         },
         {
             "card_no": "PL!N-bp3-001-SEC",
@@ -31293,7 +31421,8 @@
                     "draw": 1,
                     "blade": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 1 Energía de tu Zona de Energía bajo este Miembro. Si lo haces, roba 1 carta. Hasta que termine este Live, cada Miembro en tu Escenario obtiene +2 Blade.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)"
         },
         {
             "card_no": "PL!N-bp3-002-P",
@@ -31324,7 +31453,8 @@
                     "discard": 1,
                     "group": "Nijigasaki"
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 1 carta de tu mano en la Sala de espera: elige un color de corazón. Hasta que termine este Live, 1 otro Miembro de Nijigasaki en tu Escenario obtiene 1 corazón de ese color."
         },
         {
             "card_no": "PL!N-bp3-002-R",
@@ -31355,7 +31485,8 @@
                     "discard": 1,
                     "group": "Nijigasaki"
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 1 carta de tu mano en la Sala de espera: elige un color de corazón. Hasta que termine este Live, 1 otro Miembro de Nijigasaki en tu Escenario obtiene 1 corazón de ese color."
         },
         {
             "card_no": "PL!N-bp3-003-P",
@@ -31399,7 +31530,8 @@
                     "max_cost": 4,
                     "enter_only": true
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Elige 1 carta de Miembro de Nijigasaki con costo 4 o menos en tu Sala de espera y activa una de sus habilidades (Enter).\n(Paga cualquier costo requerido por esa habilidad.)"
         },
         {
             "card_no": "PL!N-bp3-003-R",
@@ -31443,7 +31575,8 @@
                     "max_cost": 4,
                     "enter_only": true
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Elige 1 carta de Miembro de Nijigasaki con costo 4 o menos en tu Sala de espera y activa una de sus habilidades (Enter).\n(Paga cualquier costo requerido por esa habilidad.)"
         },
         {
             "card_no": "PL!N-bp3-004-P",
@@ -31489,7 +31622,8 @@
                     "group": "Nijigasaki",
                     "once_per_turn": true
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Coloca este Miembro en Wait y coloca 1 carta de tu mano en la Sala de espera: añade 1 carta Live de Nijigasaki de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!N-bp3-004-R",
@@ -31535,7 +31669,8 @@
                     "group": "Nijigasaki",
                     "once_per_turn": true
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Coloca este Miembro en Wait y coloca 1 carta de tu mano en la Sala de espera: añade 1 carta Live de Nijigasaki de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!N-bp3-005-P",
@@ -31580,7 +31715,8 @@
                     "min_entered": 2,
                     "amount": 1
                 }
-            ]
+            ],
+            "text_es": "[Automatic] Cuando un tercer Miembro entra en tu Escenario este turno, roba hasta tener 5 cartas en la mano.\n[Live Start] Si 2 o más Miembros han entrado en tu Escenario este turno, obtienes \"[Always] +1 puntuación total de Live.\""
         },
         {
             "card_no": "PL!N-bp3-005-P＋",
@@ -31625,7 +31761,8 @@
                     "min_entered": 2,
                     "amount": 1
                 }
-            ]
+            ],
+            "text_es": "[Automatic] Cuando un tercer Miembro entra en tu Escenario este turno, roba hasta tener 5 cartas en la mano.\n[Live Start] Si 2 o más Miembros han entrado en tu Escenario este turno, obtienes \"[Always] +1 puntuación total de Live.\""
         },
         {
             "card_no": "PL!N-bp3-005-R＋",
@@ -31670,7 +31807,8 @@
                     "min_entered": 2,
                     "amount": 1
                 }
-            ]
+            ],
+            "text_es": "[Automatic] Cuando un tercer Miembro entra en tu Escenario este turno, roba hasta tener 5 cartas en la mano.\n[Live Start] Si 2 o más Miembros han entrado en tu Escenario este turno, obtienes \"[Always] +1 puntuación total de Live.\""
         },
         {
             "card_no": "PL!N-bp3-005-SEC",
@@ -31715,7 +31853,8 @@
                     "min_entered": 2,
                     "amount": 1
                 }
-            ]
+            ],
+            "text_es": "[Automatic] Cuando un tercer Miembro entra en tu Escenario este turno, roba hasta tener 5 cartas en la mano.\n[Live Start] Si 2 o más Miembros han entrado en tu Escenario este turno, obtienes \"[Always] +1 puntuación total de Live.\""
         },
         {
             "card_no": "PL!N-bp3-006-P",
@@ -31756,7 +31895,8 @@
                     "trigger": "on_enter",
                     "type": "wait_self_on_enter"
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Coloca este Miembro en Wait.\n(Los corazones en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!N-bp3-006-R",
@@ -31797,7 +31937,8 @@
                     "trigger": "on_enter",
                     "type": "wait_self_on_enter"
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Coloca este Miembro en Wait.\n(Los corazones en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!N-bp3-007-P",
@@ -31841,7 +31982,8 @@
                     "energy": 1,
                     "energy_cost": 2
                 }
-            ]
+            ],
+            "text_es": "[Activated] Paga 2 Energía: coloca este Miembro del Escenario en la Sala de espera: coloca 1 carta de Miembro Setsuna con costo 13 o menos de tu mano en la ranura de Escenario de este Miembro. Luego coloca 1 Energía de tu Zona de Energía bajo ese Miembro.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)"
         },
         {
             "card_no": "PL!N-bp3-007-PR",
@@ -31885,7 +32027,8 @@
                     "energy_cost": 2
                 }
             ],
-            "subunit": "A・ZU・NA"
+            "subunit": "A・ZU・NA",
+            "text_es": "[Activated] Paga 2 Energía: coloca este Miembro del Escenario en la Sala de espera: coloca 1 carta de Miembro Setsuna con costo 13 o menos de tu mano en la ranura de Escenario de este Miembro. Luego coloca 1 Energía de tu Zona de Energía bajo ese Miembro.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)"
         },
         {
             "card_no": "PL!N-bp3-007-R",
@@ -31929,7 +32072,8 @@
                     "energy": 1,
                     "energy_cost": 2
                 }
-            ]
+            ],
+            "text_es": "[Activated] Paga 2 Energía: coloca este Miembro del Escenario en la Sala de espera: coloca 1 carta de Miembro Setsuna con costo 13 o menos de tu mano en la ranura de Escenario de este Miembro. Luego coloca 1 Energía de tu Zona de Energía bajo ese Miembro.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)"
         },
         {
             "card_no": "PL!N-bp3-008-P",
@@ -31982,7 +32126,8 @@
                         }
                     ]
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Coloca 1 otro Miembro de Nijigasaki en tu Escenario en Wait: roba 1 carta.\n[Live Start] Puedes colocar 2 cartas de tu mano en la Sala de espera: activa 1 otro Miembro en Wait en tu Escenario. Si lo haces, hasta que termine este Live, ese Miembro y este Miembro obtienen cada uno 1 Corazón verde."
         },
         {
             "card_no": "PL!N-bp3-008-P＋",
@@ -32035,7 +32180,8 @@
                         }
                     ]
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Coloca 1 otro Miembro de Nijigasaki en tu Escenario en Wait: roba 1 carta.\n[Live Start] Puedes colocar 2 cartas de tu mano en la Sala de espera: activa 1 otro Miembro en Wait en tu Escenario. Si lo haces, hasta que termine este Live, ese Miembro y este Miembro obtienen cada uno 1 Corazón verde."
         },
         {
             "card_no": "PL!N-bp3-008-R＋",
@@ -32088,7 +32234,8 @@
                         }
                     ]
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Coloca 1 otro Miembro de Nijigasaki en tu Escenario en Wait: roba 1 carta.\n[Live Start] Puedes colocar 2 cartas de tu mano en la Sala de espera: activa 1 otro Miembro en Wait en tu Escenario. Si lo haces, hasta que termine este Live, ese Miembro y este Miembro obtienen cada uno 1 Corazón verde."
         },
         {
             "card_no": "PL!N-bp3-008-SEC",
@@ -32141,7 +32288,8 @@
                         }
                     ]
                 }
-            ]
+            ],
+            "text_es": "[Activated] [Once per turn] Coloca 1 otro Miembro de Nijigasaki en tu Escenario en Wait: roba 1 carta.\n[Live Start] Puedes colocar 2 cartas de tu mano en la Sala de espera: activa 1 otro Miembro en Wait en tu Escenario. Si lo haces, hasta que termine este Live, ese Miembro y este Miembro obtienen cada uno 1 Corazón verde."
         },
         {
             "card_no": "PL!N-bp3-009-P",
@@ -32198,7 +32346,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar hasta 2 cartas de Miembro de tu Sala de espera en la parte inferior de tu mazo en cualquier orden. Si su costo combinado es 6, roba 1 carta. Si es 8, obtienes 1 de todos los Corazones hasta que termine este Live. Si es 25, obtienes \"[Always] +1 puntuación total de Live\" hasta que termine este Live."
         },
         {
             "card_no": "PL!N-bp3-009-P＋",
@@ -32255,7 +32404,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar hasta 2 cartas de Miembro de tu Sala de espera en la parte inferior de tu mazo en cualquier orden. Si su costo combinado es 6, roba 1 carta. Si es 8, obtienes 1 de todos los Corazones hasta que termine este Live. Si es 25, obtienes \"[Always] +1 puntuación total de Live\" hasta que termine este Live."
         },
         {
             "card_no": "PL!N-bp3-009-R＋",
@@ -32312,7 +32462,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar hasta 2 cartas de Miembro de tu Sala de espera en la parte inferior de tu mazo en cualquier orden. Si su costo combinado es 6, roba 1 carta. Si es 8, obtienes 1 de todos los Corazones hasta que termine este Live. Si es 25, obtienes \"[Always] +1 puntuación total de Live\" hasta que termine este Live."
         },
         {
             "card_no": "PL!N-bp3-009-SEC",
@@ -32369,7 +32520,8 @@
                         }
                     }
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar hasta 2 cartas de Miembro de tu Sala de espera en la parte inferior de tu mazo en cualquier orden. Si su costo combinado es 6, roba 1 carta. Si es 8, obtienes 1 de todos los Corazones hasta que termine este Live. Si es 25, obtienes \"[Always] +1 puntuación total de Live\" hasta que termine este Live."
         },
         {
             "card_no": "PL!N-bp3-010-P",
@@ -32408,7 +32560,8 @@
                     "max_pick": 2,
                     "filter": "member"
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Elige tú o tu oponente. Ese jugador coloca hasta 2 cartas de Miembro de su Sala de espera en la parte inferior de su mazo en cualquier orden."
         },
         {
             "card_no": "PL!N-bp3-010-R",
@@ -32447,7 +32600,8 @@
                     "max_pick": 2,
                     "filter": "member"
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Elige tú o tu oponente. Ese jugador coloca hasta 2 cartas de Miembro de su Sala de espera en la parte inferior de su mazo en cualquier orden."
         },
         {
             "card_no": "PL!N-bp3-011-P",
@@ -32486,7 +32640,8 @@
                     "amount": 1,
                     "max_blade": 3
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Elige 1 Miembro del Escenario del oponente distinto de Mia Taylor. Si ese Miembro comparte un color de corazón con este Miembro, este Miembro obtiene +1 Blade. Si ese Miembro también comparte el costo o el conteo de Blade original de este Miembro, este Miembro obtiene +1 Blade por cada condición cumplida (máximo +3 Blade en total)."
         },
         {
             "card_no": "PL!N-bp3-011-R",
@@ -32525,7 +32680,8 @@
                     "amount": 1,
                     "max_blade": 3
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Elige 1 Miembro del Escenario del oponente distinto de Mia Taylor. Si ese Miembro comparte un color de corazón con este Miembro, este Miembro obtiene +1 Blade. Si ese Miembro también comparte el costo o el conteo de Blade original de este Miembro, este Miembro obtiene +1 Blade por cada condición cumplida (máximo +3 Blade en total)."
         },
         {
             "card_no": "PL!N-bp3-012-P",
@@ -32567,7 +32723,8 @@
                         "pick": 1
                     }
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 4 cartas superiores de tu mazo. Puedes revelar 1 carta de Nijigasaki y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!N-bp3-012-R",
@@ -32609,7 +32766,8 @@
                         "pick": 1
                     }
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 4 cartas superiores de tu mazo. Puedes revelar 1 carta de Nijigasaki y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!N-bp3-013-N",
@@ -32648,7 +32806,8 @@
                     "energy": 1,
                     "draw": 2
                 }
-            ]
+            ],
+            "text_es": "[On Enter] Puedes colocar 1 Energía de tu Zona de Energía bajo este Miembro. Si lo haces, roba 2 cartas.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)"
         },
         {
             "card_no": "PL!N-bp3-014-N",
@@ -32684,7 +32843,8 @@
                         "green"
                     ]
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Elige rosa, amarillo o verde. Hasta que termine este Live, los corazones impresos de este Miembro pasan a ser del color elegido."
         },
         {
             "card_no": "PL!N-bp3-015-N",
@@ -32720,7 +32880,8 @@
                         "purple"
                     ]
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Elige rojo, azul o morado. Hasta que termine este Live, los corazones impresos de este Miembro pasan a ser del color elegido."
         },
         {
             "card_no": "PL!N-bp3-016-N",
@@ -32782,7 +32943,8 @@
                     "pick_count": 1
                 }
             ],
-            "subunit": "DiverDiva"
+            "subunit": "DiverDiva",
+            "text_es": "[On Enter] / [Live Start] Puedes colocar este Miembro en Wait: coloca 1 Miembro del Escenario del oponente con costo 4 o menos en Wait.\n(Los corazones en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!N-bp3-018-N",
@@ -32948,7 +33110,8 @@
                     "look": 2
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[On Enter] Puedes colocar este Miembro en Wait: mira las 2 cartas superiores de tu mazo. Puedes colocar cualquier cantidad de ellas en la parte superior de tu mazo en cualquier orden y colocar el resto en la Sala de espera.\n(Los corazones en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!N-bp3-023-N",
@@ -32979,7 +33142,8 @@
                     "pick_count": 1
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[On Enter] / [Live Start] Puedes colocar este Miembro en Wait: coloca 1 Miembro del Escenario del oponente con costo 4 o menos en Wait.\n(Los corazones en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!N-bp3-024-N",
@@ -33018,7 +33182,8 @@
                     "discard": 2
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[On Enter] Roba 2 cartas y coloca 2 cartas de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!N-bp3-025-L",
@@ -33083,7 +33248,8 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes devolver cualquier cantidad de cartas de Energía apiladas bajo 1 Miembro en tu Escenario a tu mazo de Energía. Si lo haces, hasta que termine este Live, ese Miembro obtiene 3 corazones rojos por cada carta de Energía devuelta de esta forma."
         },
         {
             "card_no": "PL!N-bp3-026-L",
@@ -33140,7 +33306,8 @@
                     "color": "any",
                     "count": 5
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes una carta de Live exitoso con puntuación 1 o 5, la puntuación de esta carta +1. Si tienes ambas, la puntuación de esta carta +2 en su lugar."
         },
         {
             "card_no": "PL!N-bp3-027-L",
@@ -33194,7 +33361,8 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Si tienes un excedente de al menos 1 Corazón verde este turno y un Miembro de Nijigasaki en tu Escenario, coloca 1 carta de Energía de tu mazo de Energía en Wait."
         },
         {
             "card_no": "PL!N-bp3-028-L",
@@ -33255,7 +33423,8 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Mira 1 carta de la parte superior de tu mazo por cada Miembro de Nijigasaki en tu Escenario. Puedes colocar hasta 1 de ellas en la parte superior de tu mazo y colocar el resto en la Sala de espera. Luego revela la carta superior de tu mazo. Si es una carta Live, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!N-bp3-028-SECL",
@@ -33316,7 +33485,8 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Mira 1 carta de la parte superior de tu mazo por cada Miembro de Nijigasaki en tu Escenario. Puedes colocar hasta 1 de ellas en la parte superior de tu mazo y colocar el resto en la Sala de espera. Luego revela la carta superior de tu mazo. Si es una carta Live, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!N-bp3-029-L",
@@ -33445,7 +33615,8 @@
                     "color": "purple",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Always] Durante tu intento de Live, si alguna carta que revelaste para Yell tiene un icono de corazón impreso, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!N-bp3-031-L",
@@ -33506,7 +33677,8 @@
                     "color": "any",
                     "count": 6
                 }
-            ]
+            ],
+            "text_es": "[Live Start] La puntuación de esta carta +1 por cada Miembro en Wait en tu Escenario."
         },
         {
             "card_no": "PL!N-bp3-032-L",
@@ -33774,7 +33946,8 @@
                     "type": "live_success_energy_wait_if_fewer"
                 }
             ],
-            "subunit": "A・ZU・NA"
+            "subunit": "A・ZU・NA",
+            "text_es": "[Live Success] Si tienes menos Energía que tu oponente, coloca 1 carta de Energía de tu mazo de Energía en Wait."
         },
         {
             "card_no": "PL!N-bp4-001-R",
@@ -33803,7 +33976,8 @@
                     "type": "live_success_energy_wait_if_fewer"
                 }
             ],
-            "subunit": "A・ZU・NA"
+            "subunit": "A・ZU・NA",
+            "text_es": "[Live Success] Si tienes menos Energía que tu oponente, coloca 1 carta de Energía de tu mazo de Energía en Wait."
         },
         {
             "card_no": "PL!N-bp4-002-P",
@@ -33856,7 +34030,8 @@
                     }
                 }
             ],
-            "subunit": "QU4RTZ"
+            "subunit": "QU4RTZ",
+            "text_es": "[Live Start] Elige tú o tu oponente. Mira la carta superior del mazo de ese jugador. Puedes colocarla en la Sala de espera."
         },
         {
             "card_no": "PL!N-bp4-002-R",
@@ -33909,7 +34084,8 @@
                     }
                 }
             ],
-            "subunit": "QU4RTZ"
+            "subunit": "QU4RTZ",
+            "text_es": "[Live Start] Elige tú o tu oponente. Mira la carta superior del mazo de ese jugador. Puedes colocarla en la Sala de espera."
         },
         {
             "card_no": "PL!N-bp4-003-P",
@@ -33940,7 +34116,8 @@
                     "draw": 1
                 }
             ],
-            "subunit": "A・ZU・NA"
+            "subunit": "A・ZU・NA",
+            "text_es": "[Live Success] Si tu puntuación total de Live es mayor que la de tu oponente, roba 1 carta."
         },
         {
             "card_no": "PL!N-bp4-003-R",
@@ -33971,7 +34148,8 @@
                     "draw": 1
                 }
             ],
-            "subunit": "A・ZU・NA"
+            "subunit": "A・ZU・NA",
+            "text_es": "[Live Success] Si tu puntuación total de Live es mayor que la de tu oponente, roba 1 carta."
         },
         {
             "card_no": "PL!N-bp4-004-P",
@@ -34023,7 +34201,8 @@
                     "filter": "member"
                 }
             ],
-            "subunit": "DiverDiva"
+            "subunit": "DiverDiva",
+            "text_es": "[Live Start] Roba 1 carta. Coloca hasta 1 Miembro del Escenario del oponente con costo 9 o menos en Wait.\n[Live Start] Elige hasta tantas cartas de Miembro de Nijigasaki de tu Sala de espera como Miembros del Escenario del oponente en Wait, y colócalas en la parte superior de tu mazo en cualquier orden."
         },
         {
             "card_no": "PL!N-bp4-004-P＋",
@@ -34075,7 +34254,8 @@
                     "filter": "member"
                 }
             ],
-            "subunit": "DiverDiva"
+            "subunit": "DiverDiva",
+            "text_es": "[Live Start] Roba 1 carta. Coloca hasta 1 Miembro del Escenario del oponente con costo 9 o menos en Wait.\n[Live Start] Elige hasta tantas cartas de Miembro de Nijigasaki de tu Sala de espera como Miembros del Escenario del oponente en Wait, y colócalas en la parte superior de tu mazo en cualquier orden."
         },
         {
             "card_no": "PL!N-bp4-004-R＋",
@@ -34127,7 +34307,8 @@
                     "filter": "member"
                 }
             ],
-            "subunit": "DiverDiva"
+            "subunit": "DiverDiva",
+            "text_es": "[Live Start] Roba 1 carta. Coloca hasta 1 Miembro del Escenario del oponente con costo 9 o menos en Wait.\n[Live Start] Elige hasta tantas cartas de Miembro de Nijigasaki de tu Sala de espera como Miembros del Escenario del oponente en Wait, y colócalas en la parte superior de tu mazo en cualquier orden."
         },
         {
             "card_no": "PL!N-bp4-004-SEC",
@@ -34179,7 +34360,8 @@
                     "filter": "member"
                 }
             ],
-            "subunit": "DiverDiva"
+            "subunit": "DiverDiva",
+            "text_es": "[Live Start] Roba 1 carta. Coloca hasta 1 Miembro del Escenario del oponente con costo 9 o menos en Wait.\n[Live Start] Elige hasta tantas cartas de Miembro de Nijigasaki de tu Sala de espera como Miembros del Escenario del oponente en Wait, y colócalas en la parte superior de tu mazo en cualquier orden."
         },
         {
             "card_no": "PL!N-bp4-005-P",
@@ -34215,7 +34397,8 @@
                     }
                 }
             ],
-            "subunit": "DiverDiva"
+            "subunit": "DiverDiva",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: coloca hasta 2 Miembros del Escenario del oponente con costo 4 o menos en Wait.\n(Los corazones en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!N-bp4-005-R",
@@ -34251,7 +34434,8 @@
                     }
                 }
             ],
-            "subunit": "DiverDiva"
+            "subunit": "DiverDiva",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: coloca hasta 2 Miembros del Escenario del oponente con costo 4 o menos en Wait.\n(Los corazones en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!N-bp4-006-P",
@@ -34294,7 +34478,8 @@
                     "wait_self_if_blade_heart": true
                 }
             ],
-            "subunit": "QU4RTZ"
+            "subunit": "QU4RTZ",
+            "text_es": "[On Enter] Puedes pagar 2 Energía: coloca 1 carta de Miembro de Nijigasaki con costo 4 o menos de tu mano en tu Escenario. Si ese Miembro tiene un corazón de Blade, coloca este Miembro en Wait."
         },
         {
             "card_no": "PL!N-bp4-006-R",
@@ -34337,7 +34522,8 @@
                     "wait_self_if_blade_heart": true
                 }
             ],
-            "subunit": "QU4RTZ"
+            "subunit": "QU4RTZ",
+            "text_es": "[On Enter] Puedes pagar 2 Energía: coloca 1 carta de Miembro de Nijigasaki con costo 4 o menos de tu mano en tu Escenario. Si ese Miembro tiene un corazón de Blade, coloca este Miembro en Wait."
         },
         {
             "card_no": "PL!N-bp4-007-P",
@@ -34389,7 +34575,8 @@
                     "type": "both_energy_wait_from_deck"
                 }
             ],
-            "subunit": "A・ZU・NA"
+            "subunit": "A・ZU・NA",
+            "text_es": "[On Enter] Cada jugador añade 1 carta Live de su Sala de espera a su mano.\n[Always] Mientras la Energía combinada de ambos jugadores sea 15 o más, obtienes 2 corazones rojos.\n[Live Success] Cada jugador coloca 1 carta de Energía de su mazo de Energía en Wait."
         },
         {
             "card_no": "PL!N-bp4-007-P＋",
@@ -34441,7 +34628,8 @@
                     "type": "both_energy_wait_from_deck"
                 }
             ],
-            "subunit": "A・ZU・NA"
+            "subunit": "A・ZU・NA",
+            "text_es": "[On Enter] Cada jugador añade 1 carta Live de su Sala de espera a su mano.\n[Always] Mientras la Energía combinada de ambos jugadores sea 15 o más, obtienes 2 corazones rojos.\n[Live Success] Cada jugador coloca 1 carta de Energía de su mazo de Energía en Wait."
         },
         {
             "card_no": "PL!N-bp4-007-R＋",
@@ -34493,7 +34681,8 @@
                     "type": "both_energy_wait_from_deck"
                 }
             ],
-            "subunit": "A・ZU・NA"
+            "subunit": "A・ZU・NA",
+            "text_es": "[On Enter] Cada jugador añade 1 carta Live de su Sala de espera a su mano.\n[Always] Mientras la Energía combinada de ambos jugadores sea 15 o más, obtienes 2 corazones rojos.\n[Live Success] Cada jugador coloca 1 carta de Energía de su mazo de Energía en Wait."
         },
         {
             "card_no": "PL!N-bp4-007-SEC",
@@ -34545,7 +34734,8 @@
                     "type": "both_energy_wait_from_deck"
                 }
             ],
-            "subunit": "A・ZU・NA"
+            "subunit": "A・ZU・NA",
+            "text_es": "[On Enter] Cada jugador añade 1 carta Live de su Sala de espera a su mano.\n[Always] Mientras la Energía combinada de ambos jugadores sea 15 o más, obtienes 2 corazones rojos.\n[Live Success] Cada jugador coloca 1 carta de Energía de su mazo de Energía en Wait."
         },
         {
             "card_no": "PL!N-bp4-008-P",
@@ -34584,7 +34774,8 @@
                     "once_per_turn": true
                 }
             ],
-            "subunit": "QU4RTZ"
+            "subunit": "QU4RTZ",
+            "text_es": "[Activated] [Once per turn] Coloca 1 carta de tu mano en la Sala de espera: activa 1 Energía o 1 Miembro de Nijigasaki."
         },
         {
             "card_no": "PL!N-bp4-008-R",
@@ -34623,7 +34814,8 @@
                     "once_per_turn": true
                 }
             ],
-            "subunit": "QU4RTZ"
+            "subunit": "QU4RTZ",
+            "text_es": "[Activated] [Once per turn] Coloca 1 carta de tu mano en la Sala de espera: activa 1 Energía o 1 Miembro de Nijigasaki."
         },
         {
             "card_no": "PL!N-bp4-009-P",
@@ -34664,7 +34856,8 @@
                     "deck_top": 1
                 }
             ],
-            "subunit": "QU4RTZ"
+            "subunit": "QU4RTZ",
+            "text_es": "[Live Start] Si el costo total de los Miembros en tu Escenario es menor que el de tu oponente, roba 2 cartas y coloca 1 carta de tu mano en la parte superior de tu mazo."
         },
         {
             "card_no": "PL!N-bp4-009-R",
@@ -34705,7 +34898,8 @@
                     "deck_top": 1
                 }
             ],
-            "subunit": "QU4RTZ"
+            "subunit": "QU4RTZ",
+            "text_es": "[Live Start] Si el costo total de los Miembros en tu Escenario es menor que el de tu oponente, roba 2 cartas y coloca 1 carta de tu mano en la parte superior de tu mazo."
         },
         {
             "card_no": "PL!N-bp4-010-P",
@@ -34751,7 +34945,8 @@
                     ]
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[On Enter] Puedes colocar 1 carta Live de Nijigasaki de tu área de Live exitoso en la Sala de espera. Si lo haces, coloca 1 carta Live de Nijigasaki de tu Sala de espera en tu área de Live exitoso.\n[Live Start] Elige 1 carta Live de Nijigasaki en tu Live. Si hay una carta con el mismo nombre en tu área de Live exitoso, obtienes 4 corazones morados hasta que termine este Live."
         },
         {
             "card_no": "PL!N-bp4-010-P＋",
@@ -34797,7 +34992,8 @@
                     ]
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[On Enter] Puedes colocar 1 carta Live de Nijigasaki de tu área de Live exitoso en la Sala de espera. Si lo haces, coloca 1 carta Live de Nijigasaki de tu Sala de espera en tu área de Live exitoso.\n[Live Start] Elige 1 carta Live de Nijigasaki en tu Live. Si hay una carta con el mismo nombre en tu área de Live exitoso, obtienes 4 corazones morados hasta que termine este Live."
         },
         {
             "card_no": "PL!N-bp4-010-R＋",
@@ -34843,7 +35039,8 @@
                     ]
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[On Enter] Puedes colocar 1 carta Live de Nijigasaki de tu área de Live exitoso en la Sala de espera. Si lo haces, coloca 1 carta Live de Nijigasaki de tu Sala de espera en tu área de Live exitoso.\n[Live Start] Elige 1 carta Live de Nijigasaki en tu Live. Si hay una carta con el mismo nombre en tu área de Live exitoso, obtienes 4 corazones morados hasta que termine este Live."
         },
         {
             "card_no": "PL!N-bp4-010-SEC",
@@ -34889,7 +35086,8 @@
                     ]
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[On Enter] Puedes colocar 1 carta Live de Nijigasaki de tu área de Live exitoso en la Sala de espera. Si lo haces, coloca 1 carta Live de Nijigasaki de tu Sala de espera en tu área de Live exitoso.\n[Live Start] Elige 1 carta Live de Nijigasaki en tu Live. Si hay una carta con el mismo nombre en tu área de Live exitoso, obtienes 4 corazones morados hasta que termine este Live."
         },
         {
             "card_no": "PL!N-bp4-011-P",
@@ -34946,7 +35144,8 @@
                     "min_distinct": 3
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[Live Start] Puedes colocar 1 carta Live de tu mano en la Sala de espera: elige un color de corazón. Hasta que termine este Live, obtienes 1 corazón de ese color.\n[Live Success] Coloca las 5 cartas superiores de tu mazo en la Sala de espera. Luego, si tienes 3 o más cartas Live de Nijigasaki con nombres distintos en tu Sala de espera, añade 1 carta Live de Nijigasaki de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!N-bp4-011-P＋",
@@ -35003,7 +35202,8 @@
                     "min_distinct": 3
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[Live Start] Puedes colocar 1 carta Live de tu mano en la Sala de espera: elige un color de corazón. Hasta que termine este Live, obtienes 1 corazón de ese color.\n[Live Success] Coloca las 5 cartas superiores de tu mazo en la Sala de espera. Luego, si tienes 3 o más cartas Live de Nijigasaki con nombres distintos en tu Sala de espera, añade 1 carta Live de Nijigasaki de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!N-bp4-011-R＋",
@@ -35060,7 +35260,8 @@
                     "min_distinct": 3
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[Live Start] Puedes colocar 1 carta Live de tu mano en la Sala de espera: elige un color de corazón. Hasta que termine este Live, obtienes 1 corazón de ese color.\n[Live Success] Coloca las 5 cartas superiores de tu mazo en la Sala de espera. Luego, si tienes 3 o más cartas Live de Nijigasaki con nombres distintos en tu Sala de espera, añade 1 carta Live de Nijigasaki de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!N-bp4-011-SEC",
@@ -35117,7 +35318,8 @@
                     "min_distinct": 3
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[Live Start] Puedes colocar 1 carta Live de tu mano en la Sala de espera: elige un color de corazón. Hasta que termine este Live, obtienes 1 corazón de ese color.\n[Live Success] Coloca las 5 cartas superiores de tu mazo en la Sala de espera. Luego, si tienes 3 o más cartas Live de Nijigasaki con nombres distintos en tu Sala de espera, añade 1 carta Live de Nijigasaki de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!N-bp4-012-P",
@@ -35160,7 +35362,8 @@
                     "amount": 1
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[Always] Mientras la puntuación total de las cartas en el área de Live exitoso de tu oponente sea 6 o más, tu puntuación total de Live +1."
         },
         {
             "card_no": "PL!N-bp4-012-R",
@@ -35203,7 +35406,8 @@
                     "amount": 1
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[Always] Mientras la puntuación total de las cartas en el área de Live exitoso de tu oponente sea 6 o más, tu puntuación total de Live +1."
         },
         {
             "card_no": "PL!N-bp4-013-N",
@@ -35243,7 +35447,8 @@
                     }
                 }
             ],
-            "subunit": "A・ZU・NA"
+            "subunit": "A・ZU・NA",
+            "text_es": "[Live Start] Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade."
         },
         {
             "card_no": "PL!N-bp4-014-N",
@@ -35335,7 +35540,8 @@
                     "look": 2
                 }
             ],
-            "subunit": "DiverDiva"
+            "subunit": "DiverDiva",
+            "text_es": "[On Enter] Puedes colocar este Miembro en Wait: mira las 2 cartas superiores de tu mazo. Puedes colocar cualquier cantidad de ellas en la parte superior de tu mazo en cualquier orden y colocar el resto en la Sala de espera.\n(Los corazones en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!N-bp4-017-N",
@@ -35368,7 +35574,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "DiverDiva"
+            "subunit": "DiverDiva",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta de Miembro de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!N-bp4-018-N",
@@ -35402,7 +35609,8 @@
                     "once_per_turn": true
                 }
             ],
-            "subunit": "QU4RTZ"
+            "subunit": "QU4RTZ",
+            "text_es": "[Auto] [Once per turn] Durante tu Fase principal, cuando este Miembro cambia de Activo a Wait, roba 1 carta y coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!N-bp4-019-N",
@@ -35472,7 +35680,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "QU4RTZ"
+            "subunit": "QU4RTZ",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta de Miembro de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!N-bp4-021-N",
@@ -35510,7 +35719,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "QU4RTZ"
+            "subunit": "QU4RTZ",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu Sala de espera en la parte superior de tu mazo."
         },
         {
             "card_no": "PL!N-bp4-022-N",
@@ -35583,7 +35793,8 @@
                     "discard": 1
                 }
             ],
-            "subunit": "R3BIRTH"
+            "subunit": "R3BIRTH",
+            "text_es": "[On Enter] Puedes colocar 1 Miembro de Nijigasaki en Wait: roba 1 carta y coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!N-bp4-024-N",
@@ -35670,7 +35881,8 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Hasta que termine este Live, todos los corazones de Blade revelados para Yell de tus cartas pasan a ser corazones de Blade azules.\n[Live Success] Si los Miembros de Nijigasaki revelados para Yell tienen los seis colores de corazón entre ellos, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!N-bp4-026-L",
@@ -35730,7 +35942,8 @@
                     "color": "any",
                     "count": 5
                 }
-            ]
+            ],
+            "text_es": "[Auto] Cuando esta carta se añade a tu mano desde tu Sala de espera durante tu Fase principal, puedes colocar 1 carta Live llamada \"DIVE!\" de tu mano boca arriba en tu almacenamiento de cartas Live. Si lo haces, tu máximo de colocación de cartas Live durante tu próxima Fase de colocación de cartas Live se reduce en 1.\n[Auto] Cuando esta carta se coloca boca arriba en el almacenamiento de cartas Live, hasta que termine este Live, 1 Miembro de Nijigasaki en tu Escenario obtiene +2 Blade."
         },
         {
             "card_no": "PL!N-bp4-027-L",
@@ -35785,7 +35998,8 @@
                     "color": "any",
                     "count": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Por cada carta llamada \"EMOTION\" en tu área de Live exitoso, la puntuación de esta carta +2 y los corazones requeridos aumentan en 3 Corazones grises."
         },
         {
             "card_no": "PL!N-bp4-028-L",
@@ -35841,7 +36055,8 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes 4 o más cartas Live de Nijigasaki con nombres distintos en tu Sala de espera, la puntuación de esta carta +1. Si tienes 6 o más en su lugar, la puntuación de esta carta +2."
         },
         {
             "card_no": "PL!N-bp4-029-L",
@@ -35888,7 +36103,8 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] En el turno 1 de esta partida, la puntuación de esta carta +1 y 1 Miembro de Nijigasaki en tu Escenario obtiene +1 Blade hasta que termine este Live."
         },
         {
             "card_no": "PL!N-bp4-030-L",
@@ -35940,7 +36156,8 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Elige una: coloca 1 Energía de tu mazo de Energía en Wait, o añade 1 carta de Miembro de tu Sala de espera a tu mano. Si tienes una carta de Nijigasaki en tu área de Live exitoso, puedes elegir ambas en su lugar."
         },
         {
             "card_no": "PL!N-bp4-031-L",
@@ -36025,7 +36242,8 @@
                     "color": "any",
                     "count": 12
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si cada área del Escenario tiene un Miembro de Nijigasaki y su costo total es 20 o más, roba 3 cartas y coloca 3 cartas de tu mano en la parte superior de tu mazo en cualquier orden."
         },
         {
             "card_no": "PL!N-bp4-032-L",
@@ -45600,7 +45818,8 @@
                     "amount": 3
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[Always] Si no tienes cartas en tu área de Live exitoso y tu oponente tiene 1 o más cartas en su área de Live exitoso, obtienes +3 Blade."
         },
         {
             "card_no": "PL!S-bp2-001-R",
@@ -45639,7 +45858,8 @@
                     "amount": 3
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[Always] Si no tienes cartas en tu área de Live exitoso y tu oponente tiene 1 o más cartas en su área de Live exitoso, obtienes +3 Blade."
         },
         {
             "card_no": "PL!S-bp2-002-P",
@@ -45675,7 +45895,8 @@
                     }
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[Auto] Cuando este Miembro se coloca del Escenario en la Sala de espera, puedes colocar 1 carta de tu mano en la Sala de espera. Si lo haces, añade 1 carta Live de Aqours de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!S-bp2-002-R",
@@ -45711,7 +45932,8 @@
                     }
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[Auto] Cuando este Miembro se coloca del Escenario en la Sala de espera, puedes colocar 1 carta de tu mano en la Sala de espera. Si lo haces, añade 1 carta Live de Aqours de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!S-bp2-003-P",
@@ -45751,7 +45973,8 @@
                     "once_per_turn": true
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Auto] [Once per turn] Cuando las cartas reveladas para Yell incluyen 1 o más cartas Live, hasta que termine este Live, obtienes 1 corazón verde."
         },
         {
             "card_no": "PL!S-bp2-003-R",
@@ -45791,7 +46014,8 @@
                     "once_per_turn": true
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Auto] [Once per turn] Cuando las cartas reveladas para Yell incluyen 1 o más cartas Live, hasta que termine este Live, obtienes 1 corazón verde."
         },
         {
             "card_no": "PL!S-bp2-004-P",
@@ -45829,7 +46053,8 @@
                     "once_per_turn": true
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Auto] [Once per turn] Cuando las cartas reveladas para Yell no incluyen cartas Live, puedes colocar todas esas cartas en la Sala de espera. Si se colocó 1 o más cartas en la Sala de espera de esta forma, pierdes los corazones de Blade obtenidos de ese Yell y realizas Yell de nuevo."
         },
         {
             "card_no": "PL!S-bp2-004-R",
@@ -45867,7 +46092,8 @@
                     "once_per_turn": true
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Auto] [Once per turn] Cuando las cartas reveladas para Yell no incluyen cartas Live, puedes colocar todas esas cartas en la Sala de espera. Si se colocó 1 o más cartas en la Sala de espera de esta forma, pierdes los corazones de Blade obtenidos de ese Yell y realizas Yell de nuevo."
         },
         {
             "card_no": "PL!S-bp2-005-P",
@@ -45919,7 +46145,8 @@
                     }
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 7 cartas superiores de tu mazo. Puedes revelar hasta 3 cartas de Miembro con corazones rojos, verdes o azules y añadirlas a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp2-005-P＋",
@@ -45971,7 +46198,8 @@
                     }
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 7 cartas superiores de tu mazo. Puedes revelar hasta 3 cartas de Miembro con corazones rojos, verdes o azules y añadirlas a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp2-005-R＋",
@@ -46023,7 +46251,8 @@
                     }
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 7 cartas superiores de tu mazo. Puedes revelar hasta 3 cartas de Miembro con corazones rojos, verdes o azules y añadirlas a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp2-005-SEC",
@@ -46075,7 +46304,8 @@
                     }
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 7 cartas superiores de tu mazo. Puedes revelar hasta 3 cartas de Miembro con corazones rojos, verdes o azules y añadirlas a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp2-006-P",
@@ -46121,7 +46351,8 @@
                     }
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[On Enter] Puedes pagar 4 Energía: coloca hasta 2 cartas de Miembro de tu Sala de espera en tu Escenario con costo combinado 4 o menos."
         },
         {
             "card_no": "PL!S-bp2-006-R",
@@ -46167,7 +46398,8 @@
                     }
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[On Enter] Puedes pagar 4 Energía: coloca hasta 2 cartas de Miembro de tu Sala de espera en tu Escenario con costo combinado 4 o menos."
         },
         {
             "card_no": "PL!S-bp2-007-P",
@@ -46205,7 +46437,8 @@
                     "look": 2
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Auto] [Once per turn] Cuando las cartas reveladas para Yell incluyen 1 o más cartas Live, si tienes 7 cartas o menos en la mano, roba 1 carta.\n[Live Start] Puedes revelar 1 carta Live de tu mano y colocarla en la parte inferior de tu mazo: mira las 2 cartas superiores de tu mazo. Puedes colocar cualquier cantidad de ellas en la parte superior de tu mazo en cualquier orden y colocar el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp2-007-P＋",
@@ -46243,7 +46476,8 @@
                     "look": 2
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Auto] [Once per turn] Cuando las cartas reveladas para Yell incluyen 1 o más cartas Live, si tienes 7 cartas o menos en la mano, roba 1 carta.\n[Live Start] Puedes revelar 1 carta Live de tu mano y colocarla en la parte inferior de tu mazo: mira las 2 cartas superiores de tu mazo. Puedes colocar cualquier cantidad de ellas en la parte superior de tu mazo en cualquier orden y colocar el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp2-007-R＋",
@@ -46281,7 +46515,8 @@
                     "look": 2
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Auto] [Once per turn] Cuando las cartas reveladas para Yell incluyen 1 o más cartas Live, si tienes 7 cartas o menos en la mano, roba 1 carta.\n[Live Start] Puedes revelar 1 carta Live de tu mano y colocarla en la parte inferior de tu mazo: mira las 2 cartas superiores de tu mazo. Puedes colocar cualquier cantidad de ellas en la parte superior de tu mazo en cualquier orden y colocar el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp2-007-SEC",
@@ -46319,7 +46554,8 @@
                     "look": 2
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Auto] [Once per turn] Cuando las cartas reveladas para Yell incluyen 1 o más cartas Live, si tienes 7 cartas o menos en la mano, roba 1 carta.\n[Live Start] Puedes revelar 1 carta Live de tu mano y colocarla en la parte inferior de tu mazo: mira las 2 cartas superiores de tu mazo. Puedes colocar cualquier cantidad de ellas en la parte superior de tu mazo en cualquier orden y colocar el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp2-008-P",
@@ -46367,7 +46603,8 @@
                     "tier2_amount": 2
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[On Enter] Coloca hasta 1 carta Live de tu Sala de espera en la parte inferior de tu mazo.\n[Always] Si cada área de tu Escenario tiene un Miembro de Aqours y todos sus nombres son distintos, obtienes \"[Live Success] Si las cartas reveladas para Yell incluyen 1 o más cartas Live, la puntuación total de este Live +1. Si incluyen 3 o más cartas Live, +2 en su lugar.\""
         },
         {
             "card_no": "PL!S-bp2-008-P＋",
@@ -46415,7 +46652,8 @@
                     "tier2_amount": 2
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[On Enter] Coloca hasta 1 carta Live de tu Sala de espera en la parte inferior de tu mazo.\n[Always] Si cada área de tu Escenario tiene un Miembro de Aqours y todos sus nombres son distintos, obtienes \"[Live Success] Si las cartas reveladas para Yell incluyen 1 o más cartas Live, la puntuación total de este Live +1. Si incluyen 3 o más cartas Live, +2 en su lugar.\""
         },
         {
             "card_no": "PL!S-bp2-008-R＋",
@@ -46463,7 +46701,8 @@
                     "tier2_amount": 2
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[On Enter] Coloca hasta 1 carta Live de tu Sala de espera en la parte inferior de tu mazo.\n[Always] Si cada área de tu Escenario tiene un Miembro de Aqours y todos sus nombres son distintos, obtienes \"[Live Success] Si las cartas reveladas para Yell incluyen 1 o más cartas Live, la puntuación total de este Live +1. Si incluyen 3 o más cartas Live, +2 en su lugar.\""
         },
         {
             "card_no": "PL!S-bp2-008-SEC",
@@ -46511,7 +46750,8 @@
                     "tier2_amount": 2
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[On Enter] Coloca hasta 1 carta Live de tu Sala de espera en la parte inferior de tu mazo.\n[Always] Si cada área de tu Escenario tiene un Miembro de Aqours y todos sus nombres son distintos, obtienes \"[Live Success] Si las cartas reveladas para Yell incluyen 1 o más cartas Live, la puntuación total de este Live +1. Si incluyen 3 o más cartas Live, +2 en su lugar.\""
         },
         {
             "card_no": "PL!S-bp2-009-P",
@@ -46544,7 +46784,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!S-bp2-009-R",
@@ -46577,7 +46818,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!S-bp2-010-N",
@@ -46618,7 +46860,8 @@
                     "discard": 2
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[On Enter] Roba 2 cartas y luego coloca 2 cartas de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp2-011-N",
@@ -46831,7 +47074,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta de Miembro de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!S-bp2-017-N",
@@ -47047,7 +47291,8 @@
                     "color": "any",
                     "count": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Coloca hasta 1 carta Live revelada para Yell en la parte inferior de tu mazo."
         },
         {
             "card_no": "PL!S-bp2-022-L",
@@ -47109,7 +47354,8 @@
                 }
             ],
             "special_heart": "icon_draw.png",
-            "yell_draw_icon": true
+            "yell_draw_icon": true,
+            "text_es": "[Live Success] Si reciclaste tu mazo este turno, la puntuación de esta carta +2."
         },
         {
             "card_no": "PL!S-bp2-023-L",
@@ -47156,7 +47402,8 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes una carta Live de Aqours en tu área Live distinta de \"MY Mai☆TONIGHT\", hasta que termine este Live, los Miembros en tu Escenario obtienen +1 Blade."
         },
         {
             "card_no": "PL!S-bp2-024-L",
@@ -47205,7 +47452,8 @@
                 }
             ],
             "special_heart": "icon_score.png",
-            "yell_score_icon": true
+            "yell_score_icon": true,
+            "text_es": "Esta carta no puede colocarse en el área de Live exitoso.\n[Live Success] Roba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp2-024-SECL",
@@ -47252,7 +47500,8 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "Esta carta no puede colocarse en el área de Live exitoso.\n[Live Success] Roba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp2-025-L",
@@ -47314,7 +47563,8 @@
                 }
             ],
             "special_heart": "icon_score.png",
-            "yell_score_icon": true
+            "yell_score_icon": true,
+            "text_es": "[Live Start] Si tienes 2 o más cartas en tu área de Live exitoso, hasta que termine este Live, 1 Miembro en tu Escenario obtiene +2 Blade."
         },
         {
             "card_no": "PL!S-bp2-026-L",
@@ -47601,7 +47851,8 @@
                     "amount": 1
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[Activated] [Once per turn] [Center] Coloca 1 Miembro en Wait: hasta que termine este Live, ese Miembro obtiene \"[Always] +1 puntuación total de Live.\" (Esta habilidad solo puede activarse desde el área Centro.)"
         },
         {
             "card_no": "PL!S-bp3-001-P＋",
@@ -47643,7 +47894,8 @@
                     "amount": 1
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[Activated] [Once per turn] [Center] Coloca 1 Miembro en Wait: hasta que termine este Live, ese Miembro obtiene \"[Always] +1 puntuación total de Live.\" (Esta habilidad solo puede activarse desde el área Centro.)"
         },
         {
             "card_no": "PL!S-bp3-001-R＋",
@@ -47685,7 +47937,8 @@
                     "amount": 1
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[Activated] [Once per turn] [Center] Coloca 1 Miembro en Wait: hasta que termine este Live, ese Miembro obtiene \"[Always] +1 puntuación total de Live.\" (Esta habilidad solo puede activarse desde el área Centro.)"
         },
         {
             "card_no": "PL!S-bp3-001-SEC",
@@ -47727,7 +47980,8 @@
                     "amount": 1
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[Activated] [Once per turn] [Center] Coloca 1 Miembro en Wait: hasta que termine este Live, ese Miembro obtiene \"[Always] +1 puntuación total de Live.\" (Esta habilidad solo puede activarse desde el área Centro.)"
         },
         {
             "card_no": "PL!S-bp3-002-P",
@@ -47764,7 +48018,8 @@
                     "type": "add_self_to_hand_if_winning_yell"
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[Live Success] Si tu puntuación total de Live es mayor que la de tu oponente, puedes añadir esta carta a tu mano. (Esta habilidad solo se activa cuando esta carta es revelada por Yell.)"
         },
         {
             "card_no": "PL!S-bp3-002-R",
@@ -47801,7 +48056,8 @@
                     "type": "add_self_to_hand_if_winning_yell"
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[Live Success] Si tu puntuación total de Live es mayor que la de tu oponente, puedes añadir esta carta a tu mano. (Esta habilidad solo se activa cuando esta carta es revelada por Yell.)"
         },
         {
             "card_no": "PL!S-bp3-003-P",
@@ -47850,7 +48106,8 @@
                     "blade_per": 2
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[On Enter] Puedes colocar 1 carta Live de tu mano en la Sala de espera: roba 3 cartas.\n[Live Start] Puedes colocar hasta 2 cartas de tu mano en la Sala de espera: hasta que termine este Live, obtienes +2 Blade por cada carta colocada en la Sala de espera de esta forma."
         },
         {
             "card_no": "PL!S-bp3-003-P＋",
@@ -47899,7 +48156,8 @@
                     "blade_per": 2
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[On Enter] Puedes colocar 1 carta Live de tu mano en la Sala de espera: roba 3 cartas.\n[Live Start] Puedes colocar hasta 2 cartas de tu mano en la Sala de espera: hasta que termine este Live, obtienes +2 Blade por cada carta colocada en la Sala de espera de esta forma."
         },
         {
             "card_no": "PL!S-bp3-003-R＋",
@@ -47948,7 +48206,8 @@
                     "blade_per": 2
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[On Enter] Puedes colocar 1 carta Live de tu mano en la Sala de espera: roba 3 cartas.\n[Live Start] Puedes colocar hasta 2 cartas de tu mano en la Sala de espera: hasta que termine este Live, obtienes +2 Blade por cada carta colocada en la Sala de espera de esta forma."
         },
         {
             "card_no": "PL!S-bp3-003-SEC",
@@ -47997,7 +48256,8 @@
                     "blade_per": 2
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[On Enter] Puedes colocar 1 carta Live de tu mano en la Sala de espera: roba 3 cartas.\n[Live Start] Puedes colocar hasta 2 cartas de tu mano en la Sala de espera: hasta que termine este Live, obtienes +2 Blade por cada carta colocada en la Sala de espera de esta forma."
         },
         {
             "card_no": "PL!S-bp3-004-P",
@@ -48038,7 +48298,8 @@
                     }
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 4 cartas superiores de tu mazo. Puedes revelar 1 carta de Miembro y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp3-004-R",
@@ -48079,7 +48340,8 @@
                     }
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 4 cartas superiores de tu mazo. Puedes revelar 1 carta de Miembro y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp3-005-P",
@@ -48117,7 +48379,8 @@
                     "draw": 1
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[Auto] Cuando las cartas reveladas para Yell incluyen menos cartas tuyas que las de tu oponente, roba 1 carta."
         },
         {
             "card_no": "PL!S-bp3-005-R",
@@ -48155,7 +48418,8 @@
                     "draw": 1
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[Auto] Cuando las cartas reveladas para Yell incluyen menos cartas tuyas que las de tu oponente, roba 1 carta."
         },
         {
             "card_no": "PL!S-bp3-006-P",
@@ -48197,7 +48461,8 @@
                     "cost_bonus": 2
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[Activated] [Center] Coloca este Miembro en Wait y coloca 1 carta de tu mano en la Sala de espera: coloca 1 otro Miembro de Aqours de tu Escenario en la Sala de espera. Si lo haces, juega 1 Miembro de Aqours de tu Sala de espera con costo igual al costo de ese Miembro +2 en el área donde estaba ese Miembro."
         },
         {
             "card_no": "PL!S-bp3-006-P＋",
@@ -48239,7 +48504,8 @@
                     "cost_bonus": 2
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[Activated] [Center] Coloca este Miembro en Wait y coloca 1 carta de tu mano en la Sala de espera: coloca 1 otro Miembro de Aqours de tu Escenario en la Sala de espera. Si lo haces, juega 1 Miembro de Aqours de tu Sala de espera con costo igual al costo de ese Miembro +2 en el área donde estaba ese Miembro."
         },
         {
             "card_no": "PL!S-bp3-006-R＋",
@@ -48281,7 +48547,8 @@
                     "cost_bonus": 2
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[Activated] [Center] Coloca este Miembro en Wait y coloca 1 carta de tu mano en la Sala de espera: coloca 1 otro Miembro de Aqours de tu Escenario en la Sala de espera. Si lo haces, juega 1 Miembro de Aqours de tu Sala de espera con costo igual al costo de ese Miembro +2 en el área donde estaba ese Miembro."
         },
         {
             "card_no": "PL!S-bp3-006-SEC",
@@ -48323,7 +48590,8 @@
                     "cost_bonus": 2
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[Activated] [Center] Coloca este Miembro en Wait y coloca 1 carta de tu mano en la Sala de espera: coloca 1 otro Miembro de Aqours de tu Escenario en la Sala de espera. Si lo haces, juega 1 Miembro de Aqours de tu Sala de espera con costo igual al costo de ese Miembro +2 en el área donde estaba ese Miembro."
         },
         {
             "card_no": "PL!S-bp3-007-P",
@@ -48363,7 +48631,8 @@
                     "draw": 1
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Activated] [Once per turn] Paga 1 Energía: elige tú o tu oponente. Coloca 1 carta Live de la Sala de espera de ese jugador en la parte inferior de su mazo. Si lo haces, roba 1 carta."
         },
         {
             "card_no": "PL!S-bp3-007-R",
@@ -48403,7 +48672,8 @@
                     "draw": 1
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Activated] [Once per turn] Paga 1 Energía: elige tú o tu oponente. Coloca 1 carta Live de la Sala de espera de ese jugador en la parte inferior de su mazo. Si lo haces, roba 1 carta."
         },
         {
             "card_no": "PL!S-bp3-008-P",
@@ -48437,7 +48707,8 @@
                     "group": "Sunshine"
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano. Si es una carta Live de Aqours con puntuación 6 o más, activa 4 Energía."
         },
         {
             "card_no": "PL!S-bp3-008-R",
@@ -48471,7 +48742,8 @@
                     "group": "Sunshine"
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano. Si es una carta Live de Aqours con puntuación 6 o más, activa 4 Energía."
         },
         {
             "card_no": "PL!S-bp3-009-P",
@@ -48517,7 +48789,8 @@
                     }
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 6 cartas superiores de tu mazo. Puedes revelar 1 carta de Miembro de Aqours y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp3-009-R",
@@ -48563,7 +48836,8 @@
                     }
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[On Enter] Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 6 cartas superiores de tu mazo. Puedes revelar 1 carta de Miembro de Aqours y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!S-bp3-010-N",
@@ -48598,7 +48872,8 @@
                     "max": 1
                 }
             ],
-            "subunit": "CYaRon！"
+            "subunit": "CYaRon！",
+            "text_es": "[On Enter] Activa hasta 1 Miembro en tu Escenario."
         },
         {
             "card_no": "PL!S-bp3-011-N",
@@ -48633,7 +48908,8 @@
                     "max": 1
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[On Enter] Activa hasta 1 Miembro en tu Escenario."
         },
         {
             "card_no": "PL!S-bp3-012-N",
@@ -48664,7 +48940,8 @@
                     "pick_count": 1
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[On Enter] / [Live Start] Puedes colocar este Miembro en Wait: coloca 1 Miembro del Escenario del oponente con costo 4 o menos en Wait.\n(Los corazones en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!S-bp3-013-N",
@@ -48787,7 +49064,8 @@
                     "amount": 1
                 }
             ],
-            "subunit": "AZALEA"
+            "subunit": "AZALEA",
+            "text_es": "[Always] Mientras este Miembro esté en tu Escenario, el costo de este Miembro aumenta en 1 por cada carta en tu área de Live exitoso. (Esto no aplica mientras este Miembro esté en tu mano.)"
         },
         {
             "card_no": "PL!S-bp3-017-N",
@@ -48818,7 +49096,8 @@
                     "pick_count": 1
                 }
             ],
-            "subunit": "Guilty Kiss"
+            "subunit": "Guilty Kiss",
+            "text_es": "[On Enter] / [Live Start] Puedes colocar este Miembro en Wait: coloca 1 Miembro del Escenario del oponente con costo 4 o menos en Wait.\n(Los corazones en Miembros en Wait no aumentan las cartas reveladas para Yell.)"
         },
         {
             "card_no": "PL!S-bp3-018-N",
@@ -48904,7 +49183,8 @@
                     "color": "blue",
                     "count": 4
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Si no revelaste cartas sin corazón de Blade para Yell este turno, o tienes 2 o más corazones excedentes, la puntuación de esta carta pasa a ser 4."
         },
         {
             "card_no": "PL!S-bp3-020-L",
@@ -48955,7 +49235,8 @@
                     "color": "blue",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Auto] [Once per turn] Cuando revelas 1 o más cartas para Yell y hay 2 o menos cartas con corazones de Blade entre ellas, puedes colocar todas esas cartas en la Sala de espera. Si lo haces, pierdes los corazones de Blade obtenidos de ese Yell y realizas Yell de nuevo."
         },
         {
             "card_no": "PL!S-bp3-021-L",
@@ -49017,7 +49298,8 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Puedes colocar 1 carta de Miembro de tu Sala de espera en la parte superior de tu mazo. Si lo haces, hasta que termine este Live, 1 Miembro en tu Escenario obtiene +1 Blade."
         },
         {
             "card_no": "PL!S-bp3-022-L",
@@ -49162,7 +49444,8 @@
                     "color": "any",
                     "count": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes un Miembro de Aqours con costo 9 o más en tu área Centro, elige una: hasta que termine este Live, 1 Miembro en tu Escenario obtiene +2 Blade, o coloca 1 Miembro del Escenario del oponente con costo 4 o menos en Wait."
         },
         {
             "card_no": "PL!S-bp3-025-L",
@@ -49216,7 +49499,8 @@
                     "color": "any",
                     "count": 6
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Elige 1 Miembro de Aqours en tu Escenario. Si ese Miembro tiene 6 o más Blade, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!S-bp3-026-SECE",
@@ -60142,7 +60426,8 @@
             "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-P.png",
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!SP-bp2-001-P＋",
@@ -60175,7 +60460,8 @@
             "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-P2.png",
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!SP-bp2-001-R＋",
@@ -60208,7 +60494,8 @@
             "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-R2.png",
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!SP-bp2-001-SEC",
@@ -60241,7 +60528,8 @@
             "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-SEC.png",
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!SP-bp2-002-P",
@@ -60266,7 +60554,8 @@
             "text": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "text_jp": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-002-P.png",
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "Mira las 3 cartas superiores de tu mazo. Puedes revelar 1 carta con costo 11 o más y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp2-002-R",
@@ -60291,7 +60580,8 @@
             "text": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "text_jp": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-002-R.png",
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "Mira las 3 cartas superiores de tu mazo. Puedes revelar 1 carta con costo 11 o más y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp2-003-P",
@@ -60318,7 +60608,8 @@
             "text": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
             "text_jp": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-003-P.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Cuando este Miembro se mueve a un área distinta, coloca 1 carta de Energía de tu mazo de Energía en Wait."
         },
         {
             "card_no": "PL!SP-bp2-003-R",
@@ -60345,7 +60636,8 @@
             "text": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
             "text_jp": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-003-R.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Cuando este Miembro se mueve a un área distinta, coloca 1 carta de Energía de tu mazo de Energía en Wait."
         },
         {
             "card_no": "PL!SP-bp2-004-P",
@@ -60376,7 +60668,8 @@
             "text": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
             "text_jp": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-004-P.png",
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "Mientras el Miembro en tu área Centro tenga el costo más alto entre los Miembros en tu Escenario, obtienes 1 corazón amarillo."
         },
         {
             "card_no": "PL!SP-bp2-004-R",
@@ -60407,7 +60700,8 @@
             "text": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
             "text_jp": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-004-R.png",
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "Mientras el Miembro en tu área Centro tenga el costo más alto entre los Miembros en tu Escenario, obtienes 1 corazón amarillo."
         },
         {
             "card_no": "PL!SP-bp2-005-P",
@@ -60432,7 +60726,8 @@
             "text": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "text_jp": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-005-P.png",
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "Puedes pagar 1 Energía: mira las 7 cartas superiores de tu mazo. Puedes revelar 1 carta de Liella! y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp2-005-R",
@@ -60457,7 +60752,8 @@
             "text": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "text_jp": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-005-R.png",
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "Puedes pagar 1 Energía: mira las 7 cartas superiores de tu mazo. Puedes revelar 1 carta de Liella! y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp2-006-P",
@@ -60488,7 +60784,8 @@
             "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-P.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)"
         },
         {
             "card_no": "PL!SP-bp2-006-P＋",
@@ -60519,7 +60816,8 @@
             "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-P2.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)"
         },
         {
             "card_no": "PL!SP-bp2-006-R＋",
@@ -60550,7 +60848,8 @@
             "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-R2.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)"
         },
         {
             "card_no": "PL!SP-bp2-006-SEC",
@@ -60581,7 +60880,8 @@
             "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-SEC.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)"
         },
         {
             "card_no": "PL!SP-bp2-007-P",
@@ -60608,7 +60908,8 @@
             "text": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "text_jp": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-007-P.png",
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 5 cartas superiores de tu mazo. Puedes revelar 1 Miembro de Liella! y añadirlo a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp2-007-R",
@@ -60635,7 +60936,8 @@
             "text": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "text_jp": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-007-R.png",
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 5 cartas superiores de tu mazo. Puedes revelar 1 Miembro de Liella! y añadirlo a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp2-008-P",
@@ -60666,7 +60968,8 @@
             "text": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
             "text_jp": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-008-P.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Elige 1 de tus áreas distinta del área de este Miembro. Mueve este Miembro a esa área. Si hay un Miembro en esa área, mueve ese Miembro al área donde estaba este Miembro."
         },
         {
             "card_no": "PL!SP-bp2-008-R",
@@ -60697,7 +61000,8 @@
             "text": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
             "text_jp": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-008-R.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Elige 1 de tus áreas distinta del área de este Miembro. Mueve este Miembro a esa área. Si hay un Miembro en esa área, mueve ese Miembro al área donde estaba este Miembro."
         },
         {
             "card_no": "PL!SP-bp2-009-P",
@@ -60730,7 +61034,8 @@
             "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-P.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp2-009-P＋",
@@ -60763,7 +61068,8 @@
             "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-P2.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp2-009-R＋",
@@ -60796,7 +61102,8 @@
             "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-R2.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp2-009-SEC",
@@ -60829,7 +61136,8 @@
             "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-SEC.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp2-010-P",
@@ -60860,7 +61168,8 @@
             "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-P.png",
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8."
         },
         {
             "card_no": "PL!SP-bp2-010-P＋",
@@ -60891,7 +61200,8 @@
             "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-P2.png",
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8."
         },
         {
             "card_no": "PL!SP-bp2-010-R＋",
@@ -60922,7 +61232,8 @@
             "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-R2.png",
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8."
         },
         {
             "card_no": "PL!SP-bp2-010-SEC",
@@ -60953,7 +61264,8 @@
             "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-SEC.png",
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8."
         },
         {
             "card_no": "PL!SP-bp2-011-P",
@@ -60986,7 +61298,8 @@
             "text": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
             "text_jp": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-011-P.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Elige 2 cartas Live con nombres distintos de tu Sala de espera. Tu oponente elige 1 de ellas; añade la carta elegida a tu mano."
         },
         {
             "card_no": "PL!SP-bp2-011-R",
@@ -61019,7 +61332,8 @@
             "text": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
             "text_jp": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-011-R.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Elige 2 cartas Live con nombres distintos de tu Sala de espera. Tu oponente elige 1 de ellas; añade la carta elegida a tu mano."
         },
         {
             "card_no": "PL!SP-bp2-012-N",
@@ -61075,7 +61389,8 @@
             "text": "自分の控え室からカードを1枚までデッキの一番上に置く。",
             "text_jp": "自分の控え室からカードを1枚までデッキの一番上に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-013-N.png",
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "Puedes colocar 1 carta de tu Sala de espera en la parte superior de tu mazo."
         },
         {
             "card_no": "PL!SP-bp2-014-N",
@@ -61106,7 +61421,8 @@
             "text": "自分の控え室からカードを1枚までデッキの一番上に置く。",
             "text_jp": "自分の控え室からカードを1枚までデッキの一番上に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-014-N.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Puedes colocar 1 carta de tu Sala de espera en la parte superior de tu mazo."
         },
         {
             "card_no": "PL!SP-bp2-015-N",
@@ -61133,7 +61449,8 @@
             "text": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
             "text_jp": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-015-N.png",
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "Cuando las cartas reveladas para Yell no incluyen cartas con corazón de Blade, hasta que termine este Live, obtienes 1 corazón morado."
         },
         {
             "card_no": "PL!SP-bp2-016-N",
@@ -61214,7 +61531,8 @@
             "text": "自分の控え室からカードを1枚までデッキの一番上に置く。",
             "text_jp": "自分の控え室からカードを1枚までデッキの一番上に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-018-N.png",
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "Puedes colocar 1 carta de tu Sala de espera en la parte superior de tu mazo."
         },
         {
             "card_no": "PL!SP-bp2-019-N",
@@ -61242,7 +61560,8 @@
             "text": "支払ってもよい：ライブ終了時まで、を得る。",
             "text_jp": "支払ってもよい：ライブ終了時まで、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-019-N.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade."
         },
         {
             "card_no": "PL!SP-bp2-020-N",
@@ -61269,7 +61588,8 @@
             "text": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
             "text_jp": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-020-N.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Cuando las cartas reveladas para Yell no incluyen cartas con corazón de Blade, hasta que termine este Live, obtienes 1 corazón morado."
         },
         {
             "card_no": "PL!SP-bp2-021-N",
@@ -61296,7 +61616,8 @@
             "text": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
             "text_jp": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-021-N.png",
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "Cuando las cartas reveladas para Yell no incluyen cartas con corazón de Blade, hasta que termine este Live, obtienes 1 corazón morado."
         },
         {
             "card_no": "PL!SP-bp2-022-N",
@@ -61324,7 +61645,8 @@
             "text": "支払ってもよい：ライブ終了時まで、を得る。",
             "text_jp": "支払ってもよい：ライブ終了時まで、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-022-N.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade."
         },
         {
             "card_no": "PL!SP-bp2-023-L",
@@ -61384,7 +61706,8 @@
                 }
             ],
             "special_heart": "icon_score.png",
-            "yell_score_icon": true
+            "yell_score_icon": true,
+            "text_es": "[Live Start] Si tienes menos cartas en tu área de Live exitoso que tu oponente, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!SP-bp2-023-SRL",
@@ -61442,7 +61765,8 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes menos cartas en tu área de Live exitoso que tu oponente, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!SP-bp2-024-L",
@@ -61505,7 +61829,8 @@
             ],
             "special_heart": "icon_draw.png",
             "yell_draw_icon": true,
-            "loveca_point": 1
+            "loveca_point": 1,
+            "text_es": "[Live Success] Si tienes más cartas en la mano que tu oponente, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!SP-bp2-024-SECL",
@@ -61566,7 +61891,8 @@
                     "count": 6
                 }
             ],
-            "loveca_point": 1
+            "loveca_point": 1,
+            "text_es": "[Live Success] Si tienes más cartas en la mano que tu oponente, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!SP-bp2-024-SRL",
@@ -61627,7 +61953,8 @@
                     "count": 6
                 }
             ],
-            "loveca_point": 1
+            "loveca_point": 1,
+            "text_es": "[Live Success] Si tienes más cartas en la mano que tu oponente, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!SP-bp2-025-L",
@@ -61690,7 +62017,8 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Si tienes 2 o más Miembros con nombres distintos entre \"Kanon Shibuya\", \"Wien Margarete\" y \"Tomari Onitsuka\" en tu Escenario, añade 1 carta revelada por Yell a tu mano."
         },
         {
             "card_no": "PL!SP-bp2-025-SRL",
@@ -61753,7 +62081,8 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Si tienes 2 o más Miembros con nombres distintos entre \"Kanon Shibuya\", \"Wien Margarete\" y \"Tomari Onitsuka\" en tu Escenario, añade 1 carta revelada por Yell a tu mano."
         },
         {
             "card_no": "PL!SP-bp2-026-L",
@@ -62187,7 +62516,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "[On Enter] Si todos los Miembros en tu Escenario son de Liella! y tienes 7 o más Energía, coloca 1 carta de Energía de tu mazo de Energía en Wait."
         },
         {
             "card_no": "PL!SP-bp4-001-R",
@@ -62221,7 +62551,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "[On Enter] Si todos los Miembros en tu Escenario son de Liella! y tienes 7 o más Energía, coloca 1 carta de Energía de tu mazo de Energía en Wait."
         },
         {
             "card_no": "PL!SP-bp4-002-P",
@@ -62257,7 +62588,8 @@
                     "pick": 1
                 }
             ],
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "[On Enter] Puedes colocar este Miembro en Wait: mira las 4 cartas superiores de tu mazo. Puedes revelar 1 carta Live de Liella! cuyos corazones requeridos sumen 8 o más y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp4-002-R",
@@ -62293,7 +62625,8 @@
                     "pick": 1
                 }
             ],
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "[On Enter] Puedes colocar este Miembro en Wait: mira las 4 cartas superiores de tu mazo. Puedes revelar 1 carta Live de Liella! cuyos corazones requeridos sumen 8 o más y añadirla a tu mano. Coloca el resto en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp4-003-P",
@@ -62343,7 +62676,8 @@
                     "amount": 2
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[On Enter] [Left Side] [Right Side] Roba 2 cartas y coloca 2 cartas de tu mano en la Sala de espera. (Esta habilidad solo se activa si este Miembro entró en el área del lado izquierdo o del lado derecho.)\n[Always] [Center] Obtienes +2 Blade."
         },
         {
             "card_no": "PL!SP-bp4-003-R",
@@ -62393,7 +62727,8 @@
                     "amount": 2
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[On Enter] [Left Side] [Right Side] Roba 2 cartas y coloca 2 cartas de tu mano en la Sala de espera. (Esta habilidad solo se activa si este Miembro entró en el área del lado izquierdo o del lado derecho.)\n[Always] [Center] Obtienes +2 Blade."
         },
         {
             "card_no": "PL!SP-bp4-004-P",
@@ -62438,7 +62773,8 @@
                     "max_cost": 4
                 }
             ],
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "[Always] Al jugar esta carta, puedes hacer Baton Touch con 2 Miembros.\n[On Enter] Si entraste mediante Baton Touch desde 2 Miembros de Liella!, roba 2 cartas y coloca 1 carta de Miembro de Liella! con costo 4 o menos de tu Sala de espera en un área vacía de tu Escenario."
         },
         {
             "card_no": "PL!SP-bp4-004-P＋",
@@ -62483,7 +62819,8 @@
                     "max_cost": 4
                 }
             ],
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "[Always] Al jugar esta carta, puedes hacer Baton Touch con 2 Miembros.\n[On Enter] Si entraste mediante Baton Touch desde 2 Miembros de Liella!, roba 2 cartas y coloca 1 carta de Miembro de Liella! con costo 4 o menos de tu Sala de espera en un área vacía de tu Escenario."
         },
         {
             "card_no": "PL!SP-bp4-004-R＋",
@@ -62528,7 +62865,8 @@
                     "max_cost": 4
                 }
             ],
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "[Always] Al jugar esta carta, puedes hacer Baton Touch con 2 Miembros.\n[On Enter] Si entraste mediante Baton Touch desde 2 Miembros de Liella!, roba 2 cartas y coloca 1 carta de Miembro de Liella! con costo 4 o menos de tu Sala de espera en un área vacía de tu Escenario."
         },
         {
             "card_no": "PL!SP-bp4-004-SEC",
@@ -62573,7 +62911,8 @@
                     "max_cost": 4
                 }
             ],
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "[Always] Al jugar esta carta, puedes hacer Baton Touch con 2 Miembros.\n[On Enter] Si entraste mediante Baton Touch desde 2 Miembros de Liella!, roba 2 cartas y coloca 1 carta de Miembro de Liella! con costo 4 o menos de tu Sala de espera en un área vacía de tu Escenario."
         },
         {
             "card_no": "PL!SP-bp4-005-P",
@@ -62621,7 +62960,8 @@
                     "blade": 3
                 }
             ],
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "[On Enter] Si entraste mediante Baton Touch desde un Miembro de Liella! y tienes 7 o más Energía, coloca 2 cartas de Energía de tu mazo de Energía en Wait.\n[Always] Mientras tengas 10 o más Energía, obtienes +3 Blade."
         },
         {
             "card_no": "PL!SP-bp4-005-P＋",
@@ -62669,7 +63009,8 @@
                     "blade": 3
                 }
             ],
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "[On Enter] Si entraste mediante Baton Touch desde un Miembro de Liella! y tienes 7 o más Energía, coloca 2 cartas de Energía de tu mazo de Energía en Wait.\n[Always] Mientras tengas 10 o más Energía, obtienes +3 Blade."
         },
         {
             "card_no": "PL!SP-bp4-005-R＋",
@@ -62717,7 +63058,8 @@
                     "blade": 3
                 }
             ],
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "[On Enter] Si entraste mediante Baton Touch desde un Miembro de Liella! y tienes 7 o más Energía, coloca 2 cartas de Energía de tu mazo de Energía en Wait.\n[Always] Mientras tengas 10 o más Energía, obtienes +3 Blade."
         },
         {
             "card_no": "PL!SP-bp4-005-SEC",
@@ -62765,7 +63107,8 @@
                     "blade": 3
                 }
             ],
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "[On Enter] Si entraste mediante Baton Touch desde un Miembro de Liella! y tienes 7 o más Energía, coloca 2 cartas de Energía de tu mazo de Energía en Wait.\n[Always] Mientras tengas 10 o más Energía, obtienes +3 Blade."
         },
         {
             "card_no": "PL!SP-bp4-006-P",
@@ -62806,7 +63149,8 @@
                     "min_distinct_yell_members": 3
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Live Success] Si las cartas reveladas para Yell incluyen 3 o más cartas de Miembro de Liella! con nombres distintos, añade 1 carta Live de Liella! revelada por Yell a tu mano."
         },
         {
             "card_no": "PL!SP-bp4-006-R",
@@ -62847,7 +63191,8 @@
                     "min_distinct_yell_members": 3
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Live Success] Si las cartas reveladas para Yell incluyen 3 o más cartas de Miembro de Liella! con nombres distintos, añade 1 carta Live de Liella! revelada por Yell a tu mano."
         },
         {
             "card_no": "PL!SP-bp4-007-P",
@@ -62889,7 +63234,8 @@
                     "once_per_turn": true
                 }
             ],
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "[Auto] [Once per turn] Cuando este Miembro se mueve a un área distinta, añade 1 carta Live de Liella! con puntuación 3 o menos de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!SP-bp4-007-R",
@@ -62931,7 +63277,8 @@
                     "once_per_turn": true
                 }
             ],
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "[Auto] [Once per turn] Cuando este Miembro se mueve a un área distinta, añade 1 carta Live de Liella! con puntuación 3 o menos de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!SP-bp4-008-P",
@@ -62993,7 +63340,8 @@
                     "type": "optional_swap_area_on_enter"
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[On Enter] [Left Side] Roba 2 cartas y coloca 1 carta de tu mano en la Sala de espera.\n[On Enter] [Right Side] Activa 2 Energía.\n[Live Start] Puedes cambiar la posición de este Miembro (intercámbialo con el Miembro en el área de destino, si lo hay)."
         },
         {
             "card_no": "PL!SP-bp4-008-P＋",
@@ -63055,7 +63403,8 @@
                     "type": "optional_swap_area_on_enter"
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[On Enter] [Left Side] Roba 2 cartas y coloca 1 carta de tu mano en la Sala de espera.\n[On Enter] [Right Side] Activa 2 Energía.\n[Live Start] Puedes cambiar la posición de este Miembro (intercámbialo con el Miembro en el área de destino, si lo hay)."
         },
         {
             "card_no": "PL!SP-bp4-008-R＋",
@@ -63117,7 +63466,8 @@
                     "type": "optional_swap_area_on_enter"
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[On Enter] [Left Side] Roba 2 cartas y coloca 1 carta de tu mano en la Sala de espera.\n[On Enter] [Right Side] Activa 2 Energía.\n[Live Start] Puedes cambiar la posición de este Miembro (intercámbialo con el Miembro en el área de destino, si lo hay)."
         },
         {
             "card_no": "PL!SP-bp4-008-SEC",
@@ -63179,7 +63529,8 @@
                     "type": "optional_swap_area_on_enter"
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[On Enter] [Left Side] Roba 2 cartas y coloca 1 carta de tu mano en la Sala de espera.\n[On Enter] [Right Side] Activa 2 Energía.\n[Live Start] Puedes cambiar la posición de este Miembro (intercámbialo con el Miembro en el área de destino, si lo hay)."
         },
         {
             "card_no": "PL!SP-bp4-009-P",
@@ -63217,7 +63568,8 @@
                     "amount": 3
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Always] Mientras el costo total de los Miembros en tu Escenario sea menor que el de tu oponente, obtienes +3 Blade."
         },
         {
             "card_no": "PL!SP-bp4-009-R",
@@ -63255,7 +63607,8 @@
                     "amount": 3
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Always] Mientras el costo total de los Miembros en tu Escenario sea menor que el de tu oponente, obtienes +3 Blade."
         },
         {
             "card_no": "PL!SP-bp4-010-P",
@@ -63291,7 +63644,8 @@
                     "energy_cost": 1
                 }
             ],
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "[Activated] [Once per turn] Paga 1 Energía: coloca este Miembro en Wait y coloca 1 carta de Energía de tu mazo de Energía en Wait."
         },
         {
             "card_no": "PL!SP-bp4-010-R",
@@ -63327,7 +63681,8 @@
                     "energy_cost": 1
                 }
             ],
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "[Activated] [Once per turn] Paga 1 Energía: coloca este Miembro en Wait y coloca 1 carta de Energía de tu mazo de Energía en Wait."
         },
         {
             "card_no": "PL!SP-bp4-011-P",
@@ -63366,7 +63721,8 @@
                     "pick_count": 1
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Automatic] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos corazones impresos en Wait."
         },
         {
             "card_no": "PL!SP-bp4-011-P＋",
@@ -63405,7 +63761,8 @@
                     "pick_count": 1
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Automatic] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos corazones impresos en Wait."
         },
         {
             "card_no": "PL!SP-bp4-011-R＋",
@@ -63444,7 +63801,8 @@
                     "pick_count": 1
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Automatic] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos corazones impresos en Wait."
         },
         {
             "card_no": "PL!SP-bp4-011-SEC",
@@ -63483,7 +63841,8 @@
                     "pick_count": 1
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Automatic] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos corazones impresos en Wait."
         },
         {
             "card_no": "PL!SP-bp4-012-N",
@@ -63524,7 +63883,8 @@
                     }
                 }
             ],
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "[Live Start] Puedes pagar 1 Energía: hasta que termine este Live, obtienes 1 corazón rojo."
         },
         {
             "card_no": "PL!SP-bp4-013-N",
@@ -63555,7 +63915,8 @@
                     "type": "optional_swap_area_on_enter"
                 }
             ],
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "[On Enter] Puedes cambiar la posición de este Miembro (intercámbialo con el Miembro en el área de destino, si lo hay)."
         },
         {
             "card_no": "PL!SP-bp4-014-N",
@@ -63615,7 +63976,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta de Miembro de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!SP-bp4-016-N",
@@ -63658,7 +64020,8 @@
                     ]
                 }
             ],
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "[Auto] Siempre que una carta de Energía se coloca en tu zona de Energía por un efecto de carta, hasta que termine este Live, obtienes 1 corazón morado. (Los efectos de cartas del oponente también activan esto.)"
         },
         {
             "card_no": "PL!SP-bp4-017-N",
@@ -63689,7 +64052,8 @@
                     "amount": 2
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Live Start] [Left Side] Si este Miembro se movió este turno, hasta que termine este Live, obtienes +2 Blade. (Esta habilidad solo aplica mientras este Miembro esté en el área del lado izquierdo.)"
         },
         {
             "card_no": "PL!SP-bp4-018-N",
@@ -63723,7 +64087,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta de Liella! de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!SP-bp4-019-N",
@@ -63756,7 +64121,8 @@
                     "count": 1
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Activated] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta de Miembro de tu Sala de espera a tu mano."
         },
         {
             "card_no": "PL!SP-bp4-020-N",
@@ -63787,7 +64153,8 @@
                     "amount": 2
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Live Start] [Right Side] Si este Miembro se movió este turno, hasta que termine este Live, obtienes +2 Blade. (Esta habilidad solo aplica mientras este Miembro esté en el área del lado derecho.)"
         },
         {
             "card_no": "PL!SP-bp4-021-N",
@@ -63832,7 +64199,8 @@
                     ]
                 }
             ],
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "text_es": "[Always] Mientras tengas más Energía que tu oponente, obtienes 1 corazón morado."
         },
         {
             "card_no": "PL!SP-bp4-022-N",
@@ -63874,7 +64242,8 @@
                     }
                 }
             ],
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "text_es": "[Live Start] Puedes pagar hasta 2 Energía: hasta que termine este Live, obtienes +1 Blade por cada Energía pagada de esta forma."
         },
         {
             "card_no": "PL!SP-bp4-023-L",
@@ -63927,7 +64296,8 @@
                     "color": "any",
                     "count": 8
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Elige 1 de \"Kanon Shibuya\", \"Wien Margarete\" o \"Tomari Onitsuka\" en tu Escenario y 1 otro Miembro de Liella! en tu Escenario. Esos Miembros obtienen +1 Blade hasta que termine este Live.\n[Live Start] Hasta que termine este Live, los corazones de Blade rosa, rojo, amarillo, verde y azul revelados para Yell pasan a ser corazones de Blade morados."
         },
         {
             "card_no": "PL!SP-bp4-023-SRL",
@@ -63980,7 +64350,8 @@
                     "color": "any",
                     "count": 8
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Elige 1 de \"Kanon Shibuya\", \"Wien Margarete\" o \"Tomari Onitsuka\" en tu Escenario y 1 otro Miembro de Liella! en tu Escenario. Esos Miembros obtienen +1 Blade hasta que termine este Live.\n[Live Start] Hasta que termine este Live, los corazones de Blade rosa, rojo, amarillo, verde y azul revelados para Yell pasan a ser corazones de Blade morados."
         },
         {
             "card_no": "PL!SP-bp4-024-L",
@@ -64042,7 +64413,8 @@
                     "color": "any",
                     "count": 7
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si el Miembro de Liella! en tu área Centro tiene costo mayor que el Miembro Centro de tu oponente, la puntuación de esta carta +1.\n[Live Start] Si un Miembro de Liella! en tu área del lado izquierdo tiene 3 o más corazones rojos, ese Miembro obtiene +2 Blade hasta que termine este Live."
         },
         {
             "card_no": "PL!SP-bp4-024-SECL",
@@ -64104,7 +64476,8 @@
                     "color": "any",
                     "count": 7
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si el Miembro de Liella! en tu área Centro tiene costo mayor que el Miembro Centro de tu oponente, la puntuación de esta carta +1.\n[Live Start] Si un Miembro de Liella! en tu área del lado izquierdo tiene 3 o más corazones rojos, ese Miembro obtiene +2 Blade hasta que termine este Live."
         },
         {
             "card_no": "PL!SP-bp4-024-SRL",
@@ -64166,7 +64539,8 @@
                     "color": "any",
                     "count": 7
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si el Miembro de Liella! en tu área Centro tiene costo mayor que el Miembro Centro de tu oponente, la puntuación de esta carta +1.\n[Live Start] Si un Miembro de Liella! en tu área del lado izquierdo tiene 3 o más corazones rojos, ese Miembro obtiene +2 Blade hasta que termine este Live."
         },
         {
             "card_no": "PL!SP-bp4-025-L",
@@ -64207,7 +64581,8 @@
                     "color": "any",
                     "count": 7
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Hasta que termine este Live, los Miembros de Liella! en tu área Centro tienen 3 Blade impresos.\n[Live Success] Si un Miembro de Liella! en tu área Centro se movió este turno, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!SP-bp4-025-SRL",
@@ -64248,7 +64623,8 @@
                     "color": "any",
                     "count": 7
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Hasta que termine este Live, los Miembros de Liella! en tu área Centro tienen 3 Blade impresos.\n[Live Success] Si un Miembro de Liella! en tu área Centro se movió este turno, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!SP-bp4-026-L",
@@ -64315,7 +64691,8 @@
                     "color": "any",
                     "count": 6
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Si las cartas reveladas para Yell incluyen 5 o más cartas de Miembro de Liella! con nombres distintos, la puntuación de esta carta +1.\n[Live Success] Si tienes 11 o más Energía, roba 2 cartas y coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp4-026-SRL",
@@ -64382,7 +64759,8 @@
                     "color": "any",
                     "count": 6
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Si las cartas reveladas para Yell incluyen 5 o más cartas de Miembro de Liella! con nombres distintos, la puntuación de esta carta +1.\n[Live Success] Si tienes 11 o más Energía, roba 2 cartas y coloca 1 carta de tu mano en la Sala de espera."
         },
         {
             "card_no": "PL!SP-bp4-027-L",
@@ -64424,7 +64802,8 @@
                     "color": "any",
                     "count": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Si todos los Miembros en tu Escenario son de Liella!, puedes cambiar la formación de tus Miembros del Escenario (mueve cada uno a cualquier área; ninguna área puede tener 2 Miembros)."
         },
         {
             "card_no": "PL!SP-bp4-027-SRL",
@@ -64466,7 +64845,8 @@
                     "color": "any",
                     "count": 2
                 }
-            ]
+            ],
+            "text_es": "[Live Success] Si todos los Miembros en tu Escenario son de Liella!, puedes cambiar la formación de tus Miembros del Escenario (mueve cada uno a cualquier área; ninguna área puede tener 2 Miembros)."
         },
         {
             "card_no": "PL!SP-bp4-028-L",
@@ -64518,7 +64898,8 @@
                     "color": "any",
                     "count": 7
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes 1 o más Energía activa, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!SP-bp4-028-SRL",
@@ -64570,7 +64951,8 @@
                     "color": "any",
                     "count": 7
                 }
-            ]
+            ],
+            "text_es": "[Live Start] Si tienes 1 o más Energía activa, la puntuación de esta carta +1."
         },
         {
             "card_no": "PL!SP-bp4-029-L",
