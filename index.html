@@ -7032,7 +7032,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=5"></script>
 <script src="client/js/replay-debug.js?v=4"></script>
 <script src="client/js/prompt-renderer.js?v=10"></script>
-<script src="client/js/tutorial-interactive.js?v=4"></script>
+<script src="client/js/tutorial-interactive.js?v=5"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -8522,6 +8522,7 @@ function prepareClientReconnectState(s) {
   G.coinFlipAckSent = false;
   G._coinFlipAnimComplete = false;
   G._cpuCoinFlipChooseKey = null;
+  G._tutCoinFlipAnimKey = null;
   G._prevLogLen = (s?.log || []).length;
   G.lastSeq = s?.seq ?? 0;
   restorePerfSpectacleDoneKey();
@@ -12348,6 +12349,7 @@ function resetMatchTransientState() {
   G.mulliganPending = false;
   G.coinFlipAckSent = false;
   G._coinFlipAnimComplete = false;
+  G._tutCoinFlipAnimKey = null;
   G.isTutorial = false;
   G.tutorialLive = false;
   G.tutorialHoldCpu = false;
@@ -15031,6 +15033,7 @@ let G = {
   coinFlipSeq:null,
   coinFlipAckSent:false,
   _coinFlipAnimComplete:false,
+  _tutCoinFlipAnimKey:null,
   _coinFlipTimer:null,
   _coinFlipLoserDismissTimer:null,
   _cpuCoinFlipChooseKey:null,
@@ -34494,6 +34497,7 @@ function resetCoinFlipPresentation() {
   G.coinFlipAckSent = false;
   G._coinFlipAckLastTry = 0;
   G._cpuCoinFlipChooseKey = null;
+  G._tutCoinFlipAnimKey = null;
   hideCoinChoiceButtons();
   el('overlay-coin')?.classList.remove('open');
 }
@@ -34517,6 +34521,15 @@ function syncCoinFlipChoiceUi(s, myId) {
 
   hideCoinChoiceButtons();
   clearCoinFlipLoserDismissTimer();
+
+  // Tutorial "watch the flip" step: show result only — choice comes on the next step.
+  if (G.tutorialLive && tutorialLiveStepId() === 'coin') {
+    el('coin-msg').textContent = t('coin.wonFlip', { name: winName });
+    el('coin-result').textContent = winner === myId ? t('coin.youWon') : t('coin.winnerChoosing');
+    openM('overlay-coin');
+    updatePhaseTimerUI(s);
+    return;
+  }
 
   if (!coinFlipBothReady(s)) {
     el('coin-msg').textContent = winner === myId
@@ -34606,6 +34619,9 @@ function finishCoinFlipAnimation(s, myId) {
   syncCoinFlipChoiceUi(G.gameState || s, myId);
   if (!G.animating) flushPendingState();
   scheduleCpuCoinFlipAfterAnim();
+  if (G.tutorialLive && tutorialLiveStepId() === 'coin' && typeof TutorialInteractive?.checkGoalNow === 'function') {
+    TutorialInteractive.checkGoalNow();
+  }
 }
 
 function scheduleCpuCoinFlipAfterAnim() {
@@ -34685,6 +34701,29 @@ function maybeShowCoinFlip(s, myId) {
 
   const flip = s.coin_flip;
   const flipKey = `${G.roomId || 'game'}:${flip.winner || ''}`;
+  const tutFlipKey = `tut-coin:${G.roomId || 'game'}:${flip.winner || ''}`;
+  const tutStep = tutorialLiveStepId();
+
+  if (G.tutorialLive && tutStep === 'coin') {
+    if (!G._coinFlipAnimComplete) hideCoinChoiceButtons();
+    if (G._tutCoinFlipAnimKey === tutFlipKey && G._coinFlipAnimComplete) {
+      syncCoinFlipChoiceUi(s, myId);
+      if (typeof TutorialInteractive?.checkGoalNow === 'function') TutorialInteractive.checkGoalNow();
+      return;
+    }
+    if (G.coinFlipSeq !== tutFlipKey) {
+      G._tutCoinFlipAnimKey = tutFlipKey;
+      startCoinFlipAnimation(s, myId, tutFlipKey);
+    }
+    return;
+  }
+
+  if (G.tutorialLive && tutStep === 'choose_first') {
+    if (!G._coinFlipAnimComplete) G._coinFlipAnimComplete = true;
+    ensureCoinFlipAcked(s, myId);
+    syncCoinFlipChoiceUi(s, myId);
+    return;
+  }
 
   if (!G._coinFlipAnimComplete) hideCoinChoiceButtons();
 
@@ -36296,6 +36335,9 @@ function renderTutorialStep(idx, opts = {}) {
           armWatchdog(G.gameState);
         }
       }
+    }
+    if (G.tutorialLive && step?.goal && typeof TutorialInteractive?.checkGoalNow === 'function') {
+      TutorialInteractive.checkGoalNow();
     }
   }
   if (opts.textOnly) return;

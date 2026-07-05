@@ -213,6 +213,7 @@
       }
       G().tutorialStep = nextIdx;
       renderCurrentStep();
+      checkGoalNow();
     } finally {
       G().tutorialAdvancing = false;
       syncStepUi();
@@ -234,6 +235,11 @@
     if (!isLive()) return;
     syncStepUi();
     void onGoalMaybeMet(s, prev);
+  }
+
+  function checkGoalNow() {
+    if (!isLive() || G().tutorialAdvancing) return;
+    void onGoalMaybeMet(G().gameState, G().gameState);
   }
 
   function deckPayload(orderKey, deckKey) {
@@ -353,6 +359,7 @@
     tutBlocks,
     handCardAllowed,
     onStateApplied,
+    checkGoalNow,
     tutorialNav,
     exitTutorial,
     isLive,
