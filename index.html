@@ -402,8 +402,17 @@ body.tutorial-live-mode #phase-action-bar .btn-phase-primary.tut-locked{
 body.tutorial-live-mode #overlay-mull .btn-grad{opacity:1;pointer-events:auto}
 body.tutorial-live-mode #overlay-mull:not(.tut-mull-readonly) .mullcard{pointer-events:auto;cursor:pointer}
 body.tutorial-live-mode #overlay-coin{pointer-events:auto}
+/* Live tutorial: Kanon bubble stays readable but never covers game modals (coin, mulligan, prompts). */
+body.tutorial-live-mode #overlay-tutorial,
+body.tutorial-live-mode #overlay-tutorial.open{z-index:8200}
+body.tutorial-live-mode #overlay-coin.open,
+body.tutorial-live-mode #overlay-mull.open,
+body.tutorial-live-mode #overlay-prompt.open,
+body.tutorial-live-mode #overlay-pick.open,
+body.tutorial-live-mode #overlay-hand-pick.open,
+body.tutorial-live-mode #overlay-live.open{z-index:8800!important}
 body.tutorial-live-coin #overlay-coin,
-body.tutorial-live-mulligan #overlay-mull{z-index:8300}
+body.tutorial-live-mulligan #overlay-mull{z-index:8800}
 body.tutorial-live-coin #tutorial-spotlight,
 body.tutorial-live-coin #tutorial-spotlight.show,
 body.tutorial-live-mulligan #tutorial-spotlight,
@@ -411,7 +420,7 @@ body.tutorial-live-mulligan #tutorial-spotlight.show{pointer-events:none!importa
 body.tutorial-live-coin #overlay-tutorial,
 body.tutorial-live-coin #overlay-tutorial.open,
 body.tutorial-live-mulligan #overlay-tutorial,
-body.tutorial-live-mulligan #overlay-tutorial.open{z-index:8600}
+body.tutorial-live-mulligan #overlay-tutorial.open{pointer-events:auto}
 body.tutorial-live-coin #overlay-coin,
 body.tutorial-live-coin #overlay-coin *,
 body.tutorial-live-mulligan #overlay-mull,
@@ -34620,6 +34629,7 @@ function syncTutorialLivePresentation(s, myId) {
   document.body.classList.toggle('tutorial-live-coin', coinActive);
   document.body.classList.toggle('tutorial-live-mulligan', id === 'mulligan');
   if (!coinActive) el('overlay-coin')?.classList.remove('open');
+  requestAnimationFrame(() => repositionTutorialBubbleForLiveModal());
 }
 
 function ensureCoinFlipAcked(s, myId) {
@@ -35438,6 +35448,12 @@ const TUTORIAL_TARGETS = {
   'game-stage': () => el('game-stage'),
   'opp-stage': () => el('opp-stage'),
   'mulligan-overlay': () => el('overlay-mull')?.querySelector('.mbox'),
+  'overlay-coin': () => el('overlay-coin')?.classList.contains('open')
+    ? (el('overlay-coin')?.querySelector('.mbox') || el('overlay-coin'))
+    : null,
+  'overlay-mull': () => el('overlay-mull')?.classList.contains('open')
+    ? (el('overlay-mull')?.querySelector('.mbox') || el('overlay-mull'))
+    : null,
 };
 
 function tutorialLiveSlotNode(target) {
@@ -35506,6 +35522,61 @@ function tutorialBubbleOverlapsFocus(bubble, focus, gap) {
     bubble.top + bubble.height + gap <= focus.top ||
     focus.top + focus.height + gap <= bubble.top
   );
+}
+
+const TUTORIAL_MODAL_AVOID_IDS = [
+  'overlay-coin', 'overlay-mull', 'overlay-prompt', 'overlay-pick', 'overlay-hand-pick', 'overlay-live',
+];
+
+function tutorialOpenGameModalRects() {
+  const rects = [];
+  for (const id of TUTORIAL_MODAL_AVOID_IDS) {
+    const ovl = el(id);
+    if (!ovl?.classList.contains('open')) continue;
+    const box = ovl.querySelector('.mbox') || ovl;
+    const r = box.getBoundingClientRect();
+    if (r.width < 2 || r.height < 2) continue;
+    rects.push({
+      left: r.left - 16,
+      top: r.top - 16,
+      width: r.width + 32,
+      height: r.height + 32,
+    });
+  }
+  return rects;
+}
+
+function tutorialBubbleOverlapsAny(bubble, rects, gap = 10) {
+  return (rects || []).some(r => tutorialBubbleOverlapsFocus(bubble, r, gap));
+}
+
+function positionTutorialBubbleAwayFromModals(overlay, bar, opts, modalRects) {
+  const { bubbleW, bubbleH, margin, gap, vh, vw } = opts;
+  const avoid = modalRects || tutorialOpenGameModalRects();
+  if (!avoid.length) return false;
+  const spots = [
+    { left: margin, top: vh - bubbleH - margin, placement: 'none' },
+    { left: margin, top: margin, placement: 'none' },
+    { left: vw - bubbleW - margin, top: vh - bubbleH - margin, placement: 'none' },
+    { left: vw - bubbleW - margin, top: margin, placement: 'none' },
+    { left: margin, top: (vh - bubbleH) / 2, placement: 'none' },
+    { left: vw - bubbleW - margin, top: (vh - bubbleH) / 2, placement: 'none' },
+  ];
+  for (const s of spots) {
+    const bubble = { left: s.left, top: s.top, width: bubbleW, height: bubbleH };
+    if (!tutorialBubbleOverlapsAny(bubble, avoid, 12)) {
+      finishTutorialBubblePlacement(overlay, bar, s.left, s.top, s.placement, opts, {});
+      return true;
+    }
+  }
+  return false;
+}
+
+function repositionTutorialBubbleForLiveModal() {
+  if (!G.tutorialLive || !G.isTutorial) return;
+  const step = G.tutorialData?.steps?.[G.tutorialStep];
+  if (!step) return;
+  positionTutorialBubble(tutorialSpotlightHighlights(step));
 }
 
 function tutorialBubbleFocusRect(highlights) {
@@ -35763,11 +35834,11 @@ function positionTutorialBubbleOverlayAnchor(overlay, bar, anchorId, tutStep, op
       left = anchorRect.left - bubbleW - gap;
       top = anchorRect.top;
     } else if (p === 'right') {
-      left = anchorRect.right + gap;
+      left = anchorRect.left + anchorRect.width + gap;
       top = anchorRect.top;
     } else if (p === 'bottom') {
       left = anchorRect.left + anchorRect.width / 2 - bubbleW / 2;
-      top = anchorRect.bottom + gap;
+      top = anchorRect.top + anchorRect.height + gap;
     } else {
       left = anchorRect.left + anchorRect.width / 2 - bubbleW / 2;
       top = anchorRect.top - bubbleH - gap;
@@ -35790,6 +35861,9 @@ function positionTutorialBubbleOverlayAnchor(overlay, bar, anchorId, tutStep, op
         ? Math.max(24, Math.min(bubbleH - 24, anchorMidY - s.top)) : null,
     });
     return true;
+  }
+  if (G.tutorialLive && tutorialOpenGameModalRects().length) {
+    return positionTutorialBubbleAwayFromModals(overlay, bar, opts);
   }
   return positionTutorialBubblePlaymatLeft(overlay, bar, opts);
 }
@@ -35882,6 +35956,10 @@ function positionTutorialBubble(highlights) {
     overlay.style.width = Math.min(vw - 32, Math.max(bubbleW, 560)) + 'px';
     ({ bubbleW, bubbleH } = layoutBubble());
   }
+  const modalAvoid = G.tutorialLive ? tutorialOpenGameModalRects() : [];
+  if (modalAvoid.length) {
+    if (positionTutorialBubbleAwayFromModals(overlay, bar, { bubbleW, bubbleH, margin, gap, vh, vw }, modalAvoid)) return;
+  }
   const cx = focus ? focus.left + focus.width / 2 : vw / 2;
   const cy = focus ? focus.top + focus.height / 2 : vh * 0.72;
   const candidates = focus
@@ -35911,16 +35989,18 @@ function positionTutorialBubble(highlights) {
     const bubble = { left: x, top: y, width: bubbleW, height: bubbleH };
     const overlap = tutorialBubbleOverlapsFocus(bubble, focus, 8);
     const deckOverlap = deckAvoid && tutorialBubbleOverlapsFocus(bubble, deckAvoid, 0);
+    const modalOverlap = G.tutorialLive && tutorialBubbleOverlapsAny(bubble, modalAvoid, 12);
     const dist = Math.hypot(
       x + bubbleW / 2 - cx,
       y + bubbleH / 2 - cy,
     );
-    return { p, x, y, overlap, deckOverlap, dist };
+    return { p, x, y, overlap, deckOverlap, modalOverlap, dist };
   };
   let best = null;
   const bubbleAnchor = G.isTutorial ? tutorialStepBubbleAnchor(tutStep) : null;
   if (bubbleAnchor) {
-    if (bubbleAnchor === 'overlay-prompt' || bubbleAnchor === 'overlay-pick') {
+    if (bubbleAnchor === 'overlay-prompt' || bubbleAnchor === 'overlay-pick'
+        || bubbleAnchor === 'overlay-coin' || bubbleAnchor === 'overlay-mull') {
       if (positionTutorialBubbleOverlayAnchor(overlay, bar, bubbleAnchor, tutStep, { bubbleW, bubbleH, margin, gap, vh, vw })) return;
     }
     const anchorRect = tutorialTargetRect(bubbleAnchor);
@@ -36023,6 +36103,7 @@ function positionTutorialBubble(highlights) {
     for (const p of order) {
       const s = score(p);
       if (s.deckOverlap) continue;
+      if (s.modalOverlap) continue;
       if (!best || (!s.overlap && best.overlap) || (s.overlap === best.overlap && s.dist > best.dist)) best = s;
     }
   } else if (forcePerfYellLeft && focus) {
@@ -36030,13 +36111,13 @@ function positionTutorialBubble(highlights) {
   } else {
     for (const p of candidates) {
       const s = score(p);
-      if (s.overlap || s.deckOverlap) continue;
+      if (s.overlap || s.deckOverlap || s.modalOverlap) continue;
       if (!best || s.dist > best.dist) best = s;
     }
     if (!best && focus) {
       for (const p of candidates) {
         const s = score(p);
-        if (s.deckOverlap) continue;
+        if (s.deckOverlap || s.modalOverlap) continue;
         if (!best || s.dist > best.dist) best = s;
       }
     }
@@ -36053,6 +36134,8 @@ function positionTutorialBubble(highlights) {
     placement = best.p;
     left = best.x;
     top = best.y;
+  } else if (G.tutorialLive && modalAvoid.length) {
+    if (positionTutorialBubbleAwayFromModals(overlay, bar, { bubbleW, bubbleH, margin, gap, vh, vw }, modalAvoid)) return;
   } else if (!focus && G._perfSpectacleActive && tutStep?.spectacle) {
     if (positionTutorialBubblePerfNames(overlay, bar, { bubbleW, bubbleH, margin, gap, vh, vw })) return;
     if (positionTutorialBubblePlaymatLeft(overlay, bar, { bubbleW, bubbleH, margin, gap, vh })) return;
@@ -36063,6 +36146,12 @@ function positionTutorialBubble(highlights) {
     arrowY: (placement === 'left' || placement === 'right')
       ? Math.max(24, Math.min(bubbleH - 24, cy - top)) : null,
   });
+  if (G.tutorialLive && modalAvoid.length) {
+    const bubble = { left, top, width: bubbleW, height: bubbleH };
+    if (tutorialBubbleOverlapsAny(bubble, modalAvoid, 12)) {
+      positionTutorialBubbleAwayFromModals(overlay, bar, { bubbleW, bubbleH, margin, gap, vh, vw }, modalAvoid);
+    }
+  }
 }
 
 function renderTutorialSpotlight(highlights) {
@@ -37108,6 +37197,9 @@ function showScr(n){
 function openM(id){
   el(id).classList.add('open');
   bumpAntiSoftlockButton();
+  if (G.tutorialLive && TUTORIAL_MODAL_AVOID_IDS.includes(id)) {
+    requestAnimationFrame(() => repositionTutorialBubbleForLiveModal());
+  }
 }
 function closeM(id){
   el(id).classList.remove('open');
@@ -37117,6 +37209,9 @@ function closeM(id){
     G._modalCardRef = null;
   }
   bumpAntiSoftlockButton();
+  if (G.tutorialLive && TUTORIAL_MODAL_AVOID_IDS.includes(id)) {
+    requestAnimationFrame(() => repositionTutorialBubbleForLiveModal());
+  }
 }
 
 let _tt;
