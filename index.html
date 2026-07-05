@@ -417,6 +417,22 @@ body.tutorial-live-coin #overlay-coin *,
 body.tutorial-live-mulligan #overlay-mull,
 body.tutorial-live-mulligan #overlay-mull *{pointer-events:auto!important}
 body.tutorial-live-action .tut-btn-next{opacity:.35;pointer-events:none}
+/* Live tutorial action steps: board interaction, no spotlight click-capture */
+body.tutorial-live-mode.tutorial-live-action #tutorial-spotlight,
+body.tutorial-live-mode.tutorial-live-action #tutorial-spotlight.show{
+  pointer-events:none!important;opacity:0!important;visibility:hidden!important}
+body.tutorial-live-mode.tutorial-live-action #screen-game .playmat-column,
+body.tutorial-live-mode.tutorial-live-action #screen-game .hand-strip,
+body.tutorial-live-mode.tutorial-live-action #screen-game .hand-strip *,
+body.tutorial-live-mode.tutorial-live-action #screen-game #phase-action-bar,
+body.tutorial-live-mode.tutorial-live-action #screen-game #phase-action-bar *,
+body.tutorial-live-mode.tutorial-live-action #screen-game .card-hover-panel,
+body.tutorial-live-mode.tutorial-live-action #screen-game .card-hover-panel *{
+  pointer-events:auto!important}
+body.tutorial-live-mode.tutorial-live-action #screen-game .playmat-column.opp-playmat,
+body.tutorial-live-mode.tutorial-live-action #screen-game .opp-hand-zone,
+body.tutorial-live-mode.tutorial-live-action #screen-game .opp-hand-zone *{
+  pointer-events:none!important}
 body.tutorial-mode .side-log .sbfoot{pointer-events:none!important}
 body.tutorial-mode .side-log .sbfoot button{
   opacity:.72;cursor:not-allowed;transform:none!important;
@@ -5467,9 +5483,9 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   <div class="account-shell">
     <div class="logo-row">
       <div class="logo-row-side logo-row-side--left" aria-hidden="true"></div>
-      <div class="logo">
+    <div class="logo">
         <img class="logo-img" src="tcglogo.png" alt="">
-        <div class="logo-foot">
+      <div class="logo-foot">
           <span class="logo-version">v0.1.1</span>
           <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
           <div class="locale-wrap">
@@ -5817,10 +5833,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       </div>
       <div class="replay-import-box">
         <p class="account-lead" data-i18n="replay.importLead">Have an exported replay file? Import JSON here as a secondary option.</p>
-        <div class="field">
+      <div class="field">
           <label for="inp-replay-file" data-i18n="replay.fileLabel">Replay file</label>
-          <input type="file" id="inp-replay-file" accept=".json,application/json">
-        </div>
+        <input type="file" id="inp-replay-file" accept=".json,application/json">
+      </div>
         <div id="replay-file-meta" class="replay-file-meta" data-i18n="replay.noFileSelected">No file selected.</div>
         <button class="btn-grad" id="btn-debug-replay-start" type="button" disabled data-i18n="replay.startImported">Start imported replay</button>
       </div>
@@ -5854,9 +5870,9 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   <div class="account-shell">
     <div class="logo-row">
       <div class="logo-row-side logo-row-side--left" aria-hidden="true"></div>
-      <div class="logo">
-        <img class="logo-img" src="tcglogo.png" alt="">
-        <div class="logo-foot">
+    <div class="logo">
+      <img class="logo-img" src="tcglogo.png" alt="">
+      <div class="logo-foot">
           <span class="logo-version">v0.1.1</span>
           <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
         </div>
@@ -7032,7 +7048,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=5"></script>
 <script src="client/js/replay-debug.js?v=4"></script>
 <script src="client/js/prompt-renderer.js?v=10"></script>
-<script src="client/js/tutorial-interactive.js?v=5"></script>
+<script src="client/js/tutorial-interactive.js?v=6"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -11293,16 +11309,16 @@ async function saveDebugBundle() {
   let replay = null;
   let replayError = null;
   if (creds && !G.isTutorial && !G.replayMode) {
-    try {
-      const r = await apiPost('replay_export', {
+  try {
+    const r = await apiPost('replay_export', {
         room_id: creds.roomId,
         token: creds.token,
-        debug_mode: true,
-      });
+      debug_mode: true,
+    });
       if (r.error) replayError = r.error;
       else if (r.replay) replay = r.replay;
       else replayError = 'No replay payload';
-    } catch (e) {
+  } catch (e) {
       replayError = e.message || String(e);
     }
   } else if (!G.isTutorial && !G.replayMode) {
@@ -11689,10 +11705,10 @@ function applyReplayStateFromPoll(s) {
   if (!s) return;
   if (!G.replayHandoff) {
     if (s.replay) {
-      G.replayMode = true;
-      G.replayStep = s.replay.step ?? G.replayStep;
-      G.replayTotal = s.replay.total ?? G.replayTotal;
-      G.replayHandoff = !!s.replay.handoff;
+    G.replayMode = true;
+    G.replayStep = s.replay.step ?? G.replayStep;
+    G.replayTotal = s.replay.total ?? G.replayTotal;
+    G.replayHandoff = !!s.replay.handoff;
     } else if ((s.mode || '') === 'replay_view') {
       G.replayMode = true;
     }
@@ -14947,7 +14963,7 @@ function applyCardImageToImg(img, card, onFail, opts = {}) {
   if (remote) {
     img.dataset.imgSrc = 'remote';
     img.src = remote;
-    return true;
+  return true;
   }
   return false;
 }
@@ -15736,7 +15752,7 @@ window.G = G;
     const s = G.gameState;
     const myId = G.playerId;
     if (s?.phase === 'coin_flip' && s.coin_flip && !G._coinFlipAnimComplete) {
-      finishCoinFlipAnimation(s, myId);
+    finishCoinFlipAnimation(s, myId);
     }
     if (G.polling && G.roomId && G.token && !G.isTutorial) {
       const oppWait = el('opp-skill-wait')?.classList.contains('show');
@@ -18414,9 +18430,9 @@ function syncHandSelectionClasses(s, myId) {
     const tutPinned = G.isTutorial && iid === G.tutPreviewIid;
     d.classList.toggle('play-sel', !tutPinned && (G.selCard === iid || liveSelected));
     d.classList.toggle('hover-sel', G.hoverCardId === iid && !liveSelected);
-    d.classList.toggle('playable', card.card_type === 'メンバー' && isMe && isMain && effectiveCost(card, hand) <= ae);
-    applyCardFoilFx(d, card);
-  });
+  d.classList.toggle('playable', card.card_type === 'メンバー' && isMe && isMain && effectiveCost(card, hand) <= ae);
+  applyCardFoilFx(d, card);
+});
   if (livePick) layoutHandFan(el('hand-row'));
 }
 
@@ -19821,14 +19837,14 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
     if (!settled.pending_prompt) clearDeferredPromptState();
     applyTurnPrepEntriesToState(settled, settled, newEntries);
     if (!batchEmpty) {
-      if (prev && prev.phase !== settled.phase) {
+    if (prev && prev.phase !== settled.phase) {
         if (!livePlaybackBlocksMainPhaseUi(settled, prev) && !phaseBannerBlockedByLivePlacement(prev, settled)) {
-          if (leavingEmptyLivePipeline(prev, settled)) {
-            queueMainPhaseBannerAfterEmptyLiveSkip(settled, myId);
-          } else {
-            showPhaseTransitionBanner(settled, myId, prev);
-          }
+        if (leavingEmptyLivePipeline(prev, settled)) {
+          queueMainPhaseBannerAfterEmptyLiveSkip(settled, myId);
+        } else {
+          showPhaseTransitionBanner(settled, myId, prev);
         }
+      }
       }
     } else if (shouldPresentEmptyLiveRound(livePrev, settled)) {
       await presentLiveRound(livePrev, settled, myId, { newEntries, forceEmptyRound: true });
@@ -22399,7 +22415,7 @@ function cpuMain() {
   if (!s.pending_prompt) clearDeferredPromptState();
   if (s.debug_card_test && cpuTryDebugTestCard(s, cpu, ctx.tier, ctx.winPressure, ctx.read)) return;
   if (ctx.tier === 'easy') {
-    if (cpuPlayMemberFromHand(s, cpu, hand, ctx.tier, ctx.read)) return;
+  if (cpuPlayMemberFromHand(s, cpu, hand, ctx.tier, ctx.read)) return;
     cpuAct('end_main', {});
     return;
   }
@@ -24080,8 +24096,8 @@ function cpuResolvePromptSmart(s, cpu, pr, tier) {
       return true;
     }
     if (pr.step === 'pick_hand_live') {
-      const lives = hand.filter(c => c.card_type === 'ライブ').sort((a, b) => (b.score || 0) - (a.score || 0));
-      if (lives[0]) { cpuAct('resolve_prompt', { card_id: lives[0].instance_id }); return true; }
+    const lives = hand.filter(c => c.card_type === 'ライブ').sort((a, b) => (b.score || 0) - (a.score || 0));
+    if (lives[0]) { cpuAct('resolve_prompt', { card_id: lives[0].instance_id }); return true; }
       return true;
     }
     if (pr.step === 'pick_success_live') {
@@ -24404,8 +24420,8 @@ async function cpuAct(type,data) {
       TCG_DEBUG.warn('action', 'cpuAct failed', type, d.error);
       if (type === 'resolve_prompt' || type === 'anti_softlock_skip') {
         if (type === 'resolve_prompt' && /no pending prompt/i.test(d.error || '')) {
-          G._cpuResolveBusy = null;
-          G._cpuPromptScheduled = null;
+        G._cpuResolveBusy = null;
+        G._cpuPromptScheduled = null;
           cpuResetPromptRetry();
           clearStaleCpuPromptFromClient();
           if (G.polling) {
@@ -24431,21 +24447,21 @@ async function cpuAct(type,data) {
           cpuBlacklistAbility(data.card_id, data.ability_index);
         }
         if (/heart color/i.test(d.error || '')) {
-          G._cpuResolveBusy = null;
-          const live = G.gameState;
-          const cpu = live?.players?.p2;
-          const pr = live?.pending_prompt;
-          if (!pr && cpu && data?.card_id != null && data?.ability_index != null) {
-            const card = Object.values(cpu.stage || {}).find(m => m?.instance_id === data.card_id);
-            const ab = card?.abilities?.[data.ability_index];
-            if (ab?.type === 'wait_self_choose_heart') {
+        G._cpuResolveBusy = null;
+        const live = G.gameState;
+        const cpu = live?.players?.p2;
+        const pr = live?.pending_prompt;
+        if (!pr && cpu && data?.card_id != null && data?.ability_index != null) {
+          const card = Object.values(cpu.stage || {}).find(m => m?.instance_id === data.card_id);
+          const ab = card?.abilities?.[data.ability_index];
+          if (ab?.type === 'wait_self_choose_heart') {
               G._cpuActBusy = false;
               if (inflightKey && G._cpuActInflight === inflightKey) G._cpuActInflight = null;
-              cpuAct('activate_ability', {
-                ...data,
-                heart_choice: cpuPickHeartColor(ab.heart_choices, cpu),
-              });
-              return;
+            cpuAct('activate_ability', {
+              ...data,
+              heart_choice: cpuPickHeartColor(ab.heart_choices, cpu),
+            });
+            return;
             }
           }
         }
@@ -24480,9 +24496,9 @@ async function cpuAct(type,data) {
       cpuResetPromptRetry();
       if (typeof d.seq === 'number' && G.gameState && d.seq >= (G.gameState.seq ?? 0)) {
         if (type === 'anti_softlock_skip') {
-          G.gameState = { ...G.gameState, seq: d.seq, pending_prompt: null };
-          if (G.gameState.surveil_stash) delete G.gameState.surveil_stash;
-          purgeStalePendingStatesAfterCpuResolve(d.seq);
+        G.gameState = { ...G.gameState, seq: d.seq, pending_prompt: null };
+        if (G.gameState.surveil_stash) delete G.gameState.surveil_stash;
+        purgeStalePendingStatesAfterCpuResolve(d.seq);
         } else {
           G.gameState = { ...G.gameState, seq: d.seq };
         }
@@ -25577,22 +25593,22 @@ function renderGame(s, opts = {}) {
     const showCoin = !G.tutorialLive || tutStepId === 'coin' || tutStepId === 'choose_first';
     if (showCoin) maybeShowCoinFlip(s, myId);
     else el('overlay-coin')?.classList.remove('open');
-    if (s.phase === 'setup') {
+  if (s.phase === 'setup') {
       const showMull = !G.tutorialLive || tutStepId === 'mulligan';
-      if (me.ready_mulligan) {
-        G.mulliganPending = false;
-        el('overlay-mull').classList.remove('open');
-      } else if (G.mulliganPending) {
-        el('overlay-mull').classList.remove('open');
-      } else if (showMull) {
-        openMull(me.hand || []);
-      } else {
-        el('overlay-mull').classList.remove('open');
-      }
-    } else {
+    if (me.ready_mulligan) {
       G.mulliganPending = false;
       el('overlay-mull').classList.remove('open');
+    } else if (G.mulliganPending) {
+      el('overlay-mull').classList.remove('open');
+      } else if (showMull) {
+      openMull(me.hand || []);
+      } else {
+        el('overlay-mull').classList.remove('open');
     }
+  } else {
+    G.mulliganPending = false;
+    el('overlay-mull').classList.remove('open');
+  }
   } else {
     maybeShowTutorialFlowScreens(s, myId);
   }
@@ -27053,8 +27069,8 @@ function collectPerfRoundLiveCards(next, pid, prev = null, showTurn = null) {
   (next.players[pid].live_zone || []).forEach(add);
   // WR / success when this round's Live iids are known, or log confirms performance.
   if (okIds?.size) {
-    (next.players[pid].success_lives || []).forEach(add);
-    (next.players[pid].waiting_room || []).forEach(add);
+  (next.players[pid].success_lives || []).forEach(add);
+  (next.players[pid].waiting_room || []).forEach(add);
   } else {
     const performed = playerHadLivePerformanceForTurn(next, pid, turn);
     const logSuccess = perfLiveSuccessCountFromLog(next, pid, prev);
@@ -31428,7 +31444,7 @@ function estimateBatonWrEnergyActivation(me, occupant, incomingCard) {
 }
 function affordableEnergyForBatonPlay(me, occupant, incomingCard = null) {
   return (me?.energy_zone || []).filter(energyChipActive).length;
-}
+  }
 function sumSc(z){ return (z||[]).reduce((s,c)=>s+(Number(c.score)||0)+Number(c.live_score_bonus||0),0); }
 
 function judgeLiveTotalScore(s, pid, zone) {
@@ -32038,7 +32054,7 @@ function renderOpponentHandVisible(hand, s, oppId, opts = {}) {
     if (G.isSpectator) {
       bindSpectatorCardInspect(d, card, s);
     } else {
-      d.onclick = () => showCard(card, null, s, oppId);
+    d.onclick = () => showCard(card, null, s, oppId);
     }
     const at = zone.children[idx];
     if (at !== d) zone.insertBefore(d, at || null);
@@ -34600,8 +34616,10 @@ function syncTutorialLivePresentation(s, myId) {
     return;
   }
   const id = tutorialLiveStepId();
-  document.body.classList.toggle('tutorial-live-coin', id === 'coin' || id === 'choose_first');
+  const coinActive = id === 'coin' || id === 'choose_first';
+  document.body.classList.toggle('tutorial-live-coin', coinActive);
   document.body.classList.toggle('tutorial-live-mulligan', id === 'mulligan');
+  if (!coinActive) el('overlay-coin')?.classList.remove('open');
 }
 
 function ensureCoinFlipAcked(s, myId) {
@@ -34638,6 +34656,7 @@ function finishCoinFlipAnimation(s, myId) {
     return;
   }
   G._coinFlipAnimComplete = true;
+  G._coinFlipAnimCompleteAt = Date.now();
   sfxPlay('coin_land');
   const coin = el('coin-el');
   if (coin) coin.classList.remove('flipping');
@@ -34664,6 +34683,7 @@ function scheduleCpuCoinFlipAfterAnim() {
 function startCoinFlipAnimation(s, myId, flipKey) {
   G.coinFlipSeq = flipKey;
   G._coinFlipAnimComplete = false;
+  G._coinFlipAnimCompleteAt = 0;
   G.coinFlipAckSent = false;
   clearCoinFlipLoserDismissTimer();
   if (G._coinFlipTimer) {
@@ -34711,6 +34731,7 @@ function submitCoinFirstPlayerChoice(selfFirst) {
   const pick = selfFirst ? winner : oppId;
   hideCoinChoiceButtons();
   closeM('overlay-coin');
+  if (G.tutorialLive) G._tutChooseFirstDone = true;
   sendAct('choose_first_player', { first_player: pick });
 }
 
@@ -34800,6 +34821,7 @@ function openMull(hand, opts = {}){
 function confirmMull(){
   if (isReplayViewing()) return;
   const ids=[...G.mullMarked]; closeM('overlay-mull'); G.mullMarked.clear();
+  if (G.tutorialLive) G._tutMulliganDone = true;
   G.mulliganPending = true;
   sfxPlay('mulligan_keep');
   sendAct('mulligan',{card_ids:ids});
@@ -36218,6 +36240,14 @@ const TUTORIAL_PROMPT_STEPS = new Set(['t2_on_enter_offer', 't2_on_enter_confirm
 function tutorialSpotlightHighlights(step) {
   if (!step || TUTORIAL_PROMPT_STEPS.has(step.id)) return [];
   if (step.id === 't2_play_shiki_skill') return [];
+  if (G.tutorialLive) {
+    if (step.kind === 'action' && step.id !== 'coin' && step.id !== 'choose_first' && step.id !== 'mulligan') {
+      return [];
+    }
+    if (step.kind === 'info') {
+      return (step.highlights || []).slice(0, 1);
+    }
+  }
   return step.highlights || [];
 }
 
@@ -36236,6 +36266,11 @@ function tutorialSpotlightDimMode(step) {
   if (!step) return '';
   if (step.spotlightDim === 'none') return 'none';
   if (step.spotlightDim === 'light') return 'light';
+  if (G.tutorialLive) {
+    if (step.kind === 'action') return 'none';
+    if (step.kind === 'info') return 'light';
+    if (step.kind === 'watch') return 'light';
+  }
   const id = step.id || '';
   if (/^skill_/.test(id) || /^t3_baton_/.test(id) || id === 't3_turn' || id === 't3_start' || id === 't3_main_p2' || id === 't3_p2_end' || id === 't3_wr_live' || id === 't3_stage_hearts') return 'light';
   return '';
@@ -36361,9 +36396,8 @@ function renderTutorialStep(idx, opts = {}) {
           armWatchdog(G.gameState);
         }
       }
-    }
-    if (G.tutorialLive && step?.goal && typeof TutorialInteractive?.checkGoalNow === 'function') {
-      TutorialInteractive.checkGoalNow();
+    } else if (G.tutorialLive && step.id !== 'coin' && step.id !== 'choose_first') {
+      el('overlay-coin')?.classList.remove('open');
     }
   }
   if (opts.textOnly) return;

@@ -36,18 +36,30 @@
     return (s?.players?.[myId]?.live_zone || []).some(c => c.card_no === cardNo);
   }
 
+  function bothCoinReady(s) {
+    const flip = s?.coin_flip;
+    return !!(flip?.ready?.p1 && flip?.ready?.p2);
+  }
+
   function goalMet(goal, s, myId, prev) {
     if (!goal || !s) return false;
     const me = s.players?.[myId];
     switch (goal.type) {
       case 'ack_coin_flip':
         if (G()?.tutorialLive) {
-          return !!(s.coin_flip?.ready?.[myId]) && !!G()?._coinFlipAnimComplete;
+          const animDone = !!G()?._coinFlipAnimComplete;
+          const acked = !!(s.coin_flip?.ready?.[myId]);
+          const dwellMs = 900;
+          const dwellOk = !G()._coinFlipAnimCompleteAt
+            || (Date.now() - G()._coinFlipAnimCompleteAt >= dwellMs);
+          return animDone && acked && bothCoinReady(s) && dwellOk;
         }
         return !!(s.coin_flip?.ready?.[myId]) || s.phase !== 'coin_flip';
       case 'choose_first_player':
+        if (G()?.tutorialLive) return !!G()?._tutChooseFirstDone;
         return s.phase === 'setup' && s.first_player != null;
       case 'mulligan':
+        if (G()?.tutorialLive) return !!G()?._tutMulliganDone;
         return !!me?.ready_mulligan;
       case 'play_member': {
         const slot = goal.slot || 'center';
@@ -221,14 +233,19 @@
   }
 
   async function onGoalMaybeMet(s, prev) {
-    if (!isLive() || G().tutorialAdvancing) return;
+    if (!isLive() || G().tutorialAdvancing || G()._tutGoalPending) return;
     const st = step();
     if (!st || st.kind === 'info') return;
     const myId = G().playerId || 'p1';
     if (!goalMet(st.goal, s, myId, prev)) return;
-    await sleep(st.kind === 'watch' ? 1200 : 500);
-    if (!goalMet(st.goal, G().gameState, myId, prev)) return;
-    await advanceStep(1);
+    G()._tutGoalPending = true;
+    try {
+      await sleep(st.kind === 'watch' ? 1200 : 500);
+      if (!goalMet(st.goal, G().gameState, myId, prev)) return;
+      await advanceStep(1);
+    } finally {
+      G()._tutGoalPending = false;
+    }
   }
 
   function onStateApplied(s, prev) {
@@ -261,7 +278,7 @@
     try {
       if (typeof global.resetMatchTransientState === 'function') global.resetMatchTransientState();
       if (typeof global.loadTutorialJa === 'function') await global.loadTutorialJa();
-      const r = await fetch('./tutorial_guide.json?v=3', { cache: 'no-store' });
+      const r = await fetch('./tutorial_guide.json?v=4', { cache: 'no-store' });
       if (!r.ok) throw new Error('Could not load tutorial guide (HTTP ' + r.status + ')');
       const data = await r.json();
       if (!data?.steps?.length) throw new Error('Tutorial guide has no steps');
@@ -275,6 +292,9 @@
       G().tutorialStep = 0;
       G().tutorialAdvancing = false;
       G().tutorialHoldCpu = false;
+      G()._tutChooseFirstDone = false;
+      G()._tutMulliganDone = false;
+      G()._tutGoalPending = false;
       G().isCPU = true;
       G().cpuDifficulty = 'easy';
       G().playerId = 'p1';

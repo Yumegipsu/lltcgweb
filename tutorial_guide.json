@@ -169,13 +169,7 @@
       "id": "welcome",
       "kind": "info",
       "dialogue": "Hi! I'm **Shibuya Kanon**. Welcome to the **Love Live! Official Card Game**! I'll teach you the basics as we play.",
-      "highlights": [
-        {
-          "target": "playmat-column",
-          "shape": "rounded",
-          "padding": 8
-        }
-      ]
+      "highlights": []
     },
     {
       "id": "goal",
@@ -185,7 +179,8 @@
         {
           "target": "my-pips",
           "shape": "circle",
-          "padding": 14
+          "padding": 8,
+          "pulse": false
         }
       ]
     },
@@ -193,35 +188,13 @@
       "id": "card_types",
       "kind": "info",
       "dialogue": "This game uses three card types. **Member** cards, **Live** cards, and **Energy** cards. Pay **Energy** equal to a Member's cost to play them from your hand.",
-      "highlights": [
-        {
-          "target": "hand-row",
-          "shape": "rounded",
-          "padding": 12
-        },
-        {
-          "target": "my-energy",
-          "shape": "rounded",
-          "padding": 12
-        }
-      ]
+      "highlights": []
     },
     {
       "id": "zones",
       "kind": "info",
       "dialogue": "The **Stage** (Left / Center / Right) is where Members sit. Their **Hearts** fuel Lives during Performance. **Live storage** holds face-down cards during the Live Phase.",
-      "highlights": [
-        {
-          "target": "my-stage-center",
-          "shape": "rounded",
-          "padding": 12
-        },
-        {
-          "target": "my-live-1",
-          "shape": "rounded",
-          "padding": 12
-        }
-      ]
+      "highlights": []
     },
     {
       "id": "coin",
@@ -237,6 +210,7 @@
       "goal": {
         "type": "ack_coin_flip"
       },
+      "spotlightDim": "none",
       "bubbleAnchor": "overlay-coin"
     },
     {
@@ -254,6 +228,7 @@
         "type": "choose_first_player",
         "pick": "self"
       },
+      "spotlightDim": "none",
       "bubbleAnchor": "overlay-coin"
     },
     {
@@ -276,30 +251,14 @@
       "id": "main_intro",
       "kind": "info",
       "dialogue": "**Main Phase** — play **Members** from your hand by spending **Energy** (flip those cards sideways). You can make as many plays as you like, in any order!",
-      "highlights": [
-        {
-          "target": "hand-row",
-          "shape": "rounded",
-          "padding": 12
-        },
-        {
-          "target": "my-energy",
-          "shape": "rounded",
-          "padding": 12
-        }
-      ]
+      "highlights": []
     },
     {
       "id": "play_member",
       "kind": "action",
       "dialogue": "Let's play **Shiki Wakana** to **Center** — she costs **2 Energy**. Tap her in your hand, then tap the **Center** stage slot!",
-      "highlights": [
-        {
-          "target": "my-stage-center",
-          "shape": "rounded",
-          "padding": 12
-        }
-      ],
+      "highlights": [],
+      "spotlightDim": "none",
       "select_hand": "PL!SP-sd1-019-SD",
       "goal": {
         "type": "play_member",
@@ -312,30 +271,14 @@
       "id": "energy_tip",
       "kind": "info",
       "dialogue": "Spent Energy rests **sideways**. Members on Stage show **Hearts** you'll need when performing Lives!",
-      "highlights": [
-        {
-          "target": "my-energy",
-          "shape": "rounded",
-          "padding": 12
-        },
-        {
-          "target": "sb-my-hearts",
-          "shape": "rounded",
-          "padding": 12
-        }
-      ]
+      "highlights": []
     },
     {
       "id": "end_main",
       "kind": "action",
       "dialogue": "When you're finished in Main Phase, press **End Main Phase**.",
-      "highlights": [
-        {
-          "target": "phase-action-bar",
-          "shape": "rounded",
-          "padding": 12
-        }
-      ],
+      "highlights": [],
+      "spotlightDim": "none",
       "goal": {
         "type": "end_main"
       },
@@ -354,40 +297,14 @@
       "id": "live_intro",
       "kind": "info",
       "dialogue": "**Live Phase** — place **0 to 3** cards face-down in Live storage. You draw **1** card from your deck for each card you place.",
-      "highlights": [
-        {
-          "target": "my-live-0",
-          "shape": "rounded",
-          "padding": 12
-        },
-        {
-          "target": "my-live-1",
-          "shape": "rounded",
-          "padding": 12
-        },
-        {
-          "target": "my-live-2",
-          "shape": "rounded",
-          "padding": 12
-        }
-      ]
+      "highlights": []
     },
     {
       "id": "set_live",
       "kind": "action",
       "dialogue": "Select **WE WILL!!** from your hand, then press **Lock Live Selection** to place it face-down. You draw **1** card for each Live you set!",
-      "highlights": [
-        {
-          "target": "my-live-0",
-          "shape": "rounded",
-          "padding": 12
-        },
-        {
-          "target": "phase-action-bar",
-          "shape": "rounded",
-          "padding": 12
-        }
-      ],
+      "highlights": [],
+      "spotlightDim": "none",
       "select_hand": "PL!SP-sd1-023-SD",
       "goal": {
         "type": "end_live_set"
