@@ -3876,11 +3876,13 @@ body.news-overlay-open{overflow:hidden}
 #overlay-news .news-shell:not(.news-shell--detail) .news-panel-shell{
   max-height:min(68vh,600px);height:auto;flex:0 1 auto}
 #overlay-news .news-shell--detail .news-panel-shell{max-height:min(82vh,760px);flex:1 1 auto}
-#overlay-news #news-list-pane,
-#overlay-news #news-detail-pane{
+#overlay-news #news-list-pane[hidden],
+#overlay-news #news-detail-pane[hidden]{display:none!important}
+#overlay-news #news-list-pane:not([hidden]),
+#overlay-news #news-detail-pane:not([hidden]){
   display:flex;flex-direction:column;min-height:0;overflow:hidden}
-#overlay-news .news-shell:not(.news-shell--detail) #news-list-pane{flex:0 1 auto;max-height:min(calc(68vh - 56px),544px)}
-#overlay-news .news-shell--detail #news-detail-pane{flex:1 1 auto}
+#overlay-news .news-shell:not(.news-shell--detail) #news-list-pane:not([hidden]){flex:0 1 auto;max-height:min(calc(68vh - 56px),544px)}
+#overlay-news .news-shell--detail #news-detail-pane:not([hidden]){flex:1 1 auto}
 #overlay-news .account-screen-head{margin-bottom:8px;flex:0 0 auto}
 #overlay-news .news-scroll{
   flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
