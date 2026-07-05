@@ -158,6 +158,7 @@ function isSelfActivationPromptType(string $type): bool {
         'optional_success_wr_live_swap',
         'optional_return_member_energy',
         'optional_wait_subunit_opp_pick_active',
+        'optional_wait_group_member_draw_discard',
         'optional_position_change_all_muse',
         'optional_formation_change_group',
         'live_start_pay_or_discard',
@@ -263,6 +264,13 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
             return ['choice' => 'confirm', 'top_ids' => $ids, 'wr_ids' => []];
 
         case 'look_top_optional_wr':
+            return ['choice' => 'no'];
+
+        case 'optional_wait_group_member_draw_discard':
+            if (($prompt['step'] ?? '') === 'pick_member') {
+                $id = $prompt['stage_members'][0]['instance_id'] ?? '';
+                return $id !== '' ? ['member_id' => $id] : ['choice' => 'no'];
+            }
             return ['choice' => 'no'];
 
         case 'effect_discard_hand':

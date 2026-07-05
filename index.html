@@ -7024,7 +7024,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/game-sync.js?v=5"></script>
 <script src="client/js/state-apply.js?v=3"></script>
 <script src="client/js/replay-debug.js?v=4"></script>
-<script src="client/js/prompt-renderer.js?v=7"></script>
+<script src="client/js/prompt-renderer.js?v=8"></script>
 <script src="client/js/tutorial-interactive.js?v=4"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -23125,6 +23125,25 @@ function cpuResolveStepPrompt(pr, cpu, tier, winPressure, read) {
   }
   if (pr.type === 'spbp5_wait_discard_surveil' || pr.type === 'bp5_wait_discard_look_reveal') {
     return cpuResolveWaitDiscardLookReveal(pr, cpu, tier, winPressure, read);
+  }
+  if (pr.type === 'optional_wait_group_member_draw_discard') {
+    if (pr.step === 'pick_member') {
+      const id = pr.stage_members?.[0]?.instance_id;
+      if (id) {
+        cpuAct('resolve_prompt', { member_id: id });
+        return true;
+      }
+      cpuAct('resolve_prompt', { choice: 'no' });
+      return true;
+    }
+    if (tier === 'easy') {
+      cpuAct('resolve_prompt', { choice: 'no' });
+      return true;
+    }
+    const group = pr.group || pr.ability?.group || 'Nijigasaki';
+    const hasGroup = Object.values(cpu.stage || {}).some(m => m && (m.group || '') === group);
+    cpuAct('resolve_prompt', { choice: hasGroup ? 'yes' : 'no' });
+    return true;
   }
   if (pr.type === 'optional_wait_self_look_reveal') {
     if ((pr.step || '') === 'discard') {

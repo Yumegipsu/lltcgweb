@@ -3,6 +3,46 @@
  * Interactive prompt resolution dispatcher — extracted from effects.php.
  */
 
+function applyWaitGroupMemberDrawDiscard(
+    array $state,
+    string $owner,
+    array $prompt,
+    string $memberId
+): array {
+    $ability = $prompt['ability'] ?? [];
+    $group = $ability['group'] ?? $prompt['group'] ?? 'Nijigasaki';
+    $ownerP = &$state['players'][$owner];
+    $found = false;
+    foreach ($ownerP['stage'] as &$mbr) {
+        if ($mbr && ($mbr['instance_id'] ?? '') === $memberId
+            && ($mbr['group'] ?? '') === $group) {
+            waitMember($mbr);
+            $found = true;
+            break;
+        }
+    }
+    unset($mbr);
+    if (!$found) {
+        throw new Exception('Choose a ' . $group . ' Member on Stage');
+    }
+    $srcName = $prompt['source_name'] ?? 'Member';
+    $drawnCards = drawCardInstances($ownerP, intval($ability['draw'] ?? 1));
+    foreach ($drawnCards as $c) {
+        $state = logEffectDraw($state, $owner, $srcName, $c,
+            [animSpec($c['instance_id'], 'main_deck', 'hand', $owner)]);
+    }
+    $drawn = count($drawnCards);
+    $state = addLog($state, $state['players'][$owner]['name'] .
+        " — [$srcName] Waited Member; drew $drawn.");
+    unset($state['pending_prompt']);
+    $need = intval($ability['discard'] ?? 1);
+    if ($need > 0 && !empty($ownerP['hand'])) {
+        return startEffectDiscardHandPrompt($state, $owner, $srcName, $need);
+    }
+    $state['seq']++;
+    return finishPromptEffects($state);
+}
+
 // actionResolvePrompt — completes pending_prompt from client resolve_prompt actions
 
 function actionResolvePrompt(array $state, string $pid, array $data): array {
@@ -540,46 +580,55 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
     }
 
     if ($promptType === 'optional_wait_group_member_draw_discard') {
+        $step = $prompt['step'] ?? '';
+        if ($step === 'pick_member') {
+            $mid = $data['member_id'] ?? '';
+            if ($mid === '') {
+                throw new Exception('Choose a Member on Stage');
+            }
+            return applyWaitGroupMemberDrawDiscard($state, $owner, $prompt, $mid);
+        }
         if (!isset(['yes' => true, 'no' => true][$choice])) {
             throw new Exception('Invalid choice');
         }
         if ($choice === 'yes') {
-            $mid = $data['member_id'] ?? '';
-            $found = false;
-            foreach ($ownerP['stage'] as &$mbr) {
-                if ($mbr && ($mbr['instance_id'] ?? '') === $mid
-                    && ($mbr['group'] ?? '') === ($ability['group'] ?? 'Nijigasaki')) {
-                    waitMember($mbr);
-                    $found = true;
-                    break;
-                }
-            }
-            unset($mbr);
-            if (!$found) {
-                throw new Exception('Choose a Nijigasaki Member on Stage');
-            }
-            $drawn = drawCardsForPlayer($state, $owner, intval($ability['draw'] ?? 1));
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                " — [" . ($prompt['source_name'] ?? 'Member') . "] Waited Member; drew $drawn.");
-            $need = intval($ability['discard'] ?? 1);
-            if ($need > 0 && !empty($ownerP['hand'])) {
-                $state['pending_prompt'] = [
-                    'type'        => 'effect_discard_hand',
-                    'owner'       => $owner,
-                    'responder'   => $owner,
-                    'source_name' => $prompt['source_name'] ?? 'Member',
-                    'count'       => $need,
-                ];
+            $group = $ability['group'] ?? $prompt['group'] ?? 'Nijigasaki';
+            $members = listGroupStageMembers($ownerP, $group);
+            if (empty($members)) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] no $group Members on Stage.");
+                unset($state['pending_prompt']);
                 $state['seq']++;
-                return $state;
+                return finishPromptEffects($state);
             }
-        } else {
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional On Enter effect.');
+            if (count($members) === 1) {
+                return applyWaitGroupMemberDrawDiscard(
+                    $state,
+                    $owner,
+                    $prompt,
+                    (string)($members[0]['instance_id'] ?? '')
+                );
+            }
+            $state['pending_prompt'] = [
+                'type'          => 'optional_wait_group_member_draw_discard',
+                'step'          => 'pick_member',
+                'owner'         => $owner,
+                'responder'     => $owner,
+                'source_id'     => $prompt['source_id'] ?? '',
+                'source_name'   => $prompt['source_name'] ?? 'Member',
+                'group'         => $group,
+                'stage_members' => $members,
+                'prompt'        => 'Choose 1 ' . $group . ' Member to put into Wait.',
+                'ability'       => $ability,
+            ];
+            $state['seq']++;
+            return $state;
         }
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional On Enter effect.');
         unset($state['pending_prompt']);
         $state['seq']++;
-        return $state;
+        return finishPromptEffects($state);
     }
 
     if ($promptType === 'live_success_pick_energy_or_member') {

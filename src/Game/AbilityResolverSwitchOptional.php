@@ -676,10 +676,14 @@ function tryResolveAbilityEffectSwitchOptional(
             if (!empty($state['pending_prompt'])) {
                 break;
             }
+            if (!stageHasGroupMember($p, $ab['group'] ?? 'Nijigasaki')) {
+                break;
+            }
             $state['pending_prompt'] = [
                 'type'          => 'optional_wait_group_member_draw_discard',
                 'owner'         => $pid,
                 'responder'     => $pid,
+                'source_id'     => $source['instance_id'] ?? '',
                 'source_name'   => $name,
                 'group'         => $ab['group'] ?? 'Nijigasaki',
                 'prompt'        => 'Put 1 ' . ($ab['group'] ?? 'Nijigasaki') .

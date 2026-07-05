@@ -2532,6 +2532,16 @@ function listSubunitStageMembers(array $p, string $subunit): array {
     return $out;
 }
 
+function listGroupStageMembers(array $p, string $group): array {
+    $out = [];
+    foreach ($p['stage'] as $slot => $mbr) {
+        if ($mbr && ($mbr['group'] ?? '') === $group) {
+            $out[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
+        }
+    }
+    return $out;
+}
+
 function listActiveStageMembers(array $p): array {
     $out = [];
     foreach ($p['stage'] as $slot => $mbr) {

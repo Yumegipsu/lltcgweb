@@ -1416,6 +1416,20 @@ global.renderPrompt = function renderPrompt(s, myId){
     return;
   }
   closeM('overlay-surveil');
+  if (pr?.type === 'optional_wait_group_member_draw_discard' && pr.step === 'pick_member' && pr.responder === myId) {
+    ovl.classList.remove('open');
+    const members = pr.stage_members || [];
+    if (!members.length) {
+      sendAct('resolve_prompt', { choice: 'no' });
+      return;
+    }
+    openOppActiveMemberPick({
+      ...pr,
+      stage_members: members,
+      prompt: pr.prompt || `Choose 1 ${pr.group || 'Nijigasaki'} Member to put into Wait.`,
+    });
+    return;
+  }
   if(pr?.type==='effect_discard_hand'&&pr.responder===myId){
     renderPromptDiscardHandBranch(s, myId, pr);
     return;
