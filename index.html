@@ -194,6 +194,7 @@ select option{background:#2A1520;color:#fff}
 .field label{display:block;font-weight:800;font-size:11px;
   text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.38);margin-bottom:5px}
 .field input,.field select{width:100%}
+#inp-code{min-width:11.5em;font-variant-numeric:tabular-nums}
 .deck-prev{margin-top:7px;background:rgba(255,255,255,.05);border:1px solid var(--ui-panel-border);
   border-radius:var(--rsm);padding:9px 11px;font-size:11px;
   color:rgba(255,255,255,.5);line-height:1.9}
@@ -6271,7 +6272,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
               <div class="divider" data-i18n="lobby.orJoinFriend">or join a friend</div>
               <div class="field">
                 <label data-i18n="lobby.roomCode">Room Code</label>
-                <input type="text" id="inp-code" placeholder="ABC123" maxlength="8"
+                <input type="text" id="inp-code" placeholder="ABCD1234" maxlength="8" autocomplete="off" spellcheck="false"
+                  data-i18n-placeholder="lobby.roomCodePlaceholder"
                   style="text-transform:uppercase;letter-spacing:5px;font-family:'Fredoka One',cursive;font-size:22px;text-align:center">
               </div>
               <button class="btn-out" id="btn-join" data-i18n="lobby.joinRoom">Join Room</button>
@@ -7135,6 +7137,7 @@ const { localizeLogMessage, clearLogNameCache } = window.LLTCG_LOG_I18N || {
 
 // API paths + fetch helpers: client/js/api-client.js
 const API = window.API;
+const ROOM_CODE_LEN = 8;
 const ACCOUNT_API = window.ACCOUNT_API;
 const WRAPPED_API = window.WRAPPED_API;
 
@@ -15742,8 +15745,13 @@ window.G = G;
   });
   initRuleKeywordTooltips();
   initGameLogScrollFollow();
-  el('inp-code').addEventListener('input', e =>
-    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,''));
+  const codeInp = el('inp-code');
+  if (codeInp) {
+    codeInp.maxLength = ROOM_CODE_LEN;
+    codeInp.addEventListener('input', e => {
+      e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, ROOM_CODE_LEN);
+    });
+  }
 })();
 
 async function applyPlaymatZones() {
