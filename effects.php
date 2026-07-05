@@ -72,7 +72,7 @@ function mergeCardCatalogFields(array &$card): void {
     }
     // Oracle sync: skill text and structured abilities always follow cards.json so
     // in-progress games pick up fixes without forcing a new match.
-    foreach (['abilities', 'text', 'text_jp'] as $oracleKey) {
+    foreach (['abilities', 'text', 'text_jp', 'text_es'] as $oracleKey) {
         if (!empty($base[$oracleKey])) {
             $card[$oracleKey] = $base[$oracleKey];
         }

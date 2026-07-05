@@ -3,9 +3,10 @@
   'use strict';
 
   var LLTCG_LOCALE_KEY = 'lltcg_locale';
-  var LOCALES = ['en', 'ja'];
+  var LOCALES = ['en', 'ja', 'es'];
   var localeChangeCallbacks = [];
   var _tutorialJa = null;
+  var _tutorialEs = null;
 
   var STRINGS = {
   "en": {
@@ -65,7 +66,10 @@
       "backHub": "← Hub"
     },
     "language": {
-      "label": "Language"
+      "label": "Language",
+      "en": "English",
+      "ja": "日本語",
+      "es": "Español"
     },
     "lobby": {
       "title": "Unranked Play",
@@ -248,7 +252,19 @@
       "openSameAgain": "Open same again",
       "packsLeft": "{n} pack(s) left today (JST)",
       "mainMenu": "Main menu",
-      "backHub": "← Hub"
+      "backHub": "← Hub"      "noDailyPacks": "No daily packs left",
+      "paidLead": "Spend Star Gems to keep opening packs today.",
+      "openOnePack": "Open 1 pack",
+      "starGemsLabel": "Star Gems:",
+      "starGemsUnit": "{n} Star Gems",
+      "dailyPack": "Daily pack",
+      "packRatesTitle": "Pack rates",
+      "packRatesPerPack": "Per pack · tap a card for details",
+      "ratesLoading": "Loading rates…",
+      "duplicatesConverted": "Duplicates converted",
+      "migrationText": "Extra Member/Live copies beyond 4 per card and Energy copies beyond 12 per card were converted into {gems}.",
+      "convertedToGems": " · {n} converted to Star Gems",
+
     },
     "ranked": {
       "title": "Ranked PvP",
@@ -352,7 +368,8 @@
       "opponentSkillWait": "{name} is activating a skill…",
       "perfYou": "You",
       "perfOpp": "Opponent",
-      "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>Phase: {phase}<span class=\"turn-sep\">·</span>Active: {active}<span class=\"turn-sep\">·</span>First: {first}"
+      "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>Phase: {phase}<span class=\"turn-sep\">·</span>Active: {active}<span class=\"turn-sep\">·</span>First: {first}"      "deckTopLabel": "Deck top",
+
     },
     "slot": {
       "left": "Left",
@@ -529,7 +546,25 @@
       "typeAnswerHint": "Type your answer — spelling and wording can vary.",
       "confirmArrangement": "Confirm arrangement",
       "selectedCount": "Selected: {n}/{max}",
-      "activateSub": "Choose whether to activate this effect."
+      "activateSub": "Choose whether to activate this effect."      "lookAtDeck": "Look at deck",
+      "surveilHint": "Spot 1 is the top of your deck. Drag cards between numbered spots and the Waiting Room, tap two cards to swap, or tap a spot / the Waiting Room while a card is selected.",
+      "wrPickTitle": "Waiting Room",
+      "wrPickMsg": "Choose a card from your Waiting Room to add to your hand.",
+      "yellPickTitle": "Yell",
+      "yellPickMsg": "Choose 1 card revealed by Yell.",
+      "successLivePickTitle": "Success Live",
+      "successLivePickMsg": "Choose 1 Live card to place in Success Live.",
+      "successLiveHandTitle": "Success Live",
+      "successLiveHandMsg": "Choose 1 card from your Success Live area to add to your hand.",
+      "deckTopTitle": "Deck top",
+      "deckTopMsg": "Choose 1 card revealed for Yell to put on top of your deck.",
+      "wrEmpty": "Waiting Room is empty",
+      "wrNoMatch": "No matching cards in Waiting Room",
+      "yellNoCards": "No Yell cards to choose from",
+      "noLiveSuccess": "No Live cards to place in Success Live",
+      "searchDeckFor": "Search deck for…",
+      "deckTopPick": "Deck top",
+
     },
     "skill": {
       "alreadyUsed": "Already used this turn",
@@ -840,6 +875,20 @@
       "next": "Next →",
       "finish": "Finish"
     }
+    "spectate": {
+      "listTitle": "Spectate match",
+      "listTitleRanked": "Spectate ranked match",
+      "listTitleCasual": "Spectate unranked match",
+      "lead": "Watch an ongoing match — view only, no interaction.",
+      "barReadOnly": "Spectating — read only",
+      "barNames": "Spectating {p1} vs {p2}",
+      "leave": "Leave",
+      "reconnected": "Reconnected to spectating.",
+      "watch": "Watch",
+      "loading": "Loading…",
+      "noMatches": "No matches available to spectate."
+    },
+
   },
   "ja": {
     "logo": {
@@ -898,7 +947,10 @@
       "backHub": "← ハブ"
     },
     "language": {
-      "label": "言語"
+      "label": "言語",
+      "en": "English",
+      "ja": "日本語",
+      "es": "Español"
     },
     "lobby": {
       "title": "カジュアル対戦",
@@ -1081,7 +1133,19 @@
       "openSameAgain": "同じパックをもう一度",
       "packsLeft": "本日（JST）残り {n} パック",
       "mainMenu": "メインメニュー",
-      "backHub": "← ハブ"
+      "backHub": "← ハブ"      "noDailyPacks": "本日の無料パックはありません",
+      "paidLead": "スタージェムを使って本日もパックを開けられます。",
+      "openOnePack": "パックを1つ開ける",
+      "starGemsLabel": "スタージェム：",
+      "starGemsUnit": "スタージェム {n}",
+      "dailyPack": "デイリーパック",
+      "packRatesTitle": "パック排出率",
+      "packRatesPerPack": "1パックあたり · カードをタップで詳細",
+      "ratesLoading": "排出率を読み込み中…",
+      "duplicatesConverted": "重複を変換しました",
+      "migrationText": "カード4枚・エネルギー12枚を超える重複は {gems} に変換されました。",
+      "convertedToGems": " · {n} をスタージェムに変換",
+
     },
     "ranked": {
       "title": "ランクPvP",
@@ -1185,7 +1249,8 @@
       "opponentSkillWait": "{name}がスキルを発動中…",
       "perfYou": "あなた",
       "perfOpp": "相手",
-      "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>フェイズ：{phase}<span class=\"turn-sep\">·</span>アクティブ：{active}<span class=\"turn-sep\">·</span>先攻：{first}"
+      "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>フェイズ：{phase}<span class=\"turn-sep\">·</span>アクティブ：{active}<span class=\"turn-sep\">·</span>先攻：{first}"      "deckTopLabel": "デッキトップ",
+
     },
     "slot": {
       "left": "左",
@@ -1362,7 +1427,25 @@
       "typeAnswerHint": "回答を入力してください。表記や言い回しは多少異なっても構いません。",
       "confirmArrangement": "配置を確定",
       "selectedCount": "選択中：{n}/{max}",
-      "activateSub": "この効果を発動するか選んでください。"
+      "activateSub": "この効果を発動するか選んでください。"      "lookAtDeck": "デッキを見る",
+      "surveilHint": "番号1がデッキの一番上です。番号付きスポットと控え室の間でカードをドラッグし、2枚タップで入れ替え、またはカード選択中にスポット／控え室をタップしてください。",
+      "wrPickTitle": "控え室",
+      "wrPickMsg": "控え室から手札に加えるカードを1枚選んでください。",
+      "yellPickTitle": "エール",
+      "yellPickMsg": "エールで公開されたカードを1枚選んでください。",
+      "successLivePickTitle": "成功ライブ",
+      "successLivePickMsg": "成功ライブに置くライブカードを1枚選んでください。",
+      "successLiveHandTitle": "成功ライブ",
+      "successLiveHandMsg": "成功ライブ置き場から手札に加えるカードを1枚選んでください。",
+      "deckTopTitle": "デッキトップ",
+      "deckTopMsg": "エールで公開されたカードを1枚選び、デッキの一番上に置いてください。",
+      "wrEmpty": "控え室が空です",
+      "wrNoMatch": "控え室に該当カードがありません",
+      "yellNoCards": "選べるエールカードがありません",
+      "noLiveSuccess": "成功ライブに置けるライブカードがありません",
+      "searchDeckFor": "デッキから探す…",
+      "deckTopPick": "デッキトップ",
+
     },
     "skill": {
       "alreadyUsed": "このターンは使用済み",
@@ -1669,6 +1752,901 @@
       "logCopied": "ログをコピーしました",
       "couldNotCopyLog": "ログをコピーできませんでした"
     },
+    "spectate": {
+      "listTitle": "観戦",
+      "listTitleRanked": "ランクマッチを観戦",
+      "listTitleCasual": "カジュアルマッチを観戦",
+      "lead": "進行中の対戦を見る — 閲覧のみ、操作不可。",
+      "barReadOnly": "観戦中 — 閲覧のみ",
+      "barNames": "観戦中 {p1} vs {p2}",
+      "leave": "退出",
+      "reconnected": "観戦に再接続しました。",
+      "watch": "観戦",
+      "loading": "読み込み中…",
+      "noMatches": "観戦できる対戦がありません。"
+    },
+
+  },
+  "es": {
+    "logo": {
+      "tagline": "El reproductor web no oficial"
+    },
+    "news": {
+      "label": "Noticias",
+      "title": "Noticias",
+      "close": "Cerrar",
+      "backToList": "← Todas las noticias",
+      "empty": "Aún no hay noticias.",
+      "untitled": "Sin título",
+      "cardUnknown": "Carta no encontrada: {id}"
+    },
+    "auth": {
+      "checking": "Verificando inicio de sesión con Discord…",
+      "signingIn": "Iniciando sesión…",
+      "signInDiscord": "Iniciar sesión con Discord",
+      "guestPrompt": "Inicia sesión con Discord para guardar tu colección y jugar clasificatoria.",
+      "guestPlayHint": "Juega no clasificada sin cuenta, o inicia sesión para clasificatoria.",
+      "sessionExpired": "La sesión expiró: inicia sesión otra vez, o juega no clasificada sin cuenta.",
+      "loadError": "No se pudo cargar la cuenta: aún puedes jugar no clasificada.",
+      "guestTimeout": "La verificación de inicio de sesión tardó demasiado: juega no clasificada, o vuelve a intentar iniciar sesión con Discord."
+    },
+    "menu": {
+      "unrankedPlay": "Juego no clasificado",
+      "unrankedSub": "Salas, amistades o práctica contra CPU",
+      "deckExperiment": "Experimento de mazo",
+      "deckExperimentSub": "Construye con todas las cartas: solo invitados, no clasificada",
+      "howToPlay": "Cómo jugar",
+      "howToPlaySub": "Lección práctica para principiantes con Kanon"
+    },
+    "hub": {
+      "signedIn": "Sesión iniciada",
+      "signedInAs": "Sesión iniciada como",
+      "signedInAsHtml": "Sesión iniciada como <b>{name}</b>",
+      "dailyBoosters": "Sobres diarios: quedan {remaining} / {limit} hoy (JST)",
+      "dailyWelcomeBonus": " (¡bono de bienvenida!)",
+      "daily": "Sobres diarios: quedan {remaining} / {limit} hoy (JST)",
+      "dailyBonus": " (¡bono de bienvenida!)",
+      "rankLine": "ELO {elo} · {wins}V-{losses}D · {winPct}% victorias",
+      "options": "Opciones",
+      "signOut": "Cerrar sesión",
+      "openBoosters": "Abrir sobres",
+      "openBoostersSub": "Abre sobres de cartas",
+      "deckBuilder": "Constructor de mazos",
+      "deckBuilderSub": "Edita preajustes y mazo clasificatorio",
+      "rankedPvp": "PvP clasificatorio",
+      "rankedPvpSub": "Sube tu ELO en partidas emparejadas",
+      "leaderboard": "Clasificación",
+      "leaderboardSub": "Ver las clasificaciones en línea",
+      "unranked": "Juego no clasificado",
+      "unrankedSub": "Salas, amistades o práctica contra CPU",
+      "howToPlay": "Cómo jugar",
+      "howToPlaySub": "Lección práctica para principiantes con Kanon",
+      "backHub": "← Hub"
+    },
+    "language": {
+      "label": "Idioma",
+      "en": "English",
+      "ja": "日本語",
+      "es": "Español"
+    },
+    "lobby": {
+      "title": "Juego no clasificado",
+      "yourName": "Tu nombre",
+      "namePlaceholder": "Nombre de idol…",
+      "deck": "Mazo",
+      "createRoom": "Crear sala",
+      "joinRoom": "Unirse a sala",
+      "roomCode": "Código de sala",
+      "vsPlayer": "VS jugador",
+      "vsCpu": "VS CPU",
+      "practiceCpu": "Práctica contra CPU",
+      "cpuDifficulty": "Dificultad de CPU",
+      "cpuEasy": "Fácil: mazo inicial aleatorio",
+      "cpuNormal": "Normal: habilidades y Lives más inteligentes",
+      "cpuHard": "Difícil: mazo fuerte y prioridad de habilidades",
+      "findRandomMatch": "Buscar partida aleatoria",
+      "spectate": "Espectar partida",
+      "cancelSearch": "Cancelar búsqueda",
+      "phaseTimer": "Temporizador de fase (principal y LIVE)",
+      "phaseTimerSec": "Segundos por fase (10–120)",
+      "backHub": "← Hub",
+      "orJoinFriend": "o únete a una amistad",
+      "orMatchRandomly": "o empareja al azar",
+      "casualHint": "PvP casual: sin ELO ni registro clasificatorio",
+      "experimentDeckPassword": "Contraseña de mazo experimental",
+      "experimentPasswordPlaceholder": "Código de 8 letras",
+      "experimentDeckBtn": "Experimento de mazo",
+      "experimentDeckHint": "Construye en Experimento de mazo, genera una contraseña y luego introdúcela aquí, o elige un mazo guardado abajo.",
+      "secondsLabel": "{n}s",
+      "casualQueueStats": "{waiting} esperando · {inGame} en partidas casuales",
+      "casualSearching": "Buscando oponente… ({seconds}s)"
+    },
+    "deck": {
+      "title": "Constructor de mazos",
+      "experimentTitle": "Experimento de mazo",
+      "deckName": "Nombre del mazo",
+      "presetSlot": "Espacio de preajuste (máx. 10)",
+      "search": "Buscar cartas",
+      "searchPlaceholder": "Nombre, ID o texto de reglas…",
+      "collection": "Colección",
+      "currentDeck": "Mazo actual",
+      "savePreset": "Guardar preajuste",
+      "equipRanked": "Equipar para clasificatoria",
+      "autoBuild": "Construir automáticamente",
+      "clear": "Limpiar",
+      "hint": "La construcción automática optimiza desde tu colección · toca para agregar/quitar · pasa el cursor para previsualizar · el total de puntos debe ser 9 o menos",
+      "hoverEmpty": "Pasa el cursor sobre una carta del mazo para previsualizarla aquí.",
+      "backHub": "← Hub",
+      "backMenu": "← Menú",
+      "deckPassword": "Contraseña del mazo",
+      "deckPasswordPlaceholder": "Introduce contraseña para cargar",
+      "load": "Cargar",
+      "savedPassword": "Contraseña guardada:",
+      "copy": "Copiar",
+      "cardPool": "Conjunto de cartas",
+      "resetStarter": "Restablecer inicial",
+      "useStarter": "Usar inicial",
+      "randomDeck": "Mazo aleatorio",
+      "updateSavedDeck": "Actualizar mazo guardado",
+      "generatePassword": "Generar contraseña",
+      "experimentHint": "Conjunto completo de cartas · construye un mazo legal para generar una contraseña · el total de puntos debe ser 9 o menos · mantén presionado o haz clic derecho en las cartas para ver detalles",
+      "collectionOwned": "Cartas totales obtenidas · {count}",
+      "collectionLoading": "Conjunto completo de cartas · cargando…",
+      "collectionMatch": "Colección · {match} coincidencia",
+      "deckStats": "Total {total}/72 · Miembros {members}/48 · Lives {lives}/12 · Energía {energy}/12 · Puntos {lovecaPoints}/{lovecaLimit}",
+      "lovecaPointLabel": "Puntos",
+      "lovecaPointBadge": "{n}pt",
+      "lovecaOverLimit": "El total de puntos sería {total} (máx. {limit}).",
+      "lovecaDeckIllegal": "El total de puntos es {total}; el mazo debe ser {limit} o menos.",
+      "deckIllegalSize": "El mazo debe ser legal: 60 principal (48 Miembros, 12 Lives) y 12 Energía.",
+      "lovecaExplain": "Algunas cartas fuertes cuestan puntos. El total de puntos de tu mazo principal debe mantenerse en 9 o menos (cada copia cuenta).",
+      "deckEmpty": "Toca cartas de tu colección para construir un mazo.",
+      "deckEmptyExperiment": "Toca cartas del conjunto para construir un mazo legal de 60+12.",
+      "experimentStarterTitle": "Elegir mazo inicial",
+      "experimentStarterLead": "Carga una lista inicial oficial como base; edítala libremente desde el conjunto completo de cartas.",
+      "accountStarterHint": "Inicial de tu cuenta: {starter} · el preajuste n.º 1 empieza desde esta lista.",
+      "noStarterOnAccount": "No hay mazo inicial en esta cuenta.",
+      "loadedStarterIntoPreset": "Se cargó {name} en el preajuste n.º {slot}.",
+      "loadedStarterFallbackName": "mazo inicial",
+      "chooseStarterFirst": "Elige primero un mazo inicial.",
+      "building": "Construyendo…",
+      "autoBuiltSuccess": "Se construyó automáticamente un mazo legal desde tu colección.",
+      "starterDecksNotLoaded": "Los mazos iniciales aún no se han cargado.",
+      "equippedRanked": "Equipado para clasificatoria.",
+      "filters": {
+        "title": "Filtros",
+        "showAdvanced": "Mostrar filtros avanzados",
+        "hideAdvanced": "Ocultar filtros avanzados",
+        "all": "Todo",
+        "allTypes": "Todos los tipos",
+        "allFields": "Todos los campos",
+        "allProducts": "Todos los productos",
+        "allSets": "Todos los sets",
+        "any": "Cualquiera",
+        "min": "Mín.",
+        "max": "Máx.",
+        "notIncluded": "No incluido",
+        "heartAll": "Todo",
+        "drawIcon": "Ícono de robar",
+        "scoreIcon": "Ícono de puntuación",
+        "label": {
+          "type": "Tipo",
+          "group": "Grupo",
+          "rarity": "Rareza",
+          "keywordIn": "Palabra clave en",
+          "product": "Producto",
+          "productSet": "Set de producto",
+          "subunit": "Subunidad",
+          "parallel": "Parallel",
+          "printedHearts": "Corazones impresos",
+          "requiredHearts": "Corazones requeridos",
+          "bladeHearts": "Corazones de Blade",
+          "blade": "Blade",
+          "cost": "Costo",
+          "score": "Puntuación"
+        },
+        "type": {
+          "member": "Miembro",
+          "live": "Live",
+          "energy": "Energía"
+        },
+        "searchMode": {
+          "all": "Todos los campos",
+          "name": "Nombre",
+          "text": "Texto",
+          "id": "ID de carta"
+        },
+        "searchPlaceholder": {
+          "all": "Nombre, ID o texto de reglas…",
+          "name": "Nombre de carta…",
+          "text": "Texto de reglas…",
+          "id": "ID de carta, ej. PL!N-sd1-021-SD"
+        },
+        "productKind": {
+          "bp": "Booster Pack",
+          "pb": "Premium Booster",
+          "pb_duo": "Premium Booster (DUO)",
+          "sd": "Mazo inicial",
+          "collection": "Colección",
+          "pr": "PR"
+        },
+        "parallel": {
+          "normal": "Solo normal",
+          "parallel": "Solo Parallel"
+        },
+        "groups": {
+          "mus": "μ's",
+          "nijigasaki": "Nijigasaki",
+          "sunshine": "Sunshine",
+          "superstar": "Superstar",
+          "hasunosora": "Hasunosora",
+          "saintsnow": "Saint Snow",
+          "arise": "A-RISE",
+          "sunnypassion": "Sunny Passion"
+        },
+        "sort": {
+          "aria": "Orden y clasificación de colección",
+          "sortBy": "Ordenar por",
+          "order": "Orden",
+          "asc": "Ascendente",
+          "desc": "Descendente",
+          "id": "ID de carta",
+          "rarity": "Rareza",
+          "name": "Nombre (idol)",
+          "type": "Tipo de carta",
+          "group": "Grupo / escuela",
+          "recent": "Obtenidas recientemente"
+        }
+      }
+    },
+    "booster": {
+      "title": "Abrir sobres",
+      "openPack": "Abrir sobre ({n} cartas)",
+      "openPaidBox": "Abrir 1 caja ({n} sobres)",
+      "ratesLead": "{pool} cartas en el conjunto · probabilidad de aparecer en un sobre de {n} cartas",
+      "packOpened": "Sobre abierto",
+      "godPack": "¡GOD PACK!",
+      "openAnother": "Abrir otro sobre",
+      "openSameAgain": "Abrir el mismo otra vez",
+      "packsLeft": "Quedan {n} sobre(s) hoy (JST)",
+      "mainMenu": "Menú principal",
+      "backHub": "← Hub",
+      "noDailyPacks": "No quedan sobres diarios",
+      "paidLead": "Gasta Star Gems para seguir abriendo sobres hoy.",
+      "openOnePack": "Abrir 1 sobre",
+      "starGemsLabel": "Star Gems:",
+      "starGemsUnit": "{n} Star Gems",
+      "dailyPack": "Sobre diario",
+      "packRatesTitle": "Probabilidades del sobre",
+      "packRatesPerPack": "Por sobre · toca una carta para ver detalles",
+      "ratesLoading": "Cargando probabilidades…",
+      "duplicatesConverted": "Duplicados convertidos",
+      "migrationText": "Las copias extra de Miembro/Live más allá de 4 por carta y las copias de Energía más allá de 12 por carta se convirtieron en {gems}.",
+      "convertedToGems": " · {n} convertidas a Star Gems"
+    },
+    "ranked": {
+      "title": "PvP clasificatorio",
+      "findMatch": "Buscar partida",
+      "cancelSearch": "Cancelar búsqueda",
+      "spectate": "Espectar partida",
+      "timerNote": "Las fases principal y LIVE usan un temporizador de 120 s.",
+      "deckLabel": "Mazo clasificatorio",
+      "matchSound": "Reproducir sonido cuando se encuentre partida",
+      "leaderboard": "Clasificación",
+      "leaderboardTitle": "Clasificación de clasificatoria",
+      "backHub": "← Hub",
+      "infoLine": "ELO {elo} · {record}",
+      "record": "{wins}V-{losses}D · {winPct}% victorias",
+      "recordFull": "{wins}V-{losses}D · {winPct}% victorias · {lossPct}% derrotas",
+      "queueStats": "{waiting} esperando · {inGame} en partidas clasificatorias",
+      "searching": "Buscando… ({seconds}s)",
+      "readySearch": "Listo para buscar"
+    },
+    "leaderboard": {
+      "title": "Clasificación de clasificatoria",
+      "lead": "El ELO más alto de PvP clasificatorio. Configura una carta de banner para tu fila de perfil.",
+      "empty": "Aún no hay partidas clasificatorias: juega PvP clasificatorio para aparecer aquí.",
+      "editBanner": "Editar banner de perfil",
+      "eloSuffix": " ELO",
+      "eloLabel": "{elo} ELO",
+      "profileBanner": "Banner de perfil",
+      "bannerLead": "Elige una carta que tengas y luego arrastra la franja verticalmente para escoger el arte mostrado en tu carta de clasificación.",
+      "bannerSearchPlaceholder": "Buscar por nombre de carta…",
+      "bannerNoMatch": "Ninguna carta coincide con tu búsqueda.",
+      "bannerPreview": "Vista previa",
+      "saveBanner": "Guardar banner",
+      "selectCardFirst": "Selecciona primero una carta"
+    },
+    "options": {
+      "title": "Opciones",
+      "enhancedTextures": "Texturas mejoradas en cartas de alta rareza",
+      "soundEffects": "Efectos de sonido",
+      "sfxVolume": "Volumen de SFX",
+      "stuckTitle": "¿Atascado en una partida?",
+      "stuckLead": "Si clasificatoria te reconecta a una partida rota o terminada, abandona aquí el registro de partida activa. Esto cuenta como rendición si la partida aún está en curso.",
+      "resetTitle": "Restablecer cuenta",
+      "resetLead": "Elimina todas las cartas de colección, preajustes de mazo, estadísticas clasificatorias y progreso de sobres. Elegirás un nuevo mazo inicial y empezarás de nuevo. Esto no se puede deshacer.",
+      "resetAccount": "Restablecer cuenta",
+      "backHub": "← Hub"
+    },
+    "starter": {
+      "title": "Elige tu mazo inicial",
+      "lead": "Elige un mazo inicial oficial como base de tu colección. Esta elección es permanente.",
+      "confirm": "Confirmar inicial"
+    },
+    "waiting": {
+      "roomCreated": "¡Sala creada!",
+      "shareCode": "Comparte este código con tu oponente:",
+      "tapCopy": "Toca para copiar 📋",
+      "clickCopy": "Haz clic para copiar",
+      "waitingOpponent": "Esperando a que se una el oponente…",
+      "cancel": "Cancelar",
+      "phaseTimerInfo": "Temporizador de fase: {sec}s por turno principal y LIVE"
+    },
+    "game": {
+      "you": "Tú",
+      "opponent": "Oponente",
+      "opp": "Opo.",
+      "gameLog": "Registro de partida",
+      "resign": "🏳 Rendirse",
+      "enableRadio": "📻 Activar radio",
+      "endMainPhase": "Terminar Fase principal",
+      "endLivePhase": "Terminar Fase Live",
+      "setLiveCards": "Colocar cartas Live",
+      "waitingOpponent": "Esperando al oponente",
+      "resolveSkillFirst": "Resuelve primero la habilidad",
+      "waitingSkill": "Esperando habilidad",
+      "yourHand": "Tu mano",
+      "mainDeck": "Mazo principal",
+      "waitingRoom": "Sala de espera",
+      "oppWaitingRoom": "Sala de espera del oponente",
+      "deckHidden": "El mazo del oponente está oculto.",
+      "energyDeck": "Mazo de Energía",
+      "liveStorage": "Almacenamiento de Live",
+      "successStorage": "Pila de éxito",
+      "stageBoard": "Tablero de Escenario",
+      "activatableSkills": "Habilidades activables",
+      "activeEffects": "Efectos activos",
+      "hoverHandEmpty": "Pasa el cursor sobre una carta en tu mano para previsualizarla aquí.",
+      "starting": "Iniciando…",
+      "hand": "Mano",
+      "wr": "SE",
+      "spectating": "Espectando: {p1} vs {p2} (solo lectura)",
+      "oppActivatingSkill": "El oponente está activando una habilidad…",
+      "activeEnergy": "activa",
+      "pickSlot": "Elige un espacio",
+      "batonPassHint": "Relevo: paga {cost} Energía activa",
+      "overplayHint": "Sobreponer: paga {cost} Energía activa",
+      "slotLeft": "Lado izquierdo",
+      "slotCenter": "Centro",
+      "slotRight": "Lado derecho",
+      "baton": "Relevo",
+      "batonToggleOn": "Toca para modo sobreponer",
+      "batonToggleOff": "Toca para relevo",
+      "opponentSkillWait": "{name} está activando una habilidad…",
+      "perfYou": "Tú",
+      "perfOpp": "Oponente",
+      "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>Fase: {phase}<span class=\"turn-sep\">·</span>Activo: {active}<span class=\"turn-sep\">·</span>Primero: {first}",
+      "deckTopLabel": "Parte superior del mazo"
+    },
+    "slot": {
+      "left": "Izquierda",
+      "center": "Centro",
+      "right": "Derecha"
+    },
+    "phase": {
+      "waiting": "Esperando",
+      "setup": "Preparación (muligan)",
+      "main": "Fase principal",
+      "main_first": "Fase principal",
+      "main_second": "Fase principal",
+      "live": "Fase Live",
+      "live_set": "Fase Live",
+      "live_set_first": "Fase Live",
+      "live_set_second": "Fase Live",
+      "live_start_effects": "Inicio de Live",
+      "live_success_effects": "Éxito de Live",
+      "performance": "Fase de presentación",
+      "live_performance_first": "Fase de presentación",
+      "live_performance_second": "Fase de presentación",
+      "coinFlip": "Lanzamiento de moneda",
+      "preparation": "Preparación",
+      "active": "Fase activa",
+      "active_first": "Fase activa",
+      "active_second": "Fase activa",
+      "live_judge": "Verificación de victoria/derrota de Live"
+    },
+    "phaseId": {
+      "waiting": "Esperando",
+      "coin_flip": "Lanzamiento de moneda",
+      "setup": "Preparación (muligan)",
+      "active_first": "Fase activa",
+      "active_second": "Fase activa",
+      "main_first": "Fase principal",
+      "main_second": "Fase principal",
+      "live_set": "Fase Live",
+      "live_set_first": "Fase Live",
+      "live_set_second": "Fase Live",
+      "live_start_effects": "Inicio de Live",
+      "live_success_effects": "Éxito de Live",
+      "live_performance_first": "Fase de presentación",
+      "live_performance_second": "Fase de presentación",
+      "live_judge": "Verificación de victoria/derrota de Live"
+    },
+    "phaseBar": {
+      "spectating": "Espectando: {p1} vs {p2} (solo lectura)",
+      "setupWaitMulligan": "Esperando a que el oponente termine el muligan…",
+      "setupMulligan": "Preparación: revisa tu mano inicial, marca cartas para muligan y luego confirma.",
+      "coinFlip": "Lanzamiento de moneda: el ganador elige quién va primero…",
+      "mainYour": "Tu Fase principal: juega Miembros ({energy} disponible). Termina la Fase principal cuando estés listo.",
+      "mainOpp": "Turno de {name}: Fase principal…",
+      "mainOppS": "Turno de {name}: Fase principal…",
+      "liveRaised": "Fase Live: {count} carta levantada · toca la mano para ajustar · confirma con el botón debajo del registro",
+      "liveRaisedPlural": "Fase Live: {count} cartas levantadas · toca la mano para ajustar · confirma con el botón debajo del registro",
+      "liveStored": "Fase Live: {stored} en almacenamiento · coloca hasta {slots} más (Live o Miembro), o termina la Fase Live debajo del registro",
+      "livePlace": "Fase Live: coloca 0–{slots} cartas (Live o Miembro), luego termina la Fase Live · botón debajo del registro",
+      "liveBothLocked": "Ambos jugadores bloquearon su selección: iniciando Presentación…",
+      "liveYouLocked": "Bloqueaste tu selección: esperando a que el oponente termine la selección LIVE…",
+      "liveStartEffects": "Resuelve los avisos de Inicio de Live: los efectos opcionales aparecerán como superposiciones.",
+      "liveSuccessEffects": "Resuelve los avisos de Éxito de Live: los efectos opcionales aparecerán como superposiciones.",
+      "performance": "Fase de presentación: Yell · corazones · verificación de éxito de Live",
+      "liveJudge": "Fase de verificación de victoria/derrota de Live…"
+    },
+    "phaseBanner": {
+      "coinFlipTitle": "Lanzamiento de moneda",
+      "coinFlipSub": "El ganador elige quién va primero",
+      "setupTitle": "Preparación",
+      "setupSub": "Muligan opcional (un cambio)",
+      "activeTitle": "Fase activa",
+      "activeSub": "Refresca Energía y Miembros",
+      "mainYour": "Tu Fase principal",
+      "mainOpp": "Fase principal de {name}",
+      "mainOppS": "Fase principal de {name}",
+      "liveTitle": "Fase Live",
+      "livePlayer": "Fase Live de {name}",
+      "livePlayerS": "Fase Live de {name}",
+      "liveSub": "Coloca 0–3 cartas (Live o Miembro), luego termina la Fase Live",
+      "liveStartTitle": "Inicio de Live",
+      "liveStartSub": "Efectos opcionales antes de la Presentación",
+      "liveSuccessTitle": "Éxito de Live",
+      "liveSuccessSub": "Efectos opcionales después de los corazones",
+      "performanceTitle": "Fase de presentación",
+      "performanceSub": "Revelar · Yell · Corazones",
+      "liveJudgeTitle": "Verificación de victoria/derrota de Live",
+      "liveJudgeSub": "Comparando puntuaciones de Live…",
+      "yourMain": "Tu Fase principal",
+      "theirMain": "Fase principal de {name}",
+      "theirMainS": "Fase principal de {name}"
+    },
+    "splash": {
+      "turn": "Turno {turn}",
+      "turnBegin": "Comienza el turno {turn}",
+      "noLives": "No se jugaron Lives este turno",
+      "gameStart": "Inicio de partida",
+      "deckRefresh": "Refresco de mazo",
+      "deckRefreshOpp": "{name}: refresco de mazo",
+      "deckRefreshSub": "{n} carta(s) barajadas desde la Sala de espera",
+      "youAttemptLive": "¡Intentas un Live!",
+      "theyAttemptLive": "{name} intenta un Live",
+      "attemptSub": "Robando Yell · verificando corazones",
+      "youWait": "Tú esperas",
+      "theyWait": "{name} espera",
+      "youWaitSub": "Las cartas Live permanecen en almacenamiento",
+      "theyWaitSub": "Las cartas Live permanecen en su almacenamiento",
+      "perfRoundFailed": "{ok} pasaron corazones · ronda fallida (todos los Lives deben tener éxito)",
+      "perfCleared": "{ok} carta(s) Live superaron la ronda",
+      "perfMixed": "{ok} tuvieron éxito · {fail} fallaron corazones → Sala de espera",
+      "yourLivePerformance": "Tu Presentación Live",
+      "theirLive": "Live de {name}",
+      "perfSubYell": "Yell {blades} · {sub}",
+      "successLiveYou": "¡Live exitoso!",
+      "successLiveThey": "{name}: ¡Live exitoso!",
+      "successLiveSubYou": "Una carta Live se une a tus éxitos",
+      "successLiveSubThey": "Una carta Live se une a sus éxitos",
+      "bothWait": "Ambos jugadores esperan",
+      "bothWaitSub": "Las cartas Live permanecen en almacenamiento",
+      "liveStartFlash": "INICIO DE LIVE"
+    },
+    "mulligan": {
+      "title": "Mano inicial 🌸",
+      "hint": "Toca cartas para marcarlas para reemplazo. Mantén presionada una carta para ver sus detalles. Toca otra vez para desmarcar.",
+      "keepHand": "Conservar mano",
+      "replaceCard": "Reemplazar {n} carta",
+      "replaceCards": "Reemplazar {n} cartas"
+    },
+    "coin": {
+      "title": "Primer jugador",
+      "flipping": "Lanzando moneda…",
+      "goFirst": "Iré primero",
+      "escortFirst": "Escort va primero",
+      "opponentFirst": "El oponente va primero",
+      "waitingOppFlip": "Esperando a que el oponente termine de ver el lanzamiento…",
+      "waitingOpp": "Esperando al oponente…",
+      "wonFlip": "¡{name} ganó el lanzamiento de moneda!",
+      "wonFlipShort": "{name} ganó el lanzamiento de moneda",
+      "winnerChoosing": "Eligiendo quién va primero…",
+      "chooseFirst": "Elige quién va primero",
+      "youWon": "¡Ganaste el lanzamiento de moneda!",
+      "oppGoesFirst": "{name} va primero"
+    },
+    "live": {
+      "overlayTitle": "Fase Live: colocar cartas",
+      "overlayHint": "Fase Live: coloca 0–3 cartas (Live o Miembro) en el almacenamiento de Live; las tuyas quedan boca arriba, las del oponente quedan ocultas hasta Presentación. Roba 1 por cada carta colocada y luego termina la Fase Live. Presentación revela el almacenamiento del oponente de una vez.",
+      "placeInStorage": "Colocar en almacenamiento",
+      "selected": "Seleccionada",
+      "inStorage": "En almacenamiento",
+      "liveScore": "Puntuación de Live",
+      "liveJudge": "Juez de Live",
+      "liveWinLoss": "Verificación de victoria/derrota de Live",
+      "yourScore": "Tu puntuación",
+      "oppScore": "Puntuación del opo."
+    },
+    "prompt": {
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "respond": "Responder",
+      "chooseCards": "Elegir cartas",
+      "chooseFromHand": "Elegir de la mano",
+      "chooseHeart": "Elegir un corazón",
+      "discardFromHand": "Descartar de la mano",
+      "discardOne": "Elige una carta para enviar a la Sala de espera.",
+      "discardMany": "Elige {count} cartas para enviar a la Sala de espera.",
+      "selectThenConfirm": "Selecciona cartas y luego toca Confirmar.",
+      "tapCardConfirm": "Toca una carta para confirmar.",
+      "yes": "Sí",
+      "noSkip": "No: saltar",
+      "skip": "Saltar",
+      "tapOption": "Toca una opción abajo.",
+      "useLiveStart": "¿Usar este efecto de Inicio de Live?",
+      "useEffect": "¿Usar este efecto?",
+      "answer": "Respuesta",
+      "typeAnswer": "Escribe tu respuesta…",
+      "typeAnswerHint": "Escribe tu respuesta; la ortografía y la redacción pueden variar.",
+      "confirmArrangement": "Confirmar arreglo",
+      "selectedCount": "Seleccionadas: {n}/{max}",
+      "activateSub": "Elige si activar este efecto.",
+      "lookAtDeck": "Mirar el mazo",
+      "surveilHint": "La posición 1 es la parte superior de tu mazo. Arrastra cartas entre las posiciones numeradas y la Sala de espera, toca dos cartas para intercambiarlas, o toca una posición / la Sala de espera mientras una carta está seleccionada.",
+      "wrPickTitle": "Sala de espera",
+      "wrPickMsg": "Elige una carta de tu Sala de espera para añadirla a tu mano.",
+      "yellPickTitle": "Yell",
+      "yellPickMsg": "Elige 1 carta revelada por Yell.",
+      "successLivePickTitle": "Live exitoso",
+      "successLivePickMsg": "Elige 1 carta Live para colocar en Live exitoso.",
+      "successLiveHandTitle": "Live exitoso",
+      "successLiveHandMsg": "Elige 1 carta de tu área de Live exitoso para añadirla a tu mano.",
+      "deckTopTitle": "Parte superior del mazo",
+      "deckTopMsg": "Elige 1 carta revelada para Yell y colócala en la parte superior de tu mazo.",
+      "wrEmpty": "La Sala de espera está vacía",
+      "wrNoMatch": "No hay cartas coincidentes en la Sala de espera",
+      "yellNoCards": "No hay cartas Yell para elegir",
+      "noLiveSuccess": "No hay cartas Live para colocar en Live exitoso",
+      "searchDeckFor": "Buscar en el mazo…",
+      "deckTopPick": "Parte superior del mazo"
+    },
+    "skill": {
+      "alreadyUsed": "Ya usado este turno",
+      "needEnergy": "Necesitas {n} Energía activa",
+      "tutorialDemo": "Demo del tutorial: usa Siguiente para continuar"
+    },
+    "skillKw": {
+      "onEnter": {
+        "title": "Al entrar",
+        "body": "Se activa una vez cuando este Miembro se juega desde tu mano a tu Escenario."
+      },
+      "onLeave": {
+        "title": "Al salir",
+        "body": "Se activa cuando este Miembro deja tu Escenario (enviado a la Sala de espera, relevo, etc.)."
+      },
+      "liveStart": {
+        "title": "Inicio de Live",
+        "body": "Se resuelve durante el paso de Inicio de Live después de que se intenta un Live. Muchos efectos son opcionales: busca \"puedes\"."
+      },
+      "liveSuccess": {
+        "title": "Éxito de Live",
+        "body": "Se resuelve cuando tu Presentación Live tiene éxito: se cumplieron los corazones requeridos para las cartas Live intentadas."
+      },
+      "activated": {
+        "title": "Activada",
+        "body": "Eliges usarla durante tu Fase principal mientras el Miembro está activo en el Escenario. Paga primero cualquier costo indicado."
+      },
+      "always": {
+        "title": "Siempre",
+        "body": "Efecto pasivo que permanece mientras este Miembro está en juego y se cumplen sus condiciones. No hay nada que activar."
+      },
+      "oncePerTurn": {
+        "title": "Una vez por turno",
+        "body": "Solo puedes usar este efecto una vez en cada turno."
+      },
+      "automatic": {
+        "title": "Automático",
+        "body": "Se dispara por sí mismo cuando ocurre la condición indicada; no requiere activación."
+      },
+      "center": {
+        "title": "Centro",
+        "body": "Solo aplica si este Miembro está en el espacio central del Escenario cuando el efecto se resuelve."
+      },
+      "yell": {
+        "title": "Yell (エール)",
+        "body": "Durante la Presentación Live, roba cartas de tu mazo igual a tu Blade total (de los Miembros activos en el Escenario). Esas cartas se revelan: los corazones que muestren cuentan para cumplir los corazones requeridos de tus cartas Live. Las cartas Yell se envían después a la Sala de espera."
+      }
+    },
+    "heart": {
+      "pickColor": "Elige un color de corazón para este efecto.",
+      "yellow": "Amarillo",
+      "pink": "Rosa",
+      "purple": "Morado",
+      "red": "Rojo",
+      "green": "Verde",
+      "blue": "Azul"
+    },
+    "card": {
+      "cost": "Costo",
+      "blade": "Blade",
+      "score": "Puntuación",
+      "requiredHearts": "Corazones requeridos",
+      "hearts": "Corazones",
+      "yellIcons": "Íconos de Yell",
+      "playToSlot": "Jugar en espacio:",
+      "needEnergy": "Necesitas",
+      "haveEnergy": "tienes"
+    },
+    "pack": {
+      "opened": "Sobre abierto",
+      "boxOpened": "Caja abierta"
+    },
+    "log": {
+      "gameStartedCoinFlip": "¡La partida comenzó! Lanzamiento de moneda: el ganador elige quién va primero.",
+      "preparationDrawEnergy": "Preparación: cada jugador robó 6 cartas y colocó 3 Energía en almacenamiento.",
+      "preparationMulligan": "Preparación: muligan: puedes reemplazar cualquier cantidad de cartas de tu mano inicial una vez.",
+      "livePhaseIntro": "Fase Live: coloca 0–3 cartas (Live o Miembro) boca abajo en el almacenamiento de Live (roba 1 por cada carta colocada), luego termina la Fase Live.",
+      "bothRevealLive": "Ambos jugadores revelan el almacenamiento de Live simultáneamente.",
+      "noLivesThisTurn": "No se jugaron Lives este turno.",
+      "remainingLiveToWr": "El almacenamiento de Live restante se envió a la Sala de espera.",
+      "neitherWrFromHand": "Ningún jugador tenía cartas en mano para poner en la Sala de espera.",
+      "neitherCouldDraw": "Ningún jugador pudo robar (mazo vacío).",
+      "neitherLiveWinner": "Ningún jugador tiene éxito: no hay ganador de Live este turno.",
+      "coinFlipAuto": "Lanzamiento de moneda: continuó automáticamente (el jugador no respondió a tiempo).",
+      "cpuDeck": "Mazo de CPU: {label}",
+      "dividerLive": "=== Fase Live ===",
+      "dividerPerformance": "=== Fase de presentación ===",
+      "dividerLiveShow": "=== Show Live ===",
+      "dividerLiveJudge": "=== Fase de verificación de victoria/derrota de Live ===",
+      "dividerTurnBegin": "=== Comienza el turno {turn} ===",
+      "dividerTurn": "--- Turno {turn} ---",
+      "hasNoValidLive": " no tiene cartas Live válidas.",
+      "disconnectedWin": "{loser} se desconectó. ¡{winner} gana!",
+      "chooseSuccessLive": " — elige una carta Live para Live exitoso.",
+      "scoreTiedBlocked": " — puntuación empatada; Live exitoso bloqueado; cartas Live enviadas a la Sala de espera.",
+      "scoreTiedCap": " — puntuación empatada, pero ya tiene 2 Lives exitosos; cartas Live enviadas a la Sala de espera."
+    },
+    "win": {
+      "youWin": "¡Ganaste!",
+      "youLose": "¡Perdiste!",
+      "playAgain": "Jugar otra vez",
+      "returnMenu": "Volver al menú",
+      "viewLeaderboard": "Ver clasificación",
+      "resigned": "Te rendiste",
+      "conceded": "Concediste la partida.",
+      "oppResigned": "{name} se rindió.",
+      "threeLives": "¡{name} logró 3 Lives exitosos!",
+      "findAnother": "Buscar otra partida",
+      "disconnectedYou": "Te desconectaste de la partida.",
+      "disconnectedOpp": "{name} se desconectó.",
+      "statsLine": "Turno: {turn} | Tus éxitos: {yours}/3 | Éxitos del opo.: {opp}/3",
+      "debugSaveReplay": "💾 Guardar repetición",
+      "saveReplay": "Guardar repetición",
+      "debugSaveLog": "💾 Guardar registro de depuración",
+      "debugCopyLog": "📋 Copiar registro",
+      "debugSaveBundle": "📦 Exportar paquete de depuración"
+    },
+    "replay": {
+      "menuTitle": "Visor de repeticiones",
+      "menuSubAuth": "Carga una repetición guardada y mírala en tiempo real",
+      "menuSubHub": "Mira repeticiones guardadas desde tu biblioteca",
+      "title": "Visor de repeticiones",
+      "back": "← Atrás",
+      "lead": "Mira repeticiones guardadas desde la biblioteca de tu cuenta. La reproducción sigue el ritmo de acciones guardado, y la barra de búsqueda puede saltar a cualquier punto de la repetición.",
+      "refreshLibrary": "Actualizar biblioteca",
+      "importLead": "¿Tienes un archivo de repetición exportado? Importa JSON aquí como opción secundaria.",
+      "fileLabel": "Archivo de repetición",
+      "noFileSelected": "No se seleccionó ningún archivo.",
+      "startImported": "Iniciar repetición importada",
+      "playPause": "Reproducir / pausar",
+      "positionAria": "Posición de la repetición",
+      "handoffNote": "Repetición completa: tienes el control. La CPU juega como oponente.",
+      "exitReplay": "Salir de repetición",
+      "phaseBarHint": "Repetición {step} / {total}: usa la barra de repetición abajo para avanzar por las acciones grabadas.",
+      "signInLibrary": "Inicia sesión para guardar y ver repeticiones en tu biblioteca.",
+      "emptyLibrary": "Aún no hay repeticiones guardadas. Termina una partida y elige Guardar repetición.",
+      "watch": "Ver",
+      "downloadJson": "Descargar JSON",
+      "loadingLibrary": "Cargando repeticiones guardadas...",
+      "loadLibraryFailed": "No se pudieron cargar las repeticiones guardadas.",
+      "win": "Victoria",
+      "loss": "Derrota",
+      "replayLabel": "Repetición",
+      "resultAs": "{result} como {name}",
+      "summarySaved": "Guardada {date}",
+      "summaryRoom": "Sala {room}",
+      "summaryVs": "vs {name}",
+      "summaryTurn": "Turno {turn}",
+      "summaryActions": "{count} acción",
+      "summaryActionsPlural": "{count} acciones",
+      "metaSaver": "Guardó: {name}",
+      "metaPerspective": "Perspectiva: {id}",
+      "metaSavedAt": "Guardada: {at}",
+      "metaSnapshot": "Instantánea: turno {turn}, fase {phase}",
+      "metaDuration": "Duración: {duration}",
+      "metaActions": "Acciones: {count}",
+      "unknownDate": "Fecha desconocida",
+      "loadedToast": "Repetición cargada: {count} acción(es)",
+      "downloadedJson": "JSON de repetición descargado",
+      "downloadFailed": "No se pudo descargar la repetición",
+      "payloadMissing": "Falta el contenido de la repetición",
+      "startSavedFailed": "No se pudo iniciar la repetición guardada",
+      "unsupportedSchema": "Esquema de repetición no compatible",
+      "invalidFile": "Archivo de repetición inválido",
+      "chooseFileFirst": "Elige primero un archivo de repetición.",
+      "saveAfterFinish": "Guardar repetición está disponible después de que termine la partida.",
+      "noCredentials": "No se encontraron credenciales de partida para exportar la repetición.",
+      "savedToLibrary": "Repetición guardada en tu biblioteca",
+      "savedToLibraryId": "Repetición guardada en tu biblioteca (#{id})",
+      "downloadedAsJson": "Repetición descargada como JSON",
+      "couldNotSave": "No se pudo guardar la repetición"
+    },
+    "apiError": {
+      "titleClient": "Algo salió mal",
+      "titleServer": "Error del servidor",
+      "hintClient": "Intenta actualizar la página si la partida parece atascada.",
+      "hintServer": "Intenta actualizar la página. Si sigue ocurriendo, espera un momento e inténtalo de nuevo.",
+      "connectionFailed": "No se pudo conectar con el servidor. Intenta actualizar la página."
+    },
+    "tutorialMeta": {
+      "title": "Tutorial para principiantes",
+      "labelOpponent": "Jugador2"
+    },
+    "tutorial": {
+      "exitTitle": "Salir al título",
+      "back": "← Atrás",
+      "next": "Siguiente →",
+      "finish": "Finalizar",
+      "intro_welcome": "¡Hola! Soy **Shibuya Kanon**. ¡Bienvenido al tutorial de **Love Live! Official Card Game**!",
+      "intro_what": "¡Este es un juego de cartas para **dos jugadores** sobre **school idols**! Reclutarás **Miembros** en tu Escenario, administrarás **Energía** y presentarás **Lives** para superar a tu oponente.",
+      "intro_goal": "**Condición de victoria:** Presenta con éxito **3 Lives** antes que tu oponente. Cuando tu **Live** tiene éxito, ese Live se mueve al **almacenamiento de cartas Live exitosas**: ¡el primero en llegar a tres gana la partida!",
+      "intro_decks": "Este juego usa tres tipos de cartas. Cartas de **Miembro**, cartas **Live** y cartas de **Energía**. Cada jugador tiene un **Mazo principal** de **60** cartas (**48** cartas de Miembro y **12** cartas Live) y un **Mazo de Energía** de **12** cartas de Energía.",
+      "intro_card_member": "Las **cartas de Miembro** son las idols que se presentarán en el Escenario. Paga **Energía** igual a su costo para jugarlas desde tu mano. Cada Miembro tiene cierta cantidad de **Corazones** de color (verticales) que se usan al presentar Lives. También hay **Blades** (los íconos redondos de penlight) y **Corazones de Blade** (los corazones de lado), pero por ahora nos enfocaremos en el corazón vertical. Shiki aquí tiene **1 corazón morado**.",
+      "intro_card_live": "Las **cartas Live** son las canciones que presentas. Puedes jugar hasta 3 a la vez. Los Lives se superan usando las cartas de **Miembro** que colocaste en tu Escenario; hablaremos más de esto después.",
+      "intro_card_energy": "Las **cartas de Energía** de tu **Mazo de Energía** se colocan aquí. Empiezas con **3 Energía** y ganas **+1** cada turno (hasta que las **12** de tu energía estén en juego). La Energía se gasta para colocar **cartas de Miembro** en tu **Escenario**.",
+      "intro_demo": "Te guiaré por una demo: **Liella!** vs **μ's** sobre el tapete. Tú estás abajo; tu oponente está arriba.",
+      "intro_deck_piles": "La pila superior es tu **Mazo principal**, de donde robas cartas. Debajo está el **Mazo de Energía**.",
+      "intro_stage": "El **Escenario** (izquierda / centro / derecha) es donde se sientan los Miembros. Sus colores de **Corazón** y valores de **Blade** alimentan los Lives durante la Presentación.",
+      "intro_live": "El **Almacenamiento de Live** guarda hasta 3 cartas boca abajo durante la Fase Live. Podrás ver tus propias cartas en esta versión web, pero las cartas de tu oponente estarán ocultas.",
+      "intro_success": "¡Completar un **Live** mueve esa carta Live a la **Pila de éxito**! ¡Lleva la cuenta de qué tan cerca estás de ganar aquí!",
+      "intro_wr": "La **Sala de espera** es la pila de descarte.",
+      "intro_hands": "Normalmente la mano de tu oponente estará oculta, pero es visible en este tutorial. Tu mano consiste en cartas de **Miembro** y **Live** de tu mazo.",
+      "setup_coin": "Antes de empezar, un **lanzamiento de moneda** elige un ganador: esa persona **elige** quién va primero. ¡Pon atención a esto al inicio de cada partida!",
+      "setup_coin_p1": "...¡**Liella** va primero!",
+      "setup_coin_p2": "¡Ahora podemos ver nuestra **mano inicial**!",
+      "setup_mulligan": "Empiezas con **6** cartas. Si no estás conforme con las cartas que robaste, esta pantalla te da la oportunidad de cambiar tantas cartas como quieras y robar reemplazos (a esto lo llamamos **muligan**).",
+      "setup_mull_p1": "Flujo de juego: **Fase principal** -> **Fase Live** -> **Fase de presentación** -> repetir.",
+      "setup_mull_p2": "¡**Fase principal!**. Robaste una carta nueva de tu mazo.",
+      "t1_structure": "En cada **Fase principal**, actúa primero el primer jugador y luego el segundo; ahí es donde juegas Miembros... y usas habilidades. Presionarás **Terminar Fase principal** aquí cuando termines de realizar acciones.",
+      "t1_energy_refresh": "Al inicio de un nuevo turno, ganarás **+1 Energía**. Seguirás ganando **1** Energía con cada nuevo turno hasta que las **12** cartas de Energía estén en juego.",
+      "t1_main_p1": "**Fase principal** de Liella: ¡juguemos primero una carta de Miembro!",
+      "t1_play_shiki_plain": "Gastamos **2 Energía** para jugar esta carta y enviarla a un espacio libre de nuestro Escenario. (La Energía gastada se gira de lado)",
+      "t1_no_skill": "Ahora tenemos un solo Miembro en el centro de nuestro Escenario. Si no tienes la Energía requerida para colocar más cartas, puedes terminar tu Fase principal.",
+      "t1_end_main_p1": "Liella termina su Fase principal: ¡ahora es el turno del oponente de colocar sus cartas!",
+      "t1_main_p2": "μ's juega **Rin Hoshizora** en su Escenario, con **1 corazón rosa**.",
+      "t1_hearts": "¡Puedes ver aquí arriba la cantidad total de **Corazones** y **Blades** de las cartas activas en tu **Escenario** y el de tu oponente!",
+      "t1_end_main_p2": "Después de que ambos jugadores completan su Fase principal, ¡es hora de la **Fase Live**!",
+      "t1_live_intro": "Coloca 0–3 cartas (Live o Miembro) en el **almacenamiento de cartas Live**. Roba 1 carta nueva de tu mazo por cada carta que colocaste. Las cartas de Miembro colocadas en el almacenamiento de Live se descartarán en la siguiente fase; ¡puedes reemplazar cartas no deseadas de esta forma!",
+      "t1_live_p1": "Cuando colocas una carta **Live** en la Fase Live, deberá intentarse más tarde en el mismo turno, ¡así que elige con cuidado! Liella coloca **WE WILL!!**: necesita 1 corazón **rojo**, 1 corazón **morado** y 1 corazón adicional de **cualquier color** (indicado por un corazón gris) para superarse con éxito.",
+      "t1_live_p1_lock": "Liella termina su **Fase Live**, bloqueando su selección. A diferencia de la Fase principal, tu Fase Live y la de tu oponente ocurren al mismo tiempo. Si la Fase Live de tu oponente aún no termina, esperarás a que acabe antes de avanzar.",
+      "t1_live_p2": "μ's coloca un **Live** boca abajo en almacenamiento: verás cuál es en la **Fase de presentación**.",
+      "t1_live_p2_lock": "μ's bloquea su selección.",
+      "t1_end": "Turno 1 listo: jugaste un Miembro, colocaste un Live y aprendiste **emparejamiento de Corazones** durante la Presentación.",
+      "t2_start": "**Turno 2**: robas una carta a tu mano y ganas +1 Energía.",
+      "t2_skill_intro": "Las cartas que hemos jugado hasta ahora solo dan **corazones** y **blades**, pero algunas cartas también tienen **habilidades** que afectan la partida de varias formas. Mira esta carta: incluye texto de habilidad.",
+      "t2_skill_preview": "Esta es una habilidad **[Al entrar]**, lo que significa que cuando esta carta entra al Escenario desde tu mano, ocurre algo.",
+      "t2_play_shiki_skill": "Liella juega a Shiki en el espacio derecho. Mira: el juego preguntará si quieres usar su efecto **Al entrar**.",
+      "t2_on_enter_offer": "Si una habilidad dice \"puedes\", significa que activarla es opcional y puedes elegir saltar el efecto. Liella acepta **activar** la habilidad. Después de pagar **1 Energía**, Liella puede elegir una nueva carta de la parte superior de su mazo para añadirla a su mano.",
+      "t2_on_enter_confirm": "Ahora eligen qué carta conservar. Liella elegirá **1 carta** para conservar y enviará las demás a la **Sala de espera**.",
+      "t2_on_enter_result": "La habilidad de Shiki se resuelve: una carta se une a la mano de Liella, dos van a la **Sala de espera**. Así funciona una habilidad **[Al entrar]**.",
+      "t2_end_p1": "Liella termina principal.",
+      "t2_main_p2": "μ's juega un Miembro asequible para añadir Corazones.",
+      "t2_end_p2": "μ's termina principal.",
+      "t2_live_skill_intro": "¡Las cartas Live también pueden tener habilidades! Algunas tienen **[Inicio de Live]**: eso se activa cuando empieza la Presentación de ese Live.",
+      "t2_live_p1": "Liella coloca una carta Live.",
+      "t2_live_p1_lock": "Bloqueado.",
+      "t2_live_p2": "μ's coloca **START:DASH!!** boca abajo.",
+      "t2_live_p2_lock": "μ's bloquea su selección.",
+      "t3_start": "**Turno 3**: μ's va primero este turno porque superó el único Live exitoso en la última Presentación.",
+      "t3_main_p2": "μ's juega un Miembro asequible para añadir Corazones.",
+      "t3_p2_end": "μ's termina principal.",
+      "t3_turn": "**Turno 3**: tu Fase principal. Robaste una carta y ganaste **+1 Energía** (**6** en almacenamiento).",
+      "t3_baton_intro": "Ahora explicaré otra mecánica llamada **relevo**. Al jugar una carta sobre otra carta que ya está en tu Escenario, puedes **intercambiar** la carta vieja por la nueva. Al hacer relevo, se considera que pagaste el costo del Miembro reemplazado al moverlo a la **Sala de espera**; solo pagarás la **diferencia** en Energía.",
+      "t3_baton_example": "**Mei Yoneme** cuesta **7**: normalmente serían **7 Energía** desde la mano, pero hacer relevo sobre **Shiki** (costo **4**) en **Derecha** cuesta solo **3** (7−4). **Shiki** permanece en **Centro** (**2 Blade**), **Mei** en **Derecha** añade **1 rojo** y **2 morado**; colocarás **Mirai wa Kaze no You ni** desde la **mano** en la **Fase Live**, y al Escenario le falta un Corazón para superarlo hasta el **Yell**.",
+      "t3_baton_play": "¡Liella hace **relevo** con Mei en **Derecha**!",
+      "skill_glossary_intro": "Ya viste en vivo varios momentos de habilidades. Estas son palabras clave comunes que verás en las cartas:",
+      "skill_on_enter": "**[Al entrar]**: se dispara una vez cuando el Miembro se juega desde la mano a tu Escenario (como Shiki recién). Muchas dicen *puedes*: son opcionales.",
+      "skill_live_start": "**[Inicio de Live]**: se dispara cuando comienza una Presentación Live con esa carta (como START:DASH). También suele ser opcional.",
+      "skill_activated": "**[Activada]**: durante tu Fase principal, usa los botones bajo **Habilidades activables**. Algunos Miembros como **Kinako** pueden dejar el Escenario para añadir un **Live** de tu **Sala de espera** a tu mano.",
+      "skill_wr_note": "Algunas habilidades **[Activada]** solo funcionan mientras el Miembro está **en la Sala de espera**; la lista muestra **SE ·** antes de su nombre. Las habilidades de Escenario muestran el espacio en su lugar.",
+      "skill_always": "**[Siempre]** / **[Automático]**: permanece activa mientras se cumplen las condiciones; no hay botón que presionar. **Automático** se dispara por sí mismo cuando ocurre algo.",
+      "skill_once": "**[Una vez por turno]**: aunque pudieras pagar el costo otra vez, solo tienes un uso en cada turno.",
+      "skill_center": "**[Centro]**: solo funciona si ese Miembro está en el espacio **central** del Escenario.",
+      "skill_on_leave": "**[Al salir]**: se dispara cuando el Miembro deja el Escenario (relevo, efectos de retiro, etc.).",
+      "t3_stage_hearts": "Con **Izquierda** libre, coloca **Mirai wa Kaze no You ni** desde la **mano** en la **Fase Live**. **Shiki** en **Centro** y **Mei** en **Derecha** aportan algunos Corazones; **Mirai wa Kaze no You ni** todavía necesita más Corazones, que con suerte serán proporcionados por **Yell**. La habilidad de **Mirai wa Kaze no You ni** permite que los corazones de **Yell** cuenten como **cualquier** color, así que mejora nuestras posibilidades.",
+      "t3_end_p1": "Liella termina principal.",
+      "t3_live1": "Liella coloca **Mirai wa Kaze no You ni** desde la **mano**.",
+      "t3_live1_lock": "Liella bloquea su selección.",
+      "t3_live2": "μ's coloca **START:DASH!!** boca abajo.",
+      "t3_live2_lock": "μ's bloquea su selección: ¡Presentación final!",
+      "outro": "Bucle principal: **Principal → Colocar Live → Presentación → Juez**. Las habilidades añaden sabor encima. ¡Prueba **Práctica contra CPU** después!",
+      "outro_link": "Reglas completas: llofficial-cardgame.com/rule/ — ¡buena suerte!"
+    },
+    "mobile": {
+      "rotateTitle": "Este juego se juega en horizontal",
+      "rotateSub": "Gira tu dispositivo para continuar."
+    },
+    "common": {
+      "loading": "Cargando…",
+      "back": "← Atrás",
+      "hubBack": "← Hub",
+      "confirm": "Confirmar",
+      "cancel": "Cancelar",
+      "copy": "Copiar",
+      "load": "Cargar",
+      "preview": "Vista previa",
+      "menu": "Menú principal",
+      "seconds": "{n}s",
+      "ok": "OK"
+    },
+    "toast": {
+      "reconnected": "Reconectado a tu partida",
+      "leftActiveMatch": "Saliste de la partida activa",
+      "noActiveMatch": "No se encontró ninguna partida activa",
+      "noCardId": "No hay ID de carta para copiar",
+      "cardIdCopied": "ID de carta copiado",
+      "couldNotCopyCardId": "No se pudo copiar el ID de carta",
+      "signInDeckBuilder": "Inicia sesión para usar el Constructor de mazos.",
+      "signOutDeckExperiment": "Cierra sesión para usar Experimento de mazo.",
+      "rankedMatchFound": "¡Partida clasificatoria encontrada!",
+      "casualMatchFound": "¡Partida casual encontrada!",
+      "passwordCopied": "Contraseña copiada",
+      "copyFailed": "Error al copiar",
+      "copied": "¡Copiado! 📋",
+      "liveOnly": "Solo las cartas Live o Miembro pueden ir al almacenamiento de Live",
+      "onlyLiveOrMember": "Solo las cartas Live o Miembro pueden ir al almacenamiento de Live",
+      "maxLiveCards": "Máx. {slots} carta para almacenamiento de Live",
+      "maxLiveCardsPlural": "Máx. {slots} cartas para almacenamiento de Live",
+      "maxLiveStorage": "Máx. {slots} carta para almacenamiento de Live",
+      "maxLiveStoragePlural": "Máx. {slots} cartas para almacenamiento de Live",
+      "liveStorageFull": "El almacenamiento de Live está lleno",
+      "logCopied": "Registro copiado",
+      "couldNotCopyLog": "No se pudo copiar el registro",
+      "resolveSkillFirst": "Resuelve la habilidad pendiente antes de continuar."
+    },
+    "tutorialUi": {
+      "exitTitle": "Salir al título",
+      "back": "← Atrás",
+      "next": "Siguiente →",
+      "finish": "Finalizar"
+    },
+    "spectate": {
+      "listTitle": "Espectar partida",
+      "listTitleRanked": "Espectar partida clasificatoria",
+      "listTitleCasual": "Espectar partida no clasificada",
+      "lead": "Mira una partida en curso: solo lectura, sin interacción.",
+      "barReadOnly": "Espectando — solo lectura",
+      "barNames": "Espectando {p1} vs {p2}",
+      "leave": "Salir",
+      "reconnected": "Reconectado a la transmisión.",
+      "watch": "Ver",
+      "loading": "Cargando…",
+      "noMatches": "No hay partidas disponibles para espectar."
+    }
   }
 };
 
@@ -1752,6 +2730,7 @@
 
   mergeLocaleAliases(STRINGS.en);
   mergeLocaleAliases(STRINGS.ja);
+  mergeLocaleAliases(STRINGS.es);
   if (STRINGS.ja && STRINGS.ja.options) {
     STRINGS.ja.options.leaveActive = STRINGS.ja.options.leaveActive || '進行中の対戦を退出';
   }
@@ -1791,7 +2770,7 @@
   function t(key, vars) {
     var loc = getLocale();
     var val = lookupPath(STRINGS[loc], key);
-    if (val == null && loc === 'ja') val = lookupPath(STRINGS.en, key);
+    if (val == null && (loc === 'ja' || loc === 'es')) val = lookupPath(STRINGS.en, key);
     if (typeof val === 'string') return interpolate(val, vars);
     return key;
   }
@@ -1840,6 +2819,7 @@
     if (!card) return '';
     var loc = getLocale();
     if (loc === 'ja') return card.text_jp || card.text || '';
+    if (loc === 'es') return card.text_es || card.text || '';
     return card.text || card.text_jp || '';
   }
 
@@ -1847,15 +2827,22 @@
     if (!card) return '';
     var loc = getLocale();
     if (loc === 'ja') return card.card_type || card.card_type_en || '';
+    if (loc === 'es') return card.card_type_es || card.card_type_en || card.card_type || '';
     return card.card_type_en || card.card_type || '';
   }
 
   function tutorialDialogue(step) {
     if (!step) return '';
-    if (getLocale() === 'ja') {
+    var loc = getLocale();
+    if (loc === 'ja') {
       if (_tutorialJa && _tutorialJa[step.id]) return _tutorialJa[step.id];
-      var translated = t('tutorial.' + step.id);
-      if (translated !== 'tutorial.' + step.id) return translated;
+      var jaTranslated = t('tutorial.' + step.id);
+      if (jaTranslated !== 'tutorial.' + step.id) return jaTranslated;
+    }
+    if (loc === 'es') {
+      if (_tutorialEs && _tutorialEs[step.id]) return _tutorialEs[step.id];
+      var esTranslated = t('tutorial.' + step.id);
+      if (esTranslated !== 'tutorial.' + step.id) return esTranslated;
     }
     return step.dialogue || '';
   }
@@ -1906,6 +2893,23 @@
       });
   }
 
+  function loadTutorialEs() {
+    if (_tutorialEs) return Promise.resolve(_tutorialEs);
+    return fetch('./tutorial_es.json?v=1', { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('tutorial_es HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        _tutorialEs = data && typeof data === 'object' ? data : {};
+        return _tutorialEs;
+      })
+      .catch(function () {
+        _tutorialEs = {};
+        return _tutorialEs;
+      });
+  }
+
   function initLocale(onChange) {
     if (typeof onChange === 'function') onLocaleChange(onChange);
     try { document.documentElement.lang = getLocale(); } catch (e) { /* ignore */ }
@@ -1919,6 +2923,7 @@
     });
     applyI18n();
     void loadTutorialJa();
+    void loadTutorialEs();
   }
 
   function initLocaleUi() {
@@ -1938,6 +2943,7 @@
     cardLocaleType: cardLocaleType,
     deckLocaleName: deckLocaleName,
     loadTutorialJa: loadTutorialJa,
+    loadTutorialEs: loadTutorialEs,
     tutorialDialogue: tutorialDialogue,
     initLocale: initLocale,
     initLocaleUi: initLocaleUi,

@@ -1,4 +1,4 @@
-/* Client-side game log localization (English server log → Japanese display) */
+/* Client-side game log localization (English server log → ja / es display) */
 (function (global) {
   'use strict';
 
@@ -115,6 +115,47 @@
 
     m = msg.match(/^🪙 Coin flip: (.+) won — first player chosen automatically \(time expired\)\.$/);
     if (m) return '🪙 コイントス：' + m[1] + ' の勝ち — 時間切れのため先攻を自動選択。';
+
+    return null;
+  }
+
+  function translateStructuredLineEs(msg) {
+    var m;
+
+    m = msg.match(/^(.+?) performed Live! Blades: (\d+) \| Hearts: \[([^\]]*)\] \| Live success: (\d+) \| Failed: (\d+)( \| Round: failed \(not all Lives succeeded\))?$/);
+    if (m) {
+      var roundNote = m[6] ? ' | Ronda fallida (no todos los Lives tuvieron éxito)' : '';
+      return m[1] + ' presentó Live. Cuchillas: ' + m[2] +
+        ' | Corazones: [' + m[3] + ']' +
+        ' | Live exitoso: ' + m[4] + ' | Fallidos: ' + m[5] + roundNote;
+    }
+
+    m = msg.match(/^Live Scores: (.+?) = (\d+) \| (.+?) = (\d+)$/);
+    if (m) return 'Puntuaciones Live: ' + m[1] + ' = ' + m[2] + ' | ' + m[3] + ' = ' + m[4];
+
+    m = msg.match(/^(.+?) wins the Live — (.+) failed\.$/);
+    if (m) return m[1] + ' gana el Live — ' + m[2] + ' falló.';
+
+    m = msg.match(/^(.+?) wins this Live! "(.+)" added to successes\.$/);
+    if (m) return m[1] + ' gana este Live. "' + m[2] + '" añadido a los éxitos.';
+
+    m = msg.match(/^(.+) has no valid Live cards!$/);
+    if (m) return m[1] + tLog('log.hasNoValidLive');
+
+    m = msg.match(/^(.+) — choose a Live card for Success Live\.$/);
+    if (m) return m[1] + tLog('log.chooseSuccessLive');
+
+    if (msg.endsWith(' — score tied; Success Live blocked; Live cards sent to Waiting Room.')) {
+      return msg.slice(0, -' — score tied; Success Live blocked; Live cards sent to Waiting Room.'.length) +
+        tLog('log.scoreTiedBlocked');
+    }
+    if (msg.endsWith(' — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room.')) {
+      return msg.slice(0, -' — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room.'.length) +
+        tLog('log.scoreTiedCap');
+    }
+
+    m = msg.match(/^🪙 Coin flip: (.+) won — first player chosen automatically \(time expired\)\.$/);
+    if (m) return '🪙 Lanzamiento de moneda: ' + m[1] + ' ganó — primer jugador elegido automáticamente (tiempo agotado).';
 
     return null;
   }
@@ -242,6 +283,77 @@
     [/Main Deck/g, 'メインデッキ'],
     [/Stage Member/g, 'ステージのメンバー'],
     [/Baton Touch/g, 'バトンタッチ'],
+  ];
+
+  /** Core structural phrases for Spanish (high-frequency turn / phase / Live lines). */
+  var STRUCTURAL_PHRASE_RULES_ES = [
+    [/ — End Main Phase\.$/, ' — Fin de la Fase principal.'],
+    [/ completed mulligan\.$/, ' completó el muligan.'],
+    [/ resigned\. (.+) wins!$/, ' se rindió. ¡$1 gana!'],
+    [/ WINS with 3 successful Lives!$/, ' GANA con 3 Lives exitosos.'],
+    [/ used Baton Touch! Cost reduced to (\d+)\.$/, ' usó Baton Touch. Costo reducido a $1.'],
+    [/ used second Baton Touch! Cost reduced to (\d+)\.$/, ' usó un segundo Baton Touch. Costo reducido a $1.'],
+    [/ placed (\d+) card\(s\) face-down in storage \((\d+)\/3\)\.$/, ' colocó $1 carta(s) boca abajo en almacenamiento ($2/3).'],
+    [/ placed card\(s\) in Live storage\.$/, ' colocó carta(s) en almacenamiento de Live.'],
+    [/ — locked in LIVE selection \((\d+) card\(s\) in storage\)\.$/, ' — selección Live confirmada ($1 carta(s) en almacenamiento).'],
+    [/ — locked in LIVE selection\.$/, ' — selección Live confirmada.'],
+    [/ — Draw Phase: could not draw \(deck and Waiting Room empty\)\.$/, ' — Fase de robo: no pudo robar (mazo y Sala de espera vacíos).'],
+    [/ — Draw Phase\.$/, ' — Fase de robo.'],
+    [/ — Active Phase: Energy and Members refreshed\.$/, ' — Fase activa: Energía y Miembros renovados.'],
+    [/ — Energy Phase: storage full \((\d+)\/(\d+)\), no Energy added\.$/, ' — Fase de Energía: almacenamiento lleno ($1/$2), no se añadió Energía.'],
+    [/ — Energy Phase: no cards left in Energy deck\.$/, ' — Fase de Energía: no quedan cartas en el mazo de Energía.'],
+    [/ — Energy Phase: placed 1 Energy in storage \((\d+)\/(\d+)\)\.$/, ' — Fase de Energía: colocó 1 Energía en almacenamiento ($1/$2).'],
+    [/ — Main Phase time expired \(auto end\)\.$/, ' — Fase principal: tiempo agotado (fin automático).'],
+    [/ — LIVE Phase time expired \(auto lock-in\)\.$/, ' — Fase Live: tiempo agotado (confirmación automática).'],
+    [/ — \[([^\]]+)\] drew (\d+) \(Active → Wait\)\.$/, ' — [$1] robó $2 (Activo → Espera).'],
+    [/ — \[([^\]]+)\] optional skill skipped\.$/, ' — [$1] habilidad opcional omitida.'],
+    [/ — \[([^\]]+)\] activated\.$/, ' — [$1] activada.'],
+    [/ — \[([^\]]+)\] Live Start skipped\.$/, ' — [$1] Live Start omitido.'],
+    [/ — \[([^\]]+)\] Live Success skipped\.$/, ' — [$1] Live Success omitido.'],
+    [/Live SUCCESS/, 'Live EXITOSO'],
+    [/Live FAIL/, 'Live FALLIDO'],
+    [/Live failed/, 'Live fallido'],
+    [/Live succeeded/, 'Live exitoso'],
+    [/^(.+)'s turn — Main Phase \(Active · Energy · Draw complete\)\.$/, 'Turno de $1 — Fase principal (Activa · Energía · Robo completos).'],
+    [/^(.+) turn — Main Phase \(Active · Energy · Draw complete\)\.$/, 'Turno de $1 — Fase principal (Activa · Energía · Robo completos).'],
+    [/^(.+) turn — Main Phase…$/, 'Turno de $1 — Fase principal…'],
+    [/^🪙 Coin flip: (.+) won and chose to go first!$/, '🪙 Lanzamiento de moneda: $1 ganó y eligió ir primero.'],
+    [/^🪙 Coin flip: (.+) won and chose (.+) to go first!$/, '🪙 Lanzamiento de moneda: $1 ganó y eligió que $2 vaya primero.'],
+    [/^🎉 (.+) WINS with 3 successful Lives!$/, '🎉 ¡$1 GANA con 3 Lives exitosos!'],
+    [/ disconnected\. (.+) wins!$/, ' se desconectó. ¡$1 gana!'],
+    [/ had no card in hand to discard\.$/, ' no tenía carta en mano para descartar.'],
+    [/ had no cards in hand to discard\.$/, ' no tenía cartas en mano para descartar.'],
+    [/ drew (\d+) but had no cards in hand to discard\.$/, ' robó $1 pero no tenía cartas en mano para descartar.'],
+    [/ is performing Live with (.+)\.$/, ' está presentando Live con $1.'],
+    [/Both players put (\d+) cards? into the Waiting Room\.$/, 'Ambos jugadores pusieron $1 carta(s) en la Sala de espera.'],
+    [/Both players drew \(([^)]+)\)\.$/, 'Ambos jugadores robaron ($1).'],
+  ];
+
+  /** Term replacement for Spanish (order matters; Baton Touch stays English). */
+  var PHRASE_RULES_ES = [
+    [/Success Live card storage/g, 'almacenamiento de Live exitoso'],
+    [/Live storage/g, 'almacenamiento de Live'],
+    [/Success Live/g, 'Live exitoso'],
+    [/Waiting Room/g, 'Sala de espera'],
+    [/Energy deck/g, 'mazo de Energía'],
+    [/Main Deck/g, 'mazo principal'],
+    [/ overplayed onto (.+)\.$/, ' sobrescribió sobre $1.'],
+    [/ played (.+) to (left|center|right) area\.$/, function (_m, card, slot) {
+      var slots = { left: 'izquierda', center: 'centro', right: 'derecha' };
+      return ' jugó ' + card + ' en el área ' + (slots[slot] || slot) + '.';
+    }],
+  ];
+
+  /** Effect-detail suffix rules for Spanish (draw / discard / play). */
+  var EFFECT_RULES_ES = [
+    [/drew a card\./, 'robó una carta.'],
+    [/drew (.+)\./, 'robó $1.'],
+    [/discarded a card\./, 'descartó una carta.'],
+    [/put (.+) into the Waiting Room\./, 'envió $1 a la Sala de espera.'],
+    [/put a card into the Waiting Room\./, 'envió una carta a la Sala de espera.'],
+    [/optional Live Start \(choose\)\./, 'Live Start opcional (elige).'],
+    [/optional Live Start effect \(choose\)\./, 'efecto Live Start opcional (elige).'],
+    [/Live Success choice\./, 'elección de Live Success.'],
   ];
 
   /** Effect-detail suffix rules (after card names are localized). */
@@ -413,10 +525,8 @@
     return out;
   }
 
-  function localizePromptText(msg, catalog) {
+  function localizePromptTextJa(msg, catalog) {
     if (!msg) return msg;
-    var i18n = global.LLTCG_I18N;
-    if (!i18n || i18n.getLocale() !== 'ja') return msg;
     catalog = catalog || (global.G && global.G.allCards);
     var out = String(msg);
     out = replaceCardNames(out, catalog);
@@ -426,10 +536,27 @@
     return out;
   }
 
-  function localizeLogMessage(msg, catalog) {
+  function localizePromptTextEs(msg, catalog) {
+    if (!msg) return msg;
+    var out = String(msg);
+    out = applyRules(out, PHRASE_RULES_ES);
+    out = applyRules(out, EFFECT_RULES_ES);
+    return out;
+  }
+
+  function localizePromptText(msg, catalog) {
     if (!msg) return msg;
     var i18n = global.LLTCG_I18N;
-    if (!i18n || i18n.getLocale() !== 'ja') return msg;
+    if (!i18n) return msg;
+    var loc = i18n.getLocale();
+    if (loc === 'en') return msg;
+    if (loc === 'ja') return localizePromptTextJa(msg, catalog);
+    if (loc === 'es') return localizePromptTextEs(msg, catalog);
+    return msg;
+  }
+
+  function localizeLogMessageJa(msg, catalog) {
+    if (!msg) return msg;
 
     var exact = translateExact(msg);
     if (exact != null) return exact;
@@ -447,6 +574,33 @@
     out = applyRules(out, EFFECT_RULES);
     out = translateOpponentLabels(out);
     return out;
+  }
+
+  function localizeLogMessageEs(msg, catalog) {
+    if (!msg) return msg;
+
+    var exact = translateExact(msg);
+    if (exact != null) return exact;
+
+    var structured = translateStructuredLineEs(msg);
+    if (structured != null) return structured;
+
+    var out = String(msg);
+    out = applyRules(out, STRUCTURAL_PHRASE_RULES_ES);
+    out = applyRules(out, PHRASE_RULES_ES);
+    out = applyRules(out, EFFECT_RULES_ES);
+    return out;
+  }
+
+  function localizeLogMessage(msg, catalog) {
+    if (!msg) return msg;
+    var i18n = global.LLTCG_I18N;
+    if (!i18n) return msg;
+    var loc = i18n.getLocale();
+    if (loc === 'en') return msg;
+    if (loc === 'ja') return localizeLogMessageJa(msg, catalog);
+    if (loc === 'es') return localizeLogMessageEs(msg, catalog);
+    return msg;
   }
 
   global.LLTCG_LOG_I18N = {

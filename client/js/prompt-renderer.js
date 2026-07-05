@@ -4,6 +4,11 @@
 (function (global) {
   'use strict';
 
+  function pt(key, vars) {
+    var i18n = global.LLTCG_I18N;
+    return i18n && typeof i18n.t === 'function' ? i18n.t(key, vars) : key;
+  }
+
   global.promptSubmitKey = function promptSubmitKey(s) {
     const pr = s?.pending_prompt;
     if (!pr || !s) return null;
@@ -240,15 +245,15 @@ global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
   const cfg = wrPickCfgFromPrompt(pr);
   const cards = wrToHandPickCards(pr, s, myId);
   if (!cards.length) {
-    toast('Waiting Room is empty', 3200);
+    toast(pt('prompt.wrEmpty'), 3200);
     return;
   }
   if (!cards.some(c => cardMatchesWrPickClient(c, cfg))) {
-    toast('No matching cards in Waiting Room', 3200);
+    toast(pt('prompt.wrNoMatch'), 3200);
     return;
   }
-  el('pick-ttl').textContent = pr.source_name || 'Waiting Room';
-  el('pick-msg').textContent = pr.prompt || 'Choose a card from your Waiting Room to add to your hand.';
+  el('pick-ttl').textContent = pr.source_name || pt('prompt.wrPickTitle');
+  el('pick-msg').textContent = pr.prompt || pt('prompt.wrPickMsg');
   const g = el('pick-grid');
   g.innerHTML = '';
   const onCancel = opts.onCancel;
@@ -280,11 +285,11 @@ global.openYellRevealPick = function openYellRevealPick(pr, opts = {}) {
   const onCancel = opts.onCancel;
   if (!cards.length) {
     if (onCancel) onCancel();
-    else toast('No Yell cards to choose from', 3200);
+    else toast(pt('prompt.yellNoCards'), 3200);
     return;
   }
-  el('pick-ttl').textContent = pr.source_name || 'Yell';
-  el('pick-msg').textContent = pr.prompt || 'Choose 1 card revealed by Yell.';
+  el('pick-ttl').textContent = pr.source_name || pt('prompt.yellPickTitle');
+  el('pick-msg').textContent = pr.prompt || pt('prompt.yellPickMsg');
   const g = el('pick-grid');
   g.innerHTML = '';
   G.pickCtx = onCancel ? { onCancel } : null;
@@ -309,11 +314,11 @@ global.openJudgeSuccessLivePick = function openJudgeSuccessLivePick(pr, opts = {
   const myId = opts.myId || G.playerId;
   const cards = judgeSuccessLivePickCards(pr, s, myId);
   if (!cards.length) {
-    toast('No Live cards to place in Success Live', 3200);
+    toast(pt('prompt.noLiveSuccess'), 3200);
     return;
   }
-  el('pick-ttl').textContent = pr.source_name || 'Success Live';
-  el('pick-msg').textContent = pr.prompt || 'Choose 1 Live card to place in Success Live.';
+  el('pick-ttl').textContent = pr.source_name || pt('prompt.successLivePickTitle');
+  el('pick-msg').textContent = pr.prompt || pt('prompt.successLivePickMsg');
   const g = el('pick-grid');
   g.innerHTML = '';
   G.pickCtx = null;
@@ -346,8 +351,8 @@ global.openSuccessLiveAreaPick = function openSuccessLiveAreaPick(pr, opts = {})
     toast('No cards in Success Live area', 3200);
     return;
   }
-  el('pick-ttl').textContent = pr.source_name || 'Success Live';
-  el('pick-msg').textContent = pr.prompt || 'Choose 1 card from your Success Live area to add to your hand.';
+  el('pick-ttl').textContent = pr.source_name || pt('prompt.successLiveHandTitle');
+  el('pick-msg').textContent = pr.prompt || pt('prompt.successLiveHandMsg');
   const g = el('pick-grid');
   g.innerHTML = '';
   G.pickCtx = null;
@@ -1061,7 +1066,7 @@ global.openOptionalLiveStartDiscardPick = function openOptionalLiveStartDiscardP
     hand: pickHand,
     count: discardNeed,
     min: minPick,
-    title: pr.source_name || 'Discard from hand',
+    title: pr.source_name || pt('prompt.discardFromHand'),
     msg: pr.prompt || (minPick === 0
       ? `Choose up to ${discardNeed} cards to send to the Waiting Room.`
       : discardNeed === 1
@@ -1273,8 +1278,8 @@ global.handlePromptChoice = function handlePromptChoice(pr, choice, s, myId){
         hand: pr.candidates || [],
         count: 1,
         min: 1,
-        title: pr.source_name || 'Deck top',
-        msg: pr.prompt || 'Choose 1 card revealed for Yell to put on top of your deck.',
+        title: pr.source_name || pt('prompt.deckTopTitle'),
+        msg: pr.prompt || pt('prompt.deckTopMsg'),
         onConfirm: (picked) => sendAct('resolve_prompt', { card_id: picked[0] }),
         onCancel: () => sendAct('resolve_prompt', { choice: 'skip' }),
       });
@@ -1565,8 +1570,8 @@ global.renderPrompt = function renderPrompt(s, myId){
     ovl.classList.remove('open');
     openJudgeSuccessLivePick({
       ...pr,
-      prompt: pr.prompt || 'Choose 1 Live card to place in Success Live.',
-      source_name: pr.source_name || 'Success Live',
+      prompt: pr.prompt || pt('prompt.successLivePickMsg'),
+      source_name: pr.source_name || pt('prompt.successLivePickTitle'),
     }, { state: s, myId });
     return;
   }
@@ -1691,7 +1696,7 @@ global.renderPrompt = function renderPrompt(s, myId){
       hand: pr.candidates || [],
       count: maxCount,
       min: 0,
-      title: pr.source_name || 'Waiting Room',
+      title: pr.source_name || pt('prompt.wrPickTitle'),
       msg: pr.prompt || `Choose up to ${maxCount} Member(s) (combined cost ≤${maxCombined}).`,
       allowCancel: true,
       forceConfirm: maxCount > 1,

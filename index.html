@@ -5473,8 +5473,9 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <div class="locale-wrap">
             <label for="sel-locale-auth" data-i18n="lang.label">Language</label>
             <select class="sel-locale" id="sel-locale-auth" aria-label="Language">
-              <option value="en">English</option>
-              <option value="ja">日本語</option>
+              <option value="en" data-i18n="language.en">English</option>
+              <option value="ja" data-i18n="language.ja">日本語</option>
+              <option value="es" data-i18n="language.es">Español</option>
             </select>
           </div>
         </div>
@@ -5872,8 +5873,9 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <div class="locale-wrap">
             <label for="sel-locale-hub" data-i18n="lang.label">Language</label>
             <select class="sel-locale" id="sel-locale-hub" aria-label="Language">
-              <option value="en">English</option>
-              <option value="ja">日本語</option>
+              <option value="en" data-i18n="language.en">English</option>
+              <option value="ja" data-i18n="language.ja">日本語</option>
+              <option value="es" data-i18n="language.es">Español</option>
             </select>
           </div>
           <button class="btn-ghost" id="btn-hub-options" type="button" data-i18n="hub.options">Options</button>
@@ -5961,8 +5963,9 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         <div class="locale-wrap" style="margin-bottom:12px">
           <label for="sel-locale-options" data-i18n="lang.label">Language</label>
           <select class="sel-locale" id="sel-locale-options" aria-label="Language">
-            <option value="en">English</option>
-            <option value="ja">日本語</option>
+            <option value="en" data-i18n="language.en">English</option>
+            <option value="ja" data-i18n="language.ja">日本語</option>
+            <option value="es" data-i18n="language.es">Español</option>
           </select>
         </div>
         <label class="options-toggle">
@@ -6543,8 +6546,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <div id="spectate-bar" class="spectate-bar" hidden aria-live="polite">
-  <span class="spectate-bar-label" id="spectate-bar-label">Spectating — read only</span>
-  <button type="button" class="btn-ghost" id="btn-spectate-leave">Leave</button>
+  <span class="spectate-bar-label" id="spectate-bar-label" data-i18n="spectate.barReadOnly">Spectating — read only</span>
+  <button type="button" class="btn-ghost" id="btn-spectate-leave" data-i18n="spectate.leave">Leave</button>
 </div>
 
 <!-- ══ OVERLAYS ══ -->
@@ -6553,8 +6556,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <div class="overlay" id="overlay-spectate-list">
   <div class="mbox">
     <button class="mcls" id="btn-spectate-list-close" type="button">✕</button>
-    <h2 id="spectate-list-title">Spectate match</h2>
-    <p class="account-lead">Watch an ongoing match — view only, no interaction.</p>
+    <h2 id="spectate-list-title" data-i18n="spectate.listTitle">Spectate match</h2>
+    <p class="account-lead" data-i18n="spectate.lead">Watch an ongoing match — view only, no interaction.</p>
     <div id="spectate-match-list" class="spectate-match-list"></div>
     <p class="lerr" id="spectate-list-err"></p>
   </div>
@@ -6577,12 +6580,12 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <div class="overlay" id="modal-paid-booster">
   <div class="mbox">
     <button class="mcls" id="btn-paid-booster-close" type="button">✕</button>
-    <h2>No daily packs left</h2>
-    <p class="account-lead" id="paid-booster-lead">Spend Star Gems to keep opening packs today.</p>
+    <h2 data-i18n="booster.noDailyPacks">No daily packs left</h2>
+    <p class="account-lead" id="paid-booster-lead" data-i18n="booster.paidLead">Spend Star Gems to keep opening packs today.</p>
     <div class="paid-booster-actions">
-      <button class="btn-grad" id="btn-paid-open-pack" type="button">Open 1 pack</button>
-      <button class="btn-grad" id="btn-paid-open-box" type="button">Open 1 box</button>
-      <button class="btn-out" id="btn-paid-booster-cancel" type="button">Cancel</button>
+      <button class="btn-grad" id="btn-paid-open-pack" type="button" data-i18n="booster.openOnePack">Open 1 pack</button>
+      <button class="btn-grad" id="btn-paid-open-box" type="button" data-i18n="booster.openPaidBox">Open 1 box</button>
+      <button class="btn-out" id="btn-paid-booster-cancel" type="button" data-i18n="common.cancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -6590,7 +6593,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <!-- Star Gem dupe migration -->
 <div class="overlay" id="modal-star-gem-migration">
   <div class="mbox">
-    <h2>Duplicates converted</h2>
+    <h2 data-i18n="booster.duplicatesConverted">Duplicates converted</h2>
     <p class="account-lead" id="star-gem-migration-text"></p>
     <div class="migration-gem-total" id="star-gem-migration-total" hidden>
       <img src="assets/Star_Gem.png" alt="" aria-hidden="true">
@@ -6604,10 +6607,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <div class="overlay" id="modal-booster-rates">
   <div class="mbox">
     <button class="mcls" id="btn-booster-rates-close" type="button">✕</button>
-    <h2 class="booster-rates-head" id="booster-rates-title">Pack rates</h2>
-    <p class="booster-rates-lead" id="booster-rates-lead">Per pack · tap a card for details</p>
+    <h2 class="booster-rates-head" id="booster-rates-title" data-i18n="booster.packRatesTitle">Pack rates</h2>
+    <p class="booster-rates-lead" id="booster-rates-lead" data-i18n="booster.packRatesPerPack">Per pack · tap a card for details</p>
     <div id="booster-rates-body">
-      <p class="booster-rates-loading">Loading rates…</p>
+      <p class="booster-rates-loading" data-i18n="booster.ratesLoading">Loading rates…</p>
     </div>
   </div>
 </div>
@@ -6704,7 +6707,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <!-- Hand pick (discard / cost) -->
 <div class="overlay skill-hand-preserve" id="overlay-pick">
   <div class="mbox" style="max-width:720px">
-    <h2 id="pick-ttl">Choose cards</h2>
+    <h2 id="pick-ttl" data-i18n="prompt.chooseCards">Choose cards</h2>
     <p id="pick-msg" style="font-size:13px;color:rgba(255,255,255,.65);margin-bottom:8px"></p>
     <div class="pickgrid" id="pick-grid"></div>
     <p id="pick-count" style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:12px">Selected: 0/0</p>
@@ -6718,7 +6721,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <!-- Full-screen hand discard picker -->
 <div class="overlay hand-pick-overlay" id="overlay-hand-pick">
   <div class="hand-pick-shell">
-    <h2 id="hpick-ttl">Choose from hand</h2>
+    <h2 id="hpick-ttl" data-i18n="prompt.chooseFromHand">Choose from hand</h2>
     <p class="hpick-msg" id="hpick-msg" data-i18n="prompt.discardOne">Choose a card to send to the Waiting Room.</p>
     <div class="hand-pick-fan" id="hpick-fan"></div>
     <p class="hand-pick-count" id="hpick-count"></p>
@@ -6732,7 +6735,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <!-- Heart color pick -->
 <div class="overlay skill-hand-preserve" id="overlay-heart">
   <div class="mbox" style="max-width:360px">
-    <h2 id="heart-ttl">Choose a heart</h2>
+    <h2 id="heart-ttl" data-i18n="prompt.chooseHeart">Choose a heart</h2>
     <p id="heart-msg" style="font-size:13px;color:rgba(255,255,255,.65);margin-bottom:14px"></p>
     <div class="heartpick" id="heart-btns"></div>
     <button class="btn-ghost" id="btn-heart-cancel" style="margin-top:14px;width:auto;padding:8px 18px" data-i18n="prompt.cancel">Cancel</button>
@@ -6742,16 +6745,16 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <!-- Surveil / deck arrange -->
 <div class="overlay skill-hand-preserve" id="overlay-surveil">
   <div class="mbox" style="max-width:760px">
-    <h2 id="surveil-ttl">Look at deck</h2>
+    <h2 id="surveil-ttl" data-i18n="prompt.lookAtDeck">Look at deck</h2>
     <p id="surveil-msg" style="font-size:13px;color:rgba(255,255,255,.65);margin-bottom:10px"></p>
-    <p class="surveil-hint">Spot <b>1</b> is the top of your deck. Drag cards between numbered spots and the Waiting Room, tap two cards to swap, or tap a spot / the Waiting Room while a card is selected.</p>
+    <p class="surveil-hint" data-i18n="prompt.surveilHint">Spot <b>1</b> is the top of your deck. Drag cards between numbered spots and the Waiting Room, tap two cards to swap, or tap a spot / the Waiting Room while a card is selected.</p>
     <div class="surveil-zones">
       <div class="surveil-zone">
-        <h3>Deck top order</h3>
+        <h3 data-i18n="game.deckTopLabel">Deck top</h3>
         <div class="surveil-deck-slots" id="surveil-deck-slots"></div>
       </div>
       <div class="surveil-zone">
-        <h3>Waiting Room</h3>
+        <h3 data-i18n="game.waitingRoom">Waiting Room</h3>
         <div class="surveil-wr-drop" id="surveil-wr"></div>
       </div>
     </div>
@@ -7016,15 +7019,15 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=13"></script>
-<script src="log_i18n.js?v=5"></script>
+<script src="i18n.js?v=15"></script>
+<script src="log_i18n.js?v=6"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=6"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=5"></script>
 <script src="client/js/state-apply.js?v=3"></script>
 <script src="client/js/replay-debug.js?v=4"></script>
-<script src="client/js/prompt-renderer.js?v=8"></script>
+<script src="client/js/prompt-renderer.js?v=9"></script>
 <script src="client/js/tutorial-interactive.js?v=4"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -7103,7 +7106,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script>
 'use strict';
 
-const { getLocale, setLocale, t, cardLocaleName, cardLocaleText, cardLocaleType, deckLocaleName, loadTutorialJa, tutorialDialogue, applyI18n, initLocale } = window.LLTCG_I18N;
+const { getLocale, setLocale, t, cardLocaleName, cardLocaleText, cardLocaleType, deckLocaleName, loadTutorialJa, loadTutorialEs, tutorialDialogue, applyI18n, initLocale } = window.LLTCG_I18N;
 const { localizeLogMessage, clearLogNameCache } = window.LLTCG_LOG_I18N;
 
 // --- Love Live TCG client (index.html) -----------------------------------------
@@ -7206,7 +7209,7 @@ function boxPacksPerBox(boxId) {
 function openPackButtonLabel(boxId, withGems = false) {
   const base = t('booster.openPack', { n: boxPackSize(boxId) });
   if (!withGems) return base;
-  return base + ' · ' + STAR_GEMS_PACK_COST + ' Star Gems';
+  return base + ' · ' + t('booster.starGemsUnit', { n: STAR_GEMS_PACK_COST });
 }
 
 function starGemIconHtml(sizePx = 18) {
@@ -7245,7 +7248,7 @@ function updateStarGemsUI() {
   if (boosterInfo) {
     if (isSignedInAccount()) {
       boosterInfo.hidden = false;
-      boosterInfo.innerHTML = 'Star Gems: <span class="star-gem-inline">' + starGemIconHtml(18) + '<b>' + count + '</b></span>';
+      boosterInfo.innerHTML = t('booster.starGemsLabel') + ' <span class="star-gem-inline">' + starGemIconHtml(18) + '<b>' + count + '</b></span>';
     } else {
       boosterInfo.hidden = true;
     }
@@ -7272,7 +7275,7 @@ function resolveNextOpenPayment(mode) {
 
 function nextOpenCostLabel(mode) {
   if (mode === 'box') return starGemCostHtml(STAR_GEMS_BOX_COST);
-  if (dailyRemainingFromProfile() > 0) return 'Daily pack';
+  if (dailyRemainingFromProfile() > 0) return t('booster.dailyPack');
   return starGemCostHtml(STAR_GEMS_PACK_COST);
 }
 
@@ -7281,9 +7284,9 @@ function showDupeMigrationDialog(migration) {
   const gained = Number(migration.star_gems_gained || 0);
   syncStarGemsFromProfile({ star_gems: migration.star_gems });
   updateStarGemsUI();
-  el('star-gem-migration-text').innerHTML =
-    'Extra Member/Live copies beyond 4 per card and Energy copies beyond 12 per card were converted into '
-    + '<span class="star-gem-inline">' + starGemIconHtml(18) + ' Star Gems</span>.';
+  el('star-gem-migration-text').innerHTML = t('booster.migrationText', {
+    gems: '<span class="star-gem-inline">' + starGemIconHtml(18) + ' Star Gems</span>',
+  });
   const totalEl = el('star-gem-migration-total');
   const amountEl = el('star-gem-migration-amount');
   if (totalEl && amountEl) {
@@ -7305,7 +7308,7 @@ function showPaidBoosterConfirm() {
     const packBtn = el('btn-paid-open-pack');
     const boxBtn = el('btn-paid-open-box');
     if (packBtn) {
-      packBtn.innerHTML = 'Open 1 pack · ' + starGemCostHtml(STAR_GEMS_PACK_COST);
+      packBtn.innerHTML = t('booster.openOnePack') + ' · ' + starGemCostHtml(STAR_GEMS_PACK_COST);
       packBtn.disabled = !canAffordPackWithGems();
     }
     if (boxBtn) {
@@ -8576,14 +8579,14 @@ async function reconnectToSpectator(saved) {
     const barLabel = el('spectate-bar-label');
     if (bar) bar.hidden = false;
     if (barLabel) {
-      barLabel.textContent = `Spectating ${saved.p1Name || 'P1'} vs ${saved.p2Name || 'P2'}`;
+      barLabel.textContent = t('spectate.barNames', { p1: saved.p1Name || 'P1', p2: saved.p2Name || 'P2' });
     }
     prepareClientReconnectState(s);
     G.gameState = s;
     showScr('game');
     renderGame(s);
     startPoll();
-    toast('Reconnected to spectating.', 2600);
+    toast(t('spectate.reconnected'), 2600);
     return true;
   } catch (e) {
     clearSpectatorSession();
@@ -9217,8 +9220,8 @@ async function openBoosterPackRates(boxId) {
     loading.textContent = 'Loading rates…';
     body.appendChild(loading);
   }
-  el('booster-rates-title').textContent = 'Pack rates';
-  el('booster-rates-lead').textContent = 'Loading…';
+  el('booster-rates-title').textContent = t('booster.packRatesTitle');
+  el('booster-rates-lead').textContent = t('booster.ratesLoading');
   openM('modal-booster-rates');
   try {
     if (!A.boosterRatesCache) A.boosterRatesCache = {};
@@ -18652,7 +18655,7 @@ function appendPhaseLogDivider(title) {
 
 function logLineMessage(entry) {
   const raw = entry?.msg || '';
-  if (getLocale() === 'ja') return localizeLogMessage(raw, G.allCards);
+  if (getLocale() !== 'en') return localizeLogMessage(raw, G.allCards);
   return localizeSubunitText(raw);
 }
 
@@ -18799,7 +18802,7 @@ function opponentSkillWaitLogMessage(s, myId, pr) {
   const oppId = myId === 'p1' ? 'p2' : 'p1';
   const oppName = s.players?.[oppId]?.name || (getLocale() === 'ja' ? '相手' : 'Opponent');
   const srcRaw = (pr?.source_name || '').trim();
-  const src = srcRaw ? (getLocale() === 'ja' ? localizeLogMessage(srcRaw, G.allCards) : srcRaw) : '';
+  const src = srcRaw ? (getLocale() !== 'en' ? localizeLogMessage(srcRaw, G.allCards) : srcRaw) : '';
   if (getLocale() === 'ja') {
     return src ? `${oppName}がスキルを発動中（${src}）…` : `${oppName}がスキルを発動中…`;
   }
@@ -24879,7 +24882,7 @@ async function playCardMoveAnimations(prevState, nextState, prevRects, myId, han
 }
 
 function formatLogMessage(msg) {
-  if (getLocale() === 'ja') msg = localizeLogMessage(msg, G.allCards);
+  if (getLocale() !== 'en') msg = localizeLogMessage(msg, G.allCards);
   else msg = localizeSubunitText(msg);
   const m = msg.match(/^(.+?) — \[(.+?)\](.*)$/);
   if (!m) return null;
@@ -25034,7 +25037,10 @@ function cardRulesDisplayText(card) {
   if (!card) return '';
   const en = (card.text || '').trim();
   const jp = (card.text_jp || '').trim();
-  if (getLocale() !== 'ja') return en || jp;
+  const es = (card.text_es || '').trim();
+  const loc = getLocale();
+  if (loc === 'es') return es || en;
+  if (loc !== 'ja') return en || jp;
   if (!jp) return en;
   if (jp.match(getRuleKwBracketPattern())) return jp;
 
@@ -34014,7 +34020,7 @@ function activateAbilityFromCard(card, idx, ability, s, myId){
 function openRevealFilterPick(ability, onPick){
   const choices = ability.reveal_choices||{};
   const labels = {live:'Live card', member_high:'Member (cost 10+)'};
-  el('pick-ttl').textContent='Search deck for…';
+  el('pick-ttl').textContent = t('prompt.searchDeckFor');
   el('pick-msg').textContent='Choose which card type to reveal from the top of your deck.';
   const g=el('pick-grid'); g.innerHTML='';
   Object.keys(choices).forEach(key=>{
@@ -36630,7 +36636,7 @@ function renderSpectateMatchList(matches) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn-out';
-    btn.textContent = 'Watch';
+    btn.textContent = t('spectate.watch');
     btn.onclick = () => { void joinSpectateMatch(m.room_id); };
     row.appendChild(label);
     row.appendChild(btn);
@@ -36644,10 +36650,10 @@ async function openSpectateList(category) {
   if (errEl) errEl.textContent = '';
   const titleEl = el('spectate-list-title');
   if (titleEl) {
-    titleEl.textContent = category === 'ranked' ? 'Spectate ranked match' : 'Spectate unranked match';
+    titleEl.textContent = category === 'ranked' ? t('spectate.listTitleRanked') : t('spectate.listTitleCasual');
   }
   const list = el('spectate-match-list');
-  if (list) list.innerHTML = '<p class="hub-stat">Loading…</p>';
+  if (list) list.innerHTML = '<p class="hub-stat">' + t('spectate.loading') + '</p>';
   openM('overlay-spectate-list');
   try {
     const res = await apiPost('spectate_list', { category: category === 'ranked' ? 'ranked' : 'casual' });
@@ -36691,7 +36697,7 @@ async function bootSpectatorSession({ roomId, token, p1Name, p2Name }) {
   const bar = el('spectate-bar');
   const barLabel = el('spectate-bar-label');
   if (bar) bar.hidden = false;
-  if (barLabel) barLabel.textContent = `Spectating ${p1Name || 'P1'} vs ${p2Name || 'P2'}`;
+  if (barLabel) barLabel.textContent = t('spectate.barNames', { p1: p1Name || 'P1', p2: p2Name || 'P2' });
   closeM('overlay-spectate-list');
   const s = await fetchGameStateForReconnect(roomId, token);
   if (s.error) throw new Error(s.error);
@@ -36736,7 +36742,7 @@ async function sendAct(type,data){
   if(!G.roomId||!G.token) return;
   if (type === 'resign') abortGameplayPresentation();
   if ((type === 'end_main' || type === 'end_live_set') && hasOpenSkillPrompt(G.gameState)) {
-    toast('Resolve the pending skill before continuing.', 2800);
+    toast(t('toast.resolveSkillFirst'), 2800);
     return;
   }
   if (type === 'resolve_prompt') markPromptSubmitting(G.gameState);
