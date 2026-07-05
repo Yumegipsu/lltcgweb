@@ -3860,19 +3860,20 @@ body.news-overlay-open{overflow:hidden}
   background:rgba(4,10,24,.78);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
 #overlay-news.open{display:flex}
 #overlay-news .news-shell{
-  max-width:min(480px,94vw);width:100%;margin-block:auto;min-height:0;max-height:min(88vh,780px);
+  max-width:min(480px,94vw);width:100%;margin-block:auto;min-height:0;
   display:flex;flex-direction:column;overflow:hidden;
   padding:clamp(16px,2.6vw,24px) clamp(14px,2.2vw,20px);
   border-radius:16px;border:1px solid rgba(255,255,255,.44);
   background:url("bg/ptn.png") top center/200px 200px repeat,rgba(38,132,210,.9);
   box-shadow:0 18px 52px rgba(0,0,0,.45),0 0 32px rgba(52,163,243,.24),inset 0 1px 0 rgba(255,255,255,.16);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-#overlay-news .news-shell.news-shell--detail{max-width:min(640px,96vw);max-height:min(90vh,820px)}
+#overlay-news .news-shell.news-shell--detail{max-width:min(640px,96vw)}
 #overlay-news .account-shell{
-  flex:1 1 auto;min-height:0;max-height:100%;margin-block:0;gap:0;width:100%;max-width:none}
+  width:100%;max-width:none;margin-block:0;gap:0;flex:0 1 auto;min-height:0}
 #overlay-news .news-panel-shell{
-  display:flex;flex-direction:column;flex:1 1 auto;min-height:0;max-height:100%;overflow:hidden;width:100%;
+  display:flex;flex-direction:column;max-height:min(68vh,600px);min-height:0;overflow:hidden;width:100%;
   background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;backdrop-filter:none}
+#overlay-news .news-shell--detail .news-panel-shell{max-height:min(82vh,760px)}
 #overlay-news #news-list-pane,
 #overlay-news #news-detail-pane{
   display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden}
@@ -3904,7 +3905,7 @@ body.news-overlay-open{overflow:hidden}
   border:none;border-radius:0;background:transparent;box-shadow:none}
 #overlay-news .news-detail-banner-wrap--wide .news-detail-banner{
   display:block;width:100%;max-width:100%;height:auto;
-  max-height:clamp(220px,min(52vh,480px),520px);object-fit:contain;object-position:center;
+  max-height:clamp(140px,32vw,220px);object-fit:contain;object-position:center;
   border:none;border-radius:8px;background:transparent;box-shadow:none}
 #overlay-news .news-detail-body{margin:0;padding-bottom:8px;overflow-wrap:anywhere;word-break:break-word}
 #overlay-news .news-detail-body strong{font-weight:700;color:#fff}
