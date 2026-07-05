@@ -20236,6 +20236,25 @@ function armWatchdog(s) {
       TCG_DEBUG.warn('cpu', stuckOnCpuLive ? 'watchdog nudge (cpu live)' : 'watchdog nudge (cpu main)', sig);
       doCPU(live);
     }
+    const cpuPromptStuck = live?.pending_prompt?.responder === cpuId
+      || G._deferredPromptState?.pending_prompt?.responder === cpuId;
+    if (cpuPromptStuck && (G.animating || G._livePollHold || G._perfSpectacleActive || G._liveSpectacleGateRunning)) {
+      if (G.watchdogStuckCount >= 2) {
+        TCG_DEBUG.warn('cpu', 'watchdog release presentation for cpu prompt', sig);
+        releaseStuckPresentation();
+        clearCpuPromptTracking();
+        doCPU(live);
+      }
+    }
+    if (G._cpuActBusy && G._cpuActBusySince && (Date.now() - G._cpuActBusySince) >= CPU_ACT_BUSY_MS) {
+      TCG_DEBUG.warn('cpu', 'watchdog clearing stuck cpuAct busy', { type: G._cpuActBusyType, ms: Date.now() - G._cpuActBusySince });
+      G._cpuActBusy = false;
+      G._cpuActInflight = null;
+      G._cpuActBusySince = 0;
+      G._cpuActBusyType = null;
+      ensurePollHoldReleased(live);
+      doCPU(live);
+    }
     const flip = live?.coin_flip;
     const stuckOnCpuCoinChoice = live?.phase === 'coin_flip'
       && flip?.winner === cpuId
@@ -20334,9 +20353,14 @@ function purgeStalePendingStatesAfterCpuResolve(resolvedSeq) {
   }
 }
 
+function cpuPromptResponderId() {
+  return cpuOpponentId();
+}
+
 function cpuPromptKey(s) {
+  const cpuId = cpuPromptResponderId();
   const pr = s?.pending_prompt;
-  if (!pr || pr.responder !== 'p2') return '';
+  if (!pr || pr.responder !== cpuId) return '';
   let lookedKey = '';
   if (pr.type === 'surveil_arrange') {
     lookedKey = (pr.looked_cards || []).map(c => c.instance_id).filter(Boolean).join(',');
@@ -20345,6 +20369,7 @@ function cpuPromptKey(s) {
 }
 
 const CPU_PROMPT_HANG_MS = 12000;
+const CPU_ACT_BUSY_MS = 10000;
 const PVP_OPP_PROMPT_NUDGE_MS = 5000;
 const PVP_STUCK_PRESENTATION_MS = 12000;
 
@@ -20560,7 +20585,10 @@ async function cpuAutoSkipHungPrompt() {
 function scheduleCpuResolvePrompt(s, cpu) {
   const key = cpuPromptKey(s);
   if (!key) return;
-  if (G._cpuResolveBusy === key) return;
+  if (G._cpuResolveBusy === key) {
+    cpuSchedulePromptRetryIfStuck(s, cpu);
+    return;
+  }
   if (G._cpuPromptScheduled === key && G._cpuPromptTimer) return;
   G._cpuPromptScheduled = key;
   clearTimeout(G._cpuPromptTimer);
@@ -22739,12 +22767,12 @@ function cpuCheckHearts(available, required) {
 function cpuMain() {
   const snap = cpuSnapshot();
   if (!snap) return;
-  const { s, cpu } = snap;
+  const { s, cpu, cpuId } = snap;
   const ph = s.phase;
-  if (s.active_player !== 'p2' || (ph !== 'main_first' && ph !== 'main_second')) return;
-  const ctx = cpuCtx(s, cpu);
+  if (s.active_player !== cpuId || (ph !== 'main_first' && ph !== 'main_second')) return;
+  const ctx = cpuCtx(s, cpu, cpuId);
   const hand = cpu.hand || [];
-  if (s.pending_prompt?.responder === 'p2') return;
+  if (s.pending_prompt?.responder === cpuId) return;
   if (!s.pending_prompt) clearDeferredPromptState();
   if (s.debug_card_test && cpuTryDebugTestCard(s, cpu, ctx.tier, ctx.winPressure, ctx.read)) return;
   if (ctx.tier === 'easy') {
@@ -24743,6 +24771,9 @@ async function cpuAct(type,data) {
   }
   if (inflightKey) G._cpuActInflight = inflightKey;
   G._cpuActBusy = true;
+  G._cpuActBusySince = Date.now();
+  G._cpuActBusyType = type;
+  let actOk = false;
   tcgDebugRecordAction(type, data, 'cpu');
   TCG_DEBUG.log('action', 'cpuAct →', type, data);
   try {
@@ -24770,7 +24801,7 @@ async function cpuAct(type,data) {
           G._cpuResolveBusy = null;
           G._cpuPromptScheduled = null;
           const live = G.gameState;
-          if (live?.pending_prompt?.responder === 'p2') armCpuPromptHangWatch(live);
+          if (live?.pending_prompt?.responder === cpuOpponentId()) armCpuPromptHangWatch(live);
         }
       } else if (type === 'ack_coin_flip' || type === 'choose_first_player') {
         G._cpuCoinFlipChooseKey = null;
@@ -24823,6 +24854,7 @@ async function cpuAct(type,data) {
       }
       return;
     }
+    actOk = true;
     TCG_DEBUG.log('action', 'cpuAct ok', type, { seq: d.seq ?? G.lastSeq });
     if (type === 'resolve_prompt' || type === 'anti_softlock_skip') {
       clearCpuPromptTracking();
@@ -24839,11 +24871,14 @@ async function cpuAct(type,data) {
         cpuClearLocalCpuPromptIfResolved(G.gameState);
       }
     }
-    if (G.polling) {
-      ensurePollHoldReleased(G.gameState);
-      await pullLatestState();
+    try {
+      if (G.polling) {
+        ensurePollHoldReleased(G.gameState);
+        await pullLatestState();
+      }
+    } catch (pullErr) {
+      TCG_DEBUG.warn('cpu', 'pullLatestState after cpuAct failed', type, pullErr);
     }
-    scheduleCpuContinueAfterAct(type);
   } catch(e){
     TCG_DEBUG.warn('action', 'cpuAct error', type, e);
     if (type === 'resolve_prompt') {
@@ -24852,11 +24887,16 @@ async function cpuAct(type,data) {
       G._cpuResolveBusy = null;
       G._cpuPromptScheduled = null;
       const live = G.gameState;
-      if (live?.pending_prompt?.responder === 'p2') armCpuPromptHangWatch(live);
+      if (live?.pending_prompt?.responder === cpuOpponentId()) armCpuPromptHangWatch(live);
+    } else if (['play_member', 'activate_ability', 'end_main', 'end_live_set', 'set_live_cards'].includes(type)) {
+      actOk = true;
     }
   } finally {
     G._cpuActBusy = false;
+    G._cpuActBusySince = 0;
+    G._cpuActBusyType = null;
     if (inflightKey && G._cpuActInflight === inflightKey) G._cpuActInflight = null;
+    if (actOk) scheduleCpuContinueAfterAct(type);
   }
 }
 
@@ -37270,7 +37310,7 @@ function freshGameGlobals() {
     _cpuPromptTimer:null, _cpuPromptScheduled:null, _cpuResolveBusy:null,
     _cpuPromptRetryTimer:null, _cpuPromptRetryKey:null, _cpuPromptRetryCount:0,
   _cpuPromptHangTimer:null, _cpuPromptHangKey:null, _cpuPromptHangSince:0,
-    _cpuActBusy:false, _cpuActInflight:null,
+    _cpuActBusy:false, _cpuActInflight:null, _cpuActBusySince:0, _cpuActBusyType:null,
     animating:false,
   _logFollowTail:true,
     handPointer:null,
