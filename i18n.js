@@ -2536,7 +2536,7 @@
       "next": "Siguiente →",
       "finish": "Finalizar",
       "intro_welcome": "¡Hola! Soy **Shibuya Kanon**. ¡Bienvenido al tutorial de **Love Live! Official Card Game**!",
-      "intro_what": "¡Este es un juego de cartas para **dos jugadores** sobre **school idols**! Reclutarás **Miembros** en tu Escenario, administrarás **Energía** y presentarás **Lives** para superar a tu oponente.",
+      "intro_what": "¡Este es un juego de cartas para **dos jugadores** sobre **idols escolares**! Reclutarás **Miembros** en tu Escenario, administrarás **Energía** y presentarás **Lives** para superar a tu oponente.",
       "intro_goal": "**Condición de victoria:** Presenta con éxito **3 Lives** antes que tu oponente. Cuando tu **Live** tiene éxito, ese Live se mueve al **almacenamiento de cartas Live exitosas**: ¡el primero en llegar a tres gana la partida!",
       "intro_decks": "Este juego usa tres tipos de cartas. Cartas de **Miembro**, cartas **Live** y cartas de **Energía**. Cada jugador tiene un **Mazo principal** de **60** cartas (**48** cartas de Miembro y **12** cartas Live) y un **Mazo de Energía** de **12** cartas de Energía.",
       "intro_card_member": "Las **cartas de Miembro** son las idols que se presentarán en el Escenario. Paga **Energía** igual a su costo para jugarlas desde tu mano. Cada Miembro tiene cierta cantidad de **Corazones** de color (verticales) que se usan al presentar Lives. También hay **Blades** (los íconos redondos de penlight) y **Corazones de Blade** (los corazones de lado), pero por ahora nos enfocaremos en el corazón vertical. Shiki aquí tiene **1 corazón morado**.",
@@ -2919,7 +2919,7 @@
 
   function loadTutorialEs() {
     if (_tutorialEs) return Promise.resolve(_tutorialEs);
-    return fetch('./tutorial_es.json?v=1', { cache: 'no-store' })
+    return fetch('./tutorial_es.json?v=2', { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('tutorial_es HTTP ' + r.status);
         return r.json();
