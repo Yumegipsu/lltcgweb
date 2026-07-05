@@ -25014,7 +25014,8 @@ function ruleKwKeyFromBracketLabel(label) {
 function ruleKeywordInfo(key) {
   const canon = resolveRuleKwKey(key);
   const i18nKey = RULE_KW_TIP_I18N[canon];
-  if (getLocale() === 'ja' && i18nKey) {
+  const loc = getLocale();
+  if ((loc === 'ja' || loc === 'es') && i18nKey) {
     const title = t(`${i18nKey}.title`);
     const body = t(`${i18nKey}.body`);
     if (title && body && !String(title).startsWith('skillKw.')) {
@@ -25022,6 +25023,21 @@ function ruleKeywordInfo(key) {
     }
   }
   return RULE_KEYWORD_TIPS[canon] || null;
+}
+
+function ruleKwBracketDisplayLabel(rawBracket, kwKey) {
+  const key = resolveRuleKwKey(kwKey);
+  const loc = getLocale();
+  if (loc === 'ja' || loc === 'es') {
+    const i18nKey = RULE_KW_TIP_I18N[key];
+    if (i18nKey) {
+      const title = t(`${i18nKey}.title`);
+      if (title && !String(title).startsWith('skillKw.')) {
+        return `[${title}]`;
+      }
+    }
+  }
+  return rawBracket;
 }
 
 function ruleKwJaBracketLabel(enKey) {
@@ -25109,7 +25125,9 @@ function getRuleKwYellPattern() {
 }
 
 function getRuleKwYouMayPattern() {
-  return getLocale() === 'ja' ? /\byou may\b|してもよい/gi : /\byou may\b/gi;
+  if (getLocale() === 'ja') return /\byou may\b|してもよい/gi;
+  if (getLocale() === 'es') return /\byou may\b|\bpuedes\b/gi;
+  return /\byou may\b/gi;
 }
 
 const SKILL_TYPE_ICON_FILES = {
@@ -25224,7 +25242,7 @@ function renderCardRulesText(text, container) {
       if (match.index > last) {
         appendPlainTextWithYell(container, line.slice(last, match.index));
       }
-      appendRuleKwSpan(container, match[0], ruleKwKeyFromBracketLabel(rawLabel));
+      appendRuleKwSpan(container, ruleKwBracketDisplayLabel(match[0], ruleKwKeyFromBracketLabel(rawLabel)), ruleKwKeyFromBracketLabel(rawLabel));
       last = match.index + match[0].length;
     }
     if (last < line.length) {
