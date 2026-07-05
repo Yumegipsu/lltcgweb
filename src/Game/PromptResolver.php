@@ -16,7 +16,7 @@ function applyWaitGroupMemberDrawDiscard(
     foreach ($ownerP['stage'] as &$mbr) {
         if ($mbr && ($mbr['instance_id'] ?? '') === $memberId
             && ($mbr['group'] ?? '') === $group) {
-            waitMember($mbr);
+            waitMember($mbr, $state);
             $found = true;
             break;
         }
@@ -505,7 +505,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             if (!empty($ability['wait_self_if_blade_heart']) && !empty($played['blade_hearts'])) {
                 foreach ($ownerP['stage'] as &$mbr) {
                     if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
-                        waitMember($mbr);
+                        waitMember($mbr, $state);
                         break;
                     }
                 }
@@ -706,7 +706,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $pickCount = intval($ability['pick_count'] ?? 1);
             foreach ($ownerP['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
-                    waitMember($mbr);
+                    waitMember($mbr, $state);
                     break;
                 }
             }
@@ -803,7 +803,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             foreach ($ownerP['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
                     $batonSub = $mbr['baton_from_subunit'] ?? '';
-                    waitMember($mbr);
+                    waitMember($mbr, $state);
                     break;
                 }
             }
@@ -840,7 +840,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $sourceId = $prompt['source_id'] ?? '';
             foreach ($ownerP['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
-                    waitMember($mbr);
+                    waitMember($mbr, $state);
                     break;
                 }
             }
@@ -907,7 +907,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         $waited = 0;
         foreach ($ownerP['stage'] as &$mbr) {
             if ($mbr && in_array($mbr['instance_id'] ?? '', $ids, true)) {
-                waitMember($mbr);
+                waitMember($mbr, $state);
                 $waited++;
             }
         }
@@ -957,7 +957,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         $waited = 0;
         foreach ($ownerP['stage'] as &$mbr) {
             if ($mbr && in_array($mbr['instance_id'] ?? '', $ids, true)) {
-                waitMember($mbr);
+                waitMember($mbr, $state);
                 $waited++;
             }
         }
@@ -1264,7 +1264,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $sourceId = $prompt['source_id'] ?? '';
             foreach ($ownerP['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
-                    waitMember($mbr);
+                    waitMember($mbr, $state);
                     break;
                 }
             }
@@ -1691,7 +1691,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $sourceId = $prompt['source_id'] ?? '';
             foreach ($ownerP['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
-                    waitMember($mbr);
+                    waitMember($mbr, $state);
                     break;
                 }
             }
@@ -2125,7 +2125,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             throw new Exception('Invalid choice');
         }
         if ($choice === 'yes') {
-            if (waitFirstGroupMember($ownerP, $ability['group'] ?? 'μ\'s')) {
+            if (waitFirstGroupMember($ownerP, $ability['group'] ?? 'μ\'s', $state)) {
                 addBonusHeartsToModifier($state, $owner, $ability['hearts'] ?? []);
                 $state = addLog($state, $state['players'][$owner]['name'] .
                     ' — [' . ($prompt['source_name'] ?? 'Member') . '] Waited a μ\'s Member for bonus hearts.');
@@ -2148,7 +2148,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $sourceId = $prompt['source_id'] ?? '';
             foreach ($ownerP['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
-                    waitMember($mbr);
+                    waitMember($mbr, $state);
                     break;
                 }
             }
@@ -2190,7 +2190,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $sourceId = $prompt['source_id'] ?? '';
             foreach ($ownerP['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
-                    waitMember($mbr);
+                    waitMember($mbr, $state);
                     break;
                 }
             }
@@ -2236,7 +2236,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $sourceId = $prompt['source_id'] ?? '';
             foreach ($ownerP['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
-                    waitMember($mbr);
+                    waitMember($mbr, $state);
                     break;
                 }
             }
@@ -2412,7 +2412,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
     if ($promptType === 'wait_pick_member_grant_live_score') {
         $slot = $data['slot'] ?? '';
         if ($slot === '' || empty($ownerP['stage'][$slot])) throw new Exception('Choose a Member');
-        waitMember($ownerP['stage'][$slot]);
+        waitMember($ownerP['stage'][$slot], $state);
         grantMemberLiveScoreBonus(
             $state,
             $owner,

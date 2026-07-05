@@ -199,10 +199,10 @@ function liveCardsGrantYellHeartsWildcard(array $liveCards): bool {
     return false;
 }
 
-function waitFirstGroupMember(array &$p, string $group): bool {
+function waitFirstGroupMember(array &$p, string $group, array $state): bool {
     foreach ($p['stage'] as &$mbr) {
         if ($mbr && ($mbr['group'] ?? '') === $group) {
-            waitMember($mbr);
+            waitMember($mbr, $state);
             unset($mbr);
             return true;
         }
@@ -1160,7 +1160,7 @@ function aggregateStageHeartsByColor(?array $stage): array {
         return [];
     }
     foreach ($stage as $member) {
-        if (!$member) {
+        if (!$member || !memberIsActiveForGame($member)) {
             continue;
         }
         foreach ($member['hearts'] ?? [] as $hg) {
@@ -1183,7 +1183,7 @@ function computeYellBladeTotal(array $state, string $pid): int {
     }
     $total = 0;
     foreach ($state['players'][$pid]['stage'] ?? [] as $slot => $member) {
-        if (!$member || !($member['active'] ?? true)) {
+        if (!$member || !memberIsActiveForGame($member)) {
             continue;
         }
         $total += getMemberBlade($member, $state, $pid, (string)$slot);
@@ -1288,9 +1288,9 @@ function waitOpponentActiveMembers(array &$state, string $oppId, int $count, ?st
     $waited = 0;
     foreach ($state['players'][$oppId]['stage'] as $slot => &$mbr) {
         if (!$mbr) continue;
-        if (!($mbr['active'] ?? true)) continue;
+        if (!memberIsActiveForGame($mbr)) continue;
         $snap = memberSnapshot($mbr);
-        waitMember($mbr);
+        waitMember($mbr, $state);
         if ($effectSourcePid) {
             $state = resolveAutomaticOpponentWaitEffects($state, $effectSourcePid, $snap);
         }
@@ -1853,7 +1853,7 @@ function appendContinuousHeartsFromSpec(array &$hearts, array $spec): void {
 function collectContinuousPerformanceHeartGrants(array $state, string $pid): array {
     $grants = [];
     foreach ($state['players'][$pid]['stage'] as $slot => $member) {
-        if (!$member || !($member['active'] ?? true)) {
+        if (!$member || !memberIsActiveForGame($member)) {
             continue;
         }
         $memberHearts = [];
@@ -2420,8 +2420,30 @@ function clearMemberPerTurnAutoUses(array &$member): void {
     }
 }
 
-function waitMember(array &$member): void {
+function memberIsInWait(array $member): bool {
+    return !empty($member['in_wait']);
+}
+
+/** Active for rules: not in Wait (other inactive states may still be inactive until Active Phase). */
+function memberIsActiveForGame(array $member): bool {
+    if (memberIsInWait($member)) {
+        return false;
+    }
+    return $member['active'] ?? true;
+}
+
+function clearMemberWait(array &$member): void {
+    unset($member['in_wait'], $member['waited_turn'], $member['_was_active_before_wait']);
+    $member['active'] = true;
+}
+
+function waitMember(array &$member, array $state): void {
+    if (memberIsInWait($member)) {
+        return;
+    }
     $member['_was_active_before_wait'] = $member['active'] ?? true;
+    $member['in_wait'] = true;
+    $member['waited_turn'] = intval($state['turn'] ?? 1);
     $member['active'] = false;
 }
 
@@ -2510,11 +2532,11 @@ function waitOpponentMemberAtSlot(
     ?string $effectSourcePid = null
 ): bool {
     $mbr = &$state['players'][$oppId]['stage'][$slot];
-    if (!$mbr || !($mbr['active'] ?? true)) {
+    if (!$mbr || !memberIsActiveForGame($mbr)) {
         return false;
     }
     $snap = memberSnapshot($mbr);
-    waitMember($mbr);
+    waitMember($mbr, $state);
     unset($mbr);
     if ($effectSourcePid) {
         $state = resolveAutomaticOpponentWaitEffects($state, $effectSourcePid, $snap);
@@ -2576,8 +2598,12 @@ function activateMembersForPlayer(array &$p, int $max): int {
     $n = 0;
     foreach ($p['stage'] as &$mbr) {
         if ($n >= $max) break;
-        if (!$mbr || ($mbr['active'] ?? true)) continue;
-        $mbr['active'] = true;
+        if (!$mbr || memberIsActiveForGame($mbr)) continue;
+        if (memberIsInWait($mbr)) {
+            clearMemberWait($mbr);
+        } else {
+            $mbr['active'] = true;
+        }
         $n++;
     }
     unset($mbr);
@@ -2595,11 +2621,12 @@ function waitOpponentStageByCost(
     $waited = 0;
     foreach ($state['players'][$oppId]['stage'] as &$mbr) {
         if (!$mbr) continue;
-        if ($activeOnly && !($mbr['active'] ?? true)) continue;
+        if (memberIsInWait($mbr)) continue;
+        if ($activeOnly && !memberIsActiveForGame($mbr)) continue;
         if (intval($mbr['cost'] ?? 0) > $maxCost) continue;
         if ($pickCount !== null && $waited >= $pickCount) break;
         $snap = memberSnapshot($mbr);
-        waitMember($mbr);
+        waitMember($mbr, $state);
         if ($effectSourcePid) {
             $state = resolveAutomaticOpponentWaitEffects($state, $effectSourcePid, $snap);
         }
@@ -2684,7 +2711,7 @@ function stageHasOtherSubunitMember(array $p, string $subunit, string $excludeId
 
 function stageHasWaitMember(array $state, string $pid): bool {
     foreach ($state['players'][$pid]['stage'] as $mbr) {
-        if ($mbr && !($mbr['active'] ?? true)) return true;
+        if ($mbr && memberIsInWait($mbr)) return true;
     }
     return false;
 }
@@ -2700,11 +2727,12 @@ function waitOpponentStageByMaxBlade(
     $waited = 0;
     foreach ($state['players'][$oppId]['stage'] as &$mbr) {
         if (!$mbr) continue;
-        if ($activeOnly && !($mbr['active'] ?? true)) continue;
+        if (memberIsInWait($mbr)) continue;
+        if ($activeOnly && !memberIsActiveForGame($mbr)) continue;
         if (memberBladeIconCount($mbr) > $maxBlade) continue;
         if ($pickCount !== null && $waited >= $pickCount) break;
         $snap = memberSnapshot($mbr);
-        waitMember($mbr);
+        waitMember($mbr, $state);
         if ($effectSourcePid) {
             $state = resolveAutomaticOpponentWaitEffects($state, $effectSourcePid, $snap);
         }
@@ -3171,11 +3199,12 @@ function waitOpponentStageByOriginalHearts(
     $waited = 0;
     foreach ($state['players'][$oppId]['stage'] as &$mbr) {
         if (!$mbr) continue;
-        if ($activeOnly && !($mbr['active'] ?? true)) continue;
+        if (memberIsInWait($mbr)) continue;
+        if ($activeOnly && !memberIsActiveForGame($mbr)) continue;
         if (memberHeartCount($mbr) > $maxHearts) continue;
         if ($pickCount !== null && $waited >= $pickCount) break;
         $snap = memberSnapshot($mbr);
-        waitMember($mbr);
+        waitMember($mbr, $state);
         if ($effectSourcePid) {
             $state = resolveAutomaticOpponentWaitEffects($state, $effectSourcePid, $snap);
         }
@@ -3196,11 +3225,12 @@ function waitOpponentStageByOriginalBlades(
     $waited = 0;
     foreach ($state['players'][$oppId]['stage'] as &$mbr) {
         if (!$mbr) continue;
-        if ($activeOnly && !($mbr['active'] ?? true)) continue;
+        if (memberIsInWait($mbr)) continue;
+        if ($activeOnly && !memberIsActiveForGame($mbr)) continue;
         if (intval($mbr['blade'] ?? 0) > $maxBlades) continue;
         if ($pickCount !== null && $waited >= $pickCount) break;
         $snap = memberSnapshot($mbr);
-        waitMember($mbr);
+        waitMember($mbr, $state);
         if ($effectSourcePid) {
             $state = resolveAutomaticOpponentWaitEffects($state, $effectSourcePid, $snap);
         }
@@ -3431,8 +3461,8 @@ function activateSubunitFromWait(array &$p, string $subunit): int {
     $n = 0;
     foreach ($p['stage'] as &$mbr) {
         if (!$mbr || ($mbr['subunit'] ?? '') !== $subunit) continue;
-        if ($mbr['active'] ?? true) continue;
-        $mbr['active'] = true;
+        if (!memberIsInWait($mbr)) continue;
+        clearMemberWait($mbr);
         $n++;
     }
     unset($mbr);

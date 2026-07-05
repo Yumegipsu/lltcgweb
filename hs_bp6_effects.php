@@ -206,7 +206,7 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
             break;
 
         case 'live_success_wait_skip_next_activate':
-            waitMember($source);
+            waitMember($source, $state);
             $slot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
             if ($slot !== null && $slot !== '') {
                 $p['stage'][$slot] = $source;
@@ -223,7 +223,7 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
             break;
 
         case 'mandatory_wait_self_add_wr_live':
-            waitMember($source);
+            waitMember($source, $state);
             $slot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
             if ($slot !== null && $slot !== '') {
                 $p['stage'][$slot] = $source;
@@ -533,7 +533,7 @@ function hsWaitOpponentByMaxBladeExclSubunit(
         if (memberBladeIconCount($mbr) > $maxBlade) continue;
         if ($pickCount !== null && $waited >= $pickCount) break;
         $snap = memberSnapshot($mbr);
-        waitMember($mbr);
+        waitMember($mbr, $state);
         if ($effectSourcePid) {
             $state = resolveAutomaticOpponentWaitEffects($state, $effectSourcePid, $snap);
         }

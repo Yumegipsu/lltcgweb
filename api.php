@@ -1412,6 +1412,18 @@ function doActivePhase(array $state, string $pid): array {
                 clearMemberPerTurnAutoUses($m);
                 continue;
             }
+            if (memberIsInWait($m)) {
+                $waitedTurn = intval($m['waited_turn'] ?? 0);
+                if ($waitedTurn > 0 && $waitedTurn < intval($state['turn'] ?? 1)) {
+                    clearMemberWait($m);
+                    unset($m['abilities_used']);
+                    clearMemberPerTurnAutoUses($m);
+                } else {
+                    unset($m['abilities_used']);
+                    clearMemberPerTurnAutoUses($m);
+                }
+                continue;
+            }
             $m['active'] = true;
             unset($m['abilities_used']);
             clearMemberPerTurnAutoUses($m);

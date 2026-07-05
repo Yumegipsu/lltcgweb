@@ -36,6 +36,10 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
     }
     mergeCardCatalogFields($member);
 
+    if ($zone === 'stage' && memberIsInWait($member)) {
+        throw new Exception('This Member is in Wait');
+    }
+
     $abilities = $member['abilities'] ?? [];
     if (!isset($abilities[$abilityIdx])) throw new Exception('Invalid ability');
 
@@ -339,7 +343,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         $state = addLog($state, $state['players'][$pid]['name'] .
             ' — [' . ($member['name_en'] ?? $member['name']) . '] activated: choose a player.');
     } elseif (($ab['type'] ?? '') === 'wait_self_discard_draw') {
-        waitMember($member);
+        waitMember($member, $state);
         $need = intval($ab['discard'] ?? 1);
         $ids = $data['discard_ids'] ?? [];
         if (count($ids) !== $need) {
@@ -360,7 +364,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         if (!isset($choices[$filterKey])) {
             throw new Exception('Choose Live or Member (cost 10+) to search for');
         }
-        waitMember($member);
+        waitMember($member, $state);
         $need = intval($ab['discard'] ?? 1);
         $ids = $data['discard_ids'] ?? [];
         if (count($ids) !== $need) {
@@ -379,7 +383,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
                 ' — [' . ($member['name_en'] ?? $member['name']) . '] searched the deck; no matching card found.');
         }
     } elseif (($ab['type'] ?? '') === 'wait_self_draw_discard_activate') {
-        waitMember($member);
+        waitMember($member, $state);
         $p['stage'][$slot] = $member;
         $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
         $state = addLog($state, $state['players'][$pid]['name'] .
@@ -412,7 +416,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             }
         }
     } elseif (($ab['type'] ?? '') === 'wait_self_draw_discard') {
-        waitMember($member);
+        waitMember($member, $state);
         $p['stage'][$slot] = $member;
         $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
         $state = addLog($state, $state['players'][$pid]['name'] .
@@ -465,7 +469,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         $state = addLog($state, $state['players'][$pid]['name'] .
             ' — [' . ($member['name_en'] ?? $member['name']) . '] choose a card from Waiting Room.');
     } elseif (($ab['type'] ?? '') === 'wait_self_add_wr') {
-        waitMember($member);
+        waitMember($member, $state);
         startPickWrToHandPrompt(
             $state,
             $pid,
@@ -483,7 +487,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         if (!in_array($color, $choices, true)) {
             throw new Exception('Must choose a heart color: ' . implode(', ', $choices));
         }
-        waitMember($member);
+        waitMember($member, $state);
         addBonusHeartsToModifier($state, $pid, [['color' => $color, 'count' => 1]]);
         markAbilityUsed($member, $abilityIdx);
         $p['stage'][$slot] = $member;
@@ -711,8 +715,8 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             foreach ($p['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $mid
                     && ($mbr['group'] ?? '') === ($ab['group'] ?? 'Nijigasaki')
-                    && ($mbr['active'] ?? true) === false) {
-                    $mbr['active'] = true;
+                    && memberIsInWait($mbr)) {
+                    clearMemberWait($mbr);
                     $activated = 1;
                     break;
                 }
@@ -752,7 +756,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         if ($energyCost > 0 && !payEnergyCost($p, $energyCost)) {
             throw new Exception("Need $energyCost active Energy");
         }
-        waitMember($member);
+        waitMember($member, $state);
         $n = intval($ab['count'] ?? 1);
         for ($i = 0; $i < $n; $i++) {
             putEnergyFromDeckInWait($p, $state, $pid);
@@ -850,7 +854,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         if (!waitSwapHasValidTarget($p, $group, $bonus, $slot)) {
             throw new Exception('No valid Stage Member and Waiting Room swap available');
         }
-        waitMember($member);
+        waitMember($member, $state);
         $p['stage'][$slot] = $member;
         $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
         $state['pending_prompt'] = [

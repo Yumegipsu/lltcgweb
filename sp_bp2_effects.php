@@ -810,7 +810,7 @@ function spBp2ResolvePrompt(array $state, string $owner, array $prompt, string $
                 }
                 $oppCandidates[] = array_merge(cardPromptSummary($om), ['slot' => $oSlot]);
             }
-            waitMember($mbr);
+            waitMember($mbr, $state);
             $ownerP['stage'][$slot] = $mbr;
             if (empty($oppCandidates)) {
                 unset($state['pending_prompt']);
@@ -840,7 +840,7 @@ function spBp2ResolvePrompt(array $state, string $owner, array $prompt, string $
             if (!$om) {
                 throw new Exception('Choose an opponent Member');
             }
-            waitMember($om);
+            waitMember($om, $state);
             $state['players'][$opp]['stage'][$slot] = $om;
             unset($state['pending_prompt']);
             $state['seq']++;

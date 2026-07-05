@@ -259,7 +259,7 @@ function sBp5ResolveAutoAreaMove(
         foreach ($state['players'][$opp]['stage'] as &$om) {
             if (!$om) continue;
             if (sBp5MemberPrintedBlade($om) > $maxBlade) continue;
-            waitMember($om);
+            waitMember($om, $state);
             $waited++;
             if ($pickCount > 0 && $waited >= $pickCount) break;
         }
@@ -313,7 +313,7 @@ function sBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
             foreach ($state['players'][$opp]['stage'] as &$om) {
                 if (!$om) continue;
                 if (sBp5MemberPrintedBlade($om) > $maxBlade) continue;
-                waitMember($om);
+                waitMember($om, $state);
                 $waited++;
             }
             unset($om);

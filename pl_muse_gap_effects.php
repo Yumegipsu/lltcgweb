@@ -615,7 +615,7 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
         case 'wait_self_activate_other_member':
             $slot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
             if ($slot !== null && isset($p['stage'][$slot])) {
-                $p['stage'][$slot]['active'] = false;
+                waitMember($p['stage'][$slot], $state);
             }
             foreach ($p['stage'] as $s => &$mbr) {
                 if (!$mbr || ($mbr['instance_id'] ?? '') === ($source['instance_id'] ?? '')) continue;

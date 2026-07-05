@@ -127,7 +127,7 @@ function hsPb1WaitBothStagesMaxOriginalHearts(array &$state, int $maxHearts): in
         foreach ($state['players'][$pid]['stage'] as &$mbr) {
             if (!$mbr) continue;
             if (memberHeartCount($mbr) > $maxHearts) continue;
-            waitMember($mbr);
+            waitMember($mbr, $state);
             $waited++;
         }
         unset($mbr);
@@ -141,7 +141,7 @@ function hsPb1WaitBothStagesMaxOriginalBlades(array &$state, int $maxBlades): in
         foreach ($state['players'][$pid]['stage'] as &$mbr) {
             if (!$mbr) continue;
             if (memberBladeIconCount($mbr) > $maxBlades) continue;
-            waitMember($mbr);
+            waitMember($mbr, $state);
             $waited++;
         }
         unset($mbr);
@@ -511,7 +511,7 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
                 if (!$mbr) continue;
                 if (intval($mbr['cost'] ?? 0) > intval($ab['max_opp_cost'] ?? 4)) continue;
                 if ($waited >= intval($ab['pick_count'] ?? 1)) break;
-                waitMember($mbr);
+                waitMember($mbr, $state);
                 $waited++;
             }
             unset($mbr);

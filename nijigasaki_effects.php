@@ -242,7 +242,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
             foreach ($p['stage'] as &$mbr) {
                 if (!$mbr || ($mbr['instance_id'] ?? '') === $srcId) continue;
                 if (($mbr['group'] ?? '') !== $group) continue;
-                waitMember($mbr);
+                waitMember($mbr, $state);
                 $waited = true;
                 break;
             }
@@ -359,7 +359,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
         case 'wait_self_on_enter':
             $slot = findMemberSlot($p, $source['instance_id'] ?? '');
             if ($slot !== null && !empty($p['stage'][$slot])) {
-                waitMember($p['stage'][$slot]);
+                waitMember($p['stage'][$slot], $state);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] put self into Wait (On Enter).");
             }
@@ -575,14 +575,14 @@ function nijiIsNijigasakiEffectType(string $type): bool {
 function nijiResolveActivatedEffect(array $state, string $pid, array &$p, array &$member, $slot, array $ab, int $abilityIdx, array $data): ?array {
     $type = $ab['type'] ?? '';
     if ($type === 'wait_self_only') {
-        waitMember($member);
+        waitMember($member, $state);
         $p['stage'][$slot] = $member;
         $state = addLog($state, $state['players'][$pid]['name'] .
             ' — [' . ($member['name_en'] ?? $member['name']) . '] put self into Wait.');
         return $state;
     }
     if ($type === 'wait_self_activate_energy') {
-        waitMember($member);
+        waitMember($member, $state);
         $activated = activateEnergyForPlayer($p, intval($ab['count'] ?? 1));
         $p['stage'][$slot] = $member;
         $state = addLog($state, $state['players'][$pid]['name'] .
@@ -590,7 +590,7 @@ function nijiResolveActivatedEffect(array $state, string $pid, array &$p, array 
         return $state;
     }
     if ($type === 'wait_self_discard_add_wr_live') {
-        waitMember($member);
+        waitMember($member, $state);
         $need = intval($ab['discard'] ?? 1);
         $ids = $data['discard_ids'] ?? [];
         if (count($ids) !== $need) throw new Exception("Must discard exactly $need card(s)");
@@ -616,7 +616,7 @@ function nijiResolveActivatedEffect(array $state, string $pid, array &$p, array 
         foreach ($p['stage'] as &$mbr) {
             if (!$mbr || ($mbr['instance_id'] ?? '') === $srcId) continue;
             if (($mbr['group'] ?? '') !== $group) continue;
-            waitMember($mbr);
+            waitMember($mbr, $state);
             $waited = true;
             break;
         }

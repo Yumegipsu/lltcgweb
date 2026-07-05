@@ -504,7 +504,7 @@ function spBp5ResolveActivatedAbility(
 
     if ($type === 'activated_wait_or_discard_activate') {
         if (!empty($data['choice']) && $data['choice'] === 'wait') {
-            waitMember($member);
+            waitMember($member, $state);
             $p['stage'][$slot] = $member;
         } elseif (!empty($data['discard_ids'])) {
             discardFromHandByIds($p, $data['discard_ids']);
@@ -543,7 +543,7 @@ function spBp5ResolveActivatedAbility(
     if ($type === 'activated_wait_draw_discard_reactivate') {
         $reqSlot = $ab['slot'] ?? 'left';
         if ($slot !== $reqSlot) throw new Exception('Ability requires Left Side');
-        waitMember($member);
+        waitMember($member, $state);
         $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 3));
         $need = intval($ab['discard'] ?? 2);
         $state['pending_prompt'] = [
@@ -706,7 +706,7 @@ function spBp5ResolvePrompt(array $state, string $owner, array $prompt, string $
             if ($choice === 'wait') {
                 $slot = $prompt['source_slot'] ?? 'center';
                 if (!empty($ownerP['stage'][$slot])) {
-                    waitMember($ownerP['stage'][$slot]);
+                    waitMember($ownerP['stage'][$slot], $state);
                 }
                 $n = activateEnergyForPlayer($ownerP, intval($ability['activate_count'] ?? 1));
                 $markUsed();
@@ -801,7 +801,7 @@ function spBp5ResolvePrompt(array $state, string $owner, array $prompt, string $
         if (($card['card_type'] ?? '') === 'ライブ') {
             $mSlot = $prompt['member_slot'] ?? '';
             if ($mSlot !== '' && !empty($ownerP['stage'][$mSlot])) {
-                waitMember($ownerP['stage'][$mSlot]);
+                waitMember($ownerP['stage'][$mSlot], $state);
             }
         }
         $repeat = intval($prompt['repeat'] ?? 0) + 1;
@@ -939,7 +939,7 @@ function spBp5ResolvePrompt(array $state, string $owner, array $prompt, string $
             }
             $slot = $prompt['source_slot'] ?? '';
             if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
-                waitMember($ownerP['stage'][$slot]);
+                waitMember($ownerP['stage'][$slot], $state);
             }
             $state['pending_prompt'] = array_merge($prompt, [
                 'step'   => 'discard',

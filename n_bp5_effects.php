@@ -214,7 +214,7 @@ function nBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
             if (!stageHasOtherMember($p, $source['instance_id'] ?? '')) break;
             foreach ($p['stage'] as $slot => &$mbr) {
                 if (!$mbr || ($mbr['instance_id'] ?? '') !== ($source['instance_id'] ?? '')) continue;
-                waitMember($mbr);
+                waitMember($mbr, $state);
                 $p['stage'][$slot] = $mbr;
                 break;
             }
@@ -695,7 +695,7 @@ function nBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
         $srcId = $prompt['source_id'] ?? '';
         $slot = findMemberSlot($ownerP, $srcId);
         if ($slot !== null && !empty($ownerP['stage'][$slot])) {
-            waitMember($ownerP['stage'][$slot]);
+            waitMember($ownerP['stage'][$slot], $state);
         }
         $opp = ($owner === 'p1') ? 'p2' : 'p1';
         $exact = intval($prompt['exact_blade'] ?? 4);
@@ -704,7 +704,7 @@ function nBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
             if (!$mbr) continue;
             if (intval($mbr['blade'] ?? 0) !== $exact) continue;
             if ($waited >= intval($prompt['pick_count'] ?? 1)) break;
-            waitMember($mbr);
+            waitMember($mbr, $state);
             $waited++;
         }
         unset($mbr);
@@ -757,7 +757,7 @@ function nBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
             }
             $slot = $prompt['source_slot'] ?? '';
             if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
-                waitMember($ownerP['stage'][$slot]);
+                waitMember($ownerP['stage'][$slot], $state);
             }
             $state['pending_prompt'] = [
                 'type'          => 'bp5_wait_discard_look_reveal',

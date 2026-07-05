@@ -41,7 +41,7 @@ function tryResolveAbilityEffectSwitchDeckLook(
                     foreach ($state['players'][$opp]['stage'] as &$mbr) {
                         if (!$mbr) continue;
                         if (intval($mbr['cost'] ?? 0) <= $maxCost && intval($mbr['blade'] ?? 0) <= $maxBlade) {
-                            waitMember($mbr);
+                            waitMember($mbr, $state);
                             $waited++;
                         }
                     }

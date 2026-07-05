@@ -487,7 +487,7 @@ function tryResolveAbilityEffectSwitchOptional(
                     ' — [' . $name . '] optional Live Start effect (choose).');
                 break;
             }
-            if (waitFirstGroupMember($p, $ab['group'] ?? 'μ\'s')) {
+            if (waitFirstGroupMember($p, $ab['group'] ?? 'μ\'s', $state)) {
                 addBonusHeartsToModifier($state, $pid, $ab['hearts'] ?? []);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     ' — [' . $name . '] Waited a μ\'s Member for bonus hearts.');

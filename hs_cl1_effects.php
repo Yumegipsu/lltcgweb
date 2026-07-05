@@ -171,7 +171,7 @@ function hsCl1ResolveActivatedAbility(
     if ($slot === null) {
         throw new Exception('Member not on stage');
     }
-    waitMember($member);
+    waitMember($member, $state);
     $candidates = hsCl1StageMemberBladeCandidates($p, $ab, $member['instance_id'] ?? '');
     if (empty($candidates)) {
         throw new Exception('No matching Member on Stage');

@@ -2257,7 +2257,22 @@ html.tcg-desktop-scaled:not(.tcg-mobile-viewport).tcg-compact-desktop #screen-ga
 .wdim{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:5;
   display:flex;align-items:center;justify-content:center;
   font-size:clamp(6px,2cqw,9px);font-weight:800;color:rgba(255,255,255,.75);
-  letter-spacing:.04em;text-transform:uppercase;border-radius:3px}
+  letter-spacing:.04em;text-transform:uppercase;pointer-events:none;border-radius:3px}
+.mslot.member-in-wait > img,
+.mslot.member-in-wait > .noimg,
+.mslot.member-in-wait .live-flip-front > img,
+.mslot.member-in-wait .live-flip-front > .noimg,
+.mslot.member-in-wait .live-flip-front .card-face-fill{
+  transform:rotate(90deg);
+  transform-origin:center center;
+}
+.mslot.member-wait-flip-anim > img,
+.mslot.member-wait-flip-anim > .noimg,
+.mslot.member-wait-flip-anim .live-flip-front > img,
+.mslot.member-wait-flip-anim .live-flip-front > .noimg,
+.mslot.member-wait-flip-anim .live-flip-front .card-face-fill{
+  transition:transform .36s cubic-bezier(.4,.2,.2,1);
+}
 .bicon,.eicon,.ticon,.pill-ico{width:1em;height:1em;object-fit:contain;vertical-align:-0.15em;display:inline-block}
 .bicon{width:clamp(8px,2.4cqw,12px);height:clamp(8px,2.4cqw,12px)}
 .eicon{width:clamp(10px,3cqw,16px);height:clamp(10px,3cqw,16px);opacity:1}
@@ -16925,6 +16940,7 @@ function setErr(m){ el('lerr').textContent=m; }
 
 const ANIM_STEP_MS = 300;
 const ENERGY_FLIP_MS = 360;
+const MEMBER_WAIT_FLIP_MS = 360;
 const FLIGHT_MS = 420;
 const FLIGHT_HANDOFF_MS = 100;
 const DRAW_STAGGER_MS = 90;
@@ -19786,6 +19802,68 @@ function energyChipActive(ec) {
   return ec?.active !== false;
 }
 
+function memberInWait(mbr) {
+  return !!mbr?.in_wait;
+}
+
+function memberActiveForGame(mbr) {
+  return !!mbr && !memberInWait(mbr) && (mbr.active ?? true);
+}
+
+function memberWaitFlipAnimEnabled() {
+  return !G.tutorialAnimating
+    && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function applyMemberWaitVisual(slotEl, mbr, { animate = false } = {}) {
+  if (!slotEl || !mbr?.instance_id) return;
+  const inWait = memberInWait(mbr);
+  if (!G._memberWaitPrev) G._memberWaitPrev = new Map();
+  const prevWait = G._memberWaitPrev.get(mbr.instance_id);
+  const waitChanged = prevWait !== undefined && prevWait !== inWait;
+  G._memberWaitPrev.set(mbr.instance_id, inWait);
+
+  slotEl.querySelector('.wdim')?.remove();
+  slotEl.classList.remove('member-in-wait', 'member-wait-flip-anim');
+
+  if (!inWait) {
+    if (animate && memberWaitFlipAnimEnabled() && waitChanged && prevWait) {
+      slotEl.classList.add('member-in-wait', 'member-wait-flip-anim');
+      requestAnimationFrame(() => {
+        slotEl.classList.remove('member-in-wait');
+        window.setTimeout(() => slotEl.classList.remove('member-wait-flip-anim'), MEMBER_WAIT_FLIP_MS + 40);
+      });
+    }
+    return;
+  }
+
+  const wd = document.createElement('div');
+  wd.className = 'wdim';
+  wd.textContent = 'Wait';
+  slotEl.appendChild(wd);
+
+  if (animate && memberWaitFlipAnimEnabled() && waitChanged && !prevWait) {
+    slotEl.classList.add('member-wait-flip-anim');
+    requestAnimationFrame(() => {
+      slotEl.classList.add('member-in-wait');
+      window.setTimeout(() => slotEl.classList.remove('member-wait-flip-anim'), MEMBER_WAIT_FLIP_MS + 40);
+    });
+  } else {
+    slotEl.classList.add('member-in-wait');
+  }
+}
+
+function applyMemberWaitStateBatch(prefix, stage, { animate = false } = {}) {
+  ['left', 'center', 'right'].forEach(slot => {
+    const mbr = stage?.[slot];
+    const wrap = el(`${prefix}-stage-${slot}`);
+    const slotEl = wrap?.querySelector('.mslot');
+    if (!slotEl || !mbr?.instance_id || slotEl.dataset.iid !== mbr.instance_id) return;
+    applyMemberWaitVisual(slotEl, mbr, { animate });
+  });
+}
+
+
 async function playLogSyncedSequence(prev, final, newEntries, myId) {
   if (logWasTruncated(prev, final)) resyncGameLogFromState(final);
   const batchEmpty = batchHasEmptyLiveSkipEntries(newEntries);
@@ -20379,8 +20457,8 @@ function cpuReadOpponent(s, cpuPid = 'p2') {
     .map(([slot, m]) => ({
       slot,
       member: m,
-      active: m.active !== false,
-      waited: !!m.waited,
+      active: memberActiveForGame(m),
+      waited: memberInWait(m),
       blade: (m.blade || 0) + (m.live_blade_bonus || 0),
       cost: m.cost || 0,
     }));
@@ -21558,7 +21636,7 @@ function cpuChoiceEffectViable(effect, pr, cpu, read) {
     if (inactive < (effect.count || 1)) return false;
   }
   if (t === 'activate_one_member') {
-    const waited = Object.values(cpu.stage || {}).filter(m => m && m.active === false).length;
+    const waited = Object.values(cpu.stage || {}).filter(m => m && memberInWait(m)).length;
     if (!waited) return false;
   }
   if (t.includes('add_from_wr') || t.includes('waiting') || (t.includes('_wr') && t.includes('add'))) {
@@ -22704,7 +22782,7 @@ function cpuStageMemberById(cpu, instanceId) {
 /** Penalty for putting the skill's source member into Wait before surveil/draw effects. */
 function cpuWaitSelfCost(cpu, sourceId, read, winPressure) {
   const staged = cpuStageMemberById(cpu, sourceId);
-  if (!staged || staged.member.waited) return 0;
+  if (!staged || memberInWait(staged.member)) return 0;
   const blade = (staged.member.blade || 0) + (staged.member.live_blade_bonus || 0);
   let cost = blade * (winPressure >= 0.45 ? 0.35 : 0.55);
   if (read?.oppThreatBlade >= 6 && blade >= 3) cost += 1.1;
@@ -22910,7 +22988,7 @@ function cpuPickLowWrLive(candidates, tier, read) {
 }
 
 function cpuCountWaitMembers(stage) {
-  return Object.values(stage || {}).filter(m => m && m.active === false).length;
+  return Object.values(stage || {}).filter(m => m && memberInWait(m)).length;
 }
 
 function cpuResolveBranchPickPrompts(pr, cpu, tier, winPressure, read, s) {
@@ -28909,7 +28987,7 @@ function computeContinuousHeartGrantsClient(state, pid) {
   if (!p) return [];
   const grants = [];
   Object.entries(p.stage || {}).forEach(([slot, member]) => {
-    if (!member || member.active === false) return;
+    if (!member || memberInWait(member)) return;
     const memberHearts = [];
     for (const ab of member.abilities || []) {
       if ((ab.trigger || '') !== 'continuous') continue;
@@ -31760,6 +31838,7 @@ function renderStageSlots(prefix, stage, isMe, s, myId) {
       const existing = wrap.querySelector(`.mslot[data-iid="${CSS.escape(mbr.instance_id)}"]`);
       if (existing?.classList.contains('stage-flip')) {
         existing.classList.toggle('card-arriving', !!(G._animHideIids?.has(mbr.instance_id)));
+        applyMemberWaitVisual(existing, mbr, { animate: true });
         return;
       }
     }
@@ -31818,12 +31897,7 @@ function renderStageSlots(prefix, stage, isMe, s, myId) {
         appendHeartIcons(hr, mbr.hearts, false, true);
         d.appendChild(hr);
       }
-      if(!(mbr.active??true)){
-        const wd = document.createElement('div');
-        wd.className = 'wdim';
-        wd.textContent = 'Rest';
-        d.appendChild(wd);
-      }
+      applyMemberWaitVisual(d, mbr, { animate: true });
       if (!doFlip) d.classList.add('occupied');
       d.classList.toggle('card-arriving', !!(G._animHideIids?.has(mbr.instance_id)));
       const ownerPid = isMe ? myId : oppPid;
@@ -33711,7 +33785,7 @@ function playToSlot(card, slot, s, myId, existing) {
 function aggregateStageHeartsFromStage(stage) {
   const map = new Map();
   Object.values(stage || {}).forEach(m => {
-    if (!m) return;
+    if (!m || memberInWait(m)) return;
     (m.hearts || []).forEach(hg => {
       const c = normalizeHeartColor(hg.color || 'any');
       map.set(c, (map.get(c) || 0) + (hg.count || 1));
@@ -33808,7 +33882,7 @@ function estimateYellBlade(s, pid) {
   if (!p) return 0;
   let total = 0;
   Object.entries(p.stage || {}).forEach(([slot, m]) => {
-    if (!m || !(m.active ?? true)) return;
+    if (!m || !memberActiveForGame(m)) return;
     total += (m.blade || 0) + (m.live_blade_bonus || 0);
     total += clientMemberContinuousBladeBonus(m, s, pid, slot);
     if (m.hearts_as_blade_color) {
@@ -34019,6 +34093,7 @@ function collectActivatableAbilities(s, myId) {
     if (!card || card.card_type !== 'メンバー') return;
     const onStage = location === 'stage';
     const inWr = location === 'wr';
+    if (onStage && memberInWait(card)) return;
     (card.abilities || []).forEach((ability, idx) => {
       if (ability.trigger !== 'activated') return;
       if (ability.from_wr_only && !inWr) return;

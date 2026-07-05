@@ -144,7 +144,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
                 $c = $candidates[0];
                 $om = $state['players'][$opp]['stage'][$c['slot']] ?? null;
                 if ($om) {
-                    waitMember($om);
+                    waitMember($om, $state);
                     $state['players'][$opp]['stage'][$c['slot']] = $om;
                 }
                 $state = addLog($state, $state['players'][$pid]['name'] .
@@ -635,7 +635,7 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
             if (($c['slot'] ?? '') !== $slot) continue;
             $om = $state['players'][$opp]['stage'][$slot] ?? null;
             if ($om) {
-                waitMember($om);
+                waitMember($om, $state);
                 $state['players'][$opp]['stage'][$slot] = $om;
             }
             break;
