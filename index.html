@@ -24951,8 +24951,9 @@ const RULE_KEYWORD_TIPS = {
   },
 };
 
-const RULE_KW_BRACKET_LABELS_EN = 'On Enter|On Leave|Live Start|Live Success|Activated|Always|Continuous|Once per turn|Automatic|Auto|Center';
-const RULE_KW_BRACKET_LABELS_JA = '登場時|退場時|ライブ開始時|ライブ開始|ライブ成功時|ライブ成功|起動|常時|ターン1回|自動|センター';
+const RULE_KW_BRACKET_LABELS_EN = 'On Enter|On Leave|Live Start|Live Success|Activated|Always|Continuous|Once per turn|Automatic|Auto|Center|Yell|On Play';
+const RULE_KW_BRACKET_LABELS_JA = '登場時|退場時|ライブ開始時|ライブ開始|ライブ成功時|ライブ成功|起動|常時|ターン1回|自動|センター|エール';
+const RULE_KW_BRACKET_LABELS_ES = 'Al entrar|Al salir|Inicio de Live|Éxito de Live|Activada|Siempre|Una vez por turno|Automático|Centro|Yell';
 
 const RULE_KW_JA_TO_EN = {
   '登場時': 'On Enter',
@@ -24967,6 +24968,19 @@ const RULE_KW_JA_TO_EN = {
   '自動': 'Automatic',
   'センター': 'Center',
   'エール': 'Yell',
+};
+
+const RULE_KW_ES_TO_EN = {
+  'Al entrar': 'On Enter',
+  'Al salir': 'On Leave',
+  'Inicio de Live': 'Live Start',
+  'Éxito de Live': 'Live Success',
+  'Activada': 'Activated',
+  'Siempre': 'Always',
+  'Una vez por turno': 'Once per turn',
+  'Automático': 'Automatic',
+  'Centro': 'Center',
+  'Yell': 'Yell',
 };
 
 const RULE_KW_EN_TO_JA = {
@@ -24998,9 +25012,16 @@ const RULE_KW_TIP_I18N = {
 const RULE_KW_BRACKET_PATTERN = new RegExp(`\\[(?:${RULE_KW_BRACKET_LABELS_EN})\\]`, 'g');
 
 function getRuleKwBracketPattern() {
-  if (getLocale() === 'ja') {
+  const loc = getLocale();
+  if (loc === 'ja') {
     return new RegExp(
       `(?:\\[(?:${RULE_KW_BRACKET_LABELS_JA}|${RULE_KW_BRACKET_LABELS_EN})\\]|［(?:${RULE_KW_BRACKET_LABELS_JA})］)`,
+      'g'
+    );
+  }
+  if (loc === 'es') {
+    return new RegExp(
+      `\\[(?:${RULE_KW_BRACKET_LABELS_ES}|${RULE_KW_BRACKET_LABELS_EN})\\]`,
       'g'
     );
   }
@@ -25008,7 +25029,7 @@ function getRuleKwBracketPattern() {
 }
 
 function ruleKwKeyFromBracketLabel(label) {
-  return RULE_KW_JA_TO_EN[label] || resolveRuleKwKey(label);
+  return RULE_KW_JA_TO_EN[label] || RULE_KW_ES_TO_EN[label] || resolveRuleKwKey(label);
 }
 
 function ruleKeywordInfo(key) {
@@ -25229,8 +25250,15 @@ function renderCardRulesText(text, container) {
   container.innerHTML = '';
   if (!text) return;
   text = localizeSubunitText(text);
-  text = text.replace(/\[Continuous\]/gi, '[Always]');
-  text = text.replace(/\[On Play\]/gi, '[Always]');
+  const loc = getLocale();
+  if (loc === 'es') {
+    text = text.replace(/\[Continuous\]/gi, '[Siempre]');
+    text = text.replace(/\[On Play\]/gi, '[Siempre]');
+    text = text.replace(/\[Auto\]/gi, '[Automático]');
+  } else {
+    text = text.replace(/\[Continuous\]/gi, '[Always]');
+    text = text.replace(/\[On Play\]/gi, '[Always]');
+  }
   const lines = text.split('\n');
   const bracketRe = getRuleKwBracketPattern();
   lines.forEach((line, lineIdx) => {
