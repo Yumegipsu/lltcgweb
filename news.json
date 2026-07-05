@@ -2,22 +2,6 @@
   "version": 1,
   "posts": [
     {
-      "id": "2026-07-loveca-points",
-      "date": "2026-07-04",
-      "banner": "news/loveca-point-system.png",
-      "bannerStyle": "wide",
-      "title": {
-        "en": "Deck point limit now in effect",
-        "ja": "デッキポイント制限が適用されました",
-        "es": "Límite de puntos del mazo en vigor"
-      },
-      "body": {
-        "en": "Deck building now follows the official **point limit** for especially strong cards.\n\n**How it works**\n- Only certain cards cost points.\n- Add up every copy in your **main deck** — the total must stay **9 or below**.\n- Energy cards do not count toward this total.\n- Tap a **card ID** below to preview that card.\n\n**Examples of point costs (April 2026)**\n- **4 points:** Shizuku Osaka — PL!N-bp1-003-R＋\n- **3 points:** Lanzhu Zhong — PL!N-bp1-012-R＋ · You Watanabe & Natsumi Onitsuka & Rurino Osawa — LL-bp2-001-R＋\n- **2 points:** Kasumi Nakasu — PL!N-bp1-002-R＋ · Emma Verde — PL!N-sd1-008-SD · Rurino Osawa — PL!HS-bp2-014-N\n- **1 point:** Ren Hazuki — PL!SP-bp1-005-R · Eutopia — PL!N-bp1-029-L · Shiki Wakana — PL!SP-sd1-019-SD · Natsumi Onitsuka — PL!SP-sd1-020-SD · Chisato Arashi — PL!SP-pb1-014-N · Vitamin SUMMER! — PL!SP-bp2-024-L\n\nYou Watanabe — PL!S-bp2-005-R＋ — no longer costs points.\n\nOpen **Deck Builder** to see your running point total. Decks over the limit cannot be saved or used in ranked and casual play.",
-        "ja": "特に強力なカードについて、公式の**ポイント制限**に沿ってデッキを組む必要があります。\n\n**ルール**\n- ポイントが設定されているカードだけが対象です。\n- **メインデッキ**に入れた枚数分を合計し、**9以下**にしてください。\n- エネルギーデッキは合計に含まれません。\n- 下の**カードID**をタップすると、そのカードをプレビューできます。\n\n**ポイント例（2026年4月時点）**\n- **4ポイント：** 桜坂しずく — PL!N-bp1-003-R＋\n- **3ポイント：** 鐘 嵐珠 — PL!N-bp1-012-R＋ · 渡辺 曜＆鬼塚夏美＆大沢瑠璃乃 — LL-bp2-001-R＋\n- **2ポイント：** 中須かすみ — PL!N-bp1-002-R＋ · エマ・ヴェルデ — PL!N-sd1-008-SD · 大沢瑠璃乃 — PL!HS-bp2-014-N\n- **1ポイント：** 葉月 恋 — PL!SP-bp1-005-R · Eutopia — PL!N-bp1-029-L · 若菜四季 — PL!SP-sd1-019-SD · 鬼塚夏美 — PL!SP-sd1-020-SD · 嵐 千砂都 — PL!SP-pb1-014-N · ビタミンSUMMER! — PL!SP-bp2-024-L\n\n渡辺 曜 — PL!S-bp2-005-R＋ — はポイント対象外になりました。\n\n**デッキビルダー**でポイント合計を確認できます。上限を超えたデッキは保存できず、ランク・カジュアルでも使用できません。",
-        "es": "Al armar mazos ahora se aplica el **límite de puntos** oficial para las cartas especialmente fuertes.\n\n**Cómo funciona**\n- Solo ciertas cartas cuestan puntos.\n- Suma cada copia en tu **mazo principal** — el total debe ser **9 o menos**.\n- Las cartas de Energía no cuentan para este total.\n- Toca un **ID de carta** abajo para verla.\n\n**Ejemplos de costo en puntos (abril 2026)**\n- **4 puntos:** Shizuku Osaka — PL!N-bp1-003-R＋\n- **3 puntos:** Lanzhu Zhong — PL!N-bp1-012-R＋ · You Watanabe & Natsumi Onitsuka & Rurino Osawa — LL-bp2-001-R＋\n- **2 puntos:** Kasumi Nakasu — PL!N-bp1-002-R＋ · Emma Verde — PL!N-sd1-008-SD · Rurino Osawa — PL!HS-bp2-014-N\n- **1 punto:** Ren Hazuki — PL!SP-bp1-005-R · Eutopia — PL!N-bp1-029-L · Shiki Wakana — PL!SP-sd1-019-SD · Natsumi Onitsuka — PL!SP-sd1-020-SD · Chisato Arashi — PL!SP-pb1-014-N · Vitamin SUMMER! — PL!SP-bp2-024-L\n\nYou Watanabe — PL!S-bp2-005-R＋ — ya no cuesta puntos.\n\nAbre el **Constructor de mazos** para ver tu total de puntos. Los mazos por encima del límite no se pueden guardar ni usar en clasificatorio o casual."
-      }
-    },
-    {
       "id": "2026-07-ui-update",
       "date": "2026-07-04",
       "banner": "tcglogo.png",
@@ -31,6 +15,22 @@
         "en": "Welcome to the **News** section on the title screen.\n\nFuture game updates, announcements and changelogs will appear here!",
         "ja": "タイトル画面の**お知らせ**へようこそ。\n\n今後のゲームアップデート、お知らせ、変更履歴はこちらに掲載されます！",
         "es": "¡Bienvenido a la sección de **Noticias** en la pantalla de título!\n\n¡Aquí aparecerán futuras actualizaciones del juego, anuncios y listas de cambios!"
+      }
+    },
+    {
+      "id": "2026-07-loveca-points",
+      "date": "2026-07-04",
+      "banner": "news/loveca-point-system.png",
+      "bannerStyle": "wide",
+      "title": {
+        "en": "Deck point limit now in effect",
+        "ja": "デッキポイント制限が適用されました",
+        "es": "Límite de puntos del mazo en vigor"
+      },
+      "body": {
+        "en": "Deck building now follows the official **point limit** for especially strong cards.\n\n**How it works**\n- Only certain cards cost points.\n- Add up every copy in your **main deck** — the total must stay **9 or below**.\n- Energy cards do not count toward this total.\n- Tap a **card ID** below to preview that card.\n\n**Examples of point costs (April 2026)**\n- **4 points:** Shizuku Osaka — PL!N-bp1-003-R＋\n- **3 points:** Lanzhu Zhong — PL!N-bp1-012-R＋ · You Watanabe & Natsumi Onitsuka & Rurino Osawa — LL-bp2-001-R＋\n- **2 points:** Kasumi Nakasu — PL!N-bp1-002-R＋ · Emma Verde — PL!N-sd1-008-SD · Rurino Osawa — PL!HS-bp2-014-N\n- **1 point:** Ren Hazuki — PL!SP-bp1-005-R · Eutopia — PL!N-bp1-029-L · Shiki Wakana — PL!SP-sd1-019-SD · Natsumi Onitsuka — PL!SP-sd1-020-SD · Chisato Arashi — PL!SP-pb1-014-N · Vitamin SUMMER! — PL!SP-bp2-024-L\n\nYou Watanabe — PL!S-bp2-005-R＋ — no longer costs points.\n\nOpen **Deck Builder** to see your running point total. Decks over the limit cannot be saved or used in ranked and casual play.",
+        "ja": "特に強力なカードについて、公式の**ポイント制限**に沿ってデッキを組む必要があります。\n\n**ルール**\n- ポイントが設定されているカードだけが対象です。\n- **メインデッキ**に入れた枚数分を合計し、**9以下**にしてください。\n- エネルギーデッキは合計に含まれません。\n- 下の**カードID**をタップすると、そのカードをプレビューできます。\n\n**ポイント例（2026年4月時点）**\n- **4ポイント：** 桜坂しずく — PL!N-bp1-003-R＋\n- **3ポイント：** 鐘 嵐珠 — PL!N-bp1-012-R＋ · 渡辺 曜＆鬼塚夏美＆大沢瑠璃乃 — LL-bp2-001-R＋\n- **2ポイント：** 中須かすみ — PL!N-bp1-002-R＋ · エマ・ヴェルデ — PL!N-sd1-008-SD · 大沢瑠璃乃 — PL!HS-bp2-014-N\n- **1ポイント：** 葉月 恋 — PL!SP-bp1-005-R · Eutopia — PL!N-bp1-029-L · 若菜四季 — PL!SP-sd1-019-SD · 鬼塚夏美 — PL!SP-sd1-020-SD · 嵐 千砂都 — PL!SP-pb1-014-N · ビタミンSUMMER! — PL!SP-bp2-024-L\n\n渡辺 曜 — PL!S-bp2-005-R＋ — はポイント対象外になりました。\n\n**デッキビルダー**でポイント合計を確認できます。上限を超えたデッキは保存できず、ランク・カジュアルでも使用できません。",
+        "es": "Al armar mazos ahora se aplica el **límite de puntos** oficial para las cartas especialmente fuertes.\n\n**Cómo funciona**\n- Solo ciertas cartas cuestan puntos.\n- Suma cada copia en tu **mazo principal** — el total debe ser **9 o menos**.\n- Las cartas de Energía no cuentan para este total.\n- Toca un **ID de carta** abajo para verla.\n\n**Ejemplos de costo en puntos (abril 2026)**\n- **4 puntos:** Shizuku Osaka — PL!N-bp1-003-R＋\n- **3 puntos:** Lanzhu Zhong — PL!N-bp1-012-R＋ · You Watanabe & Natsumi Onitsuka & Rurino Osawa — LL-bp2-001-R＋\n- **2 puntos:** Kasumi Nakasu — PL!N-bp1-002-R＋ · Emma Verde — PL!N-sd1-008-SD · Rurino Osawa — PL!HS-bp2-014-N\n- **1 punto:** Ren Hazuki — PL!SP-bp1-005-R · Eutopia — PL!N-bp1-029-L · Shiki Wakana — PL!SP-sd1-019-SD · Natsumi Onitsuka — PL!SP-sd1-020-SD · Chisato Arashi — PL!SP-pb1-014-N · Vitamin SUMMER! — PL!SP-bp2-024-L\n\nYou Watanabe — PL!S-bp2-005-R＋ — ya no cuesta puntos.\n\nAbre el **Constructor de mazos** para ver tu total de puntos. Los mazos por encima del límite no se pueden guardar ni usar en clasificatorio o casual."
       }
     },
     {

@@ -4,7 +4,7 @@
 (function (global) {
   'use strict';
 
-  const NEWS_JSON = './news.json?v=5';
+  const NEWS_JSON = './news.json?v=6';
   /** Matches catalog card_no tokens in news copy (PL!… / LL-…). */
   const NEWS_CARD_ID_RE = /(PL![A-Za-z0-9!＋._-]+|LL-[A-Za-z0-9!＋._-]+|PL!-[A-Za-z0-9!＋._-]+)/g;
   let _posts = null;
@@ -101,9 +101,22 @@
         return r.json();
       })
       .then((data) => {
-        _posts = (Array.isArray(data?.posts) ? data.posts : [])
-          .slice()
-          .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+        const raw = Array.isArray(data?.posts) ? data.posts : [];
+        _posts = raw
+          .map((post, idx) => ({ post, idx }))
+          .sort((a, b) => {
+            const dateCmp = String(b.post.date || '').localeCompare(String(a.post.date || ''));
+            if (dateCmp !== 0) return dateCmp;
+            const pubA = a.post.publishedAt || a.post.published_at || '';
+            const pubB = b.post.publishedAt || b.post.published_at || '';
+            if (pubA || pubB) {
+              const pubCmp = String(pubB).localeCompare(String(pubA));
+              if (pubCmp !== 0) return pubCmp;
+            }
+            // Same calendar date: later entries in news.json are treated as newer.
+            return b.idx - a.idx;
+          })
+          .map(({ post }) => post);
         return _posts;
       })
       .catch((e) => {
