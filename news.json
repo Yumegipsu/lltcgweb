@@ -2,6 +2,20 @@
   "version": 1,
   "posts": [
     {
+      "id": "2026-07-loveca-points",
+      "date": "2026-07-04",
+      "banner": "tcglogo.png",
+      "bannerStyle": "crop",
+      "title": {
+        "en": "Deck point limit now in effect",
+        "ja": "デッキポイント制限が適用されました"
+      },
+      "body": {
+        "en": "Deck building now follows the official **point limit** for especially strong cards.\n\n**How it works**\n- Only certain cards cost points.\n- Add up every copy in your **main deck** — the total must stay **9 or below**.\n- Energy cards do not count toward this total.\n\n**Examples of point costs (April 2026)**\n- **4 points:** Sakura Shizuku\n- **3 points:** Rin Zhong, Kanon & Kaguya & Lulu trio Live\n- **2 points:** Kasumi Nakasu, Emma Verde, Lulu Oshizora\n- **1 point:** Ren Hazuki, Eutopia, Shiki Wakana, Kaguya Onikura, Chisato Arashi, Vitamin SUMMER!\n\nKanon Yo no longer costs points.\n\nOpen **Deck Builder** to see your running point total. Decks over the limit cannot be saved or used in ranked and casual play.",
+        "ja": "特に強力なカードについて、公式の**ポイント制限**に沿ってデッキを組む必要があります。\n\n**ルール**\n- ポイントが設定されているカードだけが対象です。\n- **メインデッキ**に入れた枚数分を合計し、**9以下**にしてください。\n- エネルギーデッキは合計に含まれません。\n\n**ポイント例（2026年4月時点）**\n- **4ポイント：** 桜坂しずく\n- **3ポイント：** 鐘 嵐珠、渡辺 曜＆鬼塚夏美＆大沢瑠璃乃（ライブ）\n- **2ポイント：** 中須かすみ、エマ・ヴェルデ、大沢瑠璃乃\n- **1ポイント：** 葉月 恋、Eutopia、若菜四季、鬼塚夏美、嵐 千砂都、ビタミンSUMMER!\n\n渡辺 曜（メンバー）はポイント対象外になりました。\n\n**デッキビルダー**でポイント合計を確認できます。上限を超えたデッキは保存できず、ランク・カジュアルでも使用できません。"
+      }
+    },
+    {
       "id": "2026-07-ui-update",
       "date": "2026-07-04",
       "banner": "tcglogo.png",

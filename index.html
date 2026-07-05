@@ -5294,6 +5294,9 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;line-height:1.3;pointer-events:none}
 .deck-card-tile .deck-rarity{position:absolute;top:3px;right:3px;font-size:8px;font-weight:700;background:rgba(0,0,0,.72);
   color:#fff;padding:1px 4px;border-radius:3px;pointer-events:none;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.deck-card-tile .deck-loveca-pt{position:absolute;top:3px;left:3px;font-size:8px;font-weight:800;
+  background:rgba(90,18,55,.88);color:#fff;padding:2px 5px;border-radius:4px;line-height:1.2;letter-spacing:.02em;pointer-events:none}
+#deck-current-stats.deck-stats-over{color:#ffd6e8;font-weight:700}
 .deck-card-tile.in-deck{border-color:rgba(154,230,180,.45)}
 .deck-card-tile.deck-hold-pending{touch-action:none}
 .deck-card-empty{font-size:12px;color:rgba(255,255,255,.55);padding:12px 8px}
@@ -6984,10 +6987,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=10"></script>
+<script src="i18n.js?v=11"></script>
 <script src="log_i18n.js?v=5"></script>
 <script src="sfx.js?v=15"></script>
-<script src="client/js/news.js?v=3"></script>
+<script src="client/js/news.js?v=4"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=5"></script>
 <script src="client/js/state-apply.js?v=3"></script>
@@ -7101,6 +7104,7 @@ const PERF_SPECTACLE_DONE_STORAGE_KEY = 'tcg_perf_spectacle_done';
 const EXPERIMENT_PASSWORDS_KEY = 'tcg_experiment_passwords';
 const LAST_EXPERIMENT_PASSWORD_KEY = 'tcg_last_experiment_password';
 const DECK_MAX_COPIES = 4;
+const LOVECA_POINT_LIMIT = 9;
 const DECK_MAX_ENERGY_COPIES = 12;
 const STAR_GEM_ICON = 'assets/Star_Gem.png';
 const STAR_GEMS_PER_DUPE = 10;
@@ -9215,10 +9219,27 @@ async function refreshCollection() {
   A.collection.forEach(row => { A.collectionMap[row.card_no] = row.qty; });
 }
 
+function deckLovecaPointForCard(cardNo) {
+  const pts = G.allCards[cardNo]?.loveca_point;
+  return pts > 0 ? Number(pts) : 0;
+}
+
+function deckMainLovecaPoints(main) {
+  let total = 0;
+  (main || []).forEach(no => { total += deckLovecaPointForCard(no); });
+  return total;
+}
+
 function deckCounts() {
   const members = A.deckMain.filter(n => G.allCards[n]?.card_type === 'メンバー').length;
   const lives = A.deckMain.filter(n => G.allCards[n]?.card_type === 'ライブ').length;
-  return { members, lives, energy: A.deckEnergy.length };
+  return {
+    members,
+    lives,
+    energy: A.deckEnergy.length,
+    lovecaPoints: deckMainLovecaPoints(A.deckMain),
+    lovecaLimit: LOVECA_POINT_LIMIT,
+  };
 }
 
 function countInDeck(cardNo) {
@@ -9493,6 +9514,13 @@ function appendDeckCardTile(parent, card, qty, onTap, { inDeck = false } = {}) {
     r.textContent = c.rarity;
     tile.appendChild(r);
   }
+  const lovecaPt = deckLovecaPointForCard(c.card_no);
+  if (lovecaPt > 0) {
+    const lp = document.createElement('span');
+    lp.className = 'deck-loveca-pt';
+    lp.textContent = t('deck.lovecaPointBadge', { n: lovecaPt });
+    tile.appendChild(lp);
+  }
   if (qty > 1) {
     const q = document.createElement('span');
     q.className = 'deck-qty';
@@ -9592,7 +9620,8 @@ function deckListsAreLegal(main, energy) {
   if (main.length !== 60 || energy.length !== 12) return false;
   const members = main.filter(n => G.allCards[n]?.card_type === 'メンバー').length;
   const lives = main.filter(n => G.allCards[n]?.card_type === 'ライブ').length;
-  return members === 48 && lives === 12;
+  if (members !== 48 || lives !== 12) return false;
+  return deckMainLovecaPoints(main) <= LOVECA_POINT_LIMIT;
 }
 
 function layoutDeckBuilderActions(experiment) {
@@ -9639,7 +9668,10 @@ function syncDeckBuilderChrome() {
   syncDeckPoolSortUi();
   if (poolHead) poolHead.textContent = experiment ? t('deck.cardPool') : t('deck.collection');
   const equipBtn = el('btn-deck-equip');
-  if (equipBtn) equipBtn.hidden = experiment;
+  if (equipBtn) {
+    equipBtn.hidden = experiment;
+    equipBtn.disabled = !legal;
+  }
   const resetBtn = el('btn-deck-reset-starter');
   if (resetBtn) {
     resetBtn.hidden = false;
@@ -9666,9 +9698,11 @@ function syncDeckBuilderChrome() {
     if (experiment) {
       saveBtn.textContent = A.experimentPassword ? t('deck.updateSavedDeck') : t('deck.generatePassword');
       saveBtn.hidden = !legal;
+      saveBtn.disabled = !legal;
     } else {
       saveBtn.hidden = false;
       saveBtn.textContent = t('deck.savePreset');
+      saveBtn.disabled = !legal;
     }
   }
   layoutDeckBuilderActions(experiment);
@@ -10853,12 +10887,22 @@ function renderExperimentPoolChunked(searchQ) {
 
 function renderDeckCurrentList(experiment) {
   const c = deckCounts();
-  el('deck-current-stats').textContent = t('deck.deckStats', {
-    total: c.members + c.lives + c.energy,
-    members: c.members,
-    lives: c.lives,
-    energy: c.energy,
-  });
+  const statsEl = el('deck-current-stats');
+  if (statsEl) {
+    statsEl.textContent = t('deck.deckStats', {
+      total: c.members + c.lives + c.energy,
+      members: c.members,
+      lives: c.lives,
+      energy: c.energy,
+      lovecaPoints: c.lovecaPoints,
+      lovecaLimit: c.lovecaLimit,
+    });
+    statsEl.classList.toggle('deck-stats-over', c.lovecaPoints > c.lovecaLimit);
+  }
+  const errEl = el('deck-err');
+  if (errEl && c.lovecaPoints > c.lovecaLimit) {
+    errEl.textContent = t('deck.lovecaDeckIllegal', { total: c.lovecaPoints, limit: c.lovecaLimit });
+  }
   const cur = el('deck-current-list');
   if (!cur) return;
   cur.replaceChildren();
@@ -11002,6 +11046,13 @@ function addCardToDeck(cardNo, type) {
   }
   if (type === 'メンバー' && c.members >= 48) return;
   if (type === 'ライブ' && c.lives >= 12) return;
+  if (type !== 'エネルギー') {
+    const pt = deckLovecaPointForCard(cardNo);
+    if (pt > 0 && deckMainLovecaPoints(A.deckMain) + pt > LOVECA_POINT_LIMIT) {
+      toast(t('deck.lovecaOverLimit', { total: deckMainLovecaPoints(A.deckMain) + pt, limit: LOVECA_POINT_LIMIT }), 2800);
+      return;
+    }
+  }
   if (type === 'エネルギー') {
     if (A.deckEnergy.length >= 12) return;
     A.deckEnergy.push(cardNo);
@@ -12406,7 +12457,10 @@ async function loadExperimentDeckByPassword(rawPwd) {
 async function saveExperimentDeckPassword() {
   el('deck-err').textContent = '';
   if (!deckListsAreLegal(A.deckMain, A.deckEnergy)) {
-    el('deck-err').textContent = 'Deck must be legal: 60 main (48 Members, 12 Lives) and 12 Energy.';
+    const c = deckCounts();
+    el('deck-err').textContent = c.lovecaPoints > c.lovecaLimit
+      ? t('deck.lovecaDeckIllegal', { total: c.lovecaPoints, limit: c.lovecaLimit })
+      : t('deck.deckIllegalSize');
     return;
   }
   const name = 'Deck Experiment';
@@ -32404,6 +32458,8 @@ function fillCardDetailPanel(prefix, card, s, myId) {
     sg.lastElementChild.prepend(sv);
   };
   if (card.cost !== undefined) addS(t('card.cost'), effectiveCost(card, me?.hand || []), 'icon_energy.png');
+  const lovecaPt = deckLovecaPointForCard(card.card_no);
+  if (lovecaPt > 0) addS(t('deck.lovecaPointLabel'), lovecaPt);
   if (card.blade != null) addS(t('card.blade'), card.blade, 'icon_blade.png');
   if (card.score !== undefined) addS(t('card.score'), card.score, 'sp_score.png');
   if (isLiveCard(card)) {

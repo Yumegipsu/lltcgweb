@@ -6,6 +6,7 @@
  * owned-card checks against the player's collection.
  */
 require_once __DIR__ . '/deckgen.php';
+require_once __DIR__ . '/loveca_points.php';
 
 const TCG_MAIN_DECK_SIZE = 60;
 const TCG_MEMBER_SLOTS = 48;
@@ -152,12 +153,21 @@ function tcgValidateDeckLists(array $mainDeck, array $energyDeck, array $cardMap
         }
     }
 
+    $lovecaPoints = tcgSumMainDeckLovecaPoints($mainDeck);
+    $lovecaLimit = tcgLovecaPointLimit();
+    $lovecaErr = tcgValidateLovecaPointBudget($mainDeck);
+    if ($lovecaErr !== null) {
+        $errors[] = $lovecaErr;
+    }
+
     return [
         'valid' => empty($errors),
         'errors' => $errors,
         'members' => $members,
         'lives' => $lives,
         'energy_types' => array_keys($energyTypes),
+        'loveca_points' => $lovecaPoints,
+        'loveca_limit' => $lovecaLimit,
     ];
 }
 

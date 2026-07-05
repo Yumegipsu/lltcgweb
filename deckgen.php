@@ -3,6 +3,7 @@
  * Random legal Loveca deck builder (60 main + 12 energy).
  * Targets 4 → 9 → 15 baton ramp, heart-heavy fillers, and color-aligned Lives.
  */
+require_once __DIR__ . '/loveca_points.php';
 
 const DECKGEN_MEMBER_SLOTS = 48;
 const DECKGEN_LIVE_SLOTS   = 12;
@@ -64,6 +65,24 @@ function deckgenRebuildCounts(array $cardNos): array {
     return $counts;
 }
 
+function deckgenLovecaCapCopies(array $existingMain, string $cardNo, int $want): int {
+    $pt = tcgGetLovecaPointForCardNo($cardNo);
+    if ($pt <= 0 || $want <= 0) {
+        return $want;
+    }
+    $current = tcgSumMainDeckLovecaPoints($existingMain);
+    $limit = tcgLovecaPointLimit();
+    $maxAdd = 0;
+    for ($i = 1; $i <= $want; $i++) {
+        if ($current + ($pt * $i) <= $limit) {
+            $maxAdd = $i;
+        } else {
+            break;
+        }
+    }
+    return $maxAdd;
+}
+
 function deckgenAddCopies(array &$list, string $cardNo, int $want, array &$counts, ?array $owned = null): int {
     $have = $counts[$cardNo] ?? 0;
     $cap  = DECKGEN_MAX_COPIES - $have;
@@ -71,6 +90,7 @@ function deckgenAddCopies(array &$list, string $cardNo, int $want, array &$count
         $cap = min($cap, max(0, ($owned[$cardNo] ?? 0) - $have));
     }
     $add = min($want, $cap);
+    $add = deckgenLovecaCapCopies($list, $cardNo, $add);
     for ($i = 0; $i < $add; $i++) {
         $list[]            = $cardNo;
         $counts[$cardNo] = ($counts[$cardNo] ?? 0) + 1;
@@ -523,7 +543,8 @@ function deckgenPickLives(
     array $colorCounts,
     ?array $owned = null,
     ?array $bucketTargets = null,
-    ?callable $fitScoreFn = null
+    ?callable $fitScoreFn = null,
+    ?array $lovecaPrefixMain = null
 ): array {
     if ($group !== null && $group !== '') {
         $pool = array_values(array_filter($lives, function ($c) use ($group) {
@@ -591,6 +612,11 @@ function deckgenPickLives(
             if ($owned !== null) {
                 $copies = min($copies, max(0, ($owned[$no] ?? 0) - ($counts[$no] ?? 0)));
             }
+            $contextMain = array_merge($lovecaPrefixMain ?? [], $picked);
+            $copies = deckgenLovecaCapCopies($contextMain, $no, $copies);
+            if ($copies <= 0) {
+                continue;
+            }
             for ($j = 0; $j < $copies; $j++) {
                 $picked[] = $no;
                 $counts[$no] = ($counts[$no] ?? 0) + 1;
@@ -612,6 +638,10 @@ function deckgenPickLives(
             continue;
         }
         if ($owned !== null && ($counts[$no] ?? 0) >= ($owned[$no] ?? 0)) {
+            continue;
+        }
+        $contextMain = array_merge($lovecaPrefixMain ?? [], $picked);
+        if (deckgenLovecaCapCopies($contextMain, $no, 1) < 1) {
             continue;
         }
         $picked[] = $no;
@@ -689,7 +719,7 @@ function generateRandomDeckLists(array $allCards, ?string $forcedGroup = null): 
     }
 
     $colorCounts = deckgenColorCountsFromMain($main, $cardMap);
-    $liveNos     = deckgenPickLives($lives, $liveGroup, $colorCounts);
+    $liveNos     = deckgenPickLives($lives, $liveGroup, $colorCounts, null, null, null, $main);
     $energyNo    = deckgenPickEnergy($energies, $mixed ? null : $group);
     $energyDeck  = array_fill(0, DECKGEN_ENERGY_SLOTS, $energyNo);
 
@@ -795,7 +825,7 @@ function generateCollectionDeckLists(array $allCards, array $owned, ?string $for
 
     $liveGroup   = $group === 'mixed' ? null : $group;
     $colorCounts = deckgenColorCountsFromMain($main, $cardMap);
-    $liveNos     = deckgenPickLives($lives, $liveGroup, $colorCounts, $owned);
+    $liveNos     = deckgenPickLives($lives, $liveGroup, $colorCounts, $owned, null, null, $main);
     if (count($liveNos) < DECKGEN_LIVE_SLOTS) {
         if ($starterFallback !== null) {
             return deckgenStarterBuildResult($starterFallback);
@@ -1069,7 +1099,7 @@ function generateEnhancedCpuDeckLists(array $allCards, string $tier): array {
         ? ['low' => 2, 'mid' => 4, 'high' => 6]
         : ['low' => 3, 'mid' => 5, 'high' => 4];
     $liveFitFn = fn($c) => deckgenCpuLiveFitScore($c, $colorCounts, $tier) + mt_rand(0, 3);
-    $liveNos   = deckgenPickLives($lives, $group, $colorCounts, null, $liveTargets, $liveFitFn);
+    $liveNos   = deckgenPickLives($lives, $group, $colorCounts, null, $liveTargets, $liveFitFn, $main);
     $energyNo  = deckgenPickEnergy($energies, $group);
     $energyDeck = array_fill(0, DECKGEN_ENERGY_SLOTS, $energyNo);
 

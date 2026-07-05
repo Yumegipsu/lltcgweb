@@ -4,7 +4,7 @@
 (function (global) {
   'use strict';
 
-  const NEWS_JSON = './news.json?v=2';
+  const NEWS_JSON = './news.json?v=3';
   let _posts = null;
   let _loadPromise = null;
   let _view = 'list';
