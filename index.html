@@ -3365,12 +3365,34 @@ body.perf-spectacle-active #center-banner.show{z-index:8750}
 .perf-card .card-art.live-sideways{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
 .perf-card .card-art.live-sideways img{height:100%;width:auto;transform:rotate(90deg);object-fit:contain}
 .perf-deck-pile{
+  position:relative;
   width:var(--perf-member-w,clamp(100px,16vw,136px));aspect-ratio:63/88;border-radius:8px;
   background:url('lltcg-back.png') center/cover no-repeat;
   box-shadow:0 8px 22px rgba(0,0,0,.42);transform:translateY(0);
   transition:transform .4s ease;flex-shrink:0;
 }
 .perf-deck-pile.perf-deck-draw{transform:translateY(-7px)}
+.perf-yell-draw-pending{
+  position:absolute;right:clamp(-4px,-0.6vw,-2px);bottom:clamp(-6px,-1vw,-4px);
+  display:flex;align-items:center;gap:clamp(2px,.5vw,4px);
+  z-index:6;pointer-events:none;white-space:nowrap;
+  opacity:0;transform:scale(.72);
+  transition:opacity .32s ease,transform .38s cubic-bezier(.2,.9,.2,1);
+}
+.perf-yell-draw-pending.show{opacity:1;transform:scale(1)}
+.perf-yell-draw-pending.punch{animation:perfScorePunch .32s cubic-bezier(.2,.9,.2,1)}
+.perf-yell-draw-pending .ticon{
+  width:clamp(20px,3.8vw,28px);height:clamp(20px,3.8vw,28px);
+  filter:drop-shadow(0 0 6px rgba(0,0,0,.8));
+}
+.perf-yell-draw-val{
+  font-family:'Fredoka One',cursive;font-size:clamp(18px,3.6vw,28px);line-height:1;
+  font-weight:800;color:#FBBF24;
+  -webkit-text-stroke:1.5px #fff;text-stroke:1.5px #fff;
+  paint-order:stroke fill;
+  text-shadow:0 0 6px rgba(251,191,36,.45),0 2px 10px rgba(0,0,0,.65);
+}
+.perf-card-score.perf-yell-live-score{top:2px}
 .perf-yell-card.perf-yell-flying{
   position:fixed;z-index:10060;pointer-events:none;margin:0;
   transition:transform .48s cubic-bezier(.2,.9,.2,1),opacity .38s ease;
@@ -15165,6 +15187,10 @@ let G = {
   _deferredLiveState:null,
   _deferredPromptState:null,
   _deferredHandDrawIids:null,
+  _yellPerfDeferredDrawIids:null,
+  _perfSpectaclePrevForDraws:null,
+  _perfYellScoreAccum:null,
+  _perfYellDrawPending:null,
   _skipJudgeOverlay:false,
   _stageRevealFlips:null,
   _handRevealFlips:null,
@@ -17688,6 +17714,51 @@ function isHiddenSourceToHand(m) {
 }
 
 /** Discard-to-WR prompts where follow-up draws must not animate until the overlay closes. */
+function collectYellPerformanceDrawIids(perfPrev, final) {
+  if (!perfPrev || !final) return new Set();
+  return new Set(
+    diffCardMoves(perfPrev, final)
+      .filter(m => isHiddenSourceToHand(m))
+      .map(m => m.iid)
+      .filter(Boolean)
+  );
+}
+
+async function playYellPerfDeferredDraws(perfPrev, final, myId) {
+  const deferIids = G._yellPerfDeferredDrawIids;
+  if (!deferIids?.size || !perfPrev || !final) return false;
+  const moves = pickDeferredHandDrawMoves(diffCardMoves(perfPrev, final), deferIids);
+  if (!moves.length) {
+    G._yellPerfDeferredDrawIids = null;
+    G._deferredHandDrawIids = null;
+    return false;
+  }
+  TCG_DEBUG.log('live', 'playYellPerfDeferredDraws', { count: moves.length });
+  const playback = deepCloneState(final);
+  for (const pid of ['p1', 'p2']) {
+    const p = playback.players?.[pid];
+    if (!p) continue;
+    p.hand = (p.hand || []).filter(c => !deferIids.has(c.instance_id));
+    if (p.hand_count != null) p.hand_count = p.hand.length;
+  }
+  G._deferredHandDrawIids = deferIids;
+  G.gameState = playback;
+  renderGame(playback, { skipHand: true, skipOppHand: true, skipLog: true });
+  const prevRects = collectCardRects();
+  const handBefore = collectHandSlotRects();
+  G._animHideIids = animHideIidsForMoves(playback, moves);
+  try {
+    await playCardMoveAnimations(playback, final, prevRects, myId, handBefore, collectHandSlotRects(), moves);
+  } finally {
+    G._animHideIids = null;
+    G._yellPerfDeferredDrawIids = null;
+    G._deferredHandDrawIids = null;
+  }
+  G.gameState = final;
+  renderGame(final, { skipLog: true });
+  return true;
+}
+
 function shouldDeferHandDrawsForPrompt(state, myId) {
   const pr = state?.pending_prompt;
   if (!pr || pr.responder !== myId) return false;
@@ -27132,6 +27203,10 @@ function clearLiveRoundTransientCaches() {
   G._liveSetStorageBaseline = null;
   G._livePostRevealBoard = null;
   G._liveStorageOutcomePending = false;
+  G._perfSpectaclePrevForDraws = null;
+  G._yellPerfDeferredDrawIids = null;
+  G._perfYellScoreAccum = null;
+  G._perfYellDrawPending = null;
 }
 
 /** Turn of the most recent unreplayed empty LIVE skip in the full log (log+0 batched polls). */
@@ -28456,6 +28531,11 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       G._deferredLiveState = next;
       const spectacleNext = pickSpectacleStateForPerf(next);
       const perfPrev = buildPerfSpectaclePrev(prev, spectacleNext);
+      G._perfSpectaclePrevForDraws = perfPrev;
+      G._yellPerfDeferredDrawIids = collectYellPerformanceDrawIids(perfPrev, next);
+      if (G._yellPerfDeferredDrawIids.size) {
+        G._deferredHandDrawIids = new Set(G._yellPerfDeferredDrawIids);
+      }
       TCG_DEBUG.log('live', 'runPerformanceSpectacle', {
         perfPrevSeq: perfPrev?.seq,
         doneKey: G._perfSpectacleDoneKey,
@@ -28494,14 +28574,28 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
 
     if (!emptyWrPlayed) {
       const storageBoard = G._livePostRevealBoard || latest;
+      let storageRan = false;
       if (G._liveStorageOutcomePending) {
-        if (await playDeferredLiveStorageOutcomes(storageBoard, latest, myId)) {
+        storageRan = await playDeferredLiveStorageOutcomes(storageBoard, latest, myId);
+        if (storageRan) {
+          if (spectacleRan && G._yellPerfDeferredDrawIids?.size) {
+            await playYellPerfDeferredDraws(G._perfSpectaclePrevForDraws, latest, myId);
+          }
           commitLiveRoundAfterOutcomes(latest);
         } else {
           commitLiveRoundAfterOutcomes(latest);
         }
       } else if (await playDeferredLiveStorageOutcomes(storageBoard, latest, myId)) {
+        if (spectacleRan && G._yellPerfDeferredDrawIids?.size) {
+          await playYellPerfDeferredDraws(G._perfSpectaclePrevForDraws, latest, myId);
+        }
         G._livePostRevealBoard = null;
+        storageRan = true;
+      } else if (spectacleRan && G._yellPerfDeferredDrawIids?.size) {
+        await playYellPerfDeferredDraws(G._perfSpectaclePrevForDraws, latest, myId);
+      }
+      if (G._liveStorageOutcomePending && !storageRan) {
+        commitLiveRoundAfterOutcomes(latest);
       }
     } else {
       if (G._liveStorageOutcomePending) commitLiveRoundAfterOutcomes(latest);
@@ -29178,8 +29272,7 @@ function resolveYellBladeHeartColor(color, ctx, pid, opts = {}) {
 
 function perfMarkYellBladeHearts(chip, card, opts = {}) {
   const colors = cardYellBladeHeartColors(card);
-  const hasSpecial = cardYellDrawIconCount(card) > 0 || cardYellScoreIconCount(card) > 0;
-  if (!colors.length && !hasSpecial) return null;
+  if (!colors.length) return null;
   chip.querySelector('.perf-yell-blade-hearts')?.remove();
   const wrap = document.createElement('div');
   wrap.className = 'perf-yell-blade-hearts';
@@ -29190,7 +29283,6 @@ function perfMarkYellBladeHearts(chip, card, opts = {}) {
     .forEach(h => {
       for (let i = 0; i < (h.count || 1); i++) wrap.appendChild(mkBladeHeartIcon(h.color));
     });
-  appendYellSpecialIcons(wrap, card, { lg: true });
   chip.appendChild(wrap);
   return wrap;
 }
@@ -30140,6 +30232,94 @@ function perfMkCardScoreBadge(cardOrScore, opts = {}) {
   return wrap;
 }
 
+/** Yellow sp_score +N overlay on spectacle live cards when Yell reveals score icons. */
+function perfMkYellLiveScoreBadge(amount) {
+  const wrap = document.createElement('div');
+  wrap.className = 'perf-card-score perf-yell-live-score';
+  wrap.appendChild(mkGameIcon('sp_score.png', 'ticon', 'Yell score'));
+  const bonus = document.createElement('span');
+  bonus.className = 'perf-card-score-bonus';
+  bonus.textContent = '+' + amount;
+  wrap.appendChild(bonus);
+  return wrap;
+}
+
+function perfResetYellEffectAccumulators() {
+  G._perfYellScoreAccum = { p1: 0, p2: 0 };
+  G._perfYellDrawPending = { p1: 0, p2: 0 };
+}
+
+function perfClearYellLiveScoreOverlays() {
+  document.querySelectorAll('.perf-yell-live-score').forEach(n => n.remove());
+}
+
+function perfClearYellDrawPendingBadges() {
+  document.querySelectorAll('.perf-yell-draw-pending').forEach(n => n.remove());
+}
+
+async function perfApplyYellScoreToLiveCards(ctx, pid, addAmount, { pace = 1 } = {}) {
+  const n = Number(addAmount) || 0;
+  if (n <= 0) return;
+  const rowId = pid === ctx.myId ? 'perf-mine-lives' : 'perf-opp-lives';
+  const row = el(rowId);
+  if (!row) return;
+  const cards = [...row.querySelectorAll('.perf-card.live')];
+  if (!cards.length) return;
+  if (!G._perfYellScoreAccum) perfResetYellEffectAccumulators();
+  G._perfYellScoreAccum[pid] = (G._perfYellScoreAccum[pid] || 0) + n;
+  const total = G._perfYellScoreAccum[pid];
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  cards.forEach((cardEl, i) => {
+    let badge = cardEl.querySelector('.perf-yell-live-score');
+    if (!badge) {
+      badge = perfMkYellLiveScoreBadge(total);
+      cardEl.appendChild(badge);
+    } else {
+      const bonusEl = badge.querySelector('.perf-card-score-bonus');
+      if (bonusEl) bonusEl.textContent = '+' + total;
+    }
+    const delay = reduced ? 0 : i * 70;
+    setTimeout(() => {
+      badge.classList.add('show');
+      if (!reduced) badge.classList.add('punch');
+      sfxPlayCard('card_place', { volume: 0.24 });
+    }, delay);
+  });
+  await perfSleepYell(reduced ? 80 : 220, pace);
+}
+
+function perfBumpYellDrawPending(deckEl, pid, addAmount, { animate = true } = {}) {
+  const n = Number(addAmount) || 0;
+  if (n <= 0 || !deckEl) return;
+  if (!G._perfYellDrawPending) perfResetYellEffectAccumulators();
+  G._perfYellDrawPending[pid] = (G._perfYellDrawPending[pid] || 0) + n;
+  const total = G._perfYellDrawPending[pid];
+  let badge = deckEl.querySelector('.perf-yell-draw-pending');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.className = 'perf-yell-draw-pending';
+    deckEl.appendChild(badge);
+  }
+  badge.replaceChildren();
+  badge.appendChild(mkGameIcon('sp_draw.png', 'ticon', 'Yell draw'));
+  const val = document.createElement('span');
+  val.className = 'perf-yell-draw-val';
+  val.textContent = '+' + total;
+  badge.appendChild(val);
+  if (animate) {
+    badge.classList.remove('show', 'punch');
+    requestAnimationFrame(() => {
+      badge.classList.add('show');
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        badge.classList.add('punch');
+      }
+      sfxPlayCard('card_place', { volume: 0.22 });
+    });
+  } else {
+    badge.classList.add('show');
+  }
+}
+
 /** Stage-wide Live Score bonus on the last successful Live card badge for this player. */
 function perfLiveCardBadgeExtraBonus(ctx, pid, successIndex, successCount) {
   if (successIndex !== successCount - 1) return 0;
@@ -30171,6 +30351,8 @@ function perfClearJudgeUi() {
 }
 
 function perfClearYellUi() {
+  perfClearYellLiveScoreOverlays();
+  perfClearYellDrawPendingBadges();
   ['perf-mine-yell', 'perf-opp-yell'].forEach(id => {
     const row = el(id);
     if (!row) return;
@@ -30334,6 +30516,8 @@ function perfCloseSpectacle() {
   perfClearJudgeUi();
   perfClearYellUi();
   perfClearHeartsBladeUi();
+  G._perfYellScoreAccum = null;
+  G._perfYellDrawPending = null;
   el('perf-fx-toast')?.classList.remove('show');
   el('perf-col-mine')?.classList.remove('in');
   el('perf-col-opp')?.classList.remove('in');
@@ -30475,6 +30659,7 @@ function perfSpectacleLiveCards(prev, next, pid) {
 async function perfPopulateBase(ctx) {
   perfClearYellUi();
   perfClearHeartsBladeUi();
+  perfResetYellEffectAccumulators();
   const { prev, next, myId, oppId, me, opp } = ctx;
   el('perf-mine-lbl').textContent = me?.name || 'You';
   el('perf-opp-lbl').textContent = opp?.name || 'Opponent';
@@ -30520,8 +30705,28 @@ function perfSetYellSideInstant(ctx, pid, showAllCards) {
       chip.className = 'perf-yell-card show';
       const c = enrichCard(card);
       appendPerfYellCardFace(chip, c);
+      perfMarkYellBladeHearts(chip, c, { yellWildcard: liveCardsHaveYellHeartsWildcard(
+        perfSpectacleLiveCards(ctx.prev, ctx.next, pid).map(enrichCard)
+      ) });
       yellRow.appendChild(chip);
     });
+    let yellScoreTotal = 0;
+    let yellDrawTotal = 0;
+    yellCards.forEach(c => {
+      yellScoreTotal += cardYellScoreIconCount(c);
+      yellDrawTotal += cardYellDrawIconCount(c);
+    });
+    if (yellScoreTotal) {
+      if (!G._perfYellScoreAccum) perfResetYellEffectAccumulators();
+      G._perfYellScoreAccum[pid] = yellScoreTotal;
+      const livesRow = el(isMine ? 'perf-mine-lives' : 'perf-opp-lives');
+      livesRow?.querySelectorAll('.perf-card.live').forEach(cardEl => {
+        const badge = perfMkYellLiveScoreBadge(yellScoreTotal);
+        badge.classList.add('show');
+        cardEl.appendChild(badge);
+      });
+    }
+    if (yellDrawTotal) perfBumpYellDrawPending(deckEl, pid, yellDrawTotal, { animate: false });
     perfRenderBladeRow(bladeEl, 0, { pending: false });
     const finalHearts = mergeHeartStatRows(
       stageHearts,
@@ -30727,7 +30932,16 @@ async function perfAnimateYellSide(ctx, pid) {
     await perfSleepYell(60, cardPace);
     await perfRevealYellCardFromDeck(chip, deckEl, isMine, cardPace);
     await perfSleepYell(160, cardPace);
-    const colors = cardYellBladeHeartColors(card);
+    const scoreIcons = card ? cardYellScoreIconCount(card) : 0;
+    const drawIcons = card ? cardYellDrawIconCount(card) : 0;
+    if (scoreIcons > 0) {
+      await perfApplyYellScoreToLiveCards(ctx, pid, scoreIcons, { pace: cardPace });
+    }
+    if (drawIcons > 0) {
+      perfBumpYellDrawPending(deckEl, pid, drawIcons, { animate: true });
+      await perfSleepYell(120, cardPace);
+    }
+    const colors = card ? cardYellBladeHeartColors(card) : [];
     if (colors.length) {
       const bladeWrap = perfMarkYellBladeHearts(chip, card, { yellWildcard });
       const icons = bladeWrap ? [...bladeWrap.querySelectorAll('.hicon')] : [];
