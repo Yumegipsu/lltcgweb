@@ -490,7 +490,16 @@
       "successLiveSubThey": "A Live card joins their successes",
       "bothWait": "Both Players Wait",
       "bothWaitSub": "Live cards remain in storage",
-      "liveStartFlash": "LIVE START"
+      "liveStartFlash": "LIVE START",
+      "liveJudgeTieCappedBoth": "Tie on Live Score — neither adds a Success Live (both already at 2)",
+      "liveJudgeTieYouCappedWin": "Tie — you are capped at 2 Success Lives",
+      "liveJudgeTieOppEarns": "Tie — opponent earns a Success Live",
+      "liveJudgeTieYouEarns": "Tie — you earn a Success Live",
+      "liveJudgeTieOppCappedWin": "Tie — opponent is capped at 2 Success Lives",
+      "liveJudgeTieBothSucceed": "Tie on Live Score — both succeed!",
+      "liveJudgeYouWin": "You win on Live Score!",
+      "liveJudgeOppWin": "Opponent wins on Live Score",
+      "liveJudgeNamedWin": "{name} wins on Live Score"
     },
     "mulligan": {
       "title": "Opening Hand 🌸",
@@ -1380,7 +1389,16 @@
       "successLiveSubThey": "ライブカードが相手の成功置き場へ",
       "bothWait": "両者ウェイト",
       "bothWaitSub": "ライブカードは置き場に残る",
-      "liveStartFlash": "LIVE START"
+      "liveStartFlash": "LIVE START",
+      "liveJudgeTieCappedBoth": "ライブスコア同点 — どちらも成功ライブ追加なし（両者とも2枚）",
+      "liveJudgeTieYouCappedWin": "同点 — あなたは成功ライブ2枚上限",
+      "liveJudgeTieOppEarns": "同点 — 相手が成功ライブを獲得",
+      "liveJudgeTieYouEarns": "同点 — あなたが成功ライブを獲得",
+      "liveJudgeTieOppCappedWin": "同点 — 相手は成功ライブ2枚上限",
+      "liveJudgeTieBothSucceed": "ライブスコア同点 — 両者成功！",
+      "liveJudgeYouWin": "ライブスコアであなたの勝ち！",
+      "liveJudgeOppWin": "ライブスコアで相手の勝ち",
+      "liveJudgeNamedWin": "ライブスコアで{name}の勝ち"
     },
     "mulligan": {
       "title": "初期手札 🌸",
@@ -2264,7 +2282,16 @@
       "successLiveSubThey": "Una carta Live se une a sus éxitos",
       "bothWait": "Ambos jugadores esperan",
       "bothWaitSub": "Las cartas Live permanecen en almacenamiento",
-      "liveStartFlash": "INICIO DE LIVE"
+      "liveStartFlash": "INICIO DE LIVE",
+      "liveJudgeTieCappedBoth": "Empate en puntuación Live — ninguno añade un Live exitoso (ambos ya tienen 2)",
+      "liveJudgeTieYouCappedWin": "Empate — tienes el tope de 2 Lives exitosos",
+      "liveJudgeTieOppEarns": "Empate — el oponente obtiene un Live exitoso",
+      "liveJudgeTieYouEarns": "Empate — obtienes un Live exitoso",
+      "liveJudgeTieOppCappedWin": "Empate — el oponente tiene el tope de 2 Lives exitosos",
+      "liveJudgeTieBothSucceed": "Empate en puntuación Live — ¡ambos tienen éxito!",
+      "liveJudgeYouWin": "¡Ganas por puntuación Live!",
+      "liveJudgeOppWin": "El oponente gana por puntuación Live",
+      "liveJudgeNamedWin": "{name} gana por puntuación Live"
     },
     "mulligan": {
       "title": "Mano inicial 🌸",

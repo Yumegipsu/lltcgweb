@@ -305,6 +305,7 @@
     [/ — Energy Phase: placed 1 Energy in storage \((\d+)\/(\d+)\)\.$/, ' — Fase de Energía: colocó 1 Energía en almacenamiento ($1/$2).'],
     [/ — Main Phase time expired \(auto end\)\.$/, ' — Fase principal: tiempo agotado (fin automático).'],
     [/ — LIVE Phase time expired \(auto lock-in\)\.$/, ' — Fase Live: tiempo agotado (confirmación automática).'],
+    [/^(.+?)(?:'s|') Live Phase\.$/, 'Fase Live de $1.'],
     [/ — \[([^\]]+)\] drew (\d+) \(Active → Wait\)\.$/, ' — [$1] robó $2 (Activo → Espera).'],
     [/ — \[([^\]]+)\] optional skill skipped\.$/, ' — [$1] habilidad opcional omitida.'],
     [/ — \[([^\]]+)\] activated\.$/, ' — [$1] activada.'],

@@ -7023,8 +7023,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=17"></script>
-<script src="log_i18n.js?v=6"></script>
+<script src="i18n.js?v=18"></script>
+<script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
@@ -27201,7 +27201,35 @@ function isSplashLivePhaseTitle(title) {
 function isSplashTurnTitle(title) {
   const trimmed = (title || '').trim();
   if (!trimmed) return false;
-  return /^Turn \d+$/.test(trimmed) || /^ターン\s*\d+$/.test(trimmed);
+  return /^Turn \d+$/.test(trimmed) || /^ターン\s*\d+$/.test(trimmed) || /^Turno \d+$/.test(trimmed);
+}
+
+function parseLivePhaseLogPlayerName(msg) {
+  if (!msg) return null;
+  const m = msg.match(/^(.+?)(?:'s|') Live Phase\.$/);
+  return m ? m[1] : null;
+}
+
+function liveJudgeScoreDetail(sc1, sc2, n1, n2, s, myId, prev) {
+  const iWin = sc1 > sc2 ? playerNameMatches(n1, s, myId) : sc2 > sc1 ? playerNameMatches(n2, s, myId) : false;
+  const iLose = sc1 < sc2 ? playerNameMatches(n1, s, myId) : sc2 < sc1 ? playerNameMatches(n2, s, myId) : false;
+  if (sc1 === sc2 && sc1 > 0) {
+    const myBefore = (prev?.players?.[myId]?.success_lives || []).length;
+    const oppId = myId === 'p1' ? 'p2' : 'p1';
+    const oppBefore = (prev?.players?.[oppId]?.success_lives || []).length;
+    if (myBefore >= 2 && oppBefore >= 2) return t('splash.liveJudgeTieCappedBoth');
+    if (myBefore >= 2) {
+      return iWin ? t('splash.liveJudgeTieYouCappedWin') : t('splash.liveJudgeTieOppEarns');
+    }
+    if (oppBefore >= 2) {
+      return iWin ? t('splash.liveJudgeTieYouEarns') : t('splash.liveJudgeTieOppCappedWin');
+    }
+    return t('splash.liveJudgeTieBothSucceed');
+  }
+  const winName = sc1 > sc2 ? n1 : n2;
+  if (iWin) return t('splash.liveJudgeYouWin');
+  if (iLose) return t('splash.liveJudgeOppWin');
+  return t('splash.liveJudgeNamedWin', { name: winName });
 }
 
 function isSplashTurnBanner(spec) {
@@ -27258,7 +27286,8 @@ function livePhaseTitleForState(s) {
 function livePhaseMessage(title, text) {
   return String(text || '')
     .replace(/^LIVE Phase\s+—\s+/, `${title} — `)
-    .replace(/^ライブフェイズ\s*—\s*/, `${title} — `);
+    .replace(/^ライブフェイズ\s*—\s*/, `${title} — `)
+    .replace(/^Fase Live\s+—\s+/, `${title} — `);
 }
 
 function phaseBarOppMainText(name) {
@@ -27407,9 +27436,14 @@ function parseLogToBanner(msg, kind, s, myId, prev = null, logFrom = 0) {
   if (msg === '=== LIVE Phase ===') {
     return null;
   }
-  if ((m = msg.match(/^(.+? Live Phase)\.$/))) {
+  const livePhasePlayer = parseLivePhaseLogPlayerName(msg);
+  if (livePhasePlayer !== null) {
+    const isMe = playerNameMatches(livePhasePlayer, s, myId);
+    const last = livePhasePlayer.slice(-1);
+    const oppKey = (last === 's' || last === 'S') ? 'phaseBanner.livePlayerS' : 'phaseBanner.livePlayer';
     return splashBanner({
-      title: m[1],
+      titleKey: isMe ? 'phaseBanner.liveTitle' : oppKey,
+      titleVars: isMe ? null : { name: livePhasePlayer },
       subtitleKey: 'phaseBanner.liveSub',
       kind: 'live',
       duration: LIVE_BANNER_MS,
@@ -27509,24 +27543,7 @@ function parseLogToBanner(msg, kind, s, myId, prev = null, logFrom = 0) {
     const oppScore = playerNameMatches(n1, s, myId) ? sc2 : sc1;
     const iWin = sc1 > sc2 ? playerNameMatches(n1, s, myId) : sc2 > sc1 ? playerNameMatches(n2, s, myId) : false;
     const iLose = sc1 < sc2 ? playerNameMatches(n1, s, myId) : sc2 < sc1 ? playerNameMatches(n2, s, myId) : false;
-    let detail;
-    if (sc1 === sc2 && sc1 > 0) {
-      const myBefore = (prev?.players?.[myId]?.success_lives || []).length;
-      const oppId = myId === 'p1' ? 'p2' : 'p1';
-      const oppBefore = (prev?.players?.[oppId]?.success_lives || []).length;
-      if (myBefore >= 2 && oppBefore >= 2) {
-        detail = 'Tie on Live Score — neither adds a Success Live (both already at 2)';
-      } else if (myBefore >= 2) {
-        detail = iWin ? 'Tie — you are capped at 2 Success Lives' : 'Tie — opponent earns a Success Live';
-      } else if (oppBefore >= 2) {
-        detail = iWin ? 'Tie — you earn a Success Live' : 'Tie — opponent is capped at 2 Success Lives';
-      } else {
-        detail = 'Tie on Live Score — both succeed!';
-      }
-    } else {
-      const winName = sc1 > sc2 ? n1 : n2;
-      detail = iWin ? 'You win on Live Score!' : iLose ? 'Opponent wins on Live Score' : `${winName} wins on Live Score`;
-    }
+    const detail = liveJudgeScoreDetail(sc1, sc2, n1, n2, s, myId, prev);
     if (G._postSpectacleSplashPause && bothPlayersClearedLiveThisRound(s)) return null;
     if (G._perfSpectacleDoneKey && prev) {
       const perfPrev = buildPerfSpectaclePrev(prev, s) || prev;
