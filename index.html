@@ -3921,7 +3921,7 @@ body.news-overlay-open{overflow:hidden}
 #overlay-news .news-empty{font-size:14px;color:rgba(255,255,255,.94);text-align:center;margin:18px 8px;line-height:1.55;letter-spacing:.04em}
 #overlay-news .news-list-item{min-height:58px}
 #overlay-news .account-screen-head .news-head-close{
-  grid-column:3;justify-self:end;flex:0 0 auto;width:auto;max-width:none;white-space:nowrap}
+  flex:0 0 auto;margin-left:0;white-space:nowrap}
 #overlay-news .news-detail-banner-wrap{margin:0 0 14px}
 #overlay-news .news-detail-banner-wrap[hidden]{display:none!important}
 #overlay-news .news-detail-banner-wrap--crop .news-detail-banner{
@@ -4003,25 +4003,28 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .llc-menu-back-row .btn-ghost{width:auto;display:inline-flex}
 .llc-menu-back-row .btn-ghost::before{content:'‹ ';opacity:.85}
 .llc-menu-screen .account-screen-head{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+  display:flex;
   align-items:center;
-  gap:12px;
+  gap:10px 12px;
   width:100%;
   margin:0 0 12px;
-  align-self:stretch}
-.llc-menu-screen .account-screen-head .btn-ghost{
-  grid-column:1;
-  justify-self:start;
-  flex:0 0 auto;width:auto;max-width:none;align-self:center;white-space:nowrap}
+  align-self:stretch;
+  min-width:0}
+.llc-menu-screen .account-screen-head .btn-ghost,
+.llc-menu-screen .account-screen-head > button{
+  flex:0 0 auto;
+  width:auto;max-width:none;align-self:center;white-space:nowrap;
+  position:relative;z-index:2}
 .llc-menu-screen .account-screen-head h2{
-  grid-column:2;
-  justify-self:center;
-  text-align:center;
-  flex:unset;
+  flex:1 1 auto;
   min-width:0;
   margin:0;
-  line-height:1.15}
+  text-align:center;
+  line-height:1.15;
+  font-size:clamp(17px,2.2vw + 0.65rem,34px);
+  overflow-wrap:break-word;
+  text-wrap:balance;
+  position:relative;z-index:1}
 .account-shell{width:100%;max-width:min(720px,96vw);flex:0 0 auto;display:flex;
   flex-direction:column;align-items:stretch;gap:clamp(10px,1.8vh,18px);margin-block:auto}
 .account-shell.wide{max-width:min(900px,96vw)}
@@ -7616,6 +7619,56 @@ function onLocaleChanged() {
   refreshDynamicI18n();
 }
 
+function fitAccountScreenHeadTitles(root) {
+  const heads = [];
+  if (root?.classList?.contains('account-screen-head')) {
+    heads.push(root);
+  } else if (root?.querySelectorAll) {
+    root.querySelectorAll('.account-screen-head').forEach(h => heads.push(h));
+  } else {
+    document.querySelectorAll('.llc-menu-screen .account-screen-head').forEach(h => heads.push(h));
+  }
+  for (const head of heads) {
+    const title = head.querySelector(':scope > h2');
+    if (!title) continue;
+    title.style.fontSize = '';
+    const buttons = [...head.querySelectorAll(':scope > .btn-ghost, :scope > button')];
+    const maxPx = parseFloat(getComputedStyle(title).fontSize) || 34;
+    const minPx = 15;
+    const fits = () => {
+      const tr = title.getBoundingClientRect();
+      for (const btn of buttons) {
+        const br = btn.getBoundingClientRect();
+        if (tr.left < br.right + 6 && tr.right > br.left - 6
+            && tr.top < br.bottom - 2 && tr.bottom > br.top + 2) {
+          return false;
+        }
+      }
+      return title.scrollWidth <= title.clientWidth + 1;
+    };
+    let size = maxPx;
+    while (size > minPx && !fits()) {
+      size -= 1;
+      title.style.fontSize = `${size}px`;
+    }
+  }
+}
+
+function scheduleFitAccountScreenHeadTitles(root) {
+  if (!G._accountHeadFitResizeBound) {
+    G._accountHeadFitResizeBound = true;
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => scheduleFitAccountScreenHeadTitles(), 120);
+    }, { passive: true });
+  }
+  requestAnimationFrame(() => {
+    fitAccountScreenHeadTitles(root);
+    requestAnimationFrame(() => fitAccountScreenHeadTitles(root));
+  });
+}
+
 function escapeHtmlText(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -7655,6 +7708,7 @@ function updateRankedScreenDynamic(me) {
 
 function refreshDynamicI18n() {
   applyI18n();
+  scheduleFitAccountScreenHeadTitles();
   syncGameplayChromeI18n();
   clearLogNameCache();
   if (A.profile) {
@@ -37176,6 +37230,7 @@ function showScr(n){
     target.classList.add('active');
   }
   applyI18n(target);
+  scheduleFitAccountScreenHeadTitles(target);
   if (n === 'lobby') {
     if (prevActive !== 'screen-lobby') void refreshCasualQueueStatsQuiet();
     startCasualLobbyStatsPoll();
