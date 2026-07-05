@@ -3321,6 +3321,7 @@ body.perf-spectacle-active #center-banner.show{z-index:8750}
   gap:clamp(8px,1.2vw,12px);min-height:clamp(84px,13vw,120px);
 }
 .perf-live-row{
+  position:relative;
   flex-wrap:wrap;
   flex-shrink:0;width:100%;max-width:100%;overflow:visible;
 }
@@ -3392,7 +3393,14 @@ body.perf-spectacle-active #center-banner.show{z-index:8750}
   paint-order:stroke fill;
   text-shadow:0 0 6px rgba(251,191,36,.45),0 2px 10px rgba(0,0,0,.65);
 }
-.perf-card-score.perf-yell-live-score{top:2px}
+.perf-card-score.perf-yell-score-total{
+  top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(.7);
+  z-index:12;
+}
+.perf-card-score.perf-yell-score-total.show{
+  transform:translate(-50%,-58%) scale(1);
+}
 .perf-yell-card.perf-yell-flying{
   position:fixed;z-index:10060;pointer-events:none;margin:0;
   transition:transform .48s cubic-bezier(.2,.9,.2,1),opacity .38s ease;
@@ -30232,10 +30240,11 @@ function perfMkCardScoreBadge(cardOrScore, opts = {}) {
   return wrap;
 }
 
-/** Yellow sp_score +N overlay on spectacle live cards when Yell reveals score icons. */
-function perfMkYellLiveScoreBadge(amount) {
+/** Yellow sp_score +N — one badge on the live row (adds to total judge score, not per Live). */
+function perfMkYellScoreTotalBadge(amount) {
   const wrap = document.createElement('div');
-  wrap.className = 'perf-card-score perf-yell-live-score';
+  wrap.className = 'perf-card-score perf-yell-score-total';
+  wrap.title = 'Adds to your total Live performance score';
   wrap.appendChild(mkGameIcon('sp_score.png', 'ticon', 'Yell score'));
   const bonus = document.createElement('span');
   bonus.className = 'perf-card-score-bonus';
@@ -30249,43 +30258,42 @@ function perfResetYellEffectAccumulators() {
   G._perfYellDrawPending = { p1: 0, p2: 0 };
 }
 
-function perfClearYellLiveScoreOverlays() {
-  document.querySelectorAll('.perf-yell-live-score').forEach(n => n.remove());
+function perfClearYellScoreTotalBadges() {
+  document.querySelectorAll('.perf-yell-score-total').forEach(n => n.remove());
 }
 
 function perfClearYellDrawPendingBadges() {
   document.querySelectorAll('.perf-yell-draw-pending').forEach(n => n.remove());
 }
 
-async function perfApplyYellScoreToLiveCards(ctx, pid, addAmount, { pace = 1 } = {}) {
+async function perfApplyYellScoreBonus(ctx, pid, addAmount, { pace = 1, animate = true } = {}) {
   const n = Number(addAmount) || 0;
   if (n <= 0) return;
-  const rowId = pid === ctx.myId ? 'perf-mine-lives' : 'perf-opp-lives';
-  const row = el(rowId);
+  const row = el(pid === ctx.myId ? 'perf-mine-lives' : 'perf-opp-lives');
   if (!row) return;
-  const cards = [...row.querySelectorAll('.perf-card.live')];
-  if (!cards.length) return;
   if (!G._perfYellScoreAccum) perfResetYellEffectAccumulators();
   G._perfYellScoreAccum[pid] = (G._perfYellScoreAccum[pid] || 0) + n;
   const total = G._perfYellScoreAccum[pid];
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  cards.forEach((cardEl, i) => {
-    let badge = cardEl.querySelector('.perf-yell-live-score');
-    if (!badge) {
-      badge = perfMkYellLiveScoreBadge(total);
-      cardEl.appendChild(badge);
-    } else {
-      const bonusEl = badge.querySelector('.perf-card-score-bonus');
-      if (bonusEl) bonusEl.textContent = '+' + total;
-    }
-    const delay = reduced ? 0 : i * 70;
-    setTimeout(() => {
+  let badge = row.querySelector('.perf-yell-score-total');
+  if (!badge) {
+    badge = perfMkYellScoreTotalBadge(total);
+    row.appendChild(badge);
+  } else {
+    const bonusEl = badge.querySelector('.perf-card-score-bonus');
+    if (bonusEl) bonusEl.textContent = '+' + total;
+  }
+  if (animate) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    badge.classList.remove('show', 'punch');
+    requestAnimationFrame(() => {
       badge.classList.add('show');
       if (!reduced) badge.classList.add('punch');
       sfxPlayCard('card_place', { volume: 0.24 });
-    }, delay);
-  });
-  await perfSleepYell(reduced ? 80 : 220, pace);
+    });
+    await perfSleepYell(reduced ? 80 : 220, pace);
+  } else {
+    badge.classList.add('show');
+  }
 }
 
 function perfBumpYellDrawPending(deckEl, pid, addAmount, { animate = true } = {}) {
@@ -30351,7 +30359,7 @@ function perfClearJudgeUi() {
 }
 
 function perfClearYellUi() {
-  perfClearYellLiveScoreOverlays();
+  perfClearYellScoreTotalBadges();
   perfClearYellDrawPendingBadges();
   ['perf-mine-yell', 'perf-opp-yell'].forEach(id => {
     const row = el(id);
@@ -30720,11 +30728,9 @@ function perfSetYellSideInstant(ctx, pid, showAllCards) {
       if (!G._perfYellScoreAccum) perfResetYellEffectAccumulators();
       G._perfYellScoreAccum[pid] = yellScoreTotal;
       const livesRow = el(isMine ? 'perf-mine-lives' : 'perf-opp-lives');
-      livesRow?.querySelectorAll('.perf-card.live').forEach(cardEl => {
-        const badge = perfMkYellLiveScoreBadge(yellScoreTotal);
-        badge.classList.add('show');
-        cardEl.appendChild(badge);
-      });
+      const badge = perfMkYellScoreTotalBadge(yellScoreTotal);
+      badge.classList.add('show');
+      livesRow?.appendChild(badge);
     }
     if (yellDrawTotal) perfBumpYellDrawPending(deckEl, pid, yellDrawTotal, { animate: false });
     perfRenderBladeRow(bladeEl, 0, { pending: false });
@@ -30935,7 +30941,7 @@ async function perfAnimateYellSide(ctx, pid) {
     const scoreIcons = card ? cardYellScoreIconCount(card) : 0;
     const drawIcons = card ? cardYellDrawIconCount(card) : 0;
     if (scoreIcons > 0) {
-      await perfApplyYellScoreToLiveCards(ctx, pid, scoreIcons, { pace: cardPace });
+      await perfApplyYellScoreBonus(ctx, pid, scoreIcons, { pace: cardPace });
     }
     if (drawIcons > 0) {
       perfBumpYellDrawPending(deckEl, pid, drawIcons, { animate: true });
