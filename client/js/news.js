@@ -4,7 +4,7 @@
 (function (global) {
   'use strict';
 
-  const NEWS_JSON = './news.json?v=4';
+  const NEWS_JSON = './news.json?v=5';
   /** Matches catalog card_no tokens in news copy (PL!… / LL-…). */
   const NEWS_CARD_ID_RE = /(PL![A-Za-z0-9!＋._-]+|LL-[A-Za-z0-9!＋._-]+|PL!-[A-Za-z0-9!＋._-]+)/g;
   let _posts = null;
@@ -52,7 +52,9 @@
 
   function bannerStyle(post) {
     const raw = String(post?.bannerStyle ?? post?.banner_style ?? 'crop').trim().toLowerCase();
-    return raw === 'full' ? 'full' : 'crop';
+    if (raw === 'full') return 'full';
+    if (raw === 'wide') return 'wide';
+    return 'crop';
   }
 
   function formatPostDate(dateStr) {
@@ -183,8 +185,12 @@
     if (bannerWrapEl && bannerEl) {
       const src = String(post.banner || '').trim();
       const style = bannerStyle(post);
-      bannerWrapEl.classList.remove('news-detail-banner-wrap--crop', 'news-detail-banner-wrap--full');
-      bannerWrapEl.classList.add(style === 'full' ? 'news-detail-banner-wrap--full' : 'news-detail-banner-wrap--crop');
+      bannerWrapEl.classList.remove('news-detail-banner-wrap--crop', 'news-detail-banner-wrap--full', 'news-detail-banner-wrap--wide');
+      bannerWrapEl.classList.add(
+        style === 'full' ? 'news-detail-banner-wrap--full'
+          : style === 'wide' ? 'news-detail-banner-wrap--wide'
+            : 'news-detail-banner-wrap--crop'
+      );
       if (src) {
         bannerWrapEl.hidden = false;
         bannerEl.hidden = false;

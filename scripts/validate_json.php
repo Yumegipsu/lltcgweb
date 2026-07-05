@@ -7,17 +7,19 @@ $root = dirname(__DIR__);
 $files = [
     'cards.json',
     'tutorial.json',
+    'tutorial_guide.json',
     'tutorial_ja.json',
     'pack_listings.json',
     'sfx_manifest.web.json',
     'playmat_zones.json',
+    'news.json',
 ];
 
 $errors = 0;
 foreach ($files as $rel) {
     $path = $root . '/' . $rel;
     if (!is_file($path)) {
-        if ($rel === 'tutorial.json') {
+        if ($rel === 'tutorial.json' || $rel === 'tutorial_guide.json') {
             fwrite(STDERR, "SKIP missing optional: $rel\n");
             continue;
         }
@@ -36,6 +38,35 @@ foreach ($files as $rel) {
         fwrite(STDERR, "INVALID JSON ($rel): " . json_last_error_msg() . "\n");
         $errors++;
         continue;
+    }
+    if ($rel === 'news.json') {
+        $data = json_decode($raw, true);
+        if (!is_array($data['posts'] ?? null)) {
+            fwrite(STDERR, "INVALID news.json: missing posts array\n");
+            $errors++;
+            continue;
+        }
+        foreach ($data['posts'] as $i => $post) {
+            if (empty($post['id'])) {
+                fwrite(STDERR, "INVALID news.json: post $i missing id\n");
+                $errors++;
+            }
+            foreach (['title', 'body'] as $field) {
+                foreach (['en', 'ja'] as $loc) {
+                    if (!isset($post[$field][$loc]) || trim((string) $post[$field][$loc]) === '') {
+                        fwrite(STDERR, "INVALID news.json: post $i missing $field.$loc\n");
+                        $errors++;
+                    }
+                }
+            }
+            if (isset($post['bannerStyle'])) {
+                $bs = strtolower(trim((string) $post['bannerStyle']));
+                if (!in_array($bs, ['crop', 'full', 'wide'], true)) {
+                    fwrite(STDERR, "INVALID news.json: post $i bannerStyle must be crop, full, or wide\n");
+                    $errors++;
+                }
+            }
+        }
     }
     echo "OK $rel\n";
 }

@@ -4,8 +4,8 @@
     {
       "id": "2026-07-loveca-points",
       "date": "2026-07-04",
-      "banner": "tcglogo.png",
-      "bannerStyle": "crop",
+      "banner": "news/loveca-point-system.png",
+      "bannerStyle": "wide",
       "title": {
         "en": "Deck point limit now in effect",
         "ja": "デッキポイント制限が適用されました"
