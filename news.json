@@ -39,13 +39,13 @@
       "banner": "tcglogo.png",
       "bannerStyle": "full",
       "title": {
-        "en": "Español language option",
+        "en": "Spanish language option",
         "ja": "スペイン語（ラテンアメリカ）に対応",
         "es": "Opción de idioma español"
       },
       "body": {
-        "en": "You can now play in **Español** (Latin American Spanish). Open **Options** or use the language menu on the title screen or hub to switch.\n\nMenus, tutorial, and starter-deck card rules are localized first; more booster sets will follow in future updates.",
-        "ja": "**Español**（ラテンアメリカ・スペイン語）でプレイできるようになりました。タイトル画面・ハブ・**オプション**の言語メニューから切り替えられます。\n\nメニュー、チュートリアル、スターターデッキのカードルールから順次対応中です。今後、ブースターセットの翻訳も追加されます。",
+        "en": "You can now play in **Spanish** (Latin American Spanish). Open **Options** or use the language menu on the title screen or hub to switch.\n\nMenus, tutorial, and starter-deck card rules are localized first; more booster sets will follow in future updates.",
+        "ja": "**スペイン語**（ラテンアメリカ）でプレイできるようになりました。タイトル画面・ハブ・**オプション**の言語メニューから切り替えられます。\n\nメニュー、チュートリアル、スターターデッキのカードルールから順次対応中です。今後、ブースターセットの翻訳も追加されます。",
         "es": "Ahora puedes jugar en **Español** (español latinoamericano). Abre **Opciones** o usa el menú de idioma en la pantalla de título o el hub para cambiar.\n\nPrimero están localizados los menús, el tutorial y las reglas de las cartas de mazos iniciales; más sets de sobres llegarán en actualizaciones futuras."
       }
     }
