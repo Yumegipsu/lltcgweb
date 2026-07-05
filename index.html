@@ -3856,26 +3856,30 @@ body:has(#screen-game.active) #casual-search-float{top:68px}
 body.news-overlay-open{overflow:hidden}
 #overlay-news.llc-menu-screen{
   position:fixed;inset:0;z-index:8750;display:none;align-items:center;justify-content:center;
-  overflow-y:auto;padding:clamp(12px,3vw,24px) 16px;
+  overflow:hidden;padding:clamp(12px,3vw,24px) 16px;
   background:rgba(4,10,24,.78);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
 #overlay-news.open{display:flex}
 #overlay-news .news-shell{
-  max-width:min(480px,94vw);width:100%;margin-block:auto;min-height:0;
-  display:flex;flex-direction:column;
+  max-width:min(480px,94vw);width:100%;margin-block:auto;min-height:0;max-height:min(88vh,780px);
+  display:flex;flex-direction:column;overflow:hidden;
   padding:clamp(16px,2.6vw,24px) clamp(14px,2.2vw,20px);
   border-radius:16px;border:1px solid rgba(255,255,255,.44);
   background:url("bg/ptn.png") top center/200px 200px repeat,rgba(38,132,210,.9);
   box-shadow:0 18px 52px rgba(0,0,0,.45),0 0 32px rgba(52,163,243,.24),inset 0 1px 0 rgba(255,255,255,.16);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-#overlay-news .news-shell.news-shell--detail{max-width:min(640px,96vw)}
+#overlay-news .news-shell.news-shell--detail{max-width:min(640px,96vw);max-height:min(90vh,820px)}
+#overlay-news .account-shell{
+  flex:1 1 auto;min-height:0;max-height:100%;margin-block:0;gap:0;width:100%;max-width:none}
 #overlay-news .news-panel-shell{
-  display:flex;flex-direction:column;max-height:min(68vh,600px);min-height:0;width:100%;
+  display:flex;flex-direction:column;flex:1 1 auto;min-height:0;max-height:100%;overflow:hidden;width:100%;
   background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;backdrop-filter:none}
-#overlay-news .news-shell--detail .news-panel-shell{max-height:min(82vh,760px)}
-#overlay-news .account-screen-head{margin-bottom:8px}
+#overlay-news #news-list-pane,
+#overlay-news #news-detail-pane{
+  display:flex;flex-direction:column;flex:1 1 auto;min-height:0;overflow:hidden}
+#overlay-news .account-screen-head{margin-bottom:8px;flex:0 0 auto}
 #overlay-news .news-scroll{
-  flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
-  padding-right:4px;margin-right:-2px}
+  flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+  padding-right:4px;margin-right:-2px;-webkit-overflow-scrolling:touch}
 #overlay-news .news-scroll .llc-menu-list{margin-top:0}
 #overlay-news .news-empty{font-size:14px;color:rgba(255,255,255,.94);text-align:center;margin:18px 8px;line-height:1.55;letter-spacing:.04em}
 #overlay-news .news-list-item{min-height:58px}
@@ -3896,13 +3900,13 @@ body.news-overlay-open{overflow:hidden}
   border:none;border-radius:0;background:transparent;box-shadow:none}
 #overlay-news .news-detail-banner-wrap--wide{
   display:flex;align-items:center;justify-content:center;
-  min-height:clamp(160px,28vw,240px);padding:4px 0;margin:0 0 14px;
+  min-height:0;padding:4px 0;margin:0 0 14px;
   border:none;border-radius:0;background:transparent;box-shadow:none}
 #overlay-news .news-detail-banner-wrap--wide .news-detail-banner{
   display:block;width:100%;max-width:100%;height:auto;
   max-height:clamp(220px,min(52vh,480px),520px);object-fit:contain;object-position:center;
   border:none;border-radius:8px;background:transparent;box-shadow:none}
-#overlay-news .news-detail-body{margin:0;padding-bottom:8px}
+#overlay-news .news-detail-body{margin:0;padding-bottom:8px;overflow-wrap:anywhere;word-break:break-word}
 #overlay-news .news-detail-body strong{font-weight:700;color:#fff}
 #overlay-news .news-card-id{
   display:inline;padding:1px 6px;margin:0 1px;border-radius:6px;border:1px solid rgba(186,228,255,.45);
