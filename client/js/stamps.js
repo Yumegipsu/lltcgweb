@@ -252,8 +252,40 @@
     return el(isMine ? 'my-stamp-layer' : 'opp-stamp-layer');
   }
 
+  function syncStampLayerPositions() {
+    const frame = el('game-viewport-frame');
+    const myMat = el('game-stage');
+    const oppMat = el('opp-stage');
+    const myLayer = el('my-stamp-layer');
+    const oppLayer = el('opp-stamp-layer');
+    if (!frame || !myMat || !oppMat || !myLayer || !oppLayer) return;
+    const fr = frame.getBoundingClientRect();
+    const place = (mat, layer) => {
+      const r = mat.getBoundingClientRect();
+      layer.style.left = `${r.left - fr.left}px`;
+      layer.style.top = `${r.top - fr.top}px`;
+      layer.style.width = `${r.width}px`;
+      layer.style.height = `${r.height}px`;
+    };
+    place(oppMat, oppLayer);
+    place(myMat, myLayer);
+  }
+
+  function bindStampLayerSync() {
+    if (state.layerSyncBound) return;
+    state.layerSyncBound = true;
+    const frame = el('game-viewport-frame');
+    if (frame && typeof ResizeObserver !== 'undefined') {
+      const ro = new ResizeObserver(() => syncStampLayerPositions());
+      ro.observe(frame);
+    }
+    window.addEventListener('resize', syncStampLayerPositions);
+    syncStampLayerPositions();
+  }
+
   function showStampPop(stamp, locale, fromPid) {
     if (!stamp) return;
+    syncStampLayerPositions();
     const layer = layerForPlayer(fromPid);
     if (!layer) return;
     const wrap = document.createElement('div');
@@ -306,6 +338,7 @@
     const show = isStampMatch(s);
     btn.hidden = !show;
     btn.disabled = global.G?.isSpectator || !show;
+    if (show) syncStampLayerPositions();
   }
 
   function isProfileFavorite(id) {
@@ -606,6 +639,7 @@
 
   function init() {
     bindUi();
+    bindStampLayerSync();
     mergeProfileFromAccount();
     void loadManifest().then(() => {
       renderOptionsStampPreview();

@@ -4789,8 +4789,12 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   #modal-banner-crop .mbox{overflow-y:auto}
 }
 /* ── Match stamps (LLSIF-style) ── */
+.match-stamp-overlay{
+  position:absolute;inset:0;z-index:70;
+  pointer-events:none;overflow:visible;
+}
 .mat-stamp-layer{
-  position:absolute;pointer-events:none;z-index:42;
+  position:absolute;pointer-events:none;
   display:flex;
 }
 #my-stamp-layer{
@@ -4811,7 +4815,7 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .tcg-stamp-pop-out{animation:tcgStampOut .4s ease forwards}
 .tcg-stamp-pop-img{
   width:min(180px,96%);height:auto;display:block;
-  transform:scale(1.5);transform-origin:center bottom;
+  transform:scale(1.25);transform-origin:center bottom;
 }
 #opp-stamp-layer .tcg-stamp-pop-img{transform-origin:center top}
 .tcg-stamp-pop-label{
@@ -6655,7 +6659,6 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <div class="mat-zone deck-pile z-opp-energy-deck" id="opp-nrg-deck-pile" title="Opponent Energy Deck">
             <div class="deck-stack"><span class="deck-count" id="opp-nrg-deck-n">0</span></div>
           </div>
-          <div class="mat-stamp-layer" id="opp-stamp-layer" aria-hidden="true"></div>
         </div>
       </div>
 
@@ -6686,7 +6689,6 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <div class="mat-zone z-baton-toggle" id="baton-touch-toggle-wrap" hidden aria-hidden="true">
             <button type="button" id="baton-touch-toggle" class="mat-baton-toggle baton-on" aria-pressed="true" data-i18n-title-on="game.batonToggleOn" data-i18n-title-off="game.batonToggleOff" data-i18n="game.baton">Baton</button>
           </div>
-          <div class="mat-stamp-layer" id="my-stamp-layer" aria-hidden="true"></div>
         </div>
       </div>
 
@@ -6761,6 +6763,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         </div>
       </div>
     </aside>
+  </div>
+  <div id="match-stamp-overlay" class="match-stamp-overlay" aria-hidden="true">
+    <div class="mat-stamp-layer" id="opp-stamp-layer" aria-hidden="true"></div>
+    <div class="mat-stamp-layer" id="my-stamp-layer" aria-hidden="true"></div>
   </div>
   </div>
 </div><!-- /screen-game -->
@@ -7290,7 +7296,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=6"></script>
 <script src="client/js/state-apply.js?v=9"></script>
-<script src="client/js/stamps.js?v=8"></script>
+<script src="client/js/stamps.js?v=9"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=10"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
