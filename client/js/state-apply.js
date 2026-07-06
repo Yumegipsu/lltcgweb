@@ -319,6 +319,8 @@
               flushPostLiveLogBanners(animPrev, s, G.playerId, { emptySkip: true });
               markEmptyLiveRoundPresented(prev, s);
               clearEmptyLiveRoundPerfState();
+              await playEmptySkipTurnPrepSequence(prev, s, newEntries, G.playerId);
+              emptyRoundHandled = true;
             } finally {
               G.animating = false;
             }

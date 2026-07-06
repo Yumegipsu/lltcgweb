@@ -7105,7 +7105,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=5"></script>
-<script src="client/js/state-apply.js?v=5"></script>
+<script src="client/js/state-apply.js?v=6"></script>
 <script src="client/js/replay-debug.js?v=4"></script>
 <script src="client/js/prompt-renderer.js?v=10"></script>
 <script src="client/js/tutorial-interactive.js?v=6"></script>
@@ -19954,6 +19954,101 @@ function applyTurnPrepEntriesToState(state, final, entries) {
   entries.forEach(entry => syncTurnPrepLogEntry(state, final, entry));
 }
 
+/** Hand/deck/energy/stage before Active/Energy/Draw — keep WR/live outcomes from playback. */
+function revertTurnPrepPlayerZones(playback, baseline) {
+  if (!playback?.players || !baseline?.players) return playback;
+  for (const pid of ['p1', 'p2']) {
+    const pb = playback.players[pid];
+    const bb = baseline.players[pid];
+    if (!pb || !bb) continue;
+    pb.hand = JSON.parse(JSON.stringify(bb.hand || []));
+    pb.main_deck = JSON.parse(JSON.stringify(bb.main_deck || []));
+    pb.energy_deck = JSON.parse(JSON.stringify(bb.energy_deck || []));
+    pb.energy_zone = JSON.parse(JSON.stringify(bb.energy_zone || []));
+    if (bb.hand_count != null) pb.hand_count = bb.hand_count;
+    pb.stage = JSON.parse(JSON.stringify(bb.stage || {}));
+  }
+  return playback;
+}
+
+function buildPostEmptyLivePreTurnPrepState(prev, final) {
+  const playback = deepCloneState(prev);
+  for (const pid of ['p1', 'p2']) {
+    const fn = final.players?.[pid];
+    const pb = playback.players?.[pid];
+    if (!fn || !pb) continue;
+    pb.live_zone = JSON.parse(JSON.stringify(fn.live_zone || []));
+    pb.waiting_room = JSON.parse(JSON.stringify(fn.waiting_room || []));
+  }
+  playback.log = (prev.log || []).slice();
+  return playback;
+}
+
+function isPostEmptySkipTurnPrepLogEntry(entry) {
+  const msg = entry?.msg || '';
+  if (/^=== Turn \d+ begins ===$/.test(msg)) return true;
+  if (/^--- Turn \d+ ---$/.test(msg)) return true;
+  if (/— Active Phase:|— Energy Phase:|— Draw Phase/.test(msg)) return true;
+  if (/— Deck refresh:/.test(msg)) return true;
+  if (/turn — Main Phase/.test(msg)) return true;
+  return false;
+}
+
+function collectTurnPrepEntriesAfterEmptySkip(entries) {
+  if (!entries?.length) return [];
+  const i = entries.findIndex(e => e.msg === 'No Lives played this turn.');
+  if (i < 0) return [];
+  return entries.slice(i + 1).filter(isPostEmptySkipTurnPrepLogEntry);
+}
+
+/** Play turn begin / Active / Energy / Draw after empty LIVE skip (server batches them in one poll). */
+async function playEmptySkipTurnPrepSequence(prev, final, newEntries, myId) {
+  const turnPrepEntries = collectTurnPrepEntriesAfterEmptySkip(newEntries);
+  if (!turnPrepEntries.length) {
+    G.gameState = final;
+    renderGame(final, { skipLog: true });
+    return;
+  }
+  let playback = buildPostEmptyLivePreTurnPrepState(prev, final);
+  G.gameState = playback;
+  G._prevLogLen = playback.log.length;
+  renderGame(playback, { skipHand: true, skipOppHand: true, skipLog: true });
+  const announceFrom = G._announceBaseline ?? (prev?.log || []).length;
+  let logIdx = (prev?.log || []).length;
+  try {
+    for (const entry of turnPrepEntries) {
+      if (entry.anim?.length) {
+        let specs = entry.anim.filter(spec => findCardInState(final, spec.iid, spec.pid));
+        specs = specs.filter(spec => !(spec.from === 'live' && spec.to === 'waiting_room'));
+        if (specs.length > 1) await playAnimSpecBatch(specs, playback, final, myId);
+        else if (specs.length === 1) await playAnimSpec(specs[0], playback, final, myId, 0);
+      }
+      appendSingleLogEntry(entry);
+      playback.log.push(entry);
+      G._prevLogLen = playback.log.length;
+      if (syncTurnPrepLogEntry(playback, final, entry)) {
+        G.gameState = playback;
+        renderGame(playback, { skipLog: true });
+      }
+      logIdx++;
+      if (logIdx > announceFrom && !shouldSuppressLivePipelineBanner(entry.msg, prev, final, announceFrom)) {
+        announceLogEntry(entry, final, myId);
+      }
+      await sleep(ANIM_STEP_MS);
+    }
+    await playTailMoveAnimations(playback, final, myId, {});
+    applyTurnPrepEntriesToState(final, final, turnPrepEntries);
+    G.gameState = final;
+    G._prevLogLen = final.log?.length || 0;
+    renderGame(final, { skipHand: handLayoutUnchanged(prev, final, myId) });
+    if (leavingEmptyLivePipeline(prev, final)) {
+      queueMainPhaseBannerAfterEmptyLiveSkip(final, myId);
+    }
+  } finally {
+    clearHandArrivingFlags();
+  }
+}
+
 /** Mirror server doActivePhase on playback without pulling later Energy/Draw results. */
 function applyActivePhaseRefresh(playback, pid) {
   const p = playback?.players?.[pid];
@@ -27269,6 +27364,7 @@ function buildEmptyLiveWrPlayback(prev, next) {
     synth.turn = prev.turn;
     synth.active_player = prev.active_player;
     synth.log = (prev.log || []).slice();
+    revertTurnPrepPlayerZones(synth, prev);
   } else {
     synth.phase = 'live_set';
   }
@@ -28641,8 +28737,7 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
         TCG_DEBUG.warn('live', 'empty round: no WR discards collected', TCG_DEBUG.trans(prev, next));
       }
       G._livePostRevealBoard = null;
-      G.gameState = next;
-      renderGame(next, { skipLog: true });
+      await playEmptySkipTurnPrepSequence(prev, next, opts.newEntries || [], myId);
       G._liveRoundPostSpectacleReady = true;
       markEmptyLiveRoundPresented(prev, next);
     } else if (wantsSpectacle) {
@@ -28681,7 +28776,7 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       G._liveRoundPostSpectacleReady = true;
     }
 
-    if (opts.newEntries?.length) {
+    if (opts.newEntries?.length && !emptySkip) {
       applyTurnPrepEntriesToState(G.gameState || next, next, opts.newEntries);
     }
 
@@ -28738,9 +28833,6 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   }
 
   flushPostLiveLogBanners(prev, G.gameState || next, myId, { emptySkip });
-  if (emptySkip && prev?.phase !== (G.gameState || next)?.phase) {
-    queueMainPhaseBannerAfterEmptyLiveSkip(G.gameState || next, myId);
-  }
   ensureLiveRoundStateCommitted(prev, G.gameState || next, myId);
   TCG_DEBUG.log('live', 'presentLiveRound done', { reveal: needsLiveReveal, spectacle: spectacleRan, empty: emptySkip });
   return { reveal: needsLiveReveal, spectacle: spectacleRan, empty: emptySkip };
