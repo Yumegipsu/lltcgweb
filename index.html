@@ -14717,6 +14717,7 @@ function cardMatchesWrPickClient(card, cfg) {
   if (cfg.min_cost != null && (card.cost || 0) < cfg.min_cost) return false;
   if (cfg.max_live_score != null && (card.score || 0) > cfg.max_live_score) return false;
   if (cfg.min_live_score != null && (card.score || 0) < cfg.min_live_score) return false;
+  if (cfg.min_score != null && (card.score || 0) < cfg.min_score) return false;
   if (cfg.min_required_hearts != null && countRequiredHearts(card) < cfg.min_required_hearts) return false;
   if (cfg.min_required_heart_color) {
     if ((card.card_type || '') !== 'ライブ' && card.card_type_en !== 'Live') return false;
@@ -14795,6 +14796,13 @@ function abilityWrBlockReason(cpu, ab) {
         filter: ab.filter || 'live',
       }, ab.count || 1) >= (ab.count || 1)
         ? null : 'No matching Live card in Waiting Room.';
+    case 'activated_discard_add_wr_scored_live':
+      return wrPickMatchCountClient(cpu, {
+        group: ab.group || 'Sunshine',
+        filter: 'live',
+        min_score: ab.min_score ?? 1,
+      }, 1) >= 1
+        ? null : 'No scored Live card in Waiting Room.';
     case 'wait_self_add_wr':
       if (!ab.group && !ab.filter) return wr.length >= (ab.count || 1) ? null : 'No matching card in Waiting Room.';
       return wrPickMatchCountClient(cpu, { group: ab.group || '', filter: ab.filter || '' }, ab.count || 1) >= (ab.count || 1)
@@ -22275,7 +22283,8 @@ function cpuBuildActivatePayload(pick, cpu, tier, winPressure, read) {
   const needDiscard = ab?.discard || ab?.max_discard || 0;
   const discardTypes = new Set([
     'wait_self_discard_draw',
-    'discard_hand_add_live_from_wr', 'activated_pay_discard_add_wr_live', 'hand_discard_for_stage_blade',
+    'discard_hand_add_live_from_wr', 'activated_pay_discard_add_wr_live',
+    'activated_discard_add_wr_scored_live', 'hand_discard_for_stage_blade',
     'wait_self_discard_add_wr_live', 'discard_cost_add_live_subunit', 'wait_self_discard_reveal_until',
     'discard_play_self_from_wr',
   ]);
@@ -34650,6 +34659,8 @@ function abilityLabel(ab){
     wait_self_add_wr:'Wait · add from Waiting Room',
     wait_self_choose_heart:'Wait · choose heart',
     discard_hand_add_live_from_wr:'Discard 2 · add Live from WR',
+    activated_discard_add_wr_scored_live:'Discard 2 · add scored Live from WR',
+    activated_pay_discard_add_wr_live:'Pay Energy · discard · add Live from WR',
     discard_cost_add_live_subunit:'Discard · add Live from WR',
     leave_stage_add_from_wr:'Leave Stage · add from WR',
     pay_energy_add_from_wr:'Pay Energy · add from WR',
@@ -34683,6 +34694,8 @@ function getAbilityActivationNeeds(ability, s, myId){
   }
   const map={
     discard_hand_add_live_from_wr:ability.discard??2,
+    activated_discard_add_wr_scored_live:ability.discard??2,
+    activated_pay_discard_add_wr_live:ability.discard??1,
     wait_self_discard_draw:ability.discard??1,
     wait_self_discard_reveal_until:ability.discard??1,
     discard_play_self_from_wr:ability.discard??1,

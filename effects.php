@@ -3613,6 +3613,17 @@ function activatedAbilityWrBlockReason(array $p, array $ab): ?string {
             }
             return 'no matching Live card in Waiting Room.';
 
+        case 'activated_discard_add_wr_scored_live':
+            $cfg = [
+                'group'     => $ab['group'] ?? 'Sunshine',
+                'filter'    => 'live',
+                'min_score' => intval($ab['min_score'] ?? 1),
+            ];
+            if (wrPickMatchCount($p, $cfg, 1) >= 1) {
+                return null;
+            }
+            return 'no scored Live card in Waiting Room.';
+
         case 'wait_self_add_wr':
             $need = max(1, intval($ab['count'] ?? 1));
             $cfg = ['group' => $ab['group'] ?? '', 'filter' => $ab['filter'] ?? ''];
