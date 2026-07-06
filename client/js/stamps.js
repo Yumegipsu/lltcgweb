@@ -4,7 +4,7 @@
 (function (global) {
   'use strict';
 
-  const MANIFEST_URL = 'stamps_manifest.json?v=1';
+  const MANIFEST_URL = 'stamps_manifest.json?v=2';
   const ASSET_BASE = 'assets/stamps/';
   const LS_AUDIO = 'tcg_stamp_audio_enabled';
   const LS_FAV = 'tcg_stamp_favorites_cache';
