@@ -629,6 +629,8 @@
     setStampAudioEnabled,
     stampDisplayLabel,
     loadStampI18n,
+    loadManifest,
+  };
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
