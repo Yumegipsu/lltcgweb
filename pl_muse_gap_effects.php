@@ -297,7 +297,7 @@ function plMuseGapApplyContinuousBlade(int $blade, array $member, array $state, 
     if ($type === 'continuous_mus_blade_if_live_zone') {
         $group = $ab['group'] ?? "μ's";
         foreach ($p['live_zone'] ?? [] as $lc) {
-            if ($lc && ($lc['group'] ?? '') === $group) {
+            if ($lc && isLiveTypeCard($lc) && ($lc['group'] ?? '') === $group) {
                 $blade += intval($ab['amount'] ?? 2);
                 break;
             }

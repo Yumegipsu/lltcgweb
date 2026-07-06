@@ -1245,6 +1245,9 @@ function beginPerformancePhase(array $state): array {
             }
         }
         $state = addLog($state, 'Both players reveal Live storage simultaneously.');
+        foreach (['p1', 'p2'] as $pid) {
+            $state = discardLiveZoneMembersToWaitingRoom($state, $pid);
+        }
     }
     if (!performanceRoundHasLiveCards($state)) {
         return skipEmptyPerformanceRound($state);
@@ -1639,7 +1642,7 @@ function continuePerformanceYellPhase(array $state, string $justPlayed): array {
     return finishYellRetryAndHearts($state);
 }
 
-/** After Performance checks, send Member bluffs from Live storage to the Waiting Room. */
+/** After reveal, send Member bluffs from Live storage to the Waiting Room and draw replacements. */
 function discardLiveZoneMembersToWaitingRoom(array $state, string $pid): array {
     $p = &$state['players'][$pid];
     $remaining = [];
@@ -1665,13 +1668,33 @@ function discardLiveZoneMembersToWaitingRoom(array $state, string $pid): array {
     $p['live_zone'] = $remaining;
     $p['waiting_room'] = array_merge($p['waiting_room'] ?? [], $discarded);
     unset($p);
-    return addLog($state, $state['players'][$pid]['name'] .
-        ' — ' . count($discarded) . ' non-Live card(s) from storage sent to Waiting Room.',
-        null, $discardAnims);
+
+    $drawAnims = [];
+    foreach ($discarded as $_) {
+        $drawn = drawMainDeckCards($state, $pid, 1);
+        if (empty($drawn)) {
+            continue;
+        }
+        $p = &$state['players'][$pid];
+        $p['hand'] = array_merge($p['hand'] ?? [], $drawn);
+        $iid = $drawn[0]['instance_id'] ?? '';
+        if ($iid !== '') {
+            $drawAnims[] = animSpec($iid, 'main_deck', 'hand', $pid, [
+                'index' => count($p['hand']) - 1,
+            ]);
+        }
+        unset($p);
+    }
+
+    $msg = $state['players'][$pid]['name'] .
+        ' — ' . count($discarded) . ' non-Live card(s) from storage sent to Waiting Room.';
+    if (!empty($drawAnims)) {
+        $msg .= ' Drew ' . count($drawAnims) . ' replacement card(s).';
+    }
+    return addLog($state, $msg, null, array_merge($discardAnims, $drawAnims));
 }
 
-/** Run one player's Performance: reveal storage, Yell draw, heart check, success/fail.
- *  Member cards stay in Live storage until heart check so zone-count skills work during Performance. */
+/** Run one player's Performance: reveal storage, Yell draw, heart check, success/fail. */
 function resolvePerformancePhase(array $state, string $pid, bool $continueAfter = true): array {
     $p = &$state['players'][$pid];
 
@@ -1927,7 +1950,6 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     ));
     $state['live_round_success'][$pid] = $liveRoundSuccess;
 
-    $state = discardLiveZoneMembersToWaitingRoom($state, $pid);
     $p = &$state['players'][$pid];
     $liveCards = array_values(array_filter(
         $p['live_zone'] ?? [],

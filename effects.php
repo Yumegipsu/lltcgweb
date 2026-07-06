@@ -1621,7 +1621,10 @@ function findActivatedAbilitySource(array &$p, string $instanceId): ?array {
 }
 
 function countLiveZoneGroup(array $liveZone, string $group): int {
-    return count(array_filter($liveZone, fn($c) => $c && ($c['group'] ?? '') === $group));
+    return count(array_filter(
+        $liveZone,
+        fn($c) => $c && isLiveTypeCard($c) && ($c['group'] ?? '') === $group
+    ));
 }
 
 function countBothStagesMembers(array $state): int {
@@ -4168,6 +4171,10 @@ function liveZoneSlotOf(array $card, int $fallbackIndex = 0): int {
         return intval($card['live_slot']);
     }
     return max(0, min(2, $fallbackIndex));
+}
+
+function countLiveCardsInZone(array $zone): int {
+    return count(array_filter($zone, fn($c) => $c && isLiveTypeCard($c)));
 }
 
 function liveZoneCount(array $zone): int {

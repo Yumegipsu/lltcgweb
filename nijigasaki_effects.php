@@ -14,7 +14,7 @@ function nijiStackEnergyUnderMember(array &$p, array &$member, int $count): int 
 }
 
 function nijiCountLiveZoneCards(array $p): int {
-    return count(array_filter($p['live_zone'] ?? [], fn($c) => $c !== null));
+    return countLiveCardsInZone($p['live_zone'] ?? []);
 }
 
 function nijiLiveZoneHasGroupLive(array $p, string $group): bool {
