@@ -402,9 +402,12 @@ body.tutorial-live-mode #phase-action-bar .btn-phase-primary.tut-locked{
 body.tutorial-live-mode #overlay-mull .btn-grad{opacity:1;pointer-events:auto}
 body.tutorial-live-mode #overlay-mull:not(.tut-mull-readonly) .mullcard{pointer-events:auto;cursor:pointer}
 body.tutorial-live-mode #overlay-coin{pointer-events:auto}
-/* Live tutorial: Kanon bubble stays readable but never covers game modals (coin, mulligan, prompts). */
+/* Live tutorial: bubble above spotlight dim layer; still below game modals (coin, mulligan, prompts). */
 body.tutorial-live-mode #overlay-tutorial,
-body.tutorial-live-mode #overlay-tutorial.open{z-index:8200}
+body.tutorial-live-mode #overlay-tutorial.open{z-index:8700}
+body.tutorial-live-mode:not(.tutorial-live-action) #tutorial-spotlight,
+body.tutorial-live-mode:not(.tutorial-live-action) #tutorial-spotlight.show{
+  pointer-events:none!important}
 body.tutorial-live-mode #overlay-coin.open,
 body.tutorial-live-mode #overlay-mull.open,
 body.tutorial-live-mode #overlay-prompt.open,
@@ -36836,7 +36839,7 @@ function tutorialSpotlightHighlights(step) {
       return [];
     }
     if (step.kind === 'info') {
-      return (step.highlights || []).slice(0, 1);
+      return step.highlights || [];
     }
   }
   return step.highlights || [];

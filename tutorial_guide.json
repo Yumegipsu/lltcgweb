@@ -191,10 +191,48 @@
       "highlights": []
     },
     {
-      "id": "zones",
+      "id": "intro_stage",
       "kind": "info",
-      "dialogue": "The **Stage** (Left / Center / Right) is where Members sit. Their **Hearts** fuel Lives during Performance. **Live storage** holds face-down cards during the Live Phase.",
-      "highlights": []
+      "dialogue": "The **Stage** (Left / Center / Right) is where Members sit. Their **Heart** colors and **Blade** values fuel Lives during Performance.",
+      "highlights": [
+        {
+          "target": "my-stage-left",
+          "shape": "rounded",
+          "padding": 12
+        },
+        {
+          "target": "my-stage-center",
+          "shape": "rounded",
+          "padding": 14
+        },
+        {
+          "target": "my-stage-right",
+          "shape": "rounded",
+          "padding": 12
+        }
+      ]
+    },
+    {
+      "id": "intro_live",
+      "kind": "info",
+      "dialogue": "**Live storage** holds up to 3 face-down cards during the Live Phase. You'll see your own cards in this web version, but your opponent's cards stay hidden.",
+      "highlights": [
+        {
+          "target": "my-live-0",
+          "shape": "rounded",
+          "padding": 10
+        },
+        {
+          "target": "my-live-1",
+          "shape": "rounded",
+          "padding": 12
+        },
+        {
+          "target": "my-live-2",
+          "shape": "rounded",
+          "padding": 10
+        }
+      ]
     },
     {
       "id": "coin",

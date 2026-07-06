@@ -278,7 +278,7 @@
     try {
       if (typeof global.resetMatchTransientState === 'function') global.resetMatchTransientState();
       if (typeof global.loadTutorialJa === 'function') await global.loadTutorialJa();
-      const r = await fetch('./tutorial_guide.json?v=4', { cache: 'no-store' });
+      const r = await fetch('./tutorial_guide.json?v=5', { cache: 'no-store' });
       if (!r.ok) throw new Error('Could not load tutorial guide (HTTP ' + r.status + ')');
       const data = await r.json();
       if (!data?.steps?.length) throw new Error('Tutorial guide has no steps');
