@@ -57,6 +57,7 @@ function tcgRequireAuthLoader(): void {
     $loaded = true;
 }
 require_once __DIR__ . '/effects.php';
+require_once __DIR__ . '/stamps.php';
 require_once __DIR__ . '/cardimg_cache.php';
 require_once __DIR__ . '/deckgen.php';
 require_once __DIR__ . '/experiment_decks.php';
@@ -670,6 +671,9 @@ function applyAction(array $state, string $playerId, string $type, array $data):
 
         case 'request_rematch':
             return actionRequestRematch($state, $playerId);
+
+        case 'send_stamp':
+            return actionSendStamp($state, $playerId, $data);
 
         default:
             throw new Exception("Unknown action: $type");
@@ -2761,6 +2765,46 @@ function actionRequestRematch(array $state, string $playerId): array {
     return $state;
 }
 
+function actionSendStamp(array $state, string $playerId, array $data): array {
+    $status = $state['status'] ?? '';
+    if ($status === 'finished' || $status === 'waiting') {
+        throw new Exception('Cannot send stamps right now');
+    }
+    if (!isHumanVsHumanRoster($state)) {
+        throw new Exception('Stamps are only available in player vs player matches');
+    }
+    $stampId = trim((string)($data['stamp_id'] ?? ''));
+    $locale = trim((string)($data['locale'] ?? 'ja'));
+    if ($locale !== 'en') {
+        $locale = 'ja';
+    }
+    if (!tcgIsValidStampId($stampId, $locale)) {
+        throw new Exception('Invalid stamp');
+    }
+    $now = time();
+    $cooldown = 2;
+    $lastAt = intval($state['stamp_last_at'][$playerId] ?? 0);
+    if ($lastAt > 0 && ($now - $lastAt) < $cooldown) {
+        throw new Exception('Please wait before sending another stamp');
+    }
+    if (!isset($state['stamp_pop']) || !is_array($state['stamp_pop'])) {
+        $state['stamp_pop'] = [];
+    }
+    $n = intval($state['stamp_pop'][$playerId]['n'] ?? 0) + 1;
+    $state['stamp_pop'][$playerId] = [
+        'id' => $stampId,
+        'locale' => $locale,
+        'n' => $n,
+        'at' => $now,
+    ];
+    if (!isset($state['stamp_last_at']) || !is_array($state['stamp_last_at'])) {
+        $state['stamp_last_at'] = [];
+    }
+    $state['stamp_last_at'][$playerId] = $now;
+    $state['seq']++;
+    return $state;
+}
+
 function isCpuSoloMatch(array $state): bool {
     $st = $state['status'] ?? '';
     if (in_array($st, ['waiting', 'ready', 'finished'], true)) {
@@ -3365,6 +3409,10 @@ function filterStateForPlayer(array $state, string $token): array {
             $filtered['_yell_blade_snapshot'],
             $filtered['yell_reveal']
         );
+    }
+
+    if (!empty($state['stamp_pop']) && is_array($state['stamp_pop'])) {
+        $filtered['stamp_pop'] = $state['stamp_pop'];
     }
 
     return enrichReplayFieldsForClient($filtered, $state);

@@ -515,4 +515,15 @@
     tryFlushSpectacleRecovery();
   };
 
+  const _origApplyStateUpdate = global.applyStateUpdate;
+  if (typeof _origApplyStateUpdate === 'function' && !_origApplyStateUpdate.__stampsHooked) {
+    const wrapped = async function applyStateUpdateWithStamps(s) {
+      await _origApplyStateUpdate(s);
+      global.TCG_STAMPS?.onState?.(s);
+      global.TCG_STAMPS?.syncGameUi?.(s);
+    };
+    wrapped.__stampsHooked = true;
+    global.applyStateUpdate = wrapped;
+  }
+
 })(window);

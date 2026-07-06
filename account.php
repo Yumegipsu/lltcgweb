@@ -9,7 +9,7 @@
  * Endpoints (action=):
  *   me, pick_starter, collection, booster_boxes, booster_rates, daily_status, open_booster,
  *   deck_list, deck_save, deck_delete, deck_equip, deck_equip_starter, deck_reset_starter, deck_auto_build, reset_account,
- *   ranked_join, ranked_leave, ranked_status, rank_stats, rank_banner_set, active_game, leave_active_game,
+ *   ranked_join, ranked_leave, ranked_status, rank_stats, rank_banner_set, stamp_favorites_set, active_game, leave_active_game,
  *   replay_save, replay_list, replay_get, replay_start
  */
 require_once __DIR__ . '/config/paths.php';
@@ -34,6 +34,7 @@ define('TCG_MAX_DECK_PRESETS', 10);
 require_once __DIR__ . '/llr_auth_load.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/booster.php';
+require_once __DIR__ . '/stamps.php';
 require_once __DIR__ . '/deck_validate.php';
 require_once __DIR__ . '/matchmaking.php';
 require_once __DIR__ . '/deckgen.php';
@@ -67,6 +68,7 @@ try {
         case 'ranked_status':      echo json_encode(tcgApiRankedStatus($body)); break;
         case 'rank_stats':         echo json_encode(tcgApiRankStats($body)); break;
         case 'rank_banner_set':    echo json_encode(tcgApiRankBannerSet($body)); break;
+        case 'stamp_favorites_set': echo json_encode(tcgApiStampFavoritesSet($body)); break;
         case 'active_game':        echo json_encode(tcgApiActiveGame($body)); break;
         case 'leave_active_game':  echo json_encode(tcgApiLeaveActiveGame($body)); break;
         case 'replay_save':        echo json_encode(tcgApiReplaySave($body)); break;
@@ -125,6 +127,8 @@ function tcgApiMe(array $body): array {
         'dupe_migration' => $migration,
         'rank' => tcgFormatRankSummary($rank),
         'banner' => tcgFormatUserBanner($user, $cards),
+        'stamp_favorites' => tcgFormatStampFavorites($user['stamp_favorites'] ?? null),
+        'stamp_profile' => tcgFormatStampProfilePublic($user['stamp_favorites'] ?? null),
         'equipped_deck_slot' => ($equippedLoadout === 'preset') ? intval($equipped['slot']) : null,
         'equipped_deck_name' => $equipped ? tcgNormalizeDeckPresetName($equipped['name'] ?? '') : null,
         'equipped_loadout' => $equippedLoadout,
@@ -732,6 +736,76 @@ function tcgFormatUserBanner(?array $user, array $cardsData): ?array {
     ];
 }
 
+function tcgStampLookup(string $stampId, string $locale): ?array {
+    $manifest = tcgLoadStampManifest();
+    if (!$manifest) {
+        return null;
+    }
+    $locale = $locale === 'en' ? 'en' : 'ja';
+    foreach ($manifest['locales'][$locale] ?? [] as $row) {
+        if (($row['id'] ?? '') === $stampId) {
+            return $row;
+        }
+    }
+    $other = $locale === 'en' ? 'ja' : 'en';
+    foreach ($manifest['locales'][$other] ?? [] as $row) {
+        if (($row['id'] ?? '') === $stampId) {
+            return $row;
+        }
+    }
+    return null;
+}
+
+/** @return list<array{id: string, locale: string, label: string, image: string}> */
+function tcgFormatStampProfilePublic(?string $json): array {
+    $fav = tcgParseStampFavorites($json);
+    $out = [];
+    foreach ($fav['profile'] as $id) {
+        $row = tcgStampLookup($id, 'ja') ?? tcgStampLookup($id, 'en');
+        if (!$row) {
+            continue;
+        }
+        $loc = 'ja';
+        $manifest = tcgLoadStampManifest();
+        if ($manifest) {
+            $jaIds = array_column($manifest['locales']['ja'] ?? [], 'id');
+            $loc = in_array($id, $jaIds, true) ? 'ja' : 'en';
+        }
+        $out[] = [
+            'id' => $id,
+            'locale' => $loc,
+            'label' => (string)($row['label'] ?? $id),
+            'image' => 'assets/stamps/' . ltrim((string)($row['image'] ?? ''), '/'),
+        ];
+    }
+    return $out;
+}
+
+function tcgApiStampFavoritesSet(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    $profile = tcgAuthUserProfile($uid);
+    $user = tcgEnsureUser($uid, $profile);
+    $raw = $body['favorites'] ?? null;
+    if (!is_array($raw)) {
+        throw new Exception('favorites object required (ja, en, profile arrays)');
+    }
+    $favorites = [
+        'ja' => tcgSanitizeStampIdList($raw['ja'] ?? [], 'ja', 24),
+        'en' => tcgSanitizeStampIdList($raw['en'] ?? [], 'en', 24),
+        'profile' => tcgSanitizeStampIdList($raw['profile'] ?? [], 'profile', 6),
+    ];
+    $db = tcgDb();
+    $now = time();
+    $encoded = json_encode($favorites);
+    $db->prepare('UPDATE tcg_users SET stamp_favorites = ?, updated_at = ? WHERE discord_id = ?')
+        ->execute([$encoded, $now, $uid]);
+    return [
+        'success' => true,
+        'stamp_favorites' => $favorites,
+        'stamp_profile' => tcgFormatStampProfilePublic($encoded),
+    ];
+}
+
 function tcgApiRankBannerSet(array $body): array {
     $uid = tcgRequireAuthUser($body);
     $profile = tcgAuthUserProfile($uid);
@@ -774,7 +848,7 @@ function tcgApiRankStats(array $body): array {
     $cards = tcgLoadCardsData();
     $db = tcgDb();
     $stmt = $db->query('SELECT r.discord_id, r.rating, r.wins, r.losses, r.draws, r.games,
-            u.username, u.avatar_url, u.banner_card_no, u.banner_crop
+            u.username, u.avatar_url, u.banner_card_no, u.banner_crop, u.stamp_favorites
         FROM tcg_rank r
         JOIN tcg_users u ON u.discord_id = r.discord_id
         WHERE r.games > 0
@@ -798,6 +872,7 @@ function tcgApiRankStats(array $body): array {
             'win_rate' => $summary['win_rate'],
             'loss_rate' => $summary['loss_rate'],
             'banner' => tcgFormatUserBanner($row, $cards),
+            'stamp_profile' => tcgFormatStampProfilePublic($row['stamp_favorites'] ?? null),
             'is_you' => $row['discord_id'] === $uid,
         ];
     }
@@ -809,6 +884,7 @@ function tcgApiRankStats(array $body): array {
                 'username' => $user['username'] ?? $profile['username'] ?? 'Player',
                 'avatar_url' => $user['avatar_url'] ?? $profile['avatar_url'] ?? null,
                 'banner' => tcgFormatUserBanner($user, $cards),
+                'stamp_profile' => tcgFormatStampProfilePublic($user['stamp_favorites'] ?? null),
             ]
         ),
         'leaderboard' => $leaderboard,
