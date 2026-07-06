@@ -34,6 +34,15 @@
     return global.LLTCG_I18N?.t ? global.LLTCG_I18N.t(key, vars) : key;
   }
 
+  function isDebugStampsEnabled() {
+    if (global.TCG_DEBUG?.on === true) return true;
+    try {
+      return document.documentElement.getAttribute('data-tcg-debug') === '1';
+    } catch (e) {
+      return false;
+    }
+  }
+
   function isHumanPvpMatch(s) {
     if (global.G?.isCPU || global.G?.isTutorial) return false;
     if (global.G?.isSpectator) {
@@ -42,6 +51,17 @@
       return typeof global.isHumanPvpFinishedState === 'function' && global.isHumanPvpFinishedState(s);
     }
     return typeof global.isHumanPvpFinishedState === 'function' && global.isHumanPvpFinishedState(s || global.G?.gameState);
+  }
+
+  function isStampMatch(s) {
+    if (global.G?.isSpectator || global.G?.isTutorial) return false;
+    s = s || global.G?.gameState;
+    if (!s?.players?.p1 || !s?.players?.p2) return false;
+    const status = s.status;
+    if (status === 'finished' || status === 'waiting') return false;
+    if (isHumanPvpMatch(s)) return true;
+    if (isDebugStampsEnabled() && global.G?.isCPU) return true;
+    return false;
   }
 
   function stampAudioEnabled() {
@@ -233,7 +253,7 @@
   }
 
   function onStampState(s) {
-    if (!s?.stamp_pop || !isHumanPvpMatch(s)) return;
+    if (!s?.stamp_pop || !isStampMatch(s)) return;
     ['p1', 'p2'].forEach((pid) => {
       const pop = s.stamp_pop[pid];
       if (!pop?.id) return;
@@ -255,7 +275,7 @@
       el('my-stamp-layer')?.replaceChildren();
       el('opp-stamp-layer')?.replaceChildren();
     }
-    const show = isHumanPvpMatch(s) && s?.status !== 'finished' && s?.status !== 'waiting';
+    const show = isStampMatch(s);
     btn.hidden = !show;
     btn.disabled = global.G?.isSpectator || !show;
   }
@@ -467,7 +487,12 @@
     state.lastSendAt = now;
     closePicker();
     try {
-      await global.sendAct('send_stamp', { stamp_id: stampId, locale: locale === 'en' ? 'en' : 'ja' });
+      const payload = {
+        stamp_id: stampId,
+        locale: locale === 'en' ? 'en' : 'ja',
+      };
+      if (isDebugStampsEnabled()) payload.debug_mode = true;
+      await global.sendAct('send_stamp', payload);
       const myId = global.G?.playerId;
       if (myId) {
         const stamp = findStamp(stampId, locale);
@@ -622,6 +647,8 @@
     openProfileEditor,
     closeProfileEditor,
     isHumanPvpMatch,
+    isStampMatch,
+    isDebugStampsEnabled,
     applyFavorites,
     renderProfileStampPick,
     renderLeaderboardStampProfile,

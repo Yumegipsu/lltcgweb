@@ -2765,12 +2765,22 @@ function actionRequestRematch(array $state, string $playerId): array {
     return $state;
 }
 
+function isStampMatchAllowed(array $state, array $data = []): bool {
+    if (isHumanVsHumanRoster($state)) {
+        return true;
+    }
+    if (!isCpuSoloMatch($state)) {
+        return false;
+    }
+    return !empty($data['debug_mode']);
+}
+
 function actionSendStamp(array $state, string $playerId, array $data): array {
     $status = $state['status'] ?? '';
     if ($status === 'finished' || $status === 'waiting') {
         throw new Exception('Cannot send stamps right now');
     }
-    if (!isHumanVsHumanRoster($state)) {
+    if (!isStampMatchAllowed($state, $data)) {
         throw new Exception('Stamps are only available in player vs player matches');
     }
     $stampId = trim((string)($data['stamp_id'] ?? ''));
