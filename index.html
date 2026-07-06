@@ -405,9 +405,10 @@ body.tutorial-live-mode #overlay-coin{pointer-events:auto}
 /* Live tutorial: bubble above spotlight dim layer; still below game modals (coin, mulligan, prompts). */
 body.tutorial-live-mode #overlay-tutorial,
 body.tutorial-live-mode #overlay-tutorial.open{z-index:8700}
-body.tutorial-live-mode:not(.tutorial-live-action) #tutorial-spotlight,
-body.tutorial-live-mode:not(.tutorial-live-action) #tutorial-spotlight.show{
-  pointer-events:none!important}
+body.tutorial-live-coin #overlay-tutorial,
+body.tutorial-live-coin #overlay-tutorial.open,
+body.tutorial-live-mulligan #overlay-tutorial,
+body.tutorial-live-mulligan #overlay-tutorial.open{z-index:8950}
 body.tutorial-live-mode #overlay-coin.open,
 body.tutorial-live-mode #overlay-mull.open,
 body.tutorial-live-mode #overlay-prompt.open,
@@ -428,8 +429,10 @@ body.tutorial-live-coin #overlay-coin,
 body.tutorial-live-coin #overlay-coin *,
 body.tutorial-live-mulligan #overlay-mull,
 body.tutorial-live-mulligan #overlay-mull *{pointer-events:auto!important}
+body.tutorial-live-mode:not(.tutorial-live-action) #tutorial-spotlight,
+body.tutorial-live-mode:not(.tutorial-live-action) #tutorial-spotlight.show{
+  pointer-events:none!important}
 body.tutorial-live-action .tut-btn-next{opacity:.35;pointer-events:none}
-/* Live tutorial action steps: board interaction, no spotlight click-capture */
 body.tutorial-live-mode.tutorial-live-action #tutorial-spotlight,
 body.tutorial-live-mode.tutorial-live-action #tutorial-spotlight.show{
   pointer-events:none!important;opacity:0!important;visibility:hidden!important}
@@ -7104,11 +7107,11 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
-<script src="client/js/game-sync.js?v=5"></script>
-<script src="client/js/state-apply.js?v=7"></script>
+<script src="client/js/game-sync.js?v=6"></script>
+<script src="client/js/state-apply.js?v=8"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=10"></script>
-<script src="client/js/tutorial-interactive.js?v=6"></script>
+<script src="client/js/tutorial-interactive.js?v=7"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -12516,7 +12519,10 @@ function updateDebugCardPreview() {
 function resetMatchTransientState() {
   G._gameSessionEpoch = (G._gameSessionEpoch || 0) + 1;
   stopPoll();
+  stopSyncStream();
   clearActiveGameSession();
+  if (typeof closeApiErrorPopup === 'function') closeApiErrorPopup();
+  dismissAllGameplayOverlays();
   G.roomId = null;
   G.token = null;
   G.cpuToken = null;
@@ -12525,6 +12531,9 @@ function resetMatchTransientState() {
   G.lastSeq = 0;
   G.syncEnabled = null;
   G.syncTicket = null;
+  G._syncFailCount = 0;
+  G._pollRateLimitBackoff = 0;
+  G._pendingStateQueue = [];
   abortGameplayPresentation({ skipPerfClose: true, skipAbortFlag: true });
   G._presentationAborted = false;
   clearPerfSpectacleDoneStorage();
@@ -12543,6 +12552,9 @@ function resetMatchTransientState() {
   G.coinFlipAckSent = false;
   G._coinFlipAnimComplete = false;
   G._tutCoinFlipAnimKey = null;
+  G._tutChooseFirstDone = false;
+  G._tutMulliganDone = false;
+  G._tutorialBooting = false;
   G.isTutorial = false;
   G.tutorialLive = false;
   G.tutorialHoldCpu = false;
@@ -35162,6 +35174,17 @@ function showCoinChoiceButtons() {
   if (!G._coinFlipAnimComplete || coinFlipAnimationActive()) return false;
   const btns = el('coin-choice-btns');
   if (!btns) return false;
+  const selfBtn = el('btn-coin-first-self');
+  const oppBtn = el('btn-coin-first-opp');
+  const tutChoose = G.tutorialLive && tutorialLiveStepId() === 'choose_first';
+  if (oppBtn) {
+    oppBtn.hidden = tutChoose;
+    oppBtn.style.display = tutChoose ? 'none' : '';
+  }
+  if (selfBtn) {
+    selfBtn.hidden = false;
+    selfBtn.style.display = '';
+  }
   btns.hidden = false;
   btns.style.display = 'flex';
   return true;
@@ -35368,6 +35391,7 @@ function startCoinFlipAnimation(s, myId, flipKey) {
 
 function submitCoinFirstPlayerChoice(selfFirst) {
   if (isReplayViewing()) return;
+  if (G.tutorialLive && !selfFirst) return;
   if (typeof tutBlocks === 'function' && tutBlocks('choose_first_player')) return;
   const s = G.gameState;
   const winner = s?.coin_flip?.winner;
@@ -37115,12 +37139,13 @@ function renderTutorialStep(idx, opts = {}) {
     syncTutorialLivePresentation(G.gameState, G.playerId || 'p1');
     if ((step.id === 'coin' || step.id === 'choose_first') && G.gameState.phase === 'coin_flip') {
       maybeShowCoinFlip(G.gameState, G.playerId || 'p1');
-      if (step.id === 'coin' && G.isCPU) {
-        const cpuId = cpuOpponentId();
-        if (!G.gameState.coin_flip?.ready?.[cpuId]) {
-          doCPU(G.gameState);
-          armWatchdog(G.gameState);
-        }
+      const cpuId = cpuOpponentId();
+      if (G.isCPU && !G.gameState.coin_flip?.ready?.[cpuId]) {
+        doCPU(G.gameState);
+        armWatchdog(G.gameState);
+      }
+      if (step.id === 'choose_first' && G._coinFlipAnimComplete) {
+        syncCoinFlipChoiceUi(G.gameState, G.playerId || 'p1');
       }
     } else if (G.tutorialLive && step.id !== 'coin' && step.id !== 'choose_first') {
       el('overlay-coin')?.classList.remove('open');
@@ -37365,6 +37390,9 @@ async function tutorialNav(dir) {
 }
 
 async function startTutorial() {
+  if (G._tutorialBooting) return;
+  endGameSession();
+  clearActiveGameSession();
   if (window.TutorialInteractive?.boot) {
     return TutorialInteractive.boot();
   }
@@ -37431,10 +37459,11 @@ function exitTutorial() {
 }
 
 function freshGameGlobals() {
+  const nextEpoch = (G._gameSessionEpoch || 0) + 1;
   return {
     roomId:null, token:null, cpuToken:null, playerId:null, isCPU:false, casualRandomMatch:false, cpuDifficulty:'easy',
     gameState:null, allCards:G.allCards, starterDecks:G.starterDecks,
-    lastSeq:0, polling:false, pollTimer:null, _gameSessionEpoch:0,
+    lastSeq:0, polling:false, pollTimer:null, _gameSessionEpoch:nextEpoch,
     syncEnabled:null, syncTicket:null, syncEventSource:null,
     presenceTimer:null, syncFallbackTimer:null, _syncReconnectTimer:null, _syncPullTimer:null, _syncFailCount:0,
     selCard:null, liveSel:[], _liveSetLockPid:null, _oppHandDepartInflight:0, mullMarked:new Set(), mulliganPending:false,
@@ -37519,7 +37548,9 @@ function endGameSession() {
   el('overlay-win')?.classList.remove('open');
   el('overlay-tutorial')?.classList.remove('open');
   el('tutorial-spotlight')?.classList.remove('show');
-  document.body.classList.remove('tutorial-mode');
+  document.body.classList.remove('tutorial-mode', 'tutorial-live-mode', 'tutorial-live-coin', 'tutorial-live-mulligan');
+  clearActiveGameSession();
+  if (typeof closeApiErrorPopup === 'function') closeApiErrorPopup();
   stopPoll();
 }
 

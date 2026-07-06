@@ -103,7 +103,7 @@
     clearTimeout(G._syncReconnectTimer);
     G._syncReconnectTimer = setTimeout(async () => {
       G._syncReconnectTimer = null;
-      if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
+      if (!G.polling || (G.isTutorial && !G.tutorialLive) || !G.roomId) return;
       if (!G.syncTicket) {
         try {
           const r = await apiPost('sync_ticket', { room_id: G.roomId, token: G.token }, { silent: true });
@@ -116,6 +116,7 @@
   };
 
   function onSyncStateEvent(data) {
+    if (!G.polling || !G.roomId) return;
     const seq = parseInt(data?.seq, 10);
     if (!Number.isFinite(seq) || seq <= (G.lastSeq ?? 0)) return;
     TCG_DEBUG.log('sync', 'state event', { seq, last: G.lastSeq });

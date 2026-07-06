@@ -251,6 +251,14 @@
   function onStateApplied(s, prev) {
     if (!isLive()) return;
     syncStepUi();
+    if (step()?.id === 'choose_first' && s?.phase === 'coin_flip') {
+      if (typeof global.syncCoinFlipChoiceUi === 'function') {
+        global.syncCoinFlipChoiceUi(s, G().playerId || 'p1');
+      }
+      if (typeof global.repositionTutorialBubbleForLiveModal === 'function') {
+        requestAnimationFrame(() => global.repositionTutorialBubbleForLiveModal());
+      }
+    }
     void onGoalMaybeMet(s, prev);
   }
 
@@ -275,15 +283,14 @@
   }
 
   async function boot() {
+    if (G()._tutorialBooting) return;
+    G()._tutorialBooting = true;
     try {
       if (typeof global.closeApiErrorPopup === 'function') global.closeApiErrorPopup();
+      if (typeof global.dismissAllGameplayOverlays === 'function') global.dismissAllGameplayOverlays();
       if (typeof global.resetMatchTransientState === 'function') global.resetMatchTransientState();
+      const bootEpoch = G()._gameSessionEpoch;
       const g = G();
-      g.roomId = null;
-      g.token = null;
-      g.cpuToken = null;
-      g.cpuPlayerId = null;
-      g._tutorialBooting = true;
       if (typeof global.loadTutorialJa === 'function') await global.loadTutorialJa();
       const r = await fetch('./tutorial_guide.json?v=5', { cache: 'no-store' });
       if (!r.ok) throw new Error('Could not load tutorial guide (HTTP ' + r.status + ')');
@@ -305,6 +312,7 @@
       G().isCPU = true;
       G().cpuDifficulty = 'easy';
       G().playerId = 'p1';
+      G().polling = false;
 
       document.body.classList.add('tutorial-mode', 'tutorial-live-mode');
 
@@ -335,6 +343,8 @@
       G().cpuToken = r2.player_token;
       G().cpuPlayerId = 'p2';
       if (typeof global.captureSyncMeta === 'function') global.captureSyncMeta(r2);
+
+      if (bootEpoch !== G()._gameSessionEpoch) return;
 
       global.showScr('game');
       global.el('overlay-tutorial')?.classList.add('open');
