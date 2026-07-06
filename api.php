@@ -1639,34 +1639,55 @@ function continuePerformanceYellPhase(array $state, string $justPlayed): array {
     return finishYellRetryAndHearts($state);
 }
 
-/** Run one player's Performance: filter non-Lives to WR, Yell draw, heart check, success/fail. */
-function resolvePerformancePhase(array $state, string $pid, bool $continueAfter = true): array {
+/** After Performance checks, send Member bluffs from Live storage to the Waiting Room. */
+function discardLiveZoneMembersToWaitingRoom(array $state, string $pid): array {
     $p = &$state['players'][$pid];
-    
-    // Reveal live cards
-    $liveCards = [];
+    $remaining = [];
     $discarded = [];
     $discardAnims = [];
-    foreach ($p['live_zone'] as $li => &$c) {
-        $c['revealed'] = true;
+    foreach ($p['live_zone'] ?? [] as $li => $c) {
+        if (!$c) {
+            continue;
+        }
         if (isLiveTypeCard($c)) {
-            $liveCards[] = $c;
-        } else {
-            $discarded[] = $c;
-            $discardAnims[] = animSpec($c['instance_id'], 'live', 'waiting_room', $pid, [
-                'from_index' => liveZoneSlotOf($c, $li),
-            ]);
+            $remaining[] = $c;
+            continue;
+        }
+        $discarded[] = $c;
+        $discardAnims[] = animSpec($c['instance_id'], 'live', 'waiting_room', $pid, [
+            'from_index' => liveZoneSlotOf($c, $li),
+        ]);
+    }
+    if (empty($discarded)) {
+        unset($p);
+        return $state;
+    }
+    $p['live_zone'] = $remaining;
+    $p['waiting_room'] = array_merge($p['waiting_room'] ?? [], $discarded);
+    unset($p);
+    return addLog($state, $state['players'][$pid]['name'] .
+        ' — ' . count($discarded) . ' non-Live card(s) from storage sent to Waiting Room.',
+        null, $discardAnims);
+}
+
+/** Run one player's Performance: reveal storage, Yell draw, heart check, success/fail.
+ *  Member cards stay in Live storage until heart check so zone-count skills work during Performance. */
+function resolvePerformancePhase(array $state, string $pid, bool $continueAfter = true): array {
+    $p = &$state['players'][$pid];
+
+    foreach ($p['live_zone'] as &$c) {
+        if ($c) {
+            $c['revealed'] = true;
         }
     }
-    $p['live_zone'] = $liveCards;
-    $p['waiting_room'] = array_merge($p['waiting_room'], $discarded);
-    if (!empty($discarded)) {
-        $state = addLog($state, $state['players'][$pid]['name'] .
-            ' — ' . count($discarded) . ' non-Live card(s) from storage sent to Waiting Room.',
-            null, $discardAnims);
-    }
+    unset($c);
+    $liveCards = array_values(array_filter(
+        $p['live_zone'] ?? [],
+        fn($c) => $c && isLiveTypeCard($c)
+    ));
 
     if (empty($liveCards)) {
+        $state = discardLiveZoneMembersToWaitingRoom($state, $pid);
         $state = addLog($state, $state['players'][$pid]['name'] . ' has no valid Live cards!');
         if ($continueAfter) {
             $state = continuePerformanceYellPhase($state, $pid);
@@ -1905,6 +1926,21 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
         $successCards
     ));
     $state['live_round_success'][$pid] = $liveRoundSuccess;
+
+    $state = discardLiveZoneMembersToWaitingRoom($state, $pid);
+    $p = &$state['players'][$pid];
+    $liveCards = array_values(array_filter(
+        $p['live_zone'] ?? [],
+        fn($c) => $c && isLiveTypeCard($c)
+    ));
+    $successCards = array_values(array_filter(
+        $successCards,
+        fn($c) => $c && isLiveTypeCard($c)
+    ));
+    $failCards = array_values(array_filter(
+        $failCards,
+        fn($c) => $c && isLiveTypeCard($c)
+    ));
 
     $p['waiting_room'] = array_merge($p['waiting_room'], $failCards);
     if ($liveRoundSuccess) {

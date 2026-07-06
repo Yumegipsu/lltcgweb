@@ -23,6 +23,16 @@ function tryResolveAbilityEffectSwitchScore(
             }
             break;
 
+        case 'score_if_live_zone_min':
+            $cnt = liveZoneCount($p['live_zone'] ?? []);
+            if ($cnt >= intval($ab['min_count'] ?? 3)) {
+                bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['amount'] ?? 1));
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    ' — [' . $name . '] score +' . intval($ab['amount'] ?? 1) .
+                    " ($cnt card(s) in Live storage).");
+            }
+            break;
+
         case 'score_if_success_lives':
             if (count($p['success_lives'] ?? []) >= intval($ab['min_success'] ?? 2)) {
                 bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['amount'] ?? 1));

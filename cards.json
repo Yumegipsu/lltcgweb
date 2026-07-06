@@ -31343,8 +31343,7 @@
             "abilities": [
                 {
                     "trigger": "live_start",
-                    "type": "score_if_live_zone_group",
-                    "group": "Nijigasaki",
+                    "type": "score_if_live_zone_min",
                     "min_count": 3,
                     "amount": 2
                 },
