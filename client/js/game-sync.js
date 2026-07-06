@@ -64,6 +64,11 @@
     return G.isCPU ? 280 : 600;
   }
 
+  /** Drop poll responses from a prior room/session (e.g. tutorial boot after CPU match). */
+  function pollResponseStillCurrent(epoch, roomId) {
+    return !!(G.polling && epoch === G._gameSessionEpoch && roomId && roomId === G.roomId);
+  }
+
   global.stopPoll = function stopPoll() {
     G.polling = false;
     clearTimeout(G.pollTimer);
@@ -218,14 +223,18 @@
       if (G.polling) G.pollTimer = setTimeout(doPollLegacy, 400);
       return;
     }
+    const pollEpoch = G._gameSessionEpoch;
+    const pollRoomId = G.roomId;
     let pollError = null;
     try {
-      TCG_DEBUG.log('poll', 'fetch', { seq: G.lastSeq, room: G.roomId });
-      const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(G.roomId)}&token=${G.token}&seq=${G.lastSeq}`);
+      TCG_DEBUG.log('poll', 'fetch', { seq: G.lastSeq, room: pollRoomId });
+      const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(pollRoomId)}&token=${G.token}&seq=${G.lastSeq}`);
       const d = await parseGameApiResponse(r);
+      if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return;
       G._pollRateLimitBackoff = 0;
       onState(d);
     } catch (e) {
+      if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return;
       if (e && e.httpStatus >= 400) {
         if (handleSpectatorPollError(e.message)) return;
         reportApiError(e, { source: 'poll' });
@@ -251,15 +260,19 @@
       else resumePollingTick(400);
       return;
     }
-    TCG_DEBUG.log('poll', 'pullLatestState', { seq: G.lastSeq, force: !!force });
+    const pollEpoch = G._gameSessionEpoch;
+    const pollRoomId = G.roomId;
+    TCG_DEBUG.log('poll', 'pullLatestState', { seq: G.lastSeq, force: !!force, room: pollRoomId });
     try {
-      const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(G.roomId)}&token=${encodeURIComponent(G.token)}&seq=${G.lastSeq}&poll=0`);
+      const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(pollRoomId)}&token=${encodeURIComponent(G.token)}&seq=${G.lastSeq}&poll=0`);
       const d = await parseGameApiResponse(r);
+      if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return;
       if (force && d.status === 'finished') {
         G._pendingStateQueue = (G._pendingStateQueue || []).filter(st => (st.seq ?? 0) > (d.seq ?? 0));
       }
       onState(d);
     } catch (e) {
+      if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return;
       if (e && e.httpStatus >= 400) {
         if (!handleSpectatorPollError(e.message)) reportApiError(e, { source: 'pullLatestState' });
       } else {

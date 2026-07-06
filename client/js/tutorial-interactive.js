@@ -276,7 +276,14 @@
 
   async function boot() {
     try {
+      if (typeof global.closeApiErrorPopup === 'function') global.closeApiErrorPopup();
       if (typeof global.resetMatchTransientState === 'function') global.resetMatchTransientState();
+      const g = G();
+      g.roomId = null;
+      g.token = null;
+      g.cpuToken = null;
+      g.cpuPlayerId = null;
+      g._tutorialBooting = true;
       if (typeof global.loadTutorialJa === 'function') await global.loadTutorialJa();
       const r = await fetch('./tutorial_guide.json?v=5', { cache: 'no-store' });
       if (!r.ok) throw new Error('Could not load tutorial guide (HTTP ' + r.status + ')');
@@ -349,6 +356,8 @@
       G().tutorialLive = false;
       document.body.classList.remove('tutorial-mode', 'tutorial-live-mode');
       if (typeof global.toast === 'function') global.toast('Tutorial error: ' + e.message, 6000);
+    } finally {
+      if (G()) G()._tutorialBooting = false;
     }
   }
 

@@ -12514,8 +12514,13 @@ function updateDebugCardPreview() {
 }
 
 function resetMatchTransientState() {
+  G._gameSessionEpoch = (G._gameSessionEpoch || 0) + 1;
   stopPoll();
   clearActiveGameSession();
+  G.roomId = null;
+  G.token = null;
+  G.cpuToken = null;
+  G.cpuPlayerId = null;
   G.gameState = null;
   G.lastSeq = 0;
   G.syncEnabled = null;
@@ -15192,7 +15197,7 @@ let G = {
   cpuPlayerId:null,
   _pendingReplayFile:null,
   gameState:null, allCards:{}, starterDecks:{},
-  lastSeq:0, polling:false, pollTimer:null,
+  lastSeq:0, polling:false, pollTimer:null, _gameSessionEpoch:0,
   syncEnabled:null, syncTicket:null, syncEventSource:null,
   presenceTimer:null, syncFallbackTimer:null, _syncReconnectTimer:null, _syncPullTimer:null, _syncFailCount:0,
   selCard:null, liveSel:[], _liveSetLockPid:null, _oppHandDepartInflight:0, mullMarked:new Set(), mulliganPending:false,
@@ -37302,7 +37307,7 @@ function freshGameGlobals() {
   return {
     roomId:null, token:null, cpuToken:null, playerId:null, isCPU:false, casualRandomMatch:false, cpuDifficulty:'easy',
     gameState:null, allCards:G.allCards, starterDecks:G.starterDecks,
-    lastSeq:0, polling:false, pollTimer:null,
+    lastSeq:0, polling:false, pollTimer:null, _gameSessionEpoch:0,
     syncEnabled:null, syncTicket:null, syncEventSource:null,
     presenceTimer:null, syncFallbackTimer:null, _syncReconnectTimer:null, _syncPullTimer:null, _syncFailCount:0,
     selCard:null, liveSel:[], _liveSetLockPid:null, _oppHandDepartInflight:0, mullMarked:new Set(), mulliganPending:false,
