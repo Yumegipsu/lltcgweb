@@ -409,6 +409,11 @@ body.tutorial-live-coin #overlay-tutorial,
 body.tutorial-live-coin #overlay-tutorial.open,
 body.tutorial-live-mulligan #overlay-tutorial,
 body.tutorial-live-mulligan #overlay-tutorial.open{z-index:8950}
+/* choose_first: coin choice must sit above Kanon bubble (coin watch step keeps bubble on top). */
+body.tutorial-live-choose-first #overlay-coin,
+body.tutorial-live-choose-first #overlay-coin.open{z-index:9000!important}
+body.tutorial-live-choose-first #overlay-tutorial,
+body.tutorial-live-choose-first #overlay-tutorial.open{z-index:8600}
 body.tutorial-live-mode #overlay-coin.open,
 body.tutorial-live-mode #overlay-mull.open,
 body.tutorial-live-mode #overlay-prompt.open,
@@ -7111,7 +7116,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=8"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=10"></script>
-<script src="client/js/tutorial-interactive.js?v=8"></script>
+<script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -35281,12 +35286,13 @@ function tutorialLiveCoinActive() {
 
 function syncTutorialLivePresentation(s, myId) {
   if (!G.tutorialLive) {
-    document.body.classList.remove('tutorial-live-coin', 'tutorial-live-mulligan');
+    document.body.classList.remove('tutorial-live-coin', 'tutorial-live-choose-first', 'tutorial-live-mulligan');
     return;
   }
   const id = tutorialLiveStepId();
   const coinActive = id === 'coin' || id === 'choose_first';
   document.body.classList.toggle('tutorial-live-coin', coinActive);
+  document.body.classList.toggle('tutorial-live-choose-first', id === 'choose_first');
   document.body.classList.toggle('tutorial-live-mulligan', id === 'mulligan');
   if (!coinActive) el('overlay-coin')?.classList.remove('open');
   requestAnimationFrame(() => repositionTutorialBubbleForLiveModal());
@@ -35295,7 +35301,8 @@ function syncTutorialLivePresentation(s, myId) {
 function ensureCoinFlipAcked(s, myId) {
   if (isReplayViewing()) return;
   const gs = s || G.gameState;
-  if (G.tutorialLive && tutorialLiveStepId() !== 'coin') return;
+  const tutStep = tutorialLiveStepId();
+  if (G.tutorialLive && tutStep !== 'coin' && tutStep !== 'choose_first') return;
   if (gs?.phase !== 'coin_flip' || !gs.coin_flip || !G._coinFlipAnimComplete) return;
   if (gs.coin_flip.ready?.[myId]) {
     G.coinFlipAckSent = true;
@@ -35438,8 +35445,21 @@ function maybeShowCoinFlip(s, myId) {
 
   if (G.tutorialLive && tutStep === 'choose_first') {
     if (!G._coinFlipAnimComplete) G._coinFlipAnimComplete = true;
+    const coin = el('coin-el');
+    if (coin) coin.className = 'coin landed-heads';
     ensureCoinFlipAcked(s, myId);
+    if (G.isCPU && !coinFlipBothReady(s)) {
+      doCPU(s);
+      armWatchdog(s);
+    }
     syncCoinFlipChoiceUi(s, myId);
+    if (!coinFlipBothReady(s) && G.isCPU) {
+      cpuSchedule(() => {
+        const live = G.gameState;
+        if (tutorialLiveStepId() !== 'choose_first' || live?.phase !== 'coin_flip') return;
+        syncCoinFlipChoiceUi(live, myId);
+      }, 520);
+    }
     return;
   }
 
@@ -37437,7 +37457,7 @@ async function startTutorial() {
 function exitTutorial() {
   const wasLive = !!G.tutorialLive;
   G.tutorialLive = false;
-  document.body.classList.remove('tutorial-live-mode', 'tutorial-live-action', 'tutorial-live-coin', 'tutorial-live-mulligan');
+  document.body.classList.remove('tutorial-live-mode', 'tutorial-live-action', 'tutorial-live-coin', 'tutorial-live-choose-first', 'tutorial-live-mulligan');
   perfCloseSpectacle();
   el('overlay-tutorial').classList.remove('open');
   el('tutorial-spotlight').classList.remove('show');
@@ -37548,7 +37568,7 @@ function endGameSession() {
   el('overlay-win')?.classList.remove('open');
   el('overlay-tutorial')?.classList.remove('open');
   el('tutorial-spotlight')?.classList.remove('show');
-  document.body.classList.remove('tutorial-mode', 'tutorial-live-mode', 'tutorial-live-coin', 'tutorial-live-mulligan');
+  document.body.classList.remove('tutorial-mode', 'tutorial-live-mode', 'tutorial-live-coin', 'tutorial-live-choose-first', 'tutorial-live-mulligan');
   clearActiveGameSession();
   if (typeof closeApiErrorPopup === 'function') closeApiErrorPopup();
   stopPoll();

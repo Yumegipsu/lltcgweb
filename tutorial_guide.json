@@ -257,9 +257,9 @@
       "dialogue": "You won the flip! Choose who takes the **first turn** — tap **Go first** to play first.",
       "highlights": [
         {
-          "target": "overlay-coin",
+          "target": "coin-choice-btns",
           "shape": "rounded",
-          "padding": 12
+          "padding": 8
         }
       ],
       "goal": {
@@ -267,7 +267,7 @@
         "pick": "self"
       },
       "spotlightDim": "none",
-      "bubbleAnchor": "overlay-coin"
+      "bubbleAnchor": "coin-choice-btns"
     },
     {
       "id": "mulligan",
