@@ -4878,14 +4878,12 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .stamp-picker-empty{font-size:12px;color:rgba(255,255,255,.7);text-align:center;grid-column:1/-1;margin:12px 0}
 .stamp-picker-audio{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.82)}
 .banner-stamp-section{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.12)}
-.banner-stamp-grid{display:flex;flex-wrap:wrap;gap:8px;min-height:44px;margin:8px 0}
-.banner-stamp-slot{
-  width:44px;height:44px;border-radius:8px;flex:0 0 auto;
-  border:2px dashed rgba(255,255,255,.22);background:rgba(255,255,255,.04);
-  display:flex;align-items:center;justify-content:center;overflow:hidden;
+.options-stamp-grid{display:flex;flex-wrap:wrap;gap:8px;min-height:36px;margin:8px 0 10px}
+.options-stamp-slot{
+  width:40px;height:40px;border-radius:8px;flex:0 0 auto;overflow:hidden;
+  background:rgba(255,255,255,.08);
 }
-.banner-stamp-slot.is-filled{border-color:transparent;background:rgba(255,255,255,.08)}
-.banner-stamp-slot img{width:100%;height:100%;object-fit:contain}
+.options-stamp-slot img{width:100%;height:100%;object-fit:contain}
 #modal-stamp-profile{z-index:950}
 #modal-stamp-profile .stamp-profile-mbox{
   width:min(400px,calc(100vw - 24px));max-height:min(88vh,640px);
@@ -4898,8 +4896,7 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   overflow-y:auto;flex:1;min-height:120px;max-height:min(360px,50vh);padding:4px 2px;
 }
 .stamp-profile-actions{display:flex;justify-content:center;gap:10px;padding-top:4px}
-.rank-stamp-profile{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.rank-stamp-profile-img{width:32px;height:32px;object-fit:contain;filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))}
+.rank-stamp-profile{display:none!important}
 body.tcg-spectator-mode #btn-stamp{display:none!important}
 .account-shell.wide{max-width:min(900px,96vw)}
 .account-shell.deck-builder-shell{max-width:min(1320px,98vw);width:100%;margin:0 auto;align-self:center}
@@ -6186,6 +6183,12 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         </div>
       </div>
       <div class="options-section">
+        <h3 data-i18n="stamps.profileSection">Favorite stamps</h3>
+        <p class="account-lead" id="options-stamp-hint" data-i18n="stamps.profileHintEmpty">Optional — choose up to 20 stamps for quick access in matches.</p>
+        <div class="options-stamp-grid" id="options-stamp-grid"></div>
+        <button type="button" class="btn-out" id="btn-options-stamps-edit" data-i18n="stamps.editProfile">Edit favorite stamps</button>
+      </div>
+      <div class="options-section">
         <h3 data-i18n="options.stuck.title">Stuck in a match?</h3>
         <p class="account-lead" data-i18n="options.stuck.lead">If ranked reconnects you to a broken or finished game, leave the active match record here. This counts as a resign if the game is still in progress.</p>
         <button class="btn-out" id="btn-leave-active-game" type="button" hidden data-i18n="options.leaveActive">Leave active match</button>
@@ -6867,23 +6870,17 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <button class="btn-grad" id="btn-banner-save" type="button" data-i18n="leaderboard.saveBanner">Save banner</button>
       <button class="btn-ghost" id="btn-banner-cancel" type="button" data-i18n="common.cancel">Cancel</button>
     </div>
-    <div class="banner-stamp-section">
-      <h3 style="margin:0 0 4px;font-size:14px;color:#fff" data-i18n="stamps.profileSection">Profile stamps</h3>
-      <p class="banner-stamp-hint" id="banner-stamp-hint" style="margin:0 0 8px;font-size:12px;color:rgba(255,255,255,.72)"></p>
-      <div class="banner-stamp-grid" id="banner-stamp-grid"></div>
-      <button type="button" class="btn-out" id="btn-banner-stamps-edit" data-i18n="stamps.editProfile">Edit profile stamps</button>
-    </div>
     <p class="lerr" id="banner-crop-err"></p>
   </div>
 </div>
 
-<!-- Profile stamp picker (leaderboard banner settings) -->
+<!-- Favorite stamp picker (Options) -->
 <div class="overlay" id="modal-stamp-profile">
   <div class="mbox stamp-profile-mbox">
     <button class="mcls" id="btn-stamp-profile-close" type="button">✕</button>
-    <h2 style="margin:0;text-align:center;color:#fff" data-i18n="stamps.profilePickTitle">Profile stamps</h2>
-    <p class="stamp-profile-lead" data-i18n="stamps.profilePickLead">Tap stamps to add or remove them from your profile (max 6).</p>
-    <p class="stamp-profile-count" id="stamp-profile-count">0 / 6</p>
+    <h2 style="margin:0;text-align:center;color:#fff" data-i18n="stamps.profilePickTitle">Favorite stamps</h2>
+    <p class="stamp-profile-lead" data-i18n="stamps.profilePickLead">Tap stamps to add or remove them (max 20). Used in the ★ Favorites tab during PvP.</p>
+    <p class="stamp-profile-count" id="stamp-profile-count">0 / 20</p>
     <div class="stamp-picker-tabs" id="stamp-profile-tabs">
       <button type="button" class="stamp-picker-tab active" data-tab="ja" data-i18n="stamps.tabJa">日本語</button>
       <button type="button" class="stamp-picker-tab" data-tab="en" data-i18n="stamps.tabEn">English</button>
@@ -7269,14 +7266,14 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=20"></script>
+<script src="i18n.js?v=21"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=6"></script>
 <script src="client/js/state-apply.js?v=9"></script>
-<script src="client/js/stamps.js?v=4"></script>
+<script src="client/js/stamps.js?v=5"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=10"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
@@ -9109,6 +9106,10 @@ function leaveLobbyToMenu() {
 function openOptionsScreen() {
   el('options-err').textContent = '';
   syncFoilFxSetting();
+  if (window.TCG_STAMPS?.applyFavorites && A.profile?.stamp_favorites) {
+    window.TCG_STAMPS.applyFavorites(A.profile.stamp_favorites);
+  }
+  if (window.TCG_STAMPS?.renderOptionsStampPreview) window.TCG_STAMPS.renderOptionsStampPreview();
   const leaveBtn = el('btn-leave-active-game');
   if (leaveBtn) leaveBtn.hidden = true;
   showScr('options');
@@ -13126,9 +13127,6 @@ function renderLeaderboardRows(data) {
     const bannerWrap = document.createElement('div');
     bannerWrap.className = 'rank-banner-wrap' + (row.banner?.image ? '' : ' empty');
     applyRankBanner(bannerWrap, row.banner);
-    if (window.TCG_STAMPS?.renderLeaderboardStampProfile) {
-      window.TCG_STAMPS.renderLeaderboardStampProfile(bannerWrap, row.stamp_profile);
-    }
 
     const body = document.createElement('div');
     body.className = 'rank-card-body';
@@ -13482,10 +13480,6 @@ function loadBannerCropCard(cardNo) {
 async function openBannerCropModal() {
   el('banner-crop-err').textContent = '';
   await populateBannerCardPick(A.profile?.banner?.card_no || null);
-  if (window.TCG_STAMPS?.applyFavorites && A.profile?.stamp_favorites) {
-    window.TCG_STAMPS.applyFavorites(A.profile.stamp_favorites);
-  }
-  if (window.TCG_STAMPS?.renderProfileStampPick) window.TCG_STAMPS.renderProfileStampPick();
   bindBannerCropDrag();
   ensureBannerCropResizeObserver();
   loadBannerCropCard(bannerCropState.cardNo || null);

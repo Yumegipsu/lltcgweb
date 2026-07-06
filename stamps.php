@@ -3,6 +3,9 @@
  * LLSIF sticker helpers — manifest validation and profile favorites.
  */
 
+const TCG_STAMP_PROFILE_MAX = 20;
+const TCG_STAMP_MATCH_FAV_MAX = 24;
+
 function tcgStampManifestPath(): string {
     return __DIR__ . '/stamps_manifest.json';
 }
@@ -87,7 +90,7 @@ function tcgParseStampFavorites(?string $json): array {
             }
             $seen[$id] = true;
             $out[$key][] = $id;
-            $max = $key === 'profile' ? 6 : 24;
+            $max = $key === 'profile' ? TCG_STAMP_PROFILE_MAX : TCG_STAMP_MATCH_FAV_MAX;
             if (count($out[$key]) >= $max) {
                 break;
             }

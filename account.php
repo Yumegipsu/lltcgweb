@@ -128,7 +128,6 @@ function tcgApiMe(array $body): array {
         'rank' => tcgFormatRankSummary($rank),
         'banner' => tcgFormatUserBanner($user, $cards),
         'stamp_favorites' => tcgFormatStampFavorites($user['stamp_favorites'] ?? null),
-        'stamp_profile' => tcgFormatStampProfilePublic($user['stamp_favorites'] ?? null),
         'equipped_deck_slot' => ($equippedLoadout === 'preset') ? intval($equipped['slot']) : null,
         'equipped_deck_name' => $equipped ? tcgNormalizeDeckPresetName($equipped['name'] ?? '') : null,
         'equipped_loadout' => $equippedLoadout,
@@ -792,7 +791,7 @@ function tcgApiStampFavoritesSet(array $body): array {
     $favorites = [
         'ja' => tcgSanitizeStampIdList($raw['ja'] ?? [], 'ja', 24),
         'en' => tcgSanitizeStampIdList($raw['en'] ?? [], 'en', 24),
-        'profile' => tcgSanitizeStampIdList($raw['profile'] ?? [], 'profile', 6),
+        'profile' => tcgSanitizeStampIdList($raw['profile'] ?? [], 'profile', TCG_STAMP_PROFILE_MAX),
     ];
     $db = tcgDb();
     $now = time();
@@ -802,7 +801,6 @@ function tcgApiStampFavoritesSet(array $body): array {
     return [
         'success' => true,
         'stamp_favorites' => $favorites,
-        'stamp_profile' => tcgFormatStampProfilePublic($encoded),
     ];
 }
 
@@ -872,7 +870,6 @@ function tcgApiRankStats(array $body): array {
             'win_rate' => $summary['win_rate'],
             'loss_rate' => $summary['loss_rate'],
             'banner' => tcgFormatUserBanner($row, $cards),
-            'stamp_profile' => tcgFormatStampProfilePublic($row['stamp_favorites'] ?? null),
             'is_you' => $row['discord_id'] === $uid,
         ];
     }
@@ -884,7 +881,6 @@ function tcgApiRankStats(array $body): array {
                 'username' => $user['username'] ?? $profile['username'] ?? 'Player',
                 'avatar_url' => $user['avatar_url'] ?? $profile['avatar_url'] ?? null,
                 'banner' => tcgFormatUserBanner($user, $cards),
-                'stamp_profile' => tcgFormatStampProfilePublic($user['stamp_favorites'] ?? null),
             ]
         ),
         'leaderboard' => $leaderboard,

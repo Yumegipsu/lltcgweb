@@ -1,5 +1,5 @@
 /**
- * LLSIF-style match stamps — PvP picker, playback, favorites, profile display.
+ * LLSIF-style match stamps — PvP picker, playback, favorites, profile settings.
  */
 (function (global) {
   'use strict';
@@ -9,7 +9,7 @@
   const LS_AUDIO = 'tcg_stamp_audio_enabled';
   const LS_FAV = 'tcg_stamp_favorites_cache';
   const COOLDOWN_MS = 2100;
-  const PROFILE_MAX = 6;
+  const PROFILE_MAX = 20;
 
   const state = {
     manifest: null,
@@ -169,12 +169,21 @@
     } catch (e) {}
   }
 
+  function normalizeProfileList(fav) {
+    let profile = Array.isArray(fav?.profile) ? fav.profile.slice() : [];
+    if (!profile.length) {
+      const legacy = [...(fav?.ja || []), ...(fav?.en || [])];
+      profile = [...new Set(legacy.map((id) => String(id).trim()).filter(Boolean))];
+    }
+    return profile.slice(0, PROFILE_MAX);
+  }
+
   function applyFavorites(fav) {
     if (!fav || typeof fav !== 'object') return;
     state.favorites = {
       ja: Array.isArray(fav.ja) ? fav.ja.slice() : [],
       en: Array.isArray(fav.en) ? fav.en.slice() : [],
-      profile: Array.isArray(fav.profile) ? fav.profile.slice(0, PROFILE_MAX) : [],
+      profile: normalizeProfileList(fav),
     };
     writeLocalFavorites(state.favorites);
   }
@@ -186,21 +195,6 @@
       const local = readLocalFavorites();
       if (local) applyFavorites(local);
     }
-  }
-
-  function stampProfilePublicFromIds() {
-    const map = buildStampMap();
-    return (state.favorites.profile || []).map((id) => {
-      const stamp = map[id];
-      if (!stamp) return null;
-      const locale = stampLocaleFor(id);
-      return {
-        id,
-        locale,
-        image: assetUrl(stamp.image),
-        label: stamp.label || '',
-      };
-    }).filter(Boolean);
   }
 
   let voiceAudio = null;
@@ -280,35 +274,30 @@
     btn.disabled = global.G?.isSpectator || !show;
   }
 
-  function isFavorite(id, tab) {
-    const list = state.favorites[tab] || [];
-    return list.includes(id);
-  }
-
-  function toggleFavorite(id, tab) {
-    const list = state.favorites[tab] || (state.favorites[tab] = []);
-    const idx = list.indexOf(id);
-    if (idx >= 0) list.splice(idx, 1);
-    else list.push(id);
-    writeLocalFavorites(state.favorites);
-    void saveFavoritesRemote();
-    renderPickerGrid();
+  function isProfileFavorite(id) {
+    return (state.favorites.profile || []).includes(id);
   }
 
   function toggleProfileFavorite(id) {
     const list = state.favorites.profile || (state.favorites.profile = []);
     const idx = list.indexOf(id);
-    if (idx >= 0) list.splice(idx, 1);
-    else {
-      if (list.length >= PROFILE_MAX) list.shift();
+    if (idx >= 0) {
+      list.splice(idx, 1);
+    } else {
+      if (list.length >= PROFILE_MAX) {
+        if (typeof global.toast === 'function') {
+          global.toast(t('stamps.profileFull', { max: PROFILE_MAX }), 2400);
+        }
+        return;
+      }
       list.push(id);
     }
     writeLocalFavorites(state.favorites);
     void saveFavoritesRemote();
     renderProfileEditorGrid();
     updateProfileEditorCount();
-    renderProfileStampPick();
-    syncProfileStampPreview();
+    renderOptionsStampPreview();
+    renderPickerGrid();
   }
 
   async function saveFavoritesRemote() {
@@ -318,9 +307,7 @@
       if (res?.stamp_favorites) applyFavorites(res.stamp_favorites);
       if (global.A?.profile) {
         global.A.profile.stamp_favorites = state.favorites;
-        global.A.profile.stamp_profile = res?.stamp_profile || global.A.profile.stamp_profile;
       }
-      refreshMyLeaderboardStamps(res?.stamp_profile || stampProfilePublicFromIds());
     } catch (e) {
       /* keep local cache */
     }
@@ -329,9 +316,17 @@
   function stampsForTab(tab) {
     const loc = state.localeTab === 'en' ? 'en' : 'ja';
     if (tab === 'favorites') {
-      const fav = new Set(state.favorites[loc] || []);
-      const src = state.manifest?.locales?.[loc] || [];
-      return src.filter((row) => fav.has(row.id));
+      const fav = new Set(state.favorites.profile || []);
+      const seen = new Set();
+      const rows = [];
+      ['ja', 'en'].forEach((bucket) => {
+        (state.manifest?.locales?.[bucket] || []).forEach((row) => {
+          if (!fav.has(row.id) || seen.has(row.id)) return;
+          seen.add(row.id);
+          rows.push(row);
+        });
+      });
+      return rows;
     }
     return state.manifest?.locales?.[tab] || [];
   }
@@ -363,16 +358,16 @@
       btn.appendChild(img);
       if (state.pickerTab !== 'favorites') {
         const star = document.createElement('span');
-        star.className = 'stamp-picker-star' + (isFavorite(stamp.id, loc) ? ' is-on' : '');
+        star.className = 'stamp-picker-star' + (isProfileFavorite(stamp.id) ? ' is-on' : '');
         star.textContent = '☆';
         star.addEventListener('click', (e) => {
           e.stopPropagation();
-          toggleFavorite(stamp.id, loc);
+          toggleProfileFavorite(stamp.id);
         });
         btn.appendChild(star);
       }
       btn.addEventListener('click', () => {
-        void sendStamp(stamp.id, loc);
+        void sendStamp(stamp.id, stampLocaleFor(stamp.id, loc));
       });
       grid.appendChild(btn);
     });
@@ -434,7 +429,7 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'stamp-picker-tile';
-      const on = (state.favorites.profile || []).includes(stamp.id);
+      const on = isProfileFavorite(stamp.id);
       btn.classList.toggle('is-profile-pick', on);
       btn.title = stamp.label || stamp.id;
       const img = document.createElement('img');
@@ -471,9 +466,7 @@
     state.profileEditorOpen = false;
     if (typeof global.closeM === 'function') global.closeM('modal-stamp-profile');
     else el('modal-stamp-profile')?.classList.remove('open');
-    renderProfileStampPick();
-    syncProfileStampPreview();
-    refreshMyLeaderboardStamps(global.A?.profile?.stamp_profile || stampProfilePublicFromIds());
+    renderOptionsStampPreview();
   }
 
   async function sendStamp(stampId, locale) {
@@ -504,85 +497,32 @@
     }
   }
 
-  function renderProfileStampPick() {
-    const grid = el('banner-stamp-grid');
-    const hint = el('banner-stamp-hint');
+  function renderOptionsStampPreview() {
+    const grid = el('options-stamp-grid');
+    const hint = el('options-stamp-hint');
     if (!grid) return;
     void loadManifest().then(() => {
       grid.replaceChildren();
       const ids = state.favorites.profile || [];
       const map = buildStampMap();
-      for (let i = 0; i < PROFILE_MAX; i += 1) {
-        const slot = document.createElement('div');
-        slot.className = 'banner-stamp-slot';
-        const id = ids[i];
-        const stamp = id ? map[id] : null;
-        if (stamp) {
-          slot.classList.add('is-filled');
-          const img = document.createElement('img');
-          img.src = assetUrl(stamp.image);
-          img.alt = stamp.label || '';
-          slot.appendChild(img);
-        }
-        grid.appendChild(slot);
-      }
+      ids.forEach((id) => {
+        const stamp = map[id];
+        if (!stamp) return;
+        const tile = document.createElement('div');
+        tile.className = 'options-stamp-slot';
+        const img = document.createElement('img');
+        img.src = assetUrl(stamp.image);
+        img.alt = stamp.label || '';
+        img.title = stamp.label || id;
+        tile.appendChild(img);
+        grid.appendChild(tile);
+      });
       if (hint) {
-        hint.textContent = ids.length
-          ? t('stamps.profileHint')
-          : t('stamps.profileHintEmpty');
+        const key = ids.length ? 'stamps.profileHint' : 'stamps.profileHintEmpty';
+        hint.textContent = t(key);
+        hint.setAttribute('data-i18n', key);
       }
-      syncProfileStampPreview();
     });
-  }
-
-  function syncProfileStampPreview(profile) {
-    const preview = el('banner-crop-preview');
-    if (!preview) return;
-    const prof = profile || global.A?.profile?.stamp_profile || stampProfilePublicFromIds();
-    renderLeaderboardStampProfile(preview, prof?.length ? prof : null);
-  }
-
-  function refreshMyLeaderboardStamps(stampProfile) {
-    const prof = stampProfile?.length ? stampProfile : null;
-    const data = global.A?.lastLeaderboardData;
-    if (data?.leaderboard) {
-      const row = data.leaderboard.find((r) => r.is_you);
-      if (row) {
-        row.stamp_profile = prof;
-        document.querySelectorAll('.rank-card.is-you .rank-banner-wrap').forEach((bannerWrap) => {
-          renderLeaderboardStampProfile(bannerWrap, prof);
-        });
-      }
-    }
-    syncProfileStampPreview(prof);
-  }
-
-  function renderLeaderboardStampProfile(container, profile) {
-    if (!container) return;
-    let row = container.querySelector('.rank-stamp-profile');
-    if (!profile?.length) {
-      row?.remove();
-      return;
-    }
-    if (!row) {
-      row = document.createElement('div');
-      row.className = 'rank-stamp-profile';
-      container.appendChild(row);
-    }
-    row.replaceChildren();
-    profile.forEach((st) => {
-      const img = document.createElement('img');
-      img.className = 'rank-stamp-profile-img';
-      img.src = st.image || assetUrl(stampLookupImage(st));
-      img.alt = st.label || '';
-      img.title = st.label || '';
-      row.appendChild(img);
-    });
-  }
-
-  function stampLookupImage(st) {
-    const row = findStamp(st.id, st.locale);
-    return row?.image || '';
   }
 
   function bindUi() {
@@ -595,7 +535,7 @@
       else openPicker();
     });
     el('btn-stamp-picker-close')?.addEventListener('click', () => closePicker());
-    el('btn-banner-stamps-edit')?.addEventListener('click', (e) => {
+    el('btn-options-stamps-edit')?.addEventListener('click', (e) => {
       e.stopPropagation();
       openProfileEditor();
     });
@@ -613,7 +553,7 @@
     document.addEventListener('click', (e) => {
       const pop = el('stamp-picker');
       const btn = el('btn-stamp');
-      const editBtn = el('btn-banner-stamps-edit');
+      const editBtn = el('btn-options-stamps-edit');
       if (!state.pickerOpen || !pop) return;
       if (pop.contains(e.target) || btn?.contains(e.target) || editBtn?.contains(e.target)) return;
       closePicker();
@@ -634,7 +574,7 @@
     bindUi();
     mergeProfileFromAccount();
     void loadManifest().then(() => {
-      renderProfileStampPick();
+      renderOptionsStampPreview();
     });
   }
 
@@ -650,8 +590,7 @@
     isStampMatch,
     isDebugStampsEnabled,
     applyFavorites,
-    renderProfileStampPick,
-    renderLeaderboardStampProfile,
+    renderOptionsStampPreview,
     stampAudioEnabled,
     setStampAudioEnabled,
     loadManifest,
