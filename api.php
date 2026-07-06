@@ -1642,7 +1642,7 @@ function continuePerformanceYellPhase(array $state, string $justPlayed): array {
     return finishYellRetryAndHearts($state);
 }
 
-/** After reveal, send Member bluffs from Live storage to the Waiting Room and draw replacements. */
+/** After reveal, send Member bluffs from Live storage to the Waiting Room (no extra draws — replacements were taken during LIVE placement). */
 function discardLiveZoneMembersToWaitingRoom(array $state, string $pid): array {
     $p = &$state['players'][$pid];
     $remaining = [];
@@ -1668,30 +1668,9 @@ function discardLiveZoneMembersToWaitingRoom(array $state, string $pid): array {
     $p['live_zone'] = $remaining;
     $p['waiting_room'] = array_merge($p['waiting_room'] ?? [], $discarded);
     unset($p);
-
-    $drawAnims = [];
-    foreach ($discarded as $_) {
-        $drawn = drawMainDeckCards($state, $pid, 1);
-        if (empty($drawn)) {
-            continue;
-        }
-        $p = &$state['players'][$pid];
-        $p['hand'] = array_merge($p['hand'] ?? [], $drawn);
-        $iid = $drawn[0]['instance_id'] ?? '';
-        if ($iid !== '') {
-            $drawAnims[] = animSpec($iid, 'main_deck', 'hand', $pid, [
-                'index' => count($p['hand']) - 1,
-            ]);
-        }
-        unset($p);
-    }
-
-    $msg = $state['players'][$pid]['name'] .
-        ' — ' . count($discarded) . ' non-Live card(s) from storage sent to Waiting Room.';
-    if (!empty($drawAnims)) {
-        $msg .= ' Drew ' . count($drawAnims) . ' replacement card(s).';
-    }
-    return addLog($state, $msg, null, array_merge($discardAnims, $drawAnims));
+    return addLog($state, $state['players'][$pid]['name'] .
+        ' — ' . count($discarded) . ' non-Live card(s) from storage sent to Waiting Room.',
+        null, $discardAnims);
 }
 
 /** Run one player's Performance: reveal storage, Yell draw, heart check, success/fail. */
