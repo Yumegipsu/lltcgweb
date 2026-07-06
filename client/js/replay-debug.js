@@ -24,8 +24,17 @@
     return null;
   };
 
+  /** End-of-match save (library when signed in, JSON otherwise). */
   global.replaySaveEnabled = function replaySaveEnabled() {
     return !!global.getReplayExportCredentials() && !global.G?.isTutorial && !global.G?.replayMode;
+  };
+
+  /** In-game ?debug steppable export (action log + seekbar replay menu). */
+  global.debugReplaySaveEnabled = function debugReplaySaveEnabled() {
+    return global.debugCardTestEnabled()
+      && !!global.getReplayExportCredentials()
+      && !global.G?.isTutorial
+      && !global.G?.replayMode;
   };
 
   global.downloadJsonFile = function downloadJsonFile(filename, data) {
@@ -38,6 +47,36 @@
     URL.revokeObjectURL(url);
   };
 
+  /** Steppable debug replay JSON — import via Debug Replay menu (replay_start). */
+  global.saveDebugSteppableReplay = async function saveDebugSteppableReplay() {
+    if (!global.debugCardTestEnabled()) {
+      global.toast('Add ?debug to the URL.');
+      return;
+    }
+    const creds = global.getReplayExportCredentials();
+    if (!creds) {
+      global.toast(t('replay.noCredentials'));
+      return;
+    }
+    try {
+      const r = await global.apiPost('replay_export', {
+        room_id: creds.roomId,
+        token: creds.token,
+        debug_mode: true,
+      });
+      if (r.error) throw new Error(r.error);
+      const replay = r.replay;
+      if (!replay) throw new Error('No replay payload');
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const room = replay.meta?.room_id || creds.roomId || 'room';
+      global.downloadJsonFile(`tcg-replay-${room}-${stamp}.json`, replay);
+      global.toast(t('replay.downloadedAsJson'), 2400);
+    } catch (e) {
+      global.toast(e.message || t('replay.couldNotSave'), 4200);
+    }
+  };
+
+  /** End-of-match replay — account library (realtime) or JSON download. */
   global.saveReplayFile = async function saveReplayFile() {
     if (!global.replaySaveEnabled()) {
       global.toast(t('replay.saveAfterFinish'));

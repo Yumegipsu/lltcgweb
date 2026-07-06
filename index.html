@@ -7105,8 +7105,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=5"></script>
-<script src="client/js/state-apply.js?v=6"></script>
-<script src="client/js/replay-debug.js?v=4"></script>
+<script src="client/js/state-apply.js?v=7"></script>
+<script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=10"></script>
 <script src="client/js/tutorial-interactive.js?v=6"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
@@ -11405,7 +11405,7 @@ function syncWinDebugTools(s) {
   row.setAttribute('aria-hidden', on ? 'false' : 'true');
   if (!on) return;
   const replayBtn = el('btn-win-debug-save-replay');
-  if (replayBtn) replayBtn.hidden = !replaySaveEnabled();
+  if (replayBtn) replayBtn.hidden = !debugReplaySaveEnabled();
   const bundleBtn = el('btn-win-debug-save-bundle');
   if (bundleBtn) bundleBtn.hidden = false;
   if (typeof applyI18n === 'function') applyI18n(row);
@@ -15333,7 +15333,7 @@ window.G = G;
   on('btn-replay-library-refresh', 'click', refreshReplayLibrary);
   on('inp-replay-file', 'change', (e) => onReplayFileSelected(e.target.files?.[0] || null));
   on('btn-debug-replay-start', 'click', startDebugReplayFromFile);
-  on('btn-debug-save-replay', 'click', saveReplayFile);
+  on('btn-debug-save-replay', 'click', saveDebugSteppableReplay);
   on('btn-replay-first', 'click', () => replayGotoStep(0));
   on('btn-replay-prev', 'click', () => replayGotoStep(Math.max(0, G.replayStep - 1)));
   on('btn-replay-next', 'click', () => replayGotoStep(Math.min(G.replayTotal, G.replayStep + 1)));
@@ -15887,7 +15887,7 @@ window.G = G;
   }
   on('btn-debug-save-log', 'click', onDebugSaveLogClick);
   on('btn-debug-copy-log', 'click', onDebugCopyLogClick);
-  on('btn-win-debug-save-replay', 'click', saveReplayFile);
+  on('btn-win-debug-save-replay', 'click', saveDebugSteppableReplay);
   on('btn-win-save-replay', 'click', saveReplayFile);
   on('btn-win-debug-save-log', 'click', onDebugSaveLogClick);
   on('btn-win-debug-copy-log', 'click', onDebugCopyLogClick);
@@ -20046,6 +20046,7 @@ async function playEmptySkipTurnPrepSequence(prev, final, newEntries, myId) {
     }
   } finally {
     clearHandArrivingFlags();
+    G._liveStorageOutcomePending = false;
   }
 }
 
@@ -20343,13 +20344,15 @@ function armWatchdog(s) {
       && live?.phase === 'live_set'
       && !live?.live_ready?.[cpuId]
       && live?.pending_prompt?.responder !== cpuId;
-    if ((stuckOnCpuTurn || stuckOnCpuLive) && !G.animating && !G._perfSpectacleActive && !G._liveSpectacleGateRunning) {
+    const cpuPresentationBlocked = !!(G.animating || G._livePollHold || G._perfSpectacleActive
+      || G._liveSpectacleGateRunning || G._liveRoundPlaybackActive);
+    if ((stuckOnCpuTurn || stuckOnCpuLive) && !cpuPresentationBlocked) {
       TCG_DEBUG.warn('cpu', stuckOnCpuLive ? 'watchdog nudge (cpu live)' : 'watchdog nudge (cpu main)', sig);
       doCPU(live);
     }
     const cpuPromptStuck = live?.pending_prompt?.responder === cpuId
       || G._deferredPromptState?.pending_prompt?.responder === cpuId;
-    if (cpuPromptStuck && (G.animating || G._livePollHold || G._perfSpectacleActive || G._liveSpectacleGateRunning)) {
+    if (cpuPromptStuck && cpuPresentationBlocked) {
       if (G.watchdogStuckCount >= 2) {
         TCG_DEBUG.warn('cpu', 'watchdog release presentation for cpu prompt', sig);
         releaseStuckPresentation();
@@ -24819,7 +24822,8 @@ function scheduleCpuContinueAfterAct(type, tries = 0) {
     }
   }
   const setupAct = CPU_SETUP_ACTION_TYPES.has(type);
-  if (!setupAct && (G._liveSpectacleGateRunning || (G.animating && tries < 12))) {
+  if (!setupAct && (G._liveSpectacleGateRunning || G._liveRoundPlaybackActive
+      || (G.animating && tries < 12))) {
     cpuSchedule(() => scheduleCpuContinueAfterAct(type, tries + 1), 280);
     return;
   }
@@ -26576,9 +26580,21 @@ function livePlaybackBlocksMainPhaseUi(s, prev) {
   if (ph !== 'main_first' && ph !== 'main_second' && ph !== 'active_first' && ph !== 'active_second') {
     return false;
   }
+  const showTurn = primaryLiveShowTurn(prev, s);
+  if (showTurn != null && emptyLiveRoundAlreadyPresented(showTurn)) return false;
   if (liveRoundRequiresSpectacle(prev, s)) return true;
   if (detectPendingLiveSpectacleTurn(prev, s) != null) return true;
   return false;
+}
+
+function nudgeCpuAfterStatePresentation(s) {
+  if (!G.isCPU || G.animating || G._perfSpectacleActive || G._liveSpectacleGateRunning) return;
+  if (G.tutorialLive && G.tutorialHoldCpu) return;
+  ensurePollHoldReleased(s || G.gameState);
+  const live = s || G.gameState;
+  if (!live) return;
+  doCPU(live);
+  armWatchdog(live);
 }
 
 /**
@@ -26885,6 +26901,7 @@ function detectPendingLiveSpectacleTurn(prev, next) {
   if (isEmptyLiveSkipTransition(prev, next)) return null;
 
   const showTurn = inferLiveShowTurn(prev, next);
+  if (showTurn != null && emptyLiveRoundAlreadyPresented(showTurn)) return null;
   const slice = newLogEntries(prev, next);
 
   // Match done-key turn (state.turn during live_set) — not log --- Turn N --- markers,
@@ -27270,6 +27287,10 @@ function markEmptyLiveRoundPresented(prev, next, turn = null) {
   if (!G._emptyLiveRoundPresentedTurns) G._emptyLiveRoundPresentedTurns = new Set();
   G._emptyLiveRoundPresentedTurns.add(t);
   G._liveSetStorageBaseline = null;
+  // Empty LIVE skips performance — mark done so later main_second polls do not re-enter spectacle.
+  if (!G._perfSpectacleDoneTurns) G._perfSpectacleDoneTurns = new Set();
+  G._perfSpectacleDoneTurns.add(t);
+  savePerfSpectacleDoneKey(buildPerfSpectaclePrev(prev, next) || prev, next, t);
 }
 
 function isEmptyLiveSkipTransition(prev, next) {
@@ -28834,6 +28855,7 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
 
   flushPostLiveLogBanners(prev, G.gameState || next, myId, { emptySkip });
   ensureLiveRoundStateCommitted(prev, G.gameState || next, myId);
+  if (emptySkip) nudgeCpuAfterStatePresentation(G.gameState || next);
   TCG_DEBUG.log('live', 'presentLiveRound done', { reveal: needsLiveReveal, spectacle: spectacleRan, empty: emptySkip });
   return { reveal: needsLiveReveal, spectacle: spectacleRan, empty: emptySkip };
 }

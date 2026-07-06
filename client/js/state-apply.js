@@ -321,6 +321,7 @@
               clearEmptyLiveRoundPerfState();
               await playEmptySkipTurnPrepSequence(prev, s, newEntries, G.playerId);
               emptyRoundHandled = true;
+              nudgeCpuAfterStatePresentation(s);
             } finally {
               G.animating = false;
             }
