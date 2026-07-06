@@ -284,11 +284,11 @@
 
   async function boot() {
     if (G()._tutorialBooting) return;
-    G()._tutorialBooting = true;
     try {
       if (typeof global.closeApiErrorPopup === 'function') global.closeApiErrorPopup();
       if (typeof global.dismissAllGameplayOverlays === 'function') global.dismissAllGameplayOverlays();
       if (typeof global.resetMatchTransientState === 'function') global.resetMatchTransientState();
+      G()._tutorialBooting = true;
       const bootEpoch = G()._gameSessionEpoch;
       const g = G();
       if (typeof global.loadTutorialJa === 'function') await global.loadTutorialJa();
