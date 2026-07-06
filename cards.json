@@ -43624,12 +43624,13 @@
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-sd1-017-PR.png",
             "abilities": [
                 {
-                    "trigger": "on_enter",
+                    "trigger": "activated",
                     "type": "discard_add_from_wr",
                     "discard": 2,
                     "group": "Nijigasaki",
                     "filter": "member",
-                    "count": 1
+                    "count": 1,
+                    "once_per_turn": true
                 }
             ],
             "subunit": "DiverDiva",
@@ -43666,12 +43667,13 @@
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/NSD01/PL!N-sd1-005-SD.png",
             "abilities": [
                 {
-                    "trigger": "on_enter",
+                    "trigger": "activated",
                     "type": "discard_add_from_wr",
                     "discard": 2,
                     "group": "Nijigasaki",
                     "filter": "member",
-                    "count": 1
+                    "count": 1,
+                    "once_per_turn": true
                 }
             ],
             "subunit": "DiverDiva",

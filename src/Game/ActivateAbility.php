@@ -880,6 +880,26 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             markAbilityUsed($member, $abilityIdx);
             persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
         }
+    } elseif (($ab['type'] ?? '') === 'discard_add_from_wr') {
+        $need = intval($ab['discard'] ?? 2);
+        if (count($p['hand'] ?? []) < $need) {
+            throw new Exception("Need at least $need card(s) in hand");
+        }
+        $cfg = wrPickCfgFromAbility($ab);
+        if (wrPickMatchCount($p, $cfg, max(1, intval($ab['count'] ?? 1))) < 1) {
+            return fizzleActivatedAbilityNoWr($state, $pid, $member, 'no matching card in Waiting Room.');
+        }
+        if ($zone === 'stage' && $slot !== null) {
+            $p['stage'][$slot] = $member;
+        }
+        $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
+        $state = startEffectDiscardHandPrompt($state, $pid, $mName, $need, '', [
+            'source_id'     => $member['instance_id'] ?? '',
+            'source_slot'   => $slot ?? '',
+            'ability_index' => $abilityIdx,
+            'ability'       => $ab,
+        ]);
+        return $state;
     } elseif (plMuseGapIsEffectType($ab['type'] ?? '')) {
         if (($ab['type'] ?? '') === 'activated_wait_opp_reduce_cost_per_group') {
             $baseEnergy = intval($ab['energy_cost'] ?? 4);

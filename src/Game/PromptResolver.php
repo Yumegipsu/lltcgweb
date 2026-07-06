@@ -218,6 +218,37 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             }
             unset($mbr);
         }
+        if (($prompt['ability']['type'] ?? '') === 'discard_add_from_wr') {
+            $ab = $prompt['ability'] ?? [];
+            $srcId = (string)($prompt['source_id'] ?? '');
+            $abIdx = intval($prompt['ability_index'] ?? 0);
+            $slot = (string)($prompt['source_slot'] ?? 'center');
+            $member = null;
+            foreach ($ownerP['stage'] as $s => &$mbr) {
+                if ($mbr && ($mbr['instance_id'] ?? '') === $srcId) {
+                    $member = &$mbr;
+                    $slot = (string)$s;
+                    break;
+                }
+            }
+            unset($mbr);
+            if ($member) {
+                startPickWrToHandPrompt(
+                    $state,
+                    $owner,
+                    $member,
+                    $slot,
+                    $abIdx,
+                    $ab,
+                    wrPickCfgFromAbility($ab),
+                    false,
+                    max(1, intval($ab['count'] ?? 1))
+                );
+                $state['seq']++;
+                return $state;
+            }
+            return finishPromptEffects($state);
+        }
         $then = $prompt['then'] ?? null;
         if ($then) {
             $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '') ?? [

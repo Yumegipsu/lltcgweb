@@ -14943,6 +14943,14 @@ function abilityWrBlockReason(cpu, ab) {
       }
       return wr.some(c => c.card_type === 'ライブ' && countRequiredHearts(c) >= (ab.min_required_hearts || 3))
         ? null : 'No matching Live card in Waiting Room.';
+    case 'discard_add_from_wr':
+      return wrPickMatchCountClient(cpu, {
+        group: ab.group || '',
+        filter: ab.filter || 'member',
+      }, ab.count || 1) >= (ab.count || 1)
+        ? null : (ab.filter === 'live'
+          ? 'No matching Live card in Waiting Room.'
+          : 'No matching card in Waiting Room.');
     case 'discard_cost_add_live_subunit':
     case 'wait_self_discard_add_wr_live':
     case 'activated_pay_discard_add_wr_live':
@@ -34963,6 +34971,7 @@ function getAbilityActivationNeeds(ability, s, myId){
     return {discard:Math.max(0,base-red), hearts:null};
   }
   const map={
+    discard_add_from_wr:ability.discard??2,
     discard_hand_add_live_from_wr:ability.discard??2,
     activated_discard_add_wr_scored_live:ability.discard??2,
     activated_pay_discard_add_wr_live:ability.discard??1,
