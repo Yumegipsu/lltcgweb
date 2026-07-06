@@ -5,6 +5,7 @@
   'use strict';
 
   const MANIFEST_URL = 'stamps_manifest.json?v=2';
+  const I18N_URL = 'stamps_i18n.json?v=1';
   const ASSET_BASE = 'assets/stamps/';
   const LS_AUDIO = 'tcg_stamp_audio_enabled';
   const LS_FAV = 'tcg_stamp_favorites_cache';
@@ -13,6 +14,7 @@
 
   const state = {
     manifest: null,
+    labelI18n: null,
     byId: { ja: {}, en: {} },
     favorites: { ja: [], en: [], profile: [] },
     lastSeen: { p1: 0, p2: 0 },
@@ -129,7 +131,39 @@
     return map;
   }
 
+  function uiLocale() {
+    const loc = global.LLTCG_I18N?.getLocale?.();
+    return loc === 'ja' || loc === 'es' ? loc : 'en';
+  }
+
+  function stampDisplayLabel(stampOrId, fallbackLabel) {
+    const id = typeof stampOrId === 'string' ? stampOrId : stampOrId?.id;
+    const fallback = fallbackLabel
+      ?? (typeof stampOrId === 'object' ? stampOrId?.label : '')
+      ?? '';
+    if (!id) return fallback;
+    const row = state.labelI18n?.[id];
+    if (!row) return fallback;
+    const loc = uiLocale();
+    const text = row[loc] || row.en || row.ja || fallback;
+    return text || fallback;
+  }
+
+  async function loadStampI18n() {
+    if (state.labelI18n) return state.labelI18n;
+    try {
+      const r = await fetch(I18N_URL, { cache: 'no-cache' });
+      if (!r.ok) throw new Error('Stamp i18n missing');
+      const data = await r.json();
+      state.labelI18n = data?.labels && typeof data.labels === 'object' ? data.labels : {};
+    } catch (e) {
+      state.labelI18n = {};
+    }
+    return state.labelI18n;
+  }
+
   async function loadManifest() {
+    await loadStampI18n();
     if (state.manifest) return state.manifest;
     if (state.loading) return state.loading;
     state.loading = fetch(MANIFEST_URL, { cache: 'no-cache' })
@@ -227,13 +261,13 @@
     const img = document.createElement('img');
     img.className = 'tcg-stamp-pop-img';
     img.src = assetUrl(stamp.image);
-    img.alt = stamp.label || '';
+    img.alt = stampDisplayLabel(stamp);
     img.draggable = false;
     wrap.appendChild(img);
-    if (stamp.label) {
+    if (stamp.label || stamp.id) {
       const lbl = document.createElement('div');
       lbl.className = 'tcg-stamp-pop-label';
-      lbl.textContent = stamp.label;
+      lbl.textContent = stampDisplayLabel(stamp);
       wrap.appendChild(lbl);
     }
     layer.replaceChildren(wrap);
@@ -351,7 +385,7 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'stamp-picker-tile';
-      btn.title = stamp.label || stamp.id;
+      btn.title = stampDisplayLabel(stamp) || stamp.id;
       const img = document.createElement('img');
       img.src = assetUrl(stamp.image);
       img.alt = '';
@@ -431,7 +465,7 @@
       btn.className = 'stamp-picker-tile';
       const on = isProfileFavorite(stamp.id);
       btn.classList.toggle('is-profile-pick', on);
-      btn.title = stamp.label || stamp.id;
+      btn.title = stampDisplayLabel(stamp) || stamp.id;
       const img = document.createElement('img');
       img.src = assetUrl(stamp.image);
       img.alt = '';
@@ -512,8 +546,8 @@
         tile.className = 'options-stamp-slot';
         const img = document.createElement('img');
         img.src = assetUrl(stamp.image);
-        img.alt = stamp.label || '';
-        img.title = stamp.label || id;
+        img.alt = stampDisplayLabel(stamp);
+        img.title = stampDisplayLabel(stamp);
         tile.appendChild(img);
         grid.appendChild(tile);
       });
@@ -593,8 +627,8 @@
     renderOptionsStampPreview,
     stampAudioEnabled,
     setStampAudioEnabled,
-    loadManifest,
-  };
+    stampDisplayLabel,
+    loadStampI18n,
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
