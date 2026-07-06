@@ -5,7 +5,7 @@
   'use strict';
 
   const MANIFEST_URL = 'stamps_manifest.json?v=3';
-  const I18N_URL = 'stamps_i18n.json?v=1';
+  const I18N_URL = 'stamps_i18n.json?v=2';
   const ASSET_BASE = 'assets/stamps/';
   const LS_AUDIO = 'tcg_stamp_audio_enabled';
   const LS_FAV = 'tcg_stamp_favorites_cache';

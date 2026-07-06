@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "labels": {
     "st_000_001": {
       "ja": "",
@@ -26,34 +26,34 @@
       "en": "",
       "es": ""
     },
-    "st_000_011": {
+    "st_000_010": {
       "ja": "ゴ〜ン",
-      "en": "Gone…",
+      "en": "Gong~",
       "es": "Se fue…"
     },
-    "st_000_013": {
+    "st_000_012": {
       "ja": "ぷにっ",
-      "en": "Boing!",
+      "en": "Squish",
       "es": "¡Boing!"
     },
-    "st_000_015": {
+    "st_000_014": {
       "ja": "ぷにっ",
-      "en": "Boing!",
+      "en": "Squish",
       "es": "¡Boing!"
     },
-    "st_000_017": {
+    "st_000_016": {
       "ja": "ぷにっ",
-      "en": "Boing!",
+      "en": "Squish",
       "es": "¡Boing!"
     },
-    "st_000_019": {
+    "st_000_018": {
       "ja": "ぷにっ",
-      "en": "Boing!",
+      "en": "Squish",
       "es": "¡Boing!"
     },
-    "st_000_021": {
+    "st_000_020": {
       "ja": "ぷにっ",
-      "en": "Boing!",
+      "en": "Squish",
       "es": "¡Boing!"
     },
     "st_001_001": {
@@ -63,22 +63,22 @@
     },
     "st_001_003": {
       "ja": "いい感じ♪",
-      "en": "Looking good♪",
+      "en": "Feelin' good♪",
       "es": "¡Se ve bien♪"
     },
     "st_001_005": {
       "ja": "ファイトだよ！",
-      "en": "You can do it!",
+      "en": "Give it your best!",
       "es": "¡Tú puedes!"
     },
     "st_002_001": {
       "ja": "みんな、お疲れさま！",
-      "en": "Good work, everyone!",
+      "en": "Great job everyone!",
       "es": "¡Buen trabajo a todos!"
     },
     "st_002_003": {
       "ja": "楽しいわ♪",
-      "en": "How fun♪",
+      "en": "This is fun♪",
       "es": "¡Qué divertido♪"
     },
     "st_002_005": {
@@ -88,52 +88,52 @@
     },
     "st_003_001": {
       "ja": "ちゅんちゅん♪",
-      "en": "Chirp chirp♪",
+      "en": "Chun Chun♪",
       "es": "¡Pío pío♪"
     },
     "st_003_003": {
       "ja": "大丈夫だよ！",
-      "en": "It'll be okay!",
+      "en": "It's okay!",
       "es": "¡Va a estar bien!"
     },
     "st_003_005": {
       "ja": "ちゅんちゅん♪",
-      "en": "Chirp chirp♪",
+      "en": "Chun Chun♪",
       "es": "¡Pío pío♪"
     },
     "st_004_001": {
       "ja": "ラブアローシュート！",
-      "en": "Love arrow shoot!",
-      "es": "¡Disparo de amor!"
+      "en": "Love Arrow SHOT!",
+      "es": "¡Love Arrow Shoot!"
     },
     "st_004_003": {
       "ja": "あなたに届け！",
-      "en": "Delivering it to you!",
+      "en": "This is for you!",
       "es": "¡Te lo entrego!"
     },
     "st_004_005": {
       "ja": "助太刀します！",
-      "en": "I'll back you up!",
+      "en": "I'm here to help!",
       "es": "¡Te cubro!"
     },
     "st_005_001": {
       "ja": "テンションあがるにゃー！",
-      "en": "I'm pumped, meow!",
+      "en": "I'm getting pumped!",
       "es": "¡Estoy con energía, miau!"
     },
     "st_005_003": {
       "ja": "ドキドキ♡",
-      "en": "Heart racing♡",
+      "en": "Thump Thump♡",
       "es": "Corazón acelerado♡"
     },
     "st_005_005": {
       "ja": "テンションあがるにゃー！",
-      "en": "I'm pumped, meow!",
+      "en": "I'm getting pumped!",
       "es": "¡Estoy con energía, miau!"
     },
     "st_006_001": {
       "ja": "意味わかんない！",
-      "en": "I don't get it!",
+      "en": "Whatever!",
       "es": "¡No lo entiendo!"
     },
     "st_006_003": {
@@ -143,7 +143,7 @@
     },
     "st_006_005": {
       "ja": "意味わかんない！",
-      "en": "I don't get it!",
+      "en": "Whatever!",
       "es": "¡No lo entiendo!"
     },
     "st_007_001": {
@@ -158,193 +158,183 @@
     },
     "st_007_005": {
       "ja": "希パワー注入♪",
-      "en": "Nozomi power injection♪",
+      "en": "Nozomi Power Injection!",
       "es": "¡Inyección de poder Nozomi♪"
     },
     "st_008_001": {
       "ja": "き、緊張してきました…",
-      "en": "I-I'm getting nervous…",
+      "en": "I'm getting nervous...",
       "es": "Me estoy poniendo nerviosa…"
     },
     "st_008_003": {
       "ja": "最高です！",
-      "en": "The best!",
+      "en": "This is the best!",
       "es": "¡Lo mejor!"
     },
     "st_008_005": {
       "ja": "ダレカタスケテー",
-      "en": "Somebody help me!",
+      "en": "Someone Save me...",
       "es": "¡Alguien ayúdame!"
     },
     "st_009_001": {
       "ja": "にっこにっこにー♪",
-      "en": "Smile-smile-smile♪",
+      "en": "Nico-Nico♪ Nii!",
       "es": "Sonrisa-sonrisa-sonrisa♪"
     },
     "st_009_003": {
       "ja": "ラブを届けますっ☆",
-      "en": "Delivering love☆",
+      "en": "Spreading the love☆",
       "es": "¡Entregando amor☆"
     },
     "st_009_005": {
       "ja": "にっこにっこにー♪",
-      "en": "Smile-smile-smile♪",
+      "en": "Nico-Nico♪ Nii!",
       "es": "Sonrisa-sonrisa-sonrisa♪"
     },
-    "st_101_001": {
-      "ja": "みんなの力をあわせよう！",
-      "en": "Let's combine our power!",
-      "es": "¡Unamos nuestras fuerzas!"
+    "st_101_002": {
+      "ja": "いけいけーっ！",
+      "en": "Go Go!",
+      "es": "¡Vamos!"
     },
-    "st_101_003": {
-      "ja": "さあ、はじめよう！",
-      "en": "Come on, let's begin!",
-      "es": "¡Vamos, empecemos!"
+    "st_101_004": {
+      "ja": "最高に最高の気分だよ♪",
+      "en": "Best feeling ever♪",
+      "es": "¡Me siento increíble♪"
     },
-    "st_101_005": {
-      "ja": "みんなの力をあわせよう！",
-      "en": "Let's combine our power!",
-      "es": "¡Unamos nuestras fuerzas!"
+    "st_101_006": {
+      "ja": "最高に最高の気分だよ♪",
+      "en": "Best feeling ever♪",
+      "es": "¡Me siento increíble♪"
     },
-    "st_102_001": {
-      "ja": "私…頑張ります！",
-      "en": "I'll… do my best!",
-      "es": "¡Haré… mi mejor esfuerzo!"
+    "st_102_002": {
+      "ja": "歌の力ってすごいんだね！",
+      "en": "The Song is Amazing!",
+      "es": "¡El poder de la canción es increíble!"
     },
-    "st_102_003": {
-      "ja": "想いよ、響け♪",
-      "en": "Let my feelings resound♪",
-      "es": "¡Que resuenen mis sentimientos♪"
+    "st_102_004": {
+      "ja": "嬉しい音が聞こえてくるの",
+      "en": "I can hear happy sounds",
+      "es": "Escucho sonidos felices"
     },
-    "st_102_005": {
-      "ja": "私…頑張ります！",
-      "en": "I'll… do my best!",
-      "es": "¡Haré… mi mejor esfuerzo!"
+    "st_102_006": {
+      "ja": "歌の力ってすごいんだね！",
+      "en": "The Song is Amazing!",
+      "es": "¡El poder de la canción es increíble!"
     },
-    "st_103_001": {
-      "ja": "ハグしよ♪",
-      "en": "Let's hug♪",
-      "es": "¡Abrazémonos♪"
+    "st_103_002": {
+      "ja": "サンキュ！",
+      "en": "Thanks!",
+      "es": "¡Gracias!"
     },
-    "st_103_003": {
+    "st_103_004": {
+      "ja": "ハグしたくなっちゃう♪",
+      "en": "I wanna give you a hug♪",
+      "es": "¡Quiero abrazarte♪"
+    },
+    "st_103_006": {
       "ja": "熱くなれそうだよ♪",
-      "en": "I'm getting fired up♪",
+      "en": "Getting fired up♪",
       "es": "¡Me estoy animando♪"
     },
-    "st_103_005": {
-      "ja": "ハグしよ♪",
-      "en": "Let's hug♪",
-      "es": "¡Abrazémonos♪"
-    },
-    "st_104_001": {
-      "ja": "お覚悟！",
-      "en": "Prepare yourself!",
-      "es": "¡Prepárate!"
-    },
-    "st_104_003": {
-      "ja": "舞い踊れ♪",
-      "en": "Dance away♪",
-      "es": "¡Baila♪"
-    },
-    "st_104_005": {
+    "st_104_002": {
       "ja": "当然ですわね",
-      "en": "Naturally!",
+      "en": "Not a Surprise",
       "es": "¡Por supuesto!"
     },
-    "st_105_001": {
-      "ja": "全速前進！",
-      "en": "Full speed ahead!",
-      "es": "¡A toda velocidad!"
+    "st_104_004": {
+      "ja": "やりましたわね！",
+      "en": "We did it!",
+      "es": "¡Lo logramos!"
     },
-    "st_105_003": {
+    "st_104_006": {
+      "ja": "やりましたわね！",
+      "en": "We did it!",
+      "es": "¡Lo logramos!"
+    },
+    "st_105_002": {
+      "ja": "ヨーソロー！",
+      "en": "Aye-Aye!",
+      "es": "¡Yousoro!"
+    },
+    "st_105_004": {
+      "ja": "すっごく嬉しい！",
+      "en": "So happy!",
+      "es": "¡Estoy tan feliz!"
+    },
+    "st_105_006": {
       "ja": "敬礼っ！",
       "en": "Salute!",
       "es": "¡Saludo!"
     },
-    "st_105_005": {
-      "ja": "ヨーソロー！",
-      "en": "Yousoro!",
-      "es": "¡Yousoro!"
+    "st_106_002": {
+      "ja": "おいで、リトルデーモン♪",
+      "en": "Come Little Demon",
+      "es": "Ven, pequeño demonio♪"
     },
-    "st_106_001": {
-      "ja": "一緒に堕ちましょう♪",
-      "en": "Let's fall together♪",
-      "es": "¡Caigamos juntos♪"
+    "st_106_004": {
+      "ja": "堕天降臨！",
+      "en": "The Fallen Angel Descends!",
+      "es": "¡Desciende el ángel caído!"
     },
-    "st_106_003": {
-      "ja": "栄光あれ！",
-      "en": "Glory be!",
-      "es": "¡Gloria!"
+    "st_106_006": {
+      "ja": "おいで、リトルデーモン♪",
+      "en": "Come Little Demon",
+      "es": "Ven, pequeño demonio♪"
     },
-    "st_106_005": {
-      "ja": "栄光あれ！",
-      "en": "Glory be!",
-      "es": "¡Gloria!"
+    "st_107_002": {
+      "ja": "どっこいしょー！",
+      "en": "Heave-Ho!",
+      "es": "¡Hora del esfuerzo!"
     },
-    "st_107_001": {
-      "ja": "オラにも出来る！",
-      "en": "I can do it too!",
-      "es": "¡Yo también puedo!"
+    "st_107_004": {
+      "ja": "最高の気分ずら♪",
+      "en": "Best feeling ever, zura♪",
+      "es": "¡El mejor humor, zura♪"
     },
-    "st_107_003": {
+    "st_107_006": {
       "ja": "未来ずら〜っ✨",
-      "en": "To the future, zura✨",
-      "es": "¡Hacia el futuro, zura✨"
+      "en": "It's the future, zura✨",
+      "es": "¡Es el futuro, zura✨"
     },
-    "st_107_005": {
-      "ja": "オラにも出来る！",
-      "en": "I can do it too!",
-      "es": "¡Yo también puedo!"
-    },
-    "st_108_001": {
-      "ja": "ハーイ♪",
-      "en": "Hii♪",
-      "es": "¡Hola♪"
-    },
-    "st_108_003": {
-      "ja": "ノープロブレム☆",
-      "en": "No problem☆",
-      "es": "Sin problema☆"
-    },
-    "st_108_005": {
+    "st_108_002": {
       "ja": "シャイニー☆",
       "en": "Shiny☆",
       "es": "Brillante☆"
     },
-    "st_109_001": {
-      "ja": "がんばルビィ！",
-      "en": "Go Ruby!",
-      "es": "¡Vamos Ruby!"
+    "st_108_004": {
+      "ja": "アイムハッピー♡",
+      "en": "I'm Happy♡",
+      "es": "Estoy feliz♡"
     },
-    "st_109_003": {
-      "ja": "きゅーんとしちゃう♡",
-      "en": "My heart skipped a beat♡",
-      "es": "Me derritió el corazón♡"
+    "st_108_006": {
+      "ja": "アイムハッピー♡",
+      "en": "I'm Happy♡",
+      "es": "Estoy feliz♡"
     },
-    "st_109_005": {
-      "ja": "がんばルビィ！",
-      "en": "Go Ruby!",
-      "es": "¡Vamos Ruby!"
+    "st_109_002": {
+      "ja": "ピギィッ",
+      "en": "Screeech",
+      "es": "¡Chiii!"
+    },
+    "st_109_004": {
+      "ja": "ルビィは幸せです♡",
+      "en": "Ruby is so happy♡",
+      "es": "Ruby está feliz♡"
+    },
+    "st_109_006": {
+      "ja": "ルビィは幸せです♡",
+      "en": "Ruby is so happy♡",
+      "es": "Ruby está feliz♡"
     },
     "st_112_001": {
       "ja": "精一杯の輝きを！",
-      "en": "Shine with all you've got!",
+      "en": "Shine your very best!",
       "es": "¡Brilla con todo lo que tienes!"
-    },
-    "st_113_001": {
-      "ja": "頼もしいですね♪",
-      "en": "How reliable♪",
-      "es": "¡Qué confiable♪"
     },
     "st_201_001": {
       "ja": "ありがとうございます♪",
-      "en": "Thank you very much♪",
+      "en": "Thank you so much♪",
       "es": "¡Muchas gracias♪"
-    },
-    "st_301_001": {
-      "ja": "ありがとう！",
-      "en": "Thank you!",
-      "es": "¡Gracias!"
     },
     "st_000_002": {
       "ja": "",
@@ -366,39 +356,39 @@
       "en": "",
       "es": ""
     },
-    "st_000_010": {
+    "st_000_011": {
       "ja": "ゴ〜ン",
-      "en": "Gone…",
+      "en": "Gong~",
       "es": "Se fue…"
     },
-    "st_000_012": {
+    "st_000_013": {
       "ja": "ぷにっ",
-      "en": "Boing!",
+      "en": "Squish",
       "es": "¡Boing!"
     },
-    "st_000_014": {
+    "st_000_015": {
       "ja": "ぷにっ",
-      "en": "Boing!",
+      "en": "Squish",
       "es": "¡Boing!"
     },
-    "st_000_016": {
+    "st_000_017": {
       "ja": "ぷにっ",
-      "en": "Boing!",
+      "en": "Squish",
       "es": "¡Boing!"
     },
-    "st_000_018": {
+    "st_000_019": {
       "ja": "ぷにっ",
-      "en": "Boing!",
+      "en": "Squish",
       "es": "¡Boing!"
     },
-    "st_000_020": {
+    "st_000_021": {
       "ja": "ぷにっ",
-      "en": "Boing!",
+      "en": "Squish",
       "es": "¡Boing!"
     },
     "st_001_002": {
       "ja": "ファイトだよ！",
-      "en": "You can do it!",
+      "en": "Give it your best!",
       "es": "¡Tú puedes!"
     },
     "st_001_004": {
@@ -428,22 +418,22 @@
     },
     "st_003_002": {
       "ja": "癒してあげたい",
-      "en": "I want to heal you",
+      "en": "Let me heal you",
       "es": "Quiero sanarte"
     },
     "st_003_004": {
       "ja": "すごく楽しいね♪",
-      "en": "This is so much fun♪",
+      "en": "This is really fun♪",
       "es": "¡Esto es muy divertido♪"
     },
     "st_003_006": {
       "ja": "すごく楽しいね♪",
-      "en": "This is so much fun♪",
+      "en": "This is really fun♪",
       "es": "¡Esto es muy divertido♪"
     },
     "st_004_002": {
       "ja": "助太刀します！",
-      "en": "I'll back you up!",
+      "en": "I'm here to help!",
       "es": "¡Te cubro!"
     },
     "st_004_004": {
@@ -458,67 +448,67 @@
     },
     "st_005_002": {
       "ja": "にゃにゃにゃー",
-      "en": "Meow meow meow!",
+      "en": "Nya Nya Nyan~",
       "es": "¡Miau miau miau!"
     },
     "st_005_004": {
       "ja": "やったにゃー！",
-      "en": "We did it, meow!",
+      "en": "We did it-nya!",
       "es": "¡Lo logramos, miau!"
     },
     "st_005_006": {
       "ja": "やったにゃー！",
-      "en": "We did it, meow!",
+      "en": "We did it-nya!",
       "es": "¡Lo logramos, miau!"
     },
     "st_006_002": {
       "ja": "やるじゃない",
-      "en": "Not bad!",
+      "en": "Not bad",
       "es": "¡No está mal!"
     },
     "st_006_004": {
       "ja": "最高の気分かも",
-      "en": "Might be the best feeling",
+      "en": "This might be the best!",
       "es": "Quizá sea el mejor sentimiento"
     },
     "st_006_006": {
       "ja": "最高の気分かも",
-      "en": "Might be the best feeling",
+      "en": "This might be the best!",
       "es": "Quizá sea el mejor sentimiento"
     },
     "st_007_002": {
       "ja": "希パワー注入♪",
-      "en": "Nozomi power injection♪",
+      "en": "Nozomi Power Injection!",
       "es": "¡Inyección de poder Nozomi♪"
     },
     "st_007_004": {
       "ja": "楽しんでる？",
-      "en": "Having fun?",
+      "en": "Are you having fun?",
       "es": "¿Te diviertes?"
     },
     "st_007_006": {
       "ja": "楽しんでる？",
-      "en": "Having fun?",
+      "en": "Are you having fun?",
       "es": "¿Te diviertes?"
     },
     "st_008_002": {
       "ja": "ダレカタスケテー",
-      "en": "Somebody help me!",
+      "en": "Someone Save me...",
       "es": "¡Alguien ayúdame!"
     },
     "st_008_004": {
       "ja": "とっても楽しいです！",
-      "en": "This is very fun!",
+      "en": "So much fun!",
       "es": "¡Es muy divertido!"
     },
     "st_008_006": {
       "ja": "とっても楽しいです！",
-      "en": "This is very fun!",
+      "en": "So much fun!",
       "es": "¡Es muy divertido!"
     },
     "st_009_002": {
       "ja": "ラブにこ♪",
-      "en": "Love, Nico♪",
+      "en": "Love Nico♪",
       "es": "Amor, Nico♪"
     },
     "st_009_004": {
@@ -531,140 +521,150 @@
       "en": "Things are heating up!",
       "es": "¡Se está animando todo!"
     },
-    "st_101_002": {
-      "ja": "いけいけーっ！",
-      "en": "Let's gooo!",
-      "es": "¡Vamos!"
+    "st_101_001": {
+      "ja": "みんなの力をあわせよう！",
+      "en": "Let's Work Together!",
+      "es": "¡Unamos nuestras fuerzas!"
     },
-    "st_101_004": {
-      "ja": "最高に最高の気分だよ♪",
-      "en": "I feel absolutely amazing♪",
-      "es": "¡Me siento increíble♪"
+    "st_101_003": {
+      "ja": "さあ、はじめよう！",
+      "en": "Let's get started!",
+      "es": "¡Vamos, empecemos!"
     },
-    "st_101_006": {
-      "ja": "最高に最高の気分だよ♪",
-      "en": "I feel absolutely amazing♪",
-      "es": "¡Me siento increíble♪"
+    "st_101_005": {
+      "ja": "みんなの力をあわせよう！",
+      "en": "Let's Work Together!",
+      "es": "¡Unamos nuestras fuerzas!"
     },
-    "st_102_002": {
-      "ja": "歌の力ってすごいんだね！",
-      "en": "The power of song is amazing!",
-      "es": "¡El poder de la canción es increíble!"
+    "st_102_001": {
+      "ja": "私…頑張ります！",
+      "en": "I'll... Do My Best!",
+      "es": "¡Haré… mi mejor esfuerzo!"
     },
-    "st_102_004": {
-      "ja": "嬉しい音が聞こえてくるの",
-      "en": "I hear happy sounds",
-      "es": "Escucho sonidos felices"
+    "st_102_003": {
+      "ja": "想いよ、響け♪",
+      "en": "Hear my heart♪",
+      "es": "¡Que resuenen mis sentimientos♪"
     },
-    "st_102_006": {
-      "ja": "歌の力ってすごいんだね！",
-      "en": "The power of song is amazing!",
-      "es": "¡El poder de la canción es increíble!"
+    "st_102_005": {
+      "ja": "私…頑張ります！",
+      "en": "I'll... Do My Best!",
+      "es": "¡Haré… mi mejor esfuerzo!"
     },
-    "st_103_002": {
-      "ja": "サンキュ！",
-      "en": "Thank you!",
-      "es": "¡Gracias!"
+    "st_103_001": {
+      "ja": "ハグしよ♪",
+      "en": "Let's Hug♪",
+      "es": "¡Abrazémonos♪"
     },
-    "st_103_004": {
-      "ja": "ハグしたくなっちゃう♪",
-      "en": "I wanna hug you♪",
-      "es": "¡Quiero abrazarte♪"
-    },
-    "st_103_006": {
+    "st_103_003": {
       "ja": "熱くなれそうだよ♪",
-      "en": "I'm getting fired up♪",
+      "en": "Getting fired up♪",
       "es": "¡Me estoy animando♪"
     },
-    "st_104_002": {
+    "st_103_005": {
+      "ja": "ハグしよ♪",
+      "en": "Let's Hug♪",
+      "es": "¡Abrazémonos♪"
+    },
+    "st_104_001": {
+      "ja": "お覚悟！",
+      "en": "Be Prepared!",
+      "es": "¡Prepárate!"
+    },
+    "st_104_003": {
+      "ja": "舞い踊れ♪",
+      "en": "Dance and twirl♪",
+      "es": "¡Baila♪"
+    },
+    "st_104_005": {
       "ja": "当然ですわね",
-      "en": "Naturally!",
+      "en": "Not a Surprise",
       "es": "¡Por supuesto!"
     },
-    "st_104_004": {
-      "ja": "やりましたわね！",
-      "en": "We did it!",
-      "es": "¡Lo logramos!"
+    "st_105_001": {
+      "ja": "全速前進！",
+      "en": "Full Speed Ahead!",
+      "es": "¡A toda velocidad!"
     },
-    "st_104_006": {
-      "ja": "やりましたわね！",
-      "en": "We did it!",
-      "es": "¡Lo logramos!"
-    },
-    "st_105_002": {
-      "ja": "ヨーソロー！",
-      "en": "Yousoro!",
-      "es": "¡Yousoro!"
-    },
-    "st_105_004": {
-      "ja": "すっごく嬉しい！",
-      "en": "I'm so happy!",
-      "es": "¡Estoy tan feliz!"
-    },
-    "st_105_006": {
+    "st_105_003": {
       "ja": "敬礼っ！",
       "en": "Salute!",
       "es": "¡Saludo!"
     },
-    "st_106_002": {
-      "ja": "おいで、リトルデーモン♪",
-      "en": "Come, little demon♪",
-      "es": "Ven, pequeño demonio♪"
+    "st_105_005": {
+      "ja": "ヨーソロー！",
+      "en": "Aye-Aye!",
+      "es": "¡Yousoro!"
     },
-    "st_106_004": {
-      "ja": "堕天降臨！",
-      "en": "Fallen angel descends!",
-      "es": "¡Desciende el ángel caído!"
+    "st_106_001": {
+      "ja": "一緒に堕ちましょう♪",
+      "en": "Let's Fall Together♪",
+      "es": "¡Caigamos juntos♪"
     },
-    "st_106_006": {
-      "ja": "おいで、リトルデーモン♪",
-      "en": "Come, little demon♪",
-      "es": "Ven, pequeño demonio♪"
+    "st_106_003": {
+      "ja": "栄光あれ！",
+      "en": "All glory!",
+      "es": "¡Gloria!"
     },
-    "st_107_002": {
-      "ja": "どっこいしょー！",
-      "en": "Heave-ho!",
-      "es": "¡Hora del esfuerzo!"
+    "st_106_005": {
+      "ja": "栄光あれ！",
+      "en": "All glory!",
+      "es": "¡Gloria!"
     },
-    "st_107_004": {
-      "ja": "最高の気分ずら♪",
-      "en": "Best mood ever, zura♪",
-      "es": "¡El mejor humor, zura♪"
+    "st_107_001": {
+      "ja": "オラにも出来る！",
+      "en": "I'mma Do it!",
+      "es": "¡Yo también puedo!"
     },
-    "st_107_006": {
+    "st_107_003": {
       "ja": "未来ずら〜っ✨",
-      "en": "To the future, zura✨",
-      "es": "¡Hacia el futuro, zura✨"
+      "en": "It's the future, zura✨",
+      "es": "¡Es el futuro, zura✨"
     },
-    "st_108_002": {
+    "st_107_005": {
+      "ja": "オラにも出来る！",
+      "en": "I'mma Do it!",
+      "es": "¡Yo también puedo!"
+    },
+    "st_108_001": {
+      "ja": "ハーイ♪",
+      "en": "Hiya♪",
+      "es": "¡Hola♪"
+    },
+    "st_108_003": {
+      "ja": "ノープロブレム☆",
+      "en": "No Problem☆",
+      "es": "Sin problema☆"
+    },
+    "st_108_005": {
       "ja": "シャイニー☆",
       "en": "Shiny☆",
       "es": "Brillante☆"
     },
-    "st_108_004": {
-      "ja": "アイムハッピー♡",
-      "en": "I'm happy♡",
-      "es": "Estoy feliz♡"
+    "st_109_001": {
+      "ja": "がんばルビィ！",
+      "en": "I'll Do My Rubesty",
+      "es": "¡Haré mi Rubesty!"
     },
-    "st_108_006": {
-      "ja": "アイムハッピー♡",
-      "en": "I'm happy♡",
-      "es": "Estoy feliz♡"
+    "st_109_003": {
+      "ja": "きゅーんとしちゃう♡",
+      "en": "My heart melts♡",
+      "es": "Me derritió el corazón♡"
     },
-    "st_109_002": {
-      "ja": "ピギィッ",
-      "en": "Oink!",
-      "es": "¡Oink!"
+    "st_109_005": {
+      "ja": "がんばルビィ！",
+      "en": "I'll Do My Rubesty",
+      "es": "¡Haré mi Rubesty!"
     },
-    "st_109_004": {
-      "ja": "ルビィは幸せです♡",
-      "en": "Ruby is happy♡",
-      "es": "Ruby está feliz♡"
+    "st_113_001": {
+      "ja": "頼もしいですね♪",
+      "en": "How reassuring♪",
+      "es": "¡Qué confiable♪"
     },
-    "st_109_006": {
-      "ja": "ルビィは幸せです♡",
-      "en": "Ruby is happy♡",
-      "es": "Ruby está feliz♡"
+    "st_301_001": {
+      "ja": "ありがとう！",
+      "en": "Thank you!",
+      "es": "¡Gracias!"
     }
   }
 }
