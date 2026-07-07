@@ -29145,6 +29145,9 @@ async function playLiveSuccessDeferredEffects(prev, final, myId, newEntries) {
 
 /** Orchestrate live storage reveal, WR discards, and Performance spectacle for one round. */
 async function presentLiveRound(prev, next, myId, opts = {}) {
+  if (isLeavingLiveSetPhase(prev, next) && liveStorageHasCards(prev)) {
+    refreshLiveSetStorageBaseline(prev);
+  }
   prev = effectiveEmptyLiveRoundPrev(prev, next);
   if (isLiveSetPlacementOnly(prev, next) || liveSetPlacementInProgress(next)) {
     TCG_DEBUG.log('live', 'presentLiveRound skip (live_set placement open)');
@@ -35491,10 +35494,14 @@ function resetPickerCardHoverPosition() {
   panel.style.transform = '';
 }
 
-function syncPickerCardHoverPosition() {
+function syncPickerCardHoverPosition(allowHidden) {
   const panel = el('picker-card-hover-panel');
   const anchor = activePickerDialogAnchor();
-  if (!panel || !panel.classList.contains('visible') || !anchor) {
+  if (!panel || !anchor) {
+    resetPickerCardHoverPosition();
+    return;
+  }
+  if (!allowHidden && !panel.classList.contains('visible')) {
     resetPickerCardHoverPosition();
     return;
   }
@@ -35531,8 +35538,9 @@ function showPickerCardHover(card, s, myId) {
   fillCardDetailPanel('pchv', enrichCard(card), s, myId || G.playerId);
   const panel = el('picker-card-hover-panel');
   const empty = el('pchv-empty');
-  if (panel) panel.classList.add('visible');
   if (empty) empty.style.display = 'none';
+  syncPickerCardHoverPosition(true);
+  if (panel) panel.classList.add('visible');
   requestAnimationFrame(() => {
     syncPickerCardHoverPosition();
     requestAnimationFrame(syncPickerCardHoverPosition);
