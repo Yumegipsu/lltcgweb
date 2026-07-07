@@ -318,6 +318,33 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
             return $id ? ['card_id' => $id] : [];
         }
 
+        case 'pick_wr_to_hand':
+        case 'pick_wr_leave_stage_add': {
+            $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgFromAbility($prompt['ability'] ?? []);
+            $filter = (string)($cfg['filter'] ?? 'member');
+            $cands = $prompt['candidates'] ?? [];
+            $pool = $cands;
+            if ($filter === 'member') {
+                $members = array_values(array_filter(
+                    $cands,
+                    fn($c) => ($c['card_type'] ?? '') === 'メンバー' || ($c['card_type_en'] ?? '') === 'Member'
+                ));
+                if (!empty($members)) {
+                    $pool = $members;
+                }
+            } elseif ($filter === 'live') {
+                $lives = array_values(array_filter(
+                    $cands,
+                    fn($c) => ($c['card_type'] ?? '') === 'ライブ' || ($c['card_type_en'] ?? '') === 'Live'
+                ));
+                if (!empty($lives)) {
+                    $pool = $lives;
+                }
+            }
+            $id = $pool[count($pool) - 1]['instance_id'] ?? $pool[0]['instance_id'] ?? null;
+            return $id ? ['card_id' => $id] : [];
+        }
+
         case 'optional_success_wr_live_swap':
             if (($prompt['step'] ?? '') === 'confirm') {
                 return ['choice' => 'no'];

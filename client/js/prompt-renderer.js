@@ -241,14 +241,21 @@ global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
   const s = opts.state || G.gameState;
   const myId = opts.myId || G.playerId;
   const cfg = wrPickCfgFromPrompt(pr);
-  const cards = wrToHandPickCards(pr, s, myId);
+  let cards = wrToHandPickCards(pr, s, myId);
+  if (!cards.length && (pr.candidates || []).length) {
+    cards = (pr.candidates || []).map(c => enrichCard(c)).filter(c => c?.instance_id);
+  }
   if (!cards.length) {
-    toast(pt('prompt.wrEmpty'), 3200);
+    const fallbackId = pr.candidates?.[0]?.instance_id;
+    if (fallbackId && !isPromptSubmitting(s)) {
+      sendAct('resolve_prompt', { card_id: fallbackId });
+    } else {
+      toast(pt('prompt.wrEmpty'), 3200);
+    }
     return;
   }
-  if (!cards.some(c => cardMatchesWrPickClient(c, cfg))) {
-    toast(pt('prompt.wrNoMatch'), 3200);
-    return;
+  if (!cards.some(c => cardMatchesWrPickClient(c, cfg)) && (pr.candidates || []).length) {
+    cards = wrToHandPickCards({ ...pr, candidates: pr.candidates }, s, myId);
   }
   el('pick-ttl').textContent = pr.source_name || pt('prompt.wrPickTitle');
   el('pick-msg').textContent = pr.prompt || pt('prompt.wrPickMsg');
@@ -260,8 +267,9 @@ global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
   const btnCancel = el('btn-pick-cancel');
   if (btnOk) btnOk.style.display = 'none';
   if (btnCancel) btnCancel.style.display = onCancel ? '' : 'none';
+  const serverIds = new Set((pr.candidates || []).map(c => c.instance_id).filter(Boolean));
   cards.forEach(card => {
-    const ok = cardMatchesWrPickClient(card, cfg);
+    const ok = cardMatchesWrPickClient(card, cfg) || serverIds.has(card.instance_id);
     const elCard = mkPickCardEl(card, 'pickcard', () => {
       if (!ok || isPromptSubmitting(s)) return;
       closeM('overlay-pick');
@@ -375,8 +383,8 @@ global.openWrLivePick = function openWrLivePick(pr, opts = {}){
 }
 
 
-global.openActivateWrMemberPick = function openActivateWrMemberPick(pr){
-  openWrToHandPick(pr, {});
+global.openActivateWrMemberPick = function openActivateWrMemberPick(pr, opts = {}){
+  openWrToHandPick(pr, opts);
 }
 
 
@@ -1576,8 +1584,9 @@ global.renderPrompt = function renderPrompt(s, myId){
   if((pr?.type==='pick_wr_to_hand'||pr?.type==='pick_wr_leave_stage_add')&&pr.responder===myId){
     ovl.classList.remove('open');
     const filter=pr.ability?.filter||pr.wr_pick_cfg?.filter||'live';
-    if(filter==='live') openWrLivePick(pr, { state: s, myId });
-    else openActivateWrMemberPick(pr);
+    const pickOpts = { state: s, myId };
+    if(filter==='live') openWrLivePick(pr, pickOpts);
+    else openActivateWrMemberPick(pr, pickOpts);
     return;
   }
   if(pr?.type==='shuffle_named_from_waiting_pick'&&pr.responder===myId){

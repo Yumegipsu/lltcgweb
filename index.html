@@ -813,6 +813,14 @@ html:not(.tcg-mobile-viewport) #screen-game .live-score-hud{
   opacity:0;transition:opacity .16s ease, transform .2s cubic-bezier(.22,1,.36,1);
   text-align:center;
 }
+html:not(.tcg-mobile-viewport) .playmat-column.play-selecting .play-cost-hud{
+  bottom:calc(var(--hand-strip-h) + 30px);
+  z-index:140;
+}
+body:has(.overlay.skill-hand-preserve.open) .playmat-column.play-selecting .play-cost-hud{
+  bottom:calc(var(--skill-hand-preserve-h) + 10px);
+  z-index:916;
+}
 .play-cost-hud.show{opacity:1}
 .play-cost-hud .pch-inner{
   display:inline-flex;align-items:center;gap:10px;
@@ -18901,7 +18909,15 @@ function syncMyStagePlayHints(s, myId) {
     if (!outer) return;
     if (!showPlayHints) {
       outer.classList.remove('play-glow-valid', 'play-glow-invalid', 'play-glow-selected', 'play-glow-focus');
-      if (mslot) mslot.style.cursor = '';
+      if (mslot) {
+        mslot.style.cursor = '';
+        if (mslot._savedShowClick !== undefined) {
+          mslot.onclick = mslot._savedShowClick;
+          delete mslot._savedShowClick;
+        } else {
+          mslot.onclick = null;
+        }
+      }
       outer.style.cursor = '';
       outer.onclick = null;
       if (outer._playHintEnter) {
@@ -18924,9 +18940,11 @@ function syncMyStagePlayHints(s, myId) {
       const playHandler = (ev) => {
         ev.stopPropagation();
         ev.preventDefault();
+        if (!G.selCard && !G.drag?.iid) return;
         const st = liveGameState(s);
         const mid = myId || G.playerId;
-        const pc = getPlayPreviewCard(st, mid) || playCard;
+        const pc = getPlayPreviewCard(st, mid);
+        if (!pc) return;
         const mbr = st?.players?.[mid]?.stage?.[slot];
         playToSlot(pc, slot, st, mid, mbr || null);
       };
@@ -32604,6 +32622,8 @@ function surfaceDeferredSkillPrompt(playback, final, myId) {
   if (isLiveSuccessDiscardPrompt(final)) {
     clearLiveSuccessHandDeferral(final);
     G.gameState = final;
+  } else if (wrZonePickPromptTypes().includes(pr.type)) {
+    G.gameState = final;
   } else {
     playback.pending_prompt = final.pending_prompt;
     G.gameState = playback;
@@ -35310,17 +35330,18 @@ function wrPickCfgFromPrompt(pr) {
   };
 }
 
+function wrZonePickPromptTypes() {
+  return ['pick_wr_to_hand', 'pick_wr_leave_stage_add', 'shuffle_named_from_waiting_pick'];
+}
+
 function wrToHandPickCards(pr, s, myId) {
   const wr = s?.players?.[myId]?.waiting_room || [];
   const byId = new Map(wr.map(c => [c.instance_id, c]));
-  const source = (pr.candidates || []).length
-    ? (pr.candidates || []).map(c => {
-        const full = byId.get(c.instance_id);
-        return enrichCard(full ? { ...c, ...full } : c);
-      })
-    : wr;
-  return source.map(c => {
-    const card = enrichCard(c);
+  const seed = (pr.candidates || []).length ? pr.candidates : wr;
+  return seed.map(c => {
+    const full = byId.get(c.instance_id);
+    const card = enrichCard(full ? { ...c, ...full } : c);
+    if (!card?.instance_id) return null;
     return {
       instance_id: card.instance_id,
       name_en: card.name_en || card.name,
@@ -35335,7 +35356,7 @@ function wrToHandPickCards(pr, s, myId) {
       subunit: card.subunit,
       required_hearts: card.required_hearts,
     };
-  });
+  }).filter(Boolean);
 }
 
 
