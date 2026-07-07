@@ -26644,16 +26644,24 @@ function effectiveEmptyLiveRoundPrev(prev, next) {
   return prev;
 }
 
+/** Max players with live storage across prev, next, and cached live_set boards. */
+function liveStoragePlacementSides(prev, next) {
+  let max = 0;
+  for (const board of [prev, next, G._liveSetStorageBaseline, G._deferPerfSpectaclePrev]) {
+    if (!board?.players) continue;
+    let sides = 0;
+    for (const pid of ['p1', 'p2']) {
+      if ((board.players[pid]?.live_zone?.length || 0) > 0) sides++;
+    }
+    max = Math.max(max, sides);
+  }
+  return max;
+}
+
 /** Only one side placed in LIVE storage — no simultaneous flip reveal (solo human vs CPU 0). */
 function isSoloPlayerEmptyLiveRound(prev, next) {
   if (!isMemberOnlyLiveStorageRound(prev, next)) return false;
-  const board = effectiveEmptyLiveRoundPrev(prev, next) || liveStorageBoardForPlayback(prev) || prev;
-  if (!board?.players) return false;
-  let sides = 0;
-  for (const pid of ['p1', 'p2']) {
-    if ((board.players[pid]?.live_zone?.length || 0) > 0) sides++;
-  }
-  return sides === 1;
+  return liveStoragePlacementSides(prev, next) === 1;
 }
 
 function fullLogHasEmptyLiveSkip(s) {
@@ -27510,6 +27518,14 @@ function stashLiveSetStorageBaseline(s, myId, selectedIds) {
   p.live_zone = live;
   p.hand = hand.filter(c => !selectedIds.includes(c.instance_id));
   G._liveSetStorageBaseline = baseline;
+}
+
+/** Keep a full live_set board (both players) for empty-round / batched-poll reveal playback. */
+function refreshLiveSetStorageBaseline(s) {
+  if (!s?.phase || !isLiveSetPhase(s.phase) || !liveStorageHasCards(s)) return;
+  G._liveSetStorageBaseline = G._liveSetStorageBaseline
+    ? augmentPerfSpectaclePrev(G._liveSetStorageBaseline, s)
+    : deepCloneState(s);
 }
 
 /** Optimistic face-down placement for LIVE confirm — updates gameState + baseline for playback. */
@@ -28799,6 +28815,7 @@ function shouldSuppressPostSpectacleSplash(msg, phase, prev, s) {
     if (phase && phase.startsWith('main_')) return true;
     if (msg && /^=== Turn \d+ begins ===$/.test(msg)) return true;
   }
+  if (prev && shouldIgnoreStaleLivePerfSignals(prev, s)) return false;
   if (!G._postSpectacleSplashPause && !(prev && liveRoundSpectacleDone(prev, s))) return false;
   if (msg && isPostSpectacleLogSplash(msg)) return true;
   if (phase && isPostSpectaclePhaseBanner(phase)) return true;
