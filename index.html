@@ -28052,7 +28052,6 @@ function isMidSpectacleYellRetryPrompt(s) {
 }
 
 function pendingPromptBlocksPerfSpectacle(next) {
-  if (!liveRoundJudgeReady(next)) return true;
   const pr = next?.pending_prompt;
   if (!pr) return false;
   if (PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type)) return false;
