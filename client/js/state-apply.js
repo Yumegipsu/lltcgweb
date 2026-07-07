@@ -221,6 +221,7 @@
     }
     syncDeferredHandDrawMask(prev, s, G.playerId);
     syncLiveSuccessPresentationDefer(prev, s);
+    if (isLiveSetPhase(s.phase)) refreshLiveSetStorageBaseline(s);
     const oppId = G.playerId === 'p1' ? 'p2' : 'p1';
     const truncated = prev && logWasTruncated(prev, s);
     if (truncated) resyncGameLogFromState(s);
