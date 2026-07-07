@@ -4,7 +4,7 @@
 (function (global) {
   'use strict';
 
-  const MANIFEST_URL = 'stamps_manifest.json?v=3';
+  const MANIFEST_URL = 'stamps_manifest.json?v=4';
   const I18N_URL = 'stamps_i18n.json?v=2';
   const ASSET_BASE = 'assets/stamps/';
   const LS_AUDIO = 'tcg_stamp_audio_enabled';
@@ -116,6 +116,8 @@
 
   function stampLocaleFor(id, hint) {
     if (hint === 'en' || hint === 'ja') return hint;
+    const row = buildStampMap()[id];
+    if (row?.text_lang === 'en' || row?.text_lang === 'ja') return row.text_lang;
     if (state.byId.ja[id]) return 'ja';
     if (state.byId.en[id]) return 'en';
     return 'ja';

@@ -1,64 +1,9 @@
 {
-  "version": 3,
+  "version": 4,
   "source": "https://card.llsif.moe/others",
-  "locale_rule": "html_row 0=ja on-image text, row 1=en (per card.llsif.moe stamp_row layout)",
+  "locale_rule": "on-image text from stamps_text_lang.json (per stamp id)",
   "locales": {
     "ja": [
-      {
-        "id": "st_000_001",
-        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
-        "type": 2,
-        "image": "image/sticker/st_000_001.png",
-        "se": "sound/se/SE_797.mp3",
-        "voice": "",
-        "label": "",
-        "html_row": 0,
-        "text_lang": "ja"
-      },
-      {
-        "id": "st_000_003",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
-        "type": 2,
-        "image": "image/sticker/st_000_003.png",
-        "se": "sound/se/SE_797.mp3",
-        "voice": "",
-        "label": "",
-        "html_row": 0,
-        "text_lang": "ja"
-      },
-      {
-        "id": "st_000_005",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
-        "type": 2,
-        "image": "image/sticker/st_000_005.png",
-        "se": "sound/se/SE_797.mp3",
-        "voice": "",
-        "label": "",
-        "html_row": 0,
-        "text_lang": "ja"
-      },
-      {
-        "id": "st_000_007",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
-        "type": 2,
-        "image": "image/sticker/st_000_007.png",
-        "se": "sound/se/SE_797.mp3",
-        "voice": "",
-        "label": "",
-        "html_row": 0,
-        "text_lang": "ja"
-      },
-      {
-        "id": "st_000_009",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
-        "type": 2,
-        "image": "image/sticker/st_000_009.png",
-        "se": "sound/se/SE_797.mp3",
-        "voice": "",
-        "label": "",
-        "html_row": 0,
-        "text_lang": "ja"
-      },
       {
         "id": "st_000_010",
         "flsh": "flash/ui/event/sticker/stamp_03.flsh",
@@ -68,6 +13,17 @@
         "voice": "sound/voice/sticker/vo_st_000_0001.mp3",
         "label": "ゴ〜ン",
         "html_row": 0,
+        "text_lang": "ja"
+      },
+      {
+        "id": "st_000_011",
+        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
+        "type": 1,
+        "image": "image/sticker/st_000_011.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_000_0001.mp3",
+        "label": "ゴ〜ン",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -82,6 +38,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_000_013",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "type": 1,
+        "image": "image/sticker/st_000_013.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
+        "label": "ぷにっ",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_000_014",
         "flsh": "flash/ui/event/sticker/stamp_03.flsh",
         "type": 1,
@@ -90,6 +57,17 @@
         "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
         "label": "ぷにっ",
         "html_row": 0,
+        "text_lang": "ja"
+      },
+      {
+        "id": "st_000_015",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "type": 1,
+        "image": "image/sticker/st_000_015.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
+        "label": "ぷにっ",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -104,6 +82,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_000_017",
+        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
+        "type": 1,
+        "image": "image/sticker/st_000_017.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
+        "label": "ぷにっ",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_000_018",
         "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
@@ -112,6 +101,17 @@
         "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
         "label": "ぷにっ",
         "html_row": 0,
+        "text_lang": "ja"
+      },
+      {
+        "id": "st_000_019",
+        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
+        "type": 1,
+        "image": "image/sticker/st_000_019.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
+        "label": "ぷにっ",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -126,14 +126,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_001_001",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "id": "st_000_021",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
         "type": 1,
-        "image": "image/sticker/st_001_001.png",
+        "image": "image/sticker/st_000_021.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_001_0001.mp3",
-        "label": "イエイっ！",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
+        "label": "ぷにっ",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -148,6 +148,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_001_004",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "type": 1,
+        "image": "image/sticker/st_001_004.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_001_0004.mp3",
+        "label": "最高に楽しい！",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_001_005",
         "flsh": "flash/ui/event/sticker/stamp_01.flsh",
         "type": 1,
@@ -159,14 +170,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_002_001",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
+        "id": "st_001_006",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
-        "image": "image/sticker/st_002_001.png",
+        "image": "image/sticker/st_001_006.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_002_0001.mp3",
-        "label": "みんな、お疲れさま！",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_001_0004.mp3",
+        "label": "最高に楽しい！",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -181,6 +192,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_002_004",
+        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
+        "type": 1,
+        "image": "image/sticker/st_002_004.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_002_0004.mp3",
+        "label": "一緒に楽しみましょう",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_002_005",
         "flsh": "flash/ui/event/sticker/stamp_01.flsh",
         "type": 1,
@@ -192,14 +214,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_003_001",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "id": "st_002_006",
+        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
         "type": 1,
-        "image": "image/sticker/st_003_001.png",
+        "image": "image/sticker/st_002_006.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_003_0001.mp3",
-        "label": "ちゅんちゅん♪",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_002_0004.mp3",
+        "label": "一緒に楽しみましょう",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -214,6 +236,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_003_004",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "type": 1,
+        "image": "image/sticker/st_003_004.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_003_0004.mp3",
+        "label": "すごく楽しいね♪",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_003_005",
         "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
@@ -225,14 +258,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_004_001",
-        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
+        "id": "st_003_006",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
-        "image": "image/sticker/st_004_001.png",
+        "image": "image/sticker/st_003_006.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_004_0001.mp3",
-        "label": "ラブアローシュート！",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_003_0004.mp3",
+        "label": "すごく楽しいね♪",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -247,6 +280,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_004_004",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "type": 1,
+        "image": "image/sticker/st_004_004.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_004_0004.mp3",
+        "label": "とても楽しいです",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_004_005",
         "flsh": "flash/ui/event/sticker/stamp_03.flsh",
         "type": 1,
@@ -258,14 +302,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_005_001",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "id": "st_004_006",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
-        "image": "image/sticker/st_005_001.png",
+        "image": "image/sticker/st_004_006.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_005_0001.mp3",
-        "label": "テンションあがるにゃー！",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_004_0004.mp3",
+        "label": "とても楽しいです",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -280,6 +324,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_005_004",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "type": 1,
+        "image": "image/sticker/st_005_004.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_005_0004.mp3",
+        "label": "やったにゃー！",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_005_005",
         "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
@@ -291,14 +346,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_006_001",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "id": "st_005_006",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
-        "image": "image/sticker/st_006_001.png",
+        "image": "image/sticker/st_005_006.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_006_0001.mp3",
-        "label": "意味わかんない！",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_005_0004.mp3",
+        "label": "やったにゃー！",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -313,6 +368,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_006_004",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
+        "type": 1,
+        "image": "image/sticker/st_006_004.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_006_0004.mp3",
+        "label": "最高の気分かも",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_006_005",
         "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
@@ -324,14 +390,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_007_001",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "id": "st_006_006",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
         "type": 1,
-        "image": "image/sticker/st_007_001.png",
+        "image": "image/sticker/st_006_006.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_007_0001.mp3",
-        "label": "スピリチュアルやね",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_006_0004.mp3",
+        "label": "最高の気分かも",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -346,6 +412,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_007_004",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "type": 1,
+        "image": "image/sticker/st_007_004.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_007_0004.mp3",
+        "label": "楽しんでる？",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_007_005",
         "flsh": "flash/ui/event/sticker/stamp_03.flsh",
         "type": 1,
@@ -357,14 +434,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_008_001",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
+        "id": "st_007_006",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
-        "image": "image/sticker/st_008_001.png",
+        "image": "image/sticker/st_007_006.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_008_0001.mp3",
-        "label": "き、緊張してきました…",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_007_0004.mp3",
+        "label": "楽しんでる？",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -379,6 +456,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_008_004",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "type": 1,
+        "image": "image/sticker/st_008_004.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_008_0004.mp3",
+        "label": "とっても楽しいです！",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_008_005",
         "flsh": "flash/ui/event/sticker/stamp_03.flsh",
         "type": 1,
@@ -390,14 +478,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_009_001",
+        "id": "st_008_006",
         "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
-        "image": "image/sticker/st_009_001.png",
+        "image": "image/sticker/st_008_006.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_009_0001.mp3",
-        "label": "にっこにっこにー♪",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_008_0004.mp3",
+        "label": "とっても楽しいです！",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -412,6 +500,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_009_004",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
+        "type": 1,
+        "image": "image/sticker/st_009_004.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_009_0004.mp3",
+        "label": "盛り上がって来たわね",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_009_005",
         "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
@@ -423,14 +522,25 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_101_002",
-        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
+        "id": "st_009_006",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
         "type": 1,
-        "image": "image/sticker/st_101_002.png",
+        "image": "image/sticker/st_009_006.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_101_0002.mp3",
-        "label": "いけいけーっ！",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_009_0004.mp3",
+        "label": "盛り上がって来たわね",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
+        "id": "st_101_003",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "type": 1,
+        "image": "image/sticker/st_101_003.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_101_0003.mp3",
+        "label": "さあ、はじめよう！",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -445,6 +555,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_101_005",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
+        "type": 1,
+        "image": "image/sticker/st_101_005.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_101_0001.mp3",
+        "label": "みんなの力をあわせよう！",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_101_006",
         "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
@@ -456,14 +577,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_102_002",
+        "id": "st_102_003",
         "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
-        "image": "image/sticker/st_102_002.png",
+        "image": "image/sticker/st_102_003.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_102_0002.mp3",
-        "label": "歌の力ってすごいんだね！",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_102_0003.mp3",
+        "label": "想いよ、響け♪",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -478,6 +599,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_102_005",
+        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
+        "type": 1,
+        "image": "image/sticker/st_102_005.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_102_0001.mp3",
+        "label": "私…頑張ります！",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_102_006",
         "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
@@ -489,14 +621,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_103_002",
-        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
+        "id": "st_103_003",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
         "type": 1,
-        "image": "image/sticker/st_103_002.png",
+        "image": "image/sticker/st_103_003.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_103_0002.mp3",
-        "label": "サンキュ！",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_103_0003.mp3",
+        "label": "熱くなれそうだよ♪",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -511,6 +643,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_103_005",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
+        "type": 1,
+        "image": "image/sticker/st_103_005.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_103_0001.mp3",
+        "label": "ハグしよ♪",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_103_006",
         "flsh": "flash/ui/event/sticker/stamp_05.flsh",
         "type": 1,
@@ -522,14 +665,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_104_002",
-        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
+        "id": "st_104_003",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
         "type": 1,
-        "image": "image/sticker/st_104_002.png",
+        "image": "image/sticker/st_104_003.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_104_0002.mp3",
-        "label": "当然ですわね",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_104_0003.mp3",
+        "label": "舞い踊れ♪",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -544,6 +687,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_104_005",
+        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
+        "type": 1,
+        "image": "image/sticker/st_104_005.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_104_0002.mp3",
+        "label": "当然ですわね",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_104_006",
         "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
@@ -555,14 +709,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_105_002",
+        "id": "st_105_003",
         "flsh": "flash/ui/event/sticker/stamp_03.flsh",
         "type": 1,
-        "image": "image/sticker/st_105_002.png",
+        "image": "image/sticker/st_105_003.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_105_0002.mp3",
-        "label": "ヨーソロー！",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_105_0003.mp3",
+        "label": "敬礼っ！",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -577,6 +731,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_105_005",
+        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
+        "type": 1,
+        "image": "image/sticker/st_105_005.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_105_0002.mp3",
+        "label": "ヨーソロー！",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_105_006",
         "flsh": "flash/ui/event/sticker/stamp_03.flsh",
         "type": 1,
@@ -588,14 +753,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_106_002",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
+        "id": "st_106_003",
+        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
         "type": 1,
-        "image": "image/sticker/st_106_002.png",
+        "image": "image/sticker/st_106_003.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_106_0002.mp3",
-        "label": "おいで、リトルデーモン♪",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_106_0003.mp3",
+        "label": "栄光あれ！",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -610,6 +775,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_106_005",
+        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
+        "type": 1,
+        "image": "image/sticker/st_106_005.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_106_0003.mp3",
+        "label": "栄光あれ！",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_106_006",
         "flsh": "flash/ui/event/sticker/stamp_05.flsh",
         "type": 1,
@@ -621,14 +797,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_107_002",
-        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
+        "id": "st_107_003",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
-        "image": "image/sticker/st_107_002.png",
+        "image": "image/sticker/st_107_003.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_107_0002.mp3",
-        "label": "どっこいしょー！",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_107_0003.mp3",
+        "label": "未来ずら〜っ✨",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -643,6 +819,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_107_005",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "type": 1,
+        "image": "image/sticker/st_107_005.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_107_0001.mp3",
+        "label": "オラにも出来る！",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_107_006",
         "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
@@ -654,14 +841,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_108_002",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "id": "st_108_003",
+        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
         "type": 1,
-        "image": "image/sticker/st_108_002.png",
+        "image": "image/sticker/st_108_003.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_108_0002.mp3",
-        "label": "シャイニー☆",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_108_0003.mp3",
+        "label": "ノープロブレム☆",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -676,6 +863,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_108_005",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "type": 1,
+        "image": "image/sticker/st_108_005.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_108_0002.mp3",
+        "label": "シャイニー☆",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_108_006",
         "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
@@ -687,14 +885,14 @@
         "text_lang": "ja"
       },
       {
-        "id": "st_109_002",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "id": "st_109_003",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
-        "image": "image/sticker/st_109_002.png",
+        "image": "image/sticker/st_109_003.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_109_0002.mp3",
-        "label": "ピギィッ",
-        "html_row": 0,
+        "voice": "sound/voice/sticker/vo_st_109_0003.mp3",
+        "label": "きゅーんとしちゃう♡",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -706,6 +904,17 @@
         "voice": "sound/voice/sticker/vo_st_109_0004.mp3",
         "label": "ルビィは幸せです♡",
         "html_row": 0,
+        "text_lang": "ja"
+      },
+      {
+        "id": "st_109_005",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "type": 1,
+        "image": "image/sticker/st_109_005.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_109_0001.mp3",
+        "label": "がんばルビィ！",
+        "html_row": 1,
         "text_lang": "ja"
       },
       {
@@ -731,6 +940,17 @@
         "text_lang": "ja"
       },
       {
+        "id": "st_113_001",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
+        "type": 1,
+        "image": "image/sticker/st_113_001.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_113_0001.mp3",
+        "label": "頼もしいですね♪",
+        "html_row": 1,
+        "text_lang": "ja"
+      },
+      {
         "id": "st_201_001",
         "flsh": "flash/ui/event/sticker/stamp_01.flsh",
         "type": 1,
@@ -740,9 +960,31 @@
         "label": "ありがとうございます♪",
         "html_row": 0,
         "text_lang": "ja"
+      },
+      {
+        "id": "st_301_001",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "type": 1,
+        "image": "image/sticker/st_301_001.png",
+        "se": "",
+        "voice": "sound/voice/sticker/vo_st_301_0001.mp3",
+        "label": "ありがとう！",
+        "html_row": 1,
+        "text_lang": "ja"
       }
     ],
     "en": [
+      {
+        "id": "st_000_001",
+        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
+        "type": 2,
+        "image": "image/sticker/st_000_001.png",
+        "se": "sound/se/SE_797.mp3",
+        "voice": "",
+        "label": "",
+        "html_row": 0,
+        "text_lang": "en"
+      },
       {
         "id": "st_000_002",
         "flsh": "flash/ui/event/sticker/stamp_05.flsh",
@@ -752,6 +994,17 @@
         "voice": "",
         "label": "",
         "html_row": 1,
+        "text_lang": "en"
+      },
+      {
+        "id": "st_000_003",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "type": 2,
+        "image": "image/sticker/st_000_003.png",
+        "se": "sound/se/SE_797.mp3",
+        "voice": "",
+        "label": "",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -766,6 +1019,17 @@
         "text_lang": "en"
       },
       {
+        "id": "st_000_005",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "type": 2,
+        "image": "image/sticker/st_000_005.png",
+        "se": "sound/se/SE_797.mp3",
+        "voice": "",
+        "label": "",
+        "html_row": 0,
+        "text_lang": "en"
+      },
+      {
         "id": "st_000_006",
         "flsh": "flash/ui/event/sticker/stamp_01.flsh",
         "type": 2,
@@ -774,6 +1038,17 @@
         "voice": "",
         "label": "",
         "html_row": 1,
+        "text_lang": "en"
+      },
+      {
+        "id": "st_000_007",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
+        "type": 2,
+        "image": "image/sticker/st_000_007.png",
+        "se": "sound/se/SE_797.mp3",
+        "voice": "",
+        "label": "",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -788,69 +1063,25 @@
         "text_lang": "en"
       },
       {
-        "id": "st_000_011",
-        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
-        "type": 1,
-        "image": "image/sticker/st_000_011.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_000_0001.mp3",
-        "label": "ゴ〜ン",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_000_013",
+        "id": "st_000_009",
         "flsh": "flash/ui/event/sticker/stamp_02.flsh",
-        "type": 1,
-        "image": "image/sticker/st_000_013.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
-        "label": "ぷにっ",
-        "html_row": 1,
+        "type": 2,
+        "image": "image/sticker/st_000_009.png",
+        "se": "sound/se/SE_797.mp3",
+        "voice": "",
+        "label": "",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
-        "id": "st_000_015",
+        "id": "st_001_001",
         "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
-        "image": "image/sticker/st_000_015.png",
+        "image": "image/sticker/st_001_001.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
-        "label": "ぷにっ",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_000_017",
-        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
-        "type": 1,
-        "image": "image/sticker/st_000_017.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
-        "label": "ぷにっ",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_000_019",
-        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
-        "type": 1,
-        "image": "image/sticker/st_000_019.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
-        "label": "ぷにっ",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_000_021",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
-        "type": 1,
-        "image": "image/sticker/st_000_021.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_000_0002.mp3",
-        "label": "ぷにっ",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_001_0001.mp3",
+        "label": "イエイっ！",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -865,25 +1096,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_001_004",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "id": "st_002_001",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
         "type": 1,
-        "image": "image/sticker/st_001_004.png",
+        "image": "image/sticker/st_002_001.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_001_0004.mp3",
-        "label": "最高に楽しい！",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_001_006",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
-        "type": 1,
-        "image": "image/sticker/st_001_006.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_001_0004.mp3",
-        "label": "最高に楽しい！",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_002_0001.mp3",
+        "label": "みんな、お疲れさま！",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -898,25 +1118,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_002_004",
-        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
+        "id": "st_003_001",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
-        "image": "image/sticker/st_002_004.png",
+        "image": "image/sticker/st_003_001.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_002_0004.mp3",
-        "label": "一緒に楽しみましょう",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_002_006",
-        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
-        "type": 1,
-        "image": "image/sticker/st_002_006.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_002_0004.mp3",
-        "label": "一緒に楽しみましょう",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_003_0001.mp3",
+        "label": "ちゅんちゅん♪",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -931,25 +1140,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_003_004",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "id": "st_004_001",
+        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
         "type": 1,
-        "image": "image/sticker/st_003_004.png",
+        "image": "image/sticker/st_004_001.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_003_0004.mp3",
-        "label": "すごく楽しいね♪",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_003_006",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
-        "type": 1,
-        "image": "image/sticker/st_003_006.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_003_0004.mp3",
-        "label": "すごく楽しいね♪",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_004_0001.mp3",
+        "label": "ラブアローシュート！",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -964,25 +1162,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_004_004",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "id": "st_005_001",
+        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
-        "image": "image/sticker/st_004_004.png",
+        "image": "image/sticker/st_005_001.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_004_0004.mp3",
-        "label": "とても楽しいです",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_004_006",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
-        "type": 1,
-        "image": "image/sticker/st_004_006.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_004_0004.mp3",
-        "label": "とても楽しいです",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_005_0001.mp3",
+        "label": "テンションあがるにゃー！",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -997,25 +1184,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_005_004",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
+        "id": "st_006_001",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
-        "image": "image/sticker/st_005_004.png",
+        "image": "image/sticker/st_006_001.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_005_0004.mp3",
-        "label": "やったにゃー！",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_005_006",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
-        "type": 1,
-        "image": "image/sticker/st_005_006.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_005_0004.mp3",
-        "label": "やったにゃー！",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_006_0001.mp3",
+        "label": "意味わかんない！",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1030,25 +1206,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_006_004",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
+        "id": "st_007_001",
+        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
-        "image": "image/sticker/st_006_004.png",
+        "image": "image/sticker/st_007_001.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_006_0004.mp3",
-        "label": "最高の気分かも",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_006_006",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
-        "type": 1,
-        "image": "image/sticker/st_006_006.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_006_0004.mp3",
-        "label": "最高の気分かも",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_007_0001.mp3",
+        "label": "スピリチュアルやね",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1063,25 +1228,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_007_004",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "id": "st_008_001",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
         "type": 1,
-        "image": "image/sticker/st_007_004.png",
+        "image": "image/sticker/st_008_001.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_007_0004.mp3",
-        "label": "楽しんでる？",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_007_006",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
-        "type": 1,
-        "image": "image/sticker/st_007_006.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_007_0004.mp3",
-        "label": "楽しんでる？",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_008_0001.mp3",
+        "label": "き、緊張してきました…",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1096,25 +1250,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_008_004",
+        "id": "st_009_001",
         "flsh": "flash/ui/event/sticker/stamp_04.flsh",
         "type": 1,
-        "image": "image/sticker/st_008_004.png",
+        "image": "image/sticker/st_009_001.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_008_0004.mp3",
-        "label": "とっても楽しいです！",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_008_006",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
-        "type": 1,
-        "image": "image/sticker/st_008_006.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_008_0004.mp3",
-        "label": "とっても楽しいです！",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_009_0001.mp3",
+        "label": "にっこにっこにー♪",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1125,28 +1268,6 @@
         "se": "",
         "voice": "sound/voice/sticker/vo_st_009_0002.mp3",
         "label": "ラブにこ♪",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_009_004",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
-        "type": 1,
-        "image": "image/sticker/st_009_004.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_009_0004.mp3",
-        "label": "盛り上がって来たわね",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_009_006",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
-        "type": 1,
-        "image": "image/sticker/st_009_006.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_009_0004.mp3",
-        "label": "盛り上がって来たわね",
         "html_row": 1,
         "text_lang": "en"
       },
@@ -1162,25 +1283,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_101_003",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "id": "st_101_002",
+        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
         "type": 1,
-        "image": "image/sticker/st_101_003.png",
+        "image": "image/sticker/st_101_002.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_101_0003.mp3",
-        "label": "さあ、はじめよう！",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_101_005",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
-        "type": 1,
-        "image": "image/sticker/st_101_005.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_101_0001.mp3",
-        "label": "みんなの力をあわせよう！",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_101_0002.mp3",
+        "label": "いけいけーっ！",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1195,25 +1305,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_102_003",
+        "id": "st_102_002",
         "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
-        "image": "image/sticker/st_102_003.png",
+        "image": "image/sticker/st_102_002.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_102_0003.mp3",
-        "label": "想いよ、響け♪",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_102_005",
-        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
-        "type": 1,
-        "image": "image/sticker/st_102_005.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_102_0001.mp3",
-        "label": "私…頑張ります！",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_102_0002.mp3",
+        "label": "歌の力ってすごいんだね！",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1228,25 +1327,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_103_003",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
+        "id": "st_103_002",
+        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
         "type": 1,
-        "image": "image/sticker/st_103_003.png",
+        "image": "image/sticker/st_103_002.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_103_0003.mp3",
-        "label": "熱くなれそうだよ♪",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_103_005",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
-        "type": 1,
-        "image": "image/sticker/st_103_005.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_103_0001.mp3",
-        "label": "ハグしよ♪",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_103_0002.mp3",
+        "label": "サンキュ！",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1261,25 +1349,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_104_003",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
-        "type": 1,
-        "image": "image/sticker/st_104_003.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_104_0003.mp3",
-        "label": "舞い踊れ♪",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_104_005",
+        "id": "st_104_002",
         "flsh": "flash/ui/event/sticker/stamp_01.flsh",
         "type": 1,
-        "image": "image/sticker/st_104_005.png",
+        "image": "image/sticker/st_104_002.png",
         "se": "",
         "voice": "sound/voice/sticker/vo_st_104_0002.mp3",
         "label": "当然ですわね",
-        "html_row": 1,
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1294,25 +1371,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_105_003",
+        "id": "st_105_002",
         "flsh": "flash/ui/event/sticker/stamp_03.flsh",
         "type": 1,
-        "image": "image/sticker/st_105_003.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_105_0003.mp3",
-        "label": "敬礼っ！",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_105_005",
-        "flsh": "flash/ui/event/sticker/stamp_03.flsh",
-        "type": 1,
-        "image": "image/sticker/st_105_005.png",
+        "image": "image/sticker/st_105_002.png",
         "se": "",
         "voice": "sound/voice/sticker/vo_st_105_0002.mp3",
         "label": "ヨーソロー！",
-        "html_row": 1,
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1327,25 +1393,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_106_003",
-        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
+        "id": "st_106_002",
+        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
         "type": 1,
-        "image": "image/sticker/st_106_003.png",
+        "image": "image/sticker/st_106_002.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_106_0003.mp3",
-        "label": "栄光あれ！",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_106_005",
-        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
-        "type": 1,
-        "image": "image/sticker/st_106_005.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_106_0003.mp3",
-        "label": "栄光あれ！",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_106_0002.mp3",
+        "label": "おいで、リトルデーモン♪",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1360,25 +1415,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_107_003",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
+        "id": "st_107_002",
+        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
         "type": 1,
-        "image": "image/sticker/st_107_003.png",
+        "image": "image/sticker/st_107_002.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_107_0003.mp3",
-        "label": "未来ずら〜っ✨",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_107_005",
-        "flsh": "flash/ui/event/sticker/stamp_02.flsh",
-        "type": 1,
-        "image": "image/sticker/st_107_005.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_107_0001.mp3",
-        "label": "オラにも出来る！",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_107_0002.mp3",
+        "label": "どっこいしょー！",
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1393,25 +1437,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_108_003",
-        "flsh": "flash/ui/event/sticker/stamp_01.flsh",
-        "type": 1,
-        "image": "image/sticker/st_108_003.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_108_0003.mp3",
-        "label": "ノープロブレム☆",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_108_005",
+        "id": "st_108_002",
         "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
-        "image": "image/sticker/st_108_005.png",
+        "image": "image/sticker/st_108_002.png",
         "se": "",
         "voice": "sound/voice/sticker/vo_st_108_0002.mp3",
         "label": "シャイニー☆",
-        "html_row": 1,
+        "html_row": 0,
         "text_lang": "en"
       },
       {
@@ -1426,47 +1459,14 @@
         "text_lang": "en"
       },
       {
-        "id": "st_109_003",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
-        "type": 1,
-        "image": "image/sticker/st_109_003.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_109_0003.mp3",
-        "label": "きゅーんとしちゃう♡",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_109_005",
-        "flsh": "flash/ui/event/sticker/stamp_04.flsh",
-        "type": 1,
-        "image": "image/sticker/st_109_005.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_109_0001.mp3",
-        "label": "がんばルビィ！",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_113_001",
-        "flsh": "flash/ui/event/sticker/stamp_05.flsh",
-        "type": 1,
-        "image": "image/sticker/st_113_001.png",
-        "se": "",
-        "voice": "sound/voice/sticker/vo_st_113_0001.mp3",
-        "label": "頼もしいですね♪",
-        "html_row": 1,
-        "text_lang": "en"
-      },
-      {
-        "id": "st_301_001",
+        "id": "st_109_002",
         "flsh": "flash/ui/event/sticker/stamp_02.flsh",
         "type": 1,
-        "image": "image/sticker/st_301_001.png",
+        "image": "image/sticker/st_109_002.png",
         "se": "",
-        "voice": "sound/voice/sticker/vo_st_301_0001.mp3",
-        "label": "ありがとう！",
-        "html_row": 1,
+        "voice": "sound/voice/sticker/vo_st_109_0002.mp3",
+        "label": "ピギィッ",
+        "html_row": 0,
         "text_lang": "en"
       }
     ]
