@@ -8847,6 +8847,8 @@ function prepareClientReconnectState(s) {
   G._perfYellRevealCache = null;
   G._liveSetStorageBaseline = null;
   G._emptyLiveRoundPresentedTurns = null;
+  primeReplayEmptyLivePresentedFromLog(s);
+  G._announceBaseline = (s?.log || []).length;
   G._spectacleRecoveryPending = null;
   G._skipJudgeOverlay = false;
   G._liveRevealFlips = new Set();
@@ -8868,8 +8870,7 @@ function prepareClientReconnectState(s) {
   G._prevLogLen = (s?.log || []).length;
   G.lastSeq = s?.seq ?? 0;
   restorePerfSpectacleDoneKey();
-  primePerfSpectacleDoneKeysFromLog(s);
-  markSpectacleDoneFromState(s);
+  markSpectacleDoneFromState(s, null);
   dismissAllGameplayOverlays();
   if (!s?.pending_prompt) clearDeferredPromptState();
 }
@@ -19378,9 +19379,10 @@ function logWasTruncated(prev, next) {
 
 function resyncGameLogFromState(s) {
   G._prevLogLen = 0;
-  G._announceBaseline = 0;
+  G._announceBaseline = (s?.log || []).length;
   G._logFollowTail = true;
   clearOpponentSkillWaitLogKey();
+  primeReplayEmptyLivePresentedFromLog(s);
   const logEl = el('game-log');
   if (logEl) logEl.innerHTML = '';
   renderLog(s?.log || [], 0);
@@ -27500,6 +27502,11 @@ function logTransitionHasEmptyLiveSkip(prev, next) {
   if (slice.some(e => e.msg === 'No Lives played this turn.')) return true;
   // Batched poll (log+0): only match empty skip for the current LIVE show turn — not prior turns.
   if (!slice.length) {
+    // Stable main-phase polls must not re-trigger empty LIVE presentation from older log lines.
+    if (prev && isMainOrActivePhase(prev.phase) && isMainOrActivePhase(next.phase)
+        && !isLeavingLiveSetPhase(prev, next)) {
+      return false;
+    }
     const showTurn = emptyLiveRoundShowTurn(prev, next) ?? inferLiveShowTurn(prev, next);
     const fromLog = emptyLiveRoundTurnFromLog(next);
     if (fromLog != null && showTurn != null && fromLog === showTurn) return true;
@@ -27591,6 +27598,14 @@ function shouldPresentEmptyLiveRound(prev, next) {
   if (ph === 'coin_flip' || ph === 'setup' || ph === 'waiting') return false;
   const turn = emptyLiveRoundShowTurn(prev, next) ?? inferLiveShowTurn(prev, next);
   if (emptyLiveRoundAlreadyPresented(turn)) return false;
+  // Unrelated main-phase polls (baton, play member, etc.) must not replay empty LIVE rounds.
+  if (isMainOrActivePhase(prev?.phase) && isMainOrActivePhase(ph) && !isLeavingLiveSetPhase(prev, next)) {
+    const slice = newLogEntries(prev, next);
+    if (!slice.some(e => e.msg === 'No Lives played this turn.')
+        && !slice.some(e => (e.anim || []).some(a => a.from === 'live' && a.to === 'waiting_room'))) {
+      return false;
+    }
+  }
   if (logTransitionHasEmptyLiveSkip(prev, next)) return true;
   return isEmptyLiveSkipTransition(prev, next);
 }
@@ -28269,6 +28284,13 @@ function parseLogToBanner(msg, kind, s, myId, prev = null, logFrom = 0) {
       const slice = (s.log || []).slice(logFrom);
       if (!slice.some(e => e.msg === 'No Lives played this turn.')) return null;
     }
+    const showTurn = emptyLiveRoundShowTurn(prev, s) ?? inferLiveShowTurn(prev, s);
+    if (emptyLiveRoundAlreadyPresented(showTurn)) return null;
+    if (prev && isMainOrActivePhase(prev.phase) && isMainOrActivePhase(s?.phase)
+        && !isLeavingLiveSetPhase(prev, s)
+        && !newLogEntries(prev, s).some(e => e.msg === msg)) {
+      return null;
+    }
     return splashBanner({
       titleKey: 'splash.noLives',
       subtitleKey: null,
@@ -28448,7 +28470,6 @@ function collectPerfSpectacleDoneTurnsFromLog(s) {
     if (t != null) inTurn = t;
     if (/ performed Live! Blades: /.test(e.msg || '')) {
       turns.add(inTurn);
-      if (inTurn > 1) turns.add(inTurn - 1);
     }
   }
   return turns;
@@ -32177,7 +32198,10 @@ function queueStateAnnouncements(prev, s, myId, opts = {}) {
     if (placementOpen && (shouldDeferLogBannerDuringLivePlayback(entry.msg) || isPostLivePipelineLogBanner(entry.msg))) continue;
     if (emptyLiveSkip && shouldSuppressLivePipelineBanner(entry.msg, prev, s, from)) continue;
     const banner = parseLogToBanner(entry.msg, entry.kind, s, myId, prev, from);
-    if (banner) queueCenterBanner(banner);
+    if (banner) {
+      if (entry.msg === 'No Lives played this turn.') markEmptyLiveRoundPresented(prev, s);
+      queueCenterBanner(banner);
+    }
   }
 }
 
@@ -32190,7 +32214,10 @@ function announceLogEntry(entry, s, myId) {
   const prev = G.gameState;
   const from = prev?.log?.length || 0;
   const banner = parseLogToBanner(entry.msg, entry.kind, s, myId, prev, from);
-  if (banner) queueCenterBanner(banner);
+  if (banner) {
+    if (entry.msg === 'No Lives played this turn.') markEmptyLiveRoundPresented(prev, s);
+    queueCenterBanner(banner);
+  }
 }
 function effectiveCost(card, hand){
   let base=card.cost||0;
