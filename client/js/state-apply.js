@@ -107,6 +107,7 @@
     }
     if(s.seq<=G.lastSeq && G.gameState) {
       TCG_DEBUG.logOnce('state', `stale:${s.seq}`, 'skip stale', { incoming: s.seq, last: G.lastSeq });
+      if (typeof tryFlushSpectacleRecovery === 'function') tryFlushSpectacleRecovery();
       return;
     }
     if (s.status === 'finished') {

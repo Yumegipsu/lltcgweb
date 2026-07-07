@@ -272,6 +272,11 @@
       if (force && d.status === 'finished') {
         G._pendingStateQueue = (G._pendingStateQueue || []).filter(st => (st.seq ?? 0) > (d.seq ?? 0));
       }
+      if (force && G.gameState && (d.seq ?? 0) <= (G.lastSeq ?? 0)) {
+        TCG_DEBUG.logOnce('poll', `force-stale:${d.seq}`, 'skip force pull stale', { incoming: d.seq, last: G.lastSeq });
+        if (typeof tryFlushSpectacleRecovery === 'function') tryFlushSpectacleRecovery();
+        return;
+      }
       onState(d);
     } catch (e) {
       if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return;

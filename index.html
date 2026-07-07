@@ -26938,6 +26938,15 @@ function liveRoundHadLivesPlayed(prev, next, showTurn = null) {
 }
 
 /** Client still owes full Performance spectacle playback for this transition. */
+/** Lives were played this round and client playback has not finished yet. */
+function liveSpectacleStillPending(prev, next, showTurn = null) {
+  if (!prev || !next || G.isTutorial) return false;
+  const turn = showTurn ?? inferLiveShowTurn(prev, next);
+  if (turn == null) return false;
+  if (emptyLiveRoundAlreadyPresented(turn)) return false;
+  return liveRoundHadLivesPlayed(prev, next, turn) && !liveSpectacleDoneForTurn(turn);
+}
+
 function liveSpectacleOwed(prev, next, showTurn = null) {
   if (!prev || !next || G.isTutorial) return false;
   const turn = showTurn ?? inferLiveShowTurn(prev, next);
@@ -27341,9 +27350,7 @@ function detectPendingLiveSpectacleTurn(prev, next) {
   // Match done-key turn (state.turn during live_set) — not log --- Turn N --- markers,
   // which lag behind state.turn until after the Live round resolves.
   if (slice.some(e => / performed Live! Blades: /.test(e.msg || ''))) {
-    if (liveSpectacleOwed(prev, next, showTurn)) return showTurn;
-    if (!liveSpectacleDoneForTurn(showTurn) && liveRoundHadLivesPlayed(prev, next, showTurn)
-        && (next.phase === 'live_start_effects' || pendingPromptBlocksPerfSpectacle(next))) {
+    if (!liveSpectacleDoneForTurn(showTurn) && liveRoundHadLivesPlayed(prev, next, showTurn)) {
       return showTurn;
     }
     return null;
@@ -27351,8 +27358,7 @@ function detectPendingLiveSpectacleTurn(prev, next) {
 
   if (isLeavingLiveSetPhase(prev, next) && liveRoundHadLivesPlayed(prev, next, showTurn)
       && !liveSpectacleDoneForTurn(showTurn)) {
-    if (next.phase === 'live_start_effects' || pendingPromptBlocksPerfSpectacle(next)) return showTurn;
-    if (liveSpectacleOwed(prev, next, showTurn)) return showTurn;
+    return showTurn;
   }
 
   if (logSliceHasLivePipelineSignals(slice)
@@ -27432,6 +27438,9 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
   const spectacleReady = !liveSpectacleDoneForTurn(showTurn)
     && (liveSpectacleOwed(prev, s, showTurn) || shouldTriggerPerfSpectacle(prev, s));
   if (revealDone && !spectacleReady) {
+    if (liveSpectacleStillPending(prev, s, showTurn)) {
+      G._spectacleRecoveryPending = { prev, s, newEntries, myId };
+    }
     TCG_DEBUG.log('live', 'spectacle gate: reveal done, spectacle deferred', { showTurn, phase: s.phase });
     return false;
   }
@@ -27448,11 +27457,12 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
     if (outcome.spectacle || outcome.empty) return true;
     if (outcome.reveal) markLiveStorageRevealDone(showTurn);
     if (liveSpectacleDoneForTurn(showTurn)) return true;
-    const owed = liveSpectacleOwed(prev, s, showTurn);
-    if (!owed) return true;
-    G._spectacleRecoveryPending = { prev, s, newEntries, myId };
-    TCG_DEBUG.warn('live', 'spectacle gate: still owed after presentLiveRound', { showTurn, outcome });
-    return false;
+    if (liveSpectacleStillPending(prev, s, showTurn)) {
+      G._spectacleRecoveryPending = { prev, s, newEntries, myId };
+      TCG_DEBUG.warn('live', 'spectacle gate: still pending after presentLiveRound', { showTurn, outcome });
+      return false;
+    }
+    return true;
   } finally {
     G._liveSpectacleGateRunning = false;
     G.animating = false;
