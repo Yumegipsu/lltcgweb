@@ -18834,18 +18834,6 @@ async function playLivePhaseTransition(prev, final, myId, opts = {}) {
       }
       return;
     }
-    const preFlipKeys = new Set();
-    for (const pid of ['p1', 'p2']) {
-      if (pid === myId) continue;
-      for (const c of revealFrom.players?.[pid]?.live_zone || []) {
-        if (!c.revealed && isLiveStorageRevealCard(c)) {
-          preFlipKeys.add(`${pid}:${c.instance_id}`);
-        }
-      }
-    }
-    if (preFlipKeys.size) G._liveRevealFlips = preFlipKeys;
-    G.gameState = revealFrom;
-    renderGame(revealFrom, { skipLog: true });
     await runLiveStorageRevealSequence(revealFrom, final, myId, {
       skipIntroBanner,
       deferWrDiscards: deferFinal,
@@ -19573,6 +19561,10 @@ function waitForCardFlipsIdle() {
 }
 
 function scheduleCardFlipReveal(cardEl, flipKey, flipKeys, opts = {}) {
+  if (!cardEl || cardEl.classList.contains('revealed')) return;
+  G._liveFlipScheduled = G._liveFlipScheduled || new Set();
+  if (G._liveFlipScheduled.has(flipKey)) return;
+  G._liveFlipScheduled.add(flipKey);
   const {
     staggerMs = 0,
     durationMs = LIVE_STORAGE_FLIP_MS,
@@ -19588,6 +19580,7 @@ function scheduleCardFlipReveal(cardEl, flipKey, flipKeys, opts = {}) {
         setTimeout(() => {
           finalizeCardFlip(cardEl);
           flipKeys.delete(flipKey);
+          G._liveFlipScheduled?.delete(flipKey);
           trackCardFlipEnd();
         }, durationMs);
       }));
@@ -26737,6 +26730,7 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
   }
 
   G._liveRevealFlips = new Set();
+  G._liveFlipScheduled = new Set();
   return true;
 }
 
@@ -33570,6 +33564,17 @@ function renderLiveSlots(prefix, zone, isMe, pid){
     if (existingCard?.dataset.iid === card.instance_id) {
       if (existingCard.classList.contains('live-storage-flip')) {
         existingCard.classList.toggle('card-arriving', !!(G._animHideIids?.has(card.instance_id)));
+        if (!existingCard.classList.contains('revealed') && doFlip) {
+          flipKeys.delete(flipKey);
+          ensureCardImageLoaded(card).finally(() => {
+            requestAnimationFrame(() => {
+              layoutLiveSlots(prefix);
+              requestAnimationFrame(() => {
+                scheduleLiveStorageFlip(existingCard, flipKey, flipKeys, i * LIVE_STORAGE_FLIP_STAGGER_MS, prefix);
+              });
+            });
+          });
+        }
         continue;
       }
       if (doFlip && isOpp && existingCard.classList.contains('live-storage-facedown')) {
