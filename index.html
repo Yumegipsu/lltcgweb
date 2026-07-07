@@ -19618,13 +19618,25 @@ function scheduleCardFlipReveal(cardEl, flipKey, flipKeys, opts = {}) {
   trackCardFlipStart();
   const run = () => {
     setTimeout(() => {
+      if (!cardEl.isConnected || cardEl.classList.contains('revealed')) {
+        G._liveFlipScheduled?.delete(flipKey);
+        trackCardFlipEnd();
+        return;
+      }
       if (typeof beforeFlip === 'function') beforeFlip();
       sfxPlayCard('card_flip');
       requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (!cardEl.isConnected || cardEl.classList.contains('revealed')) {
+          G._liveFlipScheduled?.delete(flipKey);
+          trackCardFlipEnd();
+          return;
+        }
+        const inner = cardEl.querySelector('.live-flip-inner, .hand-flip-inner');
+        if (inner) void inner.offsetWidth;
         cardEl.classList.add('revealed');
         setTimeout(() => {
           finalizeCardFlip(cardEl);
-          flipKeys.delete(flipKey);
+          flipKeys?.delete?.(flipKey);
           G._liveFlipScheduled?.delete(flipKey);
           trackCardFlipEnd();
         }, durationMs);
@@ -26751,10 +26763,9 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
     playback.players[pid].live_zone = zone.map(c => {
       if (pid === myId || c.revealed || !isLiveStorageRevealCard(c)) return { ...c };
       const merged = mergeLiveCardFromFinal(c, final, pid);
-      merged.revealed = true;
       flipKeys.add(`${pid}:${merged.instance_id}`);
-      preload.push(ensureCardImageLoaded(enrichCard(merged)));
-      return merged;
+      preload.push(ensureCardImageLoaded(enrichCard({ ...merged, revealed: true })));
+      return { ...merged, revealed: false };
     });
   }
 
@@ -26776,6 +26787,15 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
   await sleep(flipWait);
   await waitForCardFlipsIdle();
   await sleep(80);
+
+  for (const pid of ['p1', 'p2']) {
+    const zone = playback.players?.[pid]?.live_zone || [];
+    playback.players[pid].live_zone = zone.map(c => {
+      const full = findCardInState(final, c.instance_id, pid);
+      return full ? { ...c, ...full } : c;
+    });
+  }
+  G.gameState = playback;
 
   if (opts.deferWrDiscards) {
     G._livePostRevealBoard = deepCloneState(playback);
@@ -32163,6 +32183,22 @@ function scheduleLiveStorageFlip(cardEl, flipKey, flipKeys, staggerMs = 0, layou
   });
 }
 
+function ensureLiveStorageFlipScheduled(cardEl, card, flipKey, flipKeys, staggerMs, prefix) {
+  if (!cardEl || cardEl.classList.contains('revealed')) return;
+  if (!cardEl.classList.contains('live-storage-flip')) return;
+  G._liveFlipScheduled = G._liveFlipScheduled || new Set();
+  if (G._liveFlipScheduled.has(flipKey)) return;
+  ensureCardImageLoaded(card).finally(() => {
+    if (!cardEl.isConnected || cardEl.classList.contains('revealed')) return;
+    requestAnimationFrame(() => {
+      layoutLiveSlots(prefix);
+      requestAnimationFrame(() => {
+        scheduleLiveStorageFlip(cardEl, flipKey, flipKeys, staggerMs, prefix);
+      });
+    });
+  });
+}
+
 function scheduleStageFlipReveal(cardEl, flipKey, flipKeys) {
   scheduleCardFlipReveal(cardEl, flipKey, flipKeys, {
     durationMs: STAGE_FLIP_MS,
@@ -33656,31 +33692,20 @@ function renderLiveSlots(prefix, zone, isMe, pid){
     if (existingCard?.dataset.iid === card.instance_id) {
       if (existingCard.classList.contains('live-storage-flip')) {
         existingCard.classList.toggle('card-arriving', !!(G._animHideIids?.has(card.instance_id)));
-        if (!existingCard.classList.contains('revealed') && doFlip) {
-          flipKeys.delete(flipKey);
-          ensureCardImageLoaded(card).finally(() => {
-            requestAnimationFrame(() => {
-              layoutLiveSlots(prefix);
-              requestAnimationFrame(() => {
-                scheduleLiveStorageFlip(existingCard, flipKey, flipKeys, i * LIVE_STORAGE_FLIP_STAGGER_MS, prefix);
-              });
-            });
-          });
+        const flipActive = doFlip || G._liveFlipScheduled?.has(flipKey);
+        if (!existingCard.classList.contains('revealed') && flipActive) {
+          ensureLiveStorageFlipScheduled(
+            existingCard, card, flipKey, flipKeys, i * LIVE_STORAGE_FLIP_STAGGER_MS, prefix
+          );
         }
         continue;
       }
       if (doFlip && isOpp && existingCard.classList.contains('live-storage-facedown')) {
-        flipKeys.delete(flipKey);
         upgradeLiveStorageCardForReveal(existingCard, card);
         layoutLiveSlots(prefix);
-        ensureCardImageLoaded(card).finally(() => {
-          requestAnimationFrame(() => {
-            layoutLiveSlots(prefix);
-            requestAnimationFrame(() => {
-              scheduleLiveStorageFlip(existingCard, flipKey, flipKeys, i * LIVE_STORAGE_FLIP_STAGGER_MS, prefix);
-            });
-          });
-        });
+        ensureLiveStorageFlipScheduled(
+          existingCard, card, flipKey, flipKeys, i * LIVE_STORAGE_FLIP_STAGGER_MS, prefix
+        );
         continue;
       }
       if (existingCard.classList.contains('card-arriving')) {
@@ -33712,19 +33737,11 @@ function renderLiveSlots(prefix, zone, isMe, pid){
       shell.appendChild(backFace);
       d.appendChild(shell);
     } else if (doFlip) {
-      flipKeys.delete(flipKey);
       d.classList.add('live-storage-flip');
       applyLiveStorageMemberSpin(d, card);
       d.appendChild(buildLiveStorageFlipInner(card));
       layoutLiveSlots(prefix);
-      ensureCardImageLoaded(card).finally(() => {
-        requestAnimationFrame(() => {
-          layoutLiveSlots(prefix);
-          requestAnimationFrame(() => {
-            scheduleLiveStorageFlip(d, flipKey, flipKeys, i * LIVE_STORAGE_FLIP_STAGGER_MS, prefix);
-          });
-        });
-      });
+      ensureLiveStorageFlipScheduled(d, card, flipKey, flipKeys, i * LIVE_STORAGE_FLIP_STAGGER_MS, prefix);
       d.onclick = G.isSpectator ? null : () => showCard(card, null, G.gameState, isMe ? G.playerId : pid);
     } else {
       appendLiveStorageFace(d, card);
