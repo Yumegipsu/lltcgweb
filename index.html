@@ -18609,6 +18609,20 @@ function findCardByIid(state, iid) {
   return null;
 }
 
+/** Keep playback state aligned after a live-storage flip so renderLiveSlots won't rebuild the slot. */
+function syncLiveStorageRevealedInState(iid) {
+  if (!iid || !G.gameState?.players) return;
+  for (const pid of ['p1', 'p2']) {
+    const zone = G.gameState.players[pid]?.live_zone;
+    if (!zone) continue;
+    const slot = zone.find(c => c.instance_id === iid);
+    if (slot) {
+      slot.revealed = true;
+      return;
+    }
+  }
+}
+
 function animToLoc(spec, which) {
   const zone = spec[which];
   if (!zone) return null;
@@ -19696,6 +19710,7 @@ function finalizeCardFlip(cardEl) {
   const iid = cardEl.dataset.iid;
   const card = iid ? findCardByIid(G.gameState, iid) : null;
   if (isLive && card) {
+    if (iid) syncLiveStorageRevealedInState(iid);
     while (front.firstChild) cardEl.insertBefore(front.firstChild, inner);
     inner.remove();
     cardEl.classList.remove('hand-draw-flip', 'live-storage-flip', 'live-flip-axis-x', 'stage-flip', 'stage-flip-axis-x', 'revealed', 'storage-sideways-member');
@@ -26776,6 +26791,7 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
     queuePerformancePhaseBanner();
   }
 
+  G._liveFlipScheduled = new Set();
   G._liveRevealFlips = flipKeys;
   G.gameState = playback;
   renderGame(playback, { skipLog: true });
@@ -33721,7 +33737,7 @@ function renderLiveSlots(prefix, zone, isMe, pid){
       if (existingCard.classList.contains('card-arriving')) {
         continue;
       }
-      if (showFace && !doFlip && liveStorageCardShowsFace(existingCard)) {
+      if (liveStorageCardShowsFace(existingCard)) {
         existingCard.classList.toggle('card-arriving', !!(G._animHideIids?.has(card.instance_id)));
         applyCardFoilFx(existingCard, card);
         continue;
