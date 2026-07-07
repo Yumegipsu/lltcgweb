@@ -25,7 +25,8 @@
 
   /** Match doPollLegacy gates — avoid fetching mid-animation (queues states and stacks anims). */
   global.pollPresentationBlocked = function pollPresentationBlocked() {
-    return !!(G.animating || G._perfSpectacleActive || G._livePollHold);
+    return !!(G.animating || G._perfSpectacleActive || G._livePollHold
+      || G._replaySeekInFlight || G._replayForwardApply);
   };
 
   global.scheduleDeferredSyncPull = function scheduleDeferredSyncPull(delayMs = 400) {

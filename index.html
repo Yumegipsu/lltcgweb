@@ -7309,8 +7309,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
-<script src="client/js/game-sync.js?v=6"></script>
-<script src="client/js/state-apply.js?v=9"></script>
+<script src="client/js/game-sync.js?v=7"></script>
+<script src="client/js/state-apply.js?v=10"></script>
 <script src="client/js/stamps.js?v=11"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=10"></script>
@@ -12009,6 +12009,7 @@ async function replayGotoStep(step, opts = {}) {
   if (!isReplayViewing()) return;
   if (!G.roomId || !G.token) return;
   step = Math.max(0, Math.min(step, G.replayTotal || 0));
+  G._replaySeekWasScrub = Math.abs(step - (G.replayStep || 0)) > 1;
   G._replaySeekTarget = step;
   if (G._replayScrubTimer) {
     clearTimeout(G._replayScrubTimer);
@@ -15430,7 +15431,7 @@ function setCardDetailImage(card) {
 let G = {
   roomId:null, token:null, cpuToken:null, playerId:null, isCPU:false, cpuDifficulty:'easy',
   replayMode:false, replayHandoff:false, replayStep:0, replayTotal:0, replayPlaying:false, replayPlayTimer:null,
-  replayTimeline:null, replayLoadedMeta:null,
+  replayTimeline:null, replayLoadedMeta:null, _replaySeekWasScrub:false, _replayForwardApply:false, _replayLastAppliedStep:0,
   isSpectator:false, _spectateReturnScreen:'lobby', _spectateP1Name:null, _spectateP2Name:null,
   cpuPlayerId:null,
   _pendingReplayFile:null,
@@ -26180,6 +26181,7 @@ function handLayoutUnchanged(a, b, myId) {
 
 function renderGame(s, opts = {}) {
   if(!s?.players) return;
+  if (isReplayViewing()) opts = { ...opts, skipPrompt: true };
   maybePlayPhaseSfx(s);
   const myId=G.playerId, oppId=myId==='p1'?'p2':'p1';
   const me=s.players[myId], opp=s.players[oppId];
@@ -27500,6 +27502,7 @@ function emptyLiveRoundShowTurn(prev, next) {
     }
   }
   // log+0 batched poll: prev may already be main_first turn N+1 — scan full log.
+  if (slice.length > 0) return null;
   const fromLog = emptyLiveRoundTurnFromLog(next);
   if (fromLog != null) return fromLog;
   const showTurn = inferLiveShowTurn(prev, next);
@@ -27557,7 +27560,9 @@ function isEmptyLiveSkipTransition(prev, next) {
   }
   // Recovery: state already committed (live_zone empty) but log still records empty round.
   if (showTurn != null && !liveRoundBoardHasLiveCards(prev) && !liveRoundBoardHasLiveCards(next)
-      && logHasLivePerformanceForTurn(next, showTurn) === false && fullLogHasEmptyLiveSkip(next)) {
+      && logHasLivePerformanceForTurn(next, showTurn) === false
+      && (leavingLive || logTransitionHasEmptyLiveSkip(prev, next))
+      && fullLogHasEmptyLiveSkipForTurn(next, showTurn)) {
     return true;
   }
   return false;
@@ -28244,6 +28249,10 @@ function parseLogToBanner(msg, kind, s, myId, prev = null, logFrom = 0) {
     });
   }
   if (msg === 'No Lives played this turn.') {
+    if (prev) {
+      const slice = (s.log || []).slice(logFrom);
+      if (!slice.some(e => e.msg === 'No Lives played this turn.')) return null;
+    }
     return splashBanner({
       titleKey: 'splash.noLives',
       subtitleKey: null,
@@ -28427,6 +28436,20 @@ function collectPerfSpectacleDoneTurnsFromLog(s) {
     }
   }
   return turns;
+}
+
+function primeReplayEmptyLivePresentedFromLog(s) {
+  if (!s?.log?.length) return;
+  let inTurn = 1;
+  for (const e of s.log) {
+    const t = parseTurnMarker(e.msg);
+    if (t != null) inTurn = t;
+    if (e.msg !== 'No Lives played this turn.') continue;
+    if (!G._emptyLiveRoundPresentedTurns) G._emptyLiveRoundPresentedTurns = new Set();
+    G._emptyLiveRoundPresentedTurns.add(inTurn);
+    if (!G._perfSpectacleDoneTurns) G._perfSpectacleDoneTurns = new Set();
+    G._perfSpectacleDoneTurns.add(inTurn);
+  }
 }
 
 function primePerfSpectacleDoneKeysFromLog(s) {
@@ -32115,6 +32138,7 @@ function showPhaseTransitionBanner(s, myId, prev) {
 function queueStateAnnouncements(prev, s, myId, opts = {}) {
   if (!s || !isActiveGameplay(s)) return;
   if (document.querySelector('#screen-game')?.classList.contains('active') === false) return;
+  if (isReplayViewing() && !opts.replayForward) return;
   const holdLivePlayback = !!opts.holdLivePlayback || isLiveRoundPlaybackActive();
   const placementOpen = liveSetPlacementInProgress(s);
   const enteringLiveSet = isEnteringLiveSetPhase(prev, s);
@@ -32146,6 +32170,7 @@ function processGameAnnouncements(prev, s, myId) {
 }
 
 function announceLogEntry(entry, s, myId) {
+  if (isReplayViewing() && !G._replayForwardApply) return;
   const prev = G.gameState;
   const from = prev?.log?.length || 0;
   const banner = parseLogToBanner(entry.msg, entry.kind, s, myId, prev, from);

@@ -9,11 +9,34 @@
       || (typeof global.isReplayViewing === 'function' && global.isReplayViewing());
   }
 
-  function applyReplayViewingState(s) {
-    G._lastAppliedAt = Date.now();
-    if (typeof abortGameplayPresentation === 'function') {
-      abortGameplayPresentation({ skipAbortFlag: true });
+  function replayStepDelta(prev, next) {
+    const prevStep = prev?.replay?.step;
+    const nextStep = next?.replay?.step ?? G.replayStep;
+    if (typeof prevStep === 'number' && typeof nextStep === 'number') return nextStep - prevStep;
+    return null;
+  }
+
+  function primeReplaySnapshotPresentationContext(s) {
+    if (typeof clearPerfSpectacleDoneStorage === 'function') clearPerfSpectacleDoneStorage();
+    if (typeof primePerfSpectacleDoneKeysFromLog === 'function') primePerfSpectacleDoneKeysFromLog(s);
+    if (typeof primeReplayEmptyLivePresentedFromLog === 'function') {
+      primeReplayEmptyLivePresentedFromLog(s);
     }
+    G._announceBaseline = (s?.log || []).length;
+    G._prevLogLen = (s?.log || []).length;
+    G._lastPhase = s?.phase ?? null;
+    G._deferPerfSpectaclePrev = null;
+    G._livePostRevealBoard = null;
+    G._liveStorageOutcomePending = false;
+    G._liveRoundPlaybackActive = false;
+    G._liveRoundPostSpectacleReady = false;
+    G._liveSpectacleGateRunning = false;
+    G._postSpectacleSplashPause = false;
+    if (typeof resyncGameLogFromState === 'function') resyncGameLogFromState(s);
+  }
+
+  function applyReplaySnapshot(s) {
+    G._lastAppliedAt = Date.now();
     G._pendingStateQueue = [];
     G._promptSubmitKey = null;
     G.lastSeq = s?.seq ?? G.lastSeq;
@@ -21,10 +44,37 @@
     if (typeof applyReplayStateFromPoll === 'function') applyReplayStateFromPoll(s);
     if (document.querySelector('.screen.active')?.id !== 'screen-game') showScr('game');
     if (typeof dismissAllGameplayOverlays === 'function') dismissAllGameplayOverlays();
+    primeReplaySnapshotPresentationContext(s);
     G.gameState = s;
     renderGame(s, { skipPrompt: true });
+    G._presentationAborted = false;
+    G._replayLastAppliedStep = s?.replay?.step ?? G.replayStep;
     if (typeof syncReplayPromptReadOnlyUi === 'function') syncReplayPromptReadOnlyUi(true);
     if (typeof syncReplayControlBar === 'function') syncReplayControlBar();
+  }
+
+  async function applyReplayStateUpdate(prev, s) {
+    if (typeof abortGameplayPresentation === 'function') abortGameplayPresentation();
+    const delta = replayStepDelta(prev, s);
+    const scrub = !prev || G._replaySeekWasScrub || delta == null || delta !== 1;
+    if (scrub) {
+      applyReplaySnapshot(s);
+      G._replaySeekWasScrub = false;
+      return;
+    }
+    G._replayForwardApply = true;
+    G._presentationAborted = false;
+    try {
+      if (typeof holdLivePolls === 'function') holdLivePolls();
+      await global.applyStateUpdate(s);
+    } finally {
+      G._replayForwardApply = false;
+      G._replayLastAppliedStep = s?.replay?.step ?? G.replayStep;
+      G._replaySeekWasScrub = false;
+      if (typeof releaseLivePolls === 'function') releaseLivePolls();
+      if (typeof syncReplayPromptReadOnlyUi === 'function') syncReplayPromptReadOnlyUi(true);
+      if (typeof syncReplayControlBar === 'function') syncReplayControlBar();
+    }
   }
 
   global.onState = function onState(s) {
@@ -150,12 +200,13 @@
   /** Apply one server state snapshot: spectacle gate, log anims, or direct render. */
   global.applyStateUpdate = async function applyStateUpdate(s) {
     if (G.isTutorial && !G.tutorialLive) return;
-    if (isReplayViewingState(s)) {
-      applyReplayViewingState(s);
+    if (isReplayViewingState(s) && !G._replayForwardApply) {
+      await applyReplayStateUpdate(G.gameState, s);
       return;
     }
+    const replayForward = !!G._replayForwardApply;
     G._lastAppliedAt = Date.now();
-    syncPromptSubmitState(s);
+    if (!replayForward) syncPromptSubmitState(s);
     if (!s?.pending_prompt) clearDeferredPromptState();
     clearStaleOpponentSkillWaitIfResolved(s, G.playerId);
     const prev = G.gameState;
@@ -203,12 +254,16 @@
 
     if (await runLiveSpectacleGate(prev, s, newEntries, G.playerId)) {
       const live = G.gameState || s;
-      if (live.pending_prompt?.responder === G.playerId
+      if (!replayForward
+          && live.pending_prompt?.responder === G.playerId
           && live.phase === 'live_judge'
           && live.pending_prompt?.type === 'pick_judge_success_live') {
         ensurePendingPromptSurfaced(live, G.playerId);
       }
-      if (G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) { doCPU(live); armWatchdog(live); }
+      if (!replayForward && G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) {
+        doCPU(live);
+        armWatchdog(live);
+      }
       return;
     }
 
@@ -260,12 +315,14 @@
             newEntries,
             forceEmptyRound: emptySkip && !livePlan.wantsEmptyRound,
           });
-          ensurePendingPromptSurfaced(s, G.playerId);
+          if (!replayForward) ensurePendingPromptSurfaced(s, G.playerId);
         } finally {
           G._animHideIids = null;
           clearHandArrivingFlags();
           G.animating = false;
-          if (s.pending_prompt?.responder === G.playerId) ensurePendingPromptSurfaced(s, G.playerId);
+          if (!replayForward && s.pending_prompt?.responder === G.playerId) {
+            ensurePendingPromptSurfaced(s, G.playerId);
+          }
           releaseLivePollsAndFlush();
         }
       } else {
@@ -277,7 +334,7 @@
             G.animating = true;
             try {
               await presentLiveRound(prev, s, G.playerId, { newEntries, forceEmptyRound: true });
-              ensurePendingPromptSurfaced(s, G.playerId);
+              if (!replayForward) ensurePendingPromptSurfaced(s, G.playerId);
               emptyRoundHandled = true;
             } finally {
               G._animHideIids = null;
@@ -348,7 +405,10 @@
           if (!emptyRoundHandled) {
           applyTurnPrepEntriesToState(s, s, newEntries);
           if (!detectPendingLiveSpectacleTurn(prev, s) && !liveRoundRequiresSpectacle(prev, s)) {
-            queueStateAnnouncements(prev, s, G.playerId, { emptyLiveSkip: isEmptyLiveSkipTransition(prev, s) });
+            queueStateAnnouncements(prev, s, G.playerId, {
+              emptyLiveSkip: isEmptyLiveSkipTransition(prev, s),
+              replayForward,
+            });
           }
           const hideHandsOnMat = handsHiddenOnMat(s);
           const deferHand = hideHandsOnMat || openingDeal || handLayoutDeferForPlayer(moves, G.playerId);
@@ -433,12 +493,12 @@
     if (G.isTutorial && !G.tutorialLive) return;
     tcgDebugOnStateApplied(prev, s, newEntries);
     ensurePollHoldReleased(G.gameState || s);
-    if (!G.animating && !G._perfSpectacleActive && !G._liveSpectacleGateRunning) {
+    if (!replayForward && !G.animating && !G._perfSpectacleActive && !G._liveSpectacleGateRunning) {
       if (shouldRecoverMissedLiveSpectacle(prev, s)) {
         await runLiveSpectacleGate(prev, s, newEntries, G.playerId);
       }
       G._spectacleRecoveryPending = null;
-    } else if (shouldRecoverMissedLiveSpectacle(prev, s)) {
+    } else if (!replayForward && shouldRecoverMissedLiveSpectacle(prev, s)) {
       G._spectacleRecoveryPending = { prev, s, newEntries, myId: G.playerId };
     }
     clearStalePerfDeferState(prev, s);
@@ -453,21 +513,21 @@
       }
     }
     flushPendingState();
-    if (!G.animating && !G._perfSpectacleActive && s.pending_prompt?.responder === G.playerId
+    if (!replayForward && !G.animating && !G._perfSpectacleActive && s.pending_prompt?.responder === G.playerId
         && (s.phase === 'live_success_effects'
             || (s.phase === 'live_judge' && s.pending_prompt?.type === 'pick_judge_success_live'))) {
       ensurePendingPromptSurfaced(s, G.playerId);
     }
     clearStaleCpuPromptBusyIfResolved(G.gameState || s);
     if (G.playerId) updateOpponentSkillWaitBanner(G.gameState || s, G.playerId);
-    if (G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) {
+    if (!replayForward && G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) {
       doCPU(G.gameState || s);
       armWatchdog(G.gameState || s);
-    } else if (G.isCPU && (G.gameState || s)?.pending_prompt?.responder === 'p2'
+    } else if (!replayForward && G.isCPU && (G.gameState || s)?.pending_prompt?.responder === 'p2'
         && !(G.tutorialLive && G.tutorialHoldCpu)) {
       scheduleCpuResolvePrompt(G.gameState || s, (G.gameState || s).players?.p2);
       armCpuPromptHangWatch(G.gameState || s);
-    } else if (!G.isCPU && !G.isSpectator) {
+    } else if (!replayForward && !G.isCPU && !G.isSpectator) {
       armPvPWatchdog(G.gameState || s);
     }
     if (G.tutorialLive && typeof global.TutorialInteractive?.onStateApplied === 'function') {
@@ -504,6 +564,7 @@
 
   global.flushPendingState = function flushPendingState() {
     if (G.animating || isPresentationSuperseded()) return;
+    if (typeof global.isReplayViewing === 'function' && global.isReplayViewing() && !G._replayForwardApply) return;
     const q = G._pendingStateQueue;
     if (!q?.length) {
       if (G.syncEnabled && G.syncTicket) scheduleDeferredSyncPull(120);
