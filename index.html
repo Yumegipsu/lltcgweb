@@ -16215,7 +16215,7 @@ window.G = G;
     if (!tutPinned) {
       if(!e.target.closest('.hcard') && !e.target.closest('.mbox') && !e.target.closest('.stage-slot') && !e.target.closest('#card-hover-panel'))
         if(G.selCard) clearPlaySelection();
-      if (!e.target.closest('#hand-row') && !G.drag && !G.selCard) clearHoverCardPreview();
+      if (!e.target.closest('#hand-row') && !e.target.closest('.stage-slot') && !G.drag && !G.selCard) clearHoverCardPreview();
     }
   });
   initRuleKeywordTooltips();
@@ -18902,8 +18902,6 @@ function syncMyStagePlayHints(s, myId) {
         if (mslot._savedShowClick !== undefined) {
           mslot.onclick = mslot._savedShowClick;
           delete mslot._savedShowClick;
-        } else {
-          mslot.onclick = null;
         }
       }
       outer.style.cursor = '';
@@ -32782,6 +32780,7 @@ function renderStageSlots(prefix, stage, isMe, s, myId) {
       d.classList.toggle('card-arriving', !!(G._animHideIids?.has(mbr.instance_id)));
       const ownerPid = isMe ? myId : oppPid;
       appendMemberStackedEnergyBadge(d, mbr, s?.players?.[ownerPid]);
+      if (isMe) bindMyStageCardInspect(d, mbr, s, myId);
     }
     outer.appendChild(d);
     if(mbr?.blade){
@@ -34411,6 +34410,20 @@ function onDocPointerUp(e) {
 
 function liveGameState(fallback) {
   return G.gameState || fallback;
+}
+
+function bindMyStageCardInspect(mslot, card, s, myId) {
+  if (!mslot || !card || G.isSpectator || G.isTutorial) return;
+  mslot.addEventListener('pointerenter', () => {
+    if (G.drag || tcgMobileViewportActive()) return;
+    const pinned = pinnedHandPreviewIid();
+    if (pinned && pinned !== card.instance_id) return;
+    showHoverCardPreview(card, liveGameState(s), myId);
+  });
+  mslot.addEventListener('pointerleave', () => {
+    if (G.drag) return;
+    if (G.hoverCardId === card.instance_id && !pinnedHandPreviewIid()) clearHoverCardPreview();
+  });
 }
 
 function bindHandCardEvents(d, card, s, myId) {
