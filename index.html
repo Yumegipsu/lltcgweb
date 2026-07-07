@@ -27488,19 +27488,36 @@ function clearStalePerfDeferState(prev, next) {
 // runLiveSpectacleGate, liveRoundPresentationPlan, shouldTriggerPerfSpectacle, and
 // performanceSpectacleReady; playback in presentLiveRound + playPerformanceSpectacle.
 
+/** Board to inspect for opponent face-down storage — not buildLiveRevealPlayback(prev), which always rebuilds face-down from stale live_set prev. */
+function currentLiveStorageBoardForRevealGate(next) {
+  if (G._livePostRevealBoard?.players) return G._livePostRevealBoard;
+  const gs = G.gameState;
+  if (gs?.players && (G._liveRoundPlaybackActive || G._liveStorageOutcomePending || G._liveSpectacleGateRunning)) {
+    return gs;
+  }
+  if (next?.players) return next;
+  return gs;
+}
+
+/** True when reveal was marked done but opponent storage is still face-down on the live mat. */
+function shouldResetLiveStorageRevealDone(prev, next, showTurn, myId) {
+  if (showTurn == null || !liveStorageRevealDoneForTurn(showTurn)) return false;
+  if (!liveSpectacleStillPending(prev, next, showTurn)) return false;
+  const board = currentLiveStorageBoardForRevealGate(next);
+  if (!board?.players) return false;
+  return liveStorageHadFaceDownOppBluff(board, myId);
+}
+
 async function runLiveSpectacleGate(prev, s, newEntries, myId) {
   if (isLiveSetPlacementOnly(prev, s) || liveSetPlacementInProgress(s)) return false;
   const showTurn = detectPendingLiveSpectacleTurn(prev, s);
   if (showTurn == null) return false;
   if (G._liveSpectacleGateRunning) return false;
   let revealDone = liveStorageRevealDoneForTurn(showTurn);
-  if (revealDone && liveSpectacleStillPending(prev, s, showTurn)) {
-    const revealBoard = buildLiveRevealPlayback(prev, s, myId);
-    if (revealBoard && liveStorageHadFaceDownOppBluff(revealBoard, myId)) {
-      G._liveStorageRevealDoneTurns?.delete(showTurn);
-      revealDone = false;
-      TCG_DEBUG.warn('live', 'spectacle gate: reveal-done reset — opponent storage still face-down', { showTurn });
-    }
+  if (shouldResetLiveStorageRevealDone(prev, s, showTurn, myId)) {
+    G._liveStorageRevealDoneTurns?.delete(showTurn);
+    revealDone = false;
+    TCG_DEBUG.warn('live', 'spectacle gate: reveal-done reset — opponent storage still face-down', { showTurn });
   }
   const spectacleReady = !liveSpectacleDoneForTurn(showTurn)
     && (liveSpectacleOwed(prev, s, showTurn) || shouldTriggerPerfSpectacle(prev, s));
@@ -29504,7 +29521,6 @@ function rememberPerfSpectacleBaseline(prev, next) {
       G._deferPerfSpectaclePrev = null;
       return;
     }
-    G._perfSplashShownForTurn = null;
     G._deferPerfSpectaclePrev = augmentPerfSpectaclePrev(prev, next);
   } else if (prev.phase === 'live_start_effects' && next.phase !== 'live_start_effects'
       && roundHasLivePerformanceSignals(prev, next) && !G._deferPerfSpectaclePrev) {
