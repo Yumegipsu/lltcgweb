@@ -689,9 +689,8 @@ html:not(.tcg-mobile-viewport) #screen-game .opp-hand-strip .opp-hand-card{
 .card-hover-panel .hc-slotrow .btn-smol:disabled{opacity:.42;cursor:default}
 #picker-card-hover-panel{
   position:fixed;
-  left:max(12px, env(safe-area-inset-left, 0px));
-  top:50%;
-  transform:translateY(-50%);
+  left:0;
+  top:0;
   z-index:968;
   width:min(248px, 26vw);
   max-height:min(92vh, calc(100dvh - 24px));
@@ -35378,14 +35377,73 @@ function pickerCardHoverEnabled() {
     && !(typeof tcgMobileViewportActive === 'function' && tcgMobileViewportActive());
 }
 
+function activePickerDialogAnchor() {
+  for (const id of PICKER_OVERLAY_IDS) {
+    const overlay = el(id);
+    if (!overlay?.classList.contains('open')) continue;
+    if (id === 'overlay-hand-pick') {
+      return overlay.querySelector('.hand-pick-shell') || overlay;
+    }
+    return overlay.querySelector('.mbox') || overlay;
+  }
+  return null;
+}
+
+function resetPickerCardHoverPosition() {
+  const panel = el('picker-card-hover-panel');
+  if (!panel) return;
+  panel.style.left = '';
+  panel.style.top = '';
+  panel.style.right = '';
+  panel.style.transform = '';
+}
+
+function syncPickerCardHoverPosition() {
+  const panel = el('picker-card-hover-panel');
+  const anchor = activePickerDialogAnchor();
+  if (!panel || !panel.classList.contains('visible') || !anchor) {
+    resetPickerCardHoverPosition();
+    return;
+  }
+  const gap = 12;
+  const pad = Math.max(12, parseFloat(getComputedStyle(document.documentElement).getPropertyValue('env(safe-area-inset-left)')) || 12);
+  const anchorRect = anchor.getBoundingClientRect();
+  const panelRect = panel.getBoundingClientRect();
+  const panelW = panelRect.width || panel.offsetWidth || 248;
+  const panelH = panelRect.height || panel.offsetHeight || 200;
+  let left = anchorRect.left - gap - panelW;
+  let top = anchorRect.top + (anchorRect.height - panelH) / 2;
+  const maxTop = window.innerHeight - pad - panelH;
+  top = Math.max(pad, Math.min(top, maxTop));
+  if (left < pad) left = pad;
+  panel.style.left = `${left}px`;
+  panel.style.top = `${top}px`;
+  panel.style.right = 'auto';
+  panel.style.transform = 'none';
+}
+
+let pickerHoverResizeBound = false;
+function ensurePickerHoverResizeSync() {
+  if (pickerHoverResizeBound) return;
+  pickerHoverResizeBound = true;
+  window.addEventListener('resize', () => {
+    if (el('picker-card-hover-panel')?.classList.contains('visible')) syncPickerCardHoverPosition();
+  });
+}
+
 function showPickerCardHover(card, s, myId) {
   if (!pickerCardHoverEnabled() || !card) return;
   if (el('modal-card')?.classList.contains('open')) return;
+  ensurePickerHoverResizeSync();
   fillCardDetailPanel('pchv', enrichCard(card), s, myId || G.playerId);
   const panel = el('picker-card-hover-panel');
   const empty = el('pchv-empty');
   if (panel) panel.classList.add('visible');
   if (empty) empty.style.display = 'none';
+  requestAnimationFrame(() => {
+    syncPickerCardHoverPosition();
+    requestAnimationFrame(syncPickerCardHoverPosition);
+  });
 }
 
 function clearPickerCardHover() {
@@ -35393,6 +35451,7 @@ function clearPickerCardHover() {
   const empty = el('pchv-empty');
   if (panel) panel.classList.remove('visible');
   if (empty) empty.style.display = '';
+  resetPickerCardHoverPosition();
 }
 
 function bindPickerCardHover(node, card, s, myId) {
