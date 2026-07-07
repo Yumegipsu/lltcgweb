@@ -1357,6 +1357,7 @@ global.renderPromptSurveilBranch = function renderPromptSurveilBranch(s, myId, p
 
 global.renderPromptDiscardHandBranch = function renderPromptDiscardHandBranch(s, myId, pr) {
   const ovl = el('overlay-prompt');
+  if (typeof isPromptSubmitting === 'function' && isPromptSubmitting(s)) return;
   if (G._deferredHandDrawIids?.size && isLiveSuccessDiscardPrompt(s)) {
     clearLiveSuccessHandDeferral(s);
     renderGame(s, { skipLog: true });

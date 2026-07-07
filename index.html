@@ -7372,7 +7372,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=10"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=11"></script>
+<script src="client/js/prompt-renderer.js?v=12"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -18849,8 +18849,9 @@ async function playPreLiveRevealPlacements(prev, final, myId) {
   const prevRects = collectCardRects();
   const handBefore = collectHandSlotRects();
   G._animHideIids = animHideIidsForMoves(prev, moves);
-  G.gameState = prev;
-  renderGame(prev, { skipLog: true });
+  const animPrev = logSyncPlaybackFromPrev(prev, final);
+  G.gameState = animPrev;
+  renderGame(animPrev, { skipLog: true, skipPrompt: true });
   const handToLive = moves.filter(m => m.from?.zone === 'hand' && m.to?.zone === 'live');
   if (handToLive.length) {
     enrichHandToLiveMoveTargets(final, handToLive);
@@ -20208,7 +20209,7 @@ async function playTailMoveAnimations(playback, final, myId, opts = {}) {
       const oppId = myId === 'p1' ? 'p2' : 'p1';
       const skipOppHand = opponentHandUsesTrackedSlots(playback, myId)
         && handLayoutDeferForPlayer([m], oppId);
-      renderGame(playback, { skipLog: true, skipOppHand });
+      renderGame(playback, { skipLog: true, skipOppHand, skipPrompt: true });
       if (skipOppHand) primeHandLayoutFromBaseline(playback, oppId, myId);
       if (m.to?.zone === 'waiting_room') {
         await wrPileRevealPendingMove(m.to.pid, m.iid, playback, myId);
@@ -20484,6 +20485,14 @@ function applyMemberWaitStateBatch(prefix, stage, { animate = false } = {}) {
 }
 
 
+/** Log-sync playback must not resurrect prompts the server already cleared in `final`. */
+function logSyncPlaybackFromPrev(prev, final) {
+  const playback = deepCloneState(prev);
+  playback.log = (prev.log || []).slice();
+  if (!final?.pending_prompt && playback.pending_prompt) delete playback.pending_prompt;
+  return playback;
+}
+
 async function playLogSyncedSequence(prev, final, newEntries, myId) {
   if (logWasTruncated(prev, final)) resyncGameLogFromState(final);
   const batchEmpty = batchHasEmptyLiveSkipEntries(newEntries);
@@ -20531,12 +20540,11 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
     ...collectLiveSuccessDeferredDrawIids(prev, final),
   ]);
   G._deferredHandDrawIids = deferredDrawIids.size ? deferredDrawIids : null;
-  let playback = deepCloneState(prev);
-  playback.log = (prev.log || []).slice();
+  let playback = logSyncPlaybackFromPrev(prev, final);
   G.gameState = playback;
   G._prevLogLen = playback.log.length;
   const openingDeal = isOpeningHandDealTransition(prev, final);
-  renderGame(playback, { skipHand: true, skipOppHand: true });
+  renderGame(playback, { skipHand: true, skipOppHand: true, skipPrompt: true });
   if (openingDeal) {
     syncMobileMatLayout(final);
     await playOpeningHandDeal(prev, final, myId);
@@ -20570,7 +20578,7 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
       G._prevLogLen = playback.log.length;
       if (syncTurnPrepLogEntry(playback, final, entry) && !batchEmpty) {
         G.gameState = playback;
-        renderGame(playback, { skipLog: true });
+        renderGame(playback, { skipLog: true, skipPrompt: true });
       }
       logIdx++;
       if (logIdx > announceFrom && !batchEmpty && !detectPendingLiveSpectacleTurn(prev, final) && !liveSetPlacementInProgress(final)) {
@@ -27543,8 +27551,9 @@ async function playHandToLiveStoragePlacements(prev, next, myId, movesOverride =
   G._animHideIids = animHideIidsForMoves(prev, moves);
   const deferHand = handLayoutDeferForPlayer(moves, myId);
   const deferOpp = shouldDeferOpponentHandLayout(moves, prev, myId);
-  G.gameState = prev;
-  renderGame(prev, { skipLog: true, skipHand: deferHand, skipOppHand: deferOpp });
+  const animPrev = logSyncPlaybackFromPrev(prev, next);
+  G.gameState = animPrev;
+  renderGame(animPrev, { skipLog: true, skipHand: deferHand, skipOppHand: deferOpp, skipPrompt: true });
   primeHandToLiveStorageDestinations(prev, next, myId, moves);
   layoutLiveSlots('my');
   layoutLiveSlots('opp');
@@ -29002,12 +29011,11 @@ async function playLiveSuccessDeferredEffects(prev, final, myId, newEntries) {
     deferDraws: deferIids.size,
   });
   if (!G._deferredPromptState?.pending_prompt) G._deferredPromptState = final;
-  let playback = deepCloneState(prev);
-  playback.log = (prev.log || []).slice();
+  let playback = logSyncPlaybackFromPrev(prev, final);
   playback.phase = final.phase;
   G.gameState = playback;
   G._prevLogLen = playback.log.length;
-  renderGame(playback, { skipHand: true, skipOppHand: true, skipLog: true });
+  renderGame(playback, { skipHand: true, skipOppHand: true, skipLog: true, skipPrompt: true });
   updateOpponentSkillWaitBanner(final, myId);
   const animatedDrawIids = new Set();
   try {
@@ -29624,9 +29632,19 @@ function waitForBlockingOverlaysIdle(state) {
 
 function ensurePendingPromptSurfaced(s, myId) {
   const pr = s?.pending_prompt;
-  if (!pr || pr.responder !== myId) return;
+  if (!pr || pr.responder !== myId) {
+    if (!pr && G.animating && el('overlay-hand-pick')?.classList.contains('open')) {
+      closeM('overlay-hand-pick');
+      clearPickerCardHover();
+    }
+    return;
+  }
+  if (typeof isPromptSubmitting === 'function' && isPromptSubmitting(s)) return;
   const surfKey = `${s.seq}:${pr.type}:${pr.step || ''}:${pr.card_instance_id || pr.source_instance_id || ''}`;
-  if (G._lastSurfacedPromptKey === surfKey && el('overlay-prompt')?.classList.contains('open')) return;
+  if (G._lastSurfacedPromptKey === surfKey && (
+    el('overlay-prompt')?.classList.contains('open')
+    || el('overlay-hand-pick')?.classList.contains('open')
+  )) return;
   G._lastSurfacedPromptKey = surfKey;
   if (isLiveSuccessDiscardPrompt(s)) clearLiveSuccessHandDeferral(s);
   if (pr.type === 'pick_judge_success_live') G._deferPerfSpectaclePrev = null;
