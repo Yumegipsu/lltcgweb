@@ -274,6 +274,15 @@
     }
 
     if (spectacleGateActive && !liveSpectacleDoneForTurn(pendingSpectacleTurn)) {
+      if (!replayForward && !G.animating && !G._liveSpectacleGateRunning && !G._liveRoundPlaybackActive
+          && (G.gameState?.seq ?? 0) < (s.seq ?? 0)) {
+        G.gameState = s;
+        renderGame(s, {
+          skipLog: true,
+          skipPrompt: typeof shouldDeferPromptForLivePresentation === 'function'
+            && shouldDeferPromptForLivePresentation(s, G.playerId),
+        });
+      }
       const live = G.gameState || s;
       if (!replayForward && live.pending_prompt?.responder === G.playerId) {
         ensurePendingPromptSurfaced(live, G.playerId);

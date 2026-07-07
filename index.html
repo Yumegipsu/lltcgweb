@@ -7369,7 +7369,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=8"></script>
-<script src="client/js/state-apply.js?v=11"></script>
+<script src="client/js/state-apply.js?v=12"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=12"></script>
@@ -27488,24 +27488,15 @@ function clearStalePerfDeferState(prev, next) {
 // runLiveSpectacleGate, liveRoundPresentationPlan, shouldTriggerPerfSpectacle, and
 // performanceSpectacleReady; playback in presentLiveRound + playPerformanceSpectacle.
 
-/** Board to inspect for opponent face-down storage — not buildLiveRevealPlayback(prev), which always rebuilds face-down from stale live_set prev. */
-function currentLiveStorageBoardForRevealGate(next) {
-  if (G._livePostRevealBoard?.players) return G._livePostRevealBoard;
-  const gs = G.gameState;
-  if (gs?.players && (G._liveRoundPlaybackActive || G._liveStorageOutcomePending || G._liveSpectacleGateRunning)) {
-    return gs;
-  }
-  if (next?.players) return next;
-  return gs;
-}
-
-/** True when reveal was marked done but opponent storage is still face-down on the live mat. */
+/** True when reveal was marked done but opponent storage is still face-down on the mat or server. */
 function shouldResetLiveStorageRevealDone(prev, next, showTurn, myId) {
   if (showTurn == null || !liveStorageRevealDoneForTurn(showTurn)) return false;
   if (!liveSpectacleStillPending(prev, next, showTurn)) return false;
-  const board = currentLiveStorageBoardForRevealGate(next);
-  if (!board?.players) return false;
-  return liveStorageHadFaceDownOppBluff(board, myId);
+  // Never consult buildLiveRevealPlayback(prev) or face-down playback clones — only held/server boards.
+  const held = G._livePostRevealBoard;
+  if (held?.players && liveStorageHadFaceDownOppBluff(held, myId)) return true;
+  if (next?.players && liveStorageHadFaceDownOppBluff(next, myId)) return true;
+  return false;
 }
 
 async function runLiveSpectacleGate(prev, s, newEntries, myId) {
@@ -29261,8 +29252,8 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   const showTurnForReveal = opts.forceSpectacleTurn ?? plan.showTurn ?? inferLiveShowTurn(prev, next);
   if (!needsLiveReveal && !emptySkip && !liveStorageRevealDoneForTurn(showTurnForReveal)
       && (wantsSpectacle || isLeavingLiveSetPhase(prev, next))) {
-    const revealBoard = buildLiveRevealPlayback(prev, next, myId);
-    if (revealBoard && liveStorageHadFaceDownOppBluff(revealBoard, myId)) {
+    const checkBoard = G._livePostRevealBoard || next;
+    if (checkBoard?.players && liveStorageHadFaceDownOppBluff(checkBoard, myId)) {
       needsLiveReveal = true;
       TCG_DEBUG.log('live', 'force reveal (face-down opponent storage before spectacle/performance)');
     }
@@ -29692,6 +29683,11 @@ function tryFlushSpectacleRecovery() {
     G._spectacleRecoveryPending = null;
     return;
   }
+  const now = performance.now();
+  const flushKey = `${pending.s?.seq ?? 0}:${detectPendingLiveSpectacleTurn(pending.prev, pending.s) ?? ''}`;
+  if (G._spectacleRecoveryFlushKey === flushKey && now - (G._spectacleRecoveryFlushAt ?? 0) < 800) return;
+  G._spectacleRecoveryFlushKey = flushKey;
+  G._spectacleRecoveryFlushAt = now;
   G._spectacleRecoveryPending = null;
   void runLiveSpectacleGate(pending.prev, pending.s, pending.newEntries, pending.myId);
 }
