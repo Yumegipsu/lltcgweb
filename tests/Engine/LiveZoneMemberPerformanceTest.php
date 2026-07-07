@@ -6,7 +6,7 @@ namespace LLTCG\Tests\Engine;
 
 use PHPUnit\Framework\TestCase;
 
-/** Issue #45: Member bluffs in Live storage count for zone skills during Performance. */
+/** Issue #45: Member bluffs leave storage at reveal; zone-count skills count Live cards only. */
 final class LiveZoneMemberPerformanceTest extends TestCase
 {
     private function member(string $id, string $group = 'Nijigasaki'): array
@@ -93,7 +93,10 @@ final class LiveZoneMemberPerformanceTest extends TestCase
                     ],
                     'waiting_room' => [],
                     'energy_zone' => array_fill(0, 6, ['card_type' => 'エネルギー', 'active' => true]),
-                    'main_deck' => array_fill(0, 20, ['card_type' => 'メンバー', 'blade' => 0]),
+                    'main_deck' => array_map(
+                        fn($i) => ['instance_id' => 'deck' . $i, 'card_type' => 'メンバー', 'blade' => 0],
+                        range(1, 20)
+                    ),
                     'energy_deck' => [],
                     'live_zone' => $liveZone,
                     'success_lives' => [],
@@ -114,7 +117,7 @@ final class LiveZoneMemberPerformanceTest extends TestCase
         ];
     }
 
-    public function testResolvePerformancePhaseKeepsMembersUntilHeartCheck(): void
+    public function testRevealDiscardsMembersWithoutExtraDrawsBeforeLiveStart(): void
     {
         $zone = [
             $this->member('m1'),
@@ -122,36 +125,66 @@ final class LiveZoneMemberPerformanceTest extends TestCase
             $this->live('live1'),
         ];
         $state = $this->performanceState($zone);
+        // Replacements were already drawn when these bluffs were placed during LIVE Phase.
+        $state['players']['p1']['hand'] = [
+            ['instance_id' => 'draw1', 'card_type' => 'メンバー'],
+            ['instance_id' => 'draw2', 'card_type' => 'メンバー'],
+        ];
 
-        $afterYell = resolvePerformancePhase($state, 'p1', false);
+        $afterReveal = \revealAllLiveStorage($state);
+        $after = \discardLiveZoneMembersToWaitingRoom($afterReveal, 'p1');
 
-        $this->assertCount(3, $afterYell['players']['p1']['live_zone']);
-        $this->assertSame(0, count(array_filter(
-            $afterYell['players']['p1']['waiting_room'],
+        $this->assertCount(1, $after['players']['p1']['live_zone']);
+        $this->assertTrue(\isLiveTypeCard($after['players']['p1']['live_zone'][0]));
+        $this->assertCount(2, array_filter(
+            $after['players']['p1']['waiting_room'],
             fn($c) => ($c['instance_id'] ?? '') === 'm1' || ($c['instance_id'] ?? '') === 'm2'
-        )));
+        ));
+        $this->assertCount(2, $after['players']['p1']['hand'], 'Reveal discard must not draw again');
+        $this->assertSame('draw1', $after['players']['p1']['hand'][0]['instance_id']);
+        $this->assertSame('draw2', $after['players']['p1']['hand'][1]['instance_id']);
     }
 
-    public function testLanzhuContinuousHeartsCountMemberBluffsInLiveZone(): void
+    public function testLanzhuContinuousHeartsCountOnlyLiveCardsInZone(): void
     {
         $state = $this->performanceState([
             $this->member('m1'),
             $this->member('m2'),
             $this->live('live1'),
         ]);
+        $state = \discardLiveZoneMembersToWaitingRoom($state, 'p1');
         $state['phase'] = 'live_performance_first';
 
-        $hearts = getContinuousPerformanceHearts($state, 'p1');
+        $hearts = \getContinuousPerformanceHearts($state, 'p1');
         $anyCount = 0;
         foreach ($hearts as $color) {
             if ($color === 'any') {
                 $anyCount++;
             }
         }
-        $this->assertSame(2, $anyCount, 'Lanzhu should grant 2 wild hearts with 3 cards incl. a Live');
+        $this->assertSame(0, $anyCount, 'Lanzhu needs 3 Live cards, not member bluffs');
     }
 
-    public function testEutopiaLiveStartScoresWithMemberBluffsInZone(): void
+    public function testLanzhuGrantsHeartsWithThreeLiveCardsInZone(): void
+    {
+        $state = $this->performanceState([
+            $this->live('live1'),
+            $this->live('live2'),
+            $this->live('live3'),
+        ]);
+        $state['phase'] = 'live_performance_first';
+
+        $hearts = \getContinuousPerformanceHearts($state, 'p1');
+        $anyCount = 0;
+        foreach ($hearts as $color) {
+            if ($color === 'any') {
+                $anyCount++;
+            }
+        }
+        $this->assertSame(2, $anyCount);
+    }
+
+    public function testEutopiaLiveStartScoresOnlyLiveCardsInZone(): void
     {
         $live = $this->live('eutopia');
         $state = $this->performanceState([
@@ -159,10 +192,11 @@ final class LiveZoneMemberPerformanceTest extends TestCase
             $this->member('m2', 'Superstar'),
             $live,
         ]);
+        $state = \discardLiveZoneMembersToWaitingRoom($state, 'p1');
         $state['phase'] = 'live_start_effects';
         $state['live_attempt'] = ['p1'];
 
-        $after = resolveLiveStartAbilities($state, 'p1');
+        $after = \resolveLiveStartAbilities($state, 'p1');
         $stored = null;
         foreach ($after['players']['p1']['live_zone'] as $c) {
             if (($c['instance_id'] ?? '') === 'eutopia') {
@@ -171,6 +205,29 @@ final class LiveZoneMemberPerformanceTest extends TestCase
             }
         }
         $this->assertNotNull($stored);
-        $this->assertSame(7, intval($stored['score'] ?? 0), 'Eutopia score should be 5+2 with 3 cards in Live storage');
+        $this->assertSame(5, intval($stored['score'] ?? 0), 'Eutopia needs 3 Live cards in storage');
+    }
+
+    public function testEutopiaBonusWithThreeLiveCardsInZone(): void
+    {
+        $live = $this->live('eutopia');
+        $state = $this->performanceState([
+            $this->live('live2'),
+            $this->live('live3'),
+            $live,
+        ]);
+        $state['phase'] = 'live_start_effects';
+        $state['live_attempt'] = ['p1'];
+
+        $after = \resolveLiveStartAbilities($state, 'p1');
+        $stored = null;
+        foreach ($after['players']['p1']['live_zone'] as $c) {
+            if (($c['instance_id'] ?? '') === 'eutopia') {
+                $stored = $c;
+                break;
+            }
+        }
+        $this->assertNotNull($stored);
+        $this->assertSame(7, intval($stored['score'] ?? 0));
     }
 }
