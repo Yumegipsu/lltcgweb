@@ -27393,6 +27393,13 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
   const showTurn = detectPendingLiveSpectacleTurn(prev, s);
   if (showTurn == null) return false;
   if (G._liveSpectacleGateRunning) return false;
+  const revealDone = liveStorageRevealDoneForTurn(showTurn);
+  const spectacleReady = !liveSpectacleDoneForTurn(showTurn)
+    && (liveSpectacleOwed(prev, s, showTurn) || shouldTriggerPerfSpectacle(prev, s));
+  if (revealDone && !spectacleReady) {
+    TCG_DEBUG.log('live', 'spectacle gate: reveal done, spectacle deferred', { showTurn, phase: s.phase });
+    return false;
+  }
   G._liveSpectacleGateRunning = true;
   rememberPerfSpectacleBaseline(prev, s);
   const perfPrev = buildPerfSpectaclePrev(prev, s);
@@ -27404,8 +27411,9 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
     const outcome = await presentLiveRound(perfPrev ?? prev, s, myId, { newEntries, forceSpectacleTurn: showTurn });
     ensurePendingPromptSurfaced(s, myId);
     if (outcome.spectacle || outcome.empty) return true;
-    const owed = liveSpectacleOwed(prev, s, showTurn)
-      || (liveRoundHadLivesPlayed(prev, s, showTurn) && !liveSpectacleDoneForTurn(showTurn));
+    if (outcome.reveal) markLiveStorageRevealDone(showTurn);
+    if (liveSpectacleDoneForTurn(showTurn)) return true;
+    const owed = liveSpectacleOwed(prev, s, showTurn);
     if (!owed) return true;
     G._spectacleRecoveryPending = { prev, s, newEntries, myId };
     TCG_DEBUG.warn('live', 'spectacle gate: still owed after presentLiveRound', { showTurn, outcome });
@@ -27606,7 +27614,7 @@ function shouldRevealLiveStorageForRound(prev, next, emptyRound = null) {
   if (!prev || !next) return false;
   if (liveSetPlacementInProgress(next)) return false;
   const showTurn = inferLiveShowTurn(prev, next);
-  if (liveStorageRevealDoneForTurn(showTurn) && !isLiveSetPhase(prev?.phase)) return false;
+  if (liveStorageRevealDoneForTurn(showTurn)) return false;
   const empty = emptyRound ?? isEmptyLiveSkipTransition(prev, next);
   if (empty) {
     // solo-human: own member bluffs were face-up during live_set — skip flip.
@@ -29100,7 +29108,9 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   const emptySkip = plan.wantsEmptyRound || forceEmpty || isEmptyLiveSkipTransition(prev, next);
   let needsLiveReveal = plan.needsLiveReveal;
   let wantsSpectacle = plan.wantsSpectacle;
-  if (!needsLiveReveal && !emptySkip && (wantsSpectacle || isLeavingLiveSetPhase(prev, next))) {
+  const showTurnForReveal = opts.forceSpectacleTurn ?? plan.showTurn ?? inferLiveShowTurn(prev, next);
+  if (!needsLiveReveal && !emptySkip && !liveStorageRevealDoneForTurn(showTurnForReveal)
+      && (wantsSpectacle || isLeavingLiveSetPhase(prev, next))) {
     const revealBoard = buildLiveRevealPlayback(prev, next, myId);
     if (revealBoard && liveStorageHadFaceDownOppBluff(revealBoard, myId)) {
       needsLiveReveal = true;
