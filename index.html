@@ -2288,6 +2288,11 @@ html.tcg-desktop-scaled:not(.tcg-mobile-viewport).tcg-compact-desktop #screen-ga
   transform:rotate(90deg);
   transform-origin:center center;
 }
+/* Wait members are portrait-in-landscape — foil tilt on the slot breaks hover art. */
+html:not(.foil-fx-off) #screen-game .mslot.member-in-wait.card-tilt-enabled.foil-tilt-hover{
+  transform:none;
+  box-shadow:none;
+}
 .mslot.member-wait-flip-anim > img,
 .mslot.member-wait-flip-anim > .noimg,
 .mslot.member-wait-flip-anim .live-flip-front > img,
@@ -7786,6 +7791,7 @@ function isHiddenOpponentHandCardEl(el) {
 
 function cardShowsTiltFace(el, card) {
   if (!card) return false;
+  if (el?.classList?.contains('member-in-wait')) return false;
   if (isHiddenOpponentHandCardEl(el)) return false;
   if (el.classList.contains('hand-draw-flip') && !el.classList.contains('revealed')) return false;
   if (el.classList.contains('live-storage-facedown')) return false;
@@ -7811,6 +7817,7 @@ function clearCardFoilFx(el) {
 function handleFoilTiltEnter(e) {
   if (!foilFxEnabled()) return;
   const el = e.currentTarget;
+  if (el.classList.contains('member-in-wait')) return;
   el.classList.add('foil-tilt-hover');
 }
 
@@ -20387,8 +20394,12 @@ function applyMemberWaitVisual(slotEl, mbr, { animate = false } = {}) {
         window.setTimeout(() => slotEl.classList.remove('member-wait-flip-anim'), MEMBER_WAIT_FLIP_MS + 40);
       });
     }
+    if (mbr) applyCardFoilFx(slotEl, mbr);
     return;
   }
+
+  handleFoilTiltLeave({ currentTarget: slotEl });
+  slotEl.classList.remove('card-tilt-enabled', 'card-foil-enabled', 'foil-tex-secret', 'foil-tex-energy', 'foil-tex-standard', 'foil-tex-signed', 'foil-tilt-hover');
 
   const wd = document.createElement('div');
   wd.className = 'wdim';
@@ -38141,9 +38152,9 @@ async function sendAct(type,data){
   tcgDebugRecordAction(type, data, 'player');
   TCG_DEBUG.log('action', 'sendAct →', type, data);
   try {
-    await apiPost('action',{room_id:G.roomId,token:G.token,type,data});
+    await apiPost('action',{room_id:G.roomId,token:G.token,type,data}, { silent: type === 'send_stamp' });
     if (type === 'resolve_prompt') clearDeferredPromptState();
-    if (G.polling) await pullLatestState();
+    if (G.polling) await pullLatestState(false, { silent: type === 'send_stamp' });
     flushPendingState();
     if (type === 'resolve_prompt' && G.gameState && G.playerId) {
       syncPromptSubmitState(G.gameState);

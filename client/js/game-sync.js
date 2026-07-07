@@ -255,7 +255,7 @@
     if (G.polling) G.pollTimer = setTimeout(doPollLegacy, nextPollDelayMs(pollError));
   };
 
-  global.pullLatestState = async function pullLatestState(force) {
+  global.pullLatestState = async function pullLatestState(force, opts = {}) {
     if (!G.polling || (G.isTutorial && !G.tutorialLive) || !G.roomId || !G.token) return;
     if (!force && pollPresentationBlocked()) {
       if (G.syncEnabled && G.syncTicket) scheduleDeferredSyncPull(400);
@@ -275,16 +275,20 @@
       onState(d);
     } catch (e) {
       if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return;
-      if (e && e.httpStatus >= 400) {
-        if (!handleSpectatorPollError(e.message)) reportApiError(e, { source: 'pullLatestState' });
+      if (!opts.silent) {
+        if (e && e.httpStatus >= 400) {
+          if (!handleSpectatorPollError(e.message)) reportApiError(e, { source: 'pullLatestState' });
+        } else {
+          TCG_DEBUG.warn('poll', 'pullLatestState failed', e);
+          reportApiError(createApiError(
+            (global.LLTCG_I18N && typeof global.LLTCG_I18N.t === 'function')
+              ? global.LLTCG_I18N.t('apiError.connectionFailed')
+              : 'Could not reach the server. Try refreshing the page.',
+            503
+          ), { source: 'pullLatestState' });
+        }
       } else {
-        TCG_DEBUG.warn('poll', 'pullLatestState failed', e);
-        reportApiError(createApiError(
-          (global.LLTCG_I18N && typeof global.LLTCG_I18N.t === 'function')
-            ? global.LLTCG_I18N.t('apiError.connectionFailed')
-            : 'Could not reach the server. Try refreshing the page.',
-          503
-        ), { source: 'pullLatestState' });
+        TCG_DEBUG.warn('poll', 'pullLatestState failed (silent)', e);
       }
     }
   };
