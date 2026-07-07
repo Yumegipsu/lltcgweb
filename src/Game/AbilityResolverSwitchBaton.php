@@ -53,12 +53,13 @@ function tryResolveAbilityEffectSwitchBaton(
                 break;
             }
             if (!$batonCard || !cardMatchesGroup($batonCard, $ab['group'] ?? '', 'member')) break;
-            $added = addFromWaitingRoomFiltered(
-                $p,
-                $ab['group'] ?? '',
-                'live',
-                1
-            );
+            $cfg = wrPickCfgFromAbility(array_merge($ab, ['filter' => 'live']));
+            $added = addFromWaitingRoomWithChoice($state, $pid, $source, $ab, $ctx, $cfg, 1);
+            if ($added === null) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] choose a Live card from Waiting Room (Baton Touch).");
+                break;
+            }
             if ($added > 0) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] added 1 Live card from Waiting Room (Baton Touch).");

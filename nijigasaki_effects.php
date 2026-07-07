@@ -1177,7 +1177,28 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
                 drawCardsForPlayer($state, $owner, intval($ability['draw'] ?? 2));
             }
             if ($promptType === 'optional_stack_energy_add_wr_live') {
-                addFromWaitingRoomFiltered($ownerP, $ability['group'] ?? 'Nijigasaki', 'live', 1);
+                $cfg = wrPickCfgFromAbility(array_merge($ability, ['filter' => 'live']));
+                $member = $ownerP['stage'][$slot];
+                $added = addFromWaitingRoomWithChoice(
+                    $state,
+                    $owner,
+                    $member,
+                    $ability,
+                    ['slot' => $slot],
+                    $cfg,
+                    1
+                );
+                if ($added === null) {
+                    $state = addLog($state, $state['players'][$owner]['name'] .
+                        ' — [' . ($member['name_en'] ?? $member['name'] ?? 'Member') .
+                        '] choose a Nijigasaki Live card from Waiting Room.');
+                    $state['seq']++;
+                    return $state;
+                }
+                if ($added > 0) {
+                    $state = addLog($state, $state['players'][$owner]['name'] .
+                        " — added $added Nijigasaki Live card(s) from Waiting Room to hand.");
+                }
             }
         }
         unset($state['pending_prompt']);

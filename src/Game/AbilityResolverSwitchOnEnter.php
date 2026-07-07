@@ -17,12 +17,14 @@ function tryResolveAbilityEffectSwitchOnEnter(
         case 'on_enter_if_named_activate_add_wr':
             if (!stageHasNamedMember($p, $ab['names'] ?? [])) break;
             $activated = activateEnergyForPlayer($p, intval($ab['activate'] ?? 1));
-            $added = addFromWaitingRoomFiltered(
-                $p,
-                $ab['group'] ?? '',
-                $ab['filter'] ?? 'live',
-                intval($ab['count'] ?? 1)
-            );
+            $cfg = wrPickCfgFromAbility($ab);
+            $count = intval($ab['count'] ?? 1);
+            $added = addFromWaitingRoomWithChoice($state, $pid, $source, $ab, $ctx, $cfg, $count);
+            if ($added === null) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] activated $activated Energy; choose a card from Waiting Room.");
+                break;
+            }
             $state = addLog($state, $state['players'][$pid]['name'] .
                 " — [$name] activated $activated Energy; added $added card(s) from Waiting Room.");
             break;

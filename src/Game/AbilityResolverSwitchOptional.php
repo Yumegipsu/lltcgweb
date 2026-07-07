@@ -407,12 +407,20 @@ function tryResolveAbilityEffectSwitchOptional(
             } elseif (!empty($ctx['confirm'])) {
                 autoDiscardFromHand($p, intval($ab['discard'] ?? 1));
             }
-            $added = addFromWaitingRoomFiltered(
-                $p,
-                $ab['group'] ?? '',
-                $ab['filter'] ?? '',
+            $added = addFromWaitingRoomWithChoice(
+                $state,
+                $pid,
+                $source,
+                $ab,
+                $ctx,
+                wrPickCfgFromAbility($ab),
                 intval($ab['count'] ?? 1)
             );
+            if ($added === null) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] choose a card from Waiting Room.");
+                break;
+            }
             if ($added > 0) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] added $added card(s) from Waiting Room.");

@@ -15,13 +15,14 @@ function tryResolveAbilityEffectSwitchAddFromWr(
 ): array {
     switch ($type) {
         case 'add_from_wr_max_cost':
-            $added = addFromWaitingRoomFiltered(
-                $p,
-                $ab['group'] ?? '',
-                $ab['filter'] ?? 'member',
-                intval($ab['count'] ?? 1),
-                intval($ab['max_cost'] ?? 2)
-            );
+            $cfg = wrPickCfgFromAbility($ab);
+            $count = intval($ab['count'] ?? 1);
+            $added = addFromWaitingRoomWithChoice($state, $pid, $source, $ab, $ctx, $cfg, $count);
+            if ($added === null) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] choose a " . wrPickFilterLabel($cfg['filter'] ?? 'member') . ' card from Waiting Room.');
+                break;
+            }
             if ($added > 0) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] added $added Member(s) from Waiting Room.");
@@ -36,12 +37,14 @@ function tryResolveAbilityEffectSwitchAddFromWr(
 
         case 'add_from_wr_if_success_count':
             if (count($p['success_lives'] ?? []) >= intval($ab['min_success_count'] ?? 2)) {
-                $added = addFromWaitingRoomFiltered(
-                    $p,
-                    $ab['group'] ?? '',
-                    $ab['filter'] ?? 'live',
-                    intval($ab['count'] ?? 1)
-                );
+                $cfg = wrPickCfgFromAbility($ab);
+                $count = intval($ab['count'] ?? 1);
+                $added = addFromWaitingRoomWithChoice($state, $pid, $source, $ab, $ctx, $cfg, $count);
+                if ($added === null) {
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] choose a Live card from Waiting Room.");
+                    break;
+                }
                 if ($added > 0) {
                     $state = addLog($state, $state['players'][$pid]['name'] .
                         " — [$name] added $added Live card(s) from Waiting Room (2+ Success Lives).");
@@ -65,33 +68,36 @@ function tryResolveAbilityEffectSwitchAddFromWr(
             );
 
         case 'add_from_wr':
-            $extra = [];
+            $cfg = wrPickCfgFromAbility($ab);
             if (isset($ab['min_score'])) {
-                $extra['min_score'] = intval($ab['min_score']);
+                $cfg['min_score'] = intval($ab['min_score']);
             }
             if (isset($ab['min_live_score'])) {
-                $extra['min_live_score'] = intval($ab['min_live_score']);
+                $cfg['min_live_score'] = intval($ab['min_live_score']);
             }
-            $added = addFromWaitingRoomFiltered(
-                $p,
-                $ab['group'] ?? '',
-                $ab['filter'] ?? '',
-                intval($ab['count'] ?? 1),
-                isset($ab['max_cost']) ? intval($ab['max_cost']) : null,
-                $extra
-            );
+            $count = intval($ab['count'] ?? 1);
+            $added = addFromWaitingRoomWithChoice($state, $pid, $source, $ab, $ctx, $cfg, $count);
+            if ($added === null) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] choose a card from Waiting Room.");
+                break;
+            }
             if ($added > 0) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] added $added card(s) from Waiting Room.");
             }
             break;
 
-
-
         case 'both_add_wr_live_to_hand':
             foreach (['p1', 'p2'] as $id) {
                 $pl = &$state['players'][$id];
-                $added = addFromWaitingRoomFiltered($pl, '', 'live', 1);
+                $cfg = ['group' => '', 'filter' => 'live'];
+                $added = addFromWaitingRoomWithChoice($state, $id, $source, $ab, $ctx, $cfg, 1);
+                if ($added === null) {
+                    $state = addLog($state, $state['players'][$id]['name'] .
+                        " — [$name] choose a Live card from Waiting Room.");
+                    break;
+                }
                 if ($added > 0) {
                     $state = addLog($state, $state['players'][$id]['name'] .
                         " — [$name] added 1 Live card from Waiting Room to hand.");
@@ -104,7 +110,14 @@ function tryResolveAbilityEffectSwitchAddFromWr(
             $opp = ($pid === 'p1') ? 'p2' : 'p1';
             $diff = count($state['players'][$opp]['hand'] ?? []) - count($p['hand'] ?? []);
             if ($diff >= intval($ab['min_hand_diff'] ?? 2)) {
-                $added = addFromWaitingRoomFiltered($p, '', 'live', intval($ab['count'] ?? 1));
+                $cfg = wrPickCfgFromAbility(array_merge($ab, ['filter' => 'live']));
+                $count = intval($ab['count'] ?? 1);
+                $added = addFromWaitingRoomWithChoice($state, $pid, $source, $ab, $ctx, $cfg, $count);
+                if ($added === null) {
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] choose a Live card from Waiting Room.");
+                    break;
+                }
                 if ($added > 0) {
                     $state = addLog($state, $state['players'][$pid]['name'] .
                         " — [$name] added $added Live card(s) from Waiting Room (opponent hand +$diff).");
@@ -113,8 +126,17 @@ function tryResolveAbilityEffectSwitchAddFromWr(
             break;
 
         case 'add_wr_live_if_min_energy':
-            if (countEnergyInZone($p) < intval($ab['min_energy'] ?? 11)) break;
-            $added = addFromWaitingRoomFiltered($p, $ab['group'] ?? '', 'live', intval($ab['count'] ?? 1));
+            if (countEnergyInZone($p) < intval($ab['min_energy'] ?? 11)) {
+                break;
+            }
+            $cfg = wrPickCfgFromAbility(array_merge($ab, ['filter' => 'live']));
+            $count = intval($ab['count'] ?? 1);
+            $added = addFromWaitingRoomWithChoice($state, $pid, $source, $ab, $ctx, $cfg, $count);
+            if ($added === null) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] choose a Live card from Waiting Room.");
+                break;
+            }
             if ($added > 0) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] added $added Live card(s) from Waiting Room.");

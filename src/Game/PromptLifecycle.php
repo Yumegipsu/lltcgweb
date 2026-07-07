@@ -47,6 +47,68 @@ function returnAfterPlacedMemberEnter(array $state, bool $finishLiveStart = fals
  * Player chooses which Waiting Room card to add to hand (never auto-first-match).
  * Sets pending_prompt pick_wr_to_hand or pick_wr_leave_stage_add.
  */
+function wrPickExtraFiltersFromCfg(array $cfg): array {
+    $extra = [];
+    foreach ([
+        'min_score',
+        'min_live_score',
+        'subunit',
+        'min_required_hearts',
+        'min_required_heart_color',
+        'max_live_score',
+    ] as $key) {
+        if (!array_key_exists($key, $cfg) || $cfg[$key] === '' || $cfg[$key] === null) {
+            continue;
+        }
+        $extra[$key] = $cfg[$key];
+    }
+    return $extra;
+}
+
+/**
+ * Add matching WR card(s) to hand. When count is 1 and multiple cards qualify, opens pick_wr_to_hand.
+ *
+ * @return int|null Cards added immediately, or null when a pick prompt was opened.
+ */
+function addFromWaitingRoomWithChoice(
+    array &$state,
+    string $pid,
+    array $source,
+    array $ab,
+    array $ctx,
+    array $cfg,
+    int $count = 1,
+    bool $leaveStage = false
+): ?int {
+    if ($count < 1) {
+        return 0;
+    }
+    $p = &$state['players'][$pid];
+    $candidates = wrCandidatesMatching($p, $cfg);
+    if (empty($candidates)) {
+        return 0;
+    }
+    if ($count === 1 && count($candidates) > 1) {
+        $slot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
+        if ($slot === null) {
+            $slot = 'center';
+        }
+        $member = !empty($p['stage'][$slot]) ? $p['stage'][$slot] : $source;
+        $abilityIdx = intval($ctx['ability_index'] ?? $ctx['ability_idx'] ?? 0);
+        startPickWrToHandPrompt($state, $pid, $member, $slot, $abilityIdx, $ab, $cfg, $leaveStage, $count);
+        return null;
+    }
+    $maxCost = isset($cfg['max_cost']) ? intval($cfg['max_cost']) : null;
+    return addFromWaitingRoomFiltered(
+        $p,
+        $cfg['group'] ?? '',
+        $cfg['filter'] ?? 'member',
+        $count,
+        $maxCost,
+        wrPickExtraFiltersFromCfg($cfg)
+    );
+}
+
 function startPickWrToHandPrompt(
     array &$state,
     string $pid,

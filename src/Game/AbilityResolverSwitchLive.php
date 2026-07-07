@@ -98,17 +98,18 @@ function tryResolveAbilityEffectSwitchLive(
 
         case 'live_success_add_wr_if_distinct_subunit':
             if (countDistinctNamedSubunit($p, $ab['subunit'] ?? '') >= intval($ab['min_distinct'] ?? 2)) {
-                $added = addFromWaitingRoomFiltered(
-                    $p,
-                    $ab['group'] ?? '',
-                    $ab['filter'] ?? 'member',
-                    intval($ab['count'] ?? 1),
-                    null,
-                    ['subunit' => $ab['subunit'] ?? '']
-                );
+                $cfg = wrPickCfgFromAbility($ab);
+                $cfg['subunit'] = $ab['subunit'] ?? '';
+                $count = intval($ab['count'] ?? 1);
+                $added = addFromWaitingRoomWithChoice($state, $pid, $source, $ab, $ctx, $cfg, $count);
+                if ($added === null) {
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] choose a " . ($ab['subunit'] ?? '') . ' card from Waiting Room.');
+                    break;
+                }
                 if ($added > 0) {
                     $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] added $added " . ($ab['subunit'] ?? '') . " card(s) from Waiting Room.");
+                        " — [$name] added $added " . ($ab['subunit'] ?? '') . ' card(s) from Waiting Room.');
                 }
             }
             break;

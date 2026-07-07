@@ -1257,9 +1257,24 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
             if ($sourceId !== '') {
                 bumpLiveCardScore($state, $owner, $sourceId, $scoreAmt);
             }
-            $added = addFromWaitingRoomFiltered($p, $group, 'live', intval($ability['count'] ?? 1));
+            $liveSource = findCardInState($state, $sourceId, $owner) ?? ['instance_id' => $sourceId, 'name_en' => $prompt['source_name'] ?? 'Live'];
+            $cfg = wrPickCfgFromAbility(array_merge($ability, ['filter' => 'live', 'group' => $group]));
+            $count = intval($ability['count'] ?? 1);
+            $added = addFromWaitingRoomWithChoice(
+                $state,
+                $owner,
+                $liveSource,
+                $ability,
+                ['phase' => $state['phase'] ?? ''],
+                $cfg,
+                $count
+            );
             unset($state['pending_prompt']);
             $state['seq']++;
+            if ($added === null) {
+                return addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Live') . "] score +$scoreAmt; choose a Live from Waiting Room.");
+            }
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'Live') . "] score +$scoreAmt; added $added Live from Waiting Room.");
             return finishPromptEffects($state);
