@@ -687,6 +687,42 @@ html:not(.tcg-mobile-viewport) #screen-game .opp-hand-strip .opp-hand-card{
 }
 .card-hover-panel .hc-slotrow .btn-smol{width:100%;padding:5px 6px;font-size:10px}
 .card-hover-panel .hc-slotrow .btn-smol:disabled{opacity:.42;cursor:default}
+#picker-card-hover-panel{
+  position:fixed;
+  left:max(12px, env(safe-area-inset-left, 0px));
+  top:50%;
+  transform:translateY(-50%);
+  z-index:968;
+  width:min(248px, 26vw);
+  max-height:min(92vh, calc(100dvh - 24px));
+  overflow-x:hidden;
+  overflow-y:auto;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:8px 10px;
+  margin:0;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .18s ease, visibility .18s ease;
+  background:rgba(4,10,22,.94);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--ui-panel-border-strong);
+  border-radius:12px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.35), 0 10px 36px rgba(0,0,0,.55);
+}
+#picker-card-hover-panel.visible{opacity:1;visibility:visible}
+#picker-card-hover-panel .hc-img{max-width:118px}
+#picker-card-hover-panel .hc-img.landscape{max-width:138px}
+#picker-card-hover-panel .hc-name{font-size:13px;line-height:1.25}
+#picker-card-hover-panel .hc-sub{font-size:9px}
+#picker-card-hover-panel .hc-stats .sbox{padding:3px 2px}
+#picker-card-hover-panel .hc-stats .sk{font-size:7px}
+#picker-card-hover-panel .hc-stats .sv{font-size:11px}
+#picker-card-hover-panel .hc-text{font-size:10px;max-height:min(34vh, 220px);overflow-y:auto}
+html.tcg-mobile-viewport #picker-card-hover-panel{display:none!important}
 #screen-deck .deck-builder-pool-layout{
   display:flex;
   flex-direction:row;
@@ -6856,6 +6892,16 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
+<!-- Picker overlay hover preview (fixed left; menus stay centered) -->
+<div class="card-hover-panel" id="picker-card-hover-panel" aria-live="polite">
+  <p class="hc-empty" id="pchv-empty" data-i18n="game.hoverPickerEmpty">Hover a card to preview it here.</p>
+  <img class="hc-img" id="pchv-img" src="" alt="" onerror="this.classList.remove('show')">
+  <div class="hc-name" id="pchv-name"></div>
+  <div class="hc-sub" id="pchv-sub"></div>
+  <div class="statgrid hc-stats" id="pchv-stats"></div>
+  <div class="hc-text" id="pchv-text" style="display:none"></div>
+</div>
+
 <!-- Paid booster confirm -->
 <div class="overlay" id="modal-paid-booster">
   <div class="mbox">
@@ -7318,7 +7364,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=21"></script>
+<script src="i18n.js?v=22"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=7"></script>
@@ -7327,7 +7373,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=10"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=10"></script>
+<script src="client/js/prompt-renderer.js?v=11"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -9882,6 +9928,7 @@ function bindCatalogCardPress(el, card, onTap) {
 }
 
 function bindMullCardPress(node, card, onTap) {
+  bindPickerCardHover(node, card, G.gameState, G.playerId);
   node.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
     e.preventDefault();
@@ -34629,6 +34676,7 @@ function bindSpectatorInspectOnRenderedCards(s) {
 
 // ── CARD MODAL ───────────────────────────────────────
 function showCard(card, iid, s, myId, forceSlot) {
+  clearPickerCardHover();
   if (G.isSpectator) {
     showSpectatorCardDetail(card, s);
     return;
@@ -35321,9 +35369,45 @@ function showPickMenuCard(card) {
   showCard(c, c.instance_id || card.instance_id || null, s, G.playerId);
 }
 
+const PICKER_OVERLAY_IDS = new Set([
+  'overlay-mull', 'overlay-pick', 'overlay-hand-pick', 'overlay-surveil', 'overlay-zone',
+]);
+
+function pickerCardHoverEnabled() {
+  return !G.isTutorial && !G.isSpectator
+    && !(typeof tcgMobileViewportActive === 'function' && tcgMobileViewportActive());
+}
+
+function showPickerCardHover(card, s, myId) {
+  if (!pickerCardHoverEnabled() || !card) return;
+  if (el('modal-card')?.classList.contains('open')) return;
+  fillCardDetailPanel('pchv', enrichCard(card), s, myId || G.playerId);
+  const panel = el('picker-card-hover-panel');
+  const empty = el('pchv-empty');
+  if (panel) panel.classList.add('visible');
+  if (empty) empty.style.display = 'none';
+}
+
+function clearPickerCardHover() {
+  const panel = el('picker-card-hover-panel');
+  const empty = el('pchv-empty');
+  if (panel) panel.classList.remove('visible');
+  if (empty) empty.style.display = '';
+}
+
+function bindPickerCardHover(node, card, s, myId) {
+  if (!node || !card || G.isTutorial || node.dataset.pickerHoverBound) return;
+  node.dataset.pickerHoverBound = '1';
+  const show = () => showPickerCardHover(card, s || G.gameState, myId || G.playerId);
+  const hide = () => clearPickerCardHover();
+  node.addEventListener('mouseenter', show);
+  node.addEventListener('mouseleave', hide);
+}
+
 /** Long-press / right-click card detail in pick overlays (WR discard, deck look, etc.). */
 function bindMenuCardPress(node, card, onTap) {
   if (!node || !card || G.isTutorial) return;
+  bindPickerCardHover(node, card, G.gameState, G.playerId);
   node.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
     e.preventDefault();
@@ -38305,6 +38389,7 @@ function openM(id){
 }
 function closeM(id){
   el(id).classList.remove('open');
+  if (PICKER_OVERLAY_IDS.has(id)) clearPickerCardHover();
   if (id === 'modal-card') {
     document.body.classList.remove('mulligan-card-preview');
     document.body.classList.remove('deck-card-preview');

@@ -761,6 +761,7 @@ function mkSurveilCardEl(card, opts = {}) {
   if (G.surveil.selId === card.instance_id) d.classList.add('sel');
   if (G.surveil.drag?.id === card.instance_id) d.classList.add('dragging');
   appendCardFace(d, card);
+  bindPickerCardHover(d, card, global.G?.gameState, global.G?.playerId);
   d.addEventListener('click', (ev) => {
     if (d._suppressMenuTap) {
       d._suppressMenuTap = false;
