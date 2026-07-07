@@ -217,6 +217,7 @@
       G._deferPerfSpectaclePrev = null;
       G._liveSetStorageBaseline = null;
       G._livePostRevealBoard = null;
+      G._perfSplashShownForTurn = null;
     }
     syncDeferredHandDrawMask(prev, s, G.playerId);
     syncLiveSuccessPresentationDefer(prev, s);
@@ -404,7 +405,7 @@
           }
           if (!emptyRoundHandled) {
           applyTurnPrepEntriesToState(s, s, newEntries);
-          if (!detectPendingLiveSpectacleTurn(prev, s) && !liveRoundRequiresSpectacle(prev, s)) {
+          if (!liveSpectaclePendingForTransition(prev, s)) {
             queueStateAnnouncements(prev, s, G.playerId, {
               emptyLiveSkip: isEmptyLiveSkipTransition(prev, s),
               replayForward,
@@ -572,7 +573,14 @@
     }
     const next = q.shift();
     TCG_DEBUG.log('state', 'flush pending', { seq: next?.seq, remaining: q.length });
-    if (next && next.seq > G.lastSeq) applyStateUpdate(next);
+    if (next && next.seq > G.lastSeq) {
+      const cur = G.gameState;
+      if (cur && typeof liveSpectaclePendingForTransition === 'function'
+          && liveSpectaclePendingForTransition(cur, next)) {
+        TCG_DEBUG.log('state', 'flush pending: spectacle still owed — apply queued state', { seq: next.seq });
+      }
+      applyStateUpdate(next);
+    }
     tryFlushSpectacleRecovery();
   };
 

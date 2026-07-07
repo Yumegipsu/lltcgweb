@@ -26783,25 +26783,59 @@ function liveSetPlacementInProgress(s) {
   return ready.p1 !== true || ready.p2 !== true;
 }
 
+/** True when this LIVE round had actual Live cards played (not empty/member-only skip). */
+function liveRoundHadLivesPlayed(prev, next, showTurn = null) {
+  if (!prev || !next || G.isTutorial) return false;
+  if (isEmptyLiveSkipTransition(prev, next)) return false;
+  if (shouldIgnoreStaleLivePerfSignals(prev, next)) return false;
+  const turn = showTurn ?? inferLiveShowTurn(prev, next);
+  if (newLogHasLivePerformance(prev, next)) return true;
+  if (logHasLivePerformanceForShowTurn(prev, next, turn)) return true;
+  if (isLeavingLiveSetPhase(prev, next)) {
+    if (liveRoundBoardHasLiveCards(prev) || liveRoundBoardHasLiveCards(next)) return true;
+    const deferred = G._deferPerfSpectaclePrev;
+    if (deferred && liveRoundHasLiveCardsForRound(deferred)) return true;
+  }
+  return false;
+}
+
+/** Client still owes full Performance spectacle playback for this transition. */
+function liveSpectacleOwed(prev, next, showTurn = null) {
+  if (!prev || !next || G.isTutorial) return false;
+  const turn = showTurn ?? inferLiveShowTurn(prev, next);
+  if (turn == null) return false;
+  if (!liveRoundHadLivesPlayed(prev, next, turn)) return false;
+  if (liveSpectacleDoneForTurn(turn)) return false;
+  if (emptyLiveRoundAlreadyPresented(turn)) return false;
+  if (isLiveSetPlacementOnly(prev, next) || liveSetPlacementInProgress(next)) return false;
+  if (!liveRoundJudgeReady(next)) return false;
+  if (pendingPromptBlocksPerfSpectacle(next)) return false;
+  return true;
+}
+
+/** Block main-phase log/phase banners until spectacle completes or round had no Lives. */
+function liveSpectaclePendingForTransition(prev, next) {
+  if (!prev || !next || G.isTutorial) return false;
+  if (detectPendingLiveSpectacleTurn(prev, next) != null) return true;
+  const turn = inferLiveShowTurn(prev, next);
+  if (turn == null) return false;
+  return liveRoundHadLivesPlayed(prev, next, turn)
+    && !liveSpectacleDoneForTurn(turn)
+    && !emptyLiveRoundAlreadyPresented(turn);
+}
+
 /** Either side set a Live card this round — spectacle is mandatory once placement ends. */
 function liveRoundRequiresSpectacle(prev, next, showTurn = null) {
   if (!prev || !next || G.isTutorial) return false;
-  const turn = showTurn ?? primaryLiveShowTurn(prev, next);
+  const turn = showTurn ?? inferLiveShowTurn(prev, next);
+  if (!liveRoundHadLivesPlayed(prev, next, turn)) return false;
   if (liveSpectacleDoneForTurn(turn)) return false;
-  if (isEmptyLiveSkipTransition(prev, next)) return false;
   if (isLiveSetPlacementOnly(prev, next)) return false;
   if (pendingPromptBlocksPerfSpectacle(next)) return false;
-  // Main/active baton pass: stale live_zone or prior-turn log perf must not re-trigger spectacle.
-  if (shouldIgnoreStaleLivePerfSignals(prev, next)) {
-    const undone = scanUndoneLiveSpectacleTurn(next, prev);
-    if (undone == null || undone !== turn || liveSpectacleDoneForTurn(undone)) return false;
-    if (!logHasLivePerformanceForTurn(next, turn)) return false;
-    return (liveRoundBoardHasLiveCards(prev) || liveRoundBoardHasLiveCards(next))
-      || resolvedPerfSignalsForTransition(prev, next);
-  }
   if (liveRoundBoardHasLiveCards(prev) || liveRoundBoardHasLiveCards(next)) return true;
   if (newLogHasLivePerformance(prev, next) || logHasLivePerformanceForShowTurn(prev, next, turn)) return true;
-  return resolvedPerfSignalsForTransition(prev, next);
+  if (resolvedPerfSignalsForTransition(prev, next)) return true;
+  return isLeavingLiveSetPhase(prev, next);
 }
 
 /*
@@ -26831,10 +26865,7 @@ function livePlaybackBlocksMainPhaseUi(s, prev) {
   if (ph !== 'main_first' && ph !== 'main_second' && ph !== 'active_first' && ph !== 'active_second') {
     return false;
   }
-  const showTurn = primaryLiveShowTurn(prev, s);
-  if (showTurn != null && emptyLiveRoundAlreadyPresented(showTurn)) return false;
-  if (liveRoundRequiresSpectacle(prev, s)) return true;
-  if (detectPendingLiveSpectacleTurn(prev, s) != null) return true;
+  if (liveSpectaclePendingForTransition(prev, s)) return true;
   return false;
 }
 
@@ -27105,11 +27136,15 @@ function spectacleRecoveryContext(prev, next) {
 
 function scanUndoneLiveSpectacleTurn(s, prev = null) {
   if (!s?.log || G.isTutorial) return null;
+  if (prev && shouldIgnoreStaleLivePerfSignals(prev, s)) return null;
   // Inline perf signals only — resolvedPerfSignalsForTransition calls this function and must not recurse.
   const perfCarryoverRecovery = prev
     && isMainOrActivePhase(s?.phase)
     && !isLiveSetPlacementOnly(prev, s)
-    && resolvedPerfSignalsInline(s);
+    && resolvedPerfSignalsInline(s)
+    && (newLogHasLivePerformance(prev, s)
+        || isLeavingLiveSetPhase(prev, s)
+        || spectacleRecoveryContext(prev, s));
   if (prev && !spectacleRecoveryContext(prev, s) && !perfCarryoverRecovery) return null;
 
   if (prev) {
@@ -27158,30 +27193,27 @@ function detectPendingLiveSpectacleTurn(prev, next) {
   // Match done-key turn (state.turn during live_set) — not log --- Turn N --- markers,
   // which lag behind state.turn until after the Live round resolves.
   if (slice.some(e => / performed Live! Blades: /.test(e.msg || ''))) {
-    if (!liveSpectacleDoneForTurn(showTurn) && liveRoundJudgeReady(next)) return showTurn;
+    if (liveSpectacleOwed(prev, next, showTurn)) return showTurn;
+    if (!liveSpectacleDoneForTurn(showTurn) && liveRoundHadLivesPlayed(prev, next, showTurn)
+        && (next.phase === 'live_start_effects' || pendingPromptBlocksPerfSpectacle(next))) {
+      return showTurn;
+    }
     return null;
   }
 
-  if (isLeavingLiveSetPhase(prev, next) && !isEmptyLiveSkipTransition(prev, next)) {
-    if (next.phase === 'live_start_effects' || pendingPromptBlocksPerfSpectacle(next)) return null;
-    if (!liveSpectacleDoneForTurn(showTurn)
-        && liveRoundJudgeReady(next)
-        && (newLogHasLivePerformance(prev, next) || logHasLivePerformanceForShowTurn(prev, next, showTurn))) {
-      return showTurn;
-    }
+  if (isLeavingLiveSetPhase(prev, next) && liveRoundHadLivesPlayed(prev, next, showTurn)
+      && !liveSpectacleDoneForTurn(showTurn)) {
+    if (next.phase === 'live_start_effects' || pendingPromptBlocksPerfSpectacle(next)) return showTurn;
+    if (liveSpectacleOwed(prev, next, showTurn)) return showTurn;
   }
 
-  if (logSliceHasLivePipelineSignals(slice)) {
+  if (logSliceHasLivePipelineSignals(slice)
+      || (isMainOrActivePhase(next?.phase) && !G._perfSpectacleActive)) {
     const undone = scanUndoneLiveSpectacleTurn(next, prev);
-    if (undone != null) return undone;
-  }
-
-  if (isMainOrActivePhase(next?.phase) && !G._perfSpectacleActive) {
-    const undone = scanUndoneLiveSpectacleTurn(next, prev);
-    if (undone != null && !liveSpectacleDoneForTurn(undone)
-        && (liveRoundRequiresSpectacle(prev, next, undone)
-            || logHasLivePerformanceForShowTurn(prev, next, undone)
-            || resolvedPerfSignalsForTransition(prev, next))) {
+    if (undone != null && liveRoundHadLivesPlayed(prev, next, undone)
+        && !liveSpectacleDoneForTurn(undone)
+        && (liveSpectacleOwed(prev, next, undone)
+            || (next.phase === 'live_start_effects' || pendingPromptBlocksPerfSpectacle(next)))) {
       return undone;
     }
   }
@@ -27205,15 +27237,11 @@ function shouldRecoverMissedLiveSpectacle(prev, next) {
   if (!next || G.isTutorial) return false;
   if (isLiveSetPlacementOnly(prev, next) || liveSetPlacementInProgress(next)) return false;
   if (!spectacleRecoveryContext(prev, next)) return false;
-  if (spectacleDoneForTransition(prev, next)) return false;
-  if (!liveRoundJudgeReady(next)) return false;
   const showTurn = detectPendingLiveSpectacleTurn(prev, next)
     ?? scanUndoneLiveSpectacleTurn(next, prev);
-  if (showTurn == null || liveSpectacleDoneForTurn(showTurn)) return false;
-  const slice = newLogEntries(prev, next);
-  if (logSliceHasLivePipelineSignals(slice) || newLogHasLivePerformance(prev, next)) return true;
-  if (logHasLivePerformanceForShowTurn(prev, next, showTurn)) return true;
-  return false;
+  if (showTurn == null) return false;
+  return liveSpectacleOwed(prev, next, showTurn)
+    || (liveRoundHadLivesPlayed(prev, next, showTurn) && !liveSpectacleDoneForTurn(showTurn));
 }
 
 function isMainOrActivePhase(ph) {
@@ -27262,12 +27290,13 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
     G._postSpectacleSplashPause = false;
     const outcome = await presentLiveRound(perfPrev ?? prev, s, myId, { newEntries, forceSpectacleTurn: showTurn });
     ensurePendingPromptSurfaced(s, myId);
-    if (outcome.reveal || outcome.spectacle) return true;
-    const stillOwed = !liveSpectacleDoneForTurn(showTurn)
-      && (liveRoundRequiresSpectacle(prev, s, showTurn)
-          || logHasLivePerformanceForShowTurn(prev, s, showTurn)
-          || newLogHasLivePerformance(prev, s));
-    return !stillOwed;
+    if (outcome.spectacle || outcome.empty) return true;
+    const owed = liveSpectacleOwed(prev, s, showTurn)
+      || (liveRoundHadLivesPlayed(prev, s, showTurn) && !liveSpectacleDoneForTurn(showTurn));
+    if (!owed) return true;
+    G._spectacleRecoveryPending = { prev, s, newEntries, myId };
+    TCG_DEBUG.warn('live', 'spectacle gate: still owed after presentLiveRound', { showTurn, outcome });
+    return false;
   } finally {
     G._liveSpectacleGateRunning = false;
     G.animating = false;
@@ -27900,6 +27929,7 @@ function resolvedPerfSignalsForTransition(prev, next) {
   if (!resolvedPerfSignalsInline(next)) return false;
   if (isEmptyLiveSkipTransition(prev, next)) return false;
   if (isLiveSetPlacementOnly(prev, next)) return false;
+  if (shouldIgnoreStaleLivePerfSignals(prev, next)) return false;
   if (isMainOrActivePhase(next?.phase)) {
     const undone = scanUndoneLiveSpectacleTurn(next, prev);
     return undone != null && !liveSpectacleDoneForTurn(undone);
@@ -28588,6 +28618,8 @@ function spectacleAlreadyPlayedForState(next, prev = null) {
 function markSpectacleDoneFromState(s, prev = null) {
   if (!s || G._perfSpectacleDoneKey) return;
   if (detectPendingLiveSpectacleTurn(prev, s) != null) return;
+  const showTurn = inferLiveShowTurn(prev, s);
+  if (liveSpectacleOwed(prev, s, showTurn)) return;
   if (!spectacleAlreadyPlayedForState(s, prev)) return;
   savePerfSpectacleDoneKey(buildPerfSpectaclePrev(prev, s), s);
 }
@@ -29002,6 +29034,8 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   G._liveRoundPostSpectacleReady = false;
   let spectacleRan = false;
   let emptyWrPlayed = false;
+  let spectacleFailedOwed = false;
+  const showTurnForSpectacle = opts.forceSpectacleTurn ?? plan.showTurn ?? inferLiveShowTurn(prev, next);
   const runStorageReveal = needsLiveReveal;
   const deferStorageOutcomes = wantsSpectacle
     || (emptySkip && shouldAnimateEmptyLiveStorageWr(prev, next));
@@ -29069,11 +29103,16 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       spectacleRan = await runPerformanceSpectacle(perfPrev, spectacleNext, myId, {
         forceShowTurn: opts.forceSpectacleTurn ?? plan.showTurn,
       });
-      if (!spectacleRan && !emptySkip && roundHasLivePerformanceSignals(prev, next)) {
-        await ensurePerformancePhaseSplash();
+      if (spectacleRan) {
+        holdLiveRoundBoardForPrompts(next, myId);
+        G._liveRoundPostSpectacleReady = true;
+      } else if (liveRoundHadLivesPlayed(prev, next, showTurnForSpectacle)) {
+        spectacleFailedOwed = true;
+        G._spectacleRecoveryPending = {
+          prev, s: next, newEntries: opts.newEntries || [], myId,
+        };
+        TCG_DEBUG.warn('live', 'presentLiveRound: spectacle owed but did not run', { showTurn: showTurnForSpectacle });
       }
-      holdLiveRoundBoardForPrompts(next, myId);
-      G._liveRoundPostSpectacleReady = true;
     } else {
       let wrAnimated = false;
       if (!runStorageReveal && shouldAnimateEmptyLiveStorageWr(prev, next)) {
@@ -29088,6 +29127,7 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       G._liveRoundPostSpectacleReady = true;
     }
 
+    if (!spectacleFailedOwed) {
     if (opts.newEntries?.length && !emptySkip) {
       applyTurnPrepEntriesToState(G.gameState || next, next, opts.newEntries);
     }
@@ -29136,19 +29176,24 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       catchUpGameLog(next, prev);
     }
     await waitForBannersIdle();
+    }
   } finally {
-    G._liveRoundPlaybackActive = false;
-    G._liveRoundPostSpectacleReady = false;
-    clearLiveRoundTransientCaches();
+    if (!spectacleFailedOwed) {
+      G._liveRoundPlaybackActive = false;
+      G._liveRoundPostSpectacleReady = false;
+      clearLiveRoundTransientCaches();
+    }
     releaseLivePollsAndFlush();
     g.end();
   }
 
-  flushPostLiveLogBanners(prev, G.gameState || next, myId, { emptySkip });
-  ensureLiveRoundStateCommitted(prev, G.gameState || next, myId);
+  if (!spectacleFailedOwed) {
+    flushPostLiveLogBanners(prev, G.gameState || next, myId, { emptySkip });
+    ensureLiveRoundStateCommitted(prev, G.gameState || next, myId);
+  }
   if (emptySkip) nudgeCpuAfterStatePresentation(G.gameState || next);
-  TCG_DEBUG.log('live', 'presentLiveRound done', { reveal: needsLiveReveal, spectacle: spectacleRan, empty: emptySkip });
-  return { reveal: needsLiveReveal, spectacle: spectacleRan, empty: emptySkip };
+  TCG_DEBUG.log('live', 'presentLiveRound done', { reveal: needsLiveReveal, spectacle: spectacleRan, empty: emptySkip, spectacleFailedOwed });
+  return { reveal: needsLiveReveal, spectacle: spectacleRan, empty: emptySkip, spectacleFailedOwed };
 }
 
 function handleSpectatorPollError(msg) {
@@ -29177,6 +29222,7 @@ function rememberPerfSpectacleBaseline(prev, next) {
       G._deferPerfSpectaclePrev = null;
       return;
     }
+    G._perfSplashShownForTurn = null;
     G._deferPerfSpectaclePrev = augmentPerfSpectaclePrev(prev, next);
   } else if (prev.phase === 'live_start_effects' && next.phase !== 'live_start_effects'
       && roundHasLivePerformanceSignals(prev, next) && !G._deferPerfSpectaclePrev) {
@@ -29259,7 +29305,7 @@ function shouldTriggerPerfSpectacle(prev, next) {
     return false;
   }
   const showTurn = primaryLiveShowTurn(prev, next);
-  if (isEmptyLiveSkipTransition(prev, next)) {
+  if (isEmptyLiveSkipTransition(prev, next) || !liveRoundHadLivesPlayed(prev, next, showTurn)) {
     TCG_DEBUG.log('live', 'spectacle skip: member-only / no Lives round');
     return false;
   }
@@ -29353,7 +29399,7 @@ function tryFlushSpectacleRecovery() {
 }
 
 function perfSpectacleHasContent(prev, next) {
-  if (isEmptyLiveSkipTransition(prev, next)) return false;
+  if (!liveRoundHadLivesPlayed(prev, next)) return false;
   const perfPrev = buildPerfSpectaclePrev(prev, next);
   if (!perfPrev || !next) return false;
   if (liveRoundRequiresSpectacle(prev, next)) return true;
@@ -32150,13 +32196,17 @@ function centerBannerForPhase(phase, copy) {
   return { ...copy, kind: 'phase', duration: PHASE_BANNER_MS };
 }
 
-function queuePerformancePhaseBanner() {
+function queuePerformancePhaseBanner(showTurn) {
+  const turn = showTurn ?? inferLiveShowTurn(G.gameState, G.gameState);
+  if (turn != null && G._perfSplashShownForTurn === turn) return;
+  if (performancePhaseBannerShowing() || performancePhaseBannerQueued()) return;
   queueCenterBanner(splashBanner({
     titleKey: 'phaseBanner.performanceTitle',
     subtitleKey: null,
     kind: 'live',
     duration: LIVE_BANNER_MS,
   }));
+  if (turn != null) G._perfSplashShownForTurn = turn;
 }
 
 function showPhaseTransitionBanner(s, myId, prev) {
