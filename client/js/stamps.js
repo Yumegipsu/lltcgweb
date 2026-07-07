@@ -18,6 +18,8 @@
     byId: { ja: {}, en: {} },
     favorites: { ja: [], en: [], profile: [] },
     lastSeen: { p1: 0, p2: 0 },
+    lastSeenKey: { p1: '', p2: '' },
+    playedKeys: new Set(),
     pickerOpen: false,
     pickerTab: 'ja',
     localeTab: 'ja',
@@ -247,6 +249,36 @@
     } catch (e) {}
   }
 
+  function stampPopKey(pop) {
+    if (!pop?.id) return '';
+    return `${pop.id}:${pop.n || 0}:${pop.at || 0}`;
+  }
+
+  function seedLastSeenFromState(s) {
+    const popSrc = s?.stamp_pop;
+    if (!popSrc) return;
+    ['p1', 'p2'].forEach((pid) => {
+      const pop = popSrc[pid];
+      if (!pop?.id) return;
+      const key = stampPopKey(pop);
+      state.lastSeen[pid] = pop.n || 0;
+      state.lastSeenKey[pid] = key;
+      if (key) state.playedKeys.add(`${pid}:${key}`);
+    });
+  }
+
+  function adoptStampRoom(rid, s) {
+    if (!rid) return;
+    if (rid === state.roomId) return;
+    state.roomId = rid;
+    state.lastSeen = { p1: 0, p2: 0 };
+    state.lastSeenKey = { p1: '', p2: '' };
+    state.playedKeys = new Set();
+    el('my-stamp-layer')?.replaceChildren();
+    el('opp-stamp-layer')?.replaceChildren();
+    seedLastSeenFromState(s);
+  }
+
   function layerForPlayer(pid) {
     const myId = global.G?.playerId || global.G?.gameState?.my_id;
     const viewId = global.G?.isSpectator ? (global.G?.gameState?.view_as || 'p1') : myId;
@@ -316,12 +348,18 @@
 
   function onStampState(s) {
     if (!s?.stamp_pop || !isStampMatch(s)) return;
+    adoptStampRoom(global.G?.roomId || null, s);
     ['p1', 'p2'].forEach((pid) => {
       const pop = s.stamp_pop[pid];
       if (!pop?.id) return;
+      const key = stampPopKey(pop);
+      const dedupeKey = `${pid}:${key}`;
+      if (!key || state.playedKeys.has(dedupeKey)) return;
       const n = pop.n || 0;
-      if (n <= (state.lastSeen[pid] || 0)) return;
+      if (n < (state.lastSeen[pid] || 0) && key === state.lastSeenKey[pid]) return;
+      state.playedKeys.add(dedupeKey);
       state.lastSeen[pid] = n;
+      state.lastSeenKey[pid] = key;
       const stamp = findStamp(pop.id, pop.locale);
       if (stamp) showStampPop(stamp, pop.locale, pid);
     });
@@ -330,13 +368,7 @@
   function syncGameButton(s) {
     const btn = el('btn-stamp');
     if (!btn) return;
-    const rid = global.G?.roomId;
-    if (rid && rid !== state.roomId) {
-      state.roomId = rid;
-      state.lastSeen = { p1: 0, p2: 0 };
-      el('my-stamp-layer')?.replaceChildren();
-      el('opp-stamp-layer')?.replaceChildren();
-    }
+    adoptStampRoom(global.G?.roomId || null, s);
     const show = isStampMatch(s);
     btn.hidden = !show;
     btn.disabled = global.G?.isSpectator || !show;

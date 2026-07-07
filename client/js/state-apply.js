@@ -603,8 +603,8 @@
   if (typeof _origApplyStateUpdate === 'function' && !_origApplyStateUpdate.__stampsHooked) {
     const wrapped = async function applyStateUpdateWithStamps(s) {
       await _origApplyStateUpdate(s);
-      global.TCG_STAMPS?.onState?.(s);
       global.TCG_STAMPS?.syncGameUi?.(s);
+      global.TCG_STAMPS?.onState?.(s);
     };
     wrapped.__stampsHooked = true;
     global.applyStateUpdate = wrapped;
