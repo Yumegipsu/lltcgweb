@@ -15360,6 +15360,16 @@ function upgradeLiveStorageCardForReveal(d, card) {
   shell?.remove();
 }
 
+/** Rebuild flip shell when a prior render snapped opponent storage face-up before animation. */
+function rebuildLiveStorageFlipFromFace(cardEl, card) {
+  if (!cardEl || cardEl.classList.contains('live-storage-flip')) return;
+  cardEl.classList.remove('live-storage-facedown', 'revealed', 'storage-sideways-member');
+  cardEl.innerHTML = '';
+  cardEl.classList.add('live-storage-flip');
+  applyLiveStorageMemberSpin(cardEl, card);
+  cardEl.appendChild(buildLiveStorageFlipInner(enrichCard({ ...card, revealed: true })));
+}
+
 function ensureCardImageLoaded(card) {
   return preloadCardFaceImage(card).then(() => {});
 }
@@ -19113,6 +19123,34 @@ function syncLiveStorageSlotsFromState(state, myId) {
   renderLiveSlots('opp', state?.players?.[oppId]?.live_zone || [], false, oppId);
 }
 
+/** Ensure opponent live-storage flip animations are scheduled after renderGame. */
+function flushLiveStorageFlipScheduling(myId) {
+  const flipKeys = G._liveRevealFlips;
+  if (!flipKeys?.size || !G.gameState?.players) return;
+  const oppId = myId === 'p1' ? 'p2' : 'p1';
+  const zone = G.gameState.players[oppId]?.live_zone || [];
+  for (let i = 0; i < 3; i++) {
+    const card = liveZoneCardAtSlot(zone, i);
+    if (!card) continue;
+    const flipKey = `${oppId}:${card.instance_id}`;
+    if (!flipKeys.has(flipKey)) continue;
+    const slotEl = el(`opp-live-${i}`);
+    const cardEl = slotEl?.querySelector('.lcard.live-card');
+    if (!cardEl || cardEl.classList.contains('revealed')) continue;
+    if (cardEl.classList.contains('live-storage-facedown')) {
+      upgradeLiveStorageCardForReveal(cardEl, enrichCard({ ...card, revealed: false }));
+    } else if (!cardEl.classList.contains('live-storage-flip') && liveStorageCardShowsFace(cardEl)) {
+      rebuildLiveStorageFlipFromFace(cardEl, card);
+    } else if (!cardEl.classList.contains('live-storage-flip')) {
+      continue;
+    }
+    layoutLiveSlots('opp');
+    ensureLiveStorageFlipScheduled(
+      cardEl, card, flipKey, flipKeys, i * LIVE_STORAGE_FLIP_STAGGER_MS, 'opp'
+    );
+  }
+}
+
 /** Live storage zone for renderGame — keeps post-reveal cards visible until WR/success flights. */
 function liveZoneForRender(s, pid) {
   const current = clampLiveZoneCards(s?.players?.[pid]?.live_zone || []);
@@ -19651,6 +19689,9 @@ function scheduleCardFlipReveal(cardEl, flipKey, flipKeys, opts = {}) {
         const inner = cardEl.querySelector('.live-flip-inner, .hand-flip-inner');
         if (inner) void inner.offsetWidth;
         cardEl.classList.add('revealed');
+        if (cardEl.classList.contains('live-storage-flip')) {
+          G._liveStorageRevealAnimCount = (G._liveStorageRevealAnimCount || 0) + 1;
+        }
         setTimeout(() => {
           finalizeCardFlip(cardEl);
           flipKeys?.delete?.(flipKey);
@@ -26809,17 +26850,33 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
     queuePerformancePhaseBanner();
   }
 
+  if (final?.phase && !isLiveSetPhase(final.phase)) {
+    playback.phase = final.phase;
+  }
+
   G._liveFlipScheduled = new Set();
+  G._liveStorageRevealAnimCount = 0;
   G._liveRevealFlips = flipKeys;
   G.gameState = playback;
   renderGame(playback, { skipLog: true });
+  flushLiveStorageFlipScheduling(myId);
   await Promise.all(preload);
   await waitForBannersIdle();
+  flushLiveStorageFlipScheduling(myId);
 
   const flipWait = LIVE_STORAGE_FLIP_MS
     + Math.max(0, flipKeys.size - 1) * LIVE_STORAGE_FLIP_STAGGER_MS;
+  if (flipKeys.size && !(G._activeCardFlips || G._liveStorageRevealAnimCount)) {
+    flushLiveStorageFlipScheduling(myId);
+  }
   await sleep(flipWait);
   await waitForCardFlipsIdle();
+  if (flipKeys.size && !G._liveStorageRevealAnimCount) {
+    TCG_DEBUG.warn('live', 'reveal sequence: flip not started — retry scheduling', { flipKeys: flipKeys.size });
+    flushLiveStorageFlipScheduling(myId);
+    await sleep(flipWait);
+    await waitForCardFlipsIdle();
+  }
   await sleep(80);
 
   for (const pid of ['p1', 'p2']) {
@@ -26843,10 +26900,11 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
 
   G._liveRevealFlips = new Set();
   G._liveFlipScheduled = new Set();
-  if (flipKeys.size || !oppFaceDownPending) {
+  const revealAnimRan = flipKeys.size === 0 || (G._liveStorageRevealAnimCount || 0) > 0;
+  if (revealAnimRan && (flipKeys.size || !oppFaceDownPending)) {
     markLiveStorageRevealDone(inferLiveShowTurn(prev, final));
   }
-  return flipKeys.size > 0 || !oppFaceDownPending;
+  return revealAnimRan && (flipKeys.size > 0 || !oppFaceDownPending);
 }
 
 function liveStorageHasCards(s) {
@@ -27435,7 +27493,15 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
   const showTurn = detectPendingLiveSpectacleTurn(prev, s);
   if (showTurn == null) return false;
   if (G._liveSpectacleGateRunning) return false;
-  const revealDone = liveStorageRevealDoneForTurn(showTurn);
+  let revealDone = liveStorageRevealDoneForTurn(showTurn);
+  if (revealDone && liveSpectacleStillPending(prev, s, showTurn)) {
+    const revealBoard = buildLiveRevealPlayback(prev, s, myId);
+    if (revealBoard && liveStorageHadFaceDownOppBluff(revealBoard, myId)) {
+      G._liveStorageRevealDoneTurns?.delete(showTurn);
+      revealDone = false;
+      TCG_DEBUG.warn('live', 'spectacle gate: reveal-done reset — opponent storage still face-down', { showTurn });
+    }
+  }
   const spectacleReady = !liveSpectacleDoneForTurn(showTurn)
     && (liveSpectacleOwed(prev, s, showTurn) || shouldTriggerPerfSpectacle(prev, s));
   if (revealDone && !spectacleReady) {
@@ -29252,6 +29318,16 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
         skipIntroBanner: wantsSpectacle || emptySkip,
       }));
     }
+    if (needsLiveReveal && !revealRan && !emptySkip) {
+      const revealFrom = buildLiveRevealPlayback(prev, next, myId);
+      if (revealFrom && liveStorageHasCards(revealFrom)) {
+        TCG_DEBUG.warn('live', 'presentLiveRound: retry reveal after playLivePhaseTransition miss');
+        revealRan = await runLiveStorageRevealSequence(revealFrom, next, myId, {
+          deferWrDiscards: deferStorageOutcomes,
+          skipIntroBanner: wantsSpectacle || emptySkip,
+        });
+      }
+    }
 
     await awaitLiveStartPromptsIfNeeded(prev, next, myId);
     await presentSkippedLiveStartBanners(prev, next, myId);
@@ -29283,6 +29359,15 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       G._liveRoundPostSpectacleReady = true;
       markEmptyLiveRoundPresented(prev, next);
     } else if (wantsSpectacle) {
+      if (needsLiveReveal && !revealRan) {
+        spectacleFailedOwed = true;
+        G._spectacleRecoveryPending = {
+          prev, s: next, newEntries: opts.newEntries || [], myId,
+        };
+        TCG_DEBUG.warn('live', 'presentLiveRound: spectacle blocked — storage reveal did not run', {
+          showTurn: showTurnForSpectacle,
+        });
+      } else {
       G._deferredLiveState = next;
       const spectacleNext = pickSpectacleStateForPerf(next);
       const perfPrev = buildPerfSpectaclePrev(prev, spectacleNext);
@@ -29308,6 +29393,7 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
           prev, s: next, newEntries: opts.newEntries || [], myId,
         };
         TCG_DEBUG.warn('live', 'presentLiveRound: spectacle owed but did not run', { showTurn: showTurnForSpectacle });
+      }
       }
     } else {
       let wrAnimated = false;
@@ -33794,7 +33880,16 @@ function renderLiveSlots(prefix, zone, isMe, pid){
       if (existingCard.classList.contains('card-arriving')) {
         continue;
       }
-      if (liveStorageCardShowsFace(existingCard)) {
+      if (doFlip && isOpp && liveStorageCardShowsFace(existingCard)
+          && !existingCard.classList.contains('live-storage-flip')) {
+        rebuildLiveStorageFlipFromFace(existingCard, card);
+        layoutLiveSlots(prefix);
+        ensureLiveStorageFlipScheduled(
+          existingCard, card, flipKey, flipKeys, i * LIVE_STORAGE_FLIP_STAGGER_MS, prefix
+        );
+        continue;
+      }
+      if (!flipPending && !G._liveFlipScheduled?.has(flipKey) && liveStorageCardShowsFace(existingCard)) {
         existingCard.classList.toggle('card-arriving', !!(G._animHideIids?.has(card.instance_id)));
         applyCardFoilFx(existingCard, card);
         continue;
