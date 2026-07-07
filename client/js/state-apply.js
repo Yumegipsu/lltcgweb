@@ -253,12 +253,27 @@
       if (!prev) G._lastPhase = s.phase;
     }
 
+    const pendingSpectacleTurn = detectPendingLiveSpectacleTurn(prev, s);
+    const spectacleGateActive = pendingSpectacleTurn != null && !liveSpectacleDoneForTurn(pendingSpectacleTurn);
+
     if (await runLiveSpectacleGate(prev, s, newEntries, G.playerId)) {
       const live = G.gameState || s;
       if (!replayForward
           && live.pending_prompt?.responder === G.playerId
           && live.phase === 'live_judge'
           && live.pending_prompt?.type === 'pick_judge_success_live') {
+        ensurePendingPromptSurfaced(live, G.playerId);
+      }
+      if (!replayForward && G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) {
+        doCPU(live);
+        armWatchdog(live);
+      }
+      return;
+    }
+
+    if (spectacleGateActive && !liveSpectacleDoneForTurn(pendingSpectacleTurn)) {
+      const live = G.gameState || s;
+      if (!replayForward && live.pending_prompt?.responder === G.playerId) {
         ensurePendingPromptSurfaced(live, G.playerId);
       }
       if (!replayForward && G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) {
@@ -308,7 +323,7 @@
       const livePlan = liveRoundPresentationPlan(livePrev, s);
       const emptySkip = !liveSetPlacementInProgress(s)
         && (livePlan.wantsEmptyRound || shouldPresentEmptyLiveRound(livePrev, s));
-      if (livePlan.needsLiveReveal || livePlan.wantsSpectacle || emptySkip) {
+      if (!spectacleGateActive && (livePlan.needsLiveReveal || livePlan.wantsSpectacle || emptySkip)) {
         TCG_DEBUG.log('apply', 'presentLiveRound', { ...livePlan, emptySkip, solo: isSoloPlayerEmptyLiveRound(livePrev, s) }, TCG_DEBUG.trans(livePrev, s));
         G.animating = true;
         try {

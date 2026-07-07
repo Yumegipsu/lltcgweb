@@ -20454,8 +20454,14 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
     if (outcome.reveal || outcome.spectacle || outcome.empty) return;
   }
   const pendingTurn = detectPendingLiveSpectacleTurn(prev, final);
-  if (pendingTurn != null && !liveSpectacleDoneForTurn(pendingTurn)) {
+  const spectacleGateActive = pendingTurn != null && !liveSpectacleDoneForTurn(pendingTurn);
+  if (spectacleGateActive) {
     if (await runLiveSpectacleGate(prev, final, newEntries, myId)) return;
+    if (!liveSpectacleDoneForTurn(pendingTurn)) {
+      clearHandArrivingFlags();
+      ensurePendingPromptSurfaced(final, myId);
+      return;
+    }
   }
   const livePlan = liveRoundPresentationPlan(prev, final, { forceSpectacleTurn: pendingTurn });
   const allowFinishedSpectacle = final?.status === 'finished' && livePlan.wantsSpectacle;
@@ -20463,7 +20469,7 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
 
   const { needsLiveReveal, wantsSpectacle, wantsEmptyRound } = livePlan;
   const emptyRoundPlayback = wantsEmptyRound || isEmptyLiveSkipTransition(prev, final);
-  if (needsLiveReveal || wantsSpectacle || emptyRoundPlayback) {
+  if (!spectacleGateActive && (needsLiveReveal || wantsSpectacle || emptyRoundPlayback)) {
     await presentLiveRound(prev, final, myId, {
       newEntries,
       forceEmptyRound: emptyRoundPlayback && !wantsEmptyRound,
@@ -26729,6 +26735,7 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
 
   G._liveRevealFlips = new Set();
   G._liveFlipScheduled = new Set();
+  markLiveStorageRevealDone(inferLiveShowTurn(prev, final));
   return true;
 }
 
@@ -27085,6 +27092,16 @@ function liveSpectacleDoneForTurn(turn) {
     }
   } catch (e) {}
   return false;
+}
+
+function liveStorageRevealDoneForTurn(turn) {
+  return turn != null && !!G._liveStorageRevealDoneTurns?.has(turn);
+}
+
+function markLiveStorageRevealDone(turn) {
+  if (turn == null) return;
+  if (!G._liveStorageRevealDoneTurns) G._liveStorageRevealDoneTurns = new Set();
+  G._liveStorageRevealDoneTurns.add(turn);
 }
 
 function candidateLiveShowTurns(prev, next) {
@@ -27513,6 +27530,8 @@ async function playHandToLiveStoragePlacements(prev, next, myId, movesOverride =
 function shouldRevealLiveStorageForRound(prev, next, emptyRound = null) {
   if (!prev || !next) return false;
   if (liveSetPlacementInProgress(next)) return false;
+  const showTurn = inferLiveShowTurn(prev, next);
+  if (liveStorageRevealDoneForTurn(showTurn) && !isLiveSetPhase(prev?.phase)) return false;
   const empty = emptyRound ?? isEmptyLiveSkipTransition(prev, next);
   if (empty) {
     // solo-human: own member bluffs were face-up during live_set — skip flip.
@@ -28510,6 +28529,7 @@ function holdLiveJudgeOverlay(myScore, oppScore, hint, tone, ms) {
 function clearPerfSpectacleDoneStorage() {
   G._perfSpectacleDoneKey = null;
   G._perfSpectacleDoneTurns = null;
+  G._liveStorageRevealDoneTurns = null;
   try { sessionStorage.removeItem(PERF_SPECTACLE_DONE_STORAGE_KEY); } catch (e) {}
 }
 
@@ -29058,8 +29078,17 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   let emptyWrPlayed = false;
   let spectacleFailedOwed = false;
   const showTurnForSpectacle = opts.forceSpectacleTurn ?? plan.showTurn ?? inferLiveShowTurn(prev, next);
+  if (!wantsSpectacle && !emptySkip && (opts.forceSpectacleTurn != null || plan.showTurn != null)) {
+    const replayPlan = liveRoundPresentationPlan(prev, next, {
+      forceSpectacleTurn: opts.forceSpectacleTurn ?? plan.showTurn,
+    });
+    wantsSpectacle = replayPlan.wantsSpectacle && !isEmptyLiveSkipTransition(prev, next);
+  }
+  const spectaclePlaybackPending = !emptySkip && !liveSpectacleDoneForTurn(showTurnForSpectacle)
+    && (wantsSpectacle || liveSpectacleOwed(prev, next, showTurnForSpectacle)
+        || liveRoundRequiresSpectacle(prev, next, showTurnForSpectacle));
   const runStorageReveal = needsLiveReveal;
-  const deferStorageOutcomes = wantsSpectacle
+  const deferStorageOutcomes = spectaclePlaybackPending
     || (emptySkip && shouldAnimateEmptyLiveStorageWr(prev, next));
   try {
     await prepareLiveRoundBannerSlot();
@@ -29074,13 +29103,6 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
 
     await awaitLiveStartPromptsIfNeeded(prev, next, myId);
     await presentSkippedLiveStartBanners(prev, next, myId);
-
-    if (!wantsSpectacle && !emptySkip && (opts.forceSpectacleTurn != null || plan.showTurn != null)) {
-      const replayPlan = liveRoundPresentationPlan(prev, G.gameState || next, {
-        forceSpectacleTurn: opts.forceSpectacleTurn ?? plan.showTurn,
-      });
-      wantsSpectacle = replayPlan.wantsSpectacle && !isEmptyLiveSkipTransition(prev, next);
-    }
 
     if (emptySkip) {
       const wrFrom = buildEmptyLiveWrPlayback(prev, next) || prev;
@@ -30655,6 +30677,13 @@ function perfLiveAttempts(prev, next, pid) {
     before.forEach(c => {
       if (attempts.filter(a => a.success).length >= logOk) return;
       if (!seen.has(c.instance_id)) pushAttempt(c, true);
+    });
+  }
+  const snapIds = next?._live_perf_snapshot?.[pid];
+  if (snapIds?.length) {
+    snapIds.forEach(iid => {
+      if (!iid || seen.has(iid)) return;
+      pushAttempt(perfLookupLiveAttemptCard(perfPrev, next, pid, iid));
     });
   }
 
