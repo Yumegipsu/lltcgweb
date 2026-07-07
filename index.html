@@ -708,9 +708,9 @@ html:not(.tcg-mobile-viewport) #screen-game .opp-hand-strip .opp-hand-card{
   width:var(--deck-hover-panel-w,248px);
   max-width:min(var(--deck-hover-panel-w,248px),34vw);
   min-width:0;
-  min-height:0;
-  align-self:stretch;
-  max-height:100%;
+  align-self:flex-start;
+  height:auto;
+  max-height:min(100%,calc(100dvh - 120px));
   display:flex;
   flex-direction:column;
   gap:5px;
@@ -749,15 +749,16 @@ html:not(.tcg-mobile-viewport) #screen-game .opp-hand-strip .opp-hand-card{
 #deck-card-hover-panel .hc-stats .sk{font-size:7px}
 #deck-card-hover-panel .hc-stats .sv{font-size:11px}
 #deck-card-hover-panel .hc-empty{
-  flex:1 1 auto;
+  flex:0 0 auto;
   display:flex;
   align-items:center;
   justify-content:center;
   color:rgba(255,255,255,.48);
 }
 #deck-card-hover-panel .hc-text{
-  flex:1 1 auto;
+  flex:0 1 auto;
   min-height:0;
+  max-height:min(42vh,320px);
   overflow-x:hidden;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
@@ -5510,7 +5511,7 @@ body.tcg-spectator-mode #btn-stamp{display:none!important}
     width:100%;
     max-width:none;
     min-width:0;
-    align-self:stretch;
+    align-self:flex-start;
     max-height:min(38vh,320px);
   }
 }
