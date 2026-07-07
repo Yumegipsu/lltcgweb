@@ -7369,7 +7369,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=8"></script>
-<script src="client/js/state-apply.js?v=12"></script>
+<script src="client/js/state-apply.js?v=13"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=12"></script>
@@ -12875,6 +12875,20 @@ function isPresentationSuperseded() {
   return !!G._presentationAborted;
 }
 
+function abortStuckLiveRoundPlayback(reason) {
+  if (!G._liveRoundPlaybackActive && !G._livePollHold && !G._liveSpectacleGateRunning) return false;
+  TCG_DEBUG.warn('live', 'abort stuck live round playback', { reason });
+  G._liveRoundPlaybackActive = false;
+  G._liveRoundPostSpectacleReady = false;
+  G._liveSpectacleGateRunning = false;
+  G._livePollHold = false;
+  G.animating = false;
+  G._spectacleRecoveryPending = null;
+  clearLiveRoundTransientCaches();
+  if (typeof releaseLivePolls === 'function') releaseLivePolls();
+  return true;
+}
+
 function abortGameplayPresentation(opts = {}) {
   if (!opts.skipAbortFlag) G._presentationAborted = true;
   if (G._perfSpectacleActive && G._perfSpectacleAbort) {
@@ -15593,6 +15607,7 @@ let G = {
   _promptSubmitKey:null,
   _lastSurfacedPromptKey:null,
   _perfSplashShownForTurn:null,
+  _perfSplashShownTurns:null,
   _oppSkillWaitLogKey:null,
   _bannerIdleWaiters:[],
   isTutorial:false,
@@ -26847,7 +26862,7 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
 
   if (!opts.skipIntroBanner && liveStorageHasCards(playback) && liveRoundHasLiveCards(playback)
       && !isLiveSetPhase(final?.phase)) {
-    queuePerformancePhaseBanner();
+    queuePerformancePhaseBanner(inferLiveShowTurn(prev, final), prev, final);
   }
 
   if (final?.phase && !isLiveSetPhase(final.phase)) {
@@ -28981,6 +28996,27 @@ async function prepareLiveRoundBannerSlot() {
   dismissCenterBannerIfShowing();
 }
 
+function markPerfSplashShown(showTurn, prev, next) {
+  if (!G._perfSplashShownTurns) G._perfSplashShownTurns = new Set();
+  const turns = new Set(candidateLiveShowTurns(prev, next));
+  if (showTurn != null) turns.add(showTurn);
+  for (const t of turns) {
+    if (t != null) G._perfSplashShownTurns.add(t);
+  }
+  if (showTurn != null) G._perfSplashShownForTurn = showTurn;
+}
+
+/** Block duplicate Performance splashes when show-turn inference oscillates (1 vs 2). */
+function perfSplashAlreadyShown(showTurn, prev, next) {
+  const turns = new Set(candidateLiveShowTurns(prev, next));
+  if (showTurn != null) turns.add(showTurn);
+  for (const t of turns) {
+    if (t != null && G._perfSplashShownTurns?.has(t)) return true;
+    if (t != null && G._perfSplashShownForTurn === t) return true;
+  }
+  return false;
+}
+
 function performancePhaseBannerShowing() {
   const root = el('center-banner');
   if (!root?.classList.contains('show')) return false;
@@ -28992,13 +29028,15 @@ function performancePhaseBannerQueued() {
   return (G._bannerQueue || []).some(b => isSplashPerformanceBanner(b));
 }
 
-async function ensurePerformancePhaseSplash(showTurn) {
+async function ensurePerformancePhaseSplash(showTurn, prev, next) {
   if (!shouldShowMatchSplash()) return;
-  const turn = showTurn ?? inferLiveShowTurn(G.gameState, G.gameState);
-  if (turn != null && G._perfSplashShownForTurn === turn) return;
+  const p = prev ?? G.gameState;
+  const n = next ?? G.gameState;
+  const turn = showTurn ?? primaryLiveShowTurn(p, n) ?? inferLiveShowTurn(p, n);
+  if (perfSplashAlreadyShown(turn, p, n)) return;
   if (performancePhaseBannerShowing() || performancePhaseBannerQueued()) {
     await waitForBannersIdle();
-    if (turn != null) G._perfSplashShownForTurn = turn;
+    markPerfSplashShown(turn, p, n);
     return;
   }
   await showCenterBannerNow(splashBanner({
@@ -29007,7 +29045,7 @@ async function ensurePerformancePhaseSplash(showTurn) {
     kind: 'live',
     duration: LIVE_BANNER_MS,
   }));
-  if (turn != null) G._perfSplashShownForTurn = turn;
+  markPerfSplashShown(turn, p, n);
 }
 
 /** Decide reveal flip, empty-round skip, and whether to run Performance spectacle. */
@@ -29323,7 +29361,8 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
     if (runStorageReveal) {
       revealRan = !!(await playLivePhaseTransition(prev, next, myId, {
         deferFinal: deferStorageOutcomes,
-        skipIntroBanner: wantsSpectacle || emptySkip,
+        skipIntroBanner: wantsSpectacle || emptySkip
+            || perfSplashAlreadyShown(showTurnForReveal, prev, next),
       }));
     }
     if (needsLiveReveal && !revealRan && !emptySkip) {
@@ -29332,7 +29371,8 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
         TCG_DEBUG.warn('live', 'presentLiveRound: retry reveal after playLivePhaseTransition miss');
         revealRan = await runLiveStorageRevealSequence(revealFrom, next, myId, {
           deferWrDiscards: deferStorageOutcomes,
-          skipIntroBanner: wantsSpectacle || emptySkip,
+          skipIntroBanner: wantsSpectacle || emptySkip
+              || perfSplashAlreadyShown(showTurnForReveal, prev, next),
         });
       }
     }
@@ -29609,7 +29649,16 @@ function shouldTriggerPerfSpectacle(prev, next) {
   // Leaving live_set with Live cards — replay spectacle once Live Start effects finish.
   if (isLeavingLiveSetPhase(prev, next) && liveRoundHasLiveCardsForRound(prev)
       && showTurn != null && !liveSpectacleDoneForTurn(showTurn)) {
-    if (next.phase === 'live_start_effects' || pendingPromptBlocksPerfSpectacle(next)) {
+    if (newLogHasLivePerformance(prev, next) || logHasLivePerformanceForShowTurn(prev, next, showTurn)) {
+      if (liveRoundJudgeReady(next) && !pendingPromptBlocksPerfSpectacle(next)) {
+        TCG_DEBUG.log('live', 'spectacle trigger (leaving live_set, perf in log)', { showTurn, phase: ph });
+        return true;
+      }
+    }
+    if (next.phase === 'live_start_effects'
+        || (pendingPromptBlocksPerfSpectacle(next)
+            && !logHasLivePerformanceForShowTurn(prev, next, showTurn)
+            && !newLogHasLivePerformance(prev, next))) {
       TCG_DEBUG.log('live', 'spectacle defer (leaving live_set): live_start_effects or prompt', { phase: ph });
       return false;
     }
@@ -29724,7 +29773,7 @@ async function runPerformanceSpectacle(perfPrev, next, myId, opts = {}) {
   G._skipJudgeOverlay = true;
   let ran = false;
   try {
-    await ensurePerformancePhaseSplash(inferLiveShowTurn(perfPrev, next));
+    await ensurePerformancePhaseSplash(inferLiveShowTurn(perfPrev, next), perfPrev, next);
     await perfSeekPhase(perfPrev, next, myId, 'judge', { forward: true, animate: true });
     await perfSleep(500);
     ran = G._perfSpectaclePhase === 'judge';
@@ -32528,9 +32577,11 @@ function centerBannerForPhase(phase, copy) {
   return { ...copy, kind: 'phase', duration: PHASE_BANNER_MS };
 }
 
-function queuePerformancePhaseBanner(showTurn) {
-  const turn = showTurn ?? inferLiveShowTurn(G.gameState, G.gameState);
-  if (turn != null && G._perfSplashShownForTurn === turn) return;
+function queuePerformancePhaseBanner(showTurn, prev, next) {
+  const p = prev ?? G.gameState;
+  const n = next ?? G.gameState;
+  const turn = showTurn ?? primaryLiveShowTurn(p, n) ?? inferLiveShowTurn(p, n);
+  if (perfSplashAlreadyShown(turn, p, n)) return;
   if (performancePhaseBannerShowing() || performancePhaseBannerQueued()) return;
   queueCenterBanner(splashBanner({
     titleKey: 'phaseBanner.performanceTitle',
@@ -32538,7 +32589,7 @@ function queuePerformancePhaseBanner(showTurn) {
     kind: 'live',
     duration: LIVE_BANNER_MS,
   }));
-  if (turn != null) G._perfSplashShownForTurn = turn;
+  markPerfSplashShown(turn, p, n);
 }
 
 function showPhaseTransitionBanner(s, myId, prev) {

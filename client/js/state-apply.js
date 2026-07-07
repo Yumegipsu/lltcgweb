@@ -255,10 +255,18 @@
       if (!prev) G._lastPhase = s.phase;
     }
 
-    const pendingSpectacleTurn = detectPendingLiveSpectacleTurn(prev, s);
+    const livePrev = effectiveEmptyLiveRoundPrev(prev, s);
+    const pendingSpectacleTurn = detectPendingLiveSpectacleTurn(livePrev, s)
+      ?? detectPendingLiveSpectacleTurn(prev, s);
     const spectacleGateActive = pendingSpectacleTurn != null && !liveSpectacleDoneForTurn(pendingSpectacleTurn);
 
-    if (await runLiveSpectacleGate(prev, s, newEntries, G.playerId)) {
+    if (spectacleGateActive && (G.gameState?.seq ?? 0) < (s.seq ?? 0)
+        && typeof abortStuckLiveRoundPlayback === 'function') {
+      abortStuckLiveRoundPlayback('behind server during spectacle');
+      G.gameState = s;
+    }
+
+    if (await runLiveSpectacleGate(livePrev, s, newEntries, G.playerId)) {
       const live = G.gameState || s;
       if (!replayForward
           && live.pending_prompt?.responder === G.playerId
@@ -330,11 +338,11 @@
       G._animHideIids = prev && moves.length ? animHideIidsForMoves(prev, moves) : null;
       G._liveRevealFlips = prev ? collectLiveRevealFlips(prev, s) : new Set();
       rememberPerfSpectacleBaseline(prev, s);
-      const livePrev = effectiveEmptyLiveRoundPrev(prev, s);
       const livePlan = liveRoundPresentationPlan(livePrev, s);
       const emptySkip = !liveSetPlacementInProgress(s)
         && (livePlan.wantsEmptyRound || shouldPresentEmptyLiveRound(livePrev, s));
-      if (!spectacleGateActive && (livePlan.needsLiveReveal || livePlan.wantsSpectacle || emptySkip)) {
+      if (!spectacleGateActive && pendingSpectacleTurn == null
+          && (livePlan.needsLiveReveal || livePlan.wantsSpectacle || emptySkip)) {
         TCG_DEBUG.log('apply', 'presentLiveRound', { ...livePlan, emptySkip, solo: isSoloPlayerEmptyLiveRound(livePrev, s) }, TCG_DEBUG.trans(livePrev, s));
         G.animating = true;
         try {
