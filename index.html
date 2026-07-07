@@ -4814,10 +4814,11 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 }
 .tcg-stamp-pop-out{animation:tcgStampOut .4s ease forwards}
 .tcg-stamp-pop-img{
-  width:min(180px,96%);height:auto;display:block;
-  transform:scale(1.25);transform-origin:center bottom;
+  width:125px;height:125px;max-width:min(125px,32vw);max-height:min(125px,32vw);
+  object-fit:contain;object-position:center bottom;
+  display:block;
 }
-#opp-stamp-layer .tcg-stamp-pop-img{transform-origin:center top}
+#opp-stamp-layer .tcg-stamp-pop-img{object-position:center top}
 .tcg-stamp-pop-label{
   font-size:clamp(12px,2.5vw,16px);font-weight:800;color:#fff;
   text-shadow:
@@ -4889,7 +4890,10 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .stamp-picker-tile{
   position:relative;border:none;padding:4px;border-radius:10px;background:rgba(255,255,255,.06);cursor:pointer;
 }
-.stamp-picker-tile img{width:100%;height:auto;display:block;border-radius:6px}
+.stamp-picker-tile img{
+  width:100%;height:72px;object-fit:contain;object-position:center;
+  display:block;border-radius:6px;
+}
 .stamp-picker-tile.is-profile-pick{box-shadow:0 0 0 2px var(--pink)}
 .stamp-picker-star{
   position:absolute;top:2px;right:2px;font-size:14px;line-height:1;color:rgba(255,255,255,.55);
