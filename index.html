@@ -7363,7 +7363,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=22"></script>
+<script src="i18n.js?v=23"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=7"></script>
@@ -19342,6 +19342,7 @@ function phaseLabelFromBannerTitle(title) {
   if (!title) return null;
   const trimmed = (title || '').trim();
   if (/Main Phase/i.test(trimmed) || /メインフェイズ/.test(trimmed)) return t('phase.main');
+  if (/Live Phase/i.test(trimmed) || /ライブフェイズ/.test(trimmed) || /Fase Live/i.test(trimmed)) return t('phase.live');
   const phaseKeys = [
     ['phaseBanner.coinFlipTitle', 'phase.coinFlip'],
     ['phaseBanner.setupTitle', 'phase.preparation'],
@@ -28284,17 +28285,19 @@ function phaseBannerMainTitle(activePid, myId, activeName) {
   return t(bannerKey, { name });
 }
 
-function phaseBannerLiveTitle(activeName) {
+function phaseBannerLiveTitle(activePid, myId, activeName) {
+  const isMe = activePid === (myId || G.playerId);
+  if (isMe) return t('phaseBanner.yourLive');
   const name = activeName || '—';
   if (name === '—') return t('phaseBanner.liveTitle');
   const last = name.slice(-1);
-  const bannerKey = (last === 's' || last === 'S') ? 'phaseBanner.livePlayerS' : 'phaseBanner.livePlayer';
+  const bannerKey = (last === 's' || last === 'S') ? 'phaseBanner.theirLiveS' : 'phaseBanner.theirLive';
   return t(bannerKey, { name });
 }
 
-function livePhaseTitleForState(s) {
+function livePhaseTitleForState(s, myId) {
   const activePid = s?.active_player;
-  return phaseBannerLiveTitle(s?.players?.[activePid]?.name || '');
+  return phaseBannerLiveTitle(activePid, myId || G.playerId, s?.players?.[activePid]?.name || '');
 }
 
 function livePhaseMessage(title, text) {
@@ -28347,6 +28350,10 @@ function phaseBannerCopy(phase, s, myId) {
   const mainEntry = isMe
     ? { titleKey: 'phaseBanner.yourMain' }
     : { titleKey: theirMainKey, titleVars: { name: active } };
+  const theirLiveKey = (last === 's' || last === 'S') ? 'phaseBanner.theirLiveS' : 'phaseBanner.theirLive';
+  const liveEntry = isMe
+    ? { titleKey: 'phaseBanner.yourLive' }
+    : { titleKey: theirLiveKey, titleVars: { name: active } };
   const map = {
     coin_flip: { titleKey: 'phaseBanner.coinFlipTitle', subtitleKey: 'phaseBanner.coinFlipSub' },
     setup: { titleKey: 'phaseBanner.setupTitle', subtitleKey: 'phaseBanner.setupSub' },
@@ -28354,9 +28361,9 @@ function phaseBannerCopy(phase, s, myId) {
     active_second: { titleKey: 'phaseBanner.activeTitle', subtitleKey: 'phaseBanner.activeSub' },
     main_first: { ...mainEntry, subtitleKey: null },
     main_second: { ...mainEntry, subtitleKey: null },
-    live_set: { title: phaseBannerLiveTitle(active), subtitleKey: 'phaseBanner.liveSub' },
-    live_set_first: { titleKey: 'phaseBanner.liveTitle', subtitleKey: 'phaseBanner.liveSub' },
-    live_set_second: { titleKey: 'phaseBanner.liveTitle', subtitleKey: 'phaseBanner.liveSub' },
+    live_set: { ...liveEntry, subtitleKey: 'phaseBanner.liveSub' },
+    live_set_first: { ...liveEntry, subtitleKey: 'phaseBanner.liveSub' },
+    live_set_second: { ...liveEntry, subtitleKey: 'phaseBanner.liveSub' },
     live_start_effects: { titleKey: 'phaseBanner.liveStartTitle', subtitleKey: 'phaseBanner.liveStartSub' },
     live_success_effects: { titleKey: 'phaseBanner.liveSuccessTitle', subtitleKey: 'phaseBanner.liveSuccessSub' },
     live_performance_first: { titleKey: 'phaseBanner.performanceTitle', subtitleKey: 'phaseBanner.performanceSub' },
@@ -28454,9 +28461,9 @@ function parseLogToBanner(msg, kind, s, myId, prev = null, logFrom = 0) {
   if (livePhasePlayer !== null) {
     const isMe = playerNameMatches(livePhasePlayer, s, myId);
     const last = livePhasePlayer.slice(-1);
-    const oppKey = (last === 's' || last === 'S') ? 'phaseBanner.livePlayerS' : 'phaseBanner.livePlayer';
+    const oppKey = (last === 's' || last === 'S') ? 'phaseBanner.theirLiveS' : 'phaseBanner.theirLive';
     return splashBanner({
-      titleKey: isMe ? 'phaseBanner.liveTitle' : oppKey,
+      titleKey: isMe ? 'phaseBanner.yourLive' : oppKey,
       titleVars: isMe ? null : { name: livePhasePlayer },
       subtitleKey: 'phaseBanner.liveSub',
       kind: 'live',
@@ -32411,6 +32418,11 @@ function centerBannerForPhase(phase, copy) {
     'live_performance_first', 'live_performance_second'];
   const liveKind = livePhases.includes(phase)
     || copy?.titleKey === 'phaseBanner.liveTitle'
+    || copy?.titleKey === 'phaseBanner.yourLive'
+    || copy?.titleKey === 'phaseBanner.theirLive'
+    || copy?.titleKey === 'phaseBanner.theirLiveS'
+    || copy?.titleKey === 'phaseBanner.livePlayer'
+    || copy?.titleKey === 'phaseBanner.livePlayerS'
     || copy?.titleKey === 'phaseBanner.performanceTitle';
   if (liveKind) {
     return { ...copy, kind: 'live', duration: LIVE_BANNER_MS, subtitle: copy?.subtitle || '' };
@@ -32679,7 +32691,7 @@ function judgeLiveTotalScore(s, pid, zone) {
 
 function renderPhaseBar(s,me,opp,myId,oppId) {
   const ph=s.phase;
-  el('pbadge').textContent = ph === 'live_set' ? livePhaseTitleForState(s) : hPhase(ph);
+  el('pbadge').textContent = ph === 'live_set' ? livePhaseTitleForState(s, myId) : hPhase(ph);
   const msgE=el('pmsg'), btnsE=el('pbtns');
   btnsE.innerHTML='';
   if (G.isSpectator) {
@@ -32722,7 +32734,7 @@ function renderPhaseBar(s,me,opp,myId,oppId) {
     const oppReady = !!ready[oppId];
     const activeLivePid = s.active_player;
     const activeLiveName = s.players?.[activeLivePid]?.name || (activeLivePid === myId ? me.name : opp.name) || 'Opponent';
-    const liveTitle = livePhaseTitleForState(s);
+    const liveTitle = livePhaseTitleForState(s, myId);
     const stored = (me.live_zone||[]).length;
     const sel = G.liveSel.length;
     if(isMe && !myReady){

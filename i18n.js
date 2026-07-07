@@ -484,7 +484,10 @@
       "liveJudgeSub": "Comparing Live scores…",
       "yourMain": "Your Main Phase",
       "theirMain": "{name}'s Main Phase",
-      "theirMainS": "{name}' Main Phase"
+      "theirMainS": "{name}' Main Phase",
+      "yourLive": "Your Live Phase",
+      "theirLive": "{name}'s Live Phase",
+      "theirLiveS": "{name}' Live Phase"
     },
     "splash": {
       "turn": "Turn {turn}",
@@ -1408,7 +1411,10 @@
       "liveJudgeSub": "ライブスコアを比較中…",
       "yourMain": "あなたのメインフェイズ",
       "theirMain": "{name}のメインフェイズ",
-      "theirMainS": "{name}のメインフェイズ"
+      "theirMainS": "{name}のメインフェイズ",
+      "yourLive": "あなたのライブフェイズ",
+      "theirLive": "{name}のライブフェイズ",
+      "theirLiveS": "{name}のライブフェイズ"
     },
     "splash": {
       "turn": "ターン {turn}",
@@ -2326,7 +2332,10 @@
       "liveJudgeSub": "Comparando puntuaciones de Live…",
       "yourMain": "Tu Fase principal",
       "theirMain": "Fase principal de {name}",
-      "theirMainS": "Fase principal de {name}"
+      "theirMainS": "Fase principal de {name}",
+      "yourLive": "Tu Fase Live",
+      "theirLive": "Fase Live de {name}",
+      "theirLiveS": "Fase Live de {name}"
     },
     "splash": {
       "turn": "Turno {turn}",
