@@ -2265,10 +2265,21 @@ html.tcg-desktop-scaled:not(.tcg-mobile-viewport).tcg-compact-desktop #screen-ga
   background:url('lltcg-back.png') center/cover no-repeat;
 }
 .mslot > img,.mslot > .noimg{border-radius:3px;overflow:hidden}
-.wdim{position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:5;
+.wdim{position:absolute;inset:0;z-index:5;
   display:flex;align-items:center;justify-content:center;
   font-size:clamp(6px,2cqw,9px);font-weight:800;color:rgba(255,255,255,.75);
-  letter-spacing:.04em;text-transform:uppercase;pointer-events:none;border-radius:3px}
+  letter-spacing:.04em;text-transform:uppercase;pointer-events:none;
+  background:transparent;border-radius:3px}
+.wdim::before{
+  content:'';position:absolute;inset:0;z-index:-1;
+  background:rgba(0,0,0,.55);border-radius:3px;
+}
+.mslot.member-in-wait > .wdim::before{
+  transform:rotate(90deg);transform-origin:center center;
+}
+.mslot.member-wait-flip-anim > .wdim::before{
+  transition:transform .36s cubic-bezier(.4,.2,.2,1);
+}
 .mslot.member-in-wait > img,
 .mslot.member-in-wait > .noimg,
 .mslot.member-in-wait .live-flip-front > img,
