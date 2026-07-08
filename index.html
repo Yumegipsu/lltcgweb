@@ -7369,7 +7369,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=9"></script>
-<script src="client/js/state-apply.js?v=14"></script>
+<script src="client/js/state-apply.js?v=15"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=12"></script>
@@ -26917,6 +26917,11 @@ function wasLiveRevealBluffMove(prev, move) {
 }
 
 async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
+  const showTurn = inferLiveShowTurn(prev, final);
+  if (liveStorageRevealDoneForTurn(showTurn)) {
+    TCG_DEBUG.log('live', 'reveal sequence skip (already done for turn)', { showTurn });
+    return true;
+  }
   if (!liveRoundHasLiveCards(prev) && !liveRoundHasLiveCards(final) && !liveStorageHasCards(prev)) return false;
   const playback = deepCloneState(prev);
   const flipKeys = new Set();
@@ -26966,7 +26971,7 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
   }
   await sleep(flipWait);
   await waitForCardFlipsIdle();
-  if (flipKeys.size && !G._liveStorageRevealAnimCount) {
+  if (flipKeys.size && !G._liveStorageRevealAnimCount && !liveStorageRevealFlipsActive(flipKeys, myId)) {
     TCG_DEBUG.warn('live', 'reveal sequence: flip not started — retry scheduling', { flipKeys: flipKeys.size });
     flushLiveStorageFlipScheduling(myId);
     await sleep(flipWait);
@@ -26995,9 +27000,13 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
 
   G._liveRevealFlips = new Set();
   G._liveFlipScheduled = new Set();
-  const revealAnimRan = flipKeys.size === 0 || (G._liveStorageRevealAnimCount || 0) > 0;
+  let revealAnimRan = flipKeys.size === 0 || (G._liveStorageRevealAnimCount || 0) > 0;
+  if (!revealAnimRan && flipKeys.size && liveStorageRevealDomComplete(flipKeys, myId)) {
+    revealAnimRan = true;
+    TCG_DEBUG.log('live', 'reveal sequence: DOM already face-up', { flipKeys: flipKeys.size, showTurn });
+  }
   if (revealAnimRan && (flipKeys.size || !oppFaceDownPending)) {
-    markLiveStorageRevealDone(inferLiveShowTurn(prev, final));
+    markLiveStorageRevealDone(showTurn);
   }
   return revealAnimRan && (flipKeys.size > 0 || !oppFaceDownPending);
 }
@@ -27374,6 +27383,48 @@ function markLiveStorageRevealDone(turn) {
   if (turn == null) return;
   if (!G._liveStorageRevealDoneTurns) G._liveStorageRevealDoneTurns = new Set();
   G._liveStorageRevealDoneTurns.add(turn);
+}
+
+/** Opponent live-storage flip already scheduled, animating, or face-up on the mat. */
+function liveStorageRevealFlipsActive(flipKeys, myId = G.playerId) {
+  if ((G._liveStorageRevealAnimCount || 0) > 0) return true;
+  if (G._activeCardFlips) return true;
+  if (!flipKeys?.size) return false;
+  const oppId = myId === 'p1' ? 'p2' : 'p1';
+  for (const key of flipKeys) {
+    if (G._liveFlipScheduled?.has(key)) return true;
+    if (!String(key).startsWith(`${oppId}:`)) continue;
+    const iid = String(key).slice(oppId.length + 1);
+    for (let i = 0; i < 3; i++) {
+      const cardEl = el(`opp-live-${i}`)?.querySelector('.lcard.live-card');
+      if (cardEl?.dataset?.iid !== iid) continue;
+      if (cardEl.classList.contains('revealed')
+          || cardEl.classList.contains('live-storage-flip')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/** All opponent flip keys are already face-up in the DOM (animation finished). */
+function liveStorageRevealDomComplete(flipKeys, myId = G.playerId) {
+  const oppId = myId === 'p1' ? 'p2' : 'p1';
+  if (!flipKeys?.size) return true;
+  for (const key of flipKeys) {
+    if (!String(key).startsWith(`${oppId}:`)) continue;
+    const iid = String(key).slice(oppId.length + 1);
+    let found = false;
+    for (let i = 0; i < 3; i++) {
+      const cardEl = el(`opp-live-${i}`)?.querySelector('.lcard.live-card');
+      if (cardEl?.dataset?.iid === iid && cardEl.classList.contains('revealed')) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) return false;
+  }
+  return true;
 }
 
 function candidateLiveShowTurns(prev, next) {
@@ -29440,13 +29491,21 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
     await waitForBlockingOverlaysIdle(next);
 
     if (runStorageReveal) {
-      revealRan = !!(await playLivePhaseTransition(prev, next, myId, {
-        deferFinal: deferStorageOutcomes,
-        skipIntroBanner: wantsSpectacle || emptySkip
-            || perfSplashAlreadyShown(showTurnForReveal, prev, next),
-      }));
+      if (liveStorageRevealDoneForTurn(showTurnForReveal)) {
+        revealRan = true;
+        TCG_DEBUG.log('live', 'presentLiveRound: skip reveal (already done for turn)', { showTurn: showTurnForReveal });
+      } else {
+        revealRan = !!(await playLivePhaseTransition(prev, next, myId, {
+          deferFinal: deferStorageOutcomes,
+          skipIntroBanner: wantsSpectacle || emptySkip
+              || perfSplashAlreadyShown(showTurnForReveal, prev, next),
+        }));
+        if (!revealRan && liveStorageRevealDoneForTurn(showTurnForReveal)) {
+          revealRan = true;
+        }
+      }
     }
-    if (needsLiveReveal && !revealRan && !emptySkip) {
+    if (needsLiveReveal && !revealRan && !emptySkip && !liveStorageRevealDoneForTurn(showTurnForReveal)) {
       let revealFrom = buildLiveRevealPlayback(prev, next, myId);
       if (!revealFrom || !liveStorageHasCards(revealFrom)) {
         const synth = synthesizePerfPrevFromNext(prev, next, showTurnForReveal);
