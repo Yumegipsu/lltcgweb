@@ -1110,7 +1110,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             cardDisplayName($picked) . ' from Waiting Room to hand.');
         unset($state['pending_prompt']);
         $state['seq']++;
-        return $state;
+        return finishPromptEffects($state);
     }
 
     if ($promptType === 'shuffle_named_from_waiting_pick') {

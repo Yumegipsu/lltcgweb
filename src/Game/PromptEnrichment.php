@@ -293,6 +293,7 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
             return ['choice' => 'no'];
 
         case 'optional_discard_prompt':
+        case 'optional_discard_mill_wr_add_member':
         case 'optional_pay_energy_on_enter':
         case 'optional_pay_energy_if_baton':
         case 'optional_pay_energy_live_success':
