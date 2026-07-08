@@ -34,6 +34,12 @@ function finishPromptEffects(array $state): array {
 
 /** After placing a Member from a prompt: keep chained On Enter prompts. */
 function returnAfterPlacedMemberEnter(array $state, bool $finishLiveStart = false): array {
+    $parentPrompt = $state['pending_prompt'] ?? null;
+    if (!empty($parentPrompt) && ($parentPrompt['step'] ?? '') === 'pick_slot') {
+        unset($state['pending_prompt']);
+        $state['seq']++;
+        return $finishLiveStart ? finishLiveStartEffects($state) : finishPromptEffects($state);
+    }
     if (!empty($state['pending_prompt'])) {
         $state['seq']++;
         return $state;

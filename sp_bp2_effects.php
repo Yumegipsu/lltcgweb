@@ -44,6 +44,7 @@ function spBp2EffectTypes(): array {
         'optional_wr_to_deck_top',
         'pay_energy_add_from_wr',
         'pick_wr_distinct_lives_opp_choice',
+        'activated_discard_liella_choose_energy_or_hearts',
         'reduce_hearts_per_entered_moved_subunit',
         'reduce_yell_reveal_count',
         'score_if_fewer_success_lives',
@@ -331,22 +332,27 @@ function spBp2TriggerCenterMoveChoose(array $state, string $pid, array $movedMem
     if ($fromSlot !== 'center' || !empty($state['pending_prompt'])) {
         return $state;
     }
-    $p = $state['players'][$pid] ?? [];
-    foreach ($p['stage'] as $slot => $observer) {
+    $p = &$state['players'][$pid];
+    foreach ($p['stage'] as $slot => &$observer) {
         if (!$observer || ($observer['instance_id'] ?? '') === ($movedMember['instance_id'] ?? '')) {
             continue;
         }
         mergeCardCatalogFields($observer);
-        foreach ($observer['abilities'] ?? [] as $ab) {
+        foreach ($observer['abilities'] ?? [] as $idx => $ab) {
             if (($ab['trigger'] ?? '') !== 'auto') {
                 continue;
             }
             if (($ab['type'] ?? '') !== 'auto_on_center_move_choose') {
                 continue;
             }
+            if (!empty($ab['once_per_turn']) && isAbilityUsed($observer, $idx)) {
+                continue;
+            }
             if (spBp2StageMemberAbilitiesSuppressed($state, $pid)) {
                 continue;
             }
+            markAbilityUsed($observer, $idx);
+            $p['stage'][$slot] = $observer;
             $mName = $observer['name_en'] ?? $observer['name'] ?? 'Member';
             $state['pending_prompt'] = [
                 'type'          => 'spbp2_center_move_choose',
@@ -357,11 +363,12 @@ function spBp2TriggerCenterMoveChoose(array $state, string $pid, array $movedMem
                 'source_name'   => $mName,
                 'moved_name'    => $movedMember['name_en'] ?? $movedMember['name'] ?? 'Member',
                 'ability'       => $ab,
+                'ability_index' => $idx,
                 'prompt'        => 'Center Member moved — choose one effect:',
                 'choices'       => ['heart', 'wait_opp', 'draw'],
                 'choice_labels' => [
                     'Gain 1 heart until Live ends',
-                    'Wait 1 opponent Member (≤2 printed hearts)',
+                    'Wait 1 opponent Member (≤2 printed Blade)',
                     'Draw 1 card',
                 ],
             ];
@@ -370,6 +377,7 @@ function spBp2TriggerCenterMoveChoose(array $state, string $pid, array $movedMem
             return $state;
         }
     }
+    unset($observer);
     return $state;
 }
 
@@ -874,48 +882,141 @@ function spBp2ResolvePrompt(array $state, string $owner, array $prompt, string $
             $state = addLog($state, $state['players'][$owner]['name'] .
                 " — [$mName] drew $drawn (Center moved).");
         }
-        $otherSlots = array_values(array_filter(
-            ['center', 'left', 'right'],
-            fn($s) => $s !== $holderSlot && !empty($ownerP['stage'][$s])
-        ));
-        if (!empty($otherSlots) && $holderId !== '') {
-            $state['pending_prompt'] = [
-                'type'          => 'spbp2_center_move_position',
-                'owner'         => $owner,
-                'responder'     => $owner,
-                'source_id'     => $holderId,
-                'source_slot'   => $holderSlot,
-                'source_name'   => $mName,
-                'target_slots'  => $otherSlots,
-                'prompt'        => 'Position-change this Member (swap with another area)?',
-                'choices'       => ['yes', 'no'],
-                'choice_labels' => ['Yes — Position change', 'No — Done'],
-            ];
-            $state['seq']++;
-            return $state;
-        }
         unset($state['pending_prompt']);
         $state['seq']++;
         return finishPromptEffects($state);
     }
 
-    if ($type === 'spbp2_center_move_position') {
-        if ($choice === 'no') {
+    if ($type === 'spbp2_discard_liella_choice') {
+        $step = $prompt['step'] ?? 'pick_hand';
+        $group = $prompt['group'] ?? 'Superstar';
+        $slot = $prompt['source_slot'] ?? '';
+        $abIdx = intval($prompt['ability_index'] ?? 0);
+        $srcName = $prompt['source_name'] ?? 'Member';
+
+        if ($step === 'pick_hand') {
+            $cardId = $data['card_id'] ?? $choice;
+            $discarded = null;
+            foreach ($ownerP['hand'] as $i => $c) {
+                if (($c['instance_id'] ?? '') !== $cardId) {
+                    continue;
+                }
+                if (!cardMatchesGroup($c, $group, '')) {
+                    throw new Exception("Must choose a $group card");
+                }
+                $discarded = $c;
+                array_splice($ownerP['hand'], $i, 1);
+                break;
+            }
+            if (!$discarded) {
+                throw new Exception('Choose a card from hand');
+            }
+            $state = appendCardsToWaitingRoom($state, $owner, [$discarded]);
+            $noBladeMember = ($discarded['card_type'] ?? '') === 'メンバー'
+                && empty($discarded['blade_hearts']);
+            $choices = ['energy', 'hearts'];
+            $labels = [
+                'Put 1 Energy from your Energy deck into Wait',
+                'Grant 2 hearts of your choice to another Liella! Member on Stage',
+            ];
+            if ($noBladeMember) {
+                $choices[] = 'both';
+                $labels[] = 'Both — Energy into Wait and grant 2 hearts';
+            }
+            $state['pending_prompt'] = [
+                'type'            => 'spbp2_discard_liella_choice',
+                'step'            => 'choose',
+                'owner'           => $owner,
+                'responder'       => $owner,
+                'source_id'       => $prompt['source_id'] ?? '',
+                'source_slot'     => $slot,
+                'ability_index'   => $abIdx,
+                'source_name'     => $srcName,
+                'group'           => $group,
+                'no_blade_member' => $noBladeMember,
+                'choices'         => $choices,
+                'choice_labels'   => $labels,
+                'prompt'          => 'Choose an effect:',
+                'ability'         => $prompt['ability'] ?? [],
+            ];
+            $state['seq']++;
+            return $state;
+        }
+
+        if ($step === 'choose') {
+            $pick = $choice;
+            if (!in_array($pick, $prompt['choices'] ?? [], true)) {
+                throw new Exception('Invalid choice');
+            }
+            $doEnergy = $pick === 'energy' || $pick === 'both';
+            $doHearts = $pick === 'hearts' || $pick === 'both';
+            if ($doEnergy) {
+                putEnergyFromDeckInWait($ownerP);
+            }
+            if ($doHearts) {
+                $candidates = [];
+                foreach ($ownerP['stage'] as $s => $mbr) {
+                    if (!$mbr || ($mbr['instance_id'] ?? '') === ($prompt['source_id'] ?? '')) {
+                        continue;
+                    }
+                    if (!cardMatchesGroup($mbr, $group, 'member')) {
+                        continue;
+                    }
+                    $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $s]);
+                }
+                if (empty($candidates)) {
+                    $state = addLog($state, $state['players'][$owner]['name'] .
+                        " — [$srcName] no other $group Members on Stage for hearts.");
+                } else {
+                    $state['pending_prompt'] = [
+                        'type'          => 'spbp2_discard_liella_choice',
+                        'step'          => 'pick_member',
+                        'owner'         => $owner,
+                        'responder'     => $owner,
+                        'source_id'     => $prompt['source_id'] ?? '',
+                        'source_slot'   => $slot,
+                        'ability_index' => $abIdx,
+                        'source_name'   => $srcName,
+                        'candidates'    => $candidates,
+                        'did_energy'    => $doEnergy,
+                        'prompt'        => "Choose 1 other $group Member to grant 2 hearts until this Live ends.",
+                        'ability'       => $prompt['ability'] ?? [],
+                    ];
+                    $state['seq']++;
+                    return $state;
+                }
+            }
+            if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
+                markAbilityUsed($ownerP['stage'][$slot], $abIdx);
+            }
             unset($state['pending_prompt']);
             $state['seq']++;
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$srcName] resolved activated discard effect.");
             return finishPromptEffects($state);
         }
-        $toSlot = $data['slot'] ?? $data['target_slot'] ?? '';
-        if (!in_array($toSlot, $prompt['target_slots'] ?? [], true)) {
-            throw new Exception('Choose a valid area');
+
+        if ($step === 'pick_member') {
+            $memberSlot = $data['slot'] ?? $choice;
+            $mbr = $ownerP['stage'][$memberSlot] ?? null;
+            if (!$mbr) {
+                throw new Exception('Choose a Member on Stage');
+            }
+            if (!isset($mbr['bonus_hearts'])) {
+                $mbr['bonus_hearts'] = [];
+            }
+            $mbr['bonus_hearts'][] = ['color' => 'any', 'count' => 2];
+            $ownerP['stage'][$memberSlot] = $mbr;
+            if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
+                markAbilityUsed($ownerP['stage'][$slot], $abIdx);
+            }
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . $srcName . '] granted 2 hearts to ' .
+                ($mbr['name_en'] ?? $mbr['name']) . '.');
+            return finishPromptEffects($state);
         }
-        $holderId = $prompt['source_id'] ?? '';
-        unset($state['pending_prompt']);
-        $state['seq']++;
-        $state = spBp2SwapMemberSlots($state, $owner, $holderId, $toSlot);
-        $state = addLog($state, $state['players'][$owner]['name'] .
-            ' — [' . ($prompt['source_name'] ?? 'Member') . "] position-changed to $toSlot.");
-        return finishPromptEffects($state);
     }
 
     return null;

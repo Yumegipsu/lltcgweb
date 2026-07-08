@@ -123,6 +123,35 @@ global.openSurveilPickOne = function openSurveilPickOne(pr){
 
 
 global.openLookedDeckPick = function openLookedDeckPick(pr){
+  if (pr.step === 'pick_destination') {
+    el('pick-ttl').textContent = pr.source_name || 'Choose destination';
+    el('pick-msg').textContent = pr.prompt || 'Add to hand or play to an empty Stage area?';
+    const g = el('pick-grid');
+    g.innerHTML = '';
+    const handBtn = document.createElement('button');
+    handBtn.className = 'btn-grad';
+    handBtn.style.width = '100%';
+    handBtn.textContent = 'Add to hand';
+    handBtn.onclick = () => {
+      closeM('overlay-pick');
+      sendAct('resolve_prompt', { choice: 'hand' });
+    };
+    g.appendChild(handBtn);
+    (pr.slots || []).forEach((slot) => {
+      const b = document.createElement('button');
+      b.className = 'btn-grad';
+      b.style.width = '100%';
+      b.style.marginTop = '8px';
+      b.textContent = 'Play to ' + slotLabel(slot);
+      b.onclick = () => {
+        closeM('overlay-pick');
+        sendAct('resolve_prompt', { choice: slot, slot });
+      };
+      g.appendChild(b);
+    });
+    openM('overlay-pick');
+    return;
+  }
   const cards=pr.candidates||[];
   const eligible=new Set(pr.eligible_ids||[]);
   const need=pr.pick_count||1;
@@ -729,7 +758,8 @@ global.isBranchChoicePrompt = function isBranchChoicePrompt(pr){
     'player_choice_wr_members_deck_bottom','choice_energy_or_wr_lives_deck_top',
     'live_success_pick_energy_or_member','live_success_pay_choice_wr_add',
     'sbp5_aqours_blade_or_position','sbp6_live_wr_deck_position','sbp6_hand_deck_position',
-    'ssd1_reveal_group_deck'
+    'ssd1_reveal_group_deck','opp_pick_wr_live_offer','spbp5_wr_pay_add_hand',
+    'spbp2_discard_liella_choice'
   ]);
   if(branchTypes.has(pr.type)){
     if(pr.type==='live_start_center_cost_choice'&&pr.step&&pr.step!=='pick_mode') return false;
@@ -1644,7 +1674,7 @@ global.renderPrompt = function renderPrompt(s, myId){
         const b=document.createElement('button');
         b.className='btn-grad';
         b.textContent=slotLabel(slot);
-        b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{choice:slot}); };
+        b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{slot}); };
         box.appendChild(b);
       });
       ovl.classList.add('open');
@@ -1677,6 +1707,53 @@ global.renderPrompt = function renderPrompt(s, myId){
       onCancel: () => sendAct('resolve_prompt', { choice: 'skip' }),
     });
     return;
+  }
+  if(pr?.type==='pick_wr_distinct_lives_opp_choice'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const need=pr.pick_count||2;
+    openHandPick({
+      hand: pr.candidates||[],
+      count: need,
+      min: need,
+      title: pr.source_name||'Waiting Room',
+      msg: pr.prompt||`Choose ${need} Live cards with different names from your Waiting Room.`,
+      onConfirm: (ids)=> sendAct('resolve_prompt',{card_ids:ids}),
+      onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState,myId); },
+      forceConfirm: true,
+    });
+    return;
+  }
+  if(pr?.type==='spbp2_discard_liella_choice'&&pr.responder===myId){
+    if(pr.step==='pick_hand'){
+      ovl.classList.remove('open');
+      const me=s.players?.[myId];
+      const grp=pr.group||'Superstar';
+      openHandPick({
+        hand: (me?.hand||[]).filter(c=>(c.group||'')===grp),
+        count: 1,
+        min: 1,
+        title: pr.source_name||'Discard',
+        msg: pr.prompt||`Put 1 ${grp} card from your hand into the Waiting Room.`,
+        onConfirm: (ids)=> sendAct('resolve_prompt',{card_id:ids[0]}),
+        onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState,myId); },
+      });
+      return;
+    }
+    if(pr.step==='pick_member'){
+      ovl.classList.remove('open');
+      openHandPick({
+        hand: pr.candidates||[],
+        count: 1,
+        min: 1,
+        title: pr.source_name||'Choose Member',
+        msg: pr.prompt||'Choose 1 Member on your Stage.',
+        onConfirm: (picked)=>{
+          const c=(pr.candidates||[]).find(x=>x.instance_id===picked[0]);
+          sendAct('resolve_prompt',{slot:c?.slot||'center'});
+        },
+      });
+      return;
+    }
   }
   if(pr?.type==='pick_looked_deck_hand'&&pr.responder===myId){
     ovl.classList.remove('open');

@@ -7467,7 +7467,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=16"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=13"></script>
+<script src="client/js/prompt-renderer.js?v=14"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -35319,6 +35319,53 @@ function showCard(card, iid, s, myId, forceSlot) {
   openM('modal-card');
 }
 
+function cardAllowsDoubleBaton(card) {
+  return (card?.abilities || []).some(ab => ab.type === 'allows_double_baton');
+}
+function eligibleDoubleBatonSecondTargets(me, incomingCard, primarySlot, primaryId) {
+  const out = [];
+  for (const [slot, m] of Object.entries(me?.stage || {})) {
+    if (!m || slot === primarySlot) continue;
+    if ((m.instance_id || '') === primaryId) continue;
+    if (stageMemberEnteredThisTurn(m, G.gameState?.turn)) continue;
+    if (memberBlocksBaton(m) || memberBatonRestricted(m, incomingCard)) continue;
+    out.push({ slot, member: m });
+  }
+  return out;
+}
+function sendBatonMemberPlay(card, slot, batonId, batonId2) {
+  const payload = { card_id: card.instance_id, slot, baton_id: batonId };
+  if (batonId2) payload.baton_id2 = batonId2;
+  sendAct('play_member', payload);
+}
+function openDoubleBatonSecondPick(card, slot, s, myId, primaryMember, secondTargets, onPlay) {
+  const ovl = el('overlay-prompt');
+  el('prompt-ttl').textContent = card.name_en || card.name || 'Baton Touch';
+  el('prompt-msg').textContent = 'Choose a second Member for Baton Touch (optional cost reduction):';
+  const box = el('prompt-btns');
+  box.innerHTML = '';
+  const skip = document.createElement('button');
+  skip.className = 'btn-grad';
+  skip.textContent = 'Baton with ' + (primaryMember.name_en || primaryMember.name || 'Member') + ' only';
+  skip.onclick = () => {
+    closeM('overlay-prompt');
+    if (onPlay) onPlay();
+    sendBatonMemberPlay(card, slot, primaryMember.instance_id, null);
+  };
+  box.appendChild(skip);
+  secondTargets.forEach(({ slot: sSlot, member }) => {
+    const b = document.createElement('button');
+    b.className = 'btn-grad';
+    b.textContent = (member.name_en || member.name || 'Member') + ' (' + slotLabel(sSlot) + ')';
+    b.onclick = () => {
+      closeM('overlay-prompt');
+      if (onPlay) onPlay();
+      sendBatonMemberPlay(card, slot, primaryMember.instance_id, member.instance_id);
+    };
+    box.appendChild(b);
+  });
+  ovl.classList.add('open');
+}
 function playToSlot(card, slot, s, myId, existing) {
   if (typeof tutBlocks === 'function' && tutBlocks('play_member')) return;
   const me=s.players[myId];
@@ -35338,7 +35385,14 @@ function playToSlot(card, slot, s, myId, existing) {
         toast(`Need ${energyCostHtml(bc)} active Energy for Baton pass`, 2500, true);
         return;
       }
-      sendAct('play_member',{card_id:card.instance_id,slot,baton_id:exist2.instance_id});
+      if (cardAllowsDoubleBaton(card)) {
+        const secondTargets = eligibleDoubleBatonSecondTargets(me, card, slot, exist2.instance_id);
+        if (secondTargets.length > 0) {
+          openDoubleBatonSecondPick(card, slot, s, myId, exist2, secondTargets);
+          return;
+        }
+      }
+      sendBatonMemberPlay(card, slot, exist2.instance_id, null);
       return;
     }
     if (mode === 'overplay') {

@@ -4370,8 +4370,10 @@
             "abilities": [
                 {
                     "trigger": "on_enter",
-                    "type": "wait_opponent_active",
-                    "count": 1
+                    "type": "wait_opponent_stage_max_cost",
+                    "max_cost": 99,
+                    "pick_count": 1,
+                    "active_only": true
                 }
             ],
             "text_es": "[Al entrar] Tu oponente coloca 1 Miembro activo en su Escenario en Wait."
@@ -4408,8 +4410,10 @@
             "abilities": [
                 {
                     "trigger": "on_enter",
-                    "type": "wait_opponent_active",
-                    "count": 1
+                    "type": "wait_opponent_stage_max_cost",
+                    "max_cost": 99,
+                    "pick_count": 1,
+                    "active_only": true
                 }
             ],
             "text_es": "[Al entrar] Tu oponente coloca 1 Miembro activo en su Escenario en Wait."
@@ -61015,11 +61019,19 @@
                 "red"
             ],
             "rarity": "P",
-            "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
+            "text": "[On Enter] You may negate all abilities of 1 Liella! Member on your Stage until this Live ends. If you do, add 1 Liella! card from your Waiting Room to your hand.",
             "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-P.png",
             "subunit": "CatChu!",
-            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano."
+            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "optional_negate_member_live_start_add_wr",
+                    "group": "Superstar",
+                    "filter": "member"
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-001-P＋",
@@ -61049,11 +61061,19 @@
                 "red"
             ],
             "rarity": "P+",
-            "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
+            "text": "[On Enter] You may negate all abilities of 1 Liella! Member on your Stage until this Live ends. If you do, add 1 Liella! card from your Waiting Room to your hand.",
             "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-P2.png",
             "subunit": "CatChu!",
-            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano."
+            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "optional_negate_member_live_start_add_wr",
+                    "group": "Superstar",
+                    "filter": "member"
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-001-R＋",
@@ -61083,11 +61103,19 @@
                 "red"
             ],
             "rarity": "R+",
-            "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
+            "text": "[On Enter] You may negate all abilities of 1 Liella! Member on your Stage until this Live ends. If you do, add 1 Liella! card from your Waiting Room to your hand.",
             "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-R2.png",
             "subunit": "CatChu!",
-            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano."
+            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "optional_negate_member_live_start_add_wr",
+                    "group": "Superstar",
+                    "filter": "member"
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-001-SEC",
@@ -61117,11 +61145,19 @@
                 "red"
             ],
             "rarity": "SEC",
-            "text": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
+            "text": "[On Enter] You may negate all abilities of 1 Liella! Member on your Stage until this Live ends. If you do, add 1 Liella! card from your Waiting Room to your hand.",
             "text_jp": "自分のステージにいる『Liella!』のメンバー1人のすべての能力を、ライブ終了時まで、無効にしてもよい。これにより無効にした場合、自分の控え室から『Liella!』のカードを1枚手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-001-SEC.png",
             "subunit": "CatChu!",
-            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano."
+            "text_es": "Puedes anular todas las habilidades de 1 Miembro de Liella! en tu Escenario hasta que termine este Live. Si lo haces, añade 1 carta de Liella! de tu Sala de espera a tu mano.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "optional_negate_member_live_start_add_wr",
+                    "group": "Superstar",
+                    "filter": "member"
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-002-P",
@@ -61143,11 +61179,21 @@
                 "purple"
             ],
             "rarity": "P",
-            "text": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
+            "text": "[On Enter] Look at the top 3 cards of your deck. You may reveal 1 card with cost 11 or more and add it to your hand. Put the rest into the Waiting Room.",
             "text_jp": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-002-P.png",
             "subunit": "KALEIDOSCORE",
-            "text_es": "Mira las 3 cartas superiores de tu mazo. Puedes revelar 1 carta con costo 11 o más y añadirla a tu mano. Coloca el resto en la Sala de espera."
+            "text_es": "Mira las 3 cartas superiores de tu mazo. Puedes revelar 1 carta con costo 11 o más y añadirla a tu mano. Coloca el resto en la Sala de espera.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "look_reveal_filter",
+                    "look": 3,
+                    "filter": "",
+                    "pick": 1,
+                    "min_cost": 11
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-002-R",
@@ -61169,11 +61215,21 @@
                 "purple"
             ],
             "rarity": "R",
-            "text": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
+            "text": "[On Enter] Look at the top 3 cards of your deck. You may reveal 1 card with cost 11 or more and add it to your hand. Put the rest into the Waiting Room.",
             "text_jp": "自分のデッキの上からカードを3枚見る。その中からコスト11以上のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-002-R.png",
             "subunit": "KALEIDOSCORE",
-            "text_es": "Mira las 3 cartas superiores de tu mazo. Puedes revelar 1 carta con costo 11 o más y añadirla a tu mano. Coloca el resto en la Sala de espera."
+            "text_es": "Mira las 3 cartas superiores de tu mazo. Puedes revelar 1 carta con costo 11 o más y añadirla a tu mano. Coloca el resto en la Sala de espera.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "look_reveal_filter",
+                    "look": 3,
+                    "filter": "",
+                    "pick": 1,
+                    "min_cost": 11
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-003-P",
@@ -61197,11 +61253,18 @@
             ],
             "blade_hearts": [],
             "rarity": "P",
-            "text": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
+            "text": "[Auto] When this Member moves to a different area, put 1 Energy card from your Energy deck into Wait.",
             "text_jp": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-003-P.png",
             "subunit": "5yncri5e!",
-            "text_es": "Cuando este Miembro se mueve a un área distinta, coloca 1 carta de Energía de tu mazo de Energía en Wait."
+            "text_es": "Cuando este Miembro se mueve a un área distinta, coloca 1 carta de Energía de tu mazo de Energía en Wait.",
+            "abilities": [
+                {
+                    "trigger": "auto",
+                    "type": "auto_area_move_energy_wait",
+                    "once_per_turn": true
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-003-R",
@@ -61225,11 +61288,18 @@
             ],
             "blade_hearts": [],
             "rarity": "R",
-            "text": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
+            "text": "[Auto] When this Member moves to a different area, put 1 Energy card from your Energy deck into Wait.",
             "text_jp": "このメンバーがエリアを移動したとき、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-003-R.png",
             "subunit": "5yncri5e!",
-            "text_es": "Cuando este Miembro se mueve a un área distinta, coloca 1 carta de Energía de tu mazo de Energía en Wait."
+            "text_es": "Cuando este Miembro se mueve a un área distinta, coloca 1 carta de Energía de tu mazo de Energía en Wait.",
+            "abilities": [
+                {
+                    "trigger": "auto",
+                    "type": "auto_area_move_energy_wait",
+                    "once_per_turn": true
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-004-P",
@@ -61257,11 +61327,23 @@
             ],
             "blade_hearts": [],
             "rarity": "P",
-            "text": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
+            "text": "[Always] While the Member in your Center area has the highest cost among Members on your Stage, gain 1 Yellow heart.",
             "text_jp": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-004-P.png",
             "subunit": "CatChu!",
-            "text_es": "Mientras el Miembro en tu área Centro tenga el costo más alto entre los Miembros en tu Escenario, obtienes 1 corazón amarillo."
+            "text_es": "Mientras el Miembro en tu área Centro tenga el costo más alto entre los Miembros en tu Escenario, obtienes 1 corazón amarillo.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "hearts_if_center_highest_cost",
+                    "hearts": [
+                        {
+                            "color": "yellow",
+                            "count": 1
+                        }
+                    ]
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-004-R",
@@ -61289,11 +61371,23 @@
             ],
             "blade_hearts": [],
             "rarity": "R",
-            "text": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
+            "text": "[Always] While the Member in your Center area has the highest cost among Members on your Stage, gain 1 Yellow heart.",
             "text_jp": "自分のステージにいるメンバーのうち、センターエリアにいるメンバーが最も大きいコストを持つ場合、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-004-R.png",
             "subunit": "CatChu!",
-            "text_es": "Mientras el Miembro en tu área Centro tenga el costo más alto entre los Miembros en tu Escenario, obtienes 1 corazón amarillo."
+            "text_es": "Mientras el Miembro en tu área Centro tenga el costo más alto entre los Miembros en tu Escenario, obtienes 1 corazón amarillo.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "hearts_if_center_highest_cost",
+                    "hearts": [
+                        {
+                            "color": "yellow",
+                            "count": 1
+                        }
+                    ]
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-005-P",
@@ -61315,11 +61409,25 @@
                 "yellow"
             ],
             "rarity": "P",
-            "text": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
+            "text": "[On Enter] You may pay 1 Energy: look at the top 7 cards of your deck. You may reveal 1 Liella! card and add it to your hand. Put the rest into the Waiting Room.",
             "text_jp": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-005-P.png",
             "subunit": "KALEIDOSCORE",
-            "text_es": "Puedes pagar 1 Energía: mira las 7 cartas superiores de tu mazo. Puedes revelar 1 carta de Liella! y añadirla a tu mano. Coloca el resto en la Sala de espera."
+            "text_es": "Puedes pagar 1 Energía: mira las 7 cartas superiores de tu mazo. Puedes revelar 1 carta de Liella! y añadirla a tu mano. Coloca el resto en la Sala de espera.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "optional_pay_energy",
+                    "cost": 1,
+                    "then": {
+                        "type": "look_reveal_filter",
+                        "look": 7,
+                        "group": "Superstar",
+                        "filter": "",
+                        "pick": 1
+                    }
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-005-R",
@@ -61341,11 +61449,25 @@
                 "yellow"
             ],
             "rarity": "R",
-            "text": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
+            "text": "[On Enter] You may pay 1 Energy: look at the top 7 cards of your deck. You may reveal 1 Liella! card and add it to your hand. Put the rest into the Waiting Room.",
             "text_jp": "支払ってもよい：自分のデッキの上からカードを7枚見る。その中から『Liella!』のカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-005-R.png",
             "subunit": "KALEIDOSCORE",
-            "text_es": "Puedes pagar 1 Energía: mira las 7 cartas superiores de tu mazo. Puedes revelar 1 carta de Liella! y añadirla a tu mano. Coloca el resto en la Sala de espera."
+            "text_es": "Puedes pagar 1 Energía: mira las 7 cartas superiores de tu mazo. Puedes revelar 1 carta de Liella! y añadirla a tu mano. Coloca el resto en la Sala de espera.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "optional_pay_energy",
+                    "cost": 1,
+                    "then": {
+                        "type": "look_reveal_filter",
+                        "look": 7,
+                        "group": "Superstar",
+                        "filter": "",
+                        "pick": 1
+                    }
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-006-P",
@@ -61373,11 +61495,25 @@
             ],
             "blade_hearts": [],
             "rarity": "P",
-            "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
+            "text": "[On Enter] If you entered via Baton Touch, add 1 Liella! Member put into the Waiting Room by that Baton Touch to your hand.\n[Activated] Put 1 Liella! Member with cost 4 or less from your hand into the Waiting Room: activate 1 of that Member's [On Enter] abilities. (Pay any cost on that ability to activate it.)",
             "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-P.png",
             "subunit": "5yncri5e!",
-            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)"
+            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "if_baton_wr_group_to_hand",
+                    "group": "Superstar",
+                    "filter": "member"
+                },
+                {
+                    "trigger": "activated",
+                    "type": "activated_discard_trigger_on_enter",
+                    "group": "Superstar",
+                    "max_cost": 4
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-006-P＋",
@@ -61405,11 +61541,25 @@
             ],
             "blade_hearts": [],
             "rarity": "P+",
-            "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
+            "text": "[On Enter] If you entered via Baton Touch, add 1 Liella! Member put into the Waiting Room by that Baton Touch to your hand.\n[Activated] Put 1 Liella! Member with cost 4 or less from your hand into the Waiting Room: activate 1 of that Member's [On Enter] abilities. (Pay any cost on that ability to activate it.)",
             "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-P2.png",
             "subunit": "5yncri5e!",
-            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)"
+            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "if_baton_wr_group_to_hand",
+                    "group": "Superstar",
+                    "filter": "member"
+                },
+                {
+                    "trigger": "activated",
+                    "type": "activated_discard_trigger_on_enter",
+                    "group": "Superstar",
+                    "max_cost": 4
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-006-R＋",
@@ -61437,11 +61587,25 @@
             ],
             "blade_hearts": [],
             "rarity": "R+",
-            "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
+            "text": "[On Enter] If you entered via Baton Touch, add 1 Liella! Member put into the Waiting Room by that Baton Touch to your hand.\n[Activated] Put 1 Liella! Member with cost 4 or less from your hand into the Waiting Room: activate 1 of that Member's [On Enter] abilities. (Pay any cost on that ability to activate it.)",
             "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-R2.png",
             "subunit": "5yncri5e!",
-            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)"
+            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "if_baton_wr_group_to_hand",
+                    "group": "Superstar",
+                    "filter": "member"
+                },
+                {
+                    "trigger": "activated",
+                    "type": "activated_discard_trigger_on_enter",
+                    "group": "Superstar",
+                    "max_cost": 4
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-006-SEC",
@@ -61469,11 +61633,25 @@
             ],
             "blade_hearts": [],
             "rarity": "SEC",
-            "text": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
+            "text": "[On Enter] If you entered via Baton Touch, add 1 Liella! Member put into the Waiting Room by that Baton Touch to your hand.\n[Activated] Put 1 Liella! Member with cost 4 or less from your hand into the Waiting Room: activate 1 of that Member's [On Enter] abilities. (Pay any cost on that ability to activate it.)",
             "text_jp": "バトンタッチして登場した場合、このバトンタッチで控え室に置かれた『Liella!』のメンバーカードを1枚手札に加える。\n\n手札のコスト4以下の『Liella!』のメンバーカードを1枚控え室に置く：これにより控え室に置いたメンバーカードの能力1つを発動させる。\n\n(能力がコストを持つ場合、支払って発動させる。)",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-006-SEC.png",
             "subunit": "5yncri5e!",
-            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)"
+            "text_es": "Si entraste mediante Baton Touch, añade 1 carta de Miembro de Liella! colocada en la Sala de espera por ese Baton Touch a tu mano.\n\nColoca 1 carta de Miembro de Liella! con costo 4 o menos de tu mano en la Sala de espera: activa 1 de las habilidades de esa carta de Miembro colocada en la Sala de espera de esta forma.\n\n(Si la habilidad tiene un costo, págalo para activarla.)",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "if_baton_wr_group_to_hand",
+                    "group": "Superstar",
+                    "filter": "member"
+                },
+                {
+                    "trigger": "activated",
+                    "type": "activated_discard_trigger_on_enter",
+                    "group": "Superstar",
+                    "max_cost": 4
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-007-P",
@@ -61497,11 +61675,26 @@
             ],
             "blade_hearts": [],
             "rarity": "P",
-            "text": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
+            "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand. Put the rest into the Waiting Room.",
             "text_jp": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-007-P.png",
             "subunit": "CatChu!",
-            "text_es": "Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 5 cartas superiores de tu mazo. Puedes revelar 1 Miembro de Liella! y añadirlo a tu mano. Coloca el resto en la Sala de espera."
+            "text_es": "Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 5 cartas superiores de tu mazo. Puedes revelar 1 Miembro de Liella! y añadirlo a tu mano. Coloca el resto en la Sala de espera.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "optional_discard_prompt",
+                    "discard": 1,
+                    "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand?",
+                    "then": {
+                        "type": "look_reveal_filter",
+                        "look": 5,
+                        "group": "Superstar",
+                        "filter": "member",
+                        "pick": 1
+                    }
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-007-R",
@@ -61525,11 +61718,26 @@
             ],
             "blade_hearts": [],
             "rarity": "R",
-            "text": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
+            "text": "[On Enter] You may put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand. Put the rest into the Waiting Room.",
             "text_jp": "手札を1枚控え室に置いてもよい：自分のデッキの上からカードを5枚見る。その中から『Liella!』のメンバーカードを1枚公開して手札に加えてもよい。残りを控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-007-R.png",
             "subunit": "CatChu!",
-            "text_es": "Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 5 cartas superiores de tu mazo. Puedes revelar 1 Miembro de Liella! y añadirlo a tu mano. Coloca el resto en la Sala de espera."
+            "text_es": "Puedes colocar 1 carta de tu mano en la Sala de espera: mira las 5 cartas superiores de tu mazo. Puedes revelar 1 Miembro de Liella! y añadirlo a tu mano. Coloca el resto en la Sala de espera.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "optional_discard_prompt",
+                    "discard": 1,
+                    "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member and add it to your hand?",
+                    "then": {
+                        "type": "look_reveal_filter",
+                        "look": 5,
+                        "group": "Superstar",
+                        "filter": "member",
+                        "pick": 1
+                    }
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-008-P",
@@ -61557,11 +61765,17 @@
             ],
             "blade_hearts": [],
             "rarity": "P",
-            "text": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
+            "text": "[Activated] Choose 1 of your areas other than this Member's area: move this Member to that area. If a Member is in that area, move that Member to this Member's previous area.",
             "text_jp": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-008-P.png",
             "subunit": "5yncri5e!",
-            "text_es": "Elige 1 de tus áreas distinta del área de este Miembro. Mueve este Miembro a esa área. Si hay un Miembro en esa área, mueve ese Miembro al área donde estaba este Miembro."
+            "text_es": "Elige 1 de tus áreas distinta del área de este Miembro. Mueve este Miembro a esa área. Si hay un Miembro en esa área, mueve ese Miembro al área donde estaba este Miembro.",
+            "abilities": [
+                {
+                    "trigger": "activated",
+                    "type": "activated_swap_area_member"
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-008-R",
@@ -61589,11 +61803,17 @@
             ],
             "blade_hearts": [],
             "rarity": "R",
-            "text": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
+            "text": "[Activated] Choose 1 of your areas other than this Member's area: move this Member to that area. If a Member is in that area, move that Member to this Member's previous area.",
             "text_jp": "：このメンバーがいるエリアとは別の自分のエリア1つを選ぶ。このメンバーをそのエリアに移動する。選んだエリアにメンバーがいる場合、そのメンバーは、このメンバーがいたエリアに移動させる。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-008-R.png",
             "subunit": "5yncri5e!",
-            "text_es": "Elige 1 de tus áreas distinta del área de este Miembro. Mueve este Miembro a esa área. Si hay un Miembro en esa área, mueve ese Miembro al área donde estaba este Miembro."
+            "text_es": "Elige 1 de tus áreas distinta del área de este Miembro. Mueve este Miembro a esa área. Si hay un Miembro en esa área, mueve ese Miembro al área donde estaba este Miembro.",
+            "abilities": [
+                {
+                    "trigger": "activated",
+                    "type": "activated_swap_area_member"
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-009-P",
@@ -61623,11 +61843,25 @@
                 "yellow"
             ],
             "rarity": "P",
-            "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
+            "text": "[Always] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[On Enter] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-P.png",
             "subunit": "5yncri5e!",
-            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera."
+            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "blade_per_hand_cards",
+                    "per_cards": 2,
+                    "amount": 1
+                },
+                {
+                    "trigger": "on_enter",
+                    "type": "draw_and_discard",
+                    "draw": 2,
+                    "discard": 1
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-009-P＋",
@@ -61657,11 +61891,25 @@
                 "yellow"
             ],
             "rarity": "P+",
-            "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
+            "text": "[Always] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[On Enter] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-P2.png",
             "subunit": "5yncri5e!",
-            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera."
+            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "blade_per_hand_cards",
+                    "per_cards": 2,
+                    "amount": 1
+                },
+                {
+                    "trigger": "on_enter",
+                    "type": "draw_and_discard",
+                    "draw": 2,
+                    "discard": 1
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-009-R＋",
@@ -61691,11 +61939,25 @@
                 "yellow"
             ],
             "rarity": "R+",
-            "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
+            "text": "[Always] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[On Enter] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-R2.png",
             "subunit": "5yncri5e!",
-            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera."
+            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "blade_per_hand_cards",
+                    "per_cards": 2,
+                    "amount": 1
+                },
+                {
+                    "trigger": "on_enter",
+                    "type": "draw_and_discard",
+                    "draw": 2,
+                    "discard": 1
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-009-SEC",
@@ -61725,11 +61987,25 @@
                 "yellow"
             ],
             "rarity": "SEC",
-            "text": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
+            "text": "[Always] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[On Enter] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-SEC.png",
             "subunit": "5yncri5e!",
-            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera."
+            "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "blade_per_hand_cards",
+                    "per_cards": 2,
+                    "amount": 1
+                },
+                {
+                    "trigger": "on_enter",
+                    "type": "draw_and_discard",
+                    "draw": 2,
+                    "discard": 1
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-010-P",
@@ -61757,11 +62033,24 @@
             ],
             "blade_hearts": [],
             "rarity": "P",
-            "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
+            "text": "[Always] Each Live card in your opponent's Live area requires 1 additional Gray heart to succeed.\n[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
             "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-P.png",
             "subunit": "KALEIDOSCORE",
-            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8."
+            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "continuous_opp_live_gray_heart",
+                    "amount": 1
+                },
+                {
+                    "trigger": "continuous",
+                    "type": "reduce_yell_reveal_count",
+                    "min_other_members": 1,
+                    "reduce": 8
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-010-P＋",
@@ -61789,11 +62078,24 @@
             ],
             "blade_hearts": [],
             "rarity": "P+",
-            "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
+            "text": "[Always] Each Live card in your opponent's Live area requires 1 additional Gray heart to succeed.\n[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
             "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-P2.png",
             "subunit": "KALEIDOSCORE",
-            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8."
+            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "continuous_opp_live_gray_heart",
+                    "amount": 1
+                },
+                {
+                    "trigger": "continuous",
+                    "type": "reduce_yell_reveal_count",
+                    "min_other_members": 1,
+                    "reduce": 8
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-010-R＋",
@@ -61821,11 +62123,24 @@
             ],
             "blade_hearts": [],
             "rarity": "R+",
-            "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
+            "text": "[Always] Each Live card in your opponent's Live area requires 1 additional Gray heart to succeed.\n[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
             "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-R2.png",
             "subunit": "KALEIDOSCORE",
-            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8."
+            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "continuous_opp_live_gray_heart",
+                    "amount": 1
+                },
+                {
+                    "trigger": "continuous",
+                    "type": "reduce_yell_reveal_count",
+                    "min_other_members": 1,
+                    "reduce": 8
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-010-SEC",
@@ -61853,11 +62168,24 @@
             ],
             "blade_hearts": [],
             "rarity": "SEC",
-            "text": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
+            "text": "[Always] Each Live card in your opponent's Live area requires 1 additional Gray heart to succeed.\n[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
             "text_jp": "相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートが多くなる。\n\n自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-SEC.png",
             "subunit": "KALEIDOSCORE",
-            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8."
+            "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "continuous_opp_live_gray_heart",
+                    "amount": 1
+                },
+                {
+                    "trigger": "continuous",
+                    "type": "reduce_yell_reveal_count",
+                    "min_other_members": 1,
+                    "reduce": 8
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-011-P",
@@ -61887,11 +62215,18 @@
                 "yellow"
             ],
             "rarity": "P",
-            "text": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
+            "text": "[On Enter] Choose 2 Live cards with different names from your Waiting Room. Your opponent chooses 1 of them; add the chosen card to your hand.",
             "text_jp": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-011-P.png",
             "subunit": "5yncri5e!",
-            "text_es": "Elige 2 cartas Live con nombres distintos de tu Sala de espera. Tu oponente elige 1 de ellas; añade la carta elegida a tu mano."
+            "text_es": "Elige 2 cartas Live con nombres distintos de tu Sala de espera. Tu oponente elige 1 de ellas; añade la carta elegida a tu mano.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "pick_wr_distinct_lives_opp_choice",
+                    "count": 2
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-011-R",
@@ -61921,11 +62256,18 @@
                 "yellow"
             ],
             "rarity": "R",
-            "text": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
+            "text": "[On Enter] Choose 2 Live cards with different names from your Waiting Room. Your opponent chooses 1 of them; add the chosen card to your hand.",
             "text_jp": "自分の控え室にある、カード名の異なるライブカードを2枚選ぶ。そうした場合、相手はそれらのカードのうち1枚を選ぶ。これにより相手に選ばれたカードを自分の手札に加える。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-011-R.png",
             "subunit": "5yncri5e!",
-            "text_es": "Elige 2 cartas Live con nombres distintos de tu Sala de espera. Tu oponente elige 1 de ellas; añade la carta elegida a tu mano."
+            "text_es": "Elige 2 cartas Live con nombres distintos de tu Sala de espera. Tu oponente elige 1 de ellas; añade la carta elegida a tu mano.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "pick_wr_distinct_lives_opp_choice",
+                    "count": 2
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-012-N",
@@ -61947,10 +62289,18 @@
                 "red"
             ],
             "rarity": "N",
-            "text": "",
+            "text": "[Always] [Center] Gain +2 Blade.",
             "text_jp": "",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-012-N.png",
-            "subunit": "CatChu!"
+            "subunit": "CatChu!",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "continuous_blade_in_slot",
+                    "slot": "center",
+                    "amount": 2
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-013-N",
@@ -61978,11 +62328,26 @@
             ],
             "blade_hearts": [],
             "rarity": "N",
-            "text": "自分の控え室からカードを1枚までデッキの一番上に置く。",
+            "text": "[On Enter] [Left Side] [Right Side] Draw 2 cards and put 2 cards from your hand into the Waiting Room.",
             "text_jp": "自分の控え室からカードを1枚までデッキの一番上に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-013-N.png",
             "subunit": "KALEIDOSCORE",
-            "text_es": "Puedes colocar 1 carta de tu Sala de espera en la parte superior de tu mazo."
+            "text_es": "Puedes colocar 1 carta de tu Sala de espera en la parte superior de tu mazo.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "on_enter_side_area",
+                    "slots": [
+                        "left",
+                        "right"
+                    ],
+                    "effect": {
+                        "type": "draw_and_discard",
+                        "draw": 2,
+                        "discard": 2
+                    }
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-014-N",
@@ -62010,11 +62375,24 @@
             ],
             "blade_hearts": [],
             "rarity": "N",
-            "text": "自分の控え室からカードを1枚までデッキの一番上に置く。",
+            "text": "[Always] [Left Side] Gain 1 Red heart.",
             "text_jp": "自分の控え室からカードを1枚までデッキの一番上に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-014-N.png",
             "subunit": "5yncri5e!",
-            "text_es": "Puedes colocar 1 carta de tu Sala de espera en la parte superior de tu mazo."
+            "text_es": "Puedes colocar 1 carta de tu Sala de espera en la parte superior de tu mazo.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "continuous_hearts_in_slot",
+                    "slot": "left",
+                    "hearts": [
+                        {
+                            "color": "red",
+                            "count": 1
+                        }
+                    ]
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-015-N",
@@ -62038,11 +62416,24 @@
             ],
             "blade_hearts": [],
             "rarity": "N",
-            "text": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
+            "text": "[Always] [Right Side] Gain 1 Blue heart.",
             "text_jp": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-015-N.png",
             "subunit": "CatChu!",
-            "text_es": "Cuando las cartas reveladas para Yell no incluyen cartas con corazón de Blade, hasta que termine este Live, obtienes 1 corazón morado."
+            "text_es": "Cuando las cartas reveladas para Yell no incluyen cartas con corazón de Blade, hasta que termine este Live, obtienes 1 corazón morado.",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "continuous_hearts_in_slot",
+                    "slot": "right",
+                    "hearts": [
+                        {
+                            "color": "blue",
+                            "count": 1
+                        }
+                    ]
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-016-N",
@@ -62064,10 +62455,34 @@
                 "purple"
             ],
             "rarity": "N",
-            "text": "",
+            "text": "[Always] While you have 6+ Energy, gain 1 heart. While you have 8+ Energy, gain 1 more heart.",
             "text_jp": "",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-016-N.png",
-            "subunit": "KALEIDOSCORE"
+            "subunit": "KALEIDOSCORE",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "hearts_if_min_energy",
+                    "min_energy": 6,
+                    "hearts": [
+                        {
+                            "color": "any",
+                            "count": 1
+                        }
+                    ]
+                },
+                {
+                    "trigger": "continuous",
+                    "type": "hearts_if_min_energy",
+                    "min_energy": 8,
+                    "hearts": [
+                        {
+                            "color": "any",
+                            "count": 1
+                        }
+                    ]
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-017-N",
@@ -62089,10 +62504,23 @@
                 "yellow"
             ],
             "rarity": "N",
-            "text": "",
+            "text": "[Always] While you have 1 or more Active Energy, gain 1 heart.",
             "text_jp": "",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-017-N.png",
-            "subunit": "5yncri5e!"
+            "subunit": "5yncri5e!",
+            "abilities": [
+                {
+                    "trigger": "continuous",
+                    "type": "hearts_if_active_energy",
+                    "min_active": 1,
+                    "hearts": [
+                        {
+                            "color": "any",
+                            "count": 1
+                        }
+                    ]
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-018-N",
@@ -62120,11 +62548,19 @@
             ],
             "blade_hearts": [],
             "rarity": "N",
-            "text": "自分の控え室からカードを1枚までデッキの一番上に置く。",
+            "text": "[On Enter] Put 1 opponent Member with cost 2 or less into Wait.",
             "text_jp": "自分の控え室からカードを1枚までデッキの一番上に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-018-N.png",
             "subunit": "CatChu!",
-            "text_es": "Puedes colocar 1 carta de tu Sala de espera en la parte superior de tu mazo."
+            "text_es": "Puedes colocar 1 carta de tu Sala de espera en la parte superior de tu mazo.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "wait_opponent_stage_max_cost",
+                    "max_cost": 2,
+                    "pick_count": 1
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-019-N",
@@ -62149,11 +62585,17 @@
                 "yellow"
             ],
             "rarity": "N",
-            "text": "支払ってもよい：ライブ終了時まで、を得る。",
+            "text": "[On Enter] You may position-change this Member (swap with the Member in the destination area if any).",
             "text_jp": "支払ってもよい：ライブ終了時まで、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-019-N.png",
             "subunit": "5yncri5e!",
-            "text_es": "Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade."
+            "text_es": "Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade.",
+            "abilities": [
+                {
+                    "trigger": "on_enter",
+                    "type": "optional_swap_area_on_enter"
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-020-N",
@@ -62177,11 +62619,19 @@
             ],
             "blade_hearts": [],
             "rarity": "N",
-            "text": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
+            "text": "[Auto] During your Main Phase, when this Member moves areas, activate 2 Energy.",
             "text_jp": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-020-N.png",
             "subunit": "5yncri5e!",
-            "text_es": "Cuando las cartas reveladas para Yell no incluyen cartas con corazón de Blade, hasta que termine este Live, obtienes 1 corazón morado."
+            "text_es": "Cuando las cartas reveladas para Yell no incluyen cartas con corazón de Blade, hasta que termine este Live, obtienes 1 corazón morado.",
+            "abilities": [
+                {
+                    "trigger": "auto",
+                    "type": "auto_area_move_energy_wait",
+                    "once_per_turn": true,
+                    "activate_count": 2
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-021-N",
@@ -62205,11 +62655,19 @@
             ],
             "blade_hearts": [],
             "rarity": "N",
-            "text": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
+            "text": "[On Enter] / [Live Start] Put 1 opponent Member with cost 2 or less into Wait.",
             "text_jp": "エールにより公開された自分のカードの中にブレードハートを持つカードがないとき、ライブ終了時まで、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-021-N.png",
             "subunit": "KALEIDOSCORE",
-            "text_es": "Cuando las cartas reveladas para Yell no incluyen cartas con corazón de Blade, hasta que termine este Live, obtienes 1 corazón morado."
+            "text_es": "Cuando las cartas reveladas para Yell no incluyen cartas con corazón de Blade, hasta que termine este Live, obtienes 1 corazón morado.",
+            "abilities": [
+                {
+                    "trigger": "on_enter_or_live_start",
+                    "type": "wait_opponent_stage_max_cost",
+                    "max_cost": 2,
+                    "pick_count": 1
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-022-N",
@@ -62234,11 +62692,21 @@
                 "red"
             ],
             "rarity": "N",
-            "text": "支払ってもよい：ライブ終了時まで、を得る。",
+            "text": "[Live Start] Choose 1 heart color. Until this Live ends, this Member's printed hearts become hearts of the chosen color.",
             "text_jp": "支払ってもよい：ライブ終了時まで、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-022-N.png",
             "subunit": "5yncri5e!",
-            "text_es": "Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade."
+            "text_es": "Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade.",
+            "abilities": [
+                {
+                    "trigger": "live_start",
+                    "type": "optional_discard_hand",
+                    "discard": 0,
+                    "then": {
+                        "type": "choose_heart_modifier"
+                    }
+                }
+            ]
         },
         {
             "card_no": "PL!SP-bp2-023-L",
@@ -62696,7 +63164,7 @@
             ],
             "blade_hearts": [],
             "rarity": "L",
-            "text": "",
+            "text": "[Always] All opponent Live cards require +1 additional Gray heart to succeed.",
             "text_jp": "",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-026-L.png",
             "score": 4,
@@ -62731,7 +63199,7 @@
             ],
             "blade_hearts": [],
             "rarity": "SRL",
-            "text": "",
+            "text": "[Always] All opponent Live cards require +1 additional Gray heart to succeed.",
             "text_jp": "",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp2-026-SRL.png",
             "score": 4,
@@ -62776,7 +63244,7 @@
                 "red"
             ],
             "rarity": "L",
-            "text": "",
+            "text": "[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
             "text_jp": "",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-027-L.png",
             "score": 7,
@@ -62831,7 +63299,7 @@
                 "red"
             ],
             "rarity": "SRL",
-            "text": "",
+            "text": "[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
             "text_jp": "",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp2-027-SRL.png",
             "score": 7,
@@ -71338,14 +71806,15 @@
                     "trigger": "on_enter",
                     "type": "optional_discard_prompt",
                     "discard": 1,
-                    "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member (cost 4 or less) and add it to your hand?",
+                    "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal up to 1 Liella! Member with cost 4 or less and play it to an empty Member area on your Stage.",
                     "then": {
                         "type": "look_reveal_filter",
                         "look": 5,
                         "group": "Superstar",
                         "filter": "member",
                         "pick": 1,
-                        "max_cost": 4
+                        "max_cost": 4,
+                        "destination": "hand_or_stage"
                     }
                 }
             ],
@@ -71386,14 +71855,15 @@
                     "trigger": "on_enter",
                     "type": "optional_discard_prompt",
                     "discard": 1,
-                    "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 Liella! Member (cost 4 or less) and add it to your hand?",
+                    "prompt": "Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal up to 1 Liella! Member with cost 4 or less and play it to an empty Member area on your Stage.",
                     "then": {
                         "type": "look_reveal_filter",
                         "look": 5,
                         "group": "Superstar",
                         "filter": "member",
                         "pick": 1,
-                        "max_cost": 4
+                        "max_cost": 4,
+                        "destination": "hand_or_stage"
                     }
                 }
             ],
@@ -71433,14 +71903,10 @@
             "blade": 1,
             "abilities": [
                 {
-                    "trigger": "on_enter",
-                    "type": "optional_discard_prompt",
-                    "discard": 1,
-                    "prompt": "Put 1 Liella! card from your hand into the Waiting Room: put 1 Energy from your Energy deck into Wait?",
-                    "then": {
-                        "type": "energy_wait_from_deck",
-                        "count": 1
-                    }
+                    "trigger": "activated",
+                    "type": "activated_discard_liella_choose_energy_or_hearts",
+                    "group": "Superstar",
+                    "once_per_turn": true
                 }
             ],
             "text_es": "[Activada] [Una vez por turno] Coloca 1 carta de Liella! de tu mano en la Sala de espera: elige una — coloca 1 Energía de tu mazo de Energía en Wait; o hasta que termine este Live, 1 otro Miembro de Liella! en tu Escenario obtiene 2 corazones de tu elección. Si la carta que colocaste en la Sala de espera es un Miembro sin un corazón de Blade, puedes elegir ambas en su lugar."
@@ -71479,14 +71945,10 @@
             "blade": 1,
             "abilities": [
                 {
-                    "trigger": "on_enter",
-                    "type": "optional_discard_prompt",
-                    "discard": 1,
-                    "prompt": "Put 1 Liella! card from your hand into the Waiting Room: put 1 Energy from your Energy deck into Wait?",
-                    "then": {
-                        "type": "energy_wait_from_deck",
-                        "count": 1
-                    }
+                    "trigger": "activated",
+                    "type": "activated_discard_liella_choose_energy_or_hearts",
+                    "group": "Superstar",
+                    "once_per_turn": true
                 }
             ],
             "text_es": "[Activada] [Una vez por turno] Coloca 1 carta de Liella! de tu mano en la Sala de espera: elige una — coloca 1 Energía de tu mazo de Energía en Wait; o hasta que termine este Live, 1 otro Miembro de Liella! en tu Escenario obtiene 2 corazones de tu elección. Si la carta que colocaste en la Sala de espera es un Miembro sin un corazón de Blade, puedes elegir ambas en su lugar."

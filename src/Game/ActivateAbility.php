@@ -900,6 +900,27 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             'ability'       => $ab,
         ]);
         return $state;
+    } elseif (($ab['type'] ?? '') === 'activated_discard_liella_choose_energy_or_hearts') {
+        if (count($p['hand'] ?? []) < 1) {
+            throw new Exception('Need at least 1 card in hand');
+        }
+        $group = $ab['group'] ?? 'Superstar';
+        $state['pending_prompt'] = [
+            'type'          => 'spbp2_discard_liella_choice',
+            'step'          => 'pick_hand',
+            'owner'         => $pid,
+            'responder'     => $pid,
+            'source_id'     => $member['instance_id'] ?? '',
+            'source_slot'   => $slot ?? '',
+            'ability_index' => $abilityIdx,
+            'source_name'   => $member['name_en'] ?? $member['name'] ?? 'Member',
+            'group'         => $group,
+            'prompt'        => "Put 1 $group card from your hand into the Waiting Room.",
+            'ability'       => $ab,
+        ];
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            ' — [' . ($member['name_en'] ?? $member['name']) . '] choose Liella! card to discard.');
+        return $state;
     } elseif (plMuseGapIsEffectType($ab['type'] ?? '')) {
         if (($ab['type'] ?? '') === 'activated_wait_opp_reduce_cost_per_group') {
             $baseEnergy = intval($ab['energy_cost'] ?? 4);

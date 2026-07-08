@@ -2629,6 +2629,54 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         $optional = !empty($prompt['optional']);
         $srcName = $prompt['source_name'] ?? 'Member';
         $resolveChoice = $data['choice'] ?? $choice;
+        $ability = $prompt['ability'] ?? [];
+        $destMode = $ability['destination'] ?? 'hand';
+
+        if (($prompt['step'] ?? '') === 'pick_destination') {
+            $pickId = $prompt['pick_id'] ?? '';
+            $slotChoice = $data['slot'] ?? ($resolveChoice !== 'hand' ? $resolveChoice : '');
+            if ($pickId === '') {
+                throw new Exception('Invalid looked card');
+            }
+            $pickedCard = null;
+            $rest = [];
+            foreach ($looked as $c) {
+                if (($c['instance_id'] ?? '') === $pickId) {
+                    $pickedCard = $c;
+                } else {
+                    $rest[] = $c;
+                }
+            }
+            if (!$pickedCard) {
+                throw new Exception('Invalid looked card');
+            }
+            if ($resolveChoice === 'hand' || $slotChoice === 'hand') {
+                $ownerP['hand'][] = $pickedCard;
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [$srcName] added " . cardDisplayName($pickedCard) . ' to hand.');
+            } else {
+                if (!in_array($slotChoice, $prompt['slots'] ?? [], true)) {
+                    throw new Exception('Choose an empty Stage area');
+                }
+                if (!empty($ownerP['stage'][$slotChoice])) {
+                    throw new Exception('Stage area is not empty');
+                }
+                $pickedCard['active'] = true;
+                $pickedCard['entered_turn'] = intval($state['turn'] ?? 1);
+                $ownerP['stage'][$slotChoice] = $pickedCard;
+                $state = resolveOnEnterAbilities($state, $owner, $pickedCard, $slotChoice);
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . $srcName . '] played ' . cardDisplayName($pickedCard) .
+                    ' from deck to ' . $slotChoice . '.');
+            }
+            if (!empty($rest)) {
+                $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $rest);
+            }
+            unset($state['surveil_stash'], $state['pending_prompt']);
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
+
         if ($optional && ($resolveChoice === 'no' || $resolveChoice === 'cancel')) {
             $resolveChoice = 'skip';
         }
@@ -2673,11 +2721,40 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                     throw new Exception('Card not eligible to pick');
                 }
             }
-            applyLookPickHand($ownerP, $looked, $pickIds);
             $pickedN = count($pickIds);
+            if ($destMode === 'hand_or_stage' && $pickedN === 1) {
+                $pickedCard = null;
+                foreach ($looked as $c) {
+                    if (($c['instance_id'] ?? '') === $pickIds[0]) {
+                        $pickedCard = $c;
+                        break;
+                    }
+                }
+                if ($pickedCard && ($pickedCard['card_type'] ?? '') === 'メンバー') {
+                    $validSlots = [];
+                    foreach (['left', 'center', 'right'] as $s) {
+                        if (empty($ownerP['stage'][$s])) {
+                            $validSlots[] = $s;
+                        }
+                    }
+                    $state['pending_prompt'] = [
+                        'type'        => 'pick_looked_deck_hand',
+                        'step'        => 'pick_destination',
+                        'owner'       => $owner,
+                        'responder'   => $owner,
+                        'source_name' => $srcName,
+                        'pick_id'     => $pickIds[0],
+                        'slots'       => $validSlots,
+                        'prompt'      => 'Add ' . cardDisplayName($pickedCard) . ' to your hand or play it to an empty Stage area?',
+                        'ability'     => $ability,
+                    ];
+                    $state['seq']++;
+                    return $state;
+                }
+            }
+            applyLookPickHand($ownerP, $looked, $pickIds);
             $state = addLog($state, $state['players'][$owner]['name'] .
                 " — [$srcName] added $pickedN card(s) from looked deck to hand.");
-            $ability = $prompt['ability'] ?? [];
             $then = $ability['then'] ?? [];
             if (($then['type'] ?? '') === 'wait_opponent_by_revealed' && !empty($pickIds)) {
                 $revealed = null;

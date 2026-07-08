@@ -32,10 +32,12 @@ function discardHandCardsByIds(array &$p, array $ids): array {
 }
 
 function discardFromHandByIds(array &$p, array $ids, ?array &$notifyState = null, ?string $notifyPid = null): int {
+    $moved = [];
     $count = 0;
-    $p['hand'] = array_values(array_filter($p['hand'], function ($c) use ($ids, &$count, &$p) {
+    $p['hand'] = array_values(array_filter($p['hand'], function ($c) use ($ids, &$count, &$moved, &$p) {
         if (in_array($c['instance_id'] ?? '', $ids, true)) {
             $p['waiting_room'][] = $c;
+            $moved[] = $c;
             $count++;
             return false;
         }
@@ -43,8 +45,26 @@ function discardFromHandByIds(array &$p, array $ids, ?array &$notifyState = null
     }));
     if ($count > 0 && $notifyState !== null && $notifyPid !== null) {
         hsPb1NotifyHandDiscard($notifyState, $notifyPid);
+        if (function_exists('spBp5NotifyCardsToWr')) {
+            $notifyState = spBp5NotifyCardsToWr($notifyState, $notifyPid, $moved);
+        }
     }
     return $count;
+}
+
+/** Append cards to WR and fire main-phase auto hooks (Ren Hazuki bp5-005, etc.). */
+function appendCardsToWaitingRoom(array &$state, string $pid, array $cards): array {
+    if (empty($cards)) {
+        return $state;
+    }
+    $p = &$state['players'][$pid];
+    foreach ($cards as $c) {
+        $p['waiting_room'][] = $c;
+    }
+    if (function_exists('spBp5NotifyCardsToWr')) {
+        $state = spBp5NotifyCardsToWr($state, $pid, $cards);
+    }
+    return $state;
 }
 
 /** Shuffle all Waiting Room cards into main deck when the deck is empty (deck refresh). */
@@ -176,11 +196,7 @@ function countActiveEnergyInZone(array $p): int {
 }
 
 function affordableEnergyForBatonPlay(array $p, ?array $occupant, ?array $incoming = null): int {
-    $active = countActiveEnergyInZone($p);
-    if ($occupant && $incoming) {
-        $active += estimateBatonWrEnergyActivation($occupant, $incoming, $p);
-    }
-    return $active;
+    return countActiveEnergyInZone($p);
 }
 
 function computeMemberPlayCostWithBaton(array $state, string $pid, array $card, ?array $occupant): int {

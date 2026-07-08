@@ -1060,13 +1060,20 @@ function beginLookRevealPick(array $state, string $pid, string $name, array &$p,
         fn($c) => $c['instance_id'] ?? '',
         $eligible
     )));
-    $promptText = $optional
-        ? ($pickCount === 1
-            ? 'Choose 1 card to add to your hand (or skip).'
-            : "Choose up to $pickCount card(s) to add to your hand (or skip).")
-        : ($pickCount === 1
-            ? 'Choose 1 card to add to your hand.'
-            : "Choose $pickCount card(s) to add to your hand.");
+    $destMode = $cfg['destination'] ?? 'hand';
+    if ($destMode === 'hand_or_stage') {
+        $promptText = $optional
+            ? 'Choose 1 Member to add to your hand or play to an empty Stage area (or skip).'
+            : 'Choose 1 Member to add to your hand or play to an empty Stage area.';
+    } else {
+        $promptText = $optional
+            ? ($pickCount === 1
+                ? 'Choose 1 card to add to your hand (or skip).'
+                : "Choose up to $pickCount card(s) to add to your hand (or skip).")
+            : ($pickCount === 1
+                ? 'Choose 1 card to add to your hand.'
+                : "Choose $pickCount card(s) to add to your hand.");
+    }
 
     $state['surveil_stash'] = $top;
     $state['pending_prompt'] = [
@@ -2849,10 +2856,11 @@ function listStageMemberChoices(array $p, string $group = '', string $excludeId 
     return $out;
 }
 
-function listOppStageMembersByMaxCost(array $state, string $oppId, int $maxCost): array {
+function listOppStageMembersByMaxCost(array $state, string $oppId, int $maxCost, bool $activeOnly = false): array {
     $out = [];
     foreach ($state['players'][$oppId]['stage'] as $slot => $mbr) {
         if (!$mbr) continue;
+        if ($activeOnly && memberIsInWait($mbr)) continue;
         if (intval($mbr['cost'] ?? 0) > $maxCost) continue;
         $out[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
     }
@@ -4332,7 +4340,8 @@ function beginWaitOpponentStagePick(
     $opp = ($owner === 'p1') ? 'p2' : 'p1';
     $maxCost = intval($effect['max_cost'] ?? 9);
     $pickCount = isset($effect['pick_count']) ? intval($effect['pick_count']) : null;
-    $members = listOppStageMembersByMaxCost($state, $opp, $maxCost);
+    $activeOnly = !empty($effect['active_only']);
+    $members = listOppStageMembersByMaxCost($state, $opp, $maxCost, $activeOnly);
     if (empty($members)) {
         return logOpponentMembersWaitedOutcome($state, $owner, $srcName, 0, $maxCost);
     }

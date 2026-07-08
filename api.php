@@ -883,7 +883,8 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     $batonOnLeavePending = [];
     if ($isOverplay) {
         $existing = $occupant;
-        $p['waiting_room'][] = $existing;
+        $state = appendCardsToWaitingRoom($state, $pid, [$existing]);
+        $p = &$state['players'][$pid];
         $p['stage'][$targetSlot] = null;
         $anims[] = animSpec($existing['instance_id'], 'stage', 'waiting_room', $pid, [
             'slot' => $targetSlot,
@@ -905,7 +906,8 @@ function actionPlayMember(array $state, string $pid, array $data): array {
             $batonTransferredEnergyCards,
             detachStackedEnergyForBatonTransfer($existing, $p)
         );
-        $p['waiting_room'][] = $existing;
+        $state = appendCardsToWaitingRoom($state, $pid, [$existing]);
+        $p = &$state['players'][$pid];
         $p['stage'][$targetSlot] = null;
         $anims[] = animSpec($existing['instance_id'], 'stage', 'waiting_room', $pid, [
             'slot' => $targetSlot,
@@ -939,7 +941,8 @@ function actionPlayMember(array $state, string $pid, array $data): array {
                 $batonTransferredEnergyCards,
                 detachStackedEnergyForBatonTransfer($existing2, $p)
             );
-            $p['waiting_room'][] = $existing2;
+            $state = appendCardsToWaitingRoom($state, $pid, [$existing2]);
+            $p = &$state['players'][$pid];
             $p['stage'][$slot] = null;
             $anims[] = animSpec($existing2['instance_id'], 'stage', 'waiting_room', $pid, [
                 'slot' => $slot,
@@ -1747,7 +1750,6 @@ function resolvePerformancePhase(array $state, string $pid, bool $continueAfter 
     $state = resolveAutoYellAbilities($state, $pid, $yellCards);
     $state = spBp2ApplyDeferredYellLiveStartBonuses($state, $pid, $yellCards);
     if (!empty($state['pending_prompt'])) {
-        $state['phase'] = 'live_success_effects';
         $state['_performance_continue'] = $pid;
         return $state;
     }
