@@ -43780,7 +43780,7 @@
             ],
             "blade_hearts": [],
             "rarity": "RM",
-            "text": "エネルギーを2枚アクティブにする。",
+            "text": "[On Enter] Activate 2 Energy.",
             "text_jp": "エネルギーを2枚アクティブにする。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP05/PL!N-sd1-008-RM.png",
             "abilities": [
@@ -76517,9 +76517,17 @@
                 "red"
             ],
             "rarity": "SRL",
-            "text": "自分のエネルギーが9枚以上ある場合、このカードのスコアを＋１する。",
+            "text": "[Live Start] If you have 9 or more Energy, this card's score +1.",
             "text_jp": "自分のエネルギーが9枚以上ある場合、このカードのスコアを＋１する。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-sd1-026-SRL.png",
+            "abilities": [
+                {
+                    "trigger": "live_start",
+                    "type": "score_if_min_energy",
+                    "min_energy": 9,
+                    "amount": 1
+                }
+            ],
             "score": 4,
             "required_hearts": [
                 {
