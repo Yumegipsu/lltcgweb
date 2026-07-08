@@ -1003,7 +1003,6 @@ function tcgRollBoosterPack(string $discordId, string $boxId, array $cardsData):
         $progress['packs_in_box'] = 0;
         $progress['boxes_opened'] = intval($progress['boxes_opened']) + 1;
     }
-    tcgSaveBoxProgress($progress);
 
     $pulled = [];
     foreach ($slots as $no) {
@@ -1014,6 +1013,7 @@ function tcgRollBoosterPack(string $discordId, string $boxId, array $cardsData):
     if (($box['kind'] ?? '') !== 'pr' && ($box['kind'] ?? '') !== 'pb_duo' && !$godPack) {
         tcgNoteLivePullInPack($pulled, $pools, $progress);
     }
+    tcgSaveBoxProgress($progress);
 
     return [
         'box' => ['id' => $box['id'], 'name_en' => $box['name_en']],
