@@ -3742,11 +3742,13 @@ body.perf-spectacle-active #center-banner.show{z-index:8750}
 
 /* ── Official-site menu chrome (hub / account screens only; not gameplay) ── */
 body:has(.llc-menu-screen.active) .llc-sky-dim,
-body.news-overlay-open .llc-sky-dim{
+body.news-overlay-open .llc-sky-dim,
+body.missions-overlay-open .llc-sky-dim{
   background:
     linear-gradient(180deg,rgba(255,255,255,.08) 0%,rgba(78,197,255,.12) 42%,rgba(50,157,255,.18) 100%),
     radial-gradient(ellipse 90% 60% at 72% 8%,rgba(255,255,255,.14) 0%,transparent 58%)}
-body.news-overlay-open .llc-sky-dim::after{
+body.news-overlay-open .llc-sky-dim::after,
+body.missions-overlay-open .llc-sky-dim::after{
   content:'';position:absolute;inset:0;pointer-events:none;
   background:rgba(4,10,24,.42)}
 .llc-menu-screen{
@@ -3856,25 +3858,52 @@ body.news-overlay-open .llc-sky-dim::after{
 .hub-missions-badge{
   position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;
   background:linear-gradient(135deg,#ff6ba8,#d63384);color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center}
-.missions-mbox{max-width:min(520px,94vw);width:100%}
-.missions-tabs{display:flex;gap:8px;justify-content:center;margin:0 0 14px}
-.missions-tab{
-  padding:6px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.2);
-  background:transparent;color:rgba(255,255,255,.85);font-size:13px;font-weight:700;cursor:pointer}
-.missions-tab.active{border-color:#5cd68a;background:rgba(70,200,120,.22)}
-.missions-list{display:flex;flex-direction:column;gap:10px;max-height:min(52vh,420px);overflow-y:auto;padding:2px 0}
-.missions-row{
-  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;
-  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06)}
-.missions-row--dim{opacity:.45}
-.missions-row-title{font-size:14px;font-weight:700;color:#fff;line-height:1.35}
-.missions-row-reward{font-size:12px;color:rgba(255,255,255,.82);margin-top:4px}
-.missions-row-actions{flex:0 0 auto}
-.missions-claim-btn{padding:6px 14px;font-size:12px}
-.missions-status-chip{font-size:11px;font-weight:700;color:rgba(255,255,255,.65);letter-spacing:.04em}
-.missions-status-chip--active{color:#8ee8b0}
-.missions-status-chip--claimed{color:rgba(255,255,255,.45)}
-.missions-loading,.missions-empty{text-align:center;color:rgba(255,255,255,.7);font-size:13px;margin:8px 0}
+body.missions-overlay-open{overflow:hidden}
+#overlay-missions.llc-menu-screen{
+  position:fixed;inset:0;z-index:8750;display:none;align-items:center;justify-content:center;
+  overflow:hidden;padding:clamp(12px,3vw,24px) 16px;
+  background:rgba(4,10,24,.78);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+#overlay-missions.open{display:flex}
+#overlay-missions .missions-shell{
+  max-width:min(520px,94vw);width:100%;margin-block:auto;min-height:0;
+  display:flex;flex-direction:column;overflow:hidden;
+  padding:clamp(16px,2.6vw,24px) clamp(14px,2.2vw,20px);
+  border-radius:16px;border:1px solid rgba(255,255,255,.44);
+  background:url("bg/ptn.png") top center/200px 200px repeat,rgba(38,132,210,.9);
+  box-shadow:0 18px 52px rgba(0,0,0,.45),0 0 32px rgba(52,163,243,.24),inset 0 1px 0 rgba(255,255,255,.16);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#overlay-missions .missions-panel-shell{
+  display:flex;flex-direction:column;min-height:0;overflow:hidden;width:100%;
+  max-height:min(72vh,640px);flex:0 1 auto;
+  background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;backdrop-filter:none}
+#overlay-missions .missions-tab-bar{
+  display:flex;gap:8px;margin:0 0 12px;flex:0 0 auto}
+#overlay-missions .missions-tab{
+  flex:1 1 0;min-width:0;padding:10px 12px;border-radius:10px;
+  border:1px solid rgba(255,255,255,.4);background:rgba(52,163,243,.35);
+  color:#fff;font-family:'Zen Kaku Gothic New','Nunito',sans-serif;font-size:13px;font-weight:700;
+  letter-spacing:.04em;cursor:pointer;transition:border-color .2s ease,background .2s ease}
+#overlay-missions .missions-tab:hover{border-color:rgba(186,228,255,.75)}
+#overlay-missions .missions-tab.active{
+  border-color:#fff;background:url("bg/ptn.png") top center/200px 200px repeat,rgba(52,163,243,.82);
+  box-shadow:0 0 0 1px rgba(186,228,255,.35)}
+#overlay-missions .missions-scroll{
+  flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+  padding-right:4px;margin-right:-2px;-webkit-overflow-scrolling:touch}
+#overlay-missions .missions-scroll .llc-menu-list{margin-top:0}
+#overlay-missions .missions-item{
+  cursor:default;align-items:center;justify-content:space-between;gap:12px;min-height:62px;padding:12px 14px}
+#overlay-missions .missions-item--claimed{opacity:.45}
+#overlay-missions .missions-item .llc-menu-item-body{flex:1 1 auto;min-width:0}
+#overlay-missions .missions-item-action{flex:0 0 auto;display:flex;align-items:center}
+#overlay-missions .missions-claim-btn{padding:7px 14px;font-size:12px;white-space:nowrap}
+#overlay-missions .missions-status-chip{
+  font-size:11px;font-weight:700;color:rgba(255,255,255,.72);letter-spacing:.04em;white-space:nowrap}
+#overlay-missions .missions-status-chip--active{color:#bae4ff}
+#overlay-missions .missions-status-chip--claimed{color:rgba(255,255,255,.5)}
+#overlay-missions .missions-loading,
+#overlay-missions .missions-empty{
+  font-size:14px;color:rgba(255,255,255,.94);text-align:center;margin:18px 8px;line-height:1.55;letter-spacing:.04em}
 .toast.toast-success{
   background:linear-gradient(135deg,#2ea85a,#1f7a42);
   box-shadow:0 6px 22px rgba(46,160,90,.45)}
@@ -6963,16 +6992,22 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <!-- Missions hub -->
-<div class="overlay" id="modal-missions">
-  <div class="mbox missions-mbox">
-    <button class="mcls" id="btn-missions-close" type="button">✕</button>
-    <h2 style="margin:0 0 10px;text-align:center;color:#fff" data-i18n="missions.title">Missions</h2>
-    <div class="missions-tabs">
-      <button type="button" class="missions-tab active" id="btn-missions-tab-daily" data-i18n="missions.tabDaily">Daily</button>
-      <button type="button" class="missions-tab" id="btn-missions-tab-milestone" data-i18n="missions.tabMilestone">Milestones</button>
+<div id="overlay-missions" class="llc-menu-screen missions-overlay" aria-modal="true" aria-labelledby="missions-panel-title" aria-hidden="true">
+  <div class="account-shell missions-shell">
+    <div class="panel account-panel missions-panel-shell" id="missions-panel">
+      <div class="account-screen-head">
+        <button type="button" class="btn-ghost" id="btn-missions-close" data-i18n="news.close">Close</button>
+        <h2 id="missions-panel-title" data-i18n="missions.title">Missions</h2>
+      </div>
+      <div class="missions-tab-bar">
+        <button type="button" class="missions-tab active" id="btn-missions-tab-daily" data-i18n="missions.tabDaily">Daily</button>
+        <button type="button" class="missions-tab" id="btn-missions-tab-milestone" data-i18n="missions.tabMilestone">Milestones</button>
+      </div>
+      <div class="missions-scroll" id="missions-scroll">
+        <div class="llc-menu-list" id="missions-list"></div>
+        <p class="lerr" id="missions-err"></p>
+      </div>
     </div>
-    <div class="missions-list" id="missions-list"></div>
-    <p class="lerr" id="missions-err"></p>
   </div>
 </div>
 
@@ -7414,9 +7449,9 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="i18n.js?v=25"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
-<script src="client/js/news.js?v=7"></script>
+<script src="client/js/news.js?v=8"></script>
 <script src="client/js/api-client.js?v=5"></script>
-<script src="client/js/missions.js?v=2"></script>
+<script src="client/js/missions.js?v=3"></script>
 <script src="client/js/game-sync.js?v=9"></script>
 <script src="client/js/state-apply.js?v=16"></script>
 <script src="client/js/stamps.js?v=12"></script>

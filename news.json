@@ -2,6 +2,22 @@
   "version": 1,
   "posts": [
     {
+      "id": "2026-07-star-gem-missions",
+      "date": "2026-07-08",
+      "banner": "assets/Star_Gem.png",
+      "bannerStyle": "full",
+      "title": {
+        "en": "Star Gem Missions are here!",
+        "ja": "スタージェムミッションが追加されました！",
+        "es": "¡Misiones de Star Gems disponibles!"
+      },
+      "body": {
+        "en": "Signed-in players can now earn **Star Gems** from **Missions** on the hub.\n\n**Where to find them**\n- On the hub, tap the green **Missions** button beside your Star Gem count.\n\n**How it works**\n- **Daily** tasks reset at midnight **JST** — open all free booster packs, play a ranked match, use a stamp, and more.\n- **Milestones** are one-time goals like ranked play, profile setup, and winning with a single-group main deck.\n- Finish a task in play, then open Missions and tap **Claim** to collect your gems.\n\nYou'll see a green notice at the top when you complete a mission during a match. Good luck!",
+        "ja": "サインイン中のプレイヤーは、ハブの**ミッション**で**スタージェム**を獲得できるようになりました。\n\n**開き方**\n- ハブでスタージェム表示の横にある緑の **ミッション** をタップ。\n\n**遊び方**\n- **デイリー**は毎日0時（**JST**）にリセット — デイリーブースターをすべて開封、ランクマッチをプレイ、スタンプを使うなど。\n- **マイルストーン**はランク戦の回数、プロフィール設定、単一グループのメインデッキでの勝利など、一度きりの目標です。\n- 対戦中に達成したら、ミッション画面で **受け取る** をタップしてジェムを入手。\n\n対戦中にミッションを達成すると、画面上部に緑のお知らせが表示されます。がんばってください！",
+        "es": "Las cuentas con sesión iniciada ya pueden ganar **Star Gems** con **Misiones** en el hub.\n\n**Dónde encontrarlas**\n- En el hub, toca el botón verde **Misiones** junto a tu contador de Star Gems.\n\n**Cómo funcionan**\n- Las tareas **Diarias** se reinician a medianoche **JST**: abre todos los sobres diarios gratis, juega una partida clasificatoria, usa un sello y más.\n- Los **Hitos** son metas únicas: partidas clasificatorias, perfil y ganar con un mazo principal de un solo grupo.\n- Completa una tarea en partida, abre Misiones y toca **Reclamar** para recoger tus gemas.\n\nVerás un aviso verde arriba cuando completes una misión durante una partida. ¡Mucha suerte!"
+      }
+    },
+    {
       "id": "2026-07-pvp-stamps",
       "date": "2026-07-07",
       "banner": "news/pvp-stamps-harasho.webp",

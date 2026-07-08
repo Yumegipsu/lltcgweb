@@ -27,6 +27,10 @@
     return '';
   }
 
+  function overlayEl() {
+    return el('overlay-missions');
+  }
+
   function syncHubBadge(count) {
     state.claimableCount = Number(count) || 0;
     const pill = el('hub-missions');
@@ -60,6 +64,12 @@
     if (m && typeof m.claimable_count === 'number') {
       syncHubBadge(m.claimable_count);
     }
+  }
+
+  function missionStatusLabel(status) {
+    if (status === 'completed') return t('missions.statusReady');
+    if (status === 'claimed') return t('missions.statusClaimed');
+    return t('missions.statusActive');
   }
 
   async function loadMissions() {
@@ -110,6 +120,7 @@
     state.tab = tab === 'milestone' ? 'milestone' : 'daily';
     el('btn-missions-tab-daily')?.classList.toggle('active', state.tab === 'daily');
     el('btn-missions-tab-milestone')?.classList.toggle('active', state.tab === 'milestone');
+    el('missions-scroll')?.scrollTo(0, 0);
     renderList();
   }
 
@@ -134,22 +145,23 @@
     }
     items.forEach((m) => {
       const row = document.createElement('div');
-      row.className = 'missions-row';
-      if (m.status === 'claimed') row.classList.add('missions-row--dim');
+      row.className = 'llc-menu-item missions-item';
+      if (m.status === 'claimed') row.classList.add('missions-item--claimed');
 
-      const body = document.createElement('div');
-      body.className = 'missions-row-body';
-      const title = document.createElement('div');
-      title.className = 'missions-row-title';
+      const body = document.createElement('span');
+      body.className = 'llc-menu-item-body';
+      const title = document.createElement('span');
+      title.className = 'llc-menu-item-title';
       title.textContent = t(m.i18n_key || m.id);
-      const reward = document.createElement('div');
-      reward.className = 'missions-row-reward';
-      reward.innerHTML = '+' + Number(m.reward || 0).toLocaleString() + ' <span class="star-gem-inline">' + starGemIconHtml(16) + '</span>';
-      body.appendChild(title);
-      body.appendChild(reward);
+      const sub = document.createElement('span');
+      sub.className = 'llc-menu-item-sub';
+      sub.innerHTML = '+' + Number(m.reward || 0).toLocaleString()
+        + ' <span class="star-gem-inline">' + starGemIconHtml(16) + '</span>'
+        + ' · ' + missionStatusLabel(m.status);
+      body.append(title, sub);
 
-      const actions = document.createElement('div');
-      actions.className = 'missions-row-actions';
+      const actions = document.createElement('span');
+      actions.className = 'missions-item-action';
       if (m.status === 'completed') {
         const btn = document.createElement('button');
         btn.type = 'button';
@@ -169,22 +181,30 @@
         actions.appendChild(chip);
       }
 
-      row.appendChild(body);
-      row.appendChild(actions);
+      row.append(body, actions);
       list.appendChild(row);
     });
   }
 
   function openMissionsModal() {
-    if (typeof global.openM === 'function') global.openM('modal-missions');
-    else el('modal-missions')?.classList.add('open');
+    const ov = overlayEl();
+    if (!ov) return;
+    ov.classList.add('open');
+    ov.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('missions-overlay-open');
     setTab('daily');
     void loadMissions();
+    if (global.LLTCG_I18N && typeof global.LLTCG_I18N.applyI18n === 'function') {
+      global.LLTCG_I18N.applyI18n(ov);
+    }
   }
 
   function closeMissionsModal() {
-    if (typeof global.closeM === 'function') global.closeM('modal-missions');
-    else el('modal-missions')?.classList.remove('open');
+    const ov = overlayEl();
+    if (!ov) return;
+    ov.classList.remove('open');
+    ov.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('missions-overlay-open');
   }
 
   function bindUi() {
@@ -194,6 +214,9 @@
     el('btn-missions-close')?.addEventListener('click', () => closeMissionsModal());
     el('btn-missions-tab-daily')?.addEventListener('click', () => setTab('daily'));
     el('btn-missions-tab-milestone')?.addEventListener('click', () => setTab('milestone'));
+    overlayEl()?.addEventListener('click', (ev) => {
+      if (ev.target === overlayEl()) closeMissionsModal();
+    });
   }
 
   global.TCGMissions = {
@@ -202,6 +225,7 @@
     onMissionCompletions,
     loadMissions,
     openMissionsModal,
+    closeMissionsModal,
   };
 
   if (document.readyState === 'loading') {
