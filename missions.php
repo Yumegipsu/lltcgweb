@@ -121,11 +121,6 @@ function tcgMissionDailySubsComplete(string $discordId, string $period): bool {
 
 function tcgMissionStatusForDef(string $discordId, array $def): string {
     $periodKey = tcgMissionPeriodKey($def);
-    if ($def['id'] === 'daily_complete_all' && $def['type'] === 'daily') {
-        if (!tcgMissionDailySubsComplete($discordId, $periodKey)) {
-            return 'locked';
-        }
-    }
     if (tcgMissionIsClaimed($discordId, $def['id'], $periodKey)) {
         return 'claimed';
     }
@@ -139,9 +134,8 @@ function tcgMissionSortRank(string $status, int $sort): int {
     return match ($status) {
         'completed' => 0,
         'active' => 1,
-        'locked' => 2,
-        'claimed' => 3,
-        default => 4,
+        'claimed' => 2,
+        default => 3,
     };
 }
 

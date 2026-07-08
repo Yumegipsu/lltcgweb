@@ -135,7 +135,7 @@
     items.forEach((m) => {
       const row = document.createElement('div');
       row.className = 'missions-row';
-      if (m.status === 'claimed' || m.status === 'locked') row.classList.add('missions-row--dim');
+      if (m.status === 'claimed') row.classList.add('missions-row--dim');
 
       const body = document.createElement('div');
       body.className = 'missions-row-body';
@@ -161,11 +161,6 @@
         const chip = document.createElement('span');
         chip.className = 'missions-status-chip missions-status-chip--claimed';
         chip.textContent = t('missions.statusClaimed');
-        actions.appendChild(chip);
-      } else if (m.status === 'locked') {
-        const chip = document.createElement('span');
-        chip.className = 'missions-status-chip';
-        chip.textContent = t('missions.statusLocked');
         actions.appendChild(chip);
       } else {
         const chip = document.createElement('span');
