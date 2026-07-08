@@ -1,0 +1,1 @@
+ALTER TABLE tcg_box_progress ADD COLUMN live_pity INTEGER NOT NULL DEFAULT 0;

@@ -777,10 +777,50 @@ function countStageWaitMembers(array $p): int {
 }
 
 function cardHasPrintedHearts(array $card): bool {
+    mergeYellCardCatalogFields($card);
     foreach ($card['hearts'] ?? [] as $hg) {
         if (intval($hg['count'] ?? 0) > 0) return true;
     }
     return false;
+}
+
+/** Hydrate yell-reveal rows before draw/score icon counts or heart checks. */
+function hydrateYellCardsForPerformance(array &$yellCards): void {
+    foreach ($yellCards as &$yc) {
+        mergeYellCardCatalogFields($yc);
+    }
+    unset($yc);
+}
+
+/** Apply continuous live_score_if_yell_has_hearts directly on live zone cards. */
+function applyLiveScoreIfYellHasHeartsInZone(array &$zone, array $yellCards): void {
+    hydrateYellCardsForPerformance($yellCards);
+    $yellHasPrintedHearts = false;
+    foreach ($yellCards as $yc) {
+        if (cardHasPrintedHearts($yc)) {
+            $yellHasPrintedHearts = true;
+            break;
+        }
+    }
+    if (!$yellHasPrintedHearts) {
+        return;
+    }
+    foreach ($zone as &$lc) {
+        if (!$lc || !isLiveTypeCard($lc)) {
+            continue;
+        }
+        mergeCardCatalogFields($lc);
+        foreach ($lc['abilities'] ?? [] as $ab) {
+            if (($ab['trigger'] ?? '') !== 'continuous') {
+                continue;
+            }
+            if (($ab['type'] ?? '') !== 'live_score_if_yell_has_hearts') {
+                continue;
+            }
+            $lc['score'] = intval($lc['score'] ?? 0) + intval($ab['amount'] ?? 1);
+        }
+    }
+    unset($lc);
 }
 
 function stageMembersWithStackedEnergy(array $p): array {

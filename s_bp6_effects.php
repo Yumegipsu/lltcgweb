@@ -1019,6 +1019,8 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
                 'step' => 'pick',
                 'prompt' => "Choose 1 Aqours Member (cost {$cfg['max_cost']} or less) from your Waiting Room to play to $slotLabel.",
                 'candidates' => array_map('cardPromptSummary', $eligible),
+                'wr_pick_cfg' => $cfg,
+                'ability' => array_merge($ability, ['filter' => 'member']),
             ]);
             $state['seq']++;
             return $state;

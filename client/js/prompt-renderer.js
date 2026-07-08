@@ -1585,7 +1585,7 @@ global.renderPrompt = function renderPrompt(s, myId){
   }
   if((pr?.type==='pick_wr_to_hand'||pr?.type==='pick_wr_leave_stage_add')&&pr.responder===myId){
     ovl.classList.remove('open');
-    const filter=pr.ability?.filter||pr.wr_pick_cfg?.filter||'live';
+    const filter=pr.ability?.filter||pr.wr_pick_cfg?.filter||(pr.type==='pick_wr_leave_stage_add'?'member':'live');
     const pickOpts = { state: s, myId };
     if(filter==='live') openWrLivePick(pr, pickOpts);
     else openActivateWrMemberPick(pr, pickOpts);
@@ -1617,6 +1617,21 @@ global.renderPrompt = function renderPrompt(s, myId){
   if(pr?.type==='pick_live_match_success_heart'&&pr.responder===myId){
     ovl.classList.remove('open');
     openWrLivePick(pr);
+    return;
+  }
+  if(pr?.type==='ssd1_play_wr_empty'&&pr.step==='pick_slot'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    el('prompt-ttl').textContent=pr.source_name||'Play Member';
+    el('prompt-msg').textContent=pr.prompt||'Choose an area:';
+    const box=el('prompt-btns'); box.innerHTML='';
+    (pr.slots||[]).forEach(slot=>{
+      const b=document.createElement('button');
+      b.className='btn-grad';
+      b.textContent=slotLabel(slot);
+      b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{slot}); };
+      box.appendChild(b);
+    });
+    ovl.classList.add('open');
     return;
   }
   if(pr?.type==='optional_pay_play_hand_member'&&pr.responder===myId){

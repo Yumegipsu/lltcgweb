@@ -175,9 +175,9 @@ function tcgStarterImage(string $key): string {
 
 function tcgBaseSlotRarityWeights(): array {
     return [
-        ['r' => 'N', 'w' => 450],
+        ['r' => 'N', 'w' => 400],
         ['r' => 'R', 'w' => 350],
-        ['r' => 'L', 'w' => 80],
+        ['r' => 'L', 'w' => 180],
         ['r' => 'R+', 'w' => 70],
         ['r' => 'PR', 'w' => 30],
         ['r' => 'PR+', 'w' => 20],
@@ -647,9 +647,53 @@ function tcgPickWeightedRarity(array $pools, array $weights): ?string {
     return tcgPickFromPool($pools[$chosenR]);
 }
 
-function tcgPickBaseSlot(array $pools): ?string {
-    return tcgPickWeightedRarity($pools, tcgBaseSlotRarityWeights())
+function tcgPickBaseSlot(array $pools, ?array &$progress = null): ?string {
+    if ($progress !== null) {
+        $forced = tcgMaybeForceLivePick($pools, $progress);
+        if ($forced !== null) {
+            return $forced;
+        }
+    }
+    $picked = tcgPickWeightedRarity($pools, tcgBaseSlotRarityWeights())
         ?: tcgPickFromPool($pools['N']) ?: tcgPickFromPool($pools['R']);
+    return $picked;
+}
+
+function tcgIsLiveRarity(?string $rarity): bool {
+    return in_array($rarity, ['L', 'L+', 'LLE'], true);
+}
+
+function tcgPickForcedLiveCard(array $pools): ?string {
+    foreach (['L', 'L+', 'LLE'] as $r) {
+        if (!empty($pools[$r])) {
+            return tcgPickFromPool($pools[$r]);
+        }
+    }
+    return null;
+}
+
+function tcgMaybeForceLivePick(array $pools, array &$progress): ?string {
+    if (intval($progress['live_pity'] ?? 0) < 9) {
+        return null;
+    }
+    $forced = tcgPickForcedLiveCard($pools);
+    if ($forced !== null) {
+        $progress['live_pity'] = 0;
+    }
+    return $forced;
+}
+
+function tcgNoteLivePullInPack(array $pulled, array $pools, array &$progress): void {
+    foreach ($pulled as $no) {
+        if (!$no) {
+            continue;
+        }
+        if (tcgIsLiveRarity(tcgRarityForCardNo($no, $pools))) {
+            $progress['live_pity'] = 0;
+            return;
+        }
+    }
+    $progress['live_pity'] = intval($progress['live_pity'] ?? 0) + 1;
 }
 
 function tcgApplyFoilPityReset(string $rarity, array &$progress): void {
@@ -665,6 +709,9 @@ function tcgApplyFoilPityReset(string $rarity, array &$progress): void {
     if ($rarity === 'RM') {
         $progress['rm_pity'] = 0;
     }
+    if (tcgIsLiveRarity($rarity)) {
+        $progress['live_pity'] = 0;
+    }
 }
 
 function tcgRarityForCardNo(string $cardNo, array $pools): ?string {
@@ -678,6 +725,10 @@ function tcgRarityForCardNo(string $cardNo, array $pools): ?string {
 
 /** Tier 3 standard pack foils + Tier 2 premium + Tier 1 master chases (slot 5). */
 function tcgPickGuaranteedFoil(array $pools, array &$progress): ?string {
+    $forced = tcgMaybeForceLivePick($pools, $progress);
+    if ($forced !== null) {
+        return $forced;
+    }
     $progress['pplus_pity'] = intval($progress['pplus_pity']) + 1;
     $progress['pe_pity'] = intval($progress['pe_pity']) + 1;
     $progress['sec_pity'] = intval($progress['sec_pity']) + 1;
@@ -790,6 +841,7 @@ function tcgGetBoxProgress(string $discordId, string $boxId): array {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($row) {
         $row['rm_pity'] = intval($row['rm_pity'] ?? 0);
+        $row['live_pity'] = intval($row['live_pity'] ?? 0);
         return $row;
     }
     $db->prepare('INSERT INTO tcg_box_progress (discord_id, box_id) VALUES (?, ?)')
@@ -803,21 +855,23 @@ function tcgGetBoxProgress(string $discordId, string $boxId): array {
         'pplus_pity' => 0,
         'sec_pity' => 0,
         'rm_pity' => 0,
+        'live_pity' => 0,
     ];
 }
 
 function tcgSaveBoxProgress(array $progress): void {
     $db = tcgDb();
     $db->prepare('INSERT INTO tcg_box_progress
-        (discord_id, box_id, packs_in_box, boxes_opened, pe_pity, pplus_pity, sec_pity, rm_pity)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (discord_id, box_id, packs_in_box, boxes_opened, pe_pity, pplus_pity, sec_pity, rm_pity, live_pity)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(discord_id, box_id) DO UPDATE SET
             packs_in_box = excluded.packs_in_box,
             boxes_opened = excluded.boxes_opened,
             pe_pity = excluded.pe_pity,
             pplus_pity = excluded.pplus_pity,
             sec_pity = excluded.sec_pity,
-            rm_pity = excluded.rm_pity')
+            rm_pity = excluded.rm_pity,
+            live_pity = excluded.live_pity')
         ->execute([
             $progress['discord_id'],
             $progress['box_id'],
@@ -827,6 +881,7 @@ function tcgSaveBoxProgress(array $progress): void {
             intval($progress['pplus_pity']),
             intval($progress['sec_pity']),
             intval($progress['rm_pity'] ?? 0),
+            intval($progress['live_pity'] ?? 0),
         ]);
 }
 
@@ -937,7 +992,7 @@ function tcgRollBoosterPack(string $discordId, string $boxId, array $cardsData):
                 $slots[] = tcgPickFromPool($pools['N']) ?: tcgPickFromPool($pools['R']);
             }
             $slots[] = tcgPickFromPool($pools['R']) ?: tcgPickFromPool($pools['N']);
-            $slots[] = tcgPickBaseSlot($pools);
+            $slots[] = tcgPickBaseSlot($pools, $progress);
             $foil = tcgPickGuaranteedFoil($pools, $progress);
             $slots[] = $foil ?: tcgPickFromPool($pools['P']) ?: tcgPickFromPool($pools['PE']);
         }
@@ -955,6 +1010,9 @@ function tcgRollBoosterPack(string $discordId, string $boxId, array $cardsData):
         if ($no) {
             $pulled[] = $no;
         }
+    }
+    if (($box['kind'] ?? '') !== 'pr' && ($box['kind'] ?? '') !== 'pb_duo' && !$godPack) {
+        tcgNoteLivePullInPack($pulled, $pools, $progress);
     }
 
     return [

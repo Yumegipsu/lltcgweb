@@ -7467,7 +7467,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=16"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=12"></script>
+<script src="client/js/prompt-renderer.js?v=13"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -31322,7 +31322,10 @@ function perfLiveAttempts(prev, next, pid) {
 }
 
 function perfCardSuccessScore(attempts) {
-  return (attempts || []).filter(a => a.success).reduce((s, a) => s + (a.card?.score || 0), 0);
+  return (attempts || []).filter(a => a.success).reduce((s, a) => {
+    const c = enrichCard(a.card);
+    return s + (Number(c?.score) || 0) + Number(c?.live_score_bonus || 0);
+  }, 0);
 }
 
 /** Live Score modifiers on stage (matches server getLiveScoreBonus when judge log unavailable). */
@@ -35503,8 +35506,10 @@ function printedLiveScore(card) {
 function liveCardScoreInfo(card, opts = {}) {
   card = enrichCard(card);
   const printed = printedLiveScore(card);
-  const effective = Number(card.score ?? printed ?? 0);
-  const base = printed != null ? printed : effective;
+  const scoreVal = Number(card.score ?? printed ?? 0);
+  const fieldBonus = Number(card.live_score_bonus ?? 0);
+  const effective = scoreVal + fieldBonus;
+  const base = printed != null ? printed : scoreVal;
   const cardBonus = Math.max(0, effective - base);
   const extraBonus = Math.max(0, Number(opts.extraBonus ?? 0));
   const bonus = cardBonus + extraBonus;
@@ -36103,9 +36108,24 @@ function bindMenuCardPress(node, card, onTap) {
 
 
 function wrPickCfgFromPrompt(pr) {
+  const explicitFilter = pr?.ability?.filter || pr?.wr_pick_cfg?.filter;
+  const memberPromptTypes = new Set([
+    'sbp6_leave_play_wr_slot', 'pick_wr_to_hand', 'pick_wr_leave_stage_add', 'ssd1_play_wr_empty',
+  ]);
+  const memberAbilityTypes = new Set(['activated_leave_play_wr_same_slot']);
+  let filter = explicitFilter;
+  if (!filter) {
+    if (memberPromptTypes.has(pr?.type)
+      || (pr?.type === 'ssd1_play_wr_empty' && pr?.step === 'pick_wr')
+      || memberAbilityTypes.has(pr?.ability?.type)) {
+      filter = 'member';
+    } else {
+      filter = 'live';
+    }
+  }
   return {
     group: pr?.ability?.group || pr?.wr_pick_cfg?.group || '',
-    filter: pr?.ability?.filter || pr?.wr_pick_cfg?.filter || 'live',
+    filter,
     max_cost: pr?.wr_pick_cfg?.max_cost ?? pr?.ability?.max_cost,
     min_cost: pr?.wr_pick_cfg?.min_cost ?? pr?.ability?.min_cost,
     max_live_score: pr?.wr_pick_cfg?.max_live_score ?? pr?.ability?.max_live_score,

@@ -1773,6 +1773,16 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     }
 
     $yellCards = $p['yell_cards'] ?? $state['yell_reveal'][$pid] ?? [];
+    hydrateYellCardsForPerformance($yellCards);
+    applyLiveScoreIfYellHasHeartsInZone($p['live_zone'], $yellCards);
+    $liveCards = array_values(array_filter(
+        $p['live_zone'] ?? [],
+        fn($c) => isLiveTypeCard($c)
+    ));
+    foreach ($liveCards as &$lc) {
+        mergeCardCatalogFields($lc);
+    }
+    unset($lc);
     $totalBlade = computeYellBladeTotal($state, $pid);
 
     $state = initLiveModifiers($state);
@@ -1863,23 +1873,6 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
             $state,
             $pid
         );
-    }
-    $yellHasPrintedHearts = false;
-    foreach ($yellCards as $yc) {
-        if (cardHasPrintedHearts($yc)) {
-            $yellHasPrintedHearts = true;
-            break;
-        }
-    }
-    if ($yellHasPrintedHearts) {
-        foreach ($liveCards as &$lc) {
-            foreach ($lc['abilities'] ?? [] as $ab) {
-                if (($ab['trigger'] ?? '') !== 'continuous') continue;
-                if (($ab['type'] ?? '') !== 'live_score_if_yell_has_hearts') continue;
-                $lc['score'] = intval($lc['score'] ?? 0) + intval($ab['amount'] ?? 1);
-            }
-        }
-        unset($lc);
     }
     if ($drawPerYellHeart && count($yellHearts) > 0) {
         $drawBonus += count($yellHearts);
