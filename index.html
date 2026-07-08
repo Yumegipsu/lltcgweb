@@ -26944,6 +26944,11 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
     TCG_DEBUG.warn('live', 'reveal sequence: opponent face-down but no flip keys', TCG_DEBUG.trans(prev, final));
     return false;
   }
+  if (flipKeys.size && liveStorageRevealDomComplete(flipKeys, myId)) {
+    markLiveStorageRevealDone(showTurn);
+    TCG_DEBUG.log('live', 'reveal sequence skip (DOM already face-up)', { showTurn, flipKeys: flipKeys.size });
+    return true;
+  }
 
   if (!opts.skipIntroBanner && liveStorageHasCards(playback) && liveRoundHasLiveCards(playback)
       && !isLiveSetPhase(final?.phase)) {
