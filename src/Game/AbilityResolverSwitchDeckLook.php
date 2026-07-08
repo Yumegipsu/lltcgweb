@@ -15,45 +15,13 @@ function tryResolveAbilityEffectSwitchDeckLook(
 ): array {
     switch ($type) {
         case 'look_reveal_named':
-            $look = intval($ab['look'] ?? 5);
-            $names = $ab['names'] ?? [];
-            $top = array_splice($p['main_deck'], 0, min($look, count($p['main_deck'])));
-            $revealed = null;
-            $rest = [];
-            foreach ($top as $c) {
-                if (!$revealed && ($c['card_type'] ?? '') === 'メンバー' && cardMatchesNames($c, $names)) {
-                    $revealed = $c;
-                    $p['hand'][] = $c;
-                } else {
-                    $rest[] = $c;
-                }
-            }
-            $p['waiting_room'] = array_merge($p['waiting_room'], $rest);
-            if ($revealed) {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] revealed ' . ($revealed['name_en'] ?? $revealed['name']) . ' from deck top.');
-                $then = $ab['then'] ?? [];
-                if (($then['type'] ?? '') === 'wait_opponent_by_revealed') {
-                    $opp = ($pid === 'p1') ? 'p2' : 'p1';
-                    $maxCost = intval($revealed['cost'] ?? 0);
-                    $maxBlade = intval($then['max_blade'] ?? 3);
-                    $waited = 0;
-                    foreach ($state['players'][$opp]['stage'] as &$mbr) {
-                        if (!$mbr) continue;
-                        if (intval($mbr['cost'] ?? 0) <= $maxCost && intval($mbr['blade'] ?? 0) <= $maxBlade) {
-                            waitMember($mbr, $state);
-                            $waited++;
-                        }
-                    }
-                    unset($mbr);
-                    if ($waited > 0) {
-                        $state = addLog($state, $state['players'][$opp]['name'] .
-                            " — $waited opponent Member(s) put into Wait.");
-                    }
-                }
-            } else {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] looked at deck top; no matching Member to add.");
+            $cfg = array_merge($ab, [
+                'filter' => 'member',
+                'optional_pick' => true,
+            ]);
+            $state = beginLookRevealPick($state, $pid, $name, $p, $cfg);
+            if (!empty($state['pending_prompt'])) {
+                return $state;
             }
             break;
 

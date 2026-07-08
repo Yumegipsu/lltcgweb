@@ -318,6 +318,13 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
             return $id ? ['card_id' => $id] : [];
         }
 
+        case 'pick_looked_deck_hand':
+            if (!empty($prompt['optional'])) {
+                return ['choice' => 'skip'];
+            }
+            $id = ($prompt['eligible_ids'] ?? [])[0] ?? null;
+            return $id ? ['card_id' => $id] : ['choice' => 'skip'];
+
         case 'pick_wr_to_hand':
         case 'pick_wr_leave_stage_add': {
             $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgFromAbility($prompt['ability'] ?? []);
@@ -580,7 +587,8 @@ function resolveOptionalDiscardPromptChoice(
                         ? "$waited opponent Stage Member" . ($waited === 1 ? '' : 's') . ' put into Wait.'
                         : 'no opponent Stage Members matched; none put into Wait.'));
             } elseif (($then['type'] ?? '') === 'look_reveal_filter'
-                || ($then['type'] ?? '') === 'look_reveal_group') {
+                || ($then['type'] ?? '') === 'look_reveal_group'
+                || ($then['type'] ?? '') === 'look_reveal_named') {
                 $state = beginLookRevealPick(
                     $state,
                     $owner,

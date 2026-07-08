@@ -2678,6 +2678,40 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $state = addLog($state, $state['players'][$owner]['name'] .
                 " — [$srcName] added $pickedN card(s) from looked deck to hand.");
             $ability = $prompt['ability'] ?? [];
+            $then = $ability['then'] ?? [];
+            if (($then['type'] ?? '') === 'wait_opponent_by_revealed' && !empty($pickIds)) {
+                $revealed = null;
+                foreach ($looked as $c) {
+                    if (in_array($c['instance_id'] ?? '', $pickIds, true)) {
+                        $revealed = $c;
+                        break;
+                    }
+                }
+                if ($revealed) {
+                    $state = addLog($state, $state['players'][$owner]['name'] .
+                        ' — [' . $srcName . '] revealed ' .
+                        ($revealed['name_en'] ?? $revealed['name']) . ' from deck top.');
+                    $opp = ($owner === 'p1') ? 'p2' : 'p1';
+                    $maxCost = intval($revealed['cost'] ?? 0);
+                    $maxBlade = intval($then['max_blade'] ?? 3);
+                    $waited = 0;
+                    foreach ($state['players'][$opp]['stage'] as &$mbr) {
+                        if (!$mbr) {
+                            continue;
+                        }
+                        if (intval($mbr['cost'] ?? 0) <= $maxCost
+                            && intval($mbr['blade'] ?? 0) <= $maxBlade) {
+                            waitMember($mbr, $state);
+                            $waited++;
+                        }
+                    }
+                    unset($mbr);
+                    if ($waited > 0) {
+                        $state = addLog($state, $state['players'][$opp]['name'] .
+                            " — $waited opponent Member(s) put into Wait.");
+                    }
+                }
+            }
             if (!empty($ability['hearts_if_group_picked']) && !empty($pickIds)) {
                 foreach ($looked as $c) {
                     if (!in_array($c['instance_id'] ?? '', $pickIds, true)) continue;

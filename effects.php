@@ -924,6 +924,10 @@ function cardMatchesLookPick(array $card, array $cfg): bool {
     if ($subunit !== '' && !cardMatchesSubunit($card, $subunit)) {
         return false;
     }
+    $names = $cfg['names'] ?? [];
+    if (!empty($names) && !cardMatchesNames($card, $names)) {
+        return false;
+    }
     return cardMatchesGroup($card, $cfg['group'] ?? '', $cfg['filter'] ?? '');
 }
 
