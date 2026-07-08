@@ -3135,6 +3135,8 @@ body.deck-card-preview #modal-card{z-index:970}
   transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none}
 .toast:empty{display:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
+body.missions-overlay-open .toast,
+body.news-overlay-open .toast{z-index:8900}
 
 #overlay-api-error{z-index:9800}
 #overlay-api-error .mbox{max-width:min(420px,92vw);width:100%;text-align:center;padding:26px 22px 20px}
