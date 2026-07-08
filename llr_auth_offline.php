@@ -38,8 +38,10 @@ function tcgRequireAuthUser(array $body = []): string {
     throw new Exception('Authentication required', 401);
 }
 
-function tcgOptionalAuthUserId(array $body = []): ?string {
-    return null;
+if (!function_exists('tcgOptionalAuthUserId')) {
+    function tcgOptionalAuthUserId(array $body = []): ?string {
+        return null;
+    }
 }
 
 function tcgAuthUserProfile(string $userId): array {
