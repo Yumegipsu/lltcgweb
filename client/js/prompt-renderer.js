@@ -568,6 +568,7 @@ global.openPickMemberReturnEnergy = function openPickMemberReturnEnergy(pr){
 }
 
 global.openHandPick = function openHandPick({hand,count,title,msg,onConfirm,onCancel,min,allowCancel=true,confirmLabel,forceConfirm=false}){
+  if (global.G?.isSpectator || (typeof global.isReplayViewing === 'function' && global.isReplayViewing())) return;
   const need=count;
   const minPick=min??count;
   const singleTap=!forceConfirm&&need===1&&minPick===1;
@@ -1421,6 +1422,16 @@ global.renderPrompt = function renderPrompt(s, myId){
   const viewerId = myId;
   const replayViewing = typeof global.isReplayViewing === 'function' && global.isReplayViewing();
   const ovl=el('overlay-prompt');
+  if (global.G?.isSpectator) {
+    ovl?.classList.remove('open');
+    hideTextAnswerPrompt();
+    hidePromptEffectText();
+    closeM('overlay-hand-pick');
+    closeM('overlay-pick');
+    closeM('overlay-heart');
+    closeM('overlay-surveil');
+    return;
+  }
   if (replayViewing && pr) {
     global.G._promptSubmitKey = null;
     if (pr.responder !== viewerId) {

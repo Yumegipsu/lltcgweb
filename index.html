@@ -1060,6 +1060,9 @@ body.tcg-spectator-mode #screen-game .echip-stack,
 body.tcg-spectator-mode #screen-game .wr-face-card{cursor:help}
 body.tcg-spectator-mode #spectate-bar,
 body.tcg-spectator-mode #spectate-bar button{pointer-events:auto}
+body.tcg-spectator-mode #sb-activatable-wrap .btn-stage-ability{
+  pointer-events:none!important;opacity:.55;cursor:default
+}
 body.tcg-replay-view-mode #screen-game .phase-action-bar{display:none!important}
 body.tcg-replay-view-mode #screen-game .mat-zone.deck-pile,
 body.tcg-replay-view-mode #screen-game .mat-baton-toggle,
@@ -7467,7 +7470,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=16"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=14"></script>
+<script src="client/js/prompt-renderer.js?v=15"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -35827,6 +35830,9 @@ function renderStageBoardPanel(s, myId) {
     } else if (G.isTutorial) {
       b.disabled = true;
       b.title = t('skill.tutorialDemo');
+    } else if (G.isSpectator) {
+      b.disabled = true;
+      b.title = t('spectate.barReadOnly');
     }
     if (stageSlot) {
       b.addEventListener('mouseenter', () => highlightStageForAbility(stageSlot));
@@ -35834,7 +35840,7 @@ function renderStageBoardPanel(s, myId) {
       b.addEventListener('focus', () => highlightStageForAbility(stageSlot));
       b.addEventListener('blur', clearStageAbilityHighlight);
     }
-    if (!G.isTutorial) {
+    if (!G.isTutorial && !G.isSpectator) {
       b.onclick = () => activateAbilityFromCard(card, idx, ability, s, myId);
     }
     item.appendChild(b);
@@ -35951,7 +35957,7 @@ function getAbilityActivationNeeds(ability, s, myId){
 }
 
 function activateAbilityFromCard(card, idx, ability, s, myId){
-  if (G.isTutorial) return;
+  if (G.isTutorial || G.isSpectator) return;
   if (hasOpenSkillPrompt(s)) {
     toast('Resolve the pending skill before using another ability.', 2800);
     return;
