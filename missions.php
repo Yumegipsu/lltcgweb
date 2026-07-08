@@ -11,6 +11,9 @@ const TCG_MISSION_DAILY_SUB_IDS = [
     'daily_use_stamp',
 ];
 
+/** JST calendar day missions launched — one-day retroactive credit for daily_open_all_boosters. */
+const TCG_MISSION_DAILY_BOOSTERS_BACKFILL_JST = '2026-07-08';
+
 /** @return list<array{id: string, type: string, reward: int, sort: int, i18n_key: string, group?: string, threshold?: int}> */
 function tcgMissionDefinitions(): array {
     return [
@@ -446,6 +449,27 @@ function tcgMissionBackfillRetroactive(string $discordId): void {
     }
 
     tcgMissionBackfillGroupWinsFromReplays($discordId);
+    tcgMissionBackfillDailyBoostersLaunchDay($discordId);
+}
+
+/**
+ * Launch-day only: if the player already exhausted today's free daily packs before missions
+ * existed, mark daily_open_all_boosters complete (claim still manual).
+ */
+function tcgMissionBackfillDailyBoostersLaunchDay(string $discordId, ?string $todayJst = null): void {
+    $todayJst = $todayJst ?? tcgTodayJst();
+    if ($todayJst !== TCG_MISSION_DAILY_BOOSTERS_BACKFILL_JST) {
+        return;
+    }
+    if (!function_exists('tcgDailyOpenAllowance')) {
+        require_once __DIR__ . '/booster.php';
+    }
+    $allow = tcgDailyOpenAllowance($discordId);
+    if (($allow['remaining'] ?? 1) > 0 || ($allow['opened_today'] ?? 0) <= 0) {
+        return;
+    }
+    tcgMissionMarkCompletedSilent($discordId, 'daily_open_all_boosters', $todayJst);
+    tcgMissionTryCompleteAllDaily($discordId);
 }
 
 function tcgMissionBackfillGroupWinsFromReplays(string $discordId): void {
