@@ -28,14 +28,16 @@ function tcgLoadAuthBootstrap(): void {
     require_once __DIR__ . '/llr_auth_offline.php';
 }
 
-function tcgOptionalAuthUserId(array $body): ?string {
-    tcgLoadAuthBootstrap();
-    $token = tcgReadAuthTokenFromRequest($body);
-    if ($token === '') {
-        return null;
+if (!function_exists('tcgOptionalAuthUserId')) {
+    function tcgOptionalAuthUserId(array $body = []): ?string {
+        tcgLoadAuthBootstrap();
+        $token = tcgReadAuthTokenFromRequest($body);
+        if ($token === '') {
+            return null;
+        }
+        $uid = tcgResolveAuthUserId($token);
+        return $uid ? (string)$uid : null;
     }
-    $uid = tcgResolveAuthUserId($token);
-    return $uid ? (string)$uid : null;
 }
 
 function tcgCasualQueueJoin(string $queueKey, array $body): array {
