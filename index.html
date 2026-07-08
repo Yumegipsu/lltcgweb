@@ -3848,6 +3848,36 @@ body.news-overlay-open .llc-sky-dim::after{
   border:1px solid rgba(255,210,120,.35);background:rgba(255,200,80,.12);
   font-family:'Libre Baskerville',serif;font-size:13px;font-weight:700;color:#fff;white-space:nowrap}
 .hub-star-gems-pill img{width:22px;height:22px;object-fit:contain;display:block;flex:0 0 auto}
+.hub-missions-pill{
+  position:relative;display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;
+  border:1px solid rgba(120,220,150,.4);background:linear-gradient(135deg,rgba(46,160,90,.35),rgba(32,120,70,.28));
+  font-family:'Libre Baskerville',serif;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;cursor:pointer}
+.hub-missions-pill:hover{border-color:rgba(150,240,180,.55);background:linear-gradient(135deg,rgba(56,180,100,.42),rgba(40,140,80,.34))}
+.hub-missions-badge{
+  position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:999px;
+  background:linear-gradient(135deg,#ff6ba8,#d63384);color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center}
+.missions-mbox{max-width:min(520px,94vw);width:100%}
+.missions-tabs{display:flex;gap:8px;justify-content:center;margin:0 0 14px}
+.missions-tab{
+  padding:6px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.2);
+  background:transparent;color:rgba(255,255,255,.85);font-size:13px;font-weight:700;cursor:pointer}
+.missions-tab.active{border-color:#5cd68a;background:rgba(70,200,120,.22)}
+.missions-list{display:flex;flex-direction:column;gap:10px;max-height:min(52vh,420px);overflow-y:auto;padding:2px 0}
+.missions-row{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06)}
+.missions-row--dim{opacity:.45}
+.missions-row-title{font-size:14px;font-weight:700;color:#fff;line-height:1.35}
+.missions-row-reward{font-size:12px;color:rgba(255,255,255,.82);margin-top:4px}
+.missions-row-actions{flex:0 0 auto}
+.missions-claim-btn{padding:6px 14px;font-size:12px}
+.missions-status-chip{font-size:11px;font-weight:700;color:rgba(255,255,255,.65);letter-spacing:.04em}
+.missions-status-chip--active{color:#8ee8b0}
+.missions-status-chip--claimed{color:rgba(255,255,255,.45)}
+.missions-loading,.missions-empty{text-align:center;color:rgba(255,255,255,.7);font-size:13px;margin:8px 0}
+.toast.toast-success{
+  background:linear-gradient(135deg,#2ea85a,#1f7a42);
+  box-shadow:0 6px 22px rgba(46,160,90,.45)}
 .star-gem-inline{display:inline-flex;align-items:center;gap:4px;vertical-align:middle}
 .star-gem-inline img{width:18px;height:18px;object-fit:contain;display:block}
 .star-gem-cost{display:inline-flex;align-items:center;gap:5px}
@@ -6169,6 +6199,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <img src="assets/Star_Gem.png" alt="" aria-hidden="true">
           <span id="hub-star-gems-count">0</span>
         </div>
+        <button class="hub-missions-pill" id="hub-missions" type="button" hidden data-i18n="hub.missions">
+          Missions
+          <span class="hub-missions-badge" id="hub-missions-badge" hidden>0</span>
+        </button>
       </div>
       <div class="hub-stat" id="hub-rank"></div>
       <div class="llc-menu-list">
@@ -6928,6 +6962,20 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
+<!-- Missions hub -->
+<div class="overlay" id="modal-missions">
+  <div class="mbox missions-mbox">
+    <button class="mcls" id="btn-missions-close" type="button">✕</button>
+    <h2 style="margin:0 0 10px;text-align:center;color:#fff" data-i18n="missions.title">Missions</h2>
+    <div class="missions-tabs">
+      <button type="button" class="missions-tab active" id="btn-missions-tab-daily" data-i18n="missions.tabDaily">Daily</button>
+      <button type="button" class="missions-tab" id="btn-missions-tab-milestone" data-i18n="missions.tabMilestone">Milestones</button>
+    </div>
+    <div class="missions-list" id="missions-list"></div>
+    <p class="lerr" id="missions-err"></p>
+  </div>
+</div>
+
 <!-- Booster pack pull rates -->
 <div class="overlay" id="modal-booster-rates">
   <div class="mbox">
@@ -7363,11 +7411,12 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=24"></script>
+<script src="i18n.js?v=25"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=7"></script>
-<script src="client/js/api-client.js?v=4"></script>
+<script src="client/js/api-client.js?v=5"></script>
+<script src="client/js/missions.js?v=1"></script>
 <script src="client/js/game-sync.js?v=9"></script>
 <script src="client/js/state-apply.js?v=16"></script>
 <script src="client/js/stamps.js?v=12"></script>
@@ -9281,6 +9330,9 @@ function enterHub(me) {
   el('hub-daily').textContent = t('hub.dailyBoosters', { remaining: d.remaining ?? 0, limit: d.limit ?? 5 })
     + (d.first_day_bonus ? t('hub.dailyWelcomeBonus') : '');
   updateStarGemsUI();
+  if (window.TCGMissions && typeof window.TCGMissions.applyProfileMissions === 'function') {
+    window.TCGMissions.applyProfileMissions(A.profile);
+  }
   if (A.profile?.dupe_migration?.migrated && !A.dupeMigrationShown) {
     A.dupeMigrationShown = true;
     showDupeMigrationDialog(A.profile.dupe_migration);
@@ -38964,10 +39016,22 @@ function toast(m, ms, asHtml=false){
   if (!text) return;
   if (!asHtml && /^error[:\s]/i.test(text)) sfxPlay('error', { volume: 0.8 });
   const t=el('toast');
+  t.classList.remove('toast-success');
   if(asHtml) t.innerHTML=m; else t.textContent=m;
   t.classList.add('show');
   clearTimeout(_tt);
   _tt=setTimeout(()=>{ t.classList.remove('show'); t.textContent=''; t.innerHTML=''; }, ms||2500);
+}
+
+function toastSuccess(m, ms, asHtml=false){
+  const text = asHtml ? String(m ?? '') : String(m ?? '').trim();
+  if (!text) return;
+  const t=el('toast');
+  t.classList.add('toast-success');
+  if(asHtml) t.innerHTML=m; else t.textContent=m;
+  t.classList.add('show');
+  clearTimeout(_tt);
+  _tt=setTimeout(()=>{ t.classList.remove('show','toast-success'); t.textContent=''; t.innerHTML=''; }, ms||2500);
 }
 
 // apiPost: client/js/api-client.js

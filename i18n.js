@@ -63,7 +63,42 @@
       "unrankedSub": "Rooms, friends, or practice vs CPU",
       "howToPlay": "How to Play",
       "howToPlaySub": "Hands-on beginner lesson with Kanon",
-      "backHub": "← Hub"
+      "backHub": "← Hub",
+      "missions": "Missions"
+    },
+    "missions": {
+      "title": "Missions",
+      "tabDaily": "Daily",
+      "tabMilestone": "Milestones",
+      "claim": "Claim",
+      "loading": "Loading missions…",
+      "empty": "No missions in this tab.",
+      "statusActive": "In progress",
+      "statusClaimed": "Claimed",
+      "statusLocked": "Locked",
+      "completeToast": "Mission complete: {title}",
+      "claimedToast": "Claimed {title} (+{reward})",
+      "daily": {
+        "openAllBoosters": "Open all daily booster packs",
+        "rankedMatch": "Play a ranked match",
+        "useStamp": "Use a stamp during a match",
+        "completeAll": "Complete all daily missions"
+      },
+      "milestone": {
+        "profileBanner": "Update your profile banner",
+        "profileStamps": "Set favorite stickers",
+        "ranked1": "Play 1 ranked match",
+        "unranked1": "Play 1 unranked match",
+        "ranked5": "Play 5 ranked matches",
+        "ranked10": "Play 10 ranked matches",
+        "ranked50": "Play 50 ranked matches",
+        "ranked100": "Play 100 ranked matches",
+        "winMuse": "Win with a μ's-only main deck",
+        "winAqours": "Win with an Aqours-only main deck",
+        "winLiella": "Win with a Liella!-only main deck",
+        "winHasunosora": "Win with a Hasunosora-only main deck",
+        "winNijigasaki": "Win with a Nijigasaki-only main deck"
+      }
     },
     "language": {
       "label": "Language",
@@ -990,7 +1025,42 @@
       "unrankedSub": "ルーム作成、フレンド対戦、CPU練習",
       "howToPlay": "遊び方",
       "howToPlaySub": "かのんと一緒に体験する初心者レッスン",
-      "backHub": "← ハブ"
+      "backHub": "← ハブ",
+      "missions": "ミッション"
+    },
+    "missions": {
+      "title": "ミッション",
+      "tabDaily": "デイリー",
+      "tabMilestone": "マイルストーン",
+      "claim": "受け取る",
+      "loading": "読み込み中…",
+      "empty": "このタブにミッションはありません。",
+      "statusActive": "進行中",
+      "statusClaimed": "受取済み",
+      "statusLocked": "ロック中",
+      "completeToast": "ミッション達成：{title}",
+      "claimedToast": "{title} を受け取りました（+{reward}）",
+      "daily": {
+        "openAllBoosters": "デイリーブースターをすべて開封",
+        "rankedMatch": "ランクマッチをプレイ",
+        "useStamp": "対戦中にスタンプを使う",
+        "completeAll": "デイリーミッションをすべて達成"
+      },
+      "milestone": {
+        "profileBanner": "プロフィールバナーを設定",
+        "profileStamps": "お気に入りスタンプを設定",
+        "ranked1": "ランクマッチを1回プレイ",
+        "unranked1": "カジュアルマッチを1回プレイ",
+        "ranked5": "ランクマッチを5回プレイ",
+        "ranked10": "ランクマッチを10回プレイ",
+        "ranked50": "ランクマッチを50回プレイ",
+        "ranked100": "ランクマッチを100回プレイ",
+        "winMuse": "μ'sのみのメインデッキで勝利",
+        "winAqours": "Aqoursのみのメインデッキで勝利",
+        "winLiella": "Liella!のみのメインデッキで勝利",
+        "winHasunosora": "蓮ノ空のみのメインデッキで勝利",
+        "winNijigasaki": "虹ヶ咲のみのメインデッキで勝利"
+      }
     },
     "language": {
       "label": "言語",
@@ -1913,7 +1983,42 @@
       "unrankedSub": "Salas, amistades o práctica contra CPU",
       "howToPlay": "Cómo jugar",
       "howToPlaySub": "Lección práctica para principiantes con Kanon",
-      "backHub": "← Hub"
+      "backHub": "← Hub",
+      "missions": "Misiones"
+    },
+    "missions": {
+      "title": "Misiones",
+      "tabDaily": "Diarias",
+      "tabMilestone": "Hitos",
+      "claim": "Reclamar",
+      "loading": "Cargando misiones…",
+      "empty": "No hay misiones en esta pestaña.",
+      "statusActive": "En progreso",
+      "statusClaimed": "Reclamada",
+      "statusLocked": "Bloqueada",
+      "completeToast": "Misión completada: {title}",
+      "claimedToast": "Reclamaste {title} (+{reward})",
+      "daily": {
+        "openAllBoosters": "Abre todos los sobres diarios",
+        "rankedMatch": "Juega una partida clasificatoria",
+        "useStamp": "Usa un sello en una partida",
+        "completeAll": "Completa todas las misiones diarias"
+      },
+      "milestone": {
+        "profileBanner": "Actualiza tu banner de perfil",
+        "profileStamps": "Configura sellos favoritos",
+        "ranked1": "Juega 1 partida clasificatoria",
+        "unranked1": "Juega 1 partida no clasificatoria",
+        "ranked5": "Juega 5 partidas clasificatorias",
+        "ranked10": "Juega 10 partidas clasificatorias",
+        "ranked50": "Juega 50 partidas clasificatorias",
+        "ranked100": "Juega 100 partidas clasificatorias",
+        "winMuse": "Gana con un mazo principal solo μ's",
+        "winAqours": "Gana con un mazo principal solo Aqours",
+        "winLiella": "Gana con un mazo principal solo Liella!",
+        "winHasunosora": "Gana con un mazo principal solo Hasunosora",
+        "winNijigasaki": "Gana con un mazo principal solo Nijigasaki"
+      }
     },
     "language": {
       "label": "Idioma",

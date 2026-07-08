@@ -258,13 +258,16 @@ function createRoom(array $body): array {
     $mainDeck   = buildDeckForRoom($cards['cards'], $resolved['main_nos'], $body, 'main_order');
     $energyDeck = buildDeckForRoom($cards['cards'], $resolved['energy_nos'], $body, 'energy_order');
 
-    $state = initGameState(
-        $roomId,
-        ['id' => 'p1', 'token' => $playerToken, 'name' => $playerName,
+    $p1Payload = ['id' => 'p1', 'token' => $playerToken, 'name' => $playerName,
          'deck_choice' => $resolved['deck_choice'], 'deck_label' => $resolved['deck_label'],
          'main_deck' => $mainDeck, 'energy_deck' => $energyDeck,
-         'deck_snapshot' => ['main_nos' => $resolved['main_nos'], 'energy_nos' => $resolved['energy_nos']]]
-    );
+         'deck_snapshot' => ['main_nos' => $resolved['main_nos'], 'energy_nos' => $resolved['energy_nos']]];
+    $authUid = tcgOptionalAuthUserId($body);
+    if ($authUid) {
+        $p1Payload['discord_id'] = $authUid;
+    }
+
+    $state = initGameState($roomId, $p1Payload);
     $state['phase_timer_cfg'] = parsePhaseTimerConfigFromBody($body);
 
     saveGame($roomId, $state);
@@ -307,11 +310,17 @@ function joinRoom(array $body): array {
     $coinFlipWinner = in_array($body['coin_flip_winner'] ?? '', ['p1', 'p2'], true)
         ? $body['coin_flip_winner'] : null;
 
-    $state = addSecondPlayer($state,
-        ['id' => 'p2', 'token' => $playerToken, 'name' => $playerName,
+    $p2Payload = ['id' => 'p2', 'token' => $playerToken, 'name' => $playerName,
          'deck_choice' => $resolved['deck_choice'], 'deck_label' => $resolved['deck_label'],
          'main_deck' => $mainDeck, 'energy_deck' => $energyDeck,
-         'deck_snapshot' => ['main_nos' => $resolved['main_nos'], 'energy_nos' => $resolved['energy_nos']]],
+         'deck_snapshot' => ['main_nos' => $resolved['main_nos'], 'energy_nos' => $resolved['energy_nos']]];
+    $authUid = tcgOptionalAuthUserId($body);
+    if ($authUid) {
+        $p2Payload['discord_id'] = $authUid;
+    }
+
+    $state = addSecondPlayer($state,
+        $p2Payload,
         $firstPlayer,
         $coinFlipWinner
     );
@@ -502,13 +511,26 @@ function handleAction(array $body): array {
             $state = flushAutoOnWaitAbilities($state);
         }
         refreshPvpPhaseTimers($state);
+        $missionCompletions = [];
         if ($prevStatus !== 'finished' && ($state['status'] ?? '') === 'finished') {
             require_once __DIR__ . '/ranked_room.php';
             tcgOnGameFinished($state);
+            require_once __DIR__ . '/missions.php';
+            $missionCompletions = tcgMissionOnGameFinished($state);
+        } elseif ($type === 'send_stamp') {
+            require_once __DIR__ . '/missions.php';
+            $discordId = tcgPlayerDiscordId($state, $playerId);
+            if ($discordId) {
+                $missionCompletions = tcgMissionOnStampSent($discordId);
+            }
         }
         saveGame($roomId, $state);
 
-        return ['ok' => true, 'seq' => $state['seq']];
+        $out = ['ok' => true, 'seq' => $state['seq']];
+        if (!empty($missionCompletions)) {
+            $out['mission_completions'] = $missionCompletions;
+        }
+        return $out;
     });
 }
 
@@ -553,6 +575,7 @@ function initPlayerState(array $p): array {
         'deck_choice'  => $p['deck_choice'],
         'deck_label'   => $p['deck_label'] ?? null,
         'deck_snapshot'=> $p['deck_snapshot'] ?? null,
+        'discord_id'   => $p['discord_id'] ?? null,
         'main_deck'    => $p['main_deck'],
         'energy_deck'  => $p['energy_deck'],
         'hand'         => [],

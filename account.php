@@ -10,7 +10,7 @@
  *   me, pick_starter, collection, booster_boxes, booster_rates, daily_status, open_booster,
  *   deck_list, deck_save, deck_delete, deck_equip, deck_equip_starter, deck_reset_starter, deck_auto_build, reset_account,
  *   ranked_join, ranked_leave, ranked_status, rank_stats, rank_banner_set, stamp_favorites_set, active_game, leave_active_game,
- *   replay_save, replay_list, replay_get, replay_start
+ *   replay_save, replay_list, replay_get, replay_start, missions_list, missions_claim
  */
 require_once __DIR__ . '/config/paths.php';
 require_once __DIR__ . '/config/cors.php';
@@ -38,6 +38,7 @@ require_once __DIR__ . '/stamps.php';
 require_once __DIR__ . '/deck_validate.php';
 require_once __DIR__ . '/matchmaking.php';
 require_once __DIR__ . '/deckgen.php';
+require_once __DIR__ . '/missions.php';
 if (!defined('TCG_API_LIB_ONLY')) {
     define('TCG_API_LIB_ONLY', true);
 }
@@ -75,6 +76,8 @@ try {
         case 'replay_list':        echo json_encode(tcgApiReplayList($body)); break;
         case 'replay_get':         echo json_encode(tcgApiReplayGet($body)); break;
         case 'replay_start':       echo json_encode(tcgApiReplayStartSaved($body)); break;
+        case 'missions_list':      echo json_encode(tcgApiMissionsList($body)); break;
+        case 'missions_claim':     echo json_encode(tcgApiMissionsClaim($body)); break;
         default:
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'Unknown action']);
@@ -132,6 +135,7 @@ function tcgApiMe(array $body): array {
         'equipped_deck_name' => $equipped ? tcgNormalizeDeckPresetName($equipped['name'] ?? '') : null,
         'equipped_loadout' => $equippedLoadout,
         'starter_options' => tcgStarterDecks(),
+        'missions' => tcgMissionSummaryForUser($uid),
     ];
 }
 
@@ -219,7 +223,11 @@ function tcgApiOpenBooster(array $body): array {
     $payment = trim(strtolower((string)($body['payment'] ?? 'daily')));
     $cards = tcgLoadCardsData();
     $result = tcgOpenBoosterPack($uid, $boxId, $cards, $payment);
-    return ['success' => true, 'open' => $result];
+    $completions = [];
+    if ($payment === 'daily') {
+        $completions = tcgMissionOnDailyBoostersExhausted($uid);
+    }
+    return tcgMissionAttachCompletions(['success' => true, 'open' => $result], $completions);
 }
 
 function tcgGetEquippedDeck(string $uid): ?array {
@@ -798,10 +806,11 @@ function tcgApiStampFavoritesSet(array $body): array {
     $encoded = json_encode($favorites);
     $db->prepare('UPDATE tcg_users SET stamp_favorites = ?, updated_at = ? WHERE discord_id = ?')
         ->execute([$encoded, $now, $uid]);
-    return [
+    $completions = tcgMissionOnStampFavoritesSet($uid, $favorites);
+    return tcgMissionAttachCompletions([
         'success' => true,
         'stamp_favorites' => $favorites,
-    ];
+    ], $completions);
 }
 
 function tcgApiRankBannerSet(array $body): array {
@@ -832,10 +841,11 @@ function tcgApiRankBannerSet(array $body): array {
         ->execute([$cardNo, json_encode($crop), $now, $uid]);
     $user['banner_card_no'] = $cardNo;
     $user['banner_crop'] = json_encode($crop);
-    return [
+    $completions = tcgMissionOnProfileBannerSet($uid);
+    return tcgMissionAttachCompletions([
         'success' => true,
         'banner' => tcgFormatUserBanner($user, $cards),
-    ];
+    ], $completions);
 }
 
 function tcgApiRankStats(array $body): array {

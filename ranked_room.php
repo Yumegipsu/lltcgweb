@@ -68,6 +68,8 @@ function tcgCreateRankedRoomPair(string $p1DiscordId, string $p2DiscordId): ?arr
         'deck_label' => $deck1['name'],
         'main_deck' => $main1,
         'energy_deck' => $energy1,
+        'discord_id' => $p1DiscordId,
+        'deck_snapshot' => ['main_nos' => $deck1['main_nos'], 'energy_nos' => $deck1['energy_nos']],
     ]);
     $state['mode'] = 'ranked';
     $state['ranked'] = [
@@ -89,6 +91,8 @@ function tcgCreateRankedRoomPair(string $p1DiscordId, string $p2DiscordId): ?arr
         'deck_label' => $deck2['name'],
         'main_deck' => $main2,
         'energy_deck' => $energy2,
+        'discord_id' => $p2DiscordId,
+        'deck_snapshot' => ['main_nos' => $deck2['main_nos'], 'energy_nos' => $deck2['energy_nos']],
     ], null);
 
     $state['phase_timer_cfg'] = ['enabled' => true, 'duration' => PHASE_TIMER_MAX];

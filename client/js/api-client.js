@@ -23,6 +23,20 @@
     }
   };
 
+  global.handleMissionCompletions = function handleMissionCompletions(res) {
+    if (!res || typeof res !== 'object') return;
+    if (Array.isArray(res.mission_completions) && res.mission_completions.length) {
+      if (global.TCGMissions && typeof global.TCGMissions.onMissionCompletions === 'function') {
+        global.TCGMissions.onMissionCompletions(res.mission_completions);
+      }
+    }
+    if (typeof res.claimable_count === 'number' && global.TCGMissions && typeof global.TCGMissions.syncHubBadge === 'function') {
+      global.TCGMissions.syncHubBadge(res.claimable_count);
+    } else if (res.missions && typeof res.missions.claimable_count === 'number' && global.TCGMissions && typeof global.TCGMissions.syncHubBadge === 'function') {
+      global.TCGMissions.syncHubBadge(res.missions.claimable_count);
+    }
+  };
+
   global.parseAccountJson = async function parseAccountJson(r) {
     let d;
     try {
@@ -37,7 +51,9 @@
     const token = global.getAuthToken();
     const q = new URLSearchParams({ action, token, ...extra });
     const r = await global.fetchWithTimeout(global.ACCOUNT_API + '?' + q);
-    return global.parseAccountJson(r);
+    const d = await global.parseAccountJson(r);
+    global.handleMissionCompletions(d);
+    return d;
   };
 
   global.accountPost = async function accountPost(action, body = {}) {
@@ -49,6 +65,7 @@
     });
     const d = await global.parseAccountJson(r);
     if (!d.success && d.error) throw new Error(d.error);
+    global.handleMissionCompletions(d);
     return d;
   };
 
@@ -128,7 +145,9 @@
       body: JSON.stringify(body),
     });
     try {
-      return await global.parseGameApiResponse(r);
+      const d = await global.parseGameApiResponse(r);
+      global.handleMissionCompletions(d);
+      return d;
     } catch (e) {
       global.reportApiError(e, { source: 'apiPost:' + action, silent: !!opts.silent });
       throw e;

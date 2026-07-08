@@ -212,6 +212,19 @@ function tcgDbMigrate(PDO $db): void {
     $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_replays_user_saved
         ON tcg_replays(discord_id, saved_at DESC)');
 
+    $db->exec('CREATE TABLE IF NOT EXISTS tcg_mission_progress (
+        discord_id TEXT NOT NULL,
+        mission_id TEXT NOT NULL,
+        period_key TEXT NOT NULL DEFAULT "",
+        completed_at INTEGER,
+        claimed_at INTEGER,
+        PRIMARY KEY (discord_id, mission_id, period_key),
+        FOREIGN KEY (discord_id) REFERENCES tcg_users(discord_id) ON DELETE CASCADE
+    )');
+
+    $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_mission_progress_user
+        ON tcg_mission_progress(discord_id)');
+
     $db->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_casual_queue_discord
         ON tcg_casual_queue(discord_id) WHERE discord_id IS NOT NULL');
 
@@ -221,6 +234,7 @@ function tcgDbMigrate(PDO $db): void {
     tcgDbEnsureColumn($db, 'tcg_users', 'ranked_equipped_starter', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'star_gems', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'dupe_gem_migration_done', 'INTEGER NOT NULL DEFAULT 0');
+    tcgDbEnsureColumn($db, 'tcg_users', 'unranked_games', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_box_progress', 'rm_pity', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_collection', 'acquired_at', 'INTEGER');
 
@@ -375,8 +389,10 @@ function tcgResetAccountProgress(string $discordId): void {
         $db->prepare('DELETE FROM tcg_collection WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('DELETE FROM tcg_deck_presets WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('DELETE FROM tcg_box_progress WHERE discord_id = ?')->execute([$discordId]);
+        $db->prepare('DELETE FROM tcg_mission_progress WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('UPDATE tcg_users SET starter_deck = NULL, banner_card_no = NULL, banner_crop = NULL,
-            stamp_favorites = NULL, star_gems = 0, dupe_gem_migration_done = 0, updated_at = ? WHERE discord_id = ?')
+            stamp_favorites = NULL, star_gems = 0, dupe_gem_migration_done = 0, unranked_games = 0,
+            updated_at = ? WHERE discord_id = ?')
             ->execute([$now, $discordId]);
         $db->prepare('UPDATE tcg_rank SET rating = 1000, wins = 0, losses = 0, draws = 0, games = 0, updated_at = ?
             WHERE discord_id = ?')->execute([$now, $discordId]);
@@ -395,6 +411,22 @@ function tcgGetStarGems(string $discordId): int {
     $stmt->execute([$discordId]);
     $val = $stmt->fetchColumn();
     return $val === false ? 0 : max(0, intval($val));
+}
+
+function tcgGetUnrankedGames(string $discordId): int {
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT unranked_games FROM tcg_users WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    $val = $stmt->fetchColumn();
+    return $val === false ? 0 : max(0, intval($val));
+}
+
+function tcgIncrementUnrankedGames(string $discordId): int {
+    $db = tcgDb();
+    $now = time();
+    $db->prepare('UPDATE tcg_users SET unranked_games = COALESCE(unranked_games, 0) + 1, updated_at = ? WHERE discord_id = ?')
+        ->execute([$now, $discordId]);
+    return tcgGetUnrankedGames($discordId);
 }
 
 function tcgAddStarGems(string $discordId, int $amount): int {
