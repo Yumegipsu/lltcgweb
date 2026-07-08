@@ -351,12 +351,7 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
         $filtered['players'][$pid]['energy_deck_count'] = count($p['energy_deck'] ?? []);
         $filtered['players'][$pid]['energy_deck'] = [];
         $filtered['players'][$pid]['token'] = '';
-        foreach ($filtered['players'][$pid]['live_zone'] as &$lc) {
-            if (!($lc['revealed'] ?? false)) {
-                $lc = ['instance_id' => $lc['instance_id'], 'revealed' => false, 'card_no' => '?'];
-            }
-        }
-        unset($lc);
+        // Broadcast view: hands are visible; live storage stays full so card art renders (not card_no '?' stubs).
     }
 
     unset($filtered['pending_prompt']);

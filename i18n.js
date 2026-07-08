@@ -968,7 +968,9 @@
       "reconnected": "Reconnected to spectating.",
       "watch": "Watch",
       "loading": "Loading…",
-      "noMatches": "No matches available to spectate."
+      "noMatches": "No matches available to spectate.",
+      "matchEnded": "Match ended — returning to lobby.",
+      "sessionEnded": "Spectator session ended."
     },
 
   },
@@ -1927,7 +1929,9 @@
       "reconnected": "観戦に再接続しました。",
       "watch": "観戦",
       "loading": "読み込み中…",
-      "noMatches": "観戦できる対戦がありません。"
+      "noMatches": "観戦できる対戦がありません。",
+      "matchEnded": "対戦が終了しました — ロビーに戻ります。",
+      "sessionEnded": "観戦セッションが終了しました。"
     },
 
   },
@@ -2888,7 +2892,9 @@
       "reconnected": "Reconectado a la transmisión.",
       "watch": "Ver",
       "loading": "Cargando…",
-      "noMatches": "No hay partidas disponibles para espectar."
+      "noMatches": "No hay partidas disponibles para espectar.",
+      "matchEnded": "La partida terminó — volviendo al lobby.",
+      "sessionEnded": "La sesión de espectador terminó."
     }
   }
 };

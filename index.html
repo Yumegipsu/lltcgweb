@@ -7467,7 +7467,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/api-client.js?v=5"></script>
 <script src="client/js/missions.js?v=3"></script>
 <script src="client/js/game-sync.js?v=9"></script>
-<script src="client/js/state-apply.js?v=16"></script>
+<script src="client/js/state-apply.js?v=17"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=15"></script>
@@ -29846,7 +29846,10 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
 
 function handleSpectatorPollError(msg) {
   if (!G.isSpectator) return false;
-  void leaveSpectatorMode({ toastMsg: msg || 'Spectator session ended.' });
+  const fallback = (global.LLTCG_I18N && typeof global.LLTCG_I18N.t === 'function')
+    ? global.LLTCG_I18N.t('spectate.sessionEnded')
+    : 'Spectator session ended.';
+  void leaveSpectatorMode({ toastMsg: msg || fallback });
   return true;
 }
 
@@ -34239,7 +34242,8 @@ function renderLiveSlots(prefix, zone, isMe, pid){
     const flipPending = !isMe && flipKeys.has(flipKey)
       && !(isLiveSetPhase(s?.phase) && liveSetPlacementInProgress(s));
     const hideOppFace = !isMe && !flipPending && shouldHideOpponentLiveStorageFaces(s);
-    const showFace = isMe || flipPending || (!hideOppFace && !!card.revealed);
+    const spectatorBroadcastFace = G.isSpectator && card.card_no && card.card_no !== '?';
+    const showFace = spectatorBroadcastFace || isMe || flipPending || (!hideOppFace && !!card.revealed);
     const doFlip = flipPending;
 
     if (existingCard?.dataset.iid === card.instance_id) {
@@ -36905,7 +36909,7 @@ function phaseTimerDeadlinePid(s, myId) {
 }
 
 function phaseTimerShouldShow(s, myId) {
-  if (G.isTutorial || !isActiveGameplay(s)) return false;
+  if (G.isSpectator || G.isTutorial || !isActiveGameplay(s)) return false;
   if (!phaseTimerEnabledOnState(s)) return false;
   return phaseTimerDeadlinePid(s, myId) != null;
 }

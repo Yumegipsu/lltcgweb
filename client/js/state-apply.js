@@ -110,6 +110,14 @@
       if (typeof tryFlushSpectacleRecovery === 'function') tryFlushSpectacleRecovery();
       return;
     }
+    if (G.isSpectator) {
+      clearPvPWatchdog();
+      G.animating = false;
+      G._livePollHold = false;
+      G._pendingStateQueue = [];
+      void applyStateUpdate(s);
+      return;
+    }
     if (s.status === 'finished') {
       clearPvPWatchdog();
       if (G.rematchWaiting && s.seq <= G.lastSeq && G.gameState?.status === 'finished') {
@@ -148,7 +156,11 @@
       G.lastSeq = s.seq;
       G.gameState = s;
       renderGame(s, { skipLog: true });
-      await leaveSpectatorMode({ toastMsg: 'Match ended.' });
+      await leaveSpectatorMode({
+        toastMsg: (global.LLTCG_I18N && typeof global.LLTCG_I18N.t === 'function')
+          ? global.LLTCG_I18N.t('spectate.matchEnded')
+          : 'Match ended.',
+      });
       return;
     }
     G.lastSeq = s.seq;
@@ -250,6 +262,16 @@
     }
     const cur = document.querySelector('.screen.active')?.id;
     if (cur !== 'screen-game') showScr('game');
+
+    if (G.isSpectator) {
+      G.lastSeq = s.seq;
+      G.gameState = s;
+      if (truncated) resyncGameLogFromState(s);
+      else catchUpGameLog(s, prev);
+      renderGame(s);
+      if (typeof global.updateSpectatorCountUI === 'function') global.updateSpectatorCountUI(s);
+      return;
+    }
 
     if (G._announceBaseline == null && isActiveGameplay(s)) {
       G._announceBaseline = prev?.log?.length ?? (s.log || []).length;
