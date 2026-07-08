@@ -7368,8 +7368,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
-<script src="client/js/game-sync.js?v=8"></script>
-<script src="client/js/state-apply.js?v=13"></script>
+<script src="client/js/game-sync.js?v=9"></script>
+<script src="client/js/state-apply.js?v=14"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=12"></script>
@@ -18764,8 +18764,17 @@ function buildLiveRevealPlayback(prev, final, myId = G.playerId) {
   if (board && (liveRoundHasLiveCards(board) || liveStorageHadFaceDownOppBluff(board, myId) || liveStorageHasCards(board))) {
     return augmentPerfSpectaclePrev(buildFaceDownLivePlayback(board, myId), final);
   }
+  const defer = G._deferPerfSpectaclePrev;
+  if (defer && (liveStorageHasCards(defer) || liveRoundHasLiveCards(defer))) {
+    return augmentPerfSpectaclePrev(buildFaceDownLivePlayback(defer, myId), final);
+  }
   if (liveRoundHasLiveCards(final) || liveStorageHadFaceDownOppBluff(final, myId) || liveStorageHasCards(final)) {
     return augmentPerfSpectaclePrev(buildFaceDownLivePlayback(final, myId), final);
+  }
+  const showTurn = inferLiveShowTurn(prev, final);
+  const synth = synthesizePerfPrevFromNext(prev, final, showTurn);
+  if (synth && (liveRoundHasLiveCards(synth) || liveStorageHasCards(synth))) {
+    return augmentPerfSpectaclePrev(buildFaceDownLivePlayback(synth, myId), final);
   }
   return null;
 }
@@ -26705,6 +26714,77 @@ function effectiveEmptyLiveRoundPrev(prev, next) {
   return prev;
 }
 
+function logHasSimultaneousLiveStorageReveal(s, showTurn) {
+  if (!s?.log || showTurn == null) return false;
+  let inTurn = 1;
+  for (const e of s.log) {
+    const t = parseTurnMarker(e.msg);
+    if (t != null) inTurn = t;
+    if (inTurn === showTurn && e.msg === 'Both players reveal Live storage simultaneously.') return true;
+  }
+  return false;
+}
+
+/** Server already resolved reveal — client missed face-down snapshot (batched poll / late join). */
+function liveStorageRevealBypassOk(prev, next, showTurn, myId = G.playerId) {
+  if (!next || showTurn == null) return false;
+  if (!liveRoundHadLivesPlayed(prev, next, showTurn)) return false;
+  const held = G._livePostRevealBoard;
+  if (held?.players && liveStorageHadFaceDownOppBluff(held, myId)) return false;
+  if (liveStorageHasCards(next) && liveStorageHadFaceDownOppBluff(next, myId)) return false;
+  if (logHasSimultaneousLiveStorageReveal(next, showTurn)) return true;
+
+  const perfPrev = buildPerfSpectaclePrev(prev, next);
+  if (!perfPrev || (!liveRoundHasLiveCards(perfPrev) && !liveStorageHasCards(perfPrev))) return false;
+  if (!logHasLivePerformanceForShowTurn(prev, next, showTurn)
+      && !newLogHasLivePerformance(prev, next)) {
+    return false;
+  }
+
+  const revealFrom = buildLiveRevealPlayback(prev, next, myId);
+  if (revealFrom && liveStorageHasCards(revealFrom) && liveStorageHadFaceDownOppBluff(revealFrom, myId)) {
+    return false;
+  }
+  return !liveStorageHasCards(next) || !liveStorageHasCards(prev)
+    || !(revealFrom && liveStorageHasCards(revealFrom));
+}
+
+/** Prev for live-round spectacle when polls batch reveal + performance into one update. */
+function effectiveLiveRoundPrev(prev, next) {
+  if (!prev || !next) return prev;
+  if (shouldPresentEmptyLiveRound(prev, next) || emptyLiveRoundPresentationPending(prev, next)) {
+    return effectiveEmptyLiveRoundPrev(prev, next);
+  }
+  const showTurn = inferLiveShowTurn(prev, next);
+  const hadLives = liveRoundHadLivesPlayed(prev, next, showTurn)
+    || roundHasLivePerformanceSignals(prev, next);
+  if (!hadLives) return prev;
+
+  const baseline = G._liveSetStorageBaseline;
+  if (baseline && liveStorageHasCards(baseline)) {
+    let merged = augmentPerfSpectaclePrev(baseline, next);
+    if (prev && liveStorageHasCards(prev)) merged = augmentPerfSpectaclePrev(merged, prev);
+    if (!liveStorageHasCards(prev) && !liveRoundHasLiveCards(prev)) return merged;
+    if (prev.seq === next.seq && !liveRoundHasLiveCards(prev) && liveRoundHasLiveCards(merged)) return merged;
+  }
+
+  const defer = G._deferPerfSpectaclePrev;
+  if (defer && (liveStorageHasCards(defer) || liveRoundHasLiveCards(defer))) {
+    return augmentPerfSpectaclePrev(defer, next);
+  }
+
+  const synth = synthesizePerfPrevFromNext(prev, next, showTurn);
+  if (synth && !liveStorageHasCards(prev) && !liveRoundHasLiveCards(prev)) return synth;
+
+  const perfPrev = buildPerfSpectaclePrev(prev, next);
+  if (perfPrev && perfPrev !== prev
+      && (liveStorageHasCards(perfPrev) || liveRoundHasLiveCards(perfPrev))
+      && !liveStorageHasCards(prev) && !liveRoundHasLiveCards(prev)) {
+    return perfPrev;
+  }
+  return prev;
+}
+
 /** Max players with live storage across prev, next, and cached live_set boards. */
 function liveStoragePlacementSides(prev, next) {
   let max = 0;
@@ -27516,33 +27596,35 @@ function shouldResetLiveStorageRevealDone(prev, next, showTurn, myId) {
 
 async function runLiveSpectacleGate(prev, s, newEntries, myId) {
   if (isLiveSetPlacementOnly(prev, s) || liveSetPlacementInProgress(s)) return false;
-  const showTurn = detectPendingLiveSpectacleTurn(prev, s);
+  const gatePrev = effectiveLiveRoundPrev(prev, s);
+  const showTurn = detectPendingLiveSpectacleTurn(gatePrev, s)
+    ?? detectPendingLiveSpectacleTurn(prev, s);
   if (showTurn == null) return false;
   if (G._liveSpectacleGateRunning) return false;
   let revealDone = liveStorageRevealDoneForTurn(showTurn);
-  if (shouldResetLiveStorageRevealDone(prev, s, showTurn, myId)) {
+  if (shouldResetLiveStorageRevealDone(gatePrev, s, showTurn, myId)) {
     G._liveStorageRevealDoneTurns?.delete(showTurn);
     revealDone = false;
     TCG_DEBUG.warn('live', 'spectacle gate: reveal-done reset — opponent storage still face-down', { showTurn });
   }
   const spectacleReady = !liveSpectacleDoneForTurn(showTurn)
-    && (liveSpectacleOwed(prev, s, showTurn) || shouldTriggerPerfSpectacle(prev, s));
+    && (liveSpectacleOwed(gatePrev, s, showTurn) || shouldTriggerPerfSpectacle(gatePrev, s));
   if (revealDone && !spectacleReady) {
-    if (liveSpectacleStillPending(prev, s, showTurn)) {
-      G._spectacleRecoveryPending = { prev, s, newEntries, myId };
+    if (liveSpectacleStillPending(gatePrev, s, showTurn)) {
+      G._spectacleRecoveryPending = { prev: gatePrev, s, newEntries, myId };
     }
     TCG_DEBUG.log('live', 'spectacle gate: reveal done, spectacle deferred', { showTurn, phase: s.phase });
     return false;
   }
   G._liveSpectacleGateRunning = true;
-  rememberPerfSpectacleBaseline(prev, s);
-  const perfPrev = buildPerfSpectaclePrev(prev, s);
+  rememberPerfSpectacleBaseline(gatePrev, s);
+  const perfPrev = buildPerfSpectaclePrev(gatePrev, s);
   if (perfPrev && showTurn != null) perfPrev.turn = showTurn;
   G.animating = true;
   try {
     holdLivePolls();
     G._postSpectacleSplashPause = false;
-    const outcome = await presentLiveRound(perfPrev ?? prev, s, myId, { newEntries, forceSpectacleTurn: showTurn });
+    const outcome = await presentLiveRound(perfPrev ?? gatePrev, s, myId, { newEntries, forceSpectacleTurn: showTurn });
     ensurePendingPromptSurfaced(s, myId);
     if (outcome.spectacle || outcome.empty) return true;
     if (outcome.reveal) markLiveStorageRevealDone(showTurn);
@@ -29365,7 +29447,11 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       }));
     }
     if (needsLiveReveal && !revealRan && !emptySkip) {
-      const revealFrom = buildLiveRevealPlayback(prev, next, myId);
+      let revealFrom = buildLiveRevealPlayback(prev, next, myId);
+      if (!revealFrom || !liveStorageHasCards(revealFrom)) {
+        const synth = synthesizePerfPrevFromNext(prev, next, showTurnForReveal);
+        if (synth) revealFrom = buildFaceDownLivePlayback(synth, myId);
+      }
       if (revealFrom && liveStorageHasCards(revealFrom)) {
         TCG_DEBUG.warn('live', 'presentLiveRound: retry reveal after playLivePhaseTransition miss');
         revealRan = await runLiveStorageRevealSequence(revealFrom, next, myId, {
@@ -29373,6 +29459,20 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
           skipIntroBanner: wantsSpectacle || emptySkip
               || perfSplashAlreadyShown(showTurnForReveal, prev, next),
         });
+      }
+      if (!revealRan && liveStorageRevealBypassOk(prev, next, showTurnForReveal, myId)) {
+        TCG_DEBUG.warn('live', 'presentLiveRound: bypass reveal (batched poll / server already revealed)', {
+          showTurn: showTurnForReveal,
+        });
+        const synthBoard = buildPerfSpectaclePrev(prev, next)
+          || synthesizePerfPrevFromNext(prev, next, showTurnForReveal);
+        if (synthBoard) {
+          G._livePostRevealBoard = deepCloneState(synthBoard);
+          G.gameState = synthBoard;
+          renderGame(synthBoard, { skipLog: true });
+        }
+        markLiveStorageRevealDone(showTurnForReveal);
+        revealRan = true;
       }
     }
 
@@ -29507,8 +29607,8 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
     await waitForBannersIdle();
     }
   } finally {
+    G._liveRoundPlaybackActive = false;
     if (!spectacleFailedOwed) {
-      G._liveRoundPlaybackActive = false;
       G._liveRoundPostSpectacleReady = false;
       clearLiveRoundTransientCaches();
     }

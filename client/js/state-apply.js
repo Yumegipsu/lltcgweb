@@ -255,7 +255,9 @@
       if (!prev) G._lastPhase = s.phase;
     }
 
-    const livePrev = effectiveEmptyLiveRoundPrev(prev, s);
+    const livePrev = (typeof effectiveLiveRoundPrev === 'function'
+      ? effectiveLiveRoundPrev(prev, s)
+      : null) ?? effectiveEmptyLiveRoundPrev(prev, s);
     const pendingSpectacleTurn = detectPendingLiveSpectacleTurn(livePrev, s)
       ?? detectPendingLiveSpectacleTurn(prev, s);
     const spectacleGateActive = pendingSpectacleTurn != null && !liveSpectacleDoneForTurn(pendingSpectacleTurn);

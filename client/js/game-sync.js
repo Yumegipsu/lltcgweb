@@ -25,6 +25,11 @@
 
   /** Match doPollLegacy gates — avoid fetching mid-animation (queues states and stacks anims). */
   global.pollPresentationBlocked = function pollPresentationBlocked() {
+    if (G._liveRoundPlaybackActive && !G.animating && !G._perfSpectacleActive && !G._liveSpectacleGateRunning) {
+      TCG_DEBUG.warn('poll', 'clear stale liveRoundPlaybackActive');
+      G._liveRoundPlaybackActive = false;
+      if (G._livePollHold && typeof releaseLivePolls === 'function') releaseLivePolls();
+    }
     return !!(G.animating || G._perfSpectacleActive || G._livePollHold
       || G._replaySeekInFlight || G._replayForwardApply);
   };
