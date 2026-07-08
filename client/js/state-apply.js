@@ -207,6 +207,7 @@
     }
     const replayForward = !!G._replayForwardApply;
     G._lastAppliedAt = Date.now();
+    G._presentationAborted = false;
     if (!replayForward) syncPromptSubmitState(s);
     if (!s?.pending_prompt) clearDeferredPromptState();
     clearStaleOpponentSkillWaitIfResolved(s, G.playerId);

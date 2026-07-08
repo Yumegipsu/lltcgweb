@@ -7369,7 +7369,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/news.js?v=7"></script>
 <script src="client/js/api-client.js?v=4"></script>
 <script src="client/js/game-sync.js?v=9"></script>
-<script src="client/js/state-apply.js?v=15"></script>
+<script src="client/js/state-apply.js?v=16"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=12"></script>
@@ -15588,6 +15588,7 @@ let G = {
   _deferPerfSpectaclePrev:null,
   _pendingStateQueue:[],
   _presentationAborted:false,
+  _logSyncInFlight:false,
   _livePollHold:false,
   _liveRoundPlaybackActive:false,
   _liveRoundPostSpectacleReady:false,
@@ -20065,8 +20066,31 @@ async function playAnimSpecFlyOnly(spec, playback, finalState, myId, delayMs, ha
   }
 }
 
+/** Baton Touch log entries pair stage→WR (outgoing) with hand→stage (incoming) for one player. */
+function isBatonPassAnimBatch(specs) {
+  if (!specs?.length || specs.length < 2) return false;
+  const outgoing = specs.filter(s => s.from === 'stage' && s.to === 'waiting_room');
+  const incoming = specs.filter(s => s.from === 'hand' && s.to === 'stage');
+  if (!outgoing.length || !incoming.length) return false;
+  return outgoing.every(o => incoming.some(i => i.pid === o.pid));
+}
+
+function batonPassAnimOrder(a, b) {
+  const rank = s => (s.from === 'stage' && s.to === 'waiting_room') ? 0
+    : (s.from === 'hand' && s.to === 'stage') ? 1 : 2;
+  return rank(a) - rank(b);
+}
+
 async function playAnimSpecBatch(specs, playback, finalState, myId) {
   if (!specs.length) return;
+  if (isBatonPassAnimBatch(specs)) {
+    const ordered = [...specs].sort(batonPassAnimOrder);
+    for (const spec of ordered) {
+      if (isPresentationSuperseded()) break;
+      await playAnimSpec(spec, playback, finalState, myId, 0);
+    }
+    return;
+  }
   const handBefore = collectHandSlotRects();
   const prevRects = collectCardRects();
   const prePlayback = deepCloneState(playback);
@@ -20657,8 +20681,10 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
   const announceFrom = G._announceBaseline ?? (prev.log || []).length;
   let logIdx = (prev.log || []).length;
 
+  G._logSyncInFlight = true;
   try {
     for (const entry of newEntries) {
+      if (isPresentationSuperseded()) break;
       if (entry.anim?.length) {
         let specs = entry.anim.filter(spec => findCardInState(final, spec.iid, spec.pid));
         if (batchEmpty) {
@@ -20691,12 +20717,24 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
       }
     }
 
-    await playTailMoveAnimations(playback, final, myId, {
-      excludeOpeningHand: openingDeal,
-      deferredDrawIids,
-    });
+    if (!isPresentationSuperseded()) {
+      await playTailMoveAnimations(playback, final, myId, {
+        excludeOpeningHand: openingDeal,
+        deferredDrawIids,
+      });
+    }
 
     const latestFinal = pickLatestStateForPlayback(final);
+    if (isPresentationSuperseded()) {
+      const snap = pickLatestStateForPlayback(latestFinal);
+      if (snap) {
+        G.gameState = snap;
+        G.lastSeq = Math.max(G.lastSeq ?? 0, snap.seq ?? 0);
+        G._prevLogLen = snap.log?.length || 0;
+        renderGame(snap, { skipHand: handLayoutUnchanged(prev, snap, G.playerId) });
+      }
+      return;
+    }
     if (G._deferredPromptState && latestFinal?.pending_prompt) {
       surfaceDeferredSkillPrompt(playback, latestFinal, myId);
     } else if (G._deferredPromptState && !latestFinal?.pending_prompt) {
@@ -20731,6 +20769,7 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
       void refreshWaitingRoomPiles(settled, myId, { clearPending: true });
     }
   } finally {
+    G._logSyncInFlight = false;
     clearDeferredPromptState();
     if (isLiveSuccessDiscardPrompt(final) || !shouldDeferHandDrawsForPrompt(final, myId)) {
       G._deferredHandDrawIids = null;
@@ -20928,18 +20967,33 @@ function releaseStuckPresentation() {
     spectacle: G._perfSpectacleActive,
     gate: G._liveSpectacleGateRunning,
     queued: G._pendingStateQueue?.length || 0,
+    logSync: G._logSyncInFlight,
   });
+  G._presentationAborted = true;
   G.animating = false;
   G._livePollHold = false;
   G._liveRoundPlaybackActive = false;
   G._liveSpectacleGateRunning = false;
   G._animHideIids = null;
   clearDeferredPromptState();
+  clearOpponentSkillWaitLogKey();
   if (G.playerId && G.gameState) {
     updateOpponentSkillWaitBanner(G.gameState, G.playerId);
     updatePhaseActionButton(G.gameState, G.playerId);
   }
   releaseLivePolls();
+  if (G._logSyncInFlight) {
+    const q = G._pendingStateQueue;
+    if (q?.length) {
+      const snap = q[q.length - 1];
+      G._pendingStateQueue = [];
+      G.gameState = snap;
+      G.lastSeq = snap.seq ?? G.lastSeq;
+      G._prevLogLen = snap.log?.length || 0;
+      renderGame(snap);
+    }
+    return;
+  }
   flushPendingState();
 }
 
