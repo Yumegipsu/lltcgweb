@@ -278,12 +278,24 @@ function wrCandidatesMatching(array $p, array $cfg): array {
 }
 
 function wrPickCfgFromAbility(array $ab): array {
-    $cfg = ['group' => $ab['group'] ?? '', 'filter' => $ab['filter'] ?? 'member'];
+    $type = $ab['type'] ?? '';
+    $liveDefaultTypes = [
+        'activated_pay_discard_add_wr_live',
+        'activated_discard_add_wr_scored_live',
+        'wait_self_discard_add_wr_live',
+        'pay_energy_add_live_zone_from_wr',
+        'discard_cost_add_live_subunit',
+    ];
+    $defaultFilter = in_array($type, $liveDefaultTypes, true) ? 'live' : 'member';
+    $cfg = ['group' => $ab['group'] ?? '', 'filter' => $ab['filter'] ?? $defaultFilter];
     if (isset($ab['max_cost'])) {
         $cfg['max_cost'] = intval($ab['max_cost']);
     }
     if (isset($ab['max_live_score'])) {
         $cfg['max_live_score'] = intval($ab['max_live_score']);
+    }
+    if (isset($ab['min_score'])) {
+        $cfg['min_score'] = intval($ab['min_score']);
     }
     if (isset($ab['min_required_hearts'])) {
         $cfg['min_required_hearts'] = intval($ab['min_required_hearts']);
