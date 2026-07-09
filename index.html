@@ -7468,10 +7468,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/api-client.js?v=6"></script>
 <script src="client/js/missions.js?v=3"></script>
 <script src="client/js/game-sync.js?v=9"></script>
-<script src="client/js/state-apply.js?v=17"></script>
+<script src="client/js/state-apply.js?v=18"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=15"></script>
+<script src="client/js/prompt-renderer.js?v=16"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -20714,6 +20714,23 @@ function logSyncPlaybackFromPrev(prev, final) {
   return playback;
 }
 
+/** Skip hand→live log anims when optimistic/baseline placement already matches final board. */
+function shouldSkipLogSyncLivePlacementAnim(final, spec) {
+  if (!spec?.iid || spec.from !== 'hand' || spec.to !== 'live') return false;
+  const pid = spec.pid;
+  if (!pid || !final?.players?.[pid]) return false;
+  const zone = final.players[pid].live_zone || [];
+  const idx = zone.findIndex(c => c?.instance_id === spec.iid);
+  if (idx < 0) return false;
+  if (spec.slot != null) return liveZoneSlot(zone[idx], idx) === spec.slot;
+  return true;
+}
+
+function filterLogSyncAnimSpecs(specs, final) {
+  if (!specs?.length) return specs;
+  return specs.filter(spec => !shouldSkipLogSyncLivePlacementAnim(final, spec));
+}
+
 async function playLogSyncedSequence(prev, final, newEntries, myId) {
   if (logWasTruncated(prev, final)) resyncGameLogFromState(final);
   const batchEmpty = batchHasEmptyLiveSkipEntries(newEntries);
@@ -20789,6 +20806,7 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
       if (isPresentationSuperseded()) break;
       if (entry.anim?.length) {
         let specs = entry.anim.filter(spec => findCardInState(final, spec.iid, spec.pid));
+        specs = filterLogSyncAnimSpecs(specs, final);
         if (batchEmpty) {
           specs = specs.filter(spec => !(spec.from === 'live' && spec.to === 'waiting_room'));
         }
@@ -29423,6 +29441,11 @@ function shouldDeferPromptForLivePresentation(s, myId) {
   if (shouldDeferLiveSuccessDiscardUi(s, myId)) return true;
   const pr = s?.pending_prompt;
   if (!pr || pr.responder !== myId) return false;
+  if (pr.type === 'pick_judge_success_live' && s.phase === 'live_judge'
+      && !G._perfSpectacleActive && !G._liveSpectacleGateRunning
+      && !G._liveRoundPlaybackActive && !G.animating) {
+    return false;
+  }
   if (isMidSpectacleYellRetryPrompt(s)) return true;
   if (G._liveRoundPlaybackActive && !G._liveRoundPostSpectacleReady) {
     if (s.phase === 'live_start_effects') return false;
@@ -30165,6 +30188,10 @@ function shouldHoldStateForLocalPrompt(incoming) {
     return false;
   }
   if (inPr.type !== pr.type) return true;
+  const inSrc = inPr.source_id || inPr.card_instance_id || inPr.source_instance_id || '';
+  const curSrc = pr.source_id || pr.card_instance_id || pr.source_instance_id || '';
+  if (inSrc !== curSrc) return true;
+  if ((inPr.ability_index ?? '') !== (pr.ability_index ?? '')) return true;
   if (incoming.phase !== cur.phase) return true;
   if (incoming.active_player !== cur.active_player) return true;
   return false;
@@ -30207,7 +30234,9 @@ function ensurePendingPromptSurfaced(s, myId) {
     return;
   }
   if (typeof isPromptSubmitting === 'function' && isPromptSubmitting(s)) return;
-  const surfKey = `${s.seq}:${pr.type}:${pr.step || ''}:${pr.card_instance_id || pr.source_instance_id || ''}`;
+  const surfKey = typeof promptIdentityKey === 'function'
+    ? promptIdentityKey(s)
+    : `${s.seq}:${pr.type}:${pr.step || ''}:${pr.card_instance_id || pr.source_instance_id || pr.source_id || ''}:${pr.ability_index ?? ''}`;
   if (G._lastSurfacedPromptKey === surfKey && (
     el('overlay-prompt')?.classList.contains('open')
     || el('overlay-hand-pick')?.classList.contains('open')

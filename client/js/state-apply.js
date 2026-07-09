@@ -316,6 +316,26 @@
             && shouldDeferPromptForLivePresentation(s, G.playerId),
         });
       }
+      if (!replayForward && !G.animating && !G._liveSpectacleGateRunning
+          && typeof shouldRecoverMissedLiveSpectacle === 'function'
+          && shouldRecoverMissedLiveSpectacle(livePrev ?? prev, s)) {
+        G.animating = true;
+        try {
+          await runLiveSpectacleGate(livePrev ?? prev, s, newEntries, G.playerId);
+        } finally {
+          G.animating = false;
+          releaseLivePollsAndFlush();
+        }
+        const live = G.gameState || s;
+        if (live.pending_prompt?.responder === G.playerId) {
+          ensurePendingPromptSurfaced(live, G.playerId);
+        }
+        if (!replayForward && G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) {
+          doCPU(live);
+          armWatchdog(live);
+        }
+        return;
+      }
       const live = G.gameState || s;
       if (!replayForward && live.pending_prompt?.responder === G.playerId) {
         ensurePendingPromptSurfaced(live, G.playerId);

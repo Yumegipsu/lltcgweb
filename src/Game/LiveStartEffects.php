@@ -219,6 +219,39 @@ function liveStartOptionalPromptText(array $ab): string {
     return $ab['prompt'] ?? 'Use optional Live Start effect?';
 }
 
+function liveStartOptionalResolvedKey(string $owner, string $sourceId, int $abilityIndex): string {
+    return $owner . ':' . $sourceId . ':' . $abilityIndex;
+}
+
+function isLiveStartOptionalResolved(array $state, array $item): bool {
+    $resolved = $state['live_start_optional_resolved'] ?? [];
+    if (!is_array($resolved)) {
+        return false;
+    }
+    $key = liveStartOptionalResolvedKey(
+        $item['owner'] ?? '',
+        $item['source_id'] ?? '',
+        intval($item['ability_index'] ?? 0)
+    );
+    return in_array($key, $resolved, true);
+}
+
+function markLiveStartOptionalResolved(array $state, string $owner, string $sourceId, int $abilityIndex): array {
+    if ($sourceId === '') {
+        return $state;
+    }
+    $key = liveStartOptionalResolvedKey($owner, $sourceId, $abilityIndex);
+    $resolved = $state['live_start_optional_resolved'] ?? [];
+    if (!is_array($resolved)) {
+        $resolved = [];
+    }
+    if (!in_array($key, $resolved, true)) {
+        $resolved[] = $key;
+    }
+    $state['live_start_optional_resolved'] = $resolved;
+    return $state;
+}
+
 function buildOptionalLiveStartPrompt(array $state, array $item): array {
     $ab = $item['ability'];
     $owner = $item['owner'];
@@ -254,6 +287,14 @@ function buildOptionalLiveStartPrompt(array $state, array $item): array {
         'needs_pay'     => ($ab['type'] ?? '') === 'optional_pay_energy',
         'pay_cost'      => intval($ab['cost'] ?? 0),
     ];
+    $queueLeft = count($state['live_start_optional_queue'] ?? []);
+    $totalOptional = $queueLeft + 1;
+    if ($totalOptional > 1) {
+        $prompt['queue_total'] = $totalOptional;
+        $prompt['queue_remaining'] = $queueLeft;
+        $prompt['prompt'] .= ' (' . ($totalOptional - $queueLeft) . ' of ' . $totalOptional
+            . ' optional Live Start effects.)';
+    }
     return enrichSelfActivationPrompt($state, $prompt);
 }
 
@@ -268,6 +309,10 @@ function finishLiveStartEffects(array $state, bool $advancePerformance = true): 
     $queue = $state['live_start_optional_queue'] ?? [];
     while (!empty($queue)) {
         $item = array_shift($queue);
+        if (isLiveStartOptionalResolved($state, $item)) {
+            $state['live_start_optional_queue'] = $queue;
+            continue;
+        }
         $ownerP = $state['players'][$item['owner']] ?? null;
         $srcId = $item['source_id'] ?? '';
         $source = $ownerP ? findLiveStartSourceCard($state, $item['owner'], $srcId) : null;
@@ -282,6 +327,7 @@ function finishLiveStartEffects(array $state, bool $advancePerformance = true): 
         return $state;
     }
     unset($state['live_start_optional_queue']);
+    unset($state['live_start_optional_resolved']);
     if (($state['phase'] ?? '') === 'live_start_effects' && $advancePerformance && empty($GLOBALS['TUT_PERF_MANUAL_PHASES'])) {
         $state['phase'] = 'live_performance_first';
         $state = addLog($state, '=== Live Show ===');

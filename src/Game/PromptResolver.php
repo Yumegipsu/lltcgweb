@@ -270,6 +270,12 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         if (!isset(['yes' => true, 'no' => true][$choice])) {
             throw new Exception('Invalid choice');
         }
+        $state = markLiveStartOptionalResolved(
+            $state,
+            $owner,
+            $prompt['source_id'] ?? '',
+            intval($prompt['ability_index'] ?? 0)
+        );
         if ($choice === 'yes') {
             $ab = $prompt['ability'] ?? [];
             $need = intval($prompt['discard_count'] ?? $ab['discard'] ?? 0);

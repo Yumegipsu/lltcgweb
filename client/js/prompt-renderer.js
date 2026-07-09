@@ -9,10 +9,16 @@
     return i18n && typeof i18n.t === 'function' ? i18n.t(key, vars) : key;
   }
 
-  global.promptSubmitKey = function promptSubmitKey(s) {
+  global.promptIdentityKey = function promptIdentityKey(s) {
     const pr = s?.pending_prompt;
     if (!pr || !s) return null;
-    return `${s.seq}:${pr.type}:${pr.step ?? ''}:${pr.responder ?? ''}`;
+    const src = pr.source_id || pr.card_instance_id || pr.source_instance_id || '';
+    const abIdx = pr.ability_index ?? '';
+    return `${s.seq}:${pr.type}:${pr.step ?? ''}:${pr.responder ?? ''}:${src}:${abIdx}`;
+  };
+
+  global.promptSubmitKey = function promptSubmitKey(s) {
+    return global.promptIdentityKey(s);
   };
 
   global.markPromptSubmitting = function markPromptSubmitting(s) {
@@ -23,11 +29,16 @@
     const pr = s?.pending_prompt;
     if (!pr) {
       global.G._promptSubmitKey = null;
+      global.G._lastSurfacedPromptKey = null;
       if (global.G._deferredPromptState?.pending_prompt) global.clearDeferredPromptState();
       return;
     }
+    const idKey = global.promptIdentityKey(s);
     if (!global.G._promptSubmitKey) return;
-    if (global.promptSubmitKey(s) !== global.G._promptSubmitKey) global.G._promptSubmitKey = null;
+    if (idKey !== global.G._promptSubmitKey) {
+      global.G._promptSubmitKey = null;
+      global.G._lastSurfacedPromptKey = null;
+    }
   };
 
   global.isPromptSubmitting = function isPromptSubmitting(s) {
@@ -1164,6 +1175,7 @@ function hidePromptEffectText(){
 global.sendResolvePrompt = function sendResolvePrompt(choice, extra={}){
   if (isReplayPromptReadOnlyState(G.gameState)) return;
   markPromptSubmitting(G.gameState);
+  G._lastSurfacedPromptKey = null;
   sendAct('resolve_prompt',{choice,...extra});
 }
 
