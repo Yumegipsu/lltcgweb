@@ -381,7 +381,9 @@
         moves = moves.filter(m => !openingIds.has(m.iid));
       }
       G._animHideIids = prev && moves.length ? animHideIidsForMoves(prev, moves) : null;
-      G._liveRevealFlips = prev ? collectLiveRevealFlips(prev, s) : new Set();
+      G._liveRevealFlips = prev && typeof resolveLiveRevealFlipKeys === 'function'
+        ? resolveLiveRevealFlipKeys(prev, s, G.playerId)
+        : new Set();
       rememberPerfSpectacleBaseline(prev, s);
       const livePlan = liveRoundPresentationPlan(livePrev, s);
       const emptySkip = !liveSetPlacementInProgress(s)

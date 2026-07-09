@@ -7468,7 +7468,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/api-client.js?v=6"></script>
 <script src="client/js/missions.js?v=3"></script>
 <script src="client/js/game-sync.js?v=9"></script>
-<script src="client/js/state-apply.js?v=18"></script>
+<script src="client/js/state-apply.js?v=19"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=16"></script>
@@ -26815,6 +26815,63 @@ function collectLiveRevealFlips(prev, next, myId = G.playerId) {
   return keys;
 }
 
+/** True when opponent live-storage flip CSS should run for this transition. */
+function shouldScheduleLiveStorageFlips(prev, next, myId = G.playerId) {
+  if (!prev || !next) return false;
+  if (G._liveRoundPlaybackActive && G._liveRevealFlips?.size) return true;
+  if (liveSetPlacementInProgress(next)) return false;
+  const flipKeys = collectLiveRevealFlips(prev, next, myId);
+  if (!flipKeys.size) return false;
+  const showTurn = inferLiveShowTurn(prev, next);
+  if (showTurn != null && liveStorageRevealDoneForTurn(showTurn)) {
+    if (!shouldResetLiveStorageRevealDone(prev, next, showTurn, myId)) return false;
+    if (liveStorageRevealDomComplete(flipKeys, myId)) return false;
+  }
+  if (isMainOrActivePhase(prev.phase) && isMainOrActivePhase(next.phase)) {
+    if (shouldIgnoreStaleLivePerfSignals(prev, next)) return false;
+    const oppId = myId === 'p1' ? 'p2' : 'p1';
+    let allRevealed = true;
+    for (const key of flipKeys) {
+      if (!String(key).startsWith(`${oppId}:`)) continue;
+      const iid = String(key).slice(oppId.length + 1);
+      const card = findCardInState(next, iid, oppId);
+      if (!card?.revealed) { allRevealed = false; break; }
+    }
+    if (allRevealed) return false;
+  }
+  if (isMainOrActivePhase(next.phase) && !isLeavingLiveSetPhase(prev, next)
+      && !isLiveSpectaclePipelinePhase(prev.phase)
+      && detectPendingLiveSpectacleTurn(prev, next) == null) {
+    return false;
+  }
+  return shouldRunLiveRevealSequence(prev, next);
+}
+
+function resolveLiveRevealFlipKeys(prev, next, myId = G.playerId) {
+  return shouldScheduleLiveStorageFlips(prev, next, myId)
+    ? collectLiveRevealFlips(prev, next, myId)
+    : new Set();
+}
+
+/** Drop stale flip keys during stable main-phase renders (defense in depth). */
+function liveStorageFlipKeysForRender(s, rawKeys, myId = G.playerId) {
+  if (!rawKeys?.size) return rawKeys || new Set();
+  if (G._liveRoundPlaybackActive || G._liveStorageOutcomePending || G._livePostRevealBoard) return rawKeys;
+  if (!isMainOrActivePhase(s?.phase)) return rawKeys;
+  const showTurn = s?.turn;
+  if (showTurn != null && liveStorageRevealDoneForTurn(showTurn)) return new Set();
+  const oppId = myId === 'p1' ? 'p2' : 'p1';
+  const filtered = new Set();
+  for (const key of rawKeys) {
+    if (!String(key).startsWith(`${oppId}:`)) continue;
+    const iid = String(key).slice(oppId.length + 1);
+    const card = findCardInState(s, iid, oppId);
+    if (card?.revealed) continue;
+    filtered.add(key);
+  }
+  return filtered;
+}
+
 function liveStorageHadFaceDownOppBluff(prev, myId = G.playerId) {
   if (!prev?.players) return false;
   const oppId = myId === 'p1' ? 'p2' : 'p1';
@@ -27801,11 +27858,31 @@ function shouldIgnoreStaleLivePerfSignals(prev, next) {
   return isMainOrActivePhase(prev?.phase) && isMainOrActivePhase(next?.phase);
 }
 
+function clearStaleLiveStorageFlipState(prev, next) {
+  if (!next || G._liveRoundPlaybackActive || G._perfSpectacleActive || G._liveSpectacleGateRunning) return;
+  if (!isMainOrActivePhase(next.phase)) return;
+  if (detectPendingLiveSpectacleTurn(prev, next) != null) return;
+  if (G._liveStorageOutcomePending || G._livePostRevealBoard) return;
+  const showTurn = inferLiveShowTurn(prev, next);
+  if (showTurn != null && liveStorageRevealDoneForTurn(showTurn)) {
+    G._liveRevealFlips = new Set();
+    G._liveFlipScheduled = new Set();
+    G._liveSetStorageBaseline = null;
+  }
+  if (shouldIgnoreStaleLivePerfSignals(prev, next)) {
+    G._liveRevealFlips = new Set();
+    G._liveFlipScheduled = new Set();
+    G._deferPerfSpectaclePrev = null;
+    if (!G._livePostRevealBoard) G._liveSetStorageBaseline = null;
+  }
+}
+
 function clearStalePerfDeferState(prev, next) {
   if (!next || G._perfSpectacleActive || G._liveSpectacleGateRunning) return;
   if (!isMainOrActivePhase(next.phase)) return;
   if (detectPendingLiveSpectacleTurn(prev, next) != null) return;
   G._deferPerfSpectaclePrev = null;
+  clearStaleLiveStorageFlipState(prev, next);
 }
 
 // --- LIVE round presentation / Performance spectacle ---------------------------
@@ -30349,6 +30426,15 @@ function cardYellBladeHeartColors(card) {
   return colors;
 }
 
+/** Ordered yell blade-heart rows for spectacle icons + fly anims (card order, no pool grouping). */
+function cardYellBladeHeartEntries(card, opts = {}) {
+  const yellWildcard = !!opts.yellWildcard;
+  return cardYellBladeHeartColors(card).map(raw => ({
+    raw,
+    display: yellWildcard ? 'any' : bladeHeartDisplayColor(raw),
+  }));
+}
+
 function cardYellDrawIconCount(card) {
   let n = 0;
   (card?.blade_hearts || []).forEach(bh => {
@@ -30528,7 +30614,7 @@ function resolveAllBladeHeartColorForPool(pool, liveCards) {
 }
 
 function resolveYellBladeHeartColor(color, ctx, pid, opts = {}) {
-  const raw = color || 'any';
+  const raw = String(color || 'any').toLowerCase();
   const pool = opts.extraOwned
     ? opts.extraOwned
     : buildHeartPoolFromRows(perfStageHeartsForPlayer(ctx, pid));
@@ -30544,18 +30630,16 @@ function resolveYellBladeHeartColor(color, ctx, pid, opts = {}) {
 }
 
 function perfMarkYellBladeHearts(chip, card, opts = {}) {
-  const colors = cardYellBladeHeartColors(card);
-  if (!colors.length) return null;
+  const entries = cardYellBladeHeartEntries(card, opts);
+  if (!entries.length) return null;
   chip.querySelector('.perf-yell-blade-hearts')?.remove();
   const wrap = document.createElement('div');
   wrap.className = 'perf-yell-blade-hearts';
-  const displayColors = opts.yellWildcard
-    ? colors.map(() => 'any')
-    : colors;
-  sortHeartsByDisplayOrder(groupHeartsByColor(displayColors.map(c => ({ color: c, count: 1 }))))
-    .forEach(h => {
-      for (let i = 0; i < (h.count || 1); i++) wrap.appendChild(mkBladeHeartIcon(h.color));
-    });
+  entries.forEach(({ raw, display }) => {
+    const icon = mkBladeHeartIcon(display);
+    icon.dataset.yellBladeRaw = raw;
+    wrap.appendChild(icon);
+  });
   chip.appendChild(wrap);
   return wrap;
 }
@@ -30757,8 +30841,9 @@ async function perfFlyMemberHeartToPanel(fromEl, heartsEl, color, opts = {}) {
 
 async function perfFlyBladeHeartToPanel(fromEl, heartsEl, color, chip, displayColor = null, opts = {}) {
   const pace = opts.pace ?? 1;
-  if (!fromEl || !heartsEl || G._perfSpectacleAborted) return;
+  if (!heartsEl || G._perfSpectacleAborted) return;
   const layer = el('perf-spectacle');
+  if (!layer) return;
   const origin = perfYellBladeHeartOrigin(fromEl, chip);
   if (!origin) return;
   const sx = origin.x;
@@ -30779,8 +30864,8 @@ async function perfFlyBladeHeartToPanel(fromEl, heartsEl, color, chip, displayCo
   const heartFadeDur = Math.max(0.08, 0.1 * pace);
   fly.style.transition = `transform ${heartFlyDur}s ease-out, opacity ${heartFadeDur}s ease`;
   layer.appendChild(fly);
-  const bladeWrap = fromEl.closest?.('.perf-yell-blade-hearts');
-  fromEl.remove();
+  const bladeWrap = fromEl?.closest?.('.perf-yell-blade-hearts');
+  fromEl?.remove?.();
   sfxPlayCard('hearts_gain', { volume: 0.34 });
   await perfSleepYell(40, pace);
   if (G._perfSpectacleAborted) { fly.remove(); return; }
@@ -32222,31 +32307,29 @@ async function perfAnimateYellSide(ctx, pid) {
       perfBumpYellDrawPending(deckEl, pid, drawIcons, { animate: true });
       await perfSleepYell(120, cardPace);
     }
-    const colors = card ? cardYellBladeHeartColors(card) : [];
-    if (colors.length) {
+    const bladeEntries = card ? cardYellBladeHeartEntries(card, { yellWildcard }) : [];
+    if (bladeEntries.length) {
       const bladeWrap = perfMarkYellBladeHearts(chip, card, { yellWildcard });
-      const icons = bladeWrap ? [...bladeWrap.querySelectorAll('.hicon')] : [];
-      for (let j = 0; j < colors.length; j++) {
+      const icons = bladeWrap ? [...bladeWrap.querySelectorAll('.hicon.bheart')] : [];
+      for (let j = 0; j < bladeEntries.length; j++) {
         if (G._perfSpectacleAborted) return;
-        const heartPace = cardPace * (1 - (j / Math.max(1, colors.length)) * 0.22);
-        const icon = icons[j];
-        const rawColor = colors[j];
+        const heartPace = cardPace * (1 - (j / Math.max(1, bladeEntries.length)) * 0.22);
+        const { raw: rawColor } = bladeEntries[j];
+        const icon = icons[j] || null;
         const resolved = resolveYellBladeHeartColor(rawColor, ctx, pid, {
           extraOwned: ownedPool,
           yellWildcard,
           liveCards,
         });
         ownedPool.push(normalizeHeartColor(resolved));
-        if (icon) {
-          await perfFlyBladeHeartToPanel(icon, heartsEl, resolved, chip, rawColor, {
-            flyResolvedColor: yellWildcard,
-            pace: heartPace,
-          });
-        }
+        await perfFlyBladeHeartToPanel(icon, heartsEl, resolved, chip, rawColor, {
+          flyResolvedColor: yellWildcard,
+          pace: heartPace,
+        });
       }
     }
     layoutPerfYellRail(yellRail);
-    await perfSleepYell(colors.length ? 80 : 180, cardPace);
+    await perfSleepYell(bladeEntries.length ? 80 : 180, cardPace);
   }
   const tailPace = perfYellPaceScale(totalBlade, yellCards.length, yellSteps);
   while (remaining > 0) {
@@ -34248,7 +34331,7 @@ function renderSuccessLives(id, succs) {
 
 function renderLiveSlots(prefix, zone, isMe, pid){
   const isOpp = prefix === 'opp';
-  const flipKeys = G._liveRevealFlips || new Set();
+  const flipKeys = liveStorageFlipKeysForRender(G.gameState, G._liveRevealFlips || new Set());
   const s = G.gameState;
   const myId = G.playerId;
   const stagePreview = isMe && liveStorageUsesBaseScorePreview(s);
@@ -38552,7 +38635,7 @@ async function playTutorialTransition(fromState, toState, forward) {
   let animFrom = (leavingPerf && prevStep?.state)
     ? prepareTutorialState(prevStep.state)
     : fromState;
-  G._liveRevealFlips = collectLiveRevealFlips(animFrom, toState);
+  G._liveRevealFlips = resolveLiveRevealFlipKeys(animFrom, toState);
 
   G.gameState = animFrom;
   const skipOppHand = G.isTutorial && handLayoutUnchanged(animFrom, toState, oppId);
