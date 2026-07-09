@@ -328,7 +328,12 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
 
         case 'pick_wr_to_hand':
         case 'pick_wr_leave_stage_add': {
-            $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgFromAbility($prompt['ability'] ?? []);
+            $ability = $prompt['ability'] ?? [];
+            $cfg = $prompt['wr_pick_cfg'] ?? (
+                ($prompt['type'] ?? '') === 'pick_wr_leave_stage_add'
+                    ? wrPickCfgForLeaveStageAbility($ability)
+                    : wrPickCfgFromAbility($ability)
+            );
             $filter = (string)($cfg['filter'] ?? 'member');
             $cands = $prompt['candidates'] ?? [];
             $pool = $cands;

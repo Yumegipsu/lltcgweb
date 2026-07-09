@@ -281,9 +281,9 @@ global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
   const s = opts.state || G.gameState;
   const myId = opts.myId || G.playerId;
   const cfg = wrPickCfgFromPrompt(pr);
-  let cards = wrToHandPickCards(pr, s, myId);
+  let cards = wrToHandPickCards(pr, s, myId).filter(c => cardMatchesWrPickClient(c, cfg));
   if (!cards.length && (pr.candidates || []).length) {
-    cards = (pr.candidates || []).map(c => enrichCard(c)).filter(c => c?.instance_id);
+    cards = (pr.candidates || []).map(c => enrichCard(c)).filter(c => c?.instance_id && cardMatchesWrPickClient(c, cfg));
   }
   if (!cards.length) {
     const fallbackId = pr.candidates?.[0]?.instance_id;
@@ -1655,7 +1655,7 @@ global.renderPrompt = function renderPrompt(s, myId){
   }
   if((pr?.type==='pick_wr_to_hand'||pr?.type==='pick_wr_leave_stage_add')&&pr.responder===myId){
     ovl.classList.remove('open');
-    const filter=pr.ability?.filter||pr.wr_pick_cfg?.filter||(pr.type==='pick_wr_leave_stage_add'?'member':'live');
+    const filter = wrPickCfgFromPrompt(pr).filter;
     const pickOpts = { state: s, myId };
     if(filter==='live') openWrLivePick(pr, pickOpts);
     else openActivateWrMemberPick(pr, pickOpts);

@@ -1354,15 +1354,26 @@ function waitOpponentActiveMembers(array &$state, string $oppId, int $count, ?st
 
 /** Yell score icons / yell-Live counts only apply during the current Performance round. */
 function isLiveScoreYellContext(array $state): bool {
-    if (function_exists('isInPerformancePhase')) {
-        return isInPerformancePhase($state);
+    if (function_exists('isInPerformancePhase') && isInPerformancePhase($state)) {
+        return true;
     }
-    return in_array($state['phase'] ?? '', [
+    if (in_array($state['phase'] ?? '', [
         'live_performance_first',
         'live_performance_second',
         'live_success_effects',
         'live_judge',
-    ], true);
+    ], true)) {
+        return true;
+    }
+    // Main-phase carryover: judge bonuses still apply until the next Performance begins.
+    if (in_array($state['phase'] ?? '', [
+        'main_first', 'main_second', 'active_first', 'active_second',
+    ], true)) {
+        return !empty($state['_live_round_success_snapshot'])
+            || !empty($state['_yell_reveal_snapshot'])
+            || !empty($state['_yell_blade_snapshot']);
+    }
+    return false;
 }
 
 function bumpLiveCardScore(array &$state, string $pid, string $instanceId, int $amount): bool {

@@ -3427,6 +3427,12 @@ body.perf-spectacle-active #center-banner.show{z-index:8750}
   aspect-ratio:88/63;flex:0 0 auto;
 }
 .perf-card.member{width:var(--perf-member-w,clamp(100px,16vw,136px));aspect-ratio:63/88}
+.perf-card.member .perf-member-blade{
+  position:absolute;bottom:4px;right:4px;display:flex;align-items:center;gap:2px;
+  background:rgba(0,0,0,.72);border-radius:6px;padding:2px 5px;font-size:11px;font-weight:700;color:#fff;
+  pointer-events:none;z-index:2;
+}
+.perf-card.member .perf-member-blade .bicon.sm{width:14px;height:14px}
 .perf-stage-row.perf-stage-multi .perf-card.member{
   width:var(--perf-stage-member-w, var(--perf-member-w, clamp(100px,16vw,136px)));
   height:var(--perf-stage-member-h, auto);
@@ -7471,7 +7477,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=19"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=17"></script>
+<script src="client/js/prompt-renderer.js?v=18"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -24531,9 +24537,9 @@ function cpuResolvePromptBody(s, cpu, pr) {
     return;
   }
   if(pr.type==='pick_wr_to_hand'||pr.type==='pick_wr_leave_stage_add'){
-    const cands=pr.candidates||[];
-    const lives=cands.filter(c=>(c.card_type||'')==='ライブ'||c.card_type_en==='Live');
-    const pick=cpuPickBestCandidate(lives.length?lives:cands,cpu,hand,tier,read);
+    const cfg = wrPickCfgFromPrompt(pr);
+    const cands = (pr.candidates || []).filter(c => cardMatchesWrPickClient(c, cfg));
+    const pick = cpuPickBestCandidate(cands, cpu, hand, tier, read);
     if(pick?.instance_id) cpuAct('resolve_prompt',{card_id:pick.instance_id});
     return;
   }
@@ -30414,6 +30420,18 @@ function perfCardEl(card, kind) {
   if (c.instance_id) d.dataset.iid = c.instance_id;
   if (liveSlot && !isLiveCard(c)) appendLiveStorageMemberFace(d, c);
   else appendCardFace(d, c, { sideways: false });
+  if (!liveSlot) {
+    const blade = (Number(c.blade) || 0) + (Number(c.live_blade_bonus) || 0);
+    if (blade > 0) {
+      const badge = document.createElement('div');
+      badge.className = 'perf-member-blade';
+      badge.appendChild(mkGameIcon('icon_blade.png', 'bicon sm', 'Blade'));
+      const num = document.createElement('span');
+      num.textContent = String(blade);
+      badge.appendChild(num);
+      d.appendChild(badge);
+    }
+  }
   return d;
 }
 
@@ -31459,12 +31477,30 @@ function perfCardSuccessScore(attempts) {
   }, 0);
 }
 
+/** True when Yell-dependent Live Score bonuses should still apply (Performance or post-Live carryover). */
+function perfHasYellJudgeContext(s) {
+  if (['live_performance_first', 'live_performance_second', 'live_success_effects', 'live_judge'].includes(s?.phase)) {
+    return true;
+  }
+  return !!(s?._live_round_success_snapshot || s?._yell_reveal_snapshot || s?._yell_blade_snapshot);
+}
+
+function liveCardsHaveDrawPerYellDraw(liveCards) {
+  return (liveCards || []).some(c => {
+    const card = enrichCard(c);
+    return (card.abilities || []).some(ab =>
+      (ab.trigger || '') === 'continuous' && ab.type === 'draw_per_yell_draw');
+  });
+}
+
 /** Live Score modifiers on stage (matches server getLiveScoreBonus when judge log unavailable). */
 function perfLiveScoreBonusForPlayer(ctx, pid) {
   if (!playerLiveRoundSucceeded(ctx.next, pid)) return 0;
   const board = ctx?.next?.stage_board;
   const side = pid === ctx.myId ? board?.mine : board?.opp;
-  return Number(side?.live_score_bonus ?? 0);
+  const fromBoard = Number(side?.live_score_bonus ?? 0);
+  if (fromBoard > 0) return fromBoard;
+  return computeLiveScoreStageBonus(ctx.next, pid, { yellContext: perfHasYellJudgeContext(ctx.next) });
 }
 
 function perfJudgeScoresFromLog(next, myId) {
@@ -32102,7 +32138,9 @@ function perfSetYellSideInstant(ctx, pid, showAllCards) {
       badge.classList.add('show');
       livesRow?.appendChild(badge);
     }
-    if (yellDrawTotal) perfBumpYellDrawPending(deckEl, pid, yellDrawTotal, { animate: false });
+    if (yellDrawTotal && liveCardsHaveDrawPerYellDraw(liveCards)) {
+      perfBumpYellDrawPending(deckEl, pid, yellDrawTotal, { animate: false });
+    }
     perfRenderBladeRow(bladeEl, 0, { pending: false });
     const finalHearts = mergeHeartStatRows(
       stageHearts,
@@ -32313,7 +32351,7 @@ async function perfAnimateYellSide(ctx, pid) {
     if (scoreIcons > 0) {
       await perfApplyYellScoreBonus(ctx, pid, scoreIcons, { pace: cardPace });
     }
-    if (drawIcons > 0) {
+    if (drawIcons > 0 && liveCardsHaveDrawPerYellDraw(liveCards)) {
       perfBumpYellDrawPending(deckEl, pid, drawIcons, { animate: true });
       await perfSleepYell(120, cardPace);
     }
@@ -32979,7 +33017,6 @@ function showCenterBannerNow(spec) {
     G._cbTimer = setTimeout(() => {
       root.classList.remove('show');
       if (isSplashTurnBanner({ titleKey, title })) {
-        G._perfSpectacleDoneKey = null;
         G._postSpectacleSplashPause = false;
       }
       setTimeout(resolveCenterBannerShow, SPLASH_FADE_MS);
@@ -35751,7 +35788,7 @@ function stageYellBladeFor(s, pid, myId) {
 }
 
 /** Client mirror of server getLiveScoreBonus for HUD/storage previews when stage_board is stale. */
-function computeLiveScoreStageBonus(s, pid) {
+function computeLiveScoreStageBonus(s, pid, opts = {}) {
   let bonus = Number(s?.live_modifiers?.[pid]?.score_bonus ?? 0);
   const p = s?.players?.[pid];
   if (!p) return bonus;
@@ -35779,6 +35816,21 @@ function computeLiveScoreStageBonus(s, pid) {
       bonus += amt;
     }
   });
+  if (opts.yellContext) {
+    const yellIcons = Number(s?._last_yell_score_icons?.[pid] ?? s?._last_yell_score_icons ?? 0);
+    if (yellIcons > 0) bonus += yellIcons;
+    for (const live of p.live_zone || []) {
+      if (!live) continue;
+      const card = enrichCard(live);
+      for (const ab of card.abilities || []) {
+        if ((ab.trigger || '') !== 'continuous') continue;
+        if (ab.type === 'live_score_bonus') bonus += Number(ab.amount ?? 1);
+        if (ab.type === 'success_score_per_yell_score' && yellIcons > 0) {
+          bonus += Number(ab.amount ?? 1) * yellIcons;
+        }
+      }
+    }
+  }
   return bonus;
 }
 
@@ -36305,14 +36357,18 @@ function bindMenuCardPress(node, card, onTap) {
 function wrPickCfgFromPrompt(pr) {
   const explicitFilter = pr?.ability?.filter || pr?.wr_pick_cfg?.filter;
   const memberPromptTypes = new Set([
-    'sbp6_leave_play_wr_slot', 'pick_wr_to_hand', 'pick_wr_leave_stage_add', 'ssd1_play_wr_empty',
+    'sbp6_leave_play_wr_slot', 'pick_wr_to_hand', 'ssd1_play_wr_empty',
   ]);
   const memberAbilityTypes = new Set(['activated_leave_play_wr_same_slot']);
   let filter = explicitFilter;
   if (!filter) {
-    if (memberPromptTypes.has(pr?.type)
+    if ((pr?.ability?.type ?? '') === 'leave_stage_add_from_wr') {
+      filter = 'live';
+    } else if (memberPromptTypes.has(pr?.type)
       || (pr?.type === 'ssd1_play_wr_empty' && pr?.step === 'pick_wr')
       || memberAbilityTypes.has(pr?.ability?.type)) {
+      filter = 'member';
+    } else if (pr?.type === 'pick_wr_leave_stage_add') {
       filter = 'member';
     } else {
       filter = 'live';
