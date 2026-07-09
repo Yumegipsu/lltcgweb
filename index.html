@@ -27877,12 +27877,22 @@ function clearStaleLiveStorageFlipState(prev, next) {
   }
 }
 
+/** Main→main polls after a finished Live round must not replay pipeline log banners. */
+function shouldSkipStaleLiveLogAnnouncements(prev, next) {
+  if (!prev || !next || G.isTutorial) return false;
+  if (!isMainOrActivePhase(prev?.phase) || !isMainOrActivePhase(next?.phase)) return false;
+  return shouldIgnoreStaleLivePerfSignals(prev, next);
+}
+
 function clearStalePerfDeferState(prev, next) {
   if (!next || G._perfSpectacleActive || G._liveSpectacleGateRunning) return;
   if (!isMainOrActivePhase(next.phase)) return;
   if (detectPendingLiveSpectacleTurn(prev, next) != null) return;
   G._deferPerfSpectaclePrev = null;
   clearStaleLiveStorageFlipState(prev, next);
+  if (shouldSkipStaleLiveLogAnnouncements(prev, next)) {
+    G._announceBaseline = Math.max(G._announceBaseline ?? 0, next.log?.length ?? 0);
+  }
 }
 
 // --- LIVE round presentation / Performance spectacle ---------------------------
@@ -33051,7 +33061,9 @@ function queueStateAnnouncements(prev, s, myId, opts = {}) {
   const enteringLiveSet = isEnteringLiveSetPhase(prev, s);
 
   if (prev && prev.phase !== s.phase && !holdLivePlayback && !livePlaybackBlocksMainPhaseUi(s, prev) && (!placementOpen || enteringLiveSet)) {
-    showPhaseTransitionBanner(s, myId, prev);
+    if (!shouldSkipStaleLiveLogAnnouncements(prev, s)) {
+      showPhaseTransitionBanner(s, myId, prev);
+    }
     G._lastPhase = s.phase;
   } else if (prev && prev.phase !== s.phase) {
     G._lastPhase = s.phase;
@@ -33060,7 +33072,10 @@ function queueStateAnnouncements(prev, s, myId, opts = {}) {
   }
 
   const baseline = G._announceBaseline ?? 0;
-  const from = Math.max(prev?.log?.length || 0, baseline);
+  let from = Math.max(prev?.log?.length || 0, baseline);
+  if (shouldSkipStaleLiveLogAnnouncements(prev, s)) {
+    from = s.log?.length || from;
+  }
   const entries = (s.log || []).slice(from);
   const emptyLiveSkip = opts.emptyLiveSkip || isEmptyLiveSkipTransition(prev, s);
   for (const entry of entries) {
@@ -33082,6 +33097,7 @@ function processGameAnnouncements(prev, s, myId) {
 function announceLogEntry(entry, s, myId) {
   if (isReplayViewing() && !G._replayForwardApply) return;
   const prev = G.gameState;
+  if (shouldSkipStaleLiveLogAnnouncements(prev, s)) return;
   const from = prev?.log?.length || 0;
   const banner = parseLogToBanner(entry.msg, entry.kind, s, myId, prev, from);
   if (banner) {
