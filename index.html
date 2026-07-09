@@ -7471,7 +7471,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=19"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=16"></script>
+<script src="client/js/prompt-renderer.js?v=17"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -33412,8 +33412,10 @@ function surfaceDeferredSkillPrompt(playback, final, myId) {
   if (isLiveSuccessDiscardPrompt(final)) {
     clearLiveSuccessHandDeferral(final);
     G.gameState = final;
-  } else if (wrZonePickPromptTypes().includes(pr.type)) {
-    G.gameState = final;
+  } else if (wrZonePickPromptTypes().includes(pr.type)
+      || pr.type === 'pick_yell_member' || isYellLivePickPrompt(pr)) {
+    stashPerfYellRevealCache(final);
+    G.gameState = mergePerfYellRevealState(final, perfYellRevealInline(final));
   } else {
     playback.pending_prompt = final.pending_prompt;
     G.gameState = playback;
@@ -36357,19 +36359,27 @@ function judgeSuccessLivePickCards(pr, s, myId) {
   }).filter(c => c.instance_id);
 }
 
+function isYellLivePickPrompt(pr) {
+  return pr?.type === 'live_success_pick_yell_live'
+    || pr?.type === 'live_success_yell_live_deck_bottom';
+}
+
 function yellRevealPickCards(pr, s, myId) {
-  const yell = s?.yell_reveal?.[myId] || s?._yell_reveal_snapshot?.[myId] || [];
+  const yr = perfYellRevealFor(s);
+  const yell = yr?.[myId] || s?.yell_reveal?.[myId] || s?._yell_reveal_snapshot?.[myId] || [];
   const byId = new Map(yell.map(c => [c.instance_id, c]));
   const ab = pr.ability || {};
+  const defaultFilter = isYellLivePickPrompt(pr) ? 'live' : 'member';
   return (pr.candidates || []).map(c => {
     const full = byId.get(c.instance_id);
-    return full ? { ...c, ...full } : c;
+    const merged = full ? { ...c, ...full } : (typeof enrichCard === 'function' ? enrichCard(c) : c);
+    return merged;
   }).filter(c => {
     if (!c.instance_id) return false;
     if (ab.subunit || ab.group || ab.filter) {
       return cardMatchesWrPickClient(c, {
         group: ab.group || '',
-        filter: ab.filter || 'member',
+        filter: ab.filter || defaultFilter,
         subunit: ab.subunit || '',
       });
     }

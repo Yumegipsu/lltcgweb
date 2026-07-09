@@ -330,8 +330,18 @@ global.openYellRevealPick = function openYellRevealPick(pr, opts = {}) {
   const cards = yellRevealPickCards(pr, s, myId);
   const onCancel = opts.onCancel;
   if (!cards.length) {
-    if (onCancel) onCancel();
-    else toast(pt('prompt.yellNoCards'), 3200);
+    if (onCancel) {
+      onCancel();
+      return;
+    }
+    const autoSkip = pr?.type === 'pick_yell_member'
+      || pr?.type === 'live_success_pick_yell_live'
+      || pr?.type === 'live_success_yell_live_deck_bottom';
+    if (autoSkip && !isPromptSubmitting(s)) {
+      sendAct('resolve_prompt', { choice: 'skip' });
+      return;
+    }
+    toast(pt('prompt.yellNoCards'), 3200);
     return;
   }
   el('pick-ttl').textContent = pr.source_name || pt('prompt.yellPickTitle');
@@ -1336,7 +1346,14 @@ global.handlePromptChoice = function handlePromptChoice(pr, choice, s, myId){
       return;
     }
     if (pr.type === 'live_success_yell_live_deck_bottom') {
+      const yellLives = yellRevealPickCards(pr, G.gameState, G.playerId);
+      if (!yellLives.length) {
+        sendAct('resolve_prompt', { choice: 'skip' });
+        return;
+      }
       openYellRevealPick(pr, {
+        state: G.gameState,
+        myId: G.playerId,
         onCancel: () => sendAct('resolve_prompt', { choice: 'skip' }),
       });
     } else {
@@ -1809,7 +1826,16 @@ global.renderPrompt = function renderPrompt(s, myId){
   }
   if(pr?.type==='live_success_pick_yell_live'&&pr.responder===myId){
     ovl.classList.remove('open');
-    openYellRevealPick(pr, { state: s, myId });
+    const yellLives = yellRevealPickCards(pr, s, myId);
+    if (!yellLives.length) {
+      sendAct('resolve_prompt', { choice: 'skip' });
+      return;
+    }
+    openYellRevealPick(pr, {
+      state: s,
+      myId,
+      onCancel: () => sendAct('resolve_prompt', { choice: 'skip' }),
+    });
     return;
   }
   if(pr?.type==='play_wr_members_combined_cost'&&pr.responder===myId){
