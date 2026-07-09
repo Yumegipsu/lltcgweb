@@ -3421,17 +3421,21 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         $slot = $data['slot'] ?? '';
         $opp = $prompt['opp'] ?? (($owner === 'p1') ? 'p2' : 'p1');
         if ($slot === '' || empty($state['players'][$opp]['stage'][$slot])) {
-            throw new Exception('Choose an opponent Member');
+            throw new Exception('Choose a Member on your Stage');
         }
         $maxCost = intval($prompt['max_cost'] ?? $ability['max_cost'] ?? 4);
-        if (intval($state['players'][$opp]['stage'][$slot]['cost'] ?? 0) > $maxCost) {
+        $picked = $state['players'][$opp]['stage'][$slot];
+        if (intval($picked['cost'] ?? 0) > $maxCost) {
             throw new Exception('Member cost too high');
+        }
+        if (!empty($ability['active_only']) && memberIsInWait($picked)) {
+            throw new Exception('Must choose an active Member on your Stage');
         }
         waitOpponentMemberAtSlot($state, $opp, $slot, $owner);
         $mbr = $state['players'][$opp]['stage'][$slot];
-        $state = addLog($state, $state['players'][$owner]['name'] .
-            ' — [' . ($prompt['source_name'] ?? 'Member') . '] put opponent ' .
-            ($mbr['name_en'] ?? $mbr['name'] ?? 'Member') . ' into Wait.');
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            ' — put ' . ($mbr['name_en'] ?? $mbr['name'] ?? 'Member') . ' into Wait (' .
+            ($prompt['source_name'] ?? 'effect') . ').');
         unset($state['pending_prompt']);
         $state['seq']++;
         return finishAfterBranchChoicePrompt($state, $prompt);

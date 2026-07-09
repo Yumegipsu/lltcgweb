@@ -226,7 +226,8 @@ function spBp5OnAutoAreaMove(array $state, string $pid, array &$member, int $idx
 
 function spBp5NotifyCardsToWr(array $state, string $pid, array $cards): array {
     if (empty($cards)) return $state;
-    if (($state['phase'] ?? '') !== 'main' || ($state['active_player'] ?? '') !== $pid) {
+    if (!in_array($state['phase'] ?? '', ['main_first', 'main_second'], true)
+        || ($state['active_player'] ?? '') !== $pid) {
         return $state;
     }
     foreach ($state['players'][$pid]['stage'] as $slot => &$member) {
