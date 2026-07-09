@@ -691,19 +691,52 @@ function nBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
     $ownerP = &$state['players'][$owner];
     $ability = $prompt['ability'] ?? [];
 
-    if ($promptType === 'bp5_wait_self_opp_exact_blade' && $choice === 'yes') {
+    if ($promptType === 'bp5_wait_self_opp_exact_blade') {
+        if ($choice === 'no') {
+            unset($state['pending_prompt']);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional Wait effect.');
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
+        if ($choice !== 'yes') {
+            throw new Exception('Invalid choice');
+        }
+        $opp = ($owner === 'p1') ? 'p2' : 'p1';
+        $exact = intval($prompt['exact_blade'] ?? 4);
+        $pickCount = intval($prompt['pick_count'] ?? 1);
+        $oppSlots = [];
+        foreach ($state['players'][$opp]['stage'] as $slot => $mbr) {
+            if (!$mbr) {
+                continue;
+            }
+            if (intval($mbr['blade'] ?? 0) !== $exact) {
+                continue;
+            }
+            $oppSlots[] = $slot;
+            if (count($oppSlots) >= $pickCount) {
+                break;
+            }
+        }
+        if ($oppSlots === []) {
+            unset($state['pending_prompt']);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') .
+                "] no opponent with exactly $exact Blade; effect skipped.");
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
         $srcId = $prompt['source_id'] ?? '';
         $slot = findMemberSlot($ownerP, $srcId);
         if ($slot !== null && !empty($ownerP['stage'][$slot])) {
             waitMember($ownerP['stage'][$slot], $state);
         }
-        $opp = ($owner === 'p1') ? 'p2' : 'p1';
-        $exact = intval($prompt['exact_blade'] ?? 4);
         $waited = 0;
-        foreach ($state['players'][$opp]['stage'] as &$mbr) {
-            if (!$mbr) continue;
-            if (intval($mbr['blade'] ?? 0) !== $exact) continue;
-            if ($waited >= intval($prompt['pick_count'] ?? 1)) break;
+        foreach ($oppSlots as $oppSlot) {
+            $mbr = &$state['players'][$opp]['stage'][$oppSlot];
+            if (!$mbr) {
+                continue;
+            }
             waitMember($mbr, $state);
             $waited++;
         }
