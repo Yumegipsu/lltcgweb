@@ -130,5 +130,7 @@ function tcgOnGameFinished(array &$state): void {
         tcgApplyRankResult($p1Id, $p2Id, true);
     }
     tcgCompleteRankedMatch($state['room_id'] ?? '');
+    require_once __DIR__ . '/ranked_pr_rewards.php';
+    tcgApplyRankedPrRewardOnFinish($state);
     $state['ranked']['applied'] = true;
 }

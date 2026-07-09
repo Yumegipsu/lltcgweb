@@ -3733,7 +3733,7 @@ body.perf-spectacle-active #center-banner.show{z-index:8750}
 .wstats b{color:#fff}
 .win-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:4px}
 .win-rematch-hint{font-size:13px;color:rgba(255,200,220,.92);margin:10px 0 0;line-height:1.45;text-align:center;max-width:min(360px,88vw)}
-#overlay-win .win-debug-row{flex-wrap:wrap;gap:8px;justify-content:center;margin-top:2px}
+#overlay-win .win-pr-reward{font-size:14px;color:rgba(255,220,240,.92);margin:8px 0 0;text-align:center;max-width:min(520px,92vw)}
 #overlay-win .win-debug-row button{font-size:12px;padding:8px 14px;width:auto}
 
 /* Responsive */
@@ -7445,6 +7445,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   <div class="wtitle" id="wtitle" style="color:var(--pink)" data-i18n="win.youWin">You Win!</div>
   <div class="wsub"   id="wsub"></div>
   <div class="wstats" id="wstats"></div>
+  <p class="win-pr-reward" id="win-pr-reward" hidden></p>
   <p class="win-rematch-hint" id="win-rematch-hint" hidden></p>
   <div class="win-actions">
     <button class="btn-grad" id="btn-again" style="width:auto;padding:13px 36px;font-size:17px" data-i18n="win.playAgain">Play Again</button>
@@ -7460,11 +7461,11 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=25"></script>
+<script src="i18n.js?v=26"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=8"></script>
-<script src="client/js/api-client.js?v=5"></script>
+<script src="client/js/api-client.js?v=6"></script>
 <script src="client/js/missions.js?v=3"></script>
 <script src="client/js/game-sync.js?v=9"></script>
 <script src="client/js/state-apply.js?v=17"></script>
@@ -7776,7 +7777,7 @@ function showPaidBoosterConfirm() {
     }
     if (boxBtn) {
       boxBtn.innerHTML = t('booster.openPaidBox', { n: boxPacksPerBox(A.boxPick) }) + ' · ' + starGemCostHtml(STAR_GEMS_BOX_COST);
-      boxBtn.disabled = !canAffordBoxWithGems() || (boxById(A.boxPick)?.kind === 'pr');
+      boxBtn.disabled = !canAffordBoxWithGems();
     }
     openM('modal-paid-booster');
   });
@@ -9454,7 +9455,7 @@ async function loadBoosterScreen(opts = {}) {
   A.boxPick = preserveBoxPick ? prevPick : null;
   A.boxes.forEach(b => {
     const d = document.createElement('div');
-    d.className = 'box-tile' + (b.kind === 'pr' ? ' box-tile-pr' : '');
+    d.className = 'box-tile';
     if (A.boxPick && b.id === A.boxPick) d.classList.add('sel');
     const infoBtn = document.createElement('button');
     infoBtn.type = 'button';
@@ -9473,14 +9474,14 @@ async function loadBoosterScreen(opts = {}) {
       img.onerror = () => {
         const ph = document.createElement('div');
         ph.className = 'box-tile-ph';
-        ph.textContent = b.kind === 'pr' ? 'PR' : '—';
+        ph.textContent = '—';
         img.replaceWith(ph);
       };
       d.appendChild(img);
     } else {
       const ph = document.createElement('div');
       ph.className = 'box-tile-ph';
-      ph.textContent = b.kind === 'pr' ? 'PR' : '—';
+      ph.textContent = '—';
       d.appendChild(ph);
     }
     const nameEl = document.createElement('div');
@@ -37213,6 +37214,34 @@ async function playSuccessLiveTriumphCelebration(s, myId) {
   await sleep(1580);
 }
 
+function syncWinRankedPrReward(s, win) {
+  const rewardEl = el('win-pr-reward');
+  if (!rewardEl) return;
+  rewardEl.hidden = true;
+  rewardEl.textContent = '';
+  if (!win || s.mode !== 'ranked') return;
+  const reward = s.ranked_pr_reward || G.lastRankedPrReward;
+  if (!reward || typeof reward !== 'object') return;
+  if (reward.skipped && reward.reason === 'daily_cap') {
+    rewardEl.textContent = t('win.rankedPrDailyCap', { limit: reward.daily?.limit || 5 });
+    rewardEl.hidden = false;
+    return;
+  }
+  const card = reward.card || {};
+  const name = card.card_name_en || card.card_name || card.card_no || '?';
+  if (card.converted || reward.converted) {
+    rewardEl.textContent = t('win.rankedPrDupe', { name, gems: card.star_gems || reward.star_gems || reward.star_gems_earned || 0 });
+  } else {
+    rewardEl.textContent = t('win.rankedPrNew', { name });
+  }
+  rewardEl.hidden = false;
+  if (reward.star_gems_earned > 0 && typeof syncStarGemsFromProfile === 'function') {
+    if (A?.profile) A.profile.star_gems = reward.star_gems ?? A.profile.star_gems;
+    syncStarGemsFromProfile(A?.profile);
+    if (typeof updateStarGemsUI === 'function') updateStarGemsUI();
+  }
+}
+
 // ── WIN ──────────────────────────────────────────────
 function showWin(s){
   dismissAllGameplayOverlays();
@@ -37264,6 +37293,7 @@ function showWin(s){
     yours: (me?.success_lives || []).length,
     opp: (opp?.success_lives || []).length,
   });
+  syncWinRankedPrReward(s, win);
   el('btn-win-hub').hidden = false;
   el('btn-win-leaderboard').hidden = !(pvp && s.mode === 'ranked');
   const saveReplayBtn = el('btn-win-save-replay');

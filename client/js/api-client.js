@@ -35,6 +35,21 @@
     } else if (res.missions && typeof res.missions.claimable_count === 'number' && global.TCGMissions && typeof global.TCGMissions.syncHubBadge === 'function') {
       global.TCGMissions.syncHubBadge(res.missions.claimable_count);
     }
+    global.handleRankedPrReward(res);
+  };
+
+  global.handleRankedPrReward = function handleRankedPrReward(res) {
+    if (!res || typeof res !== 'object' || !res.ranked_pr_reward) return;
+    global.G = global.G || {};
+    global.G.lastRankedPrReward = res.ranked_pr_reward;
+    const reward = res.ranked_pr_reward;
+    if (reward.star_gems_earned > 0 && global.A && global.A.profile) {
+      global.A.profile.star_gems = reward.star_gems ?? global.A.profile.star_gems;
+      if (typeof global.syncStarGemsFromProfile === 'function') {
+        global.syncStarGemsFromProfile(global.A.profile);
+      }
+      if (typeof global.updateStarGemsUI === 'function') global.updateStarGemsUI();
+    }
   };
 
   global.parseAccountJson = async function parseAccountJson(r) {

@@ -98,11 +98,15 @@ function tcgBoosterBoxes(): array {
          'image' => 'https://llofficial-cardgame.com/wordpress/wp-content/uploads/2025/11/17105656/L_TCG_-PBP_06_box_image.png',
          'pack_style' => 'photo',
          'pack_images' => ['assets/packs/pb_hasunosora-a.jpg']],
-        ['id' => 'pr_cards', 'name_en' => 'PR Card Pack', 'name_jp' => 'PRカード',
-         'filter' => 'PRカード', 'kind' => 'pr',
-         'image' => null,
-         'pack_style' => 'promo',
-         'pack_images' => []],
+    ];
+}
+
+/** PR pool for ranked win rewards (not sold as a booster box). */
+function tcgPrCardPoolBox(): array {
+    return [
+        'id' => 'pr_cards',
+        'filter' => 'PRカード',
+        'kind' => 'pr',
     ];
 }
 

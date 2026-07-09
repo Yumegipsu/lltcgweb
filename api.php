@@ -530,6 +530,11 @@ function handleAction(array $body): array {
         if (!empty($missionCompletions)) {
             $out['mission_completions'] = $missionCompletions;
         }
+        require_once __DIR__ . '/ranked_pr_rewards.php';
+        $prReward = tcgRankedPrRewardForPlayer($state, $playerId);
+        if ($prReward !== null) {
+            $out['ranked_pr_reward'] = $prReward;
+        }
         return $out;
     });
 }
@@ -3441,6 +3446,14 @@ function filterStateForPlayer(array $state, string $token): array {
 
     if (!empty($state['stamp_pop']) && is_array($state['stamp_pop'])) {
         $filtered['stamp_pop'] = $state['stamp_pop'];
+    }
+
+    if ($myId && ($state['status'] ?? '') === 'finished') {
+        require_once __DIR__ . '/ranked_pr_rewards.php';
+        $prReward = tcgRankedPrRewardForPlayer($state, $myId);
+        if ($prReward !== null) {
+            $filtered['ranked_pr_reward'] = $prReward;
+        }
     }
 
     return enrichReplayFieldsForClient($filtered, $state);

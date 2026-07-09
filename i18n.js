@@ -762,7 +762,10 @@
       "downloadReplayJson": "Download Replay JSON",
       "debugSaveLog": "💾 Save debug log",
       "debugCopyLog": "📋 Copy log",
-      "debugSaveBundle": "📦 Export debug bundle"
+      "debugSaveBundle": "📦 Export debug bundle",
+      "rankedPrNew": "Ranked win reward: {name}",
+      "rankedPrDupe": "{name} converted to {gems} Star Gems (duplicate)",
+      "rankedPrDailyCap": "Daily ranked PR rewards used ({limit}/day JST)"
     },
     "replay": {
       "menuTitle": "Replay Viewer",
@@ -1727,7 +1730,10 @@
       "downloadReplayJson": "リプレイJSONをダウンロード",
       "debugSaveLog": "💾 デバッグログを保存",
       "debugCopyLog": "📋 ログをコピー",
-      "debugSaveBundle": "📦 デバッグ一式を出力"
+      "debugSaveBundle": "📦 デバッグ一式を出力",
+      "rankedPrNew": "ランクマ報酬：{name}",
+      "rankedPrDupe": "{name}は重複のためスタージェム{gems}に変換",
+      "rankedPrDailyCap": "本日のランクマPR報酬は上限です（{limit}回/日・JST）"
     },
     "replay": {
       "menuTitle": "リプレイビューア",

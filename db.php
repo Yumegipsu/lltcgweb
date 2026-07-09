@@ -238,6 +238,8 @@ function tcgDbMigrate(PDO $db): void {
     tcgDbEnsureColumn($db, 'tcg_box_progress', 'rm_pity', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_box_progress', 'live_pity', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_collection', 'acquired_at', 'INTEGER');
+    tcgDbEnsureColumn($db, 'tcg_daily_state', 'ranked_pr_date', 'TEXT');
+    tcgDbEnsureColumn($db, 'tcg_daily_state', 'ranked_pr_today', 'INTEGER NOT NULL DEFAULT 0');
 
     $db->exec('CREATE TABLE IF NOT EXISTS tcg_schema_meta (
         key TEXT PRIMARY KEY,
@@ -397,7 +399,8 @@ function tcgResetAccountProgress(string $discordId): void {
             ->execute([$now, $discordId]);
         $db->prepare('UPDATE tcg_rank SET rating = 1000, wins = 0, losses = 0, draws = 0, games = 0, updated_at = ?
             WHERE discord_id = ?')->execute([$now, $discordId]);
-        $db->prepare('UPDATE tcg_daily_state SET last_open_date = NULL, packs_opened_today = 0, first_day_bonus_used = 0
+        $db->prepare('UPDATE tcg_daily_state SET last_open_date = NULL, packs_opened_today = 0, first_day_bonus_used = 0,
+            ranked_pr_date = NULL, ranked_pr_today = 0
             WHERE discord_id = ?')->execute([$discordId]);
         $db->commit();
     } catch (Throwable $e) {
