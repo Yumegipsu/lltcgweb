@@ -4570,17 +4570,30 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   margin:0 0 8px;font-size:clamp(20px,3.2vw,26px);font-weight:800;color:#fff;letter-spacing:.02em;
   font-family:'Zen Kaku Gothic New','Nunito',sans-serif;text-shadow:0 2px 16px rgba(0,0,0,.45)}
 .ranked-pr-reward-card-wrap{
-  position:relative;width:min(280px,42vw);height:min(390px,58vw);
-  display:flex;align-items:center;justify-content:center;margin:12px 0 8px}
+  position:relative;width:min(280px,42vw);
+  min-height:min(390px,58vw);height:auto;
+  display:flex;align-items:center;justify-content:center;margin:12px 0 4px;
+  overflow:visible}
+#overlay-ranked-pr-reward .pack-open-card-name,
+#overlay-ranked-pr-reward .pack-open-card-meta{display:none!important}
 #overlay-ranked-pr-reward .pack-open-card{
-  position:relative;transform:none;opacity:0}
+  position:relative;transform:none;opacity:0;margin:0}
 #overlay-ranked-pr-reward.active .pack-open-card{
   animation:ranked-pr-card-enter .65s cubic-bezier(.2,.8,.2,1) forwards}
 @keyframes ranked-pr-card-enter{
   0%{opacity:0;transform:scale(.72) translateY(24px)}
   100%{opacity:1;transform:scale(1) translateY(0)}}
+.ranked-pr-reward-details{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  margin:4px 0 10px;max-width:min(420px,90vw)}
+.ranked-pr-reward-card-name{
+  margin:0;font-size:clamp(17px,2.8vw,22px);font-weight:700;line-height:1.3;color:#fff;
+  font-family:'Zen Kaku Gothic New','Nunito',sans-serif;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.ranked-pr-reward-rarity.pack-results-rarity{
+  margin:0;font-size:clamp(22px,3.6vw,28px);font-weight:800;letter-spacing:.04em;line-height:1.1;
+  text-shadow:0 2px 12px rgba(0,0,0,.5)}
 .ranked-pr-reward-sub{
-  margin:8px 0 18px;max-width:min(420px,90vw);font-size:14px;line-height:1.45;color:rgba(255,255,255,.82)}
+  margin:0 0 18px;max-width:min(420px,90vw);font-size:14px;line-height:1.45;color:rgba(255,255,255,.82)}
 .ranked-pr-reward-ok{
   min-width:min(200px,70vw);padding:12px 28px;font-size:15px;font-weight:700}
 .ranked-pr-reward-stage .ranked-pr-reward-flash{
@@ -7469,6 +7482,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
     <div class="ranked-pr-reward-flash" id="ranked-pr-reward-flash" aria-hidden="true"></div>
     <h2 class="ranked-pr-reward-title" id="ranked-pr-reward-title"></h2>
     <div class="ranked-pr-reward-card-wrap" id="ranked-pr-reward-card-wrap"></div>
+    <div class="ranked-pr-reward-details" id="ranked-pr-reward-details" hidden>
+      <p class="ranked-pr-reward-card-name" id="ranked-pr-reward-card-name"></p>
+      <p class="ranked-pr-reward-rarity" id="ranked-pr-reward-rarity"></p>
+    </div>
     <p class="ranked-pr-reward-sub" id="ranked-pr-reward-sub" hidden></p>
     <button type="button" class="btn-grad ranked-pr-reward-ok" id="btn-ranked-pr-reward-ok" hidden>OK</button>
   </div>
@@ -7517,7 +7534,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=8"></script>
 <script src="client/js/api-client.js?v=8"></script>
-<script src="client/js/ranked-pr-reward.js?v=1"></script>
+<script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=3"></script>
 <script src="client/js/game-sync.js?v=9"></script>
 <script src="client/js/state-apply.js?v=19"></script>

@@ -85,14 +85,35 @@
     }
   }
 
+  function rankedPrCardName(reward) {
+    const card = reward.card || {};
+    if (typeof global.cardLocaleName === 'function') {
+      return global.cardLocaleName(card) || card.card_name_en || card.card_name || card.card_no || '?';
+    }
+    return card.card_name_en || card.card_name || card.card_no || '?';
+  }
+
+  function rankedPrRarityLabel(reward) {
+    const card = reward.card || {};
+    const converted = !!(card.converted || reward.converted);
+    if (converted) return 'Converted';
+    return String(card.rarity || '').trim();
+  }
+
+  function rankedPrRarityClass(reward) {
+    if (typeof global.packResultRarityClass === 'function') {
+      const card = reward.card || {};
+      return global.packResultRarityClass(card.rarity) || '';
+    }
+    return '';
+  }
+
   function rankedPrSubText(reward) {
     const card = reward.card || {};
-    const name = card.card_name_en || card.card_name || card.card_no || '?';
-    if (card.converted || reward.converted) {
-      const gems = card.star_gems || reward.star_gems || reward.star_gems_earned || 0;
-      return t('win.rankedPrDupe', { name, gems });
-    }
-    return t('win.rankedPrNew', { name });
+    if (!(card.converted || reward.converted)) return '';
+    const name = rankedPrCardName(reward);
+    const gems = card.star_gems || reward.star_gems || reward.star_gems_earned || 0;
+    return t('win.rankedPrDupe', { name, gems });
   }
 
   function flashRarePull(tier) {
@@ -109,6 +130,9 @@
     const overlay = el('overlay-ranked-pr-reward');
     const wrap = el('ranked-pr-reward-card-wrap');
     const titleEl = el('ranked-pr-reward-title');
+    const detailsEl = el('ranked-pr-reward-details');
+    const nameEl = el('ranked-pr-reward-card-name');
+    const rarityEl = el('ranked-pr-reward-rarity');
     const subEl = el('ranked-pr-reward-sub');
     const okBtn = el('btn-ranked-pr-reward-ok');
     if (!overlay || !wrap) return;
@@ -120,6 +144,12 @@
     });
 
     if (titleEl) titleEl.textContent = t('win.rankedPrPopupTitle');
+    if (detailsEl) detailsEl.hidden = true;
+    if (nameEl) nameEl.textContent = '';
+    if (rarityEl) {
+      rarityEl.textContent = '';
+      rarityEl.className = 'ranked-pr-reward-rarity';
+    }
     if (subEl) {
       subEl.textContent = '';
       subEl.hidden = true;
@@ -168,8 +198,15 @@
       cardEl.classList.remove('revealing');
     }
 
-    if (subEl) {
-      subEl.textContent = rankedPrSubText(reward);
+    if (detailsEl && nameEl && rarityEl) {
+      nameEl.textContent = rankedPrCardName(reward);
+      rarityEl.textContent = rankedPrRarityLabel(reward);
+      rarityEl.className = 'ranked-pr-reward-rarity pack-results-rarity ' + rankedPrRarityClass(reward);
+      detailsEl.hidden = false;
+    }
+    const sub = rankedPrSubText(reward);
+    if (subEl && sub) {
+      subEl.textContent = sub;
       subEl.hidden = false;
     }
     if (okBtn) {
