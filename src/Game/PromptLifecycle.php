@@ -8,6 +8,23 @@ function promptUsesPhaseTimer(array $prompt): bool {
     return in_array($prompt['responder'] ?? '', ['p1', 'p2'], true);
 }
 
+/** Coerce client discard_ids payloads to a string[] (PHP 8.2+ count() fatals on strings). */
+function normalizeDiscardIds(mixed $raw): array {
+    if ($raw === null || $raw === '') {
+        return [];
+    }
+    if (is_string($raw)) {
+        return [$raw];
+    }
+    if (!is_array($raw)) {
+        return [];
+    }
+    return array_values(array_filter(
+        $raw,
+        static fn($id) => is_string($id) && $id !== ''
+    ));
+}
+
 function promptTimerKey(?array $prompt): string {
     if (!$prompt) {
         return '';

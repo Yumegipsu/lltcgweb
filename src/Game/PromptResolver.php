@@ -56,6 +56,10 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         return $state;
     }
 
+    if (array_key_exists('discard_ids', $data)) {
+        $data['discard_ids'] = normalizeDiscardIds($data['discard_ids']);
+    }
+
     $choice = $data['choice'] ?? '';
     $promptType = $prompt['type'] ?? '';
     $ability = $prompt['ability'] ?? [];
