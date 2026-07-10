@@ -3046,6 +3046,10 @@
     if (!el || !el.querySelectorAll) return;
 
     el.querySelectorAll('[data-i18n]').forEach(function (node) {
+      if (node.id === 'auth-status') {
+        var boot = node.getAttribute('data-auth-boot') || 'pending';
+        if (boot === 'pending' || boot === 'booting') return;
+      }
       var key = node.getAttribute('data-i18n');
       if (!key) return;
       var text = t(key);

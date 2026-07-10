@@ -7543,7 +7543,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=27"></script>
+<script src="i18n.js?v=28"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=8"></script>
@@ -7612,11 +7612,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       return;
     }
     var elapsed = Date.now() - bootStartedAt;
-    if (boot === 'pending' && elapsed >= AUTH_GUARD_MS) {
-      showInlineGuestAuth('auth.guestTimeout');
-      return;
-    }
-    if (boot === 'booting' && elapsed >= 18000) {
+    if ((boot === 'pending' || boot === 'booting') && elapsed >= AUTH_GUARD_MS) {
       showInlineGuestAuth('auth.guestTimeout');
     }
   }, 2000);
@@ -9239,7 +9235,13 @@ async function initAccountFlow() {
   const authEl = el('auth-status');
   const loginBtn = el('btn-discord-login');
   const guestMenu = el('auth-guest-menu');
-  if (authEl) authEl.setAttribute('data-auth-boot', 'booting');
+  if (authEl) {
+    authEl.setAttribute('data-auth-boot', 'booting');
+    if (getAuthToken()) {
+      authEl.setAttribute('data-i18n', 'auth.signingIn');
+      authEl.textContent = t('auth.signingIn');
+    }
+  }
   let authDone = false;
   const finishAuthBoot = () => {
     authDone = true;
@@ -9248,9 +9250,9 @@ async function initAccountFlow() {
   };
   const authWatchdog = setTimeout(() => {
     if (authDone) return;
-    authDone = true;
     clearActiveGameSession();
     showGuestAuth(null, 'auth.guestTimeout');
+    finishAuthBoot();
   }, AUTH_BOOT_WATCHDOG_MS);
   try {
     const params = new URLSearchParams(location.search);
@@ -16042,13 +16044,17 @@ window.G = G;
   bindPhoneFullscreen();
   bindPlaymatResize();
   bindMobilePhaseDock();
-  await Promise.all([loadCards(), accountReady]);
+  await accountReady;
   if (window.LLTCG_SFX?.init) await window.LLTCG_SFX.init();
   initFoilFxSetting();
   initSfxSetting();
   bindMenuSfx();
   bindGameplayCardHoverSfx();
   initLocale(onLocaleChanged);
+  void loadCards().then(() => {
+    renderLobbyDeckOptions();
+    updateDeckPrev();
+  });
   if (G.gameState?.players && el('screen-game')?.classList.contains('active')) {
     renderGame(G.gameState);
   }
@@ -17177,7 +17183,7 @@ function layoutHandFan(fanEl, opts = {}) {
 
 async function loadCards() {
   try {
-    const r = await fetch(`${API}?action=get_cards`);
+    const r = await fetchWithTimeout(`${API}?action=get_cards`, {}, RECONNECT_FETCH_TIMEOUT_MS);
     const d = await r.json();
     G.starterDecks = d.starter_decks||{};
     (d.cards||[]).forEach(c => G.allCards[c.card_no]=c);
