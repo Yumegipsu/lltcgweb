@@ -39636,6 +39636,7 @@ function appendBladeHeartIcons(container, bladeHearts, { lg = false } = {}) {
   });
 }
 
+function mkBladeHeartIcon(color, lg=false){
   const c = bladeHeartDisplayColor(color);
   const img=document.createElement('img');
   img.className='hicon bheart'+(lg?' lg':'');
