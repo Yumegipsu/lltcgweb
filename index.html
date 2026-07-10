@@ -15236,11 +15236,30 @@ function cpuBlacklistAbility(cardId, abilityIndex) {
   G._cpuAbilityBlacklist.add(k);
 }
 
+function cpuMemberPlayBlacklistKey(cardId, slot, batonId) {
+  if (!cardId) return null;
+  return `${cardId}|${slot || ''}|${batonId || ''}`;
+}
+
+function cpuMemberPlayBlacklisted(cardId, slot, batonId) {
+  const k = cpuMemberPlayBlacklistKey(cardId, slot, batonId);
+  return !!(k && G._cpuMemberPlayBlacklist?.has(k));
+}
+
+function cpuBlacklistMemberPlay(cardId, slot, batonId) {
+  const k = cpuMemberPlayBlacklistKey(cardId, slot, batonId);
+  if (!k) return;
+  if (!G._cpuMemberPlayBlacklist) G._cpuMemberPlayBlacklist = new Set();
+  G._cpuMemberPlayBlacklist.add(k);
+}
+
 function cpuClearAbilityBlacklistIfNewTurn(s) {
   if (!s) return;
   if (G._cpuAbilityBlacklistTurn !== s.turn) {
     G._cpuAbilityBlacklist = new Set();
     G._cpuAbilityBlacklistTurn = s.turn;
+    G._cpuMemberPlayBlacklist = new Set();
+    G._cpuMemberPlayBlacklistTurn = s.turn;
   }
 }
 
@@ -22112,10 +22131,13 @@ function cpuGenericPromptFallback(pr, cpu, tier, winPressure, read, s) {
   if (pr.choices?.length) {
     if (pr.choices.includes('yes') && pr.choices.includes('no') && pr.ability) {
       const ae = (cpu.energy_zone || []).filter(energyChipActive).length;
+      const payCost = pr.pay_cost || pr.ability?.cost || 0;
       const score = cpuScoreOptionalAbility(
         pr.ability, cpu, tier, ae, hand, winPressure, read
       );
-      cpuAct('resolve_prompt', { choice: score >= cpuOptionalYesThreshold(tier) ? 'yes' : 'no' });
+      const yes = score >= cpuOptionalYesThreshold(tier)
+        && (!payCost || ae >= payCost);
+      cpuAct('resolve_prompt', { choice: yes ? 'yes' : 'no' });
       return true;
     }
     const ctx = cpuAbilityCtx(cpu, tier, read, winPressure, (cpu.energy_zone || []).filter(energyChipActive).length,
@@ -22481,6 +22503,7 @@ function cpuScoreOptionalAbility(ab, cpu, tier, ae, hand, winPressure = 0, read 
     let reserve = tier === 'hard' ? 0 : tier === 'normal' ? 1 : 2;
     if (sit?.mustCatchUp && tier === 'normal') reserve = 0;
     if (ae < cost + reserve) return -1;
+    if (!cpuThenNeedsDeckCards(ab.then, cpuDeckCount(cpu))) return -1;
     score += tier === 'hard' ? 0.5 : 0.25;
   }
   if (type.includes('add_from_wr') || type.includes('wr_live') || type === 'optional_discard_add_from_wr') {
@@ -23163,8 +23186,10 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
   if (tier !== 'easy') slotOrder = cpuPreferredBatonSlotOrder(cpu, c);
   const empty = slotOrder.find(s2 => !cpu.stage?.[s2]);
   const label = `member c${c.cost || 0}/b${c.blade || 0}`;
-  if (empty) {
-    return { kind: 'play_member', score, payload: { card_id: c.instance_id, slot: empty }, label };
+  if (empty && ae >= ec) {
+    const payload = { card_id: c.instance_id, slot: empty };
+    if (cpuMemberPlayBlacklisted(payload.card_id, payload.slot)) return null;
+    return { kind: 'play_member', score, payload, label };
   }
   for (const slot of slotOrder) {
     const existing = cpu.stage?.[slot];
@@ -23172,16 +23197,20 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
     if (!memberBlocksBaton(existing) && !memberBatonRestricted(existing, c) && ec >= 1) {
       const batonCost = Math.max(0, ec - stageMemberEffectiveCost(existing, cpu));
       if (batonCost <= affordableEnergyForBatonPlay(cpu, existing, c)) {
+        const payload = { card_id: c.instance_id, slot, baton_id: existing.instance_id };
+        if (cpuMemberPlayBlacklisted(payload.card_id, payload.slot, payload.baton_id)) continue;
         return {
           kind: 'play_member',
           score,
-          payload: { card_id: c.instance_id, slot, baton_id: existing.instance_id },
+          payload,
           label: `${label} baton@${slot}`,
         };
       }
     }
     if (ae >= ec) {
-      return { kind: 'play_member', score, payload: { card_id: c.instance_id, slot }, label: `${label}@${slot}` };
+      const payload = { card_id: c.instance_id, slot };
+      if (cpuMemberPlayBlacklisted(payload.card_id, payload.slot)) continue;
+      return { kind: 'play_member', score, payload, label: `${label}@${slot}` };
     }
   }
   const cheapestSlot = slotOrder.reduce((best, sl) =>
@@ -23199,17 +23228,21 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
       : ae >= ec;
     if (afford && isUpgrade) {
       if (canBaton) {
+        const payload = { card_id: c.instance_id, slot: cheapestSlot, baton_id: existing.instance_id };
+        if (cpuMemberPlayBlacklisted(payload.card_id, payload.slot, payload.baton_id)) return null;
         return {
           kind: 'play_member',
           score,
-          payload: { card_id: c.instance_id, slot: cheapestSlot, baton_id: existing.instance_id },
+          payload,
           label: `${label} upgrade@${cheapestSlot}`,
         };
       }
+      const payload = { card_id: c.instance_id, slot: cheapestSlot };
+      if (cpuMemberPlayBlacklisted(payload.card_id, payload.slot)) return null;
       return {
         kind: 'play_member',
         score,
-        payload: { card_id: c.instance_id, slot: cheapestSlot },
+        payload,
         label: `${label} replace@${cheapestSlot}`,
       };
     }
@@ -25598,7 +25631,16 @@ async function cpuAct(type,data) {
           }
         }
         cpuSchedule(() => doCPU(G.gameState), 500);
-      } else if (G.isCPU && ['play_member', 'activate_ability', 'end_main', 'end_live_set'].includes(type)) {
+      } else if (type === 'play_member') {
+        if (/not enough active energy/i.test(d.error || '')) {
+          cpuBlacklistMemberPlay(data?.card_id, data?.slot, data?.baton_id);
+          if (G.polling) {
+            ensurePollHoldReleased(G.gameState);
+            await pullLatestState();
+          }
+        }
+        cpuSchedule(() => doCPU(G.gameState), 500);
+      } else if (G.isCPU && ['activate_ability', 'end_main', 'end_live_set'].includes(type)) {
         if (type === 'end_live_set' && /already locked/i.test(d.error || '')) {
           if (G.polling) {
             ensurePollHoldReleased(G.gameState);
