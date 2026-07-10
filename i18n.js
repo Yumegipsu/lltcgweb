@@ -765,7 +765,8 @@
       "debugSaveBundle": "📦 Export debug bundle",
       "rankedPrNew": "Ranked win reward: {name}",
       "rankedPrDupe": "{name} converted to {gems} Star Gems (duplicate)",
-      "rankedPrDailyCap": "Daily ranked PR rewards used ({limit}/day JST)"
+      "rankedPrDailyCap": "Daily ranked PR rewards used ({limit}/day JST)",
+      "rankedPrPopupTitle": "Ranked win reward!"
     },
     "replay": {
       "menuTitle": "Replay Viewer",
@@ -1733,7 +1734,8 @@
       "debugSaveBundle": "📦 デバッグ一式を出力",
       "rankedPrNew": "ランクマ報酬：{name}",
       "rankedPrDupe": "{name}は重複のためスタージェム{gems}に変換",
-      "rankedPrDailyCap": "本日のランクマPR報酬は上限です（{limit}回/日・JST）"
+      "rankedPrDailyCap": "本日のランクマPR報酬は上限です（{limit}回/日・JST）",
+      "rankedPrPopupTitle": "ランクマ勝利報酬！"
     },
     "replay": {
       "menuTitle": "リプレイビューア",

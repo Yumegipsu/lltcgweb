@@ -50,6 +50,9 @@
       }
       if (typeof global.updateStarGemsUI === 'function') global.updateStarGemsUI();
     }
+    if (typeof global.queueRankedPrReward === 'function') {
+      global.queueRankedPrReward(reward);
+    }
   };
 
   global.parseAccountJson = async function parseAccountJson(r) {
