@@ -1441,6 +1441,12 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             'pick'   => intval($ab['pick'] ?? 1),
         ];
         $state = beginLookRevealPick($state, $owner, $prompt['source_name'] ?? 'Member', $ownerP, $then);
+        if (empty($state['pending_prompt']) && isset($prompt['ability_index'])) {
+            $slot = $prompt['source_slot'] ?? '';
+            if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
+                markAbilityUsed($ownerP['stage'][$slot], intval($prompt['ability_index']));
+            }
+        }
         if (empty($state['pending_prompt'])) {
             $state['seq']++;
             $state = finishPromptEffects($state);
@@ -1467,6 +1473,12 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         } else {
             $state = addLog($state, $state['players'][$owner]['name'] .
                 " — [" . ($prompt['source_name'] ?? 'Member') . "] revealed cost $total (no milestone).");
+        }
+        if (isset($prompt['ability_index'])) {
+            $slot = $prompt['source_slot'] ?? '';
+            if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
+                markAbilityUsed($ownerP['stage'][$slot], intval($prompt['ability_index']));
+            }
         }
         $state['seq']++;
         $state = finishPromptEffects($state);

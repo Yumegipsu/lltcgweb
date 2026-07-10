@@ -2428,6 +2428,15 @@ function getMemberBlade(array $member, array $state, string $pid, string $slot =
                 }
             }
             if (($ab['trigger'] ?? '') === 'continuous'
+                && ($ab['type'] ?? '') === 'continuous_blade_in_slot') {
+                $needSlot = $ab['slot'] ?? '';
+                if ($needSlot !== ''
+                    && ($slot === $needSlot
+                        || findMemberSlot($state['players'][$pid], $member['instance_id'] ?? '') === $needSlot)) {
+                    $blade += intval($ab['amount'] ?? 0);
+                }
+            }
+            if (($ab['trigger'] ?? '') === 'continuous'
                 && ($ab['type'] ?? '') === 'blade_bonus_if_named_on_stage') {
                 if (stageHasNamedMember($state['players'][$pid], $ab['names'] ?? [])) {
                     $blade += intval($ab['amount'] ?? 0);

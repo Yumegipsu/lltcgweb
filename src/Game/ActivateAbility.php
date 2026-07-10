@@ -935,6 +935,53 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             markAbilityUsed($member, $abilityIdx);
             persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
         }
+    } elseif (($ab['type'] ?? '') === 'reveal_hand_member_cost_live_score') {
+        $state = resolveAbilityEffect($state, $pid, $member, $ab, [
+            'slot'          => $slot ?? '',
+            'phase'         => 'activated',
+            'ability_index' => $abilityIdx,
+        ]);
+        if (!empty($state['pending_prompt'])) {
+            $state['pending_prompt']['ability_index'] = $abilityIdx;
+            $state['pending_prompt']['source_slot'] = $slot ?? '';
+        } elseif (empty($state['pending_prompt'])) {
+            markAbilityUsed($member, $abilityIdx);
+            persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
+        }
+    } elseif (($ab['type'] ?? '') === 'mandatory_discard_look_reveal') {
+        $cost = intval($ab['energy_cost'] ?? 0);
+        if ($cost > 0 && !payEnergyCost($p, $cost)) {
+            throw new Exception("Need $cost active Energy");
+        }
+        if ($cost > 0) {
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                ' — [' . ($member['name_en'] ?? $member['name'] ?? 'Member') . "] paid $cost Energy.");
+        }
+        $state = resolveAbilityEffect($state, $pid, $member, $ab, [
+            'slot'          => $slot ?? '',
+            'phase'         => 'activated',
+            'ability_index' => $abilityIdx,
+        ]);
+        if (!empty($state['pending_prompt'])) {
+            $state['pending_prompt']['ability_index'] = $abilityIdx;
+            $state['pending_prompt']['source_slot'] = $slot ?? '';
+        } elseif (empty($state['pending_prompt'])) {
+            markAbilityUsed($member, $abilityIdx);
+            persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
+        }
+    } elseif (($ab['type'] ?? '') === 'optional_discard_prompt') {
+        $state = resolveAbilityEffect($state, $pid, $member, $ab, [
+            'slot'          => $slot ?? '',
+            'phase'         => 'activated',
+            'ability_index' => $abilityIdx,
+        ]);
+        if (!empty($state['pending_prompt'])) {
+            $state['pending_prompt']['ability_index'] = $abilityIdx;
+            $state['pending_prompt']['source_slot'] = $slot ?? '';
+        } elseif (empty($state['pending_prompt'])) {
+            markAbilityUsed($member, $abilityIdx);
+            persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
+        }
     } else {
         throw new Exception('Ability type not implemented');
     }

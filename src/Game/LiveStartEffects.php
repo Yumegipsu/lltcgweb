@@ -57,6 +57,7 @@ function resolveLiveStartAbilities(array $state, string $pid): array {
         return $state;
     }
     $state = sBp5ApplyOppLivePenalties($state, $pid);
+    $state = spBp2ApplyContinuousOppLiveGrayHeart($state, $pid);
     $p = $state['players'][$pid];
 
     foreach ($p['stage'] as $member) {

@@ -19,6 +19,8 @@ function spBp2EffectTypes(): array {
         'choose_heart_modifier',
         'continuous_hearts_in_slot',
         'continuous_negate_stage_member_abilities',
+        'continuous_opp_live_gray_heart',
+        'continuous_blade_in_slot',
         'cost_per_stacked_group_member',
         'draw_and_discard',
         'draw_if_live_zone_score_up_or_yell_score_icon',
@@ -43,6 +45,8 @@ function spBp2EffectTypes(): array {
         'optional_wait_self_opp_heart_gap',
         'optional_wr_to_deck_top',
         'pay_energy_add_from_wr',
+        'reveal_hand_member_cost_live_score',
+        'mandatory_discard_look_reveal',
         'pick_wr_distinct_lives_opp_choice',
         'activated_discard_liella_choose_energy_or_hearts',
         'reduce_hearts_per_entered_moved_subunit',
@@ -83,6 +87,46 @@ function spBp2HandlerTypes(): array {
 
 function spBp2IsHandlerType(string $type): bool {
     return in_array($type, spBp2HandlerTypes(), true);
+}
+
+/** Opponent continuous aura: +N Gray heart on each Live card in performing player's live_zone. */
+function spBp2ApplyContinuousOppLiveGrayHeart(array $state, string $pid): array {
+    $opp = ($pid === 'p1') ? 'p2' : 'p1';
+    $extraGray = 0;
+    foreach ($state['players'][$opp]['stage'] as $mbr) {
+        if (!$mbr || !cardHasAbilities($mbr)) {
+            continue;
+        }
+        foreach ($mbr['abilities'] as $ab) {
+            if (($ab['trigger'] ?? '') === 'continuous'
+                && ($ab['type'] ?? '') === 'continuous_opp_live_gray_heart') {
+                $extraGray += intval($ab['amount'] ?? 1);
+            }
+        }
+    }
+    if ($extraGray <= 0) {
+        return $state;
+    }
+    $p = &$state['players'][$pid];
+    if (empty($p['live_zone'])) {
+        return $state;
+    }
+    $applied = 0;
+    foreach ($p['live_zone'] as &$lc) {
+        if (!$lc) {
+            continue;
+        }
+        $req = $lc['required_hearts'] ?? $lc['hearts'] ?? [];
+        $req[] = ['color' => 'gray', 'count' => $extraGray];
+        $lc['required_hearts'] = $req;
+        $applied++;
+    }
+    unset($lc);
+    if ($applied > 0) {
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — opponent continuous aura: +$extraGray Gray heart(s) on each Live card.");
+    }
+    return $state;
 }
 
 function spBp2InheritedAbilitiesForTrigger(array $member, string $trigger): array {

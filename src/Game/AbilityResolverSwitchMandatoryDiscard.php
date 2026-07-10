@@ -35,8 +35,9 @@ function tryResolveAbilityEffectSwitchMandatoryDiscard(
                 'discard_count' => intval($ab['discard'] ?? 1),
                 'ability'       => $ab,
             ];
+            $phaseLabel = (($ctx['phase'] ?? '') === 'activated') ? 'Activated' : 'On Enter';
             $state = addLog($state, $state['players'][$pid]['name'] .
-                ' — [' . $name . '] mandatory discard for On Enter.');
+                " — [$name] mandatory discard for $phaseLabel.");
             break;
 
     }

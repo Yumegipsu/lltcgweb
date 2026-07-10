@@ -365,12 +365,14 @@ function tryResolveAbilityEffectSwitchOptional(
                 break;
             }
             $energyCost = intval($ab['energy_cost'] ?? 0);
-            if ($energyCost > 0 && !payEnergyCost($p, $energyCost)) {
+            $deferEnergyPay = (($ab['trigger'] ?? '') === 'activated')
+                || (($ctx['phase'] ?? '') === 'activated');
+            if ($energyCost > 0 && !$deferEnergyPay && !payEnergyCost($p, $energyCost)) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] could not pay $energyCost Energy; effect skipped.");
                 break;
             }
-            if ($energyCost > 0) {
+            if ($energyCost > 0 && !$deferEnergyPay) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] paid $energyCost Energy.");
             }
