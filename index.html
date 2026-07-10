@@ -34717,6 +34717,10 @@ function fillCardDetailPanel(prefix, card, s, myId) {
     yi.style.alignItems = 'center';
     appendYellSpecialIcons(yi, card, { lg: false });
   }
+  if (card.blade_hearts?.length) {
+    sg.innerHTML += `<div class="sbox"><div class="sv blade-heart-stat"></div><div class="sk">${t('card.bladeHearts')}</div></div>`;
+    appendBladeHeartIcons(sg.querySelector('.blade-heart-stat'), card.blade_hearts, { lg: false });
+  }
   const rulesDisplay = cardRulesDisplayText(card).trim();
   const skillText = rulesDisplay
     || ((card.abilities?.length && !rulesDisplay)
@@ -39595,7 +39599,26 @@ function mkHeartIcon(color, lg=false, field=false){
   return img;
 }
 
-function mkBladeHeartIcon(color, lg=false){
+function appendBladeHeartIcons(container, bladeHearts, { lg = false } = {}) {
+  if (!container || !bladeHearts?.length) return;
+  container.style.display = 'flex';
+  container.style.flexWrap = 'wrap';
+  container.style.justifyContent = 'center';
+  container.style.alignItems = 'center';
+  container.style.gap = '4px';
+  container.innerHTML = '';
+  (bladeHearts || []).forEach(bh => {
+    if (typeof bh === 'string') {
+      if (bh === 'draw' || bh === 'score') return;
+      container.appendChild(mkBladeHeartIcon(bh, lg));
+      return;
+    }
+    const t = bh?.type || bh?.color || '';
+    if (t === 'draw' || t === 'score') return;
+    container.appendChild(mkBladeHeartIcon(t, lg));
+  });
+}
+
   const c = bladeHeartDisplayColor(color);
   const img=document.createElement('img');
   img.className='hicon bheart'+(lg?' lg':'');

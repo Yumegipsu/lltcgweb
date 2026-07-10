@@ -2897,7 +2897,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L+",
             "text": "",
             "text_jp": "",
@@ -2940,7 +2942,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SECL",
             "text": "",
             "text_jp": "",
@@ -36658,7 +36662,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L+",
             "text": "",
             "text_jp": "",
@@ -42485,7 +42491,9 @@
                     "count": 5
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L+",
             "text": "",
             "text_jp": "",
@@ -51806,7 +51814,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SECL",
             "text": "",
             "text_jp": "",
@@ -55571,7 +55581,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L+",
             "text": "[Live Success] When determining the Live winner this turn, if both players' Live total scores are tied, until this Live ends neither player may add cards to their Success Live area.",
             "text_jp": "このターン、ライブに勝利するプレイヤーを決定するとき、自分と相手のライブの合計スコアが同じ場合、ライブ終了時まで、自分と相手は成功ライブカード置き場にカードを置くことができない。",
@@ -55674,7 +55686,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L+",
             "text": "",
             "text_jp": "",
@@ -76195,7 +76209,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "P",
             "text": "",
             "text_jp": "",
@@ -76238,7 +76254,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SD",
             "text": "",
             "text_jp": "",
@@ -76281,7 +76299,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SD2",
             "text": "",
             "text_jp": "",
@@ -76324,7 +76344,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "",
             "text_jp": "",
