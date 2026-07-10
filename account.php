@@ -882,11 +882,19 @@ function tcgApiRankStats(array $body): array {
             'is_you' => $row['discord_id'] === $uid,
         ];
     }
+    $yourRank = null;
+    foreach ($leaderboard as $entry) {
+        if (!empty($entry['is_you'])) {
+            $yourRank = $entry['rank'];
+            break;
+        }
+    }
     return [
         'success' => true,
         'you' => array_merge(
             tcgFormatRankSummary($rank),
             [
+                'rank' => $yourRank,
                 'username' => $user['username'] ?? $profile['username'] ?? 'Player',
                 'avatar_url' => $user['avatar_url'] ?? $profile['avatar_url'] ?? null,
                 'banner' => tcgFormatUserBanner($user, $cards),

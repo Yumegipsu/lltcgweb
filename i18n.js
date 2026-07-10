@@ -335,7 +335,9 @@
       "bannerNoMatch": "No cards match your search.",
       "bannerPreview": "Preview",
       "saveBanner": "Save banner",
-      "selectCardFirst": "Select a card first"
+      "selectCardFirst": "Select a card first",
+      "yourRank": "Your rank: #{rank}",
+      "jumpToYou": "Jump to my entry"
     },
     "stamps": {
       "send": "💬 Stamps",
@@ -1305,7 +1307,9 @@
       "bannerNoMatch": "検索に一致するカードがありません。",
       "bannerPreview": "プレビュー",
       "saveBanner": "バナーを保存",
-      "selectCardFirst": "先にカードを選択してください"
+      "selectCardFirst": "先にカードを選択してください",
+      "yourRank": "あなたの順位: #{rank}",
+      "jumpToYou": "自分の行へ移動"
     },
     "stamps": {
       "send": "💬 スタンプ",
@@ -2270,7 +2274,9 @@
       "bannerNoMatch": "Ninguna carta coincide con tu búsqueda.",
       "bannerPreview": "Vista previa",
       "saveBanner": "Guardar banner",
-      "selectCardFirst": "Selecciona primero una carta"
+      "selectCardFirst": "Selecciona primero una carta",
+      "yourRank": "Tu puesto: #{rank}",
+      "jumpToYou": "Ir a mi fila"
     },
     "stamps": {
       "send": "💬 Sellos",

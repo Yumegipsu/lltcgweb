@@ -4793,11 +4793,21 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   align-self:center;
 }
 .leaderboard-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:12px 0 18px}
+.leaderboard-your-rank{
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 14px;
+  margin:0 0 14px;padding:12px 14px;border-radius:12px;
+  border:1px solid rgba(255,107,168,.35);background:rgba(255,107,168,.1)}
+.leaderboard-your-rank-line{margin:0;font-size:15px;font-weight:800;color:#fff}
 .leaderboard-list{display:flex;flex-direction:column;gap:12px;width:100%}
 .rank-card{
   border-radius:14px;border:1px solid rgba(255,255,255,.16);background:rgba(0,0,0,.28);
   overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.28)}
 .rank-card.is-you{border-color:var(--pink);box-shadow:0 0 16px rgba(255,107,168,.22)}
+.rank-card.rank-card-flash{animation:leaderboardYouFlash 1.2s ease}
+@keyframes leaderboardYouFlash{
+  0%,100%{box-shadow:0 8px 24px rgba(0,0,0,.28)}
+  35%,65%{box-shadow:0 0 22px rgba(255,107,168,.55);border-color:var(--pink)}
+}
 .rank-banner-wrap{
   overflow:hidden;background:linear-gradient(90deg,rgba(255,107,168,.18),rgba(77,150,255,.18));
   position:relative;isolation:isolate;box-sizing:border-box}
@@ -6631,6 +6641,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <p class="account-lead" data-i18n="leaderboard.lead">Highest ELO from ranked PvP. Set a card banner for your profile row.</p>
       <div class="leaderboard-actions">
         <button class="btn-out" id="btn-leaderboard-banner" type="button" data-i18n="leaderboard.editBanner">Edit profile banner</button>
+      </div>
+      <div class="leaderboard-your-rank" id="leaderboard-your-rank" hidden>
+        <p class="leaderboard-your-rank-line" id="leaderboard-your-rank-text"></p>
+        <button class="btn-out" id="btn-leaderboard-jump-you" type="button" hidden data-i18n="leaderboard.jumpToYou">Jump to my entry</button>
       </div>
       <div class="leaderboard-list" id="leaderboard-list"></div>
       <p class="lerr" id="leaderboard-err"></p>
@@ -13412,11 +13426,43 @@ function applyRankBanner(container, banner) {
   container.appendChild(img);
 }
 
+function renderLeaderboardYourRank(data) {
+  const wrap = el('leaderboard-your-rank');
+  const text = el('leaderboard-your-rank-text');
+  const jumpBtn = el('btn-leaderboard-jump-you');
+  if (!wrap || !text) return;
+  const rows = data?.leaderboard || [];
+  const youRow = rows.find(row => row.is_you);
+  const rank = youRow?.rank ?? data?.you?.rank ?? null;
+  const games = youRow?.games ?? data?.you?.games ?? 0;
+  if (!games || rank == null) {
+    wrap.hidden = true;
+    if (jumpBtn) jumpBtn.hidden = true;
+    return;
+  }
+  wrap.hidden = false;
+  text.textContent = t('leaderboard.yourRank', { rank });
+  if (jumpBtn) {
+    jumpBtn.hidden = false;
+    jumpBtn.textContent = t('leaderboard.jumpToYou');
+  }
+}
+
+function jumpToYourLeaderboardEntry() {
+  const row = document.getElementById('leaderboard-row-you');
+  if (!row) return;
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  row.classList.remove('rank-card-flash');
+  void row.offsetWidth;
+  row.classList.add('rank-card-flash');
+}
+
 function renderLeaderboardRows(data) {
   A.lastLeaderboardData = data;
   const list = el('leaderboard-list');
   list.replaceChildren();
   const rows = data?.leaderboard || [];
+  renderLeaderboardYourRank(data);
   if (!rows.length) {
     const empty = document.createElement('div');
     empty.className = 'leaderboard-empty';
@@ -13427,6 +13473,7 @@ function renderLeaderboardRows(data) {
   rows.forEach(row => {
     const card = document.createElement('div');
     card.className = 'rank-card' + (row.is_you ? ' is-you' : '');
+    if (row.is_you) card.id = 'leaderboard-row-you';
 
     const bannerWrap = document.createElement('div');
     bannerWrap.className = 'rank-banner-wrap' + (row.banner?.image ? '' : ' empty');
@@ -15893,6 +15940,7 @@ window.G = G;
   on('btn-ranked-leaderboard', 'click', openLeaderboardScreen);
   on('btn-leaderboard-back', 'click', () => enterHub(A.profile));
   on('btn-leaderboard-banner', 'click', openBannerCropModal);
+  on('btn-leaderboard-jump-you', 'click', jumpToYourLeaderboardEntry);
   on('btn-banner-save', 'click', saveBannerCrop);
   on('btn-banner-cancel', 'click', () => closeM('modal-banner-crop'));
   on('btn-banner-crop-close', 'click', () => closeM('modal-banner-crop'));
