@@ -27402,6 +27402,7 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
 
   G._liveRevealFlips = new Set();
   G._liveFlipScheduled = new Set();
+  sweepStaleLiveStorageFlipDom(playback, myId);
   let revealAnimRan = flipKeys.size === 0 || (G._liveStorageRevealAnimCount || 0) > 0;
   if (!revealAnimRan && flipKeys.size && liveStorageRevealDomComplete(flipKeys, myId)) {
     revealAnimRan = true;
@@ -28024,6 +28025,72 @@ function shouldIgnoreStaleLivePerfSignals(prev, next) {
   return isMainOrActivePhase(prev?.phase) && isMainOrActivePhase(next?.phase);
 }
 
+function liveStorageFlipPlaybackActive(flipKeys, flipKey) {
+  if (flipKeys?.has(flipKey)) return true;
+  if (G._liveFlipScheduled?.has(flipKey)) return true;
+  if ((G._liveStorageRevealAnimCount || 0) > 0) return true;
+  if (G._activeCardFlips) return true;
+  if (G._liveRoundPlaybackActive && G._liveRevealFlips?.size) return true;
+  if (G._perfSpectacleActive || G._liveSpectacleGateRunning) return true;
+  return false;
+}
+
+/** Collapse a finished live-storage flip to a static face (or facedown shell). */
+function settleLiveStorageFlipCard(cardEl, card) {
+  if (!cardEl?.classList.contains('live-storage-flip')) return false;
+  card = enrichCard(card);
+  const inner = cardEl.querySelector('.live-flip-inner');
+  if (card.revealed) {
+    if (inner) {
+      if (!cardEl.classList.contains('revealed')) cardEl.classList.add('revealed');
+      finalizeCardFlip(cardEl);
+    } else {
+      cardEl.classList.remove('live-storage-flip', 'live-storage-facedown', 'revealed', 'storage-sideways-member');
+      cardEl.replaceChildren();
+      appendLiveStorageFace(cardEl, card);
+      applyCardFoilFx(cardEl, card);
+    }
+    return true;
+  }
+  cardEl.classList.remove('live-storage-flip', 'revealed', 'storage-sideways-member');
+  cardEl.replaceChildren();
+  cardEl.classList.add('live-storage-facedown');
+  const shell = document.createElement('div');
+  shell.className = 'live-facedown-shell';
+  const backFace = document.createElement('div');
+  backFace.className = 'live-flip-face live-flip-back';
+  appendLiveStorageBack(backFace, card);
+  shell.appendChild(backFace);
+  cardEl.appendChild(shell);
+  return true;
+}
+
+function settleStaleLiveStorageFlipCard(cardEl, card, s, flipKeys, flipKey) {
+  if (!cardEl?.classList.contains('live-storage-flip')) return false;
+  if (liveStorageFlipPlaybackActive(flipKeys, flipKey)) return false;
+  if (G._liveStorageOutcomePending && !card?.revealed) return false;
+  return settleLiveStorageFlipCard(cardEl, card);
+}
+
+/** Remove opponent live-storage flip shells left over after performance / main-phase polls. */
+function sweepStaleLiveStorageFlipDom(s, myId = G.playerId) {
+  if (!s?.players || G._perfSpectacleActive || G._liveSpectacleGateRunning) return false;
+  if (G._liveRoundPlaybackActive && G._liveRevealFlips?.size) return false;
+  const flipKeys = G._liveRevealFlips || new Set();
+  const oppId = myId === 'p1' ? 'p2' : 'p1';
+  const zone = s.players[oppId]?.live_zone || [];
+  let settled = false;
+  for (let i = 0; i < 3; i++) {
+    const card = liveZoneCardAtSlot(zone, i);
+    const cardEl = el(`opp-live-${i}`)?.querySelector('.lcard.live-card');
+    if (!card || !cardEl) continue;
+    const flipKey = `${oppId}:${card.instance_id}`;
+    if (settleStaleLiveStorageFlipCard(cardEl, card, s, flipKeys, flipKey)) settled = true;
+  }
+  if (settled) layoutLiveSlots('opp');
+  return settled;
+}
+
 function clearStaleLiveStorageFlipState(prev, next) {
   if (!next || G._liveRoundPlaybackActive || G._perfSpectacleActive || G._liveSpectacleGateRunning) return;
   if (!isMainOrActivePhase(next.phase)) return;
@@ -28041,6 +28108,7 @@ function clearStaleLiveStorageFlipState(prev, next) {
     G._deferPerfSpectaclePrev = null;
     if (!G._livePostRevealBoard) G._liveSetStorageBaseline = null;
   }
+  sweepStaleLiveStorageFlipDom(next, G.playerId);
 }
 
 /** Main→main polls after a finished Live round must not replay pipeline log banners. */
@@ -32089,6 +32157,7 @@ function perfCloseSpectacle() {
     G._perfLiveRowResize = null;
   }
   document.body.classList.remove('perf-spectacle-active');
+  sweepStaleLiveStorageFlipDom(G.gameState, G.playerId);
   const root = el('perf-spectacle');
   if (root) {
     root.classList.remove('show');
@@ -34589,6 +34658,10 @@ function renderLiveSlots(prefix, zone, isMe, pid){
       if (existingCard.classList.contains('live-storage-flip')) {
         existingCard.classList.toggle('card-arriving', !!(G._animHideIids?.has(card.instance_id)));
         const flipActive = doFlip || G._liveFlipScheduled?.has(flipKey);
+        if (!flipActive && settleStaleLiveStorageFlipCard(existingCard, card, s, flipKeys, flipKey)) {
+          applyCardFoilFx(existingCard, card);
+          continue;
+        }
         if (!existingCard.classList.contains('revealed') && flipActive) {
           ensureLiveStorageFlipScheduled(
             existingCard, card, flipKey, flipKeys, i * LIVE_STORAGE_FLIP_STAGGER_MS, prefix
