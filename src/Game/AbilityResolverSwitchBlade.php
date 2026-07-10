@@ -58,6 +58,21 @@ function tryResolveAbilityEffectSwitchBlade(
                 ' — [' . $name . '] gains +' . intval($ab['amount'] ?? 1) . ' Blade until this Live ends.');
             break;
         case 'blade_per_hand_cards':
+            if (($ab['trigger'] ?? '') === 'live_start' || ($ctx['phase'] ?? '') === 'live_start') {
+                $handCount = count($p['hand'] ?? []);
+                $div = max(1, intval($ab['per_cards'] ?? 2));
+                $bonus = intdiv($handCount, $div) * intval($ab['amount'] ?? 1);
+                if ($bonus > 0) {
+                    $state = applyModifierEffect($state, $pid, [
+                        'type'   => 'blade_bonus',
+                        'amount' => $bonus,
+                    ]);
+                }
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] gains +$bonus Blade until Live ends (+1 per " .
+                    intval($ab['per_cards'] ?? 2) . " cards in hand at Live Start, hand was $handCount).");
+                break;
+            }
             $state = initLiveModifiers($state);
             $state['live_modifiers'][$pid]['blade_per_hand_divisor'] = max(1, intval($ab['per_cards'] ?? 2));
             $state['live_modifiers'][$pid]['blade_per_hand_amount'] = intval($ab['amount'] ?? 1);

@@ -61843,20 +61843,20 @@
                 "yellow"
             ],
             "rarity": "P",
-            "text": "[Always] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[On Enter] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
+            "text": "[Live Start] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[Live Success] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-P.png",
             "subunit": "5yncri5e!",
             "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera.",
             "abilities": [
                 {
-                    "trigger": "continuous",
+                    "trigger": "live_start",
                     "type": "blade_per_hand_cards",
                     "per_cards": 2,
                     "amount": 1
                 },
                 {
-                    "trigger": "on_enter",
+                    "trigger": "live_success",
                     "type": "draw_and_discard",
                     "draw": 2,
                     "discard": 1
@@ -61891,20 +61891,20 @@
                 "yellow"
             ],
             "rarity": "P+",
-            "text": "[Always] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[On Enter] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
+            "text": "[Live Start] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[Live Success] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-P2.png",
             "subunit": "5yncri5e!",
             "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera.",
             "abilities": [
                 {
-                    "trigger": "continuous",
+                    "trigger": "live_start",
                     "type": "blade_per_hand_cards",
                     "per_cards": 2,
                     "amount": 1
                 },
                 {
-                    "trigger": "on_enter",
+                    "trigger": "live_success",
                     "type": "draw_and_discard",
                     "draw": 2,
                     "discard": 1
@@ -61939,20 +61939,20 @@
                 "yellow"
             ],
             "rarity": "R+",
-            "text": "[Always] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[On Enter] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
+            "text": "[Live Start] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[Live Success] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-R2.png",
             "subunit": "5yncri5e!",
             "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera.",
             "abilities": [
                 {
-                    "trigger": "continuous",
+                    "trigger": "live_start",
                     "type": "blade_per_hand_cards",
                     "per_cards": 2,
                     "amount": 1
                 },
                 {
-                    "trigger": "on_enter",
+                    "trigger": "live_success",
                     "type": "draw_and_discard",
                     "draw": 2,
                     "discard": 1
@@ -61987,20 +61987,20 @@
                 "yellow"
             ],
             "rarity": "SEC",
-            "text": "[Always] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[On Enter] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
+            "text": "[Live Start] Until this Live ends, gain +1 Blade for every 2 cards in your hand.\n[Live Success] Draw 2 cards, then put 1 card from your hand into the Waiting Room.",
             "text_jp": "ライブ終了時まで、自分の手札2枚につき、を得る。\n\nカードを2枚引き、手札を1枚控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-009-SEC.png",
             "subunit": "5yncri5e!",
             "text_es": "Hasta que termine este Live, obtienes +1 Blade por cada 2 cartas en tu mano.\n\nRoba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera.",
             "abilities": [
                 {
-                    "trigger": "continuous",
+                    "trigger": "live_start",
                     "type": "blade_per_hand_cards",
                     "per_cards": 2,
                     "amount": 1
                 },
                 {
-                    "trigger": "on_enter",
+                    "trigger": "live_success",
                     "type": "draw_and_discard",
                     "draw": 2,
                     "discard": 1
