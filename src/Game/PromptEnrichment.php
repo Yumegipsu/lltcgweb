@@ -144,6 +144,7 @@ function isSelfActivationPromptType(string $type): bool {
         'optional_discard_named',
         'optional_discard_same_group',
         'optional_discard_prompt',
+        'optional_discard_mill_wr_add_member',
         'optional_discard_blade_draw_if_live',
         'optional_wait_self_wait_opp',
         'optional_wait_self_add_wr',

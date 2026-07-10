@@ -7554,7 +7554,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=19"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=20"></script>
+<script src="client/js/prompt-renderer.js?v=21"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -19211,7 +19211,10 @@ function clearPlaySelection() {
   });
   document.querySelectorAll('#my-stage-left .stage-slot, #my-stage-center .stage-slot, #my-stage-right .stage-slot')
     .forEach(outer => outer.classList.remove('play-glow-valid', 'play-glow-invalid', 'play-glow-selected', 'play-glow-focus'));
-  if (G.gameState) updatePlayTargetChrome(G.gameState, G.playerId);
+  if (G.gameState) {
+    updatePlayTargetChrome(G.gameState, G.playerId);
+    syncMyStagePlayHints(G.gameState, G.playerId);
+  }
 }
 
 function syncMyStagePlayHints(s, myId) {
@@ -39564,6 +39567,12 @@ async function sendAct(type,data){
   }
   catch(e){
     G._promptSubmitKey = null;
+    if (type === 'resolve_prompt' && G.gameState && G.playerId) {
+      G._lastSurfacedPromptKey = null;
+      ensurePendingPromptSurfaced(G.gameState, G.playerId);
+      renderPrompt(G.gameState, G.playerId);
+      updatePhaseActionButton(G.gameState, G.playerId);
+    }
     if (type === 'resign') {
       G._presentationAborted = false;
       try { if (G.polling) await pullLatestState(); } catch (_) {}

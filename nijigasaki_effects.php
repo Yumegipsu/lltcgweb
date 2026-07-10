@@ -1099,18 +1099,23 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
         return $state;
     }
 
-    if ($promptType === 'optional_discard_mill_wr_add_member' && $choice === 'no') {
-        $srcName = $prompt['source_name'] ?? 'Member';
-        $state = addLog($state, $state['players'][$owner]['name'] .
-            " — [$srcName] skipped optional On Enter.");
-        unset($state['pending_prompt']);
-        $state['seq']++;
-        $state = finishPromptEffects($state);
-        return $state;
-    }
-
-    if ($promptType === 'optional_discard_mill_wr_add_member' && $choice === 'yes') {
-        $ids = $data['discard_ids'] ?? [];
+    if ($promptType === 'optional_discard_mill_wr_add_member') {
+        if ($choice === 'skip' || $choice === 'cancel') {
+            $choice = 'no';
+        }
+        if ($choice === 'no') {
+            $srcName = $prompt['source_name'] ?? 'Member';
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$srcName] skipped optional On Enter.");
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            $state = finishPromptEffects($state);
+            return $state;
+        }
+        if ($choice !== 'yes') {
+            return $state;
+        }
+        $ids = normalizeDiscardIds($data['discard_ids'] ?? []);
         if (count($ids) !== 1) throw new Exception('Discard exactly 1 card');
         discardFromHandByIds($ownerP, $ids);
         $mill = intval($ability['mill'] ?? 2);

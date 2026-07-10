@@ -295,12 +295,7 @@ global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
     cards = (pr.candidates || []).map(c => enrichCard(c)).filter(c => c?.instance_id && cardMatchesWrPickClient(c, cfg));
   }
   if (!cards.length) {
-    const fallbackId = pr.candidates?.[0]?.instance_id;
-    if (fallbackId && !isPromptSubmitting(s)) {
-      sendAct('resolve_prompt', { card_id: fallbackId });
-    } else {
-      toast(pt('prompt.wrEmpty'), 3200);
-    }
+    toast(pt('prompt.wrNoMatch') || pt('prompt.wrEmpty'), 3200);
     return;
   }
   if (!cards.some(c => cardMatchesWrPickClient(c, cfg)) && (pr.candidates || []).length) {
