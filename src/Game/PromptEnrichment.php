@@ -463,6 +463,15 @@ function forceDismissPendingPromptForPlayer(array $state, string $pid, string $l
         return $state;
     }
     $src = $prompt['source_name'] ?? ($prompt['type'] ?? 'effect');
+    if (($prompt['type'] ?? '') === 'optional_live_start'
+        && ($state['phase'] ?? '') === 'live_start_effects') {
+        $state = markLiveStartOptionalResolved(
+            $state,
+            $prompt['owner'] ?? $pid,
+            $prompt['source_id'] ?? '',
+            intval($prompt['ability_index'] ?? 0)
+        );
+    }
     $state = addLog($state, ($state['players'][$pid]['name'] ?? $pid) .
         " — {$logPrefix} [{$src}] (no effect).", 'info');
     unset($state['pending_prompt'], $state['surveil_stash'], $state['_surveil_chain']);

@@ -260,6 +260,43 @@
     if (G.polling) G.pollTimer = setTimeout(doPollLegacy, nextPollDelayMs(pollError));
   };
 
+  /** Fetch state during live presentation without queueing behind G.animating. */
+  global.pullSkillResolutionState = async function pullSkillResolutionState(opts = {}) {
+    if (!G.roomId || !G.token) return G.gameState || null;
+    if (G.isTutorial && !G.tutorialLive) return G.gameState || null;
+    const pollEpoch = G._gameSessionEpoch;
+    const pollRoomId = G.roomId;
+    TCG_DEBUG.log('poll', 'pullSkillResolutionState', { seq: G.lastSeq, room: pollRoomId });
+    try {
+      const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(pollRoomId)}&token=${encodeURIComponent(G.token)}&seq=${G.lastSeq}&poll=0`);
+      const d = await parseGameApiResponse(r);
+      if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return G.gameState || null;
+      if ((d.seq ?? 0) <= (G.lastSeq ?? 0)) return G.gameState || null;
+      G.lastSeq = d.seq;
+      G.playerId = G.isSpectator ? (d.view_as || 'p1') : (d.my_id || G.playerId);
+      G.gameState = d;
+      if (typeof global.renderGame === 'function') {
+        const skipPrompt = typeof global.shouldDeferPromptForLivePresentation === 'function'
+          && global.shouldDeferPromptForLivePresentation(d, G.playerId);
+        global.renderGame(d, { skipLog: true, skipPrompt });
+      }
+      if (typeof global.ensurePendingPromptSurfaced === 'function') {
+        global.ensurePendingPromptSurfaced(d, G.playerId);
+      }
+      if (d.pending_prompt) {
+        if (typeof global.syncPromptSubmitState === 'function') global.syncPromptSubmitState(d);
+      } else if (typeof global.clearDeferredPromptState === 'function') {
+        global.clearDeferredPromptState();
+      }
+      return d;
+    } catch (e) {
+      if (!opts.silent) {
+        TCG_DEBUG.warn('poll', 'pullSkillResolutionState failed', e);
+      }
+      return G.gameState || null;
+    }
+  };
+
   global.pullLatestState = async function pullLatestState(force, opts = {}) {
     if (!G.polling || (G.isTutorial && !G.tutorialLive) || !G.roomId || !G.token) return;
     if (!force && pollPresentationBlocked()) {

@@ -7550,7 +7550,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/api-client.js?v=8"></script>
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=3"></script>
-<script src="client/js/game-sync.js?v=9"></script>
+<script src="client/js/game-sync.js?v=10"></script>
 <script src="client/js/state-apply.js?v=19"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
@@ -27623,6 +27623,18 @@ function liveStartPromptNeedsWait(next, myId) {
   return pr.responder === myId || pr.responder === (myId === 'p1' ? 'p2' : 'p1');
 }
 
+function shouldPullSkillResolutionDirect() {
+  return !!(G._liveRoundPlaybackActive || G._livePollHold || G._liveSpectacleGateRunning || G._perfSpectacleActive);
+}
+
+async function pullPromptResolutionState() {
+  if (shouldPullSkillResolutionDirect() && typeof pullSkillResolutionState === 'function') {
+    return pullSkillResolutionState();
+  }
+  await pullLatestState(true);
+  return G.gameState;
+}
+
 async function waitForPipelinePromptResolution(myId, opts = {}) {
   const maxMs = opts.maxMs ?? 120000;
   const start = performance.now();
@@ -27648,10 +27660,10 @@ async function waitForPipelinePromptResolution(myId, opts = {}) {
       if (isLiveSuccessDiscardPrompt(cur) || pr.type === 'pick_judge_success_live') {
         ensurePendingPromptSurfaced(cur, myId);
       }
-      if (!isMyBlockingPromptOpen(cur)) await pullLatestState(true);
+      if (!isMyBlockingPromptOpen(cur)) await pullPromptResolutionState();
     } else if (pr?.responder === oppId && !G.isCPU) {
       const seqBefore = G.lastSeq ?? 0;
-      await pullLatestState(true);
+      await pullPromptResolutionState();
       await sleep(150);
       if ((G.lastSeq ?? 0) > seqBefore || G.gameState?.status === 'finished') continue;
       if (G._pendingStateQueue?.length) flushPendingState();
@@ -30043,6 +30055,13 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
 
     await awaitLiveStartPromptsIfNeeded(prev, next, myId);
     await presentSkippedLiveStartBanners(prev, next, myId);
+    next = pickSpectacleStateForPerf(next);
+    if (!emptySkip) {
+      const afterStartPlan = liveRoundPresentationPlan(prev, next, opts);
+      wantsSpectacle = afterStartPlan.wantsSpectacle
+        || (!liveSpectacleDoneForTurn(afterStartPlan.showTurn)
+            && liveRoundRequiresSpectacle(prev, next, afterStartPlan.showTurn));
+    }
 
     if (emptySkip) {
       const wrFrom = buildEmptyLiveWrPlayback(prev, next) || prev;
@@ -30425,9 +30444,10 @@ async function runPerformanceSpectacle(perfPrev, next, myId, opts = {}) {
     TCG_DEBUG.log('live', 'spectacle skip: live_set placement open');
     return false;
   }
+  const spectacleNext = pickSpectacleStateForPerf(next);
   // Defense-in-depth: never open the spectacle while pre-performance Live Start
   // effects are still resolving this round (owner must clear their prompt first).
-  if (next?.phase === 'live_start_effects' && !currentRoundLogHasPerformance(next)) {
+  if (spectacleNext?.phase === 'live_start_effects' && !currentRoundLogHasPerformance(spectacleNext)) {
     TCG_DEBUG.log('live', 'spectacle skip: live_start_effects still resolving');
     return false;
   }
@@ -39522,7 +39542,13 @@ async function sendAct(type,data){
   try {
     await apiPost('action',{room_id:G.roomId,token:G.token,type,data}, { silent: type === 'send_stamp' });
     if (type === 'resolve_prompt') clearDeferredPromptState();
-    if (G.polling) await pullLatestState(false, { silent: type === 'send_stamp' });
+    if (G.polling) {
+      if (type === 'resolve_prompt' || type === 'anti_softlock_skip') {
+        await pullPromptResolutionState();
+      } else {
+        await pullLatestState(false, { silent: type === 'send_stamp' });
+      }
+    }
     flushPendingState();
     if (type === 'resolve_prompt' && G.gameState && G.playerId) {
       syncPromptSubmitState(G.gameState);
