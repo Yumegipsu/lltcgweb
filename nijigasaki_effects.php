@@ -1140,6 +1140,7 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
                 'candidates'  => array_map('cardPromptSummary', $candidates),
                 'ability'     => $ability,
                 'wr_pick_cfg' => $cfg,
+                'pick_count'  => 1,
             ];
             $state = addLog($state, $state['players'][$owner]['name'] .
                 " — [$srcName] discarded and milled " . count($milled) .

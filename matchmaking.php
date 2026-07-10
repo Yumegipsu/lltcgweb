@@ -158,6 +158,11 @@ function tcgSanitizeRankedMatchRow(array|false|null $row): ?array {
         return null;
     }
     if (($state['status'] ?? '') === 'finished') {
+        if (empty($state['ranked']['applied'])) {
+            require_once __DIR__ . '/ranked_room.php';
+            tcgOnGameFinished($state);
+            file_put_contents($path, json_encode($state, JSON_UNESCAPED_UNICODE));
+        }
         tcgCompleteRankedMatch($roomId);
         return null;
     }
@@ -230,7 +235,14 @@ function tcgAbandonActiveRankedGame(string $discordId): array {
         try {
             withLock($roomId, function () use ($roomId, $token) {
                 $state = loadGame($roomId);
-                if (!$state || ($state['status'] ?? '') === 'finished') {
+                if (!$state) {
+                    return null;
+                }
+                if (($state['status'] ?? '') === 'finished') {
+                    if (($state['mode'] ?? '') === 'ranked' && empty($state['ranked']['applied'])) {
+                        tcgOnGameFinished($state);
+                        saveGame($roomId, $state);
+                    }
                     return null;
                 }
                 $playerId = getPlayerIdByToken($state, $token);

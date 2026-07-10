@@ -7554,7 +7554,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=19"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=21"></script>
+<script src="client/js/prompt-renderer.js?v=22"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -25574,11 +25574,15 @@ function scheduleCpuContinueAfterAct(type, tries = 0) {
   }
   if (type === 'resolve_prompt' || type === 'anti_softlock_skip') {
     cpuClearLocalCpuPromptIfResolved(G.gameState);
-    // Animation playback can regress to a pre-resolve snapshot with a stale CPU prompt.
-    if (type === 'resolve_prompt' && G.gameState?.pending_prompt?.responder === 'p2') {
-      clearStaleCpuPromptFromClient();
-    }
     const s = G.gameState;
+    // Chained prompts (e.g. Kinako optional_pay → pick_looked_deck_hand): keep
+    // resolving. Do not wipe a live server-backed p2 prompt as "stale".
+    if (type === 'resolve_prompt' && s?.pending_prompt?.responder === 'p2') {
+      ensurePollHoldReleased(s);
+      doCPU(s);
+      armWatchdog(s);
+      return;
+    }
     if (s && s.pending_prompt?.responder !== 'p2') {
       ensurePollHoldReleased(s);
       doCPU(s);
@@ -29789,7 +29793,15 @@ function shouldDeferPromptForLivePresentation(s, myId) {
       && !G._liveRoundPlaybackActive && !G.animating) {
     return false;
   }
-  if (isMidSpectacleYellRetryPrompt(s)) return true;
+  if (isMidSpectacleYellRetryPrompt(s)) {
+    // Only defer while early yell spectacle is still animating. Otherwise surface
+    // Yes/No (Kurage mill / no-live retry) so Performance can reach heart check.
+    if (G._perfSpectacleActive) {
+      const phase = G._perfSpectaclePhase || 'closed';
+      if (perfPhaseIdx(phase) < perfPhaseIdx('yell_opp')) return true;
+    }
+    return false;
+  }
   if (G._liveRoundPlaybackActive && !G._liveRoundPostSpectacleReady) {
     if (s.phase === 'live_start_effects') return false;
     if (PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type) || isLiveSuccessDiscardPrompt(s)) return true;
@@ -39378,8 +39390,18 @@ function onWinReturnToMenu() {
   }
   endGameSession();
   G = freshGameGlobals();
-  if (A.profile) enterHub(A.profile);
-  else showScr('lobby');
+  (async () => {
+    try {
+      const me = await accountGet('me');
+      if (me) {
+        A.profile = me;
+        enterHub(me);
+        return;
+      }
+    } catch (_) { /* fall through */ }
+    if (A.profile) enterHub(A.profile);
+    else showScr('lobby');
+  })();
 }
 
 async function onWinViewLeaderboard() {
@@ -39576,11 +39598,13 @@ async function sendAct(type,data){
     if (type === 'resign') {
       G._presentationAborted = false;
       try { if (G.polling) await pullLatestState(); } catch (_) {}
+      toast(e.message || 'Resign failed', 6000);
     }
     TCG_DEBUG.warn('action', 'sendAct failed', type, e.message);
     const msg = e.message || '';
     const status = e.httpStatus || 0;
-    if (/no matching/i.test(msg) && /waiting room/i.test(msg)) toast(msg, 3200);
+    if (type === 'resign') { /* toasted above */ }
+    else if (/no matching/i.test(msg) && /waiting room/i.test(msg)) toast(msg, 3200);
     else if (status < 400) toast('Error: ' + msg, 6000);
   }
 }

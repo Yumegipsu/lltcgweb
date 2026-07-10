@@ -397,6 +397,7 @@ function getStatePolling(): void {
             maybeApplyRankedFinish($state);
             saveGame($roomId, $state);
         }
+        maybeRecoverUnappliedRankedFinish($roomId, $state);
         echo json_encode(filterStateForClient($state, $roomId, $playerToken));
         return;
     }
@@ -426,6 +427,7 @@ function getStatePolling(): void {
             maybeApplyRankedFinish($state);
             saveGame($roomId, $state);
         }
+        maybeRecoverUnappliedRankedFinish($roomId, $state);
         if ($state['seq'] > $lastSeq) {
             echo json_encode(filterStateForClient($state, $roomId, $playerToken));
             return;
@@ -452,6 +454,7 @@ function getStatePolling(): void {
         saveGame($roomId, $state);
     }
     if ($state) {
+        maybeRecoverUnappliedRankedFinish($roomId, $state);
         echo json_encode(filterStateForClient($state, $roomId, $playerToken));
     }
 }
@@ -473,7 +476,7 @@ function handleAction(array $body): array {
         throw new Exception('Spectators cannot perform actions');
     }
 
-    return withLock($roomId, function() use ($roomId, $token, $type, $data) {
+    return withLock($roomId, function() use ($roomId, $token, $type, $data, $body) {
         $state = loadGame($roomId);
         if (!$state) throw new Exception('Room not found');
 
@@ -509,25 +512,46 @@ function handleAction(array $body): array {
             return ['ok' => true, 'seq' => $state['seq'], 'noop' => true];
         }
         $state = appendReplayAction($state, $playerId, $type, $data);
-        if (empty($state['pending_prompt'])) {
+        $isResign = ($type === 'resign');
+        // Resign must not re-enter ability flush (softlock TypeErrors → HTTP 500).
+        if (empty($state['pending_prompt']) && !$isResign) {
             $state = flushAutoOnWaitAbilities($state);
         }
-        refreshPvpPhaseTimers($state);
+        if (!$isResign) {
+            refreshPvpPhaseTimers($state);
+        }
         $missionCompletions = [];
-        if ($prevStatus !== 'finished' && ($state['status'] ?? '') === 'finished') {
+        $justFinished = $prevStatus !== 'finished' && ($state['status'] ?? '') === 'finished';
+        if ($justFinished && $isResign) {
+            // Persist concede first so ranked/mission failures cannot block resign.
+            saveGame($roomId, $state);
+            try {
+                require_once __DIR__ . '/missions.php';
+                tcgMissionBackfillPlayerDiscordFromAuth($state, $playerId, $body);
+                require_once __DIR__ . '/ranked_room.php';
+                tcgOnGameFinished($state);
+                $missionCompletions = tcgMissionOnGameFinished($state);
+                saveGame($roomId, $state);
+            } catch (Throwable $e) {
+                // Resign already saved — ranked/mission side effects are best-effort.
+            }
+        } elseif ($justFinished) {
             require_once __DIR__ . '/missions.php';
             tcgMissionBackfillPlayerDiscordFromAuth($state, $playerId, $body);
             require_once __DIR__ . '/ranked_room.php';
             tcgOnGameFinished($state);
             $missionCompletions = tcgMissionOnGameFinished($state);
-        } elseif ($type === 'send_stamp') {
-            require_once __DIR__ . '/missions.php';
-            $discordId = tcgPlayerDiscordId($state, $playerId);
-            if ($discordId) {
-                $missionCompletions = tcgMissionOnStampSent($discordId);
+            saveGame($roomId, $state);
+        } else {
+            if ($type === 'send_stamp') {
+                require_once __DIR__ . '/missions.php';
+                $discordId = tcgPlayerDiscordId($state, $playerId);
+                if ($discordId) {
+                    $missionCompletions = tcgMissionOnStampSent($discordId);
+                }
             }
+            saveGame($roomId, $state);
         }
-        saveGame($roomId, $state);
 
         $out = ['ok' => true, 'seq' => $state['seq']];
         if (!empty($missionCompletions)) {
@@ -690,6 +714,7 @@ function applyAction(array $state, string $playerId, string $type, array $data):
 
         // ── MISC ────────────────────────────
         case 'resign':
+            unset($state['pending_prompt'], $state['surveil_stash'], $state['_surveil_chain']);
             $state['status'] = 'finished';
             $winner = ($playerId === 'p1') ? 'p2' : 'p1';
             $state['end_reason'] = 'resign';
@@ -3759,6 +3784,18 @@ function maybeApplyRankedFinish(array &$state): void {
     }
     require_once __DIR__ . '/ranked_room.php';
     tcgOnGameFinished($state);
+}
+
+/** Poll recovery: apply ELO if a finished ranked room never got ranked.applied. */
+function maybeRecoverUnappliedRankedFinish(string $roomId, array &$state): void {
+    if (($state['mode'] ?? '') !== 'ranked' || ($state['status'] ?? '') !== 'finished') {
+        return;
+    }
+    if (!empty($state['ranked']['applied'])) {
+        return;
+    }
+    maybeApplyRankedFinish($state);
+    saveGame($roomId, $state);
 }
 
 function cleanupOldGames(): array {

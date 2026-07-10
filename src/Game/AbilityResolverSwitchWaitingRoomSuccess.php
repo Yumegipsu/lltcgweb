@@ -31,6 +31,7 @@ function tryResolveAbilityEffectSwitchWaitingRoomSuccess(
                     'candidates'    => array_map('cardPromptSummary', $candidates),
                     'ability'       => $ab,
                     'wr_pick_cfg'   => $cfg,
+                    'pick_count'    => 1,
                 ];
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] choose a card from Waiting Room.");

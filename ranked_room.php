@@ -129,8 +129,13 @@ function tcgOnGameFinished(array &$state): void {
     } else {
         tcgApplyRankResult($p1Id, $p2Id, true);
     }
-    tcgCompleteRankedMatch($state['room_id'] ?? '');
-    require_once __DIR__ . '/ranked_pr_rewards.php';
-    tcgApplyRankedPrRewardOnFinish($state);
+    // Mark applied immediately after ELO so PR reward failures cannot leave rating unapplied.
     $state['ranked']['applied'] = true;
+    tcgCompleteRankedMatch($state['room_id'] ?? '');
+    try {
+        require_once __DIR__ . '/ranked_pr_rewards.php';
+        tcgApplyRankedPrRewardOnFinish($state);
+    } catch (Throwable $e) {
+        // ELO already applied — PR reward is best-effort.
+    }
 }

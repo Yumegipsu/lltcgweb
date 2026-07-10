@@ -283,7 +283,10 @@ global.openStageSlotPick = function openStageSlotPick(pr){
 
 
 global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
-  if ((Number(pr.pick_count) || 0) <= 0) {
+  // Missing pick_count means "pick 1" (Rina / Ayumu WR prompts). Only auto-skip when
+  // pick_count is explicitly 0 (leave-stage prompts with nothing to pick).
+  const need = pr.pick_count == null ? 1 : Number(pr.pick_count);
+  if (need <= 0) {
     sendAct('resolve_prompt', { card_id: 'NO_CARD_NEEDED' });
     return;
   }
