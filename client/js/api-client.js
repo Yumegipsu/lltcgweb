@@ -156,11 +156,21 @@
     global.showApiErrorPopup(msg, { status });
   };
 
-  global.apiPost = async function apiPost(action, body, opts = {}) {
+  global.apiPost = async function apiPost(action, body = {}, opts = {}) {
+    const payload = { ...body };
+    const authToken = typeof global.getAuthToken === 'function' ? global.getAuthToken() : '';
+    const headers = { 'Content-Type': 'application/json' };
+    // action uses body.token as the seat token; other game API calls may use token for auth.
+    if (authToken) {
+      headers['X-Auth-Token'] = authToken;
+      if (action !== 'action' && !payload.token) {
+        payload.token = authToken;
+      }
+    }
     const r = await fetch(`${global.API}?action=${action}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      headers,
+      body: JSON.stringify(payload),
     });
     try {
       const d = await global.parseGameApiResponse(r);

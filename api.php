@@ -31,10 +31,10 @@ tcgDefinePathConstants();
 header('Content-Type: application/json');
 tcgSendCorsHeaders();
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, X-Player-Token');
+header('Access-Control-Allow-Headers: Content-Type, X-Player-Token, X-Auth-Token, Authorization');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    tcgSendCorsPreflight('GET, POST, OPTIONS', 'Content-Type, X-Player-Token');
+    tcgSendCorsPreflight('GET, POST, OPTIONS', 'Content-Type, X-Player-Token, X-Auth-Token, Authorization');
     http_response_code(200);
     exit;
 }
@@ -248,6 +248,7 @@ function resolveExperimentDeckLists(array $body, array $cardsData): array {
 
 function createRoom(array $body): array {
     tcgRateLimitForAction('create_room', $body);
+    tcgRequireAuthLoader();
     $roomId    = strtoupper(bin2hex(random_bytes(4)));
     $playerToken = generateToken();
     $playerName  = htmlspecialchars($body['name'] ?? 'Player 1', ENT_QUOTES);
@@ -283,6 +284,7 @@ function createRoom(array $body): array {
 
 function joinRoom(array $body): array {
     tcgRateLimitForAction('join_room', $body);
+    tcgRequireAuthLoader();
     $roomId      = strtoupper(trim($body['room_id'] ?? ''));
     $playerToken = generateToken();
     $playerName  = htmlspecialchars($body['name'] ?? 'Player 2', ENT_QUOTES);
@@ -513,9 +515,10 @@ function handleAction(array $body): array {
         refreshPvpPhaseTimers($state);
         $missionCompletions = [];
         if ($prevStatus !== 'finished' && ($state['status'] ?? '') === 'finished') {
+            require_once __DIR__ . '/missions.php';
+            tcgMissionBackfillPlayerDiscordFromAuth($state, $playerId, $body);
             require_once __DIR__ . '/ranked_room.php';
             tcgOnGameFinished($state);
-            require_once __DIR__ . '/missions.php';
             $missionCompletions = tcgMissionOnGameFinished($state);
         } elseif ($type === 'send_stamp') {
             require_once __DIR__ . '/missions.php';

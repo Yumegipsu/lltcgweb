@@ -338,6 +338,25 @@ function tcgMissionCheckRankedThresholds(string $discordId): array {
     return $completions;
 }
 
+/** Attach signed-in account id to a human seat when auth token is present but room creation missed it. */
+function tcgMissionBackfillPlayerDiscordFromAuth(array &$state, string $playerId, array $requestBody = []): void {
+    if (!isset($state['players'][$playerId]) || !is_array($state['players'][$playerId])) {
+        return;
+    }
+    if (!empty($state['players'][$playerId]['discord_id'])) {
+        return;
+    }
+    if (!function_exists('tcgOptionalAuthUserId')) {
+        if (is_file(__DIR__ . '/llr_auth_load.php')) {
+            require_once __DIR__ . '/llr_auth_load.php';
+        }
+    }
+    $uid = tcgOptionalAuthUserId($requestBody);
+    if ($uid) {
+        $state['players'][$playerId]['discord_id'] = $uid;
+    }
+}
+
 function tcgPlayerDiscordId(array $state, string $playerId): ?string {
     $player = $state['players'][$playerId] ?? null;
     if (is_array($player) && !empty($player['discord_id'])) {
