@@ -860,8 +860,7 @@ function tcgApiRankStats(array $body): array {
         FROM tcg_rank r
         JOIN tcg_users u ON u.discord_id = r.discord_id
         WHERE r.games > 0
-        ORDER BY r.rating DESC, r.wins DESC
-        LIMIT 100');
+        ORDER BY r.rating DESC, r.wins DESC');
     $leaderboard = [];
     $rankNum = 0;
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
