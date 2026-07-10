@@ -569,8 +569,14 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$mName] gained bonus heart(s) from Yell (no Blade hearts revealed).");
             } elseif ($type === 'auto_yell_mill_extra_yell') {
-                $state = hsResolveHasunosoraEffect($state, $pid, $member, $ab, ['yell_cards' => $yellCards]);
+                $state = hsResolveHasunosoraEffect($state, $pid, $member, $ab, [
+                    'yell_cards'     => $yellCards,
+                    'member_slot'    => $slot,
+                    'ability_index'  => $idx,
+                ]);
                 if (!empty($state['pending_prompt'])) {
+                    markAbilityUsed($member, $idx);
+                    $p['stage'][$slot] = $member;
                     return $state;
                 }
             } elseif ($type === 'auto_yell_wr_members_extra_yell') {
@@ -613,6 +619,37 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
         }
     }
     unset($member);
+
+    foreach ($p['live_zone'] ?? [] as $li => &$live) {
+        if (!$live || !isLiveTypeCard($live)) {
+            continue;
+        }
+        mergeCardCatalogFields($live);
+        foreach ($live['abilities'] ?? [] as $idx => $ab) {
+            if (($ab['trigger'] ?? '') !== 'auto') {
+                continue;
+            }
+            if (!empty($ab['once_per_turn']) && isAbilityUsed($live, $idx)) {
+                continue;
+            }
+            $type = $ab['type'] ?? '';
+            if ($type !== 'auto_yell_mill_extra_yell') {
+                continue;
+            }
+            $state = hsResolveHasunosoraEffect($state, $pid, $live, $ab, [
+                'yell_cards'      => $yellCards,
+                'live_zone_index' => $li,
+                'ability_index'   => $idx,
+            ]);
+            if (!empty($state['pending_prompt'])) {
+                markAbilityUsed($live, $idx);
+                $p['live_zone'][$li] = $live;
+                return $state;
+            }
+        }
+    }
+    unset($live);
+
     return $state;
 }
 

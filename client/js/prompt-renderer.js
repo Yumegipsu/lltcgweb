@@ -1757,6 +1757,52 @@ global.renderPrompt = function renderPrompt(s, myId){
     });
     return;
   }
+  if(pr?.type==='auto_yell_mill_extra_yell'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const owner = pr.owner || myId;
+    const idSet = new Set((pr.candidates || []).map(c => c.instance_id).filter(Boolean));
+    const yellPool = (s.yell_reveal?.[owner] || s.players?.[owner]?.yell_cards || [])
+      .filter(c => idSet.has(c.instance_id));
+    if (!yellPool.length) {
+      sendAct('resolve_prompt', { choice: 'no' });
+      return;
+    }
+    const max = pr.max_pick || yellPool.length;
+    el('prompt-ttl').textContent = pr.source_name || 'Yell mill';
+    el('prompt-msg').textContent = pr.prompt
+      || `Put up to ${max} non-Blade-heart Hasunosora Yell card(s) into the Waiting Room for extra Yell?`;
+    const box = el('prompt-btns');
+    box.innerHTML = '';
+    const labels = pr.choice_labels || ['Yes', 'No — Skip'];
+    labels.forEach((label, i) => {
+      const b = document.createElement('button');
+      b.className = 'btn-grad';
+      b.textContent = label;
+      b.onclick = () => {
+        closeM('overlay-prompt');
+        if (i !== 0) {
+          sendAct('resolve_prompt', { choice: 'no' });
+          return;
+        }
+        openHandPick({
+          hand: yellPool.map(enrichCard),
+          count: max,
+          min: 1,
+          title: pr.source_name || 'Yell mill',
+          msg: pr.prompt || `Choose up to ${max} Yell card(s) to mill.`,
+          onConfirm: (ids) => {
+            if (!ids.length) sendAct('resolve_prompt', { choice: 'no' });
+            else sendAct('resolve_prompt', { choice: 'yes', card_ids: ids });
+          },
+          onCancel: () => sendAct('resolve_prompt', { choice: 'no' }),
+          forceConfirm: true,
+        });
+      };
+      box.appendChild(b);
+    });
+    ovl.classList.add('open');
+    return;
+  }
   if(pr?.type==='pick_wr_distinct_lives_opp_choice'&&pr.responder===myId){
     ovl.classList.remove('open');
     const need=pr.pick_count||2;

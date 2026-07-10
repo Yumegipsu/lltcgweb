@@ -7523,7 +7523,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=19"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=19"></script>
+<script src="client/js/prompt-renderer.js?v=20"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -24945,6 +24945,12 @@ function cpuResolvePromptBody(s, cpu, pr) {
     cpuAct('resolve_prompt', { choice: hasLive ? 'no' : 'yes' });
     return;
   }
+  if(pr.type==='auto_yell_mill_extra_yell'){
+    const owner = pr.owner || pr.responder || 'p2';
+    const ids = (pr.candidates || []).slice(0, 2).map(c => c.instance_id).filter(Boolean);
+    cpuAct('resolve_prompt', { choice: ids.length ? 'yes' : 'no', card_ids: ids });
+    return;
+  }
   if(pr.type==='ssd1_play_wr_empty'){
     if(pr.step==='pick_wr'){
       const id=pr.candidates?.[0]?.instance_id;
@@ -28539,6 +28545,7 @@ const PERF_SPECTACLE_DEFERRED_PROMPTS = new Set([
 /** Prompts that pause spectacle after yell_opp, before live outcomes. */
 const PERF_SPECTACLE_MID_PROMPTS = new Set([
   'auto_yell_no_live_retry',
+  'auto_yell_mill_extra_yell',
 ]);
 
 function isMidSpectacleYellRetryPrompt(s) {
@@ -31410,7 +31417,16 @@ function playerLiveRoundSucceeded(next, pid) {
     }
     return false;
   }
+  const perfYellPhases = ['live_performance_first', 'live_performance_second'];
+  if (perfYellPhases.includes(next?.phase ?? '')) {
+    const snap = next?._live_round_success_snapshot;
+    if (snap && pid in snap) return !!snap[pid];
+    return false;
+  }
   if (next?.live_round_success && pid in next.live_round_success) {
+    if (!playerHasPerfLogThisRound(next, pid)) {
+      return false;
+    }
     return !!next.live_round_success[pid];
   }
   const snap = next?._live_round_success_snapshot;
@@ -32667,7 +32683,8 @@ async function awaitMidSpectacleYellRetryPrompts(ctx, myId) {
       targetState: cur,
       isResolved: (s) => {
         if (!s?.pending_prompt) return true;
-        if (s.pending_prompt.type !== 'auto_yell_no_live_retry') return true;
+        if (s.pending_prompt.type !== 'auto_yell_no_live_retry'
+            && s.pending_prompt.type !== 'auto_yell_mill_extra_yell') return true;
         return false;
       },
     });

@@ -419,6 +419,10 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
                 'owner'         => $pid,
                 'responder'     => $pid,
                 'source_name'   => $name,
+                'source_id'     => $source['instance_id'] ?? '',
+                'live_zone_index' => $ctx['live_zone_index'] ?? null,
+                'member_slot'   => $ctx['member_slot'] ?? null,
+                'ability_index' => $ctx['ability_index'] ?? null,
                 'candidates'    => array_map('cardPromptSummary', array_slice($candidates, 0, $max)),
                 'max_pick'      => $max,
                 'prompt'        => "Put up to $max non-Blade-heart Hasunosora Yell card(s) into the Waiting Room for extra Yell?",
@@ -879,27 +883,48 @@ function hsResolveHasunosoraPrompt(array $state, string $owner, array $prompt, s
     }
 
     if ($promptType === 'auto_yell_mill_extra_yell') {
+        $sourceName = $prompt['source_name'] ?? 'Member';
         if ($choice !== 'yes') {
             unset($state['pending_prompt']);
             $state['seq']++;
-            return $state;
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$sourceName] kept Yell cards (declined mill).");
+            return continuePerformanceAfterYellAbilities($state, $owner);
         }
         $ids = $data['card_ids'] ?? ($data['discard_ids'] ?? []);
-        $milled = 0;
-        foreach ($ownerP['_pending_yell_wr'] ?? [] as $i => $c) {
-            if (in_array($c['instance_id'] ?? '', $ids, true)) {
-                $ownerP['waiting_room'][] = $c;
-                unset($ownerP['_pending_yell_wr'][$i]);
-                $milled++;
-            }
+        if (!is_array($ids)) {
+            $ids = $ids !== '' && $ids !== null ? [$ids] : [];
         }
-        $ownerP['_pending_yell_wr'] = array_values($ownerP['_pending_yell_wr'] ?? []);
-        $state['_extra_yell_count'] = intval($state['_extra_yell_count'] ?? 0) + $milled;
+        $pool = currentPlayerYellCards($state, $owner);
+        $group = $prompt['ability']['group'] ?? 'Hasunosora';
+        $validIds = [];
+        foreach ($pool as $c) {
+            $iid = $c['instance_id'] ?? '';
+            if ($iid === '' || !in_array($iid, $ids, true)) {
+                continue;
+            }
+            if (($c['group'] ?? '') !== $group || yellCardHasBladeHeart($c)) {
+                continue;
+            }
+            $validIds[] = $iid;
+        }
+        $maxPick = intval($prompt['max_pick'] ?? 3);
+        $validIds = array_slice($validIds, 0, $maxPick);
+        if (empty($validIds)) {
+            throw new Exception('Choose at least 1 eligible Yell card');
+        }
+        $state = millPlayerYellCardsToWr($state, $owner, $validIds);
+        $milled = count($validIds);
         $state = addLog($state, $state['players'][$owner]['name'] .
-            " — milled $milled Yell card(s) for extra Yell.");
+            " — [$sourceName] milled $milled Yell card(s) for extra Yell.");
         unset($state['pending_prompt']);
         $state['seq']++;
-        return $state;
+        $state = executeExtraYellDraws($state, $owner, $milled, $sourceName);
+        if (!empty($state['pending_prompt'])) {
+            $state['_performance_continue'] = $owner;
+            return $state;
+        }
+        return continuePerformanceAfterYellAbilities($state, $owner);
     }
 
     return null;

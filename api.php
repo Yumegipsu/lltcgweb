@@ -1581,6 +1581,93 @@ function drawYellCardsForPlayer(array $state, string $pid): array {
     return [$state, $yellCards, $totalBlade, $drawBlade, $yellReduction];
 }
 
+/** Current yell-reveal pool for a player during Performance. */
+function currentPlayerYellCards(array $state, string $pid): array {
+    $p = $state['players'][$pid] ?? [];
+    return $p['yell_cards'] ?? $state['yell_reveal'][$pid] ?? $state['_last_yell_cards'] ?? [];
+}
+
+/** Keep yell_cards, yell_reveal, and _last_yell_cards in sync during Performance. */
+function syncPlayerYellPools(array $state, string $pid, array $yellCards): array {
+    $state['players'][$pid]['yell_cards'] = $yellCards;
+    if (!isset($state['yell_reveal'])) {
+        $state['yell_reveal'] = [];
+    }
+    $state['yell_reveal'][$pid] = $yellCards;
+    $state['_last_yell_cards'] = $yellCards;
+    $state['_last_yell_live_count'] = countYellLiveCards($yellCards);
+    $state['_last_yell_live_count_' . $pid] = countYellLiveCards($yellCards);
+    return $state;
+}
+
+/** Mill selected yell-revealed cards into the Waiting Room and update yell pools. */
+function millPlayerYellCardsToWr(array $state, string $pid, array $ids): array {
+    if (empty($ids)) {
+        return $state;
+    }
+    $p = &$state['players'][$pid];
+    $pool = currentPlayerYellCards($state, $pid);
+    $milled = [];
+    $remaining = [];
+    foreach ($pool as $c) {
+        if (in_array($c['instance_id'] ?? '', $ids, true)) {
+            $milled[] = $c;
+        } else {
+            $remaining[] = $c;
+        }
+    }
+    if (empty($milled)) {
+        unset($p);
+        return $state;
+    }
+    $p['waiting_room'] = array_merge($p['waiting_room'] ?? [], $milled);
+    unset($p);
+    $state = syncPlayerYellPools($state, $pid, $remaining);
+    return $state;
+}
+
+/**
+ * Perform N additional full Yell draws (merge into current yell pool).
+ * Stops early if a new auto-yell prompt is queued.
+ */
+function executeExtraYellDraws(array $state, string $pid, int $count, string $sourceName = 'Member'): array {
+    if ($count <= 0) {
+        return $state;
+    }
+    for ($i = 0; $i < $count; $i++) {
+        [$state, $drawn, $totalBlade, $drawBlade, $yellReduction] = drawYellCardsForPlayer($state, $pid);
+        $prior = array_merge(currentPlayerYellCards($state, $pid), $drawn);
+        $state = syncPlayerYellPools($state, $pid, $prior);
+        if ($drawBlade > 0) {
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — Extra Yell [$sourceName]: drew $drawBlade card(s) for Blade.");
+        } elseif ($yellReduction > 0 && $totalBlade > 0) {
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — Extra Yell reduced by $yellReduction (drew 0 of $totalBlade Blade).");
+        }
+        $state = resolveAutoYellAbilities($state, $pid, $prior);
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
+    return $state;
+}
+
+/** After yell-phase optional abilities resolve, continue Performance (heart check deferred). */
+function continuePerformanceAfterYellAbilities(array $state, string $pid): array {
+    if (!empty($state['pending_prompt'])) {
+        $state['_performance_continue'] = $pid;
+        return $state;
+    }
+    if (!empty($GLOBALS['TUT_PERF_MANUAL_PHASES'])) {
+        return $state;
+    }
+    if (!empty($state['_perf_yell_both_done'])) {
+        return finishYellRetryAndHearts($state);
+    }
+    return continuePerformanceYellPhase($state, $pid);
+}
+
 /** WR prior Yell cards and perform a fresh Yell draw (Blade hearts from prior Yell lost). */
 function executeYellRetry(array $state, string $pid, array $prompt): array {
     $p = &$state['players'][$pid];
