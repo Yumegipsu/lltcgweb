@@ -1006,12 +1006,21 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
     }
 
     if ($promptType === 'live_start_wr_group_member_count_pick_heart') {
-        $slot = $data['slot'] ?? '';
+        if (in_array($choice, ['no', 'skip', 'cancel'], true)) {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Live') . '] skipped Live Start heart pick.');
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishLiveStartEffects($state);
+        }
+        $slot = $data['slot'] ?? $choice;
         if ($slot === '' || empty($ownerP['stage'][$slot])) throw new Exception('Choose a Member');
         addBonusHeartsToMember($ownerP['stage'][$slot], $prompt['hearts'] ?? [], 1);
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Live') . '] granted bonus hearts until Live ends.');
         unset($state['pending_prompt']);
         $state['seq']++;
-        return $state;
+        return finishLiveStartEffects($state);
     }
 
     if ($promptType === 'live_success_optional_mill_if_subunit') {
@@ -1067,7 +1076,7 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
             if (empty($candidates)) {
                 unset($state['pending_prompt']);
                 $state['seq']++;
-                return $state;
+                return finishLiveStartEffects($state);
             }
             $state['pending_prompt'] = [
                 'type'        => 'live_start_edel_note_dual_pick_buff',
@@ -1085,7 +1094,7 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
         addBonusHeartsToMember($ownerP['stage'][$slot], $prompt['hearts'] ?? [], 1);
         unset($state['pending_prompt']);
         $state['seq']++;
-        return $state;
+        return finishLiveStartEffects($state);
     }
 
     if ($promptType === 'mandatory_discard_after_draw') {

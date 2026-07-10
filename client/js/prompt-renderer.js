@@ -257,11 +257,20 @@ global.openStageMemberPickById = function openStageMemberPickById(pr){
 
 
 global.openStageSlotPick = function openStageSlotPick(pr){
-  const step=pr.step||'pick_named';
-  const cards=(pr.candidates||[]).filter(c=>step==='pick_named'?c.named:!c.named);
+  const step=pr.step||'pick_slot';
+  const cards=(pr.candidates||[]).filter(c=>{
+    if(step==='pick_named') return !!c.named;
+    if(step==='pick_other') return c&&!c.named;
+    return !!(c.slot);
+  });
   el('pick-ttl').textContent=pr.source_name||'Choose Member';
   el('pick-msg').textContent=pr.prompt||'Choose a Member on your Stage.';
   const g=el('pick-grid'); g.innerHTML='';
+  const btnOk=el('btn-pick-ok');
+  const btnCancel=el('btn-pick-cancel');
+  if(btnOk) btnOk.style.display='none';
+  if(btnCancel) btnCancel.style.display='none';
+  G.pickCtx=null;
   cards.forEach(card=>{
     g.appendChild(mkPickCardEl(card,'pickcard',()=>{
       closeM('overlay-pick');
