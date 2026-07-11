@@ -10743,7 +10743,15 @@ let _experimentPoolGen = 0;
 const DECK_FILTER_GROUPS = ["μ's", 'Nijigasaki', 'Sunshine', 'Superstar', 'Hasunosora', 'Saint Snow', 'A-RISE', 'Sunny Passion'];
 /** Units stored on cards as subunit but exposed as deck group filters (not subunit chips). */
 const DECK_FILTER_SUBUNIT_GROUPS = new Set(['Saint Snow', 'A-RISE', 'Sunny Passion']);
-const DECK_FILTER_RARITIES = ['N', 'R', 'R+', 'L', 'L+', 'P', 'P+', 'P＋', 'PP', 'PR', 'PR+', 'PE', 'PE+', 'SEC', 'LLE', 'RM', 'AR', 'DUO', 'SRL', 'SECS', 'SECL', 'SECE'];
+/** Least rare → most rare (deck pool sort + filter chip order). Pull weights / gem tiers. */
+const DECK_FILTER_RARITIES = [
+  'N', 'R', 'L',
+  'R+', 'L+',
+  'P', 'PR', 'PE', 'RE',
+  'P+', 'PP', 'PR+',
+  'SRE', 'SRL', 'RM', 'PE+', 'AR', 'DUO',
+  'SEC', 'SECL', 'SECE', 'SECS', 'SEC+', 'LLE',
+];
 const DECK_POOL_SORT_KEY = 'tcg_deck_pool_sort';
 const DECK_POOL_SORT_DIR_KEY = 'tcg_deck_pool_sort_dir';
 const DECK_POOL_SORT_DEFAULT = 'id';
@@ -10882,10 +10890,20 @@ function effectiveDeckPoolSort() {
   return mode;
 }
 
+function normalizeDeckRarityKey(rarity) {
+  return String(rarity || '').toUpperCase().replace(/＋/g, '+').trim();
+}
+
+/** 0 = least rare … higher = more rare. Unknowns sort after known tiers. */
 function deckPoolRarityRank(rarity) {
-  const r = String(rarity || '').toUpperCase();
+  const r = normalizeDeckRarityKey(rarity);
+  if (!r) return DECK_FILTER_RARITIES.length;
   const idx = DECK_FILTER_RARITIES.indexOf(r);
-  return idx >= 0 ? idx : -1;
+  if (idx >= 0) return idx;
+  // Fullwidth plus already normalized; also accept legacy P＋ entry if list still has it.
+  const fullwidth = r.replace(/\+/g, '＋');
+  const idxFw = DECK_FILTER_RARITIES.indexOf(fullwidth);
+  return idxFw >= 0 ? idxFw : DECK_FILTER_RARITIES.length;
 }
 
 function deckPoolCardTypeRank(card) {
@@ -10903,7 +10921,8 @@ function deckPoolSortKey(entry, mode) {
     case 'id':
       return no;
     case 'rarity':
-      return [-deckPoolRarityRank(c?.rarity), no];
+      // Asc = least rare → most rare; Desc flips via compareDeckPoolEntries.
+      return [deckPoolRarityRank(c?.rarity), no];
     case 'name':
       return (c?.name_en || c?.name || no).toLowerCase();
     case 'type':
@@ -11419,7 +11438,7 @@ function cardMatchesDeckPoolFilters(card, filters, searchQ) {
     if (filters.type === 'energy' && !isEnergyCard(c)) return false;
   }
   if (filters.group && !cardMatchesDeckGroupFilter(c, filters.group)) return false;
-  if (filters.rarity && (c.rarity || '') !== filters.rarity) return false;
+  if (filters.rarity && normalizeDeckRarityKey(c.rarity) !== normalizeDeckRarityKey(filters.rarity)) return false;
   if (filters.productKind && cardProductKind(c.booster_pack) !== filters.productKind) return false;
   if (filters.pack && (c.booster_pack || '') !== filters.pack) return false;
   if (isPrDeckPoolFilter(filters) && !isEligibleForPrBoosterPool(c)) return false;
