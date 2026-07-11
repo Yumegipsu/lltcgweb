@@ -7657,7 +7657,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=10"></script>
-<script src="client/js/api-client.js?v=8"></script>
+<script src="client/js/api-client.js?v=9"></script>
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=3"></script>
 <script src="client/js/game-sync.js?v=11"></script>
@@ -7903,9 +7903,29 @@ function syncRankedPrFromProfile(me) {
 }
 
 function syncRankedPrFromReward(reward) {
+  // Only apply allowance snapshots from rewards that actually belong to this account.
+  // Never trust nested/stale match payloads for the hub counter — refresh via me/daily_status.
   const daily = reward?.daily;
   if (!daily || typeof daily !== 'object') return;
-  if (A.profile) A.profile.ranked_pr = daily;
+  if (typeof daily.remaining !== 'number' && daily.remaining !== undefined) return;
+  if (A.profile) A.profile.ranked_pr = {
+    date_jst: daily.date_jst ?? A.profile.ranked_pr?.date_jst,
+    limit: Number(daily.limit ?? A.profile.ranked_pr?.limit ?? 5),
+    awarded_today: Number(daily.awarded_today ?? A.profile.ranked_pr?.awarded_today ?? 0),
+    remaining: Number(daily.remaining ?? Math.max(0, Number(daily.limit ?? 5) - Number(daily.awarded_today ?? 0))),
+  };
+}
+
+async function refreshRankedPrAllowanceFromAccount() {
+  if (!getAuthToken() || typeof accountGet !== 'function') return;
+  try {
+    const res = await accountGet('daily_status');
+    if (res?.ranked_pr && typeof res.ranked_pr === 'object') {
+      if (A.profile) A.profile.ranked_pr = res.ranked_pr;
+      else A.profile = { ranked_pr: res.ranked_pr };
+      updateRankedPrUI();
+    }
+  } catch (_) { /* keep last known allowance */ }
 }
 
 function updateRankedPrUI() {
@@ -32363,39 +32383,65 @@ function syncWinRankedPrReward(s, win) {
   if (!rewardEl) return;
   rewardEl.hidden = true;
   rewardEl.textContent = '';
-  if (!win || s.mode !== 'ranked') return;
-  const reward = s.ranked_pr_reward || G.lastRankedPrReward;
-  if (!reward || typeof reward !== 'object') return;
-  if (reward.skipped && reward.reason === 'daily_cap') {
-    rewardEl.textContent = t('win.rankedPrDailyCap', { limit: reward.daily?.limit || 5 });
-    rewardEl.hidden = false;
+  if (s.mode === 'ranked' && !win) {
+    // Losses must not consume daily PR or keep a prior win's reward queued.
+    G.lastRankedPrReward = null;
+    if (A) A.pendingRankedPrReward = null;
+    void refreshRankedPrAllowanceFromAccount();
     return;
   }
-  const card = reward.card || {};
+  if (!win || s.mode !== 'ranked') return;
+  // Prefer this match's payload only — never fall back to a stale prior-win reward for UI/counter.
+  const reward = s.ranked_pr_reward || null;
+  if (reward && typeof reward === 'object') {
+    G.lastRankedPrReward = reward;
+  } else if (G.lastRankedPrReward && typeof G.lastRankedPrReward === 'object') {
+    // Action response may have arrived before get_state carried ranked_pr_reward.
+  } else {
+    void refreshRankedPrAllowanceFromAccount();
+    return;
+  }
+  const resolved = s.ranked_pr_reward || G.lastRankedPrReward;
+  if (!resolved || typeof resolved !== 'object') return;
+  if (resolved.skipped && resolved.reason === 'daily_cap') {
+    rewardEl.textContent = t('win.rankedPrDailyCap', { limit: resolved.daily?.limit || 5 });
+    rewardEl.hidden = false;
+    if (typeof syncRankedPrFromReward === 'function') {
+      syncRankedPrFromReward(resolved);
+      if (typeof updateRankedPrUI === 'function') updateRankedPrUI();
+    }
+    void refreshRankedPrAllowanceFromAccount();
+    return;
+  }
+  const card = resolved.card || {};
   const name = card.card_name_en || card.card_name || card.card_no || '?';
-  if (card.converted || reward.converted) {
-    rewardEl.textContent = t('win.rankedPrDupe', { name, gems: card.star_gems || reward.star_gems || reward.star_gems_earned || 0 });
+  if (card.converted || resolved.converted) {
+    rewardEl.textContent = t('win.rankedPrDupe', { name, gems: card.star_gems || resolved.star_gems || resolved.star_gems_earned || 0 });
   } else {
     rewardEl.textContent = t('win.rankedPrNew', { name });
   }
   rewardEl.hidden = false;
-  if (reward.star_gems_earned > 0 && typeof syncStarGemsFromProfile === 'function') {
-    if (A?.profile) A.profile.star_gems = reward.star_gems ?? A.profile.star_gems;
+  if (resolved.star_gems_earned > 0 && typeof syncStarGemsFromProfile === 'function') {
+    if (A?.profile) A.profile.star_gems = resolved.star_gems ?? A.profile.star_gems;
     syncStarGemsFromProfile(A?.profile);
     if (typeof updateStarGemsUI === 'function') updateStarGemsUI();
   }
   if (typeof syncRankedPrFromReward === 'function') {
-    syncRankedPrFromReward(reward);
+    syncRankedPrFromReward(resolved);
     if (typeof updateRankedPrUI === 'function') updateRankedPrUI();
   }
-  if (typeof queueRankedPrReward === 'function') queueRankedPrReward(reward);
+  if (typeof queueRankedPrReward === 'function') queueRankedPrReward(resolved);
+  void refreshRankedPrAllowanceFromAccount();
 }
 
 // ── WIN ──────────────────────────────────────────────
 function showWin(s){
   dismissAllGameplayOverlays();
   clearActiveGameSession();
-  const myId=G.playerId, win=s.winner===myId;
+  const myId = s.my_id || G.playerId;
+  if (myId) G.playerId = myId;
+  // Require a real seat + winner — null===null must not count as a win.
+  const win = !!(myId && s.winner && s.winner === myId);
   const wName=s.players?.[s.winner]?.name||'?';
   const me=s.players?.[myId], opp=s.players?.[myId==='p1'?'p2':'p1'];
   const oppName=opp?.name||'Player';
