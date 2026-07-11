@@ -18728,7 +18728,9 @@
                     "count": 1
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L+",
             "text": "[Live Start] If you have 3 or more Cerise Bouquet Live cards in your Waiting Room, this card's score gets +1.",
             "text_jp": "自分の控え室に『スリーズブーケ』のライブカードが3枚以上ある場合、このカードのスコアを＋１する。",
@@ -18879,7 +18881,9 @@
                     "count": 5
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L+",
             "text": "[Live Start] If Kosuzu Kachimachi is on your Stage and Sayaka Murano with higher cost than Kosuzu Kachimachi is on your Stage, reduce this Live's required any-color hearts by 3.",
             "text_jp": "自分のステージに「徒町小鈴」が登場しており、かつ「徒町小鈴」よりコストの大きい「村野さやか」が登場している場合、このカードを成功させるための必要ハートを減らす。",
@@ -63330,7 +63334,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "[Live Success] If you have 2 or more differently named Members among \"Kanon Shibuya\", \"Wien Margarete\", and \"Tomari Onitsuka\" on your Stage, add 1 card revealed by Yell to your hand.",
             "text_jp": "自分のステージに「澁谷かのん」、「ウィーン・マルガレーテ」、「鬼塚冬毬」のうち、名前の異なるメンバーが2人以上いる場合、エールにより公開された自分のカードの中から、カードを1枚手札に加える。",
@@ -63423,7 +63429,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "[Always] All opponent Live cards require +1 additional Gray heart to succeed.",
             "text_jp": "",
