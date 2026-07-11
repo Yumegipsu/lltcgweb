@@ -28051,7 +28051,9 @@ function detectPendingLiveSpectacleTurn(prev, next) {
     if (undone != null && liveRoundHadLivesPlayed(prev, next, undone)
         && !liveSpectacleDoneForTurn(undone)
         && (liveSpectacleOwed(prev, next, undone)
-            || (next.phase === 'live_start_effects' || pendingPromptBlocksPerfSpectacle(next)))) {
+            // Live Start skills still open — keep gate armed. Do NOT use any Main-phase
+            // On Enter prompt here (that re-fired Performance splash after moves).
+            || next.phase === 'live_start_effects')) {
       return undone;
     }
   }
@@ -28199,9 +28201,32 @@ function clearStalePerfDeferState(prev, next) {
   if (!isMainOrActivePhase(next.phase)) return;
   if (detectPendingLiveSpectacleTurn(prev, next) != null) return;
   G._deferPerfSpectaclePrev = null;
+  G._spectacleRecoveryPending = null;
   clearStaleLiveStorageFlipState(prev, next);
   if (shouldSkipStaleLiveLogAnnouncements(prev, next)) {
     G._announceBaseline = Math.max(G._announceBaseline ?? 0, next.log?.length ?? 0);
+  }
+  // Drop client-only Live Start prompt residue once Main has no server prompt.
+  if (!next.pending_prompt) {
+    const def = G._deferredPromptState?.pending_prompt;
+    if (def && (def.type === 'spbp5_repeat_mill_blade'
+        || isLiveSpectaclePipelinePhase(G._deferredPromptState?.phase))) {
+      clearDeferredPromptState({ skipBannerRefresh: true });
+    }
+    if (el('overlay-prompt')?.classList.contains('open')) {
+      const livePr = G.gameState?.pending_prompt;
+      if (!livePr || livePr.responder !== G.playerId) closeM('overlay-prompt');
+    }
+  }
+  // Main→main polls: seal any unfinished done-key so splash/flips cannot replay.
+  if (shouldIgnoreStaleLivePerfSignals(prev, next)) {
+    const showTurn = inferLiveShowTurn(prev, next);
+    if (showTurn != null && logHasLivePerformanceForTurn(next, showTurn)
+        && !liveSpectacleDoneForTurn(showTurn)) {
+      if (!G._perfSpectacleDoneTurns) G._perfSpectacleDoneTurns = new Set();
+      G._perfSpectacleDoneTurns.add(showTurn);
+      TCG_DEBUG.log('live', 'mark spectacle done from main-phase stale clear', { showTurn });
+    }
   }
 }
 
@@ -28252,12 +28277,14 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
     holdLivePolls();
     G._postSpectacleSplashPause = false;
     const outcome = await presentLiveRound(perfPrev ?? gatePrev, s, myId, { newEntries, forceSpectacleTurn: showTurn });
-    ensurePendingPromptSurfaced(s, myId);
+    // Prefer post-playback state — gate-entry `s` may still hold a resolved Live Start prompt.
+    const after = pickLatestStateForPlayback(s) || G.gameState || s;
+    ensurePendingPromptSurfaced(after, myId);
     if (outcome.spectacle || outcome.empty) return true;
     if (outcome.reveal) markLiveStorageRevealDone(showTurn);
     if (liveSpectacleDoneForTurn(showTurn)) return true;
-    if (liveSpectacleStillPending(prev, s, showTurn)) {
-      G._spectacleRecoveryPending = { prev, s, newEntries, myId };
+    if (liveSpectacleStillPending(prev, after, showTurn)) {
+      G._spectacleRecoveryPending = { prev, s: after, newEntries, myId };
       TCG_DEBUG.warn('live', 'spectacle gate: still pending after presentLiveRound', { showTurn, outcome });
       return false;
     }
@@ -28265,7 +28292,8 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
   } finally {
     G._liveSpectacleGateRunning = false;
     G.animating = false;
-    if (s.pending_prompt?.responder === myId) ensurePendingPromptSurfaced(s, myId);
+    const after = pickLatestStateForPlayback(s) || G.gameState || s;
+    if (after.pending_prompt?.responder === myId) ensurePendingPromptSurfaced(after, myId);
     releaseLivePollsAndFlush();
   }
 }
@@ -30639,12 +30667,34 @@ function waitForBlockingOverlaysIdle(state) {
 }
 
 function ensurePendingPromptSurfaced(s, myId) {
+  if (!s) return;
+  // Never re-apply an older snapshot after live-start / spectacle advanced the board.
+  // (Re-surfacing gate-entry state was showing Natsumi mill prompts after Performance.)
+  const live = G.gameState;
+  const liveSeq = live?.seq ?? 0;
+  const snapSeq = s.seq ?? 0;
+  if (live && liveSeq > snapSeq) {
+    s = live;
+  } else if (live && liveSeq === snapSeq && !s.pending_prompt && live.pending_prompt) {
+    s = live;
+  }
   const pr = s?.pending_prompt;
   if (!pr || pr.responder !== myId) {
-    if (!pr && G.animating && el('overlay-hand-pick')?.classList.contains('open')) {
-      closeM('overlay-hand-pick');
-      clearPickerCardHover();
+    if (!pr) {
+      if (el('overlay-prompt')?.classList.contains('open')) closeM('overlay-prompt');
+      if (G.animating && el('overlay-hand-pick')?.classList.contains('open')) {
+        closeM('overlay-hand-pick');
+        clearPickerCardHover();
+      }
+      clearDeferredPromptState({ skipBannerRefresh: true });
     }
+    return;
+  }
+  // Server already left this prompt behind (e.g. timed out during spectacle wait).
+  if (live && (live.seq ?? 0) >= snapSeq && !live.pending_prompt
+      && isMainOrActivePhase(live.phase) && !isLiveSpectaclePipelinePhase(s.phase)) {
+    clearDeferredPromptState({ skipBannerRefresh: true });
+    if (el('overlay-prompt')?.classList.contains('open')) closeM('overlay-prompt');
     return;
   }
   if (typeof isPromptSubmitting === 'function' && isPromptSubmitting(s)) return;

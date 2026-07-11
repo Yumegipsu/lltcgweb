@@ -293,6 +293,11 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
         case 'optional_live_start':
             return ['choice' => 'no'];
 
+        case 'spbp5_repeat_mill_blade':
+        case 'spbp5_energy_wait_opp_draw':
+        case 'spbp5_wr_pay_add_hand':
+            return ['choice' => 'no'];
+
         case 'optional_discard_prompt':
         case 'optional_discard_mill_wr_add_member':
         case 'optional_pay_energy_on_enter':
