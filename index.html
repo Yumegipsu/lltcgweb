@@ -1404,6 +1404,7 @@ html.tcg-mobile-viewport #screen-game .game-viewport-frame{
 }
 html.tcg-mobile-viewport #screen-game .game-viewport-frame .game-wide-wrap{
   width:100%;height:100%;
+  align-items:stretch;
   border-left:none;border-right:none;box-shadow:none;
   --side-panel-w:24cqw;
   --playmat-gutter:var(--side-panel-w);
@@ -1429,9 +1430,21 @@ html.tcg-tablet-landscape.tcg-mobile-viewport #screen-game .game-viewport-frame 
   --mobile-hand-card-h:40cqh;
 }
 html.tcg-mobile-viewport #screen-game .game-viewport-frame .side-panel.side-left{
-  height:100%;min-height:0;overflow-y:auto;overflow-x:hidden;
+  height:100%;max-height:100%;min-height:0;align-self:stretch;
+  overflow-y:auto;overflow-x:hidden;
+  overscroll-behavior:contain;
+  touch-action:pan-y;
   padding:0.5cqw 0.45cqw calc(var(--mobile-action-dock-h, 12cqh) + 0.35cqw);gap:0.38cqw;
   -webkit-overflow-scrolling:touch;
+}
+html.tcg-mobile-viewport #screen-game .game-viewport-frame .side-panel.side-left.is-drag-scrolling{
+  cursor:grabbing;
+  user-select:none;
+  -webkit-user-select:none;
+}
+html.tcg-mobile-viewport #screen-game .game-viewport-frame .side-panel.side-left.is-drag-scrolling a,
+html.tcg-mobile-viewport #screen-game .game-viewport-frame .side-panel.side-left.is-drag-scrolling button{
+  pointer-events:none;
 }
 html.tcg-mobile-viewport #screen-game .game-viewport-frame .side-panel.side-left .card-hover-panel{display:none!important}
 html.tcg-mobile-viewport #screen-game .game-viewport-frame .side-left .phase-panel .pbadge{
@@ -16851,6 +16864,7 @@ async function bootApp() {
       if (!radioStack.hidden) setTcgRadioOpen(false);
     };
   })();
+  initMobileSideLeftDragScroll();
   function onDebugSaveLogClick() {
     if (!TCG_DEBUG.on) return;
     TCG_DEBUG.downloadExport();
@@ -17147,6 +17161,76 @@ function tcgUpdatePhoneFsUI() {
 
 function tcgMobileViewportActive() {
   return document.documentElement.classList.contains('tcg-mobile-viewport');
+}
+
+/** Mobile-only: drag the left info panel to scroll when content overflows. */
+function initMobileSideLeftDragScroll() {
+  const panel = document.querySelector('#screen-game .side-panel.side-left');
+  if (!panel || panel.dataset.dragScrollBound === '1') return;
+  panel.dataset.dragScrollBound = '1';
+
+  let tracking = false;
+  let dragging = false;
+  let suppressClick = false;
+  let startY = 0;
+  let startScroll = 0;
+  let pointerId = null;
+
+  const canHandle = (e) => {
+    if (!tcgMobileViewportActive()) return false;
+    // Touch / pen only — leave PC mouse alone.
+    if (e.pointerType === 'mouse') return false;
+    return true;
+  };
+
+  panel.addEventListener('pointerdown', (e) => {
+    if (!canHandle(e)) return;
+    if (panel.scrollHeight <= panel.clientHeight + 1) return;
+    tracking = true;
+    dragging = false;
+    startY = e.clientY;
+    startScroll = panel.scrollTop;
+    pointerId = e.pointerId;
+  });
+
+  panel.addEventListener('pointermove', (e) => {
+    if (!tracking || e.pointerId !== pointerId) return;
+    const dy = e.clientY - startY;
+    if (!dragging) {
+      if (Math.abs(dy) < 10) return;
+      dragging = true;
+      suppressClick = true;
+      panel.classList.add('is-drag-scrolling');
+      try { panel.setPointerCapture(e.pointerId); } catch (_) {}
+    }
+    e.preventDefault();
+    panel.scrollTop = startScroll - dy;
+  }, { passive: false });
+
+  const endDrag = (e) => {
+    if (!tracking || (e && e.pointerId !== pointerId)) return;
+    if (dragging) {
+      e?.preventDefault?.();
+      e?.stopPropagation?.();
+    }
+    tracking = false;
+    dragging = false;
+    pointerId = null;
+    panel.classList.remove('is-drag-scrolling');
+    if (suppressClick) {
+      setTimeout(() => { suppressClick = false; }, 0);
+    }
+  };
+
+  panel.addEventListener('pointerup', endDrag);
+  panel.addEventListener('pointercancel', endDrag);
+  // Swallow the click that fires after a drag so buttons aren't accidentally pressed.
+  panel.addEventListener('click', (e) => {
+    if (!suppressClick) return;
+    e.preventDefault();
+    e.stopPropagation();
+    suppressClick = false;
+  }, true);
 }
 
 function tcgCompactDesktopActive() {
