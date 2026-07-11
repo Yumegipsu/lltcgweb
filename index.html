@@ -3277,6 +3277,29 @@ body.perf-spectacle-active #center-banner{
   top:clamp(30%,36vh,40%);
 }
 body.perf-spectacle-active #center-banner.show{z-index:8750}
+/* Skill dialogues during spectacle: overlays default to z-index 900, but
+   #perf-spectacle is 8700 (9100 on mobile). Raise prompts above the stage. */
+body.perf-spectacle-active #overlay-prompt.open,
+body.perf-spectacle-active #overlay-pick.open,
+body.perf-spectacle-active #overlay-hand-pick.open,
+body.perf-spectacle-active #overlay-heart.open,
+body.perf-spectacle-active #overlay-surveil.open,
+body.perf-spectacle-active #overlay-live.open,
+body.perf-spectacle-active #overlay-zone.open{
+  z-index:9200;
+}
+body.perf-spectacle-active #modal-card{z-index:9250}
+/* Hand strip is hidden during spectacle — drop the hand cutout and use a
+   normal dimmed bubble so dialogue is readable over the stage. */
+body.perf-spectacle-active .overlay.skill-hand-preserve.open{
+  background:rgba(4,10,24,.82);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+  pointer-events:auto;
+}
+body.perf-spectacle-active:has(.overlay.skill-hand-preserve.open)::before{
+  display:none;
+}
 .perf-spotlights{
   position:absolute;left:50%;top:50%;z-index:0;
   width:min(760px,88vw);height:min(480px,56vh);
