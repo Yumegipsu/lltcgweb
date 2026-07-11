@@ -152,7 +152,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "PR",
             "text": "[Live Start] Ask your opponent, \"What do you like?\"\n• If they answer chocolate mint, strawberry flavor, or cookies & cream: each player puts 1 card from their hand into the Waiting Room.\n• If they answer \"you\": each player draws 1 card.\n• Otherwise: until this Live ends, every Member on both players' Stages gains +1 Blade.",
             "text_jp": "相手に何が好き？と聞く。\n\r\n回答がチョコミントかストロベリーフレイバーかクッキー＆クリームの場合、自分と相手は手札を1枚控え室に置く。\n\r\n回答があなたの場合、自分と相手はカードを1枚引く。\n\r\n回答がそれ以外の場合、ライブ終了時まで、自分と相手のステージにいるメンバーはを得る。",
@@ -580,7 +582,9 @@
                     "count": 3
                 }
             ],
-            "text_es": "[Éxito de Live] Si se revelaron 2 o más cartas Live para Yell, O tus Miembros del Escenario tienen 5 o más colores de corazón distintos entre ellos, O un Miembro en tu Escenario cambió de área este turno, la puntuación de esta carta +1."
+            "text_es": "[Éxito de Live] Si se revelaron 2 o más cartas Live para Yell, O tus Miembros del Escenario tienen 5 o más colores de corazón distintos entre ellos, O un Miembro en tu Escenario cambió de área este turno, la puntuación de esta carta +1.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "LL-bp5-002-L",
@@ -608,7 +612,9 @@
                     "count": 5
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If you have 3 or more Members on your Stage with distinct group names, until this Live ends, your Center Member gains 1 Wild heart.\n[Live Success] Add 1 card from your Waiting Room whose group name differs from every Member on your Stage to your hand.",
             "text_jp": "自分のステージにグループ名がそれぞれ異なるメンバーが3人以上いる場合、ライブ終了時まで、自分のセンターエリアにいるメンバーはを得る。\n\n自分の控え室にある、自分のステージにいるすべてのメンバーと異なるグループ名を持つカード1枚を手札に加える。",
@@ -2828,7 +2834,9 @@
                     "count": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes 2 o más cartas de μ's en tu Live, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si tienes 2 o más cartas de μ's en tu Live, la puntuación de esta carta +1.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!-bp3-020-L",
@@ -3008,7 +3016,9 @@
                     "color": "gray",
                     "count": 7
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!-bp3-022-L",
@@ -3069,7 +3079,9 @@
                     "count": 4
                 }
             ],
-            "text_es": "[Inicio de Live] Revela 1 carta de tu mazo por cada Miembro en ambos Escenarios. La puntuación de esta carta +1 por cada carta Live revelada. Coloca las cartas reveladas en la Sala de espera."
+            "text_es": "[Inicio de Live] Revela 1 carta de tu mazo por cada Miembro en ambos Escenarios. La puntuación de esta carta +1 por cada carta Live revelada. Coloca las cartas reveladas en la Sala de espera.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!-bp3-023-L",
@@ -4921,7 +4933,9 @@
                     "count": 8
                 }
             ],
-            "text_es": "[Inicio de Live] Si la puntuación total de tus cartas de Live exitoso es 6 o más, reduce los corazones requeridos de esta carta en 1 Corazón gris. Si el total es 9 o más, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si la puntuación total de tus cartas de Live exitoso es 6 o más, reduce los corazones requeridos de esta carta en 1 Corazón gris. Si el total es 9 o más, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!-bp4-022-L",
@@ -4982,7 +4996,9 @@
                     "count": 9
                 }
             ],
-            "text_es": "[Inicio de Live] Si un Miembro de μ's en tu área Centro tiene 9 o más Blade, la puntuación de esta carta +2."
+            "text_es": "[Inicio de Live] Si un Miembro de μ's en tu área Centro tiene 9 o más Blade, la puntuación de esta carta +2.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!-bp4-022-SECL",
@@ -5043,7 +5059,9 @@
                     "amount": 2
                 }
             ],
-            "text_es": "[Inicio de Live] Si un Miembro de μ's en tu área Centro tiene 9 o más Blade, la puntuación de esta carta +2."
+            "text_es": "[Inicio de Live] Si un Miembro de μ's en tu área Centro tiene 9 o más Blade, la puntuación de esta carta +2.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!-bp4-023-L",
@@ -5206,7 +5224,9 @@
                     "color": "any",
                     "count": 6
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!-bp4-026-L",
@@ -5250,7 +5270,9 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!-bp4-027-SECE",
@@ -7274,7 +7296,9 @@
                     "count": 6
                 }
             ],
-            "text_es": "[Inicio de Live] Por cada carta en tu área de Live exitoso, la puntuación de esta carta +2 y sus corazones requeridos +1 Corazón rosa, +1 Corazón amarillo, +1 Corazón morado y +1 Corazón gris."
+            "text_es": "[Inicio de Live] Por cada carta en tu área de Live exitoso, la puntuación de esta carta +2 y sus corazones requeridos +1 Corazón rosa, +1 Corazón amarillo, +1 Corazón morado y +1 Corazón gris.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!-bp5-023-L",
@@ -7361,7 +7385,9 @@
                     "count": 1
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If you have an A-RISE Member on your Stage, choose one:\n• Activate 1 Member in Wait; that Member gains +1 Blade until this Live ends.\n• Put 1 opponent Stage Member with 3 or fewer original Blade into Wait.",
             "text_jp": "自分のステージに『A-RISE』のメンバーがいる場合、以下から1つを選ぶ。\n\r\n・ウェイト状態のメンバー1人をアクティブにし、ライブ終了時まで、そのメンバーはを得る。\n\r\n・相手のステージにいる元々持つが3つ以下のメンバー1人をウェイトにする。",
@@ -9401,7 +9427,9 @@
                     "count": 6
                 }
             ],
-            "text_es": "[Automático] Cuando un Miembro de μ's en tu área Centro resuelve una habilidad (Live Start), cambia la posición de ese Miembro.\n[Automático] Cuando un Miembro de μ's en tu área Centro resuelve una habilidad (Live Success), si ese Miembro se movió este turno, la puntuación de esta carta +1."
+            "text_es": "[Automático] Cuando un Miembro de μ's en tu área Centro resuelve una habilidad (Live Start), cambia la posición de ese Miembro.\n[Automático] Cuando un Miembro de μ's en tu área Centro resuelve una habilidad (Live Success), si ese Miembro se movió este turno, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!-bp6-021-L",
@@ -9510,7 +9538,9 @@
                     "count": 5
                 }
             ],
-            "text_es": "[Siempre] Mientras esta carta esté en tu área de Live exitoso, reduce los Corazones grises requeridos en tus cartas Live de μ's con puntuación original 5 o más en 2 (no se acumula)."
+            "text_es": "[Siempre] Mientras esta carta esté en tu área de Live exitoso, reduce los Corazones grises requeridos en tus cartas Live de μ's con puntuación original 5 o más en 2 (no se acumula).",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!-bp6-023-L",
@@ -9570,7 +9600,9 @@
                     "count": 4
                 }
             ],
-            "text_es": "[Éxito de Live] Roba 1 carta. Si tienes cartas de μ's en tu área de Live exitoso, roba 1 carta más."
+            "text_es": "[Éxito de Live] Roba 1 carta. Si tienes cartas de μ's en tu área de Live exitoso, roba 1 carta más.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!-bp6-024-L",
@@ -11627,7 +11659,9 @@
                     "amount": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Activa Miembros Printemps en tu Escenario. Si 3 o más Miembros en Wait pasan a Activo de esta forma, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Activa Miembros Printemps en tu Escenario. Si 3 o más Miembros en Wait pasan a Activo de esta forma, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!-pb1-029-L",
@@ -11672,7 +11706,9 @@
                     "amount": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes 0 cartas en tu área de Live exitoso y todos los Miembros en tu Escenario pertenecen a lily white, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si tienes 0 cartas en tu área de Live exitoso y todos los Miembros en tu Escenario pertenecen a lily white, la puntuación de esta carta +1.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!-pb1-030-L",
@@ -11735,7 +11771,9 @@
                     "count": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Si tu oponente tiene un Miembro en Wait en su Escenario, reduce los corazones requeridos de esta carta en 2 Corazones grises.\n[Éxito de Live] Si tu Escenario tiene 2 o más Miembros BiBi con nombres distintos, añade 1 carta de Miembro BiBi de tu Sala de espera a tu mano."
+            "text_es": "[Inicio de Live] Si tu oponente tiene un Miembro en Wait en su Escenario, reduce los corazones requeridos de esta carta en 2 Corazones grises.\n[Éxito de Live] Si tu Escenario tiene 2 o más Miembros BiBi con nombres distintos, añade 1 carta de Miembro BiBi de tu Sala de espera a tu mano.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!-pb1-031-L",
@@ -11904,7 +11942,9 @@
                     "color": "any",
                     "count": 6
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!-pb1-034-PE",
@@ -14029,7 +14069,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "PR",
             "text": "",
             "text_jp": "",
@@ -14065,7 +14107,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "PR",
             "text": "",
             "text_jp": "",
@@ -14101,7 +14145,9 @@
                     "count": 1
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "PR",
             "text": "",
             "text_jp": "",
@@ -14770,7 +14816,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "PR",
             "text": "[Live Success] If you have a Member on your Stage with more hearts than its printed hearts, draw 1 card.",
             "text_jp": "自分のステージに、元々持つハートの数より多い数のハートを持つメンバーがいる場合、カードを1枚引く。",
@@ -16575,7 +16623,9 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!HS-bp1-020-L",
@@ -16591,7 +16641,9 @@
                     "count": 6
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "",
             "text_jp": "",
@@ -16622,7 +16674,9 @@
                     "count": 5
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Success] Add 1 Hasunosora Live card revealed by Yell to your hand.",
             "text_jp": "エールにより公開された自分のカードの中から、『蓮ノ空』のライブカードを1枚手札に加える。",
@@ -16722,7 +16776,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Success] If your total Live Score is higher than your opponent's and you have a Hasunosora Member on your Stage, put 1 Energy card from your Energy deck into Wait.",
             "text_jp": "ライブの合計スコアが相手より高く、かつ自分のステージに『蓮ノ空』のメンバーがいる場合、自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置く。",
@@ -18508,7 +18564,9 @@
                     "count": 8
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Always] This card in all areas is treated as Cerise Bouquet, DOLLCHESTRA, and Mira-Cra Park!.\n[Live Start] For each Hasunosora Member with a different name on your Stage, this card's score gets +2.",
             "text_jp": "すべての領域にあるこのカードは『スリーズブーケ』、『DOLLCHESTRA』、『みらくらぱーく！』として扱う。\n\n自分のステージにいる名前の異なる『蓮ノ空』のメンバー1人につき、このカードのスコアを＋２する。",
@@ -18621,7 +18679,9 @@
                     "count": 1
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If you have 3 or more Cerise Bouquet Live cards in your Waiting Room, this card's score gets +1.",
             "text_jp": "自分の控え室に『スリーズブーケ』のライブカードが3枚以上ある場合、このカードのスコアを＋１する。",
@@ -18715,7 +18775,9 @@
                     "count": 1
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If you have 2 or more Hasunosora Members on your Stage who entered via Baton Touch this turn, reduce this Live's required blue hearts by 1.",
             "text_jp": "自分のステージに、このターン中にバトンタッチして登場した『蓮ノ空』のメンバーが2人以上いる場合、このカードを成功させるための必要ハートを減らす。",
@@ -18762,7 +18824,9 @@
                     "count": 5
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If Kosuzu Kachimachi is on your Stage and Sayaka Murano with higher cost than Kosuzu Kachimachi is on your Stage, reduce this Live's required any-color hearts by 3.",
             "text_jp": "自分のステージに「徒町小鈴」が登場しており、かつ「徒町小鈴」よりコストの大きい「村野さやか」が登場している場合、このカードを成功させるための必要ハートを減らす。",
@@ -18868,7 +18932,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If you have 2 or more Hasunosora Members on your Stage who entered via Baton Touch this turn, reduce this Live's required pink hearts by 1.",
             "text_jp": "自分のステージに、このターン中にバトンタッチして登場した『蓮ノ空』のメンバーが2人以上いる場合、このカードを成功させるための必要ハートを減らす。",
@@ -19019,7 +19085,9 @@
                     "count": 7
                 }
             ],
-            "text_es": "[Inicio de Live] Si Rurino Osawa está en tu área derecha, Hime Anyoji está en tu área izquierda y Megumi Fujishima está en tu área centro, la puntuación de esta carta +2."
+            "text_es": "[Inicio de Live] Si Rurino Osawa está en tu área derecha, Hime Anyoji está en tu área izquierda y Megumi Fujishima está en tu área centro, la puntuación de esta carta +2.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!HS-bp2-027-SECE",
@@ -20855,7 +20923,9 @@
                     "count": 8
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] You may pay 1 Energy: if you have 2 or more Members on your Stage including a Hasunosora Member and all of their subunit names are different, this card's score gets +1.",
             "text_jp": "支払ってもよい：自分のステージに『蓮ノ空』のメンバー1人を含むメンバーが2人以上おり、かつそれらのメンバーのユニット名がそれぞれ異なる場合、このカードのスコアを＋１する。",
@@ -20908,7 +20978,9 @@
                     "count": 7
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Always] This card in all areas is treated as Cerise Bouquet, DOLLCHESTRA, and Mira-Cra Park!.\n[Live Start] If you have 3 or more Members on your Stage with different names and costs, this card's score gets +1.",
             "text_jp": "すべての領域にあるこのカードは『スリーズブーケ』、『DOLLCHESTRA』、『みらくらぱーく！』として扱う。\n\n自分のステージに名前とコストが両方ともそれぞれ異なるメンバーが3人以上いる場合、このカードのスコアを＋１する。",
@@ -20969,7 +21041,9 @@
                     "count": 5
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] For each other Hasunosora card in your Live Card Zone, reduce this card's required green hearts by 2.",
             "text_jp": "自分のライブカード置き場にあるこのカード以外の『蓮ノ空』のカード1枚につき、このカードの必要ハートを減らす。",
@@ -21043,7 +21117,9 @@
                     "count": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes 2 o más Miembros Hasunosora con costo 10 o más en tu Escenario, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si tienes 2 o más Miembros Hasunosora con costo 10 o más en tu Escenario, la puntuación de esta carta +1.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!HS-bp5-021-L",
@@ -21059,7 +21135,9 @@
                     "count": 10
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] Until this Live ends, choose 1 Hasunosora Member on your Stage — all hearts on that Member are treated as pink ♡.\n[Live Start] If you have 3 or more Mira-Cra Park! Members on your Stage, this card's score gets +1.",
             "text_jp": "ライブ終了時まで、自分のステージにいる『蓮ノ空』のメンバー1人が元々持つハートをすべてにする。\n\n自分のステージに『みらくらぱーく！』のメンバーが3人以上いる場合、このカードのスコアを＋１する。",
@@ -21166,7 +21244,9 @@
                     "count": 2
                 }
             ],
-            "text_es": "[Inicio de Live] Puedes pagar 2 Energía: si tienes un Miembro de Edel Note con costo 9 o más en tu Escenario, elige una — juega 1 Miembro de Edel Note con costo 4 o menos de tu Sala de espera en un área vacía, o reduce los corazones morados requeridos de este Live en 1."
+            "text_es": "[Inicio de Live] Puedes pagar 2 Energía: si tienes un Miembro de Edel Note con costo 9 o más en tu Escenario, elige una — juega 1 Miembro de Edel Note con costo 4 o menos de tu Sala de espera en un área vacía, o reduce los corazones morados requeridos de este Live en 1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!HS-bp5-E01-PE",
@@ -22954,7 +23034,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] You may put 1 card from your hand into the Waiting Room: until this Live ends, 1 Hasunosora Member on your Stage gains 1 blue ♡.\n[Live Success] If you have 2 or more Members on your Stage, add 1 Live card with score 3 or less from your Waiting Room to your hand.",
             "text_jp": "手札を1枚控え室に置いてもよい：ライブ終了時まで、自分のステージにいる『蓮ノ空』のメンバー1人は、を得る。\n\n自分のステージにメンバーが2人以上いる場合、自分の控え室からスコア３以下のライブカードを1枚手札に加える。",
@@ -23026,7 +23108,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "",
             "text_jp": "",
@@ -23110,7 +23194,9 @@
                     "once_per_turn": true
                 }
             ],
-            "text_es": "[Automático] [Una vez por turno] Cuando haces Yell, puedes colocar hasta 3 de tus cartas Hasunosora reveladas para Yell que no tengan corazones de Blade en la Sala de espera. Si lo haces, realiza Yell adicional igual al número colocado en la Sala de espera."
+            "text_es": "[Automático] [Una vez por turno] Cuando haces Yell, puedes colocar hasta 3 de tus cartas Hasunosora reveladas para Yell que no tengan corazones de Blade en la Sala de espera. Si lo haces, realiza Yell adicional igual al número colocado en la Sala de espera.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!HS-bp6-028-L",
@@ -23134,7 +23220,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Success] If you have 1 or more surplus hearts this turn, look at the top 2 cards of your deck. You may put any number of them on top of your deck in any order and put the rest into the Waiting Room.",
             "text_jp": "このターン、自分が余剰ハートを1つ以上持っている場合、自分のデッキの上からカードを2枚見る。その中から好きな枚数を好きな順番でデッキの上に置き、残りを控え室に置く。",
@@ -23191,7 +23279,9 @@
                     "count": 6
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If the total cost of Hasunosora Members on your Stage is 20 or more, look at the top 2 cards of your deck, add 1 to your hand, and put the rest on top of your deck. If the total is 30 or more, reduce this card's required Gray Hearts by 2.",
             "text_jp": "自分のステージにいる『蓮ノ空』のメンバーのコストが合計20以上の場合、デッキの上のカードを2枚見る。その中から1枚を手札に加え、残りをデッキの上に戻す。30以上の場合、さらにこのカードの必要ハートを減らす。",
@@ -23252,7 +23342,9 @@
                     "count": 1
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] Draw 1 card and put 1 card from your hand into the Waiting Room.",
             "text_jp": "カードを1枚引き、手札を1枚控え室に置く。",
@@ -23352,7 +23444,9 @@
                     "blade": 3
                 }
             ],
-            "text_es": "[Inicio de Live] Puedes barajar todas las cartas de Miembro en tu Sala de espera y colocarlas en la parte inferior de tu mazo. Si colocas 15 o más cartas de Mira-Cra Park! en la parte inferior de tu mazo de esta forma, hasta que termine este Live, 1 Hime Anyoji en tu Escenario obtiene +3 Blade."
+            "text_es": "[Inicio de Live] Puedes barajar todas las cartas de Miembro en tu Sala de espera y colocarlas en la parte inferior de tu mazo. Si colocas 15 o más cartas de Mira-Cra Park! en la parte inferior de tu mazo de esta forma, hasta que termine este Live, 1 Hime Anyoji en tu Escenario obtiene +3 Blade.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!HS-bp6-032-L",
@@ -23376,7 +23470,9 @@
                     "count": 1
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Success] Add 1 Member card with cost 4 or less revealed by Yell to your hand.",
             "text_jp": "エールにより公開された自分のカードの中から、コスト4以下のメンバーカードを1枚手札に加える。",
@@ -23956,7 +24052,9 @@
                     "count": 1
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "CL",
             "text": "[Live Success] From cards revealed by Yell, add 1 Hasunosora Member card with cost 4–9 to your hand.",
             "text_jp": "エールにより公開された自分のカードの中から、コスト4以上9以下の『蓮ノ空』のメンバーカードを1枚手札に加える。",
@@ -24007,7 +24105,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "CL",
             "text": "[Live Start] Until this Live ends, 1 Hasunosora Member with cost 10 or more on your Stage gains +2 Blade.",
             "text_jp": "ライブ終了時まで、自分のステージにいるコスト10以上の『蓮ノ空』のメンバー1人は、を得る。",
@@ -24098,7 +24198,9 @@
                     "min_live_zone": 2
                 }
             ],
-            "text_es": "[Éxito de Live] Puedes pagar 1 Energía. Elige una:\n• Añade 1 carta de Miembro de tu Sala de espera a tu mano.\n• Si tienes 2 o más cartas en tu Zona de cartas Live, añade 1 carta Live Hasunosora de tu Sala de espera a tu mano."
+            "text_es": "[Éxito de Live] Puedes pagar 1 Energía. Elige una:\n• Añade 1 carta de Miembro de tu Sala de espera a tu mano.\n• Si tienes 2 o más cartas en tu Zona de cartas Live, añade 1 carta Live Hasunosora de tu Sala de espera a tu mano.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!HS-cl1-012-CL",
@@ -24118,7 +24220,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "CL",
             "text": "[Live Success] If the combined Live Score of both players is tied, from cards revealed by Yell, add 1 Member card with cost 9 or more to your hand.",
             "text_jp": "自分と相手のライブの合計スコアが同じ場合、エールにより公開された自分のカードの中から、コスト9以上のメンバーカードを1枚手札に加える。",
@@ -25916,7 +26020,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If you have 10 or more Hasunosora Member cards in your Waiting Room, until this Live ends, 1 Hasunosora Member on your Stage gains 1 green ♡.\n[Live Success] If you have 6 or fewer cards in hand, add 1 Member card from your Waiting Room to your hand.",
             "text_jp": "自分の控え室に『蓮ノ空』のメンバーカードが10枚以上ある場合、ライブ終了時まで、自分のステージにいる『蓮ノ空』のメンバー1人は、を得る。\n\n自分の手札が6枚以下の場合、自分の控え室からメンバーカードを1枚手札に加える。",
@@ -25980,7 +26086,9 @@
                     "count": 11
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If you have 6 or more Hasunosora Members with different names across your Stage and Waiting Room, reduce this card's required any-color hearts by 2.",
             "text_jp": "自分の、ステージと控え室に名前の異なる『蓮ノ空』のメンバーが6人以上いる場合、このカードの必要ハートは減る。",
@@ -26109,7 +26217,9 @@
                     "min_cost": 10
                 }
             ],
-            "text_es": "[Inicio de Live] Elige 1 Miembro DOLLCHESTRA con costo 10 o más en tu Escenario. Puedes activar una de las habilidades [Inicio de Live] de ese Miembro.\n(Paga cualquier costo requerido por esa habilidad.)"
+            "text_es": "[Inicio de Live] Elige 1 Miembro DOLLCHESTRA con costo 10 o más en tu Escenario. Puedes activar una de las habilidades [Inicio de Live] de ese Miembro.\n(Paga cualquier costo requerido por esa habilidad.)",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!HS-pb1-029-L",
@@ -26137,7 +26247,9 @@
                     "count": 8
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If you have 1 or more Mira-Cra Park! Members on your Stage with more hearts than their original count, draw 1 card. If you have 2 or more, reduce this card's required any-color hearts by 2.",
             "text_jp": "自分のステージに、元々持つハートの数より多い数のハートを持つ『みらくらぱーく！』のメンバーが1人以上いる場合、カードを1枚引く。2人以上いる場合、さらにこのカードの必要ハートを減らす。",
@@ -26190,7 +26302,9 @@
                     "count": 8
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] Until this Live ends, 1 Edel Note Member on your Stage gains +2 Blade, and 1 other Edel Note Member with a different name gains 2 purple ♡.",
             "text_jp": "ライブ終了時まで、自分のステージにいる『Edel Note』のメンバー1人は、を得て、そのメンバーとは名前の異なる『Edel Note』のメンバー1人は、を得る。",
@@ -27456,7 +27570,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SD",
             "text": "[Live Success] If you have a Hasunosora Member on your Stage, draw 1 card and put 1 card from your hand into the Waiting Room.",
             "text_jp": "自分のステージに『蓮ノ空』のメンバーがいる場合、カードを1枚引き、手札を1枚控え室に置く。",
@@ -27521,7 +27637,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SD",
             "text": "[Live Start] If you have 3 or more Hasunosora Members on your Stage and a Live card with \"Dream Believers\" in its name in your Waiting Room, this card's score +1.",
             "text_jp": "自分のステージに『蓮ノ空』のメンバーが3人以上いて、かつ自分の控え室にカード名に「Dream Believers」を含むライブカードがある場合、このカードのスコアを＋１する。",
@@ -27591,7 +27709,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SECL",
             "text": "[Live Start] If you have 3 or more Hasunosora Members on your Stage and a Live card with \"Dream Believers\" in its name in your Waiting Room, this card's score +1.",
             "text_jp": "自分のステージに『蓮ノ空』のメンバーが3人以上いて、かつ自分の控え室にカード名に「Dream Believers」を含むライブカードがある場合、このカードのスコアを＋１する。",
@@ -27690,7 +27810,9 @@
                     "color": "any",
                     "count": 8
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!HS-sd1-020-SD",
@@ -27764,7 +27886,9 @@
                     "count": 8
                 }
             ],
-            "text_es": "(En cada área, esta carta se trata como Cerise Bouquet, DOLLCHESTRA y Mira-Cra Park!.)\n[Inicio de Live] Puedes colocar hasta 3 cartas de Miembro Hasunosora de tu mano en la Sala de espera: hasta que termine este Live, 1 Miembro en tu Escenario obtiene +1 Blade por cada carta descartada de esta forma."
+            "text_es": "(En cada área, esta carta se trata como Cerise Bouquet, DOLLCHESTRA y Mira-Cra Park!.)\n[Inicio de Live] Puedes colocar hasta 3 cartas de Miembro Hasunosora de tu mano en la Sala de espera: hasta que termine este Live, 1 Miembro en tu Escenario obtiene +1 Blade por cada carta descartada de esta forma.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!HS-sd1-021-P",
@@ -33586,7 +33710,9 @@
                     "count": 4
                 }
             ],
-            "text_es": "[Inicio de Live] Puedes devolver cualquier cantidad de cartas de Energía apiladas bajo 1 Miembro en tu Escenario a tu mazo de Energía. Si lo haces, hasta que termine este Live, ese Miembro obtiene 3 corazones rojos por cada carta de Energía devuelta de esta forma."
+            "text_es": "[Inicio de Live] Puedes devolver cualquier cantidad de cartas de Energía apiladas bajo 1 Miembro en tu Escenario a tu mazo de Energía. Si lo haces, hasta que termine este Live, ese Miembro obtiene 3 corazones rojos por cada carta de Energía devuelta de esta forma.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!N-bp3-026-L",
@@ -33761,7 +33887,9 @@
                     "count": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Mira 1 carta de la parte superior de tu mazo por cada Miembro de Nijigasaki en tu Escenario. Puedes colocar hasta 1 de ellas en la parte superior de tu mazo y colocar el resto en la Sala de espera. Luego revela la carta superior de tu mazo. Si es una carta Live, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Mira 1 carta de la parte superior de tu mazo por cada Miembro de Nijigasaki en tu Escenario. Puedes colocar hasta 1 de ellas en la parte superior de tu mazo y colocar el resto en la Sala de espera. Luego revela la carta superior de tu mazo. Si es una carta Live, la puntuación de esta carta +1.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!N-bp3-028-SECL",
@@ -33823,7 +33951,9 @@
                     "count": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Mira 1 carta de la parte superior de tu mazo por cada Miembro de Nijigasaki en tu Escenario. Puedes colocar hasta 1 de ellas en la parte superior de tu mazo y colocar el resto en la Sala de espera. Luego revela la carta superior de tu mazo. Si es una carta Live, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Mira 1 carta de la parte superior de tu mazo por cada Miembro de Nijigasaki en tu Escenario. Puedes colocar hasta 1 de ellas en la parte superior de tu mazo y colocar el resto en la Sala de espera. Luego revela la carta superior de tu mazo. Si es una carta Live, la puntuación de esta carta +1.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!N-bp3-029-L",
@@ -34015,7 +34145,9 @@
                     "count": 6
                 }
             ],
-            "text_es": "[Inicio de Live] La puntuación de esta carta +1 por cada Miembro en Wait en tu Escenario."
+            "text_es": "[Inicio de Live] La puntuación de esta carta +1 por cada Miembro en Wait en tu Escenario.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!N-bp3-032-L",
@@ -36219,7 +36351,9 @@
                     "count": 4
                 }
             ],
-            "text_es": "[Inicio de Live] Hasta que termine este Live, todos los corazones de Blade revelados para Yell de tus cartas pasan a ser corazones de Blade azules.\n[Éxito de Live] Si los Miembros de Nijigasaki revelados para Yell tienen los seis colores de corazón entre ellos, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Hasta que termine este Live, todos los corazones de Blade revelados para Yell de tus cartas pasan a ser corazones de Blade azules.\n[Éxito de Live] Si los Miembros de Nijigasaki revelados para Yell tienen los seis colores de corazón entre ellos, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!N-bp4-026-L",
@@ -36280,7 +36414,9 @@
                     "count": 5
                 }
             ],
-            "text_es": "[Automático] Cuando esta carta se añade a tu mano desde tu Sala de espera durante tu Fase principal, puedes colocar 1 carta Live llamada \"DIVE!\" de tu mano boca arriba en tu almacenamiento de cartas Live. Si lo haces, tu máximo de colocación de cartas Live durante tu próxima Fase de colocación de cartas Live se reduce en 1.\n[Automático] Cuando esta carta se coloca boca arriba en el almacenamiento de cartas Live, hasta que termine este Live, 1 Miembro de Nijigasaki en tu Escenario obtiene +2 Blade."
+            "text_es": "[Automático] Cuando esta carta se añade a tu mano desde tu Sala de espera durante tu Fase principal, puedes colocar 1 carta Live llamada \"DIVE!\" de tu mano boca arriba en tu almacenamiento de cartas Live. Si lo haces, tu máximo de colocación de cartas Live durante tu próxima Fase de colocación de cartas Live se reduce en 1.\n[Automático] Cuando esta carta se coloca boca arriba en el almacenamiento de cartas Live, hasta que termine este Live, 1 Miembro de Nijigasaki en tu Escenario obtiene +2 Blade.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!N-bp4-027-L",
@@ -36580,7 +36716,9 @@
                     "count": 12
                 }
             ],
-            "text_es": "[Inicio de Live] Si cada área del Escenario tiene un Miembro de Nijigasaki y su costo total es 20 o más, roba 3 cartas y coloca 3 cartas de tu mano en la parte superior de tu mazo en cualquier orden."
+            "text_es": "[Inicio de Live] Si cada área del Escenario tiene un Miembro de Nijigasaki y su costo total es 20 o más, roba 3 cartas y coloca 3 cartas de tu mano en la parte superior de tu mazo en cualquier orden.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!N-bp4-032-L",
@@ -39198,7 +39336,9 @@
                     "amount": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Si el área de Live exitoso de cualquier jugador tiene 2 o más cartas y tienes 3 o más Miembros con nombres distintos en tu Escenario, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si el área de Live exitoso de cualquier jugador tiene 2 o más cartas y tienes 3 o más Miembros con nombres distintos en tu Escenario, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!N-bp5-028-L",
@@ -39249,7 +39389,9 @@
                     ]
                 }
             ],
-            "text_es": "[Inicio de Live] Si un Miembro en tu Escenario tiene 4 o más corazones amarillos, la puntuación de esta carta +2 y sus corazones requeridos pasan a ser 5 corazones amarillos."
+            "text_es": "[Inicio de Live] Si un Miembro en tu Escenario tiene 4 o más corazones amarillos, la puntuación de esta carta +2 y sus corazones requeridos pasan a ser 5 corazones amarillos.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!N-bp5-029-L",
@@ -39325,7 +39467,9 @@
                     "max_members": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes a Kasumi Nakasu en tu Escenario, revela las 4 cartas superiores de tu mazo. Elige 1 carta de Kasumi Nakasu entre ellas. Hasta que termine este Live, cada Kasumi Nakasu en tu Escenario obtiene 1 de cada color de corazón de la carta elegida. Coloca todas las cartas reveladas en la Sala de espera."
+            "text_es": "[Inicio de Live] Si tienes a Kasumi Nakasu en tu Escenario, revela las 4 cartas superiores de tu mazo. Elige 1 carta de Kasumi Nakasu entre ellas. Hasta que termine este Live, cada Kasumi Nakasu en tu Escenario obtiene 1 de cada color de corazón de la carta elegida. Coloca todas las cartas reveladas en la Sala de espera.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!N-bp5-030-L",
@@ -42226,7 +42370,9 @@
                     "amount_two": 2
                 }
             ],
-            "text_es": "[Inicio de Live] Si activaste Energía en Wait mediante un efecto de carta de Nijigasaki este turno, la puntuación de esta carta +1. Si además activaste un Miembro en Wait mediante un efecto de Nijigasaki, la puntuación +2 en su lugar."
+            "text_es": "[Inicio de Live] Si activaste Energía en Wait mediante un efecto de carta de Nijigasaki este turno, la puntuación de esta carta +1. Si además activaste un Miembro en Wait mediante un efecto de Nijigasaki, la puntuación +2 en su lugar.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!N-pb1-038-L",
@@ -42354,7 +42500,9 @@
                     "max_members": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Si una carta Live de Nijigasaki en tu área de Live exitoso o Zona de cartas Live tiene 3+ Corazones rosas en sus corazones requeridos, hasta que termine este Live, 1 Miembro de Nijigasaki con 1 Corazón morado en tu Escenario obtiene 4 Corazones morados."
+            "text_es": "[Inicio de Live] Si una carta Live de Nijigasaki en tu área de Live exitoso o Zona de cartas Live tiene 3+ Corazones rosas en sus corazones requeridos, hasta que termine este Live, 1 Miembro de Nijigasaki con 1 Corazón morado en tu Escenario obtiene 4 Corazones morados.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!N-pb1-040-L",
@@ -42397,7 +42545,9 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!N-pb1-041-L",
@@ -47975,7 +48125,9 @@
                     "count": 1
                 }
             ],
-            "text_es": "Esta carta no puede colocarse en el área de Live exitoso.\n[Éxito de Live] Roba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera."
+            "text_es": "Esta carta no puede colocarse en el área de Live exitoso.\n[Éxito de Live] Roba 2 cartas y luego coloca 1 carta de tu mano en la Sala de espera.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!S-bp2-025-L",
@@ -49710,7 +49862,9 @@
                     "count": 1
                 }
             ],
-            "text_es": "[Automático] [Una vez por turno] Cuando revelas 1 o más cartas para Yell y hay 2 o menos cartas con corazones de Blade entre ellas, puedes colocar todas esas cartas en la Sala de espera. Si lo haces, pierdes los corazones de Blade obtenidos de ese Yell y realizas Yell de nuevo."
+            "text_es": "[Automático] [Una vez por turno] Cuando revelas 1 o más cartas para Yell y hay 2 o menos cartas con corazones de Blade entre ellas, puedes colocar todas esas cartas en la Sala de espera. Si lo haces, pierdes los corazones de Blade obtenidos de ese Yell y realizas Yell de nuevo.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!S-bp3-021-L",
@@ -49818,7 +49972,9 @@
                     "color": "any",
                     "count": 6
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!S-bp3-023-L",
@@ -49974,7 +50130,9 @@
                     "count": 6
                 }
             ],
-            "text_es": "[Inicio de Live] Elige 1 Miembro de Aqours en tu Escenario. Si ese Miembro tiene 6 o más Blade, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Elige 1 Miembro de Aqours en tu Escenario. Si ese Miembro tiene 6 o más Blade, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!S-bp3-026-SECE",
@@ -51687,7 +51845,9 @@
                     "max_pick": 2
                 }
             ],
-            "text_es": "[Éxito de Live] Si el área de Live exitoso de cualquier jugador tiene 2 o más cartas, añade hasta 2 cartas de Miembro reveladas por Yell a tu mano."
+            "text_es": "[Éxito de Live] Si el área de Live exitoso de cualquier jugador tiene 2 o más cartas, añade hasta 2 cartas de Miembro reveladas por Yell a tu mano.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!S-bp5-020-L",
@@ -51863,7 +52023,9 @@
                     "count": 5
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] Until this Live ends, each Member on your Stage that moved areas this turn gains +1 Blade.\n[Live Success] If you revealed more Live cards for Yell than your opponent, this card's score +1.",
             "text_jp": "ライブ終了時まで、自分のステージにいる、このターン中にエリアを移動したメンバーはを得る。\n\nエールにより公開されている自分のライブカードの枚数が、エールにより公開されている相手のライブカードの枚数より多い場合、このカードのスコアを＋１する。",
@@ -51971,7 +52133,9 @@
                     "max_pick": 4
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes tanto un Miembro de Aqours como un Miembro de Saint Snow en tu Escenario con costo combinado 20 o más, puedes colocar hasta 4 cartas Live de Aqours o Saint Snow de tu Sala de espera en la parte superior de tu mazo en cualquier orden."
+            "text_es": "[Inicio de Live] Si tienes tanto un Miembro de Aqours como un Miembro de Saint Snow en tu Escenario con costo combinado 20 o más, puedes colocar hasta 4 cartas Live de Aqours o Saint Snow de tu Sala de espera en la parte superior de tu mazo en cualquier orden.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!S-bp5-111-P＋",
@@ -53955,7 +54119,9 @@
                     "count": 4
                 }
             ],
-            "text_es": "[Automático] [Una vez por turno] Cuando haces Yell, puedes colocar hasta 1 carta de Miembro de Aqours sin Blade revelada por Yell en la Sala de espera. Si lo haces, realiza 1 Yell adicional por cada 5 de costo de las cartas colocadas en la Sala de espera de esta forma (máx. 4 Yells extra)."
+            "text_es": "[Automático] [Una vez por turno] Cuando haces Yell, puedes colocar hasta 1 carta de Miembro de Aqours sin Blade revelada por Yell en la Sala de espera. Si lo haces, realiza 1 Yell adicional por cada 5 de costo de las cartas colocadas en la Sala de espera de esta forma (máx. 4 Yells extra).",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!S-bp6-022-L",
@@ -54017,7 +54183,9 @@
                     "count": 7
                 }
             ],
-            "text_es": "[Éxito de Live] Si tu oponente tiene más Energía que tú, la puntuación de esta carta +1."
+            "text_es": "[Éxito de Live] Si tu oponente tiene más Energía que tú, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!S-bp6-023-L",
@@ -54079,7 +54247,9 @@
                     "count": 3
                 }
             ],
-            "text_es": "[Éxito de Live] Si alguna carta Live fue revelada por tu Yell, la puntuación de esta carta +1."
+            "text_es": "[Éxito de Live] Si alguna carta Live fue revelada por tu Yell, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!S-bp6-024-L",
@@ -54142,7 +54312,9 @@
                     "count": 3
                 }
             ],
-            "text_es": "[Éxito de Live] Hasta que termine este Live, tu oponente pierde todos los corazones excedentes. Si pierde 2 o más corazones excedentes de esta forma, la puntuación de esta carta +1."
+            "text_es": "[Éxito de Live] Hasta que termine este Live, tu oponente pierde todos los corazones excedentes. Si pierde 2 o más corazones excedentes de esta forma, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!S-bp6-E01-SECE",
@@ -55386,7 +55558,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If Aqours Members on your Stage have 6 or more Red hearts in total, this card's [Live Success] ability is negated.\n[Live Success] Your opponent puts 1 Energy card from their Energy deck into Wait.",
             "text_jp": "自分のステージにいる『Aqours』のメンバーが持つハートに、が合計6個以上ある場合、このカードの能力を無効にする。相手は、エネルギーデッキからエネルギーカードを1枚ウェイト状態で置く。",
@@ -57257,7 +57431,9 @@
                     "requires_winning": false
                 }
             ],
-            "text_es": "[Éxito de Live] Añade 1 carta Live de Aqours revelada para tu Yell a tu mano."
+            "text_es": "[Éxito de Live] Añade 1 carta Live de Aqours revelada para tu Yell a tu mano.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!S-sd1-020-SD",
@@ -57371,7 +57547,9 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!S-sd1-022-SD",
@@ -57432,7 +57610,9 @@
                     "max_members": 99
                 }
             ],
-            "text_es": "[Inicio de Live] Hasta que termine este Live, cada Miembro de Aqours en tu Escenario obtiene +1 Blade."
+            "text_es": "[Inicio de Live] Hasta que termine este Live, cada Miembro de Aqours en tu Escenario obtiene +1 Blade.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!S-sd1-023-P",
@@ -60058,7 +60238,9 @@
                     "count": 1
                 }
             ],
-            "text_es": "[Éxito de Live] Si tu puntuación total de Live beats de tu oponente, coloca 1 Energía carta de tu mazo de Energía en Wait."
+            "text_es": "[Éxito de Live] Si tu puntuación total de Live beats de tu oponente, coloca 1 Energía carta de tu mazo de Energía en Wait.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!SP-bp1-024-L",
@@ -60082,7 +60264,9 @@
                     "count": 6
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] Until this Live ends, 1 \"Kanon Shibuya\" on your Stage gains +1 Blade and 1 Blue heart, and 1 \"Keke Tang\" on your Stage gains +1 Blade and 1 Pink heart.\n[Live Success] If you have both \"Kanon Shibuya\" and \"Keke Tang\" on your Stage, draw 1 card.\n(When checking Required Hearts, Blade hearts revealed for Yell count as any color.)",
             "text_jp": "ライブ終了時まで、自分のステージにいる「澁谷かのん」1人はを、「唐 可可」1人はを得る。\n\n自分のステージに「澁谷かのん」と「唐 可可」がいる場合、カードを1枚引く。",
@@ -60184,7 +60368,9 @@
                     "count": 6
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "[Live Start] Until this Live ends, 1 \"Kanon Shibuya\" on your Stage gains +1 Blade and 1 Blue heart, and 1 \"Keke Tang\" on your Stage gains +1 Blade and 1 Pink heart.\n[Live Success] If you have both \"Kanon Shibuya\" and \"Keke Tang\" on your Stage, draw 1 card.",
             "text_jp": "ライブ終了時まで、自分のステージにいる「澁谷かのん」1人はを、「唐 可可」1人はを得る。\n\n自分のステージに「澁谷かのん」と「唐 可可」がいる場合、カードを1枚引く。",
@@ -60286,7 +60472,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "",
             "text_jp": "",
@@ -60329,7 +60517,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L+",
             "text": "",
             "text_jp": "",
@@ -60372,7 +60562,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "",
             "text_jp": "",
@@ -60415,7 +60607,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "",
             "text_jp": "",
@@ -60462,7 +60656,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If you have 5 or more differently named Liella! Members on your Stage and Waiting Room combined, this card's Required Hearts become 2 Red, 2 Yellow, and 2 Purple.",
             "text_jp": "自分の、ステージと控え室に名前の異なる『Liella!』のメンバーが5人以上いる場合、このカードを使用するためのコストはになる。",
@@ -60537,7 +60733,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If you have 5 or more differently named Liella! Members on your Stage and Waiting Room combined, this card's Required Hearts become 2 Red, 2 Yellow, and 2 Purple.",
             "text_jp": "自分の、ステージと控え室に名前の異なる『Liella!』のメンバーが5人以上いる場合、このカードを使用するためのコストはになる。",
@@ -60612,7 +60810,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "[Live Start] If you have 5 or more differently named Liella! Members on your Stage and Waiting Room combined, this card's Required Hearts become 2 Red, 2 Yellow, and 2 Purple.",
             "text_jp": "自分の、ステージと控え室に名前の異なる『Liella!』のメンバーが5人以上いる場合、このカードを使用するためのコストはになる。",
@@ -60793,7 +60993,9 @@
                     "count": 5
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes 12 o más Energía, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si tienes 12 o más Energía, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp1-028-SECE",
@@ -62840,7 +63042,9 @@
                     "count": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes menos cartas en tu área de Live exitoso que tu oponente, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si tienes menos cartas en tu área de Live exitoso que tu oponente, la puntuación de esta carta +1.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!SP-bp2-024-L",
@@ -62966,7 +63170,9 @@
                 }
             ],
             "loveca_point": 1,
-            "text_es": "[Éxito de Live] Si tienes más cartas en la mano que tu oponente, la puntuación de esta carta +1."
+            "text_es": "[Éxito de Live] Si tienes más cartas en la mano que tu oponente, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp2-024-SRL",
@@ -63028,7 +63234,9 @@
                 }
             ],
             "loveca_point": 1,
-            "text_es": "[Éxito de Live] Si tienes más cartas en la mano que tu oponente, la puntuación de esta carta +1."
+            "text_es": "[Éxito de Live] Si tienes más cartas en la mano que tu oponente, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp2-025-L",
@@ -63056,7 +63264,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Success] If you have 2 or more differently named Members among \"Kanon Shibuya\", \"Wien Margarete\", and \"Tomari Onitsuka\" on your Stage, add 1 card revealed by Yell to your hand.",
             "text_jp": "自分のステージに「澁谷かのん」、「ウィーン・マルガレーテ」、「鬼塚冬毬」のうち、名前の異なるメンバーが2人以上いる場合、エールにより公開された自分のカードの中から、カードを1枚手札に加える。",
@@ -63176,7 +63386,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Always] All opponent Live cards require +1 additional Gray heart to succeed.",
             "text_jp": "",
@@ -63334,7 +63546,9 @@
                     "color": "any",
                     "count": 7
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp2-028-SECE",
@@ -65371,7 +65585,9 @@
                     "count": 8
                 }
             ],
-            "text_es": "[Inicio de Live] Elige 1 de \"Kanon Shibuya\", \"Wien Margarete\" o \"Tomari Onitsuka\" en tu Escenario y 1 otro Miembro de Liella! en tu Escenario. Esos Miembros obtienen +1 Blade hasta que termine este Live.\n[Inicio de Live] Hasta que termine este Live, los corazones de Blade rosa, rojo, amarillo, verde y azul revelados para Yell pasan a ser corazones de Blade morados."
+            "text_es": "[Inicio de Live] Elige 1 de \"Kanon Shibuya\", \"Wien Margarete\" o \"Tomari Onitsuka\" en tu Escenario y 1 otro Miembro de Liella! en tu Escenario. Esos Miembros obtienen +1 Blade hasta que termine este Live.\n[Inicio de Live] Hasta que termine este Live, los corazones de Blade rosa, rojo, amarillo, verde y azul revelados para Yell pasan a ser corazones de Blade morados.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!SP-bp4-023-SRL",
@@ -65425,7 +65641,9 @@
                     "count": 8
                 }
             ],
-            "text_es": "[Inicio de Live] Elige 1 de \"Kanon Shibuya\", \"Wien Margarete\" o \"Tomari Onitsuka\" en tu Escenario y 1 otro Miembro de Liella! en tu Escenario. Esos Miembros obtienen +1 Blade hasta que termine este Live.\n[Inicio de Live] Hasta que termine este Live, los corazones de Blade rosa, rojo, amarillo, verde y azul revelados para Yell pasan a ser corazones de Blade morados."
+            "text_es": "[Inicio de Live] Elige 1 de \"Kanon Shibuya\", \"Wien Margarete\" o \"Tomari Onitsuka\" en tu Escenario y 1 otro Miembro de Liella! en tu Escenario. Esos Miembros obtienen +1 Blade hasta que termine este Live.\n[Inicio de Live] Hasta que termine este Live, los corazones de Blade rosa, rojo, amarillo, verde y azul revelados para Yell pasan a ser corazones de Blade morados.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!SP-bp4-024-L",
@@ -65488,7 +65706,9 @@
                     "count": 7
                 }
             ],
-            "text_es": "[Inicio de Live] Si el Miembro de Liella! en tu área Centro tiene costo mayor que el Miembro Centro de tu oponente, la puntuación de esta carta +1.\n[Inicio de Live] Si un Miembro de Liella! en tu área del lado izquierdo tiene 3 o más corazones rojos, ese Miembro obtiene +2 Blade hasta que termine este Live."
+            "text_es": "[Inicio de Live] Si el Miembro de Liella! en tu área Centro tiene costo mayor que el Miembro Centro de tu oponente, la puntuación de esta carta +1.\n[Inicio de Live] Si un Miembro de Liella! en tu área del lado izquierdo tiene 3 o más corazones rojos, ese Miembro obtiene +2 Blade hasta que termine este Live.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp4-024-SECL",
@@ -65551,7 +65771,9 @@
                     "count": 7
                 }
             ],
-            "text_es": "[Inicio de Live] Si el Miembro de Liella! en tu área Centro tiene costo mayor que el Miembro Centro de tu oponente, la puntuación de esta carta +1.\n[Inicio de Live] Si un Miembro de Liella! en tu área del lado izquierdo tiene 3 o más corazones rojos, ese Miembro obtiene +2 Blade hasta que termine este Live."
+            "text_es": "[Inicio de Live] Si el Miembro de Liella! en tu área Centro tiene costo mayor que el Miembro Centro de tu oponente, la puntuación de esta carta +1.\n[Inicio de Live] Si un Miembro de Liella! en tu área del lado izquierdo tiene 3 o más corazones rojos, ese Miembro obtiene +2 Blade hasta que termine este Live.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp4-024-SRL",
@@ -65614,7 +65836,9 @@
                     "count": 7
                 }
             ],
-            "text_es": "[Inicio de Live] Si el Miembro de Liella! en tu área Centro tiene costo mayor que el Miembro Centro de tu oponente, la puntuación de esta carta +1.\n[Inicio de Live] Si un Miembro de Liella! en tu área del lado izquierdo tiene 3 o más corazones rojos, ese Miembro obtiene +2 Blade hasta que termine este Live."
+            "text_es": "[Inicio de Live] Si el Miembro de Liella! en tu área Centro tiene costo mayor que el Miembro Centro de tu oponente, la puntuación de esta carta +1.\n[Inicio de Live] Si un Miembro de Liella! en tu área del lado izquierdo tiene 3 o más corazones rojos, ese Miembro obtiene +2 Blade hasta que termine este Live.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp4-025-L",
@@ -65630,7 +65854,9 @@
                     "count": 7
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] Until this Live ends, Liella! Members in your Center area have 3 printed Blades.\n[Live Success] If a Liella! Member in your Center area moved this turn, this card's score +1.",
             "text_jp": "ライブ終了時まで、自分のステージのセンターエリアにいる『Liella!』のメンバーが元々持つの数は3つになる。\n\n自分のステージのセンターエリアにいる『Liella!』のメンバーが、このターン中に移動している場合、このカードのスコアを＋１する。",
@@ -65672,7 +65898,9 @@
                     "count": 7
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "[Live Start] Until this Live ends, Liella! Members in your Center area have 3 printed Blades.\n[Live Success] If a Liella! Member in your Center area moved this turn, this card's score +1.",
             "text_jp": "ライブ終了時まで、自分のステージのセンターエリアにいる『Liella!』のメンバーが元々持つの数は3つになる。\n\n自分のステージのセンターエリアにいる『Liella!』のメンバーが、このターン中に移動している場合、このカードのスコアを＋１する。",
@@ -65726,7 +65954,9 @@
                     "count": 6
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Success] If cards revealed for Yell include 5 or more differently named Liella! Member cards, this card's score +1.\n[Live Success] If you have 11 or more Energy, draw 2 cards and put 1 card from your hand into the Waiting Room.",
             "text_jp": "エールにより公開された自分のカードの中に名前が異なる『Liella!』のメンバーカードが5枚以上ある場合、このカードのスコアを＋１する。\n\n自分のエネルギーが11枚以上ある場合、カードを2枚引き、手札を1枚控え室に置く。",
@@ -65794,7 +66024,9 @@
                     "count": 6
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "[Live Success] If cards revealed for Yell include 5 or more differently named Liella! Member cards, this card's score +1.\n[Live Success] If you have 11 or more Energy, draw 2 cards and put 1 card from your hand into the Waiting Room.",
             "text_jp": "エールにより公開された自分のカードの中に名前が異なる『Liella!』のメンバーカードが5枚以上ある場合、このカードのスコアを＋１する。\n\n自分のエネルギーが11枚以上ある場合、カードを2枚引き、手札を1枚控え室に置く。",
@@ -65854,7 +66086,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Success] If every Member on your Stage is Liella!, you may formation-change your Stage Members (move each to any area; no area may have 2 Members).",
             "text_jp": "自分のステージにいるメンバーが『Liella!』のみの場合、自分のステージにいるメンバーをフォーメーションチェンジしてもよい。(メンバーをそれぞれ好きなエリアに移動させる。この効果で1つのエリアに2人以上のメンバーを移動させることはできない。)",
@@ -65897,7 +66131,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "[Live Success] If every Member on your Stage is Liella!, you may formation-change your Stage Members (move each to any area; no area may have 2 Members).",
             "text_jp": "自分のステージにいるメンバーが『Liella!』のみの場合、自分のステージにいるメンバーをフォーメーションチェンジしてもよい。(メンバーをそれぞれ好きなエリアに移動させる。この効果で1つのエリアに2人以上のメンバーを移動させることはできない。)",
@@ -65973,7 +66209,9 @@
                     "count": 7
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes 1 o más Energía activa, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si tienes 1 o más Energía activa, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp4-028-SRL",
@@ -66026,7 +66264,9 @@
                     "count": 7
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes 1 o más Energía activa, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si tienes 1 o más Energía activa, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp4-029-L",
@@ -66071,7 +66311,9 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp4-029-SRL",
@@ -66116,7 +66358,9 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp4-030-L",
@@ -66136,7 +66380,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "",
             "text_jp": "",
@@ -66171,7 +66417,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "",
             "text_jp": "",
@@ -68632,7 +68880,9 @@
                     "amount": 2
                 }
             ],
-            "text_es": "[Éxito de Live] Si cualquier jugador tiene 2 o más cartas en su área de Live exitoso y alguna carta Live con un Corazón de Blade de puntuación +1 fue revelada por tu Yell, la puntuación de esta carta +2."
+            "text_es": "[Éxito de Live] Si cualquier jugador tiene 2 o más cartas en su área de Live exitoso y alguna carta Live con un Corazón de Blade de puntuación +1 fue revelada por tu Yell, la puntuación de esta carta +2.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp5-024-L",
@@ -68695,7 +68945,9 @@
                     ]
                 }
             ],
-            "text_es": "[Inicio de Live] Elige rosa, rojo o morado: hasta que termine este Live, cada Miembro en tu Escenario que se movió este turno obtiene 1 corazón del color elegido."
+            "text_es": "[Inicio de Live] Elige rosa, rojo o morado: hasta que termine este Live, cada Miembro en tu Escenario que se movió este turno obtiene 1 corazón del color elegido.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!SP-bp5-025-L",
@@ -68757,7 +69009,9 @@
                     "amount": 1
                 }
             ],
-            "text_es": "[Éxito de Live] Puedes pagar cualquier cantidad de Energía: la puntuación de esta carta +1 por cada 4 Energía pagada de esta forma."
+            "text_es": "[Éxito de Live] Puedes pagar cualquier cantidad de Energía: la puntuación de esta carta +1 por cada 4 Energía pagada de esta forma.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp5-026-L",
@@ -68810,7 +69064,9 @@
                     "amount": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Si los Miembros de Liella! en tu Escenario tienen 11 o más corazones en total, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si los Miembros de Liella! en tu Escenario tienen 11 o más corazones en total, la puntuación de esta carta +1.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!SP-bp5-027-L",
@@ -68842,7 +69098,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Success] You may put 1 Energy card from your Energy deck into Wait. If you do, your opponent draws 1 card.",
             "text_jp": "自分のエネルギーデッキから、エネルギーカードを1枚ウェイト状態で置いてもよい。そうした場合、相手はカードを1枚引く。",
@@ -70659,7 +70917,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] If you have 2 or more differently named CatChu! Members on your Stage, activate up to 6 Energy. Then, if all your Energy is active, this card's score +1.",
             "text_jp": "自分のステージに名前の異なる『CatChu!』のメンバーが2人以上いる場合、エネルギーを6枚までアクティブにする。その後、自分のエネルギーがすべてアクティブ状態の場合、このカードのスコアを＋１する。",
@@ -70710,7 +70970,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "[Live Start] If you have 2 or more differently named CatChu! Members on your Stage, activate up to 6 Energy. Then, if all your Energy is active, this card's score +1.",
             "text_jp": "自分のステージに名前の異なる『CatChu!』のメンバーが2人以上いる場合、エネルギーを6枚までアクティブにする。その後、自分のエネルギーがすべてアクティブ状態の場合、このカードのスコアを＋１する。",
@@ -70789,7 +71051,9 @@
                     "amount": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes 2 o más Miembros KALEIDOSCORE con nombres distintos en tu Escenario, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si tienes 2 o más Miembros KALEIDOSCORE con nombres distintos en tu Escenario, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-pb1-024-SRL",
@@ -70837,7 +71101,9 @@
                     "count": 7
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes 2 o más Miembros KALEIDOSCORE con nombres distintos en tu Escenario, la puntuación de esta carta +1."
+            "text_es": "[Inicio de Live] Si tienes 2 o más Miembros KALEIDOSCORE con nombres distintos en tu Escenario, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-pb1-025-L",
@@ -70861,7 +71127,9 @@
                     "count": 6
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] For each 5yncri5e! Member on your Stage that entered or moved this turn, reduce this card's Required Hearts by 1 Gray Heart.",
             "text_jp": "自分のステージにいる、このターン中に登場、またはエリアを移動した『5yncri5e!』のメンバー1人につき、このカードを成功させるための必要ハートを減らす。",
@@ -70915,7 +71183,9 @@
                     "count": 6
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "[Live Start] For each 5yncri5e! Member on your Stage that entered or moved this turn, reduce this card's Required Hearts by 1 Gray Heart.",
             "text_jp": "自分のステージにいる、このターン中に登場、またはエリアを移動した『5yncri5e!』のメンバー1人につき、このカードを成功させるための必要ハートを減らす。",
@@ -70990,7 +71260,9 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-pb1-026-L＋",
@@ -71035,7 +71307,9 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-pb1-026-SRL",
@@ -71080,7 +71354,9 @@
                     "color": "any",
                     "count": 4
                 }
-            ]
+            ],
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-pb1-027-PE",
@@ -74498,7 +74774,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] For each Liella! Member on your Stage with 4+ hearts, this card's score +1.",
             "text_jp": "自分のステージにいるハートを4つ以上持つ『Liella!』のメンバー1人につき、このカードのスコアを＋１する。",
@@ -74551,7 +74829,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Always] [Live Start] abilities of Members on your Stage do not activate.\n[Live Success] If you have any Members with Live Start abilities on your Stage, this card's score +1.",
             "text_jp": "自分のステージにいるメンバーが持つ能力は発動しない。\n\n自分のステージに能力を持つメンバーがいる場合、このカードのスコアを＋１する。",
@@ -74635,7 +74915,9 @@
                     }
                 }
             ],
-            "text_es": "[Inicio de Live] Puedes colocar 1 carta de tu mano en la Sala de espera: coloca 1 Miembro del oponente con costo 2 o menos en Wait."
+            "text_es": "[Inicio de Live] Puedes colocar 1 carta de tu mano en la Sala de espera: coloca 1 Miembro del oponente con costo 2 o menos en Wait.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!SP-pb2-048-L",
@@ -74683,7 +74965,9 @@
                     "reduce_heart_color": "gray"
                 }
             ],
-            "text_es": "[Inicio de Live] Por cada Miembro CatChu! con nombre distinto en tu Escenario, reduce los Corazones requeridos de esta carta en 1 Corazón gris."
+            "text_es": "[Inicio de Live] Por cada Miembro CatChu! con nombre distinto en tu Escenario, reduce los Corazones requeridos de esta carta en 1 Corazón gris.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-pb2-049-L",
@@ -74746,7 +75030,9 @@
                     "amount": 1
                 }
             ],
-            "text_es": "[Éxito de Live] Si tienes 11 o más Energía, la puntuación de esta carta +1."
+            "text_es": "[Éxito de Live] Si tienes 11 o más Energía, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-pb2-050-L",
@@ -74774,7 +75060,9 @@
                     "count": 2
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "L",
             "text": "[Live Start] You may Formation Change your Stage Members.",
             "text_jp": "自分のステージに『5yncri5e!』のメンバーが2人以上いる場合、自分のステージにいるメンバーをフォーメーションチェンジしてもよい。(メンバーをそれぞれ好きなエリアに移動させてもよい。)",
@@ -76185,7 +76473,9 @@
                     "color": "any",
                     "count": 1
                 }
-            ]
+            ],
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!SP-sd1-024-P",
@@ -76389,7 +76679,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SD",
             "text": "",
             "text_jp": "",
@@ -76432,7 +76724,9 @@
                     "count": 3
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SRL",
             "text": "",
             "text_jp": "",
@@ -76565,7 +76859,9 @@
                     "count": 3
                 }
             ],
-            "text_es": "Si tienes 9 o más Energía, la puntuación de esta carta +1."
+            "text_es": "Si tienes 9 o más Energía, la puntuación de esta carta +1.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-sd1-027-P",
@@ -77662,7 +77958,9 @@
                     ]
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes 2 o más cartas en tu área de Live exitoso, la puntuación de esta carta +5 y sus Corazones requeridos pasan a ser Corazón rojo ×3, Corazón amarillo ×3, Corazón morado ×3 y Corazón gris ×3."
+            "text_es": "[Inicio de Live] Si tienes 2 o más cartas en tu área de Live exitoso, la puntuación de esta carta +5 y sus Corazones requeridos pasan a ser Corazón rojo ×3, Corazón amarillo ×3, Corazón morado ×3 y Corazón gris ×3.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!SP-sd2-023-SD2",
@@ -77724,7 +78022,9 @@
                     ]
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes 2 o más cartas en tu área de Live exitoso, la puntuación de esta carta +5 y sus Corazones requeridos pasan a ser Corazón rojo ×3, Corazón amarillo ×3, Corazón morado ×3 y Corazón gris ×3."
+            "text_es": "[Inicio de Live] Si tienes 2 o más cartas en tu área de Live exitoso, la puntuación de esta carta +5 y sus Corazones requeridos pasan a ser Corazón rojo ×3, Corazón amarillo ×3, Corazón morado ×3 y Corazón gris ×3.",
+            "special_heart": "icon_score.png",
+            "yell_score_icon": true
         },
         {
             "card_no": "PL!SP-sd2-024-P",
@@ -77752,7 +78052,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "P",
             "text": "",
             "text_jp": "",
@@ -77803,7 +78105,9 @@
                     "count": 4
                 }
             ],
-            "blade_hearts": [],
+            "blade_hearts": [
+                "all"
+            ],
             "rarity": "SD2",
             "text": "",
             "text_jp": "",
@@ -77888,7 +78192,9 @@
                     "amount": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Hasta que termine este Live, cada Miembro de Liella! en tu Escenario que se movió este turno obtiene +1 Blade."
+            "text_es": "[Inicio de Live] Hasta que termine este Live, cada Miembro de Liella! en tu Escenario que se movió este turno obtiene +1 Blade.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-sd2-025-SD2",
@@ -77950,7 +78256,9 @@
                     "amount": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Hasta que termine este Live, cada Miembro de Liella! en tu Escenario que se movió este turno obtiene +1 Blade."
+            "text_es": "[Inicio de Live] Hasta que termine este Live, cada Miembro de Liella! en tu Escenario que se movió este turno obtiene +1 Blade.",
+            "special_heart": "icon_draw.png",
+            "yell_draw_icon": true
         },
         {
             "card_no": "PYHN-PR-001-PR",
