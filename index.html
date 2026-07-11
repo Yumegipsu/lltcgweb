@@ -7582,10 +7582,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=3"></script>
 <script src="client/js/game-sync.js?v=10"></script>
-<script src="client/js/state-apply.js?v=19"></script>
+<script src="client/js/state-apply.js?v=20"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=24"></script>
+<script src="client/js/prompt-renderer.js?v=25"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -9102,6 +9102,8 @@ function prepareClientReconnectState(s) {
   G._presentationAborted = false;
   G._pendingStateQueue = [];
   G._promptSubmitKey = null;
+  G._lastSurfacedPromptKey = null;
+  G._lastResolvedPromptKey = null;
   G._deferredPromptState = null;
   G._deferredLiveState = null;
   G._deferredHandDrawIids = null;
@@ -15878,6 +15880,7 @@ let G = {
   _handRevealFlips:null,
   _promptSubmitKey:null,
   _lastSurfacedPromptKey:null,
+  _lastResolvedPromptKey:null,
   _perfSplashShownForTurn:null,
   _perfSplashShownTurns:null,
   _oppSkillWaitLogKey:null,
@@ -19480,12 +19483,15 @@ function ensureLivePostRevealBoardSnapshot(fallbackState) {
 
 /** After performance: keep live storage on the mat while post-live prompts resolve. */
 function holdLiveRoundBoardForPrompts(next, myId) {
+  // Mid-spectacle resolves (Kurage mill, yell retry) advance G.gameState / _deferredLiveState.
+  // Never clobber that with the pre-resolution gate-entry snapshot — that reopens the prompt.
+  const hold = pickLatestStateForPlayback(next) || next;
   G._liveStorageOutcomePending = true;
-  G._deferredLiveState = next;
-  ensureLivePostRevealBoardSnapshot(next);
-  const skipPrompt = shouldDeferPromptForLivePresentation(next, myId);
-  G.gameState = next;
-  renderGame(next, { skipLog: true, skipPrompt });
+  G._deferredLiveState = hold;
+  ensureLivePostRevealBoardSnapshot(hold);
+  const skipPrompt = shouldDeferPromptForLivePresentation(hold, myId);
+  G.gameState = hold;
+  renderGame(hold, { skipLog: true, skipPrompt });
 }
 
 function commitLiveRoundAfterOutcomes(fallback) {
@@ -21197,6 +21203,7 @@ function pickLatestStateForPlayback(final) {
   const candidates = [];
   if (final) candidates.push(final);
   if (G.gameState) candidates.push(G.gameState);
+  if (G._deferredLiveState) candidates.push(G._deferredLiveState);
   if (G._pendingStateQueue?.length) candidates.push(...G._pendingStateQueue);
   if (!candidates.length) return final;
   let best = candidates[0];
@@ -21207,7 +21214,9 @@ function pickLatestStateForPlayback(final) {
       best = s;
       continue;
     }
-    if (sSeq === bestSeq && G.isCPU && best.pending_prompt?.responder === 'p2' && !s.pending_prompt) {
+    // Equal seq: prefer a snapshot that already cleared the prompt (resolved mid-spectacle
+    // Kurage / Live Start) over a gate-entry copy that still carries it.
+    if (sSeq === bestSeq && best.pending_prompt && !s.pending_prompt) {
       best = s;
     }
   }
@@ -27792,20 +27801,22 @@ async function awaitResolvePostLivePrompts(prev, next, myId, opts = {}) {
   await playLiveSuccessDeferredEffects(prev, next, myId, opts.newEntries || []);
   clearLiveSuccessHandDeferral(next);
   clearDeferredPromptState();
-  const pr = (G.gameState || next)?.pending_prompt;
+  const latest = pickLatestStateForPlayback(G.gameState) || pickLatestStateForPlayback(next) || G.gameState || next;
+  const pr = latest?.pending_prompt;
   if (!pr) {
-    ensurePendingPromptSurfaced(next, myId);
-    return G.gameState || next;
+    // Do not pass gate-entry `next` — it may still carry a resolved Live Start / Kurage prompt.
+    ensurePendingPromptSurfaced(latest, myId);
+    return latest;
   }
-  const postLive = isPostLiveSkillPrompt(G.gameState || next);
+  const postLive = isPostLiveSkillPrompt(latest);
   if (!postLive) {
-    ensurePendingPromptSurfaced(next, myId);
-    return G.gameState || next;
+    ensurePendingPromptSurfaced(latest, myId);
+    return latest;
   }
-  TCG_DEBUG.log('live', 'awaitResolvePostLivePrompts', { type: pr.type, phase: next.phase });
-  ensurePendingPromptSurfaced(G.gameState || next, myId);
+  TCG_DEBUG.log('live', 'awaitResolvePostLivePrompts', { type: pr.type, phase: latest.phase });
+  ensurePendingPromptSurfaced(latest, myId);
   await waitForPipelinePromptResolution(myId, {
-    targetState: next,
+    targetState: latest,
     isResolved: (s) => {
       if (!s) return true;
       const ph = s.phase;
@@ -27816,8 +27827,9 @@ async function awaitResolvePostLivePrompts(prev, next, myId, opts = {}) {
       return true;
     },
   });
-  ensurePendingPromptSurfaced(G.gameState || next, myId);
-  return G.gameState || next;
+  const settled = pickLatestStateForPlayback(G.gameState) || G.gameState || latest;
+  ensurePendingPromptSurfaced(settled, myId);
+  return settled;
 }
 
 function newLogEntries(prev, next) {
@@ -28206,10 +28218,13 @@ function clearStalePerfDeferState(prev, next) {
   if (shouldSkipStaleLiveLogAnnouncements(prev, next)) {
     G._announceBaseline = Math.max(G._announceBaseline ?? 0, next.log?.length ?? 0);
   }
-  // Drop client-only Live Start prompt residue once Main has no server prompt.
+  // Drop client-only Live Start / mid-yell prompt residue once Main has no server prompt.
   if (!next.pending_prompt) {
     const def = G._deferredPromptState?.pending_prompt;
     if (def && (def.type === 'spbp5_repeat_mill_blade'
+        || def.type === 'auto_yell_mill_extra_yell'
+        || def.type === 'auto_yell_no_live_retry'
+        || def.type === 'optional_live_start'
         || isLiveSpectaclePipelinePhase(G._deferredPromptState?.phase))) {
       clearDeferredPromptState({ skipBannerRefresh: true });
     }
@@ -28277,9 +28292,9 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
     holdLivePolls();
     G._postSpectacleSplashPause = false;
     const outcome = await presentLiveRound(perfPrev ?? gatePrev, s, myId, { newEntries, forceSpectacleTurn: showTurn });
-    // Prefer post-playback state — gate-entry `s` may still hold a resolved Live Start prompt.
-    const after = pickLatestStateForPlayback(s) || G.gameState || s;
-    ensurePendingPromptSurfaced(after, myId);
+    // Prefer post-playback state — gate-entry `s` may still hold a resolved Live Start / Kurage prompt.
+    const after = pickLatestStateForPlayback(G.gameState) || pickLatestStateForPlayback(s) || G.gameState || s;
+    if (after?.pending_prompt) ensurePendingPromptSurfaced(after, myId);
     if (outcome.spectacle || outcome.empty) return true;
     if (outcome.reveal) markLiveStorageRevealDone(showTurn);
     if (liveSpectacleDoneForTurn(showTurn)) return true;
@@ -28292,8 +28307,8 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
   } finally {
     G._liveSpectacleGateRunning = false;
     G.animating = false;
-    const after = pickLatestStateForPlayback(s) || G.gameState || s;
-    if (after.pending_prompt?.responder === myId) ensurePendingPromptSurfaced(after, myId);
+    const after = pickLatestStateForPlayback(G.gameState) || pickLatestStateForPlayback(s) || G.gameState || s;
+    if (after?.pending_prompt?.responder === myId) ensurePendingPromptSurfaced(after, myId);
     releaseLivePollsAndFlush();
   }
 }
@@ -30216,7 +30231,8 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
         forceShowTurn: opts.forceSpectacleTurn ?? plan.showTurn,
       });
       if (spectacleRan) {
-        holdLiveRoundBoardForPrompts(next, myId);
+        // Prefer post-mid-spectacle state (prompt cleared) over gate-entry `next`.
+        holdLiveRoundBoardForPrompts(G.gameState || G._deferredLiveState || next, myId);
         G._liveRoundPostSpectacleReady = true;
       } else if (liveRoundHadLivesPlayed(prev, next, showTurnForSpectacle)) {
         spectacleFailedOwed = true;
@@ -30669,14 +30685,19 @@ function waitForBlockingOverlaysIdle(state) {
 function ensurePendingPromptSurfaced(s, myId) {
   if (!s) return;
   // Never re-apply an older snapshot after live-start / spectacle advanced the board.
-  // (Re-surfacing gate-entry state was showing Natsumi mill prompts after Performance.)
+  // (Re-surfacing gate-entry state was showing Natsumi / Kurage / Live Start prompts after Performance.)
   const live = G.gameState;
   const liveSeq = live?.seq ?? 0;
   const snapSeq = s.seq ?? 0;
   if (live && liveSeq > snapSeq) {
     s = live;
-  } else if (live && liveSeq === snapSeq && !s.pending_prompt && live.pending_prompt) {
-    s = live;
+  } else if (live && liveSeq === snapSeq) {
+    // Equal seq: prefer the copy that already cleared the prompt (mid-spectacle resolve).
+    if (s.pending_prompt && !live.pending_prompt) {
+      s = live;
+    } else if (!s.pending_prompt && live.pending_prompt) {
+      s = live;
+    }
   }
   const pr = s?.pending_prompt;
   if (!pr || pr.responder !== myId) {
@@ -30690,11 +30711,26 @@ function ensurePendingPromptSurfaced(s, myId) {
     }
     return;
   }
-  // Server already left this prompt behind (e.g. timed out during spectacle wait).
-  if (live && (live.seq ?? 0) >= snapSeq && !live.pending_prompt
-      && isMainOrActivePhase(live.phase) && !isLiveSpectaclePipelinePhase(s.phase)) {
+  // Live board already moved past this prompt (resolved / timed out / advanced phase).
+  if (live && (live.seq ?? 0) >= snapSeq && !live.pending_prompt) {
     clearDeferredPromptState({ skipBannerRefresh: true });
     if (el('overlay-prompt')?.classList.contains('open')) closeM('overlay-prompt');
+    if (el('overlay-hand-pick')?.classList.contains('open')) {
+      closeM('overlay-hand-pick');
+      clearPickerCardHover();
+    }
+    return;
+  }
+  // Do not resurrect mid-yell Kurage / retry prompts after the Performance segment finished.
+  if (isMidSpectacleYellRetryPrompt(s) && !G._perfSpectacleActive
+      && (G._liveRoundPostSpectacleReady || currentRoundLogHasPerformance(live || s))) {
+    return;
+  }
+  // Live Start family must not reopen once this round has already performed.
+  if ((s.phase === 'live_start_effects' || pr.type === 'optional_live_start'
+      || (typeof pr.type === 'string' && pr.type.startsWith('live_start_')))
+      && currentRoundLogHasPerformance(live || s)
+      && !G._perfSpectacleActive && !G._liveRoundPlaybackActive) {
     return;
   }
   if (typeof isPromptSubmitting === 'function' && isPromptSubmitting(s)) return;
@@ -30705,9 +30741,18 @@ function ensurePendingPromptSurfaced(s, myId) {
     el('overlay-prompt')?.classList.contains('open')
     || el('overlay-hand-pick')?.classList.contains('open')
   )) return;
+  // Same identity already answered this round — do not reopen after overlay close.
+  if (G._lastResolvedPromptKey === surfKey) return;
   G._lastSurfacedPromptKey = surfKey;
   if (isLiveSuccessDiscardPrompt(s)) clearLiveSuccessHandDeferral(s);
   if (pr.type === 'pick_judge_success_live') G._deferPerfSpectaclePrev = null;
+  // Never downgrade G.gameState to an older seq.
+  if ((G.gameState?.seq ?? 0) > snapSeq) {
+    renderPrompt(G.gameState, myId);
+    updateOpponentSkillWaitBanner(G.gameState, myId);
+    updatePhaseActionButton(G.gameState, myId);
+    return;
+  }
   if (G.gameState?.seq !== s.seq || G.gameState?.pending_prompt?.type !== pr.type) {
     G.gameState = s;
     renderGame(s, { skipLog: true });
@@ -39446,6 +39491,7 @@ function freshGameGlobals() {
     _handRevealFlips:null,
     _promptSubmitKey:null,
     _lastSurfacedPromptKey:null,
+    _lastResolvedPromptKey:null,
     _perfSplashShownForTurn:null,
     _bannerIdleWaiters:[],
     isTutorial:false,
@@ -39742,6 +39788,7 @@ async function sendAct(type,data){
     G._promptSubmitKey = null;
     if (type === 'resolve_prompt' && G.gameState && G.playerId) {
       G._lastSurfacedPromptKey = null;
+      G._lastResolvedPromptKey = null;
       ensurePendingPromptSurfaced(G.gameState, G.playerId);
       renderPrompt(G.gameState, G.playerId);
       updatePhaseActionButton(G.gameState, G.playerId);
