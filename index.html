@@ -401,6 +401,13 @@ body.tutorial-live-mode #phase-action-bar .btn-phase-primary.tut-locked{
 }
 body.tutorial-live-mode #overlay-mull .btn-grad{opacity:1;pointer-events:auto}
 body.tutorial-live-mode #overlay-mull:not(.tut-mull-readonly) .mullcard{pointer-events:auto;cursor:pointer}
+/* Rails mulligan: cards are display-only; only Keep Hand is interactive. */
+body.tutorial-live-mode #overlay-mull.tut-mull-readonly .mullcard{
+  pointer-events:none!important;cursor:default;opacity:.92;
+}
+body.tutorial-live-mode #overlay-mull.tut-mull-readonly .btn-grad{
+  opacity:1;pointer-events:auto!important;cursor:pointer;
+}
 body.tutorial-live-mode #overlay-coin{pointer-events:auto}
 /* Live tutorial: bubble above spotlight dim layer; still below game modals (coin, mulligan, prompts). */
 body.tutorial-live-mode #overlay-tutorial,
@@ -409,11 +416,16 @@ body.tutorial-live-coin #overlay-tutorial,
 body.tutorial-live-coin #overlay-tutorial.open,
 body.tutorial-live-mulligan #overlay-tutorial,
 body.tutorial-live-mulligan #overlay-tutorial.open{z-index:8950}
-/* choose_first: coin choice must sit above Kanon bubble (coin watch step keeps bubble on top). */
+/* choose_first: keep Kanon bubble above the coin dim so dialogue stays readable;
+   coin choice buttons remain clickable via pointer-events below. */
 body.tutorial-live-choose-first #overlay-coin,
 body.tutorial-live-choose-first #overlay-coin.open{z-index:9000!important}
 body.tutorial-live-choose-first #overlay-tutorial,
-body.tutorial-live-choose-first #overlay-tutorial.open{z-index:8600}
+body.tutorial-live-choose-first #overlay-tutorial.open{z-index:9100!important}
+body.tutorial-live-choose-first #tutorial-spotlight,
+body.tutorial-live-choose-first #tutorial-spotlight.show{pointer-events:none!important;z-index:8500}
+body.tutorial-live-choose-first #overlay-coin,
+body.tutorial-live-choose-first #overlay-coin *{pointer-events:auto!important}
 body.tutorial-live-mode #overlay-coin.open,
 body.tutorial-live-mode #overlay-mull.open,
 body.tutorial-live-mode #overlay-prompt.open,
@@ -7601,7 +7613,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=30"></script>
+<script src="i18n.js?v=31"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=10"></script>
@@ -7613,7 +7625,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=25"></script>
-<script src="client/js/tutorial-interactive.js?v=10"></script>
+<script src="client/js/tutorial-interactive.js?v=11"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -27129,7 +27141,7 @@ function renderGame(s, opts = {}) {
     } else if (G.mulliganPending) {
       el('overlay-mull').classList.remove('open');
       } else if (showMull) {
-      openMull(me.hand || []);
+      openMull(me.hand || [], tutorialMulliganOpenOpts());
       } else {
         el('overlay-mull').classList.remove('open');
     }
@@ -31362,6 +31374,22 @@ function maybeShowCoinFlip(s, myId) {
 }
 
 // ── MULLIGAN ─────────────────────────────────────────
+function tutorialMulliganRailsKeep() {
+  if (!G.tutorialLive) return false;
+  const step = G.tutorialData?.steps?.[G.tutorialStep];
+  if (!step || step.id !== 'mulligan') return false;
+  return step.mulligan_keep === true || step.goal?.keep === true;
+}
+
+function tutorialMulliganOpenOpts(extra = {}) {
+  const rails = tutorialMulliganRailsKeep();
+  return {
+    readonly: rails,
+    force: !!extra.force || rails,
+    ...extra,
+  };
+}
+
 function openMull(hand, opts = {}){
   const readonly = !!opts.readonly;
   const ovl = el('overlay-mull');
@@ -31383,11 +31411,23 @@ function openMull(hand, opts = {}){
   });
   updateMulliganButtonText(0);
   ovl.classList.toggle('tut-mull-readonly', readonly);
+  const hint = ovl.querySelector('p[data-i18n="mulligan.hint"]');
+  if (hint) {
+    hint.textContent = readonly && G.tutorialLive
+      ? t('mulligan.tutorialKeepHint')
+      : t('mulligan.hint');
+  }
   openM('overlay-mull');
+  if (G.tutorialLive && typeof repositionTutorialBubbleForLiveModal === 'function') {
+    requestAnimationFrame(() => repositionTutorialBubbleForLiveModal());
+  }
 }
 function confirmMull(){
   if (isReplayViewing()) return;
-  const ids=[...G.mullMarked]; closeM('overlay-mull'); G.mullMarked.clear();
+  if (typeof tutBlocks === 'function' && tutBlocks('mulligan')) return;
+  // Tutorial rails: always keep the predetermined opening hand.
+  const ids = tutorialMulliganRailsKeep() ? [] : [...G.mullMarked];
+  closeM('overlay-mull'); G.mullMarked.clear();
   if (G.tutorialLive) G._tutMulliganDone = true;
   G.mulliganPending = true;
   sfxPlay('mulligan_keep');
@@ -33084,6 +33124,22 @@ function renderTutorialStep(idx, opts = {}) {
       }
     } else if (G.tutorialLive && step.id !== 'coin' && step.id !== 'choose_first') {
       el('overlay-coin')?.classList.remove('open');
+    }
+    if (step.id === 'mulligan' && G.gameState.phase === 'setup') {
+      const me = G.gameState.players?.[G.playerId || 'p1'];
+      if (me && !me.ready_mulligan) {
+        openMull(me.hand || [], tutorialMulliganOpenOpts({ force: true }));
+      }
+      const cpuId = cpuOpponentId();
+      if (G.isCPU && !G.gameState.players?.[cpuId]?.ready_mulligan) {
+        doCPU(G.gameState);
+        armWatchdog(G.gameState);
+      }
+    } else if (step.id !== 'mulligan') {
+      // Leaving mulligan step — don't leave a stale overlay if phase moved on.
+      if (G.gameState.phase !== 'setup' || G.gameState.players?.[G.playerId || 'p1']?.ready_mulligan) {
+        el('overlay-mull')?.classList.remove('open');
+      }
     }
   }
   if (opts.textOnly) return;

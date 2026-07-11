@@ -272,7 +272,7 @@
     {
       "id": "mulligan",
       "kind": "action",
-      "dialogue": "You start with **6** cards. Tap any cards you want to replace, then tap **Keep Hand** — or keep all six as they are.",
+      "dialogue": "You start with **6** cards (this opening hand is fixed for the lesson). Review them, then tap **Keep Hand** to continue.",
       "highlights": [
         {
           "target": "mulligan-overlay",
@@ -281,8 +281,11 @@
         }
       ],
       "goal": {
-        "type": "mulligan"
+        "type": "mulligan",
+        "keep": true
       },
+      "mulligan_keep": true,
+      "spotlightDim": "none",
       "bubbleAnchor": "overlay-mull"
     },
     {

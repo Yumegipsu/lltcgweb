@@ -47,12 +47,15 @@
     switch (goal.type) {
       case 'ack_coin_flip':
         if (G()?.tutorialLive) {
+          // Advance after the flip lands and the local player has acked.
+          // Do not wait for CPU both-ready here — that belongs on choose_first
+          // (waiting for both ready left the guide stuck on "Watch the flip!").
           const animDone = !!G()?._coinFlipAnimComplete;
-          const acked = !!(s.coin_flip?.ready?.[myId]);
+          const acked = !!(s.coin_flip?.ready?.[myId]) || !!G()?.coinFlipAckSent;
           const dwellMs = 900;
           const dwellOk = !G()._coinFlipAnimCompleteAt
             || (Date.now() - G()._coinFlipAnimCompleteAt >= dwellMs);
-          return animDone && acked && bothCoinReady(s) && dwellOk;
+          return animDone && acked && dwellOk;
         }
         return !!(s.coin_flip?.ready?.[myId]) || s.phase !== 'coin_flip';
       case 'choose_first_player':
@@ -232,14 +235,37 @@
     }
   }
 
+  function scheduleCoinFlipGoalRetry() {
+    if (!isLive() || step()?.id !== 'coin') return;
+    if (G()._tutCoinGoalRetry) return;
+    const at = G()._coinFlipAnimCompleteAt;
+    if (!at) return;
+    const wait = Math.max(50, 920 - (Date.now() - at));
+    G()._tutCoinGoalRetry = setTimeout(() => {
+      G()._tutCoinGoalRetry = null;
+      checkGoalNow();
+    }, wait);
+  }
+
   async function onGoalMaybeMet(s, prev) {
     if (!isLive() || G().tutorialAdvancing || G()._tutGoalPending) return;
     const st = step();
     if (!st || st.kind === 'info') return;
     const myId = G().playerId || 'p1';
-    if (!goalMet(st.goal, s, myId, prev)) return;
+    if (!goalMet(st.goal, s, myId, prev)) {
+      // Anim/ack landed but dwell window not finished yet — retry once dwell elapses.
+      if (st.goal?.type === 'ack_coin_flip' && G()?._coinFlipAnimComplete
+          && (s?.coin_flip?.ready?.[myId] || G()?.coinFlipAckSent)) {
+        scheduleCoinFlipGoalRetry();
+      }
+      return;
+    }
     G()._tutGoalPending = true;
     try {
+      if (G()._tutCoinGoalRetry) {
+        clearTimeout(G()._tutCoinGoalRetry);
+        G()._tutCoinGoalRetry = null;
+      }
       await sleep(st.kind === 'watch' ? 1200 : 500);
       if (!goalMet(st.goal, G().gameState, myId, prev)) return;
       await advanceStep(1);
@@ -258,6 +284,19 @@
       if (!bothCoinReady(s) && G().isCPU && typeof global.doCPU === 'function') {
         global.doCPU(s);
         if (typeof global.armWatchdog === 'function') global.armWatchdog(s);
+      }
+      if (typeof global.repositionTutorialBubbleForLiveModal === 'function') {
+        requestAnimationFrame(() => global.repositionTutorialBubbleForLiveModal());
+      }
+    }
+    if (step()?.id === 'mulligan' && s?.phase === 'setup') {
+      const myId = G().playerId || 'p1';
+      const me = s.players?.[myId];
+      if (me && !me.ready_mulligan && typeof global.openMull === 'function') {
+        const opts = typeof global.tutorialMulliganOpenOpts === 'function'
+          ? global.tutorialMulliganOpenOpts({ force: true })
+          : { readonly: true, force: true };
+        global.openMull(me.hand || [], opts);
       }
       if (typeof global.repositionTutorialBubbleForLiveModal === 'function') {
         requestAnimationFrame(() => global.repositionTutorialBubbleForLiveModal());
@@ -296,7 +335,7 @@
       const bootEpoch = G()._gameSessionEpoch;
       const g = G();
       if (typeof global.loadTutorialJa === 'function') await global.loadTutorialJa();
-      const r = await fetch('./tutorial_guide.json?v=6', { cache: 'no-store' });
+      const r = await fetch('./tutorial_guide.json?v=8', { cache: 'no-store' });
       if (!r.ok) throw new Error('Could not load tutorial guide (HTTP ' + r.status + ')');
       const data = await r.json();
       if (!data?.steps?.length) throw new Error('Tutorial guide has no steps');
@@ -313,6 +352,10 @@
       G()._tutChooseFirstDone = false;
       G()._tutMulliganDone = false;
       G()._tutGoalPending = false;
+      if (G()._tutCoinGoalRetry) {
+        clearTimeout(G()._tutCoinGoalRetry);
+        G()._tutCoinGoalRetry = null;
+      }
       G().isCPU = true;
       G().cpuDifficulty = 'easy';
       G().playerId = 'p1';
@@ -343,6 +386,7 @@
       if (cfg().coin_flip_winner === 'p1' || cfg().coin_flip_winner === 'p2') {
         p2Payload.coin_flip_winner = cfg().coin_flip_winner;
       }
+      p2Payload.tutorial_guide = true;
       const r2 = await global.apiPost('join_room', p2Payload);
       G().cpuToken = r2.player_token;
       G().cpuPlayerId = 'p2';
@@ -376,6 +420,10 @@
   }
 
   function exitTutorial() {
+    if (G()._tutCoinGoalRetry) {
+      clearTimeout(G()._tutCoinGoalRetry);
+      G()._tutCoinGoalRetry = null;
+    }
     if (typeof global.exitTutorial === 'function' && !G().tutorialLive) {
       global.exitTutorial();
       return;
