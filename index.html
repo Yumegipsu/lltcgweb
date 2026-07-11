@@ -3892,6 +3892,19 @@ body.missions-overlay-open .llc-sky-dim::after{
   border:1px solid rgba(255,210,120,.35);background:rgba(255,200,80,.12);
   font-family:'Libre Baskerville',serif;font-size:13px;font-weight:700;color:#fff;white-space:nowrap}
 .hub-star-gems-pill img{width:22px;height:22px;object-fit:contain;display:block;flex:0 0 auto}
+.hub-ranked-pr-pill{
+  display:inline-flex;align-items:center;gap:7px;padding:5px 12px 5px 8px;border-radius:999px;
+  border:1px solid rgba(186,160,255,.4);background:rgba(120,90,210,.18);
+  font-family:'Libre Baskerville',serif;font-size:13px;font-weight:700;color:#fff;white-space:nowrap}
+.hub-ranked-pr-pill .hub-ranked-pr-badge{
+  display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:20px;padding:0 6px;
+  border-radius:6px;font-size:10px;font-weight:800;letter-spacing:.06em;
+  background:linear-gradient(135deg,#9b7bff,#6a4fd8);color:#fff;
+  box-shadow:0 1px 4px rgba(80,50,160,.35)}
+.hub-ranked-pr-pill.is-empty{
+  border-color:rgba(255,255,255,.22);background:rgba(255,255,255,.06);opacity:.72}
+.hub-ranked-pr-pill.is-empty .hub-ranked-pr-badge{
+  background:rgba(255,255,255,.22);box-shadow:none}
 .hub-missions-pill{
   position:relative;display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:999px;
   border:1px solid rgba(120,220,150,.4);background:linear-gradient(135deg,rgba(46,160,90,.35),rgba(32,120,70,.28));
@@ -6337,6 +6350,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <img src="assets/Star_Gem.png" alt="" aria-hidden="true">
           <span id="hub-star-gems-count">0</span>
         </div>
+        <div class="hub-ranked-pr-pill" id="hub-ranked-pr" hidden title="">
+          <span class="hub-ranked-pr-badge" aria-hidden="true">PR</span>
+          <span id="hub-ranked-pr-count">5 / 5</span>
+        </div>
         <button class="hub-missions-pill" id="hub-missions" type="button" hidden data-i18n="hub.missions">
           Missions
           <span class="hub-missions-badge" id="hub-missions-badge" hidden>0</span>
@@ -6632,6 +6649,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         <h2 data-i18n="ranked.title">Ranked PvP</h2>
       </div>
       <p id="ranked-info" class="hub-stat"></p>
+      <p id="ranked-pr-remaining" class="hub-stat"></p>
       <p class="hub-stat" data-i18n="ranked.timerNote">Main &amp; LIVE phases use a 120s timer.</p>
       <div class="field ranked-deck-field">
         <label for="sel-ranked-deck" data-i18n="ranked.deckLabel">Ranked deck</label>
@@ -7574,7 +7592,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=28"></script>
+<script src="i18n.js?v=29"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=9"></script>
@@ -7810,6 +7828,37 @@ function syncStarGemsFromOpen(open) {
   if (A.profile) A.profile.star_gems = A.starGems;
 }
 
+function syncRankedPrFromProfile(me) {
+  if (!me?.ranked_pr || typeof me.ranked_pr !== 'object') return;
+  if (A.profile) A.profile.ranked_pr = me.ranked_pr;
+}
+
+function syncRankedPrFromReward(reward) {
+  const daily = reward?.daily;
+  if (!daily || typeof daily !== 'object') return;
+  if (A.profile) A.profile.ranked_pr = daily;
+}
+
+function updateRankedPrUI() {
+  const pr = A.profile?.ranked_pr || {};
+  const remaining = Number(pr.remaining ?? 5);
+  const limit = Number(pr.limit ?? 5);
+  const signedIn = isSignedInAccount();
+  const hubPill = el('hub-ranked-pr');
+  const hubCount = el('hub-ranked-pr-count');
+  if (hubPill && hubCount) {
+    hubCount.textContent = t('hub.rankedPrCount', { remaining, limit });
+    hubPill.title = t('hub.rankedPrTitle', { remaining, limit });
+    hubPill.classList.toggle('is-empty', remaining <= 0);
+    hubPill.hidden = !signedIn;
+  }
+  const rankedLine = el('ranked-pr-remaining');
+  if (rankedLine) {
+    rankedLine.textContent = t('ranked.prRemaining', { remaining, limit });
+    rankedLine.hidden = !signedIn;
+  }
+}
+
 function updateStarGemsUI() {
   const count = formatStarGems(A.starGems);
   const hubPill = el('hub-star-gems');
@@ -7827,6 +7876,7 @@ function updateStarGemsUI() {
       boosterInfo.hidden = true;
     }
   }
+  updateRankedPrUI();
 }
 
 function dailyRemainingFromProfile() {
@@ -8205,6 +8255,8 @@ function updateHubDynamicStats(me) {
     remaining: d.remaining ?? 0,
     limit: d.limit ?? 5,
   }) + (d.first_day_bonus ? t('hub.dailyWelcomeBonus') : '');
+  syncRankedPrFromProfile(profile);
+  updateRankedPrUI();
   const r = profile.rank || {};
   const elo = r.elo ?? r.rating ?? 1000;
   const winPct = r.win_rate ?? (r.wins + r.losses > 0 ? Math.round((r.wins / (r.wins + r.losses)) * 10) / 10 : 0);
@@ -8227,6 +8279,8 @@ function updateRankedScreenDynamic(me) {
     elo: r.elo ?? r.rating ?? 1000,
     record,
   });
+  syncRankedPrFromProfile(me);
+  updateRankedPrUI();
   syncRankedScreenSearchControls(!!A.rankedSearching);
 }
 
@@ -9492,12 +9546,14 @@ function enterHub(me) {
   if (typeof __tcgClearAuthBootGuard === 'function') __tcgClearAuthBootGuard();
   A.profile = me || A.profile;
   syncStarGemsFromProfile(A.profile);
+  syncRankedPrFromProfile(A.profile);
   const userName = A.profile?.user?.username || A.user?.username || 'Player';
   el('hub-user').innerHTML = t('hub.signedInAsHtml', { name: escapeHtmlText(userName) });
   const d = A.profile?.daily || {};
   el('hub-daily').textContent = t('hub.dailyBoosters', { remaining: d.remaining ?? 0, limit: d.limit ?? 5 })
     + (d.first_day_bonus ? t('hub.dailyWelcomeBonus') : '');
   updateStarGemsUI();
+  updateRankedPrUI();
   if (window.TCGMissions && typeof window.TCGMissions.applyProfileMissions === 'function') {
     window.TCGMissions.applyProfileMissions(A.profile);
   }
@@ -14278,6 +14334,8 @@ async function openRankedScreen() {
       winPct: me.rank?.win_rate ?? 0,
     }),
   });
+  syncRankedPrFromProfile(me);
+  updateRankedPrUI();
   initRankedMatchSoundCheckbox();
   renderRankedDeckOptions();
   await pollRankedStatus();
@@ -37918,6 +37976,10 @@ function syncWinRankedPrReward(s, win) {
     if (A?.profile) A.profile.star_gems = reward.star_gems ?? A.profile.star_gems;
     syncStarGemsFromProfile(A?.profile);
     if (typeof updateStarGemsUI === 'function') updateStarGemsUI();
+  }
+  if (typeof syncRankedPrFromReward === 'function') {
+    syncRankedPrFromReward(reward);
+    if (typeof updateRankedPrUI === 'function') updateRankedPrUI();
   }
   if (typeof queueRankedPrReward === 'function') queueRankedPrReward(reward);
 }
