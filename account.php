@@ -1187,14 +1187,15 @@ function tcgPublicFindCasualMatchForUser(string $discordId): ?array {
 
 function tcgPublicQueueStatus(string $discordId): array {
     // Active match first (takes priority over queue searching).
+    // Sanitize like ranked_status / active_game so finished rooms do not linger as in_match.
     $db = tcgDb();
     $stmt = $db->prepare(
-        'SELECT room_id, p1_id, p2_id FROM tcg_ranked_matches
+        'SELECT * FROM tcg_ranked_matches
          WHERE status = "pending" AND (p1_id = ? OR p2_id = ?)
          ORDER BY created_at DESC LIMIT 1'
     );
     $stmt->execute([$discordId, $discordId]);
-    $ranked = $stmt->fetch(PDO::FETCH_ASSOC);
+    $ranked = tcgSanitizeRankedMatchRow($stmt->fetch(PDO::FETCH_ASSOC));
     if ($ranked) {
         $roomId = (string)($ranked['room_id'] ?? '');
         if ($roomId !== '' && function_exists('tcgRankedGameFilePath')) {
@@ -1206,10 +1207,12 @@ function tcgPublicQueueStatus(string $discordId): array {
                     if ($hit) {
                         return $hit;
                     }
+                    // State present but not active gameplay — do not invent in_match.
+                    return ['status' => 'idle'];
                 }
             }
         }
-        // Fallback using DB ids + usernames when state is missing/odd.
+        // Sanitized pending row with unreadable state: still treat as live for reconnect UX.
         $isP1 = ((string)($ranked['p1_id'] ?? '')) === $discordId;
         $oppId = $isP1 ? (string)($ranked['p2_id'] ?? '') : (string)($ranked['p1_id'] ?? '');
         $oppName = 'Opponent';
