@@ -3167,7 +3167,7 @@
 
   function loadTutorialJa() {
     if (_tutorialJa) return Promise.resolve(_tutorialJa);
-    return fetch('./tutorial_ja.json?v=4', { cache: 'no-store' })
+    return fetch('./tutorial_ja.json?v=5', { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('tutorial_ja HTTP ' + r.status);
         return r.json();
@@ -3184,7 +3184,7 @@
 
   function loadTutorialEs() {
     if (_tutorialEs) return Promise.resolve(_tutorialEs);
-    return fetch('./tutorial_es.json?v=4', { cache: 'no-store' })
+    return fetch('./tutorial_es.json?v=5', { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('tutorial_es HTTP ' + r.status);
         return r.json();

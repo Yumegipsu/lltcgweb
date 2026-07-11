@@ -7620,7 +7620,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=32"></script>
+<script src="i18n.js?v=33"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=10"></script>
@@ -7632,7 +7632,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=25"></script>
-<script src="client/js/tutorial-interactive.js?v=13"></script>
+<script src="client/js/tutorial-interactive.js?v=14"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -28432,6 +28432,8 @@ function renderHand(hand,s,myId, opts = {}){
       else bindHandCardEvents(d, card, s, myId);
     } else {
       if(d.dataset.iid!==iid) d.dataset.iid=iid;
+      // Cards may have been created while tutorial info steps blocked binding.
+      if (!G.isSpectator) bindHandCardEvents(d, card, s, myId);
     }
     if (G.isSpectator) bindSpectatorCardInspect(d, card, s);
     if(d && needsFlip && !d.querySelector('.hand-flip-inner')) {
@@ -29451,6 +29453,10 @@ function togglePlaySelect(iid, s, myId) {
 }
 
 function canPlayMemberToSlot(card, slot, s, myId) {
+  if (G.tutorialLive && window.TutorialInteractive?.playSlotAllowed
+      && !TutorialInteractive.playSlotAllowed(slot)) {
+    return false;
+  }
   const me = s?.players?.[myId];
   const ec = effectiveCost(card, me?.hand || []);
   const exist = me?.stage?.[slot];
@@ -29626,14 +29632,18 @@ function onDocPointerMove(e) {
     const ph = state?.phase;
     const isMe = state?.active_player === hp.myId;
     const isMain = ph === 'main_first' || ph === 'main_second';
-    if (hp.card.card_type === 'メンバー' && isMe && isMain) {
+    const liveCard = findHand(hp.iid || hp.card?.instance_id, state, hp.myId) || hp.card;
+    if (liveCard?.card_type === 'メンバー' && isMe && isMain) {
+      if (window.TutorialInteractive?.handCardAllowed && !TutorialInteractive.handCardAllowed(liveCard)) return;
+      hp.card = liveCard;
       startHandDrag(hp, e);
     }
   }
 }
 
 function onDocPointerUp(e) {
-  if (G.isTutorial) return;
+  // Slideshow tutorial has no live hand play; live tutorial must finish drags.
+  if (G.isTutorial && !G.tutorialLive) return;
   if (G.drag && e.pointerId === G.drag.pointerId) {
     finishHandDrag(e);
     cancelHandPointer();
@@ -29665,9 +29675,15 @@ function bindMyStageCardInspect(mslot, card, s, myId) {
 }
 
 function bindHandCardEvents(d, card, s, myId) {
-  if (typeof tutBlocks === 'function' && tutBlocks('hand')) return;
   if (G.isSpectator) return;
+  // Slideshow tutorial never plays from hand. Live tutorial always binds once —
+  // gating happens inside handlers so cards created during info steps still work
+  // when the guide later unlocks play_member / live_set.
+  if (G.isTutorial && !G.tutorialLive) return;
+  if (d._tcgHandBound) return;
+  d._tcgHandBound = true;
   d.addEventListener('pointerenter', () => {
+    if (typeof tutBlocks === 'function' && tutBlocks('hand')) return;
     if (!G.drag && !(tcgMobileViewportActive() && G.selCard)) showHoverCardPreview(card, liveGameState(s), myId);
   });
   d.addEventListener('pointerleave', () => {
@@ -29678,23 +29694,26 @@ function bindHandCardEvents(d, card, s, myId) {
   });
   d.addEventListener('pointerdown', e => {
     if (e.button !== 0 || G.animating) return;
+    if (typeof tutBlocks === 'function' && tutBlocks('hand')) return;
     e.preventDefault();
     try { d.setPointerCapture(e.pointerId); } catch (_) {}
     const state = liveGameState(s);
+    const iid = d.dataset.iid || card.instance_id;
+    const liveCard = findHand(iid, state, myId) || card;
     G.handPointer = {
-      iid: d.dataset.iid || card.instance_id,
-      card, el: d, s: state, myId,
+      iid,
+      card: liveCard, el: d, s: state, myId,
       sx: e.clientX, sy: e.clientY,
       pointerId: e.pointerId,
       moved: false,
       longPressTimer: setTimeout(() => {
         const hp = G.handPointer;
-        if (!hp || hp.iid !== card.instance_id || hp.moved || G.drag) return;
-        if (G.selCard === card.instance_id) return;
+        if (!hp || hp.iid !== iid || hp.moved || G.drag) return;
+        if (G.selCard === iid) return;
         hp.longFired = true;
         G.selCard = null;
         clearHoverCardPreview();
-        showCard(card, card.instance_id, liveGameState(hp.s), myId);
+        showCard(liveCard, iid, liveGameState(hp.s), myId);
       }, LONG_PRESS_MS),
     };
   });
@@ -29704,6 +29723,7 @@ function bindHandCardEvents(d, card, s, myId) {
     if (hp?.el === d && hp.pointerId === e.pointerId && !hp.moved && !hp.longFired && !G.drag && tapIid) {
       if (hp.longPressTimer) clearTimeout(hp.longPressTimer);
       G.handPointer = null;
+      if (typeof tutBlocks === 'function' && tutBlocks('hand')) return;
       const state = liveGameState(hp.s);
       const tapCard = findHand(tapIid, state, myId) || card;
       if (isLiveSetSelecting(state, myId) && isLiveHandSelectable(tapCard)) {
@@ -29716,7 +29736,7 @@ function bindHandCardEvents(d, card, s, myId) {
     }
   });
   d.addEventListener('pointercancel', () => {
-    if (G.handPointer?.iid === card.instance_id) cancelHandPointer();
+    if (G.handPointer?.el === d) cancelHandPointer();
   });
 }
 

@@ -131,6 +131,14 @@
     return true;
   }
 
+  /** When the guide rails a specific stage slot, only that slot is a valid drop/tap target. */
+  function playSlotAllowed(slot) {
+    if (!isLive()) return true;
+    const g = step()?.goal;
+    if (g?.type === 'play_member' && g.slot) return slot === g.slot;
+    return true;
+  }
+
   function syncStepUi() {
     const st = step();
     const nextBtn = global.el?.('btn-tut-next');
@@ -353,7 +361,7 @@
       const bootEpoch = G()._gameSessionEpoch;
       const g = G();
       if (typeof global.loadTutorialJa === 'function') await global.loadTutorialJa();
-      const r = await fetch('./tutorial_guide.json?v=9', { cache: 'no-store' });
+      const r = await fetch('./tutorial_guide.json?v=10', { cache: 'no-store' });
       if (!r.ok) throw new Error('Could not load tutorial guide (HTTP ' + r.status + ')');
       const data = await r.json();
       if (!data?.steps?.length) throw new Error('Tutorial guide has no steps');
@@ -468,6 +476,7 @@
     allows,
     tutBlocks,
     handCardAllowed,
+    playSlotAllowed,
     onStateApplied,
     onIncomingState,
     checkGoalNow,
