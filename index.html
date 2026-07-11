@@ -19519,6 +19519,7 @@ function syncLiveStorageSlotsFromState(state, myId) {
 
 /** Ensure opponent live-storage flip animations are scheduled after renderGame. */
 function flushLiveStorageFlipScheduling(myId) {
+  if (typeof shouldSuppressLiveStorageFlipsNow === 'function' && shouldSuppressLiveStorageFlipsNow()) return;
   const flipKeys = G._liveRevealFlips;
   if (!flipKeys?.size || !G.gameState?.players) return;
   const oppId = myId === 'p1' ? 'p2' : 'p1';
@@ -19534,6 +19535,8 @@ function flushLiveStorageFlipScheduling(myId) {
     if (cardEl.classList.contains('live-storage-facedown')) {
       upgradeLiveStorageCardForReveal(cardEl, enrichCard({ ...card, revealed: false }));
     } else if (!cardEl.classList.contains('live-storage-flip') && liveStorageCardShowsFace(cardEl)) {
+      // Only rebuild flip shells during active round playback — never on Main.
+      if (!G._liveRoundPlaybackActive) continue;
       rebuildLiveStorageFlipFromFace(cardEl, card);
     } else if (!cardEl.classList.contains('live-storage-flip')) {
       continue;
@@ -19549,6 +19552,12 @@ function flushLiveStorageFlipScheduling(myId) {
 function liveZoneForRender(s, pid) {
   const current = clampLiveZoneCards(s?.players?.[pid]?.live_zone || []);
   if (G._liveWrDiscardInProgress) return current;
+  // Never keep ghost post-reveal storage once Main/Active has sealed the reveal.
+  if (isMainOrActivePhase(s?.phase)
+      && (s?.turn == null || liveStorageRevealDoneForTurn(s.turn)
+          || (typeof shouldSuppressLiveStorageFlipsNow === 'function' && shouldSuppressLiveStorageFlipsNow(s)))) {
+    return current;
+  }
   const heldRaw = G._livePostRevealBoard?.players?.[pid]?.live_zone;
   if (!heldRaw?.length) return current;
   const held = clampLiveZoneCards(heldRaw);
@@ -20066,21 +20075,38 @@ function scheduleCardFlipReveal(cardEl, flipKey, flipKeys, opts = {}) {
     staggerMs = 0,
     durationMs = LIVE_STORAGE_FLIP_MS,
     beforeFlip = null,
+    requireLiveStorageFlip = false,
   } = opts;
+  const flipGen = G._liveFlipGen || 0;
   trackCardFlipStart();
+  const abortFlip = () => {
+    G._liveFlipScheduled?.delete(flipKey);
+    trackCardFlipEnd();
+  };
   const run = () => {
     setTimeout(() => {
+      if (flipGen !== (G._liveFlipGen || 0)) { abortFlip(); return; }
+      if (requireLiveStorageFlip && shouldSuppressLiveStorageFlipsNow()) { abortFlip(); return; }
+      if (requireLiveStorageFlip && flipKeys && !flipKeys.has(flipKey)) { abortFlip(); return; }
       if (!cardEl.isConnected || cardEl.classList.contains('revealed')) {
-        G._liveFlipScheduled?.delete(flipKey);
-        trackCardFlipEnd();
+        abortFlip();
+        return;
+      }
+      if (requireLiveStorageFlip && !cardEl.classList.contains('live-storage-flip')) {
+        abortFlip();
         return;
       }
       if (typeof beforeFlip === 'function') beforeFlip();
       sfxPlayCard('card_flip');
       requestAnimationFrame(() => requestAnimationFrame(() => {
+        if (flipGen !== (G._liveFlipGen || 0)) { abortFlip(); return; }
+        if (requireLiveStorageFlip && shouldSuppressLiveStorageFlipsNow()) { abortFlip(); return; }
         if (!cardEl.isConnected || cardEl.classList.contains('revealed')) {
-          G._liveFlipScheduled?.delete(flipKey);
-          trackCardFlipEnd();
+          abortFlip();
+          return;
+        }
+        if (requireLiveStorageFlip && !cardEl.classList.contains('live-storage-flip')) {
+          abortFlip();
           return;
         }
         const inner = cardEl.querySelector('.live-flip-inner, .hand-flip-inner');
@@ -27350,8 +27376,25 @@ function resolveLiveRevealFlipKeys(prev, next, myId = G.playerId) {
 /** Drop stale flip keys during stable main-phase renders (defense in depth). */
 function liveStorageFlipKeysForRender(s, rawKeys, myId = G.playerId) {
   if (!rawKeys?.size) return rawKeys || new Set();
-  if (G._liveRoundPlaybackActive || G._liveStorageOutcomePending || G._livePostRevealBoard) return rawKeys;
-  if (!isMainOrActivePhase(s?.phase)) return rawKeys;
+  if (typeof shouldSuppressLiveStorageFlipsNow === 'function' && shouldSuppressLiveStorageFlipsNow(s)) {
+    return new Set();
+  }
+  // Only keep keys live during active round playback — sticky post-reveal boards
+  // must not re-arm flips into Main / later phases.
+  if (G._liveRoundPlaybackActive) return rawKeys;
+  if (!isMainOrActivePhase(s?.phase)) {
+    // Outside Main, still drop keys for cards already face-up on the server.
+    const oppId = myId === 'p1' ? 'p2' : 'p1';
+    const filteredPipeline = new Set();
+    for (const key of rawKeys) {
+      if (!String(key).startsWith(`${oppId}:`)) continue;
+      const iid = String(key).slice(oppId.length + 1);
+      const card = findCardInState(s, iid, oppId);
+      if (card?.revealed) continue;
+      filteredPipeline.add(key);
+    }
+    return filteredPipeline;
+  }
   const showTurn = s?.turn;
   if (showTurn != null && liveStorageRevealDoneForTurn(showTurn)) return new Set();
   const oppId = myId === 'p1' ? 'p2' : 'p1';
@@ -28863,6 +28906,13 @@ function renderLiveSlots(prefix, zone, isMe, pid){
       }
       if (doFlip && isOpp && liveStorageCardShowsFace(existingCard)
           && !existingCard.classList.contains('live-storage-flip')) {
+        // Face-up outside active reveal playback: do not rebuild a flip shell (causes
+        // "already revealed / never-played" cards to flip again during Main).
+        if (!G._liveRoundPlaybackActive) {
+          existingCard.classList.toggle('card-arriving', !!(G._animHideIids?.has(card.instance_id)));
+          applyCardFoilFx(existingCard, card);
+          continue;
+        }
         rebuildLiveStorageFlipFromFace(existingCard, card);
         layoutLiveSlots(prefix);
         ensureLiveStorageFlipScheduled(
@@ -34264,7 +34314,7 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/spectacle.js?v=4"></script>
+<script src="client/js/spectacle.js?v=5"></script>
 <script src="client/js/cpu-meta-weights.js?v=1"></script>
 <script src="client/js/cpu-ai.js?v=3"></script>
 <script>void bootApp();</script>

@@ -713,16 +713,24 @@ function clearStaleLiveStorageFlipState(prev, next) {
   if (!next || G._liveRoundPlaybackActive || G._perfSpectacleActive || G._liveSpectacleGateRunning) return;
   if (!isMainOrActivePhase(next.phase)) return;
   if (detectPendingLiveSpectacleTurn(prev, next) != null) return;
-  if (G._liveStorageOutcomePending || G._livePostRevealBoard) return;
   const showTurn = inferLiveShowTurn(prev, next);
-  if (showTurn != null && liveStorageRevealDoneForTurn(showTurn)) {
-    G._liveRevealFlips = new Set();
-    G._liveFlipScheduled = new Set();
-    G._liveSetStorageBaseline = null;
+  const revealDone = showTurn != null && liveStorageRevealDoneForTurn(showTurn);
+  const staleMain = shouldIgnoreStaleLivePerfSignals(prev, next);
+  if (!revealDone && !staleMain) {
+    sweepStaleLiveStorageFlipDom(next, G.playerId);
+    return;
   }
-  if (shouldIgnoreStaleLivePerfSignals(prev, next)) {
-    G._liveRevealFlips = new Set();
-    G._liveFlipScheduled = new Set();
+  G._liveFlipGen = (G._liveFlipGen || 0) + 1;
+  G._liveRevealFlips = new Set();
+  G._liveFlipScheduled = new Set();
+  G._liveStorageRevealAnimCount = 0;
+  G._liveSetStorageBaseline = null;
+  // Sticky post-reveal boards keep ghost storage + flip keys alive into Main.
+  if (!G._liveWrDiscardInProgress) {
+    G._livePostRevealBoard = null;
+    G._liveStorageOutcomePending = false;
+  }
+  if (staleMain) {
     G._deferPerfSpectaclePrev = null;
     if (!G._livePostRevealBoard) G._liveSetStorageBaseline = null;
   }
@@ -1291,6 +1299,24 @@ function clearLiveRoundTransientCaches() {
   G._yellPerfDeferredDrawIids = null;
   G._perfYellScoreAccum = null;
   G._perfYellDrawPending = null;
+  // Abort any banner-/image-delayed storage flips from this round.
+  G._liveFlipGen = (G._liveFlipGen || 0) + 1;
+  G._liveRevealFlips = new Set();
+  G._liveFlipScheduled = new Set();
+  G._liveStorageRevealAnimCount = 0;
+}
+
+/** True when live-storage flip CSS must not start (stable Main after reveal, etc.). */
+function shouldSuppressLiveStorageFlipsNow(s = G.gameState) {
+  if (G._liveRoundPlaybackActive || G._liveSpectacleGateRunning || G._perfSpectacleActive) {
+    return false;
+  }
+  if (G._liveWrDiscardInProgress) return true;
+  if (!isMainOrActivePhase(s?.phase)) return false;
+  const turn = s?.turn;
+  if (turn != null && liveStorageRevealDoneForTurn(turn)) return true;
+  // Main/active with no active flip set — never invent flips from sticky DOM.
+  return !(G._liveRevealFlips?.size);
 }
 
 /** Turn of the most recent unreplayed empty LIVE skip in the full log (log+0 batched polls). */
@@ -5849,22 +5875,34 @@ function waitForBannersIdle() {
 }
 
 function scheduleLiveStorageFlip(cardEl, flipKey, flipKeys, staggerMs = 0, layoutPrefix = 'opp') {
+  if (shouldSuppressLiveStorageFlipsNow()) return;
+  if (flipKeys && !flipKeys.has(flipKey)) return;
   scheduleCardFlipReveal(cardEl, flipKey, flipKeys, {
     staggerMs,
     durationMs: LIVE_STORAGE_FLIP_MS,
+    requireLiveStorageFlip: true,
   });
 }
 
 function ensureLiveStorageFlipScheduled(cardEl, card, flipKey, flipKeys, staggerMs, prefix) {
   if (!cardEl || cardEl.classList.contains('revealed')) return;
   if (!cardEl.classList.contains('live-storage-flip')) return;
+  if (shouldSuppressLiveStorageFlipsNow()) return;
+  if (flipKeys && !flipKeys.has(flipKey)) return;
   G._liveFlipScheduled = G._liveFlipScheduled || new Set();
   if (G._liveFlipScheduled.has(flipKey)) return;
+  const flipGen = G._liveFlipGen || 0;
   ensureCardImageLoaded(card).finally(() => {
+    if (flipGen !== (G._liveFlipGen || 0)) return;
+    if (shouldSuppressLiveStorageFlipsNow()) return;
+    if (flipKeys && !flipKeys.has(flipKey)) return;
     if (!cardEl.isConnected || cardEl.classList.contains('revealed')) return;
+    if (!cardEl.classList.contains('live-storage-flip')) return;
     requestAnimationFrame(() => {
+      if (flipGen !== (G._liveFlipGen || 0) || shouldSuppressLiveStorageFlipsNow()) return;
       layoutLiveSlots(prefix);
       requestAnimationFrame(() => {
+        if (flipGen !== (G._liveFlipGen || 0) || shouldSuppressLiveStorageFlipsNow()) return;
         scheduleLiveStorageFlip(cardEl, flipKey, flipKeys, staggerMs, prefix);
       });
     });
