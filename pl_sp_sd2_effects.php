@@ -236,14 +236,26 @@ function plSpSd2ResolvePrompt(array $state, string $owner, array $prompt, string
         $p['stage'][$toSlot] = $fromM;
         $p['stage'][$fromSlot] = $toM;
         $fromM['moved_this_turn'] = true;
+        $fromM['moved_from_slot'] = $fromSlot;
         $p['stage'][$toSlot] = $fromM;
         if ($toM) {
             $toM['moved_this_turn'] = true;
+            $toM['moved_from_slot'] = $toSlot;
             $p['stage'][$fromSlot] = $toM;
         }
         $state = addLog($state, $state['players'][$owner]['name'] .
             ' — [' . ($prompt['source_name'] ?? 'Member') . "] moved $fromSlot → $toSlot.");
         unset($state['pending_prompt']);
+        $fromId = $fromM['instance_id'] ?? '';
+        if ($fromId !== '') {
+            $state = resolveAutoAreaMoveAbilities($state, $owner, $fromId, $fromSlot);
+        }
+        if (empty($state['pending_prompt']) && $toM) {
+            $toId = $toM['instance_id'] ?? '';
+            if ($toId !== '') {
+                $state = resolveAutoAreaMoveAbilities($state, $owner, $toId, $toSlot);
+            }
+        }
         $state['seq']++;
         return finishPromptEffects($state);
     }

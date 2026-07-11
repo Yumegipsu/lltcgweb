@@ -72652,7 +72652,7 @@
             ],
             "blade_hearts": [],
             "rarity": "PP",
-            "text": "[Automatic] [Once per turn] When the Member in your Center area moves, choose one — gain 1 heart until this Live ends; or put 1 opponent Member with 2 or fewer printed Blade into Wait; or draw 1 card.\n[Live Start] You may position-change this Member (swap with the Member in the destination area if any).",
+            "text": "[Automatic] [Once per turn] When the Member in your Center area moves, choose one — gain 2 Blade until this Live ends; or put 1 opponent Member with 2 or fewer printed Blade into Wait; or draw 1 card.\n[Live Start] You may position-change this Member (swap with the Member in the destination area if any).",
             "text_jp": "自分のステージのセンターエリアにいるメンバーがエリアを移動したとき、以下から1つを選ぶ。\n\n・ライブ終了時まで、を得る。\n\n・相手のステージにいる元々持つの数が2つ以下のメンバー1人をウェイトにする。\n\n・カードを1枚引く。\n\nこのメンバーをポジションチェンジしてもよい。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-011-PP.png",
             "subunit": "5yncri5e!",
@@ -72668,7 +72668,7 @@
                     "type": "optional_swap_area_on_enter"
                 }
             ],
-            "text_es": "[Automático] [Una vez por turno] Cuando el Miembro en tu área Centro se mueve, elige una — obtén 1 corazón hasta que termine este Live; o coloca 1 Miembro del oponente con 2 o menos Blade impresos en Wait; o roba 1 carta.\n[Inicio de Live] Puedes cambiar la posición de este Miembro (intercámbialo con el Miembro en el área de destino, si lo hay)."
+            "text_es": "[Automático] [Una vez por turno] Cuando el Miembro en tu área Centro se mueve, elige una — obtén 2 Blade hasta que termine este Live; o coloca 1 Miembro del oponente con 2 o menos Blade impresos en Wait; o roba 1 carta.\n[Inicio de Live] Puedes cambiar la posición de este Miembro (intercámbialo con el Miembro en el área de destino, si lo hay)."
         },
         {
             "card_no": "PL!SP-pb2-011-R",
@@ -72695,7 +72695,7 @@
             ],
             "blade_hearts": [],
             "rarity": "R",
-            "text": "[Automatic] [Once per turn] When the Member in your Center area moves, choose one — gain 1 heart until this Live ends; or put 1 opponent Member with 2 or fewer printed Blade into Wait; or draw 1 card.\n[Live Start] You may position-change this Member (swap with the Member in the destination area if any).",
+            "text": "[Automatic] [Once per turn] When the Member in your Center area moves, choose one — gain 2 Blade until this Live ends; or put 1 opponent Member with 2 or fewer printed Blade into Wait; or draw 1 card.\n[Live Start] You may position-change this Member (swap with the Member in the destination area if any).",
             "text_jp": "自分のステージのセンターエリアにいるメンバーがエリアを移動したとき、以下から1つを選ぶ。\n\n・ライブ終了時まで、を得る。\n\n・相手のステージにいる元々持つの数が2つ以下のメンバー1人をウェイトにする。\n\n・カードを1枚引く。\n\nこのメンバーをポジションチェンジしてもよい。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-011-R.png",
             "subunit": "5yncri5e!",
@@ -72711,7 +72711,7 @@
                     "type": "optional_swap_area_on_enter"
                 }
             ],
-            "text_es": "[Automático] [Una vez por turno] Cuando el Miembro en tu área Centro se mueve, elige una — obtén 1 corazón hasta que termine este Live; o coloca 1 Miembro del oponente con 2 o menos Blade impresos en Wait; o roba 1 carta.\n[Inicio de Live] Puedes cambiar la posición de este Miembro (intercámbialo con el Miembro en el área de destino, si lo hay)."
+            "text_es": "[Automático] [Una vez por turno] Cuando el Miembro en tu área Centro se mueve, elige una — obtén 2 Blade hasta que termine este Live; o coloca 1 Miembro del oponente con 2 o menos Blade impresos en Wait; o roba 1 carta.\n[Inicio de Live] Puedes cambiar la posición de este Miembro (intercámbialo con el Miembro en el área de destino, si lo hay)."
         },
         {
             "card_no": "PL!SP-pb2-012-P＋",

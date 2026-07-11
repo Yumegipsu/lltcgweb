@@ -2676,27 +2676,31 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 $ownerP['hand'][] = $pickedCard;
                 $state = addLog($state, $state['players'][$owner]['name'] .
                     " — [$srcName] added " . cardDisplayName($pickedCard) . ' to hand.');
-            } else {
-                if (!in_array($slotChoice, $prompt['slots'] ?? [], true)) {
-                    throw new Exception('Choose an empty Stage area');
+                if (!empty($rest)) {
+                    $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $rest);
                 }
-                if (!empty($ownerP['stage'][$slotChoice])) {
-                    throw new Exception('Stage area is not empty');
-                }
-                $pickedCard['active'] = true;
-                $pickedCard['entered_turn'] = intval($state['turn'] ?? 1);
-                $ownerP['stage'][$slotChoice] = $pickedCard;
-                $state = resolveOnEnterAbilities($state, $owner, $pickedCard, $slotChoice);
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . $srcName . '] played ' . cardDisplayName($pickedCard) .
-                    ' from deck to ' . $slotChoice . '.');
+                unset($state['surveil_stash'], $state['pending_prompt']);
+                $state['seq']++;
+                return finishPromptEffects($state);
             }
+            if (!in_array($slotChoice, $prompt['slots'] ?? [], true)) {
+                throw new Exception('Choose an empty Stage area');
+            }
+            if (!empty($ownerP['stage'][$slotChoice])) {
+                throw new Exception('Stage area is not empty');
+            }
+            $pickedCard['active'] = true;
+            $pickedCard['entered_turn'] = intval($state['turn'] ?? 1);
+            $ownerP['stage'][$slotChoice] = $pickedCard;
             if (!empty($rest)) {
                 $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $rest);
             }
             unset($state['surveil_stash'], $state['pending_prompt']);
-            $state['seq']++;
-            return finishPromptEffects($state);
+            $state = resolveOnEnterAbilities($state, $owner, $pickedCard, $slotChoice);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . $srcName . '] played ' . cardDisplayName($pickedCard) .
+                ' from deck to ' . $slotChoice . '.');
+            return returnAfterPlacedMemberEnter($state);
         }
 
         if ($optional && ($resolveChoice === 'no' || $resolveChoice === 'cancel')) {

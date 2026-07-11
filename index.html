@@ -22073,7 +22073,8 @@ function cpuMemberLiveUnlockBonus(c, cpu, tier, hand) {
     }
     if (ec >= 1 && !memberBlocksBaton(existing) && !memberBatonRestricted(existing, c)) {
       const batonCost = Math.max(0, ec - stageMemberEffectiveCost(existing, cpu));
-      if (batonCost <= affordableEnergyForBatonPlay(cpu, existing, c)) {
+      const aeBaton = affordableEnergyForBatonPlay(cpu, existing, c);
+      if (canAffordBatonWithOptionalDouble(cpu, c, slot, existing, aeBaton, ec)) {
         best = Math.max(best, scorePool(cpuSimHeartPoolAfterMember(cpu, c, slot)));
       }
     }
@@ -23244,7 +23245,7 @@ function cpuMemberMainAffordable(cpu, hand, c, ae, s) {
     if (memberBlocksBaton(existing) || memberBatonRestricted(existing, c)) continue;
     if (ec < 1) continue;
     const batonCost = Math.max(0, ec - stageMemberEffectiveCost(existing, cpu));
-    if (batonCost <= affordableEnergyForBatonPlay(cpu, existing, c)) return true;
+    if (canAffordBatonWithOptionalDouble(cpu, c, slot, existing, affordableEnergyForBatonPlay(cpu, existing, c), ec)) return true;
   }
   return false;
 }
@@ -23293,8 +23294,14 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
     if (!existing || stageMemberEnteredThisTurn(existing, s.turn)) continue;
     if (!memberBlocksBaton(existing) && !memberBatonRestricted(existing, c) && ec >= 1) {
       const batonCost = Math.max(0, ec - stageMemberEffectiveCost(existing, cpu));
-      if (batonCost <= affordableEnergyForBatonPlay(cpu, existing, c)) {
+      const aeBaton = affordableEnergyForBatonPlay(cpu, existing, c);
+      if (canAffordBatonWithOptionalDouble(cpu, c, slot, existing, aeBaton, ec)) {
         const payload = { card_id: c.instance_id, slot, baton_id: existing.instance_id };
+        if (aeBaton < batonCost) {
+          const second = bestDoubleBatonSecond(cpu, c, slot, existing, aeBaton, ec);
+          if (second) payload.baton_id2 = second.member.instance_id;
+          else continue;
+        }
         if (cpuMemberPlayBlacklisted(payload.card_id, payload.slot, payload.baton_id)) continue;
         return {
           kind: 'play_member',
@@ -23316,16 +23323,22 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
   if (existing && !stageMemberEnteredThisTurn(existing, s.turn)) {
     const canBaton = ec >= 1 && !memberBlocksBaton(existing) && !memberBatonRestricted(existing, c);
     const batonCost = canBaton ? Math.max(0, ec - stageMemberEffectiveCost(existing, cpu)) : ec;
+    const aeBaton = canBaton ? affordableEnergyForBatonPlay(cpu, existing, c) : ae;
     const isUpgrade = tier === 'easy'
       ? (cpuMemberNovelty(c, stageColors) > cpuMemberNovelty(existing, stageColors)
         || (cpuMemberNovelty(c, stageColors) === cpuMemberNovelty(existing, stageColors) && ec > effectiveCost(existing, hand)))
       : cpuScoreMember(c, cpu, hand, stageColors, tier, read, s) > cpuScoreMember(existing, cpu, hand, stageColors, tier, read, s) + 0.5;
     const afford = canBaton
-      ? batonCost <= affordableEnergyForBatonPlay(cpu, existing, c)
+      ? canAffordBatonWithOptionalDouble(cpu, c, cheapestSlot, existing, aeBaton, ec)
       : ae >= ec;
     if (afford && isUpgrade) {
       if (canBaton) {
         const payload = { card_id: c.instance_id, slot: cheapestSlot, baton_id: existing.instance_id };
+        if (aeBaton < batonCost) {
+          const second = bestDoubleBatonSecond(cpu, c, cheapestSlot, existing, aeBaton, ec);
+          if (!second) return null;
+          payload.baton_id2 = second.member.instance_id;
+        }
         if (cpuMemberPlayBlacklisted(payload.card_id, payload.slot, payload.baton_id)) return null;
         return {
           kind: 'play_member',
@@ -23501,8 +23514,15 @@ function cpuTryDebugTestCard(s, cpu, tier, winPressure, read) {
       if (!existing || stageMemberEnteredThisTurn(existing, s.turn)) continue;
       if (!memberBlocksBaton(existing) && !memberBatonRestricted(existing, c) && ec >= 1) {
         const bc = Math.max(0, ec - stageMemberEffectiveCost(existing, cpu));
-        if (affordableEnergyForBatonPlay(cpu, existing, c) >= bc) {
-          cpuAct('play_member', { card_id: c.instance_id, slot, baton_id: existing.instance_id });
+        const aeBaton = affordableEnergyForBatonPlay(cpu, existing, c);
+        if (canAffordBatonWithOptionalDouble(cpu, c, slot, existing, aeBaton, ec)) {
+          const payload = { card_id: c.instance_id, slot, baton_id: existing.instance_id };
+          if (aeBaton < bc) {
+            const second = bestDoubleBatonSecond(cpu, c, slot, existing, aeBaton, ec);
+            if (!second) continue;
+            payload.baton_id2 = second.member.instance_id;
+          }
+          cpuAct('play_member', payload);
           return true;
         }
       }
@@ -34943,7 +34963,7 @@ function memberPlayCostForSlot(card, slot, s, myId) {
   const mode = memberPlayModeForSlot(card, slot, s, myId);
   if (mode === 'baton') {
     const exist = me?.stage?.[slot];
-    return Math.max(0, ec - stageMemberEffectiveCost(exist, me));
+    return batonPlayCostWithBestDouble(me, card, slot, exist, ec);
   }
   return ec;
 }
@@ -35255,12 +35275,16 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
   ['left', 'center', 'right'].forEach(slot => {
     const exist = me.stage?.[slot];
     const mode = exist ? memberPlayModeForSlot(card, slot, s, myId) : 'empty';
-    const bc = mode === 'baton' ? Math.max(0, ec - stageMemberEffectiveCost(exist, me)) : null;
-    const slotCost = mode === 'baton' ? bc : ec;
     const slotAe = mode === 'baton'
       ? affordableEnergyForBatonPlay(me, exist, card)
       : (me?.energy_zone || []).filter(energyChipActive).length;
-    const canDo = mode === 'empty' ? slotAe >= ec : !!mode && slotAe >= slotCost;
+    const bc = mode === 'baton' ? batonPlayCostWithBestDouble(me, card, slot, exist, ec) : null;
+    const slotCost = mode === 'baton' ? bc : ec;
+    const canDo = mode === 'empty'
+      ? slotAe >= ec
+      : (mode === 'baton'
+        ? canAffordBatonWithOptionalDouble(me, card, slot, exist, slotAe, ec)
+        : !!mode && slotAe >= slotCost);
     const b = document.createElement('button');
     b.className = 'btn-smol';
     b.appendChild(document.createTextNode(slotLabel(slot, false)));
@@ -35378,8 +35402,8 @@ function canPlayMemberToSlot(card, slot, s, myId) {
   const mode = memberPlayModeForSlot(card, slot, s, myId);
   if (!mode) return false;
   if (mode === 'baton') {
-    const bc = Math.max(0, ec - stageMemberEffectiveCost(exist, me));
-    return affordableEnergyForBatonPlay(me, exist, card) >= bc;
+    const ae = affordableEnergyForBatonPlay(me, exist, card);
+    return canAffordBatonWithOptionalDouble(me, card, slot, exist, ae, ec);
   }
   return (me?.energy_zone || []).filter(energyChipActive).length >= ec;
 }
@@ -35820,35 +35844,72 @@ function eligibleDoubleBatonSecondTargets(me, incomingCard, primarySlot, primary
   }
   return out;
 }
+/** Best second baton member that brings remainder to <= ae (or lowest remainder if ae is Infinity). */
+function bestDoubleBatonSecond(me, card, primarySlot, primaryMember, ae, ec) {
+  if (!cardAllowsDoubleBaton(card) || !primaryMember) return null;
+  const primaryRem = Math.max(0, ec - stageMemberEffectiveCost(primaryMember, me));
+  let best = null;
+  for (const t of eligibleDoubleBatonSecondTargets(me, card, primarySlot, primaryMember.instance_id)) {
+    const rem = Math.max(0, primaryRem - stageMemberEffectiveCost(t.member, me));
+    if (rem > ae) continue;
+    if (!best || rem < best.remainder) best = { ...t, remainder: rem };
+  }
+  return best;
+}
+function canAffordBatonWithOptionalDouble(me, card, primarySlot, primaryMember, ae, ec) {
+  const primaryRem = Math.max(0, ec - stageMemberEffectiveCost(primaryMember, me));
+  if (ae >= primaryRem) return true;
+  return !!bestDoubleBatonSecond(me, card, primarySlot, primaryMember, ae, ec);
+}
+function batonPlayCostWithBestDouble(me, card, primarySlot, primaryMember, ec) {
+  const primaryRem = Math.max(0, ec - stageMemberEffectiveCost(primaryMember, me));
+  const best = bestDoubleBatonSecond(me, card, primarySlot, primaryMember, Infinity, ec);
+  return best ? Math.min(primaryRem, best.remainder) : primaryRem;
+}
 function sendBatonMemberPlay(card, slot, batonId, batonId2) {
   const payload = { card_id: card.instance_id, slot, baton_id: batonId };
   if (batonId2) payload.baton_id2 = batonId2;
   sendAct('play_member', payload);
 }
-function openDoubleBatonSecondPick(card, slot, s, myId, primaryMember, secondTargets, onPlay) {
+function openDoubleBatonSecondPick(card, slot, s, myId, primaryMember, secondTargets, onPlay, opts = {}) {
+  const me = s?.players?.[myId];
+  const ec = effectiveCost(card, me?.hand || []);
+  const ae = Number(opts.ae ?? affordableEnergyForBatonPlay(me, primaryMember, card));
+  const primaryRem = Math.max(0, ec - stageMemberEffectiveCost(primaryMember, me));
+  const requireSecond = !!opts.requireSecond || ae < primaryRem;
   const ovl = el('overlay-prompt');
   el('prompt-ttl').textContent = card.name_en || card.name || 'Baton Touch';
-  el('prompt-msg').textContent = 'Choose a second Member for Baton Touch (optional cost reduction):';
+  el('prompt-msg').textContent = requireSecond
+    ? 'Choose a second Member for Baton Touch (needed to cover the cost):'
+    : 'Choose a second Member for Baton Touch (optional cost reduction):';
   const box = el('prompt-btns');
   box.innerHTML = '';
-  const skip = document.createElement('button');
-  skip.className = 'btn-grad';
-  skip.textContent = 'Baton with ' + (primaryMember.name_en || primaryMember.name || 'Member') + ' only';
-  skip.onclick = () => {
-    closeM('overlay-prompt');
-    if (onPlay) onPlay();
-    sendBatonMemberPlay(card, slot, primaryMember.instance_id, null);
-  };
-  box.appendChild(skip);
+  if (!requireSecond) {
+    const skip = document.createElement('button');
+    skip.className = 'btn-grad';
+    skip.textContent = 'Baton with ' + (primaryMember.name_en || primaryMember.name || 'Member') + ' only';
+    skip.onclick = () => {
+      closeM('overlay-prompt');
+      if (onPlay) onPlay();
+      sendBatonMemberPlay(card, slot, primaryMember.instance_id, null);
+    };
+    box.appendChild(skip);
+  }
   secondTargets.forEach(({ slot: sSlot, member }) => {
+    const rem = Math.max(0, primaryRem - stageMemberEffectiveCost(member, me));
     const b = document.createElement('button');
     b.className = 'btn-grad';
     b.textContent = (member.name_en || member.name || 'Member') + ' (' + slotLabel(sSlot) + ')';
-    b.onclick = () => {
-      closeM('overlay-prompt');
-      if (onPlay) onPlay();
-      sendBatonMemberPlay(card, slot, primaryMember.instance_id, member.instance_id);
-    };
+    if (rem > ae) {
+      b.disabled = true;
+      b.title = 'Not enough Energy even with this Member';
+    } else {
+      b.onclick = () => {
+        closeM('overlay-prompt');
+        if (onPlay) onPlay();
+        sendBatonMemberPlay(card, slot, primaryMember.instance_id, member.instance_id);
+      };
+    }
     box.appendChild(b);
   });
   ovl.classList.add('open');
@@ -35868,14 +35929,17 @@ function playToSlot(card, slot, s, myId, existing) {
     if (mode === 'baton') {
       const bc=Math.max(0,ec-stageMemberEffectiveCost(exist2,me));
       const ae=affordableEnergyForBatonPlay(me, exist2, card);
-      if(ae<bc){
+      const bestSecond = bestDoubleBatonSecond(me, card, slot, exist2, ae, ec);
+      if(ae<bc && !bestSecond){
         toast(`Need ${energyCostHtml(bc)} active Energy for Baton pass`, 2500, true);
         return;
       }
       if (cardAllowsDoubleBaton(card)) {
         const secondTargets = eligibleDoubleBatonSecondTargets(me, card, slot, exist2.instance_id);
-        if (secondTargets.length > 0) {
-          openDoubleBatonSecondPick(card, slot, s, myId, exist2, secondTargets);
+        if (secondTargets.length > 0 && (ae < bc || secondTargets.length > 0)) {
+          openDoubleBatonSecondPick(card, slot, s, myId, exist2, secondTargets, null, {
+            ae, requireSecond: ae < bc,
+          });
           return;
         }
       }

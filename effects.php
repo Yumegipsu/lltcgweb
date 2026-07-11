@@ -972,6 +972,9 @@ function cardMatchesLookPick(array $card, array $cfg): bool {
     if (!empty($cfg['min_cost']) && intval($card['cost'] ?? 0) < intval($cfg['min_cost'])) {
         return false;
     }
+    if (isset($cfg['max_cost']) && intval($card['cost'] ?? 0) > intval($cfg['max_cost'])) {
+        return false;
+    }
     $heartColors = $cfg['heart_colors'] ?? [];
     if (!empty($heartColors)) {
         $cardColors = [];

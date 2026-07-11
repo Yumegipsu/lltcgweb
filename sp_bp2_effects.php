@@ -378,7 +378,8 @@ function spBp2TriggerCenterMoveChoose(array $state, string $pid, array $movedMem
     }
     $p = &$state['players'][$pid];
     foreach ($p['stage'] as $slot => &$observer) {
-        if (!$observer || ($observer['instance_id'] ?? '') === ($movedMember['instance_id'] ?? '')) {
+        // Official Q&A: also triggers when Tomari herself leaves Center.
+        if (!$observer) {
             continue;
         }
         mergeCardCatalogFields($observer);
@@ -409,9 +410,9 @@ function spBp2TriggerCenterMoveChoose(array $state, string $pid, array $movedMem
                 'ability'       => $ab,
                 'ability_index' => $idx,
                 'prompt'        => 'Center Member moved — choose one effect:',
-                'choices'       => ['heart', 'wait_opp', 'draw'],
+                'choices'       => ['blade', 'wait_opp', 'draw'],
                 'choice_labels' => [
-                    'Gain 1 heart until Live ends',
+                    'Gain 2 Blade until Live ends',
                     'Wait 1 opponent Member (≤2 printed Blade)',
                     'Draw 1 card',
                 ],
@@ -905,20 +906,24 @@ function spBp2ResolvePrompt(array $state, string $owner, array $prompt, string $
     }
 
     if ($type === 'spbp2_center_move_choose') {
-        $valid = ['heart', 'wait_opp', 'draw'];
+        $valid = ['blade', 'wait_opp', 'draw', 'heart'];
         if (!in_array($choice, $valid, true)) {
             throw new Exception('Invalid choice');
         }
         $holderId = $prompt['source_id'] ?? '';
         $holderSlot = $prompt['source_slot'] ?? '';
         $mName = $prompt['source_name'] ?? 'Member';
-        if ($choice === 'heart') {
-            addBonusHeartsToModifier($state, $owner, [['color' => 'any', 'count' => 1]]);
+        if ($choice === 'blade' || $choice === 'heart') {
+            // Legacy clients may still send "heart"; treat as +2 Blade.
+            $state = applyModifierEffect($state, $owner, [
+                'type'   => 'blade_bonus',
+                'amount' => 2,
+            ]);
             $state = addLog($state, $state['players'][$owner]['name'] .
-                " — [$mName] gained 1 heart (Center moved).");
+                " — [$mName] gained +2 Blade (Center moved).");
         } elseif ($choice === 'wait_opp') {
             $opp = ($owner === 'p1') ? 'p2' : 'p1';
-            $waited = waitOpponentStageByOriginalHearts($state, $opp, 2, 1, $owner);
+            $waited = waitOpponentStageByOriginalBlades($state, $opp, 2, 1, $owner);
             $state = addLog($state, $state['players'][$owner]['name'] .
                 " — [$mName] put $waited opponent Member(s) into Wait (Center moved).");
         } else {
