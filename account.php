@@ -1122,6 +1122,16 @@ function tcgPublicInMatchStatusFromState(string $discordId, string $roomId, arra
     if (!tcgIsActiveGameplayStatus($state)) {
         return null;
     }
+    // Profile / spectate is PvP-only — never surface solo CPU (or CPU-tagged) rooms.
+    if (!empty($state['cpu_solo']) || !empty($state['cpu_difficulty'])) {
+        return null;
+    }
+    if (($state['mode'] ?? '') === 'replay_view' || ($state['mode'] ?? '') === 'tutorial') {
+        return null;
+    }
+    if (function_exists('isHumanVsHumanRoster') && !isHumanVsHumanRoster($state)) {
+        return null;
+    }
     $p1 = $state['players']['p1'] ?? null;
     $p2 = $state['players']['p2'] ?? null;
     if (!is_array($p1) || !is_array($p2)) {
@@ -1129,10 +1139,14 @@ function tcgPublicInMatchStatusFromState(string $discordId, string $roomId, arra
     }
     $p1Discord = (string)($p1['discord_id'] ?? ($state['ranked']['p1_discord_id'] ?? ''));
     $p2Discord = (string)($p2['discord_id'] ?? ($state['ranked']['p2_discord_id'] ?? ''));
+    // Both sides must be real Discord players (friend / casual / ranked PvP).
+    if ($p1Discord === '' || $p2Discord === '') {
+        return null;
+    }
     $opponentName = null;
-    if ($p1Discord !== '' && $p1Discord === $discordId) {
+    if ($p1Discord === $discordId) {
         $opponentName = (string)($p2['name'] ?? 'Opponent');
-    } elseif ($p2Discord !== '' && $p2Discord === $discordId) {
+    } elseif ($p2Discord === $discordId) {
         $opponentName = (string)($p1['name'] ?? 'Opponent');
     } else {
         return null;
@@ -1175,6 +1189,10 @@ function tcgPublicFindCasualMatchForUser(string $discordId): ?array {
         }
         $state = json_decode($raw, true);
         if (!is_array($state) || ($state['mode'] ?? '') === 'ranked') {
+            continue;
+        }
+        // Skip solo CPU rooms early (full PvP checks run in tcgPublicInMatchStatusFromState).
+        if (!empty($state['cpu_solo']) || !empty($state['cpu_difficulty'])) {
             continue;
         }
         $hit = tcgPublicInMatchStatusFromState($discordId, $roomId, $state, 'casual');
