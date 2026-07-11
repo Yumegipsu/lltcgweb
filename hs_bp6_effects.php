@@ -413,6 +413,7 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
                     && !yellCardHasBladeHeart($c)
             ));
             if (empty($candidates)) break;
+            // max_pick caps how many you may mill; candidates must list every eligible Yell card.
             $max = min(intval($ab['max_mill'] ?? 3), count($candidates));
             $state['pending_prompt'] = [
                 'type'          => 'auto_yell_mill_extra_yell',
@@ -423,7 +424,7 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
                 'live_zone_index' => $ctx['live_zone_index'] ?? null,
                 'member_slot'   => $ctx['member_slot'] ?? null,
                 'ability_index' => $ctx['ability_index'] ?? null,
-                'candidates'    => array_map('cardPromptSummary', array_slice($candidates, 0, $max)),
+                'candidates'    => array_map('cardPromptSummary', $candidates),
                 'max_pick'      => $max,
                 'prompt'        => "Put up to $max non-Blade-heart Hasunosora Yell card(s) into the Waiting Room for extra Yell?",
                 'choices'       => ['yes', 'no'],
