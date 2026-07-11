@@ -1249,6 +1249,9 @@ function tcgGetEquippedDeckRow(string $discordId): ?array {
 }
 
 function tcgWriteDeckPreset(string $discordId, int $slot, string $name, array $main, array $energy, ?bool $equip = null): void {
+    if (!defined('TCG_MAX_DECK_PRESETS')) {
+        define('TCG_MAX_DECK_PRESETS', 10);
+    }
     if ($slot < 1 || $slot > TCG_MAX_DECK_PRESETS) {
         throw new Exception('Deck slot must be 1–' . TCG_MAX_DECK_PRESETS);
     }
@@ -1325,10 +1328,133 @@ function tcgGrantStarterDeck(string $discordId, string $starterKey, array $cards
     $db = tcgDb();
     $db->prepare('UPDATE tcg_users SET starter_deck = ?, updated_at = ? WHERE discord_id = ?')
         ->execute([$starterKey, time(), $discordId]);
+    tcgRecordStarterOwned($discordId, $starterKey, 'initial');
     return [
         'starter_deck' => $starterKey,
         'label' => $deck['name_en'] ?? $deck['name'] ?? $starterKey,
         'cards_granted' => count($all),
         'preset_slot' => 1,
+    ];
+}
+
+/** Seed ownership from legacy tcg_users.starter_deck when the owned table is empty for that key. */
+function tcgEnsureStarterOwnedSeeded(string $discordId): void {
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT starter_deck FROM tcg_users WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    $key = trim((string)($stmt->fetchColumn() ?: ''));
+    if ($key === '' || !in_array($key, tcgStarterDeckKeys(), true)) {
+        return;
+    }
+    tcgRecordStarterOwned($discordId, $key, 'initial');
+}
+
+function tcgRecordStarterOwned(string $discordId, string $starterKey, string $source = 'initial', ?string $missionId = null): void {
+    if (!in_array($starterKey, tcgStarterDeckKeys(), true)) {
+        return;
+    }
+    $db = tcgDb();
+    $db->prepare('INSERT OR IGNORE INTO tcg_starter_owned (discord_id, starter_key, source, mission_id, granted_at)
+        VALUES (?, ?, ?, ?, ?)')
+        ->execute([$discordId, $starterKey, $source, $missionId, time()]);
+}
+
+/** @return list<string> */
+function tcgOwnedStarterKeys(string $discordId): array {
+    tcgEnsureStarterOwnedSeeded($discordId);
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT starter_key FROM tcg_starter_owned WHERE discord_id = ? ORDER BY granted_at ASC, starter_key ASC');
+    $stmt->execute([$discordId]);
+    $keys = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $key = (string)($row['starter_key'] ?? '');
+        if ($key !== '' && in_array($key, tcgStarterDeckKeys(), true)) {
+            $keys[] = $key;
+        }
+    }
+    return array_values(array_unique($keys));
+}
+
+/** @return list<string> */
+function tcgUnownedStarterKeys(string $discordId): array {
+    $owned = array_fill_keys(tcgOwnedStarterKeys($discordId), true);
+    $out = [];
+    foreach (tcgStarterDeckKeys() as $key) {
+        if (!isset($owned[$key])) {
+            $out[] = $key;
+        }
+    }
+    return $out;
+}
+
+/** @return list<array{id: string, label: string, image: string, owned: bool}> */
+function tcgStarterOptionsWithOwned(string $discordId): array {
+    $owned = array_fill_keys(tcgOwnedStarterKeys($discordId), true);
+    $out = [];
+    foreach (tcgStarterDecks() as $deck) {
+        $id = (string)($deck['id'] ?? '');
+        $out[] = [
+            'id' => $id,
+            'label' => (string)($deck['label'] ?? $id),
+            'image' => (string)($deck['image'] ?? ''),
+            'owned' => isset($owned[$id]),
+        ];
+    }
+    return $out;
+}
+
+function tcgNextFreeDeckPresetSlot(string $discordId): ?int {
+    if (!defined('TCG_MAX_DECK_PRESETS')) {
+        define('TCG_MAX_DECK_PRESETS', 10);
+    }
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT slot, main_deck, energy_deck FROM tcg_deck_presets WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    $occupied = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $slot = intval($row['slot'] ?? 0);
+        $main = json_decode($row['main_deck'] ?? '[]', true) ?: [];
+        $energy = json_decode($row['energy_deck'] ?? '[]', true) ?: [];
+        if ($slot >= 1 && (count($main) + count($energy)) > 0) {
+            $occupied[$slot] = true;
+        }
+    }
+    for ($slot = 1; $slot <= TCG_MAX_DECK_PRESETS; $slot++) {
+        if (!isset($occupied[$slot])) {
+            return $slot;
+        }
+    }
+    return null;
+}
+
+/**
+ * Grant a starter the player does not already own (milestone reward).
+ * Adds cards and saves into the next free preset slot without changing primary starter_deck.
+ */
+function tcgGrantAdditionalStarterDeck(string $discordId, string $starterKey, array $cardsData, ?string $missionId = null): array {
+    if (!in_array($starterKey, tcgStarterDeckKeys(), true)) {
+        throw new Exception('Invalid starter deck');
+    }
+    tcgEnsureStarterOwnedSeeded($discordId);
+    if (in_array($starterKey, tcgOwnedStarterKeys($discordId), true)) {
+        throw new Exception('You already own that starter deck');
+    }
+    $deck = $cardsData['starter_decks'][$starterKey] ?? null;
+    if (!$deck) {
+        throw new Exception('Starter deck not found in card data');
+    }
+    $all = array_merge($deck['main_deck'] ?? [], $deck['energy_deck'] ?? []);
+    tcgAddCardsToCollection($discordId, $all);
+    tcgRecordStarterOwned($discordId, $starterKey, 'milestone', $missionId);
+    $slot = tcgNextFreeDeckPresetSlot($discordId);
+    if ($slot !== null) {
+        tcgSaveStarterPreset($discordId, $starterKey, $cardsData, $slot, false);
+    }
+    return [
+        'starter_deck' => $starterKey,
+        'label' => $deck['name_en'] ?? $deck['name'] ?? tcgStarterLabel($starterKey),
+        'cards_granted' => count($all),
+        'preset_slot' => $slot,
+        'mission_id' => $missionId,
     ];
 }

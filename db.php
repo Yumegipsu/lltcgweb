@@ -225,6 +225,19 @@ function tcgDbMigrate(PDO $db): void {
     $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_mission_progress_user
         ON tcg_mission_progress(discord_id)');
 
+    $db->exec('CREATE TABLE IF NOT EXISTS tcg_starter_owned (
+        discord_id TEXT NOT NULL,
+        starter_key TEXT NOT NULL,
+        source TEXT NOT NULL DEFAULT "initial",
+        mission_id TEXT,
+        granted_at INTEGER NOT NULL,
+        PRIMARY KEY (discord_id, starter_key),
+        FOREIGN KEY (discord_id) REFERENCES tcg_users(discord_id) ON DELETE CASCADE
+    )');
+
+    $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_starter_owned_user
+        ON tcg_starter_owned(discord_id)');
+
     $db->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_casual_queue_discord
         ON tcg_casual_queue(discord_id) WHERE discord_id IS NOT NULL');
 
@@ -370,6 +383,14 @@ function tcgGetCollectionMap(string $discordId): array {
     return $out;
 }
 
+/** Sum of all card quantities owned (not unique count). */
+function tcgCollectionTotalCards(string $discordId): int {
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT COALESCE(SUM(qty), 0) FROM tcg_collection WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    return max(0, intval($stmt->fetchColumn()));
+}
+
 function tcgConsumeCollectionCards(string $discordId, array $requiredCounts): bool {
     $db = tcgDb();
     $owned = tcgGetCollectionMap($discordId);
@@ -393,6 +414,7 @@ function tcgResetAccountProgress(string $discordId): void {
         $db->prepare('DELETE FROM tcg_deck_presets WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('DELETE FROM tcg_box_progress WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('DELETE FROM tcg_mission_progress WHERE discord_id = ?')->execute([$discordId]);
+        $db->prepare('DELETE FROM tcg_starter_owned WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('UPDATE tcg_users SET starter_deck = NULL, banner_card_no = NULL, banner_crop = NULL,
             stamp_favorites = NULL, star_gems = 0, dupe_gem_migration_done = 0, unranked_games = 0,
             updated_at = ? WHERE discord_id = ?')

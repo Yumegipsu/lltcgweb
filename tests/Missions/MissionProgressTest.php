@@ -355,4 +355,51 @@ final class MissionProgressTest extends TestCase
         $this->assertSame('daily_use_stamp', $done[0]['id'] ?? null);
         $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'daily_use_stamp', tcgTodayJst()));
     }
+
+    public function testCollectionCardMilestonesCompleteAndGrantStarter(): void
+    {
+        require_once dirname(__DIR__, 2) . '/booster.php';
+        if (!defined('TCG_MAX_DECK_PRESETS')) {
+            define('TCG_MAX_DECK_PRESETS', 10);
+        }
+        if (!defined('CARDS_FILE')) {
+            define('CARDS_FILE', dirname(__DIR__, 2) . '/cards.json');
+        }
+        $cards = tcgReadCardsDataFile();
+        $this->assertNotEmpty($cards['starter_decks']['liella'] ?? null);
+        $this->assertNotEmpty($cards['starter_decks']['muse'] ?? null);
+
+        tcgGrantStarterDeck($this->discordId, 'liella', $cards);
+        $this->assertSame(['liella'], tcgOwnedStarterKeys($this->discordId));
+
+        // Inflate collection qty without needing 400 unique cards.
+        $db = tcgDb();
+        $db->prepare('INSERT INTO tcg_collection (discord_id, card_no, qty, acquired_at) VALUES (?, ?, ?, ?)
+            ON CONFLICT(discord_id, card_no) DO UPDATE SET qty = excluded.qty')
+            ->execute([$this->discordId, 'TEST-FILL-CARD', 400, time()]);
+
+        $completions = tcgMissionCheckCollectionThresholds($this->discordId);
+        $ids = array_column($completions, 'id');
+        $this->assertContains('ms_cards_400', $ids);
+        $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'ms_cards_400', ''));
+        $this->assertFalse(tcgMissionIsCompleted($this->discordId, 'ms_cards_800', ''));
+
+        try {
+            tcgMissionClaim($this->discordId, 'ms_cards_400', null);
+            $this->fail('Expected claim without starter to throw');
+        } catch (\Exception $e) {
+            $this->assertStringContainsString('Choose a starter deck', $e->getMessage());
+        }
+
+        $result = tcgMissionClaim($this->discordId, 'ms_cards_400', 'muse');
+        $this->assertSame('muse', $result['starter_granted']['starter_deck'] ?? null);
+        $this->assertContains('muse', tcgOwnedStarterKeys($this->discordId));
+        $this->assertContains('liella', tcgOwnedStarterKeys($this->discordId));
+        $this->assertTrue(tcgMissionIsClaimed($this->discordId, 'ms_cards_400', ''));
+
+        // Primary starter stays the initial pick.
+        $stmt = $db->prepare('SELECT starter_deck FROM tcg_users WHERE discord_id = ?');
+        $stmt->execute([$this->discordId]);
+        $this->assertSame('liella', $stmt->fetchColumn());
+    }
 }

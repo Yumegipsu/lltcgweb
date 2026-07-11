@@ -100,8 +100,18 @@
         "winAqours": "Win with an Aqours-only main deck",
         "winLiella": "Win with a Liella!-only main deck",
         "winHasunosora": "Win with a Hasunosora-only main deck",
-        "winNijigasaki": "Win with a Nijigasaki-only main deck"
-      }
+        "winNijigasaki": "Win with a Nijigasaki-only main deck",
+        "cards400": "Own 400 cards",
+        "cards800": "Own 800 cards",
+        "cards1200": "Own 1,200 cards",
+        "cards1600": "Own 1,600 cards"
+      },
+      "rewardStarter": "Choose a starter deck",
+      "rewardStarterOwned": "Already owned",
+      "claimedStarterToast": "Claimed {title} — unlocked {deck}",
+      "starterPickTitle": "Choose a starter deck",
+      "starterPickConfirm": "Unlock starter",
+      "starterPickCancel": "Cancel"
     },
     "language": {
       "label": "Language",
@@ -1082,8 +1092,18 @@
         "winAqours": "Aqoursのみのメインデッキで勝利",
         "winLiella": "Liella!のみのメインデッキで勝利",
         "winHasunosora": "蓮ノ空のみのメインデッキで勝利",
-        "winNijigasaki": "虹ヶ咲のみのメインデッキで勝利"
-      }
+        "winNijigasaki": "虹ヶ咲のみのメインデッキで勝利",
+        "cards400": "カードを400枚所持する",
+        "cards800": "カードを800枚所持する",
+        "cards1200": "カードを1,200枚所持する",
+        "cards1600": "カードを1,600枚所持する"
+      },
+      "rewardStarter": "スターターデッキを選ぶ",
+      "rewardStarterOwned": "所持済み",
+      "claimedStarterToast": "{title} を受け取りました — {deck} を解放",
+      "starterPickTitle": "スターターデッキを選ぶ",
+      "starterPickConfirm": "スターターを解放",
+      "starterPickCancel": "キャンセル"
     },
     "language": {
       "label": "言語",
@@ -2060,8 +2080,18 @@
         "winAqours": "Gana con un mazo principal solo Aqours",
         "winLiella": "Gana con un mazo principal solo Liella!",
         "winHasunosora": "Gana con un mazo principal solo Hasunosora",
-        "winNijigasaki": "Gana con un mazo principal solo Nijigasaki"
-      }
+        "winNijigasaki": "Gana con un mazo principal solo Nijigasaki",
+        "cards400": "Posee 400 cartas",
+        "cards800": "Posee 800 cartas",
+        "cards1200": "Posee 1.200 cartas",
+        "cards1600": "Posee 1.600 cartas"
+      },
+      "rewardStarter": "Elige un mazo inicial",
+      "rewardStarterOwned": "Ya lo tienes",
+      "claimedStarterToast": "Reclamaste {title} — desbloqueaste {deck}",
+      "starterPickTitle": "Elige un mazo inicial",
+      "starterPickConfirm": "Desbloquear mazo",
+      "starterPickCancel": "Cancelar"
     },
     "language": {
       "label": "Idioma",

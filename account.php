@@ -235,6 +235,7 @@ function tcgApiOpenBooster(array $body): array {
     if ($payment === 'daily') {
         $completions = tcgMissionOnDailyBoostersExhausted($uid);
     }
+    $completions = tcgMissionMergeCompletions($completions, tcgMissionCheckCollectionThresholds($uid));
     return tcgMissionAttachCompletions(['success' => true, 'open' => $result], $completions);
 }
 

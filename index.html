@@ -4055,6 +4055,22 @@ body.missions-overlay-open{overflow:hidden}
 #overlay-missions .missions-loading,
 #overlay-missions .missions-empty{
   font-size:14px;color:rgba(255,255,255,.94);text-align:center;margin:18px 8px;line-height:1.55;letter-spacing:.04em}
+#overlay-mission-starter.llc-menu-screen{
+  display:none;z-index:86
+}
+#overlay-mission-starter.open{display:flex}
+#overlay-mission-starter .mission-starter-shell{
+  width:min(720px,94vw);max-height:min(90vh,820px)
+}
+#overlay-mission-starter .mission-starter-actions{
+  display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap
+}
+.starter-opt.starter-opt--owned{
+  opacity:.42;filter:grayscale(1);cursor:not-allowed;pointer-events:none
+}
+.starter-opt .starter-owned-tag{
+  margin-top:6px;font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.7)
+}
 .toast.toast-success{
   background:linear-gradient(135deg,#2ea85a,#1f7a42);
   box-shadow:0 6px 22px rgba(46,160,90,.45)}
@@ -7252,6 +7268,23 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
+<!-- Mission starter deck reward picker -->
+<div id="overlay-mission-starter" class="llc-menu-screen" aria-modal="true" aria-labelledby="mission-starter-title" aria-hidden="true">
+  <div class="account-shell mission-starter-shell">
+    <div class="panel account-panel">
+      <div class="account-screen-head">
+        <button type="button" class="btn-ghost" id="btn-mission-starter-cancel" data-i18n="missions.starterPickCancel">Cancel</button>
+        <h2 id="mission-starter-title" data-i18n="missions.starterPickTitle">Choose a starter deck</h2>
+      </div>
+      <div class="starter-grid" id="mission-starter-grid"></div>
+      <p class="lerr" id="mission-starter-err"></p>
+      <div class="mission-starter-actions">
+        <button type="button" class="btn-grad" id="btn-mission-starter-confirm" data-i18n="missions.starterPickConfirm" disabled>Unlock starter</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Booster pack pull rates -->
 <div class="overlay" id="modal-booster-rates">
   <div class="mbox">
@@ -7702,13 +7735,13 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=35"></script>
+<script src="i18n.js?v=36"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=10"></script>
 <script src="client/js/api-client.js?v=9"></script>
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
-<script src="client/js/missions.js?v=3"></script>
+<script src="client/js/missions.js?v=4"></script>
 <script src="client/js/game-sync.js?v=11"></script>
 <script src="client/js/state-apply.js?v=23"></script>
 <script src="client/js/stamps.js?v=12"></script>

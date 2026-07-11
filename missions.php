@@ -24,6 +24,11 @@ function tcgMissionDefinitions(): array {
 
         ['id' => 'ms_profile_banner', 'type' => 'milestone', 'reward' => 100, 'sort' => 100, 'i18n_key' => 'missions.milestone.profileBanner'],
         ['id' => 'ms_profile_stamps', 'type' => 'milestone', 'reward' => 100, 'sort' => 110, 'i18n_key' => 'missions.milestone.profileStamps'],
+        // 4 extra starters after the initial pick (5 total) — one every 400 cards.
+        ['id' => 'ms_cards_400', 'type' => 'milestone', 'reward' => 0, 'reward_type' => 'starter_choice', 'reward_fallback' => 200, 'sort' => 150, 'i18n_key' => 'missions.milestone.cards400', 'threshold' => 400],
+        ['id' => 'ms_cards_800', 'type' => 'milestone', 'reward' => 0, 'reward_type' => 'starter_choice', 'reward_fallback' => 200, 'sort' => 151, 'i18n_key' => 'missions.milestone.cards800', 'threshold' => 800],
+        ['id' => 'ms_cards_1200', 'type' => 'milestone', 'reward' => 0, 'reward_type' => 'starter_choice', 'reward_fallback' => 200, 'sort' => 152, 'i18n_key' => 'missions.milestone.cards1200', 'threshold' => 1200],
+        ['id' => 'ms_cards_1600', 'type' => 'milestone', 'reward' => 0, 'reward_type' => 'starter_choice', 'reward_fallback' => 200, 'sort' => 153, 'i18n_key' => 'missions.milestone.cards1600', 'threshold' => 1600],
         ['id' => 'ms_ranked_1', 'type' => 'milestone', 'reward' => 100, 'sort' => 200, 'i18n_key' => 'missions.milestone.ranked1', 'threshold' => 1],
         ['id' => 'ms_unranked_1', 'type' => 'milestone', 'reward' => 100, 'sort' => 210, 'i18n_key' => 'missions.milestone.unranked1', 'threshold' => 1],
         ['id' => 'ms_ranked_5', 'type' => 'milestone', 'reward' => 200, 'sort' => 220, 'i18n_key' => 'missions.milestone.ranked5', 'threshold' => 5],
@@ -154,15 +159,19 @@ function tcgMissionClaimableCount(string $discordId): int {
 
 function tcgMissionListForUser(string $discordId): array {
     tcgMissionBackfillRetroactive($discordId);
+    $totalCards = tcgCollectionTotalCards($discordId);
+    $starterOptions = null;
     $missions = [];
     foreach (tcgMissionDefinitions() as $def) {
         $periodKey = tcgMissionPeriodKey($def);
         $row = tcgMissionProgressRow($discordId, $def['id'], $periodKey);
         $status = tcgMissionStatusForDef($discordId, $def);
-        $missions[] = [
+        $rewardType = (string)($def['reward_type'] ?? 'star_gems');
+        $entry = [
             'id' => $def['id'],
             'type' => $def['type'],
             'reward' => intval($def['reward']),
+            'reward_type' => $rewardType,
             'sort' => intval($def['sort']),
             'i18n_key' => $def['i18n_key'],
             'status' => $status,
@@ -171,6 +180,34 @@ function tcgMissionListForUser(string $discordId): array {
             'claimed_at' => $row['claimed_at'] ?? null,
             'sort_rank' => tcgMissionSortRank($status, intval($def['sort'])),
         ];
+        if (isset($def['threshold'])) {
+            $entry['threshold'] = intval($def['threshold']);
+        }
+        if ($rewardType === 'starter_choice') {
+            if ($starterOptions === null) {
+                if (!function_exists('tcgStarterOptionsWithOwned')) {
+                    require_once __DIR__ . '/booster.php';
+                }
+                $starterOptions = tcgStarterOptionsWithOwned($discordId);
+            }
+            $available = 0;
+            foreach ($starterOptions as $opt) {
+                if (empty($opt['owned'])) {
+                    $available++;
+                }
+            }
+            $entry['reward_fallback'] = intval($def['reward_fallback'] ?? 0);
+            $entry['starter_options'] = $starterOptions;
+            $entry['available_starter_count'] = $available;
+            $entry['total_cards'] = $totalCards;
+            if (isset($def['threshold'])) {
+                $entry['progress'] = min($totalCards, intval($def['threshold']));
+            }
+        } elseif (str_starts_with($def['id'], 'ms_cards_') && isset($def['threshold'])) {
+            $entry['total_cards'] = $totalCards;
+            $entry['progress'] = min($totalCards, intval($def['threshold']));
+        }
+        $missions[] = $entry;
     }
     usort($missions, static function (array $a, array $b): int {
         $cmp = ($a['sort_rank'] ?? 9) <=> ($b['sort_rank'] ?? 9);
@@ -186,7 +223,7 @@ function tcgMissionListForUser(string $discordId): array {
     return $missions;
 }
 
-function tcgMissionClaim(string $discordId, string $missionId): array {
+function tcgMissionClaim(string $discordId, string $missionId, ?string $starterKey = null): array {
     $def = tcgMissionDefById($missionId);
     if (!$def) {
         throw new Exception('Unknown mission');
@@ -201,8 +238,67 @@ function tcgMissionClaim(string $discordId, string $missionId): array {
     if (tcgMissionIsClaimed($discordId, $missionId, $periodKey)) {
         throw new Exception('Mission reward already claimed');
     }
+
+    $rewardType = (string)($def['reward_type'] ?? 'star_gems');
     $now = time();
     $db = tcgDb();
+
+    if ($rewardType === 'starter_choice') {
+        if (!function_exists('tcgGrantAdditionalStarterDeck')) {
+            require_once __DIR__ . '/booster.php';
+        }
+        $unowned = tcgUnownedStarterKeys($discordId);
+        if ($unowned === []) {
+            $reward = max(0, intval($def['reward_fallback'] ?? $def['reward'] ?? 0));
+            $db->prepare('UPDATE tcg_mission_progress SET claimed_at = ? WHERE discord_id = ? AND mission_id = ? AND period_key = ?')
+                ->execute([$now, $discordId, $missionId, $periodKey]);
+            $gems = $reward > 0 ? tcgAddStarGems($discordId, $reward) : tcgGetStarGems($discordId);
+            return [
+                'mission' => [
+                    'id' => $missionId,
+                    'i18n_key' => $def['i18n_key'],
+                    'reward' => $reward,
+                    'reward_type' => 'star_gems',
+                    'status' => 'claimed',
+                ],
+                'star_gems' => $gems,
+                'star_gems_gained' => $reward,
+                'starter_granted' => null,
+            ];
+        }
+
+        $starterKey = trim((string)($starterKey ?? ''));
+        if ($starterKey === '') {
+            throw new Exception('Choose a starter deck');
+        }
+        if (!in_array($starterKey, $unowned, true)) {
+            throw new Exception('That starter deck is already owned or invalid');
+        }
+
+        if (!function_exists('tcgReadCardsDataFile')) {
+            require_once __DIR__ . '/booster.php';
+        }
+        $cards = function_exists('tcgLoadCardsData') ? tcgLoadCardsData() : tcgReadCardsDataFile();
+        $granted = tcgGrantAdditionalStarterDeck($discordId, $starterKey, $cards, $missionId);
+        $db->prepare('UPDATE tcg_mission_progress SET claimed_at = ? WHERE discord_id = ? AND mission_id = ? AND period_key = ?')
+            ->execute([$now, $discordId, $missionId, $periodKey]);
+        // Collection grew from the grant — may unlock later card milestones.
+        tcgMissionCheckCollectionThresholds($discordId);
+
+        return [
+            'mission' => [
+                'id' => $missionId,
+                'i18n_key' => $def['i18n_key'],
+                'reward' => 0,
+                'reward_type' => 'starter_choice',
+                'status' => 'claimed',
+            ],
+            'star_gems' => tcgGetStarGems($discordId),
+            'star_gems_gained' => 0,
+            'starter_granted' => $granted,
+        ];
+    }
+
     $db->prepare('UPDATE tcg_mission_progress SET claimed_at = ? WHERE discord_id = ? AND mission_id = ? AND period_key = ?')
         ->execute([$now, $discordId, $missionId, $periodKey]);
     $reward = intval($def['reward']);
@@ -212,6 +308,7 @@ function tcgMissionClaim(string $discordId, string $missionId): array {
             'id' => $missionId,
             'i18n_key' => $def['i18n_key'],
             'reward' => $reward,
+            'reward_type' => 'star_gems',
             'status' => 'claimed',
         ],
         'star_gems' => $gems,
@@ -332,6 +429,22 @@ function tcgMissionCheckRankedThresholds(string $discordId): array {
             continue;
         }
         if ($gamesCount >= intval($threshold)) {
+            $completions = tcgMissionMergeCompletions($completions, tcgMissionMarkCompleted($discordId, $def['id']));
+        }
+    }
+    return $completions;
+}
+
+/** Mark collection total-card milestones complete when thresholds are met. */
+function tcgMissionCheckCollectionThresholds(string $discordId): array {
+    $total = tcgCollectionTotalCards($discordId);
+    $completions = [];
+    foreach (tcgMissionDefinitions() as $def) {
+        if (($def['type'] ?? '') !== 'milestone' || !str_starts_with($def['id'], 'ms_cards_')) {
+            continue;
+        }
+        $threshold = intval($def['threshold'] ?? 0);
+        if ($threshold > 0 && $total >= $threshold) {
             $completions = tcgMissionMergeCompletions($completions, tcgMissionMarkCompleted($discordId, $def['id']));
         }
     }
@@ -496,6 +609,22 @@ function tcgMissionBackfillRetroactive(string $discordId): void {
         tcgMissionMarkCompletedSilent($discordId, 'ms_unranked_1');
     }
 
+    $totalCards = tcgCollectionTotalCards($discordId);
+    foreach (tcgMissionDefinitions() as $def) {
+        if (($def['type'] ?? '') !== 'milestone' || !str_starts_with($def['id'], 'ms_cards_')) {
+            continue;
+        }
+        $threshold = intval($def['threshold'] ?? 0);
+        if ($threshold > 0 && $totalCards >= $threshold) {
+            tcgMissionMarkCompletedSilent($discordId, $def['id']);
+        }
+    }
+
+    if (!function_exists('tcgEnsureStarterOwnedSeeded')) {
+        require_once __DIR__ . '/booster.php';
+    }
+    tcgEnsureStarterOwnedSeeded($discordId);
+
     tcgMissionBackfillGroupWinsFromReplays($discordId);
     tcgMissionBackfillDailyBoostersLaunchDay($discordId);
 }
@@ -595,7 +724,11 @@ function tcgApiMissionsClaim(array $body): array {
     if ($missionId === '') {
         throw new Exception('mission_id required');
     }
-    $result = tcgMissionClaim($uid, $missionId);
+    $starter = isset($body['starter']) ? trim((string)$body['starter']) : null;
+    if ($starter === '') {
+        $starter = null;
+    }
+    $result = tcgMissionClaim($uid, $missionId, $starter);
     return array_merge(['success' => true], $result, [
         'claimable_count' => tcgMissionClaimableCount($uid),
     ]);

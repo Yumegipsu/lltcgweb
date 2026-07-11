@@ -9,6 +9,8 @@
     claimableCount: 0,
     tab: 'daily',
     loading: false,
+    starterPickMissionId: null,
+    starterPickId: null,
   };
 
   function el(id) {
@@ -29,6 +31,10 @@
 
   function overlayEl() {
     return el('overlay-missions');
+  }
+
+  function starterOverlayEl() {
+    return el('overlay-mission-starter');
   }
 
   function syncHubBadge(count) {
@@ -72,6 +78,29 @@
     return t('missions.statusActive');
   }
 
+  function rewardSubHtml(m) {
+    if (m.reward_type === 'starter_choice') {
+      const available = Number(m.available_starter_count || 0);
+      let rewardBit;
+      if (available > 0) {
+        rewardBit = t('missions.rewardStarter');
+      } else {
+        const fallback = Number(m.reward_fallback || m.reward || 0);
+        rewardBit = '+' + fallback.toLocaleString()
+          + ' <span class="star-gem-inline">' + starGemIconHtml(16) + '</span>';
+      }
+      let progressBit = '';
+      if (m.threshold != null && m.status !== 'claimed') {
+        const cur = Number(m.progress != null ? m.progress : m.total_cards || 0);
+        progressBit = ' · ' + cur.toLocaleString() + ' / ' + Number(m.threshold).toLocaleString();
+      }
+      return rewardBit + progressBit + ' · ' + missionStatusLabel(m.status);
+    }
+    return '+' + Number(m.reward || 0).toLocaleString()
+      + ' <span class="star-gem-inline">' + starGemIconHtml(16) + '</span>'
+      + ' · ' + missionStatusLabel(m.status);
+  }
+
   async function loadMissions() {
     if (typeof global.accountGet !== 'function') return;
     state.loading = true;
@@ -91,28 +120,116 @@
     }
   }
 
-  async function claimMission(missionId) {
+  function closeStarterPicker() {
+    const ov = starterOverlayEl();
+    if (!ov) return;
+    ov.classList.remove('open');
+    ov.setAttribute('aria-hidden', 'true');
+    state.starterPickMissionId = null;
+    state.starterPickId = null;
+    const confirmBtn = el('btn-mission-starter-confirm');
+    if (confirmBtn) confirmBtn.disabled = true;
+  }
+
+  function openStarterPicker(mission) {
+    const ov = starterOverlayEl();
+    const grid = el('mission-starter-grid');
+    if (!ov || !grid) {
+      void claimMission(mission.id, null);
+      return;
+    }
+    state.starterPickMissionId = mission.id;
+    state.starterPickId = null;
+    grid.replaceChildren();
+    const opts = Array.isArray(mission.starter_options) ? mission.starter_options : [];
+    opts.forEach((o) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'starter-opt' + (o.owned ? ' starter-opt--owned' : '');
+      b.dataset.id = o.id;
+      b.disabled = !!o.owned;
+      b.setAttribute('aria-disabled', o.owned ? 'true' : 'false');
+      const ownedTag = o.owned
+        ? '<div class="starter-owned-tag">' + t('missions.rewardStarterOwned') + '</div>'
+        : '';
+      b.innerHTML = '<img src="' + (o.image || '') + '" alt="" onerror="this.style.display=\'none\'">'
+        + '<div class="starter-name">' + (o.label || o.id) + '</div>'
+        + ownedTag;
+      if (!o.owned) {
+        b.onclick = () => {
+          grid.querySelectorAll('.starter-opt').forEach((x) => x.classList.remove('sel'));
+          b.classList.add('sel');
+          state.starterPickId = o.id;
+          const confirmBtn = el('btn-mission-starter-confirm');
+          if (confirmBtn) confirmBtn.disabled = false;
+        };
+      }
+      grid.appendChild(b);
+    });
+    const confirmBtn = el('btn-mission-starter-confirm');
+    if (confirmBtn) confirmBtn.disabled = true;
+    const err = el('mission-starter-err');
+    if (err) err.textContent = '';
+    ov.classList.add('open');
+    ov.setAttribute('aria-hidden', 'false');
+    if (global.LLTCG_I18N && typeof global.LLTCG_I18N.applyI18n === 'function') {
+      global.LLTCG_I18N.applyI18n(ov);
+    }
+  }
+
+  async function confirmStarterPick() {
+    if (!state.starterPickMissionId || !state.starterPickId) return;
+    const err = el('mission-starter-err');
+    if (err) err.textContent = '';
+    const confirmBtn = el('btn-mission-starter-confirm');
+    if (confirmBtn) confirmBtn.disabled = true;
+    try {
+      await claimMission(state.starterPickMissionId, state.starterPickId);
+      closeStarterPicker();
+    } catch (e) {
+      if (err) err.textContent = e.message || 'Claim failed';
+      if (confirmBtn) confirmBtn.disabled = false;
+    }
+  }
+
+  async function claimMission(missionId, starterId) {
     if (!missionId || typeof global.accountPost !== 'function') return;
+    const mission = (state.missions || []).find((m) => m.id === missionId);
+    if (
+      starterId == null
+      && mission
+      && mission.reward_type === 'starter_choice'
+      && Number(mission.available_starter_count || 0) > 0
+    ) {
+      openStarterPicker(mission);
+      return;
+    }
+
     const errEl = el('missions-err');
     if (errEl) errEl.textContent = '';
-    try {
-      const res = await global.accountPost('missions_claim', { mission_id: missionId });
-      if (res.star_gems != null && typeof global.syncStarGemsFromProfile === 'function') {
-        if (global.A && global.A.profile) global.A.profile.star_gems = res.star_gems;
-        global.syncStarGemsFromProfile(global.A.profile);
-        if (typeof global.updateStarGemsUI === 'function') global.updateStarGemsUI();
-      }
-      syncHubBadge(res.claimable_count ?? 0);
-      await loadMissions();
-      if (typeof global.toastSuccess === 'function') {
-        const title = t(res.mission?.i18n_key || 'missions.claimed');
+    const body = { mission_id: missionId };
+    if (starterId) body.starter = starterId;
+    const res = await global.accountPost('missions_claim', body);
+    if (res.star_gems != null && typeof global.syncStarGemsFromProfile === 'function') {
+      if (global.A && global.A.profile) global.A.profile.star_gems = res.star_gems;
+      global.syncStarGemsFromProfile(global.A.profile);
+      if (typeof global.updateStarGemsUI === 'function') global.updateStarGemsUI();
+    }
+    syncHubBadge(res.claimable_count ?? 0);
+    await loadMissions();
+    if (typeof global.toastSuccess === 'function') {
+      const title = t(res.mission?.i18n_key || 'missions.claimed');
+      if (res.starter_granted && res.starter_granted.label) {
+        global.toastSuccess(t('missions.claimedStarterToast', {
+          title,
+          deck: res.starter_granted.label,
+        }), 3200);
+      } else {
         global.toastSuccess(t('missions.claimedToast', {
           title,
           reward: res.star_gems_gained || res.mission?.reward || 0,
         }), 2800);
       }
-    } catch (e) {
-      if (errEl) errEl.textContent = e.message || 'Claim failed';
     }
   }
 
@@ -155,9 +272,7 @@
       title.textContent = t(m.i18n_key || m.id);
       const sub = document.createElement('span');
       sub.className = 'llc-menu-item-sub';
-      sub.innerHTML = '+' + Number(m.reward || 0).toLocaleString()
-        + ' <span class="star-gem-inline">' + starGemIconHtml(16) + '</span>'
-        + ' · ' + missionStatusLabel(m.status);
+      sub.innerHTML = rewardSubHtml(m);
       body.append(title, sub);
 
       const actions = document.createElement('span');
@@ -167,7 +282,12 @@
         btn.type = 'button';
         btn.className = 'btn-grad missions-claim-btn';
         btn.textContent = t('missions.claim');
-        btn.addEventListener('click', () => claimMission(m.id));
+        btn.addEventListener('click', () => {
+          void claimMission(m.id).catch((e) => {
+            const errEl = el('missions-err');
+            if (errEl) errEl.textContent = e.message || 'Claim failed';
+          });
+        });
         actions.appendChild(btn);
       } else if (m.status === 'claimed') {
         const chip = document.createElement('span');
@@ -200,6 +320,7 @@
   }
 
   function closeMissionsModal() {
+    closeStarterPicker();
     const ov = overlayEl();
     if (!ov) return;
     ov.classList.remove('open');
@@ -216,6 +337,13 @@
     el('btn-missions-tab-milestone')?.addEventListener('click', () => setTab('milestone'));
     overlayEl()?.addEventListener('click', (ev) => {
       if (ev.target === overlayEl()) closeMissionsModal();
+    });
+    el('btn-mission-starter-confirm')?.addEventListener('click', () => {
+      void confirmStarterPick();
+    });
+    el('btn-mission-starter-cancel')?.addEventListener('click', () => closeStarterPicker());
+    starterOverlayEl()?.addEventListener('click', (ev) => {
+      if (ev.target === starterOverlayEl()) closeStarterPicker();
     });
   }
 
