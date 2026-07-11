@@ -150,10 +150,14 @@
     }
   }
 
-  function renderCurrentStep() {
+  function renderCurrentStep(opts = {}) {
     const st = step();
     if (!st || typeof global.renderTutorialStep !== 'function') return;
-    global.renderTutorialStep(G().tutorialStep, { textOnly: false });
+    // While board presentation is playing, refresh dialogue immediately but defer
+    // spotlight/board chrome until animations finish (onStateApplied).
+    const textOnly = opts.textOnly != null ? !!opts.textOnly : !!G()?.animating;
+    if (textOnly) G()._tutNeedsStepChrome = true;
+    global.renderTutorialStep(G().tutorialStep, { textOnly });
     syncStepUi();
   }
 
@@ -266,17 +270,31 @@
         clearTimeout(G()._tutCoinGoalRetry);
         G()._tutCoinGoalRetry = null;
       }
-      await sleep(st.kind === 'watch' ? 1200 : 500);
-      if (!goalMet(st.goal, G().gameState, myId, prev)) return;
+      // Watch steps keep a short beat; action goals advance dialogue immediately so
+      // players can read the next tip while board animations are still playing.
+      if (st.kind === 'watch') {
+        await sleep(1200);
+        if (!goalMet(st.goal, G().gameState || s, myId, prev)) return;
+      }
       await advanceStep(1);
     } finally {
       G()._tutGoalPending = false;
     }
   }
 
+  /** Peek incoming server state before presentation finishes — update guide text ASAP. */
+  function onIncomingState(s, prev) {
+    if (!isLive() || !s) return;
+    void onGoalMaybeMet(s, prev);
+  }
+
   function onStateApplied(s, prev) {
     if (!isLive()) return;
     syncStepUi();
+    if (G()._tutNeedsStepChrome && !G()?.animating) {
+      G()._tutNeedsStepChrome = false;
+      renderCurrentStep({ textOnly: false });
+    }
     if (step()?.id === 'choose_first' && s?.phase === 'coin_flip') {
       if (typeof global.syncCoinFlipChoiceUi === 'function') {
         global.syncCoinFlipChoiceUi(s, G().playerId || 'p1');
@@ -352,6 +370,7 @@
       G()._tutChooseFirstDone = false;
       G()._tutMulliganDone = false;
       G()._tutGoalPending = false;
+      G()._tutNeedsStepChrome = false;
       if (G()._tutCoinGoalRetry) {
         clearTimeout(G()._tutCoinGoalRetry);
         G()._tutCoinGoalRetry = null;
@@ -450,6 +469,7 @@
     tutBlocks,
     handCardAllowed,
     onStateApplied,
+    onIncomingState,
     checkGoalNow,
     tutorialNav,
     exitTutorial,

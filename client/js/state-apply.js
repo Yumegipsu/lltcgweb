@@ -139,11 +139,17 @@
     }
     if (shouldHoldStateForLocalPrompt(s)) {
       TCG_DEBUG.log('state', 'queue (local prompt open)', { seq: s.seq, phase: s.phase, q: (G._pendingStateQueue?.length || 0) + 1 });
+      if (G.tutorialLive && typeof global.TutorialInteractive?.onIncomingState === 'function') {
+        global.TutorialInteractive.onIncomingState(s, G.gameState);
+      }
       enqueuePendingState(s);
       return;
     }
     if (G.animating) {
       TCG_DEBUG.log('state', 'queue (animating)', { seq: s.seq, phase: s.phase, q: (G._pendingStateQueue?.length || 0) + 1 });
+      if (G.tutorialLive && typeof global.TutorialInteractive?.onIncomingState === 'function') {
+        global.TutorialInteractive.onIncomingState(s, G.gameState);
+      }
       enqueuePendingState(s);
       return;
     }
@@ -262,6 +268,13 @@
     }
     const cur = document.querySelector('.screen.active')?.id;
     if (cur !== 'screen-game') showScr('game');
+
+    // Advance tutorial dialogue from the incoming state before board animations so
+    // players can start reading the next tip while presentation is still playing.
+    if (!replayForward && G.tutorialLive
+        && typeof global.TutorialInteractive?.onIncomingState === 'function') {
+      global.TutorialInteractive.onIncomingState(s, prev);
+    }
 
     if (G.isSpectator) {
       G.lastSeq = s.seq;
@@ -397,13 +410,21 @@
             newEntries,
             forceEmptyRound: emptySkip && !livePlan.wantsEmptyRound,
           });
-          if (!replayForward) ensurePendingPromptSurfaced(s, G.playerId);
+          if (!replayForward) {
+            const after = (typeof pickLatestStateForPlayback === 'function'
+              ? pickLatestStateForPlayback(G.gameState) : null) || G.gameState || s;
+            ensurePendingPromptSurfaced(after, G.playerId);
+          }
         } finally {
           G._animHideIids = null;
           clearHandArrivingFlags();
           G.animating = false;
-          if (!replayForward && s.pending_prompt?.responder === G.playerId) {
-            ensurePendingPromptSurfaced(s, G.playerId);
+          if (!replayForward) {
+            const after = (typeof pickLatestStateForPlayback === 'function'
+              ? pickLatestStateForPlayback(G.gameState) : null) || G.gameState || s;
+            if (after.pending_prompt?.responder === G.playerId) {
+              ensurePendingPromptSurfaced(after, G.playerId);
+            }
           }
           releaseLivePollsAndFlush();
         }
@@ -416,7 +437,11 @@
             G.animating = true;
             try {
               await presentLiveRound(prev, s, G.playerId, { newEntries, forceEmptyRound: true });
-              if (!replayForward) ensurePendingPromptSurfaced(s, G.playerId);
+              if (!replayForward) {
+                const after = (typeof pickLatestStateForPlayback === 'function'
+                  ? pickLatestStateForPlayback(G.gameState) : null) || G.gameState || s;
+                ensurePendingPromptSurfaced(after, G.playerId);
+              }
               emptyRoundHandled = true;
             } finally {
               G._animHideIids = null;

@@ -7628,11 +7628,11 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=3"></script>
 <script src="client/js/game-sync.js?v=10"></script>
-<script src="client/js/state-apply.js?v=20"></script>
+<script src="client/js/state-apply.js?v=21"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=25"></script>
-<script src="client/js/tutorial-interactive.js?v=12"></script>
+<script src="client/js/tutorial-interactive.js?v=13"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -31510,7 +31510,11 @@ function confirmMull(){
     ids = [...G.mullMarked];
   }
   closeM('overlay-mull'); G.mullMarked.clear();
-  if (G.tutorialLive) G._tutMulliganDone = true;
+  if (G.tutorialLive) {
+    G._tutMulliganDone = true;
+    // Don't wait for turn-start animations — update guide text immediately.
+    if (typeof TutorialInteractive?.checkGoalNow === 'function') TutorialInteractive.checkGoalNow();
+  }
   G.mulliganPending = true;
   sfxPlay('mulligan_keep');
   sendAct('mulligan',{card_ids:ids});
