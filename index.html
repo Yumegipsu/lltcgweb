@@ -7768,6 +7768,7 @@ const WRAPPED_OAUTH_REDIRECT = 'https://loveliveradio.ca/wrapped';
 const DISCORD_OAUTH_STATE_TCG = 'tcg';
 const AUTH_TOKEN_KEY = 'llr_wrapped_token';
 const LOVECA_CHALLENGE_KEY = 'tcg_loveca_challenge';
+const LOVECA_SPECTATE_KEY = 'tcg_loveca_spectate';
 const AUTH_FETCH_TIMEOUT_MS = 12000;
 const AUTH_BOOT_WATCHDOG_MS = 15000;
 const RECONNECT_FETCH_TIMEOUT_MS = 8000;
@@ -9129,14 +9130,56 @@ function captureLovecaChallengeFromUrl() {
     const params = new URLSearchParams(location.search);
     const challenge = (params.get('challenge') || '').trim();
     const modeRaw = (params.get('mode') || 'ranked').trim().toLowerCase();
-    if (!challenge || !/^\d{5,32}$/.test(challenge)) return;
-    const mode = modeRaw === 'casual' || modeRaw === 'unranked' ? 'casual' : 'ranked';
-    sessionStorage.setItem(LOVECA_CHALLENGE_KEY, JSON.stringify({ challenge, mode }));
-    params.delete('challenge');
-    params.delete('mode');
+    const spectate = (params.get('spectate') || '').trim().toUpperCase();
+    let changed = false;
+    if (challenge && /^\d{5,32}$/.test(challenge)) {
+      const mode = modeRaw === 'casual' || modeRaw === 'unranked' ? 'casual' : 'ranked';
+      sessionStorage.setItem(LOVECA_CHALLENGE_KEY, JSON.stringify({ challenge, mode }));
+      params.delete('challenge');
+      params.delete('mode');
+      changed = true;
+    }
+    if (spectate && /^[A-Z0-9]{4,16}$/.test(spectate)) {
+      sessionStorage.setItem(LOVECA_SPECTATE_KEY, spectate);
+      params.delete('spectate');
+      changed = true;
+    }
+    if (!changed) return;
     const qs = params.toString();
     history.replaceState({}, document.title, location.pathname + (qs ? '?' + qs : '') + location.hash);
   } catch (e) { /* ignore */ }
+}
+
+function peekLovecaSpectate() {
+  try {
+    const roomId = (sessionStorage.getItem(LOVECA_SPECTATE_KEY) || '').trim().toUpperCase();
+    if (!roomId || !/^[A-Z0-9]{4,16}$/.test(roomId)) return null;
+    return roomId;
+  } catch (e) {
+    return null;
+  }
+}
+
+function clearLovecaSpectate() {
+  try { sessionStorage.removeItem(LOVECA_SPECTATE_KEY); } catch (e) {}
+}
+
+async function consumeLovecaSpectateInvite() {
+  const roomId = peekLovecaSpectate();
+  if (!roomId) return;
+  clearLovecaSpectate();
+  try {
+    const res = await apiPost('spectate_join', { room_id: roomId });
+    if (typeof captureSyncMeta === 'function') captureSyncMeta(res);
+    await bootSpectatorSession({
+      roomId: res.room_id,
+      token: res.spectator_token,
+      p1Name: res.p1_name,
+      p2Name: res.p2_name,
+    });
+  } catch (e) {
+    toast(e.message || 'Could not spectate that match.', 4200);
+  }
 }
 
 function peekLovecaChallenge() {
@@ -9497,6 +9540,9 @@ async function initAccountFlow() {
     if (!token) {
       if (await resumeActiveGameIfAny()) return;
       showGuestAuth(null, 'auth.guestPrompt');
+      setTimeout(() => {
+        if (peekLovecaSpectate()) void consumeLovecaSpectateInvite();
+      }, 0);
       return;
     }
     if (authEl) {
@@ -9526,7 +9572,8 @@ async function initAccountFlow() {
     if (await resumeActiveGameIfAny()) return;
     enterHub(me);
     setTimeout(() => {
-      if (peekLovecaChallenge()) void consumeLovecaChallengeInvite();
+      if (peekLovecaSpectate()) void consumeLovecaSpectateInvite();
+      else if (peekLovecaChallenge()) void consumeLovecaChallengeInvite();
       else void resumeRankedSearchIfQueued();
     }, 0);
   } catch (e) {
@@ -9746,7 +9793,8 @@ async function confirmStarter() {
     A.profile = me;
     enterHub(me);
     setTimeout(() => {
-      if (peekLovecaChallenge()) void consumeLovecaChallengeInvite();
+      if (peekLovecaSpectate()) void consumeLovecaSpectateInvite();
+      else if (peekLovecaChallenge()) void consumeLovecaChallengeInvite();
       else void resumeRankedSearchIfQueued();
     }, 0);
   } catch (e) { el('starter-err').textContent = e.message; }

@@ -1111,8 +1111,130 @@ function tcgPublicPacksOpened(string $discordId): int {
     return $total;
 }
 
+function tcgPublicSpectateUrl(string $roomId): string {
+    return 'https://loveliveradio.ca/tcg/?spectate=' . rawurlencode($roomId);
+}
+
+function tcgPublicInMatchStatusFromState(string $discordId, string $roomId, array $state, string $mode): ?array {
+    if (!function_exists('tcgIsActiveGameplayStatus')) {
+        require_once __DIR__ . '/spectate.php';
+    }
+    if (!tcgIsActiveGameplayStatus($state)) {
+        return null;
+    }
+    $p1 = $state['players']['p1'] ?? null;
+    $p2 = $state['players']['p2'] ?? null;
+    if (!is_array($p1) || !is_array($p2)) {
+        return null;
+    }
+    $p1Discord = (string)($p1['discord_id'] ?? ($state['ranked']['p1_discord_id'] ?? ''));
+    $p2Discord = (string)($p2['discord_id'] ?? ($state['ranked']['p2_discord_id'] ?? ''));
+    $opponentName = null;
+    if ($p1Discord !== '' && $p1Discord === $discordId) {
+        $opponentName = (string)($p2['name'] ?? 'Opponent');
+    } elseif ($p2Discord !== '' && $p2Discord === $discordId) {
+        $opponentName = (string)($p1['name'] ?? 'Opponent');
+    } else {
+        return null;
+    }
+    $opponentName = html_entity_decode($opponentName, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    if ($opponentName === '') {
+        $opponentName = 'Opponent';
+    }
+    return [
+        'status' => 'in_match',
+        'mode' => $mode,
+        'room_id' => $roomId,
+        'opponent_name' => $opponentName,
+        'spectate_url' => tcgPublicSpectateUrl($roomId),
+    ];
+}
+
+function tcgPublicFindCasualMatchForUser(string $discordId): ?array {
+    if (!defined('GAMES_DIR')) {
+        return null;
+    }
+    if (!function_exists('tcgIsActiveGameplayStatus')) {
+        require_once __DIR__ . '/spectate.php';
+    }
+    $files = glob(GAMES_DIR . '*.json') ?: [];
+    foreach ($files as $file) {
+        $base = basename($file);
+        if (str_starts_with($base, 'lock_')
+            || str_starts_with($base, 'presence_')
+            || str_starts_with($base, 'spectators_')) {
+            continue;
+        }
+        $roomId = pathinfo($base, PATHINFO_FILENAME);
+        if ($roomId === '') {
+            continue;
+        }
+        $raw = @file_get_contents($file);
+        if ($raw === false) {
+            continue;
+        }
+        $state = json_decode($raw, true);
+        if (!is_array($state) || ($state['mode'] ?? '') === 'ranked') {
+            continue;
+        }
+        $hit = tcgPublicInMatchStatusFromState($discordId, $roomId, $state, 'casual');
+        if ($hit) {
+            return $hit;
+        }
+    }
+    return null;
+}
+
 function tcgPublicQueueStatus(string $discordId): array {
+    // Active match first (takes priority over queue searching).
     $db = tcgDb();
+    $stmt = $db->prepare(
+        'SELECT room_id, p1_id, p2_id FROM tcg_ranked_matches
+         WHERE status = "pending" AND (p1_id = ? OR p2_id = ?)
+         ORDER BY created_at DESC LIMIT 1'
+    );
+    $stmt->execute([$discordId, $discordId]);
+    $ranked = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($ranked) {
+        $roomId = (string)($ranked['room_id'] ?? '');
+        if ($roomId !== '' && function_exists('tcgRankedGameFilePath')) {
+            $path = tcgRankedGameFilePath($roomId);
+            if (is_file($path)) {
+                $state = json_decode((string)file_get_contents($path), true);
+                if (is_array($state)) {
+                    $hit = tcgPublicInMatchStatusFromState($discordId, $roomId, $state, 'ranked');
+                    if ($hit) {
+                        return $hit;
+                    }
+                }
+            }
+        }
+        // Fallback using DB ids + usernames when state is missing/odd.
+        $isP1 = ((string)($ranked['p1_id'] ?? '')) === $discordId;
+        $oppId = $isP1 ? (string)($ranked['p2_id'] ?? '') : (string)($ranked['p1_id'] ?? '');
+        $oppName = 'Opponent';
+        if ($oppId !== '') {
+            if (!function_exists('tcgGetUserDisplayName')) {
+                require_once __DIR__ . '/ranked_room.php';
+            }
+            $oppName = tcgGetUserDisplayName($oppId) ?: 'Opponent';
+        }
+        if ($roomId !== '') {
+            return [
+                'status' => 'in_match',
+                'mode' => 'ranked',
+                'room_id' => $roomId,
+                'opponent_name' => $oppName,
+                'spectate_url' => tcgPublicSpectateUrl($roomId),
+            ];
+        }
+    }
+
+    $casual = tcgPublicFindCasualMatchForUser($discordId);
+    if ($casual) {
+        return $casual;
+    }
+
     $stmt = $db->prepare('SELECT joined_at FROM tcg_match_queue WHERE discord_id = ?');
     $stmt->execute([$discordId]);
     if ($stmt->fetch(PDO::FETCH_ASSOC)) {
