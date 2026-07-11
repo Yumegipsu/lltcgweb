@@ -22062,6 +22062,9 @@ function cpuScoreMember(c, cpu, hand, stageColors, tier, read = null, s = null) 
   const ctx = cpuAbilityCtx(cpu, tier, read, winPressure, null, sit);
   let score = novelty * (tier === 'hard' ? 4.5 : 3) + blade * (tier === 'hard' ? 1.2 : 0.85) - ec * 0.35;
   score += cpuScoreMemberPassiveAbilities(c, tier, ctx);
+  if (typeof cpuMetaMemberWeight === 'function') {
+    score += cpuMetaMemberWeight(c, tier);
+  }
   if (tier === 'hard' && (cpu.success_lives || []).length >= 2) score += ec * 0.15;
   if (read) {
     if (read.oppRichBoard || read.totalBlade >= 5) score += blade * (tier === 'hard' ? 0.45 : 0.28);
@@ -22133,17 +22136,28 @@ function cpuMemberLiveUnlockBonus(c, cpu, tier, hand) {
   if (!unviableLives.length) return 0;
   const ae = (cpu.energy_zone || []).filter(energyChipActive).length;
   const ec = effectiveCost(c, hand ?? cpu.hand);
+  const livePriority = (live) => {
+    const printed = live.score || 0;
+    const meta = typeof cpuMetaLiveWeight === 'function' ? cpuMetaLiveWeight(live, tier, cpuWinPressure(cpu)) : 0;
+    return printed * 2 + meta;
+  };
   const scorePool = (pool) => {
     let unlocked = 0;
-    let bestScore = 0;
+    let bestPri = 0;
     unviableLives.forEach(live => {
       if (cpuCheckHearts(pool, cpuLiveRequiredHearts(live))) {
         unlocked++;
-        bestScore = Math.max(bestScore, live.score || 0);
+        bestPri = Math.max(bestPri, livePriority(live));
       }
     });
-    return cpuLiveUnlockBonusValue(unlocked, bestScore, tier);
+    // Map priority back onto the existing unlock bonus curve (approx score units).
+    const bestLiveScore = Math.max(printedScoreFromPriority(bestPri), 0);
+    return cpuLiveUnlockBonusValue(unlocked, bestLiveScore, tier);
   };
+  function printedScoreFromPriority(pri) {
+    // Prefer unlocking high-meta Lives even if printed score is modest.
+    return Math.max(0, pri / 2.2);
+  }
   let best = 0;
   for (const slot of ['center', 'left', 'right']) {
     const existing = cpu.stage?.[slot];
@@ -22153,7 +22167,6 @@ function cpuMemberLiveUnlockBonus(c, cpu, tier, hand) {
       continue;
     }
     if (ec >= 1 && !memberBlocksBaton(existing) && !memberBatonRestricted(existing, c)) {
-      const batonCost = Math.max(0, ec - stageMemberEffectiveCost(existing, cpu));
       const aeBaton = affordableEnergyForBatonPlay(cpu, existing, c);
       if (canAffordBatonWithOptionalDouble(cpu, c, slot, existing, aeBaton, ec)) {
         best = Math.max(best, scorePool(cpuSimHeartPoolAfterMember(cpu, c, slot)));
@@ -22197,6 +22210,9 @@ function cpuScoreLiveForSet(c, tier, winPressure, read = null, cpu = null) {
   const ctx = cpu ? cpuAbilityCtx(cpu, tier, read, winPressure, null, sit) : { tier, read, winPressure, sit };
   let score = (c.score || 0) + (winPressure * 4);
   score += cpuScoreLiveCardAbilities(c, tier, ctx);
+  if (typeof cpuMetaLiveWeight === 'function') {
+    score += cpuMetaLiveWeight(c, tier, winPressure);
+  }
   if (tier === 'hard') score += 0.85;
   else if (tier === 'normal') score += 0.4;
   if (read) {
@@ -22225,8 +22241,10 @@ function cpuPickDiscardIds(hand, count, tier, winPressure = 0, read = null) {
     let keep = 0;
     if (c.card_type === 'メンバー' || c.card_type_en === 'Member') {
       keep += 3 + (c.blade || 0) + (4 - Math.min(4, c.cost || 0));
+      if (typeof cpuMetaMemberWeight === 'function') keep += cpuMetaMemberWeight(c, tier);
     } else if (c.card_type === 'ライブ' || c.card_type_en === 'Live') {
       keep += (c.score || 0) * 1.5 + (protectLives ? 12 + winPressure * 8 : 0);
+      if (typeof cpuMetaLiveWeight === 'function') keep += cpuMetaLiveWeight(c, tier, winPressure);
     } else keep += 1;
     return { c, keep };
   }).sort((a, b) => a.keep - b.keep);
@@ -23222,6 +23240,26 @@ function cpuPickHeartColor(choices, cpu) {
   const pool = stageHeartPool(cpu);
   const counts = {};
   pool.forEach(c => { counts[c] = (counts[c] || 0) + 1; });
+  // Prefer colors that unlock the best Live still missing hearts.
+  const liveCtx = typeof cpuHandLiveContext === 'function' ? cpuHandLiveContext(cpu) : null;
+  const target = [...(liveCtx?.unviableLives || [])].sort((a, b) => {
+    const wa = typeof cpuMetaLiveWeight === 'function' ? cpuMetaLiveWeight(a, cpuDiff(), cpuWinPressure(cpu)) : 0;
+    const wb = typeof cpuMetaLiveWeight === 'function' ? cpuMetaLiveWeight(b, cpuDiff(), cpuWinPressure(cpu)) : 0;
+    return (b.score || 0) + wb - ((a.score || 0) + wa);
+  })[0];
+  if (target) {
+    const needed = {};
+    (cpuLiveRequiredHearts(target) || []).forEach(req => {
+      const color = normalizeHeartColor(req.color);
+      if (color === 'any') return;
+      needed[color] = (needed[color] || 0) + (req.count || 1);
+    });
+    pool.forEach(c => {
+      if (needed[c]) needed[c] = Math.max(0, needed[c] - 1);
+    });
+    const deficit = list.slice().sort((a, b) => (needed[b] || 0) - (needed[a] || 0));
+    if ((needed[deficit[0]] || 0) > 0) return deficit[0];
+  }
   return list.slice().sort((a, b) => (counts[b] || 0) - (counts[a] || 0))[0] || list[0];
 }
 
@@ -23712,8 +23750,17 @@ function normalizeHeartColor(color) {
 function stageHeartPool(p) {
   const pool = [];
   Object.values(p.stage||{}).forEach(m => {
-    if(m) (m.hearts||[]).forEach(hg => {
-      for(let i=0;i<(hg.count||1);i++) pool.push(normalizeHeartColor(hg.color));
+    if (!m) return;
+    (m.hearts||[]).forEach(hg => {
+      for (let i = 0; i < (hg.count || 1); i++) pool.push(normalizeHeartColor(hg.color));
+    });
+    (m.bonus_hearts || []).forEach(hg => {
+      if (typeof hg === 'string') {
+        pool.push(normalizeHeartColor(hg));
+        return;
+      }
+      const color = normalizeHeartColor(hg?.color || hg);
+      for (let i = 0; i < (hg?.count || 1); i++) pool.push(color);
     });
   });
   return pool;
@@ -25106,6 +25153,89 @@ function cpuResolvePromptBody(s, cpu, pr) {
     const cands=(pr.candidates||[]).filter(c=>step==='pick_named'?c.named:c&&!c.named);
     const slot=cands[0]?.slot;
     if(slot) cpuAct('resolve_prompt',{slot});
+    return;
+  }
+  if(pr.type==='pick_baton_entered_member_heart'){
+    const cands=pr.candidates||[];
+    const best=[...cands].sort((a,b)=>(b.blade||0)-(a.blade||0)||(b.cost||0)-(a.cost||0))[0];
+    const slot=best?.slot||cands[0]?.slot;
+    if(slot) cpuAct('resolve_prompt',{slot});
+    else cpuAct('anti_softlock_skip',{});
+    return;
+  }
+  if(pr.type==='hsbp6_pick_wr_live_and_member'){
+    const filter=pr.wr_pick_cfg?.filter||(pr.step==='pick_live'?'live':'member');
+    const cands=(pr.candidates||[]).filter(c=>{
+      if(filter==='live') return c.card_type==='ライブ'||c.card_type_en==='Live';
+      if(filter==='member') return c.card_type==='メンバー'||c.card_type_en==='Member';
+      return true;
+    });
+    const pool=cands.length?cands:(pr.candidates||[]);
+    const pick=cpuPickBestCandidate(pool, cpu, hand, tier, read)||pool[0];
+    if(pick?.instance_id) cpuAct('resolve_prompt',{card_id:pick.instance_id});
+    else cpuAct('resolve_prompt',{choice:'skip'});
+    return;
+  }
+  if(pr.type==='optional_discard_activate_wait_hearts'||pr.type==='optional_discard_activate_wait_blade'){
+    const step=pr.step||'confirm';
+    if(step==='pick_wait'){
+      const slots=pr.wait_slots||[];
+      const slot=slots[0];
+      if(slot) cpuAct('resolve_prompt',{choice:slot,slot});
+      else cpuAct('resolve_prompt',{choice:'no'});
+      return;
+    }
+    if(tier==='easy'){ cpuAct('resolve_prompt',{choice:'no'}); return; }
+    const ids=cpuPickDiscardIds(hand, 2, tier, winPressure, read);
+    if(ids.length>=2) cpuAct('resolve_prompt',{choice:'yes',discard_ids:ids.slice(0,2)});
+    else cpuAct('resolve_prompt',{choice:'no'});
+    return;
+  }
+  if(pr.type==='pl_muse_stack_heart_choice'){
+    const color=cpuPickHeartColor(pr.heart_choices||pr.choices, cpu);
+    cpuAct('resolve_prompt',{choice:color,heart_choice:color});
+    return;
+  }
+  if(pr.type==='play_stacked_member_from_under'){
+    if(tier==='easy'){ cpuAct('resolve_prompt',{choice:'no'}); return; }
+    const card=pr.stack_cards?.[0]||pr.candidates?.[0];
+    const slot=pr.empty_slots?.[0];
+    if(card?.instance_id&&slot){
+      cpuAct('resolve_prompt',{choice:'yes',card_id:card.instance_id,slot});
+    } else {
+      cpuAct('resolve_prompt',{choice:'no'});
+    }
+    return;
+  }
+  if(pr.type==='spbp2_discard_liella_choice'){
+    const step=pr.step||'pick_hand';
+    const grp=pr.group||'Superstar';
+    if(step==='pick_hand'){
+      const pool=hand.filter(c=>(c.group||'')===grp);
+      const pick=cpuPickBestCandidate(pool, cpu, hand, tier, read)||pool[0]||hand[0];
+      if(pick?.instance_id) cpuAct('resolve_prompt',{card_id:pick.instance_id});
+      else cpuAct('anti_softlock_skip',{});
+      return;
+    }
+    if(step==='choose'){
+      const choices=pr.choices||['energy','hearts'];
+      let pick='energy';
+      if(choices.includes('both')&&tier==='hard') pick='both';
+      else if(choices.includes('hearts')&&tier!=='easy') pick='hearts';
+      else if(choices.includes(pick)) {/* keep */}
+      else pick=choices[0];
+      cpuAct('resolve_prompt',{choice:pick});
+      return;
+    }
+    if(step==='pick_member'){
+      const cands=pr.candidates||[];
+      const best=[...cands].sort((a,b)=>(b.blade||0)-(a.blade||0))[0];
+      const slot=best?.slot||cands[0]?.slot;
+      if(slot) cpuAct('resolve_prompt',{slot});
+      else cpuAct('anti_softlock_skip',{});
+      return;
+    }
+    cpuAct('anti_softlock_skip',{});
     return;
   }
   if(pr.type==='optional_pay_energy_up_to'){
@@ -33906,7 +34036,8 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/spectacle.js?v=3"></script>
-<script src="client/js/cpu-ai.js?v=2"></script>
+<script src="client/js/cpu-meta-weights.js?v=1"></script>
+<script src="client/js/cpu-ai.js?v=3"></script>
 <script>void bootApp();</script>
 </body>
 </html>
