@@ -726,16 +726,51 @@ function resolveOptionalDiscardPromptChoice(
                     return $state;
                 }
             } elseif (($then['type'] ?? '') === 'add_from_wr') {
-                $added = addFromWaitingRoomFiltered(
-                    $ownerP,
-                    $then['group'] ?? '',
-                    $then['filter'] ?? '',
-                    intval($then['count'] ?? 1),
-                    null,
-                    array_filter(['subunit' => $then['subunit'] ?? ''])
+                // Re-bind after prior mutations; prefer choice helper so WR picks stay consistent.
+                $ownerP = &$state['players'][$owner];
+                $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '')
+                    ?: [
+                        'instance_id' => $prompt['source_id'] ?? '',
+                        'name_en' => $prompt['source_name'] ?? 'Member',
+                        'name' => $prompt['source_name'] ?? 'Member',
+                    ];
+                $cfg = [
+                    'group' => (string)($then['group'] ?? ''),
+                    'filter' => (string)($then['filter'] ?? ''),
+                ];
+                if (!empty($then['subunit'])) {
+                    $cfg['subunit'] = (string)$then['subunit'];
+                }
+                $addedOrPrompt = addFromWaitingRoomWithChoice(
+                    $state,
+                    $owner,
+                    $source,
+                    array_merge($promptAbility, $then),
+                    [
+                        'phase' => !empty($prompt['live_start']) ? 'live_start' : 'on_enter',
+                    ],
+                    $cfg,
+                    intval($then['count'] ?? 1)
                 );
+                $ownerP = &$state['players'][$owner];
+                if ($addedOrPrompt === null) {
+                    $state['seq']++;
+                    return $state;
+                }
                 $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] added $added card(s) from Waiting Room.");
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] added $addedOrPrompt card(s) from Waiting Room.");
+            } elseif (($then['type'] ?? '') === 'reveal_deck_until_live') {
+                $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '');
+                if ($source) {
+                    unset($state['pending_prompt']);
+                    $state = resolveAbilityEffect($state, $owner, $source, $then, [
+                        'phase' => !empty($prompt['live_start']) ? 'live_start' : 'on_enter',
+                    ]);
+                    if (!empty($state['pending_prompt'])) {
+                        $state['seq']++;
+                        return $state;
+                    }
+                }
             } elseif (sSd1IsEffectType($then['type'] ?? '')) {
                 $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '');
                 if ($source) {

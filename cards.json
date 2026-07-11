@@ -31370,7 +31370,7 @@
             "abilities": [
                 {
                     "trigger": "live_start",
-                    "type": "score_per_distinct_group_stage",
+                    "type": "score_per_distinct_heart_colors",
                     "group": "Nijigasaki",
                     "filter": "member",
                     "amount": 1

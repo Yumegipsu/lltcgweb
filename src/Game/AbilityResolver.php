@@ -6,6 +6,8 @@
 require_once __DIR__ . '/AbilityResolverSwitch.php';
 
 function resolveAbilityEffect(array $state, string $pid, array $source, array $ab, array $ctx = []): array {
+    // Do not refreshEmptyMainDecks here: WR-targeting skills (add_from_wr, etc.) must
+    // see Waiting Room cards. Deck refresh happens on draw / mill / explicit empty-deck needs.
     $type = $ab['type'] ?? '';
     if (isMemberCard($source) && spBp2StageMemberAbilitiesSuppressed($state, $pid)) {
         return $state;

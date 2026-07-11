@@ -4,7 +4,7 @@
  *
  * Usage:
  *   php scripts/run_skill_audit_engine.php --batch=01
- *   php scripts/run_skill_audit_engine.php --batch=01 --update-progress
+ *   php scripts/run_skill_audit_engine.php --batch=vol1 --update-progress
  */
 declare(strict_types=1);
 
@@ -13,7 +13,7 @@ require_once $root . '/tests/bootstrap.php';
 
 function skillAuditUsage(): void
 {
-    fwrite(STDERR, "Usage: php scripts/run_skill_audit_engine.php --batch=NN [--update-progress] [--json]\n");
+    fwrite(STDERR, "Usage: php scripts/run_skill_audit_engine.php --batch=NN|vol1 [--update-progress] [--json]\n");
     exit(1);
 }
 
@@ -21,7 +21,8 @@ $batchId = null;
 $updateProgress = false;
 $jsonOut = false;
 foreach (array_slice($argv, 1) as $arg) {
-    if (preg_match('/^--batch=(\d{2})$/', $arg, $m)) {
+    // Numeric batches (01–99) or named product batches (vol1, next, …).
+    if (preg_match('/^--batch=([A-Za-z0-9][A-Za-z0-9_-]*)$/', $arg, $m)) {
         $batchId = $m[1];
     } elseif ($arg === '--update-progress') {
         $updateProgress = true;

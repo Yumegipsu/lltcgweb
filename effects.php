@@ -1035,14 +1035,16 @@ function optionalThenDeckLookMin(array $then): int {
     if ($type === 'mill_then_add_wr_group') {
         return max(1, intval($then['mill'] ?? 1));
     }
-    if ($type === 'energy_wait_from_deck') {
-        return max(1, intval($then['count'] ?? 1));
-    }
+    // energy_wait_from_deck pulls from energy_deck — handled in optionalDiscardThenViable.
     return 0;
 }
 
 /** True when optional discard's follow-up can still look/mill at least one deck card. */
 function optionalDiscardThenViable(array $p, array $then): bool {
+    if (($then['type'] ?? '') === 'energy_wait_from_deck') {
+        $need = max(1, intval($then['count'] ?? 1));
+        return count($p['energy_deck'] ?? []) >= $need;
+    }
     $need = optionalThenDeckLookMin($then);
     if ($need <= 0) {
         return true;

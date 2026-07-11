@@ -114,6 +114,43 @@ function tryResolveAbilityEffectSwitchScore(
             }
             break;
 
+        case 'score_per_distinct_heart_colors':
+            // e.g. Solitude Rain: +N score per distinct heart color among group Members on Stage.
+            $colors = [];
+            $group = $ab['group'] ?? '';
+            $filter = $ab['filter'] ?? 'member';
+            foreach ($p['stage'] as $mbr) {
+                if (!$mbr) {
+                    continue;
+                }
+                if ($group !== '' && !cardMatchesGroup($mbr, $group, $filter)) {
+                    continue;
+                }
+                foreach ($mbr['hearts'] ?? [] as $h) {
+                    $color = (string)($h['color'] ?? '');
+                    if ($color === '' || $color === 'any') {
+                        continue;
+                    }
+                    $colors[$color] = true;
+                }
+                foreach ($mbr['bonus_hearts'] ?? [] as $bh) {
+                    $color = is_array($bh) ? (string)($bh['color'] ?? '') : (string)$bh;
+                    if ($color === '' || $color === 'any') {
+                        continue;
+                    }
+                    $colors[$color] = true;
+                }
+            }
+            $cnt = count($colors);
+            if ($cnt > 0) {
+                $bonus = $cnt * intval($ab['amount'] ?? 1);
+                bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', $bonus);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] score +$bonus ($cnt distinct heart color(s)" .
+                    ($group !== '' ? " among $group Members" : '') . ').');
+            }
+            break;
+
         case 'score_if_named_stage_slots':
             if (stageNamedSlotsMatch($p, $ab['slots'] ?? [])) {
                 bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['amount'] ?? 1));
