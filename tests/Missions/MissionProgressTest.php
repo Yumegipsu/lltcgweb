@@ -89,6 +89,49 @@ final class MissionProgressTest extends TestCase
         $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'ms_win_nijigasaki', ''));
     }
 
+    public function testResignToCpuDoesNotGrantCpuGroupWinMission(): void
+    {
+        $cards = json_decode((string)file_get_contents(CARDS_FILE), true) ?: [];
+        $liella = $cards['starter_decks']['liella']['main_deck']
+            ?? $cards['starter_decks']['superstar']['main_deck']
+            ?? [];
+        $hasu = $cards['starter_decks']['hasunosora']['main_deck'] ?? [];
+        $this->assertNotEmpty($liella);
+        $this->assertNotEmpty($hasu);
+
+        // Legacy bug: solo join copied human discord_id onto the CPU seat.
+        $state = [
+            'status' => 'finished',
+            'mode' => 'unranked',
+            'winner' => 'p2',
+            'end_reason' => 'resign',
+            'resigned_by' => 'p1',
+            'players' => [
+                'p1' => [
+                    'id' => 'p1',
+                    'name' => 'Human',
+                    'discord_id' => $this->discordId,
+                    'deck_choice' => 'liella',
+                    'deck_snapshot' => ['main_nos' => $liella, 'energy_nos' => []],
+                ],
+                'p2' => [
+                    'id' => 'p2',
+                    'name' => 'CPU (Easy)',
+                    'discord_id' => $this->discordId,
+                    'deck_choice' => 'cpu:easy',
+                    'deck_snapshot' => ['main_nos' => $hasu, 'energy_nos' => []],
+                ],
+            ],
+        ];
+
+        $completions = tcgMissionOnGameFinished($state);
+        $ids = array_column($completions, 'id');
+        $this->assertNotContains('ms_win_hasunosora', $ids);
+        $this->assertNotContains('ms_win_liella', $ids);
+        $this->assertFalse(tcgMissionIsCompleted($this->discordId, 'ms_win_hasunosora', ''));
+        $this->assertFalse(tcgMissionIsCompleted($this->discordId, 'ms_win_liella', ''));
+    }
+
     public function testGroupWinMilestoneSkippedWithoutDiscordId(): void
     {
         $cards = json_decode((string)file_get_contents(CARDS_FILE), true) ?: [];
