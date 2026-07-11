@@ -1045,7 +1045,10 @@ function tcgApiPublicProfile(array $params): array {
     $banner = tcgFormatUserBanner($user, $cards);
     $bannerUrl = null;
     if ($banner && !empty($banner['card_no'])) {
-        $bannerUrl = 'https://loveliveradio.ca/tcg/cardimg.php?card_no=' . rawurlencode((string)$banner['card_no']);
+        $crop = $banner['crop'] ?? ['x' => 0, 'y' => 0.38, 'w' => 1, 'h' => 0.20];
+        $v = substr(sha1((string)$banner['card_no'] . '|' . json_encode($crop)), 0, 12);
+        $bannerUrl = 'https://loveliveradio.ca/tcg/bannerimg.php?discord_id='
+            . rawurlencode($discordId) . '&v=' . rawurlencode($v);
     }
 
     return [
