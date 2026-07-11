@@ -732,6 +732,14 @@ html:not(.tcg-mobile-viewport) #screen-game .opp-hand-strip .opp-hand-card{
   box-shadow:0 0 0 1px rgba(0,0,0,.35), 0 10px 36px rgba(0,0,0,.55);
 }
 #picker-card-hover-panel.visible{opacity:1;visibility:visible}
+/* Stay above zone/pick overlays (incl. spectacle-elevated zone @ 9200). */
+body:has(#overlay-zone.open) #picker-card-hover-panel,
+body:has(#overlay-pick.open) #picker-card-hover-panel,
+body:has(#overlay-mull.open) #picker-card-hover-panel,
+body:has(#overlay-hand-pick.open) #picker-card-hover-panel,
+body:has(#overlay-surveil.open) #picker-card-hover-panel{
+  z-index:9300;
+}
 #picker-card-hover-panel .hc-img{max-width:118px}
 #picker-card-hover-panel .hc-img.landscape{max-width:138px}
 #picker-card-hover-panel .hc-name{font-size:13px;line-height:1.25}
@@ -2027,6 +2035,8 @@ html.tcg-desktop-scaled:not(.tcg-mobile-viewport).tcg-compact-desktop #screen-ga
   box-shadow:0 2px 8px rgba(0,0,0,.5);
   background:#111;
   left:50%;top:50%;
+  pointer-events:auto;
+  cursor:help;
 }
 .wr-face-card.wr-under{
   transform:translate(calc(-50% - 4%), calc(-50% - 3%)) scale(0.96);
@@ -3317,7 +3327,7 @@ body.perf-spectacle-active #overlay-live.open,
 body.perf-spectacle-active #overlay-zone.open{
   z-index:9200;
 }
-body.perf-spectacle-active #modal-card{z-index:9250}
+body.perf-spectacle-active #modal-card{z-index:9350}
 /* Hand strip is hidden during spectacle — drop the hand cutout and use a
    normal dimmed bubble so dialogue is readable over the stage. */
 body.perf-spectacle-active .overlay.skill-hand-preserve.open{
@@ -28458,6 +28468,23 @@ async function wrPileRevealPendingMove(pid, iid, state, myId) {
   renderWaitingRoomPile(pileId, wr, state, myId, preferSrcByIdx);
 }
 
+/** Left-panel card info when hovering face-up Waiting Room pile art (yours or opponent). */
+function bindWaitingRoomFaceHover(node, card, s, viewerId) {
+  if (!node || !card || G.isTutorial || node.dataset.wrHoverBound) return;
+  if (typeof tcgMobileViewportActive === 'function' && tcgMobileViewportActive()) return;
+  node.dataset.wrHoverBound = '1';
+  const enriched = enrichCard(card);
+  node.addEventListener('pointerenter', () => {
+    if (G.drag || G.animating) return;
+    if (G.isSpectator) showSpectatorCardPreview(enriched, s || G.gameState);
+    else showHoverCardPreview(enriched, s || G.gameState, viewerId || G.playerId);
+  });
+  node.addEventListener('pointerleave', () => {
+    if (G.isSpectator) clearSpectatorCardPreview();
+    else if (!pinnedHandPreviewIid()) clearHoverCardPreview();
+  });
+}
+
 function renderWaitingRoomPile(pileId, cards, s, viewerId, preferSrcByIdx = {}) {
   const pile = el(pileId);
   if (!pile) return;
@@ -28480,8 +28507,10 @@ function renderWaitingRoomPile(pileId, cards, s, viewerId, preferSrcByIdx = {}) 
     const d = document.createElement('div');
     d.className = 'wr-face-card ' + (idx === topIdx ? 'wr-top' : 'wr-under');
     d.dataset.wrIdx = String(idx);
+    if (card?.instance_id) d.dataset.iid = card.instance_id;
     if (isLiveCard(card)) d.dataset.wrLive = '1';
     appendWrPileCardFace(d, card, { preferSrc: preferSrcByIdx[idx] || '' });
+    bindWaitingRoomFaceHover(d, card, s, viewerId);
     faceStack.appendChild(d);
   });
   stack.insertBefore(faceStack, stack.firstChild);
@@ -30062,7 +30091,8 @@ function findCardOwnerPid(s, iid) {
 
 function spectatorCardInspectable(node, card) {
   if (!node || !card) return false;
-  if (node.closest('.mat-zone.deck-pile')) return false;
+  // Face-up Waiting Room pile is public; other deck piles stay hidden.
+  if (node.closest('.mat-zone.deck-pile') && !node.closest('.mat-zone.wr-pile')) return false;
   if (isHiddenOpponentHandCardEl(node)) return false;
   if (node.classList.contains('live-storage-facedown')) return false;
   if (node.classList.contains('hand-draw-flip') && !node.classList.contains('revealed')) return false;
@@ -30983,7 +31013,7 @@ const PICKER_OVERLAY_IDS = new Set([
 ]);
 
 function pickerCardHoverEnabled() {
-  return !G.isTutorial && !G.isSpectator
+  return !G.isTutorial
     && !(typeof tcgMobileViewportActive === 'function' && tcgMobileViewportActive());
 }
 
