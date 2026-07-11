@@ -2159,6 +2159,10 @@ html.tcg-desktop-scaled:not(.tcg-mobile-viewport).tcg-compact-desktop #screen-ga
 .coin-choice-btns{display:flex;flex-direction:column;gap:10px;margin-top:14px;width:100%;max-width:320px}
 .coin-choice-btns[hidden],.coin-mbox:has(.coin.flipping) .coin-choice-btns{display:none!important}
 .coin-choice-btns .btn-grad{width:100%;padding:11px 18px;font-size:13px}
+.coin-choice-btns .btn-grad.tut-coin-opp-locked,
+.coin-choice-btns .btn-grad.tut-coin-opp-locked:disabled{
+  opacity:.42;cursor:not-allowed;filter:grayscale(.35);pointer-events:none;
+}
 @keyframes coinFlip{
   0%{transform:rotateY(0) scale(1)}
   100%{transform:rotateY(1080deg) scale(1)}
@@ -7609,7 +7613,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=25"></script>
-<script src="client/js/tutorial-interactive.js?v=9"></script>
+<script src="client/js/tutorial-interactive.js?v=10"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -23702,7 +23706,8 @@ function doCPU(s) {
     if (!flip.ready?.[cpuId]) {
       if (G.tutorialLive && !tutorialLiveCoinActive()) return;
       TCG_DEBUG.log('cpu', 'ack_coin_flip');
-      cpuSchedule(() => cpuAct('ack_coin_flip', {}), 1100);
+      const ackDelay = G.tutorialLive ? 280 : 1100;
+      cpuSchedule(() => cpuAct('ack_coin_flip', {}), ackDelay);
       return;
     }
     if (G.tutorialLive && !tutorialLiveCoinActive()) return;
@@ -31025,12 +31030,17 @@ function showCoinChoiceButtons() {
   const oppBtn = el('btn-coin-first-opp');
   const tutChoose = G.tutorialLive && tutorialLiveStepId() === 'choose_first';
   if (oppBtn) {
-    oppBtn.hidden = tutChoose;
-    oppBtn.style.display = tutChoose ? 'none' : '';
+    // Tutorial: keep both options visible; grey out "opponent goes first".
+    oppBtn.hidden = false;
+    oppBtn.style.display = '';
+    oppBtn.disabled = !!tutChoose;
+    oppBtn.classList.toggle('tut-coin-opp-locked', !!tutChoose);
+    oppBtn.setAttribute('aria-disabled', tutChoose ? 'true' : 'false');
   }
   if (selfBtn) {
     selfBtn.hidden = false;
     selfBtn.style.display = '';
+    selfBtn.disabled = false;
   }
   btns.hidden = false;
   btns.style.display = 'flex';
@@ -31084,6 +31094,19 @@ function syncCoinFlipChoiceUi(s, myId) {
   if (G.tutorialLive && tutorialLiveStepId() === 'coin') {
     el('coin-msg').textContent = t('coin.wonFlip', { name: winName });
     el('coin-result').textContent = winner === myId ? t('coin.youWon') : t('coin.winnerChoosing');
+    openM('overlay-coin');
+    updatePhaseTimerUI(s);
+    return;
+  }
+
+  // Tutorial choose-first: always show go-first UI for the local winner (CPU ack may still be in flight).
+  if (G.tutorialLive && tutorialLiveStepId() === 'choose_first' && winner === myId) {
+    el('coin-msg').textContent = t('coin.chooseFirst');
+    el('coin-result').textContent = t('coin.youWon');
+    if (showCoinChoiceButtons()) {
+      el('btn-coin-first-self').textContent = t('coin.goFirst');
+      el('btn-coin-first-opp').textContent = t('coin.oppGoesFirst', { name: oppName });
+    }
     openM('overlay-coin');
     updatePhaseTimerUI(s);
     return;
@@ -31157,6 +31180,9 @@ function ensureCoinFlipAcked(s, myId) {
   apiPost('action', { room_id: G.roomId, token: G.token, type: 'ack_coin_flip', data: {} })
     .then(() => {
       G.coinFlipAckSent = true;
+      if (G.tutorialLive && typeof TutorialInteractive?.checkGoalNow === 'function') {
+        TutorialInteractive.checkGoalNow();
+      }
       if (G.polling) return pullLatestState(true);
       if (G.isCPU) {
         doCPU(G.gameState || gs);
@@ -31246,7 +31272,15 @@ function submitCoinFirstPlayerChoice(selfFirst) {
   const winner = s?.coin_flip?.winner;
   if (!winner || s.phase !== 'coin_flip') return;
   if (winner !== G.playerId) return;
-  if (!G._coinFlipAnimComplete || !coinFlipBothReady(s) || coinFlipAnimationActive()) return;
+  if (!G._coinFlipAnimComplete || coinFlipAnimationActive()) return;
+  if (!coinFlipBothReady(s)) {
+    // Tutorial: keep UI up and nudge CPU ack; ignore early taps until both ready.
+    if (G.tutorialLive && G.isCPU) {
+      doCPU(s);
+      armWatchdog(s);
+    }
+    return;
+  }
   const oppId = winner === 'p1' ? 'p2' : 'p1';
   const pick = selfFirst ? winner : oppId;
   hideCoinChoiceButtons();
