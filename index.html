@@ -4308,6 +4308,11 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .starter-opt.sel{border-color:#fff;box-shadow:0 0 0 2px rgba(186,228,255,.55),0 0 18px rgba(186,228,255,.25)}
 .account-shell.booster-shell{max-width:min(1200px,98vw)}
 .box-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:14px}
+.booster-open-actions{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.booster-open-actions .btn-grad:disabled,
+.booster-open-actions .btn-out:disabled,
+#modal-paid-booster .paid-booster-actions .btn-grad:disabled{
+  opacity:.42;filter:grayscale(.35);cursor:not-allowed;box-shadow:none}
 .box-tile{
   border-radius:10px;border:1px solid rgba(255,255,255,.4);
   background:url("bg/ptn.png") top center/200px 200px repeat,rgba(52,163,243,.72);
@@ -6523,7 +6528,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <p id="booster-daily-info" class="hub-stat"></p>
       <p id="booster-star-gems-info" class="hub-stat" hidden></p>
       <div class="box-grid" id="box-grid"></div>
-      <button class="btn-grad" id="btn-open-pack" type="button" disabled>Open Pack</button>
+      <div class="booster-open-actions">
+        <button class="btn-grad" id="btn-open-pack" type="button" disabled>Open Pack</button>
+        <button class="btn-out" id="btn-open-box" type="button" disabled>Open Box</button>
+      </div>
       <div class="pack-reveal" id="pack-reveal"></div>
       <p class="lerr" id="booster-err"></p>
     </div>
@@ -7620,7 +7628,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=34"></script>
+<script src="i18n.js?v=35"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=10"></script>
@@ -7830,7 +7838,12 @@ function boxPacksPerBox(boxId) {
 function openPackButtonLabel(boxId, withGems = false) {
   const base = t('booster.openPack', { n: boxPackSize(boxId) });
   if (!withGems) return base;
-  return base + ' · ' + t('booster.starGemsUnit', { n: STAR_GEMS_PACK_COST });
+  return base + ' · ' + starGemCostHtml(STAR_GEMS_PACK_COST);
+}
+
+function openBoxButtonLabel(boxId) {
+  const base = t('booster.openBox', { n: boxPacksPerBox(boxId) });
+  return base + ' · ' + starGemCostHtml(STAR_GEMS_BOX_COST);
 }
 
 function starGemIconHtml(sizePx = 18) {
@@ -7905,6 +7918,9 @@ function updateStarGemsUI() {
       boosterInfo.hidden = true;
     }
   }
+  if (document.querySelector('.screen.active')?.id === 'screen-booster') {
+    syncBoosterOpenButton(dailyRemainingFromProfile(), !!A.boxPick);
+  }
   updateRankedPrUI();
 }
 
@@ -7965,8 +7981,10 @@ function showPaidBoosterConfirm() {
       packBtn.disabled = !canAffordPackWithGems();
     }
     if (boxBtn) {
+      boxBtn.hidden = false;
       boxBtn.innerHTML = t('booster.openPaidBox', { n: boxPacksPerBox(A.boxPick) }) + ' · ' + starGemCostHtml(STAR_GEMS_BOX_COST);
       boxBtn.disabled = !canAffordBoxWithGems();
+      boxBtn.title = canAffordBoxWithGems() ? '' : t('booster.needMoreGems', { n: STAR_GEMS_BOX_COST });
     }
     openM('modal-paid-booster');
   });
@@ -9705,14 +9723,30 @@ async function loadBoosterScreen(opts = {}) {
 }
 
 function syncBoosterOpenButton(remaining, hasBox) {
-  const btn = el('btn-open-pack');
-  if (!btn) return;
+  const packBtn = el('btn-open-pack');
+  const boxBtn = el('btn-open-box');
   const canDaily = (remaining ?? 0) > 0;
   const canGems = canAffordPackWithGems();
-  btn.disabled = !hasBox || (!canDaily && !canGems);
-  btn.textContent = hasBox
-    ? openPackButtonLabel(A.boxPick, !canDaily && canGems)
-    : t('booster.openPack', { n: DEFAULT_PACK_SIZE });
+  const canBox = canAffordBoxWithGems();
+  if (packBtn) {
+    packBtn.disabled = !hasBox || (!canDaily && !canGems);
+    if (hasBox) {
+      packBtn.innerHTML = openPackButtonLabel(A.boxPick, !canDaily && canGems);
+    } else {
+      packBtn.textContent = t('booster.openPack', { n: DEFAULT_PACK_SIZE });
+    }
+  }
+  if (boxBtn) {
+    // Always visible: greyed out until a set is selected and the player can afford a box.
+    boxBtn.hidden = false;
+    boxBtn.disabled = !hasBox || !canBox;
+    boxBtn.innerHTML = hasBox
+      ? openBoxButtonLabel(A.boxPick)
+      : (t('booster.openBox', { n: DEFAULT_PACKS_PER_BOX }) + ' · ' + starGemCostHtml(STAR_GEMS_BOX_COST));
+    boxBtn.title = !hasBox
+      ? t('booster.selectBoxFirst')
+      : (canBox ? '' : t('booster.needMoreGems', { n: STAR_GEMS_BOX_COST }));
+  }
 }
 
 async function runBoosterOpen(payment) {
@@ -9765,15 +9799,28 @@ async function runBoosterOpen(payment) {
   return res;
 }
 
+async function refreshBoosterScreenAfterOpen() {
+  const me = await accountGet('me');
+  A.profile = me;
+  syncStarGemsFromProfile(me);
+  const info = me.daily || {};
+  const dailyEl = el('booster-daily-info');
+  if (dailyEl) {
+    dailyEl.textContent = t('booster.packsLeft', { n: info.remaining ?? 0 });
+  }
+  syncBoosterOpenButton(info.remaining ?? 0, !!A.boxPick);
+  updateStarGemsUI();
+}
+
 async function openDailyPack() {
   if (A.packOpenBusy) return;
-  if (!A.boxPick) { el('booster-err').textContent = 'Select a booster box first'; return; }
+  if (!A.boxPick) { el('booster-err').textContent = t('booster.selectBoxFirst'); return; }
   el('booster-err').textContent = '';
   let payment = 'daily';
   const remaining = dailyRemainingFromProfile();
   if (remaining <= 0) {
     if (!canAffordPackWithGems() && !canAffordBoxWithGems()) {
-      el('booster-err').textContent = 'No daily packs left and not enough Star Gems.';
+      el('booster-err').textContent = t('booster.noPacksOrGems');
       return;
     }
     const choice = await showPaidBoosterConfirm();
@@ -9781,16 +9828,47 @@ async function openDailyPack() {
     payment = choice === 'box' ? 'gems_box' : 'gems';
   }
   A.packOpenBusy = true;
-  el('btn-open-pack').disabled = true;
+  const packBtn = el('btn-open-pack');
+  const boxBtn = el('btn-open-box');
+  if (packBtn) packBtn.disabled = true;
+  if (boxBtn) boxBtn.disabled = true;
   try {
     await runBoosterOpen(payment);
-    const me = await accountGet('me');
-    A.profile = me;
-    syncStarGemsFromProfile(me);
-    const info = me.daily || {};
-    el('booster-daily-info').textContent = (info.remaining ?? 0) + ' pack(s) left today (JST)';
-    syncBoosterOpenButton(info.remaining ?? 0, !!A.boxPick);
-    updateStarGemsUI();
+    await refreshBoosterScreenAfterOpen();
+  } catch (e) {
+    el('booster-err').textContent = e.message;
+    try {
+      const daily = await accountGet('daily_status');
+      if (daily.star_gems != null) A.starGems = Number(daily.star_gems) || 0;
+      const remainingNow = daily?.daily?.remaining ?? A.profile?.daily?.remaining ?? 0;
+      syncBoosterOpenButton(remainingNow, !!A.boxPick);
+      updateStarGemsUI();
+    } catch (_) {}
+  } finally {
+    A.packOpenBusy = false;
+  }
+}
+
+async function openBoosterBox() {
+  if (A.packOpenBusy) return;
+  if (!A.boxPick) {
+    el('booster-err').textContent = t('booster.selectBoxFirst');
+    return;
+  }
+  el('booster-err').textContent = '';
+  if (!canAffordBoxWithGems()) {
+    el('booster-err').textContent = t('booster.needMoreGems', { n: STAR_GEMS_BOX_COST });
+    syncBoosterOpenButton(dailyRemainingFromProfile(), true);
+    return;
+  }
+  A.packOpenBusy = true;
+  const packBtn = el('btn-open-pack');
+  const boxBtn = el('btn-open-box');
+  if (packBtn) packBtn.disabled = true;
+  if (boxBtn) boxBtn.disabled = true;
+  try {
+    await runBoosterOpen('gems_box');
+    await refreshBoosterScreenAfterOpen();
   } catch (e) {
     el('booster-err').textContent = e.message;
     try {
@@ -16075,6 +16153,7 @@ async function bootApp() {
   });
   on('modal-banner-crop', 'click', e => { if (e.target === el('modal-banner-crop')) closeM('modal-banner-crop'); });
   on('btn-open-pack', 'click', openDailyPack);
+  on('btn-open-box', 'click', openBoosterBox);
   on('btn-paid-open-pack', 'click', () => closePaidBoosterConfirm('pack'));
   on('btn-paid-open-box', 'click', () => closePaidBoosterConfirm('box'));
   on('btn-paid-booster-cancel', 'click', () => closePaidBoosterConfirm(null));

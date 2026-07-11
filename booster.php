@@ -534,6 +534,10 @@ function tcgComputeBoosterPackRates(array $box, array $cardsData): array {
             }
         }
         $notes[] = 'Approximate rates without box pity counters. Slot 5 foil pity may improve premium pulls over many packs.';
+        $notes[] = sprintf(
+            'Box opens (%d packs) share pity with single packs for this set: ~1 RM / box, ~1 PE+ / box when available, Live pity after dry packs, rarer SEC/P+ over multiple boxes — similar to real Loveca box guarantees.',
+            tcgBoxPacksPerBox($box)
+        );
         if (!empty($pools['LLE'])) {
             $godPct = round(100 / TCG_GOD_PACK_ODDS, 4);
             $notes[] = sprintf('God Pack (~%s%%): all five cards are LLE when triggered.', rtrim(rtrim(number_format($godPct, 4, '.', ''), '0'), '.'));
