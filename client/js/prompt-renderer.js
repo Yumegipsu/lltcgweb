@@ -2262,9 +2262,22 @@ global.renderPrompt = function renderPrompt(s, myId){
     ||pr?.type==='live_start_activate_stage_live_start_ability'
     ||pr?.type==='live_start_edel_note_dual_pick_buff'
     ||pr?.type==='treat_pick_group_member_hearts_as'
-    ||pr?.type==='cl1_pick_stage_member_blade')&&pr.responder===myId){
+    ||pr?.type==='cl1_pick_stage_member_blade'
+    ||pr?.type==='opp_member_match_heart_blade')&&pr.responder===myId){
     ovl.classList.remove('open');
-    openStageSlotPick(pr);
+    const raw=pr.candidates||[];
+    // Back-compat: older nested {slot, summary} shape from Mia compare prompt.
+    const candidates=raw.map(c=>{
+      if(c&&c.summary&&typeof c.summary==='object'){
+        return {...c.summary, slot:c.slot, instance_id:c.instance_id||c.summary.instance_id};
+      }
+      return c;
+    });
+    if(!candidates.length){
+      sendAct('resolve_prompt',{choice:'skip'});
+      return;
+    }
+    openStageSlotPick({...pr, candidates});
     return;
   }
   if(pr?.type==='optional_pos_change_subunit_blade'&&pr.responder===myId&&pr.step==='pick_target'){

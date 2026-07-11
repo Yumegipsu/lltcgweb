@@ -7585,7 +7585,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=19"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
-<script src="client/js/prompt-renderer.js?v=23"></script>
+<script src="client/js/prompt-renderer.js?v=24"></script>
 <script src="client/js/tutorial-interactive.js?v=9"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -25099,7 +25099,7 @@ function cpuResolvePromptBody(s, cpu, pr) {
     'cl1_pick_stage_member_blade','bp5_wr_live_deck_position',
     'pick_named_member_blade','pick_member_cost_bonus',
     'sbp5_pick_stage_member_blade','sbp5_pick_saint_snow_position','sbp5_position_change_slot',
-    'sbp6_wait_opp_side_member',
+    'sbp6_wait_opp_side_member','opp_member_match_heart_blade',
   ];
   if(pb1SlotPick.includes(pr.type)){
     const slot=pr.candidates?.[0]?.slot;

@@ -323,7 +323,8 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
             foreach ($state['players'][$opp]['stage'] as $slot => $mbr) {
                 if (!$mbr) continue;
                 if (cardMatchesNames($mbr, $exclude)) continue;
-                $candidates[] = ['instance_id' => $mbr['instance_id'] ?? '', 'slot' => $slot, 'summary' => cardPromptSummary($mbr)];
+                // Flat summary + slot so openStageSlotPick / mkPickCardEl can render faces.
+                $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
             }
             if (empty($candidates)) break;
             $state['pending_prompt'] = [
@@ -570,6 +571,37 @@ function nijiIsNijigasakiEffectType(string $type): bool {
         'reduce_hearts_if_same_name_duplicate', 'wait_self_on_enter',
     ];
     return in_array($type, $types, true);
+}
+
+/** Distinct heart colors on a Member (replaced_hearts override printed hearts). */
+function nijiMemberHeartColors(array $member): array {
+    $colors = [];
+    if (!empty($member['replaced_hearts']) && is_array($member['replaced_hearts'])) {
+        foreach ($member['replaced_hearts'] as $c) {
+            $c = (string)$c;
+            if ($c !== '') {
+                $colors[$c] = true;
+            }
+        }
+        return array_keys($colors);
+    }
+    foreach ($member['hearts'] ?? [] as $hg) {
+        $c = (string)($hg['color'] ?? '');
+        if ($c !== '') {
+            $colors[$c] = true;
+        }
+    }
+    return array_keys($colors);
+}
+
+function nijiMembersShareHeartColor(array $a, array $b): bool {
+    $other = array_flip(nijiMemberHeartColors($b));
+    foreach (nijiMemberHeartColors($a) as $c) {
+        if (isset($other[$c])) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function nijiResolveActivatedEffect(array $state, string $pid, array &$p, array &$member, $slot, array $ab, int $abilityIdx, array $data): ?array {
@@ -1221,6 +1253,89 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
         $state['seq']++;
         $state = finishPromptEffects($state);
         return $state;
+    }
+
+    if ($promptType === 'opp_member_match_heart_blade') {
+        if ($choice === 'skip' || $choice === 'no') {
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
+        $srcId = $prompt['source_id'] ?? '';
+        $srcSlot = findMemberSlot($ownerP, $srcId);
+        if ($srcSlot === null || empty($ownerP['stage'][$srcSlot])) {
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
+        $src = $ownerP['stage'][$srcSlot];
+        $opp = ($owner === 'p1') ? 'p2' : 'p1';
+        $oppP = &$state['players'][$opp];
+        $pickSlot = (string)($data['slot'] ?? '');
+        $pickId = (string)($data['card_id'] ?? $data['member_id'] ?? '');
+        if ($pickId === '' && $choice !== '' && !in_array($choice, ['yes', 'no', 'skip'], true)) {
+            $pickId = $choice;
+        }
+        $target = null;
+        if ($pickSlot !== '' && !empty($oppP['stage'][$pickSlot])) {
+            $target = $oppP['stage'][$pickSlot];
+        } elseif ($pickId !== '') {
+            foreach ($oppP['stage'] as $slot => $mbr) {
+                if ($mbr && ($mbr['instance_id'] ?? '') === $pickId) {
+                    $target = $mbr;
+                    break;
+                }
+            }
+        }
+        if (!$target) {
+            throw new Exception('Choose 1 opponent Stage Member');
+        }
+        $exclude = $ability['exclude_names'] ?? [];
+        if (cardMatchesNames($target, $exclude)) {
+            throw new Exception('Cannot choose that Member');
+        }
+        $candIds = [];
+        foreach ($prompt['candidates'] ?? [] as $cand) {
+            $id = $cand['instance_id'] ?? ($cand['summary']['instance_id'] ?? '');
+            if ($id !== '') {
+                $candIds[$id] = true;
+            }
+        }
+        $targetId = $target['instance_id'] ?? '';
+        if (!empty($candIds) && $targetId !== '' && empty($candIds[$targetId])) {
+            throw new Exception('Invalid opponent Member');
+        }
+
+        $per = max(1, intval($ability['amount'] ?? 1));
+        $maxBlade = max(1, intval($ability['max_blade'] ?? 3));
+        $gains = 0;
+        if (nijiMembersShareHeartColor($src, $target)) {
+            $gains += $per;
+        }
+        if (intval($src['cost'] ?? 0) === intval($target['cost'] ?? 0)) {
+            $gains += $per;
+        }
+        $srcBlade = isset($src['printed_blade_override'])
+            ? intval($src['printed_blade_override'])
+            : intval($src['blade'] ?? 0);
+        $tgtBlade = isset($target['printed_blade_override'])
+            ? intval($target['printed_blade_override'])
+            : intval($target['blade'] ?? 0);
+        if ($srcBlade === $tgtBlade) {
+            $gains += $per;
+        }
+        $gains = min($gains, $maxBlade);
+        if ($gains > 0) {
+            $ownerP['stage'][$srcSlot]['live_blade_bonus'] =
+                intval($ownerP['stage'][$srcSlot]['live_blade_bonus'] ?? 0) + $gains;
+        }
+        $srcName = $prompt['source_name'] ?? 'Member';
+        $tgtName = $target['name_en'] ?? $target['name'] ?? 'Member';
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            " — [$srcName] compared with $tgtName: +" . $gains . ' Blade until Live ends.');
+        unset($state['pending_prompt']);
+        $state['seq']++;
+        return finishPromptEffects($state);
     }
 
     if ($promptType === 'choose_replace_member_hearts') {
