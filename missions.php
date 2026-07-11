@@ -343,6 +343,9 @@ function tcgMissionBackfillPlayerDiscordFromAuth(array &$state, string $playerId
     if (!isset($state['players'][$playerId]) || !is_array($state['players'][$playerId])) {
         return;
     }
+    if (tcgMissionSeatIsCpu($state['players'][$playerId])) {
+        return;
+    }
     if (!empty($state['players'][$playerId]['discord_id'])) {
         return;
     }
@@ -372,6 +375,28 @@ function tcgPlayerDiscordId(array $state, string $playerId): ?string {
     return null;
 }
 
+/** True for CPU/COM seats — never credit missions to them (even if discord_id leaked onto the seat). */
+function tcgMissionSeatIsCpu(?array $player): bool {
+    if (!$player) {
+        return false;
+    }
+    if (function_exists('isCpuPlayer')) {
+        return isCpuPlayer($player);
+    }
+    $deckChoice = (string)($player['deck_choice'] ?? '');
+    if ($deckChoice === 'cpu' || str_starts_with($deckChoice, 'cpu:')) {
+        return true;
+    }
+    $name = (string)($player['name'] ?? '');
+    if ($name === '') {
+        return false;
+    }
+    if (str_contains($name, 'CPU') || str_contains($name, '🤖')) {
+        return true;
+    }
+    return str_starts_with($name, 'COM') || str_starts_with($name, 'COM（');
+}
+
 /** @return list<array{id: string, i18n_key: string, reward: int}> */
 function tcgMissionOnGameFinished(array $state): array {
     if (($state['status'] ?? '') !== 'finished') {
@@ -381,6 +406,10 @@ function tcgMissionOnGameFinished(array $state): array {
     $winner = $state['winner'] ?? null;
     $completions = [];
     foreach (['p1', 'p2'] as $pid) {
+        $player = $state['players'][$pid] ?? null;
+        if (tcgMissionSeatIsCpu(is_array($player) ? $player : null)) {
+            continue;
+        }
         $discordId = tcgPlayerDiscordId($state, $pid);
         if (!$discordId) {
             continue;

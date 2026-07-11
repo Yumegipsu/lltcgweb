@@ -263,7 +263,12 @@ function createRoom(array $body): array {
          'deck_choice' => $resolved['deck_choice'], 'deck_label' => $resolved['deck_label'],
          'main_deck' => $mainDeck, 'energy_deck' => $energyDeck,
          'deck_snapshot' => ['main_nos' => $resolved['main_nos'], 'energy_nos' => $resolved['energy_nos']]];
-    $authUid = tcgOptionalAuthUserId($body);
+    // CPU seats must never inherit the human auth id (solo join reuses the session).
+    $deckChoiceResolved = (string)($resolved['deck_choice'] ?? '');
+    $isCpuDeck = (($body['deck'] ?? '') === 'cpu')
+        || $deckChoiceResolved === 'cpu'
+        || str_starts_with($deckChoiceResolved, 'cpu:');
+    $authUid = $isCpuDeck ? null : tcgOptionalAuthUserId($body);
     if ($authUid) {
         $p1Payload['discord_id'] = $authUid;
     }
@@ -316,7 +321,13 @@ function joinRoom(array $body): array {
          'deck_choice' => $resolved['deck_choice'], 'deck_label' => $resolved['deck_label'],
          'main_deck' => $mainDeck, 'energy_deck' => $energyDeck,
          'deck_snapshot' => ['main_nos' => $resolved['main_nos'], 'energy_nos' => $resolved['energy_nos']]];
-    $authUid = tcgOptionalAuthUserId($body);
+    // Solo vs CPU: client joins p2 with deck=cpu using the same auth session as p1.
+    // Never copy that discord_id onto the CPU seat or resign→CPU-win grants the CPU deck's missions.
+    $deckChoiceResolved = (string)($resolved['deck_choice'] ?? '');
+    $isCpuDeck = (($body['deck'] ?? '') === 'cpu')
+        || $deckChoiceResolved === 'cpu'
+        || str_starts_with($deckChoiceResolved, 'cpu:');
+    $authUid = $isCpuDeck ? null : tcgOptionalAuthUserId($body);
     if ($authUid) {
         $p2Payload['discord_id'] = $authUid;
     }
@@ -335,6 +346,7 @@ function joinRoom(array $body): array {
         $cpuDiff = in_array($body['cpu_difficulty'] ?? '', ['easy', 'normal', 'hard'], true)
             ? $body['cpu_difficulty'] : 'easy';
         $state['cpu_difficulty'] = $cpuDiff;
+        unset($state['players']['p2']['discord_id']);
         $state = addLog($state, 'CPU deck: ' . ($resolved['deck_label'] ?? 'Generated'));
     }
 
