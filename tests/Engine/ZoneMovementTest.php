@@ -51,6 +51,80 @@ final class ZoneMovementTest extends TestCase
         $this->assertEmpty($state['players']['p1']['waiting_room']);
     }
 
+    public function testDrawLastCardRefreshesDeckImmediately(): void {
+        $card = static fn(string $id): array => [
+            'instance_id' => $id,
+            'card_type' => 'メンバー',
+            'name' => 'Test',
+            'name_en' => 'Test',
+            'cost' => 1,
+        ];
+        $state = [
+            'turn' => 3,
+            'players' => [
+                'p1' => [
+                    'name' => 'Issue53',
+                    'hand' => [],
+                    'main_deck' => [$card('last-deck')],
+                    'waiting_room' => [$card('wr-a'), $card('wr-b')],
+                    'energy_zone' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                ],
+            ],
+            'log' => [],
+        ];
+        $drawn = drawCardsForPlayer($state, 'p1', 1);
+        $this->assertSame(1, $drawn);
+        $handIds = array_column($state['players']['p1']['hand'], 'instance_id');
+        $this->assertContains('last-deck', $handIds);
+        // Deck must already be refreshed — not left empty until Live Set.
+        $this->assertNotEmpty($state['players']['p1']['main_deck']);
+        $this->assertEmpty($state['players']['p1']['waiting_room']);
+        $deckIds = array_column($state['players']['p1']['main_deck'], 'instance_id');
+        $this->assertContains('wr-a', $deckIds);
+        $this->assertContains('wr-b', $deckIds);
+        $this->assertTrue(
+            (bool) preg_match('/Deck refresh:/', implode("\n", array_column($state['log'], 'msg')))
+        );
+    }
+
+    public function testRefreshEmptyMainDecksSafetyNet(): void {
+        $card = static fn(string $id): array => [
+            'instance_id' => $id,
+            'card_type' => 'メンバー',
+            'name' => 'Test',
+            'name_en' => 'Test',
+            'cost' => 1,
+        ];
+        $state = [
+            'turn' => 1,
+            'players' => [
+                'p1' => [
+                    'name' => 'P1',
+                    'hand' => [],
+                    'main_deck' => [],
+                    'waiting_room' => [$card('wr-1')],
+                    'energy_zone' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                ],
+                'p2' => [
+                    'name' => 'P2',
+                    'hand' => [],
+                    'main_deck' => [$card('still-there')],
+                    'waiting_room' => [$card('wr-ignored')],
+                    'energy_zone' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                ],
+            ],
+            'log' => [],
+        ];
+        $state = refreshEmptyMainDecks($state);
+        $this->assertNotEmpty($state['players']['p1']['main_deck']);
+        $this->assertEmpty($state['players']['p1']['waiting_room']);
+        $this->assertCount(1, $state['players']['p2']['main_deck']);
+        $this->assertCount(1, $state['players']['p2']['waiting_room']);
+    }
+
     public function testTakeFromMainDeckTopMillsExpectedCount(): void {
         $state = [
             'turn' => 1,
