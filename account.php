@@ -106,6 +106,8 @@ function tcgApiMe(array $body): array {
     $cardMap = tcgBuildCardMap($cards);
     $migration = tcgMigrateDuplicateToStarGems($uid, $cardMap);
     $daily = tcgDailyOpenAllowance($uid);
+    require_once __DIR__ . '/ranked_pr_rewards.php';
+    $rankedPr = tcgRankedPrDailyAllowance($uid);
     $rank = tcgRankRow($uid);
     $equipped = tcgGetEquippedDeckRow($uid);
     $equippedLoadout = null;
@@ -123,6 +125,7 @@ function tcgApiMe(array $body): array {
             'needs_starter' => empty($user['starter_deck']),
         ],
         'daily' => $daily,
+        'ranked_pr' => $rankedPr,
         'star_gems' => tcgGetStarGems($uid),
         'star_gems_pack_cost' => TCG_STAR_GEMS_PACK_COST,
         'star_gems_box_cost' => TCG_STAR_GEMS_BOX_COST,
@@ -203,9 +206,11 @@ function tcgApiBoosterRates(array $params): array {
 function tcgApiDailyStatus(array $body): array {
     $uid = tcgRequireAuthUser($body);
     tcgEnsureUser($uid, tcgAuthUserProfile($uid));
+    require_once __DIR__ . '/ranked_pr_rewards.php';
     return [
         'success' => true,
         'daily' => tcgDailyOpenAllowance($uid),
+        'ranked_pr' => tcgRankedPrDailyAllowance($uid),
         'star_gems' => tcgGetStarGems($uid),
         'star_gems_pack_cost' => TCG_STAR_GEMS_PACK_COST,
         'star_gems_box_cost' => TCG_STAR_GEMS_BOX_COST,

@@ -15964,8 +15964,7 @@ window.G = G;
 (async () => {
   const accountReady = initAccountFlow();
   initDeckBuilderPreviewPanel();
-  on('baton-touch-toggle', 'click', toggleBatonTouchMode);
-  syncBatonTouchToggleUi();
+  // baton-touch-toggle wired in client/js/spectacle.js (helpers load after this script)
   on('btn-starter-confirm', 'click', confirmStarter);
   on('btn-hub-booster', 'click', loadBoosterScreen);
   on('btn-hub-deck', 'click', openDeckBuilder);
@@ -33905,7 +33904,7 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/spectacle.js?v=1"></script>
+<script src="client/js/spectacle.js?v=2"></script>
 <script src="client/js/cpu-ai.js?v=2"></script>
 </body>
 </html>
