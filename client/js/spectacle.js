@@ -241,6 +241,7 @@ async function waitForPipelinePromptResolution(myId, opts = {}) {
   const start = performance.now();
   const oppId = myId === 'p1' ? 'p2' : 'p1';
   const isResolved = opts.isResolved || ((s) => !s?.pending_prompt);
+  let stalePulls = 0;
   while (performance.now() - start < maxMs) {
     if (isPresentationSuperseded()) return;
     const cur = G.gameState || opts.targetState;
@@ -256,6 +257,7 @@ async function waitForPipelinePromptResolution(myId, opts = {}) {
       await sleep(200);
       continue;
     }
+    const seqBefore = G.lastSeq ?? 0;
     if (pr?.responder === myId && !isMyBlockingPromptOpen(cur)) {
       if (isLiveSuccessDiscardPrompt(cur)) clearLiveSuccessHandDeferral(cur);
       if (isLiveSuccessDiscardPrompt(cur) || pr.type === 'pick_judge_success_live') {
@@ -263,13 +265,25 @@ async function waitForPipelinePromptResolution(myId, opts = {}) {
       }
       if (!isMyBlockingPromptOpen(cur)) await pullPromptResolutionState();
     } else if (pr?.responder === oppId && !G.isCPU) {
-      const seqBefore = G.lastSeq ?? 0;
       await pullPromptResolutionState();
-      await sleep(150);
-      if ((G.lastSeq ?? 0) > seqBefore || G.gameState?.status === 'finished') continue;
+      if ((G.lastSeq ?? 0) > seqBefore || G.gameState?.status === 'finished') {
+        stalePulls = 0;
+        continue;
+      }
       if (G._pendingStateQueue?.length) flushPendingState();
+    } else {
+      // Prompt open / waiting on self UI — do not hammer get_state.
+      await sleep(300);
+      continue;
     }
-    await sleep(250);
+    if ((G.lastSeq ?? 0) <= seqBefore) {
+      stalePulls += 1;
+      // Back off when the server seq is not advancing (stuck prompt / same poll=0 body).
+      await sleep(Math.min(2500, 250 + stalePulls * 200));
+    } else {
+      stalePulls = 0;
+      await sleep(250);
+    }
   }
 }
 
@@ -3111,11 +3125,24 @@ function tryFlushSpectacleRecovery() {
   if (!pending || G.animating || G._perfSpectacleActive || G._liveSpectacleGateRunning) return;
   if (!shouldRecoverMissedLiveSpectacle(pending.prev, pending.s)) {
     G._spectacleRecoveryPending = null;
+    G._spectacleRecoveryAttempts = 0;
     return;
   }
   const now = performance.now();
   const flushKey = `${pending.s?.seq ?? 0}:${detectPendingLiveSpectacleTurn(pending.prev, pending.s) ?? ''}`;
   if (G._spectacleRecoveryFlushKey === flushKey && now - (G._spectacleRecoveryFlushAt ?? 0) < 800) return;
+  if (G._spectacleRecoveryFlushKey === flushKey) {
+    G._spectacleRecoveryAttempts = (G._spectacleRecoveryAttempts || 0) + 1;
+  } else {
+    G._spectacleRecoveryAttempts = 1;
+  }
+  // Same owed spectacle thrashing recovery → releaseLivePolls → poll=0 storm.
+  if ((G._spectacleRecoveryAttempts || 0) > 6) {
+    TCG_DEBUG.warn('live', 'spectacle recovery gave up', { flushKey, attempts: G._spectacleRecoveryAttempts });
+    G._spectacleRecoveryPending = null;
+    G._spectacleRecoveryAttempts = 0;
+    return;
+  }
   G._spectacleRecoveryFlushKey = flushKey;
   G._spectacleRecoveryFlushAt = now;
   G._spectacleRecoveryPending = null;

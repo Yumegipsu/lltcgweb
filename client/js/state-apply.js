@@ -672,7 +672,15 @@
   global.releaseLivePollsAndFlush = function releaseLivePollsAndFlush() {
     releaseLivePolls();
     flushPendingState();
-    tryFlushSpectacleRecovery();
+    // Defer recovery so runLiveSpectacleGate's finally cannot synchronously re-enter the gate
+    // (that path used to chain release → recovery → gate → release → poll=0).
+    if (typeof tryFlushSpectacleRecovery === 'function') {
+      clearTimeout(G._spectacleRecoveryTimer);
+      G._spectacleRecoveryTimer = setTimeout(() => {
+        G._spectacleRecoveryTimer = null;
+        tryFlushSpectacleRecovery();
+      }, 0);
+    }
   };
 
   global.flushPendingState = function flushPendingState() {
@@ -680,7 +688,9 @@
     if (typeof global.isReplayViewing === 'function' && global.isReplayViewing() && !G._replayForwardApply) return;
     const q = G._pendingStateQueue;
     if (!q?.length) {
-      if (G.syncEnabled && G.syncTicket) scheduleDeferredSyncPull(120);
+      // Do NOT schedule a sync pull on every empty flush — that re-arms poll=0 forever
+      // whenever apply/release ends with an empty queue. Catch-up is owned by SSE
+      // (onSyncStateEvent), releaseLivePolls → resumePollingTick, and explicit pulls.
       return;
     }
     const next = q.shift();

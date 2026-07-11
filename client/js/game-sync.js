@@ -19,6 +19,7 @@
     G._syncReconnectTimer = null;
     clearTimeout(G._syncPullTimer);
     G._syncPullTimer = null;
+    G._syncPullBlockedSpins = 0;
     clearInterval(G.presenceTimer);
     G.presenceTimer = null;
   };
@@ -41,9 +42,13 @@
       G._syncPullTimer = null;
       if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
       if (pollPresentationBlocked()) {
-        scheduleDeferredSyncPull(400);
+        // Re-arm once presentation frees — avoid a tight timer spin while blocked.
+        const spins = (G._syncPullBlockedSpins || 0) + 1;
+        G._syncPullBlockedSpins = spins;
+        scheduleDeferredSyncPull(Math.min(2000, 400 + spins * 100));
         return;
       }
+      G._syncPullBlockedSpins = 0;
       await pullLatestState();
     }, delayMs);
   };
@@ -304,39 +309,54 @@
       else resumePollingTick(400);
       return;
     }
+    // Coalesce concurrent poll=0 fetches — overlapping callers used to stampede get_state.
+    if (G._pullLatestInFlight) {
+      await G._pullLatestInFlight;
+      if (!force) return;
+      // force: after the in-flight result, fall through for one more pull if still current.
+      if (!G.polling || (G.isTutorial && !G.tutorialLive) || !G.roomId || !G.token) return;
+    }
     const pollEpoch = G._gameSessionEpoch;
     const pollRoomId = G.roomId;
     TCG_DEBUG.log('poll', 'pullLatestState', { seq: G.lastSeq, force: !!force, room: pollRoomId });
-    try {
-      const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(pollRoomId)}&token=${encodeURIComponent(G.token)}&seq=${G.lastSeq}&poll=0`);
-      const d = await parseGameApiResponse(r);
-      if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return;
-      if (force && d.status === 'finished') {
-        G._pendingStateQueue = (G._pendingStateQueue || []).filter(st => (st.seq ?? 0) > (d.seq ?? 0));
-      }
-      if (force && G.gameState && (d.seq ?? 0) <= (G.lastSeq ?? 0)) {
-        TCG_DEBUG.logOnce('poll', `force-stale:${d.seq}`, 'skip force pull stale', { incoming: d.seq, last: G.lastSeq });
-        if (typeof tryFlushSpectacleRecovery === 'function') tryFlushSpectacleRecovery();
-        return;
-      }
-      onState(d);
-    } catch (e) {
-      if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return;
-      if (!opts.silent) {
-        if (e && e.httpStatus >= 400) {
-          if (!handleSpectatorPollError(e.message)) reportApiError(e, { source: 'pullLatestState' });
-        } else {
-          TCG_DEBUG.warn('poll', 'pullLatestState failed', e);
-          reportApiError(createApiError(
-            (global.LLTCG_I18N && typeof global.LLTCG_I18N.t === 'function')
-              ? global.LLTCG_I18N.t('apiError.connectionFailed')
-              : 'Could not reach the server. Try refreshing the page.',
-            503
-          ), { source: 'pullLatestState' });
+    const run = (async () => {
+      try {
+        const r = await fetch(`${API}?action=get_state&room_id=${encodeURIComponent(pollRoomId)}&token=${encodeURIComponent(G.token)}&seq=${G.lastSeq}&poll=0`);
+        const d = await parseGameApiResponse(r);
+        if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return;
+        if (force && d.status === 'finished') {
+          G._pendingStateQueue = (G._pendingStateQueue || []).filter(st => (st.seq ?? 0) > (d.seq ?? 0));
         }
-      } else {
-        TCG_DEBUG.warn('poll', 'pullLatestState failed (silent)', e);
+        if (force && G.gameState && (d.seq ?? 0) <= (G.lastSeq ?? 0)) {
+          TCG_DEBUG.logOnce('poll', `force-stale:${d.seq}`, 'skip force pull stale', { incoming: d.seq, last: G.lastSeq });
+          if (typeof tryFlushSpectacleRecovery === 'function') tryFlushSpectacleRecovery();
+          return;
+        }
+        onState(d);
+      } catch (e) {
+        if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return;
+        if (!opts.silent) {
+          if (e && e.httpStatus >= 400) {
+            if (!handleSpectatorPollError(e.message)) reportApiError(e, { source: 'pullLatestState' });
+          } else {
+            TCG_DEBUG.warn('poll', 'pullLatestState failed', e);
+            reportApiError(createApiError(
+              (global.LLTCG_I18N && typeof global.LLTCG_I18N.t === 'function')
+                ? global.LLTCG_I18N.t('apiError.connectionFailed')
+                : 'Could not reach the server. Try refreshing the page.',
+              503
+            ), { source: 'pullLatestState' });
+          }
+        } else {
+          TCG_DEBUG.warn('poll', 'pullLatestState failed (silent)', e);
+        }
       }
+    })();
+    G._pullLatestInFlight = run;
+    try {
+      await run;
+    } finally {
+      if (G._pullLatestInFlight === run) G._pullLatestInFlight = null;
     }
   };
 
