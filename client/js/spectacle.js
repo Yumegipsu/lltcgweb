@@ -2648,7 +2648,10 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
     && (wantsSpectacle || liveSpectacleOwed(prev, next, showTurnForSpectacle)
         || liveRoundRequiresSpectacle(prev, next, showTurnForSpectacle));
   const runStorageReveal = needsLiveReveal;
-  const deferStorageOutcomes = spectaclePlaybackPending
+  // Empty LIVE skip always defers committing `next` — that state already includes
+  // Active/Energy/Draw. Committing early shows the new hand card, then turn-prep
+  // reverts and redraws it.
+  const deferStorageOutcomes = spectaclePlaybackPending || emptySkip
     || (emptySkip && shouldAnimateEmptyLiveStorageWr(prev, next));
   try {
     await prepareLiveRoundBannerSlot();
@@ -2732,6 +2735,12 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
         TCG_DEBUG.warn('live', 'empty round: no WR discards collected', TCG_DEBUG.trans(prev, next));
       }
       G._livePostRevealBoard = null;
+      // Reset to post-WR / pre-turn-prep board so a premature final hand cannot linger.
+      if (typeof buildPostEmptyLivePreTurnPrepState === 'function') {
+        const prePrep = buildPostEmptyLivePreTurnPrepState(prev, next);
+        G.gameState = prePrep;
+        renderGame(prePrep, { skipLog: true });
+      }
       await playEmptySkipTurnPrepSequence(prev, next, opts.newEntries || [], myId);
       G._liveRoundPostSpectacleReady = true;
       markEmptyLiveRoundPresented(prev, next);

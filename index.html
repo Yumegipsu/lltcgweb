@@ -7628,7 +7628,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=3"></script>
 <script src="client/js/game-sync.js?v=10"></script>
-<script src="client/js/state-apply.js?v=21"></script>
+<script src="client/js/state-apply.js?v=22"></script>
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=25"></script>
@@ -20800,23 +20800,54 @@ function isPostEmptySkipTurnPrepLogEntry(entry) {
 
 function collectTurnPrepEntriesAfterEmptySkip(entries) {
   if (!entries?.length) return [];
-  const i = entries.findIndex(e => e.msg === 'No Lives played this turn.');
+  let i = -1;
+  for (let j = entries.length - 1; j >= 0; j--) {
+    if (entries[j]?.msg === 'No Lives played this turn.') {
+      i = j;
+      break;
+    }
+  }
   if (i < 0) return [];
   return entries.slice(i + 1).filter(isPostEmptySkipTurnPrepLogEntry);
 }
 
+function isEmptySkipTurnPrepFlightSpec(spec) {
+  if (!spec) return false;
+  if (spec.to === 'hand' && ['main_deck', 'energy_deck'].includes(spec.from)) return true;
+  if (spec.to === 'energy' && spec.from === 'energy_deck') return true;
+  return false;
+}
+
 /** Play turn begin / Active / Energy / Draw after empty LIVE skip (server batches them in one poll). */
 async function playEmptySkipTurnPrepSequence(prev, final, newEntries, myId) {
-  const turnPrepEntries = collectTurnPrepEntriesAfterEmptySkip(newEntries);
-  if (!turnPrepEntries.length) {
-    G.gameState = final;
-    renderGame(final, { skipLog: true });
-    return;
+  let turnPrepEntries = collectTurnPrepEntriesAfterEmptySkip(newEntries);
+  // Batched / truncated newEntries may omit the "No Lives" marker — fall back to full log.
+  if (!turnPrepEntries.length && final?.log?.length) {
+    turnPrepEntries = collectTurnPrepEntriesAfterEmptySkip(final.log);
   }
   let playback = buildPostEmptyLivePreTurnPrepState(prev, final);
   G.gameState = playback;
   G._prevLogLen = playback.log.length;
-  renderGame(playback, { skipHand: true, skipOppHand: true, skipLog: true });
+  // Always sync hands to the pre-draw board. skipHand would preserve a premature
+  // final-hand render from an earlier empty-round step (card appears, then vanishes).
+  renderGame(playback, { skipLog: true });
+
+  if (!turnPrepEntries.length) {
+    try {
+      await playTailMoveAnimations(playback, final, myId, {});
+      G.gameState = final;
+      G._prevLogLen = final.log?.length || 0;
+      renderGame(final, { skipLog: true });
+      if (leavingEmptyLivePipeline(prev, final)) {
+        queueMainPhaseBannerAfterEmptyLiveSkip(final, myId);
+      }
+    } finally {
+      clearHandArrivingFlags();
+      G._liveStorageOutcomePending = false;
+    }
+    return;
+  }
+
   const announceFrom = G._announceBaseline ?? (prev?.log || []).length;
   let logIdx = (prev?.log || []).length;
   try {
@@ -20824,6 +20855,8 @@ async function playEmptySkipTurnPrepSequence(prev, final, newEntries, myId) {
       if (entry.anim?.length) {
         let specs = entry.anim.filter(spec => findCardInState(final, spec.iid, spec.pid));
         specs = specs.filter(spec => !(spec.from === 'live' && spec.to === 'waiting_room'));
+        // Energy/Draw flights wait for playTailMoveAnimations after turn-begin banners.
+        specs = specs.filter(spec => !isEmptySkipTurnPrepFlightSpec(spec));
         if (specs.length > 1) await playAnimSpecBatch(specs, playback, final, myId);
         else if (specs.length === 1) await playAnimSpec(specs[0], playback, final, myId, 0);
       }
@@ -20837,6 +20870,10 @@ async function playEmptySkipTurnPrepSequence(prev, final, newEntries, myId) {
       logIdx++;
       if (logIdx > announceFrom && !shouldSuppressLivePipelineBanner(entry.msg, prev, final, announceFrom)) {
         announceLogEntry(entry, final, myId);
+      }
+      const msg = entry.msg || '';
+      if (/^=== Turn \d+ begins ===$/.test(msg) || /^--- Turn \d+ ---$/.test(msg)) {
+        await waitForBannersIdle();
       }
       await sleep(ANIM_STEP_MS);
     }
@@ -34231,7 +34268,7 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/spectacle.js?v=3"></script>
+<script src="client/js/spectacle.js?v=4"></script>
 <script src="client/js/cpu-meta-weights.js?v=1"></script>
 <script src="client/js/cpu-ai.js?v=3"></script>
 <script>void bootApp();</script>

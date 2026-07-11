@@ -385,6 +385,12 @@
       }
       if (emptyLiveRoundPresentationPending(prev, s)) {
         moves = filterEmptyLivePendingWrMoves(prev, moves, s);
+        // Suppress turn-prep Energy/Draw flights until playEmptySkipTurnPrepSequence.
+        moves = (moves || []).filter(m => {
+          if (typeof isHiddenSourceToHand === 'function' && isHiddenSourceToHand(m)) return false;
+          if (m.to?.zone === 'energy' && m.from?.zone === 'energy_deck') return false;
+          return true;
+        });
       }
       const openingDeal = isOpeningHandDealTransition(prev, s);
       const setupMulliganOnly = prev?.phase === 'setup' && s.phase === 'setup';
