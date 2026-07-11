@@ -677,9 +677,127 @@ function hsResolveHandDiscardNamedBlade(
     return $state;
 }
 
+function hsStartPickWrLiveAndMemberPrompt(
+    array $state,
+    string $owner,
+    string $sourceName,
+    string $sourceId = ''
+): array {
+    $p = &$state['players'][$owner];
+    $lives = wrCandidatesMatching($p, ['filter' => 'live']);
+    $members = wrCandidatesMatching($p, ['filter' => 'member']);
+    if (empty($lives) && empty($members)) {
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            " — [$sourceName] no Live or Member in Waiting Room to add.");
+        return $state;
+    }
+    $step = !empty($lives) ? 'pick_live' : 'pick_member';
+    $filter = $step === 'pick_live' ? 'live' : 'member';
+    $cands = $step === 'pick_live' ? $lives : $members;
+    $state['pending_prompt'] = [
+        'type'            => 'hsbp6_pick_wr_live_and_member',
+        'owner'           => $owner,
+        'responder'       => $owner,
+        'source_id'       => $sourceId,
+        'source_name'     => $sourceName,
+        'step'            => $step,
+        'allow_skip'      => true,
+        'need_member_step'=> !empty($members),
+        'candidates'      => array_map('cardPromptSummary', $cands),
+        'wr_pick_cfg'     => ['filter' => $filter],
+        'pick_count'      => 1,
+        'prompt'          => $step === 'pick_live'
+            ? 'Choose up to 1 Live from your Waiting Room to add to hand (or skip).'
+            : 'Choose up to 1 Member from your Waiting Room to add to hand (or skip).',
+    ];
+    return $state;
+}
+
+function hsAdvancePickWrLiveAndMemberPrompt(array $state, string $owner, array $prompt): array {
+    $p = &$state['players'][$owner];
+    $sourceName = $prompt['source_name'] ?? 'Member';
+    if (empty($prompt['need_member_step'])) {
+        unset($state['pending_prompt']);
+        $state['seq']++;
+        return finishPromptEffects($state);
+    }
+    $members = wrCandidatesMatching($p, ['filter' => 'member']);
+    if (empty($members)) {
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            " — [$sourceName] no Member in Waiting Room to add.");
+        unset($state['pending_prompt']);
+        $state['seq']++;
+        return finishPromptEffects($state);
+    }
+    $state['pending_prompt'] = [
+        'type'            => 'hsbp6_pick_wr_live_and_member',
+        'owner'           => $owner,
+        'responder'       => $owner,
+        'source_id'       => $prompt['source_id'] ?? '',
+        'source_name'     => $sourceName,
+        'step'            => 'pick_member',
+        'allow_skip'      => true,
+        'need_member_step'=> false,
+        'candidates'      => array_map('cardPromptSummary', $members),
+        'wr_pick_cfg'     => ['filter' => 'member'],
+        'pick_count'      => 1,
+        'prompt'          => 'Choose up to 1 Member from your Waiting Room to add to hand (or skip).',
+    ];
+    $state['seq']++;
+    return $state;
+}
+
 function hsResolveHasunosoraPrompt(array $state, string $owner, array $prompt, string $choice, array $data): ?array {
     $promptType = $prompt['type'] ?? '';
     $ownerP = &$state['players'][$owner];
+
+    if ($promptType === 'hsbp6_pick_wr_live_and_member') {
+        $step = $prompt['step'] ?? 'pick_live';
+        $sourceName = $prompt['source_name'] ?? 'Member';
+        $skip = in_array($choice, ['skip', 'no', 'cancel'], true);
+        if ($skip) {
+            if ($step === 'pick_live') {
+                return hsAdvancePickWrLiveAndMemberPrompt($state, $owner, $prompt);
+            }
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
+        $pickId = $data['card_id'] ?? $choice;
+        if ($pickId === '' || $pickId === 'skip' || $pickId === 'no' || $pickId === 'cancel') {
+            throw new Exception('Choose a Waiting Room card or skip');
+        }
+        $wantFilter = ($prompt['wr_pick_cfg']['filter'] ?? '') !== ''
+            ? $prompt['wr_pick_cfg']['filter']
+            : ($step === 'pick_live' ? 'live' : 'member');
+        $picked = null;
+        foreach ($ownerP['waiting_room'] as $i => &$c) {
+            if (($c['instance_id'] ?? '') !== $pickId) {
+                continue;
+            }
+            hydrateWrCardForPick($c);
+            if (!cardMatchesWrPick($c, ['filter' => $wantFilter])) {
+                throw new Exception('Invalid Waiting Room card');
+            }
+            $picked = $c;
+            array_splice($ownerP['waiting_room'], $i, 1);
+            break;
+        }
+        unset($c);
+        if (!$picked) {
+            throw new Exception('Invalid Waiting Room card');
+        }
+        $ownerP['hand'][] = $picked;
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . $sourceName . '] added ' . cardDisplayName($picked) .
+            ' from Waiting Room to hand.');
+        if ($step === 'pick_live') {
+            return hsAdvancePickWrLiveAndMemberPrompt($state, $owner, $prompt);
+        }
+        unset($state['pending_prompt']);
+        $state['seq']++;
+        return finishPromptEffects($state);
+    }
 
     if ($promptType === 'surveil_pick_one_deck_top') {
         $pickId = $data['card_id'] ?? $choice;

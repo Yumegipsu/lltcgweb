@@ -710,10 +710,16 @@ function resolveOptionalDiscardPromptChoice(
                     return $state;
                 }
             } elseif (($then['type'] ?? '') === 'add_live_and_member_from_wr') {
-                $liveAdded = addFromWaitingRoomFiltered($ownerP, '', 'live', 1);
-                $memAdded = addFromWaitingRoomFiltered($ownerP, '', 'member', 1);
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    " — [" . ($prompt['source_name'] ?? 'Member') . "] added $liveAdded Live and $memAdded Member from WR.");
+                $state = hsStartPickWrLiveAndMemberPrompt(
+                    $state,
+                    $owner,
+                    $prompt['source_name'] ?? 'Member',
+                    (string)($prompt['source_id'] ?? '')
+                );
+                if (!empty($state['pending_prompt'])) {
+                    $state['seq']++;
+                    return $state;
+                }
             } elseif (($then['type'] ?? '') === 'add_from_wr') {
                 $added = addFromWaitingRoomFiltered(
                     $ownerP,

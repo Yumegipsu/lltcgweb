@@ -1668,6 +1668,23 @@ global.renderPrompt = function renderPrompt(s, myId){
     else openActivateWrMemberPick(pr, pickOpts);
     return;
   }
+  if(pr?.type==='hsbp6_pick_wr_live_and_member'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const filter = pr.wr_pick_cfg?.filter || (pr.step==='pick_live' ? 'live' : 'member');
+    const pickOpts = {
+      state: s,
+      myId,
+      onCancel: () => sendAct('resolve_prompt', { choice: 'skip' }),
+    };
+    const wrapped = {
+      ...pr,
+      wr_pick_cfg: { ...(pr.wr_pick_cfg || {}), filter },
+      pick_count: pr.pick_count == null ? 1 : pr.pick_count,
+    };
+    if(filter==='live') openWrLivePick(wrapped, pickOpts);
+    else openActivateWrMemberPick(wrapped, pickOpts);
+    return;
+  }
   if(pr?.type==='shuffle_named_from_waiting_pick'&&pr.responder===myId){
     ovl.classList.remove('open');
     const max=pr.max_pick||pr.ability?.max_total||6;
