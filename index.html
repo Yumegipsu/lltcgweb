@@ -15960,11 +15960,12 @@ let G = {
 };
 window.G = G;
 
-// ── BOOT ─────────────────────────────────────────────
-(async () => {
+// ── BOOT (invoked after client/js/spectacle.js loads — see bootApp() call below) ──
+async function bootApp() {
   const accountReady = initAccountFlow();
   initDeckBuilderPreviewPanel();
-  // baton-touch-toggle wired in client/js/spectacle.js (helpers load after this script)
+  on('baton-touch-toggle', 'click', toggleBatonTouchMode);
+  syncBatonTouchToggleUi();
   on('btn-starter-confirm', 'click', confirmStarter);
   on('btn-hub-booster', 'click', loadBoosterScreen);
   on('btn-hub-deck', 'click', openDeckBuilder);
@@ -16641,7 +16642,7 @@ window.G = G;
       e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, ROOM_CODE_LEN);
     });
   }
-})();
+}
 
 async function applyPlaymatZones() {
   const zoneMap = {
@@ -33904,7 +33905,8 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/spectacle.js?v=2"></script>
+<script src="client/js/spectacle.js?v=3"></script>
 <script src="client/js/cpu-ai.js?v=2"></script>
+<script>void bootApp();</script>
 </body>
 </html>

@@ -6277,13 +6277,3 @@ function judgeLiveTotalScore(s, pid, zone) {
   return cardSum + Number(side?.live_score_bonus ?? 0);
 }
 
-// Boot wiring that must run after these helpers exist (main index.html boot runs before this file loads).
-(function initBatonTouchToggleFromSpectacle() {
-  if (typeof on === 'function') {
-    on('baton-touch-toggle', 'click', toggleBatonTouchMode);
-  }
-  if (typeof syncBatonTouchToggleUi === 'function') {
-    syncBatonTouchToggleUi();
-  }
-})();
-
