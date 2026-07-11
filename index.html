@@ -4683,12 +4683,27 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   #overlay-ranked-pr-reward .ranked-pr-reward-flash{display:none!important}
   #overlay-ranked-pr-reward .pack-open-card{opacity:1!important;animation:none!important}
 }
-#screen-pack-results .account-shell.wide{max-width:min(1100px,98vw)}
+#screen-pack-results.llc-menu-screen{
+  justify-content:flex-start;
+  align-items:center;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  box-sizing:border-box;
+}
+#screen-pack-results .account-shell.wide{
+  max-width:min(1100px,98vw);
+  margin-block:0;
+  padding-bottom:clamp(24px,4vh,48px);
+}
 .pack-results-cards-block{
   width:100%;margin:20px auto 24px;padding:clamp(16px,2.5vw,24px) clamp(12px,2vw,18px) clamp(18px,3vw,26px);
   border-radius:12px;border:1px solid rgba(255,255,255,.18);
   background:rgba(6,14,32,.78);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 28px rgba(0,0,0,.32)}
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 28px rgba(0,0,0,.32);
+  /* Keep the whole screen scrolling; avoid nested scroll traps on tall box pulls */
+  overflow:visible;
+}
 .pack-results-grid{
   display:flex;flex-wrap:nowrap;gap:clamp(10px,1.4vw,18px);justify-content:center;align-items:flex-start;
   margin:0 auto;width:100%;overflow-x:auto;padding:4px 2px 8px}
@@ -8760,6 +8775,12 @@ function showPackResults(cards, boxName, { godPack = false, faceSrcByIndex = nul
   updateStarGemsUI();
   sfxPlay('pack_reveal');
   showScr('pack-results');
+  // Tall box grids used to sit vertically centered, so scrollTop=0 could not reach the title.
+  const resultsScr = el('screen-pack-results');
+  if (resultsScr) {
+    resultsScr.scrollTop = 0;
+    requestAnimationFrame(() => { resultsScr.scrollTop = 0; });
+  }
 }
 
 function preloadImages(urls) {
@@ -34140,6 +34161,10 @@ function showScr(n){
   if (n === 'leaderboard') {
     const lb = el('screen-leaderboard');
     if (lb) lb.scrollTop = 0;
+  }
+  if (n === 'pack-results') {
+    const pr = el('screen-pack-results');
+    if (pr) pr.scrollTop = 0;
   }
   if (n === 'game') {
     clearMatHands();
