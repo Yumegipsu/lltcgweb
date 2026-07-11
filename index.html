@@ -7620,7 +7620,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=33"></script>
+<script src="i18n.js?v=34"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=10"></script>
@@ -33788,15 +33788,11 @@ function spectateEsc(s) {
 function updateSpectatorCountUI(s) {
   const node = el('spectator-count');
   if (!node) return;
-  if (G.isSpectator) {
-    node.hidden = true;
-    node.setAttribute('aria-hidden', 'true');
-    return;
-  }
   const n = Math.max(0, parseInt(s?.spectator_count, 10) || 0);
+  // Players and spectators both see the live count (includes yourself when spectating).
   node.hidden = n < 1;
   node.setAttribute('aria-hidden', n < 1 ? 'true' : 'false');
-  node.textContent = `Spectators: ${n}`;
+  node.textContent = t('spectate.count', { n });
 }
 
 function renderSpectateMatchList(matches) {

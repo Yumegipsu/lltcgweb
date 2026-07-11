@@ -982,7 +982,8 @@
       "loading": "Loading…",
       "noMatches": "No matches available to spectate.",
       "matchEnded": "Match ended — returning to lobby.",
-      "sessionEnded": "Spectator session ended."
+      "sessionEnded": "Spectator session ended.",
+      "count": "Spectators: {n}"
     },
 
   },
@@ -1955,7 +1956,8 @@
       "loading": "読み込み中…",
       "noMatches": "観戦できる対戦がありません。",
       "matchEnded": "対戦が終了しました — ロビーに戻ります。",
-      "sessionEnded": "観戦セッションが終了しました。"
+      "sessionEnded": "観戦セッションが終了しました。",
+      "count": "観戦者: {n}"
     },
 
   },
@@ -2930,7 +2932,8 @@
       "loading": "Cargando…",
       "noMatches": "No hay partidas disponibles para espectar.",
       "matchEnded": "La partida terminó — volviendo al lobby.",
-      "sessionEnded": "La sesión de espectador terminó."
+      "sessionEnded": "La sesión de espectador terminó.",
+      "count": "Espectadores: {n}"
     }
   }
 };
