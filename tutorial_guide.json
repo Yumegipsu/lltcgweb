@@ -272,7 +272,7 @@
     {
       "id": "mulligan",
       "kind": "action",
-      "dialogue": "You start with **6** cards (this opening hand is fixed for the lesson). Review them, then tap **Keep Hand** to continue.",
+      "dialogue": "Opening hand time! **Kanon Shibuya** costs **9** — too heavy for now. Tap her to mark a swap, then tap **Replace 1 card**. You'll draw **Natsumi Onitsuka** (cost 2) instead.",
       "highlights": [
         {
           "target": "mulligan-overlay",
@@ -282,9 +282,13 @@
       ],
       "goal": {
         "type": "mulligan",
-        "keep": true
+        "replace": [
+          "PL!SP-sd1-012-SD"
+        ]
       },
-      "mulligan_keep": true,
+      "mulligan_replace": [
+        "PL!SP-sd1-012-SD"
+      ],
       "spotlightDim": "none",
       "bubbleAnchor": "overlay-mull"
     },

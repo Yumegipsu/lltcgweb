@@ -401,12 +401,19 @@ body.tutorial-live-mode #phase-action-bar .btn-phase-primary.tut-locked{
 }
 body.tutorial-live-mode #overlay-mull .btn-grad{opacity:1;pointer-events:auto}
 body.tutorial-live-mode #overlay-mull:not(.tut-mull-readonly) .mullcard{pointer-events:auto;cursor:pointer}
-/* Rails mulligan: cards are display-only; only Keep Hand is interactive. */
-body.tutorial-live-mode #overlay-mull.tut-mull-readonly .mullcard{
-  pointer-events:none!important;cursor:default;opacity:.92;
+/* Rails mulligan: only the guided target card is interactive. */
+body.tutorial-live-mode #overlay-mull.tut-mull-rails .mullcard:not(.tut-mull-target){
+  pointer-events:none!important;cursor:default;opacity:.55;filter:grayscale(.25);
 }
-body.tutorial-live-mode #overlay-mull.tut-mull-readonly .btn-grad{
+body.tutorial-live-mode #overlay-mull.tut-mull-rails .mullcard.tut-mull-target{
+  pointer-events:auto!important;cursor:pointer;outline:2px solid rgba(244,114,182,.95);
+  box-shadow:0 0 0 3px rgba(244,114,182,.28);
+}
+body.tutorial-live-mode #overlay-mull.tut-mull-rails .btn-grad{
   opacity:1;pointer-events:auto!important;cursor:pointer;
+}
+body.tutorial-live-mode #overlay-mull.tut-mull-rails .btn-grad:disabled{
+  opacity:.45;cursor:not-allowed;pointer-events:none!important;
 }
 body.tutorial-live-mode #overlay-coin{pointer-events:auto}
 /* Live tutorial: bubble above spotlight dim layer; still below game modals (coin, mulligan, prompts). */
@@ -7613,7 +7620,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=31"></script>
+<script src="i18n.js?v=32"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=10"></script>
@@ -7625,7 +7632,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/stamps.js?v=12"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=25"></script>
-<script src="client/js/tutorial-interactive.js?v=11"></script>
+<script src="client/js/tutorial-interactive.js?v=12"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -31374,24 +31381,65 @@ function maybeShowCoinFlip(s, myId) {
 }
 
 // ── MULLIGAN ─────────────────────────────────────────
-function tutorialMulliganRailsKeep() {
-  if (!G.tutorialLive) return false;
+function tutorialMulliganStep() {
+  if (!G.tutorialLive) return null;
   const step = G.tutorialData?.steps?.[G.tutorialStep];
-  if (!step || step.id !== 'mulligan') return false;
+  return step?.id === 'mulligan' ? step : null;
+}
+
+function tutorialMulliganReplaceNos() {
+  const step = tutorialMulliganStep();
+  if (!step) return [];
+  const fromGoal = Array.isArray(step.goal?.replace) ? step.goal.replace : [];
+  const fromStep = Array.isArray(step.mulligan_replace) ? step.mulligan_replace : [];
+  return [...new Set([...(fromStep.length ? fromStep : fromGoal)].filter(Boolean))];
+}
+
+function tutorialMulliganRailsKeep() {
+  const step = tutorialMulliganStep();
+  if (!step) return false;
+  if (tutorialMulliganReplaceNos().length) return false;
   return step.mulligan_keep === true || step.goal?.keep === true;
 }
 
+function tutorialMulliganRailsReplace() {
+  return tutorialMulliganReplaceNos().length > 0;
+}
+
 function tutorialMulliganOpenOpts(extra = {}) {
-  const rails = tutorialMulliganRailsKeep();
+  const keep = tutorialMulliganRailsKeep();
+  const replace = tutorialMulliganRailsReplace();
   return {
-    readonly: rails,
-    force: !!extra.force || rails,
+    readonly: keep,
+    railsReplace: replace,
+    force: !!extra.force || keep || replace,
     ...extra,
   };
 }
 
+function syncTutorialMulliganConfirmButton() {
+  const btn = el('btn-mull');
+  if (!btn) return;
+  if (!tutorialMulliganRailsReplace()) {
+    btn.disabled = false;
+    updateMulliganButtonText(G.mullMarked?.size || 0);
+    return;
+  }
+  const need = tutorialMulliganReplaceNos();
+  const hand = G.gameState?.players?.[G.playerId || 'p1']?.hand || [];
+  const needIids = need.map((no) => hand.find((c) => c.card_no === no)?.instance_id).filter(Boolean);
+  const marked = [...(G.mullMarked || [])];
+  const exact = needIids.length === need.length
+    && marked.length === needIids.length
+    && needIids.every((id) => G.mullMarked.has(id));
+  btn.disabled = !exact;
+  updateMulliganButtonText(marked.length);
+}
+
 function openMull(hand, opts = {}){
   const readonly = !!opts.readonly;
+  const railsReplace = !!opts.railsReplace || (!readonly && tutorialMulliganRailsReplace());
+  const replaceNos = railsReplace ? tutorialMulliganReplaceNos() : [];
   const ovl = el('overlay-mull');
   if(ovl.classList.contains('open') && !opts.force) return;
   const g=el('mull-grid'); g.innerHTML=''; G.mullMarked.clear();
@@ -31399,23 +31447,46 @@ function openMull(hand, opts = {}){
     const d=document.createElement('div');
     d.className='mullcard ' + menuCardClasses(card);
     d.dataset.iid = card.instance_id;
+    if (card.card_no) d.dataset.cardNo = card.card_no;
     appendCardFace(d, card);
     const m=document.createElement('div'); m.className='mullmark'; m.textContent='✕'; d.appendChild(m);
-    bindMullCardPress(d, card, readonly ? null : () => {
+    const isTarget = replaceNos.includes(card.card_no);
+    if (isTarget) d.classList.add('tut-mull-target');
+    const canToggle = !readonly && (!railsReplace || isTarget);
+    bindMullCardPress(d, card, canToggle ? () => {
+      if (railsReplace) {
+        // Exactly the guided targets — toggle only those.
+        if (!isTarget) return;
+        if (G.mullMarked.has(card.instance_id)) {
+          G.mullMarked.delete(card.instance_id);
+          d.classList.remove('mk');
+        } else {
+          G.mullMarked.add(card.instance_id);
+          d.classList.add('mk');
+          sfxCardPick();
+        }
+        syncTutorialMulliganConfirmButton();
+        return;
+      }
       if(G.mullMarked.has(card.instance_id)){ G.mullMarked.delete(card.instance_id); d.classList.remove('mk'); }
       else { G.mullMarked.add(card.instance_id); d.classList.add('mk'); sfxCardPick(); }
-      const n=G.mullMarked.size;
-      updateMulliganButtonText(n);
-    });
+      updateMulliganButtonText(G.mullMarked.size);
+    } : null);
     g.appendChild(d);
   });
-  updateMulliganButtonText(0);
   ovl.classList.toggle('tut-mull-readonly', readonly);
-  const hint = ovl.querySelector('p[data-i18n="mulligan.hint"]');
+  ovl.classList.toggle('tut-mull-rails', railsReplace);
+  const hint = ovl.querySelector('p[data-i18n="mulligan.hint"], #mull-hint, .mbox > p');
   if (hint) {
-    hint.textContent = readonly && G.tutorialLive
-      ? t('mulligan.tutorialKeepHint')
-      : t('mulligan.hint');
+    if (readonly && G.tutorialLive) hint.textContent = t('mulligan.tutorialKeepHint');
+    else if (railsReplace) hint.textContent = t('mulligan.tutorialReplaceHint');
+    else hint.textContent = t('mulligan.hint');
+  }
+  if (railsReplace) syncTutorialMulliganConfirmButton();
+  else {
+    const btn = el('btn-mull');
+    if (btn) btn.disabled = false;
+    updateMulliganButtonText(0);
   }
   openM('overlay-mull');
   if (G.tutorialLive && typeof repositionTutorialBubbleForLiveModal === 'function') {
@@ -31425,8 +31496,19 @@ function openMull(hand, opts = {}){
 function confirmMull(){
   if (isReplayViewing()) return;
   if (typeof tutBlocks === 'function' && tutBlocks('mulligan')) return;
-  // Tutorial rails: always keep the predetermined opening hand.
-  const ids = tutorialMulliganRailsKeep() ? [] : [...G.mullMarked];
+  let ids;
+  if (tutorialMulliganRailsKeep()) {
+    ids = [];
+  } else if (tutorialMulliganRailsReplace()) {
+    const need = tutorialMulliganReplaceNos();
+    const hand = G.gameState?.players?.[G.playerId || 'p1']?.hand || [];
+    const needIids = need.map((no) => hand.find((c) => c.card_no === no)?.instance_id).filter(Boolean);
+    if (needIids.length !== need.length) return;
+    if (needIids.length !== G.mullMarked.size || !needIids.every((id) => G.mullMarked.has(id))) return;
+    ids = needIids;
+  } else {
+    ids = [...G.mullMarked];
+  }
   closeM('overlay-mull'); G.mullMarked.clear();
   if (G.tutorialLive) G._tutMulliganDone = true;
   G.mulliganPending = true;

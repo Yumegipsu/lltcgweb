@@ -572,6 +572,7 @@
       "title": "Opening Hand 🌸",
       "hint": "Tap cards to mark for replacement. Hold a card to view its details. Tap again to unmark.",
       "tutorialKeepHint": "This opening hand is set for the lesson — tap Keep Hand to continue.",
+      "tutorialReplaceHint": "Mark the highlighted card for a mulligan, then confirm the replacement.",
       "keepHand": "Keep Hand",
       "replaceCard": "Replace {n} card",
       "replaceCards": "Replace {n} cards"
@@ -1548,6 +1549,7 @@
       "title": "初期手札 🌸",
       "hint": "タップで交換マーク。長押しで詳細。もう一度タップで解除。",
       "tutorialKeepHint": "この手札はレッスン用に固定されています——「この手札で開始」を押して進んでください。",
+      "tutorialReplaceHint": "ハイライトされたカードに交換マークを付けてから、交換を確定してください。",
       "keepHand": "この手札で開始",
       "replaceCard": "{n}枚交換",
       "replaceCards": "{n}枚交換"
@@ -2518,6 +2520,7 @@
       "title": "Mano inicial 🌸",
       "hint": "Toca cartas para marcarlas para reemplazo. Mantén presionada una carta para ver sus detalles. Toca otra vez para desmarcar.",
       "tutorialKeepHint": "Esta mano inicial está fijada para la lección — toca Conservar mano para continuar.",
+      "tutorialReplaceHint": "Marca la carta resaltada para el muligan y luego confirma el reemplazo.",
       "keepHand": "Conservar mano",
       "replaceCard": "Reemplazar {n} carta",
       "replaceCards": "Reemplazar {n} cartas"
@@ -3164,7 +3167,7 @@
 
   function loadTutorialJa() {
     if (_tutorialJa) return Promise.resolve(_tutorialJa);
-    return fetch('./tutorial_ja.json?v=3', { cache: 'no-store' })
+    return fetch('./tutorial_ja.json?v=4', { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('tutorial_ja HTTP ' + r.status);
         return r.json();
@@ -3181,7 +3184,7 @@
 
   function loadTutorialEs() {
     if (_tutorialEs) return Promise.resolve(_tutorialEs);
-    return fetch('./tutorial_es.json?v=3', { cache: 'no-store' })
+    return fetch('./tutorial_es.json?v=4', { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('tutorial_es HTTP ' + r.status);
         return r.json();
