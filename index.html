@@ -7767,6 +7767,7 @@ const DISCORD_CLIENT_ID = '1439716818058088612';
 const WRAPPED_OAUTH_REDIRECT = 'https://loveliveradio.ca/wrapped';
 const DISCORD_OAUTH_STATE_TCG = 'tcg';
 const AUTH_TOKEN_KEY = 'llr_wrapped_token';
+const LOVECA_CHALLENGE_KEY = 'tcg_loveca_challenge';
 const AUTH_FETCH_TIMEOUT_MS = 12000;
 const AUTH_BOOT_WATCHDOG_MS = 15000;
 const RECONNECT_FETCH_TIMEOUT_MS = 8000;
@@ -9123,6 +9124,75 @@ function playPackOpenAnimation(cards, packImage, packStyle, faceSrcByIndex = nul
   })));
 }
 
+function captureLovecaChallengeFromUrl() {
+  try {
+    const params = new URLSearchParams(location.search);
+    const challenge = (params.get('challenge') || '').trim();
+    const modeRaw = (params.get('mode') || 'ranked').trim().toLowerCase();
+    if (!challenge || !/^\d{5,32}$/.test(challenge)) return;
+    const mode = modeRaw === 'casual' || modeRaw === 'unranked' ? 'casual' : 'ranked';
+    sessionStorage.setItem(LOVECA_CHALLENGE_KEY, JSON.stringify({ challenge, mode }));
+    params.delete('challenge');
+    params.delete('mode');
+    const qs = params.toString();
+    history.replaceState({}, document.title, location.pathname + (qs ? '?' + qs : '') + location.hash);
+  } catch (e) { /* ignore */ }
+}
+
+function peekLovecaChallenge() {
+  try {
+    const raw = sessionStorage.getItem(LOVECA_CHALLENGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!data?.challenge || !/^\d{5,32}$/.test(String(data.challenge))) return null;
+    const mode = data.mode === 'casual' ? 'casual' : 'ranked';
+    return { challenge: String(data.challenge), mode };
+  } catch (e) {
+    return null;
+  }
+}
+
+function clearLovecaChallenge() {
+  try { sessionStorage.removeItem(LOVECA_CHALLENGE_KEY); } catch (e) {}
+}
+
+async function consumeLovecaChallengeInvite() {
+  const invite = peekLovecaChallenge();
+  if (!invite) return;
+  if (A.profile?.user?.needs_starter) return;
+  const myId = String(A.user?.id || A.profile?.user?.id || '');
+  if (myId && myId === invite.challenge) {
+    clearLovecaChallenge();
+    toast('That challenge link is for your own queue.', 3200);
+    return;
+  }
+  clearLovecaChallenge();
+  try {
+    if (invite.mode === 'casual') {
+      if (A.rankedSearching) await cancelRankedSearch();
+      const body = { ...casualJoinPayload(), challenge_discord_id: invite.challenge };
+      const res = await apiPost('casual_join', body);
+      if (res.match?.status === 'matched') {
+        if (res.queue_stats) updateCasualQueueStats(res.queue_stats);
+        await enterCasualMatch(res.match);
+        return;
+      }
+      toast('Could not join that unranked queue.', 3600);
+      return;
+    }
+    if (A.casualSearching) await cancelCasualSearch();
+    const res = await accountPost('ranked_join', { challenge_discord_id: invite.challenge });
+    if (res.match?.status === 'matched') {
+      if (res.queue_stats) updateRankedQueueStats(res.queue_stats);
+      await enterRankedMatch(res.match);
+      return;
+    }
+    toast('Could not join that ranked queue.', 3600);
+  } catch (e) {
+    toast(e.message || 'Could not accept match challenge.', 4200);
+  }
+}
+
 function getAuthToken() {
   return localStorage.getItem(AUTH_TOKEN_KEY) || '';
 }
@@ -9387,6 +9457,7 @@ async function resumeActiveGameIfAny() {
 }
 
 async function initAccountFlow() {
+  captureLovecaChallengeFromUrl();
   const authEl = el('auth-status');
   const loginBtn = el('btn-discord-login');
   const guestMenu = el('auth-guest-menu');
@@ -9454,7 +9525,10 @@ async function initAccountFlow() {
     }
     if (await resumeActiveGameIfAny()) return;
     enterHub(me);
-    setTimeout(resumeRankedSearchIfQueued, 0);
+    setTimeout(() => {
+      if (peekLovecaChallenge()) void consumeLovecaChallengeInvite();
+      else void resumeRankedSearchIfQueued();
+    }, 0);
   } catch (e) {
     showGuestAuth(e.message || t('auth.loadError'));
   } finally {
@@ -9671,7 +9745,10 @@ async function confirmStarter() {
     const me = await accountGet('me');
     A.profile = me;
     enterHub(me);
-    setTimeout(resumeRankedSearchIfQueued, 0);
+    setTimeout(() => {
+      if (peekLovecaChallenge()) void consumeLovecaChallengeInvite();
+      else void resumeRankedSearchIfQueued();
+    }, 0);
   } catch (e) { el('starter-err').textContent = e.message; }
 }
 

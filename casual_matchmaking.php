@@ -191,7 +191,19 @@ function tcgFindCasualOpponent(string $queueKey): ?array {
     return is_array($row) ? $row : null;
 }
 
-function tcgTryCasualMatchmake(string $queueKey): ?array {
+function tcgFindCasualOpponentByDiscordId(string $challengeDiscordId, string $selfQueueKey): ?array {
+    $challengeDiscordId = trim($challengeDiscordId);
+    if ($challengeDiscordId === '') {
+        return null;
+    }
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT * FROM tcg_casual_queue WHERE discord_id = ? AND queue_key != ? ORDER BY joined_at ASC LIMIT 1');
+    $stmt->execute([$challengeDiscordId, $selfQueueKey]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return is_array($row) ? $row : null;
+}
+
+function tcgTryCasualMatchmake(string $queueKey, ?string $challengeDiscordId = null): ?array {
     $queueKey = tcgNormalizeCasualQueueKey($queueKey);
     if ($queueKey === '') {
         return null;
@@ -205,9 +217,17 @@ function tcgTryCasualMatchmake(string $queueKey): ?array {
         return null;
     }
 
-    $opp = tcgFindCasualOpponent($queueKey);
-    if (!$opp) {
-        return null;
+    $opp = null;
+    if ($challengeDiscordId !== null && $challengeDiscordId !== '') {
+        $opp = tcgFindCasualOpponentByDiscordId($challengeDiscordId, $queueKey);
+        if (!$opp) {
+            return null;
+        }
+    } else {
+        $opp = tcgFindCasualOpponent($queueKey);
+        if (!$opp) {
+            return null;
+        }
     }
 
     $p1Row = intval($self['joined_at']) <= intval($opp['joined_at']) ? $self : $opp;
@@ -453,7 +473,31 @@ function tcgNormalizeCasualQueueKey(string $key): string {
 function apiCasualJoin(array $body): array {
     tcgRateLimitForAction('casual_join', $body);
     $queueKey = (string)($body['queue_id'] ?? '');
+    $challengeId = trim((string)($body['challenge_discord_id'] ?? ''));
+    $selfDiscordId = tcgOptionalAuthUserId($body);
+    if ($challengeId !== '') {
+        if (!$selfDiscordId) {
+            throw new Exception('Sign in to accept a match challenge', 401);
+        }
+        if ($challengeId === $selfDiscordId) {
+            throw new Exception('You cannot challenge yourself', 400);
+        }
+    }
     $join = tcgCasualQueueJoin($queueKey, $body);
+    if ($challengeId !== '') {
+        $match = tcgTryCasualMatchmake($queueKey, $challengeId);
+        if (!$match) {
+            tcgCasualQueueLeave($queueKey, $selfDiscordId);
+            throw new Exception('That player is no longer waiting for an unranked match', 409);
+        }
+        return [
+            'success' => true,
+            'queue' => $join,
+            'match' => $match,
+            'casual' => $match,
+            'queue_stats' => tcgCasualQueuePublicStats(),
+        ];
+    }
     $match = tcgTryCasualMatchmake($queueKey);
     $out = [
         'success' => true,

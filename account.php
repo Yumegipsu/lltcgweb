@@ -10,7 +10,7 @@
  *   me, pick_starter, collection, booster_boxes, booster_rates, daily_status, open_booster,
  *   deck_list, deck_save, deck_delete, deck_equip, deck_equip_starter, deck_reset_starter, deck_auto_build, reset_account,
  *   ranked_join, ranked_leave, ranked_status, rank_stats, rank_banner_set, stamp_favorites_set, active_game, leave_active_game,
- *   replay_save, replay_list, replay_get, replay_start, missions_list, missions_claim
+ *   replay_save, replay_list, replay_get, replay_start, missions_list, missions_claim, public_profile
  */
 require_once __DIR__ . '/config/paths.php';
 require_once __DIR__ . '/config/cors.php';
@@ -78,6 +78,7 @@ try {
         case 'replay_start':       echo json_encode(tcgApiReplayStartSaved($body)); break;
         case 'missions_list':      echo json_encode(tcgApiMissionsList($body)); break;
         case 'missions_claim':     echo json_encode(tcgApiMissionsClaim($body)); break;
+        case 'public_profile':     echo json_encode(tcgApiPublicProfile($_GET + $body)); break;
         default:
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'Unknown action']);
@@ -481,7 +482,19 @@ function tcgApiRankedJoin(array $body): array {
     if (tcgGetActiveRankedGame($uid)) {
         tcgAbandonActiveRankedGame($uid);
     }
+    $challengeId = trim((string)($body['challenge_discord_id'] ?? ''));
+    if ($challengeId !== '' && $challengeId === $uid) {
+        throw new Exception('You cannot challenge yourself', 400);
+    }
     $join = tcgQueueJoin($uid);
+    if ($challengeId !== '') {
+        $match = tcgTryMatchmakeWithChallenge($uid, $challengeId);
+        if (!$match) {
+            tcgQueueLeave($uid);
+            throw new Exception('That player is no longer waiting for a ranked match', 409);
+        }
+        return ['success' => true, 'queue' => $join, 'match' => $match, 'queue_stats' => tcgQueuePublicStats()];
+    }
     $match = tcgTryMatchmake($uid);
     if ($match) {
         return ['success' => true, 'queue' => $join, 'match' => $match, 'queue_stats' => tcgQueuePublicStats()];
@@ -929,6 +942,29 @@ function tcgTryMatchmake(string $discordId): ?array {
         return null;
     }
 
+    return tcgFinalizeRankedPair($discordId, $oppId);
+}
+
+/** Pair specifically with a challenged player who is still in the ranked queue. */
+function tcgTryMatchmakeWithChallenge(string $discordId, string $challengeDiscordId): ?array {
+    if ($challengeDiscordId === '' || $challengeDiscordId === $discordId) {
+        return null;
+    }
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT discord_id FROM tcg_match_queue WHERE discord_id = ?');
+    $stmt->execute([$challengeDiscordId]);
+    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+        return null;
+    }
+    $stmt = $db->prepare('SELECT discord_id FROM tcg_match_queue WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    if (!$stmt->fetch(PDO::FETCH_ASSOC)) {
+        return null;
+    }
+    return tcgFinalizeRankedPair($discordId, $challengeDiscordId);
+}
+
+function tcgFinalizeRankedPair(string $discordId, string $oppId): ?array {
     require_once __DIR__ . '/ranked_room.php';
     $pair = tcgCreateRankedRoomPair($discordId, $oppId);
     if (!$pair) {
@@ -944,6 +980,106 @@ function tcgTryMatchmake(string $discordId): ?array {
         'opponent_id' => $isP1 ? $pair['p2']['discord_id'] : $pair['p1']['discord_id'],
         'match_id' => $pair['match_id'],
     ];
+}
+
+/** Public Loveca profile for Discord /loveca profile (no auth). */
+function tcgApiPublicProfile(array $params): array {
+    $discordId = trim((string)($params['discord_id'] ?? ''));
+    if ($discordId === '' || !preg_match('/^\d{5,32}$/', $discordId)) {
+        throw new Exception('discord_id required', 400);
+    }
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT * FROM tcg_users WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$user) {
+        throw new Exception('Player not found', 404);
+    }
+
+    $cards = tcgLoadCardsData();
+    $cardMap = tcgBuildCardMap($cards);
+    $collection = tcgPublicCollectionStats($discordId, $cardMap);
+    $packsOpened = tcgPublicPacksOpened($discordId);
+    $rank = tcgFormatRankSummary(tcgRankRow($discordId));
+    $banner = tcgFormatUserBanner($user, $cards);
+    $bannerUrl = null;
+    if ($banner && !empty($banner['card_no'])) {
+        $bannerUrl = 'https://loveliveradio.ca/tcg/cardimg.php?card_no=' . rawurlencode((string)$banner['card_no']);
+    }
+
+    return [
+        'success' => true,
+        'profile' => [
+            'discord_id' => $discordId,
+            'username' => (string)($user['username'] ?? 'Player'),
+            'avatar_url' => $user['avatar_url'] ?? null,
+            'rank' => $rank,
+            'ranked_games' => intval($rank['games'] ?? 0),
+            'unranked_games' => intval($user['unranked_games'] ?? 0),
+            'collection' => $collection,
+            'packs_opened' => $packsOpened,
+            'banner' => $banner,
+            'banner_image_url' => $bannerUrl,
+            'queue' => tcgPublicQueueStatus($discordId),
+        ],
+    ];
+}
+
+function tcgPublicCollectionStats(string $discordId, array $cardMap): array {
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT card_no, qty FROM tcg_collection WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    $totalCards = 0;
+    $totalUnique = 0;
+    $byRarity = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $qty = intval($row['qty'] ?? 0);
+        if ($qty <= 0) {
+            continue;
+        }
+        $totalUnique++;
+        $totalCards += $qty;
+        $card = $cardMap[$row['card_no']] ?? null;
+        $rarity = strtoupper(trim((string)($card['rarity'] ?? 'UNKNOWN')));
+        if ($rarity === '') {
+            $rarity = 'UNKNOWN';
+        }
+        $byRarity[$rarity] = ($byRarity[$rarity] ?? 0) + $qty;
+    }
+    ksort($byRarity);
+    return [
+        'total_cards' => $totalCards,
+        'total_unique' => $totalUnique,
+        'by_rarity' => $byRarity,
+    ];
+}
+
+function tcgPublicPacksOpened(string $discordId): int {
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT box_id, packs_in_box, boxes_opened FROM tcg_box_progress WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    $total = 0;
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $box = tcgBoosterBoxById((string)($row['box_id'] ?? ''));
+        $perBox = $box ? tcgBoxPacksPerBox($box) : TCG_PACKS_PER_BOX;
+        $total += intval($row['boxes_opened'] ?? 0) * $perBox + intval($row['packs_in_box'] ?? 0);
+    }
+    return $total;
+}
+
+function tcgPublicQueueStatus(string $discordId): array {
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT joined_at FROM tcg_match_queue WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+        return ['status' => 'searching', 'mode' => 'ranked'];
+    }
+    $stmt = $db->prepare('SELECT joined_at FROM tcg_casual_queue WHERE discord_id = ? ORDER BY joined_at DESC LIMIT 1');
+    $stmt->execute([$discordId]);
+    if ($stmt->fetch(PDO::FETCH_ASSOC)) {
+        return ['status' => 'searching', 'mode' => 'casual'];
+    }
+    return ['status' => 'idle'];
 }
 
 /**
