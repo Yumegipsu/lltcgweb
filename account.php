@@ -10,7 +10,8 @@
  *   me, pick_starter, collection, booster_boxes, booster_rates, daily_status, open_booster,
  *   deck_list, deck_save, deck_delete, deck_equip, deck_equip_starter, deck_reset_starter, deck_auto_build, reset_account,
  *   ranked_join, ranked_leave, ranked_status, rank_stats, rank_banner_set, stamp_favorites_set, active_game, leave_active_game,
- *   replay_save, replay_list, replay_get, replay_start, missions_list, missions_claim, public_profile
+ *   replay_save, replay_list, replay_get, replay_start, missions_list, missions_claim, public_profile,
+ *   public_leaderboard
  */
 require_once __DIR__ . '/config/paths.php';
 require_once __DIR__ . '/config/cors.php';
@@ -78,6 +79,7 @@ try {
         case 'replay_start':       echo json_encode(tcgApiReplayStartSaved($body)); break;
         case 'missions_list':      echo json_encode(tcgApiMissionsList($body)); break;
         case 'missions_claim':     echo json_encode(tcgApiMissionsClaim($body)); break;
+        case 'public_leaderboard': echo json_encode(tcgApiPublicLeaderboard($_GET + $body)); break;
         case 'public_profile':     echo json_encode(tcgApiPublicProfile($_GET + $body)); break;
         default:
             http_response_code(404);
@@ -979,6 +981,45 @@ function tcgFinalizeRankedPair(string $discordId, string $oppId): ?array {
         'player_id' => $side['player_id'],
         'opponent_id' => $isP1 ? $pair['p2']['discord_id'] : $pair['p1']['discord_id'],
         'match_id' => $pair['match_id'],
+    ];
+}
+
+/** Public ranked top-N for Discord /loveca leaderboard (no auth). */
+function tcgApiPublicLeaderboard(array $params): array {
+    $limit = intval($params['limit'] ?? 100);
+    if ($limit < 1) {
+        $limit = 100;
+    }
+    $limit = min(100, $limit);
+    $db = tcgDb();
+    $stmt = $db->query(
+        'SELECT r.discord_id, r.rating, r.wins, r.losses, r.draws, r.games, u.username
+         FROM tcg_rank r
+         JOIN tcg_users u ON u.discord_id = r.discord_id
+         WHERE r.games > 0
+         ORDER BY r.rating DESC, r.wins DESC
+         LIMIT ' . $limit
+    );
+    $leaderboard = [];
+    $rankNum = 0;
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $rankNum++;
+        $summary = tcgFormatRankSummary($row);
+        $leaderboard[] = [
+            'rank' => $rankNum,
+            'user_id' => (string)$row['discord_id'],
+            'username' => $row['username'] ?: 'Player',
+            'elo' => $summary['elo'],
+            'wins' => $summary['wins'],
+            'losses' => $summary['losses'],
+            'loss_rate' => $summary['loss_rate'],
+            'games' => $summary['games'],
+        ];
+    }
+    return [
+        'success' => true,
+        'limit' => $limit,
+        'leaderboard' => $leaderboard,
     ];
 }
 
