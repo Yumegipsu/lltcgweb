@@ -1671,7 +1671,7 @@ html.tcg-mobile-viewport #perf-spectacle{
   --perf-member-w:7.2cqw;
   --perf-col-side-inset:5.4cqw;
   --perf-yell-rail-gap:0.65cqw;
-  --perf-rail-slot-w:calc(var(--perf-member-w) * 3.35 + 0.75cqw);
+  --perf-rail-slot-w:calc(var(--perf-member-w) * 2.15 + 0.75cqw);
 }
 html.tcg-tablet-landscape.tcg-mobile-viewport #perf-spectacle{
   --perf-member-w:6.6cqw;
@@ -1734,16 +1734,17 @@ html.tcg-mobile-viewport #perf-spectacle .perf-live-row.perf-live-multi .perf-ca
   width:7.4cqw;height:auto;
 }
 html.tcg-mobile-viewport #perf-spectacle .perf-card.member,
-html.tcg-mobile-viewport #perf-spectacle .perf-deck-pile,
-html.tcg-mobile-viewport #perf-spectacle .perf-yell-card{width:var(--perf-member-w)}
+html.tcg-mobile-viewport #perf-spectacle .perf-deck-pile{width:var(--perf-member-w)}
 html.tcg-mobile-viewport #perf-spectacle .perf-stage-row.perf-stage-multi .perf-card.member{
   width:6.2cqw;height:auto;
 }
-html.tcg-mobile-viewport #perf-spectacle .perf-col.mine .perf-yell-row{
-  grid-template-columns:repeat(3, var(--perf-member-w));
-}
+html.tcg-mobile-viewport #perf-spectacle .perf-col.mine .perf-yell-row,
 html.tcg-mobile-viewport #perf-spectacle .perf-col.opp .perf-yell-row{
-  width:calc(3 * var(--perf-member-w) + 2 * 0.35cqw);
+  width:var(--perf-member-w);
+  aspect-ratio:63/88;
+}
+html.tcg-mobile-viewport #perf-spectacle .perf-yell-card{
+  width:100%;height:100%;
 }
 html.tcg-mobile-viewport #perf-spectacle .perf-hearts-band{
   gap:0.65cqw;width:100%;justify-content:center;align-self:center;
@@ -1770,9 +1771,6 @@ html.tcg-mobile-viewport #perf-spectacle .perf-outcome,
 html.tcg-mobile-viewport #perf-spectacle .perf-side-outcomes .perf-outcome{
   font-size:1.55cqw;padding:0.35cqh 0.75cqw;
 }
-html.tcg-mobile-viewport #perf-spectacle .perf-yell-row.perf-yell-many{transform:scale(0.78)}
-html.tcg-mobile-viewport #perf-spectacle .perf-col.opp .perf-yell-row.perf-yell-many{transform-origin:left bottom}
-html.tcg-mobile-viewport #perf-spectacle .perf-col.mine .perf-yell-row.perf-yell-many{transform-origin:left top}
 html.tcg-mobile-viewport #perf-spectacle .perf-fx-toast{
   bottom:8cqh;max-width:72cqw;font-size:1.45cqw;padding:0.35cqh 1cqw;
 }
@@ -3256,7 +3254,7 @@ body.news-overlay-open .toast{z-index:8900}
   --perf-member-w:clamp(100px,16vw,136px);
   --perf-col-side-inset:clamp(132px,23vw,218px);
   --perf-yell-rail-gap:clamp(18px,2.8vw,32px);
-  --perf-rail-slot-w:calc(var(--perf-member-w) * 4 + 36px);
+  --perf-rail-slot-w:calc(var(--perf-member-w) * 2 + 28px);
   position:fixed;inset:0;z-index:8700;pointer-events:none;
   opacity:0;visibility:hidden;transition:opacity .45s ease,visibility .45s;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -3519,27 +3517,20 @@ body.perf-spectacle-active:has(.overlay.skill-hand-preserve.open)::before{
   transition:transform .48s cubic-bezier(.2,.9,.2,1),opacity .38s ease;
 }
 .perf-yell-row{
-  gap:clamp(6px,1vw,10px);
+  position:relative;
+  width:var(--perf-member-w,clamp(100px,16vw,136px));
+  aspect-ratio:63/88;
   flex-shrink:0;min-width:0;overflow:visible;
 }
-.perf-col.mine .perf-yell-row{
-  display:grid;
-  grid-template-columns:repeat(3,var(--perf-member-w,clamp(100px,16vw,136px)));
-  grid-auto-rows:auto;
-  justify-content:start;align-content:start;
-  align-self:flex-start;transform-origin:left top;
-}
-.perf-col.opp .perf-yell-row{
-  display:flex;flex-wrap:wrap-reverse;flex-direction:row;
-  justify-content:flex-start;align-content:flex-start;
-  width:calc(3 * var(--perf-member-w,clamp(100px,16vw,136px)) + 2 * clamp(6px,1vw,10px));
-  align-self:flex-end;transform-origin:left bottom;
-}
+.perf-col.mine .perf-yell-row{align-self:flex-start}
+.perf-col.opp .perf-yell-row{align-self:flex-end}
 .perf-yell-card{
-  width:var(--perf-member-w,clamp(100px,16vw,136px));aspect-ratio:63/88;border-radius:8px;overflow:hidden;
-  box-shadow:0 10px 32px rgba(0,0,0,.38);opacity:0;transform:translateX(12px) rotateY(90deg);
-  transition:opacity .35s ease,transform .45s cubic-bezier(.2,.9,.2,1);
-  position:relative;background:rgba(0,0,0,.18);flex-shrink:0;
+  --yell-stack-x:0px;--yell-stack-y:0px;--yell-stack-scale:1;
+  width:100%;height:100%;border-radius:8px;overflow:hidden;
+  box-shadow:0 10px 32px rgba(0,0,0,.38);opacity:0;
+  transform:translate(var(--yell-stack-x),var(--yell-stack-y)) scale(var(--yell-stack-scale)) translateX(12px) rotateY(90deg);
+  transition:opacity .35s ease,transform .45s cubic-bezier(.2,.9,.2,1),box-shadow .35s ease;
+  position:absolute;left:0;top:0;background:rgba(0,0,0,.18);flex-shrink:0;
 }
 .perf-yell-card > img,.perf-yell-card > .noimg{width:100%;height:100%;object-fit:cover;display:block;border-radius:5px;overflow:hidden}
 .perf-yell-card.live .card-landscape-in-portrait{border-radius:5px}
@@ -3549,6 +3540,17 @@ body.perf-spectacle-active:has(.overlay.skill-hand-preserve.open)::before{
   gap:2px;z-index:3;pointer-events:none;
 }
 .perf-yell-blade-hearts .hicon.bheart{width:clamp(18px,3.2vw,26px);height:clamp(18px,3.2vw,26px)}
+.perf-yell-stack-count{
+  position:absolute;right:clamp(-6px,-1vw,-2px);top:clamp(-8px,-1.2vw,-4px);
+  z-index:40;min-width:1.55em;height:1.55em;padding:0 .35em;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:999px;font-family:'Fredoka One',cursive;font-size:clamp(12px,2.2vw,16px);
+  font-weight:800;line-height:1;color:#fff;
+  background:linear-gradient(135deg,#7c5cff,#4f46e5);
+  border:1.5px solid rgba(255,255,255,.85);
+  box-shadow:0 4px 12px rgba(0,0,0,.4);pointer-events:none;
+}
+.perf-yell-stack-count[hidden]{display:none!important}
 .perf-heart-fly{
   position:fixed;z-index:25;pointer-events:none;
   transition:transform .58s cubic-bezier(.2,.85,.25,1),opacity .58s ease;
@@ -3559,7 +3561,10 @@ body.perf-spectacle-active:has(.overlay.skill-hand-preserve.open)::before{
   box-shadow:0 0 0 2px rgba(255,220,120,.85),0 0 18px rgba(255,200,80,.45);
   transition:box-shadow .2s ease;
 }
-.perf-yell-card.show{opacity:1;transform:translateX(0) rotateY(0deg)}
+.perf-yell-card.show{
+  opacity:1;
+  transform:translate(var(--yell-stack-x),var(--yell-stack-y)) scale(var(--yell-stack-scale)) rotateY(0deg);
+}
 .perf-hearts-band{
   display:flex;flex-direction:row;align-items:center;justify-content:center;
   gap:clamp(8px,1.2vw,14px);width:min(100%,560px);flex-wrap:nowrap;
@@ -31260,13 +31265,26 @@ async function perfRevealYellCardFromDeck(chip, deckEl, isMine, pace = 1) {
     chip.classList.add('show');
     return;
   }
+  const yellRow = chip.parentElement;
+  // Absolute stack chips need a layout pass before measuring the top slot.
+  void yellRow?.offsetWidth;
+  let chipW = chip.offsetWidth;
+  let chipH = chip.offsetHeight;
+  const rowRect = yellRow?.getBoundingClientRect?.();
+  if (chipW < 4 || chipH < 4) {
+    chipW = rowRect?.width >= 4 ? rowRect.width : deckRect.width;
+    chipH = rowRect?.height >= 4 ? rowRect.height : deckRect.height;
+  }
   const flyDur = Math.max(0.14, 0.48 * pace);
   const fadeDur = Math.max(0.1, 0.38 * pace);
   const fly = document.createElement('div');
-  fly.className = chip.className + ' perf-yell-flying';
+  fly.className = 'perf-yell-card perf-yell-flying';
   fly.innerHTML = chip.innerHTML;
-  fly.style.width = chip.offsetWidth + 'px';
-  fly.style.height = chip.offsetHeight + 'px';
+  fly.style.setProperty('--yell-stack-x', '0px');
+  fly.style.setProperty('--yell-stack-y', '0px');
+  fly.style.setProperty('--yell-stack-scale', '1');
+  fly.style.width = chipW + 'px';
+  fly.style.height = chipH + 'px';
   fly.style.left = (deckRect.left + deckRect.width / 2) + 'px';
   fly.style.top = (deckRect.top + deckRect.height / 2) + 'px';
   fly.style.transform = 'translate(-50%, -50%) scale(0.42) rotateY(88deg)';
@@ -31283,7 +31301,10 @@ async function perfRevealYellCardFromDeck(chip, deckEl, isMine, pace = 1) {
     deckEl.classList.remove('perf-deck-draw');
     return;
   }
-  const chipRect = chip.getBoundingClientRect();
+  let chipRect = chip.getBoundingClientRect();
+  if (chipRect.width < 4 || chipRect.height < 4) {
+    chipRect = (rowRect?.width >= 4 ? rowRect : null) || yellRow?.getBoundingClientRect?.() || deckRect;
+  }
   const sx = deckRect.left + deckRect.width / 2;
   const sy = deckRect.top + deckRect.height / 2;
   const tx = chipRect.left + chipRect.width / 2;
@@ -31384,12 +31405,13 @@ async function perfFlyBladeHeartToPanel(fromEl, heartsEl, color, chip, displayCo
 }
 
 function perfMeasureRailSlotW(rail) {
-  if (!rail) return 400;
+  if (!rail) return 280;
   const deck = rail.querySelector('.perf-deck-pile');
   const deckW = deck?.offsetWidth || 120;
   const innerGap = parseFloat(getComputedStyle(rail).gap) || 10;
   const memberW = deckW;
-  const yellFoot = memberW * 3 + 12;
+  // One yell stack slot (+ peek room for layered cards), not a 3-wide grid.
+  const yellFoot = memberW + 14;
   return deckW + innerGap + yellFoot;
 }
 
@@ -31581,81 +31603,44 @@ function layoutPerfLiveRows() {
   });
 }
 
+function layoutPerfYellStack(yellRow) {
+  if (!yellRow) return;
+  const chips = [...yellRow.querySelectorAll('.perf-yell-card')];
+  const n = chips.length;
+  const maxPeek = 5;
+  const step = 3;
+  chips.forEach((chip, i) => {
+    const depthFromTop = n - 1 - i;
+    const d = Math.min(depthFromTop, maxPeek);
+    chip.style.setProperty('--yell-stack-x', `${-d * step}px`);
+    chip.style.setProperty('--yell-stack-y', `${d * step}px`);
+    chip.style.setProperty('--yell-stack-scale', String(1 - d * 0.012));
+    chip.style.zIndex = String(i + 1);
+    chip.classList.toggle('perf-yell-stack-top', depthFromTop === 0);
+  });
+  let badge = yellRow.querySelector('.perf-yell-stack-count');
+  if (n > 1) {
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.className = 'perf-yell-stack-count';
+      badge.setAttribute('aria-hidden', 'true');
+      yellRow.appendChild(badge);
+    }
+    badge.textContent = String(n);
+    badge.hidden = false;
+    badge.style.zIndex = String(n + 5);
+  } else if (badge) {
+    badge.hidden = true;
+  }
+}
+
 function layoutPerfYellRail(rail) {
   if (!rail) return;
   const yellRow = rail.querySelector('.perf-yell-row');
   if (!yellRow) return;
-
-  const count = yellRow.querySelectorAll('.perf-yell-card').length;
-  yellRow.classList.toggle('perf-yell-many', count > 6);
-  if (tcgMobileSpectacleLayout()) {
-    yellRow.style.removeProperty('transform');
-    return;
-  }
-  if (!count) {
-    if (yellRow.style.transform) yellRow.style.transform = '';
-    return;
-  }
-
-  const isOpp = rail.closest('.perf-col')?.classList.contains('opp');
-  yellRow.style.transformOrigin = isOpp ? 'left bottom' : 'left top';
-
-  requestAnimationFrame(() => {
-    const deckEl = rail.querySelector('.perf-deck-pile');
-    const deckW = deckEl?.offsetWidth || 120;
-    const innerGap = parseFloat(getComputedStyle(rail).gap) || 10;
-    const yellAvailW = Math.max(48, (rail.clientWidth || perfMeasureRailSlotW(rail)) - deckW - innerGap);
-    const availH = Math.max(48, window.innerHeight - 24);
-
-    let scale = 1;
-    if (count > 6) {
-      if (count <= 9) scale = 0.86;
-      else if (count <= 12) scale = 0.72;
-      else scale = Math.max(0.5, 0.72 - (count - 12) * 0.035);
-    }
-
-    const rowRect = yellRow.getBoundingClientRect();
-    const naturalW = rowRect.width;
-    const naturalH = rowRect.height;
-    if (naturalW > 0 && naturalW > yellAvailW) scale = Math.min(scale, yellAvailW / naturalW);
-    if (naturalH > 0 && naturalH > availH) scale = Math.min(scale, availH / naturalH);
-
-    scale = Math.max(0.45, Math.min(1, scale));
-    yellRow.style.transform = scale < 0.995 ? `scale(${scale.toFixed(3)})` : '';
-
-    const pad = 10;
-    const rect = yellRow.getBoundingClientRect();
-    if (rect.width > 4 && rect.height > 4) {
-      let fit = scale;
-      const applyFit = () => {
-        yellRow.style.transform = fit < 0.995 ? `scale(${fit.toFixed(3)})` : '';
-        return yellRow.getBoundingClientRect();
-      };
-      let r = applyFit();
-      for (let i = 0; i < 4; i++) {
-        let shrink = 1;
-        if (r.right > window.innerWidth - pad) {
-          shrink = Math.min(shrink, (window.innerWidth - pad - Math.max(pad, r.left)) / r.width);
-        }
-        if (r.left < pad) {
-          shrink = Math.min(shrink, (r.right - pad) / r.width);
-        }
-        if (r.bottom > window.innerHeight - pad) {
-          shrink = Math.min(shrink, (window.innerHeight - pad - Math.max(pad, r.top)) / r.height);
-        }
-        if (r.top < pad) {
-          shrink = Math.min(shrink, (r.bottom - pad) / r.height);
-        }
-        if (shrink >= 0.999) break;
-        fit = Math.max(0.35, fit * shrink);
-        r = applyFit();
-      }
-      scale = fit;
-    }
-
-    const nextTransform = scale < 0.995 ? `scale(${scale.toFixed(3)})` : '';
-    if (yellRow.style.transform !== nextTransform) yellRow.style.transform = nextTransform;
-  });
+  yellRow.classList.remove('perf-yell-many');
+  yellRow.style.removeProperty('transform');
+  layoutPerfYellStack(yellRow);
 }
 
 function perfFillHearts(container, hearts) {
@@ -32608,6 +32593,7 @@ function perfSetYellSideInstant(ctx, pid, showAllCards) {
       ) });
       yellRow.appendChild(chip);
     });
+    layoutPerfYellStack(yellRow);
     let yellScoreTotal = 0;
     let yellDrawTotal = 0;
     yellCards.forEach(c => {
@@ -32827,6 +32813,7 @@ async function perfAnimateYellSide(ctx, pid) {
     chip.className = 'perf-yell-card';
     appendPerfYellCardFace(chip, card);
     yellRow.appendChild(chip);
+    layoutPerfYellStack(yellRow);
     await perfSleepYell(60, cardPace);
     await perfRevealYellCardFromDeck(chip, deckEl, isMine, cardPace);
     await perfSleepYell(160, cardPace);
