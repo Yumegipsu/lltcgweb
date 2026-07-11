@@ -132,6 +132,140 @@ final class MissionProgressTest extends TestCase
         $this->assertFalse(tcgMissionIsCompleted($this->discordId, 'ms_win_liella', ''));
     }
 
+    public function testRetractClaimedGroupWinClawsBackGemsFloorZero(): void
+    {
+        tcgMissionMarkCompleted($this->discordId, 'ms_win_hasunosora');
+        tcgMissionClaim($this->discordId, 'ms_win_hasunosora');
+        $this->assertSame(1000, tcgGetStarGems($this->discordId));
+
+        // Spend most gems so clawback must floor at 0.
+        tcgSoftClawbackStarGems($this->discordId, 900);
+        $this->assertSame(100, tcgGetStarGems($this->discordId));
+
+        $result = tcgMissionRetract($this->discordId, 'ms_win_hasunosora');
+        $this->assertTrue($result['retracted']);
+        $this->assertTrue($result['was_claimed']);
+        $this->assertSame(100, $result['gems_clawed']);
+        $this->assertSame(0, tcgGetStarGems($this->discordId));
+        $this->assertFalse(tcgMissionIsCompleted($this->discordId, 'ms_win_hasunosora', ''));
+    }
+
+    public function testClawbackFalseCpuGroupWinsKeepsLegitWins(): void
+    {
+        $cards = json_decode((string)file_get_contents(CARDS_FILE), true) ?: [];
+        $cardMap = tcgBuildCardMap($cards);
+        $hasu = $cards['starter_decks']['hasunosora']['main_deck'] ?? [];
+        $niji = $cards['starter_decks']['nijigasaki']['main_deck'] ?? [];
+        $this->assertNotEmpty($hasu);
+        $this->assertNotEmpty($niji);
+
+        // Illegit Hasu completion (as if old CPU-win path granted it).
+        tcgMissionMarkCompleted($this->discordId, 'ms_win_hasunosora');
+        tcgMissionClaim($this->discordId, 'ms_win_hasunosora');
+        // Legit Niji completion.
+        tcgMissionMarkCompleted($this->discordId, 'ms_win_nijigasaki');
+
+        $falseState = [
+            'status' => 'finished',
+            'winner' => 'p2',
+            'players' => [
+                'p1' => [
+                    'discord_id' => $this->discordId,
+                    'deck_choice' => 'liella',
+                    'deck_snapshot' => ['main_nos' => $niji, 'energy_nos' => []],
+                ],
+                'p2' => [
+                    'name' => 'CPU (Easy)',
+                    'discord_id' => $this->discordId,
+                    'deck_choice' => 'cpu:easy',
+                    'deck_snapshot' => ['main_nos' => $hasu, 'energy_nos' => []],
+                ],
+            ],
+        ];
+        $legitState = [
+            'status' => 'finished',
+            'winner' => 'p1',
+            'players' => [
+                'p1' => [
+                    'discord_id' => $this->discordId,
+                    'deck_choice' => 'nijigasaki',
+                    'deck_snapshot' => ['main_nos' => $niji, 'energy_nos' => []],
+                ],
+                'p2' => [
+                    'name' => 'CPU (Easy)',
+                    'deck_choice' => 'cpu:easy',
+                    'deck_snapshot' => ['main_nos' => $hasu, 'energy_nos' => []],
+                ],
+            ],
+        ];
+
+        $falseEv = tcgMissionGroupWinEvidenceFromState($falseState, $this->discordId, $cardMap);
+        $legitEv = tcgMissionGroupWinEvidenceFromState($legitState, $this->discordId, $cardMap);
+        $this->assertSame('false_cpu', $falseEv['ms_win_hasunosora'] ?? null);
+        $this->assertSame('legit', $legitEv['ms_win_nijigasaki'] ?? null);
+
+        // Persist evidence via a fake replay row for the false Hasu win only.
+        $payload = json_encode([
+            'schema_version' => 1,
+            'meta' => ['saver_player_id' => 'p1'],
+            'baseline' => $falseState,
+            'actions' => [['index' => 1]],
+        ], JSON_UNESCAPED_SLASHES);
+        tcgDb()->prepare('INSERT INTO tcg_replays (
+                discord_id, room_id, saver_player_id, saver_name, opponent_name, winner, end_reason,
+                turn, phase, action_count, duration_seconds, payload_json, saved_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+            ->execute([
+                $this->discordId, 'TESTROOM', 'p1', 'Human', 'CPU', 'p2', 'resign',
+                1, 'finished', 1, 1, $payload, time(),
+            ]);
+
+        // Legit niji evidence via second replay where human won.
+        $payload2 = json_encode([
+            'schema_version' => 1,
+            'meta' => ['saver_player_id' => 'p1'],
+            'baseline' => $legitState,
+            'actions' => [['index' => 1]],
+        ], JSON_UNESCAPED_SLASHES);
+        tcgDb()->prepare('INSERT INTO tcg_replays (
+                discord_id, room_id, saver_player_id, saver_name, opponent_name, winner, end_reason,
+                turn, phase, action_count, duration_seconds, payload_json, saved_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+            ->execute([
+                $this->discordId, 'TESTROOM2', 'p1', 'Human', 'CPU', 'p1', null,
+                1, 'finished', 1, 1, $payload2, time(),
+            ]);
+
+        $results = tcgMissionClawbackFalseCpuGroupWins();
+        $mine = array_values(array_filter(
+            $results,
+            fn(array $r): bool => ($r['discord_id'] ?? '') === $this->discordId
+        ));
+        $ids = array_column($mine, 'mission_id');
+        $this->assertContains('ms_win_hasunosora', $ids);
+        $this->assertNotContains('ms_win_nijigasaki', $ids);
+        $this->assertFalse(tcgMissionIsCompleted($this->discordId, 'ms_win_hasunosora', ''));
+        $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'ms_win_nijigasaki', ''));
+        $this->assertSame(0, tcgGetStarGems($this->discordId));
+    }
+
+    public function testClawbackRetractsGroupWinWithoutAnyEvidence(): void
+    {
+        tcgMissionMarkCompleted($this->discordId, 'ms_win_muse');
+        tcgMissionClaim($this->discordId, 'ms_win_muse');
+        $this->assertSame(1000, tcgGetStarGems($this->discordId));
+
+        $results = tcgMissionClawbackFalseCpuGroupWins();
+        $mine = array_values(array_filter(
+            $results,
+            fn(array $r): bool => ($r['discord_id'] ?? '') === $this->discordId
+        ));
+        $ids = array_column($mine, 'mission_id');
+        $this->assertContains('ms_win_muse', $ids);
+        $this->assertFalse(tcgMissionIsCompleted($this->discordId, 'ms_win_muse', ''));
+        $this->assertSame(0, tcgGetStarGems($this->discordId));
+    }
+
     public function testGroupWinMilestoneSkippedWithoutDiscordId(): void
     {
         $cards = json_decode((string)file_get_contents(CARDS_FILE), true) ?: [];

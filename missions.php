@@ -608,3 +608,249 @@ function tcgMissionSummaryForUser(string $discordId): array {
         'daily_period' => tcgTodayJst(),
     ];
 }
+
+/**
+ * Delete a mission progress row. If it was claimed, soft-clawback the reward (floor 0).
+ *
+ * @return array{retracted: bool, was_claimed: bool, gems_clawed: int, mission_id: string, discord_id: string}
+ */
+function tcgMissionRetract(string $discordId, string $missionId, ?string $periodKey = null): array {
+    $def = tcgMissionDefById($missionId);
+    if (!$def) {
+        return [
+            'retracted' => false,
+            'was_claimed' => false,
+            'gems_clawed' => 0,
+            'mission_id' => $missionId,
+            'discord_id' => $discordId,
+        ];
+    }
+    $periodKey = $periodKey ?? tcgMissionPeriodKey($def);
+    $row = tcgMissionProgressRow($discordId, $missionId, $periodKey);
+    if (!$row || empty($row['completed_at'])) {
+        return [
+            'retracted' => false,
+            'was_claimed' => false,
+            'gems_clawed' => 0,
+            'mission_id' => $missionId,
+            'discord_id' => $discordId,
+        ];
+    }
+    $wasClaimed = !empty($row['claimed_at']);
+    $reward = max(0, intval($def['reward'] ?? 0));
+    $gemsClawed = 0;
+    if ($wasClaimed && $reward > 0) {
+        $before = tcgGetStarGems($discordId);
+        tcgSoftClawbackStarGems($discordId, $reward);
+        $gemsClawed = max(0, $before - tcgGetStarGems($discordId));
+    }
+    tcgDb()->prepare('DELETE FROM tcg_mission_progress WHERE discord_id = ? AND mission_id = ? AND period_key = ?')
+        ->execute([$discordId, $missionId, $periodKey]);
+    return [
+        'retracted' => true,
+        'was_claimed' => $wasClaimed,
+        'gems_clawed' => $gemsClawed,
+        'mission_id' => $missionId,
+        'discord_id' => $discordId,
+    ];
+}
+
+/**
+ * Inspect a finished match: return map mission_id => 'false_cpu'|'legit' for the given account.
+ *
+ * False CPU path: CPU seat won while carrying this discord_id (solo auth leak).
+ * Legit path: non-CPU seat with this discord_id won using a pure group deck.
+ *
+ * @return array<string, 'false_cpu'|'legit'>
+ */
+function tcgMissionGroupWinEvidenceFromState(array $state, string $discordId, array $cardMap): array {
+    if (($state['status'] ?? '') !== 'finished') {
+        return [];
+    }
+    $winner = (string)($state['winner'] ?? '');
+    if ($winner !== 'p1' && $winner !== 'p2') {
+        return [];
+    }
+    $wp = $state['players'][$winner] ?? null;
+    if (!is_array($wp)) {
+        return [];
+    }
+    $winnerDiscord = trim((string)($wp['discord_id'] ?? ''));
+    if ($winnerDiscord === '' || $winnerDiscord !== $discordId) {
+        return [];
+    }
+    $mainNos = $wp['deck_snapshot']['main_nos'] ?? [];
+    if (!is_array($mainNos) || $mainNos === []) {
+        return [];
+    }
+    $out = [];
+    $kind = tcgMissionSeatIsCpu($wp) ? 'false_cpu' : 'legit';
+    foreach (tcgMissionDefinitions() as $def) {
+        $group = $def['group'] ?? null;
+        if (!$group || ($def['type'] ?? '') !== 'milestone') {
+            continue;
+        }
+        if (!tcgDeckMainIsSingleGroup($mainNos, $group, $cardMap)) {
+            continue;
+        }
+        $out[$def['id']] = $kind;
+    }
+    return $out;
+}
+
+/**
+ * Merge evidence maps; legit wins beat false_cpu for the same mission.
+ *
+ * @param array<string, 'false_cpu'|'legit'> ...$maps
+ * @return array<string, 'false_cpu'|'legit'>
+ */
+function tcgMissionMergeGroupWinEvidence(array ...$maps): array {
+    $out = [];
+    foreach ($maps as $map) {
+        foreach ($map as $missionId => $kind) {
+            if (($out[$missionId] ?? null) === 'legit') {
+                continue;
+            }
+            if ($kind === 'legit' || !isset($out[$missionId])) {
+                $out[$missionId] = $kind;
+            }
+        }
+    }
+    return $out;
+}
+
+/** @return array<string, array<string, 'false_cpu'|'legit'>> discord_id => mission_id => kind */
+function tcgMissionCollectGroupWinEvidence(?array $cardMap = null): array {
+    if ($cardMap === null) {
+        if (!file_exists(TCG_CARDS_FILE)) {
+            return [];
+        }
+        $cards = json_decode((string)file_get_contents(TCG_CARDS_FILE), true) ?: [];
+        $cardMap = tcgBuildCardMap($cards);
+    }
+    /** @var array<string, array<string, 'false_cpu'|'legit'>> $byUser */
+    $byUser = [];
+
+    $addState = function (array $state) use (&$byUser, $cardMap): void {
+        if (($state['status'] ?? '') !== 'finished') {
+            return;
+        }
+        $ids = [];
+        foreach (['p1', 'p2'] as $pid) {
+            $did = trim((string)(($state['players'][$pid]['discord_id'] ?? '')));
+            if ($did !== '') {
+                $ids[$did] = true;
+            }
+        }
+        foreach (array_keys($ids) as $discordId) {
+            $ev = tcgMissionGroupWinEvidenceFromState($state, $discordId, $cardMap);
+            if ($ev === []) {
+                continue;
+            }
+            $byUser[$discordId] = tcgMissionMergeGroupWinEvidence($byUser[$discordId] ?? [], $ev);
+        }
+    };
+
+    $gamesDir = function_exists('tcgPath') ? tcgPath('games') : (defined('GAMES_DIR') ? GAMES_DIR : '');
+    if (is_string($gamesDir) && $gamesDir !== '' && is_dir($gamesDir)) {
+        foreach (glob(rtrim($gamesDir, '/\\') . DIRECTORY_SEPARATOR . '*.json') ?: [] as $file) {
+            $base = basename((string)$file);
+            if (str_starts_with($base, 'presence_') || str_starts_with($base, 'lock_') || str_starts_with($base, 'spectators_')) {
+                continue;
+            }
+            $raw = @file_get_contents($file);
+            if ($raw === false || $raw === '') {
+                continue;
+            }
+            $state = json_decode($raw, true);
+            if (is_array($state)) {
+                $addState($state);
+            }
+        }
+    }
+
+    $db = tcgDb();
+    $stmt = $db->query('SELECT discord_id, winner, payload_json FROM tcg_replays');
+    if ($stmt) {
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $discordId = trim((string)($row['discord_id'] ?? ''));
+            if ($discordId === '') {
+                continue;
+            }
+            $payload = json_decode((string)($row['payload_json'] ?? ''), true);
+            if (!is_array($payload)) {
+                continue;
+            }
+            $baseline = $payload['baseline'] ?? null;
+            if (!is_array($baseline)) {
+                continue;
+            }
+            $state = $baseline;
+            $state['status'] = 'finished';
+            $state['winner'] = $row['winner'] ?? ($payload['meta']['winner'] ?? ($baseline['winner'] ?? null));
+            // Prefer final seat snapshots when export embedded them.
+            if (isset($payload['players']) && is_array($payload['players'])) {
+                $state['players'] = $payload['players'];
+            }
+            $ev = tcgMissionGroupWinEvidenceFromState($state, $discordId, $cardMap);
+            if ($ev === []) {
+                continue;
+            }
+            $byUser[$discordId] = tcgMissionMergeGroupWinEvidence($byUser[$discordId] ?? [], $ev);
+        }
+    }
+
+    return $byUser;
+}
+
+/**
+ * Retract group-win milestones that lack a legitimate human-win record.
+ *
+ * Preferentially targets the CPU auth-leak path (CPU seat won while carrying the
+ * player's discord_id). Also retracts completions with no saved legit win evidence
+ * at all — those can be re-earned; replay backfill restores real wins automatically.
+ *
+ * @return list<array{retracted: bool, was_claimed: bool, gems_clawed: int, mission_id: string, discord_id: string, reason: string}>
+ */
+function tcgMissionClawbackFalseCpuGroupWins(): array {
+    $evidence = tcgMissionCollectGroupWinEvidence();
+    $results = [];
+    $db = tcgDb();
+    $stmt = $db->query("SELECT discord_id, mission_id, period_key FROM tcg_mission_progress
+        WHERE completed_at IS NOT NULL AND mission_id LIKE 'ms_win_%'");
+    if (!$stmt) {
+        return [];
+    }
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $discordId = (string)($row['discord_id'] ?? '');
+        $missionId = (string)($row['mission_id'] ?? '');
+        $periodKey = (string)($row['period_key'] ?? '');
+        $kind = $evidence[$discordId][$missionId] ?? null;
+        if ($kind === 'legit') {
+            continue;
+        }
+        $reason = $kind === 'false_cpu' ? 'false_cpu_auth_leak' : 'no_legit_win_evidence';
+        $result = tcgMissionRetract($discordId, $missionId, $periodKey);
+        $result['reason'] = $reason;
+        $results[] = $result;
+    }
+    return $results;
+}
+
+// One-shot Hostinger clawback after CPU seats stopped inheriting auth.
+tcgDbRunMigrationOnce(tcgDb(), 'clawback_false_cpu_group_wins_20260711', static function (PDO $db): void {
+    $results = tcgMissionClawbackFalseCpuGroupWins();
+    $summary = [
+        'at' => time(),
+        'retracted' => count(array_filter($results, static fn(array $r): bool => !empty($r['retracted']))),
+        'gems_clawed_total' => array_sum(array_map(static fn(array $r): int => intval($r['gems_clawed'] ?? 0), $results)),
+        'details' => $results,
+    ];
+    $db->prepare('INSERT INTO tcg_schema_meta (key, value) VALUES (?, ?)
+        ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+        ->execute([
+            'clawback_false_cpu_group_wins_20260711_report',
+            json_encode($summary, JSON_UNESCAPED_SLASHES),
+        ]);
+});
+
