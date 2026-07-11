@@ -1043,7 +1043,7 @@ body:has(.overlay.skill-hand-preserve.open) .playmat-column.play-selecting .play
 }
 .spectate-bar[hidden]{display:none!important}
 .spectate-bar-label{font-size:11px;font-weight:700;color:rgba(186,228,255,.88);white-space:nowrap}
-body.tcg-spectator-mode #screen-game .mat-zone.deck-pile,
+/* Keep deck / WR / energy-deck piles visible for spectators (face-down decks + public WR). */
 body.tcg-spectator-mode #screen-game .mat-baton-toggle,
 body.tcg-spectator-mode #screen-game #btn-resign,
 body.tcg-spectator-mode #screen-game .phase-action-bar{display:none!important}
@@ -1051,15 +1051,23 @@ body.tcg-spectator-mode #screen-game #btn-phase-primary,
 body.tcg-spectator-mode #screen-game .phase-action-bar,
 body.tcg-spectator-mode #screen-game .tcg-radio-bar,
 body.tcg-spectator-mode #screen-game .tcg-debug-row,
-body.tcg-spectator-mode #screen-game .mat-zone.deck-pile{pointer-events:none!important}
+body.tcg-spectator-mode #screen-game .mat-zone.deck-pile.z-main-deck,
+body.tcg-spectator-mode #screen-game .mat-zone.deck-pile.z-opp-main-deck,
+body.tcg-spectator-mode #screen-game .mat-zone.deck-pile.z-energy-deck,
+body.tcg-spectator-mode #screen-game .mat-zone.deck-pile.z-opp-energy-deck{pointer-events:none!important}
+body.tcg-spectator-mode #screen-game .mat-zone.deck-pile.wr-pile,
+body.tcg-spectator-mode #screen-game .mat-zone.deck-pile.wr-pile .wr-face-card{
+  pointer-events:auto!important;cursor:pointer!important
+}
 body.tcg-spectator-mode #screen-game .mslot.occupied,
 body.tcg-spectator-mode #screen-game .lcard:not(.live-storage-facedown):not(.live-storage-flip),
 body.tcg-spectator-mode #screen-game .hand-strip .hcard,
 body.tcg-spectator-mode #screen-game .hand-strip .opp-hand-card.hcard,
-body.tcg-spectator-mode #screen-game .echip-stack,
-body.tcg-spectator-mode #screen-game .wr-face-card{cursor:help}
+body.tcg-spectator-mode #screen-game .echip-stack{cursor:help}
 body.tcg-spectator-mode #spectate-bar,
 body.tcg-spectator-mode #spectate-bar button{pointer-events:auto}
+body.tcg-spectator-mode #overlay-zone,
+body.tcg-spectator-mode #overlay-zone *{pointer-events:auto}
 body.tcg-spectator-mode #sb-activatable-wrap .btn-stage-ability{
   pointer-events:none!important;opacity:.55;cursor:default
 }
@@ -37699,7 +37707,12 @@ function viewZone(who, zoneKey, title){
     toast(t('game.deckHidden'), 2200);
     return;
   }
-  if (who === 'my' && zoneKey === 'main_deck' && isActiveGameplay(s)) {
+  // Players cannot browse their own main deck mid-match; spectators also only see counts.
+  if (who === 'my' && zoneKey === 'main_deck' && isActiveGameplay(s) && !G.isSpectator) {
+    return;
+  }
+  if (G.isSpectator && (zoneKey === 'main_deck' || zoneKey === 'energy_deck')) {
+    toast(t('game.deckHidden'), 2200);
     return;
   }
   const zoneTitle = title
