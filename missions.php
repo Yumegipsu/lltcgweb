@@ -483,10 +483,28 @@ function tcgMissionBackfillDailyBoostersLaunchDay(string $discordId, ?string $to
     if (!function_exists('tcgDailyOpenAllowance')) {
         require_once __DIR__ . '/booster.php';
     }
-    $allow = tcgDailyOpenAllowance($discordId);
-    if (($allow['remaining'] ?? 1) > 0 || ($allow['opened_today'] ?? 0) <= 0) {
+
+    // Judge exhaustion from the launch-day row itself (not live "today" allowance), so this
+    // still works in tests and if a profile loads after the launch JST date.
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT last_open_date, packs_opened_today, first_day_bonus_used FROM tcg_daily_state WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row || ($row['last_open_date'] ?? '') !== $todayJst) {
         return;
     }
+
+    $opened = max(0, intval($row['packs_opened_today'] ?? 0));
+    if ($opened <= 0) {
+        return;
+    }
+
+    $flagUsed = intval($row['first_day_bonus_used'] ?? 0) === 1;
+    $limit = $flagUsed ? TCG_DAILY_PACK_LIMIT : TCG_WELCOME_DAY_PACK_LIMIT;
+    if ($opened < $limit) {
+        return;
+    }
+
     tcgMissionMarkCompletedSilent($discordId, 'daily_open_all_boosters', $todayJst);
     tcgMissionTryCompleteAllDaily($discordId);
 }

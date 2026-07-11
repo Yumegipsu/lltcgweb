@@ -61,6 +61,35 @@ final class ActionSmokeTest extends TestCase
         $this->assertNull($state['pending_prompt'] ?? null);
     }
 
+    public function testResolvePromptWrongResponderIsIdempotentNoop(): void {
+        $state = $this->joinedMulliganState();
+        $state = applyAction($state, 'p1', 'mulligan', ['card_ids' => []]);
+        $state = applyAction($state, 'p2', 'mulligan', ['card_ids' => []]);
+        $prompt = [
+            'type' => 'look_top_optional_wr',
+            'owner' => 'p1',
+            'responder' => 'p1',
+            'target' => 'p1',
+            'source_name' => 'Smoke',
+            'choices' => ['yes', 'no'],
+        ];
+        $state['pending_prompt'] = $prompt;
+        // p2 answers p1's prompt (race / wrong responder): must not throw, must no-op.
+        $after = applyAction($state, 'p2', 'resolve_prompt', ['choice' => 'no']);
+        $this->assertTrue($after['_resolve_prompt_noop'] ?? false);
+        $this->assertSame($prompt, $after['pending_prompt'] ?? null);
+    }
+
+    public function testResolvePromptNoPendingIsIdempotentNoop(): void {
+        $state = $this->joinedMulliganState();
+        $state = applyAction($state, 'p1', 'mulligan', ['card_ids' => []]);
+        $state = applyAction($state, 'p2', 'mulligan', ['card_ids' => []]);
+        unset($state['pending_prompt']);
+        // Duplicate submit after the prompt already resolved: no-op, no exception.
+        $after = applyAction($state, 'p1', 'resolve_prompt', ['choice' => 'no']);
+        $this->assertTrue($after['_resolve_prompt_noop'] ?? false);
+    }
+
     public function testLiveStartPositionChangeContinuesPromptQueue(): void {
         $tomari = $this->cardByNo('PL!SP-pb2-011-PP', 'test_tomari');
         $natsumi = $this->cardByNo('PL!SP-sd1-020-SD', 'test_natsumi');
@@ -123,6 +152,10 @@ final class ActionSmokeTest extends TestCase
         $this->assertSame('test_tomari', $state['players']['p2']['stage']['right']['instance_id'] ?? null);
         $this->assertSame('test_natsumi', $state['players']['p2']['stage']['center']['instance_id'] ?? null);
         $this->assertTrue($state['players']['p2']['stage']['right']['moved_this_turn'] ?? false);
+        // Tomari left Center — her auto must resolve before the Live Start queue continues.
+        $this->assertSame('spbp2_center_move_choose', $state['pending_prompt']['type'] ?? null);
+
+        $state = applyAction($state, 'p2', 'resolve_prompt', ['choice' => 'draw']);
         $this->assertSame('optional_live_start', $state['pending_prompt']['type'] ?? null);
         $this->assertSame('test_followup_live', $state['pending_prompt']['source_id'] ?? null);
     }
@@ -239,6 +272,255 @@ final class ActionSmokeTest extends TestCase
         $this->assertSame('optional_discard_prompt', $state['pending_prompt']['type'] ?? null);
         $this->assertSame('test_rurino_missing_abilities', $state['pending_prompt']['source_id'] ?? null);
         $this->assertSame('look_reveal_filter', $state['pending_prompt']['ability']['then']['type'] ?? null);
+    }
+
+    public function testAutoGroupEnterBladeFiresWhenEnteringMemberHasNoOnEnter(): void {
+        $state = $this->joinedMulliganState();
+        $state = applyAction($state, 'p1', 'mulligan', ['card_ids' => []]);
+        $state = applyAction($state, 'p2', 'mulligan', ['card_ids' => []]);
+
+        $listener = $this->cardByNo('PL!HS-pb1-009-R', 'test_pb1_kaho_listener');
+        $entering = $this->cardByNo('PL!HS-sd1-001-SD', 'test_sd_kaho_enter');
+        $this->assertSame([], getAbilitiesByTrigger($entering, 'on_enter'));
+
+        $state['players']['p2']['stage']['center'] = $listener;
+        $state['players']['p2']['hand'] = [$entering];
+        $state['players']['p2']['energy_zone'] = [];
+        for ($i = 0; $i < 12; $i++) {
+            $state['players']['p2']['energy_zone'][] = [
+                'instance_id' => 'test_p2_energy_' . $i,
+                'active' => true,
+            ];
+        }
+        $state['active_player'] = 'p2';
+        $state['phase'] = 'main_second';
+
+        $state = applyAction($state, 'p2', 'play_member', [
+            'card_id' => 'test_sd_kaho_enter',
+            'slot' => 'left',
+        ]);
+
+        $center = $state['players']['p2']['stage']['center'] ?? null;
+        $this->assertSame('test_pb1_kaho_listener', $center['instance_id'] ?? null);
+        $this->assertSame(2, intval($center['live_blade_bonus'] ?? 0));
+        $found = false;
+        foreach ($state['log'] ?? [] as $entry) {
+            $msg = is_array($entry) ? ($entry['msg'] ?? '') : (string)$entry;
+            if (str_contains($msg, 'gained +2 Blade') && str_contains($msg, 'Kaho Hinoshita entered')) {
+                $found = true;
+                break;
+            }
+        }
+        $this->assertTrue($found, 'Expected auto enter blade log line');
+    }
+
+    public function testOptionalLiveStartQueuePayEnergyThenDiscardSkip(): void {
+        $linkFuture = $this->cardByNo('PL!HS-sd1-020-SD', 'test_link_future');
+        $payLive = [
+            'instance_id' => 'test_pay_live',
+            'card_no' => 'TEST-PAY-LIVE',
+            'name_en' => 'Pay Live',
+            'card_type_en' => 'Live',
+            'abilities' => [
+                ['trigger' => 'live_start', 'type' => 'optional_pay_energy', 'cost' => 1],
+            ],
+        ];
+
+        $state = [
+            'phase' => 'live_start_effects',
+            'seq' => 70,
+            'first_player' => 'p1',
+            'live_attempt' => ['p1', 'p2'],
+            'players' => [
+                'p1' => [
+                    'name' => 'P1',
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'hand' => [],
+                    'waiting_room' => [],
+                    'live_zone' => [$payLive, $linkFuture],
+                    'main_deck' => [],
+                    'energy_zone' => [
+                        ['instance_id' => 'test_energy_0', 'active' => true],
+                    ],
+                    'success_lives' => [],
+                ],
+                'p2' => [
+                    'name' => 'P2',
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'hand' => [],
+                    'waiting_room' => [],
+                    'live_zone' => [],
+                    'main_deck' => [],
+                    'energy_zone' => [],
+                    'success_lives' => [],
+                ],
+            ],
+            'live_start_optional_queue' => [[
+                'owner' => 'p1',
+                'source_id' => 'test_link_future',
+                'source_name' => 'Link to the FUTURE (104th Ver.)',
+                'ability_index' => 1,
+                'ability' => $linkFuture['abilities'][1],
+            ]],
+            'pending_prompt' => [
+                'type' => 'optional_live_start',
+                'owner' => 'p1',
+                'responder' => 'p1',
+                'source_id' => 'test_pay_live',
+                'source_name' => 'Pay Live',
+                'ability_index' => 0,
+                'ability' => $payLive['abilities'][0],
+                'choices' => ['yes', 'no'],
+                'needs_pay' => true,
+                'pay_cost' => 1,
+            ],
+        ];
+
+        $state = applyAction($state, 'p1', 'resolve_prompt', ['choice' => 'yes', 'pay' => true]);
+        $this->assertSame('optional_live_start', $state['pending_prompt']['type'] ?? null);
+        $this->assertSame('test_link_future', $state['pending_prompt']['source_id'] ?? null);
+        $this->assertSame('optional_discard_prompt', $state['pending_prompt']['ability']['type'] ?? null);
+        $this->assertContains('p1:test_pay_live:0', $state['live_start_optional_resolved'] ?? []);
+
+        $state = applyAction($state, 'p1', 'resolve_prompt', ['choice' => 'no']);
+        $this->assertNull($state['pending_prompt'] ?? null);
+        $this->assertNotSame('live_start_effects', $state['phase'] ?? null);
+        $this->assertArrayNotHasKey('live_start_optional_queue', $state);
+
+        $dup = applyAction($state, 'p1', 'resolve_prompt', ['choice' => 'no']);
+        $this->assertTrue($dup['_resolve_prompt_noop'] ?? false);
+        $this->assertNull($dup['pending_prompt'] ?? null);
+    }
+
+    public function testAntiSoftlockSkipOptionalLiveStartAdvancesToPerformance(): void {
+        $karin = [
+            'instance_id' => 'karin_live',
+            'card_no' => 'PL!N-sd1-004-SD',
+            'name_en' => 'Karin Asaka',
+            'card_type_en' => 'Member',
+            'abilities' => [[
+                'trigger' => 'live_start',
+                'type' => 'optional_discard_prompt',
+                'discard' => 1,
+                'then' => ['type' => 'blade_bonus', 'amount' => 2],
+            ]],
+        ];
+        $state = [
+            'status' => 'playing',
+            'phase' => 'live_start_effects',
+            'seq' => 80,
+            'first_player' => 'p1',
+            'live_attempt' => ['p1', 'p2'],
+            'players' => [
+                'p1' => [
+                    'name' => 'P1',
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'hand' => [['instance_id' => 'h1', 'card_no' => 'TEST-H1', 'name_en' => 'Hand']],
+                    'waiting_room' => [],
+                    'live_zone' => [$karin],
+                    'main_deck' => [],
+                    'energy_zone' => [],
+                    'success_lives' => [],
+                ],
+                'p2' => [
+                    'name' => 'P2',
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'hand' => [],
+                    'waiting_room' => [],
+                    'live_zone' => [],
+                    'main_deck' => [],
+                    'energy_zone' => [],
+                    'success_lives' => [],
+                ],
+            ],
+            'live_start_optional_queue' => [[
+                'owner' => 'p1',
+                'source_id' => 'karin_live',
+                'source_name' => 'Karin Asaka',
+                'ability_index' => 0,
+                'ability' => $karin['abilities'][0],
+            ]],
+            'pending_prompt' => [
+                'type' => 'optional_live_start',
+                'owner' => 'p1',
+                'responder' => 'p1',
+                'source_id' => 'karin_live',
+                'source_name' => 'Karin Asaka',
+                'ability_index' => 0,
+                'ability' => $karin['abilities'][0],
+                'choices' => ['yes', 'no'],
+                'discard_count' => 1,
+            ],
+        ];
+
+        $state = applyAction($state, 'p1', 'anti_softlock_skip', []);
+        $this->assertNull($state['pending_prompt'] ?? null);
+        $this->assertNotSame('live_start_effects', $state['phase'] ?? null);
+        $this->assertArrayNotHasKey('live_start_optional_queue', $state);
+    }
+
+    public function testOptionalLiveStartYesCoercesStringDiscardIds(): void {
+        $karin = $this->cardByNo('PL!N-sd1-004-SD', 'karin_stage');
+        $handCard = [
+            'instance_id' => 'karin_discard_hand',
+            'card_no' => 'TEST-HAND',
+            'name_en' => 'Hand Card',
+            'card_type' => 'メンバー',
+            'card_type_en' => 'Member',
+        ];
+        $state = [
+            'status' => 'playing',
+            'phase' => 'live_start_effects',
+            'seq' => 80,
+            'first_player' => 'p1',
+            'live_attempt' => ['p1', 'p2'],
+            'players' => [
+                'p1' => [
+                    'name' => 'P1',
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'hand' => [],
+                    'waiting_room' => [],
+                    'live_zone' => [],
+                    'main_deck' => [],
+                    'energy_zone' => [],
+                    'success_lives' => [],
+                ],
+                'p2' => [
+                    'name' => 'P2',
+                    'stage' => ['left' => null, 'center' => $karin, 'right' => null],
+                    'hand' => [$handCard],
+                    'waiting_room' => [],
+                    'live_zone' => [],
+                    'main_deck' => [],
+                    'energy_zone' => [],
+                    'success_lives' => [],
+                ],
+            ],
+            'live_start_optional_queue' => [],
+            'pending_prompt' => [
+                'type' => 'optional_live_start',
+                'owner' => 'p2',
+                'responder' => 'p2',
+                'source_id' => 'karin_stage',
+                'source_name' => 'Karin Asaka',
+                'ability_index' => 0,
+                'ability' => $karin['abilities'][0],
+                'discard_count' => 1,
+            ],
+        ];
+
+        $state = applyAction($state, 'p2', 'resolve_prompt', [
+            'choice' => 'yes',
+            'discard_ids' => 'karin_discard_hand',
+        ]);
+
+        $this->assertNull($state['pending_prompt'] ?? null);
+        $this->assertNotSame('live_start_effects', $state['phase'] ?? null);
+        $this->assertSame([], $state['players']['p2']['hand'] ?? null);
+        $this->assertContains(
+            'karin_discard_hand',
+            array_column($state['players']['p2']['waiting_room'] ?? [], 'instance_id')
+        );
     }
 
     private function logContains(array $state, string $needle): bool {
