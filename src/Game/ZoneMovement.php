@@ -64,6 +64,8 @@ function appendCardsToWaitingRoom(array &$state, string $pid, array $cards): arr
     if (function_exists('spBp5NotifyCardsToWr')) {
         $state = spBp5NotifyCardsToWr($state, $pid, $cards);
     }
+    // Cards just entered WR with an empty deck — refresh immediately.
+    refreshMainDeckFromWaitingRoom($state, $pid);
     return $state;
 }
 
@@ -91,6 +93,21 @@ function refreshMainDeckFromWaitingRoom(array &$state, string $pid): int {
     return $count;
 }
 
+/**
+ * Official rule action: the moment a main deck is empty and Waiting Room has cards,
+ * shuffle WR into a new deck. Call after any removal from main_deck (and after those
+ * cards land in their destination zone when relevant).
+ */
+function refreshEmptyMainDecks(array &$state): array {
+    foreach (['p1', 'p2'] as $pid) {
+        if (!isset($state['players'][$pid])) {
+            continue;
+        }
+        refreshMainDeckFromWaitingRoom($state, $pid);
+    }
+    return $state;
+}
+
 /** Draw from main deck to hand, refreshing from Waiting Room when the deck runs out. */
 function drawCardsForPlayer(array &$state, string $pid, int $count): int {
     $p = &$state['players'][$pid];
@@ -106,6 +123,10 @@ function drawCardsForPlayer(array &$state, string $pid, int $count): int {
         }
         $p['hand'][] = array_shift($p['main_deck']);
         $drawn++;
+        // Refresh as soon as the deck hits 0 — do not wait for a later draw/Live Set.
+        if (empty($p['main_deck'])) {
+            refreshMainDeckFromWaitingRoom($state, $pid);
+        }
     }
     return $drawn;
 }
@@ -133,6 +154,9 @@ function drawCardsForPlayerWithEffectLog(
         $drawnCards[] = $c;
         $state = logEffectDraw($state, $pid, $sourceName, $c,
             [animSpec($c['instance_id'], 'main_deck', 'hand', $pid)]);
+        if (empty($p['main_deck'])) {
+            refreshMainDeckFromWaitingRoom($state, $pid);
+        }
     }
     return $drawnCards;
 }
@@ -151,6 +175,9 @@ function drawMainDeckCards(array &$state, string $pid, int $count): array {
             break;
         }
         $drawn[] = array_shift($p['main_deck']);
+        if (empty($p['main_deck'])) {
+            refreshMainDeckFromWaitingRoom($state, $pid);
+        }
     }
     return $drawn;
 }
@@ -174,6 +201,13 @@ function takeFromMainDeckTop(array &$state, string $pid, int $count): array {
             break;
         }
         $taken = array_merge($taken, $batch);
+        // Mid-mill refresh uses WR as it currently stands; cards still in $taken
+        // are not in WR yet (caller places them). After the caller merges milled
+        // cards into WR, refreshEmptyMainDecks / appendCardsToWaitingRoom covers
+        // a final empty-deck state that includes those cards.
+        if (empty($p['main_deck']) && count($taken) < $count) {
+            refreshMainDeckFromWaitingRoom($state, $pid);
+        }
     }
     return $taken;
 }
@@ -287,7 +321,18 @@ function wrPickCfgFromAbility(array $ab): array {
         'discard_cost_add_live_subunit',
     ];
     $defaultFilter = in_array($type, $liveDefaultTypes, true) ? 'live' : 'member';
-    $cfg = ['group' => $ab['group'] ?? '', 'filter' => $ab['filter'] ?? $defaultFilter];
+    // Explicit empty filter ("") means any card type — do not coerce with ?? to member.
+    $hasFilterKey = array_key_exists('filter', $ab);
+    $cfg = [
+        'group' => $ab['group'] ?? '',
+        'filter' => $hasFilterKey ? (string)($ab['filter'] ?? '') : $defaultFilter,
+    ];
+    if (!empty($ab['subunit'])) {
+        $cfg['subunit'] = (string)$ab['subunit'];
+    }
+    if (!empty($ab['subunits']) && is_array($ab['subunits'])) {
+        $cfg['subunits'] = array_values(array_filter(array_map('strval', $ab['subunits'])));
+    }
     if (isset($ab['max_cost'])) {
         $cfg['max_cost'] = intval($ab['max_cost']);
     }

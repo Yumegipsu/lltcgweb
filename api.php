@@ -327,6 +327,10 @@ function joinRoom(array $body): array {
         $coinFlipWinner
     );
 
+    if (!empty($body['tutorial_guide'])) {
+        $state['tutorial_guide'] = true;
+    }
+
     if (($body['deck'] ?? '') === 'cpu') {
         $cpuDiff = in_array($body['cpu_difficulty'] ?? '', ['easy', 'normal', 'hard'], true)
             ? $body['cpu_difficulty'] : 'easy';
@@ -511,11 +515,14 @@ function handleAction(array $body): array {
         if (!empty($state['_resolve_prompt_noop'])) {
             return ['ok' => true, 'seq' => $state['seq'], 'noop' => true];
         }
+        // Rule action: never leave a seat with an empty main deck while WR has cards.
+        $state = refreshEmptyMainDecks($state);
         $state = appendReplayAction($state, $playerId, $type, $data);
         $isResign = ($type === 'resign');
         // Resign must not re-enter ability flush (softlock TypeErrors → HTTP 500).
         if (empty($state['pending_prompt']) && !$isResign) {
             $state = flushAutoOnWaitAbilities($state);
+            $state = refreshEmptyMainDecks($state);
         }
         if (!$isResign) {
             refreshPvpPhaseTimers($state);
@@ -545,8 +552,17 @@ function handleAction(array $body): array {
         } else {
             if ($type === 'send_stamp') {
                 require_once __DIR__ . '/missions.php';
+                // Seat discord_id can be missing (rematch rebuild, older rooms) even when signed in.
+                tcgMissionBackfillPlayerDiscordFromAuth($state, $playerId, $body);
                 $discordId = tcgPlayerDiscordId($state, $playerId);
+                if (!$discordId && function_exists('tcgOptionalAuthUserId')) {
+                    $discordId = tcgOptionalAuthUserId($body);
+                    if ($discordId) {
+                        $state['players'][$playerId]['discord_id'] = $discordId;
+                    }
+                }
                 if ($discordId) {
+                    tcgEnsureUser($discordId);
                     $missionCompletions = tcgMissionOnStampSent($discordId);
                 }
             }
@@ -1390,6 +1406,7 @@ function skipEmptyPerformanceRound(array $state): array {
         $state = addLog($state, 'Remaining Live storage sent to Waiting Room.', null, $leftoverAnims);
     }
     unset($state['live_attempt'], $state['live_perf_success'], $state['live_round_success']);
+    $state['_prev_turn_live_result'] = ['p1' => 'none', 'p2' => 'none'];
     $state = clearYellRevealState($state);
 
     foreach (['p1', 'p2'] as $pid) {
@@ -1537,6 +1554,9 @@ function doDrawPhase(array $state, string $pid): array {
     $drawn = drawMainDeckCards($state, $pid, 1);
     if (!empty($drawn)) {
         $p['hand'] = array_merge($p['hand'], $drawn);
+        // drawMainDeckCards already refreshes when the last card is taken; re-check
+        // in case the drawn card was the final one and WR still has cards.
+        refreshMainDeckFromWaitingRoom($state, $pid);
     } else {
         $state = addLog($state, $p['name'] . ' — Draw Phase: could not draw (deck and Waiting Room empty).');
     }
@@ -2844,7 +2864,7 @@ function rebuildRematchPlayer(array $old, array $cardsData): array {
     $body = ['shuffle' => true];
     $mainDeck = buildDeckForRoom($cardsData['cards'], $mainNos, $body, 'main_order');
     $energyDeck = buildDeckForRoom($cardsData['cards'], $energyNos, $body, 'energy_order');
-    return [
+    $out = [
         'id'            => $old['id'],
         'token'         => $old['token'],
         'name'          => $old['name'],
@@ -2854,6 +2874,11 @@ function rebuildRematchPlayer(array $old, array $cardsData): array {
         'energy_deck'   => $energyDeck,
         'deck_snapshot' => ['main_nos' => $mainNos, 'energy_nos' => $energyNos],
     ];
+    // Keep signed-in identity so stamp/mission side effects still resolve after rematch.
+    if (!empty($old['discord_id'])) {
+        $out['discord_id'] = $old['discord_id'];
+    }
+    return $out;
 }
 
 function startRematchGame(array $state): array {
@@ -3246,6 +3271,11 @@ function applyCoinFlipStalemate(array &$state): bool {
         if (phaseTimerEnabled($state)) {
             return $changed;
         }
+        // Guided beginner tutorial: never auto-pick first player — the client
+        // must show "I'll go first" and wait for the learner.
+        if (!empty($state['tutorial_guide'])) {
+            return $changed;
+        }
         $choiceElapsed = $now - intval($flip['both_ready_since']);
         $choiceTimeout = 35;
         if ($isCpuSolo) {
@@ -3574,6 +3604,16 @@ function filterStateForPlayer(array $state, string $token): array {
         $prReward = tcgRankedPrRewardForPlayer($state, $myId);
         if ($prReward !== null) {
             $filtered['ranked_pr_reward'] = $prReward;
+        } else {
+            // Game files must never leak a prior seat's top-level reward onto the opponent.
+            unset($filtered['ranked_pr_reward']);
+        }
+        // Nested winner payload includes their daily allowance — hide from everyone else.
+        if (isset($filtered['ranked']) && is_array($filtered['ranked'])) {
+            $nested = $filtered['ranked']['pr_reward'] ?? null;
+            if (is_array($nested) && (string)($nested['player_id'] ?? '') !== $myId) {
+                unset($filtered['ranked']['pr_reward']);
+            }
         }
     }
 

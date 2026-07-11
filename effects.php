@@ -910,6 +910,7 @@ function returnStackedEnergyOnLeave(array &$p, array &$member): int {
 function revealDeckTopLiveScore(array &$state, string $pid, array $source, int $amount): array {
     $p = &$state['players'][$pid];
     $name = $source['name_en'] ?? $source['name'] ?? 'Card';
+    refreshMainDeckFromWaitingRoom($state, $pid);
     if (empty($p['main_deck'])) return $state;
     $top = array_shift($p['main_deck']);
     $isLive = ($top['card_type'] ?? '') === 'ライブ';
@@ -922,6 +923,7 @@ function revealDeckTopLiveScore(array &$state, string $pid, array $source, int $
         $state = addLog($state, $state['players'][$pid]['name'] .
             ' — [' . $name . '] revealed top of deck (not a Live card).');
     }
+    refreshMainDeckFromWaitingRoom($state, $pid);
     return $state;
 }
 
@@ -1045,7 +1047,12 @@ function optionalDiscardThenViable(array $p, array $then): bool {
     if ($need <= 0) {
         return true;
     }
-    return count($p['main_deck'] ?? []) >= 1;
+    $deck = count($p['main_deck'] ?? []);
+    if ($deck >= 1) {
+        return true;
+    }
+    // Empty deck would immediately refresh from Waiting Room before the look.
+    return count($p['waiting_room'] ?? []) >= 1;
 }
 
 function applyLookPickHand(array &$p, array $looked, array $pickIds): void {
@@ -1070,10 +1077,14 @@ function beginLookRevealPick(array $state, string $pid, string $name, array &$p,
     $pickCount = max(1, intval($cfg['pick'] ?? 1));
     $optional = lookPickIsOptional($cfg);
 
+    refreshMainDeckFromWaitingRoom($state, $pid);
     $top = array_splice($p['main_deck'], 0, min($look, count($p['main_deck'])));
     if (empty($top)) {
         return addLog($state, $state['players'][$pid]['name'] .
             " — [$name] looked at deck top; no cards.");
+    }
+    if (empty($p['main_deck'])) {
+        refreshMainDeckFromWaitingRoom($state, $pid);
     }
 
     $eligible = array_values(array_filter($top, fn($c) => cardMatchesLookPick($c, $cfg)));
@@ -4594,6 +4605,18 @@ function cardPromptSummary(array $c): array {
     }
     if (array_key_exists('score', $c)) {
         $summary['score'] = $c['score'];
+    }
+    if (!empty($c['subunit'])) {
+        $summary['subunit'] = $c['subunit'];
+    }
+    // CPU / client WR filters need subunit on summaries (e.g. Sayaka DOLLCHESTRA pick).
+    if (function_exists('cardEffectiveSubunits')) {
+        $subs = cardEffectiveSubunits($c);
+        if (!empty($subs)) {
+            $summary['subunits'] = array_values($subs);
+        }
+    } elseif (!empty($c['subunits']) && is_array($c['subunits'])) {
+        $summary['subunits'] = array_values($c['subunits']);
     }
     return $summary;
 }

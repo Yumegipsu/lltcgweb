@@ -25217,9 +25217,16 @@ function cpuResolvePromptBody(s, cpu, pr) {
   }
   if(pr.type==='pick_wr_to_hand'||pr.type==='pick_wr_leave_stage_add'){
     const cfg = wrPickCfgFromPrompt(pr);
-    const cands = (pr.candidates || []).filter(c => cardMatchesWrPickClient(c, cfg));
+    const raw = pr.candidates || [];
+    let cands = raw.filter(c => cardMatchesWrPickClient(c, cfg));
+    // Summaries used to omit subunit — never softlock if re-filter empties a non-empty list.
+    if (!cands.length && raw.length) cands = raw;
     const pick = cpuPickBestCandidate(cands, cpu, hand, tier, read);
-    if(pick?.instance_id) cpuAct('resolve_prompt',{card_id:pick.instance_id});
+    if(pick?.instance_id) {
+      cpuAct('resolve_prompt',{card_id:pick.instance_id});
+    } else {
+      cpuSchedulePromptRetryIfStuck(s, cpu);
+    }
     return;
   }
   if(pr.type==='pick_wr_members_deck_top'){
@@ -31184,24 +31191,28 @@ function bindMenuCardPress(node, card, onTap) {
 
 
 function wrPickCfgFromPrompt(pr) {
-  const explicitFilter = pr?.ability?.filter || pr?.wr_pick_cfg?.filter;
+  const hasAbilityFilter = !!(pr?.ability && Object.prototype.hasOwnProperty.call(pr.ability, 'filter'));
+  const hasCfgFilter = !!(pr?.wr_pick_cfg && Object.prototype.hasOwnProperty.call(pr.wr_pick_cfg, 'filter'));
   const memberPromptTypes = new Set([
     'sbp6_leave_play_wr_slot', 'pick_wr_to_hand', 'ssd1_play_wr_empty',
   ]);
   const memberAbilityTypes = new Set(['activated_leave_play_wr_same_slot']);
-  let filter = explicitFilter;
-  if (!filter) {
-    if ((pr?.ability?.type ?? '') === 'leave_stage_add_from_wr') {
-      filter = 'live';
-    } else if (memberPromptTypes.has(pr?.type)
-      || (pr?.type === 'ssd1_play_wr_empty' && pr?.step === 'pick_wr')
-      || memberAbilityTypes.has(pr?.ability?.type)) {
-      filter = 'member';
-    } else if (pr?.type === 'pick_wr_leave_stage_add') {
-      filter = 'member';
-    } else {
-      filter = 'live';
-    }
+  let filter;
+  if (hasCfgFilter) {
+    filter = pr.wr_pick_cfg.filter ?? '';
+  } else if (hasAbilityFilter) {
+    // Explicit "" means any card type (subunit-only picks like Sayaka CL).
+    filter = pr.ability.filter ?? '';
+  } else if ((pr?.ability?.type ?? '') === 'leave_stage_add_from_wr') {
+    filter = 'live';
+  } else if (memberPromptTypes.has(pr?.type)
+    || (pr?.type === 'ssd1_play_wr_empty' && pr?.step === 'pick_wr')
+    || memberAbilityTypes.has(pr?.ability?.type)) {
+    filter = 'member';
+  } else if (pr?.type === 'pick_wr_leave_stage_add') {
+    filter = 'member';
+  } else {
+    filter = 'live';
   }
   return {
     group: pr?.ability?.group || pr?.wr_pick_cfg?.group || '',
