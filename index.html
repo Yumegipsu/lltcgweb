@@ -25164,6 +25164,12 @@ function cpuResolvePromptBody(s, cpu, pr) {
   if (cpuResolveHangRiskPrompts(pr, cpu, tier, read, s)) return;
   if (cpuResolveBranchPickPrompts(pr, cpu, tier, winPressure, read, s)) return;
   if(pr.type==='opponent_text_answer'){
+    // Emma Punch: CPU should answer in-character sometimes ("please" / お願いします).
+    if (/Emma Punch/i.test(pr.prompt || '')) {
+      const pick = Math.random() < 0.55 ? 'please' : 'no thank you';
+      cpuAct('resolve_prompt', { answer_text: pick });
+      return;
+    }
     const answers=['chocominto','strawberry','you','pizza'];
     const pick=answers[Math.floor(Math.random()*answers.length)];
     cpuAct('resolve_prompt',{answer_text:pick});
