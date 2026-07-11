@@ -1381,13 +1381,49 @@ html.tcg-mobile-viewport body{
   min-height:100dvh;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
 }
+/* Menus use the full viewport — do not letterbox to the 20:9 game frame
+   (that clips hub/lobby on square foldables). Game keeps 20:9 below. */
 html.tcg-mobile-viewport .llc-menu-screen.active{
-  width:min(100vw, calc(100dvh * 20 / 9));
-  height:min(100dvh, calc(100vw * 9 / 20));
+  width:100vw;
+  height:100dvh;
   max-width:100vw;max-height:100dvh;flex-shrink:0;
   overflow-x:hidden;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  /* flex-start + account-shell margin-block:auto: centers when short, scrolls when tall */
+  justify-content:flex-start;
+  align-items:center;
   padding:clamp(10px, 1.8vh, 18px) clamp(10px, 2vw, 16px);
+  padding-bottom:max(clamp(12px, 2vh, 20px), env(safe-area-inset-bottom, 0px));
   box-sizing:border-box;
+}
+/* Square / short landscape (unfolded fold): tighten chrome so lobby fits better */
+@media (max-aspect-ratio: 5/4) {
+  html.tcg-mobile-viewport .llc-menu-screen.active .logo{
+    margin-bottom:clamp(6px,1.2vh,12px);
+  }
+  html.tcg-mobile-viewport .llc-menu-screen.active .logo-img{
+    max-width:min(300px,48vw);
+  }
+  html.tcg-mobile-viewport #screen-lobby .lobby-menu{
+    gap:clamp(10px,1.6vh,16px);
+  }
+  html.tcg-mobile-viewport #screen-lobby .lobby-cols{
+    gap:clamp(8px,1.2vw,14px);
+  }
+  html.tcg-mobile-viewport .llc-menu-screen.active .panel h2{
+    font-size:clamp(22px,4.2vw,34px);
+    margin-bottom:8px;
+  }
+}
+@media (max-aspect-ratio: 5/4) and (max-height: 820px) {
+  /* Prefer stacked columns on short square so each panel is fully reachable by scroll */
+  html.tcg-mobile-viewport #screen-lobby .lobby-cols{
+    flex-direction:column;align-items:center;max-width:min(430px,96vw);margin:0 auto;
+  }
+  html.tcg-mobile-viewport #screen-lobby .lobby-col{
+    width:100%;max-width:min(430px,96vw);
+  }
 }
 html.tcg-mobile-viewport #screen-game.active{
   width:100vw;height:100dvh;max-width:100vw;max-height:100dvh;
