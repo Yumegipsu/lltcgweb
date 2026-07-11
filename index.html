@@ -19428,6 +19428,10 @@ function preLiveRevealMoves(prev, final) {
   const defer = collectLiveSuccessDeferredDrawIids(prev, final);
   return diffCardMoves(prev, final).filter(m => {
     if (defer.has(m.iid) && isHiddenSourceToHand(m)) return false;
+    // Turn-prep Energy/Draw (and live-set placement draws batched with the
+    // empty-round poll) must not fly before storage reveal / "No Lives".
+    if (isHiddenSourceToHand(m)) return false;
+    if (m.to?.zone === 'energy' && m.from?.zone === 'energy_deck') return false;
     if (wasLiveRevealBluffMove(prev, m)) return false;
     if (isLiveCardOutcomeMove(prev, m)) return false;
     if (isMemberLiveStorageWrMove(prev, m)) return false;
@@ -21377,6 +21381,8 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
         specs = filterLogSyncAnimSpecs(specs, final);
         if (batchEmpty) {
           specs = specs.filter(spec => !(spec.from === 'live' && spec.to === 'waiting_room'));
+          // Empty-round batches include Active/Energy/Draw — defer to playEmptySkipTurnPrepSequence.
+          specs = specs.filter(spec => !isEmptySkipTurnPrepFlightSpec(spec));
         }
         specs = filterDeferredHandDrawSpecs(specs, deferredDrawIids);
         if (specs.length > 1) await playAnimSpecBatch(specs, playback, final, myId);
