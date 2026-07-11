@@ -36089,13 +36089,14 @@ function stageYellBladeFor(s, pid, myId) {
   const fromSnap = Number(s?._yell_blade_snapshot?.[pid]);
   const fromLog = perfYellBladeFromLog(s, pid);
   const estimated = estimateYellBlade(s, pid);
-  const yellCards = perfYellRevealFor(s)?.[pid]?.length || 0;
+  // Do NOT use yell_reveal.length here. Extra Yell effects (e.g. Kurage mill)
+  // stack many reveal cards while Blade stays fixed — Math.max(..., yellCount)
+  // was showing 45+ "Blades" after ~3 extra draws.
   return Math.max(
     Number.isFinite(fromBoard) ? fromBoard : 0,
     Number.isFinite(fromSnap) ? fromSnap : 0,
     fromLog || 0,
     estimated,
-    yellCards,
   );
 }
 
