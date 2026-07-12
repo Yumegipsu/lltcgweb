@@ -2154,21 +2154,17 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     $yellWildcard = liveCardsGrantYellHeartsWildcard($liveCards);
     $drawPerYellHeart = false;
     $drawPerYellCard = false;
-    $drawPerYellDraw = false;
     foreach ($liveCards as $lc) {
         mergeCardCatalogFields($lc);
         foreach ($lc['abilities'] ?? [] as $ab) {
             if (($ab['trigger'] ?? '') !== 'continuous') continue;
             if (($ab['type'] ?? '') === 'draw_per_yell_heart') $drawPerYellHeart = true;
             if (($ab['type'] ?? '') === 'draw_per_yell_card') $drawPerYellCard = true;
-            if (($ab['type'] ?? '') === 'draw_per_yell_draw') $drawPerYellDraw = true;
         }
     }
-    $yellDrawIcons = 0;
-    if ($drawPerYellDraw) {
-        $yellDrawIcons = countYellDrawIcons($yellCards);
-        $drawBonus += $yellDrawIcons;
-    }
+    // Yell draw icons always apply (official rule) — not gated on Live continuous abilities.
+    $yellDrawIcons = countYellDrawIcons($yellCards);
+    $drawBonus += $yellDrawIcons;
     $yellScoreIcons = countYellScoreIcons($yellCards);
     $state['_last_yell_score_icons'] = $yellScoreIcons;
     $state['_last_yell_score_icons_' . $pid] = $yellScoreIcons;

@@ -31526,8 +31526,48 @@ function computeLiveScoreStageBonus(s, pid, opts = {}) {
     }
   });
   if (opts.yellContext) {
-    const yellIcons = Number(s?._last_yell_score_icons?.[pid] ?? s?._last_yell_score_icons ?? 0);
+    const yellIcons = Number(
+      s?.['_last_yell_score_icons_' + pid]
+      ?? (typeof s?._last_yell_score_icons === 'object' && s._last_yell_score_icons
+        ? s._last_yell_score_icons[pid]
+        : s?._last_yell_score_icons)
+      ?? 0
+    );
     if (yellIcons > 0) bonus += yellIcons;
+    const yellLiveCnt = Number(
+      s?.['_last_yell_live_count_' + pid]
+      ?? (typeof s?._last_yell_live_count === 'object' && s._last_yell_live_count
+        ? s._last_yell_live_count[pid]
+        : s?._last_yell_live_count)
+      ?? 0
+    );
+    Object.entries(p.stage || {}).forEach(([slot, raw]) => {
+      if (!raw) return;
+      const member = enrichCard(raw);
+      for (const ab of member.abilities || []) {
+        if ((ab.trigger || '') !== 'continuous') continue;
+        if (ab.type !== 'grant_live_success_yell_live_score_if_full_stage') continue;
+        const group = ab.group || 'Sunshine';
+        const names = new Set();
+        let filled = 0;
+        let ok = true;
+        for (const s of ['left', 'center', 'right']) {
+          const m = p.stage?.[s];
+          if (!m) { ok = false; break; }
+          filled++;
+          if ((m.group || '') !== group) { ok = false; break; }
+          const nm = (m.name_en || m.name || '').trim();
+          if (!nm || names.has(nm)) { ok = false; break; }
+          names.add(nm);
+        }
+        if (!ok || filled < 3) continue;
+        if (yellLiveCnt >= Number(ab.tier2_min ?? 3)) {
+          bonus += Number(ab.tier2_amount ?? 2);
+        } else if (yellLiveCnt >= Number(ab.tier1_min ?? 1)) {
+          bonus += Number(ab.tier1_amount ?? 1);
+        }
+      }
+    });
     for (const live of p.live_zone || []) {
       if (!live) continue;
       const card = enrichCard(live);
@@ -35642,7 +35682,7 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/spectacle.js?v=10"></script>
+<script src="client/js/spectacle.js?v=11"></script>
 <script src="client/js/cpu-meta-weights.js?v=2"></script>
 <script src="client/js/cpu-eval.js?v=2"></script>
 <script src="client/js/cpu-expert.js?v=1"></script>

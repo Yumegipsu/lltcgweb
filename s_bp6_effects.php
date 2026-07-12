@@ -357,7 +357,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             foreach ($yellCards as $yc) {
                 if (($yc['group'] ?? '') !== $group) continue;
                 if (($yc['card_type'] ?? '') !== 'ライブ') continue;
-                if (!empty($ab['requires_score']) && intval($yc['score'] ?? 0) < 1) continue;
+                if (!empty($ab['requires_score']) && cardYellScoreIconCount($yc) < 1) continue;
                 $found = true;
                 break;
             }

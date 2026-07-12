@@ -389,6 +389,15 @@ function yellScoreIconsForPlayer(array $state, string $pid): int {
     return intval($state['_last_yell_score_icons'] ?? 0);
 }
 
+/** Yell Live cards revealed for this player (per-pid; shared key is last performer only). */
+function yellLiveCountForPlayer(array $state, string $pid): int {
+    $key = '_last_yell_live_count_' . $pid;
+    if (array_key_exists($key, $state)) {
+        return intval($state[$key]);
+    }
+    return intval($state['_last_yell_live_count'] ?? 0);
+}
+
 function stageSlotBlocksAdditionalEnterThisTurn(?array $occupant, array $state): bool {
     if (!$occupant || empty($occupant['blocks_slot_entries'])) {
         return false;

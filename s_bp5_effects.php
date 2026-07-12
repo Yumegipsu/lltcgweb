@@ -562,8 +562,8 @@ function sBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
 
         case 'live_success_score_if_more_yell_lives':
             $opp = ($pid === 'p1') ? 'p2' : 'p1';
-            $selfLive = intval($state['_last_yell_live_count'] ?? 0);
-            $oppLive = intval($state['_last_yell_live_count_' . $opp] ?? 0);
+            $selfLive = yellLiveCountForPlayer($state, $pid);
+            $oppLive = yellLiveCountForPlayer($state, $opp);
             if ($selfLive <= $oppLive) break;
             bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['amount'] ?? 1));
             $state = addLog($state, $state['players'][$pid]['name'] .

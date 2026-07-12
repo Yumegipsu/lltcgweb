@@ -113,7 +113,7 @@ function getLiveScoreBonusBreakdown(array $state, string $pid): array {
                     $ab['group'] ?? 'Sunshine',
                     $ab['filter'] ?? 'member'
                 )) {
-                    $liveCnt = intval($state['_last_yell_live_count'] ?? 0);
+                    $liveCnt = yellLiveCountForPlayer($state, $pid);
                     if ($liveCnt >= intval($ab['tier2_min'] ?? 3)) {
                         $amt = intval($ab['tier2_amount'] ?? 2);
                     } elseif ($liveCnt >= intval($ab['tier1_min'] ?? 1)) {

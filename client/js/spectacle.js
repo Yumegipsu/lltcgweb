@@ -4620,11 +4620,8 @@ function perfHasYellJudgeContext(s) {
 }
 
 function liveCardsHaveDrawPerYellDraw(liveCards) {
-  return (liveCards || []).some(c => {
-    const card = enrichCard(c);
-    return (card.abilities || []).some(ab =>
-      (ab.trigger || '') === 'continuous' && ab.type === 'draw_per_yell_draw');
-  });
+  // Kept for callers; Yell draw icons always apply (not gated on Live continuous).
+  return true;
 }
 
 /** Live Score modifiers on stage (matches server getLiveScoreBonus when judge log unavailable). */
