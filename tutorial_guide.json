@@ -272,7 +272,7 @@
     {
       "id": "mulligan",
       "kind": "action",
-      "dialogue": "Opening hand time! **Kanon Shibuya** costs **9** — too heavy for now. Tap her to mark a swap, then tap **Replace 1 card**. You'll draw **Natsumi Onitsuka** (cost 2) instead.",
+      "dialogue": "You start with **6** cards. Don't like some of them? Tap to mark a swap and draw replacements — that's a **mulligan**. **Kanon Shibuya** costs **9**, which is steep this early. Tap her, then **Replace 1 card**.",
       "highlights": [
         {
           "target": "mulligan-overlay",

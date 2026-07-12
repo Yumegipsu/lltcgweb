@@ -98,7 +98,7 @@
   "goal": "**Condición de victoria:** Logra **3 Lives** con éxito antes que tu oponente. Cuando un Live tiene éxito, esa carta va a tu **pila de éxito** — ¡el primero en llegar a tres gana!",
   "live_intro": "**Fase Live** — coloca de **0 a 3** cartas boca abajo en el almacenamiento Live. Robas **1** carta de tu mazo por cada carta que coloques.",
   "main_intro": "**Fase principal** — juega **Miembros** desde tu mano gastando **Energía** (gira esas cartas de lado). ¡Puedes jugar todas las que quieras, en el orden que prefieras!",
-  "mulligan": "¡Mano inicial! **Kanon Shibuya** cuesta **9** — demasiado cara ahora. Tócala para marcar el cambio y pulsa **Reemplazar 1 carta**. Robarás a **Natsumi Onitsuka** (coste 2).",
+  "mulligan": "Empiezas con **6** cartas. ¿Alguna no te convence? Tócala para marcar el cambio y robar reemplazos — eso es el **muligan**. **Kanon Shibuya** cuesta **9**, demasiado cara tan pronto. Tócala y luego pulsa **Reemplazar 1 carta**.",
   "perf_watch": "**¡Presentación!** Los Lives se voltean boca arriba. Combina los **Corazones** requeridos de cada Live con los Corazones de tu Escenario. **Yell** voltea cartas de tu mazo — los íconos **Blade** en esas cartas pueden ayudar a pagar Corazones.",
   "play_member": "Juguemos a **Shiki Wakana** en el **Centro** — cuesta **2 Energía**. Tócala/haz clic en tu mano y luego en el espacio **Centro**, o arrástrala al Centro con ratón o toque.",
   "set_live": "Selecciona **WE WILL!!** de tu mano y presiona **Confirmar selección Live** para colocarla boca abajo. ¡Robas **1** carta por cada Live que coloques!",
