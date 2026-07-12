@@ -2,6 +2,24 @@
   "version": 1,
   "posts": [
     {
+      "id": "2026-07-korean-locale",
+      "date": "2026-07-12",
+      "banner": "tcglogo.png",
+      "bannerStyle": "full",
+      "title": {
+        "en": "Korean language option",
+        "ja": "韓国語に対応",
+        "es": "Opción de idioma coreano",
+        "ko": "한국어 언어 옵션 추가"
+      },
+      "body": {
+        "en": "You can now play in **Korean**. Open **Options** or use the language menu on the title screen or hub to switch.\n\nMenus, the hands-on tutorial, game UI, and card rules text are localized. Unlike Spanish — where character and song titles stay in English — Korean shows **Member** and **Live** names in Korean readings (phonetic, meaning-based, or Sino-Korean depending on the title).\n\n**About name accuracy**\nThese readings are a best-effort community localization, not official Bandai translations. Spellings and choices may not match every fan convention, and some titles may be imperfect. If you spot a clear mistake, please tell us so we can correct it.",
+        "ja": "**韓国語**でプレイできるようになりました。タイトル画面・ハブ・**オプション**の言語メニューから切り替えられます。\n\nメニュー、ハンズオンチュートリアル、対戦UI、カードルール文に対応しています。スペイン語ではキャラ名・楽曲名を英語のままにしますが、韓国語では**メンバー**／**ライブ**名を韓国語読みで表示します（音訳・意味訳・漢語読みなど、タイトルに応じて使い分け）。\n\n**表記について**\n公式のバンダイ翻訳ではなく、コミュニティ向けの暫定ローカライズです。ファン間の慣用表記と異なる場合や、誤りがある可能性があります。明らかな誤りを見つけた場合はお知らせください。修正します。",
+        "es": "Ahora puedes jugar en **coreano**. Abre **Opciones** o usa el menú de idioma en la pantalla de título o el hub para cambiar.\n\nEstán localizados los menús, el tutorial práctico, la interfaz de partida y el texto de reglas de las cartas. A diferencia del español —donde los nombres de personajes y canciones se mantienen en inglés—, el coreano muestra los nombres de **Miembro** y **Live** en lecturas coreanas (fonética, semántica o sino-coreana según el título).\n\n**Sobre la precisión de los nombres**\nEstas lecturas son una localización comunitaria de mejor esfuerzo, no traducciones oficiales de Bandai. La ortografía puede no coincidir con todas las convenciones de fans, y algunos títulos pueden ser imperfectos. Si ves un error claro, avísanos para corregirlo.",
+        "ko": "이제 **한국어**로 플레이할 수 있습니다. 타이틀 화면·허브의 **옵션** 또는 언어 메뉴에서 전환하세요.\n\n메뉴, 실습 튜토리얼, 대전 UI, 카드 규칙 텍스트가 현지화되어 있습니다. 스페인어는 캐릭터·곡 이름을 영어 그대로 두는 반면, 한국어는 **멤버**·**라이브** 이름을 한국어 표기로 보여 줍니다(제목에 따라 음역·의미 번역·한자어 독음 등을 사용).\n\n**이름 표기에 대해**\n이 표기는 공식 반다이 번역이 아니라 커뮤니티용 최선의 현지화입니다. 팬덤에서 쓰이는 표기와 다를 수 있고, 일부 제목은 완벽하지 않을 수 있습니다. 분명한 오류를 발견하시면 알려 주세요. 수정하겠습니다."
+      }
+    },
+    {
       "id": "2026-07-ranked-pr-rewards",
       "date": "2026-07-11",
       "banner": "assets/Star_Gem.png",

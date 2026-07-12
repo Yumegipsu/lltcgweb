@@ -4,7 +4,7 @@
 (function (global) {
   'use strict';
 
-  const NEWS_JSON = './news.json?v=14';
+  const NEWS_JSON = './news.json?v=15';
   /** Matches catalog card_no tokens in news copy (PL!… / LL-…). */
   const NEWS_CARD_ID_RE = /(PL![A-Za-z0-9!＋._-]+|LL-[A-Za-z0-9!＋._-]+|PL!-[A-Za-z0-9!＋._-]+)/g;
   let _posts = null;
