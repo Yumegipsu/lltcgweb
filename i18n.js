@@ -707,6 +707,10 @@
       "yell": {
         "title": "Yell (エール)",
         "body": "During Live Performance, draw cards from your deck equal to your total Blade (from active Stage Members). Those cards are revealed — hearts shown on them count toward meeting your Live cards' required hearts. Yell cards are sent to the Waiting Room afterward."
+      },
+      "wait": {
+        "title": "Wait (ウェイト)",
+        "body": "A Member put into Wait cannot contribute its Blade that turn — its Blade hearts do not increase cards revealed for Yell during Live Performance. This is not the Waiting Room."
       }
     },
     "heart": {
@@ -1702,6 +1706,10 @@
       "yell": {
         "title": "エール",
         "body": "ライブパフォーマンス中、ステージ上のアクティブメンバーの合計ブレード枚数だけデッキからカードを公開します。公開カードのハートは必要ハート判定に使えます。エール後、公開カードは控え室へ送られます。"
+      },
+      "wait": {
+        "title": "ウェイト",
+        "body": "ウェイトにしたメンバーは、そのターンのエールで公開する枚数にブレードを加えません。控え室とは別の状態です。"
       }
     },
     "heart": {
@@ -2690,6 +2698,10 @@
       "yell": {
         "title": "Yell (エール)",
         "body": "Durante la Presentación Live, roba cartas de tu mazo igual a tu Blade total (de los Miembros activos en el Escenario). Esas cartas se revelan: los corazones que muestren cuentan para cumplir los corazones requeridos de tus cartas Live. Las cartas Yell se envían después a la Sala de espera."
+      },
+      "wait": {
+        "title": "Wait (ウェイト)",
+        "body": "Un Miembro puesto en Wait no aporta su Blade ese turno: sus corazones de Blade no aumentan las cartas reveladas para Yell en la Presentación Live. No es la Sala de espera."
       }
     },
     "heart": {

@@ -3080,6 +3080,7 @@ body.deck-card-preview #modal-card{z-index:970}
 .rule-kw--once-per-turn .rule-kw-label{color:rgba(255,255,255,.78)}
 .rule-kw--center .rule-kw-label{color:#FDE047}
 .rule-kw--yell .rule-kw-label{color:#7AE582}
+.rule-kw--wait .rule-kw-label{color:#38BDF8}
 .card-hover-panel .hc-text .rule-kw--on-enter,
 .ctxt .rule-kw--on-enter{border-bottom-color:rgba(134,239,172,.42)}
 .card-hover-panel .hc-text .rule-kw--live-start,
@@ -3094,6 +3095,18 @@ body.deck-card-preview #modal-card{z-index:970}
 }
 .card-hover-panel .hc-text .rule-kw--yell:hover,
 .ctxt .rule-kw--yell:hover{color:#9AE6B4;border-bottom-color:rgba(154,230,180,.65)}
+.card-hover-panel .hc-text .rule-kw--wait,
+.ctxt .rule-kw--wait,
+.prompt-effect-text .rule-kw--wait,
+.stage-ability-desc .rule-kw--wait{
+  color:#38BDF8;border-bottom-color:rgba(56,189,248,.42);
+}
+.card-hover-panel .hc-text .rule-kw--wait:hover,
+.ctxt .rule-kw--wait:hover,
+.prompt-effect-text .rule-kw--wait:hover,
+.stage-ability-desc .rule-kw--wait:hover{
+  color:#7DD3FC;border-bottom-color:rgba(125,211,252,.65);
+}
 .rule-kw-tip{
   position:fixed;z-index:9000;max-width:min(300px,88vw);padding:11px 13px;
   background:rgba(6,14,28,.97);border:1px solid rgba(104,211,145,.38);
@@ -7771,7 +7784,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=38"></script>
+<script src="i18n.js?v=39"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=10"></script>
@@ -27165,6 +27178,10 @@ const RULE_KEYWORD_TIPS = {
     title: 'Yell (エール)',
     body: 'During Live Performance, draw cards from your deck equal to your total Blade (from active Stage Members). Those cards are revealed — hearts shown on them count toward meeting your Live cards\' required hearts. Yell cards are sent to the Waiting Room afterward.',
   },
+  'Wait': {
+    title: 'Wait (ウェイト)',
+    body: 'A Member put into Wait cannot contribute its Blade that turn — its Blade hearts do not increase cards revealed for Yell during Live Performance. This is not the Waiting Room.',
+  },
 };
 
 const RULE_KW_BRACKET_LABELS_EN = 'On Enter|On Leave|Live Start|Live Success|Activated|Always|Continuous|Once per turn|Automatic|Auto|Center|Yell|On Play';
@@ -27223,6 +27240,7 @@ const RULE_KW_TIP_I18N = {
   'Automatic': 'skillKw.automatic',
   'Center': 'skillKw.center',
   'Yell': 'skillKw.yell',
+  'Wait': 'skillKw.wait',
 };
 
 const RULE_KW_BRACKET_PATTERN = new RegExp(`\\[(?:${RULE_KW_BRACKET_LABELS_EN})\\]`, 'g');
@@ -27361,6 +27379,11 @@ function getRuleKwYellPattern() {
   return getLocale() === 'ja' ? /\bYell\b|エール/g : /\bYell\b/g;
 }
 
+/** Wait state (ウェイト) — not Waiting Room / 控え室. `\bWait\b` does not match inside "Waiting". */
+function getRuleKwWaitPattern() {
+  return getLocale() === 'ja' ? /\bWait\b|ウェイト/g : /\bWait\b/g;
+}
+
 function getRuleKwYouMayPattern() {
   if (getLocale() === 'ja') return /\byou may\b|してもよい/gi;
   if (getLocale() === 'es') return /\byou may\b|\bpuedes\b/gi;
@@ -27389,6 +27412,7 @@ const RULE_KEYWORD_COLORS = {
   'Once per turn': 'rgba(255,255,255,.78)',
   'Center': '#FDE047',
   'Yell': '#7AE582',
+  'Wait': '#38BDF8',
 };
 
 function resolveRuleKwKey(raw) {
@@ -27441,7 +27465,10 @@ function appendRuleKwSpan(container, label, kwKey) {
 function appendPlainTextWithYell(container, text) {
   if (!text) return;
   let last = 0;
-  const re = new RegExp(`${getRuleKwYellPattern().source}|${getRuleKwYouMayPattern().source}`, 'gi');
+  const re = new RegExp(
+    `${getRuleKwYellPattern().source}|${getRuleKwWaitPattern().source}|${getRuleKwYouMayPattern().source}`,
+    'gi'
+  );
   let match;
   while ((match = re.exec(text)) !== null) {
     if (match.index > last) {
@@ -27449,6 +27476,8 @@ function appendPlainTextWithYell(container, text) {
     }
     if (/^yell$/i.test(match[0]) || match[0] === 'エール') {
       appendRuleKwSpan(container, match[0], 'Yell');
+    } else if (/^wait$/i.test(match[0]) || match[0] === 'ウェイト') {
+      appendRuleKwSpan(container, match[0], 'Wait');
     } else {
       const span = document.createElement('span');
       span.className = 'rule-you-may';
