@@ -253,11 +253,20 @@ function tcgDbMigrate(PDO $db): void {
     tcgDbEnsureColumn($db, 'tcg_collection', 'acquired_at', 'INTEGER');
     tcgDbEnsureColumn($db, 'tcg_daily_state', 'ranked_pr_date', 'TEXT');
     tcgDbEnsureColumn($db, 'tcg_daily_state', 'ranked_pr_today', 'INTEGER NOT NULL DEFAULT 0');
+    tcgDbEnsureColumn($db, 'tcg_replays', 'preserved', 'INTEGER NOT NULL DEFAULT 0');
+
+    $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_replays_user_autosave
+        ON tcg_replays(discord_id, preserved, saved_at DESC)');
 
     $db->exec('CREATE TABLE IF NOT EXISTS tcg_schema_meta (
         key TEXT PRIMARY KEY,
         value TEXT NOT NULL
     )');
+
+    tcgDbRunMigrationOnce($db, 'replay_preserved_backfill_20260712', function (PDO $db): void {
+        // Pre-feature library rows were all manual saves — keep them forever.
+        $db->exec('UPDATE tcg_replays SET preserved = 1 WHERE COALESCE(preserved, 0) = 0');
+    });
 
     tcgDbRunMigrationOnce($db, 'daily_pull_reset_20260622', function (PDO $db): void {
         $today = tcgTodayJst();

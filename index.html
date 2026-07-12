@@ -1297,7 +1297,12 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   font-size:10px;color:rgba(186,228,255,.75);width:100%;text-align:center;margin:0;
 }
 .replay-file-meta{font-size:12px;color:rgba(255,255,255,.65);margin:8px 0 12px;line-height:1.45}
-.replay-library-list{display:flex;flex-direction:column;gap:10px;max-height:min(48vh,420px);overflow-y:auto;margin:12px 0}
+.replay-library-scroll{display:flex;flex-direction:column;gap:6px;max-height:min(52vh,480px);overflow-y:auto;margin:12px 0}
+.replay-library-section-title{
+  font-family:'Fredoka One',cursive;font-size:15px;color:var(--pink);margin:10px 0 2px
+}
+.replay-library-section-hint{font-size:11px;color:rgba(255,255,255,.55);margin:0 0 8px;line-height:1.4}
+.replay-library-list{display:flex;flex-direction:column;gap:10px;margin:0}
 .replay-library-card{
   display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:12px;
@@ -6436,12 +6441,19 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         <button class="btn-ghost" id="btn-debug-replay-back" type="button" data-i18n="replay.back">← Back</button>
       </div>
       <h2 data-i18n="replay.title">Replay Viewer</h2>
-      <p class="account-lead" data-i18n="replay.lead">Watch saved match replays from your account library. Playback follows the saved action timing, and the seekbar can jump to any point in the replay.</p>
+      <p class="account-lead" data-i18n="replay.lead">Finished matches autosave to Recent (last 10). Manually saved replays stay forever under Saved — you can also preserve a Recent replay from this screen.</p>
       <div id="replay-library-section">
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
           <button class="btn-ghost" id="btn-replay-library-refresh" type="button" data-i18n="replay.refreshLibrary">Refresh library</button>
         </div>
-        <div id="replay-library-list" class="replay-library-list"></div>
+        <div class="replay-library-scroll" id="replay-library-scroll">
+          <h3 class="replay-library-section-title" data-i18n="replay.recentSection">Recent matches</h3>
+          <p class="replay-library-section-hint" data-i18n="replay.recentHint">Autosaved from your last 10 games. Oldest is replaced automatically.</p>
+          <div id="replay-recent-list" class="replay-library-list"></div>
+          <h3 class="replay-library-section-title" data-i18n="replay.savedSection">Saved forever</h3>
+          <p class="replay-library-section-hint" data-i18n="replay.savedHint">Kept when you save from the results screen, or preserve a Recent replay here.</p>
+          <div id="replay-saved-list" class="replay-library-list"></div>
+        </div>
       </div>
       <div class="replay-import-box">
         <p class="account-lead" data-i18n="replay.importLead">Have an exported replay file? Import JSON here as a secondary option.</p>
@@ -7784,7 +7796,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=39"></script>
+<script src="i18n.js?v=40"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=10"></script>
@@ -7794,7 +7806,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/game-sync.js?v=12"></script>
 <script src="client/js/state-apply.js?v=26"></script>
 <script src="client/js/stamps.js?v=13"></script>
-<script src="client/js/replay-debug.js?v=5"></script>
+<script src="client/js/replay-debug.js?v=6"></script>
 <script src="client/js/prompt-renderer.js?v=25"></script>
 <script src="client/js/tutorial-interactive.js?v=14"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
@@ -7974,6 +7986,8 @@ const A = {
   casualWaitSeconds: 0,
   casualWaitSecondsShown: null,
   replays: [],
+  replaysRecent: [],
+  replaysSaved: [],
 };
 window.A = A;
 
@@ -12510,22 +12524,13 @@ function replaySummaryLine(r) {
   ].filter(Boolean).join(' · ');
 }
 
-function renderReplayLibraryList() {
-  const box = el('replay-library-list');
+function appendReplayLibraryCards(box, list, { allowPreserve = false } = {}) {
   if (!box) return;
-  const list = Array.isArray(A.replays) ? A.replays : [];
   box.replaceChildren();
-  if (!isSignedInAccount()) {
-    const empty = document.createElement('div');
-    empty.className = 'replay-file-meta';
-    empty.textContent = t('replay.signInLibrary');
-    box.appendChild(empty);
-    return;
-  }
   if (!list.length) {
     const empty = document.createElement('div');
     empty.className = 'replay-file-meta';
-    empty.textContent = t('replay.emptyLibrary');
+    empty.textContent = allowPreserve ? t('replay.emptyRecent') : t('replay.emptySaved');
     box.appendChild(empty);
     return;
   }
@@ -12553,25 +12558,81 @@ function renderReplayLibraryList() {
     dl.textContent = t('replay.downloadJson');
     dl.addEventListener('click', () => downloadSavedReplay(r.id));
     actions.append(watch, dl);
+    if (allowPreserve && !r.preserved) {
+      const keep = document.createElement('button');
+      keep.className = 'btn-out';
+      keep.type = 'button';
+      keep.textContent = t('replay.preserve');
+      keep.addEventListener('click', async () => {
+        keep.disabled = true;
+        const saved = typeof preserveSavedReplay === 'function'
+          ? await preserveSavedReplay(r.id)
+          : null;
+        if (saved) await refreshReplayLibrary();
+        else keep.disabled = false;
+      });
+      actions.append(keep);
+    }
     card.append(body, actions);
     box.appendChild(card);
   });
 }
 
+function renderReplayLibraryList() {
+  const recentBox = el('replay-recent-list');
+  const savedBox = el('replay-saved-list');
+  const legacyBox = el('replay-library-list');
+  if (!isSignedInAccount()) {
+    const msg = t('replay.signInLibrary');
+    if (recentBox) {
+      recentBox.replaceChildren();
+      const empty = document.createElement('div');
+      empty.className = 'replay-file-meta';
+      empty.textContent = msg;
+      recentBox.appendChild(empty);
+    }
+    if (savedBox) savedBox.replaceChildren();
+    if (legacyBox) {
+      legacyBox.replaceChildren();
+      const empty = document.createElement('div');
+      empty.className = 'replay-file-meta';
+      empty.textContent = msg;
+      legacyBox.appendChild(empty);
+    }
+    return;
+  }
+  const recent = Array.isArray(A.replaysRecent) ? A.replaysRecent : [];
+  const saved = Array.isArray(A.replaysSaved) ? A.replaysSaved : [];
+  if (recentBox || savedBox) {
+    appendReplayLibraryCards(recentBox, recent, { allowPreserve: true });
+    appendReplayLibraryCards(savedBox, saved, { allowPreserve: false });
+    return;
+  }
+  if (legacyBox) {
+    appendReplayLibraryCards(legacyBox, [...recent, ...saved], { allowPreserve: false });
+  }
+}
+
 async function refreshReplayLibrary() {
   if (!isSignedInAccount()) {
     A.replays = [];
+    A.replaysRecent = [];
+    A.replaysSaved = [];
     renderReplayLibraryList();
     return;
   }
-  const box = el('replay-library-list');
-  if (box) box.textContent = t('replay.loadingLibrary');
+  const loadingTarget = el('replay-recent-list') || el('replay-library-list');
+  if (loadingTarget) loadingTarget.textContent = t('replay.loadingLibrary');
+  const savedBox = el('replay-saved-list');
+  if (savedBox) savedBox.replaceChildren();
   try {
-    const res = await accountPost('replay_list', { limit: 50 });
-    A.replays = res.replays || [];
+    const res = await accountPost('replay_list', { limit: 100 });
+    A.replaysRecent = res.recent || (res.replays || []).filter((r) => !r.preserved);
+    A.replaysSaved = res.saved || (res.replays || []).filter((r) => !!r.preserved);
+    A.replays = res.replays || [...A.replaysRecent, ...A.replaysSaved];
     renderReplayLibraryList();
   } catch (e) {
-    if (box) box.textContent = e.message || t('replay.loadLibraryFailed');
+    if (loadingTarget) loadingTarget.textContent = e.message || t('replay.loadLibraryFailed');
   }
 }
 
@@ -32825,6 +32886,9 @@ function showWin(s){
   syncWinDebugTools(s);
   el('overlay-win').classList.add('open');
   sfxPlay(isSpec || win ? 'win' : 'lose');
+  if (!isSpec && typeof autosaveFinishedReplay === 'function') {
+    void autosaveFinishedReplay();
+  }
 }
 // ── TUTORIAL MODE ────────────────────────────────────
 const TUTORIAL_TARGETS = {
@@ -34360,6 +34424,7 @@ function freshGameGlobals() {
     lastFinishedExport:null,
     rematchWaiting:false,
     rematchRequested:false,
+    _replayAutosavedRoom:null,
   };
 }
 

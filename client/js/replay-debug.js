@@ -92,9 +92,12 @@
         const saved = await global.accountPost('replay_save', {
           room_id: creds.roomId,
           player_token: creds.token,
+          preserve: true,
+          kind: 'library',
         });
         if (saved.error) throw new Error(saved.error);
         const summary = saved.replay;
+        if (global.G) G._replayAutosavedRoom = creds.roomId;
         global.toast(
           summary?.id
             ? t('replay.savedToLibraryId', { id: summary.id })
@@ -117,6 +120,59 @@
       global.toast(t('replay.downloadedAsJson'), 2400);
     } catch (e) {
       global.toast(e.message || t('replay.couldNotSave'), 4200);
+    }
+  };
+
+  /**
+   * Silent FIFO autosave (last 10) for signed-in players when a match finishes.
+   * Manual Save Replay / Preserve upgrades the same room to permanent.
+   */
+  global.autosaveFinishedReplay = async function autosaveFinishedReplay(opts = {}) {
+    if (global.G?.isSpectator || global.G?.isTutorial || global.G?.replayMode) return null;
+    if (typeof global.isSignedInAccount !== 'function' || !global.isSignedInAccount()) return null;
+    if (!global.replaySaveEnabled()) return null;
+    const creds = global.getReplayExportCredentials();
+    if (!creds) return null;
+    if (global.G?._replayAutosavedRoom && global.G._replayAutosavedRoom === creds.roomId) {
+      return null;
+    }
+    try {
+      const saved = await global.accountPost('replay_save', {
+        room_id: creds.roomId,
+        player_token: creds.token,
+        autosave: true,
+        kind: 'autosave',
+      });
+      if (saved.error) throw new Error(saved.error);
+      if (global.G) G._replayAutosavedRoom = creds.roomId;
+      if (opts.toast !== false) {
+        global.toast(t('replay.autosavedRecent'), 2400);
+      }
+      return saved.replay || null;
+    } catch (e) {
+      // Non-fatal — match UI should not block on library write failures.
+      if (opts.toastError) {
+        global.toast(e.message || t('replay.couldNotSave'), 3200);
+      }
+      return null;
+    }
+  };
+
+  global.preserveSavedReplay = async function preserveSavedReplay(replayId) {
+    const id = Number(replayId || 0);
+    if (!id) return null;
+    if (typeof global.isSignedInAccount !== 'function' || !global.isSignedInAccount()) {
+      global.toast(t('replay.signInLibrary'));
+      return null;
+    }
+    try {
+      const res = await global.accountPost('replay_preserve', { replay_id: id });
+      if (res.error) throw new Error(res.error);
+      global.toast(t('replay.preservedToast'), 2600);
+      return res.replay || null;
+    } catch (e) {
+      global.toast(e.message || t('replay.couldNotSave'), 4200);
+      return null;
     }
   };
 

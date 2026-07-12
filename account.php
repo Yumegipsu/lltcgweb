@@ -77,6 +77,7 @@ try {
         case 'replay_list':        echo json_encode(tcgApiReplayList($body)); break;
         case 'replay_get':         echo json_encode(tcgApiReplayGet($body)); break;
         case 'replay_start':       echo json_encode(tcgApiReplayStartSaved($body)); break;
+        case 'replay_preserve':    echo json_encode(tcgApiReplayPreserve($body)); break;
         case 'missions_list':      echo json_encode(tcgApiMissionsList($body)); break;
         case 'missions_claim':     echo json_encode(tcgApiMissionsClaim($body)); break;
         case 'public_leaderboard': echo json_encode(tcgApiPublicLeaderboard($_GET + $body)); break;
@@ -536,6 +537,7 @@ function tcgReplayRowToSummary(array $row): array {
         'action_count' => intval($row['action_count'] ?? 0),
         'duration_seconds' => intval($row['duration_seconds'] ?? 0),
         'saved_at' => intval($row['saved_at'] ?? 0),
+        'preserved' => !empty($row['preserved']),
     ];
 }
 
@@ -577,6 +579,44 @@ function tcgReplayPayloadFromRow(array $row): array {
     return $payload;
 }
 
+/** Keep at most $keep non-preserved (autosave) rows per user; oldest deleted. */
+function tcgReplayTrimAutosaves(string $uid, int $keep = 10): void {
+    $keep = max(1, min(50, $keep));
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT id FROM tcg_replays
+        WHERE discord_id = ? AND COALESCE(preserved, 0) = 0
+        ORDER BY saved_at DESC, id DESC');
+    $stmt->execute([$uid]);
+    $ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN) ?: []);
+    if (count($ids) <= $keep) {
+        return;
+    }
+    $drop = array_slice($ids, $keep);
+    $del = $db->prepare('DELETE FROM tcg_replays WHERE id = ? AND discord_id = ? AND COALESCE(preserved, 0) = 0');
+    foreach ($drop as $id) {
+        $del->execute([$id, $uid]);
+    }
+}
+
+function tcgReplayFindOwnedByRoom(string $uid, string $roomId): ?array {
+    if ($roomId === '') {
+        return null;
+    }
+    $stmt = tcgDb()->prepare('SELECT * FROM tcg_replays
+        WHERE discord_id = ? AND room_id = ?
+        ORDER BY preserved DESC, saved_at DESC, id DESC
+        LIMIT 1');
+    $stmt->execute([$uid, $roomId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row ?: null;
+}
+
+/**
+ * Save finished-match replay.
+ * - autosave (default when body.autosave): FIFO last 10 non-preserved
+ * - preserve / legacy button: permanent library (preserved=1)
+ * Same room_id upserts instead of duplicating.
+ */
 function tcgApiReplaySave(array $body): array {
     $uid = tcgRequireAuthUser($body);
     tcgEnsureUser($uid, tcgAuthUserProfile($uid));
@@ -585,6 +625,18 @@ function tcgApiReplaySave(array $body): array {
     if ($roomId === '' || $token === '') {
         throw new Exception('room_id and player_token required', 400);
     }
+    $wantAutosave = !empty($body['autosave']) || (($body['kind'] ?? '') === 'autosave');
+    $wantPreserve = !empty($body['preserve'])
+        || !empty($body['permanent'])
+        || (($body['kind'] ?? '') === 'library');
+    // Legacy clients (no flags) = permanent library save.
+    if (!$wantAutosave && !$wantPreserve) {
+        $wantPreserve = true;
+    }
+    if ($wantAutosave) {
+        $wantPreserve = false;
+    }
+
     $state = loadGame($roomId);
     if (!$state) {
         throw new Exception('Room not found', 404);
@@ -597,6 +649,21 @@ function tcgApiReplaySave(array $body): array {
     if (($state['status'] ?? '') !== 'finished') {
         throw new Exception('Replay can only be saved after the match finishes', 400);
     }
+
+    $existing = tcgReplayFindOwnedByRoom($uid, $roomId);
+    if ($existing) {
+        if ($wantPreserve && empty($existing['preserved'])) {
+            tcgDb()->prepare('UPDATE tcg_replays SET preserved = 1 WHERE id = ? AND discord_id = ?')
+                ->execute([intval($existing['id']), $uid]);
+            $existing = tcgReplayLoadOwnedRow($uid, intval($existing['id']));
+        }
+        return [
+            'success' => true,
+            'replay' => tcgReplayRowToSummary($existing),
+            'upserted' => true,
+        ];
+    }
+
     $payload = buildReplayExportPayload($state, $playerId);
     validateReplayFile($payload);
     if (count($payload['actions'] ?? []) === 0) {
@@ -610,10 +677,11 @@ function tcgApiReplaySave(array $body): array {
     $meta = $payload['meta'] ?? [];
     $db = tcgDb();
     $now = time();
+    $preserved = $wantPreserve ? 1 : 0;
     $db->prepare('INSERT INTO tcg_replays (
             discord_id, room_id, saver_player_id, saver_name, opponent_name, winner, end_reason,
-            turn, phase, action_count, duration_seconds, payload_json, saved_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+            turn, phase, action_count, duration_seconds, payload_json, saved_at, preserved
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
         ->execute([
             $uid,
             (string)($meta['room_id'] ?? $roomId),
@@ -628,29 +696,49 @@ function tcgApiReplaySave(array $body): array {
             intval($meta['duration_seconds'] ?? 0),
             $payloadJson,
             $now,
+            $preserved,
         ]);
     $id = intval($db->lastInsertId());
+    if (!$preserved) {
+        tcgReplayTrimAutosaves($uid, 10);
+    }
     $row = tcgReplayLoadOwnedRow($uid, $id);
+    return ['success' => true, 'replay' => tcgReplayRowToSummary($row)];
+}
+
+function tcgApiReplayPreserve(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    $row = tcgReplayLoadOwnedRow($uid, intval($body['replay_id'] ?? 0));
+    if (empty($row['preserved'])) {
+        tcgDb()->prepare('UPDATE tcg_replays SET preserved = 1 WHERE id = ? AND discord_id = ?')
+            ->execute([intval($row['id']), $uid]);
+        $row = tcgReplayLoadOwnedRow($uid, intval($row['id']));
+    }
     return ['success' => true, 'replay' => tcgReplayRowToSummary($row)];
 }
 
 function tcgApiReplayList(array $body): array {
     $uid = tcgRequireAuthUser($body);
     tcgEnsureUser($uid, tcgAuthUserProfile($uid));
-    $limit = max(1, min(100, intval($body['limit'] ?? $_GET['limit'] ?? 50)));
+    $limit = max(1, min(200, intval($body['limit'] ?? $_GET['limit'] ?? 100)));
     $stmt = tcgDb()->prepare('SELECT id, room_id, saver_player_id, saver_name, opponent_name, winner, end_reason,
-            turn, phase, action_count, duration_seconds, saved_at
+            turn, phase, action_count, duration_seconds, saved_at, preserved
         FROM tcg_replays
         WHERE discord_id = ?
-        ORDER BY saved_at DESC, id DESC
+        ORDER BY preserved ASC, saved_at DESC, id DESC
         LIMIT ?');
     $stmt->bindValue(1, $uid, PDO::PARAM_STR);
     $stmt->bindValue(2, $limit, PDO::PARAM_INT);
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    $summaries = array_map('tcgReplayRowToSummary', $rows);
+    $recent = array_values(array_filter($summaries, static fn($r) => empty($r['preserved'])));
+    $saved = array_values(array_filter($summaries, static fn($r) => !empty($r['preserved'])));
     return [
         'success' => true,
-        'replays' => array_map('tcgReplayRowToSummary', $rows),
+        'replays' => $summaries,
+        'recent' => $recent,
+        'saved' => $saved,
     ];
 }
 
