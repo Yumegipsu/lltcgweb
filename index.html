@@ -23443,6 +23443,16 @@ function cpuScoreOptionalAbility(ab, cpu, tier, ae, hand, winPressure = 0, read 
   if (tier !== 'easy' && cpuWantsLiveSearch(cpu, tier) && cpuAbilityFindsLives(type)) {
     score += tier === 'hard' ? 1.2 : 0.75;
   }
+  if (tier !== 'easy' && typeof cpuEvalPromptBlend === 'function' && G.gameState) {
+    const blendCtx = {
+      tier,
+      read,
+      winPressure,
+      sit: sit || null,
+      s: G.gameState,
+    };
+    score = cpuEvalPromptBlend(score, G.gameState, 'p2', 'yes', blendCtx);
+  }
   return score;
 }
 
@@ -23632,31 +23642,41 @@ function cpuScorePromptChoice(pr, choiceKey, cpu, tier, ctx) {
   const { read, winPressure, ae, sit } = ctx;
   const hand = cpu.hand || [];
   if (choiceKey === 'no' || choiceKey === 'skip') {
-    return tier === 'easy' ? 0.55 : 0;
+    let decline = tier === 'easy' ? 0.55 : 0;
+    if (tier !== 'easy' && typeof cpuEvalPromptBlend === 'function' && ctx.s) {
+      decline = cpuEvalPromptBlend(decline, ctx.s, 'p2', choiceKey, ctx);
+    }
+    return decline;
   }
-  const effect = cpuEffectPayloadForChoice(pr, choiceKey);
   if (choiceKey === 'yes') {
     const ab = pr.ability || {};
+    // cpuScoreOptionalAbility already applies cpuEvalPromptBlend
     return cpuScoreOptionalAbility(ab, cpu, tier, ae, hand, winPressure, read);
   }
+  const effect = cpuEffectPayloadForChoice(pr, choiceKey);
+  let score;
   if (!effect?.type) {
-    return cpuScoreChoiceKeyHeuristic(pr, choiceKey, cpu, tier, ctx);
-  }
-  if (!cpuChoiceEffectViable(effect, pr, cpu, read)) return -99;
-  const ab = { ...effect, type: effect.type };
-  let score = cpuScoreAbilityType(ab, tier, ctx);
-  if (effect.then) score += cpuScoreThenEffect(effect.then, tier) * 0.55;
-  if (tier === 'hard' && read) {
-    if (effect.target === 'opponent' || tIncludesOpp(effect.type)) {
-      score += (read.activeStage?.length || 0) * 0.35 + (read.totalBlade || 0) * 0.06;
+    score = cpuScoreChoiceKeyHeuristic(pr, choiceKey, cpu, tier, ctx);
+  } else {
+    if (!cpuChoiceEffectViable(effect, pr, cpu, read)) return -99;
+    const ab = { ...effect, type: effect.type };
+    score = cpuScoreAbilityType(ab, tier, ctx);
+    if (effect.then) score += cpuScoreThenEffect(effect.then, tier) * 0.55;
+    if (tier === 'hard' && read) {
+      if (effect.target === 'opponent' || tIncludesOpp(effect.type)) {
+        score += (read.activeStage?.length || 0) * 0.35 + (read.totalBlade || 0) * 0.06;
+      }
+      if (effect.type === 'wait_opponent_stage_max_cost') {
+        const maxCost = effect.max_cost ?? 4;
+        score += (read.activeStage?.filter(x => x.cost <= maxCost).length || 0) * 0.45;
+      }
     }
-    if (effect.type === 'wait_opponent_stage_max_cost') {
-      const maxCost = effect.max_cost ?? 4;
-      score += (read.activeStage?.filter(x => x.cost <= maxCost).length || 0) * 0.45;
+    if (sit?.mustCatchUp && (effect.type?.includes('draw') || effect.type?.includes('surveil'))) {
+      score += tier === 'hard' ? 0.65 : 0.35;
     }
   }
-  if (sit?.mustCatchUp && (effect.type?.includes('draw') || effect.type?.includes('surveil'))) {
-    score += tier === 'hard' ? 0.65 : 0.35;
+  if (tier !== 'easy' && typeof cpuEvalPromptBlend === 'function' && ctx.s && score > -50) {
+    score = cpuEvalPromptBlend(score, ctx.s, 'p2', choiceKey, ctx);
   }
   return score;
 }
@@ -24203,10 +24223,32 @@ function cpuListMainActions(s, cpu, ctx) {
   return actions;
 }
 
-function cpuBestMainAction(actions, ctx) {
+function cpuBestMainAction(actions, ctx, s = null, pid = 'p2') {
   if (!actions.length) return null;
   const posture = cpuPosture(ctx);
   const min = cpuMainActionMinScore(ctx.tier, posture);
+  // Eval-ranked path (Normal/Hard): blend board evaluateState into candidate scores.
+  if (ctx.tier !== 'easy' && typeof cpuRankMainActions === 'function' && s) {
+    const ranked = cpuRankMainActions(s, pid, actions, ctx);
+    if (!ranked) return null;
+    // Preserve behind-tiebreak: prefer activate over play when eval scores are neck-and-neck.
+    if (actions.length >= 2 && posture.behind) {
+      const scored = actions.map(a => ({
+        ...a,
+        evalScore: typeof cpuScoreAction === 'function'
+          ? cpuScoreAction(s, pid, a, ctx, { peers: actions })
+          : a.score,
+      })).sort((a, b) => b.evalScore - a.evalScore);
+      const top = scored[0];
+      const second = scored[1];
+      if (top && second
+        && Math.abs(top.evalScore - second.evalScore) <= 0.2
+        && top.kind === 'play_member' && second.kind === 'activate') {
+        return second.evalScore >= min ? second : null;
+      }
+    }
+    return ranked.evalScore >= min || ranked.score >= min ? ranked : null;
+  }
   const sorted = [...actions].sort((a, b) => b.score - a.score);
   if (sorted.length >= 2 && posture.behind) {
     const top = sorted[0];
@@ -24551,10 +24593,17 @@ function cpuMain() {
     return;
   }
   const actions = cpuListMainActions(s, cpu, ctx);
-  const best = cpuBestMainAction(actions, ctx);
+  // Synthetic end_main peer so Hard opportunity-cost can prefer ending vs a weak play.
+  if (ctx.tier !== 'easy') {
+    actions.push({ kind: 'end_main', score: 0, label: 'end_main', payload: {} });
+  }
+  const best = cpuBestMainAction(actions, ctx, s, cpuId);
   const posture = cpuPosture(ctx);
   const liveCtx = cpuHandLiveContext(cpu);
   const ladderPlan = cpuBatonLadderPlan(s.turn || 1, cpuMaxStageCost(cpu), cpu);
+  const stateEval = typeof cpuEvaluateState === 'function'
+    ? cpuEvaluateState(s, cpuId, { tier: ctx.tier, read: ctx.read })
+    : null;
   cpuTraceScore('main', 'decision', actions.slice(0, 5).map(a => ({
     kind: a.kind,
     score: a.score,
@@ -24562,25 +24611,35 @@ function cpuMain() {
   })), {
     picked: best ? best.kind : null,
     minScore: cpuMainActionMinScore(ctx.tier, posture),
-    ending: !best,
+    ending: !best || best.kind === 'end_main',
     liveInHand: liveCtx.liveInHand.length,
     viableLives: liveCtx.viableLives.length,
     wantsLiveSearch: cpuWantsLiveSearch(cpu, ctx.tier),
     ladderPhase: ladderPlan.phase,
     maxStageCost: cpuMaxStageCost(cpu),
+    evaluateState: stateEval != null ? +stateEval.toFixed(1) : undefined,
   });
-  if (best) {
+  if (best && best.kind !== 'end_main') {
     if (best.kind === 'activate') cpuAct('activate_ability', best.payload);
     else cpuAct('play_member', best.payload);
     return;
   }
-  cpuTraceScore('main', 'end_main', [], { reason: 'no candidate above threshold' });
+  cpuTraceScore('main', 'end_main', [], {
+    reason: best?.kind === 'end_main' ? 'eval prefers end_main' : 'no candidate above threshold',
+    evaluateState: stateEval != null ? +stateEval.toFixed(1) : undefined,
+  });
   cpuAct('end_main', {});
 }
 
 function cpuSelectIndependentLives(pool, liveInHand, targetLiveCount, tier, winPressure = 0, read = null, handLen = 0, cpu = null, ctx = null) {
   if (targetLiveCount <= 0) return [];
-  const scoreLive = (c) => cpuScoreLiveForSet(c, tier, winPressure, read, cpu) + cpuLiveJitter(tier);
+  const scoreLive = (c) => {
+    let sc = cpuScoreLiveForSet(c, tier, winPressure, read, cpu) + cpuLiveJitter(tier);
+    if (tier !== 'easy' && typeof cpuEvalLiveBonus === 'function' && ctx?.s) {
+      sc += cpuEvalLiveBonus(ctx.s, 'p2', c, ctx);
+    }
+    return sc;
+  };
   const viable = liveInHand
     .filter(c => cpuCheckHearts(pool, cpuLiveRequiredHearts(c)))
     .sort((a, b) => scoreLive(b) - scoreLive(a));
@@ -35203,6 +35262,7 @@ function mkNoImg(card){
 </script>
 <script src="client/js/spectacle.js?v=10"></script>
 <script src="client/js/cpu-meta-weights.js?v=1"></script>
+<script src="client/js/cpu-eval.js?v=1"></script>
 <script src="client/js/cpu-ai.js?v=4"></script>
 <script>void bootApp();</script>
 </body>
