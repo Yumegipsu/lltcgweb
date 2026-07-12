@@ -75,6 +75,7 @@
     "cpuEasy": "Fácil: mazo inicial aleatorio",
     "cpuNormal": "Normal: habilidades y Lives más inteligentes",
     "cpuHard": "Difícil: mazo fuerte y prioridad de habilidades",
+    "cpuExpert": "Experto: búsqueda dry-run y proyección de amenaza",
     "findRandomMatch": "Buscar partida aleatoria",
     "spectate": "Espectar partida",
     "cancelSearch": "Cancelar búsqueda",

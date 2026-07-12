@@ -19,10 +19,14 @@
       win: 1.35, liveThreat: 1.15, board: 0.7, resources: 0.55, tempo: 0.55, oppThreat: 0.95,
       blend: 0.62, jitter: 0.015, endMainOppCost: 1.15,
     },
+    expert: {
+      win: 1.45, liveThreat: 1.25, board: 0.75, resources: 0.6, tempo: 0.65, oppThreat: 1.25,
+      blend: 0.72, jitter: 0.008, endMainOppCost: 1.35,
+    },
   };
 
   function tierKey(tier) {
-    if (tier === 'hard' || tier === 'normal') return tier;
+    if (tier === 'expert' || tier === 'hard' || tier === 'normal') return tier;
     return 'easy';
   }
 
@@ -189,7 +193,7 @@
    */
   global.cpuHardThreatAdjust = function cpuHardThreatAdjust(s, pid, action, ctx) {
     const tier = ctx?.tier || 'hard';
-    if (tier !== 'hard') return 0;
+    if (tier !== 'hard' && tier !== 'expert') return 0;
     const read = ctx?.read;
     const sit = ctx?.sit;
     const me = s?.players?.[pid];
@@ -248,7 +252,7 @@
       delta += Math.max(0, base) * 0.35 + 0.4;
       // Disrupt when behind
       if (ctx?.sit?.behind && /opp|wait|opponent/i.test(String(action.label || ''))) {
-        delta += tier === 'hard' ? 0.9 : 0.35;
+        delta += (tier === 'hard' || tier === 'expert') ? 0.9 : 0.35;
       }
     } else if (kind === 'end_main') {
       const peers = (opts?.peers || []).filter((a) => a && a !== action && a.kind !== 'end_main');
@@ -288,8 +292,8 @@
     });
     scored.sort((a, b) => b.evalScore - a.evalScore);
 
-    // Hard: consider top-N and re-apply threat adjust (already in score)
-    if (tier === 'hard' && scored.length >= 2) {
+    // Hard/Expert: consider top-N and re-apply threat adjust (already in score)
+    if ((tier === 'hard' || tier === 'expert') && scored.length >= 2) {
       const top = scored.slice(0, Math.min(5, scored.length));
       top.sort((a, b) => {
         const ta = global.cpuHardThreatAdjust(s, pid, a, ctx);
@@ -313,7 +317,7 @@
     const posture = typeof global.cpuPosture === 'function' ? global.cpuPosture(ctx) : {};
     const min = typeof global.cpuMainActionMinScore === 'function'
       ? global.cpuMainActionMinScore(tier, posture)
-      : (tier === 'hard' ? 0.4 : 0.7);
+      : ((tier === 'hard' || tier === 'expert') ? 0.4 : 0.7);
     const best = scored[0];
     return best && best.evalScore >= min ? best : null;
   };

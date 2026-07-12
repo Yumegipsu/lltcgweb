@@ -74,6 +74,11 @@ function tcgRateLimitForAction(string $action, array $body = [], ?string $authTo
             $roomId = preg_replace('/[^A-Z0-9]/', '', strtoupper(trim((string)($body['room_id'] ?? ''))));
             tcgRateLimitCheck('action', $ip . '_' . ($roomId !== '' ? $roomId : 'none'), 1200, TCG_RATE_WINDOW_SEC);
             break;
+        case 'dry_run_actions':
+            $roomId = preg_replace('/[^A-Z0-9]/', '', strtoupper(trim((string)($body['room_id'] ?? ''))));
+            // Expert search batches many sequences; allow more than live actions.
+            tcgRateLimitCheck('dry_run_actions', $ip . '_' . ($roomId !== '' ? $roomId : 'none'), 600, TCG_RATE_WINDOW_SEC);
+            break;
         case 'get_state':
             $roomId = preg_replace('/[^A-Z0-9]/', '', strtoupper(trim((string)($body['room_id'] ?? ''))));
             $key = $roomId !== '' ? $ip . '_' . $roomId : $ip;

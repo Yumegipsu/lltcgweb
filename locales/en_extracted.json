@@ -72,6 +72,7 @@
     "cpuEasy": "Easy — random starter deck",
     "cpuNormal": "Normal — smarter skills & Lives",
     "cpuHard": "Hard — strong deck & skill priority",
+    "cpuExpert": "Expert — dry-run search & threat projection",
     "findRandomMatch": "Find Random Match",
     "spectate": "Spectate Match",
     "cancelSearch": "Cancel search",

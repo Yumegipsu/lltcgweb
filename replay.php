@@ -114,7 +114,7 @@ function buildReplayExportPayload(array $state, string $saverPid): array {
             'turn'             => intval($state['turn'] ?? 0),
             'phase'            => (string)($state['phase'] ?? ''),
             'game_seq'         => intval($state['seq'] ?? 0),
-            'client_version'   => '0.1.1',
+            'client_version'   => '0.1.2',
             'mode'             => $state['mode'] ?? null,
             'cpu_difficulty'   => $state['cpu_difficulty'] ?? null,
             'timing_source'    => !empty($state['phase_timer']) ? 'phase_timer' : 'action_timestamps',
@@ -518,7 +518,7 @@ function apiReplayStart(array $body): array {
     $baseline = $replay['baseline'];
     $actions = $replay['actions'] ?? [];
     $saverPid = $replay['meta']['saver_player_id'] ?? 'p1';
-    $cpuDiff = in_array($replay['meta']['cpu_difficulty'] ?? '', ['easy', 'normal', 'hard'], true)
+    $cpuDiff = in_array($replay['meta']['cpu_difficulty'] ?? '', ['easy', 'normal', 'hard', 'expert'], true)
         ? $replay['meta']['cpu_difficulty'] : 'normal';
 
     $roomId = strtoupper(substr(md5(uniqid('rpl', true)), 0, 6));

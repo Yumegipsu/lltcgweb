@@ -1743,7 +1743,7 @@ function apiDebugCardTestStart(array $body): array {
 
     $testPid = $controller === 'cpu' ? 'p2' : 'p1';
 
-    $cpuDiff = in_array($body['cpu_difficulty'] ?? '', ['easy', 'normal', 'hard'], true)
+    $cpuDiff = in_array($body['cpu_difficulty'] ?? '', ['easy', 'normal', 'hard', 'expert'], true)
         ? $body['cpu_difficulty'] : 'normal';
 
     $cardsData = json_decode(file_get_contents(CARDS_FILE), true);

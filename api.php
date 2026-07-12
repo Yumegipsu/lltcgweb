@@ -96,6 +96,7 @@ try {
         case 'join_room':    echo json_encode(joinRoom($body));       break;
         case 'get_state':    getStatePolling();                        break;
         case 'action':       echo json_encode(handleAction($body));   break;
+        case 'dry_run_actions': echo json_encode(handleDryRunActions($body)); break;
         case 'get_cards':    echo getCards();                          break;
         case 'preview_random_deck': echo json_encode(previewRandomDeck(
             CARDS_FILE,
@@ -343,8 +344,7 @@ function joinRoom(array $body): array {
     }
 
     if (($body['deck'] ?? '') === 'cpu') {
-        $cpuDiff = in_array($body['cpu_difficulty'] ?? '', ['easy', 'normal', 'hard'], true)
-            ? $body['cpu_difficulty'] : 'easy';
+        $cpuDiff = normalizeCpuDifficulty($body['cpu_difficulty'] ?? 'easy');
         $state['cpu_difficulty'] = $cpuDiff;
         unset($state['players']['p2']['discord_id']);
         $state = addLog($state, 'CPU deck: ' . ($resolved['deck_label'] ?? 'Generated'));
@@ -591,6 +591,153 @@ function handleAction(array $body): array {
             $out['ranked_pr_reward'] = $prReward;
         }
         return $out;
+    });
+}
+
+/**
+ * Normalize lobby/CPU difficulty strings. Expert is a valid AI tier (deckgen = Hard).
+ */
+function normalizeCpuDifficulty(mixed $diff): string {
+    $d = is_string($diff) ? $diff : '';
+    return in_array($d, ['easy', 'normal', 'hard', 'expert'], true) ? $d : 'easy';
+}
+
+/**
+ * CPU-solo only: apply action sequences on a cloned state without saving.
+ * Used by Expert AI to score short Main-phase plans with real applyAction rules.
+ */
+function handleDryRunActions(array $body): array {
+    tcgRateLimitForAction('dry_run_actions', $body);
+    $roomId = $body['room_id'] ?? '';
+    $token  = $body['token']   ?? '';
+    $sequences = $body['sequences'] ?? null;
+
+    if (!$roomId || !$token) {
+        throw new Exception('room_id and token required');
+    }
+    if (tcgIsSpectatorToken($token)) {
+        throw new Exception('Spectators cannot dry-run actions');
+    }
+    if (!is_array($sequences) || !$sequences) {
+        throw new Exception('sequences array required');
+    }
+
+    $maxSequences = 16;
+    $maxActionsPerSeq = 4;
+    if (count($sequences) > $maxSequences) {
+        throw new Exception('Too many sequences (max ' . $maxSequences . ')');
+    }
+
+    return withLock($roomId, function () use ($roomId, $token, $sequences, $maxActionsPerSeq) {
+        $state = loadGame($roomId);
+        if (!$state) {
+            throw new Exception('Room not found');
+        }
+        if (!isCpuSoloMatch($state)) {
+            throw new Exception('dry_run_actions is only available in CPU solo matches');
+        }
+        if (($state['mode'] ?? '') === 'replay_view') {
+            throw new Exception('Replay viewer — dry-run not available');
+        }
+
+        $playerId = getPlayerIdByToken($state, $token);
+        if (!$playerId) {
+            throw new Exception('Invalid player token');
+        }
+        // Prefer the CPU seat; allow either seat only when both are CPU (debug) or token is CPU.
+        $cpuSeat = null;
+        foreach (['p1', 'p2'] as $pid) {
+            if (isCpuPlayer($state['players'][$pid] ?? null)) {
+                $cpuSeat = $pid;
+                break;
+            }
+        }
+        if ($cpuSeat && $playerId !== $cpuSeat) {
+            throw new Exception('dry_run_actions must use the CPU seat token');
+        }
+
+        $base = json_decode(json_encode($state), true);
+        if (!is_array($base)) {
+            throw new Exception('Failed to clone game state');
+        }
+
+        $results = [];
+        foreach ($sequences as $seqIdx => $seq) {
+            if (!is_array($seq)) {
+                $results[] = ['ok' => false, 'error' => 'sequence must be an array', 'index' => $seqIdx];
+                continue;
+            }
+            if (count($seq) > $maxActionsPerSeq) {
+                $results[] = [
+                    'ok' => false,
+                    'error' => 'Too many actions in sequence (max ' . $maxActionsPerSeq . ')',
+                    'index' => $seqIdx,
+                ];
+                continue;
+            }
+            $sim = json_decode(json_encode($base), true);
+            $stopped = 'done';
+            $err = null;
+            try {
+                foreach ($seq as $stepIdx => $step) {
+                    if (!is_array($step)) {
+                        throw new Exception('action step must be an object');
+                    }
+                    $type = (string)($step['type'] ?? '');
+                    $data = $step['data'] ?? [];
+                    if ($type === '') {
+                        throw new Exception('action type required');
+                    }
+                    if (!is_array($data)) {
+                        $data = [];
+                    }
+                    if (!empty($sim['pending_prompt'])) {
+                        $stopped = 'pending_prompt';
+                        break;
+                    }
+                    $ph = (string)($sim['phase'] ?? '');
+                    if (($sim['active_player'] ?? '') !== $playerId) {
+                        $stopped = 'not_active';
+                        break;
+                    }
+                    if ($type !== 'end_main' && $ph !== 'main_first' && $ph !== 'main_second') {
+                        $stopped = 'phase_changed';
+                        break;
+                    }
+                    $sim = applyAction($sim, $playerId, $type, $data);
+                    if (!empty($sim['_resolve_prompt_noop'])) {
+                        unset($sim['_resolve_prompt_noop']);
+                        continue;
+                    }
+                    $sim = refreshEmptyMainDecks($sim);
+                    if (empty($sim['pending_prompt'])) {
+                        $sim = flushAutoOnWaitAbilities($sim);
+                        $sim = refreshEmptyMainDecks($sim);
+                    } else {
+                        $stopped = 'pending_prompt';
+                        break;
+                    }
+                    if (($sim['status'] ?? '') === 'finished') {
+                        $stopped = 'finished';
+                        break;
+                    }
+                }
+            } catch (Throwable $e) {
+                $err = $e->getMessage();
+                $stopped = 'error';
+            }
+
+            $filtered = filterStateForPlayer($sim, $token);
+            $results[] = [
+                'ok' => $err === null,
+                'error' => $err,
+                'index' => $seqIdx,
+                'stopped' => $stopped,
+                'state' => $filtered,
+            ];
+        }
+
+        return ['ok' => true, 'results' => $results];
     });
 }
 

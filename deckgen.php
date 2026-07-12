@@ -1118,14 +1118,17 @@ function generateCpuDeckLists(
     ?string $groupHint,
     array $starterDecks
 ): array {
-    $difficulty = in_array($difficulty, ['easy', 'normal', 'hard'], true) ? $difficulty : 'easy';
+    $difficulty = in_array($difficulty, ['easy', 'normal', 'hard', 'expert'], true) ? $difficulty : 'easy';
     if ($difficulty === 'easy') {
         return generateCpuEasyDeckLists($starterDecks, $groupHint);
     }
-    return generateEnhancedCpuDeckLists($allCards, $difficulty);
+    // Expert uses the same enhanced pool as Hard; AI search differs, not the list builder.
+    $genTier = $difficulty === 'expert' ? 'hard' : $difficulty;
+    return generateEnhancedCpuDeckLists($allCards, $genTier);
 }
 
 function resolveCpuDeckLists(array $cardsData, string $difficulty, ?string $groupHint = null): array {
+    $difficulty = in_array($difficulty, ['easy', 'normal', 'hard', 'expert'], true) ? $difficulty : 'easy';
     $gen = generateCpuDeckLists(
         $cardsData['cards'] ?? [],
         $difficulty,
@@ -1133,7 +1136,7 @@ function resolveCpuDeckLists(array $cardsData, string $difficulty, ?string $grou
         $cardsData['starter_decks'] ?? []
     );
     return [
-        'deck_choice' => 'cpu:' . (in_array($difficulty, ['easy', 'normal', 'hard'], true) ? $difficulty : 'easy'),
+        'deck_choice' => 'cpu:' . $difficulty,
         'deck_label'  => $gen['name_en'],
         'main_nos'    => $gen['main_deck'],
         'energy_nos'  => $gen['energy_deck'],
