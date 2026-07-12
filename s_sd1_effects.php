@@ -344,6 +344,7 @@ function sSd1ResolvePrompt(
                 $played['blocks_slot_entries'] = true;
             }
             $ownerP['stage'][$slot] = $played;
+            unset($state['pending_prompt']);
             $state = resolveOnEnterAbilities($state, $owner, $played, $slot);
             break;
         }
@@ -361,9 +362,7 @@ function sSd1ResolvePrompt(
             }
             unset($mbr);
         }
-        unset($state['pending_prompt']);
-        $state['seq']++;
-        return returnAfterPlacedMemberEnter($state);
+        return returnAfterPlacedMemberEnter($state, false, $prompt);
     }
 
     if ($promptType === 'ssd1_reveal_group_deck') {

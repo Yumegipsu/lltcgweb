@@ -448,11 +448,13 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $played['active'] = true;
             $played['entered_turn'] = intval($state['turn'] ?? 1);
             $ownerP['stage'][$slot] = $played;
+            // Clear parent before On Enter so child prompts can open and the yes/no UI cannot reopen.
+            unset($state['pending_prompt']);
             $state = resolveOnEnterAbilities($state, $owner, $played, $slot);
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'Member') . '] played ' .
                 cardDisplayName($played) . ' from hand.');
-            return returnAfterPlacedMemberEnter($state);
+            return returnAfterPlacedMemberEnter($state, false, $prompt);
         }
         if (!isset(['yes' => true, 'no' => true][$choice])) {
             throw new Exception('Invalid choice');
@@ -541,6 +543,8 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $played['active'] = true;
             $played['entered_turn'] = $turn;
             $ownerP['stage'][$slot] = $played;
+            // Clear parent before On Enter so child prompts can open and the yes/no UI cannot reopen.
+            unset($state['pending_prompt']);
             $state = resolveOnEnterAbilities($state, $owner, $played, $slot);
             $sourceId = $prompt['source_id'] ?? '';
             if (!empty($ability['wait_self_if_blade_heart']) && !empty($played['blade_hearts'])) {
@@ -556,11 +560,13 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'Member') . '] ' . $payNote .
                 'played ' . cardDisplayName($played) . ' from hand.');
-        } else {
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional On Enter effect.');
+            return returnAfterPlacedMemberEnter($state, false, $prompt);
         }
-        return returnAfterPlacedMemberEnter($state);
+        unset($state['pending_prompt']);
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional On Enter effect.');
+        $state['seq']++;
+        return finishPromptEffects($state);
     }
 
     if ($promptType === 'pick_live_match_success_heart') {
@@ -2700,7 +2706,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . $srcName . '] played ' . cardDisplayName($pickedCard) .
                 ' from deck to ' . $slotChoice . '.');
-            return returnAfterPlacedMemberEnter($state);
+            return returnAfterPlacedMemberEnter($state, false, $prompt);
         }
 
         if ($optional && ($resolveChoice === 'no' || $resolveChoice === 'cancel')) {
@@ -3433,11 +3439,12 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         $played['active'] = true;
         $played['entered_turn'] = intval($state['turn'] ?? 1);
         $ownerP['stage'][$targetSlot] = $played;
+        unset($state['pending_prompt']);
         $state = resolveOnEnterAbilities($state, $owner, $played, $targetSlot);
         $state = addLog($state, $state['players'][$owner]['name'] .
             ' — [' . ($prompt['source_name'] ?? 'Live') . '] played ' .
             cardDisplayName($played) . ' from Waiting Room.');
-        return returnAfterPlacedMemberEnter($state, true);
+        return returnAfterPlacedMemberEnter($state, true, $prompt);
     }
 
     if ($promptType === 'wait_opponent_stage_pick') {
@@ -3644,6 +3651,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $played['entered_from_wr'] = true;
             unset($played['entered_from_hand'], $played['entered_via_baton']);
             $ownerP['stage'][$targetSlot] = $played;
+            unset($state['pending_prompt']);
             $state = resolveOnEnterAbilities($state, $owner, $played, $targetSlot);
             if ($sourceSlot !== '' && !empty($ownerP['stage'][$sourceSlot])) {
                 markAbilityUsed($ownerP['stage'][$sourceSlot], $abIdx);
@@ -3651,9 +3659,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'Member') . '] played ' .
                 cardDisplayName($played) . ' from Waiting Room into the ' . $targetSlot . ' area.');
-            unset($state['pending_prompt']);
-            $state['seq']++;
-            return returnAfterPlacedMemberEnter($state);
+            return returnAfterPlacedMemberEnter($state, false, $prompt);
         }
     }
 

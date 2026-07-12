@@ -49,15 +49,52 @@ function finishPromptEffects(array $state): array {
     return $state;
 }
 
-/** After placing a Member from a prompt: keep chained On Enter prompts. */
-function returnAfterPlacedMemberEnter(array $state, bool $finishLiveStart = false): array {
-    $parentPrompt = $state['pending_prompt'] ?? null;
-    if (!empty($parentPrompt) && ($parentPrompt['step'] ?? '') === 'pick_slot') {
-        unset($state['pending_prompt']);
-        $state['seq']++;
-        return $finishLiveStart ? finishLiveStartEffects($state) : finishPromptEffects($state);
+/**
+ * True when pending_prompt is still the place-prompt that was just answered
+ * (or its pick_slot continuation), not a new chained On Enter prompt.
+ */
+function promptIsCompletedPlaceParent(array $pending, array $answered): bool {
+    if (($pending['type'] ?? '') !== ($answered['type'] ?? '')) {
+        return false;
     }
-    if (!empty($state['pending_prompt'])) {
+    $pSrc = (string)($pending['source_id'] ?? $pending['source_instance_id'] ?? '');
+    $aSrc = (string)($answered['source_id'] ?? $answered['source_instance_id'] ?? '');
+    if ($pSrc !== '' && $aSrc !== '' && $pSrc !== $aSrc) {
+        return false;
+    }
+    if (isset($answered['ability_index']) || isset($pending['ability_index'])) {
+        if (intval($pending['ability_index'] ?? -999) !== intval($answered['ability_index'] ?? -999)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * After placing a Member from a prompt: keep chained On Enter prompts.
+ * Pass $answeredPrompt so a leftover parent (same type/source) is cleared instead of
+ * reopening the same option UI (issue #48 double/triple prompting).
+ */
+function returnAfterPlacedMemberEnter(
+    array $state,
+    bool $finishLiveStart = false,
+    ?array $answeredPrompt = null
+): array {
+    $pending = $state['pending_prompt'] ?? null;
+    if (!empty($pending)) {
+        $clearParent = false;
+        if ($answeredPrompt !== null) {
+            $clearParent = promptIsCompletedPlaceParent($pending, $answeredPrompt);
+        } elseif (($pending['step'] ?? '') === 'pick_slot') {
+            // Legacy safety for callers that omit $answeredPrompt.
+            $clearParent = true;
+        }
+        if ($clearParent) {
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return $finishLiveStart ? finishLiveStartEffects($state) : finishPromptEffects($state);
+        }
+        // Different chained prompt (child On Enter, etc.) — keep it.
         $state['seq']++;
         return $state;
     }

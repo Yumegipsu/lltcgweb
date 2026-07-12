@@ -962,6 +962,7 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
     if ($promptType === 'sbp6_swap_pick_wr_member') {
         $cardId = $data['card_id'] ?? $choice;
         $slot = $prompt['target_slot'] ?? 'center';
+        $played = null;
         foreach ($ownerP['waiting_room'] as $i => $c) {
             if (($c['instance_id'] ?? '') !== $cardId) continue;
             $played = $c;
@@ -969,10 +970,14 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
             $played['active'] = true;
             $played['entered_turn'] = intval($state['turn'] ?? 1);
             $ownerP['stage'][$slot] = $played;
+            unset($state['pending_prompt']);
             $state = resolveOnEnterAbilities($state, $owner, $played, $slot);
             break;
         }
-        return returnAfterPlacedMemberEnter($state);
+        if (!$played) {
+            throw new Exception('Invalid Waiting Room card');
+        }
+        return returnAfterPlacedMemberEnter($state, false, $prompt);
     }
 
     if ($promptType === 'sbp6_live_zone_deck_top_hearts') {
@@ -1058,13 +1063,12 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
         $played['active'] = true;
         $played['entered_turn'] = intval($state['turn'] ?? 1);
         $ownerP['stage'][$slot] = $played;
+        unset($state['pending_prompt']);
         $state = resolveOnEnterAbilities($state, $owner, $played, $slot);
         $state = addLog($state, $state['players'][$owner]['name'] .
             ' — [' . ($leaving['name_en'] ?? $leaving['name'] ?? 'Member') . '] left Stage; played ' .
             cardDisplayName($played) . ' from Waiting Room.');
-        unset($state['pending_prompt']);
-        $state['seq']++;
-        return returnAfterPlacedMemberEnter($state);
+        return returnAfterPlacedMemberEnter($state, false, $prompt);
     }
 
     if ($promptType === 'sbp6_hand_deck_position') {
