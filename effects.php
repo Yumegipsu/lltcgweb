@@ -77,7 +77,7 @@ function mergeCardCatalogFields(array &$card): void {
             $card[$oracleKey] = $base[$oracleKey];
         }
     }
-    foreach (['group', 'cost', 'card_type', 'card_type_en', 'name', 'name_en'] as $key) {
+    foreach (['group', 'cost', 'card_type', 'card_type_en', 'name', 'name_en', 'subunit'] as $key) {
         if (empty($card[$key]) && !empty($base[$key])) {
             $card[$key] = $base[$key];
         }
@@ -1528,6 +1528,7 @@ function bumpLiveCardColorReduction(array &$state, string $pid, string $instance
 }
 
 function cardEffectiveSubunits(array $card): array {
+    mergeCardCatalogFields($card);
     $subs = [];
     if (!empty($card['subunit'])) {
         $subs[] = $card['subunit'];
@@ -1551,11 +1552,15 @@ function cardMatchesSubunit(array $card, string $subunit): bool {
 }
 
 function countWrSubunitFilter(array $p, string $subunit, string $filter = 'live'): int {
-    return count(array_filter(
-        $p['waiting_room'] ?? [],
-        fn($c) => cardMatchesSubunit($c, $subunit)
-            && ($filter === '' || cardMatchesGroup($c, '', $filter))
-    ));
+    $n = 0;
+    foreach ($p['waiting_room'] ?? [] as $c) {
+        if (!is_array($c)) continue;
+        mergeCardCatalogFields($c);
+        if (!cardMatchesSubunit($c, $subunit)) continue;
+        if ($filter !== '' && !cardMatchesGroup($c, '', $filter)) continue;
+        $n++;
+    }
+    return $n;
 }
 
 function countDistinctNamedGroupOnStage(array $p, string $group, string $filter = 'member'): int {
@@ -2257,7 +2262,10 @@ function subunitNamesMatch(string $a, string $b): bool {
     if ($a === '' || $b === '') return false;
     if ($a === $b) return true;
     $norm = static fn(string $s): string => str_replace('！', '!', trim($s));
-    return $norm($a) === $norm($b);
+    if ($norm($a) === $norm($b)) return true;
+    // JP / EN aliases (e.g. スリーズブーケ ↔ Cerise Bouquet)
+    return subunitDisplayEn($a) !== ''
+        && subunitDisplayEn($a) === subunitDisplayEn($b);
 }
 
 function memberBatonFromLowerCostSubunit(array $member, string $subunit): bool {

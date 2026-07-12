@@ -22,12 +22,19 @@
   };
 
   global.markPromptSubmitting = function markPromptSubmitting(s) {
-    global.G._promptSubmitKey = global.promptSubmitKey(s || global.G.gameState);
+    const key = global.promptSubmitKey(s || global.G.gameState);
+    global.G._promptSubmitKey = key;
+    // Remember answered identity so ensurePendingPromptSurfaced cannot reopen it
+    // after the overlay closes (stale gate-entry snapshots).
+    if (key) global.G._lastResolvedPromptKey = key;
   };
 
   global.syncPromptSubmitState = function syncPromptSubmitState(s) {
     const pr = s?.pending_prompt;
     if (!pr) {
+      if (global.G._promptSubmitKey) {
+        global.G._lastResolvedPromptKey = global.G._promptSubmitKey;
+      }
       global.G._promptSubmitKey = null;
       global.G._lastSurfacedPromptKey = null;
       if (global.G._deferredPromptState?.pending_prompt) global.clearDeferredPromptState();
@@ -343,6 +350,7 @@ global.openYellRevealPick = function openYellRevealPick(pr, opts = {}) {
     }
     const autoSkip = pr?.type === 'pick_yell_member'
       || pr?.type === 'live_success_pick_yell_live'
+      || pr?.type === 'live_success_pick_yell_deck_top'
       || pr?.type === 'live_success_yell_live_deck_bottom';
     if (autoSkip && !isPromptSubmitting(s)) {
       sendAct('resolve_prompt', { choice: 'skip' });
@@ -1899,6 +1907,33 @@ global.renderPrompt = function renderPrompt(s, myId){
     const yellLives = yellRevealPickCards(pr, s, myId);
     if (!yellLives.length) {
       sendAct('resolve_prompt', { choice: 'skip' });
+      return;
+    }
+    openYellRevealPick(pr, {
+      state: s,
+      myId,
+      onCancel: () => sendAct('resolve_prompt', { choice: 'skip' }),
+    });
+    return;
+  }
+  if(pr?.type==='live_success_pick_yell_deck_top'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const yellCards = yellRevealPickCards(pr, s, myId);
+    if (!yellCards.length) {
+      const cands = (pr.candidates || []).filter(c => c?.instance_id);
+      if (!cands.length) {
+        sendAct('resolve_prompt', { choice: 'skip' });
+        return;
+      }
+      openHandPick({
+        hand: cands,
+        count: 1,
+        min: 1,
+        title: pr.source_name || pt('prompt.deckTopTitle'),
+        msg: pr.prompt || pt('prompt.deckTopMsg'),
+        onConfirm: (picked) => sendAct('resolve_prompt', { card_id: picked[0] }),
+        onCancel: () => sendAct('resolve_prompt', { choice: 'skip' }),
+      });
       return;
     }
     openYellRevealPick(pr, {

@@ -131,7 +131,11 @@ function tcgApplyRankedPrRewardOnFinish(array &$state): void {
     if (!is_string($winnerPid) || !in_array($winnerPid, ['p1', 'p2'], true)) {
         return;
     }
-    $discordId = tcgPlayerDiscordId($state, $winnerPid);
+    // Prefer ranked matchmaking IDs so a bad/missing seat discord_id cannot grant to the loser.
+    $rankedKey = $winnerPid . '_discord_id';
+    $discordId = !empty($ranked[$rankedKey])
+        ? (string)$ranked[$rankedKey]
+        : tcgPlayerDiscordId($state, $winnerPid);
     if (!$discordId) {
         return;
     }

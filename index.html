@@ -31470,19 +31470,27 @@ function isYellLivePickPrompt(pr) {
     || pr?.type === 'live_success_yell_live_deck_bottom';
 }
 
+function isYellAnyPickPrompt(pr) {
+  return pr?.type === 'live_success_pick_yell_deck_top'
+    || pr?.type === 'pick_yell_member';
+}
+
 function yellRevealPickCards(pr, s, myId) {
   const yr = perfYellRevealFor(s);
   const yell = yr?.[myId] || s?.yell_reveal?.[myId] || s?._yell_reveal_snapshot?.[myId] || [];
   const byId = new Map(yell.map(c => [c.instance_id, c]));
   const ab = pr.ability || {};
-  const defaultFilter = isYellLivePickPrompt(pr) ? 'live' : 'member';
+  let defaultFilter = 'member';
+  if (isYellLivePickPrompt(pr)) defaultFilter = 'live';
+  else if (isYellAnyPickPrompt(pr)) defaultFilter = 'any';
   return (pr.candidates || []).map(c => {
     const full = byId.get(c.instance_id);
     const merged = full ? { ...c, ...full } : (typeof enrichCard === 'function' ? enrichCard(c) : c);
     return merged;
   }).filter(c => {
     if (!c.instance_id) return false;
-    if (ab.subunit || ab.group || ab.filter) {
+    if (ab.subunit || ab.group || ab.filter || defaultFilter === 'any') {
+      if (defaultFilter === 'any' && !ab.subunit && !ab.group && !ab.filter) return true;
       return cardMatchesWrPickClient(c, {
         group: ab.group || '',
         filter: ab.filter || defaultFilter,

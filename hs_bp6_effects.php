@@ -840,10 +840,9 @@ function hsResolveHasunosoraPrompt(array $state, string $owner, array $prompt, s
             }
         }
         if ($pickId === '' || $pickId === 'pick') {
-            // Optional effect — never softlock the CPU/game on a bare "pick".
-            unset($state['pending_prompt']);
-            $state['seq']++;
-            return finishLiveSuccessEffects($state);
+            // Incomplete human two-step pick (choice=pick, no card yet) — keep prompt.
+            // CPU softlock is handled by anti_softlock_skip preferring optional skip.
+            return $state;
         }
         $picked = takeFromPendingYellPool($ownerP, $pickId, $prompt, $state, $owner);
         if (!$picked) {
