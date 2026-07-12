@@ -14870,6 +14870,44 @@
         },
         {
             "card_no": "PL!HS-PR-022-PR",
+            "name": "セラス 柳田 リリエンフェルト",
+            "name_en": "Ceras Yanagida Lilienfeld",
+            "card_type": "メンバー",
+            "card_type_en": "Member",
+            "group": "Hasunosora",
+            "booster_pack": "PRカード",
+            "cost": 4,
+            "blade": 0,
+            "hearts": [
+                {
+                    "color": "purple",
+                    "count": 2
+                }
+            ],
+            "blade_hearts": [
+                "purple"
+            ],
+            "rarity": "PR",
+            "text": "[Live Start] You may pay 1 Energy: until this Live ends, you gain +2 Blade.",
+            "text_jp": "支払ってもよい：ライブ終了時まで、を得る。",
+            "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!HS-022-PR.png",
+            "subunit": "E del Note",
+            "abilities": [
+                {
+                    "trigger": "live_start",
+                    "type": "optional_pay_energy",
+                    "cost": 1,
+                    "then": {
+                        "type": "blade_bonus",
+                        "amount": 2
+                    }
+                }
+            ],
+            "text_es": "[Inicio de Live] Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade.",
+            "text_ko": "[라이브 개시] 에너지 1개를 지불해도 된다: 그렇게 하면 이 라이브가 끝날 때까지 Blade +2를 얻는다."
+        },
+        {
+            "card_no": "PL!HS-PR-023-PR",
             "name": "桂城 泉",
             "name_en": "Izumi Katsuragi",
             "card_type": "メンバー",
@@ -14890,7 +14928,7 @@
             "rarity": "PR",
             "text": "[Live Start] You may pay 1 Energy: put 2 Member cards from your Waiting Room on top of your deck in any order.",
             "text_jp": "支払ってもよい：自分の控え室にあるメンバーカード2枚を好きな順番でデッキの一番上に置く。",
-            "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!HS-022-PR.png",
+            "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!HS-023-PR.png",
             "subunit": "E del Note",
             "abilities": [
                 {
@@ -14905,44 +14943,6 @@
             ],
             "text_es": "[Inicio de Live] Puedes pagar 1 Energía: coloca 2 cartas de Miembro de tu Sala de espera en la parte superior de tu mazo en cualquier orden.",
             "text_ko": "[라이브 개시] 에너지 1개를 지불해도 된다: 그렇게 하면 자신의 대기실에서 멤버 카드 2장을 임의의 순서로 덱 위에 놓는다."
-        },
-        {
-            "card_no": "PL!HS-PR-023-PR",
-            "name": "セラス 柳田 リリエンフェルト",
-            "name_en": "Ceras Yanagida Lilienfeld",
-            "card_type": "メンバー",
-            "card_type_en": "Member",
-            "group": "Hasunosora",
-            "booster_pack": "PRカード",
-            "cost": 4,
-            "blade": null,
-            "hearts": [
-                {
-                    "color": "purple",
-                    "count": 2
-                }
-            ],
-            "blade_hearts": [
-                "purple"
-            ],
-            "rarity": "PR",
-            "text": "[Live Start] You may pay 1 Energy: until this Live ends, you gain +2 Blade.",
-            "text_jp": "支払ってもよい：ライブ終了時まで、を得る。",
-            "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!HS-023-PR.png",
-            "subunit": "E del Note",
-            "abilities": [
-                {
-                    "trigger": "live_start",
-                    "type": "optional_pay_energy",
-                    "cost": 1,
-                    "then": {
-                        "type": "blade_bonus",
-                        "amount": 2
-                    }
-                }
-            ],
-            "text_es": "[Inicio de Live] Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade.",
-            "text_ko": "[라이브 개시] 에너지 1개를 지불해도 된다: 그렇게 하면 이 라이브가 끝날 때까지 Blade +2를 얻는다."
         },
         {
             "card_no": "PL!HS-PR-024-PR＋",
