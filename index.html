@@ -32302,7 +32302,9 @@ function phaseTimerDeadlinePid(s, myId) {
 }
 
 function phaseTimerShouldShow(s, myId) {
-  if (G.isSpectator || G.isTutorial || !isActiveGameplay(s)) return false;
+  // Spectators still need the local RAF countdown — paintPhaseTimer already
+  // runs on poll, but without ticking the pie only jumps when someone acts.
+  if (G.isTutorial || !isActiveGameplay(s)) return false;
   if (!phaseTimerEnabledOnState(s)) return false;
   return phaseTimerDeadlinePid(s, myId) != null;
 }
