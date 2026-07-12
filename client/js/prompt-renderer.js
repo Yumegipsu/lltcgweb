@@ -304,6 +304,11 @@ global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
   if (!cards.length && (pr.candidates || []).length) {
     cards = (pr.candidates || []).map(c => enrichCard(c)).filter(c => c?.instance_id && cardMatchesWrPickClient(c, cfg));
   }
+  // Server already filtered candidates — never softlock if client punctuation/alias
+  // matching is stricter (e.g. みらくらぱーく! vs ！).
+  if (!cards.length && (pr.candidates || []).length) {
+    cards = (pr.candidates || []).map(c => enrichCard(c)).filter(c => c?.instance_id);
+  }
   if (!cards.length) {
     toast(pt('prompt.wrNoMatch') || pt('prompt.wrEmpty'), 3200);
     return;

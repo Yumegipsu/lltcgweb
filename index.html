@@ -7841,7 +7841,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=28"></script>
 <script src="client/js/stamps.js?v=13"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
-<script src="client/js/prompt-renderer.js?v=26"></script>
+<script src="client/js/prompt-renderer.js?v=27"></script>
 <script src="client/js/tutorial-interactive.js?v=15"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -15888,8 +15888,12 @@ function cardMatchesWrPickClient(card, cfg) {
   if (!card) return false;
   const subunit = cfg.subunit || '';
   if (subunit) {
+    // Match server subunitNamesMatch: ASCII ! vs fullwidth ！ (Mira-Cra Park!, etc.)
     const subs = card.subunits || (card.subunit ? [card.subunit] : []);
-    if (!subs.includes(subunit) && card.subunit !== subunit) return false;
+    const ok = (typeof cardMatchesSubunit === 'function')
+      ? cardMatchesSubunit(card, subunit)
+      : subs.some(s => subunitNamesMatch(s, subunit));
+    if (!ok) return false;
   }
   const group = cfg.group || '';
   const filter = cfg.filter || '';
