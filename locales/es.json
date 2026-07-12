@@ -9,7 +9,8 @@
     "backToList": "← Todas las noticias",
     "empty": "Aún no hay noticias.",
     "untitled": "Sin título",
-    "cardUnknown": "Carta no encontrada: {id}"
+    "cardUnknown": "Carta no encontrada: {id}",
+    "newBadge": "¡Nuevo!"
   },
   "auth": {
     "checking": "Verificando inicio de sesión con Discord…",

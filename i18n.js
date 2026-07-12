@@ -21,7 +21,8 @@
       "backToList": "← All news",
       "empty": "No news posts yet.",
       "untitled": "Untitled",
-      "cardUnknown": "Card not found: {id}"
+      "cardUnknown": "Card not found: {id}",
+      "newBadge": "New!"
     },
     "auth": {
       "checking": "Checking Discord sign-in…",
@@ -1065,7 +1066,8 @@
       "backToList": "← 一覧へ",
       "empty": "お知らせはまだありません。",
       "untitled": "無題",
-      "cardUnknown": "カードが見つかりません：{id}"
+      "cardUnknown": "カードが見つかりません：{id}",
+      "newBadge": "新着"
     },
     "auth": {
       "checking": "Discordサインインを確認中…",
@@ -2105,7 +2107,8 @@
       "backToList": "← Todas las noticias",
       "empty": "Aún no hay noticias.",
       "untitled": "Sin título",
-      "cardUnknown": "Carta no encontrada: {id}"
+      "cardUnknown": "Carta no encontrada: {id}",
+      "newBadge": "¡Nuevo!"
     },
     "auth": {
       "checking": "Verificando inicio de sesión con Discord…",
@@ -3164,7 +3167,8 @@
       "backToList": "← 전체 뉴스",
       "empty": "아직 등록된 뉴스가 없습니다.",
       "untitled": "제목 없음",
-      "cardUnknown": "카드를 찾을 수 없습니다: {id}"
+      "cardUnknown": "카드를 찾을 수 없습니다: {id}",
+      "newBadge": "신규!"
     },
     "auth": {
       "checking": "Discord 로그인 확인 중…",

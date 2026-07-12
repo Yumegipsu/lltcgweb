@@ -9,7 +9,8 @@
     "backToList": "← 전체 뉴스",
     "empty": "아직 등록된 뉴스가 없습니다.",
     "untitled": "제목 없음",
-    "cardUnknown": "카드를 찾을 수 없습니다: {id}"
+    "cardUnknown": "카드를 찾을 수 없습니다: {id}",
+    "newBadge": "신규!"
   },
   "auth": {
     "checking": "Discord 로그인 확인 중…",

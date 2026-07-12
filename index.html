@@ -4296,17 +4296,49 @@ body:has(#screen-game.active) #casual-search-float{top:68px}
   padding:clamp(4px,1.2vw,10px) 0 0 clamp(6px,1.5vw,12px)}
 .news-fab{
   display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border:none;
-  background:transparent;cursor:pointer;color:#fff;font-family:inherit}
+  background:transparent;cursor:pointer;color:#fff;font-family:inherit;position:relative}
 .news-fab-icon{
   width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-family:'Fredoka One',cursive;font-size:24px;font-weight:700;line-height:1;color:#fff;
   background:url("bg/ptn.png") top center/200px 200px repeat,rgba(52,163,243,.92);
   border:1px solid rgba(255,255,255,.45);box-shadow:0 4px 16px rgba(0,0,0,.28);
-  transition:transform .2s ease,box-shadow .2s ease}
+  transition:transform .2s ease,box-shadow .2s ease,background .2s ease,border-color .2s ease}
 .news-fab:hover .news-fab-icon{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.34)}
 .news-fab-label{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
   color:rgba(255,255,255,.92);text-shadow:0 1px 8px rgba(0,0,0,.45)}
+.news-fab-badge{
+  position:absolute;top:-2px;right:-4px;z-index:2;padding:2px 6px;border-radius:999px;
+  font-size:9px;font-weight:900;letter-spacing:.04em;line-height:1.2;text-transform:uppercase;
+  color:#fff;background:linear-gradient(135deg,var(--pink),var(--pink-d));
+  border:1px solid rgba(255,255,255,.55);box-shadow:0 2px 10px rgba(255,107,168,.55);
+  pointer-events:none}
+.news-fab-badge[hidden]{display:none!important}
+.news-fab--new .news-fab-icon{
+  background:url("bg/ptn.png") top center/200px 200px repeat,rgba(255,107,168,.94);
+  border-color:rgba(255,179,209,.85);
+  box-shadow:0 0 0 2px rgba(255,107,168,.35),0 0 18px rgba(255,107,168,.65),0 4px 16px rgba(0,0,0,.28);
+  animation:newsFabGlow 1.6s ease-in-out infinite}
+.news-fab--new .news-fab-label{color:var(--pink-l)}
+.news-fab--new:hover .news-fab-icon{
+  box-shadow:0 0 0 2px rgba(255,107,168,.45),0 0 22px rgba(255,107,168,.75),0 6px 20px rgba(0,0,0,.34)}
+@keyframes newsFabGlow{
+  0%,100%{box-shadow:0 0 0 2px rgba(255,107,168,.3),0 0 14px rgba(255,107,168,.5),0 4px 16px rgba(0,0,0,.28)}
+  50%{box-shadow:0 0 0 3px rgba(255,107,168,.5),0 0 24px rgba(255,107,168,.85),0 4px 16px rgba(0,0,0,.28)}
+}
 html[lang="ja"] .news-fab-label{text-transform:none;letter-spacing:.04em;font-size:11px}
+html[lang="ja"] .news-fab-badge,
+html[lang="ko"] .news-fab-badge{text-transform:none;letter-spacing:.02em;font-size:10px}
+#overlay-news .news-list-item--new{
+  border-color:rgba(255,107,168,.7)!important;
+  box-shadow:0 0 0 1px rgba(255,107,168,.35),0 8px 22px rgba(255,107,168,.2);
+  background:linear-gradient(135deg,rgba(255,107,168,.22),rgba(255,255,255,.06))}
+#overlay-news .news-list-item-new-tag{
+  display:inline-block;margin-left:8px;padding:1px 7px;border-radius:999px;
+  font-size:10px;font-weight:900;letter-spacing:.04em;vertical-align:middle;
+  color:#fff;background:linear-gradient(135deg,var(--pink),var(--pink-d));
+  border:1px solid rgba(255,255,255,.4)}
+html[lang="ja"] #overlay-news .news-list-item-new-tag,
+html[lang="ko"] #overlay-news .news-list-item-new-tag{text-transform:none;letter-spacing:.02em}
 body.news-overlay-open{overflow:hidden}
 #overlay-news.llc-menu-screen{
   position:fixed;inset:0;z-index:8750;display:none;align-items:center;justify-content:center;
@@ -6195,6 +6227,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       </div>
       <div class="logo-row-side logo-row-side--right">
         <button type="button" class="news-fab" aria-haspopup="dialog" aria-controls="overlay-news" data-i18n-aria-label="news.label">
+          <span class="news-fab-badge" data-i18n="news.newBadge" hidden>New!</span>
           <span class="news-fab-icon" aria-hidden="true">!</span>
           <span class="news-fab-label" data-i18n="news.label">News</span>
         </button>
@@ -6582,6 +6615,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       </div>
       <div class="logo-row-side logo-row-side--right">
         <button type="button" class="news-fab" aria-haspopup="dialog" aria-controls="overlay-news" data-i18n-aria-label="news.label">
+          <span class="news-fab-badge" data-i18n="news.newBadge" hidden>New!</span>
           <span class="news-fab-icon" aria-hidden="true">!</span>
           <span class="news-fab-label" data-i18n="news.label">News</span>
         </button>
@@ -7891,10 +7925,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=46"></script>
+<script src="i18n.js?v=47"></script>
 <script src="log_i18n.js?v=9"></script>
 <script src="sfx.js?v=15"></script>
-<script src="client/js/news.js?v=12"></script>
+<script src="client/js/news.js?v=13"></script>
 <script src="client/js/api-client.js?v=9"></script>
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
@@ -35242,6 +35276,11 @@ function showScr(n){
   if (n === 'leaderboard') {
     const lb = el('screen-leaderboard');
     if (lb) lb.scrollTop = 0;
+  }
+  if (n === 'auth' || n === 'hub') {
+    if (typeof window.onTcgMainMenuEnter === 'function') window.onTcgMainMenuEnter();
+  } else if (typeof window.onTcgMainMenuLeave === 'function') {
+    window.onTcgMainMenuLeave();
   }
   if (n === 'pack-results') {
     const pr = el('screen-pack-results');

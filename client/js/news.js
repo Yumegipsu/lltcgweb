@@ -1,16 +1,21 @@
 /**
  * Title-screen news overlay — list + detail views, locale-aware posts from news.json.
+ * Tracks posts newer than the user's last main-menu visit for FAB glow + list highlights.
  */
 (function (global) {
   'use strict';
 
   const NEWS_JSON = './news.json?v=15';
+  const LAST_SEEN_KEY = 'lltcg.news.lastSeenNewestId';
   /** Matches catalog card_no tokens in news copy (PL!… / LL-…). */
   const NEWS_CARD_ID_RE = /(PL![A-Za-z0-9!＋._-]+|LL-[A-Za-z0-9!＋._-]+|PL!-[A-Za-z0-9!＋._-]+)/g;
   let _posts = null;
   let _loadPromise = null;
   let _view = 'list';
   let _activeId = null;
+  /** Frozen at main-menu enter for this session (null = first visit / nothing new). */
+  let _sessionNewIds = null;
+  let _onMainMenu = false;
 
   function t(key, vars) {
     const fn = global.LLTCG_I18N && global.LLTCG_I18N.t;
@@ -70,6 +75,71 @@
     } catch (e) {
       return dateStr;
     }
+  }
+
+  function readLastSeenNewestId() {
+    try {
+      const v = localStorage.getItem(LAST_SEEN_KEY);
+      return v && String(v).trim() ? String(v).trim() : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function writeLastSeenNewestId(id) {
+    const v = String(id || '').trim();
+    if (!v) return;
+    try {
+      localStorage.setItem(LAST_SEEN_KEY, v);
+    } catch (e) {
+      /* ignore quota / private mode */
+    }
+  }
+
+  /** Posts newer than the last-seen newest id (sorted newest-first). */
+  function computeNewPostIds(posts) {
+    const list = Array.isArray(posts) ? posts : [];
+    const lastId = readLastSeenNewestId();
+    if (!lastId) return [];
+    const lastIdx = list.findIndex((p) => p && p.id === lastId);
+    if (lastIdx === -1) {
+      // Prior anchor missing from feed — treat only the current top post as new if feed non-empty.
+      return list[0]?.id ? [list[0].id] : [];
+    }
+    return list.slice(0, lastIdx).map((p) => p.id).filter(Boolean);
+  }
+
+  function sessionNewIdSet() {
+    return new Set(_sessionNewIds || []);
+  }
+
+  function isPostNewInSession(post) {
+    const id = post?.id;
+    return !!(id && sessionNewIdSet().has(id));
+  }
+
+  function applyNewsFabState(hasNew) {
+    const label = t('news.newBadge');
+    document.querySelectorAll('.news-fab').forEach((btn) => {
+      btn.classList.toggle('news-fab--new', !!hasNew);
+      const badge = btn.querySelector('.news-fab-badge');
+      if (badge) {
+        badge.textContent = label;
+        badge.hidden = !hasNew;
+      }
+      if (hasNew) {
+        btn.setAttribute('aria-label', `${t('news.label')} — ${label}`);
+      } else {
+        btn.setAttribute('aria-label', t('news.label'));
+      }
+    });
+  }
+
+  async function refreshNewsFabState() {
+    const posts = await loadPosts();
+    const newIds = _sessionNewIds != null ? _sessionNewIds : computeNewPostIds(posts);
+    applyNewsFabState(newIds.length > 0);
+    return newIds;
   }
 
   async function ensureCatalogLoaded() {
@@ -166,16 +236,24 @@
       box.appendChild(empty);
       return;
     }
+    const newTag = t('news.newBadge');
     posts.forEach((post) => {
+      const isNew = isPostNewInSession(post);
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'llc-menu-item llc-menu-hover news-list-item';
+      btn.className = 'llc-menu-item llc-menu-hover news-list-item' + (isNew ? ' news-list-item--new' : '');
       btn.dataset.postId = post.id || '';
       const body = document.createElement('span');
       body.className = 'llc-menu-item-body';
       const title = document.createElement('span');
       title.className = 'llc-menu-item-title';
       title.textContent = postField(post, 'title') || post.id || t('news.untitled');
+      if (isNew) {
+        const tag = document.createElement('span');
+        tag.className = 'news-list-item-new-tag';
+        tag.textContent = newTag;
+        title.appendChild(tag);
+      }
       const sub = document.createElement('span');
       sub.className = 'llc-menu-item-sub';
       sub.textContent = formatPostDate(post.date);
@@ -249,6 +327,9 @@
     ov.setAttribute('aria-hidden', 'false');
     document.body.classList.add('news-overlay-open');
     const posts = await loadPosts();
+    if (_sessionNewIds == null && _onMainMenu) {
+      _sessionNewIds = computeNewPostIds(posts);
+    }
     renderList(posts);
     document.getElementById('news-list-scroll')?.scrollTo(0, 0);
     if (global.LLTCG_I18N && typeof global.LLTCG_I18N.applyI18n === 'function') {
@@ -257,13 +338,49 @@
   };
 
   global.refreshNewsOverlay = async function refreshNewsOverlay() {
-    if (!isOpen()) return;
+    if (!isOpen()) {
+      if (_onMainMenu || titleScreenActive()) void refreshNewsFabState();
+      return;
+    }
     const posts = await loadPosts();
     if (_view === 'detail' && _activeId) {
       renderDetail(posts.find((p) => p.id === _activeId));
     } else {
       renderList(posts);
     }
+    applyNewsFabState((_sessionNewIds || []).length > 0);
+  };
+
+  /**
+   * Called when auth/hub becomes active. Freezes which posts count as "new"
+   * for this visit (relative to the previous main-menu leave).
+   */
+  global.onTcgMainMenuEnter = async function onTcgMainMenuEnter() {
+    if (_onMainMenu && _sessionNewIds != null) {
+      applyNewsFabState(_sessionNewIds.length > 0);
+      return;
+    }
+    _onMainMenu = true;
+    const posts = await loadPosts();
+    const lastId = readLastSeenNewestId();
+    if (!lastId) {
+      // First visit: establish baseline without a New! badge.
+      if (posts[0]?.id) writeLastSeenNewestId(posts[0].id);
+      _sessionNewIds = [];
+    } else {
+      _sessionNewIds = computeNewPostIds(posts);
+    }
+    applyNewsFabState(_sessionNewIds.length > 0);
+  };
+
+  /** Leaving main menu marks the current newest post as seen for the next visit. */
+  global.onTcgMainMenuLeave = async function onTcgMainMenuLeave() {
+    if (!_onMainMenu) return;
+    _onMainMenu = false;
+    const posts = await loadPosts();
+    if (posts[0]?.id) writeLastSeenNewestId(posts[0].id);
+    _sessionNewIds = null;
+    applyNewsFabState(false);
   };
 
   function bindUi() {
@@ -304,6 +421,9 @@
       ov.addEventListener('click', (ev) => {
         if (ev.target === ov) global.closeNewsOverlay();
       });
+    }
+    if (titleScreenActive()) {
+      void global.onTcgMainMenuEnter();
     }
   }
 
