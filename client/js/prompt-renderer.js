@@ -728,6 +728,78 @@ global.promptChoiceLabel = function promptChoiceLabel(key, i, pr) {
   return raw || key;
 }
 
+const HEART_COLOR_CHOICE_KEYS = new Set([
+  'pink', 'red', 'yellow', 'green', 'blue', 'purple', 'gray', 'grey', 'any',
+]);
+
+const HEART_COLOR_CHOICE_TYPES = new Set([
+  'choose_heart_per_success',
+  'choose_heart_mus_member',
+  'choose_heart_modifier',
+  'choose_heart_other_member',
+  'waive_required_heart_color',
+  'choose_required_heart_pair_gray',
+  'choose_replace_member_hearts',
+  'wait_self_choose_heart',
+]);
+
+global.isHeartColorChoiceKey = function isHeartColorChoiceKey(key) {
+  return HEART_COLOR_CHOICE_KEYS.has(String(key || '').toLowerCase());
+}
+
+global.isHeartColorChoicePrompt = function isHeartColorChoicePrompt(pr) {
+  if (!pr) return false;
+  if (HEART_COLOR_CHOICE_TYPES.has(pr.type)) return true;
+  const choices = Array.isArray(pr.choices) ? pr.choices : [];
+  return choices.length > 0 && choices.every((c) => isHeartColorChoiceKey(c));
+}
+
+global.heartColorChoiceDisplayName = function heartColorChoiceDisplayName(color) {
+  const c = String(color || '').toLowerCase().replace('grey', 'gray');
+  const keys = {
+    yellow: 'heart.yellow',
+    pink: 'heart.pink',
+    purple: 'heart.purple',
+    red: 'heart.red',
+    green: 'heart.green',
+    blue: 'heart.blue',
+  };
+  if (keys[c]) return t(keys[c]);
+  if (c === 'gray' || c === 'any') return c === 'any' ? 'Any' : 'Gray';
+  return c ? c.charAt(0).toUpperCase() + c.slice(1) : '';
+}
+
+/** Fill a prompt choice button/label with colored heart icons instead of ♡. */
+global.fillHeartColorChoiceContent = function fillHeartColorChoiceContent(el, key, pr) {
+  if (!el) return false;
+  const color = String(key || '').toLowerCase().replace('grey', 'gray');
+  if (typeof mkHeartIcon !== 'function' || !isHeartColorChoiceKey(color)) return false;
+  el.textContent = '';
+  el.classList.add('prompt-choice-hearts');
+  if (pr?.type === 'choose_required_heart_pair_gray') {
+    el.appendChild(mkHeartIcon(color, true));
+    el.appendChild(mkHeartIcon(color, true));
+    el.appendChild(mkHeartIcon('gray', true));
+    const caption = document.createElement('span');
+    caption.className = 'prompt-choice-heart-caption';
+    caption.textContent = `2× ${heartColorChoiceDisplayName(color)} + Gray`;
+    el.appendChild(caption);
+    return true;
+  }
+  el.appendChild(mkHeartIcon(color, true));
+  const name = document.createElement('span');
+  name.className = 'prompt-choice-heart-caption';
+  name.textContent = heartColorChoiceDisplayName(color);
+  el.appendChild(name);
+  if (pr?.type === 'waive_required_heart_color') {
+    const suffix = document.createElement('span');
+    suffix.className = 'prompt-choice-heart-suffix';
+    suffix.textContent = ' — waived';
+    el.appendChild(suffix);
+  }
+  return true;
+}
+
 global.promptQuestionText = function promptQuestionText(pr, effectDisplay, s) {
   const raw = (pr?.prompt || '').trim();
   const effect = (pr?.effect_text || '').trim();
@@ -1275,6 +1347,7 @@ global.hideTextAnswerPrompt = function hideTextAnswerPrompt(){
 
 global.renderBranchChoiceButtons = function renderBranchChoiceButtons(pr, s, myId, box){
   box.innerHTML='';
+  const heartPick = isHeartColorChoicePrompt(pr);
   (pr.choices||[]).forEach((key,i)=>{
     const label=promptChoiceLabel(key, i, pr);
     const b=document.createElement('button');
@@ -1285,7 +1358,9 @@ global.renderBranchChoiceButtons = function renderBranchChoiceButtons(pr, s, myI
     num.textContent=String(i+1);
     const text=document.createElement('span');
     text.className='prompt-choice-text';
-    text.textContent=label;
+    if (!(heartPick && fillHeartColorChoiceContent(text, key, pr))) {
+      text.textContent=label;
+    }
     b.appendChild(num);
     b.appendChild(text);
     b.onclick=()=> handlePromptChoice(pr,key,s,myId);
@@ -2475,10 +2550,13 @@ global.renderPrompt = function renderPrompt(s, myId){
   if(branch){
     renderBranchChoiceButtons(pr,s,myId,box);
   } else {
+    const heartPick = isHeartColorChoicePrompt(pr);
     (pr.choices||[]).forEach((key,i)=>{
       const b=document.createElement('button');
       b.className='btn-grad';
-      b.textContent=promptChoiceLabel(key, i, pr);
+      if (!(heartPick && fillHeartColorChoiceContent(b, key, pr))) {
+        b.textContent=promptChoiceLabel(key, i, pr);
+      }
       b.onclick=()=> handlePromptChoice(pr,key,s,myId);
       box.appendChild(b);
     });

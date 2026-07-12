@@ -242,6 +242,11 @@ select option{background:#2A1520;color:#fff}
   display:flex;align-items:center;justify-content:center;
   font-size:13px;font-weight:800;line-height:1;margin-top:1px}
 .prompt-choice-text{flex:1;min-width:0}
+.prompt-choice-text.prompt-choice-hearts,
+.btn-grad.prompt-choice-hearts{
+  display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px}
+.prompt-choice-hearts .hicon{width:22px;height:22px;flex-shrink:0}
+.prompt-choice-heart-caption,.prompt-choice-heart-suffix{font-weight:700}
 .prompt-text-wrap{margin-top:4px}
 .prompt-text-input{
   width:100%;padding:12px 14px;border-radius:10px;border:2px solid rgba(255,107,168,.35);
@@ -7836,7 +7841,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=28"></script>
 <script src="client/js/stamps.js?v=13"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
-<script src="client/js/prompt-renderer.js?v=25"></script>
+<script src="client/js/prompt-renderer.js?v=26"></script>
 <script src="client/js/tutorial-interactive.js?v=15"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
