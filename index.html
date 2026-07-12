@@ -4056,21 +4056,28 @@ body.missions-overlay-open{overflow:hidden}
 #overlay-missions .missions-empty{
   font-size:14px;color:rgba(255,255,255,.94);text-align:center;margin:18px 8px;line-height:1.55;letter-spacing:.04em}
 #overlay-mission-starter.llc-menu-screen{
-  display:none;z-index:86
-}
+  position:fixed;inset:0;z-index:8760;display:none;align-items:center;justify-content:center;
+  overflow:auto;padding:clamp(12px,3vw,24px) 16px;
+  background:rgba(4,10,24,.82);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
 #overlay-mission-starter.open{display:flex}
 #overlay-mission-starter .mission-starter-shell{
-  width:min(720px,94vw);max-height:min(90vh,820px)
-}
+  max-width:min(720px,94vw);width:100%;margin-block:auto;min-height:0;
+  display:flex;flex-direction:column;overflow:hidden;
+  padding:clamp(16px,2.6vw,24px) clamp(14px,2.2vw,20px);
+  border-radius:16px;border:1px solid rgba(255,255,255,.44);
+  background:url("bg/ptn.png") top center/200px 200px repeat,rgba(38,132,210,.9);
+  box-shadow:0 18px 52px rgba(0,0,0,.45),0 0 32px rgba(52,163,243,.24),inset 0 1px 0 rgba(255,255,255,.16);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#overlay-mission-starter .account-panel{
+  display:flex;flex-direction:column;min-height:0;width:100%;
+  background:transparent;border:none;border-radius:0;padding:0;box-shadow:none}
 #overlay-mission-starter .mission-starter-actions{
-  display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap
-}
-.starter-opt.starter-opt--owned{
-  opacity:.42;filter:grayscale(1);cursor:not-allowed;pointer-events:none
-}
+  display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.starter-opt.starter-opt--owned,
+.starter-opt:disabled{
+  opacity:.42;filter:grayscale(1);cursor:not-allowed;pointer-events:none}
 .starter-opt .starter-owned-tag{
-  margin-top:6px;font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.7)
-}
+  margin-top:6px;font-size:11px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.7)}
 .toast.toast-success{
   background:linear-gradient(135deg,#2ea85a,#1f7a42);
   box-shadow:0 6px 22px rgba(46,160,90,.45)}
@@ -7741,7 +7748,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/news.js?v=10"></script>
 <script src="client/js/api-client.js?v=9"></script>
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
-<script src="client/js/missions.js?v=4"></script>
+<script src="client/js/missions.js?v=5"></script>
 <script src="client/js/game-sync.js?v=11"></script>
 <script src="client/js/state-apply.js?v=23"></script>
 <script src="client/js/stamps.js?v=12"></script>

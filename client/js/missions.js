@@ -135,13 +135,31 @@
     const ov = starterOverlayEl();
     const grid = el('mission-starter-grid');
     if (!ov || !grid) {
-      void claimMission(mission.id, null);
+      const errEl = el('missions-err');
+      if (errEl) errEl.textContent = t('missions.starterPickTitle') + ' unavailable';
       return;
     }
     state.starterPickMissionId = mission.id;
     state.starterPickId = null;
     grid.replaceChildren();
-    const opts = Array.isArray(mission.starter_options) ? mission.starter_options : [];
+    let opts = Array.isArray(mission.starter_options) ? mission.starter_options : [];
+    if (!opts.length && Array.isArray(global.A?.profile?.starter_options)) {
+      const owned = new Set(
+        (Array.isArray(mission.owned_starters) ? mission.owned_starters : [])
+          .map((k) => String(k))
+      );
+      opts = global.A.profile.starter_options.map((o) => ({
+        id: o.id,
+        label: o.label || o.id,
+        image: o.image || '',
+        owned: owned.has(String(o.id)),
+      }));
+    }
+    if (!opts.length) {
+      const errEl = el('missions-err');
+      if (errEl) errEl.textContent = 'No starter decks available to choose';
+      return;
+    }
     opts.forEach((o) => {
       const b = document.createElement('button');
       b.type = 'button';
@@ -195,12 +213,12 @@
   async function claimMission(missionId, starterId) {
     if (!missionId || typeof global.accountPost !== 'function') return;
     const mission = (state.missions || []).find((m) => m.id === missionId);
-    if (
-      starterId == null
+    // Treat missing second arg as "open picker" for starter-choice rewards.
+    const needsPicker = arguments.length < 2
       && mission
       && mission.reward_type === 'starter_choice'
-      && Number(mission.available_starter_count || 0) > 0
-    ) {
+      && Number(mission.available_starter_count || 0) > 0;
+    if (needsPicker) {
       openStarterPicker(mission);
       return;
     }
