@@ -86,9 +86,12 @@ function liveRoundHadLivesPlayed(prev, next, showTurn = null) {
   const turn = showTurn ?? inferLiveShowTurn(prev, next);
   if (newLogHasLivePerformance(prev, next)) return true;
   // Strict on Main: do not treat prior-turn log as this transition's Lives.
-  const strict = isMainOrActivePhase(next?.phase) && !isLeavingLiveSetPhase(prev, next);
+  const strict = isMainOrActivePhase(next?.phase) && !isLeavingLiveSetPhase(prev, next)
+    && prev?.phase !== 'live_start_effects';
   if (logHasLivePerformanceForShowTurn(prev, next, turn, { strict })) return true;
-  if (isLeavingLiveSetPhase(prev, next)) {
+  if (isLeavingLiveSetPhase(prev, next)
+      || prev?.phase === 'live_start_effects'
+      || next?.phase === 'live_start_effects') {
     if (liveRoundBoardHasLiveCards(prev) || liveRoundBoardHasLiveCards(next)) return true;
     const deferred = G._deferPerfSpectaclePrev;
     if (deferred && liveRoundHasLiveCardsForRound(deferred)) return true;
@@ -331,13 +334,18 @@ async function awaitLiveStartPromptsIfNeeded(prev, next, myId) {
   // pipeline resolved in one poll), not because an earlier round performed.
   if (currentRoundLogHasPerformance(next)) return;
   TCG_DEBUG.log('live', 'awaitLiveStartPromptsIfNeeded');
-  G.gameState = next;
-  renderGame(next, { skipLog: true, skipPrompt: false });
-  ensurePendingPromptSurfaced(next, myId);
-  await waitForPipelinePromptResolution(myId, {
-    targetState: next,
-    isResolved: (s) => !s?.pending_prompt || s.phase !== 'live_start_effects',
-  });
+  G._awaitingLiveStartPrompts = true;
+  try {
+    G.gameState = next;
+    renderGame(next, { skipLog: true, skipPrompt: false });
+    ensurePendingPromptSurfaced(next, myId);
+    await waitForPipelinePromptResolution(myId, {
+      targetState: next,
+      isResolved: (s) => !s?.pending_prompt || s.phase !== 'live_start_effects',
+    });
+  } finally {
+    G._awaitingLiveStartPrompts = false;
+  }
 }
 
 /** Batched polls skip live_start_effects — show the Live Start banner before the spectacle. */
@@ -643,6 +651,23 @@ function detectPendingLiveSpectacleTurn(prev, next) {
     return showTurn;
   }
 
+  // Many Live Start skills resolve across polls; the poll that finally leaves
+  // live_start_effects must still arm reveal + Performance (not only leave-live_set).
+  if (prev?.phase === 'live_start_effects' && ph !== 'live_start_effects'
+      && showTurn != null && !liveSpectacleDoneForTurn(showTurn)) {
+    const deferredHasLives = !!(G._deferPerfSpectaclePrev
+      && liveRoundHasLiveCardsForRound(G._deferPerfSpectaclePrev));
+    if (liveRoundHadLivesPlayed(prev, next, showTurn)
+        || liveRoundBoardHasLiveCards(prev)
+        || deferredHasLives
+        || logHasLivePerformanceForShowTurn(prev, next, showTurn, { strict: true })
+        || isLivePerformancePhase(ph)
+        || ph === 'live_judge') {
+      TCG_DEBUG.log('live', 'pending spectacle turn (leaving live_start_effects)', { showTurn, phase: ph });
+      return showTurn;
+    }
+  }
+
   // Only scan undone turns when THIS poll carried live-pipeline log signals.
   // Do not re-arm from bare main/active polls (baton / On Enter / play member).
   if (logSliceHasLivePipelineSignals(slice)) {
@@ -881,7 +906,12 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
   }
   const spectacleReady = !liveSpectacleDoneForTurn(showTurn)
     && (liveSpectacleOwed(gatePrev, s, showTurn) || shouldTriggerPerfSpectacle(gatePrev, s));
-  if (revealDone && !spectacleReady) {
+  // Multi Live Start skills: keep presentLiveRound alive so await + post-resolve
+  // spectacle/flip can run. Do not bail just because reveal already finished.
+  const mustAwaitLiveStart = s.phase === 'live_start_effects'
+    || liveStartPromptNeedsWait(s, myId)
+    || !!G._awaitingLiveStartPrompts;
+  if (revealDone && !spectacleReady && !mustAwaitLiveStart) {
     if (liveSpectacleStillPending(gatePrev, s, showTurn)) {
       G._spectacleRecoveryPending = { prev: gatePrev, s, newEntries, myId };
     }
@@ -2859,12 +2889,33 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
 
     await awaitLiveStartPromptsIfNeeded(prev, next, myId);
     await presentSkippedLiveStartBanners(prev, next, myId);
-    next = pickSpectacleStateForPerf(next);
+    next = pickSpectacleStateForPerf(G.gameState || next);
     if (!emptySkip) {
-      const afterStartPlan = liveRoundPresentationPlan(prev, next, opts);
+      const afterStartPlan = liveRoundPresentationPlan(prev, next, {
+        ...opts,
+        forceSpectacleTurn: opts.forceSpectacleTurn ?? showTurnForSpectacle,
+      });
+      const afterTurn = afterStartPlan.showTurn ?? showTurnForSpectacle;
       wantsSpectacle = afterStartPlan.wantsSpectacle
-        || (!liveSpectacleDoneForTurn(afterStartPlan.showTurn)
-            && liveRoundRequiresSpectacle(prev, next, afterStartPlan.showTurn));
+        || (!liveSpectacleDoneForTurn(afterTurn)
+            && (liveRoundRequiresSpectacle(prev, next, afterTurn)
+                || liveSpectacleOwed(prev, next, afterTurn)
+                // After multi-skill Live Start resolves, always play the owed show once
+                // performance / Main is reached — never fall through to the no-spectacle path.
+                || (liveRoundHadLivesPlayed(prev, next, afterTurn)
+                    && !pendingPromptBlocksPerfSpectacle(next)
+                    && next.phase !== 'live_start_effects'
+                    && (isLivePerformancePhase(next.phase)
+                        || next.phase === 'live_judge'
+                        || isMainOrActivePhase(next.phase)
+                        || liveRoundJudgeReady(next)
+                        || logHasLivePerformanceForShowTurn(prev, next, afterTurn, { strict: true })))));
+      if (wantsSpectacle) {
+        TCG_DEBUG.log('live', 'presentLiveRound: spectacle armed after Live Start wait', {
+          showTurn: afterTurn,
+          phase: next.phase,
+        });
+      }
     }
 
     if (emptySkip) {
@@ -2952,6 +3003,19 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
         TCG_DEBUG.warn('live', 'presentLiveRound: spectacle owed but did not run', { showTurn: showTurnForSpectacle });
       }
       }
+    } else if (liveRoundHadLivesPlayed(prev, next, showTurnForSpectacle)
+        && !liveSpectacleDoneForTurn(showTurnForSpectacle)
+        && next.phase !== 'live_start_effects'
+        && !pendingPromptBlocksPerfSpectacle(next)) {
+      // Safety net: never seal a Lives round as "presented" without Performance.
+      spectacleFailedOwed = true;
+      G._spectacleRecoveryPending = {
+        prev, s: next, newEntries: opts.newEntries || [], myId,
+      };
+      TCG_DEBUG.warn('live', 'presentLiveRound: owed spectacle missed — arm recovery', {
+        showTurn: showTurnForSpectacle,
+        phase: next.phase,
+      });
     } else {
       let wrAnimated = false;
       if (!runStorageReveal && shouldAnimateEmptyLiveStorageWr(prev, next)) {
@@ -3189,6 +3253,23 @@ function shouldTriggerPerfSpectacle(prev, next) {
     }
     TCG_DEBUG.log('live', 'spectacle trigger (leaving live_set)', { showTurn, phase: ph });
     return true;
+  }
+  // After multi-skill Live Start resolves, leave live_start_effects into the show.
+  if (prev?.phase === 'live_start_effects' && ph !== 'live_start_effects'
+      && showTurn != null && !liveSpectacleDoneForTurn(showTurn)
+      && !pendingPromptBlocksPerfSpectacle(next)) {
+    const deferredHasLives = !!(G._deferPerfSpectaclePrev
+      && liveRoundHasLiveCardsForRound(G._deferPerfSpectaclePrev));
+    if (liveRoundHadLivesPlayed(prev, next, showTurn)
+        || deferredHasLives
+        || liveRoundBoardHasLiveCards(prev)
+        || logHasLivePerformanceForShowTurn(prev, next, showTurn, { strict: true })
+        || isLivePerformancePhase(ph)
+        || ph === 'live_judge'
+        || liveRoundJudgeReady(next)) {
+      TCG_DEBUG.log('live', 'spectacle trigger (leaving live_start_effects)', { showTurn, phase: ph });
+      return true;
+    }
   }
   // CPU/PvP can resolve the whole live pipeline in one poll (log has perf, phase already main_*).
   if (newLogHasLivePerformance(prev, next) && perfRoundHasShow(prev, next)) {

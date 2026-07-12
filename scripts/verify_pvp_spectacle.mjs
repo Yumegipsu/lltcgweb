@@ -142,6 +142,10 @@ const fnNames = [
   'yellRevealPickCards',
   'perfYellRevealFor',
   'shouldSkipStaleLiveLogAnnouncements',
+  'shouldTriggerPerfSpectacle',
+  'liveStartPromptNeedsWait',
+  'currentRoundLogHasPerformance',
+  'currentPerformanceRoundLogStart',
 ];
 
 const body = `
@@ -296,6 +300,8 @@ const {
   shouldSuppressLiveStorageFlipsNow,
   yellRevealPickCards,
   shouldSkipStaleLiveLogAnnouncements,
+  shouldTriggerPerfSpectacle,
+  liveStartPromptNeedsWait,
 } = sandbox;
 
 let failed = 0;
@@ -450,7 +456,19 @@ const mainMainNext = {
 };
 clearStalePerfDeferState(mainMainPrev, mainMainNext);
 ok('main→main does not seal unfinished spectacle', !liveSpectacleDoneForTurn(3));
-ok('main→main re-arms recovery while owed', !!sandbox.G._spectacleRecoveryPending);
+ok('main→main bare member play does not re-arm from log alone', !sandbox.G._spectacleRecoveryPending);
+sandbox.G._deferPerfSpectaclePrev = {
+  turn: 3,
+  phase: 'live_set',
+  players: {
+    p1: { name: 'Alice', live_zone: [{ ...liveCard, instance_id: 'owed-p1' }] },
+    p2: { name: 'Bob', live_zone: [{ ...liveCard, instance_id: 'owed-p2' }] },
+  },
+};
+clearStalePerfDeferState(mainMainPrev, mainMainNext);
+ok('main→main re-arms recovery while owed (deferred lives)', !!sandbox.G._spectacleRecoveryPending);
+sandbox.G._deferPerfSpectaclePrev = null;
+sandbox.G._spectacleRecoveryPending = null;
 
 // PvP tie score: live_judge with pick deferred — spectacle owed, reveal only once
 const tiePrev = {
@@ -850,6 +868,70 @@ ok('stale log announce: main baton skips pipeline replay',
   shouldSkipStaleLiveLogAnnouncements(mainFirstStaleFaceDown, mainSecondRevealed));
 ok('stale log announce: live_set exit still allows banners',
   !shouldSkipStaleLiveLogAnnouncements(flipOwedPrev, flipOwedNext));
+
+// Multi Live Start skills → leave live_start_effects must still arm flips/spectacle
+const liveStartDeferPrev = {
+  turn: 3,
+  phase: 'live_set',
+  seq: 20,
+  players: {
+    p1: { name: 'Alice', live_zone: [{ ...liveCard, instance_id: 'ls-p1', revealed: true }] },
+    p2: { name: 'Bob', live_zone: [{ ...liveCard, instance_id: 'ls-p2', revealed: true }] },
+  },
+  log: [
+    { msg: '=== Turn 3 begins ===' },
+    { msg: '=== Live Show ===' },
+  ],
+};
+const liveStartEffects = {
+  turn: 3,
+  phase: 'live_start_effects',
+  seq: 21,
+  players: {
+    p1: { name: 'Alice', live_zone: [{ ...liveCard, instance_id: 'ls-p1', revealed: true }] },
+    p2: { name: 'Bob', live_zone: [{ ...liveCard, instance_id: 'ls-p2', revealed: true }] },
+  },
+  pending_prompt: { type: 'optional_live_start', responder: 'p1' },
+  log: [
+    ...liveStartDeferPrev.log,
+    { msg: '=== Live Start Effects ===' },
+  ],
+};
+const afterManyLiveStarts = {
+  turn: 3,
+  phase: 'main_first',
+  seq: 30,
+  players: {
+    p1: { name: 'Alice', live_zone: [] },
+    p2: { name: 'Bob', live_zone: [] },
+  },
+  pending_prompt: null,
+  live_attempt: ['p1', 'p2'],
+  log: [
+    ...liveStartEffects.log,
+    { msg: '=== Performance Phase ===' },
+    { msg: 'Alice is performing Live with "Pain".' },
+    { msg: 'Bob is performing Live with "Symphony".' },
+    { msg: 'Alice performed Live! Blades: 3 | Hearts: [pink] | Live success: 1 | Failed: 0' },
+    { msg: 'Bob performed Live! Blades: 4 | Hearts: [pink] | Live success: 1 | Failed: 0' },
+    { msg: 'Live Scores: Alice = 3 | Bob = 4' },
+  ],
+};
+sandbox.G._perfSpectacleDoneTurns = new Set();
+sandbox.G._liveStorageRevealDoneTurns = new Set([3]);
+sandbox.G._deferPerfSpectaclePrev = liveStartDeferPrev;
+ok('live_start leave: detectPending arms show turn',
+  detectPendingLiveSpectacleTurn(liveStartEffects, afterManyLiveStarts) === 3);
+ok('live_start leave: shouldTrigger arms spectacle',
+  shouldTriggerPerfSpectacle(liveStartEffects, afterManyLiveStarts));
+ok('live_start leave: had lives via deferred baseline',
+  liveRoundHadLivesPlayed(liveStartEffects, afterManyLiveStarts, 3));
+ok('live_start mid: prompt still needs wait',
+  liveStartPromptNeedsWait(liveStartEffects, 'p1'));
+ok('live_start mid: shouldTrigger defers while skills open',
+  !shouldTriggerPerfSpectacle(liveStartDeferPrev, liveStartEffects));
+sandbox.G._deferPerfSpectaclePrev = null;
+sandbox.G._liveStorageRevealDoneTurns = new Set();
 
 if (failed) process.exit(1);
 console.log('verify_pvp_spectacle: all checks passed');

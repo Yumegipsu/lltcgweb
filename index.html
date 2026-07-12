@@ -8112,7 +8112,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
 <script src="client/js/game-sync.js?v=12"></script>
-<script src="client/js/state-apply.js?v=29"></script>
+<script src="client/js/state-apply.js?v=30"></script>
 <script src="client/js/stamps.js?v=15"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
 <script src="client/js/prompt-renderer.js?v=27"></script>
@@ -13976,6 +13976,17 @@ function isPresentationSuperseded() {
 
 function abortStuckLiveRoundPlayback(reason) {
   if (!G._liveRoundPlaybackActive && !G._livePollHold && !G._liveSpectacleGateRunning) return false;
+  // Soft-skip: skill prompts advance seq while presentLiveRound awaits Live Start.
+  // Aborting here tears down the gate and skips flips + Performance until refresh.
+  if (G._awaitingLiveStartPrompts
+      || (G._liveRoundPlaybackActive && (
+        G.gameState?.phase === 'live_start_effects'
+        || (typeof liveStartPromptNeedsWait === 'function'
+          && liveStartPromptNeedsWait(G.gameState, G.playerId))
+      ))) {
+    TCG_DEBUG.log('live', 'soft-skip abort during Live Start wait', { reason });
+    return false;
+  }
   TCG_DEBUG.warn('live', 'abort stuck live round playback', { reason });
   G._liveRoundPlaybackActive = false;
   G._liveRoundPostSpectacleReady = false;
@@ -35909,7 +35920,7 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/spectacle.js?v=12"></script>
+<script src="client/js/spectacle.js?v=13"></script>
 <script src="client/js/cpu-meta-weights.js?v=2"></script>
 <script src="client/js/cpu-eval.js?v=2"></script>
 <script src="client/js/cpu-expert.js?v=1"></script>

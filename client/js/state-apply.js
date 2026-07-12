@@ -368,11 +368,34 @@
       return false;
     };
 
-    if (spectacleGateActive && (G.gameState?.seq ?? 0) < (s.seq ?? 0)
-        && typeof abortStuckLiveRoundPlayback === 'function') {
-      abortStuckLiveRoundPlayback('behind server during spectacle');
-      // Must render — committing seq without paint leaves LIVE chrome stuck until refresh.
-      commitServerBoardToUi(s);
+    if (spectacleGateActive && (G.gameState?.seq ?? 0) < (s.seq ?? 0)) {
+      const softMergeLiveStart = !!(G._awaitingLiveStartPrompts
+        || (G._liveRoundPlaybackActive && (
+          G.gameState?.phase === 'live_start_effects'
+          || (typeof liveStartPromptNeedsWait === 'function'
+            && liveStartPromptNeedsWait(G.gameState, G.playerId))
+        )));
+      if (softMergeLiveStart) {
+        // Keep reveal/spectacle pipeline alive; presentLiveRound wait observes G.gameState.
+        TCG_DEBUG.log('state', 'soft-merge during Live Start wait', {
+          fromSeq: G.gameState?.seq, toSeq: s.seq, phase: s.phase,
+        });
+        G.lastSeq = Math.max(G.lastSeq ?? 0, s.seq ?? 0);
+        G.gameState = s;
+        renderGame(s, {
+          skipLog: true,
+          skipPrompt: skipPromptForLive || replayForward,
+        });
+        if (!replayForward && typeof ensurePendingPromptSurfaced === 'function') {
+          ensurePendingPromptSurfaced(s, G.playerId);
+        }
+        // Do not re-enter the gate / Main paint path while presentLiveRound owns the show.
+        if (G._liveSpectacleGateRunning || G._liveRoundPlaybackActive) return;
+      } else if (typeof abortStuckLiveRoundPlayback === 'function') {
+        abortStuckLiveRoundPlayback('behind server during spectacle');
+        // Must render — committing seq without paint leaves LIVE chrome stuck until refresh.
+        commitServerBoardToUi(s);
+      }
     }
 
     if (await runLiveSpectacleGate(livePrev, s, newEntries, G.playerId)) {
