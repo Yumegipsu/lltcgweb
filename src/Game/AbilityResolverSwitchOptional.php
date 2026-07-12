@@ -523,20 +523,37 @@ function tryResolveAbilityEffectSwitchOptional(
 
         case 'optional_wait_self_center_blade':
             if (!empty($state['pending_prompt'])) break;
-            $state['pending_prompt'] = [
-                'type'          => 'optional_wait_self_center_blade',
-                'owner'         => $pid,
-                'responder'     => $pid,
-                'source_id'     => $source['instance_id'] ?? '',
-                'source_name'   => $name,
-                'prompt'        => 'Put this Member into Wait: Center μ\'s Member gains +' .
-                    intval($ab['amount'] ?? 1) . ' Blade until this Live ends?',
-                'choices'       => ['yes', 'no'],
-                'choice_labels' => ['Yes — Wait self', 'No — Skip'],
-                'ability'       => $ab,
-            ];
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                ' — [' . $name . '] optional Live Start (choose).');
+            if (empty($ctx['confirm'])) {
+                $state['pending_prompt'] = [
+                    'type'          => 'optional_wait_self_center_blade',
+                    'owner'         => $pid,
+                    'responder'     => $pid,
+                    'source_id'     => $source['instance_id'] ?? '',
+                    'source_name'   => $name,
+                    'prompt'        => 'Put this Member into Wait: Center μ\'s Member gains +' .
+                        intval($ab['amount'] ?? 1) . ' Blade until this Live ends?',
+                    'choices'       => ['yes', 'no'],
+                    'choice_labels' => ['Yes — Wait self', 'No — Skip'],
+                    'ability'       => $ab,
+                ];
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    ' — [' . $name . '] optional Live Start (choose).');
+                break;
+            }
+            $sourceId = $source['instance_id'] ?? '';
+            foreach ($p['stage'] as &$mbr) {
+                if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
+                    waitMember($mbr, $state);
+                    break;
+                }
+            }
+            unset($mbr);
+            $group = $ab['group'] ?? 'μ\'s';
+            $amount = intval($ab['amount'] ?? 1);
+            if (applyCenterGroupBladeBonus($state, $pid, $group, $amount)) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] Waited self; Center $group Member gained +$amount Blade.");
+            }
             break;
 
         case 'optional_position_change_all_muse':

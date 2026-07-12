@@ -3,7 +3,31 @@
  * Live Start effect phase — extracted from effects.php.
  */
 
-/** After a Live Start prompt resolves, finish remaining players' mandatory Live Start abilities. */
+/** Stable key for a mandatory Live Start ability that already opened/resolved. */
+function liveStartMandatoryResolvedKey(string $pid, string $instanceId, int $abilityIndex): string {
+    return $pid . ':' . $instanceId . ':' . $abilityIndex;
+}
+
+function isLiveStartMandatoryResolved(array $state, string $pid, string $instanceId, int $abilityIndex): bool {
+    $key = liveStartMandatoryResolvedKey($pid, $instanceId, $abilityIndex);
+    return !empty(($state['live_start_mandatory_resolved'] ?? [])[$key]);
+}
+
+function markLiveStartMandatoryResolved(array $state, string $pid, string $instanceId, int $abilityIndex): array {
+    if ($instanceId === '') {
+        return $state;
+    }
+    $key = liveStartMandatoryResolvedKey($pid, $instanceId, $abilityIndex);
+    $resolved = $state['live_start_mandatory_resolved'] ?? [];
+    $resolved[$key] = true;
+    $state['live_start_mandatory_resolved'] = $resolved;
+    return $state;
+}
+
+/**
+ * After a Live Start prompt resolves, finish the interrupted player's remaining
+ * mandatory Live Start abilities, then any later players in live_attempt order.
+ */
 function resumeLiveStartEffectPhase(array $state): array {
     if (($state['phase'] ?? '') !== 'live_start_effects') {
         return finishPromptEffects($state);
@@ -17,8 +41,10 @@ function resumeLiveStartEffectPhase(array $state): array {
             if (!$resume) {
                 if ($pid === $fromPid) {
                     $resume = true;
+                    // Fall through: re-enter fromPid so Live cards / later Members still resolve.
+                } else {
+                    continue;
                 }
-                continue;
             }
             $state = resolveLiveStartAbilities($state, $pid);
             if (!empty($state['pending_prompt'])) {
@@ -56,25 +82,47 @@ function resolveLiveStartAbilities(array $state, string $pid): array {
     if (!in_array($pid, $attempting, true)) {
         return $state;
     }
-    $state = sBp5ApplyOppLivePenalties($state, $pid);
-    $state = spBp2ApplyContinuousOppLiveGrayHeart($state, $pid);
+    // Entry auras must run once per player per Live Start phase (resume re-enters this fn).
+    $entryFlags = $state['live_start_entry_applied'] ?? [];
+    if (empty($entryFlags[$pid])) {
+        $state = sBp5ApplyOppLivePenalties($state, $pid);
+        $state = spBp2ApplyContinuousOppLiveGrayHeart($state, $pid);
+        $entryFlags[$pid] = true;
+        $state['live_start_entry_applied'] = $entryFlags;
+    }
     $p = $state['players'][$pid];
 
     foreach ($p['stage'] as $member) {
         if (!$member || !isMemberCard($member)) continue;
-        if (!memberInstanceOnStage($p, $member['instance_id'] ?? '')) continue;
+        $instanceId = $member['instance_id'] ?? '';
+        if (!memberInstanceOnStage($p, $instanceId)) continue;
         if (memberLiveStartAbilitiesNegated($member)) continue;
-        $abilities = array_values(array_filter(
-            getAbilitiesByTrigger($member, 'live_start'),
-            fn($ab) => !isQueuedOptionalLiveStart($ab)
-                && !shouldSkipDualEnterLiveStartAtLiveStart($member, $ab)
-        ));
-        if (empty($abilities)) continue;
+        $pendingAbs = [];
+        foreach ($member['abilities'] ?? [] as $abIdx => $ab) {
+            $trigger = $ab['trigger'] ?? '';
+            if ($trigger !== 'live_start' && $trigger !== 'on_enter_or_live_start') {
+                continue;
+            }
+            if (isQueuedOptionalLiveStart($ab) || shouldSkipDualEnterLiveStartAtLiveStart($member, $ab)) {
+                continue;
+            }
+            if (isLiveStartMandatoryResolved($state, $pid, $instanceId, intval($abIdx))) {
+                continue;
+            }
+            $pendingAbs[] = [$abIdx, $ab];
+        }
+        if (empty($pendingAbs)) continue;
         $state = logAbilityChain($state, $pid, $member, 'live_start');
-        foreach ($abilities as $ab) {
-            $state = resolveAbilityEffect($state, $pid, $member, $ab, ['phase' => 'live_start']);
+        foreach ($pendingAbs as [$abIdx, $ab]) {
+            // Mark before resolve so a prompt-backed ability is not re-opened on resume.
+            $state = markLiveStartMandatoryResolved($state, $pid, $instanceId, intval($abIdx));
+            $state = resolveAbilityEffect($state, $pid, $member, $ab, [
+                'phase' => 'live_start',
+                'ability_index' => intval($abIdx),
+            ]);
             $state = nBp5NotifyMemberAbilityResolved($state, $pid, $member, 'live_start');
             if (!empty($state['pending_prompt'])) {
+                $state['_live_start_resume_from'] = $pid;
                 return $state;
             }
         }
@@ -82,15 +130,31 @@ function resolveLiveStartAbilities(array $state, string $pid): array {
 
     foreach ($p['live_zone'] as $live) {
         if (!$live || !isLiveTypeCard($live)) continue;
-        $abilities = array_values(array_filter(
-            getAbilitiesByTrigger($live, 'live_start'),
-            fn($ab) => !isQueuedOptionalLiveStart($ab)
-        ));
-        if (empty($abilities)) continue;
+        $instanceId = $live['instance_id'] ?? '';
+        $pendingAbs = [];
+        foreach ($live['abilities'] ?? [] as $abIdx => $ab) {
+            $trigger = $ab['trigger'] ?? '';
+            if ($trigger !== 'live_start' && $trigger !== 'on_enter_or_live_start') {
+                continue;
+            }
+            if (isQueuedOptionalLiveStart($ab)) {
+                continue;
+            }
+            if (isLiveStartMandatoryResolved($state, $pid, $instanceId, intval($abIdx))) {
+                continue;
+            }
+            $pendingAbs[] = [$abIdx, $ab];
+        }
+        if (empty($pendingAbs)) continue;
         $state = logAbilityChain($state, $pid, $live, 'live_start');
-        foreach ($abilities as $ab) {
-            $state = resolveAbilityEffect($state, $pid, $live, $ab, ['phase' => 'live_start']);
+        foreach ($pendingAbs as [$abIdx, $ab]) {
+            $state = markLiveStartMandatoryResolved($state, $pid, $instanceId, intval($abIdx));
+            $state = resolveAbilityEffect($state, $pid, $live, $ab, [
+                'phase' => 'live_start',
+                'ability_index' => intval($abIdx),
+            ]);
             if (!empty($state['pending_prompt'])) {
+                $state['_live_start_resume_from'] = $pid;
                 return $state;
             }
         }
@@ -100,6 +164,9 @@ function resolveLiveStartAbilities(array $state, string $pid): array {
 }
 
 function isQueuedOptionalLiveStart(array $ab): bool {
+    // Only queue types that honor confirm/discard_ids without opening a second yes/no.
+    // Other optional Live Start skills open their native UI once via the mandatory pass
+    // (otherwise optional_live_start wraps them and they prompt twice before Performance).
     return in_array($ab['type'] ?? '', [
         'optional_discard_hand',
         'optional_discard_surveil',
@@ -108,24 +175,7 @@ function isQueuedOptionalLiveStart(array $ab): bool {
         'optional_discard_named',
         'optional_discard_same_group',
         'optional_discard_prompt',
-        'optional_wait_self_center_blade',
-        'optional_position_change_all_muse',
-        'optional_formation_change_group',
-        'optional_pay_energy_up_to',
-        'optional_wait_subunit_opp_pick_active',
-        'optional_return_member_energy',
-        'optional_discard_blade_draw_if_live',
-        'optional_discard_blade_per_card',
         'optional_discard_blade_named_extra',
-        'optional_wr_member_deck_top_blade',
-        'live_start_pay_or_discard',
-        'optional_discard_subunit_draw_buff_cost',
-        'live_start_cost_plus_stage_cost_blade_hearts',
-        'optional_shuffle_wr_members_deck_bottom_named_blade',
-        'live_start_discard_heart_non_aqours_entered',
-        'optional_wr_members_deck_bottom_milestones',
-        'optional_discard_activate_wait_hearts',
-        'optional_discard_activate_wait_blade',
     ], true);
 }
 
@@ -253,6 +303,34 @@ function markLiveStartOptionalResolved(array $state, string $owner, string $sour
     return $state;
 }
 
+/**
+ * True when optional_live_start Yes caused the ability to open another yes/no
+ * for the same source (double confirm before Performance).
+ */
+function isRedundantOptionalLiveStartYesNoFollowUp(?array $nested, array $wrapper): bool {
+    if (!$nested) {
+        return false;
+    }
+    $choices = array_values(array_map('strval', $nested['choices'] ?? []));
+    sort($choices);
+    if ($choices !== ['no', 'yes']) {
+        return false;
+    }
+    // Nested discard/pay confirms need player input beyond the wrapper Yes.
+    if (intval($nested['discard_count'] ?? 0) > 0
+        || intval($nested['max_discard'] ?? 0) > 0
+        || !empty($nested['needs_pay'])
+        || ($nested['type'] ?? '') === 'optional_discard_prompt') {
+        return false;
+    }
+    $wSrc = (string)($wrapper['source_id'] ?? '');
+    $nSrc = (string)($nested['source_id'] ?? '');
+    if ($wSrc !== '' && $nSrc !== '' && $wSrc !== $nSrc) {
+        return false;
+    }
+    return true;
+}
+
 function buildOptionalLiveStartPrompt(array $state, array $item): array {
     $ab = $item['ability'];
     $owner = $item['owner'];
@@ -304,6 +382,11 @@ function finishLiveStartEffects(array $state, bool $advancePerformance = true): 
         $state['phase'] = 'live_start_effects';
         return $state;
     }
+    // Member/Live prompts often call finishLiveStartEffects directly; resume mandatory
+    // abilities for the interrupted player before optional queue / Performance.
+    if (!empty($state['_live_start_resume_from'])) {
+        return resumeLiveStartEffectPhase($state);
+    }
     if (!array_key_exists('live_start_optional_queue', $state)) {
         $state['live_start_optional_queue'] = collectOptionalLiveStartAbilities($state);
     }
@@ -329,6 +412,9 @@ function finishLiveStartEffects(array $state, bool $advancePerformance = true): 
     }
     unset($state['live_start_optional_queue']);
     unset($state['live_start_optional_resolved']);
+    unset($state['live_start_mandatory_resolved']);
+    unset($state['live_start_entry_applied']);
+    unset($state['_live_start_resume_from']);
     if (($state['phase'] ?? '') === 'live_start_effects' && $advancePerformance && empty($GLOBALS['TUT_PERF_MANUAL_PHASES'])) {
         $state['phase'] = 'live_performance_first';
         $state = addLog($state, '=== Live Show ===');

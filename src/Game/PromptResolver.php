@@ -371,6 +371,13 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             ];
             unset($state['pending_prompt']);
             $state = resolveAbilityEffect($state, $owner, $source, $ab, $ctx);
+            // Ability ignored confirm and opened another yes/no — apply it as Yes once.
+            if (isRedundantOptionalLiveStartYesNoFollowUp($state['pending_prompt'] ?? null, $prompt)) {
+                return actionResolvePrompt($state, $owner, array_merge($data, [
+                    'choice' => 'yes',
+                    'pay' => true,
+                ]));
+            }
             }
         } else {
             unset($state['pending_prompt']);
