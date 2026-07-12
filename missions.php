@@ -36,6 +36,8 @@ function tcgMissionDefinitions(): array {
         ['id' => 'ms_ranked_10', 'type' => 'milestone', 'reward' => 300, 'sort' => 230, 'i18n_key' => 'missions.milestone.ranked10', 'threshold' => 10],
         ['id' => 'ms_ranked_50', 'type' => 'milestone', 'reward' => 1000, 'sort' => 240, 'i18n_key' => 'missions.milestone.ranked50', 'threshold' => 50],
         ['id' => 'ms_ranked_100', 'type' => 'milestone', 'reward' => 3000, 'sort' => 250, 'i18n_key' => 'missions.milestone.ranked100', 'threshold' => 100],
+        ['id' => 'ms_ranked_500', 'type' => 'milestone', 'reward' => 3000, 'sort' => 260, 'i18n_key' => 'missions.milestone.ranked500', 'threshold' => 500],
+        ['id' => 'ms_ranked_1000', 'type' => 'milestone', 'reward' => 5000, 'sort' => 270, 'i18n_key' => 'missions.milestone.ranked1000', 'threshold' => 1000],
         ['id' => 'ms_win_muse', 'type' => 'milestone', 'reward' => 1000, 'sort' => 300, 'i18n_key' => 'missions.milestone.winMuse', 'group' => "μ's"],
         ['id' => 'ms_win_aqours', 'type' => 'milestone', 'reward' => 1000, 'sort' => 310, 'i18n_key' => 'missions.milestone.winAqours', 'group' => 'Sunshine'],
         ['id' => 'ms_win_liella', 'type' => 'milestone', 'reward' => 1000, 'sort' => 320, 'i18n_key' => 'missions.milestone.winLiella', 'group' => 'Superstar'],
