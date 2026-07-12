@@ -729,7 +729,9 @@ global.promptChoiceLabel = function promptChoiceLabel(key, i, pr) {
   if (k === 'no') return t('prompt.noSkip');
   if (k === 'skip') return t('prompt.skip');
   const raw = pr?.choice_labels?.[i];
-  if (raw && getLocale() === 'ja') return localizePromptDisplayText(raw, pr, G.gameState);
+  if (raw && (getLocale() === 'ja' || getLocale() === 'ko' || getLocale() === 'es')) {
+    return localizePromptDisplayText(raw, pr, G.gameState);
+  }
   return raw || key;
 }
 
@@ -818,7 +820,7 @@ global.renderPromptEffectText = function renderPromptEffectText(text, pr, s){
   const box=el('prompt-effect');
   if(!box) return;
   const display = text
-    ? (pr ? localizePromptDisplayText(text, pr, s) : (getLocale() === 'ja' && window.LLTCG_LOG_I18N?.localizePromptText
+    ? (pr ? localizePromptDisplayText(text, pr, s) : ((getLocale() === 'ja' || getLocale() === 'ko' || getLocale() === 'es') && window.LLTCG_LOG_I18N?.localizePromptText
       ? LLTCG_LOG_I18N.localizePromptText(text, G.allCards) : text))
     : '';
   if(!display){

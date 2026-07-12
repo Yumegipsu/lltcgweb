@@ -52,7 +52,10 @@
     "unrankedSub": "Salas, amistades o práctica contra CPU",
     "howToPlay": "Cómo jugar",
     "howToPlaySub": "Lección práctica para principiantes con Kanon",
-    "backHub": "← Hub"
+    "backHub": "← Hub",
+    "missions": "Misiones",
+    "rankedPrCount": "{remaining} / {limit}",
+    "rankedPrTitle": "Recompensas PR clasificatorias restantes hoy: {remaining} / {limit} (JST)"
   },
   "language": {
     "label": "Idioma",
@@ -91,7 +94,8 @@
     "experimentDeckHint": "Construye en Experimento de mazo, genera una contraseña y luego introdúcela aquí, o elige un mazo guardado abajo.",
     "secondsLabel": "{n}s",
     "casualQueueStats": "{waiting} esperando · {inGame} en partidas casuales",
-    "casualSearching": "Buscando oponente… ({seconds}s)"
+    "casualSearching": "Buscando oponente… ({seconds}s)",
+    "roomCodePlaceholder": "ABCD1234"
   },
   "deck": {
     "title": "Constructor de mazos",
@@ -254,7 +258,11 @@
     "ratesLoading": "Cargando probabilidades…",
     "duplicatesConverted": "Duplicados convertidos",
     "migrationText": "Las copias extra de Miembro/Live más allá de 4 por carta y las copias de Energía más allá de 12 por carta se convirtieron en {gems}.",
-    "convertedToGems": " · {n} convertidas a Star Gems"
+    "convertedToGems": " · {n} convertidas a Star Gems",
+    "needMoreGems": "Necesitas {n} Star Gems para abrir una caja",
+    "noPacksOrGems": "No quedan sobres diarios ni Star Gems suficientes.",
+    "openBox": "Abrir caja ({n} sobres)",
+    "selectBoxFirst": "Elige un booster primero"
   },
   "ranked": {
     "title": "PvP clasificatorio",
@@ -272,7 +280,8 @@
     "recordFull": "{wins}V-{losses}D · {winPct}% victorias · {lossPct}% derrotas",
     "queueStats": "{waiting} esperando · {inGame} en partidas clasificatorias",
     "searching": "Buscando… ({seconds}s)",
-    "readySearch": "Listo para buscar"
+    "readySearch": "Listo para buscar",
+    "prRemaining": "Recompensas PR hoy: quedan {remaining} / {limit} (JST)"
   },
   "leaderboard": {
     "title": "Clasificación de clasificatoria",
@@ -287,7 +296,9 @@
     "bannerNoMatch": "Ninguna carta coincide con tu búsqueda.",
     "bannerPreview": "Vista previa",
     "saveBanner": "Guardar banner",
-    "selectCardFirst": "Selecciona primero una carta"
+    "selectCardFirst": "Selecciona primero una carta",
+    "jumpToYou": "Ir a mi fila",
+    "yourRank": "Tu puesto: #{rank}"
   },
   "options": {
     "title": "Opciones",
@@ -360,7 +371,9 @@
     "perfYou": "Tú",
     "perfOpp": "Oponente",
     "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>Fase: {phase}<span class=\"turn-sep\">·</span>Activo: {active}<span class=\"turn-sep\">·</span>Primero: {first}",
-    "deckTopLabel": "Parte superior del mazo"
+    "deckTopLabel": "Parte superior del mazo",
+    "hoverPickerEmpty": "Pasa el cursor sobre una carta para previsualizarla aquí.",
+    "zoneEmpty": "Vacío"
   },
   "slot": {
     "left": "Izquierda",
@@ -449,7 +462,10 @@
     "liveJudgeSub": "Comparando puntuaciones de Live…",
     "yourMain": "Tu Fase principal",
     "theirMain": "Fase principal de {name}",
-    "theirMainS": "Fase principal de {name}"
+    "theirMainS": "Fase principal de {name}",
+    "theirLive": "Fase Live de {name}",
+    "theirLiveS": "Fase Live de {name}",
+    "yourLive": "Tu Fase Live"
   },
   "splash": {
     "turn": "Turno {turn}",
@@ -494,7 +510,9 @@
     "hint": "Toca cartas para marcarlas para reemplazo. Mantén presionada una carta para ver sus detalles. Toca otra vez para desmarcar.",
     "keepHand": "Conservar mano",
     "replaceCard": "Reemplazar {n} carta",
-    "replaceCards": "Reemplazar {n} cartas"
+    "replaceCards": "Reemplazar {n} cartas",
+    "tutorialKeepHint": "¿Te gusta esta mano? Toca Conservar mano para continuar.",
+    "tutorialReplaceHint": "Toca la carta resaltada para marcarla y luego confirma el reemplazo."
   },
   "coin": {
     "title": "Primer jugador",
@@ -611,6 +629,10 @@
     "yell": {
       "title": "Yell (エール)",
       "body": "Durante la Presentación Live, roba cartas de tu mazo igual a tu Blade total (de los Miembros activos en el Escenario). Esas cartas se revelan: los corazones que muestren cuentan para cumplir los corazones requeridos de tus cartas Live. Las cartas Yell se envían después a la Sala de espera."
+    },
+    "wait": {
+      "body": "Un Miembro puesto en Wait no aporta su Blade ese turno: su Blade no aumenta las cartas reveladas para Yell en la Presentación Live. No es la Sala de espera.",
+      "title": "Wait (ウェイト)"
     }
   },
   "heart": {
@@ -631,7 +653,8 @@
     "yellIcons": "Íconos de Yell",
     "playToSlot": "Jugar en espacio:",
     "needEnergy": "Necesitas",
-    "haveEnergy": "tienes"
+    "haveEnergy": "tienes",
+    "bladeHearts": "Corazones de Blade"
   },
   "pack": {
     "opened": "Sobre abierto",
@@ -682,7 +705,18 @@
     "downloadReplayJson": "Descargar JSON de repetición",
     "debugSaveLog": "💾 Guardar registro de depuración",
     "debugCopyLog": "📋 Copiar registro",
-    "debugSaveBundle": "📦 Exportar paquete de depuración"
+    "debugSaveBundle": "📦 Exportar paquete de depuración",
+    "rankedPrDailyCap": "Recompensas PR clasificatorias del día usadas ({limit}/día JST)",
+    "rankedPrDupe": "{name} convertida a {gems} Star Gems (límite de copias)",
+    "rankedPrNew": "Recompensa por victoria clasificatoria: {name}",
+    "rankedPrPopupTitle": "¡Recompensa por victoria clasificatoria!",
+    "rematchAccept": "Aceptar revancha",
+    "rematchOffer": "Revancha",
+    "rematchOppWants": "¡{name} quiere una revancha!",
+    "rematchWaiting": "Esperando…",
+    "rematchWaitingHint": "Esperando a que tu oponente acepte la revancha.",
+    "spectatorStatsLine": "Turno: {turn} | {p1}: {p1Lives}/3 | {p2}: {p2Lives}/3",
+    "spectatorWinner": "¡{name} gana!"
   },
   "replay": {
     "menuTitle": "Visor de repeticiones",
@@ -737,7 +771,16 @@
     "savedToLibrary": "Repetición guardada en tu biblioteca",
     "savedToLibraryId": "Repetición guardada en tu biblioteca (#{id})",
     "downloadedAsJson": "Repetición descargada como JSON",
-    "couldNotSave": "No se pudo guardar la repetición"
+    "couldNotSave": "No se pudo guardar la repetición",
+    "autosavedRecent": "Repetición autoguardada en Recientes",
+    "emptyRecent": "Aún no hay autoguardados. Termina una partida con sesión iniciada para llenar esta lista.",
+    "emptySaved": "Aún no hay guardados permanentes. Usa Guardar repetición en resultados, o Guardar para siempre en Recientes.",
+    "preserve": "Guardar para siempre",
+    "preservedToast": "Repetición movida a Guardadas para siempre",
+    "recentHint": "Autoguardadas de tus últimas 10 partidas. La más antigua se reemplaza sola.",
+    "recentSection": "Partidas recientes",
+    "savedHint": "Se mantienen al guardar en la pantalla de resultados, o al preservar una de Recientes.",
+    "savedSection": "Guardadas para siempre"
   },
   "apiError": {
     "titleClient": "Algo salió mal",
@@ -909,6 +952,83 @@
     "reconnected": "Reconectado a la transmisión.",
     "watch": "Ver",
     "loading": "Cargando…",
-    "noMatches": "No hay partidas disponibles para espectar."
+    "noMatches": "No hay partidas disponibles para espectar.",
+    "count": "Espectadores: {n}",
+    "matchEnded": "La partida terminó — volviendo al lobby.",
+    "sessionEnded": "La sesión de espectador terminó.",
+    "switchPerspective": "Cambiar perspectiva"
+  },
+  "missions": {
+    "claim": "Reclamar",
+    "claimedStarterToast": "Reclamaste {title} — desbloqueaste {deck}",
+    "claimedToast": "Reclamaste {title} (+{reward})",
+    "completeToast": "Misión completada: {title}",
+    "daily": {
+      "completeAll": "Completa todas las misiones diarias",
+      "openAllBoosters": "Abre todos los sobres diarios",
+      "rankedMatch": "Juega una partida clasificatoria",
+      "useStamp": "Usa un sello en una partida"
+    },
+    "empty": "No hay misiones en esta pestaña.",
+    "loading": "Cargando misiones…",
+    "milestone": {
+      "cards1200": "Posee 1.200 cartas",
+      "cards1600": "Posee 1.600 cartas",
+      "cards400": "Posee 400 cartas",
+      "cards800": "Posee 800 cartas",
+      "profileBanner": "Actualiza tu banner de perfil",
+      "profileStamps": "Configura sellos favoritos",
+      "ranked1": "Juega 1 partida clasificatoria",
+      "ranked10": "Juega 10 partidas clasificatorias",
+      "ranked100": "Juega 100 partidas clasificatorias",
+      "ranked5": "Juega 5 partidas clasificatorias",
+      "ranked50": "Juega 50 partidas clasificatorias",
+      "unranked1": "Juega 1 partida no clasificatoria",
+      "winAqours": "Gana con un mazo principal solo Aqours",
+      "winHasunosora": "Gana con un mazo principal solo Hasunosora",
+      "winLiella": "Gana con un mazo principal solo Liella!",
+      "winMuse": "Gana con un mazo principal solo μ's",
+      "winNijigasaki": "Gana con un mazo principal solo Nijigasaki"
+    },
+    "rewardStarter": "Elige un mazo inicial",
+    "rewardStarterOwned": "Ya lo tienes",
+    "starterPickCancel": "Cancelar",
+    "starterPickConfirm": "Desbloquear mazo",
+    "starterPickTitle": "Elige un mazo inicial",
+    "statusActive": "En progreso",
+    "statusClaimed": "Reclamada",
+    "statusLocked": "Bloqueada",
+    "statusReady": "Lista para reclamar",
+    "tabDaily": "Diarias",
+    "tabMilestone": "Hitos",
+    "title": "Misiones"
+  },
+  "stamps": {
+    "audio": "Audio de sellos",
+    "audioMenu": "Voces de sellos",
+    "cooldown": "Espera un momento…",
+    "done": "Listo",
+    "editProfile": "Editar sellos favoritos",
+    "empty": "No hay sellos.",
+    "favoritesEmpty": "Sin favoritos — configúralos en Opciones o toca ☆ en un sello.",
+    "pickerTitle": "Enviar sello",
+    "profileCount": "{n} / {max} seleccionados",
+    "profileFull": "Solo puedes guardar {max} sellos favoritos.",
+    "profileHint": "Aparecen en la pestaña ★ Favoritos al enviar sellos en PvP.",
+    "profileHintEmpty": "Opcional — elige hasta 20 sellos para acceso rápido en partidas.",
+    "profilePickLead": "Toca sellos para añadirlos o quitarlos (máx. 20). Se usan en la pestaña ★ Favoritos en PvP.",
+    "profilePickTitle": "Sellos favoritos",
+    "profileSection": "Sellos favoritos",
+    "send": "💬 Sellos",
+    "tabEn": "English",
+    "tabFavorites": "★ Favoritos",
+    "tabJa": "日本語"
+  },
+  "ui": {
+    "fullscreen": "Pantalla completa",
+    "rankedSearch": "Búsqueda clasificatoria",
+    "casualSearch": "Búsqueda casual",
+    "skipToResults": "Saltar a resultados",
+    "clickToOpen": "Clic para abrir"
   }
 }

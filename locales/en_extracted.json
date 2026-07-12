@@ -52,7 +52,10 @@
     "unrankedSub": "Rooms, friends, or practice vs CPU",
     "howToPlay": "How to Play",
     "howToPlaySub": "Hands-on beginner lesson with Kanon",
-    "backHub": "← Hub"
+    "backHub": "← Hub",
+    "missions": "Missions",
+    "rankedPrCount": "{remaining} / {limit}",
+    "rankedPrTitle": "Ranked PR rewards remaining today: {remaining} / {limit} (JST)"
   },
   "language": {
     "label": "Language"
@@ -88,7 +91,8 @@
     "experimentDeckHint": "Build in Deck Experiment, generate a password, then enter it here — or pick a saved deck below.",
     "secondsLabel": "{n}s",
     "casualQueueStats": "{waiting} waiting · {inGame} in casual games",
-    "casualSearching": "Searching for opponent… ({seconds}s)"
+    "casualSearching": "Searching for opponent… ({seconds}s)",
+    "roomCodePlaceholder": "ABCD1234"
   },
   "deck": {
     "title": "Deck Builder",
@@ -251,7 +255,11 @@
     "ratesLoading": "Loading rates…",
     "duplicatesConverted": "Duplicates converted",
     "migrationText": "Extra Member/Live copies beyond 4 per card and Energy copies beyond 12 per card were converted into {gems}.",
-    "convertedToGems": " · {n} converted to Star Gems"
+    "convertedToGems": " · {n} converted to Star Gems",
+    "needMoreGems": "Need {n} Star Gems to open a box",
+    "noPacksOrGems": "No daily packs left and not enough Star Gems.",
+    "openBox": "Open Box ({n} packs)",
+    "selectBoxFirst": "Select a booster set first"
   },
   "ranked": {
     "title": "Ranked PvP",
@@ -269,7 +277,8 @@
     "recordFull": "{wins}W-{losses}L · {winPct}% win · {lossPct}% loss",
     "queueStats": "{waiting} waiting · {inGame} in ranked games",
     "searching": "Searching… ({seconds}s)",
-    "readySearch": "Ready to search"
+    "readySearch": "Ready to search",
+    "prRemaining": "PR rewards today: {remaining} / {limit} remaining (JST)"
   },
   "leaderboard": {
     "title": "Ranked Leaderboard",
@@ -284,7 +293,9 @@
     "bannerNoMatch": "No cards match your search.",
     "bannerPreview": "Preview",
     "saveBanner": "Save banner",
-    "selectCardFirst": "Select a card first"
+    "selectCardFirst": "Select a card first",
+    "jumpToYou": "Jump to my entry",
+    "yourRank": "Your rank: #{rank}"
   },
   "options": {
     "title": "Options",
@@ -357,7 +368,9 @@
     "perfYou": "You",
     "perfOpp": "Opponent",
     "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>Phase: {phase}<span class=\"turn-sep\">·</span>Active: {active}<span class=\"turn-sep\">·</span>First: {first}",
-    "deckTopLabel": "Deck top"
+    "deckTopLabel": "Deck top",
+    "hoverPickerEmpty": "Hover a card to preview it here.",
+    "zoneEmpty": "Empty"
   },
   "slot": {
     "left": "Left",
@@ -446,7 +459,10 @@
     "liveJudgeSub": "Comparing Live scores…",
     "yourMain": "Your Main Phase",
     "theirMain": "{name}'s Main Phase",
-    "theirMainS": "{name}' Main Phase"
+    "theirMainS": "{name}' Main Phase",
+    "theirLive": "{name}'s Live Phase",
+    "theirLiveS": "{name}' Live Phase",
+    "yourLive": "Your Live Phase"
   },
   "splash": {
     "turn": "Turn {turn}",
@@ -491,7 +507,9 @@
     "hint": "Tap cards to mark for replacement. Hold a card to view its details. Tap again to unmark.",
     "keepHand": "Keep Hand",
     "replaceCard": "Replace {n} card",
-    "replaceCards": "Replace {n} cards"
+    "replaceCards": "Replace {n} cards",
+    "tutorialKeepHint": "Happy with this hand? Tap Keep Hand to continue.",
+    "tutorialReplaceHint": "Tap the highlighted card to mark it for replacement, then confirm."
   },
   "coin": {
     "title": "First Player",
@@ -608,6 +626,10 @@
     "yell": {
       "title": "Yell (エール)",
       "body": "During Live Performance, draw cards from your deck equal to your total Blade (from active Stage Members). Those cards are revealed — hearts shown on them count toward meeting your Live cards' required hearts. Yell cards are sent to the Waiting Room afterward."
+    },
+    "wait": {
+      "body": "A Member put into Wait cannot contribute its Blade that turn — its Blade does not increase cards revealed for Yell during Live Performance. This is not the Waiting Room.",
+      "title": "Wait (ウェイト)"
     }
   },
   "heart": {
@@ -628,7 +650,8 @@
     "yellIcons": "Yell icons",
     "playToSlot": "Play to slot:",
     "needEnergy": "Need",
-    "haveEnergy": "have"
+    "haveEnergy": "have",
+    "bladeHearts": "Blade hearts"
   },
   "pack": {
     "opened": "Pack Opened",
@@ -679,7 +702,18 @@
     "downloadReplayJson": "Download Replay JSON",
     "debugSaveLog": "💾 Save debug log",
     "debugCopyLog": "📋 Copy log",
-    "debugSaveBundle": "📦 Export debug bundle"
+    "debugSaveBundle": "📦 Export debug bundle",
+    "rankedPrDailyCap": "Daily ranked PR rewards used ({limit}/day JST)",
+    "rankedPrDupe": "{name} converted to {gems} Star Gems (over copy limit)",
+    "rankedPrNew": "Ranked win reward: {name}",
+    "rankedPrPopupTitle": "Ranked win reward!",
+    "rematchAccept": "Accept Rematch",
+    "rematchOffer": "Rematch",
+    "rematchOppWants": "{name} wants a rematch!",
+    "rematchWaiting": "Waiting…",
+    "rematchWaitingHint": "Waiting for your opponent to accept the rematch.",
+    "spectatorStatsLine": "Turn: {turn} | {p1}: {p1Lives}/3 | {p2}: {p2Lives}/3",
+    "spectatorWinner": "{name} Wins!"
   },
   "replay": {
     "menuTitle": "Replay Viewer",
@@ -734,7 +768,16 @@
     "savedToLibrary": "Replay saved to your library",
     "savedToLibraryId": "Replay saved to your library (#{id})",
     "downloadedAsJson": "Replay downloaded as JSON",
-    "couldNotSave": "Could not save replay"
+    "couldNotSave": "Could not save replay",
+    "autosavedRecent": "Replay autosaved to Recent",
+    "emptyRecent": "No recent autosaves yet. Finish a signed-in match to fill this list.",
+    "emptySaved": "No permanent saves yet. Use Save Replay on the results screen, or Keep forever on a Recent replay.",
+    "preserve": "Keep forever",
+    "preservedToast": "Replay moved to Saved forever",
+    "recentHint": "Autosaved from your last 10 games. Oldest is replaced automatically.",
+    "recentSection": "Recent matches",
+    "savedHint": "Kept when you save from the results screen, or preserve a Recent replay here.",
+    "savedSection": "Saved forever"
   },
   "apiError": {
     "titleClient": "Something went wrong",
@@ -886,6 +929,83 @@
     "reconnected": "Reconnected to spectating.",
     "watch": "Watch",
     "loading": "Loading…",
-    "noMatches": "No matches available to spectate."
+    "noMatches": "No matches available to spectate.",
+    "count": "Spectators: {n}",
+    "matchEnded": "Match ended — returning to lobby.",
+    "sessionEnded": "Spectator session ended.",
+    "switchPerspective": "Switch perspective"
+  },
+  "missions": {
+    "claim": "Claim",
+    "claimedStarterToast": "Claimed {title} — unlocked {deck}",
+    "claimedToast": "Claimed {title} (+{reward})",
+    "completeToast": "Mission complete: {title}",
+    "daily": {
+      "completeAll": "Complete all daily missions",
+      "openAllBoosters": "Open all daily booster packs",
+      "rankedMatch": "Play a ranked match",
+      "useStamp": "Use a stamp during a match"
+    },
+    "empty": "No missions in this tab.",
+    "loading": "Loading missions…",
+    "milestone": {
+      "cards1200": "Own 1,200 cards",
+      "cards1600": "Own 1,600 cards",
+      "cards400": "Own 400 cards",
+      "cards800": "Own 800 cards",
+      "profileBanner": "Update your profile banner",
+      "profileStamps": "Set favorite stickers",
+      "ranked1": "Play 1 ranked match",
+      "ranked10": "Play 10 ranked matches",
+      "ranked100": "Play 100 ranked matches",
+      "ranked5": "Play 5 ranked matches",
+      "ranked50": "Play 50 ranked matches",
+      "unranked1": "Play 1 unranked match",
+      "winAqours": "Win with an Aqours-only main deck",
+      "winHasunosora": "Win with a Hasunosora-only main deck",
+      "winLiella": "Win with a Liella!-only main deck",
+      "winMuse": "Win with a μ's-only main deck",
+      "winNijigasaki": "Win with a Nijigasaki-only main deck"
+    },
+    "rewardStarter": "Choose a starter deck",
+    "rewardStarterOwned": "Already owned",
+    "starterPickCancel": "Cancel",
+    "starterPickConfirm": "Unlock starter",
+    "starterPickTitle": "Choose a starter deck",
+    "statusActive": "In progress",
+    "statusClaimed": "Claimed",
+    "statusLocked": "Locked",
+    "statusReady": "Ready to claim",
+    "tabDaily": "Daily",
+    "tabMilestone": "Milestones",
+    "title": "Missions"
+  },
+  "stamps": {
+    "audio": "Stamp audio",
+    "audioMenu": "Stamp voice clips",
+    "cooldown": "Wait a moment…",
+    "done": "Done",
+    "editProfile": "Edit favorite stamps",
+    "empty": "No stamps.",
+    "favoritesEmpty": "No favorites yet — set them in Options, or tap ☆ on a stamp.",
+    "pickerTitle": "Send stamp",
+    "profileCount": "{n} / {max} selected",
+    "profileFull": "You can only save {max} favorite stamps.",
+    "profileHint": "These appear in the ★ Favorites tab when you send stamps in PvP.",
+    "profileHintEmpty": "Optional — choose up to 20 stamps for quick access in matches.",
+    "profilePickLead": "Tap stamps to add or remove them (max 20). Used in the ★ Favorites tab during PvP.",
+    "profilePickTitle": "Favorite stamps",
+    "profileSection": "Favorite stamps",
+    "send": "💬 Stamps",
+    "tabEn": "English",
+    "tabFavorites": "★ Favorites",
+    "tabJa": "日本語"
+  },
+  "ui": {
+    "fullscreen": "Full screen",
+    "rankedSearch": "Ranked search",
+    "casualSearch": "Casual search",
+    "skipToResults": "Skip to results",
+    "clickToOpen": "Click to open"
   }
 }

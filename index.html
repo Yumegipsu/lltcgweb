@@ -6129,7 +6129,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   <h2 class="tcg-landscape-mode-overlay__title" data-i18n="mobile.rotateTitle">This game is played in landscape</h2>
   <p class="tcg-landscape-mode-overlay__sub" data-i18n="mobile.rotateSub">Rotate your device to continue.</p>
 </div>
-<button type="button" id="tcg-phone-fs-btn" hidden aria-label="Enter fullscreen">⛶ Full screen</button>
+<button type="button" id="tcg-phone-fs-btn" hidden aria-label="Enter fullscreen" data-i18n="ui.fullscreen">⛶ Full screen</button>
 
 <!-- ══ AUTH ══ -->
 <div id="screen-auth" class="screen llc-menu-screen active">
@@ -7139,7 +7139,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <div class="mat-zone deck-pile z-opp-main-deck" id="opp-deck-pile" title="Opponent Main Deck">
             <div class="deck-stack"><span class="deck-count" id="opp-dn">0</span></div>
           </div>
-          <div class="mat-zone deck-pile wr-pile z-opp-waiting-room" id="opp-wait-pile" onclick="viewZone('opp','waiting_room','Opponent Waiting Room')">
+          <div class="mat-zone deck-pile wr-pile z-opp-waiting-room" id="opp-wait-pile" onclick="viewZone('opp','waiting_room')">
             <div class="deck-stack"><span class="deck-count" id="opp-wn">0</span></div>
           </div>
           <div class="mat-zone deck-pile z-opp-energy-deck" id="opp-nrg-deck-pile" title="Opponent Energy Deck">
@@ -7163,10 +7163,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <div class="mat-zone slot-fill z-my-stage-center" id="my-stage-center" data-slot="center"></div>
           <div class="mat-zone slot-fill z-my-stage-right" id="my-stage-right" data-slot="right"></div>
           <div class="mat-zone z-my-energy" id="my-energy"></div>
-          <div class="mat-zone deck-pile z-main-deck" id="my-deck-pile" onclick="viewZone('my','main_deck','Main Deck')">
+          <div class="mat-zone deck-pile z-main-deck" id="my-deck-pile" onclick="viewZone('my','main_deck')">
             <div class="deck-stack"><span class="deck-count" id="my-dn">0</span></div>
           </div>
-          <div class="mat-zone deck-pile wr-pile z-waiting-room" id="my-wait-pile" onclick="viewZone('my','waiting_room','Waiting Room')">
+          <div class="mat-zone deck-pile wr-pile z-waiting-room" id="my-wait-pile" onclick="viewZone('my','waiting_room')">
             <div class="deck-stack"><span class="deck-count" id="my-wn">0</span></div>
         </div>
           <div class="mat-zone deck-pile z-energy-deck" id="my-nrg-deck-pile">
@@ -7260,7 +7260,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <!-- In-match stamp picker -->
 <div class="stamp-picker" id="stamp-picker" hidden>
   <div class="stamp-picker-head">
-    <h3 class="stamp-picker-title" id="stamp-picker-title">Send stamp</h3>
+    <h3 class="stamp-picker-title" id="stamp-picker-title" data-i18n="stamps.pickerTitle">Send stamp</h3>
     <button type="button" class="mcls" id="btn-stamp-picker-close" aria-label="Close">✕</button>
   </div>
   <div class="stamp-picker-tabs">
@@ -7697,7 +7697,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   <div class="perf-judge-panel" id="perf-judge-panel" hidden>
     <div class="perf-judge-fx-layer" id="perf-judge-fx-layer"></div>
     <div class="perf-judge-center">
-      <div class="perf-judge-title llc-splash-title" id="perf-judge-title" hidden>Live Judge</div>
+      <div class="perf-judge-title llc-splash-title" id="perf-judge-title" hidden data-i18n="live.liveJudge">Live Judge</div>
       <div class="perf-judge-duel" id="perf-judge-duel" hidden>
         <div class="perf-judge-side mine">
           <span class="perf-judge-side-lbl" id="perf-judge-my-lbl">You</span>
@@ -7757,7 +7757,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 </div>
 
 <div id="overlay-pack-open" aria-hidden="true">
-  <button type="button" class="pack-open-skip btn-ghost" id="btn-pack-open-skip" hidden>Skip to results</button>
+  <button type="button" class="pack-open-skip btn-ghost" id="btn-pack-open-skip" hidden data-i18n="ui.skipToResults">Skip to results</button>
   <svg width="0" height="0" aria-hidden="true" focusable="false">
     <defs>
       <clipPath id="pack-tear-photo" clipPathUnits="objectBoundingBox">
@@ -7781,7 +7781,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         </div>
       </div>
     </div>
-    <p class="pack-open-hint" id="pack-open-hint" hidden>Click to open</p>
+    <p class="pack-open-hint" id="pack-open-hint" hidden data-i18n="ui.clickToOpen">Click to open</p>
   </div>
 </div>
 
@@ -7801,7 +7801,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 
 <div id="ranked-search-float" hidden aria-live="polite">
   <div class="ranked-search-float-inner">
-    <span class="ranked-search-float-label">Ranked search</span>
+    <span class="ranked-search-float-label" data-i18n="ui.rankedSearch">Ranked search</span>
     <span id="ranked-search-float-seconds">0s</span>
     <button class="btn-ghost" id="btn-ranked-float-cancel" type="button">Cancel</button>
   </div>
@@ -7809,7 +7809,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 
 <div id="casual-search-float" hidden aria-live="polite">
   <div class="ranked-search-float-inner">
-    <span class="ranked-search-float-label">Casual search</span>
+    <span class="ranked-search-float-label" data-i18n="ui.casualSearch">Casual search</span>
     <span id="casual-search-float-seconds">0s</span>
     <button class="btn-ghost" id="btn-casual-float-cancel" type="button">Cancel</button>
   </div>
@@ -7837,7 +7837,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=42"></script>
+<script src="i18n.js?v=43"></script>
 <script src="log_i18n.js?v=9"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=11"></script>
@@ -9207,7 +9207,7 @@ function playPackOpenAnimation(cards, packImage, packStyle, faceSrcByIndex = nul
       bodyImgEl.style.clipPath = '';
       cardsEl.replaceChildren();
       hintEl.hidden = true;
-      hintEl.textContent = 'Click to open';
+      hintEl.textContent = t('ui.clickToOpen');
       resolve();
     };
 
@@ -9310,7 +9310,7 @@ function playPackOpenAnimation(cards, packImage, packStyle, faceSrcByIndex = nul
     const revealOverlay = () => {
       overlay.classList.add('active', 'phase-ready');
       overlay.setAttribute('aria-hidden', 'false');
-      hintEl.textContent = 'Click to open';
+      hintEl.textContent = t('ui.clickToOpen');
       hintEl.hidden = false;
       if (skipBtn) skipBtn.hidden = false;
       overlay.addEventListener('click', onOverlayClick);
@@ -32865,7 +32865,7 @@ function viewZone(who, zoneKey, title){
   const zone=s.players?.[pid]?.[zoneKey]||[];
   el('zone-ttl').textContent=`${zoneTitle} (${zone.length})`;
   const g=el('zone-grid'); g.innerHTML='';
-  if(!zone.length){ g.innerHTML='<p style="color:rgba(255,255,255,.3);padding:12px;font-size:12px">Empty</p>'; openM('overlay-zone'); return; }
+  if(!zone.length){ g.innerHTML=`<p style="color:rgba(255,255,255,.3);padding:12px;font-size:12px">${t('game.zoneEmpty')}</p>`; openM('overlay-zone'); return; }
   const showOrder = zoneKey === 'waiting_room' ? [...zone].reverse() : zone;
   showOrder.forEach(card=>{
     const d=document.createElement('div');

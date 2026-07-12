@@ -137,6 +137,7 @@
       "cpuEasy": "Easy — random starter deck",
       "cpuNormal": "Normal — smarter skills & Lives",
       "cpuHard": "Hard — strong deck & skill priority",
+      "cpuExpert": "Expert — dry-run search & threat projection",
       "findRandomMatch": "Find Random Match",
       "spectate": "Spectate Match",
       "cancelSearch": "Cancel search",
@@ -424,6 +425,7 @@
       "waitingRoom": "Waiting Room",
       "oppWaitingRoom": "Opponent Waiting Room",
       "deckHidden": "Opponent's deck is hidden.",
+      "zoneEmpty": "Empty",
       "energyDeck": "Energy Deck",
       "liveStorage": "Live Storage",
       "successStorage": "Success Live Storage",
@@ -1017,6 +1019,13 @@
       "count": "Spectators: {n}",
       "switchPerspective": "Switch perspective"
     },
+    "ui": {
+      "fullscreen": "Full screen",
+      "rankedSearch": "Ranked search",
+      "casualSearch": "Casual search",
+      "skipToResults": "Skip to results",
+      "clickToOpen": "Click to open"
+    }
 
   },
   "ja": {
@@ -1146,6 +1155,7 @@
       "cpuEasy": "イージー——ランダムスターターデッキ",
       "cpuNormal": "ノーマル——スキルとライブを賢く使う",
       "cpuHard": "ハード——強力なデッキとスキル優先",
+      "cpuExpert": "エキスパート——ドライラン探索と脅威予測",
       "findRandomMatch": "ランダムマッチ",
       "spectate": "観戦",
       "cancelSearch": "検索キャンセル",
@@ -1433,6 +1443,7 @@
       "waitingRoom": "控え室",
       "oppWaitingRoom": "相手の控え室",
       "deckHidden": "相手のデッキは見えません。",
+      "zoneEmpty": "空",
       "energyDeck": "エネルギーデッキ",
       "liveStorage": "ライブ置き場",
       "successStorage": "成功ライブ置き場",
@@ -2022,6 +2033,13 @@
       "count": "観戦者: {n}",
       "switchPerspective": "視点を切り替え"
     },
+    "ui": {
+      "fullscreen": "全画面",
+      "rankedSearch": "ランク検索",
+      "casualSearch": "カジュアル検索",
+      "skipToResults": "結果へスキップ",
+      "clickToOpen": "クリックして開く"
+    }
 
   },
   "es": {
@@ -2063,8 +2081,6 @@
       "dailyWelcomeBonus": " (¡bono de bienvenida!)",
       "daily": "Sobres diarios: quedan {remaining} / {limit} hoy (JST)",
       "dailyBonus": " (¡bono de bienvenida!)",
-      "rankedPrCount": "{remaining} / {limit}",
-      "rankedPrTitle": "Recompensas PR clasificatorias restantes hoy: {remaining} / {limit} (JST)",
       "rankLine": "ELO {elo} · {wins}V-{losses}D · {winPct}% victorias",
       "options": "Opciones",
       "signOut": "Cerrar sesión",
@@ -2081,59 +2097,15 @@
       "howToPlay": "Cómo jugar",
       "howToPlaySub": "Lección práctica para principiantes con Kanon",
       "backHub": "← Hub",
-      "missions": "Misiones"
-    },
-    "missions": {
-      "title": "Misiones",
-      "tabDaily": "Diarias",
-      "tabMilestone": "Hitos",
-      "claim": "Reclamar",
-      "loading": "Cargando misiones…",
-      "empty": "No hay misiones en esta pestaña.",
-      "statusActive": "En progreso",
-      "statusReady": "Lista para reclamar",
-      "statusClaimed": "Reclamada",
-      "statusLocked": "Bloqueada",
-      "completeToast": "Misión completada: {title}",
-      "claimedToast": "Reclamaste {title} (+{reward})",
-      "daily": {
-        "openAllBoosters": "Abre todos los sobres diarios",
-        "rankedMatch": "Juega una partida clasificatoria",
-        "useStamp": "Usa un sello en una partida",
-        "completeAll": "Completa todas las misiones diarias"
-      },
-      "milestone": {
-        "profileBanner": "Actualiza tu banner de perfil",
-        "profileStamps": "Configura sellos favoritos",
-        "ranked1": "Juega 1 partida clasificatoria",
-        "unranked1": "Juega 1 partida no clasificatoria",
-        "ranked5": "Juega 5 partidas clasificatorias",
-        "ranked10": "Juega 10 partidas clasificatorias",
-        "ranked50": "Juega 50 partidas clasificatorias",
-        "ranked100": "Juega 100 partidas clasificatorias",
-        "winMuse": "Gana con un mazo principal solo μ's",
-        "winAqours": "Gana con un mazo principal solo Aqours",
-        "winLiella": "Gana con un mazo principal solo Liella!",
-        "winHasunosora": "Gana con un mazo principal solo Hasunosora",
-        "winNijigasaki": "Gana con un mazo principal solo Nijigasaki",
-        "cards400": "Posee 400 cartas",
-        "cards800": "Posee 800 cartas",
-        "cards1200": "Posee 1.200 cartas",
-        "cards1600": "Posee 1.600 cartas"
-      },
-      "rewardStarter": "Elige un mazo inicial",
-      "rewardStarterOwned": "Ya lo tienes",
-      "claimedStarterToast": "Reclamaste {title} — desbloqueaste {deck}",
-      "starterPickTitle": "Elige un mazo inicial",
-      "starterPickConfirm": "Desbloquear mazo",
-      "starterPickCancel": "Cancelar"
+      "missions": "Misiones",
+      "rankedPrCount": "{remaining} / {limit}",
+      "rankedPrTitle": "Recompensas PR clasificatorias restantes hoy: {remaining} / {limit} (JST)"
     },
     "language": {
       "label": "Idioma",
       "en": "English",
       "ja": "日本語",
-      "es": "Español",
-      "ko": "한국어"
+      "es": "Español"
     },
     "lobby": {
       "title": "Juego no clasificado",
@@ -2143,7 +2115,6 @@
       "createRoom": "Crear sala",
       "joinRoom": "Unirse a sala",
       "roomCode": "Código de sala",
-      "roomCodePlaceholder": "ABCD1234",
       "vsPlayer": "VS jugador",
       "vsCpu": "VS CPU",
       "practiceCpu": "Práctica contra CPU",
@@ -2151,6 +2122,7 @@
       "cpuEasy": "Fácil: mazo inicial aleatorio",
       "cpuNormal": "Normal: habilidades y Lives más inteligentes",
       "cpuHard": "Difícil: mazo fuerte y prioridad de habilidades",
+      "cpuExpert": "Experto: búsqueda dry-run y proyección de amenaza",
       "findRandomMatch": "Buscar partida aleatoria",
       "spectate": "Espectar partida",
       "cancelSearch": "Cancelar búsqueda",
@@ -2166,7 +2138,8 @@
       "experimentDeckHint": "Construye en Experimento de mazo, genera una contraseña y luego introdúcela aquí, o elige un mazo guardado abajo.",
       "secondsLabel": "{n}s",
       "casualQueueStats": "{waiting} esperando · {inGame} en partidas casuales",
-      "casualSearching": "Buscando oponente… ({seconds}s)"
+      "casualSearching": "Buscando oponente… ({seconds}s)",
+      "roomCodePlaceholder": "ABCD1234"
     },
     "deck": {
       "title": "Constructor de mazos",
@@ -2309,11 +2282,7 @@
     "booster": {
       "title": "Abrir sobres",
       "openPack": "Abrir sobre ({n} cartas)",
-      "openBox": "Abrir caja ({n} sobres)",
       "openPaidBox": "Abrir 1 caja ({n} sobres)",
-      "selectBoxFirst": "Elige un booster primero",
-      "needMoreGems": "Necesitas {n} Star Gems para abrir una caja",
-      "noPacksOrGems": "No quedan sobres diarios ni Star Gems suficientes.",
       "ratesLead": "{pool} cartas en el conjunto · probabilidad de aparecer en un sobre de {n} cartas",
       "packOpened": "Sobre abierto",
       "godPack": "¡GOD PACK!",
@@ -2333,7 +2302,11 @@
       "ratesLoading": "Cargando probabilidades…",
       "duplicatesConverted": "Duplicados convertidos",
       "migrationText": "Las copias extra de Miembro/Live más allá de 4 por carta y las copias de Energía más allá de 12 por carta se convirtieron en {gems}.",
-      "convertedToGems": " · {n} convertidas a Star Gems"
+      "convertedToGems": " · {n} convertidas a Star Gems",
+      "needMoreGems": "Necesitas {n} Star Gems para abrir una caja",
+      "noPacksOrGems": "No quedan sobres diarios ni Star Gems suficientes.",
+      "openBox": "Abrir caja ({n} sobres)",
+      "selectBoxFirst": "Elige un booster primero"
     },
     "ranked": {
       "title": "PvP clasificatorio",
@@ -2347,12 +2320,12 @@
       "leaderboardTitle": "Clasificación de clasificatoria",
       "backHub": "← Hub",
       "infoLine": "ELO {elo} · {record}",
-      "prRemaining": "Recompensas PR hoy: quedan {remaining} / {limit} (JST)",
       "record": "{wins}V-{losses}D · {winPct}% victorias",
       "recordFull": "{wins}V-{losses}D · {winPct}% victorias · {lossPct}% derrotas",
       "queueStats": "{waiting} esperando · {inGame} en partidas clasificatorias",
       "searching": "Buscando… ({seconds}s)",
-      "readySearch": "Listo para buscar"
+      "readySearch": "Listo para buscar",
+      "prRemaining": "Recompensas PR hoy: quedan {remaining} / {limit} (JST)"
     },
     "leaderboard": {
       "title": "Clasificación de clasificatoria",
@@ -2368,29 +2341,8 @@
       "bannerPreview": "Vista previa",
       "saveBanner": "Guardar banner",
       "selectCardFirst": "Selecciona primero una carta",
-      "yourRank": "Tu puesto: #{rank}",
-      "jumpToYou": "Ir a mi fila"
-    },
-    "stamps": {
-      "send": "💬 Sellos",
-      "pickerTitle": "Enviar sello",
-      "profilePickTitle": "Sellos favoritos",
-      "profileSection": "Sellos favoritos",
-      "editProfile": "Editar sellos favoritos",
-      "profilePickLead": "Toca sellos para añadirlos o quitarlos (máx. 20). Se usan en la pestaña ★ Favoritos en PvP.",
-      "profileCount": "{n} / {max} seleccionados",
-      "profileHint": "Aparecen en la pestaña ★ Favoritos al enviar sellos en PvP.",
-      "profileHintEmpty": "Opcional — elige hasta 20 sellos para acceso rápido en partidas.",
-      "profileFull": "Solo puedes guardar {max} sellos favoritos.",
-      "tabJa": "日本語",
-      "tabEn": "English",
-      "tabFavorites": "★ Favoritos",
-      "audio": "Audio de sellos",
-      "audioMenu": "Voces de sellos",
-      "favoritesEmpty": "Sin favoritos — configúralos en Opciones o toca ☆ en un sello.",
-      "empty": "No hay sellos.",
-      "cooldown": "Espera un momento…",
-      "done": "Listo"
+      "jumpToYou": "Ir a mi fila",
+      "yourRank": "Tu puesto: #{rank}"
     },
     "options": {
       "title": "Opciones",
@@ -2444,7 +2396,6 @@
       "activatableSkills": "Habilidades activables",
       "activeEffects": "Efectos activos",
       "hoverHandEmpty": "Pasa el cursor sobre una carta en tu mano para previsualizarla aquí.",
-      "hoverPickerEmpty": "Pasa el cursor sobre una carta para previsualizarla aquí.",
       "starting": "Iniciando…",
       "hand": "Mano",
       "wr": "SE",
@@ -2464,7 +2415,9 @@
       "perfYou": "Tú",
       "perfOpp": "Oponente",
       "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>Fase: {phase}<span class=\"turn-sep\">·</span>Activo: {active}<span class=\"turn-sep\">·</span>Primero: {first}",
-      "deckTopLabel": "Parte superior del mazo"
+      "deckTopLabel": "Parte superior del mazo",
+      "hoverPickerEmpty": "Pasa el cursor sobre una carta para previsualizarla aquí.",
+      "zoneEmpty": "Vacío"
     },
     "slot": {
       "left": "Izquierda",
@@ -2554,9 +2507,9 @@
       "yourMain": "Tu Fase principal",
       "theirMain": "Fase principal de {name}",
       "theirMainS": "Fase principal de {name}",
-      "yourLive": "Tu Fase Live",
       "theirLive": "Fase Live de {name}",
-      "theirLiveS": "Fase Live de {name}"
+      "theirLiveS": "Fase Live de {name}",
+      "yourLive": "Tu Fase Live"
     },
     "splash": {
       "turn": "Turno {turn}",
@@ -2599,11 +2552,11 @@
     "mulligan": {
       "title": "Mano inicial 🌸",
       "hint": "Toca cartas para marcarlas para reemplazo. Mantén presionada una carta para ver sus detalles. Toca otra vez para desmarcar.",
-      "tutorialKeepHint": "¿Te gusta esta mano? Toca Conservar mano para continuar.",
-      "tutorialReplaceHint": "Toca la carta resaltada para marcarla y luego confirma el reemplazo.",
       "keepHand": "Conservar mano",
       "replaceCard": "Reemplazar {n} carta",
-      "replaceCards": "Reemplazar {n} cartas"
+      "replaceCards": "Reemplazar {n} cartas",
+      "tutorialKeepHint": "¿Te gusta esta mano? Toca Conservar mano para continuar.",
+      "tutorialReplaceHint": "Toca la carta resaltada para marcarla y luego confirma el reemplazo."
     },
     "coin": {
       "title": "Primer jugador",
@@ -2722,8 +2675,8 @@
         "body": "Durante la Presentación Live, roba cartas de tu mazo igual a tu Blade total (de los Miembros activos en el Escenario). Esas cartas se revelan: los corazones que muestren cuentan para cumplir los corazones requeridos de tus cartas Live. Las cartas Yell se envían después a la Sala de espera."
       },
       "wait": {
-        "title": "Wait (ウェイト)",
-        "body": "Un Miembro puesto en Wait no aporta su Blade ese turno: su Blade no aumenta las cartas reveladas para Yell en la Presentación Live. No es la Sala de espera."
+        "body": "Un Miembro puesto en Wait no aporta su Blade ese turno: su Blade no aumenta las cartas reveladas para Yell en la Presentación Live. No es la Sala de espera.",
+        "title": "Wait (ウェイト)"
       }
     },
     "heart": {
@@ -2741,11 +2694,11 @@
       "score": "Puntuación",
       "requiredHearts": "Corazones requeridos",
       "hearts": "Corazones",
-      "bladeHearts": "Corazones de Blade",
       "yellIcons": "Íconos de Yell",
       "playToSlot": "Jugar en espacio:",
       "needEnergy": "Necesitas",
-      "haveEnergy": "tienes"
+      "haveEnergy": "tienes",
+      "bladeHearts": "Corazones de Blade"
     },
     "pack": {
       "opened": "Sobre abierto",
@@ -2786,14 +2739,7 @@
       "conceded": "Concediste la partida.",
       "oppResigned": "{name} se rindió.",
       "threeLives": "¡{name} logró 3 Lives exitosos!",
-      "spectatorWinner": "¡{name} gana!",
-      "spectatorStatsLine": "Turno: {turn} | {p1}: {p1Lives}/3 | {p2}: {p2Lives}/3",
       "findAnother": "Buscar otra partida",
-      "rematchOffer": "Revancha",
-      "rematchAccept": "Aceptar revancha",
-      "rematchWaiting": "Esperando…",
-      "rematchWaitingHint": "Esperando a que tu oponente acepte la revancha.",
-      "rematchOppWants": "¡{name} quiere una revancha!",
       "disconnectedYou": "Te desconectaste de la partida.",
       "disconnectedOpp": "{name} se desconectó.",
       "statsLine": "Turno: {turn} | Tus éxitos: {yours}/3 | Éxitos del opo.: {opp}/3",
@@ -2804,10 +2750,17 @@
       "debugSaveLog": "💾 Guardar registro de depuración",
       "debugCopyLog": "📋 Copiar registro",
       "debugSaveBundle": "📦 Exportar paquete de depuración",
-      "rankedPrNew": "Recompensa por victoria clasificatoria: {name}",
-      "rankedPrDupe": "{name} convertida a {gems} Star Gems (límite de copias)",
       "rankedPrDailyCap": "Recompensas PR clasificatorias del día usadas ({limit}/día JST)",
-      "rankedPrPopupTitle": "¡Recompensa por victoria clasificatoria!"
+      "rankedPrDupe": "{name} convertida a {gems} Star Gems (límite de copias)",
+      "rankedPrNew": "Recompensa por victoria clasificatoria: {name}",
+      "rankedPrPopupTitle": "¡Recompensa por victoria clasificatoria!",
+      "rematchAccept": "Aceptar revancha",
+      "rematchOffer": "Revancha",
+      "rematchOppWants": "¡{name} quiere una revancha!",
+      "rematchWaiting": "Esperando…",
+      "rematchWaitingHint": "Esperando a que tu oponente acepte la revancha.",
+      "spectatorStatsLine": "Turno: {turn} | {p1}: {p1Lives}/3 | {p2}: {p2Lives}/3",
+      "spectatorWinner": "¡{name} gana!"
     },
     "replay": {
       "menuTitle": "Visor de repeticiones",
@@ -2815,17 +2768,8 @@
       "menuSubHub": "Mira repeticiones guardadas desde tu biblioteca",
       "title": "Visor de repeticiones",
       "back": "← Atrás",
-      "lead": "Las partidas terminadas se guardan solos en Recientes (últimas 10). Las guardadas a mano quedan para siempre en Guardadas; también puedes preservar una de Recientes aquí.",
+      "lead": "Mira repeticiones guardadas desde la biblioteca de tu cuenta. La reproducción sigue el ritmo de acciones guardado, y la barra de búsqueda puede saltar a cualquier punto de la repetición.",
       "refreshLibrary": "Actualizar biblioteca",
-      "recentSection": "Partidas recientes",
-      "recentHint": "Autoguardadas de tus últimas 10 partidas. La más antigua se reemplaza sola.",
-      "savedSection": "Guardadas para siempre",
-      "savedHint": "Se mantienen al guardar en la pantalla de resultados, o al preservar una de Recientes.",
-      "preserve": "Guardar para siempre",
-      "preservedToast": "Repetición movida a Guardadas para siempre",
-      "autosavedRecent": "Repetición autoguardada en Recientes",
-      "emptyRecent": "Aún no hay autoguardados. Termina una partida con sesión iniciada para llenar esta lista.",
-      "emptySaved": "Aún no hay guardados permanentes. Usa Guardar repetición en resultados, o Guardar para siempre en Recientes.",
       "importLead": "¿Tienes un archivo de repetición exportado? Importa JSON aquí como opción secundaria.",
       "fileLabel": "Archivo de repetición",
       "noFileSelected": "No se seleccionó ningún archivo.",
@@ -2836,7 +2780,7 @@
       "exitReplay": "Salir de repetición",
       "phaseBarHint": "Repetición {step} / {total}: usa la barra de repetición abajo para avanzar por las acciones grabadas.",
       "signInLibrary": "Inicia sesión para guardar y ver repeticiones en tu biblioteca.",
-      "emptyLibrary": "Aún no hay repeticiones. Termina una partida: se autoguardará en Recientes.",
+      "emptyLibrary": "Aún no hay repeticiones guardadas. Termina una partida y elige Guardar repetición.",
       "watch": "Ver",
       "downloadJson": "Descargar JSON",
       "loadingLibrary": "Cargando repeticiones guardadas...",
@@ -2868,10 +2812,19 @@
       "chooseFileFirst": "Elige primero un archivo de repetición.",
       "saveAfterFinish": "Guardar repetición está disponible después de que termine la partida.",
       "noCredentials": "No se encontraron credenciales de partida para exportar la repetición.",
-      "savedToLibrary": "Repetición guardada para siempre en tu biblioteca",
-      "savedToLibraryId": "Repetición guardada para siempre (#{id})",
+      "savedToLibrary": "Repetición guardada en tu biblioteca",
+      "savedToLibraryId": "Repetición guardada en tu biblioteca (#{id})",
       "downloadedAsJson": "Repetición descargada como JSON",
-      "couldNotSave": "No se pudo guardar la repetición"
+      "couldNotSave": "No se pudo guardar la repetición",
+      "autosavedRecent": "Repetición autoguardada en Recientes",
+      "emptyRecent": "Aún no hay autoguardados. Termina una partida con sesión iniciada para llenar esta lista.",
+      "emptySaved": "Aún no hay guardados permanentes. Usa Guardar repetición en resultados, o Guardar para siempre en Recientes.",
+      "preserve": "Guardar para siempre",
+      "preservedToast": "Repetición movida a Guardadas para siempre",
+      "recentHint": "Autoguardadas de tus últimas 10 partidas. La más antigua se reemplaza sola.",
+      "recentSection": "Partidas recientes",
+      "savedHint": "Se mantienen al guardar en la pantalla de resultados, o al preservar una de Recientes.",
+      "savedSection": "Guardadas para siempre"
     },
     "apiError": {
       "titleClient": "Algo salió mal",
@@ -2923,6 +2876,15 @@
       "t1_live_p1_lock": "Liella termina su **Fase Live**, bloqueando su selección. A diferencia de la Fase principal, tu Fase Live y la de tu oponente ocurren al mismo tiempo. Si la Fase Live de tu oponente aún no termina, esperarás a que acabe antes de avanzar.",
       "t1_live_p2": "μ's coloca un **Live** boca abajo en almacenamiento: verás cuál es en la **Fase de presentación**.",
       "t1_live_p2_lock": "μ's bloquea su selección.",
+      "t1_perf_intro": "Ambos jugadores terminan la Fase Live — ¡comienza la **Presentación**! Si alguno colocó Lives, verás la pantalla **Inicio de Live**. ¡Aquí se decide si los Lives tienen éxito o no!",
+      "t1_hearts_check": "Aquí puedes comprobar si las cartas del Escenario cumplen los Corazones requeridos de este Live. **Shiki Wakana** solo aporta **1 Corazón morado**, así que aún faltan **1 Corazón rojo** y **1 Corazón de cualquier color**.",
+      "t1_hearts_grey": "Los Corazones **grises / cualquier color** cuentan como **cualquier color** — con rojo y morado cubiertos, los Corazones restantes pueden llenar el espacio \"cualquier\" de **WE WILL!!**.",
+      "t1_yell": "Aunque un Live parezca perdido, aún no termina… aquí entra **Yell**. Usa el valor **Blade** de las cartas — Liella! hace \"Yell\" y roba cartas extra del mazo según el total de **Blade** en el Escenario. **Shiki Wakana** tiene **Blade 2**, ¡así que roba 2 cartas del mazo!",
+      "t1_yell_hearts": "¡Las cartas de Natsumi sumaron 2! Las cartas de Yell añaden Corazones de lado (**Blade Corazones**) al total. Dos **Corazones rojos** cubren **rojo 1** y **cualquier 1**. **¡El Live tiene éxito!**",
+      "t1_success": "Piensa en **Yell** como el grito de apoyo del público — es clave para cumplir Corazones difíciles. Ten en cuenta los valores **Blade** del Escenario — ¡el Live **WE WILL!!** **tuvo éxito**!",
+      "t1_yell_opp": "Siguiente **Yell** de μ's — **Blade 1** en el Escenario voltea **1** carta. **Nico** no tiene Blade Corazones — **Kitto Seishun ga Kikoeru** aún no puede tener éxito.",
+      "t1_fail": "μ's no pudo cumplir el costo de Corazones de **Kitto Seishun ga Kikoeru** — ese **Live** va a la **Sala de espera**.",
+      "t1_judge": "¡Liella! gana por puntuación y obtiene un **Live exitoso**!",
       "t1_end": "Turno 1 listo: jugaste un Miembro, colocaste un Live y aprendiste **emparejamiento de Corazones** durante la Presentación.",
       "t2_start": "**Turno 2**: robas una carta a tu mano y ganas +1 Energía.",
       "t2_skill_intro": "Las cartas que hemos jugado hasta ahora solo dan **corazones** y **blades**, pero algunas cartas también tienen **habilidades** que afectan la partida de varias formas. Mira esta carta: incluye texto de habilidad.",
@@ -2939,6 +2901,12 @@
       "t2_live_p1_lock": "Bloqueado.",
       "t2_live_p2": "μ's coloca **START:DASH!!** boca abajo.",
       "t2_live_p2_lock": "μ's bloquea su selección.",
+      "t2_perf_intro": "Ambos confirmaron — ¡otra **Presentación**! Los Lives se revelan de nuevo.",
+      "t2_live_start_offer": "**[Inicio de Live]** — **START:DASH!!** permite a μ's **mirar las 3 cartas superiores** de su mazo y reordenarlas antes de continuar la Presentación. Este aviso demuestra el efecto **[Inicio de Live]**.",
+      "t2_yell_mine": "Primero tu **Yell** — **Blade 3** en el Escenario voltea **3** cartas. Aparecieron **Ren**, **Keke** y **Mei**, pero ninguna tiene **Blade Corazones** — **Watashi no Symphony ~Shibuya Kanon Ver.~** necesita **rojo 4**, **morado 4** y **cualquier 3**, así que ese **Live** **falla**.",
+      "t2_yell_opp": "Siguiente **Yell** de μ's — la primera carta es **Korekara no Someday** con **Blade Corazones** de TODOS los colores (cuentan como cualquier color y cubren lo que falta de **START:DASH!!** — aquí **amarillo**). La segunda, **Rin**, no tiene Blade Corazones.",
+      "t2_outcomes": "Ambos Lives se resolvieron — los exitosos quedan en la pila de éxito y los fallidos van a la **Sala de espera**.",
+      "t2_judge": "Solo **μ's** logró **START:DASH!!** con éxito — tu Live falló, así que **Watashi no Symphony ~Shibuya Kanon Ver.~** va a la **Sala de espera**. ¡μ's obtiene un **Live exitoso**!",
       "t3_start": "**Turno 3**: μ's va primero este turno porque superó el único Live exitoso en la última Presentación.",
       "t3_main_p2": "μ's juega un Miembro asequible para añadir Corazones.",
       "t3_p2_end": "μ's termina principal.",
@@ -2961,6 +2929,11 @@
       "t3_live1_lock": "Liella bloquea su selección.",
       "t3_live2": "μ's coloca **START:DASH!!** boca abajo.",
       "t3_live2_lock": "μ's bloquea su selección: ¡Presentación final!",
+      "t3_perf_intro": "Ambos confirmaron — ¡la **Presentación** final!",
+      "t3_yell_mine": "Primero el **Yell** de μ's — voltea cartas del mazo por **Blade Corazones**. **START:DASH!!** ya coincide con el Escenario (**rosa**, **amarillo** y **morado** de **Rin Hoshizora**, **Honoka** y **Umi**).",
+      "t3_yell_opp": "Siguiente tu **Yell** — **Shiki Wakana** en **Centro** (**Blade 2**) y **Mei Yoneme** en **Derecha** (**Blade 1**) voltean **3** cartas. **Mirai wa Kaze no You ni** trata esos Corazones de Yell como **cualquier** color — ¡el **Live** **tiene éxito** junto con el Escenario!",
+      "t3_outcomes": "¡Ambos Lives **tuvieron éxito**! En este caso un desempate decide al ganador — ¡hora del **Juez de Live**!",
+      "t3_judge": "**Juez de Live** — ¡μ's gana con puntuación potenciada! Otro **Live exitoso** más cerca de la victoria en la partida.",
       "outro": "Bucle principal: **Principal → Colocar Live → Presentación → Juez**. Las habilidades añaden sabor encima. ¡Prueba **Práctica contra CPU** después!",
       "outro_link": "Reglas completas: llofficial-cardgame.com/rule/ — ¡buena suerte!"
     },
@@ -3024,10 +2997,83 @@
       "watch": "Ver",
       "loading": "Cargando…",
       "noMatches": "No hay partidas disponibles para espectar.",
+      "count": "Espectadores: {n}",
       "matchEnded": "La partida terminó — volviendo al lobby.",
       "sessionEnded": "La sesión de espectador terminó.",
-      "count": "Espectadores: {n}",
       "switchPerspective": "Cambiar perspectiva"
+    },
+    "missions": {
+      "claim": "Reclamar",
+      "claimedStarterToast": "Reclamaste {title} — desbloqueaste {deck}",
+      "claimedToast": "Reclamaste {title} (+{reward})",
+      "completeToast": "Misión completada: {title}",
+      "daily": {
+        "completeAll": "Completa todas las misiones diarias",
+        "openAllBoosters": "Abre todos los sobres diarios",
+        "rankedMatch": "Juega una partida clasificatoria",
+        "useStamp": "Usa un sello en una partida"
+      },
+      "empty": "No hay misiones en esta pestaña.",
+      "loading": "Cargando misiones…",
+      "milestone": {
+        "cards1200": "Posee 1.200 cartas",
+        "cards1600": "Posee 1.600 cartas",
+        "cards400": "Posee 400 cartas",
+        "cards800": "Posee 800 cartas",
+        "profileBanner": "Actualiza tu banner de perfil",
+        "profileStamps": "Configura sellos favoritos",
+        "ranked1": "Juega 1 partida clasificatoria",
+        "ranked10": "Juega 10 partidas clasificatorias",
+        "ranked100": "Juega 100 partidas clasificatorias",
+        "ranked5": "Juega 5 partidas clasificatorias",
+        "ranked50": "Juega 50 partidas clasificatorias",
+        "unranked1": "Juega 1 partida no clasificatoria",
+        "winAqours": "Gana con un mazo principal solo Aqours",
+        "winHasunosora": "Gana con un mazo principal solo Hasunosora",
+        "winLiella": "Gana con un mazo principal solo Liella!",
+        "winMuse": "Gana con un mazo principal solo μ's",
+        "winNijigasaki": "Gana con un mazo principal solo Nijigasaki"
+      },
+      "rewardStarter": "Elige un mazo inicial",
+      "rewardStarterOwned": "Ya lo tienes",
+      "starterPickCancel": "Cancelar",
+      "starterPickConfirm": "Desbloquear mazo",
+      "starterPickTitle": "Elige un mazo inicial",
+      "statusActive": "En progreso",
+      "statusClaimed": "Reclamada",
+      "statusLocked": "Bloqueada",
+      "statusReady": "Lista para reclamar",
+      "tabDaily": "Diarias",
+      "tabMilestone": "Hitos",
+      "title": "Misiones"
+    },
+    "stamps": {
+      "audio": "Audio de sellos",
+      "audioMenu": "Voces de sellos",
+      "cooldown": "Espera un momento…",
+      "done": "Listo",
+      "editProfile": "Editar sellos favoritos",
+      "empty": "No hay sellos.",
+      "favoritesEmpty": "Sin favoritos — configúralos en Opciones o toca ☆ en un sello.",
+      "pickerTitle": "Enviar sello",
+      "profileCount": "{n} / {max} seleccionados",
+      "profileFull": "Solo puedes guardar {max} sellos favoritos.",
+      "profileHint": "Aparecen en la pestaña ★ Favoritos al enviar sellos en PvP.",
+      "profileHintEmpty": "Opcional — elige hasta 20 sellos para acceso rápido en partidas.",
+      "profilePickLead": "Toca sellos para añadirlos o quitarlos (máx. 20). Se usan en la pestaña ★ Favoritos en PvP.",
+      "profilePickTitle": "Sellos favoritos",
+      "profileSection": "Sellos favoritos",
+      "send": "💬 Sellos",
+      "tabEn": "English",
+      "tabFavorites": "★ Favoritos",
+      "tabJa": "日本語"
+    },
+    "ui": {
+      "fullscreen": "Pantalla completa",
+      "rankedSearch": "Búsqueda clasificatoria",
+      "casualSearch": "Búsqueda casual",
+      "skipToResults": "Saltar a resultados",
+      "clickToOpen": "Clic para abrir"
     }
   },
   "ko": {
@@ -3084,7 +3130,10 @@
       "unrankedSub": "방 만들기, 친구와 대전, CPU 연습",
       "howToPlay": "플레이 방법",
       "howToPlaySub": "카논과 함께하는 초보자 실습 강의",
-      "backHub": "← 허브"
+      "backHub": "← 허브",
+      "missions": "미션",
+      "rankedPrCount": "{remaining} / {limit}",
+      "rankedPrTitle": "오늘 남은 랭크 PR 보상: {remaining} / {limit} (JST)"
     },
     "language": {
       "label": "언어",
@@ -3108,6 +3157,7 @@
       "cpuEasy": "쉬움 — 무작위 스타터 덱",
       "cpuNormal": "보통 — 더 똑똑한 스킬과 Live",
       "cpuHard": "어려움 — 강력한 덱과 스킬 우선순위",
+      "cpuExpert": "전문가 — 시뮬레이션 탐색과 위협 예측",
       "findRandomMatch": "무작위 대전 찾기",
       "spectate": "경기 관전",
       "cancelSearch": "검색 취소",
@@ -3123,7 +3173,8 @@
       "experimentDeckHint": "덱 실험에서 덱을 만들고 비밀번호를 생성한 뒤 여기에 입력하세요 — 또는 아래에서 저장된 덱을 선택하세요.",
       "secondsLabel": "{n}초",
       "casualQueueStats": "대기 {waiting}명 · 캐주얼 진행 중 {inGame}명",
-      "casualSearching": "상대 찾는 중… ({seconds}초)"
+      "casualSearching": "상대 찾는 중… ({seconds}초)",
+      "roomCodePlaceholder": "ABCD1234"
     },
     "deck": {
       "title": "덱 빌더",
@@ -3286,7 +3337,11 @@
       "ratesLoading": "확률 불러오는 중…",
       "duplicatesConverted": "중복 카드 전환",
       "migrationText": "카드당 4장을 초과한 멤버/Live 카드와 12장을 초과한 에너지 카드는 {gems}로 전환되었습니다.",
-      "convertedToGems": " · {n}개가 Star Gems로 전환됨"
+      "convertedToGems": " · {n}개가 Star Gems로 전환됨",
+      "needMoreGems": "박스를 열려면 Star Gem {n}개가 필요합니다",
+      "noPacksOrGems": "일일 팩이 없고 Star Gem도 부족합니다.",
+      "openBox": "박스 열기 (팩 {n}개)",
+      "selectBoxFirst": "먼저 부스터 세트를 선택하세요"
     },
     "ranked": {
       "title": "랭크 PvP",
@@ -3304,7 +3359,8 @@
       "recordFull": "{wins}승-{losses}패 · 승률 {winPct}% · 패률 {lossPct}%",
       "queueStats": "대기 {waiting}명 · 랭크전 진행 중 {inGame}명",
       "searching": "검색 중… ({seconds}초)",
-      "readySearch": "검색 준비 완료"
+      "readySearch": "검색 준비 완료",
+      "prRemaining": "오늘 PR 보상: {remaining} / {limit} 남음 (JST)"
     },
     "leaderboard": {
       "title": "랭크 리더보드",
@@ -3319,7 +3375,9 @@
       "bannerNoMatch": "검색 결과와 일치하는 카드가 없습니다.",
       "bannerPreview": "미리보기",
       "saveBanner": "배너 저장",
-      "selectCardFirst": "먼저 카드를 선택하세요"
+      "selectCardFirst": "먼저 카드를 선택하세요",
+      "jumpToYou": "내 순위로 이동",
+      "yourRank": "내 순위: #{rank}"
     },
     "options": {
       "title": "옵션",
@@ -3392,7 +3450,9 @@
       "perfYou": "나",
       "perfOpp": "상대",
       "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>페이즈: {phase}<span class=\"turn-sep\">·</span>활성: {active}<span class=\"turn-sep\">·</span>선공: {first}",
-      "deckTopLabel": "덱 상단"
+      "deckTopLabel": "덱 상단",
+      "hoverPickerEmpty": "카드를 가리키면 여기에 미리보기가 표시됩니다.",
+      "zoneEmpty": "비어 있음"
     },
     "slot": {
       "left": "왼쪽",
@@ -3481,7 +3541,10 @@
       "liveJudgeSub": "Live 스코어 비교 중…",
       "yourMain": "내 메인 페이즈",
       "theirMain": "{name}의 메인 페이즈",
-      "theirMainS": "{name}의 메인 페이즈"
+      "theirMainS": "{name}의 메인 페이즈",
+      "theirLive": "{name}의 Live 페이즈",
+      "theirLiveS": "{name}의 Live 페이즈",
+      "yourLive": "당신의 Live 페이즈"
     },
     "splash": {
       "turn": "턴 {turn}",
@@ -3526,7 +3589,9 @@
       "hint": "교체할 카드를 탭하여 표시하세요. 카드를 길게 누르면 상세 정보를 볼 수 있습니다. 다시 탭하면 표시가 해제됩니다.",
       "keepHand": "패 유지",
       "replaceCard": "{n}장 교체",
-      "replaceCards": "{n}장 교체"
+      "replaceCards": "{n}장 교체",
+      "tutorialKeepHint": "이 핸드로 괜찮다면 「핸드 유지」를 눌러 계속하세요.",
+      "tutorialReplaceHint": "강조된 카드를 눌러 교체 대상으로 표시한 뒤 확인하세요."
     },
     "coin": {
       "title": "선공 결정",
@@ -3643,6 +3708,10 @@
       "yell": {
         "title": "Yell (エール)",
         "body": "Live 퍼포먼스 중, 활성 스테이지 멤버의 총 Blade 수만큼 덱에서 카드를 드로우합니다. 이 카드들은 공개되며, 표시된 하트는 Live 카드의 필요 하트를 충족하는 데 사용됩니다. Yell 카드는 이후 대기실로 보내집니다."
+      },
+      "wait": {
+        "body": "Wait 상태가 된 멤버는 그 턴 Blade를 기여하지 않습니다 — Live 퍼포먼스에서 Yell로 공개되는 카드의 Blade를 올리지 않습니다. Waiting Room과는 다릅니다.",
+        "title": "Wait (ウェイト)"
       }
     },
     "heart": {
@@ -3663,7 +3732,8 @@
       "yellIcons": "Yell 아이콘",
       "playToSlot": "슬롯에 플레이:",
       "needEnergy": "필요",
-      "haveEnergy": "보유"
+      "haveEnergy": "보유",
+      "bladeHearts": "Blade 하트"
     },
     "pack": {
       "opened": "팩 개봉 완료",
@@ -3714,7 +3784,18 @@
       "downloadReplayJson": "리플레이 JSON 다운로드",
       "debugSaveLog": "💾 디버그 로그 저장",
       "debugCopyLog": "📋 로그 복사",
-      "debugSaveBundle": "📦 디버그 묶음 내보내기"
+      "debugSaveBundle": "📦 디버그 묶음 내보내기",
+      "rankedPrDailyCap": "오늘의 랭크 PR 보상 한도 소진 ({limit}/일 JST)",
+      "rankedPrDupe": "{name} → Star Gem {gems}개로 변환 (보유 한도 초과)",
+      "rankedPrNew": "랭크 승리 보상: {name}",
+      "rankedPrPopupTitle": "랭크 승리 보상!",
+      "rematchAccept": "재대결 수락",
+      "rematchOffer": "재대결",
+      "rematchOppWants": "{name} 님이 재대결을 원합니다!",
+      "rematchWaiting": "대기 중…",
+      "rematchWaitingHint": "상대가 재대결을 수락하기를 기다리는 중입니다.",
+      "spectatorStatsLine": "턴: {turn} | {p1}: {p1Lives}/3 | {p2}: {p2Lives}/3",
+      "spectatorWinner": "{name} 승리!"
     },
     "replay": {
       "menuTitle": "리플레이 뷰어",
@@ -3769,7 +3850,16 @@
       "savedToLibrary": "리플레이가 라이브러리에 저장되었습니다",
       "savedToLibraryId": "리플레이가 라이브러리에 저장되었습니다 (#{id})",
       "downloadedAsJson": "리플레이가 JSON으로 다운로드되었습니다",
-      "couldNotSave": "리플레이를 저장할 수 없습니다"
+      "couldNotSave": "리플레이를 저장할 수 없습니다",
+      "autosavedRecent": "리플레이가 「최근」에 자동 저장됨",
+      "emptyRecent": "최근 자동 저장이 없습니다. 로그인 상태로 매치를 끝내면 여기에 쌓입니다.",
+      "emptySaved": "영구 저장이 없습니다. 결과 화면에서 「리플레이 저장」하거나 「최근」에서 「영구 보관」하세요.",
+      "preserve": "영구 보관",
+      "preservedToast": "리플레이를 「영구 보관」으로 이동했습니다",
+      "recentHint": "최근 10경기에서 자동 저장됩니다. 가장 오래된 항목부터 교체됩니다.",
+      "recentSection": "최근 매치",
+      "savedHint": "결과 화면에서 저장하거나, 「최근」 리플레이를 여기서 영구 보관합니다.",
+      "savedSection": "영구 보관"
     },
     "apiError": {
       "titleClient": "문제가 발생했습니다",
@@ -3941,7 +4031,84 @@
       "reconnected": "관전에 다시 연결됨.",
       "watch": "관전",
       "loading": "불러오는 중…",
-      "noMatches": "관전할 수 있는 경기가 없습니다."
+      "noMatches": "관전할 수 있는 경기가 없습니다.",
+      "count": "관전자: {n}",
+      "matchEnded": "매치가 종료되어 로비로 돌아갑니다.",
+      "sessionEnded": "관전 세션이 종료되었습니다.",
+      "switchPerspective": "시점 전환"
+    },
+    "missions": {
+      "claim": "수령",
+      "claimedStarterToast": "{title} 수령 — {deck} 해금",
+      "claimedToast": "{title} 수령 (+{reward})",
+      "completeToast": "미션 완료: {title}",
+      "daily": {
+        "completeAll": "일일 미션을 모두 완료",
+        "openAllBoosters": "일일 부스터 팩을 모두 개봉",
+        "rankedMatch": "랭크 매치 1회 플레이",
+        "useStamp": "매치 중 스탬프 사용"
+      },
+      "empty": "이 탭에 미션이 없습니다.",
+      "loading": "미션 불러오는 중…",
+      "milestone": {
+        "cards1200": "카드 1,200장 보유",
+        "cards1600": "카드 1,600장 보유",
+        "cards400": "카드 400장 보유",
+        "cards800": "카드 800장 보유",
+        "profileBanner": "프로필 배너 변경",
+        "profileStamps": "즐겨찾는 스티커 설정",
+        "ranked1": "랭크 매치 1회 플레이",
+        "ranked10": "랭크 매치 10회 플레이",
+        "ranked100": "랭크 매치 100회 플레이",
+        "ranked5": "랭크 매치 5회 플레이",
+        "ranked50": "랭크 매치 50회 플레이",
+        "unranked1": "언랭크 매치 1회 플레이",
+        "winAqours": "Aqours 전용 메인 덱으로 승리",
+        "winHasunosora": "하스노소라 전용 메인 덱으로 승리",
+        "winLiella": "Liella! 전용 메인 덱으로 승리",
+        "winMuse": "μ's 전용 메인 덱으로 승리",
+        "winNijigasaki": "니지가사키 전용 메인 덱으로 승리"
+      },
+      "rewardStarter": "스타터 덱 선택",
+      "rewardStarterOwned": "이미 보유 중",
+      "starterPickCancel": "취소",
+      "starterPickConfirm": "스타터 해금",
+      "starterPickTitle": "스타터 덱 선택",
+      "statusActive": "진행 중",
+      "statusClaimed": "수령 완료",
+      "statusLocked": "잠김",
+      "statusReady": "수령 가능",
+      "tabDaily": "일일",
+      "tabMilestone": "마일스톤",
+      "title": "미션"
+    },
+    "stamps": {
+      "audio": "스탬프 오디오",
+      "audioMenu": "스탬프 보이스 클립",
+      "cooldown": "잠시만 기다려 주세요…",
+      "done": "완료",
+      "editProfile": "즐겨찾는 스탬프 편집",
+      "empty": "스탬프가 없습니다.",
+      "favoritesEmpty": "즐겨찾기가 없습니다 — 옵션에서 설정하거나 스탬프의 ☆를 누르세요.",
+      "pickerTitle": "스탬프 보내기",
+      "profileCount": "{n} / {max} 선택됨",
+      "profileFull": "즐겨찾는 스탬프는 최대 {max}개까지 저장할 수 있습니다.",
+      "profileHint": "PvP에서 스탬프를 보낼 때 ★ 즐겨찾기 탭에 표시됩니다.",
+      "profileHintEmpty": "선택 사항 — 매치에서 빠르게 쓰려면 스탬프를 최대 20개까지 고르세요.",
+      "profilePickLead": "스탬프를 눌러 추가/제거 (최대 20). PvP의 ★ 즐겨찾기 탭에서 사용됩니다.",
+      "profilePickTitle": "즐겨찾는 스탬프",
+      "profileSection": "즐겨찾는 스탬프",
+      "send": "💬 스탬프",
+      "tabEn": "English",
+      "tabFavorites": "★ 즐겨찾기",
+      "tabJa": "日本語"
+    },
+    "ui": {
+      "fullscreen": "전체 화면",
+      "rankedSearch": "랭크 검색",
+      "casualSearch": "캐주얼 검색",
+      "skipToResults": "결과로 건너뛰기",
+      "clickToOpen": "클릭하여 열기"
     }
   }
 };

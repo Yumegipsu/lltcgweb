@@ -9,8 +9,8 @@ Unlike **es** (which keeps `name_en` for characters/songs), Korean uses **phonet
 | ID | Description | Status |
 |----|-------------|--------|
 | M0 | Infrastructure (locale plumbing, `validate_i18n`, selectors, name/song maps) | ☑ |
-| M1 | Core menus + auth/hub hardcoded strings | ☑ |
-| M2 | In-game UI, prompts, toasts | ☑ |
+| M1 | Core menus + auth/hub hardcoded strings | ☑ (missions/stamps/rematch/replay/`ui.*` filled 2026-07-12) |
+| M2 | In-game UI, prompts, toasts | ☑ (ko/es prompt labels; zone titles via `t()`) |
 | M3 | Interactive tutorial (`tutorial_ko.json`) + legacy `tutorial.*` keys | ☑ |
 | M4 | Game log localization (`log_i18n.js`) | ☑ |
 | M5 | Card `text_ko` pipeline | ☑ (1,367 / 1,367) |

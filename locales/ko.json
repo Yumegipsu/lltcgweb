@@ -52,7 +52,10 @@
     "unrankedSub": "방 만들기, 친구와 대전, CPU 연습",
     "howToPlay": "플레이 방법",
     "howToPlaySub": "카논과 함께하는 초보자 실습 강의",
-    "backHub": "← 허브"
+    "backHub": "← 허브",
+    "missions": "미션",
+    "rankedPrCount": "{remaining} / {limit}",
+    "rankedPrTitle": "오늘 남은 랭크 PR 보상: {remaining} / {limit} (JST)"
   },
   "language": {
     "label": "언어",
@@ -92,7 +95,8 @@
     "experimentDeckHint": "덱 실험에서 덱을 만들고 비밀번호를 생성한 뒤 여기에 입력하세요 — 또는 아래에서 저장된 덱을 선택하세요.",
     "secondsLabel": "{n}초",
     "casualQueueStats": "대기 {waiting}명 · 캐주얼 진행 중 {inGame}명",
-    "casualSearching": "상대 찾는 중… ({seconds}초)"
+    "casualSearching": "상대 찾는 중… ({seconds}초)",
+    "roomCodePlaceholder": "ABCD1234"
   },
   "deck": {
     "title": "덱 빌더",
@@ -255,7 +259,11 @@
     "ratesLoading": "확률 불러오는 중…",
     "duplicatesConverted": "중복 카드 전환",
     "migrationText": "카드당 4장을 초과한 멤버/Live 카드와 12장을 초과한 에너지 카드는 {gems}로 전환되었습니다.",
-    "convertedToGems": " · {n}개가 Star Gems로 전환됨"
+    "convertedToGems": " · {n}개가 Star Gems로 전환됨",
+    "needMoreGems": "박스를 열려면 Star Gem {n}개가 필요합니다",
+    "noPacksOrGems": "일일 팩이 없고 Star Gem도 부족합니다.",
+    "openBox": "박스 열기 (팩 {n}개)",
+    "selectBoxFirst": "먼저 부스터 세트를 선택하세요"
   },
   "ranked": {
     "title": "랭크 PvP",
@@ -273,7 +281,8 @@
     "recordFull": "{wins}승-{losses}패 · 승률 {winPct}% · 패률 {lossPct}%",
     "queueStats": "대기 {waiting}명 · 랭크전 진행 중 {inGame}명",
     "searching": "검색 중… ({seconds}초)",
-    "readySearch": "검색 준비 완료"
+    "readySearch": "검색 준비 완료",
+    "prRemaining": "오늘 PR 보상: {remaining} / {limit} 남음 (JST)"
   },
   "leaderboard": {
     "title": "랭크 리더보드",
@@ -288,7 +297,9 @@
     "bannerNoMatch": "검색 결과와 일치하는 카드가 없습니다.",
     "bannerPreview": "미리보기",
     "saveBanner": "배너 저장",
-    "selectCardFirst": "먼저 카드를 선택하세요"
+    "selectCardFirst": "먼저 카드를 선택하세요",
+    "jumpToYou": "내 순위로 이동",
+    "yourRank": "내 순위: #{rank}"
   },
   "options": {
     "title": "옵션",
@@ -361,7 +372,9 @@
     "perfYou": "나",
     "perfOpp": "상대",
     "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>페이즈: {phase}<span class=\"turn-sep\">·</span>활성: {active}<span class=\"turn-sep\">·</span>선공: {first}",
-    "deckTopLabel": "덱 상단"
+    "deckTopLabel": "덱 상단",
+    "hoverPickerEmpty": "카드를 가리키면 여기에 미리보기가 표시됩니다.",
+    "zoneEmpty": "비어 있음"
   },
   "slot": {
     "left": "왼쪽",
@@ -450,7 +463,10 @@
     "liveJudgeSub": "Live 스코어 비교 중…",
     "yourMain": "내 메인 페이즈",
     "theirMain": "{name}의 메인 페이즈",
-    "theirMainS": "{name}의 메인 페이즈"
+    "theirMainS": "{name}의 메인 페이즈",
+    "theirLive": "{name}의 Live 페이즈",
+    "theirLiveS": "{name}의 Live 페이즈",
+    "yourLive": "당신의 Live 페이즈"
   },
   "splash": {
     "turn": "턴 {turn}",
@@ -495,7 +511,9 @@
     "hint": "교체할 카드를 탭하여 표시하세요. 카드를 길게 누르면 상세 정보를 볼 수 있습니다. 다시 탭하면 표시가 해제됩니다.",
     "keepHand": "패 유지",
     "replaceCard": "{n}장 교체",
-    "replaceCards": "{n}장 교체"
+    "replaceCards": "{n}장 교체",
+    "tutorialKeepHint": "이 핸드로 괜찮다면 「핸드 유지」를 눌러 계속하세요.",
+    "tutorialReplaceHint": "강조된 카드를 눌러 교체 대상으로 표시한 뒤 확인하세요."
   },
   "coin": {
     "title": "선공 결정",
@@ -612,6 +630,10 @@
     "yell": {
       "title": "Yell (エール)",
       "body": "Live 퍼포먼스 중, 활성 스테이지 멤버의 총 Blade 수만큼 덱에서 카드를 드로우합니다. 이 카드들은 공개되며, 표시된 하트는 Live 카드의 필요 하트를 충족하는 데 사용됩니다. Yell 카드는 이후 대기실로 보내집니다."
+    },
+    "wait": {
+      "body": "Wait 상태가 된 멤버는 그 턴 Blade를 기여하지 않습니다 — Live 퍼포먼스에서 Yell로 공개되는 카드의 Blade를 올리지 않습니다. Waiting Room과는 다릅니다.",
+      "title": "Wait (ウェイト)"
     }
   },
   "heart": {
@@ -632,7 +654,8 @@
     "yellIcons": "Yell 아이콘",
     "playToSlot": "슬롯에 플레이:",
     "needEnergy": "필요",
-    "haveEnergy": "보유"
+    "haveEnergy": "보유",
+    "bladeHearts": "Blade 하트"
   },
   "pack": {
     "opened": "팩 개봉 완료",
@@ -683,7 +706,18 @@
     "downloadReplayJson": "리플레이 JSON 다운로드",
     "debugSaveLog": "💾 디버그 로그 저장",
     "debugCopyLog": "📋 로그 복사",
-    "debugSaveBundle": "📦 디버그 묶음 내보내기"
+    "debugSaveBundle": "📦 디버그 묶음 내보내기",
+    "rankedPrDailyCap": "오늘의 랭크 PR 보상 한도 소진 ({limit}/일 JST)",
+    "rankedPrDupe": "{name} → Star Gem {gems}개로 변환 (보유 한도 초과)",
+    "rankedPrNew": "랭크 승리 보상: {name}",
+    "rankedPrPopupTitle": "랭크 승리 보상!",
+    "rematchAccept": "재대결 수락",
+    "rematchOffer": "재대결",
+    "rematchOppWants": "{name} 님이 재대결을 원합니다!",
+    "rematchWaiting": "대기 중…",
+    "rematchWaitingHint": "상대가 재대결을 수락하기를 기다리는 중입니다.",
+    "spectatorStatsLine": "턴: {turn} | {p1}: {p1Lives}/3 | {p2}: {p2Lives}/3",
+    "spectatorWinner": "{name} 승리!"
   },
   "replay": {
     "menuTitle": "리플레이 뷰어",
@@ -738,7 +772,16 @@
     "savedToLibrary": "리플레이가 라이브러리에 저장되었습니다",
     "savedToLibraryId": "리플레이가 라이브러리에 저장되었습니다 (#{id})",
     "downloadedAsJson": "리플레이가 JSON으로 다운로드되었습니다",
-    "couldNotSave": "리플레이를 저장할 수 없습니다"
+    "couldNotSave": "리플레이를 저장할 수 없습니다",
+    "autosavedRecent": "리플레이가 「최근」에 자동 저장됨",
+    "emptyRecent": "최근 자동 저장이 없습니다. 로그인 상태로 매치를 끝내면 여기에 쌓입니다.",
+    "emptySaved": "영구 저장이 없습니다. 결과 화면에서 「리플레이 저장」하거나 「최근」에서 「영구 보관」하세요.",
+    "preserve": "영구 보관",
+    "preservedToast": "리플레이를 「영구 보관」으로 이동했습니다",
+    "recentHint": "최근 10경기에서 자동 저장됩니다. 가장 오래된 항목부터 교체됩니다.",
+    "recentSection": "최근 매치",
+    "savedHint": "결과 화면에서 저장하거나, 「최근」 리플레이를 여기서 영구 보관합니다.",
+    "savedSection": "영구 보관"
   },
   "apiError": {
     "titleClient": "문제가 발생했습니다",
@@ -910,6 +953,83 @@
     "reconnected": "관전에 다시 연결됨.",
     "watch": "관전",
     "loading": "불러오는 중…",
-    "noMatches": "관전할 수 있는 경기가 없습니다."
+    "noMatches": "관전할 수 있는 경기가 없습니다.",
+    "count": "관전자: {n}",
+    "matchEnded": "매치가 종료되어 로비로 돌아갑니다.",
+    "sessionEnded": "관전 세션이 종료되었습니다.",
+    "switchPerspective": "시점 전환"
+  },
+  "missions": {
+    "claim": "수령",
+    "claimedStarterToast": "{title} 수령 — {deck} 해금",
+    "claimedToast": "{title} 수령 (+{reward})",
+    "completeToast": "미션 완료: {title}",
+    "daily": {
+      "completeAll": "일일 미션을 모두 완료",
+      "openAllBoosters": "일일 부스터 팩을 모두 개봉",
+      "rankedMatch": "랭크 매치 1회 플레이",
+      "useStamp": "매치 중 스탬프 사용"
+    },
+    "empty": "이 탭에 미션이 없습니다.",
+    "loading": "미션 불러오는 중…",
+    "milestone": {
+      "cards1200": "카드 1,200장 보유",
+      "cards1600": "카드 1,600장 보유",
+      "cards400": "카드 400장 보유",
+      "cards800": "카드 800장 보유",
+      "profileBanner": "프로필 배너 변경",
+      "profileStamps": "즐겨찾는 스티커 설정",
+      "ranked1": "랭크 매치 1회 플레이",
+      "ranked10": "랭크 매치 10회 플레이",
+      "ranked100": "랭크 매치 100회 플레이",
+      "ranked5": "랭크 매치 5회 플레이",
+      "ranked50": "랭크 매치 50회 플레이",
+      "unranked1": "언랭크 매치 1회 플레이",
+      "winAqours": "Aqours 전용 메인 덱으로 승리",
+      "winHasunosora": "하스노소라 전용 메인 덱으로 승리",
+      "winLiella": "Liella! 전용 메인 덱으로 승리",
+      "winMuse": "μ's 전용 메인 덱으로 승리",
+      "winNijigasaki": "니지가사키 전용 메인 덱으로 승리"
+    },
+    "rewardStarter": "스타터 덱 선택",
+    "rewardStarterOwned": "이미 보유 중",
+    "starterPickCancel": "취소",
+    "starterPickConfirm": "스타터 해금",
+    "starterPickTitle": "스타터 덱 선택",
+    "statusActive": "진행 중",
+    "statusClaimed": "수령 완료",
+    "statusLocked": "잠김",
+    "statusReady": "수령 가능",
+    "tabDaily": "일일",
+    "tabMilestone": "마일스톤",
+    "title": "미션"
+  },
+  "stamps": {
+    "audio": "스탬프 오디오",
+    "audioMenu": "스탬프 보이스 클립",
+    "cooldown": "잠시만 기다려 주세요…",
+    "done": "완료",
+    "editProfile": "즐겨찾는 스탬프 편집",
+    "empty": "스탬프가 없습니다.",
+    "favoritesEmpty": "즐겨찾기가 없습니다 — 옵션에서 설정하거나 스탬프의 ☆를 누르세요.",
+    "pickerTitle": "스탬프 보내기",
+    "profileCount": "{n} / {max} 선택됨",
+    "profileFull": "즐겨찾는 스탬프는 최대 {max}개까지 저장할 수 있습니다.",
+    "profileHint": "PvP에서 스탬프를 보낼 때 ★ 즐겨찾기 탭에 표시됩니다.",
+    "profileHintEmpty": "선택 사항 — 매치에서 빠르게 쓰려면 스탬프를 최대 20개까지 고르세요.",
+    "profilePickLead": "스탬프를 눌러 추가/제거 (최대 20). PvP의 ★ 즐겨찾기 탭에서 사용됩니다.",
+    "profilePickTitle": "즐겨찾는 스탬프",
+    "profileSection": "즐겨찾는 스탬프",
+    "send": "💬 스탬프",
+    "tabEn": "English",
+    "tabFavorites": "★ 즐겨찾기",
+    "tabJa": "日本語"
+  },
+  "ui": {
+    "fullscreen": "전체 화면",
+    "rankedSearch": "랭크 검색",
+    "casualSearch": "캐주얼 검색",
+    "skipToResults": "결과로 건너뛰기",
+    "clickToOpen": "클릭하여 열기"
   }
 }
