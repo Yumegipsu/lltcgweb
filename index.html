@@ -482,7 +482,14 @@ body.tutorial-mode.tut-pin-card-info #card-hover-panel .hc-empty{display:none}
 body.tutorial-mode #hand-row .hcard.tut-hand-sel{
   outline:2px solid var(--pink);outline-offset:2px;
   box-shadow:0 0 12px rgba(255,107,168,.45),0 0 22px rgba(56,161,105,.35);
-  border-color:rgba(56,161,105,.85);z-index:8;transform:none!important;
+  border-color:rgba(56,161,105,.85);z-index:8;
+}
+body.tutorial-mode #hand-row .hcard.tut-hand-sel:not(.play-sel){
+  transform:none!important;
+}
+body.tutorial-mode #hand-row .hcard.tut-hand-sel.play-sel{
+  border-color:rgba(56,161,105,.9);
+  box-shadow:0 0 22px rgba(56,161,105,.65),0 10px 28px rgba(0,0,0,.5),0 0 12px rgba(255,107,168,.35);
 }
 body.tutorial-mode #sb-activatable-wrap.tut-show{outline:2px solid rgba(255,107,168,.35);border-radius:10px}
 
@@ -20028,7 +20035,8 @@ function syncHandSelectionClasses(s, myId) {
     const card = hand.find(c => c.instance_id === iid);
     if (!card) return;
     const liveSelected = livePick && G.liveSel.includes(iid);
-    const tutPinned = G.isTutorial && iid === G.tutPreviewIid;
+    // Live tutorial: never suppress play-sel — guided cards must raise like a normal select.
+    const tutPinned = G.isTutorial && !G.tutorialLive && iid === G.tutPreviewIid;
     d.classList.toggle('play-sel', !tutPinned && (G.selCard === iid || liveSelected));
     d.classList.toggle('hover-sel', G.hoverCardId === iid && !liveSelected);
   d.classList.toggle('playable', card.card_type === 'メンバー' && isMe && isMain && effectiveCost(card, hand) <= ae);
@@ -29091,7 +29099,7 @@ function paintHandCard(d, card, s, myId) {
   const hand = s?.players?.[myId]?.hand || [];
   const livePick = isLiveSetSelecting(s, myId);
   const liveSelected = livePick && G.liveSel.includes(card.instance_id);
-  const tutPinned = G.isTutorial && card.instance_id === G.tutPreviewIid;
+  const tutPinned = G.isTutorial && !G.tutorialLive && card.instance_id === G.tutPreviewIid;
   d.classList.toggle('card-arriving', !!(G._animHideIids?.has(card.instance_id)));
   d.classList.toggle('dragging-source', G.drag?.iid === card.instance_id);
   d.classList.toggle('play-sel', !tutPinned && (G.selCard === card.instance_id || liveSelected));
@@ -30100,11 +30108,13 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
       : (me?.energy_zone || []).filter(energyChipActive).length;
     const bc = mode === 'baton' ? batonPlayCostWithBestDouble(me, card, slot, exist, ec) : null;
     const slotCost = mode === 'baton' ? bc : ec;
-    const canDo = mode === 'empty'
+    const canDo = (mode === 'empty'
       ? slotAe >= ec
       : (mode === 'baton'
         ? canAffordBatonWithOptionalDouble(me, card, slot, exist, slotAe, ec)
-        : !!mode && slotAe >= slotCost);
+        : !!mode && slotAe >= slotCost))
+      && !(G.tutorialLive && window.TutorialInteractive?.playSlotAllowed
+        && !TutorialInteractive.playSlotAllowed(slot));
     const b = document.createElement('button');
     b.className = 'btn-smol';
     b.appendChild(document.createTextNode(slotLabel(slot, false)));
@@ -30133,7 +30143,7 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
 
 function refreshHandPreviewPanel(card, s, myId) {
   if (!card) return;
-  if (G.isTutorial) {
+  if (G.isTutorial && !G.tutorialLive) {
     const pinned = G.tutPreviewIid && document.body.classList.contains('tut-pin-card-info');
     if (!pinned || card.instance_id !== G.tutPreviewIid) return;
   }
@@ -30154,7 +30164,8 @@ function pinnedHandPreviewIid() {
 }
 
 function showHoverCardPreview(card, s, myId) {
-  if (G.isTutorial || !card) return;
+  // Slideshow tutorial freezes board chrome; live tutorial needs normal hover/select UX.
+  if ((G.isTutorial && !G.tutorialLive) || !card) return;
   if (G.drag && tcgMobileViewportActive()) return;
   const pinned = pinnedHandPreviewIid();
   if (pinned && pinned !== card.instance_id) return;
@@ -30167,7 +30178,8 @@ function showHoverCardPreview(card, s, myId) {
 
 function clearHoverCardPreview() {
   if (G.drag && !tcgMobileViewportActive()) return;
-  if (G.isTutorial && G.tutPreviewIid && document.body.classList.contains('tut-pin-card-info')) return;
+  // Only freeze the pinned info panel during slideshow / non-interactive pins.
+  if (G.isTutorial && !G.tutorialLive && G.tutPreviewIid && document.body.classList.contains('tut-pin-card-info')) return;
   if (G.selCard && G.gameState) {
     const card = findHand(G.selCard, G.gameState, G.playerId);
     if (card) {
@@ -30271,7 +30283,7 @@ function startHandDrag(hp, e) {
   G.selCard = null;
   G.previewSlot = null;
   if (tcgMobileViewportActive()) clearHoverCardPreview();
-  else if (!G.isTutorial) showHoverCardPreview(card, s, myId);
+  else if (!G.isTutorial || G.tutorialLive) showHoverCardPreview(card, s, myId);
   const r = srcEl.getBoundingClientRect();
   const wrap = document.createElement('div');
   wrap.className = 'drag-hand-wrap';
@@ -34034,6 +34046,22 @@ function applyTutorialStepUi(step) {
   const myId = G.playerId || 'p1';
   if (!s) return;
   const cardRef = step.select_hand || step.preview_card;
+  // Live action steps that play from hand need normal select/drag UX — outline the
+  // guided card, but do not pin the info panel or suppress play-sel.
+  const liveHandPlay = G.tutorialLive && step.kind === 'action'
+    && (step.goal?.type === 'play_member'
+      || step.goal?.type === 'set_live'
+      || step.goal?.type === 'end_live_set');
+  if (liveHandPlay) {
+    document.body.classList.remove('tut-pin-card-info');
+    G.tutPreviewIid = null;
+    applyTutorialHandHighlight(null);
+    if (cardRef) {
+      const found = findTutorialPreviewCard(s, myId, cardRef);
+      if (found?.zone === 'hand') applyTutorialHandHighlight(found.card.instance_id);
+    }
+    return;
+  }
   const pinPanel = !!cardRef
     || (step.highlights || []).some(h => h.target === 'card-hover-panel');
   document.body.classList.toggle('tut-pin-card-info', pinPanel);
