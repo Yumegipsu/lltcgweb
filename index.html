@@ -7771,7 +7771,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=37"></script>
+<script src="i18n.js?v=38"></script>
 <script src="log_i18n.js?v=7"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=10"></script>
@@ -7779,7 +7779,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
 <script src="client/js/game-sync.js?v=12"></script>
-<script src="client/js/state-apply.js?v=25"></script>
+<script src="client/js/state-apply.js?v=26"></script>
 <script src="client/js/stamps.js?v=13"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=25"></script>
@@ -32698,24 +32698,28 @@ function syncWinRankedPrReward(s, win) {
 function showWin(s){
   dismissAllGameplayOverlays();
   clearActiveGameSession();
-  const myId = s.my_id || G.playerId;
+  const isSpec = !!G.isSpectator;
+  const myId = isSpec ? null : (s.my_id || G.playerId);
   if (myId) G.playerId = myId;
   // Require a real seat + winner — null===null must not count as a win.
   const win = !!(myId && s.winner && s.winner === myId);
   const wName=s.players?.[s.winner]?.name||'?';
-  const me=s.players?.[myId], opp=s.players?.[myId==='p1'?'p2':'p1'];
+  const p1 = s.players?.p1;
+  const p2 = s.players?.p2;
+  const me=isSpec ? (s.players?.[G.playerId] || p1) : s.players?.[myId];
+  const opp=isSpec
+    ? (s.players?.[G.playerId === 'p1' ? 'p2' : 'p1'] || p2)
+    : s.players?.[myId==='p1'?'p2':'p1'];
   const oppName=opp?.name||'Player';
   const pvp = !!(s.pvp && !s.cpu_solo) || isHumanPvpFinishedState(s);
   const resignedBy=gameResignedBy(s);
-  const iResigned=resignedBy===myId;
-  const oppResigned=!!resignedBy&&!iResigned;
+  const iResigned=!isSpec && resignedBy===myId;
   const disconnectedPid=s.disconnected_player||null;
-  const iDisconnected=disconnectedPid===myId;
-  const oppDisconnected=!!disconnectedPid&&!iDisconnected;
+  const iDisconnected=!isSpec && disconnectedPid===myId;
   G.lastFinishedMode = s.mode || null;
   G.lastFinishedPvp = pvp;
-  G.lastFinishedRematch = captureRematchSettings(s);
-  if (G.roomId && G.token && !G.isTutorial && !G.replayMode) {
+  G.lastFinishedRematch = isSpec ? null : captureRematchSettings(s);
+  if (G.roomId && G.token && !G.isTutorial && !G.replayMode && !isSpec) {
     G.lastFinishedExport = {
       roomId: G.roomId,
       token: G.token,
@@ -32728,7 +32732,26 @@ function showWin(s){
       pvp,
     };
   }
-  if (s.end_reason === 'disconnect') {
+  if (isSpec) {
+    el('wtitle').textContent = t('win.spectatorWinner', { name: wName });
+    el('wtitle').style.color = 'var(--pink)';
+    if (s.end_reason === 'disconnect') {
+      const discName = s.players?.[disconnectedPid]?.name || '?';
+      el('wsub').textContent = t('win.disconnectedOpp', { name: discName });
+    } else if (resignedBy) {
+      const rName = s.players?.[resignedBy]?.name || '?';
+      el('wsub').textContent = t('win.oppResigned', { name: rName });
+    } else {
+      el('wsub').textContent = t('win.threeLives', { name: wName });
+    }
+    el('wstats').textContent = t('win.spectatorStatsLine', {
+      turn: s.turn || '?',
+      p1: p1?.name || 'P1',
+      p1Lives: (p1?.success_lives || []).length,
+      p2: p2?.name || 'P2',
+      p2Lives: (p2?.success_lives || []).length,
+    });
+  } else if (s.end_reason === 'disconnect') {
     el('wtitle').textContent = win ? t('win.youWin') : t('win.youLose');
     el('wtitle').style.color = win ? 'var(--pink)' : 'rgba(255,255,255,.5)';
     el('wsub').textContent = iDisconnected
@@ -32743,26 +32766,36 @@ function showWin(s){
     el('wtitle').style.color = win ? 'var(--pink)' : 'rgba(255,255,255,.5)';
     el('wsub').textContent = t('win.threeLives', { name: wName });
   }
-  el('wstats').textContent = t('win.statsLine', {
-    turn: s.turn || '?',
-    yours: (me?.success_lives || []).length,
-    opp: (opp?.success_lives || []).length,
-  });
-  syncWinRankedPrReward(s, win);
+  if (!isSpec) {
+    el('wstats').textContent = t('win.statsLine', {
+      turn: s.turn || '?',
+      yours: (me?.success_lives || []).length,
+      opp: (opp?.success_lives || []).length,
+    });
+  }
+  if (isSpec) {
+    const rewardEl = el('win-pr-reward');
+    if (rewardEl) { rewardEl.hidden = true; rewardEl.textContent = ''; }
+  } else {
+    syncWinRankedPrReward(s, win);
+  }
+  el('btn-again').hidden = isSpec;
   el('btn-win-hub').hidden = false;
-  el('btn-win-leaderboard').hidden = !(pvp && s.mode === 'ranked');
+  el('btn-win-leaderboard').hidden = isSpec || !(pvp && s.mode === 'ranked');
   const saveReplayBtn = el('btn-win-save-replay');
-  saveReplayBtn.hidden = !replaySaveEnabled();
+  saveReplayBtn.hidden = isSpec || !replaySaveEnabled();
   syncWinSaveReplayButton();
-  el('btn-again').textContent = (pvp && (s.mode === 'ranked' || G.casualRandomMatch))
-    ? t('win.findAnother')
-    : (isFriendPvpRematchEligible(G.lastFinishedRematch) ? t('win.rematchOffer') : t('win.playAgain'));
-  el('btn-again').disabled = false;
+  if (!isSpec) {
+    el('btn-again').textContent = (pvp && (s.mode === 'ranked' || G.casualRandomMatch))
+      ? t('win.findAnother')
+      : (isFriendPvpRematchEligible(G.lastFinishedRematch) ? t('win.rematchOffer') : t('win.playAgain'));
+    el('btn-again').disabled = false;
+  }
   const remHint = el('win-rematch-hint');
   if (remHint) { remHint.hidden = true; remHint.textContent = ''; }
   syncWinDebugTools(s);
   el('overlay-win').classList.add('open');
-  sfxPlay(win ? 'win' : 'lose');
+  sfxPlay(isSpec || win ? 'win' : 'lose');
 }
 // ── TUTORIAL MODE ────────────────────────────────────
 const TUTORIAL_TARGETS = {
@@ -34374,6 +34407,11 @@ async function onWinPlayAgain() {
 }
 
 function onWinReturnToMenu() {
+  if (G.isSpectator) {
+    el('overlay-win')?.classList.remove('open');
+    void leaveSpectatorMode();
+    return;
+  }
   if (G.lastRankedPrReward && typeof queueRankedPrReward === 'function') {
     queueRankedPrReward(G.lastRankedPrReward);
   }
@@ -34567,6 +34605,7 @@ async function leaveSpectatorMode(opts = {}) {
   }
   clearSpectatorSession();
   stopPoll();
+  el('overlay-win')?.classList.remove('open');
   document.body.classList.remove('tcg-spectator-mode');
   const bar = el('spectate-bar');
   if (bar) bar.hidden = true;

@@ -157,13 +157,44 @@
   global.applyFinishedState = async function applyFinishedState(s, prev) {
     if (G.isSpectator) {
       G.lastSeq = s.seq;
-      G.gameState = s;
-      renderGame(s, { skipLog: true });
-      await leaveSpectatorMode({
-        toastMsg: (global.LLTCG_I18N && typeof global.LLTCG_I18N.t === 'function')
-          ? global.LLTCG_I18N.t('spectate.matchEnded')
-          : 'Match ended.',
-      });
+      if (typeof alignSpectatorStageBoard === 'function') {
+        s = alignSpectatorStageBoard(s);
+      }
+      const cur = document.querySelector('.screen.active')?.id;
+      if (cur !== 'screen-game') showScr('game');
+
+      const prevLogLen = prev?.log?.length || 0;
+      const newEntries = (s.log || []).slice(prevLogLen);
+      const resigned = typeof gameResignedBy === 'function' && !!gameResignedBy(s);
+      let playedFinalLiveRound = false;
+      if (!resigned && typeof maybePlayFinalLiveRoundPresentation === 'function') {
+        playedFinalLiveRound = await maybePlayFinalLiveRoundPresentation(prev, s, newEntries);
+      }
+
+      abortGameplayPresentation();
+      stopPoll();
+      // Drop resume session so refresh does not rejoin a finished room; keep G.token for leave.
+      if (typeof clearSpectatorSession === 'function') clearSpectatorSession();
+
+      if (typeof shouldPlaySuccessLiveTriumph === 'function' && shouldPlaySuccessLiveTriumph(prev, s)) {
+        G.animating = true;
+        try {
+          G.gameState = s;
+          renderGame(s, { skipLog: true });
+          await playSuccessLiveTriumphCelebration(s, G.playerId);
+        } finally {
+          G.animating = false;
+        }
+      } else if (!playedFinalLiveRound) {
+        G.gameState = s;
+        renderGame(s, { skipLog: true });
+      }
+
+      if (typeof catchUpGameLog === 'function') catchUpGameLog(s, prev);
+      if (prev && !resigned && typeof flushPostLiveLogBanners === 'function') {
+        flushPostLiveLogBanners(prev, s, G.playerId);
+      }
+      showWin(s);
       return;
     }
     G.lastSeq = s.seq;
