@@ -9478,6 +9478,7 @@ function prepareClientReconnectState(s) {
   G._spectacleRecoveryPending = null;
   G._skipJudgeOverlay = false;
   G._liveRevealFlips = new Set();
+  G._liveStorageRevealRunning = false;
   G._stageRevealFlips = null;
   G._handRevealFlips = null;
   G._animHideIids = null;
@@ -13573,6 +13574,7 @@ function abortGameplayPresentation(opts = {}) {
   G._livePostRevealBoard = null;
   G._liveStorageOutcomePending = false;
   G._liveRevealFlips = new Set();
+  G._liveStorageRevealRunning = false;
   G.animating = false;
   G._livePollHold = false;
   G._liveRoundPlaybackActive = false;
@@ -16302,6 +16304,7 @@ let G = {
   _liveJudgeOverlayTimer:null,
   _liveJudgeScores:null,
   _liveRevealFlips:null,
+  _liveStorageRevealRunning:false,
   _perfSpectacleActive:false,
   _perfSpectacleDoneKey:null,
   _perfSpectacleDoneTurns:null,
@@ -27841,30 +27844,14 @@ function resolveLiveRevealFlipKeys(prev, next, myId = G.playerId) {
     : new Set();
 }
 
-/** Drop stale flip keys during stable main-phase renders (defense in depth). */
+/** Drop stale flip keys outside the active reveal sequence (defense in depth). */
 function liveStorageFlipKeysForRender(s, rawKeys, myId = G.playerId) {
   if (!rawKeys?.size) return rawKeys || new Set();
   if (typeof shouldSuppressLiveStorageFlipsNow === 'function' && shouldSuppressLiveStorageFlipsNow(s)) {
     return new Set();
   }
-  // Only keep keys live during active round playback — sticky post-reveal boards
-  // must not re-arm flips into Main / later phases.
-  if (G._liveRoundPlaybackActive) return rawKeys;
-  if (!isMainOrActivePhase(s?.phase)) {
-    // Outside Main, still drop keys for cards already face-up on the server.
-    const oppId = myId === 'p1' ? 'p2' : 'p1';
-    const filteredPipeline = new Set();
-    for (const key of rawKeys) {
-      if (!String(key).startsWith(`${oppId}:`)) continue;
-      const iid = String(key).slice(oppId.length + 1);
-      const card = findCardInState(s, iid, oppId);
-      if (card?.revealed) continue;
-      filteredPipeline.add(key);
-    }
-    return filteredPipeline;
-  }
-  const showTurn = s?.turn;
-  if (showTurn != null && liveStorageRevealDoneForTurn(showTurn)) return new Set();
+  // Only keep keys while the reveal sequence is actively running.
+  if (!G._liveStorageRevealRunning && !G._liveRoundPlaybackActive) return new Set();
   const oppId = myId === 'p1' ? 'p2' : 'p1';
   const filtered = new Set();
   for (const key of rawKeys) {
@@ -28186,71 +28173,77 @@ async function runLiveStorageRevealSequence(prev, final, myId, opts = {}) {
     return true;
   }
 
-  if (!opts.skipIntroBanner && liveStorageHasCards(playback) && liveRoundHasLiveCards(playback)
-      && !isLiveSetPhase(final?.phase)) {
-    queuePerformancePhaseBanner(inferLiveShowTurn(prev, final), prev, final);
-  }
+  // Gate flip CSS: only this sequence may arm/start live-storage flips.
+  G._liveStorageRevealRunning = true;
+  try {
+    if (!opts.skipIntroBanner && liveStorageHasCards(playback) && liveRoundHasLiveCards(playback)
+        && !isLiveSetPhase(final?.phase)) {
+      queuePerformancePhaseBanner(inferLiveShowTurn(prev, final), prev, final);
+    }
 
-  if (final?.phase && !isLiveSetPhase(final.phase)) {
-    playback.phase = final.phase;
-  }
+    if (final?.phase && !isLiveSetPhase(final.phase)) {
+      playback.phase = final.phase;
+    }
 
-  G._liveFlipScheduled = new Set();
-  G._liveStorageRevealAnimCount = 0;
-  G._liveRevealFlips = flipKeys;
-  G.gameState = playback;
-  renderGame(playback, { skipLog: true });
-  flushLiveStorageFlipScheduling(myId);
-  await Promise.all(preload);
-  await waitForBannersIdle();
-  flushLiveStorageFlipScheduling(myId);
-
-  const flipWait = LIVE_STORAGE_FLIP_MS
-    + Math.max(0, flipKeys.size - 1) * LIVE_STORAGE_FLIP_STAGGER_MS;
-  if (flipKeys.size && !(G._activeCardFlips || G._liveStorageRevealAnimCount)) {
+    G._liveFlipScheduled = new Set();
+    G._liveStorageRevealAnimCount = 0;
+    G._liveRevealFlips = flipKeys;
+    G.gameState = playback;
+    renderGame(playback, { skipLog: true });
     flushLiveStorageFlipScheduling(myId);
-  }
-  await sleep(flipWait);
-  await waitForCardFlipsIdle();
-  if (flipKeys.size && !G._liveStorageRevealAnimCount && !liveStorageRevealFlipsActive(flipKeys, myId)) {
-    TCG_DEBUG.warn('live', 'reveal sequence: flip not started — retry scheduling', { flipKeys: flipKeys.size });
+    await Promise.all(preload);
+    await waitForBannersIdle();
     flushLiveStorageFlipScheduling(myId);
+
+    const flipWait = LIVE_STORAGE_FLIP_MS
+      + Math.max(0, flipKeys.size - 1) * LIVE_STORAGE_FLIP_STAGGER_MS;
+    if (flipKeys.size && !(G._activeCardFlips || G._liveStorageRevealAnimCount)) {
+      flushLiveStorageFlipScheduling(myId);
+    }
     await sleep(flipWait);
     await waitForCardFlipsIdle();
-  }
-  await sleep(80);
+    if (flipKeys.size && !G._liveStorageRevealAnimCount && !liveStorageRevealFlipsActive(flipKeys, myId)) {
+      TCG_DEBUG.warn('live', 'reveal sequence: flip not started — retry scheduling', { flipKeys: flipKeys.size });
+      flushLiveStorageFlipScheduling(myId);
+      await sleep(flipWait);
+      await waitForCardFlipsIdle();
+    }
+    await sleep(80);
 
-  for (const pid of ['p1', 'p2']) {
-    const zone = playback.players?.[pid]?.live_zone || [];
-    playback.players[pid].live_zone = zone.map(c => {
-      const full = findCardInState(final, c.instance_id, pid);
-      return full ? { ...c, ...full } : c;
-    });
-  }
-  G.gameState = playback;
-
-  if (opts.deferWrDiscards) {
-    G._livePostRevealBoard = deepCloneState(playback);
+    for (const pid of ['p1', 'p2']) {
+      const zone = playback.players?.[pid]?.live_zone || [];
+      playback.players[pid].live_zone = zone.map(c => {
+        const full = findCardInState(final, c.instance_id, pid);
+        return full ? { ...c, ...full } : c;
+      });
+    }
     G.gameState = playback;
-  } else {
-    await playLiveStorageWrDiscards(playback, final, myId, {
-      initialDelayMs: LIVE_BLUFF_WR_DELAY_MS,
-      skipInitialRender: true,
-    });
-  }
 
-  G._liveRevealFlips = new Set();
-  G._liveFlipScheduled = new Set();
-  sweepStaleLiveStorageFlipDom(playback, myId);
-  let revealAnimRan = flipKeys.size === 0 || (G._liveStorageRevealAnimCount || 0) > 0;
-  if (!revealAnimRan && flipKeys.size && liveStorageRevealDomComplete(flipKeys, myId)) {
-    revealAnimRan = true;
-    TCG_DEBUG.log('live', 'reveal sequence: DOM already face-up', { flipKeys: flipKeys.size, showTurn });
+    if (opts.deferWrDiscards) {
+      G._livePostRevealBoard = deepCloneState(playback);
+      G.gameState = playback;
+    } else {
+      await playLiveStorageWrDiscards(playback, final, myId, {
+        initialDelayMs: LIVE_BLUFF_WR_DELAY_MS,
+        skipInitialRender: true,
+      });
+    }
+
+    G._liveRevealFlips = new Set();
+    G._liveFlipScheduled = new Set();
+    sweepStaleLiveStorageFlipDom(playback, myId);
+    let revealAnimRan = flipKeys.size === 0 || (G._liveStorageRevealAnimCount || 0) > 0;
+    if (!revealAnimRan && flipKeys.size && liveStorageRevealDomComplete(flipKeys, myId)) {
+      revealAnimRan = true;
+      TCG_DEBUG.log('live', 'reveal sequence: DOM already face-up', { flipKeys: flipKeys.size, showTurn });
+    }
+    if (revealAnimRan && (flipKeys.size || !oppFaceDownPending)) {
+      markLiveStorageRevealDone(showTurn);
+    }
+    return revealAnimRan && (flipKeys.size > 0 || !oppFaceDownPending);
+  } finally {
+    G._liveStorageRevealRunning = false;
   }
-  if (revealAnimRan && (flipKeys.size || !oppFaceDownPending)) {
-    markLiveStorageRevealDone(showTurn);
-  }
-  return revealAnimRan && (flipKeys.size > 0 || !oppFaceDownPending);
 }
 
 // LIVE Performance spectacle: client/js/spectacle.js (loaded after this script closes)
@@ -29368,6 +29361,13 @@ function renderLiveSlots(prefix, zone, isMe, pid){
     if (existingCard?.dataset.iid === card.instance_id) {
       if (existingCard.classList.contains('live-storage-flip')) {
         existingCard.classList.toggle('card-arriving', !!(G._animHideIids?.has(card.instance_id)));
+        // Outside the reveal sequence, collapse leftover flip shells (never re-arm).
+        if (typeof shouldSuppressLiveStorageFlipsNow === 'function' && shouldSuppressLiveStorageFlipsNow(s)) {
+          if (settleLiveStorageFlipCard(existingCard, card)) {
+            applyCardFoilFx(existingCard, card);
+          }
+          continue;
+        }
         const flipActive = doFlip || G._liveFlipScheduled?.has(flipKey);
         if (!flipActive && settleStaleLiveStorageFlipCard(existingCard, card, s, flipKeys, flipKey)) {
           applyCardFoilFx(existingCard, card);
@@ -34213,6 +34213,7 @@ function freshGameGlobals() {
     _liveJudgeOverlayTimer:null,
     _liveJudgeScores:null,
     _liveRevealFlips:null,
+    _liveStorageRevealRunning:false,
     _perfSpectacleActive:false,
     _perfSpectacleDoneKey:null,
     _perfSpectacleDoneTurns:null,

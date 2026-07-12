@@ -704,49 +704,53 @@ function settleStaleLiveStorageFlipCard(cardEl, card, s, flipKeys, flipKey) {
   return settleLiveStorageFlipCard(cardEl, card);
 }
 
-/** Remove opponent live-storage flip shells left over after performance / main-phase polls. */
+/** Remove live-storage flip shells left over after performance / main-phase polls. */
 function sweepStaleLiveStorageFlipDom(s, myId = G.playerId) {
   if (!s?.players || G._perfSpectacleActive || G._liveSpectacleGateRunning) return false;
+  if (G._liveStorageRevealRunning) return false;
   if (G._liveRoundPlaybackActive && G._liveRevealFlips?.size) return false;
   const flipKeys = G._liveRevealFlips || new Set();
   const oppId = myId === 'p1' ? 'p2' : 'p1';
-  const zone = s.players[oppId]?.live_zone || [];
   let settled = false;
-  for (let i = 0; i < 3; i++) {
-    const card = liveZoneCardAtSlot(zone, i);
-    const cardEl = el(`opp-live-${i}`)?.querySelector('.lcard.live-card');
-    if (!card || !cardEl) continue;
-    const flipKey = `${oppId}:${card.instance_id}`;
-    if (settleStaleLiveStorageFlipCard(cardEl, card, s, flipKeys, flipKey)) settled = true;
+  for (const [prefix, pid] of [['my', myId], ['opp', oppId]]) {
+    const zone = s.players[pid]?.live_zone || [];
+    for (let i = 0; i < 3; i++) {
+      const card = liveZoneCardAtSlot(zone, i);
+      const cardEl = el(`${prefix}-live-${i}`)?.querySelector('.lcard.live-card');
+      if (!card || !cardEl) continue;
+      const flipKey = `${pid}:${card.instance_id}`;
+      if (settleStaleLiveStorageFlipCard(cardEl, card, s, flipKeys, flipKey)) settled = true;
+    }
+    if (settled) layoutLiveSlots(prefix);
   }
-  if (settled) layoutLiveSlots('opp');
   return settled;
 }
 
 function clearStaleLiveStorageFlipState(prev, next) {
   if (!next || G._liveRoundPlaybackActive || G._perfSpectacleActive || G._liveSpectacleGateRunning) return;
+  if (G._liveStorageRevealRunning) return;
   if (!isMainOrActivePhase(next.phase)) return;
   if (detectPendingLiveSpectacleTurn(prev, next) != null) return;
-  const showTurn = inferLiveShowTurn(prev, next);
-  const revealDone = showTurn != null && liveStorageRevealDoneForTurn(showTurn);
-  const staleMain = shouldIgnoreStaleLivePerfSignals(prev, next);
-  if (!revealDone && !staleMain) {
-    sweepStaleLiveStorageFlipDom(next, G.playerId);
-    return;
-  }
+  // Always kill sticky flip keys / ghost boards once Main is stable — do not wait
+  // for reveal-done bookkeeping (missed marks used to leave flips replaying forever).
   G._liveFlipGen = (G._liveFlipGen || 0) + 1;
   G._liveRevealFlips = new Set();
   G._liveFlipScheduled = new Set();
   G._liveStorageRevealAnimCount = 0;
   G._liveSetStorageBaseline = null;
-  // Sticky post-reveal boards keep ghost storage + flip keys alive into Main.
   if (!G._liveWrDiscardInProgress) {
     G._livePostRevealBoard = null;
     G._liveStorageOutcomePending = false;
   }
+  const showTurn = inferLiveShowTurn(prev, next);
+  const staleMain = shouldIgnoreStaleLivePerfSignals(prev, next);
   if (staleMain) {
     G._deferPerfSpectaclePrev = null;
     if (!G._livePostRevealBoard) G._liveSetStorageBaseline = null;
+  }
+  if (showTurn != null && !liveStorageRevealDoneForTurn(showTurn)
+      && (staleMain || isMainOrActivePhase(prev?.phase))) {
+    markLiveStorageRevealDone(showTurn);
   }
   sweepStaleLiveStorageFlipDom(next, G.playerId);
 }
@@ -1318,19 +1322,18 @@ function clearLiveRoundTransientCaches() {
   G._liveRevealFlips = new Set();
   G._liveFlipScheduled = new Set();
   G._liveStorageRevealAnimCount = 0;
+  G._liveStorageRevealRunning = false;
 }
 
 /** True when live-storage flip CSS must not start (stable Main after reveal, etc.). */
 function shouldSuppressLiveStorageFlipsNow(s = G.gameState) {
-  if (G._liveRoundPlaybackActive || G._liveSpectacleGateRunning || G._perfSpectacleActive) {
-    return false;
-  }
-  if (G._liveWrDiscardInProgress) return true;
-  if (!isMainOrActivePhase(s?.phase)) return false;
-  const turn = s?.turn;
-  if (turn != null && liveStorageRevealDoneForTurn(turn)) return true;
-  // Main/active with no active flip set — never invent flips from sticky DOM.
-  return !(G._liveRevealFlips?.size);
+  // Only runLiveStorageRevealSequence may arm/start flip CSS. Sticky flip keys alone
+  // must never keep flips alive into Main / Live Start / Success — that caused
+  // random re-flips on both players' live storage during later phases.
+  if (G._liveStorageRevealRunning) return false;
+  // Let an already-started flip CSS transition finish (count bumped after .revealed).
+  if ((G._liveStorageRevealAnimCount || 0) > 0) return false;
+  return true;
 }
 
 /** Turn of the most recent unreplayed empty LIVE skip in the full log (log+0 batched polls). */
@@ -3110,7 +3113,8 @@ function ensureLiveRoundStateCommitted(prev, next, myId) {
   }
   const staleLiveSet = isLiveSetPhase(cur.phase) && !isLiveSetPhase(next.phase);
   const behindSeq = (cur.seq ?? 0) < (next.seq ?? 0);
-  if (!staleLiveSet && !behindSeq) return;
+  const turnDesync = cur.active_player !== next.active_player || cur.phase !== next.phase;
+  if (!staleLiveSet && !behindSeq && !turnDesync) return;
   G.gameState = next;
   const moves = prev ? diffCardMoves(prev, next) : [];
   renderGame(next, {

@@ -298,10 +298,30 @@
       ?? detectPendingLiveSpectacleTurn(prev, s);
     const spectacleGateActive = pendingSpectacleTurn != null && !liveSpectacleDoneForTurn(pendingSpectacleTurn);
 
+    const skipPromptForLive = typeof shouldDeferPromptForLivePresentation === 'function'
+      && shouldDeferPromptForLivePresentation(s, G.playerId);
+    const commitServerBoardToUi = (board) => {
+      if (!board || replayForward) return;
+      G.gameState = board;
+      renderGame(board, { skipLog: true, skipPrompt: skipPromptForLive });
+    };
+    const uiBehindServer = (board = G.gameState) => {
+      if (!board) return true;
+      if ((board.seq ?? 0) < (s.seq ?? 0)) return true;
+      if (board.phase !== s.phase) return true;
+      if (board.active_player !== s.active_player) return true;
+      const br = board.live_ready || null;
+      const sr = s.live_ready || null;
+      if (!!br !== !!sr) return true;
+      if (br && sr && (br.p1 !== sr.p1 || br.p2 !== sr.p2)) return true;
+      return false;
+    };
+
     if (spectacleGateActive && (G.gameState?.seq ?? 0) < (s.seq ?? 0)
         && typeof abortStuckLiveRoundPlayback === 'function') {
       abortStuckLiveRoundPlayback('behind server during spectacle');
-      G.gameState = s;
+      // Must render — committing seq without paint leaves LIVE chrome stuck until refresh.
+      commitServerBoardToUi(s);
     }
 
     if (await runLiveSpectacleGate(livePrev, s, newEntries, G.playerId)) {
@@ -320,14 +340,14 @@
     }
 
     if (spectacleGateActive && !liveSpectacleDoneForTurn(pendingSpectacleTurn)) {
-      if (!replayForward && !G.animating && !G._liveSpectacleGateRunning && !G._liveRoundPlaybackActive
-          && (G.gameState?.seq ?? 0) < (s.seq ?? 0)) {
-        G.gameState = s;
-        renderGame(s, {
-          skipLog: true,
-          skipPrompt: typeof shouldDeferPromptForLivePresentation === 'function'
-            && shouldDeferPromptForLivePresentation(s, G.playerId),
-        });
+      const stuckOnLiveSet = typeof isLiveSetPhase === 'function'
+        && isLiveSetPhase(G.gameState?.phase) && !isLiveSetPhase(s.phase);
+      if (stuckOnLiveSet && typeof abortStuckLiveRoundPlayback === 'function') {
+        abortStuckLiveRoundPlayback('stale live_set after server advance');
+        commitServerBoardToUi(s);
+      } else if (!replayForward && !G.animating && !G._liveSpectacleGateRunning && !G._liveRoundPlaybackActive
+          && uiBehindServer()) {
+        commitServerBoardToUi(s);
       }
       if (!replayForward && !G.animating && !G._liveSpectacleGateRunning
           && typeof shouldRecoverMissedLiveSpectacle === 'function'
