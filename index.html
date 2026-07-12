@@ -4277,12 +4277,39 @@ body:has(#screen-game.active) #casual-search-float{top:68px}
   background:url("bg/ptn.png") top center/200px 200px repeat,#bae4ff;color:#4a5c80;transform:none}
 .llc-menu-screen .options-danger{border-color:rgba(255,180,180,.65);color:#ffe4e6;background:rgba(120,24,48,.28)}
 .llc-menu-screen .options-danger:hover:not(:disabled){background:rgba(180,40,70,.45);color:#fff}
-.locale-wrap{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.82)}
+.locale-wrap{display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.82);position:relative}
 .locale-wrap label{font-weight:700;white-space:nowrap}
-.sel-locale{appearance:none;-webkit-appearance:none;background:rgba(8,16,32,.72);color:#fff;border:1px solid rgba(186,228,255,.35);border-radius:999px;padding:6px 28px 6px 12px;font:inherit;font-weight:700;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23fff' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
-.sel-locale:focus{outline:2px solid var(--pink);outline-offset:2px}
+.locale-picker{position:relative;min-width:0}
+.locale-picker-toggle{
+  appearance:none;-webkit-appearance:none;display:inline-flex;align-items:center;gap:8px;
+  background:rgba(8,16,32,.72);color:#fff;border:1px solid rgba(186,228,255,.35);border-radius:999px;
+  padding:6px 28px 6px 10px;font:inherit;font-weight:700;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23fff' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center}
+.locale-picker-toggle:focus{outline:2px solid var(--pink);outline-offset:2px}
+.locale-picker-toggle[aria-expanded="true"]{border-color:rgba(255,107,168,.65)}
+.locale-flag{
+  width:20px;height:14px;object-fit:cover;border-radius:2px;flex:0 0 auto;
+  border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);display:block}
+.locale-picker-current{white-space:nowrap}
+.locale-picker-menu{
+  position:absolute;top:calc(100% + 6px);left:0;z-index:40;min-width:100%;
+  display:flex;flex-direction:column;gap:4px;padding:6px;
+  border-radius:12px;border:1px solid rgba(255,255,255,.28);
+  background:rgba(8,16,32,.96);box-shadow:0 12px 28px rgba(0,0,0,.4);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.locale-picker-menu[hidden]{display:none!important}
+.locale-picker-option{
+  display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border-radius:8px;
+  border:1px solid transparent;background:transparent;color:#fff;font:inherit;font-weight:700;
+  cursor:pointer;text-align:left}
+.locale-picker-option:hover,
+.locale-picker-option:focus{background:rgba(255,107,168,.18);border-color:rgba(255,107,168,.35);outline:none}
+.locale-picker-option.is-active{background:rgba(255,107,168,.24);border-color:rgba(255,107,168,.55)}
 .logo-foot .locale-wrap{grid-column:1 / -1;margin-top:10px;justify-content:center;width:100%}
 .hub-top-actions .locale-wrap{margin-right:4px}
+.sel-locale{appearance:none;-webkit-appearance:none;background:rgba(8,16,32,.72);color:#fff;border:1px solid rgba(186,228,255,.35);border-radius:999px;padding:6px 28px 6px 12px;font:inherit;font-weight:700;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23fff' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.sel-locale:focus{outline:2px solid var(--pink);outline-offset:2px}
 /* Title logo row — centered art + news button on the right */
 .logo-row{
   display:grid;
@@ -6216,12 +6243,30 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
           <div class="locale-wrap">
             <label for="sel-locale-auth" data-i18n="lang.label">Language</label>
-            <select class="sel-locale" id="sel-locale-auth" aria-label="Language">
-              <option value="en" data-i18n="language.en">English</option>
-              <option value="ja" data-i18n="language.ja">日本語</option>
-              <option value="es" data-i18n="language.es">Español</option>
-              <option value="ko" data-i18n="language.ko">한국어</option>
-            </select>
+            <div class="locale-picker" data-locale-picker>
+              <button type="button" class="locale-picker-toggle" id="sel-locale-auth" aria-haspopup="listbox" aria-expanded="false" data-i18n-aria-label="lang.label">
+                <img class="locale-flag" src="assets/flags/US_United_States_rect.png" alt="" width="20" height="14" decoding="async">
+                <span class="locale-picker-current" data-i18n="language.en">English</span>
+              </button>
+              <div class="locale-picker-menu" role="listbox" hidden>
+                <button type="button" class="locale-picker-option" role="option" data-locale="en" aria-selected="true">
+                  <img class="locale-flag" src="assets/flags/US_United_States_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.en">English</span>
+                </button>
+                <button type="button" class="locale-picker-option" role="option" data-locale="ja" aria-selected="false">
+                  <img class="locale-flag" src="assets/flags/JP_Japan_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.ja">日本語</span>
+                </button>
+                <button type="button" class="locale-picker-option" role="option" data-locale="es" aria-selected="false">
+                  <img class="locale-flag" src="assets/flags/MX_Mexico_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.es">Español</span>
+                </button>
+                <button type="button" class="locale-picker-option" role="option" data-locale="ko" aria-selected="false">
+                  <img class="locale-flag" src="assets/flags/KR_South_Korea_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.ko">한국어</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -6627,12 +6672,30 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         <div class="hub-top-actions">
           <div class="locale-wrap">
             <label for="sel-locale-hub" data-i18n="lang.label">Language</label>
-            <select class="sel-locale" id="sel-locale-hub" aria-label="Language">
-              <option value="en" data-i18n="language.en">English</option>
-              <option value="ja" data-i18n="language.ja">日本語</option>
-              <option value="es" data-i18n="language.es">Español</option>
-              <option value="ko" data-i18n="language.ko">한국어</option>
-            </select>
+            <div class="locale-picker" data-locale-picker>
+              <button type="button" class="locale-picker-toggle" id="sel-locale-hub" aria-haspopup="listbox" aria-expanded="false" data-i18n-aria-label="lang.label">
+                <img class="locale-flag" src="assets/flags/US_United_States_rect.png" alt="" width="20" height="14" decoding="async">
+                <span class="locale-picker-current" data-i18n="language.en">English</span>
+              </button>
+              <div class="locale-picker-menu" role="listbox" hidden>
+                <button type="button" class="locale-picker-option" role="option" data-locale="en" aria-selected="true">
+                  <img class="locale-flag" src="assets/flags/US_United_States_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.en">English</span>
+                </button>
+                <button type="button" class="locale-picker-option" role="option" data-locale="ja" aria-selected="false">
+                  <img class="locale-flag" src="assets/flags/JP_Japan_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.ja">日本語</span>
+                </button>
+                <button type="button" class="locale-picker-option" role="option" data-locale="es" aria-selected="false">
+                  <img class="locale-flag" src="assets/flags/MX_Mexico_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.es">Español</span>
+                </button>
+                <button type="button" class="locale-picker-option" role="option" data-locale="ko" aria-selected="false">
+                  <img class="locale-flag" src="assets/flags/KR_South_Korea_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.ko">한국어</span>
+                </button>
+              </div>
+            </div>
           </div>
           <button class="btn-ghost" id="btn-hub-options" type="button" data-i18n="hub.options">Options</button>
           <button class="btn-ghost" id="btn-hub-logout" type="button" data-i18n="hub.signOut">Sign out</button>
@@ -6726,12 +6789,30 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <div class="options-section">
         <div class="locale-wrap" style="margin-bottom:12px">
           <label for="sel-locale-options" data-i18n="lang.label">Language</label>
-          <select class="sel-locale" id="sel-locale-options" aria-label="Language">
-            <option value="en" data-i18n="language.en">English</option>
-            <option value="ja" data-i18n="language.ja">日本語</option>
-            <option value="es" data-i18n="language.es">Español</option>
-            <option value="ko" data-i18n="language.ko">한국어</option>
-          </select>
+          <div class="locale-picker" data-locale-picker>
+            <button type="button" class="locale-picker-toggle" id="sel-locale-options" aria-haspopup="listbox" aria-expanded="false" data-i18n-aria-label="lang.label">
+              <img class="locale-flag" src="assets/flags/US_United_States_rect.png" alt="" width="20" height="14" decoding="async">
+              <span class="locale-picker-current" data-i18n="language.en">English</span>
+            </button>
+            <div class="locale-picker-menu" role="listbox" hidden>
+              <button type="button" class="locale-picker-option" role="option" data-locale="en" aria-selected="true">
+                <img class="locale-flag" src="assets/flags/US_United_States_rect.png" alt="" width="20" height="14" decoding="async">
+                <span data-i18n="language.en">English</span>
+              </button>
+              <button type="button" class="locale-picker-option" role="option" data-locale="ja" aria-selected="false">
+                <img class="locale-flag" src="assets/flags/JP_Japan_rect.png" alt="" width="20" height="14" decoding="async">
+                <span data-i18n="language.ja">日本語</span>
+              </button>
+              <button type="button" class="locale-picker-option" role="option" data-locale="es" aria-selected="false">
+                <img class="locale-flag" src="assets/flags/MX_Mexico_rect.png" alt="" width="20" height="14" decoding="async">
+                <span data-i18n="language.es">Español</span>
+              </button>
+              <button type="button" class="locale-picker-option" role="option" data-locale="ko" aria-selected="false">
+                <img class="locale-flag" src="assets/flags/KR_South_Korea_rect.png" alt="" width="20" height="14" decoding="async">
+                <span data-i18n="language.ko">한국어</span>
+              </button>
+            </div>
+          </div>
         </div>
         <label class="options-toggle">
           <input type="checkbox" id="chk-foil-fx" checked>
@@ -7925,7 +8006,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=47"></script>
+<script src="i18n.js?v=48"></script>
 <script src="log_i18n.js?v=9"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=13"></script>

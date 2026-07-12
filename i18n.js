@@ -4410,6 +4410,13 @@
       var key = node.getAttribute('data-i18n');
       if (key) node.textContent = t(key);
     });
+
+    // Keep language picker closed-state flag + label aligned with active locale
+    if (typeof LOCALE_PICKER_IDS !== 'undefined' && LOCALE_PICKER_IDS) {
+      LOCALE_PICKER_IDS.forEach(function (id) {
+        syncLocaleSelect(document.getElementById(id));
+      });
+    }
   }
 
   var KO_NAME_MAP = {
@@ -4822,23 +4829,104 @@
     return step.dialogue || '';
   }
 
-  function syncLocaleSelect(sel) {
-    if (!sel) return;
+  var LOCALE_FLAG_SRC = {
+    en: 'assets/flags/US_United_States_rect.png',
+    ja: 'assets/flags/JP_Japan_rect.png',
+    es: 'assets/flags/MX_Mexico_rect.png',
+    ko: 'assets/flags/KR_South_Korea_rect.png'
+  };
+
+  var LOCALE_PICKER_IDS = ['sel-locale-auth', 'sel-locale-hub', 'sel-locale-options'];
+
+  function closeLocalePicker(picker) {
+    if (!picker) return;
+    var toggle = picker.querySelector('.locale-picker-toggle');
+    var menu = picker.querySelector('.locale-picker-menu');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
+    if (menu) menu.hidden = true;
+  }
+
+  function closeAllLocalePickers(except) {
+    document.querySelectorAll('[data-locale-picker]').forEach(function (picker) {
+      if (except && picker === except) return;
+      closeLocalePicker(picker);
+    });
+  }
+
+  function syncLocalePicker(toggle) {
+    if (!toggle) return;
+    var picker = toggle.closest('[data-locale-picker]') || toggle.parentElement;
     var loc = getLocale();
-    if (sel.value !== loc) sel.value = loc;
+    var flag = toggle.querySelector('.locale-flag');
+    var label = toggle.querySelector('.locale-picker-current');
+    if (flag) flag.src = LOCALE_FLAG_SRC[loc] || LOCALE_FLAG_SRC.en;
+    if (label) {
+      label.setAttribute('data-i18n', 'language.' + loc);
+      label.textContent = t('language.' + loc);
+    }
+    if (!picker) return;
+    picker.querySelectorAll('.locale-picker-option').forEach(function (opt) {
+      var active = opt.getAttribute('data-locale') === loc;
+      opt.classList.toggle('is-active', active);
+      opt.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+  }
+
+  function syncLocaleSelect(sel) {
+    // Back-compat: native <select> or custom picker toggle button
+    if (!sel) return;
+    if (sel.tagName === 'SELECT') {
+      var loc = getLocale();
+      if (sel.value !== loc) sel.value = loc;
+      return;
+    }
+    syncLocalePicker(sel);
+  }
+
+  function applyLocaleChoice(loc) {
+    if (LOCALES.indexOf(loc) === -1) loc = 'en';
+    setLocale(loc);
+    LOCALE_PICKER_IDS.forEach(function (id) {
+      syncLocaleSelect(document.getElementById(id));
+    });
+    try { document.documentElement.lang = loc; } catch (e) { /* ignore */ }
+    closeAllLocalePickers();
+    applyI18n();
+    localeChangeCallbacks.forEach(function (fn) {
+      try { fn(loc); } catch (e2) { console.error(e2); }
+    });
   }
 
   function onLocaleSelectChange() {
-    var loc = this.value;
-    setLocale(loc);
-    ['sel-locale-auth', 'sel-locale-hub', 'sel-locale-options'].forEach(function (id) {
-      var sel = document.getElementById(id);
-      if (sel && sel !== this && sel.value !== loc) sel.value = loc;
-    }, this);
-    try { document.documentElement.lang = loc; } catch (e) { /* ignore */ }
-    applyI18n();
-    localeChangeCallbacks.forEach(function (fn) {
-      try { fn(loc); } catch (e) { console.error(e); }
+    applyLocaleChoice(this.value);
+  }
+
+  function bindLocalePicker(toggle) {
+    if (!toggle || toggle._lltcgLocaleBound) return;
+    toggle._lltcgLocaleBound = true;
+    var picker = toggle.closest('[data-locale-picker]');
+    if (!picker) return;
+    var menu = picker.querySelector('.locale-picker-menu');
+    toggle.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      var open = toggle.getAttribute('aria-expanded') === 'true';
+      closeAllLocalePickers(picker);
+      if (!open) {
+        toggle.setAttribute('aria-expanded', 'true');
+        if (menu) menu.hidden = false;
+      } else {
+        closeLocalePicker(picker);
+      }
+    });
+    picker.querySelectorAll('.locale-picker-option').forEach(function (opt) {
+      if (opt._lltcgLocaleBound) return;
+      opt._lltcgLocaleBound = true;
+      opt.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        applyLocaleChoice(opt.getAttribute('data-locale') || 'en');
+      });
     });
   }
 
@@ -4929,15 +5017,33 @@
         if (curLoc === 'ja' || curLoc === 'ko') document.body.classList.add('locale-' + curLoc);
       }
     } catch (e0) { /* ignore */ }
-    ['sel-locale-auth', 'sel-locale-hub', 'sel-locale-options'].forEach(function (id) {
+    LOCALE_PICKER_IDS.forEach(function (id) {
       var sel = document.getElementById(id);
       syncLocaleSelect(sel);
-      if (sel && !sel._lltcgLocaleBound) {
-        sel._lltcgLocaleBound = true;
-        sel.addEventListener('change', onLocaleSelectChange);
+      if (!sel) return;
+      if (sel.tagName === 'SELECT') {
+        if (!sel._lltcgLocaleBound) {
+          sel._lltcgLocaleBound = true;
+          sel.addEventListener('change', onLocaleSelectChange);
+        }
+      } else {
+        bindLocalePicker(sel);
       }
     });
+    if (!document.documentElement._lltcgLocaleDocBound) {
+      document.documentElement._lltcgLocaleDocBound = true;
+      document.addEventListener('click', function () {
+        closeAllLocalePickers();
+      });
+      document.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape') closeAllLocalePickers();
+      });
+    }
     applyI18n();
+    // Keep closed-toggle flag + current label in sync after i18n rewrite
+    LOCALE_PICKER_IDS.forEach(function (id) {
+      syncLocaleSelect(document.getElementById(id));
+    });
     void loadTutorialJa();
     void loadTutorialEs();
     void loadTutorialKo();
