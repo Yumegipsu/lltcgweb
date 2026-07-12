@@ -344,6 +344,53 @@ function tcgEnsureUser(string $discordId, array $profile = []): array {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
+/**
+ * Resolve a tcg_users row for Discord /loveca profile lookup.
+ * Prefer discord_id; fall back to case-insensitive username (unique Discord handle / display).
+ *
+ * @param list<string> $usernames
+ */
+function tcgFindUserForPublicProfile(string $discordId, array $usernames = []): ?array {
+    $db = tcgDb();
+    if ($discordId !== '' && preg_match('/^\d{5,32}$/', $discordId)) {
+        $stmt = $db->prepare('SELECT * FROM tcg_users WHERE discord_id = ?');
+        $stmt->execute([$discordId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($user) {
+            return $user;
+        }
+    }
+
+    $candidates = [];
+    foreach ($usernames as $name) {
+        $name = trim((string)$name);
+        if ($name === '' || strlen($name) < 2) {
+            continue;
+        }
+        $key = strtolower($name);
+        if (!isset($candidates[$key])) {
+            $candidates[$key] = $name;
+        }
+    }
+    foreach ($candidates as $name) {
+        $stmt = $db->prepare('SELECT * FROM tcg_users WHERE lower(username) = lower(?)');
+        $stmt->execute([$name]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (count($rows) === 1) {
+            return $rows[0];
+        }
+        // Prefer a snowflake-backed row if several share a display-style name.
+        $snowflakeRows = array_values(array_filter(
+            $rows,
+            static fn($r) => (bool)preg_match('/^\d{17,20}$/', (string)($r['discord_id'] ?? ''))
+        ));
+        if (count($snowflakeRows) === 1) {
+            return $snowflakeRows[0];
+        }
+    }
+    return null;
+}
+
 function tcgUpsertCollectionCounts(string $discordId, array $counts, ?int $acquiredAt = null): void {
     if (empty($counts)) {
         return;

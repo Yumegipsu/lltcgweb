@@ -49,6 +49,7 @@ require_once __DIR__ . '/api.php';
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $body   = json_decode(file_get_contents('php://input'), true) ?? [];
 
+if (!(defined('TCG_ACCOUNT_LIB_ONLY') && TCG_ACCOUNT_LIB_ONLY)) {
 try {
     switch ($action) {
         case 'me':                 echo json_encode(tcgApiMe($body)); break;
@@ -95,6 +96,7 @@ try {
     }
     http_response_code($code);
     echo json_encode(['success' => false, 'error' => tcgPublicErrorMessage($e, $code)]);
+}
 }
 
 function tcgLoadCardsData(): array {
@@ -1144,16 +1146,45 @@ function tcgApiPublicLeaderboard(array $params): array {
 /** Public Loveca profile for Discord /loveca profile (no auth). */
 function tcgApiPublicProfile(array $params): array {
     $discordId = trim((string)($params['discord_id'] ?? ''));
-    if ($discordId === '' || !preg_match('/^\d{5,32}$/', $discordId)) {
+    $usernames = [];
+    if (isset($params['username']) && is_string($params['username'])) {
+        $usernames[] = $params['username'];
+    }
+    if (isset($params['usernames'])) {
+        $raw = $params['usernames'];
+        if (is_string($raw)) {
+            foreach (preg_split('/\s*,\s*/', $raw) ?: [] as $part) {
+                if ($part !== '') {
+                    $usernames[] = $part;
+                }
+            }
+        } elseif (is_array($raw)) {
+            foreach ($raw as $part) {
+                if (is_string($part) && $part !== '') {
+                    $usernames[] = $part;
+                }
+            }
+        }
+    }
+    // Also accept Discord global_name / display_name aliases from the bot.
+    foreach (['global_name', 'display_name'] as $aliasKey) {
+        if (!empty($params[$aliasKey]) && is_string($params[$aliasKey])) {
+            $usernames[] = $params[$aliasKey];
+        }
+    }
+
+    if ($discordId === '' && empty($usernames)) {
+        throw new Exception('discord_id or username required', 400);
+    }
+    if ($discordId !== '' && !preg_match('/^\d{5,32}$/', $discordId) && empty($usernames)) {
         throw new Exception('discord_id required', 400);
     }
-    $db = tcgDb();
-    $stmt = $db->prepare('SELECT * FROM tcg_users WHERE discord_id = ?');
-    $stmt->execute([$discordId]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $user = tcgFindUserForPublicProfile($discordId, $usernames);
     if (!$user) {
         throw new Exception('Player not found', 404);
     }
+    $discordId = (string)($user['discord_id'] ?? $discordId);
 
     $cards = tcgLoadCardsData();
     $cardMap = tcgBuildCardMap($cards);
