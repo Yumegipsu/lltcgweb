@@ -2825,7 +2825,14 @@ body.tutorial-mode:not(.tutorial-live-mode) #overlay-coin{pointer-events:none}
 .sbox .sv{display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
 .sbox .sv.heart-stat{gap:4px 8px;flex-wrap:wrap}
 .sbox .heart-stat-row{display:inline-flex;align-items:center;gap:3px;font-weight:800;color:#fff}
-.sbox .heart-stat-row .hicon{width:clamp(12px,3.2cqw,16px);height:clamp(12px,3.2cqw,16px)}
+/* Match blade / blade-heart icons to colored hearts in card info stats. */
+.sbox .heart-stat-row .hicon,
+.sbox .blade-heart-stat .hicon,
+.sbox .blade-heart-stat .hicon.bheart,
+.sbox .sv > .ticon,
+.sbox .sv > .bicon{
+  width:clamp(12px,3.2cqw,16px);height:clamp(12px,3.2cqw,16px)
+}
 .niscore{display:flex;align-items:center;gap:2px;justify-content:center}
 .hdot{display:inline-flex;width:9px;height:9px;border-radius:50%;flex-shrink:0}
 .hdot.lg{width:13px;height:13px}
@@ -29583,7 +29590,7 @@ function fillCardDetailPanel(prefix, card, s, myId) {
   }
   if (card.blade_hearts?.length) {
     sg.innerHTML += `<div class="sbox"><div class="sv blade-heart-stat"></div><div class="sk">${t('card.bladeHearts')}</div></div>`;
-    appendBladeHeartIcons(sg.querySelector('.blade-heart-stat'), card.blade_hearts, { lg: false });
+    appendBladeHeartIcons(sg.querySelector('.blade-heart-stat'), card.blade_hearts, { lg: true });
   }
   const rulesDisplay = cardRulesDisplayText(card).trim();
   const skillText = rulesDisplay
