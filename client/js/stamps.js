@@ -9,6 +9,8 @@
   const ASSET_BASE = 'assets/stamps/';
   const LS_AUDIO = 'tcg_stamp_audio_enabled';
   const LS_FAV = 'tcg_stamp_favorites_cache';
+  const LS_VOICE_VOLUME = 'tcg_stamp_voice_volume';
+  const DEFAULT_VOICE_VOLUME = 0.85;
   const COOLDOWN_MS = 2100;
   const PROFILE_MAX = 20;
 
@@ -78,11 +80,50 @@
     }
   }
 
+  function getStampVoiceVolume() {
+    try {
+      const raw = localStorage.getItem(LS_VOICE_VOLUME);
+      if (raw == null || raw === '') return DEFAULT_VOICE_VOLUME;
+      const n = Number(raw);
+      if (!Number.isFinite(n)) return DEFAULT_VOICE_VOLUME;
+      return Math.max(0, Math.min(1, n));
+    } catch (e) {
+      return DEFAULT_VOICE_VOLUME;
+    }
+  }
+
+  function setStampVoiceVolume(vol) {
+    const n = Math.max(0, Math.min(1, Number(vol)));
+    const clamped = Number.isFinite(n) ? n : DEFAULT_VOICE_VOLUME;
+    try {
+      localStorage.setItem(LS_VOICE_VOLUME, String(clamped));
+    } catch (e) {}
+    if (voiceAudio) {
+      try { voiceAudio.volume = clamped; } catch (e2) {}
+    }
+    syncStampVoiceVolumeUi();
+  }
+
   function setStampAudioEnabled(on) {
     try {
       localStorage.setItem(LS_AUDIO, on ? '1' : '0');
     } catch (e) {}
     syncAudioToggleUi();
+  }
+
+  function syncStampVoiceVolumeUi() {
+    const wrap = el('options-stamp-voice-volume-wrap');
+    const rng = el('rng-stamp-voice-volume');
+    const lbl = el('stamp-voice-volume-label');
+    const on = stampAudioEnabled();
+    const vol = getStampVoiceVolume();
+    const pct = Math.round(vol * 100);
+    if (rng) {
+      rng.value = String(pct);
+      rng.disabled = !on;
+    }
+    if (lbl) lbl.textContent = pct + '%';
+    if (wrap) wrap.classList.toggle('is-muted', !on);
   }
 
   function syncAudioToggleUi() {
@@ -91,6 +132,7 @@
     const on = stampAudioEnabled();
     if (chk) chk.checked = on;
     if (chkMenu) chkMenu.checked = on;
+    syncStampVoiceVolumeUi();
   }
 
   function animClassForFlsh(flsh) {
@@ -244,7 +286,7 @@
       if (!voiceAudio) voiceAudio = new Audio();
       voiceAudio.pause();
       voiceAudio.src = src;
-      voiceAudio.volume = global.LLTCG_SFX?.getVolume?.() ?? 0.85;
+      voiceAudio.volume = getStampVoiceVolume();
       void voiceAudio.play();
     } catch (e) {}
   }
@@ -672,6 +714,19 @@
     };
     bindAudio('chk-stamp-audio');
     bindAudio('chk-stamp-audio-menu');
+    const rng = el('rng-stamp-voice-volume');
+    if (rng && !rng.dataset.bound) {
+      rng.dataset.bound = '1';
+      try {
+        if (localStorage.getItem(LS_VOICE_VOLUME) === null) {
+          localStorage.setItem(LS_VOICE_VOLUME, String(DEFAULT_VOICE_VOLUME));
+        }
+      } catch (e) {}
+      rng.addEventListener('input', () => {
+        const pct = Math.max(0, Math.min(100, parseInt(rng.value, 10) || 0));
+        setStampVoiceVolume(pct / 100);
+      });
+    }
     syncAudioToggleUi();
   }
 
@@ -699,6 +754,8 @@
     renderOptionsStampPreview,
     stampAudioEnabled,
     setStampAudioEnabled,
+    getStampVoiceVolume,
+    setStampVoiceVolume,
     stampDisplayLabel,
     loadStampI18n,
     loadManifest,

@@ -1052,6 +1052,7 @@
   "stamps": {
     "audio": "스탬프 오디오",
     "audioMenu": "스탬프 보이스 클립",
+    "voiceVolume": "스탬프 보이스 음량",
     "cooldown": "잠시만 기다려 주세요…",
     "done": "완료",
     "editProfile": "즐겨찾는 스탬프 편집",

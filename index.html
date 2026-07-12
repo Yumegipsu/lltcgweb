@@ -6840,14 +6840,19 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <input type="checkbox" id="chk-sfx" checked>
           <span data-i18n="options.soundEffects">Sound effects</span>
         </label>
-        <label class="options-toggle">
-          <input type="checkbox" id="chk-stamp-audio-menu" checked>
-          <span data-i18n="stamps.audioMenu">Stamp voice clips</span>
-        </label>
         <div class="options-sfx-volume" id="options-sfx-volume-wrap">
           <label for="rng-sfx-volume" data-i18n="options.sfxVolume">SFX volume</label>
           <input type="range" id="rng-sfx-volume" min="0" max="100" step="5" value="85" aria-valuemin="0" aria-valuemax="100">
           <span class="options-sfx-volume-val" id="sfx-volume-label">85%</span>
+        </div>
+        <label class="options-toggle">
+          <input type="checkbox" id="chk-stamp-audio-menu" checked>
+          <span data-i18n="stamps.audioMenu">Stamp voice clips</span>
+        </label>
+        <div class="options-sfx-volume" id="options-stamp-voice-volume-wrap">
+          <label for="rng-stamp-voice-volume" data-i18n="stamps.voiceVolume">Stamp voice volume</label>
+          <input type="range" id="rng-stamp-voice-volume" min="0" max="100" step="5" value="85" aria-valuemin="0" aria-valuemax="100">
+          <span class="options-sfx-volume-val" id="stamp-voice-volume-label">85%</span>
         </div>
       </div>
       <div class="options-section">
@@ -8024,7 +8029,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=48"></script>
+<script src="i18n.js?v=49"></script>
 <script src="log_i18n.js?v=9"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=13"></script>
@@ -8033,7 +8038,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/missions.js?v=5"></script>
 <script src="client/js/game-sync.js?v=12"></script>
 <script src="client/js/state-apply.js?v=28"></script>
-<script src="client/js/stamps.js?v=14"></script>
+<script src="client/js/stamps.js?v=15"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
 <script src="client/js/prompt-renderer.js?v=27"></script>
 <script src="client/js/tutorial-interactive.js?v=16"></script>

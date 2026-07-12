@@ -396,6 +396,7 @@
       "tabFavorites": "★ Favorites",
       "audio": "Stamp audio",
       "audioMenu": "Stamp voice clips",
+      "voiceVolume": "Stamp voice volume",
       "favoritesEmpty": "No favorites yet — set them in Options, or tap ☆ on a stamp.",
       "empty": "No stamps.",
       "cooldown": "Wait a moment…",
@@ -1441,6 +1442,7 @@
       "tabFavorites": "★ お気に入り",
       "audio": "スタンプ音声",
       "audioMenu": "スタンプのボイス",
+      "voiceVolume": "スタンプボイスの音量",
       "favoritesEmpty": "お気に入りがありません — オプションで設定するか、☆をタップしてください。",
       "empty": "スタンプがありません。",
       "cooldown": "少し待ってください…",
@@ -3125,6 +3127,7 @@
     "stamps": {
       "audio": "Audio de sellos",
       "audioMenu": "Voces de sellos",
+      "voiceVolume": "Volumen de voces de sellos",
       "cooldown": "Espera un momento…",
       "done": "Listo",
       "editProfile": "Editar sellos favoritos",
@@ -4210,6 +4213,7 @@
     "stamps": {
       "audio": "스탬프 오디오",
       "audioMenu": "스탬프 보이스 클립",
+      "voiceVolume": "스탬프 보이스 음량",
       "cooldown": "잠시만 기다려 주세요…",
       "done": "완료",
       "editProfile": "즐겨찾는 스탬프 편집",

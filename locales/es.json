@@ -1027,6 +1027,7 @@
   "stamps": {
     "audio": "Audio de sellos",
     "audioMenu": "Voces de sellos",
+    "voiceVolume": "Volumen de voces de sellos",
     "cooldown": "Espera un momento…",
     "done": "Listo",
     "editProfile": "Editar sellos favoritos",
