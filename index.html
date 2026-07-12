@@ -24236,9 +24236,16 @@ function doCPU(s) {
   const cpu = s.players?.[cpuId];
   if (!cpu || !G.cpuToken) return;
   const ph = s.phase;
-  if (s.pending_prompt?.responder === cpuId) {
-    TCG_DEBUG.log('cpu', 'prompt pending', { type: s.pending_prompt?.type, seq: s.seq, diff: cpuDiff() });
-    scheduleCpuResolvePrompt(s, cpu);
+  if (s.pending_prompt) {
+    if (s.pending_prompt.responder === cpuId) {
+      TCG_DEBUG.log('cpu', 'prompt pending', { type: s.pending_prompt?.type, seq: s.seq, diff: cpuDiff() });
+      scheduleCpuResolvePrompt(s, cpu);
+    } else {
+      // Opponent-facing prompt (e.g. Wait pick) — do not play/activate until it clears.
+      TCG_DEBUG.log('cpu', 'waiting for opponent prompt', {
+        type: s.pending_prompt?.type, responder: s.pending_prompt?.responder, seq: s.seq,
+      });
+    }
     return;
   }
   clearCpuPromptTracking();
@@ -30032,6 +30039,7 @@ function canPlayMemberToSlot(card, slot, s, myId) {
       && !TutorialInteractive.playSlotAllowed(slot)) {
     return false;
   }
+  if (hasOpenSkillPrompt(s)) return false;
   const me = s?.players?.[myId];
   const ec = effectiveCost(card, me?.hand || []);
   const exist = me?.stage?.[slot];
@@ -30570,6 +30578,10 @@ function openDoubleBatonSecondPick(card, slot, s, myId, primaryMember, secondTar
 }
 function playToSlot(card, slot, s, myId, existing) {
   if (typeof tutBlocks === 'function' && tutBlocks('play_member')) return;
+  if (hasOpenSkillPrompt(s)) {
+    toast(t('toast.resolveSkillFirst'), 2800);
+    return;
+  }
   const me=s.players[myId];
   const exist2=existing||me.stage?.[slot];
   const ec=effectiveCost(card,me.hand||[]);
@@ -34501,7 +34513,8 @@ async function sendAct(type,data){
   if (isReplayViewing()) return;
   if(!G.roomId||!G.token) return;
   if (type === 'resign') abortGameplayPresentation();
-  if ((type === 'end_main' || type === 'end_live_set') && hasOpenSkillPrompt(G.gameState)) {
+  if ((type === 'end_main' || type === 'end_live_set' || type === 'play_member'
+      || type === 'activate_ability') && hasOpenSkillPrompt(G.gameState)) {
     toast(t('toast.resolveSkillFirst'), 2800);
     return;
   }

@@ -2817,13 +2817,14 @@ function assertNoPendingPromptForPhaseAdvance(array $state): void {
     }
 }
 
-/** Block new plays/activations while this player must answer a skill prompt. */
+/**
+ * Block new plays/activations while any skill prompt is open.
+ * Freezing only the responder used to let the active player keep playing
+ * during opponent-facing On Enter waits (e.g. Ginko), which then skipped
+ * the next Member's On Enter via pending_prompt guards.
+ */
 function assertNoPendingPromptForPlayerAction(array $state, string $pid): void {
-    $prompt = $state['pending_prompt'] ?? null;
-    if (!$prompt) {
-        return;
-    }
-    if (($prompt['responder'] ?? '') === $pid) {
+    if (!empty($state['pending_prompt'])) {
         throw new Exception('Resolve the pending skill prompt before taking another action.');
     }
 }
