@@ -718,6 +718,45 @@ html:not(.tcg-mobile-viewport) #screen-game .opp-hand-strip .opp-hand-card{
 }
 .card-hover-panel .hc-slotrow .btn-smol{width:100%;padding:5px 6px;font-size:10px}
 .card-hover-panel .hc-slotrow .btn-smol:disabled{opacity:.42;cursor:default}
+.card-hover-panel .hc-live-multi{
+  display:none;flex-direction:column;align-items:center;gap:8px;width:100%;
+}
+.card-hover-panel.live-multi .hc-live-multi{display:flex}
+.card-hover-panel.live-multi .hc-img,
+.card-hover-panel.live-multi .hc-name,
+.card-hover-panel.live-multi .hc-sub,
+.card-hover-panel.live-multi .hc-stats,
+.card-hover-panel.live-multi .hc-text,
+.card-hover-panel.live-multi #hc-actions{display:none!important}
+.card-hover-panel .hc-live-multi-thumbs{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;width:100%;
+}
+.card-hover-panel .hc-live-multi-thumbs .hc-live-thumb{
+  width:min(72px,28%);aspect-ratio:88/63;border-radius:5px;object-fit:cover;
+  box-shadow:0 3px 10px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);
+  background:rgba(0,0,0,.25);
+}
+.card-hover-panel .hc-live-multi-title{
+  font-family:'Fredoka One',cursive;font-size:15px;color:#fff;text-align:center;line-height:1.2;
+}
+.card-hover-panel .hc-live-multi-sub{
+  font-size:10px;color:rgba(255,255,255,.42);text-align:center;margin-top:-4px;
+}
+.card-hover-panel .hc-live-multi-hearts{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 12px;
+  padding:6px 4px 2px;width:100%;
+}
+.card-hover-panel .hc-live-multi-hearts .heart-stat-row{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:'Fredoka One',cursive;font-size:26px;font-weight:800;color:#fff;line-height:1;
+}
+.card-hover-panel .hc-live-multi-hearts .hicon{
+  width:36px;height:36px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.45));
+}
+.card-hover-panel .hc-live-multi-label{
+  font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;
+  color:rgba(255,255,255,.45);text-align:center;
+}
 #picker-card-hover-panel{
   position:fixed;
   left:0;
@@ -7302,6 +7341,13 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         <div class="statgrid hc-stats" id="hc-stats"></div>
         <div class="hc-text" id="hc-text" style="display:none"></div>
         <div id="hc-actions" style="display:none"></div>
+        <div class="hc-live-multi" id="hc-live-multi" hidden aria-hidden="true">
+          <div class="hc-live-multi-thumbs" id="hc-live-multi-thumbs"></div>
+          <div class="hc-live-multi-title" id="hc-live-multi-title"></div>
+          <div class="hc-live-multi-sub" id="hc-live-multi-sub"></div>
+          <div class="hc-live-multi-hearts" id="hc-live-multi-hearts"></div>
+          <div class="hc-live-multi-label" id="hc-live-multi-label" data-i18n="live.combinedHearts">Combined required hearts</div>
+        </div>
       </div>
     </aside>
 
@@ -8041,7 +8087,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=50"></script>
+<script src="i18n.js?v=51"></script>
 <script src="log_i18n.js?v=9"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=13"></script>
@@ -28380,6 +28426,7 @@ function renderGame(s, opts = {}) {
   } else {
     G.liveSel = [];
     G._liveSetLockPid = null;
+    setLiveSelMultiPreviewVisible(false);
     el('overlay-live')?.classList.remove('open');
   }
 
@@ -30635,6 +30682,7 @@ function refreshHandPreviewPanel(card, s, myId) {
     const pinned = G.tutPreviewIid && document.body.classList.contains('tut-pin-card-info');
     if (!pinned || card.instance_id !== G.tutPreviewIid) return;
   }
+  setLiveSelMultiPreviewVisible(false);
   fillCardDetailPanel('hc', card, s, myId);
   fillMemberPlayActions(el('hc-actions'), card, s, myId, {
     interactive: (!G.isTutorial || G.tutorialLive) && (G.selCard === card.instance_id || G.drag?.iid === card.instance_id),
@@ -30655,6 +30703,10 @@ function showHoverCardPreview(card, s, myId) {
   // Slideshow tutorial freezes board chrome; live tutorial needs normal hover/select UX.
   if ((G.isTutorial && !G.tutorialLive) || !card) return;
   if (G.drag && tcgMobileViewportActive()) return;
+  if (liveSelMultiPreviewActive(s, myId)) {
+    refreshLiveSelPreviewPanel(s, myId);
+    return;
+  }
   const pinned = pinnedHandPreviewIid();
   if (pinned && pinned !== card.instance_id) return;
   G.hoverCardId = card.instance_id;
@@ -30668,6 +30720,10 @@ function clearHoverCardPreview() {
   if (G.drag && !tcgMobileViewportActive()) return;
   // Only freeze the pinned info panel during slideshow / non-interactive pins.
   if (G.isTutorial && !G.tutorialLive && G.tutPreviewIid && document.body.classList.contains('tut-pin-card-info')) return;
+  if (liveSelMultiPreviewActive(G.gameState, G.playerId)) {
+    refreshLiveSelPreviewPanel(G.gameState, G.playerId);
+    return;
+  }
   if (G.selCard && G.gameState) {
     const card = findHand(G.selCard, G.gameState, G.playerId);
     if (card) {
@@ -30679,6 +30735,7 @@ function clearHoverCardPreview() {
   }
   G.hoverCardId = null;
   G.previewSlot = null;
+  setLiveSelMultiPreviewVisible(false);
   const panel = el('card-hover-panel');
   const empty = el('hc-empty');
   const actions = el('hc-actions');
@@ -32908,6 +32965,143 @@ function liveSelScoreBreakdown(s, myId) {
   return { baseTotal, bonusTotal, total: baseTotal + bonusTotal, liveCount, memberCount, stageBonus, baseOnly };
 }
 
+function liveSelSelectedLiveCards(s, myId) {
+  const out = [];
+  for (const iid of G.liveSel || []) {
+    const card = findHand(iid, s, myId);
+    if (card && isLiveCard(card)) out.push(enrichCard(card));
+  }
+  return out;
+}
+
+function liveCardRequiredHearts(card) {
+  if (!card) return [];
+  const req = card.required_hearts?.length ? card.required_hearts : card.hearts;
+  return Array.isArray(req) ? req : [];
+}
+
+function liveSelCombinedRequiredHearts(s, myId) {
+  const combined = [];
+  for (const card of liveSelSelectedLiveCards(s, myId)) {
+    for (const h of liveCardRequiredHearts(card)) {
+      if (typeof h === 'string') {
+        combined.push({ color: h, count: 1 });
+      } else if (h && typeof h === 'object') {
+        combined.push({
+          color: h.color || 'any',
+          count: Math.max(1, parseInt(h.count || 1, 10) || 1),
+        });
+      }
+    }
+  }
+  return combined;
+}
+
+function liveSelMultiPreviewActive(s, myId) {
+  if (!s || myId !== G.playerId || G.isTutorial) return false;
+  if (!isLiveSetSelecting(s, myId)) return false;
+  return liveSelSelectedLiveCards(s, myId).length >= 2;
+}
+
+function setLiveSelMultiPreviewVisible(show) {
+  const panel = el('card-hover-panel');
+  const multi = el('hc-live-multi');
+  if (panel) panel.classList.toggle('live-multi', !!show);
+  if (multi) {
+    multi.hidden = !show;
+    multi.setAttribute('aria-hidden', show ? 'false' : 'true');
+  }
+}
+
+function fillLiveSelMultiPreview(s, myId) {
+  const lives = liveSelSelectedLiveCards(s, myId);
+  const thumbs = el('hc-live-multi-thumbs');
+  const title = el('hc-live-multi-title');
+  const sub = el('hc-live-multi-sub');
+  const heartsEl = el('hc-live-multi-hearts');
+  const label = el('hc-live-multi-label');
+  if (!thumbs || !title || !heartsEl) return;
+
+  thumbs.innerHTML = '';
+  lives.forEach(card => {
+    const img = document.createElement('img');
+    img.className = 'hc-live-thumb';
+    img.alt = cardLocaleName(card) || 'Live';
+    img.loading = 'lazy';
+    if (card.image || card.card_no) {
+      applyCardImageToImg(img, card, () => { img.remove(); });
+    }
+    thumbs.appendChild(img);
+  });
+
+  const n = lives.length;
+  title.textContent = t(n === 1 ? 'live.livesSelectedOne' : 'live.livesSelected', { n });
+  const memberCount = (G.liveSel || []).reduce((acc, iid) => {
+    const c = findHand(iid, s, myId);
+    return acc + (c?.card_type === 'メンバー' ? 1 : 0);
+  }, 0);
+  if (sub) {
+    if (memberCount > 0) {
+      sub.textContent = t(memberCount === 1 ? 'live.plusMembersOne' : 'live.plusMembers', { n: memberCount });
+      sub.style.display = '';
+    } else {
+      sub.textContent = '';
+      sub.style.display = 'none';
+    }
+  }
+  if (label) label.textContent = t('live.combinedHearts');
+
+  const combined = liveSelCombinedRequiredHearts(s, myId);
+  heartsEl.innerHTML = '';
+  if (combined.length) {
+    appendHeartStatCounts(heartsEl, combined, { lg: true, field: false, align: 'center' });
+  } else {
+    heartsEl.textContent = '—';
+  }
+}
+
+function refreshLiveSelPreviewPanel(s, myId) {
+  if (!liveSelMultiPreviewActive(s, myId)) {
+    setLiveSelMultiPreviewVisible(false);
+    const lives = liveSelSelectedLiveCards(s, myId);
+    if (lives.length === 1) {
+      G.hoverCardId = lives[0].instance_id;
+      refreshHandPreviewPanel(lives[0], s, myId);
+      return;
+    }
+    if (!(G.liveSel || []).length) {
+      G.hoverCardId = null;
+      setLiveSelMultiPreviewVisible(false);
+      const panel = el('card-hover-panel');
+      const empty = el('hc-empty');
+      const actions = el('hc-actions');
+      if (panel) panel.classList.remove('visible');
+      if (empty) empty.style.display = '';
+      if (actions) { actions.innerHTML = ''; actions.style.display = 'none'; }
+      return;
+    }
+    // Raised members only (no Live cards) — keep last single-card preview if any.
+    const lastIid = G.liveSel[G.liveSel.length - 1];
+    const last = findHand(lastIid, s, myId);
+    if (last) {
+      G.hoverCardId = last.instance_id;
+      refreshHandPreviewPanel(last, s, myId);
+    }
+    return;
+  }
+
+  fillLiveSelMultiPreview(s, myId);
+  setLiveSelMultiPreviewVisible(true);
+  G.hoverCardId = null;
+  const panel = el('card-hover-panel');
+  const empty = el('hc-empty');
+  const actions = el('hc-actions');
+  if (panel) panel.classList.add('visible');
+  if (empty) empty.style.display = 'none';
+  if (actions) { actions.innerHTML = ''; actions.style.display = 'none'; }
+  document.querySelectorAll('#hand-row .hcard.hover-sel').forEach(n => n.classList.remove('hover-sel'));
+}
+
 function updateLiveScoreHud(s, myId) {
   const hud = el('live-score-hud');
   if (!hud) return;
@@ -33169,13 +33363,16 @@ function toggleLiveSelect(iid, s, myId) {
   } else if (G.liveSel.length < slots) {
     G.liveSel.push(iid);
     sfxCardPick();
-    showHoverCardPreview(card, s, myId);
   } else {
     toast(slots ? t(slots > 1 ? 'toast.maxLiveStoragePlural' : 'toast.maxLiveStorage', { slots }) : t('toast.liveStorageFull'));
   }
   syncHandSelectionClasses(s, myId);
   updateLiveSetButton(s, myId);
   updateLiveScoreHud(s, myId);
+  refreshLiveSelPreviewPanel(s, myId);
+  if (!liveSelMultiPreviewActive(s, myId) && G.liveSel.includes(iid)) {
+    showHoverCardPreview(card, s, myId);
+  }
   const oppId = myId === 'p1' ? 'p2' : 'p1';
   renderPhaseBar(s, s.players[myId], s.players[oppId], myId, oppId);
 }
@@ -33187,6 +33384,7 @@ async function confirmLiveSetFromHand() {
   if (!isLiveSetSelecting(s, myId)) return;
   const ids = [...G.liveSel];
   G.liveSel = [];
+  setLiveSelMultiPreviewVisible(false);
   syncHandSelectionClasses(s, myId);
   G._liveSetLockPid = myId;
   const cur = G.gameState;
