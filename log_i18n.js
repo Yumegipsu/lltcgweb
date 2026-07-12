@@ -1,8 +1,9 @@
-/* Client-side game log localization (English server log → ja / es display) */
+/* Client-side game log localization (English server log → ja / es / ko display) */
 (function (global) {
   'use strict';
 
   var namePairs = null;
+  var namePairsKo = null;
 
   var SKILL_BRACKETS = {
     'On Enter': '登場時',
@@ -18,7 +19,23 @@
     'Yell': 'エール',
   };
 
+  var SKILL_BRACKETS_KO = {
+    'On Enter': '등장 시',
+    'On Leave': '퇴장 시',
+    'Live Start': '라이브 개시',
+    'Live Success': '라이브 성공',
+    'Activated': '기동',
+    'Always': '상시',
+    'Automatic': '자동',
+    'Auto': '자동',
+    'Once per turn': '턴에 1회',
+    'Center': '센터',
+    'Yell': 'Yell',
+  };
+
   var SLOT_JA = { left: '左', center: 'センター', right: '右' };
+
+  var SLOT_KO = { left: '왼쪽', center: '센터', right: '오른쪽' };
 
   var HEART_COLOR_JA = {
     red: '赤',
@@ -156,6 +173,47 @@
 
     m = msg.match(/^🪙 Coin flip: (.+) won — first player chosen automatically \(time expired\)\.$/);
     if (m) return '🪙 Lanzamiento de moneda: ' + m[1] + ' ganó — primer jugador elegido automáticamente (tiempo agotado).';
+
+    return null;
+  }
+
+  function translateStructuredLineKo(msg) {
+    var m;
+
+    m = msg.match(/^(.+?) performed Live! Blades: (\d+) \| Hearts: \[([^\]]*)\] \| Live success: (\d+) \| Failed: (\d+)( \| Round: failed \(not all Lives succeeded\))?$/);
+    if (m) {
+      var roundNote = m[6] ? ' | 라운드 실패 (모든 Live가 성공하지 못함)' : '';
+      return m[1] + ' Live 진행! 블레이드: ' + m[2] +
+        ' | 하트: [' + m[3] + ']' +
+        ' | Live 성공: ' + m[4] + ' | 실패: ' + m[5] + roundNote;
+    }
+
+    m = msg.match(/^Live Scores: (.+?) = (\d+) \| (.+?) = (\d+)$/);
+    if (m) return 'Live 점수: ' + m[1] + ' = ' + m[2] + ' | ' + m[3] + ' = ' + m[4];
+
+    m = msg.match(/^(.+?) wins the Live — (.+) failed\.$/);
+    if (m) return m[1] + '의 Live 승리 — ' + m[2] + ' 실패.';
+
+    m = msg.match(/^(.+?) wins this Live! "(.+)" added to successes\.$/);
+    if (m) return m[1] + '이 이 Live에서 승리! "' + m[2] + '"이(가) 성공 Live에 추가됨.';
+
+    m = msg.match(/^(.+) has no valid Live cards!$/);
+    if (m) return m[1] + tLog('log.hasNoValidLive');
+
+    m = msg.match(/^(.+) — choose a Live card for Success Live\.$/);
+    if (m) return m[1] + tLog('log.chooseSuccessLive');
+
+    if (msg.endsWith(' — score tied; Success Live blocked; Live cards sent to Waiting Room.')) {
+      return msg.slice(0, -' — score tied; Success Live blocked; Live cards sent to Waiting Room.'.length) +
+        tLog('log.scoreTiedBlocked');
+    }
+    if (msg.endsWith(' — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room.')) {
+      return msg.slice(0, -' — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room.'.length) +
+        tLog('log.scoreTiedCap');
+    }
+
+    m = msg.match(/^🪙 Coin flip: (.+) won — first player chosen automatically \(time expired\)\.$/);
+    if (m) return '🪙 코인 던지기: ' + m[1] + ' 승리 — 시간 초과로 선공이 자동 선택됨.';
 
     return null;
   }
@@ -330,6 +388,51 @@
     [/Both players drew \(([^)]+)\)\.$/, 'Ambos jugadores robaron ($1).'],
   ];
 
+  /** Core structural phrases for Korean (high-frequency turn / phase / Live lines). */
+  var STRUCTURAL_PHRASE_RULES_KO = [
+    [/ — End Main Phase\.$/, ' — 메인 페이즈 종료.'],
+    [/ completed mulligan\.$/, ' 멀리건 완료.'],
+    [/ resigned\. (.+) wins!$/, ' 기권. $1 승리!'],
+    [/ WINS with 3 successful Lives!$/, ' Live 3회 성공으로 승리!'],
+    [/ used Baton Touch! Cost reduced to (\d+)\.$/, ' 바톤 터치 사용! 코스트가 $1(으)로 감소.'],
+    [/ used second Baton Touch! Cost reduced to (\d+)\.$/, ' 두 번째 바톤 터치 사용! 코스트가 $1(으)로 감소.'],
+    [/ placed (\d+) card\(s\) face-down in storage \((\d+)\/3\)\.$/, ' 카드 $1장을 뒤집어 보관함에 배치 ($2/3).'],
+    [/ placed card\(s\) in Live storage\.$/, ' Live 보관함에 카드를 배치.'],
+    [/ — locked in LIVE selection \((\d+) card\(s\) in storage\)\.$/, ' — Live 선택 확정 (보관함 $1장).'],
+    [/ — locked in LIVE selection\.$/, ' — Live 선택 확정.'],
+    [/ — Draw Phase: could not draw \(deck and Waiting Room empty\)\.$/, ' — 드로우 페이즈: 드로우 불가 (덱과 대기실이 비어 있음).'],
+    [/ — Draw Phase\.$/, ' — 드로우 페이즈.'],
+    [/ — Active Phase: Energy and Members refreshed\.$/, ' — 액티브 페이즈: 에너지와 멤버가 리프레시됨.'],
+    [/ — Energy Phase: storage full \((\d+)\/(\d+)\), no Energy added\.$/, ' — 에너지 페이즈: 보관함이 가득 차 ($1/$2), 에너지가 추가되지 않음.'],
+    [/ — Energy Phase: no cards left in Energy deck\.$/, ' — 에너지 페이즈: 에너지 덱에 카드가 남아 있지 않음.'],
+    [/ — Energy Phase: placed 1 Energy in storage \((\d+)\/(\d+)\)\.$/, ' — 에너지 페이즈: 에너지 1장을 보관함에 배치 ($1/$2).'],
+    [/ — Main Phase time expired \(auto end\)\.$/, ' — 메인 페이즈 시간 초과 (자동 종료).'],
+    [/ — LIVE Phase time expired \(auto lock-in\)\.$/, ' — Live 페이즈 시간 초과 (자동 확정).'],
+    [/^(.+?)(?:'s|') Live Phase\.$/, '$1의 Live 페이즈.'],
+    [/ — \[([^\]]+)\] drew (\d+) \(Active → Wait\)\.$/, ' — [$1] $2장 드로우 (액티브 → 웨이트).'],
+    [/ — \[([^\]]+)\] optional skill skipped\.$/, ' — [$1] 선택 스킬 건너뜀.'],
+    [/ — \[([^\]]+)\] activated\.$/, ' — [$1] 발동.'],
+    [/ — \[([^\]]+)\] Live Start skipped\.$/, ' — [$1] 라이브 개시 건너뜀.'],
+    [/ — \[([^\]]+)\] Live Success skipped\.$/, ' — [$1] 라이브 성공 건너뜀.'],
+    [/Live SUCCESS/, 'Live 성공'],
+    [/Live FAIL/, 'Live 실패'],
+    [/Live failed/, 'Live 실패'],
+    [/Live succeeded/, 'Live 성공'],
+    [/^(.+)'s turn — Main Phase \(Active · Energy · Draw complete\)\.$/, '$1의 턴 — 메인 페이즈 (액티브 · 에너지 · 드로우 완료).'],
+    [/^(.+) turn — Main Phase \(Active · Energy · Draw complete\)\.$/, '$1의 턴 — 메인 페이즈 (액티브 · 에너지 · 드로우 완료).'],
+    [/^(.+) turn — Main Phase…$/, '$1의 턴 — 메인 페이즈…'],
+    [/^🪙 Coin flip: (.+) won and chose to go first!$/, '🪙 코인 던지기: $1 승리 — 선공을 선택함!'],
+    [/^🪙 Coin flip: (.+) won and chose (.+) to go first!$/, '🪙 코인 던지기: $1 승리 — $2 를 선공으로 선택함!'],
+    [/^🎉 (.+) WINS with 3 successful Lives!$/, '🎉 $1 Live 3회 성공으로 승리!'],
+    [/ disconnected\. (.+) wins!$/, ' 연결 끊김. $1 승리!'],
+    [/ had no card in hand to discard\.$/, ' 손에 버릴 카드가 없었음.'],
+    [/ had no cards in hand to discard\.$/, ' 손에 버릴 카드가 없었음.'],
+    [/ drew (\d+) but had no cards in hand to discard\.$/, ' $1장 드로우했지만 손에 버릴 카드가 없었음.'],
+    [/ is performing Live with (.+)\.$/, ' 이 $1로 Live 진행 중.'],
+    [/Both players put (\d+) cards? into the Waiting Room\.$/, '두 플레이어 모두 $1장을 대기실로 보냄.'],
+    [/Both players drew \(([^)]+)\)\.$/, '두 플레이어 모두 드로우함 ($1).'],
+  ];
+
   /** Term replacement for Spanish (order matters; Baton Touch stays English). */
   var PHRASE_RULES_ES = [
     [/Success Live card storage/g, 'almacenamiento de Live exitoso'],
@@ -345,6 +448,21 @@
     }],
   ];
 
+  /** Term replacement for Korean (order matters; Baton Touch stays English). */
+  var PHRASE_RULES_KO = [
+    [/Success Live card storage/g, '성공 Live 카드 보관함'],
+    [/Live storage/g, 'Live 보관함'],
+    [/Success Live/g, '성공 Live'],
+    [/Waiting Room/g, '대기실'],
+    [/Energy deck/g, '에너지 덱'],
+    [/Main Deck/g, '메인 덱'],
+    [/Stage Member/g, '스테이지 멤버'],
+    [/ overplayed onto (.+)\.$/, ' $1 위에 겹쳐 플레이함.'],
+    [/ played (.+) to (left|center|right) area\.$/, function (_m, card, slot) {
+      return ' ' + card + '를 ' + (SLOT_KO[slot] || slot) + ' 구역에 플레이함.';
+    }],
+  ];
+
   /** Effect-detail suffix rules for Spanish (draw / discard / play). */
   var EFFECT_RULES_ES = [
     [/drew a card\./, 'robó una carta.'],
@@ -355,6 +473,18 @@
     [/optional Live Start \(choose\)\./, 'Live Start opcional (elige).'],
     [/optional Live Start effect \(choose\)\./, 'efecto Live Start opcional (elige).'],
     [/Live Success choice\./, 'elección de Live Success.'],
+  ];
+
+  /** Effect-detail suffix rules for Korean (draw / discard / play). */
+  var EFFECT_RULES_KO = [
+    [/drew a card\./, '카드 1장을 드로우함.'],
+    [/drew (.+)\./, '$1을(를) 드로우함.'],
+    [/discarded a card\./, '카드 1장을 버림.'],
+    [/put (.+) into the Waiting Room\./, '$1을(를) 대기실로 보냄.'],
+    [/put a card into the Waiting Room\./, '카드 1장을 대기실로 보냄.'],
+    [/optional Live Start \(choose\)\./, '선택적 라이브 개시 (선택).'],
+    [/optional Live Start effect \(choose\)\./, '선택적 라이브 개시 효과 (선택).'],
+    [/Live Success choice\./, '라이브 성공 선택.'],
   ];
 
   /** Effect-detail suffix rules (after card names are localized). */
@@ -469,6 +599,7 @@
 
   function clearLogNameCache() {
     namePairs = null;
+    namePairsKo = null;
   }
 
   function buildNamePairs(catalog) {
@@ -504,10 +635,52 @@
     return msg;
   }
 
-  function replaceSkillBrackets(msg) {
+  /**
+   * English name → Korean name pairs, built from `LLTCG_I18N.cardLocaleName()`
+   * (KO_NAME_MAP / KO_SONG_MAP). Cards with no Korean mapping fall back to their
+   * English name inside `cardLocaleName`, so they are skipped here (no-op).
+   */
+  function buildNamePairsKo(catalog) {
+    if (!catalog) return [];
+    var i18n = global.LLTCG_I18N;
+    if (!i18n || typeof i18n.cardLocaleName !== 'function') return [];
+    var pairs = [];
+    var seen = Object.create(null);
+    Object.keys(catalog).forEach(function (no) {
+      var c = catalog[no];
+      if (!c) return;
+      var en = String(c.name_en || '').trim();
+      if (!en) return;
+      var ko = String(i18n.cardLocaleName(c) || '').trim();
+      if (!ko || ko === en) return;
+      var key = en.toLowerCase();
+      if (seen[key]) return;
+      seen[key] = 1;
+      pairs.push([en, ko]);
+    });
+    pairs.sort(function (a, b) { return b[0].length - a[0].length; });
+    return pairs;
+  }
+
+  function getNamePairsKo(catalog) {
+    if (!namePairsKo) namePairsKo = buildNamePairsKo(catalog);
+    return namePairsKo;
+  }
+
+  function replaceCardNamesKo(msg, catalog) {
+    if (!msg) return msg;
+    getNamePairsKo(catalog).forEach(function (pair) {
+      if (msg.indexOf(pair[0]) === -1) return;
+      msg = msg.split(pair[0]).join(pair[1]);
+    });
+    return msg;
+  }
+
+  function replaceSkillBrackets(msg, map) {
+    var brackets = map || SKILL_BRACKETS;
     return msg.replace(/\[([^\]]+)\]/g, function (full, inner) {
       var trimmed = inner.trim();
-      if (SKILL_BRACKETS[trimmed]) return '[' + SKILL_BRACKETS[trimmed] + ']';
+      if (brackets[trimmed]) return '[' + brackets[trimmed] + ']';
       return full;
     });
   }
@@ -545,6 +718,17 @@
     return out;
   }
 
+  function localizePromptTextKo(msg, catalog) {
+    if (!msg) return msg;
+    catalog = catalog || (global.G && global.G.allCards);
+    var out = String(msg);
+    out = replaceCardNamesKo(out, catalog);
+    out = replaceSkillBrackets(out, SKILL_BRACKETS_KO);
+    out = applyRules(out, PHRASE_RULES_KO);
+    out = applyRules(out, EFFECT_RULES_KO);
+    return out;
+  }
+
   function localizePromptText(msg, catalog) {
     if (!msg) return msg;
     var i18n = global.LLTCG_I18N;
@@ -553,6 +737,7 @@
     if (loc === 'en') return msg;
     if (loc === 'ja') return localizePromptTextJa(msg, catalog);
     if (loc === 'es') return localizePromptTextEs(msg, catalog);
+    if (loc === 'ko') return localizePromptTextKo(msg, catalog);
     return msg;
   }
 
@@ -593,6 +778,25 @@
     return out;
   }
 
+  function localizeLogMessageKo(msg, catalog) {
+    if (!msg) return msg;
+
+    var exact = translateExact(msg);
+    if (exact != null) return exact;
+
+    var structured = translateStructuredLineKo(msg);
+    if (structured != null) return structured;
+
+    catalog = catalog || (global.G && global.G.allCards);
+    var out = String(msg);
+    out = applyRules(out, STRUCTURAL_PHRASE_RULES_KO);
+    out = replaceCardNamesKo(out, catalog);
+    out = replaceSkillBrackets(out, SKILL_BRACKETS_KO);
+    out = applyRules(out, PHRASE_RULES_KO);
+    out = applyRules(out, EFFECT_RULES_KO);
+    return out;
+  }
+
   function localizeLogMessage(msg, catalog) {
     if (!msg) return msg;
     var i18n = global.LLTCG_I18N;
@@ -601,6 +805,7 @@
     if (loc === 'en') return msg;
     if (loc === 'ja') return localizeLogMessageJa(msg, catalog);
     if (loc === 'es') return localizeLogMessageEs(msg, catalog);
+    if (loc === 'ko') return localizeLogMessageKo(msg, catalog);
     return msg;
   }
 

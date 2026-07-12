@@ -5,7 +5,7 @@
   'use strict';
 
   const MANIFEST_URL = 'stamps_manifest.json?v=4';
-  const I18N_URL = 'stamps_i18n.json?v=2';
+  const I18N_URL = 'stamps_i18n.json?v=3';
   const ASSET_BASE = 'assets/stamps/';
   const LS_AUDIO = 'tcg_stamp_audio_enabled';
   const LS_FAV = 'tcg_stamp_favorites_cache';
@@ -137,7 +137,7 @@
 
   function uiLocale() {
     const loc = global.LLTCG_I18N?.getLocale?.();
-    return loc === 'ja' || loc === 'es' ? loc : 'en';
+    return loc === 'ja' || loc === 'es' || loc === 'ko' ? loc : 'en';
   }
 
   function stampDisplayLabel(stampOrId, fallbackLabel) {

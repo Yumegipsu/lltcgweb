@@ -9,6 +9,8 @@ $files = [
     'tutorial.json',
     'tutorial_guide.json',
     'tutorial_ja.json',
+    'tutorial_es.json',
+    'tutorial_ko.json',
     'pack_listings.json',
     'sfx_manifest.web.json',
     'playmat_zones.json',
