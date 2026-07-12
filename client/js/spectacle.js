@@ -3550,10 +3550,22 @@ function perfCardEl(card, kind) {
   if (liveSlot && !isLiveCard(c)) appendLiveStorageMemberFace(d, c);
   else appendCardFace(d, c, { sideways: false });
   if (!liveSlot) {
-    const blade = (Number(c.blade) || 0) + (Number(c.live_blade_bonus) || 0);
-    if (blade > 0) {
+    const inWait = typeof memberInWait === 'function' ? memberInWait(c) : !!c.in_wait;
+    if (inWait) {
+      d.classList.add('member-in-wait');
+      const wd = document.createElement('div');
+      wd.className = 'wdim';
+      wd.textContent = (typeof t === 'function' && t('skillKw.wait') !== 'skillKw.wait')
+        ? t('skillKw.wait')
+        : 'Wait';
+      d.appendChild(wd);
+    }
+    const rawBlade = (Number(c.blade) || 0) + (Number(c.live_blade_bonus) || 0);
+    // Wait members do not contribute blade — show 0 so the spectacle matches the board.
+    const blade = inWait ? 0 : rawBlade;
+    if (blade > 0 || inWait) {
       const badge = document.createElement('div');
-      badge.className = 'perf-member-blade';
+      badge.className = 'perf-member-blade' + (inWait ? ' perf-member-blade-wait' : '');
       badge.appendChild(mkGameIcon('icon_blade.png', 'bicon sm', 'Blade'));
       const num = document.createElement('span');
       num.textContent = String(blade);

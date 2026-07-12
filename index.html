@@ -3583,9 +3583,31 @@ body.perf-spectacle-active:has(.overlay.skill-hand-preserve.open)::before{
 .perf-card.member .perf-member-blade{
   position:absolute;bottom:4px;right:4px;display:flex;align-items:center;gap:2px;
   background:rgba(0,0,0,.72);border-radius:6px;padding:2px 5px;font-size:11px;font-weight:700;color:#fff;
-  pointer-events:none;z-index:2;
+  pointer-events:none;z-index:6;
 }
 .perf-card.member .perf-member-blade .bicon.sm{width:14px;height:14px}
+.perf-card.member .perf-member-blade.perf-member-blade-wait{
+  opacity:.78;filter:grayscale(.35);
+}
+/* Wait members on the spectacle stage: same flip + dim treatment as board .mslot */
+.perf-card.member.member-in-wait > .wdim{
+  font-size:clamp(9px,1.4vw,13px);letter-spacing:.06em;z-index:5;
+}
+.perf-card.member.member-in-wait > .wdim::before{
+  transform:rotate(90deg);transform-origin:center center;
+}
+.perf-card.member.member-in-wait > img,
+.perf-card.member.member-in-wait > .noimg,
+.perf-card.member.member-in-wait .card-face-fill,
+.perf-card.member.member-in-wait .card-art > img,
+.perf-card.member.member-in-wait .card-art > .noimg,
+.perf-card.member.member-in-wait .live-flip-front > img,
+.perf-card.member.member-in-wait .live-flip-front > .noimg,
+.perf-card.member.member-in-wait .live-flip-front .card-face-fill{
+  transform:rotate(90deg);
+  transform-origin:center center;
+  filter:grayscale(.45) brightness(.78);
+}
 .perf-stage-row.perf-stage-multi .perf-card.member{
   width:var(--perf-stage-member-w, var(--perf-member-w, clamp(100px,16vw,136px)));
   height:var(--perf-stage-member-h, auto);
@@ -35109,7 +35131,7 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/spectacle.js?v=9"></script>
+<script src="client/js/spectacle.js?v=10"></script>
 <script src="client/js/cpu-meta-weights.js?v=1"></script>
 <script src="client/js/cpu-ai.js?v=4"></script>
 <script>void bootApp();</script>
