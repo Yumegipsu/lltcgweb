@@ -243,6 +243,7 @@ function tcgDbMigrate(PDO $db): void {
 
     tcgDbEnsureColumn($db, 'tcg_users', 'banner_card_no', 'TEXT');
     tcgDbEnsureColumn($db, 'tcg_users', 'banner_crop', 'TEXT');
+    tcgDbEnsureColumn($db, 'tcg_users', 'equipped_flag', 'TEXT');
     tcgDbEnsureColumn($db, 'tcg_users', 'stamp_favorites', 'TEXT');
     tcgDbEnsureColumn($db, 'tcg_users', 'ranked_equipped_starter', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'star_gems', 'INTEGER NOT NULL DEFAULT 0');
@@ -425,7 +426,7 @@ function tcgResetAccountProgress(string $discordId): void {
         $db->prepare('DELETE FROM tcg_mission_progress WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('DELETE FROM tcg_starter_owned WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('UPDATE tcg_users SET starter_deck = NULL, banner_card_no = NULL, banner_crop = NULL,
-            stamp_favorites = NULL, star_gems = 0, dupe_gem_migration_done = 0, unranked_games = 0,
+            equipped_flag = NULL, stamp_favorites = NULL, star_gems = 0, dupe_gem_migration_done = 0, unranked_games = 0,
             updated_at = ? WHERE discord_id = ?')
             ->execute([$now, $discordId]);
         $db->prepare('UPDATE tcg_rank SET rating = 1000, wins = 0, losses = 0, draws = 0, games = 0, updated_at = ?

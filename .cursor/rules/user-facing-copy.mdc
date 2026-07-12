@@ -28,6 +28,12 @@ Apply the same rules when mirroring copy to `tutorial_ja.json` or localized `tut
 
 Supported locales live in `i18n.js` (`LOCALES`, **en** + **ja** + **es** + **ko**). **Every new or changed player-facing string must ship in all locales in the same change** — not English-only.
 
+### Korean (required — do not skip)
+
+Korean (`STRINGS.ko` / `locales/ko.json` / `tutorial_ko.json`) is a **first-class locale**, same as Spanish and Japanese. **Every new or changed player-facing string must include Korean in the same change** — menus, missions, toasts, overlays, news posts, and JS-built UI. Do not ship English-only or en+ja+es without `ko`.
+
+Source of truth for KO UI copy is `locales/ko.json` → inject via `python scripts/inject_i18n_ko.py` when using that workflow; otherwise keep `STRINGS.ko` in `i18n.js` in sync with `locales/ko.json`.
+
 ### Where strings go
 
 | Surface | English source | Japanese / Spanish / Korean |
@@ -72,5 +78,5 @@ Supported locales live in `i18n.js` (`LOCALES`, **en** + **ja** + **es** + **ko*
 - Explain **what changes for the player** — gameplay, deck building, ranked/casual rules, balance.
 - Use **card names and point values**, not file paths, repo names, deploy steps, or dev jargon.
 - Do **not** mention `news.json`, Hostinger, git, APIs, or implementation details.
-- Ship **en + ja + es** for every post title and body in the same change.
+- Ship **en + ja + es + ko** for every post title and body in the same change.
 - **Card IDs** in post body (e.g. `PL!N-bp1-003-R＋`) are auto-linked in the news viewer — use exact catalog `card_no` values; idol names should match `cards.json` (`name` / `name_en`).

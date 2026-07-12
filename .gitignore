@@ -21,6 +21,10 @@ exports/*
 
 # Love Live / official game art & audio (not in git; obtain locally or scrape)
 /assets/**
+# Profile flags are small community assets (from Puchiball) — keep in git
+!/assets/flags/
+!/assets/flags/**
+!/assets/flags.json
 /bg/**
 /icons/**
 /cardimg/**
@@ -66,6 +70,7 @@ __pycache__/
 venv/
 
 # Card import / audit scratch (local operator notes)
+reports/
 import_card_progress.txt
 CARD_AUDIT_PROGRESS.txt
 _live_titles_export.txt

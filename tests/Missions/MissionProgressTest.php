@@ -290,6 +290,18 @@ final class MissionProgressTest extends TestCase
         $this->assertFalse(tcgMissionIsCompleted($this->discordId, 'ms_win_nijigasaki', ''));
     }
 
+    public function testProfileFlagMissionCompletesAndClaims(): void
+    {
+        $before = tcgGetStarGems($this->discordId);
+        $completions = tcgMissionOnProfileFlagSet($this->discordId);
+        $this->assertNotEmpty($completions);
+        $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'ms_profile_flag', ''));
+
+        $result = tcgMissionClaim($this->discordId, 'ms_profile_flag');
+        $this->assertSame(100, $result['star_gems_gained']);
+        $this->assertSame($before + 100, tcgGetStarGems($this->discordId));
+    }
+
     public function testClaimGrantsGemsOnceAndRejectsDoubleClaim(): void
     {
         $before = tcgGetStarGems($this->discordId);

@@ -23,6 +23,7 @@ function tcgMissionDefinitions(): array {
         ['id' => 'daily_complete_all', 'type' => 'daily', 'reward' => 100, 'sort' => 40, 'i18n_key' => 'missions.daily.completeAll'],
 
         ['id' => 'ms_profile_banner', 'type' => 'milestone', 'reward' => 100, 'sort' => 100, 'i18n_key' => 'missions.milestone.profileBanner'],
+        ['id' => 'ms_profile_flag', 'type' => 'milestone', 'reward' => 100, 'sort' => 105, 'i18n_key' => 'missions.milestone.profileFlag'],
         ['id' => 'ms_profile_stamps', 'type' => 'milestone', 'reward' => 100, 'sort' => 110, 'i18n_key' => 'missions.milestone.profileStamps'],
         // 4 extra starters after the initial pick (5 total) — one every 400 cards.
         ['id' => 'ms_cards_400', 'type' => 'milestone', 'reward' => 0, 'reward_type' => 'starter_choice', 'reward_fallback' => 200, 'sort' => 150, 'i18n_key' => 'missions.milestone.cards400', 'threshold' => 400],
@@ -565,6 +566,11 @@ function tcgMissionOnProfileBannerSet(string $discordId): array {
 }
 
 /** @return list<array{id: string, i18n_key: string, reward: int}> */
+function tcgMissionOnProfileFlagSet(string $discordId): array {
+    return tcgMissionMarkCompleted($discordId, 'ms_profile_flag');
+}
+
+/** @return list<array{id: string, i18n_key: string, reward: int}> */
 function tcgMissionOnStampFavoritesSet(string $discordId, array $favorites): array {
     $profile = $favorites['profile'] ?? [];
     if (!is_array($profile) || $profile === []) {
@@ -582,12 +588,16 @@ function tcgMissionBackfillRetroactive(string $discordId): void {
 
     require_once __DIR__ . '/matchmaking.php';
     $db = tcgDb();
-    $stmt = $db->prepare('SELECT banner_card_no, stamp_favorites, unranked_games FROM tcg_users WHERE discord_id = ?');
+    $stmt = $db->prepare('SELECT banner_card_no, equipped_flag, stamp_favorites, unranked_games FROM tcg_users WHERE discord_id = ?');
     $stmt->execute([$discordId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
     if (!empty($user['banner_card_no'])) {
         tcgMissionMarkCompletedSilent($discordId, 'ms_profile_banner');
+    }
+    require_once __DIR__ . '/flags.php';
+    if (tcgNormalizeEquippedFlag($user['equipped_flag'] ?? null) !== '') {
+        tcgMissionMarkCompletedSilent($discordId, 'ms_profile_flag');
     }
     $fav = tcgParseStampFavorites($user['stamp_favorites'] ?? null);
     if (!empty($fav['profile'])) {

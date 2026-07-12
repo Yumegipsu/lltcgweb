@@ -9,7 +9,7 @@
  * Endpoints (action=):
  *   me, pick_starter, collection, booster_boxes, booster_rates, daily_status, open_booster,
  *   deck_list, deck_save, deck_delete, deck_equip, deck_equip_starter, deck_reset_starter, deck_auto_build, reset_account,
- *   ranked_join, ranked_leave, ranked_status, rank_stats, rank_banner_set, stamp_favorites_set, active_game, leave_active_game,
+ *   ranked_join, ranked_leave, ranked_status, rank_stats, rank_banner_set, rank_flag_set, stamp_favorites_set, active_game, leave_active_game,
  *   replay_save, replay_list, replay_get, replay_start, missions_list, missions_claim, public_profile,
  *   public_leaderboard
  */
@@ -17,6 +17,7 @@ require_once __DIR__ . '/config/paths.php';
 require_once __DIR__ . '/config/cors.php';
 require_once __DIR__ . '/config/errors.php';
 require_once __DIR__ . '/config/rate_limit.php';
+require_once __DIR__ . '/flags.php';
 tcgDefinePathConstants();
 
 header('Content-Type: application/json');
@@ -70,6 +71,7 @@ try {
         case 'ranked_status':      echo json_encode(tcgApiRankedStatus($body)); break;
         case 'rank_stats':         echo json_encode(tcgApiRankStats($body)); break;
         case 'rank_banner_set':    echo json_encode(tcgApiRankBannerSet($body)); break;
+        case 'rank_flag_set':      echo json_encode(tcgApiRankFlagSet($body)); break;
         case 'stamp_favorites_set': echo json_encode(tcgApiStampFavoritesSet($body)); break;
         case 'active_game':        echo json_encode(tcgApiActiveGame($body)); break;
         case 'leave_active_game':  echo json_encode(tcgApiLeaveActiveGame($body)); break;
@@ -137,6 +139,7 @@ function tcgApiMe(array $body): array {
         'dupe_migration' => $migration,
         'rank' => tcgFormatRankSummary($rank),
         'banner' => tcgFormatUserBanner($user, $cards),
+        'equipped_flag' => tcgFormatEquippedFlag($user['equipped_flag'] ?? null),
         'stamp_favorites' => tcgFormatStampFavorites($user['stamp_favorites'] ?? null),
         'equipped_deck_slot' => ($equippedLoadout === 'preset') ? intval($equipped['slot']) : null,
         'equipped_deck_name' => $equipped ? tcgNormalizeDeckPresetName($equipped['name'] ?? '') : null,
@@ -957,6 +960,30 @@ function tcgApiRankBannerSet(array $body): array {
     ], $completions);
 }
 
+function tcgApiRankFlagSet(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    $profile = tcgAuthUserProfile($uid);
+    tcgEnsureUser($uid, $profile);
+    $flagId = tcgNormalizeEquippedFlag($body['flag_id'] ?? $body['equipped_flag'] ?? null);
+    // Explicit clear: allow empty / __none__
+    $raw = trim((string)($body['flag_id'] ?? $body['equipped_flag'] ?? ''));
+    if ($raw !== '' && $raw !== '__none__' && strcasecmp($raw, 'none') !== 0 && $flagId === '') {
+        throw new Exception('Unknown flag');
+    }
+    $db = tcgDb();
+    $now = time();
+    $db->prepare('UPDATE tcg_users SET equipped_flag = ?, updated_at = ? WHERE discord_id = ?')
+        ->execute([$flagId !== '' ? $flagId : null, $now, $uid]);
+    $completions = [];
+    if ($flagId !== '') {
+        $completions = tcgMissionOnProfileFlagSet($uid);
+    }
+    return tcgMissionAttachCompletions([
+        'success' => true,
+        'equipped_flag' => tcgFormatEquippedFlag($flagId),
+    ], $completions);
+}
+
 function tcgApiRankStats(array $body): array {
     $uid = tcgRequireAuthUser($body);
     $profile = tcgAuthUserProfile($uid);
@@ -965,7 +992,7 @@ function tcgApiRankStats(array $body): array {
     $cards = tcgLoadCardsData();
     $db = tcgDb();
     $stmt = $db->query('SELECT r.discord_id, r.rating, r.wins, r.losses, r.draws, r.games,
-            u.username, u.avatar_url, u.banner_card_no, u.banner_crop, u.stamp_favorites
+            u.username, u.avatar_url, u.banner_card_no, u.banner_crop, u.equipped_flag, u.stamp_favorites
         FROM tcg_rank r
         JOIN tcg_users u ON u.discord_id = r.discord_id
         WHERE r.games > 0
@@ -988,6 +1015,7 @@ function tcgApiRankStats(array $body): array {
             'win_rate' => $summary['win_rate'],
             'loss_rate' => $summary['loss_rate'],
             'banner' => tcgFormatUserBanner($row, $cards),
+            'equipped_flag' => tcgFormatEquippedFlag($row['equipped_flag'] ?? null),
             'is_you' => $row['discord_id'] === $uid,
         ];
     }
@@ -1007,6 +1035,7 @@ function tcgApiRankStats(array $body): array {
                 'username' => $user['username'] ?? $profile['username'] ?? 'Player',
                 'avatar_url' => $user['avatar_url'] ?? $profile['avatar_url'] ?? null,
                 'banner' => tcgFormatUserBanner($user, $cards),
+                'equipped_flag' => tcgFormatEquippedFlag($user['equipped_flag'] ?? null),
             ]
         ),
         'leaderboard' => $leaderboard,
@@ -1153,6 +1182,7 @@ function tcgApiPublicProfile(array $params): array {
             'packs_opened' => $packsOpened,
             'banner' => $banner,
             'banner_image_url' => $bannerUrl,
+            'equipped_flag' => tcgFormatEquippedFlag($user['equipped_flag'] ?? null),
             'queue' => tcgPublicQueueStatus($discordId),
         ],
     ];
