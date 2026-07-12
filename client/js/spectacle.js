@@ -1326,8 +1326,10 @@ function shouldAnimateEmptyLiveStorageWr(prev, next) {
 function queueMainPhaseBannerAfterEmptyLiveSkip(next, myId) {
   if (!next || !isMainOrActivePhase(next.phase)) return;
   if (shouldSkipPhaseBanner(next.phase, next)) return;
+  if (phaseBannerAlreadyShown(next.phase, next)) return;
   const copy = phaseBannerCopy(next.phase, next, myId);
   if (!copy?.title) return;
+  markPhaseBannerShown(next.phase, next);
   queueCenterBanner(centerBannerForPhase(next.phase, copy));
 }
 
@@ -1614,6 +1616,49 @@ function shouldSkipPhaseBanner(phase, s) {
     return !liveRoundHasLiveCards(s);
   }
   return false;
+}
+
+/** Dedupe key for phase splashes (esp. Main) so replay cannot re-fire the same entry. */
+function phaseBannerDedupeKey(phase, s) {
+  if (!phase || !s) return null;
+  if (phase !== 'main_first' && phase !== 'main_second'
+      && phase !== 'live_set' && phase !== 'live_set_first' && phase !== 'live_set_second'
+      && phase !== 'live_performance_first' && phase !== 'live_performance_second') {
+    return null;
+  }
+  return `${s.turn || 0}:${phase}:${s.active_player || ''}`;
+}
+
+function clearPhaseBannerShownKeys() {
+  G._phaseBannerShownKeys = new Set();
+}
+
+function markPhaseBannerShown(phase, s) {
+  const key = phaseBannerDedupeKey(phase, s);
+  if (!key) return;
+  if (!G._phaseBannerShownKeys) G._phaseBannerShownKeys = new Set();
+  G._phaseBannerShownKeys.add(key);
+}
+
+function markPhaseBannerShownForState(s) {
+  if (!s?.phase) return;
+  markPhaseBannerShown(s.phase, s);
+}
+
+function phaseBannerAlreadyShown(phase, s) {
+  const key = phaseBannerDedupeKey(phase, s);
+  if (!key) return false;
+  return !!G._phaseBannerShownKeys?.has(key);
+}
+
+function phaseBannerAlreadyQueued(phase, copy) {
+  const titleKey = copy?.titleKey;
+  const title = copy?.title;
+  return (G._bannerQueue || []).some((b) => {
+    if (titleKey && b.titleKey === titleKey) return true;
+    if (title && b.title === title) return true;
+    return false;
+  });
 }
 
 function hPhase(p){
@@ -2958,8 +3003,8 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   }
 
   if (!spectacleFailedOwed) {
-    flushPostLiveLogBanners(prev, G.gameState || next, myId, { emptySkip });
-    ensureLiveRoundStateCommitted(prev, G.gameState || next, myId);
+    flushPostLiveLogBanners(prev, next, myId, { emptySkip });
+    ensureLiveRoundStateCommitted(prev, next, myId);
   }
   if (emptySkip) nudgeCpuAfterStatePresentation(G.gameState || next);
   TCG_DEBUG.log('live', 'presentLiveRound done', { reveal: revealRan, spectacle: spectacleRan, empty: emptySkip, spectacleFailedOwed });
@@ -6185,8 +6230,14 @@ function showPhaseTransitionBanner(s, myId, prev) {
   }
   if (shouldSuppressPostSpectacleSplash(null, s.phase, prev, s)) return;
   if (shouldSkipPhaseBanner(s.phase, s)) return;
+  if (phaseBannerAlreadyShown(s.phase, s)) return;
   const copy = phaseBannerCopy(s.phase, s, myId);
   if (!copy?.title) return;
+  if (phaseBannerAlreadyQueued(s.phase, copy)) {
+    markPhaseBannerShown(s.phase, s);
+    return;
+  }
+  markPhaseBannerShown(s.phase, s);
   queueCenterBanner(centerBannerForPhase(s.phase, copy));
 }
 

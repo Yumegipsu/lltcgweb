@@ -22,6 +22,10 @@
     if (typeof primeReplayEmptyLivePresentedFromLog === 'function') {
       primeReplayEmptyLivePresentedFromLog(s);
     }
+    if (typeof clearPhaseBannerShownKeys === 'function') clearPhaseBannerShownKeys();
+    // Scrub lands mid-match: treat the current phase splash as already shown so the
+    // next +1 step does not re-fire Main/Live splash for the same turn/phase.
+    if (typeof markPhaseBannerShownForState === 'function') markPhaseBannerShownForState(s);
     G._announceBaseline = (s?.log || []).length;
     G._prevLogLen = (s?.log || []).length;
     G._lastPhase = s?.phase ?? null;
@@ -56,9 +60,13 @@
   }
 
   async function applyReplayStateUpdate(prev, s) {
-    if (typeof abortGameplayPresentation === 'function') abortGameplayPresentation();
     const delta = replayStepDelta(prev, s);
     const scrub = !prev || G._replaySeekWasScrub || delta == null || delta !== 1;
+    if (typeof abortGameplayPresentation === 'function') {
+      // Soft forward keeps coin/mull overlays and avoids wiping a banner only to
+      // re-queue the same Main Phase splash on the next live→main mis-detect.
+      abortGameplayPresentation(scrub ? {} : { softReplayForward: true, skipAbortFlag: true });
+    }
     if (scrub) {
       applyReplaySnapshot(s);
       G._replaySeekWasScrub = false;
@@ -69,6 +77,16 @@
     try {
       if (typeof holdLivePolls === 'function') holdLivePolls();
       await global.applyStateUpdate(s);
+      // Replay steps are discrete — always land on the sought server board so the
+      // next +1 does not treat a stale live_* board as prev (Main Phase loop).
+      if (s && (G.gameState?.seq ?? 0) <= (s.seq ?? 0)) {
+        const phaseDesync = G.gameState && G.gameState.phase !== s.phase;
+        const turnDesync = G.gameState && G.gameState.active_player !== s.active_player;
+        if (!G.gameState || phaseDesync || turnDesync || (G.gameState.seq ?? 0) < (s.seq ?? 0)) {
+          G.gameState = s;
+          renderGame(s, { skipPrompt: true });
+        }
+      }
     } finally {
       G._replayForwardApply = false;
       G._replayLastAppliedStep = s?.replay?.step ?? G.replayStep;
@@ -327,9 +345,12 @@
     const skipPromptForLive = typeof shouldDeferPromptForLivePresentation === 'function'
       && shouldDeferPromptForLivePresentation(s, G.playerId);
     const commitServerBoardToUi = (board) => {
-      if (!board || replayForward) return;
+      if (!board) return;
       G.gameState = board;
-      renderGame(board, { skipLog: true, skipPrompt: skipPromptForLive });
+      renderGame(board, {
+        skipLog: true,
+        skipPrompt: skipPromptForLive || replayForward,
+      });
     };
     const uiBehindServer = (board = G.gameState) => {
       if (!board) return true;
@@ -351,6 +372,7 @@
     }
 
     if (await runLiveSpectacleGate(livePrev, s, newEntries, G.playerId)) {
+      if (replayForward) commitServerBoardToUi(s);
       const live = G.gameState || s;
       if (!replayForward
           && live.pending_prompt?.responder === G.playerId
@@ -371,22 +393,41 @@
       if (stuckOnLiveSet && typeof abortStuckLiveRoundPlayback === 'function') {
         abortStuckLiveRoundPlayback('stale live_set after server advance');
         commitServerBoardToUi(s);
-      } else if (!replayForward && !G.animating && !G._liveSpectacleGateRunning && !G._liveRoundPlaybackActive
+      } else if (replayForward) {
+        commitServerBoardToUi(s);
+      } else if (!G.animating && !G._liveSpectacleGateRunning && !G._liveRoundPlaybackActive
           && uiBehindServer()) {
         commitServerBoardToUi(s);
       }
-      if (!replayForward && !G.animating && !G._liveSpectacleGateRunning
-          && typeof shouldRecoverMissedLiveSpectacle === 'function'
-          && shouldRecoverMissedLiveSpectacle(livePrev ?? prev, s)) {
-        G.animating = true;
-        try {
-          await runLiveSpectacleGate(livePrev ?? prev, s, newEntries, G.playerId);
-        } finally {
-          G.animating = false;
-          releaseLivePollsAndFlush();
+      // Replay: once the sought board is already past LIVE pipeline, do not soft-lock
+      // every main-phase step behind a stale spectacle gate (caused Main Phase splash loops).
+      const replayPastLiveGate = replayForward
+        && typeof isLiveSetPhase === 'function'
+        && !isLiveSetPhase(s.phase)
+        && (typeof isLiveSpectaclePipelinePhase !== 'function' || !isLiveSpectaclePipelinePhase(s.phase));
+      if (!replayPastLiveGate) {
+        if (!replayForward && !G.animating && !G._liveSpectacleGateRunning
+            && typeof shouldRecoverMissedLiveSpectacle === 'function'
+            && shouldRecoverMissedLiveSpectacle(livePrev ?? prev, s)) {
+          G.animating = true;
+          try {
+            await runLiveSpectacleGate(livePrev ?? prev, s, newEntries, G.playerId);
+          } finally {
+            G.animating = false;
+            releaseLivePollsAndFlush();
+          }
+          const live = G.gameState || s;
+          if (live.pending_prompt?.responder === G.playerId) {
+            ensurePendingPromptSurfaced(live, G.playerId);
+          }
+          if (!replayForward && G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) {
+            doCPU(live);
+            armWatchdog(live);
+          }
+          return;
         }
         const live = G.gameState || s;
-        if (live.pending_prompt?.responder === G.playerId) {
+        if (!replayForward && live.pending_prompt?.responder === G.playerId) {
           ensurePendingPromptSurfaced(live, G.playerId);
         }
         if (!replayForward && G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) {
@@ -395,15 +436,6 @@
         }
         return;
       }
-      const live = G.gameState || s;
-      if (!replayForward && live.pending_prompt?.responder === G.playerId) {
-        ensurePendingPromptSurfaced(live, G.playerId);
-      }
-      if (!replayForward && G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) {
-        doCPU(live);
-        armWatchdog(live);
-      }
-      return;
     }
 
       if (prev && newEntries.length && hasAnimSteps) {

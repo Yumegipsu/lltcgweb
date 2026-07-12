@@ -7804,7 +7804,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
 <script src="client/js/game-sync.js?v=12"></script>
-<script src="client/js/state-apply.js?v=27"></script>
+<script src="client/js/state-apply.js?v=28"></script>
 <script src="client/js/stamps.js?v=13"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
 <script src="client/js/prompt-renderer.js?v=25"></script>
@@ -12819,6 +12819,19 @@ function stopReplayAutoPlay() {
   syncReplayControlBar();
 }
 
+async function waitForReplayPresentationIdle() {
+  const deadline = Date.now() + 120000;
+  while (Date.now() < deadline) {
+    if (!G.replayPlaying || !isReplayViewing()) return;
+    if (typeof waitForBannersIdle === 'function') await waitForBannersIdle();
+    const busy = !!(G.animating || G._liveRoundPlaybackActive || G._perfSpectacleActive
+      || G._liveSpectacleGateRunning || G._bannerActive || (G._bannerQueue || []).length);
+    const coinBusy = G.gameState?.phase === 'coin_flip' && !G._coinFlipAnimComplete;
+    if (!busy && !coinBusy) return;
+    await sleep(40);
+  }
+}
+
 function scheduleReplayAutoPlay() {
   stopReplayAutoPlay();
   if (!isReplayViewing()) return;
@@ -12833,6 +12846,7 @@ function scheduleReplayAutoPlay() {
     const nextStep = G.replayStep + 1;
     G.replayPlayTimer = setTimeout(async () => {
       await replayGotoStep(nextStep, { keepPlaying: true });
+      await waitForReplayPresentationIdle();
       if (G.replayPlaying && isReplayViewing() && G.replayStep < G.replayTotal) tick();
       else stopReplayAutoPlay();
     }, replayDelayMsForNextStep(nextStep));
@@ -13710,6 +13724,13 @@ function abortGameplayPresentation(opts = {}) {
   }
   document.body.classList.remove('perf-spectacle-active');
   G._postSpectacleSplashPause = false;
+  if (opts.softReplayForward) {
+    // Keep coin/mull overlays and the current banner queue so forward autoplay
+    // mirrors live UX instead of flash-dismissing setup screens / Main Phase.
+    ['overlay-prompt', 'overlay-pick', 'overlay-hand-pick', 'overlay-heart',
+      'overlay-live', 'overlay-surveil', 'overlay-zone', 'modal-card'].forEach((id) => closeM(id));
+    return;
+  }
   clearCenterBannerQueue();
   dismissAllGameplayOverlays();
 }
@@ -27796,9 +27817,22 @@ function renderGame(s, opts = {}) {
 
   // Conditional overlays
   if (isReplayViewing()) {
-    G.mulliganPending = false;
-    el('overlay-coin')?.classList.remove('open');
-    el('overlay-mull')?.classList.remove('open');
+    // Mirror live setup UX read-only (CSS disables pointer-events on coin/mull).
+    if (s.phase === 'coin_flip') maybeShowCoinFlip(s, myId);
+    else el('overlay-coin')?.classList.remove('open');
+    if (s.phase === 'setup') {
+      if (me.ready_mulligan) {
+        G.mulliganPending = false;
+        el('overlay-mull')?.classList.remove('open');
+      } else {
+        const mullOpen = el('overlay-mull')?.classList.contains('open');
+        if (!mullOpen) openMull(me.hand || [], { readonly: true, force: true });
+        else el('overlay-mull')?.classList.add('tut-mull-readonly');
+      }
+    } else {
+      G.mulliganPending = false;
+      el('overlay-mull')?.classList.remove('open');
+    }
   } else if (!G.isTutorial || G.tutorialLive) {
     const tutStepId = G.tutorialLive ? tutorialLiveStepId() : '';
     const showCoin = !G.tutorialLive || tutStepId === 'coin' || tutStepId === 'choose_first';
@@ -32103,6 +32137,7 @@ function maybeShowCoinFlip(s, myId) {
   if (!G._coinFlipAnimComplete) hideCoinChoiceButtons();
 
   // Reconnect after we already acked: skip replaying the flip animation.
+  // Replay scrub onto a mid-flip step should also land without re-spinning.
   if (flip.ready?.[myId] && G.coinFlipSeq !== flipKey) {
     G.coinFlipSeq = flipKey;
     G._coinFlipAnimComplete = true;
@@ -32117,7 +32152,11 @@ function maybeShowCoinFlip(s, myId) {
     return;
   }
 
-  if (G.coinFlipSeq === flipKey) return;
+  if (G.coinFlipSeq === flipKey) {
+    // Soft replay advance / re-render may close the overlay without resetting seq.
+    if (!el('overlay-coin')?.classList.contains('open')) openM('overlay-coin');
+    return;
+  }
 
   startCoinFlipAnimation(s, myId, flipKey);
 }
@@ -35070,7 +35109,7 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/spectacle.js?v=8"></script>
+<script src="client/js/spectacle.js?v=9"></script>
 <script src="client/js/cpu-meta-weights.js?v=1"></script>
 <script src="client/js/cpu-ai.js?v=4"></script>
 <script>void bootApp();</script>
