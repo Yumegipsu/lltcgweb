@@ -135,7 +135,7 @@ final class SayakaClWrPickTest extends TestCase
         $this->assertNotEmpty($summary['subunit'] ?? $summary['subunits'] ?? null);
     }
 
-    public function testSayakaPayYesAutoAddsWhenSingleDollchestraInWr(): void
+    public function testSayakaPayYesOpensWrPickWhenSingleDollchestraInWr(): void
     {
         $sayaka = $this->cardByNo('PL!HS-cl1-002-CL', 'sayaka_auto');
         $doll = $this->cardByNo('PL!HS-cl1-002-CL', 'doll_only');
@@ -198,6 +198,11 @@ final class SayakaClWrPickTest extends TestCase
         ]);
         $state = \actionResolvePrompt($state, 'p1', ['choice' => 'yes']);
 
+        $this->assertSame('pick_wr_to_hand', $state['pending_prompt']['type'] ?? null);
+        $candIds = array_column($state['pending_prompt']['candidates'] ?? [], 'instance_id');
+        $this->assertSame(['doll_only'], $candIds);
+
+        $state = \actionResolvePrompt($state, 'p1', ['card_id' => 'doll_only']);
         $this->assertNull($state['pending_prompt'] ?? null);
         $handIds = array_column($state['players']['p1']['hand'], 'instance_id');
         $this->assertContains('doll_only', $handIds);

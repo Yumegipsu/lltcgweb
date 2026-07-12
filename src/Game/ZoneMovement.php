@@ -319,6 +319,7 @@ function wrPickCfgFromAbility(array $ab): array {
         'wait_self_discard_add_wr_live',
         'pay_energy_add_live_zone_from_wr',
         'discard_cost_add_live_subunit',
+        'auto_area_move_wr_live',
     ];
     $defaultFilter = in_array($type, $liveDefaultTypes, true) ? 'live' : 'member';
     // Explicit empty filter ("") means any card type — do not coerce with ?? to member.

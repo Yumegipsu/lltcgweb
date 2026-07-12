@@ -126,7 +126,8 @@ function wrPickExtraFiltersFromCfg(array $cfg): array {
 }
 
 /**
- * Add matching WR card(s) to hand. When count is 1 and multiple cards qualify, opens pick_wr_to_hand.
+ * Add matching WR card(s) to hand. When count is 1 and any cards qualify, opens pick_wr_to_hand
+ * so the player always chooses among eligible Waiting Room cards (never auto-first-match).
  *
  * @return int|null Cards added immediately, or null when a pick prompt was opened.
  */
@@ -148,7 +149,8 @@ function addFromWaitingRoomWithChoice(
     if (empty($candidates)) {
         return 0;
     }
-    if ($count === 1 && count($candidates) > 1) {
+    // Always prompt for a single WR→hand add when anything qualifies — including one option.
+    if ($count === 1) {
         $slot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
         if ($slot === null) {
             $slot = 'center';

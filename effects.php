@@ -3119,21 +3119,34 @@ function resolveAutoAreaMoveAbilities(array $state, string $pid, string $memberI
             }
             if ($type === 'auto_area_move_wr_live') {
                 if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) continue;
-                $added = addFromWaitingRoomFiltered(
-                    $p,
-                    $ab['group'] ?? '',
-                    'live',
-                    1,
-                    null,
-                    ['max_live_score' => intval($ab['max_live_score'] ?? 3)]
+                $cfg = wrPickCfgFromAbility($ab);
+                $cfg['filter'] = 'live';
+                if (!isset($cfg['max_live_score'])) {
+                    $cfg['max_live_score'] = intval($ab['max_live_score'] ?? 3);
+                }
+                $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
+                $added = addFromWaitingRoomWithChoice(
+                    $state,
+                    $pid,
+                    $member,
+                    $ab,
+                    ['slot' => $slot, 'ability_index' => $idx],
+                    $cfg,
+                    1
                 );
+                if ($added === null) {
+                    $p['stage'][$slot] = $member;
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$mName] choose a Live card from Waiting Room (area move).");
+                    return $state;
+                }
                 if ($added > 0) {
                     if (!empty($ab['once_per_turn'])) markAbilityUsed($member, $idx);
                     $p['stage'][$slot] = $member;
-                    $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
                     $state = addLog($state, $state['players'][$pid]['name'] .
                         " — [$mName] added 1 Live card from Waiting Room (area move).");
                 }
+                continue;
             }
             if ($type === 'blade_if_entered_or_moved') {
                 if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) continue;
