@@ -159,7 +159,7 @@ select option{background:#2A1520;color:#fff}
 .screen.active{display:flex}
 
 /* ═══ LOBBY */
-#screen-lobby{flex-direction:column;align-items:center;justify-content:center;
+#screen-lobby{flex-direction:column;align-items:center;justify-content:flex-start;
   overflow-y:auto;padding:clamp(12px,2vh,24px) 16px;background:transparent}
 .logo{text-align:center;margin-bottom:clamp(12px,2vh,20px);max-width:min(520px,92vw);flex-shrink:0}
 .logo-img{display:block;width:100%;max-width:min(420px,72vw);height:auto;margin:0 auto;
@@ -3997,7 +3997,9 @@ body.missions-overlay-open .llc-sky-dim::after{
   content:'';position:absolute;inset:0;pointer-events:none;
   background:rgba(4,10,24,.42)}
 .llc-menu-screen{
-  flex-direction:column;align-items:center;justify-content:center;
+  /* flex-start + .account-shell margin-block:auto: centers when short, scrolls from top when tall
+     (justify-content:center clipped logo/news above the fold on ~1080p). */
+  flex-direction:column;align-items:center;justify-content:flex-start;
   overflow-y:auto;padding:clamp(12px,2vh,24px) 16px;background:transparent;
   font-family:'Zen Kaku Gothic New','Nunito',sans-serif;color:#fff}
 .llc-menu-screen .logo-tagline,.llc-menu-screen .logo-version{
@@ -4373,6 +4375,21 @@ body:has(#screen-game.active) #casual-search-float{top:68px}
   grid-template-columns:minmax(0,1fr) minmax(0,min(420px,72vw)) minmax(0,1fr);
   align-items:start;width:100%;max-width:min(520px,92vw);
   margin:0 auto clamp(12px,2vh,20px);flex-shrink:0}
+/* ~1080p usable height: shrink title art so logo + news stay fully on-screen */
+@media (max-height: 1000px) {
+  .llc-menu-screen .logo-img{max-width:min(340px,58vw)}
+  .llc-menu-screen .logo-row{
+    grid-template-columns:minmax(0,1fr) minmax(0,min(340px,58vw)) minmax(0,1fr);
+    margin-bottom:clamp(6px,1.2vh,12px);
+  }
+  .llc-menu-screen .llc-menu-item{min-height:58px}
+}
+@media (max-height: 860px) {
+  .llc-menu-screen .logo-img{max-width:min(280px,50vw)}
+  .llc-menu-screen .logo-row{
+    grid-template-columns:minmax(0,1fr) minmax(0,min(280px,50vw)) minmax(0,1fr);
+  }
+}
 .logo-row .logo{grid-column:2;margin-bottom:0;max-width:none;width:100%}
 .logo-row-side--left{grid-column:1}
 .logo-row-side--right{
