@@ -7804,7 +7804,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
 <script src="client/js/game-sync.js?v=12"></script>
-<script src="client/js/state-apply.js?v=26"></script>
+<script src="client/js/state-apply.js?v=27"></script>
 <script src="client/js/stamps.js?v=13"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
 <script src="client/js/prompt-renderer.js?v=25"></script>
@@ -13659,7 +13659,7 @@ function abortStuckLiveRoundPlayback(reason) {
   G._liveSpectacleGateRunning = false;
   G._livePollHold = false;
   G.animating = false;
-  G._spectacleRecoveryPending = null;
+  // Keep _spectacleRecoveryPending so a later poll/flush can still play the owed show.
   clearLiveRoundTransientCaches();
   if (typeof releaseLivePolls === 'function') releaseLivePolls();
   return true;
@@ -35070,7 +35070,7 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/spectacle.js?v=7"></script>
+<script src="client/js/spectacle.js?v=8"></script>
 <script src="client/js/cpu-meta-weights.js?v=1"></script>
 <script src="client/js/cpu-ai.js?v=4"></script>
 <script>void bootApp();</script>

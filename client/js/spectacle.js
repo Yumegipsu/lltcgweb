@@ -119,6 +119,27 @@ function liveSpectacleOwed(prev, next, showTurn = null) {
   return true;
 }
 
+/**
+ * Like liveSpectacleOwed, but ignores the main→main stale-signal gate.
+ * Used to re-arm recovery after a missed show once the server is already on Main.
+ */
+function liveSpectacleStillOwedOnBoard(prev, next, showTurn = null) {
+  if (!prev || !next || G.isTutorial) return false;
+  const turn = showTurn ?? inferLiveShowTurn(prev, next);
+  if (turn == null) return false;
+  if (liveSpectacleDoneForTurn(turn)) return false;
+  if (emptyLiveRoundAlreadyPresented(turn)) return false;
+  if (isLiveSetPlacementOnly(prev, next) || liveSetPlacementInProgress(next)) return false;
+  if (!logHasLivePerformanceForTurn(next, turn)
+      && !liveRoundBoardHasLiveCards(prev)
+      && !liveRoundBoardHasLiveCards(next)) {
+    return false;
+  }
+  if (!liveRoundJudgeReady(next)) return false;
+  if (pendingPromptBlocksPerfSpectacle(next)) return false;
+  return true;
+}
+
 /** Block main-phase log/phase banners until spectacle completes or round had no Lives. */
 function liveSpectaclePendingForTransition(prev, next) {
   if (!prev || !next || G.isTutorial) return false;
@@ -526,12 +547,18 @@ function spectacleRecoveryContext(prev, next) {
   if (logSliceHasLivePipelineSignals(slice) || newLogHasLivePerformance(prev, next)) return true;
   if (isLiveSpectaclePipelinePhase(prev.phase) && isMainOrActivePhase(next.phase)) return true;
   if (isLiveSpectaclePipelinePhase(next.phase) && !isLiveSetPhase(next.phase)) return true;
+  // Missed show still owed after Main catch-up (failed gate / abort / batched poll).
+  if (isMainOrActivePhase(prev.phase) && isMainOrActivePhase(next.phase)) {
+    const showTurn = inferLiveShowTurn(prev, next);
+    if (liveSpectacleStillOwedOnBoard(prev, next, showTurn)) return true;
+  }
   return false;
 }
 
 function scanUndoneLiveSpectacleTurn(s, prev = null) {
   if (!s?.log || G.isTutorial) return null;
-  if (prev && shouldIgnoreStaleLivePerfSignals(prev, s)) return null;
+  // Stale main→main baton/play polls must not scan — unless recovery context says a show is still owed.
+  if (prev && shouldIgnoreStaleLivePerfSignals(prev, s) && !spectacleRecoveryContext(prev, s)) return null;
   // Inline perf signals only — resolvedPerfSignalsForTransition calls this function and must not recurse.
   const perfCarryoverRecovery = prev
     && isMainOrActivePhase(s?.phase)
@@ -624,7 +651,8 @@ function ensurePerfSpectacleNotStaleDone(prev, next) {
   const doneTurn = parseInt(String(G._perfSpectacleDoneKey || '').split(':')[0], 10);
   if (!Number.isFinite(doneTurn) || doneTurn === showTurn) return;
   TCG_DEBUG.log('live', 'clear stale perf done key', { doneKey: G._perfSpectacleDoneKey, showTurn });
-  clearPerfSpectacleDoneStorage();
+  // Keep reveal-done markers — wiping them re-arms flip CSS on already-revealed boards.
+  clearPerfSpectacleDoneKeysOnly();
 }
 
 function shouldRecoverMissedLiveSpectacle(prev, next) {
@@ -632,10 +660,12 @@ function shouldRecoverMissedLiveSpectacle(prev, next) {
   if (isLiveSetPlacementOnly(prev, next) || liveSetPlacementInProgress(next)) return false;
   if (!spectacleRecoveryContext(prev, next)) return false;
   const showTurn = detectPendingLiveSpectacleTurn(prev, next)
-    ?? scanUndoneLiveSpectacleTurn(next, prev);
+    ?? scanUndoneLiveSpectacleTurn(next, prev)
+    ?? inferLiveShowTurn(prev, next);
   if (showTurn == null) return false;
-  // Strict: only recover when judge/performance is actually owed — not mere "had Lives".
-  return liveSpectacleOwed(prev, next, showTurn);
+  // Strict on normal transitions; recovery on Main uses the board/log owed check.
+  return liveSpectacleOwed(prev, next, showTurn)
+    || liveSpectacleStillOwedOnBoard(prev, next, showTurn);
 }
 
 function isMainOrActivePhase(ph) {
@@ -766,6 +796,24 @@ function clearStalePerfDeferState(prev, next) {
   if (!next || G._perfSpectacleActive || G._liveSpectacleGateRunning) return;
   if (!isMainOrActivePhase(next.phase)) return;
   if (detectPendingLiveSpectacleTurn(prev, next) != null) return;
+
+  const showTurn = inferLiveShowTurn(prev, next);
+  const owed = liveSpectacleStillOwedOnBoard(prev, next, showTurn);
+  // Never seal an unplayed show as done, and never drop recovery while still owed.
+  if (owed || G._spectacleRecoveryPending) {
+    clearStaleLiveStorageFlipState(prev, next);
+    if (!G._spectacleRecoveryPending && owed) {
+      G._spectacleRecoveryPending = {
+        prev,
+        s: next,
+        newEntries: [],
+        myId: G.playerId,
+      };
+    }
+    TCG_DEBUG.log('live', 'stale clear deferred — spectacle still owed', { showTurn });
+    return;
+  }
+
   G._deferPerfSpectaclePrev = null;
   G._spectacleRecoveryPending = null;
   clearStaleLiveStorageFlipState(prev, next);
@@ -785,16 +833,6 @@ function clearStalePerfDeferState(prev, next) {
     if (el('overlay-prompt')?.classList.contains('open')) {
       const livePr = G.gameState?.pending_prompt;
       if (!livePr || livePr.responder !== G.playerId) closeM('overlay-prompt');
-    }
-  }
-  // Main→main polls: seal any unfinished done-key so splash/flips cannot replay.
-  if (shouldIgnoreStaleLivePerfSignals(prev, next)) {
-    const showTurn = inferLiveShowTurn(prev, next);
-    if (showTurn != null && logHasLivePerformanceForTurn(next, showTurn)
-        && !liveSpectacleDoneForTurn(showTurn)) {
-      if (!G._perfSpectacleDoneTurns) G._perfSpectacleDoneTurns = new Set();
-      G._perfSpectacleDoneTurns.add(showTurn);
-      TCG_DEBUG.log('live', 'mark spectacle done from main-phase stale clear', { showTurn });
     }
   }
 }
@@ -2088,11 +2126,15 @@ function holdLiveJudgeOverlay(myScore, oppScore, hint, tone, ms) {
   }, ms);
 }
 
-function clearPerfSpectacleDoneStorage() {
+function clearPerfSpectacleDoneKeysOnly() {
   G._perfSpectacleDoneKey = null;
   G._perfSpectacleDoneTurns = null;
-  G._liveStorageRevealDoneTurns = null;
   try { sessionStorage.removeItem(PERF_SPECTACLE_DONE_STORAGE_KEY); } catch (e) {}
+}
+
+function clearPerfSpectacleDoneStorage() {
+  clearPerfSpectacleDoneKeysOnly();
+  G._liveStorageRevealDoneTurns = null;
 }
 
 function collectPerfSpectacleDoneTurnsFromLog(s) {
@@ -2789,6 +2831,21 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       G._liveRoundPostSpectacleReady = true;
       markEmptyLiveRoundPresented(prev, next);
     } else if (wantsSpectacle) {
+      if (needsLiveReveal && !revealRan) {
+        const heldBoard = G._livePostRevealBoard || next;
+        const canSkipFlip = (typeof liveStorageRevealBypassOk === 'function'
+            && liveStorageRevealBypassOk(prev, next, showTurnForReveal, myId))
+          || !(typeof liveStorageHadFaceDownOppBluff === 'function'
+            && (liveStorageHadFaceDownOppBluff(heldBoard, myId)
+              || liveStorageHadFaceDownOppBluff(next, myId)));
+        if (canSkipFlip) {
+          TCG_DEBUG.warn('live', 'presentLiveRound: skip flip — storage already resolved; run spectacle', {
+            showTurn: showTurnForReveal,
+          });
+          markLiveStorageRevealDone(showTurnForReveal);
+          revealRan = true;
+        }
+      }
       if (needsLiveReveal && !revealRan) {
         spectacleFailedOwed = true;
         G._spectacleRecoveryPending = {

@@ -656,7 +656,13 @@
       if (shouldRecoverMissedLiveSpectacle(prev, s)) {
         await runLiveSpectacleGate(prev, s, newEntries, G.playerId);
       }
-      G._spectacleRecoveryPending = null;
+      // Keep recovery if the show is still owed after the gate attempt.
+      const after = G.gameState || s;
+      if (!shouldRecoverMissedLiveSpectacle(prev, after)
+          && !(typeof liveSpectacleStillOwedOnBoard === 'function'
+            && liveSpectacleStillOwedOnBoard(prev, after))) {
+        G._spectacleRecoveryPending = null;
+      }
     } else if (!replayForward && shouldRecoverMissedLiveSpectacle(prev, s)) {
       G._spectacleRecoveryPending = { prev, s, newEntries, myId: G.playerId };
     }
