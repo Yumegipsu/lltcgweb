@@ -3555,9 +3555,7 @@ function perfCardEl(card, kind) {
       d.classList.add('member-in-wait');
       const wd = document.createElement('div');
       wd.className = 'wdim';
-      wd.textContent = (typeof t === 'function' && t('skillKw.wait') !== 'skillKw.wait')
-        ? t('skillKw.wait')
-        : 'Wait';
+      wd.textContent = 'Wait';
       d.appendChild(wd);
     }
     const rawBlade = (Number(c.blade) || 0) + (Number(c.live_blade_bonus) || 0);
