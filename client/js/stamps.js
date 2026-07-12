@@ -281,7 +281,11 @@
 
   function layerForPlayer(pid) {
     const myId = global.G?.playerId || global.G?.gameState?.my_id;
-    const viewId = global.G?.isSpectator ? (global.G?.gameState?.view_as || 'p1') : myId;
+    const viewId = global.G?.isSpectator
+      ? ((global.G.spectatorViewAs === 'p1' || global.G.spectatorViewAs === 'p2')
+        ? global.G.spectatorViewAs
+        : (global.G?.playerId || global.G?.gameState?.view_as || 'p1'))
+      : myId;
     const isMine = pid === viewId;
     return el(isMine ? 'my-stamp-layer' : 'opp-stamp-layer');
   }

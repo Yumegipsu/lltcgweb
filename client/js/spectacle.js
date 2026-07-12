@@ -1692,7 +1692,7 @@ function refreshBannerQueueI18n() {
 }
 
 function phaseBannerMainTitle(activePid, myId, activeName) {
-  const isMe = activePid === (myId || G.playerId);
+  const isMe = !G.isSpectator && activePid === (myId || G.playerId);
   if (isMe) return t('phaseBanner.yourMain');
   const name = activeName || '—';
   const last = name.slice(-1);
@@ -1701,7 +1701,8 @@ function phaseBannerMainTitle(activePid, myId, activeName) {
 }
 
 function phaseBannerLiveTitle(activePid, myId, activeName) {
-  const isMe = activePid === (myId || G.playerId);
+  // Spectators are not a seat — never use "Your …" even when viewing that player's POV.
+  const isMe = !G.isSpectator && activePid === (myId || G.playerId);
   if (isMe) return t('phaseBanner.yourLive');
   const name = activeName || '—';
   if (name === '—') return t('phaseBanner.liveTitle');
@@ -1759,7 +1760,7 @@ function possessiveName(name) {
 function phaseBannerCopy(phase, s, myId) {
   const activePid = s?.active_player;
   const active = s?.players?.[activePid]?.name || '—';
-  const isMe = activePid === (myId || G.playerId);
+  const isMe = !G.isSpectator && activePid === (myId || G.playerId);
   const last = active.slice(-1);
   const theirMainKey = (last === 's' || last === 'S') ? 'phaseBanner.theirMainS' : 'phaseBanner.theirMain';
   const mainEntry = isMe
@@ -1874,7 +1875,7 @@ function parseLogToBanner(msg, kind, s, myId, prev = null, logFrom = 0) {
   }
   const livePhasePlayer = parseLivePhaseLogPlayerName(msg);
   if (livePhasePlayer !== null) {
-    const isMe = playerNameMatches(livePhasePlayer, s, myId);
+    const isMe = !G.isSpectator && playerNameMatches(livePhasePlayer, s, myId);
     const last = livePhasePlayer.slice(-1);
     const oppKey = (last === 's' || last === 'S') ? 'phaseBanner.theirLiveS' : 'phaseBanner.theirLive';
     return splashBanner({

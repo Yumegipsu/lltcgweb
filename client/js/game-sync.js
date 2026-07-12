@@ -278,7 +278,9 @@
       if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return G.gameState || null;
       if ((d.seq ?? 0) <= (G.lastSeq ?? 0)) return G.gameState || null;
       G.lastSeq = d.seq;
-      G.playerId = G.isSpectator ? (d.view_as || 'p1') : (d.my_id || G.playerId);
+      G.playerId = G.isSpectator
+        ? ((G.spectatorViewAs === 'p1' || G.spectatorViewAs === 'p2') ? G.spectatorViewAs : (d.view_as || 'p1'))
+        : (d.my_id || G.playerId);
       G.gameState = d;
       if (typeof global.renderGame === 'function') {
         const skipPrompt = typeof global.shouldDeferPromptForLivePresentation === 'function'

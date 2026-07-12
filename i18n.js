@@ -997,7 +997,8 @@
       "noMatches": "No matches available to spectate.",
       "matchEnded": "Match ended — returning to lobby.",
       "sessionEnded": "Spectator session ended.",
-      "count": "Spectators: {n}"
+      "count": "Spectators: {n}",
+      "switchPerspective": "Switch perspective"
     },
 
   },
@@ -1985,7 +1986,8 @@
       "noMatches": "観戦できる対戦がありません。",
       "matchEnded": "対戦が終了しました — ロビーに戻ります。",
       "sessionEnded": "観戦セッションが終了しました。",
-      "count": "観戦者: {n}"
+      "count": "観戦者: {n}",
+      "switchPerspective": "視点を切り替え"
     },
 
   },
@@ -2975,7 +2977,8 @@
       "noMatches": "No hay partidas disponibles para espectar.",
       "matchEnded": "La partida terminó — volviendo al lobby.",
       "sessionEnded": "La sesión de espectador terminó.",
-      "count": "Espectadores: {n}"
+      "count": "Espectadores: {n}",
+      "switchPerspective": "Cambiar perspectiva"
     }
   }
 };

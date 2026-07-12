@@ -40,7 +40,9 @@
     G._pendingStateQueue = [];
     G._promptSubmitKey = null;
     G.lastSeq = s?.seq ?? G.lastSeq;
-    G.playerId = G.isSpectator ? (s.view_as || 'p1') : (s.my_id || G.playerId);
+    G.playerId = G.isSpectator
+      ? ((G.spectatorViewAs === 'p1' || G.spectatorViewAs === 'p2') ? G.spectatorViewAs : (s.view_as || 'p1'))
+      : (s.my_id || G.playerId);
     if (typeof applyReplayStateFromPoll === 'function') applyReplayStateFromPoll(s);
     if (document.querySelector('.screen.active')?.id !== 'screen-game') showScr('game');
     if (typeof dismissAllGameplayOverlays === 'function') dismissAllGameplayOverlays();
@@ -252,7 +254,9 @@
     maybeToastWrFizzleFromLog(newEntries);
 
     G.lastSeq = s.seq;
-    G.playerId = G.isSpectator ? (s.view_as || 'p1') : (s.my_id || G.playerId);
+    G.playerId = G.isSpectator
+      ? ((G.spectatorViewAs === 'p1' || G.spectatorViewAs === 'p2') ? G.spectatorViewAs : (s.view_as || 'p1'))
+      : (s.my_id || G.playerId);
     maybeResetBatonTouchToggle(prev, s);
     applyReplayStateFromPoll(s);
     stashPerfYellRevealCache(s);
