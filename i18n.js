@@ -710,7 +710,7 @@
       },
       "wait": {
         "title": "Wait (ウェイト)",
-        "body": "A Member put into Wait cannot contribute its Blade that turn — its Blade hearts do not increase cards revealed for Yell during Live Performance. This is not the Waiting Room."
+        "body": "A Member put into Wait cannot contribute its Blade that turn — its Blade does not increase cards revealed for Yell during Live Performance. This is not the Waiting Room."
       }
     },
     "heart": {
@@ -2719,7 +2719,7 @@
       },
       "wait": {
         "title": "Wait (ウェイト)",
-        "body": "Un Miembro puesto en Wait no aporta su Blade ese turno: sus corazones de Blade no aumentan las cartas reveladas para Yell en la Presentación Live. No es la Sala de espera."
+        "body": "Un Miembro puesto en Wait no aporta su Blade ese turno: su Blade no aumenta las cartas reveladas para Yell en la Presentación Live. No es la Sala de espera."
       }
     },
     "heart": {
