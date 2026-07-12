@@ -80,6 +80,7 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
                 'owner'         => $pid,
                 'responder'     => $pid,
                 'source_name'   => $name,
+                'optional'      => true,
                 'prompt'        => 'Put 1 card revealed for Yell on top of your deck?',
                 'candidates'    => array_map('cardPromptSummary', $yellPool),
                 'choices'       => ['pick', 'skip'],
@@ -825,30 +826,35 @@ function hsResolveHasunosoraPrompt(array $state, string $owner, array $prompt, s
     }
 
     if ($promptType === 'live_success_pick_yell_deck_top') {
-        if ($choice === 'skip' || $choice === 'no') {
+        if ($choice === 'skip' || $choice === 'no' || $choice === 'cancel') {
             unset($state['pending_prompt']);
             $state['seq']++;
             return finishLiveSuccessEffects($state);
         }
-        $pickId = $data['card_id'] ?? $choice;
+        $pickId = trim((string)($data['card_id'] ?? ''));
+        // Scored-choice / two-step UI may send choice=pick without card_id yet.
         if ($pickId === '' || $pickId === 'pick') {
-            throw new Exception('Choose a Yell card');
-        }
-        $pool = $ownerP['_pending_yell_wr'] ?? [];
-        $picked = null;
-        $rest = [];
-        foreach ($pool as $c) {
-            if (($c['instance_id'] ?? '') === $pickId) {
-                $picked = $c;
-            } else {
-                $rest[] = $c;
+            $cands = $prompt['candidates'] ?? [];
+            if (count($cands) === 1) {
+                $pickId = (string)($cands[0]['instance_id'] ?? '');
             }
         }
+        if ($pickId === '' || $pickId === 'pick') {
+            // Optional effect — never softlock the CPU/game on a bare "pick".
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishLiveSuccessEffects($state);
+        }
+        $picked = takeFromPendingYellPool($ownerP, $pickId, $prompt, $state, $owner);
         if (!$picked) {
-            throw new Exception('Choose a Yell card');
+            // Pool may have moved; still clear the optional prompt so play continues.
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped Yell deck-top (card unavailable).');
+            return finishLiveSuccessEffects($state);
         }
         array_unshift($ownerP['main_deck'], $picked);
-        $ownerP['_pending_yell_wr'] = $rest;
         $state = addLog($state, $state['players'][$owner]['name'] .
             ' — [' . ($prompt['source_name'] ?? 'Member') . '] put ' .
             cardDisplayName($picked) . ' on deck top.');

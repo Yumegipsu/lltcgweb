@@ -513,6 +513,31 @@ function actionAntiSoftlockSkipPrompt(array $state, string $pid): array {
             }
         }
     }
+    // Optional pick/skip prompts (e.g. Kaho Live Success) — prefer skip over force-dismiss.
+    $choices = $prompt['choices'] ?? [];
+    $skipChoices = [];
+    if (in_array('skip', $choices, true)) {
+        $skipChoices[] = 'skip';
+    }
+    if (in_array('no', $choices, true)) {
+        $skipChoices[] = 'no';
+    }
+    if ($skipChoices === [] && !empty($prompt['optional'])) {
+        $skipChoices = ['skip', 'no'];
+    }
+    foreach ($skipChoices as $skipChoice) {
+        try {
+            $state = actionResolvePrompt($state, $pid, ['choice' => $skipChoice]);
+            if (empty($state['pending_prompt']) || ($state['pending_prompt']['responder'] ?? '') !== $pid) {
+                $state = addLog($state, ($state['players'][$pid]['name'] ?? $pid) .
+                    ($isCpu
+                        ? ' — CPU hung on skill; auto-skipped optional effect.'
+                        : ' — Anti-softlock: skipped optional skill.'), 'info');
+                return $state;
+            }
+        } catch (Throwable $ignored) {
+        }
+    }
     if (!isMandatorySkillPrompt($prompt)) {
         try {
             $state = actionResolvePrompt($state, $pid, ['choice' => 'no']);

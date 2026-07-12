@@ -23589,12 +23589,26 @@ function cpuResolveHangRiskPrompts(pr, cpu, tier, read, s) {
     return true;
   }
   if (pr.type === 'live_success_pick_yell_deck_top') {
-    if (tier === 'easy' && Math.random() < 0.45) {
-      cpuAct('resolve_prompt', { choice: 'skip' });
-      return true;
+    try {
+      if (tier === 'easy' && Math.random() < 0.45) {
+        cpuAct('resolve_prompt', { choice: 'skip' });
+        return true;
+      }
+      const cands = pr.candidates || [];
+      let id = null;
+      try {
+        id = cpuPickBestYellDeckTop(cands, cpu, hand, tier, read);
+      } catch (err) {
+        TCG_DEBUG.warn('cpu', 'yell deck top score failed', err);
+      }
+      if (!id) id = cands.find(c => c?.instance_id)?.instance_id || null;
+      if (id) {
+        cpuAct('resolve_prompt', { card_id: id });
+        return true;
+      }
+    } catch (e) {
+      TCG_DEBUG.warn('cpu', 'live_success_pick_yell_deck_top failed', e);
     }
-    const id = cpuPickBestYellDeckTop(pr.candidates || [], cpu, hand, tier, read);
-    if (id) { cpuAct('resolve_prompt', { card_id: id }); return true; }
     cpuAct('resolve_prompt', { choice: 'skip' });
     return true;
   }
@@ -34824,7 +34838,7 @@ function mkNoImg(card){
 </script>
 <script src="client/js/spectacle.js?v=6"></script>
 <script src="client/js/cpu-meta-weights.js?v=1"></script>
-<script src="client/js/cpu-ai.js?v=3"></script>
+<script src="client/js/cpu-ai.js?v=4"></script>
 <script>void bootApp();</script>
 </body>
 </html>
