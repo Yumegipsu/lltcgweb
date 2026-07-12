@@ -510,15 +510,18 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
     if (empty($yellCards) || !empty($state['pending_prompt'])) {
         return $state;
     }
-    $p = &$state['players'][$pid];
     $hasLive = countYellLiveCards($yellCards) > 0;
     $myCount = count($yellCards);
     $opp = ($pid === 'p1') ? 'p2' : 'p1';
     $oppCount = count($state['players'][$opp]['_pending_yell_wr'] ?? $state['players'][$opp]['yell_cards'] ?? []);
 
-    foreach ($p['stage'] as $slot => &$member) {
+    foreach (array_keys($state['players'][$pid]['stage'] ?? []) as $slot) {
+        $member = $state['players'][$pid]['stage'][$slot] ?? null;
         if (!$member) continue;
         foreach ($member['abilities'] ?? [] as $idx => $ab) {
+            // Re-read after prior state reassignments so once_per_turn sticks.
+            $member = $state['players'][$pid]['stage'][$slot] ?? null;
+            if (!$member) break;
             if (($ab['trigger'] ?? '') !== 'auto') continue;
             if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) continue;
             $type = $ab['type'] ?? '';
@@ -531,21 +534,18 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                 for ($i = 0; $i < $count; $i++) {
                     $state['live_modifiers'][$pid]['bonus_hearts'][] = $color;
                 }
-                markAbilityUsed($member, $idx);
-                $p['stage'][$slot] = $member;
+                markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$mName] gained $count " . ucfirst($color) . " heart(s) from Yell (Live revealed).");
             } elseif ($type === 'auto_yell_draw_if_hand_max' && $hasLive
-                && count($p['hand']) <= intval($ab['max_hand'] ?? 7)) {
+                && count($state['players'][$pid]['hand'] ?? []) <= intval($ab['max_hand'] ?? 7)) {
                 $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
-                markAbilityUsed($member, $idx);
-                $p['stage'][$slot] = $member;
+                markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$mName] drew $drawn (Yell revealed Live, hand ≤" . intval($ab['max_hand'] ?? 7) . ').');
             } elseif ($type === 'auto_yell_draw_if_fewer_cards' && $myCount < $oppCount) {
                 $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
-                markAbilityUsed($member, $idx);
-                $p['stage'][$slot] = $member;
+                markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$mName] drew $drawn (fewer Yell cards than opponent).");
             } elseif ($type === 'auto_yell_no_live_retry' && !$hasLive && $myCount >= 1) {
@@ -557,15 +557,13 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                     }
                 }
                 if ($bladeCnt > $maxBlade) continue;
-                markAbilityUsed($member, $idx);
-                $p['stage'][$slot] = $member;
+                markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
                 $state = queueYellRetryOffer($state, $pid, $slot, $idx, $ab, $mName);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$mName] optional Yell retry (no Live revealed).");
             } elseif ($type === 'auto_yell_no_blade_heart' && !yellCardsHaveBladeHeart($yellCards)) {
                 addBonusHeartsToModifier($state, $pid, $ab['hearts'] ?? []);
-                markAbilityUsed($member, $idx);
-                $p['stage'][$slot] = $member;
+                markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$mName] gained bonus heart(s) from Yell (no Blade hearts revealed).");
             } elseif ($type === 'auto_yell_mill_extra_yell') {
@@ -575,23 +573,28 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                     'ability_index'  => $idx,
                 ]);
                 if (!empty($state['pending_prompt'])) {
-                    markAbilityUsed($member, $idx);
-                    $p['stage'][$slot] = $member;
+                    // Must mark on the returned state — never a stale foreach reference.
+                    if (isset($state['players'][$pid]['stage'][$slot])) {
+                        markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
+                    }
                     return $state;
                 }
             } elseif ($type === 'auto_yell_wr_members_extra_yell') {
                 $state = sBp6ResolveEffect($state, $pid, $member, $ab, ['yell_cards' => $yellCards]);
                 if (!empty($state['pending_prompt'])) {
-                    markAbilityUsed($member, $idx);
-                    $p['stage'][$slot] = $member;
+                    if (isset($state['players'][$pid]['stage'][$slot])) {
+                        markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
+                    }
                     return $state;
                 }
-                markAbilityUsed($member, $idx);
-                $p['stage'][$slot] = $member;
+                if (isset($state['players'][$pid]['stage'][$slot])) {
+                    markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
+                }
             } elseif ($type === 'auto_yell_distinct_blade_heart_milestones') {
                 $state = nBp5ResolveEffect($state, $pid, $member, $ab, ['yell_cards' => $yellCards]);
-                markAbilityUsed($member, $idx);
-                $p['stage'][$slot] = $member;
+                if (isset($state['players'][$pid]['stage'][$slot])) {
+                    markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
+                }
             } elseif ($type === 'auto_yell_hearts_per_yell_live') {
                 $state = sSd1ResolveAutoYell($state, $pid, $member, $slot, $idx, $ab, $yellCards);
             } elseif ($type === 'auto_yell_blade_if_group_count') {
@@ -605,8 +608,9 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                         'type'   => 'blade_bonus',
                         'amount' => intval($ab['amount'] ?? 1),
                     ]);
-                    markAbilityUsed($member, $idx);
-                    $p['stage'][$slot] = $member;
+                    if (isset($state['players'][$pid]['stage'][$slot])) {
+                        markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
+                    }
                     $state = addLog($state, $state['players'][$pid]['name'] .
                         " — [$mName] gained +" . intval($ab['amount'] ?? 1) . ' Blade until Live ends (Yell).');
                 }
@@ -618,14 +622,18 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
             }
         }
     }
-    unset($member);
 
-    foreach ($p['live_zone'] ?? [] as $li => &$live) {
+    $liveZone = $state['players'][$pid]['live_zone'] ?? [];
+    foreach (array_keys($liveZone) as $li) {
+        $live = $state['players'][$pid]['live_zone'][$li] ?? null;
         if (!$live || !isLiveTypeCard($live)) {
             continue;
         }
         mergeCardCatalogFields($live);
+        $state['players'][$pid]['live_zone'][$li] = $live;
         foreach ($live['abilities'] ?? [] as $idx => $ab) {
+            $live = $state['players'][$pid]['live_zone'][$li] ?? null;
+            if (!$live) break;
             if (($ab['trigger'] ?? '') !== 'auto') {
                 continue;
             }
@@ -642,13 +650,13 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                 'ability_index'   => $idx,
             ]);
             if (!empty($state['pending_prompt'])) {
-                markAbilityUsed($live, $idx);
-                $p['live_zone'][$li] = $live;
+                if (isset($state['players'][$pid]['live_zone'][$li])) {
+                    markAbilityUsed($state['players'][$pid]['live_zone'][$li], $idx);
+                }
                 return $state;
             }
         }
     }
-    unset($live);
 
     return $state;
 }

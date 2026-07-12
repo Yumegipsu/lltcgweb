@@ -4221,7 +4221,8 @@ function perfRenderBladeRow(bladeEl, totalBlade, { pending = false } = {}) {
 
 function perfOutcomeLabel(att) {
   if (att.success) return '✓ Live Success';
-  return '✗ Live Failed';
+  if (att.fail) return '✗ Live Failed';
+  return '… Live';
 }
 
 /** Index of the current Performance round in the log (not prior turns). */
@@ -4444,10 +4445,15 @@ function perfLiveAttempts(prev, next, pid) {
     seen.add(iid);
     const card = perfResolveLiveAttemptCard(perfPrev, next, pid, raw);
     if (!isLiveTypeCard(card)) return;
-    const succeeded = succeededOverride !== null ? succeededOverride : succeededIds.has(iid);
+    const inSuccessZone = (next.players?.[pid]?.success_lives || [])
+      .some(c => c.instance_id === iid);
+    const succeeded = succeededOverride !== null
+      ? succeededOverride
+      : (succeededIds.has(iid) || inSuccessZone);
     attempts.push({
       card,
       success: succeeded,
+      // Only mark fail when the card is actually in WR and not in Success.
       fail: !succeeded && wrIds.has(iid),
     });
   };
@@ -5189,7 +5195,10 @@ function perfSetOutcomesInstant(ctx, firstOnly) {
     const attempts = isMine ? ctx.mineAttempts : ctx.oppAttempts;
     attempts.forEach(att => {
       const b = document.createElement('div');
-      b.className = 'perf-outcome show ' + (att.success ? 'ok' : 'fail');
+      // Never treat "unknown / not yet classified" as a failure — that caused
+      // spectacle to show Live Failed while the log later showed success.
+      const cls = att.success ? 'ok' : (att.fail ? 'fail' : 'pending');
+      b.className = 'perf-outcome show ' + cls;
       b.textContent = perfOutcomeLabel(att);
       out?.appendChild(b);
     });
@@ -5426,12 +5435,15 @@ async function perfAnimateOutcomesForPid(ctx, pid) {
   if (!out) return;
   for (const att of attempts) {
     const b = document.createElement('div');
-    b.className = 'perf-outcome ' + (att.success ? 'ok' : 'fail');
+    const cls = att.success ? 'ok' : (att.fail ? 'fail' : 'pending');
+    b.className = 'perf-outcome ' + cls;
     b.textContent = perfOutcomeLabel(att);
     out.appendChild(b);
     await perfSleep(80);
     b.classList.add('show');
-    sfxPlayCard(att.success ? 'live_success' : 'live_fail', { volume: att.success ? 0.48 : 0.44 });
+    if (att.success || att.fail) {
+      sfxPlayCard(att.success ? 'live_success' : 'live_fail', { volume: att.success ? 0.48 : 0.44 });
+    }
     await perfSleep(350);
   }
 }
