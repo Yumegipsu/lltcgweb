@@ -112,14 +112,9 @@
       if (typeof tryFlushSpectacleRecovery === 'function') tryFlushSpectacleRecovery();
       return;
     }
-    if (G.isSpectator) {
-      clearPvPWatchdog();
-      G.animating = false;
-      G._livePollHold = false;
-      G._pendingStateQueue = [];
-      void applyStateUpdate(s);
-      return;
-    }
+    // Spectators use the same queue/apply path as players so LIVE reveal + Performance
+    // spectacle can run. Do not force-clear animating / poll hold here.
+    if (G.isSpectator) clearPvPWatchdog();
     if (s.status === 'finished') {
       clearPvPWatchdog();
       if (G.rematchWaiting && s.seq <= G.lastSeq && G.gameState?.status === 'finished') {
@@ -147,7 +142,7 @@
       enqueuePendingState(s);
       return;
     }
-    if (G.animating) {
+    if (G.animating || G._perfSpectacleActive || G._liveSpectacleGateRunning || G._liveRoundPlaybackActive) {
       TCG_DEBUG.log('state', 'queue (animating)', { seq: s.seq, phase: s.phase, q: (G._pendingStateQueue?.length || 0) + 1 });
       if (G.tutorialLive && typeof global.TutorialInteractive?.onIncomingState === 'function') {
         global.TutorialInteractive.onIncomingState(s, G.gameState);
@@ -257,6 +252,9 @@
     G.playerId = G.isSpectator
       ? ((G.spectatorViewAs === 'p1' || G.spectatorViewAs === 'p2') ? G.spectatorViewAs : (s.view_as || 'p1'))
       : (s.my_id || G.playerId);
+    if (G.isSpectator && typeof alignSpectatorStageBoard === 'function') {
+      s = alignSpectatorStageBoard(s);
+    }
     maybeResetBatonTouchToggle(prev, s);
     applyReplayStateFromPoll(s);
     stashPerfYellRevealCache(s);
@@ -280,15 +278,8 @@
       global.TutorialInteractive.onIncomingState(s, prev);
     }
 
-    if (G.isSpectator) {
-      G.lastSeq = s.seq;
-      G.gameState = s;
-      if (truncated) resyncGameLogFromState(s);
-      else catchUpGameLog(s, prev);
-      renderGame(s);
-      if (typeof global.updateSpectatorCountUI === 'function') global.updateSpectatorCountUI(s);
-      return;
-    }
+    // Spectators previously returned here with a bare renderGame — that skipped LIVE
+    // storage reveal and Performance spectacle. Fall through the same presentation path.
 
     if (G._announceBaseline == null && isActiveGameplay(s)) {
       G._announceBaseline = prev?.log?.length ?? (s.log || []).length;

@@ -7779,7 +7779,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
 <script src="client/js/game-sync.js?v=12"></script>
-<script src="client/js/state-apply.js?v=24"></script>
+<script src="client/js/state-apply.js?v=25"></script>
 <script src="client/js/stamps.js?v=13"></script>
 <script src="client/js/replay-debug.js?v=5"></script>
 <script src="client/js/prompt-renderer.js?v=25"></script>
@@ -34524,6 +34524,22 @@ function spectatorBoardPid(fallback = 'p1') {
   return fallback === 'p2' ? 'p2' : 'p1';
 }
 
+/**
+ * Server spectator filter always packs stage_board as p1→mine / p2→opp.
+ * Remap to the client's bottom-seat POV so Performance spectacle hearts/blades match.
+ */
+function alignSpectatorStageBoard(s) {
+  if (!G.isSpectator || !s?.stage_board) return s;
+  const packed = s._serverStageBoard || s.stage_board;
+  if (!packed) return s;
+  const bottom = spectatorBoardPid('p1');
+  const stage_board = bottom === 'p1'
+    ? packed
+    : { mine: packed.opp, opp: packed.mine };
+  if (s.stage_board === stage_board && s._serverStageBoard === packed) return s;
+  return { ...s, _serverStageBoard: packed, stage_board };
+}
+
 function setSpectatorPerspective(pid, { rerender = true } = {}) {
   if (!G.isSpectator) return;
   const next = pid === 'p2' ? 'p2' : 'p1';
@@ -34533,6 +34549,7 @@ function setSpectatorPerspective(pid, { rerender = true } = {}) {
   saveSpectatorSession();
   if (rerender && G.gameState) {
     if (typeof clearSpectatorCardPreview === 'function') clearSpectatorCardPreview();
+    G.gameState = alignSpectatorStageBoard(G.gameState);
     renderGame(G.gameState);
   }
 }
