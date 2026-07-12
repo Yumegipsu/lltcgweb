@@ -65,6 +65,8 @@
       "leaderboardSub": "View the online rankings",
       "unranked": "Unranked Play",
       "unrankedSub": "Rooms, friends, or practice vs CPU",
+      "tournamentMode": "Tournament Mode",
+      "tournamentModeSub": "Coming Soon",
       "howToPlay": "How to Play",
       "howToPlaySub": "Hands-on beginner lesson with Kanon",
       "backHub": "← Hub",
@@ -1111,6 +1113,8 @@
       "leaderboardSub": "オンラインランキングを見る",
       "unranked": "カジュアル対戦",
       "unrankedSub": "ルーム作成、フレンド対戦、CPU練習",
+      "tournamentMode": "トーナメントモード",
+      "tournamentModeSub": "近日公開",
       "howToPlay": "遊び方",
       "howToPlaySub": "かのんと一緒に体験する初心者レッスン",
       "backHub": "← ハブ",
@@ -2151,6 +2155,8 @@
       "leaderboardSub": "Ver las clasificaciones en línea",
       "unranked": "Juego no clasificado",
       "unrankedSub": "Salas, amistades o práctica contra CPU",
+      "tournamentMode": "Modo torneo",
+      "tournamentModeSub": "Próximamente",
       "howToPlay": "Cómo jugar",
       "howToPlaySub": "Lección práctica para principiantes con Kanon",
       "backHub": "← Hub",
@@ -3212,6 +3218,8 @@
       "leaderboardSub": "온라인 순위 보기",
       "unranked": "일반전",
       "unrankedSub": "방 만들기, 친구와 대전, CPU 연습",
+      "tournamentMode": "토너먼트 모드",
+      "tournamentModeSub": "곧 공개",
       "howToPlay": "플레이 방법",
       "howToPlaySub": "카논과 함께하는 초보자 실습 강의",
       "backHub": "← 허브",
@@ -4279,6 +4287,14 @@
     loc.hub.unranked = {
       title: hubUnrankedTitle || (loc.menu && loc.menu.unrankedPlay),
       sub: loc.hub.unrankedSub || (loc.menu && loc.menu.unrankedSub),
+    };
+    loc.hub.tournament = {
+      title: loc.hub.tournamentMode || 'Tournament Mode',
+      sub: loc.hub.tournamentModeSub || 'Coming Soon',
+    };
+    loc.auth.tournament = {
+      title: loc.hub.tournament.title,
+      sub: loc.hub.tournament.sub,
     };
     loc.hub.tutorial = loc.hub.tutorial || {};
     loc.hub.tutorial.title = loc.menu && loc.menu.howToPlay;
