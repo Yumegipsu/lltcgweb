@@ -2792,18 +2792,51 @@ function firstMissingColoredHeartForRequirements(array $pool, array $required): 
     return null;
 }
 
-/** Pick a color for an ALL / wildcard blade heart: missing live colors first, then any. */
+/**
+ * Consume exact colored matches for one Live's requirements from a working specifics pool.
+ * Returns the first unmet colored requirement, or null if all colored slots are covered.
+ * Mutates $specifics in place so earlier Lives reserve hearts for later Lives.
+ */
+function consumeExactColoredHeartRequirements(array &$specifics, array $required): ?string {
+    foreach (sortHeartRequirements($required) as $req) {
+        $color = normalizeHeartColor((string)($req['color'] ?? 'any'));
+        if ($color === 'any') {
+            continue;
+        }
+        $need = intval($req['count'] ?? 1);
+        for ($i = 0; $i < $need; $i++) {
+            $idx = array_search($color, $specifics, true);
+            if ($idx !== false) {
+                array_splice($specifics, $idx, 1);
+            } else {
+                return $color;
+            }
+        }
+    }
+    return null;
+}
+
+/**
+ * Pick a color for an ALL / wildcard blade heart.
+ * Colored requirements are prioritized across ALL attempted Lives in zone order —
+ * hearts already needed by earlier Lives are reserved so a later Live's pink/red/etc.
+ * is not skipped just because the same colors appear in the shared pool.
+ */
 function resolveAllBladeHeartColor(
     array $pool,
     array $liveCards,
     ?array $state = null,
     ?string $pid = null
 ): string {
+    $specifics = array_values(array_filter(
+        array_map(fn($h) => normalizeHeartColor((string)$h), $pool),
+        fn($h) => !isWildcardHeartColor((string)$h)
+    ));
     foreach ($liveCards as $lc) {
         $required = ($state !== null && $pid !== null)
             ? liveHeartRequirementsForCheck($state, $pid, $lc)
             : applyLiveHeartReductions($lc['required_hearts'] ?? [], $lc);
-        $missing = firstMissingColoredHeartForRequirements($pool, $required);
+        $missing = consumeExactColoredHeartRequirements($specifics, $required);
         if ($missing !== null) {
             return $missing;
         }
@@ -2849,6 +2882,10 @@ function collectStageHeartPoolForYellResolve(array $state, string $pid): array {
             $pool[] = normalizeHeartColor((string)$color);
         }
     }
+    // Match final owned-heart assembly so ALL assignment sees the same colors
+    // Performance will actually pay with (bonus + continuous grants).
+    $pool = array_merge($pool, getBonusHeartsFlat($state, $pid));
+    $pool = array_merge($pool, getContinuousPerformanceHearts($state, $pid));
     return $pool;
 }
 

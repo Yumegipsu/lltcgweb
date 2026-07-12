@@ -3876,6 +3876,21 @@ function firstMissingColoredHeartForRequirements(pool, required) {
   return null;
 }
 
+/** Reserve exact colored matches for one Live; mutates specifics so earlier Lives keep their hearts. */
+function consumeExactColoredHeartRequirements(specifics, required) {
+  for (const req of sortHeartRequirements(required || [])) {
+    const color = normalizeHeartColor(req.color || 'any');
+    if (color === 'any') continue;
+    const need = req.count || 1;
+    for (let i = 0; i < need; i++) {
+      const idx = specifics.indexOf(color);
+      if (idx >= 0) specifics.splice(idx, 1);
+      else return color;
+    }
+  }
+  return null;
+}
+
 function liveCardsHaveYellHeartsWildcard(liveCards) {
   for (const lc of liveCards || []) {
     for (const ab of lc.abilities || []) {
@@ -3890,10 +3905,16 @@ function liveCardsHaveYellHeartsWildcard(liveCards) {
   return false;
 }
 
-/** Next color for a wildcard Yell heart: missing specifics first, then any. */
+/**
+ * Next color for a wildcard / ALL Yell heart: missing colored requirements first across
+ * all Lives in zone order (earlier Lives reserve exact matches), then any.
+ */
 function resolveAllBladeHeartColorForPool(pool, liveCards) {
+  const specifics = (pool || [])
+    .map(h => normalizeHeartColor(h))
+    .filter(h => h !== 'any');
   for (const lc of liveCards || []) {
-    const missing = firstMissingColoredHeartForRequirements(pool, lc.required_hearts || []);
+    const missing = consumeExactColoredHeartRequirements(specifics, lc.required_hearts || []);
     if (missing) return missing;
   }
   return 'any';
@@ -5626,8 +5647,10 @@ async function perfAnimateYellSide(ctx, pid) {
           liveCards,
         });
         ownedPool.push(normalizeHeartColor(resolved));
+        const flyResolved = yellWildcard
+          || ['all', 'gray', 'wild', 'any'].includes(String(rawColor || '').toLowerCase());
         await perfFlyBladeHeartToPanel(icon, heartsEl, resolved, chip, rawColor, {
-          flyResolvedColor: yellWildcard,
+          flyResolvedColor: flyResolved,
           pace: heartPace,
         });
       }
