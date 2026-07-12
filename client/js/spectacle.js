@@ -122,6 +122,8 @@ function liveSpectacleOwed(prev, next, showTurn = null) {
 /**
  * Like liveSpectacleOwed, but ignores the main→main stale-signal gate.
  * Used to re-arm recovery after a missed show once the server is already on Main.
+ * Must NOT re-arm from full-log "performed Live!" alone on ordinary Main→Main polls
+ * (that caused stale Performance splash + ghost flips when playing a Member later).
  */
 function liveSpectacleStillOwedOnBoard(prev, next, showTurn = null) {
   if (!prev || !next || G.isTutorial) return false;
@@ -130,11 +132,26 @@ function liveSpectacleStillOwedOnBoard(prev, next, showTurn = null) {
   if (liveSpectacleDoneForTurn(turn)) return false;
   if (emptyLiveRoundAlreadyPresented(turn)) return false;
   if (isLiveSetPlacementOnly(prev, next) || liveSetPlacementInProgress(next)) return false;
-  if (!logHasLivePerformanceForTurn(next, turn)
-      && !liveRoundBoardHasLiveCards(prev)
-      && !liveRoundBoardHasLiveCards(next)) {
+
+  const staleMain = shouldIgnoreStaleLivePerfSignals(prev, next);
+  const deferredHasLives = !!(G._deferPerfSpectaclePrev
+    && liveRoundHasLiveCardsForRound(G._deferPerfSpectaclePrev));
+  const heldHasStorage = !!(G._livePostRevealBoard && liveStorageHasCards(G._livePostRevealBoard));
+  const boardHasLives = liveRoundBoardHasLiveCards(prev) || liveRoundBoardHasLiveCards(next);
+  const faceDownOpp = !!(next?.players && liveStorageHadFaceDownOppBluff(next, G.playerId));
+
+  if (staleMain) {
+    // Ordinary Main→Main (baton / play Member): only recover if local playback residue
+    // still holds the missed show — never from historical log lines alone.
+    if (!deferredHasLives && !heldHasStorage && !boardHasLives && !faceDownOpp) {
+      return false;
+    }
+  } else if (!logHasLivePerformanceForTurn(next, turn)
+      && !boardHasLives
+      && !deferredHasLives) {
     return false;
   }
+
   if (!liveRoundJudgeReady(next)) return false;
   if (pendingPromptBlocksPerfSpectacle(next)) return false;
   return true;
@@ -761,8 +778,9 @@ function clearStaleLiveStorageFlipState(prev, next) {
   if (G._liveStorageRevealRunning) return;
   if (!isMainOrActivePhase(next.phase)) return;
   if (detectPendingLiveSpectacleTurn(prev, next) != null) return;
-  // Always kill sticky flip keys / ghost boards once Main is stable — do not wait
-  // for reveal-done bookkeeping (missed marks used to leave flips replaying forever).
+  // Kill sticky flip keys / ghost boards once Main is stable.
+  // Do NOT markLiveStorageRevealDone here — sealing the current turn on Main→Main
+  // (before Live Set) made the real pre-Performance flip skip entirely.
   G._liveFlipGen = (G._liveFlipGen || 0) + 1;
   G._liveRevealFlips = new Set();
   G._liveFlipScheduled = new Set();
@@ -772,15 +790,10 @@ function clearStaleLiveStorageFlipState(prev, next) {
     G._livePostRevealBoard = null;
     G._liveStorageOutcomePending = false;
   }
-  const showTurn = inferLiveShowTurn(prev, next);
   const staleMain = shouldIgnoreStaleLivePerfSignals(prev, next);
   if (staleMain) {
     G._deferPerfSpectaclePrev = null;
     if (!G._livePostRevealBoard) G._liveSetStorageBaseline = null;
-  }
-  if (showTurn != null && !liveStorageRevealDoneForTurn(showTurn)
-      && (staleMain || isMainOrActivePhase(prev?.phase))) {
-    markLiveStorageRevealDone(showTurn);
   }
   sweepStaleLiveStorageFlipDom(next, G.playerId);
 }
@@ -2715,6 +2728,17 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   let needsLiveReveal = plan.needsLiveReveal;
   let wantsSpectacle = plan.wantsSpectacle;
   const showTurnForReveal = opts.forceSpectacleTurn ?? plan.showTurn ?? inferLiveShowTurn(prev, next);
+  // Match the gate: if reveal was falsely sealed but opp storage is still face-down, re-arm flips
+  // BEFORE the no-plan early return (otherwise sealed turns never recover).
+  if (showTurnForReveal != null
+      && liveStorageRevealDoneForTurn(showTurnForReveal)
+      && shouldResetLiveStorageRevealDone(prev, next, showTurnForReveal, myId)) {
+    G._liveStorageRevealDoneTurns?.delete(showTurnForReveal);
+    needsLiveReveal = true;
+    TCG_DEBUG.warn('live', 'presentLiveRound: reveal-done reset — opponent storage still face-down', {
+      showTurn: showTurnForReveal,
+    });
+  }
   if (!needsLiveReveal && !emptySkip && !liveStorageRevealDoneForTurn(showTurnForReveal)
       && (wantsSpectacle || isLeavingLiveSetPhase(prev, next))) {
     const checkBoard = G._livePostRevealBoard || next;
@@ -3246,8 +3270,22 @@ function tryFlushSpectacleRecovery() {
   // Same owed spectacle thrashing recovery → releaseLivePolls → poll=0 storm.
   if ((G._spectacleRecoveryAttempts || 0) > 6) {
     TCG_DEBUG.warn('live', 'spectacle recovery gave up', { flushKey, attempts: G._spectacleRecoveryAttempts });
+    const giveUpTurn = detectPendingLiveSpectacleTurn(pending.prev, pending.s)
+      ?? inferLiveShowTurn(pending.prev, pending.s);
+    if (giveUpTurn != null) {
+      // Seal so Main→Main cannot keep re-arming ghost Performance playback.
+      markLiveStorageRevealDone(giveUpTurn);
+      savePerfSpectacleDoneKey(
+        buildPerfSpectaclePrev(pending.prev, pending.s) || pending.prev,
+        pending.s,
+        giveUpTurn
+      );
+    }
     G._spectacleRecoveryPending = null;
     G._spectacleRecoveryAttempts = 0;
+    G._deferPerfSpectaclePrev = null;
+    clearLiveRoundTransientCaches();
+    sweepStaleLiveStorageFlipDom(pending.s || G.gameState, G.playerId);
     return;
   }
   G._spectacleRecoveryFlushKey = flushKey;

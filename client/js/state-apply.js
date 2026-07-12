@@ -284,6 +284,10 @@
       G._liveSetStorageBaseline = null;
       G._livePostRevealBoard = null;
       G._perfSplashShownForTurn = null;
+      G._spectacleRecoveryPending = null;
+      G._spectacleRecoveryAttempts = 0;
+      // Allow this turn's pre-Performance flip even if Main polls sealed reveal early.
+      if (s.turn != null) G._liveStorageRevealDoneTurns?.delete(s.turn);
     }
     syncDeferredHandDrawMask(prev, s, G.playerId);
     syncLiveSuccessPresentationDefer(prev, s);
