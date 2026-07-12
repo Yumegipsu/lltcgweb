@@ -233,6 +233,14 @@
         "group": "Grupo / escuela",
         "recent": "Obtenidas recientemente"
       }
+    },
+    "basicDecks": "Mazos básicos",
+    "starters": {
+      "nijigasaki": "Mazo inicial Nijigasaki",
+      "muse": "Mazo inicial μ's",
+      "liella": "Mazo inicial Liella!",
+      "hasunosora": "Mazo inicial Hasunosora",
+      "sunshine": "Mazo inicial Sunshine!!"
     }
   },
   "booster": {
@@ -891,7 +899,8 @@
     "t3_outcomes": "¡Ambos Lives **tuvieron éxito**! En este caso un desempate decide al ganador — ¡hora del **Juez de Live**!",
     "t3_judge": "**Juez de Live** — ¡μ's gana con puntuación potenciada! Otro **Live exitoso** más cerca de la victoria en la partida.",
     "outro": "Bucle principal: **Principal → Colocar Live → Presentación → Juez**. Las habilidades añaden sabor encima. ¡Prueba **Práctica contra CPU** después!",
-    "outro_link": "Reglas completas: llofficial-cardgame.com/rule/ — ¡buena suerte!"
+    "outro_link": "Reglas completas: llofficial-cardgame.com/rule/ — ¡buena suerte!",
+    "speaker": "Shibuya Kanon"
   },
   "mobile": {
     "rotateTitle": "Este juego se juega en horizontal",
@@ -1030,5 +1039,10 @@
     "casualSearch": "Búsqueda casual",
     "skipToResults": "Saltar a resultados",
     "clickToOpen": "Clic para abrir"
+  },
+  "cardType": {
+    "member": "Miembro",
+    "live": "Live",
+    "energy": "Energía"
   }
 }

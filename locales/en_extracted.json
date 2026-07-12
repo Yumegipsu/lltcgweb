@@ -230,6 +230,14 @@
         "group": "Group / school",
         "recent": "Recently acquired"
       }
+    },
+    "basicDecks": "Basic decks",
+    "starters": {
+      "nijigasaki": "Nijigasaki Start Deck",
+      "muse": "μ's Start Deck",
+      "liella": "Liella! Start Deck",
+      "hasunosora": "Hasunosora Start Deck",
+      "sunshine": "Sunshine!! Start Deck"
     }
   },
   "booster": {
@@ -868,7 +876,8 @@
     "t3_live2": "μ's sets **START:DASH!!** face-down.",
     "t3_live2_lock": "μ's locks in — final Performance!",
     "outro": "Core loop: **Main → Live Set → Performance → Judge**. Skills add spice on top. Try **Practice vs CPU** next!",
-    "outro_link": "Full rules: llofficial-cardgame.com/rule/ — good luck!"
+    "outro_link": "Full rules: llofficial-cardgame.com/rule/ — good luck!",
+    "speaker": "Shibuya Kanon"
   },
   "mobile": {
     "rotateTitle": "This game is played in landscape",
@@ -1007,5 +1016,10 @@
     "casualSearch": "Casual search",
     "skipToResults": "Skip to results",
     "clickToOpen": "Click to open"
+  },
+  "cardType": {
+    "member": "Member",
+    "live": "Live",
+    "energy": "Energy"
   }
 }

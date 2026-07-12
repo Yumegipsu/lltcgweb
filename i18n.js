@@ -156,6 +156,15 @@
       "casualSearching": "Searching for opponent… ({seconds}s)"
     },
     "deck": {
+      "basicDecks": "Basic decks",
+      "starters": {
+        "nijigasaki": "Nijigasaki Start Deck",
+        "muse": "μ's Start Deck",
+        "liella": "Liella! Start Deck",
+        "hasunosora": "Hasunosora Start Deck",
+        "sunshine": "Sunshine!! Start Deck"
+      },
+
       "title": "Deck Builder",
       "experimentTitle": "Deck Experiment",
       "deckName": "Deck name",
@@ -876,6 +885,7 @@
       "labelOpponent": "Player2"
     },
     "tutorial": {
+      "speaker": "Shibuya Kanon",
       "exitTitle": "Exit to Title",
       "back": "← Back",
       "next": "Next →",
@@ -1027,7 +1037,12 @@
       "clickToOpen": "Click to open"
     }
 
-  },
+  ,
+    "cardType": {
+      "member": "Member",
+      "live": "Live",
+      "energy": "Energy"
+    }},
   "ja": {
     "logo": {
       "tagline": "非公式ウェブプレイヤー"
@@ -1174,6 +1189,15 @@
       "casualSearching": "相手を検索中…（{seconds}秒）"
     },
     "deck": {
+      "basicDecks": "基本デッキ",
+      "starters": {
+        "nijigasaki": "虹ヶ咲スタートデッキ",
+        "muse": "μ'sスタートデッキ",
+        "liella": "スーパースター!!スタートデッキ",
+        "hasunosora": "蓮ノ空女学院スクールアイドルクラブスタートデッキ",
+        "sunshine": "サンシャイン!!スタートデッキ"
+      },
+
       "title": "デッキビルダー",
       "experimentTitle": "デッキ実験",
       "deckName": "デッキ名",
@@ -1894,6 +1918,7 @@
       "labelOpponent": "Player2"
     },
     "tutorial": {
+      "speaker": "渋谷かのん",
       "intro_welcome": "こんにちは！**渋谷かのん**です。**ラブライブ！オフィシャルカードゲーム**のチュートリアルへようこそ！",
       "intro_what": "これは**2人対戦**の**スクールアイドル**カードゲームです！**メンバー**を**ステージ**に配置し、**エネルギー**を管理して**ライブ**を成功させ、相手を上回りましょう。",
       "intro_goal": "**勝利条件：** 相手より先に**ライブを3回成功**させること。ライブが成功すると、そのカードは**成功ライブ置き場**に移動します——先に3枚成功した方が勝ち！",
@@ -2041,7 +2066,12 @@
       "clickToOpen": "クリックして開く"
     }
 
-  },
+  ,
+    "cardType": {
+      "member": "メンバー",
+      "live": "ライブ",
+      "energy": "エネルギー"
+    }},
   "es": {
     "logo": {
       "tagline": "El reproductor web no oficial"
@@ -2277,6 +2307,14 @@
           "group": "Grupo / escuela",
           "recent": "Obtenidas recientemente"
         }
+      },
+      "basicDecks": "Mazos básicos",
+      "starters": {
+        "nijigasaki": "Mazo inicial Nijigasaki",
+        "muse": "Mazo inicial μ's",
+        "liella": "Mazo inicial Liella!",
+        "hasunosora": "Mazo inicial Hasunosora",
+        "sunshine": "Mazo inicial Sunshine!!"
       }
     },
     "booster": {
@@ -2935,7 +2973,8 @@
       "t3_outcomes": "¡Ambos Lives **tuvieron éxito**! En este caso un desempate decide al ganador — ¡hora del **Juez de Live**!",
       "t3_judge": "**Juez de Live** — ¡μ's gana con puntuación potenciada! Otro **Live exitoso** más cerca de la victoria en la partida.",
       "outro": "Bucle principal: **Principal → Colocar Live → Presentación → Juez**. Las habilidades añaden sabor encima. ¡Prueba **Práctica contra CPU** después!",
-      "outro_link": "Reglas completas: llofficial-cardgame.com/rule/ — ¡buena suerte!"
+      "outro_link": "Reglas completas: llofficial-cardgame.com/rule/ — ¡buena suerte!",
+      "speaker": "Shibuya Kanon"
     },
     "mobile": {
       "rotateTitle": "Este juego se juega en horizontal",
@@ -3074,6 +3113,11 @@
       "casualSearch": "Búsqueda casual",
       "skipToResults": "Saltar a resultados",
       "clickToOpen": "Clic para abrir"
+    },
+    "cardType": {
+      "member": "Miembro",
+      "live": "Live",
+      "energy": "Energía"
     }
   },
   "ko": {
@@ -3208,12 +3252,12 @@
       "collectionOwned": "보유 카드 총합 · {count}",
       "collectionLoading": "전체 카드 풀 · 불러오는 중…",
       "collectionMatch": "컬렉션 · {match}개 일치",
-      "deckStats": "총합 {total}/72 · 멤버 {members}/48 · Live {lives}/12 · 에너지 {energy}/12 · 포인트 {lovecaPoints}/{lovecaLimit}",
+      "deckStats": "총합 {total}/72 · 멤버 {members}/48 · 라이브 {lives}/12 · 에너지 {energy}/12 · 포인트 {lovecaPoints}/{lovecaLimit}",
       "lovecaPointLabel": "포인트",
       "lovecaPointBadge": "{n}pt",
       "lovecaOverLimit": "포인트 합계가 {total}이 됩니다 (최대 {limit}).",
       "lovecaDeckIllegal": "포인트 합계가 {total}입니다 — 덱은 {limit} 이하여야 합니다.",
-      "deckIllegalSize": "덱은 정식 규격이어야 합니다: 메인 60장(멤버 48장, Live 12장), 에너지 12장.",
+      "deckIllegalSize": "덱은 정식 규격이어야 합니다: 메인 60장(멤버 48장, 라이브 12장), 에너지 12장.",
       "lovecaExplain": "일부 강력한 카드는 포인트를 소모합니다. 메인 덱의 포인트 합계는 9 이하로 유지해야 합니다 (매 장마다 계산됩니다).",
       "deckEmpty": "컬렉션의 카드를 탭하여 덱을 구성하세요.",
       "deckEmptyExperiment": "카드 풀에서 카드를 탭하여 60+12 정식 덱을 구성하세요.",
@@ -3312,6 +3356,24 @@
           "group": "그룹 / 학교",
           "recent": "최근 획득"
         }
+      },
+      "basicDecks": "기본 덱",
+      "starters": {
+        "nijigasaki": "니지가사키 스타터 덱",
+        "muse": "μ's 스타터 덱",
+        "liella": "Liella! 스타터 덱",
+        "hasunosora": "하스노소라 스타터 덱",
+        "sunshine": "Sunshine!! 스타터 덱"
+      },
+      "groups": {
+        "nijigasaki": "니지가사키",
+        "hasunosora": "하스노소라",
+        "sunshine": "Sunshine",
+        "superstar": "Superstar",
+        "mus": "μ's",
+        "saintsnow": "Saint Snow",
+        "arise": "A-RISE",
+        "sunnypassion": "Sunny Passion"
       }
     },
     "booster": {
@@ -3336,7 +3398,7 @@
       "packRatesPerPack": "팩당 확률 · 카드를 탭하면 상세 정보",
       "ratesLoading": "확률 불러오는 중…",
       "duplicatesConverted": "중복 카드 전환",
-      "migrationText": "카드당 4장을 초과한 멤버/Live 카드와 12장을 초과한 에너지 카드는 {gems}로 전환되었습니다.",
+      "migrationText": "카드당 4장을 초과한 멤버/라이브 카드와 12장을 초과한 에너지 카드는 {gems}로 전환되었습니다.",
       "convertedToGems": " · {n}개가 Star Gems로 전환됨",
       "needMoreGems": "박스를 열려면 Star Gem {n}개가 필요합니다",
       "noPacksOrGems": "일일 팩이 없고 Star Gem도 부족합니다.",
@@ -3886,8 +3948,8 @@
       "intro_card_energy": "**에너지 덱**의 **에너지 카드**는 여기에 놓여요. 처음에는 **에너지 3장**으로 시작해서 매 턴 **+1**씩 얻어요(**에너지 12장**이 모두 필드에 나올 때까지). 에너지는 **멤버 카드**를 **스테이지**에 놓을 때 소비돼요.",
       "intro_demo": "이제 데모로 안내할게요 — 플레이매트 위의 **Liella!** vs **μ's**예요. 여러분은 아래쪽, 상대는 위쪽에 있어요.",
       "intro_deck_piles": "위쪽 더미가 카드를 드로우하는 **메인 덱**이에요. 그 아래는 **에너지 덱**이에요.",
-      "intro_stage": "**스테이지**(왼쪽 / 센터 / 오른쪽)는 멤버가 자리하는 곳이에요. 이들의 **하트** 색과 **Blade** 값이 퍼포먼스 중 Live를 뒷받침해요.",
-      "intro_live": "**Live 스토리지**는 Live 페이즈 동안 최대 3장의 카드를 뒷면으로 보관해요. 이 웹 버전에서는 자신의 카드는 볼 수 있지만, 상대 카드는 숨겨져요.",
+      "intro_stage": "**스테이지**(왼쪽 / 센터 / 오른쪽)는 멤버가 자리하는 곳이에요. 이들의 **하트** 색과 **Blade** 값이 퍼포먼스 중 라이브를 뒷받침해요.",
+      "intro_live": "**라이브 스토리지**는 라이브 페이즈 동안 최대 3장의 카드를 뒷면으로 보관해요. 이 웹 버전에서는 자신의 카드는 보이지만, 상대 카드는 숨겨져요.",
       "intro_success": "**Live**를 완료하면 그 Live 카드가 **성공 더미**로 이동해요! 승리까지 얼마나 남았는지 여기서 확인하세요!",
       "intro_wr": "**대기실**은 카드를 버리는 곳이에요.",
       "intro_hands": "평소에는 상대의 손패가 보이지 않지만, 이 튜토리얼에서는 볼 수 있어요. 손패는 덱에서 뽑은 **멤버**와 **Live** 카드로 이루어져요.",
@@ -3969,8 +4031,23 @@
       "t3_yell_opp": "이어서 여러분의 **Yell** — **센터**의 **시키 와카나**(**Blade 2**)와 **오른쪽**의 **메이 요네메**(**Blade 1**)가 **3**장을 뒤집어요. **Mirai wa Kaze no You ni**는 그 Yell 하트를 **아무** 색으로 취급해요 — 스테이지와 함께 **Live**가 **성공**해요!",
       "t3_outcomes": "두 Live 모두 **성공**했어요! 이 경우에는 동점자 결정으로 승자를 가려요 — **Live 심판**의 시간이에요!",
       "t3_judge": "**Live 심판** — 강화된 스코어로 μ's가 승리해요! 경기 승리에 한 걸음 더 가까워진 또 하나의 **성공 Live**예요.",
-      "outro": "핵심 흐름: **메인 → Live 세팅 → 퍼포먼스 → 심판**. 스킬이 여기에 재미를 더해요. 다음엔 **CPU 연습**을 해보세요!",
-      "outro_link": "전체 규칙: llofficial-cardgame.com/rule/ — 행운을 빌어요!"
+      "outro": "매 턴은 **메인 → 라이브 → 퍼포먼스** 순이에요. 준비가 되면 **CPU 연습**을 해 보세요 — 스킬과 바톤 터치는 플레이하면서 자연스럽게 배워요.",
+      "outro_link": "전체 규칙: llofficial-cardgame.com/rule/ — 행운을 빌어요!",
+      "speaker": "시부야 카논",
+      "welcome": "안녕하세요! 저는 **시부야 카논**이에요. **Love Live! Official Card Game**에 오신 걸 환영해요! 플레이하면서 기본을 알려드릴게요.",
+      "goal": "**승리 조건:** 상대보다 먼저 **라이브**를 **3번 성공**시키는 거예요. 라이브가 성공하면 그 카드는 **성공** 더미로 이동해요 — 먼저 3개를 채우는 쪽이 승리해요!",
+      "card_types": "이 게임에는 세 종류의 카드가 있어요. **멤버** 카드, **라이브** 카드, **에너지** 카드예요. 멤버의 코스트만큼 **에너지**를 지불해 손패에서 내요.",
+      "coin": "게임이 시작되기 전, **코인 플립**으로 승자를 정해요 — 승자가 선공을 **선택**해요. 플립을 지켜보세요!",
+      "choose_first": "코인 플립에서 이겼어요! **선공**을 고르세요 — **선공하기**를 눌러 먼저 플레이해요.",
+      "mulligan": "**6**장으로 시작해요. 마음에 들지 않는 카드가 있으면 탭해서 교체 표시를 하고 새로 뽑을 수 있어요 — 이게 **멀리건**이에요. **시부야 카논**은 코스트 **9**라 초반에는 부담스러워요. 그녀를 탭한 뒤 **1장 교체**를 누르세요.",
+      "main_intro": "**메인 페이즈** — 손패의 **멤버**를 **에너지**를 써서 내요(에너지 카드는 옆으로 눕혀요). 원하는 순서대로, 원하는 만큼 플레이할 수 있어요!",
+      "play_member": "**와카나 시키**를 **센터**에 내 볼까요 — 코스트는 **에너지 2**예요. 손패에서 탭/클릭한 뒤 **센터** 슬롯을 탭하거나, 마우스·터치로 센터에 드래그하세요.",
+      "energy_tip": "사용한 에너지는 **옆으로** 눕혀져요. 스테이지의 멤버는 라이브를 할 때 필요한 **하트**를 보여 줘요!",
+      "end_main": "메인 페이즈에서 할 일을 마치면 **메인 페이즈 종료**를 누르세요.",
+      "live_intro": "**라이브 페이즈** — 라이브 스토리지에 **0~3**장을 뒷면으로 놓아요. 놓은 장수만큼 덱에서 **1**장씩 뽑아요.",
+      "set_live": "손패에서 **WE WILL!!**을 고른 뒤 **라이브 선택 확정**을 눌러 뒷면으로 놓아요. 라이브를 1장 세팅할 때마다 **1**장을 뽑아요!",
+      "perf_watch": "**퍼포먼스!** 라이브가 앞면으로 공개돼요. 각 라이브의 **필요 하트**를 스테이지 하트로 맞추세요. **Yell**로 덱에서 카드를 뒤집으면 — 그 카드의 **Blade** 아이콘으로 하트를 채울 수 있어요!",
+      "success": "성공한 라이브는 **성공** 더미로 가요! **라이브 3회** 성공하면 승리예요. 양쪽 모두 성공하면 **스코어**가 높은 쪽이 그 라운드를 가져가요."
     },
     "mobile": {
       "rotateTitle": "이 게임은 가로 화면으로 플레이합니다",
@@ -4109,6 +4186,11 @@
       "casualSearch": "캐주얼 검색",
       "skipToResults": "결과로 건너뛰기",
       "clickToOpen": "클릭하여 열기"
+    },
+    "cardType": {
+      "member": "멤버",
+      "live": "라이브",
+      "energy": "에너지"
     }
   }
 };
@@ -4648,8 +4730,13 @@
 
   var KO_CARD_TYPE_MAP = {
     'メンバー': '멤버',
-    'ライブ': 'Live',
+    'ライブ': '라이브',
     'エネルギー': '에너지',
+  };
+  var KO_CARD_TYPE_EN_MAP = {
+    'Member': '멤버',
+    'Live': '라이브',
+    'Energy': '에너지',
   };
 
   function cardLocaleType(card) {
@@ -4658,7 +4745,10 @@
     if (loc === 'ja') return card.card_type || card.card_type_en || '';
     if (loc === 'es') return card.card_type_es || card.card_type_en || card.card_type || '';
     if (loc === 'ko') {
-      return card.card_type_ko || KO_CARD_TYPE_MAP[card.card_type] || card.card_type_en || '';
+      if (card.card_type_ko) return card.card_type_ko;
+      if (card.card_type && KO_CARD_TYPE_MAP[card.card_type]) return KO_CARD_TYPE_MAP[card.card_type];
+      if (card.card_type_en && KO_CARD_TYPE_EN_MAP[card.card_type_en]) return KO_CARD_TYPE_EN_MAP[card.card_type_en];
+      return KO_CARD_TYPE_EN_MAP[card.card_type] || card.card_type_en || card.card_type || '';
     }
     return card.card_type_en || card.card_type || '';
   }
@@ -4710,7 +4800,24 @@
 
   function deckLocaleName(deck, id) {
     if (!deck) return id || '';
-    return cardLocaleName(deck) || deck.name || deck.name_en || id || '';
+    var loc = getLocale();
+    var key = id || deck.id || '';
+    if (key) {
+      var mapped = t('deck.starters.' + key);
+      if (mapped && mapped !== 'deck.starters.' + key) return mapped;
+    }
+    if (loc === 'ja') return deck.name || deck.name_en || key || '';
+    if (loc === 'ko') {
+      // Translate "X Start Deck" using group / name maps when possible
+      var en = deck.name_en || '';
+      var m = en.match(/^(.*)\s+Start Deck$/i);
+      if (m) {
+        var group = cardLocaleName({ name_en: m[1].trim() }) || m[1].trim();
+        return group + ' 스타터 덱';
+      }
+      return cardLocaleName(deck) || en || deck.name || key || '';
+    }
+    return deck.name_en || deck.name || key || '';
   }
 
   function loadTutorialJa() {
@@ -4749,7 +4856,7 @@
 
   function loadTutorialKo() {
     if (_tutorialKo) return Promise.resolve(_tutorialKo);
-    return fetch('./tutorial_ko.json?v=1', { cache: 'no-store' })
+    return fetch('./tutorial_ko.json?v=2', { cache: 'no-store' })
       .then(function (r) {
         if (!r.ok) throw new Error('tutorial_ko HTTP ' + r.status);
         return r.json();

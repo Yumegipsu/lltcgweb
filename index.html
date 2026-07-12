@@ -7743,7 +7743,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
     <div class="tut-body">
       <img class="tut-portrait" id="tut-portrait" src="assets/kanon.png" alt="Shibuya Kanon">
       <div class="tut-content">
-        <p class="tut-speaker">Shibuya Kanon</p>
+        <p class="tut-speaker" data-i18n="tutorial.speaker">Shibuya Kanon</p>
         <div class="tut-sep"></div>
         <p class="tut-text" id="tut-text"></p>
       </div>
@@ -7837,7 +7837,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=43"></script>
+<script src="i18n.js?v=44"></script>
 <script src="log_i18n.js?v=9"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=11"></script>
@@ -7849,7 +7849,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/stamps.js?v=14"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
 <script src="client/js/prompt-renderer.js?v=27"></script>
-<script src="client/js/tutorial-interactive.js?v=15"></script>
+<script src="client/js/tutorial-interactive.js?v=16"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -14752,14 +14752,14 @@ function updateRankedDeckPrev() {
   if (key === 'starter') {
     const starterKey = A.profile?.user?.starter_deck;
     const deck = starterKey ? G.starterDecks[starterKey] : null;
-    const label = A.profile?.user?.starter_deck_label || deck?.name_en || deck?.name || 'Starter deck';
+    const label = A.profile?.user?.starter_deck_label || deckLocaleName(deck, starterKey) || t('deck.useStarter');
     if (!deck) {
       prev.textContent = label || 'Starter deck';
       return;
     }
     const mbrs = deck.main_deck.filter(n => G.allCards[n]?.card_type === 'メンバー').length;
     const lvs = deck.main_deck.filter(n => G.allCards[n]?.card_type === 'ライブ').length;
-    prev.innerHTML = `<b>${label}</b><br>${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${mbrs} Members &nbsp;${iconHtml('sp_score.png', 'ticon', 'Score')} ${lvs} Live &nbsp;${iconHtml('icon_energy.png', 'ticon', 'Energy')} 12 Energy`;
+    prev.innerHTML = `<b>${label}</b><br>${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${mbrs} ${t('cardType.member')} &nbsp;${iconHtml('sp_score.png', 'ticon', 'Score')} ${lvs} ${t('cardType.live')} &nbsp;${iconHtml('icon_energy.png', 'ticon', 'Energy')} 12 ${t('cardType.energy')}`;
     return;
   }
   if (key.startsWith('preset:')) {
@@ -14769,7 +14769,7 @@ function updateRankedDeckPrev() {
     const mbrs = saved.main_deck.filter(n => G.allCards[n]?.card_type === 'メンバー').length;
     const lvs = saved.main_deck.filter(n => G.allCards[n]?.card_type === 'ライブ').length;
     const eq = saved.energy_deck?.length ?? 12;
-    prev.innerHTML = `<b>${saved.name || ('Deck #' + slot)}</b><br>${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${mbrs} Members &nbsp;${iconHtml('sp_score.png', 'ticon', 'Score')} ${lvs} Live &nbsp;${iconHtml('icon_energy.png', 'ticon', 'Energy')} ${eq} Energy`;
+    prev.innerHTML = `<b>${saved.name || ('Deck #' + slot)}</b><br>${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${mbrs} ${t('cardType.member')} &nbsp;${iconHtml('sp_score.png', 'ticon', 'Score')} ${lvs} ${t('cardType.live')} &nbsp;${iconHtml('icon_energy.png', 'ticon', 'Energy')} ${eq} ${t('cardType.energy')}`;
     return;
   }
   prev.textContent = 'Choose a ranked deck.';
@@ -17938,9 +17938,9 @@ function updateDeckPrev() {
       const lvs  = cached.main_deck.filter(n => G.allCards[n]?.card_type === 'ライブ').length;
       const eq = cached.energy_deck?.length ?? 12;
       e2.innerHTML = `<b>${label}</b> <span class="deck-exp-tag">(${password})</span><br>`
-        + `${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${mbrs} Members &nbsp;`
-        + `${iconHtml('sp_score.png', 'ticon', 'Score')} ${lvs} Live &nbsp;`
-        + `${iconHtml('icon_energy.png', 'ticon', 'Energy')} ${eq} Energy`;
+        + `${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${mbrs} ${t('cardType.member')} &nbsp;`
+        + `${iconHtml('sp_score.png', 'ticon', 'Score')} ${lvs} ${t('cardType.live')} &nbsp;`
+        + `${iconHtml('icon_energy.png', 'ticon', 'Energy')} ${eq} ${t('cardType.energy')}`;
       return;
     }
     e2.textContent = 'Loading experiment deck…';
@@ -17959,10 +17959,10 @@ function updateDeckPrev() {
       .then(r => r.json())
       .then(d => {
         if(d.error){ e2.textContent = d.error; return; }
-        e2.innerHTML = `<b>${d.name_en||'Random Deck'}</b><br>`
-          + `${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${d.members||48} Members &nbsp;`
-          + `${iconHtml('sp_score.png', 'ticon', 'Score')} ${d.lives||12} Live &nbsp;`
-          + `${iconHtml('icon_energy.png', 'ticon', 'Energy')} ${d.energy||12} Energy`
+        e2.innerHTML = `<b>${d.name_en||t('deck.randomDeck')}</b><br>`
+          + `${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${d.members||48} ${t('cardType.member')} &nbsp;`
+          + `${iconHtml('sp_score.png', 'ticon', 'Score')} ${d.lives||12} ${t('cardType.live')} &nbsp;`
+          + `${iconHtml('icon_energy.png', 'ticon', 'Energy')} ${d.energy||12} ${t('cardType.energy')}`
           + `<br><button type="button" class="deck-regen" id="btn-regen-deck">🔄 Regenerate preview</button>`;
       })
       .catch(() => { e2.textContent = 'Could not preview random deck.'; });
@@ -17975,14 +17975,14 @@ function updateDeckPrev() {
     const mbrs = saved.main_deck.filter(n => G.allCards[n]?.card_type === 'メンバー').length;
     const lvs  = saved.main_deck.filter(n => G.allCards[n]?.card_type === 'ライブ').length;
     const eq = saved.energy_deck?.length ?? 12;
-    e2.innerHTML = `<b>${saved.name || ('Deck #' + slot)}</b><br>${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${mbrs} Members &nbsp;${iconHtml('sp_score.png', 'ticon', 'Score')} ${lvs} Live &nbsp;${iconHtml('icon_energy.png', 'ticon', 'Energy')} ${eq} Energy`;
+    e2.innerHTML = `<b>${saved.name || ('Deck #' + slot)}</b><br>${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${mbrs} ${t('cardType.member')} &nbsp;${iconHtml('sp_score.png', 'ticon', 'Score')} ${lvs} ${t('cardType.live')} &nbsp;${iconHtml('icon_energy.png', 'ticon', 'Energy')} ${eq} ${t('cardType.energy')}`;
     return;
   }
   const deck = G.starterDecks[key];
   if(!deck){ e2.textContent='Loading…'; return; }
   const mbrs = deck.main_deck.filter(n=>G.allCards[n]?.card_type==='メンバー').length;
   const lvs  = deck.main_deck.filter(n=>G.allCards[n]?.card_type==='ライブ').length;
-  e2.innerHTML = `<b>${deck.name_en||deck.name}</b><br>${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${mbrs} Members &nbsp;${iconHtml('sp_score.png', 'ticon', 'Score')} ${lvs} Live &nbsp;${iconHtml('icon_energy.png', 'ticon', 'Energy')} 12 Energy`;
+  e2.innerHTML = `<b>${deckLocaleName(deck, key)}</b><br>${iconHtml('icon_blade.png', 'bicon', 'Blade')} ${mbrs} ${t('cardType.member')} &nbsp;${iconHtml('sp_score.png', 'ticon', 'Score')} ${lvs} ${t('cardType.live')} &nbsp;${iconHtml('icon_energy.png', 'ticon', 'Energy')} 12 ${t('cardType.energy')}`;
 }
 
 const LOBBY_STARTER_DECKS = ['nijigasaki', 'muse', 'sunshine', 'liella', 'hasunosora'];
@@ -18003,7 +18003,7 @@ function renderLobbyDeckOptions() {
   const guest = !isSignedInAccount();
 
   const basicGroup = document.createElement('optgroup');
-  basicGroup.label = 'Basic decks';
+  basicGroup.label = t('deck.basicDecks');
   LOBBY_STARTER_DECKS.forEach(id => {
     const o = document.createElement('option');
     o.value = id;
@@ -18015,7 +18015,7 @@ function renderLobbyDeckOptions() {
 
   const randomOpt = document.createElement('option');
   randomOpt.value = 'random';
-  randomOpt.textContent = 'Random Deck';
+  randomOpt.textContent = t('deck.randomDeck');
   sel.appendChild(randomOpt);
 
   if (guest) {
@@ -34511,6 +34511,8 @@ async function startTutorial() {
   try {
     resetMatchTransientState();
     await loadTutorialJa();
+    await loadTutorialEs();
+    await loadTutorialKo();
     const r = await fetch('./tutorial.json?v=3', { cache: 'no-store' });
     if (!r.ok) throw new Error('Could not load tutorial (HTTP ' + r.status + ')');
     const data = await r.json();
