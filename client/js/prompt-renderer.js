@@ -748,6 +748,7 @@ const HEART_COLOR_CHOICE_TYPES = new Set([
   'choose_required_heart_pair_gray',
   'choose_replace_member_hearts',
   'wait_self_choose_heart',
+  'pl_muse_stack_heart_choice',
 ]);
 
 global.isHeartColorChoiceKey = function isHeartColorChoiceKey(key) {
@@ -854,6 +855,9 @@ global.ensurePromptChoices = function ensurePromptChoices(pr){
       return {...pr, choice_labels:[t('prompt.yes'), t('prompt.noSkip')]};
     }
     return pr;
+  }
+  if(Array.isArray(pr.heart_choices)&&pr.heart_choices.length){
+    return {...pr, choices:[...pr.heart_choices]};
   }
   if(!optionalType) return pr;
   return {
@@ -1436,6 +1440,64 @@ global.handlePromptChoice = function handlePromptChoice(pr, choice, s, myId){
   if(pr.type==='optional_wr_member_reenter'&&choice==='yes'){
     closeM('overlay-prompt');
     openStageSlotPick({...pr, step:'pick_named', candidates:pr.candidates||[]});
+    return;
+  }
+  if(pr.type==='reveal_hand_named_stack_under'&&choice==='yes'){
+    closeM('overlay-prompt');
+    const ids=new Set((pr.candidates||[]).map(c=>c.instance_id));
+    const hand=(me?.hand||[]).filter(c=>ids.has(c.instance_id));
+    openHandPick({
+      hand,
+      count: 1,
+      forceConfirm: true,
+      title: pr.source_name||'Reveal Member',
+      msg: pr.prompt||'Choose a matching Member from your hand to stack under this Member.',
+      onConfirm: (picked)=> sendAct('resolve_prompt',{choice:'yes',card_id:picked[0]}),
+      onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); }
+    });
+    return;
+  }
+  if(pr.type==='play_stacked_member_from_under'&&choice==='yes'){
+    closeM('overlay-prompt');
+    const cards=pr.stack_cards||pr.candidates||[];
+    openHandPick({
+      hand: cards,
+      count: 1,
+      forceConfirm: true,
+      title: pr.source_name||'Play stacked Member',
+      msg: 'Choose 1 stacked Member to put onto an empty Stage area.',
+      onConfirm: (picked)=>{
+        const empty=pr.empty_slots||[];
+        if(!empty.length){
+          sendAct('resolve_prompt',{choice:'no'});
+          return;
+        }
+        if(empty.length===1){
+          sendAct('resolve_prompt',{choice:'yes',card_id:picked[0],slot:empty[0]});
+          return;
+        }
+        el('prompt-ttl').textContent=pr.source_name||'Play stacked Member';
+        el('prompt-msg').textContent='Choose an empty Stage area.';
+        const box=el('prompt-btns'); box.innerHTML='';
+        empty.forEach(slot=>{
+          const b=document.createElement('button');
+          b.className='btn-grad';
+          b.textContent=slotLabel(slot);
+          b.onclick=()=>{
+            closeM('overlay-prompt');
+            sendAct('resolve_prompt',{choice:'yes',card_id:picked[0],slot});
+          };
+          box.appendChild(b);
+        });
+        const skip=document.createElement('button');
+        skip.className='btn-ghost';
+        skip.textContent=t('prompt.noSkip');
+        skip.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{choice:'no'}); };
+        box.appendChild(skip);
+        el('overlay-prompt').classList.add('open');
+      },
+      onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); }
+    });
     return;
   }
   if(pr.type==='optional_pos_change_subunit_blade'&&choice==='yes'){
@@ -2261,18 +2323,23 @@ global.renderPrompt = function renderPrompt(s, myId){
     return;
   }
   if(pr?.type==='reveal_hand_named_stack_under'&&pr.responder===myId){
-    ovl.classList.remove('open');
-    const ids=new Set((pr.candidates||[]).map(c=>c.instance_id));
-    const me=s.players?.[myId];
-    openHandPick({
-      hand: (me?.hand||[]).filter(c=>ids.has(c.instance_id)),
-      count: 1,
-      title: pr.source_name||'Reveal Member',
-      msg: pr.prompt||'Choose a matching Member from your hand to stack under this Member.',
-      onConfirm: (picked)=> sendAct('resolve_prompt',{card_id:picked[0]}),
-      onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState, myId); }
-    });
-    return;
+    // Kotori-style optional: Yes/No first. Older mandatory stack prompts open hand pick directly.
+    const choices=pr.choices||[];
+    if(!isYesNoPromptChoices(choices)){
+      ovl.classList.remove('open');
+      const ids=new Set((pr.candidates||[]).map(c=>c.instance_id));
+      const me=s.players?.[myId];
+      openHandPick({
+        hand: (me?.hand||[]).filter(c=>ids.has(c.instance_id)),
+        count: 1,
+        forceConfirm: true,
+        title: pr.source_name||'Reveal Member',
+        msg: pr.prompt||'Choose a matching Member from your hand to stack under this Member.',
+        onConfirm: (picked)=> sendAct('resolve_prompt',{card_id:picked[0]}),
+        onCancel: ()=> sendAct('resolve_prompt',{choice:'no'})
+      });
+      return;
+    }
   }
   if(pr?.type==='activate_wr_member_pick'&&pr.responder===myId){
     if(pr.step==='pick_member'){

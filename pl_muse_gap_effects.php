@@ -828,6 +828,7 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
 
         case 'reveal_hand_named_stack_under':
             if (!empty($state['pending_prompt'])) break;
+            if (!abilitySlotAllowed($ab, $ctx, $p, $source)) break;
             $candidates = array_values(array_filter(
                 $p['hand'] ?? [],
                 fn($c) => cardMatchesWrPick($c, [
@@ -846,6 +847,8 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
                 'source_name'   => $name,
                 'candidates'    => array_map('cardPromptSummary', $candidates),
                 'ability'       => $ab,
+                'choices'       => ['yes', 'no'],
+                'choice_labels' => ['Yes — Reveal & stack', 'No — Skip'],
                 'prompt'        => 'Reveal 1 matching Member from your hand to stack under this Member?',
             ];
             $state = addLog($state, $state['players'][$pid]['name'] . " — [$name] reveal hand to stack.");
@@ -898,7 +901,15 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
     $p = &$state['players'][$owner];
 
     if ($type === 'reveal_hand_named_stack_under') {
-        $handId = $data['card_id'] ?? $choice;
+        if ($choice === 'no' || $choice === 'skip') {
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped stacking from hand.');
+            return finishPromptEffects($state);
+        }
+        $handId = $data['card_id'] ?? (($choice !== 'yes' && $choice !== '') ? $choice : '');
+        $ab = $prompt['ability'] ?? [];
         $stacked = null;
         foreach ($p['hand'] as $i => $c) {
             if (($c['instance_id'] ?? '') === $handId) {
@@ -908,6 +919,13 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
             }
         }
         if (!$stacked) throw new Exception('Choose a card from your hand');
+        if (!cardMatchesWrPick($stacked, [
+            'group'    => $ab['group'] ?? '',
+            'filter'   => $ab['filter'] ?? 'member',
+            'max_cost' => intval($ab['max_cost'] ?? 2),
+        ])) {
+            throw new Exception('That card does not match this effect');
+        }
         $slot = $prompt['source_slot'] ?? findMemberSlot($p, $prompt['source_id'] ?? '');
         if ($slot !== null && !empty($p['stage'][$slot])) {
             if (!isset($p['stage'][$slot]['stacked_members'])) {
@@ -915,14 +933,15 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
             }
             $p['stage'][$slot]['stacked_members'][] = $stacked;
         }
-        $ab = $prompt['ability'] ?? [];
         if (!empty($ab['grant_heart_choice'])) {
+            $heartChoices = ['pink', 'yellow', 'purple', 'green', 'blue', 'red'];
             $state['pending_prompt'] = [
                 'type'          => 'pl_muse_stack_heart_choice',
                 'owner'         => $owner,
                 'responder'     => $owner,
                 'source_name'   => $prompt['source_name'] ?? 'Member',
-                'heart_choices' => ['pink', 'yellow', 'purple', 'green', 'blue', 'red'],
+                'heart_choices' => $heartChoices,
+                'choices'       => $heartChoices,
                 'prompt'        => 'Choose a heart color — until this Live ends, you gain 1 of that heart.',
             ];
             $state['seq']++;
@@ -939,7 +958,7 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
 
     if ($type === 'pl_muse_stack_heart_choice') {
         $color = $data['heart_choice'] ?? $choice;
-        $choices = $prompt['heart_choices'] ?? ['pink', 'yellow', 'purple'];
+        $choices = $prompt['heart_choices'] ?? $prompt['choices'] ?? ['pink', 'yellow', 'purple'];
         if (!in_array($color, $choices, true)) {
             throw new Exception('Choose a heart color: ' . implode(', ', $choices));
         }
@@ -952,7 +971,7 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
     }
 
     if ($type === 'play_stacked_member_from_under') {
-        if ($choice === 'no') {
+        if ($choice === 'no' || $choice === 'skip') {
             unset($state['pending_prompt']);
             $state['seq']++;
             return finishPromptEffects($state);
@@ -960,9 +979,16 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
         $pickId = $data['card_id'] ?? '';
         $targetSlot = $data['slot'] ?? '';
         $srcSlot = $prompt['source_slot'] ?? findMemberSlot($p, $prompt['source_id'] ?? '');
-        if ($targetSlot === '' || empty($p['stage'][$targetSlot])) {
+        if ($srcSlot === null || empty($p['stage'][$srcSlot])) {
+            throw new Exception('Source Member not on Stage');
+        }
+        if ($targetSlot === '' || !in_array($targetSlot, ['left', 'center', 'right'], true)
+            || !empty($p['stage'][$targetSlot])) {
             throw new Exception('Choose an empty Stage area');
         }
+        $ab = $prompt['ability'] ?? [];
+        $group = $ab['group'] ?? '';
+        $maxCost = intval($ab['max_cost'] ?? 2);
         $stacked = $p['stage'][$srcSlot]['stacked_members'] ?? [];
         $played = null;
         $rest = [];
@@ -974,6 +1000,11 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
             }
         }
         if (!$played) throw new Exception('Choose 1 stacked Member');
+        if (($played['card_type'] ?? '') !== 'メンバー'
+            || !cardMatchesGroup($played, $group, 'member')
+            || intval($played['cost'] ?? 0) > $maxCost) {
+            throw new Exception('That stacked Member does not match this effect');
+        }
         $p['stage'][$srcSlot]['stacked_members'] = $rest;
         $played['active'] = true;
         $played['entered_turn'] = intval($state['turn'] ?? 1);

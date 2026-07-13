@@ -8117,7 +8117,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=31"></script>
 <script src="client/js/stamps.js?v=15"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
-<script src="client/js/prompt-renderer.js?v=28"></script>
+<script src="client/js/prompt-renderer.js?v=29"></script>
 <script src="client/js/tutorial-interactive.js?v=16"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -26576,8 +26576,10 @@ function cpuResolvePromptBody(s, cpu, pr) {
     return;
   }
   if(pr.type==='reveal_hand_named_stack_under'){
+    if(tier==='easy'){ cpuAct('resolve_prompt',{choice:'no'}); return; }
     const id=pr.candidates?.[0]?.instance_id||cpu.hand?.[0]?.instance_id;
-    if(id) cpuAct('resolve_prompt',{card_id:id});
+    if(id) cpuAct('resolve_prompt',{choice:'yes',card_id:id});
+    else cpuAct('resolve_prompt',{choice:'no'});
     return;
   }
   if(pr.type==='batch99_stack_wr_member'){
