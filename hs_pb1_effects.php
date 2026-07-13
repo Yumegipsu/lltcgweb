@@ -1028,10 +1028,16 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
             $n = intval($prompt['count'] ?? 4);
             $milled = array_splice($ownerP['main_deck'], 0, min($n, count($ownerP['main_deck'])));
             $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $milled);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Live') . '] milled ' . count($milled) . ' card(s).');
+        } else {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Live') . '] skipped optional mill.');
         }
         unset($state['pending_prompt']);
         $state['seq']++;
-        return $state;
+        // Must resume Live Success / Performance — bare return softlocks in live_success_effects.
+        return finishPromptEffects($state);
     }
 
     if ($promptType === 'live_start_activate_stage_live_start_ability') {
