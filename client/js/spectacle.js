@@ -301,7 +301,9 @@ async function waitForPipelinePromptResolution(myId, opts = {}) {
     const seqBefore = G.lastSeq ?? 0;
     if (pr?.responder === myId && !isMyBlockingPromptOpen(cur)) {
       if (isLiveSuccessDiscardPrompt(cur)) clearLiveSuccessHandDeferral(cur);
-      if (isLiveSuccessDiscardPrompt(cur) || pr.type === 'pick_judge_success_live') {
+      if (isLiveSuccessDiscardPrompt(cur)
+          || pr.type === 'pick_judge_success_live'
+          || isMidSpectacleYellRetryPrompt(cur)) {
         ensurePendingPromptSurfaced(cur, myId);
       }
       if (!isMyBlockingPromptOpen(cur)) await pullPromptResolutionState();
@@ -5850,33 +5852,60 @@ async function perfReAnimateYellSideIfChanged(ctx, nextState, pid, prevSig) {
 
 async function awaitMidSpectacleYellRetryPrompts(ctx, myId) {
   let workCtx = ctx;
-  let cur = G._deferredLiveState || G.gameState || workCtx.next;
+  const pickCur = () => {
+    // Never prefer a stale gate-entry deferred snapshot that still carries the prompt
+    // after pullSkillResolutionState / onState already advanced past it.
+    const latest = (typeof pickLatestStateForPlayback === 'function'
+      ? pickLatestStateForPlayback(workCtx.next)
+      : null) || G.gameState || G._deferredLiveState || workCtx.next;
+    return latest || workCtx.next;
+  };
+  let cur = pickCur();
   while (isMidSpectacleYellRetryPrompt(cur)) {
     const pr = cur.pending_prompt;
     const owner = pr.owner || pr.responder;
     const sigBefore = perfYellRevealSignature(cur, owner);
+    const seqBefore = cur.seq ?? 0;
+    // Keep deferred aligned with the board we are actually waiting on.
+    G.gameState = cur;
+    G._deferredLiveState = cur;
     ensurePendingPromptSurfaced(cur, myId);
     await waitForPipelinePromptResolution(myId, {
       targetState: cur,
       isResolved: (s) => {
-        if (!s?.pending_prompt) return true;
+        if (!s) return false;
+        if ((s.seq ?? 0) > seqBefore && !isMidSpectacleYellRetryPrompt(s)) return true;
+        if (!s.pending_prompt) return true;
         if (s.pending_prompt.type !== 'auto_yell_no_live_retry'
             && s.pending_prompt.type !== 'auto_yell_mill_extra_yell') return true;
         return false;
       },
     });
-    cur = G._deferredLiveState || G.gameState || cur;
-    if (G._deferredLiveState) {
-      G.gameState = cur;
+    cur = pickCur();
+    // Drop stale deferred that still has the mill/retry prompt after a newer clear.
+    if (G._deferredLiveState && isMidSpectacleYellRetryPrompt(G._deferredLiveState)
+        && cur && !isMidSpectacleYellRetryPrompt(cur)
+        && (cur.seq ?? 0) >= (G._deferredLiveState.seq ?? 0)) {
+      G._deferredLiveState = cur;
+    }
+    G.gameState = cur;
+    if (G._deferredLiveState) G._deferredLiveState = cur;
+    if (isMidSpectacleYellRetryPrompt(cur)) {
+      // Wait timed out or softlocked on the same prompt — do not tight-loop.
+      TCG_DEBUG.warn('live', 'mid-spectacle yell prompt still pending after wait', {
+        type: cur.pending_prompt?.type, seq: cur.seq,
+      });
+      break;
     }
     workCtx = await perfReAnimateYellSideIfChanged(workCtx, cur, owner, sigBefore);
     G._perfSpectaclePhase = owner === perfFirstPlayerId(workCtx) ? 'yell_mine' : 'yell_opp';
   }
-  const final = G._deferredLiveState || G.gameState || cur;
+  const final = pickCur();
   if (final && final !== workCtx.next) {
     Object.assign(workCtx, perfBuildContext(workCtx.prev, final, workCtx.myId));
-    if (G._deferredLiveState) G._deferredLiveState = final;
   }
+  G.gameState = final || G.gameState;
+  G._deferredLiveState = final || G._deferredLiveState;
   return workCtx;
 }
 
@@ -6019,12 +6048,18 @@ async function perfSeekPhase(prev, next, myId, targetPhase, { forward = true, an
       repositionTutorialPerfYellBubble(G.tutorialData?.steps?.[G.tutorialStep]);
     }
     if (aborted) return;
-    if (tgtIdx > yellOppIdx) {
-      ctx = await awaitMidSpectacleYellRetryPrompts(ctx, myId);
-      G._perfCtx = ctx;
-      if (aborted) return;
-    }
     if (tgtIdx <= yellOppIdx) return;
+  } else if (curIdx < yellOppIdx && tgtIdx > yellOppIdx) {
+    // Solo / empty second-player Yell — still mark yell_opp so Kurage / retry can surface.
+    G._perfSpectaclePhase = 'yell_opp';
+  }
+  // Always pause for mid-spectacle Yell prompts when advancing past yell_opp
+  // (do not gate on second-player Yell cards — Kurage often fires on the first side).
+  if (tgtIdx > yellOppIdx
+      && perfPhaseIdx(G._perfSpectaclePhase || 'closed') >= yellOppIdx) {
+    ctx = await awaitMidSpectacleYellRetryPrompts(ctx, myId);
+    G._perfCtx = ctx;
+    if (aborted) return;
   }
   if (curIdx < perfPhaseIdx('outcomes_mine') && tgtIdx >= perfPhaseIdx('outcomes_mine') && tgtIdx < perfPhaseIdx('outcomes')) {
     await perfAnimateOutcomes(ctx, true);

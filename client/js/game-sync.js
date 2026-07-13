@@ -292,6 +292,11 @@
         ? ((G.spectatorViewAs === 'p1' || G.spectatorViewAs === 'p2') ? G.spectatorViewAs : (d.view_as || 'p1'))
         : (d.my_id || G.playerId);
       G.gameState = d;
+      // Mid-spectacle Kurage / yell-retry: keep deferred in lockstep so presentLiveRound
+      // does not resurrect the gate-entry pending_prompt after resolve.
+      if (G._perfSpectacleActive || G._liveRoundPlaybackActive || G._livePollHold) {
+        G._deferredLiveState = d;
+      }
       if (typeof global.renderGame === 'function') {
         const skipPrompt = typeof global.shouldDeferPromptForLivePresentation === 'function'
           && global.shouldDeferPromptForLivePresentation(d, G.playerId);
