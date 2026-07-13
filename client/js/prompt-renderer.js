@@ -974,7 +974,7 @@ function bindSurveilCardDrag(node, card, id) {
       if (slotEl) {
         const idx = parseInt(slotEl.dataset.slot, 10);
         if (!Number.isNaN(idx)) surveilDropOnSlot(idx, id);
-      } else if (wrEl) {
+      } else if (wrEl && !G.surveil?.returnAll) {
         surveilMoveToWr(id);
       }
       renderSurveilZones();
@@ -1060,6 +1060,7 @@ function surveilDropOnSlot(slotIdx, id) {
 }
 
 function surveilMoveToWr(id) {
+  if (G.surveil?.returnAll) return;
   const idx = surveilFindSlotIndex(id);
   if (idx >= 0) {
     G.surveil.slots[idx] = null;
@@ -1079,13 +1080,25 @@ function surveilMoveToDeck(id) {
 
 global.renderSurveilOverlay = function renderSurveilOverlay(pr){
   const ovl=el('overlay-surveil');
+  const returnAll = !!pr.return_all;
+  ovl?.classList.toggle('return-all', returnAll);
   el('surveil-ttl').textContent=pr.source_name||'Look at deck';
   const n = (pr.looked_cards || []).length;
   el('surveil-msg').textContent=localizeSubunitText(pr.prompt||(
-    n === 1
-      ? 'Look at the top card of your deck. You may put it on top of your deck or put it into the Waiting Room.'
-      : `Look at the top ${n} cards of your deck. You may put any number of them on top of your deck in any order and put the rest into the Waiting Room.`
+    returnAll
+      ? (n === 1
+        ? 'Look at the top card of your deck and put it back on top.'
+        : `Look at the top ${n} cards of your deck and put them back on top in any order.`)
+      : (n === 1
+        ? 'Look at the top card of your deck. You may put it on top of your deck or put it into the Waiting Room.'
+        : `Look at the top ${n} cards of your deck. You may put any number of them on top of your deck in any order and put the rest into the Waiting Room.`)
   ));
+  const hint = ovl?.querySelector('.surveil-hint');
+  if (hint && typeof t === 'function') {
+    const hintKey = returnAll ? 'prompt.surveilHintReturnAll' : 'prompt.surveilHint';
+    hint.setAttribute('data-i18n', hintKey);
+    hint.textContent = t(hintKey);
+  }
   const cards = pr.looked_cards || [];
   G.surveil = {
     slots: cards.map(c => c.instance_id),
@@ -1093,6 +1106,7 @@ global.renderSurveilOverlay = function renderSurveilOverlay(pr){
     byId: {},
     selId: null,
     drag: null,
+    returnAll,
   };
   cards.forEach(c => { G.surveil.byId[c.instance_id] = c; });
   renderSurveilZones();
@@ -1142,6 +1156,7 @@ global.renderSurveilZones = function renderSurveilZones(){
   });
 
   wrEl.onclick = (ev) => {
+    if (G.surveil?.returnAll) return;
     if (ev.target.closest('.surveilcard')) return;
     const sel = G.surveil.selId;
     if (sel && !G.surveil.wr.includes(sel)) {
@@ -1155,6 +1170,12 @@ global.renderSurveilZones = function renderSurveilZones(){
 
 global.confirmSurveil = async function confirmSurveil(){
   const all = Object.keys(G.surveil.byId);
+  if (G.surveil.returnAll) {
+    if (G.surveil.wr.length || all.some(id => !surveilTopIds().includes(id))) {
+      toast('Put every card back on top of the deck');
+      return;
+    }
+  }
   const assigned = new Set([...surveilTopIds(), ...G.surveil.wr]);
   if (all.some(id => !assigned.has(id))) { toast('Assign every card to a deck spot or Waiting Room'); return; }
   const btn = el('btn-surveil-ok');

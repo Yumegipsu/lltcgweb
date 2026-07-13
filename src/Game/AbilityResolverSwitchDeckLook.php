@@ -58,6 +58,7 @@ function tryResolveAbilityEffectSwitchDeckLook(
 
         case 'deck_surveil':
             $look = intval($ab['look'] ?? 2);
+            $returnAll = !empty($ab['return_all']);
             $top = array_splice($p['main_deck'], 0, min($look, count($p['main_deck'])));
             if (count($top) <= 1) {
                 if (count($top) === 1) {
@@ -66,7 +67,15 @@ function tryResolveAbilityEffectSwitchDeckLook(
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] looked at deck top.");
             } else {
-                $state = startSurveilArrangePrompt($state, $pid, $name, $top, null, $source['instance_id'] ?? '');
+                $state = startSurveilArrangePrompt(
+                    $state,
+                    $pid,
+                    $name,
+                    $top,
+                    null,
+                    $source['instance_id'] ?? '',
+                    $returnAll
+                );
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] looked at top " . count($top) . ' — arrange them.');
             }

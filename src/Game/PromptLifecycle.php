@@ -252,15 +252,29 @@ function finishAfterBranchChoicePrompt(array $state, array $prompt): array {
     return finishPromptEffects($state);
 }
 
-function surveilArrangePromptText(int $count): string {
+function surveilArrangePromptText(int $count, bool $returnAll = false): string {
     $n = max(1, $count);
+    if ($returnAll) {
+        if ($n === 1) {
+            return 'Look at the top card of your deck and put it back on top.';
+        }
+        return "Look at the top {$n} cards of your deck and put them back on top in any order.";
+    }
     if ($n === 1) {
         return 'Look at the top card of your deck. You may put it on top of your deck or put it into the Waiting Room.';
     }
     return "Look at the top {$n} cards of your deck. You may put any number of them on top of your deck in any order and put the rest into the Waiting Room.";
 }
 
-function startSurveilArrangePrompt(array $state, string $pid, string $name, array $looked, ?array $chain = null, ?string $sourceId = null): array {
+function startSurveilArrangePrompt(
+    array $state,
+    string $pid,
+    string $name,
+    array $looked,
+    ?array $chain = null,
+    ?string $sourceId = null,
+    bool $returnAll = false
+): array {
     $state['surveil_stash'] = $looked;
     if ($chain !== null) {
         $state['_surveil_chain'] = $chain;
@@ -271,8 +285,9 @@ function startSurveilArrangePrompt(array $state, string $pid, string $name, arra
         'responder'     => $pid,
         'source_id'     => $sourceId ?? ($chain['source_id'] ?? ''),
         'source_name'   => $name,
-        'prompt'        => surveilArrangePromptText(count($looked)),
+        'prompt'        => surveilArrangePromptText(count($looked), $returnAll),
         'looked_cards'  => array_map('cardPromptSummary', $looked),
+        'return_all'    => $returnAll,
     ];
     return $state;
 }

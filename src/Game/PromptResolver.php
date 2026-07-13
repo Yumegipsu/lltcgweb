@@ -147,13 +147,22 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         if (empty($looked)) throw new Exception('No surveil cards');
         $topIds = $data['top_ids'] ?? [];
         $wrIds = $data['wr_ids'] ?? [];
+        $returnAll = !empty($prompt['return_all']);
+        if ($returnAll) {
+            if (!empty($wrIds)) {
+                throw new Exception('All looked cards must be returned to the top of the deck');
+            }
+            $wrIds = [];
+        }
         $allIds = array_column($looked, 'instance_id');
         $picked = array_merge($topIds, $wrIds);
         sort($allIds);
         $sortedPicked = $picked;
         sort($sortedPicked);
         if ($sortedPicked !== $allIds) {
-            throw new Exception('Must assign every looked card to deck top or Waiting Room');
+            throw new Exception($returnAll
+                ? 'Must put every looked card back on top of the deck'
+                : 'Must assign every looked card to deck top or Waiting Room');
         }
         $chain = $state['_surveil_chain'] ?? null;
         $arrangeTarget = $chain['target'] ?? $owner;

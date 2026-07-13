@@ -3278,6 +3278,7 @@ body.deck-card-preview #modal-card{z-index:970}
   justify-content:center;align-content:flex-start;transition:border-color .15s,background .15s;
 }
 .surveil-wr-drop.drop-target{border-color:var(--pink);background:rgba(255,107,168,.1)}
+#overlay-surveil.return-all .surveil-wr-zone{display:none}
 .surveil-hint{font-size:11px;color:rgba(255,255,255,.42);margin-bottom:8px;line-height:1.45;text-align:center}
 .heartpick{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px}
 .heartpick button{min-width:88px}
@@ -7823,7 +7824,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         <h3 data-i18n="game.deckTopLabel">Deck top</h3>
         <div class="surveil-deck-slots" id="surveil-deck-slots"></div>
       </div>
-      <div class="surveil-zone">
+      <div class="surveil-zone surveil-wr-zone">
         <h3 data-i18n="game.waitingRoom">Waiting Room</h3>
         <div class="surveil-wr-drop" id="surveil-wr"></div>
       </div>
@@ -8116,7 +8117,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=31"></script>
 <script src="client/js/stamps.js?v=15"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
-<script src="client/js/prompt-renderer.js?v=27"></script>
+<script src="client/js/prompt-renderer.js?v=28"></script>
 <script src="client/js/tutorial-interactive.js?v=16"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -23497,6 +23498,13 @@ function cpuSurveilConfirmPayload(pr, cpu, tier) {
   const forOpp = (pr.prompt || '').includes('opponent');
   if (!looked.length) {
     return { choice: 'confirm', top_ids: [], wr_ids: [] };
+  }
+  if (pr.return_all) {
+    return {
+      choice: 'confirm',
+      top_ids: looked.map(c => c.instance_id).filter(Boolean),
+      wr_ids: [],
+    };
   }
   const { top_ids, wr_ids } = cpuArrangeSurveilCards(looked, cpu, hand, tier, forOpp);
   const allIds = looked.map(c => c.instance_id).filter(Boolean);

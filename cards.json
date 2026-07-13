@@ -9411,7 +9411,8 @@
                 {
                     "trigger": "live_success",
                     "type": "deck_surveil",
-                    "look": 3
+                    "look": 3,
+                    "return_all": true
                 }
             ],
             "subunit": "lily white",
