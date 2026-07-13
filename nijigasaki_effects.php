@@ -1062,7 +1062,8 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
         return finishPromptEffects($state);
     }
 
-    if ($promptType === 'optional_discard_activate_wait_blade' && ($prompt['step'] ?? '') === 'pick_wait') {
+    if (in_array($promptType, ['optional_discard_activate_wait_blade', 'optional_discard_activate_wait_hearts'], true)
+        && ($prompt['step'] ?? '') === 'pick_wait') {
         $pickSlot = $choice;
         $srcId = $prompt['source_id'] ?? '';
         if (!in_array($pickSlot, $prompt['wait_slots'] ?? [], true)) {
@@ -1093,41 +1094,77 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
         return finishPromptEffects($state);
     }
 
-    if ($promptType === 'discard_member_add_lower_wr_member' && $choice === 'yes') {
-        $ids = $data['discard_ids'] ?? [];
-        if (count($ids) !== 1) throw new Exception('Discard exactly 1 Member from hand');
+    if ($promptType === 'discard_member_add_lower_wr_member') {
+        if ($choice === 'skip' || $choice === 'cancel') {
+            $choice = 'no';
+        }
+        if ($choice === 'no') {
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
+        if ($choice !== 'yes') {
+            throw new Exception('Invalid choice');
+        }
+        $ids = normalizeDiscardIds($data['discard_ids'] ?? []);
+        if (count($ids) !== 1) {
+            throw new Exception('Discard exactly 1 Member from hand');
+        }
         $discarded = null;
         foreach ($ownerP['hand'] as $i => $c) {
             if (($c['instance_id'] ?? '') === $ids[0]) {
-                if (($c['card_type'] ?? '') !== 'メンバー') throw new Exception('Must discard a Member');
+                if (($c['card_type'] ?? '') !== 'メンバー') {
+                    throw new Exception('Must discard a Member');
+                }
                 $discarded = $c;
                 array_splice($ownerP['hand'], $i, 1);
                 $ownerP['waiting_room'][] = $c;
                 break;
             }
         }
-        if (!$discarded) throw new Exception('Invalid discard');
-        $maxCost = intval($discarded['cost'] ?? 0) - 1;
-        $added = null;
-        foreach ($ownerP['waiting_room'] as $i => $c) {
-            if (($c['card_type'] ?? '') !== 'メンバー') continue;
-            if (intval($c['cost'] ?? 0) <= $maxCost) {
-                $added = $c;
-                array_splice($ownerP['waiting_room'], $i, 1);
-                break;
-            }
+        if (!$discarded) {
+            throw new Exception('Invalid discard');
         }
-        if ($added) $ownerP['hand'][] = $added;
+        $maxCost = intval($discarded['cost'] ?? 0) - 1;
+        $srcName = $prompt['source_name'] ?? 'Member';
+        $cfg = [
+            'group' => '',
+            'filter' => 'member',
+            'max_cost' => $maxCost,
+        ];
+        $candidates = wrCandidatesMatching($ownerP, $cfg);
         $slot = $prompt['source_slot'] ?? null;
         $abIdx = $prompt['ability_idx'] ?? null;
         if ($slot !== null && $abIdx !== null && !empty($ownerP['stage'][$slot])) {
             markAbilityUsed($ownerP['stage'][$slot], $abIdx);
         }
+        if (empty($candidates)) {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . $srcName . '] discarded ' . cardDisplayName($discarded) .
+                '; no lower-cost Member in Waiting Room to add.');
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
+        // Always open a WR pick (even for 1 candidate) — never auto-add first match.
+        $state['pending_prompt'] = [
+            'type'        => 'pick_wr_to_hand',
+            'owner'       => $owner,
+            'responder'   => $owner,
+            'source_name' => $srcName,
+            'source_id'   => $prompt['source_id'] ?? '',
+            'source_slot' => $slot,
+            'prompt'      => 'Choose 1 Member from your Waiting Room with cost '
+                . $maxCost . ' or less to add to your hand.',
+            'candidates'  => array_map('cardPromptSummary', $candidates),
+            'ability'     => array_merge($ability, ['filter' => 'member', 'max_cost' => $maxCost]),
+            'wr_pick_cfg' => $cfg,
+            'pick_count'  => 1,
+        ];
         $state = addLog($state, $state['players'][$owner]['name'] .
-            ' — added ' . ($added['name_en'] ?? $added['name'] ?? 'Member') . ' from WR.');
-        unset($state['pending_prompt']);
+            ' — [' . $srcName . '] discarded ' . cardDisplayName($discarded) .
+            '; choose a lower-cost Member from Waiting Room.');
         $state['seq']++;
-        $state = finishPromptEffects($state);
         return $state;
     }
 

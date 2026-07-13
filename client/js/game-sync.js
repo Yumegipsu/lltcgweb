@@ -277,6 +277,16 @@
       const d = await parseGameApiResponse(r);
       if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return G.gameState || null;
       if ((d.seq ?? 0) <= (G.lastSeq ?? 0)) return G.gameState || null;
+      // Finished must go through onState/applyFinishedState — advancing lastSeq here
+      // alone skips the win overlay and leaves later finished polls as "stale".
+      if (d.status === 'finished') {
+        if (typeof global.onState === 'function') {
+          global.onState(d);
+        } else if (typeof global.applyFinishedState === 'function') {
+          void global.applyFinishedState(d, G.gameState);
+        }
+        return d;
+      }
       G.lastSeq = d.seq;
       G.playerId = G.isSpectator
         ? ((G.spectatorViewAs === 'p1' || G.spectatorViewAs === 'p2') ? G.spectatorViewAs : (d.view_as || 'p1'))

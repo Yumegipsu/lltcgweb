@@ -135,12 +135,13 @@
     if (G.isSpectator) clearPvPWatchdog();
     if (s.status === 'finished') {
       clearPvPWatchdog();
-      if (G.rematchWaiting && s.seq <= G.lastSeq && G.gameState?.status === 'finished') {
-        if (s.seq > G.lastSeq) {
-          G.lastSeq = s.seq;
-          G.gameState = s;
-          if (typeof global.syncWinRematchUi === 'function') global.syncWinRematchUi(s);
-        }
+      // Rematch votes bump seq while both sides stay on finished — sync UI without
+      // replaying triumph / re-opening the win flow from scratch.
+      if (G.rematchWaiting && G.gameState?.status === 'finished') {
+        if ((s.seq ?? 0) < (G.lastSeq ?? 0)) return;
+        G.lastSeq = s.seq;
+        G.gameState = s;
+        if (typeof global.syncWinRematchUi === 'function') global.syncWinRematchUi(s);
         return;
       }
       TCG_DEBUG.log('state', 'apply finished (immediate)', TCG_DEBUG.snap(s));
@@ -369,12 +370,13 @@
     };
 
     if (spectacleGateActive && (G.gameState?.seq ?? 0) < (s.seq ?? 0)) {
+      // Soft-merge only while Live Start skill waits own the round — not for every
+      // stuck _liveRoundPlaybackActive (that caused ghost Performance loops).
       const softMergeLiveStart = !!(G._awaitingLiveStartPrompts
-        || (G._liveRoundPlaybackActive && (
-          G.gameState?.phase === 'live_start_effects'
-          || (typeof liveStartPromptNeedsWait === 'function'
-            && liveStartPromptNeedsWait(G.gameState, G.playerId))
-        )));
+        || (G._liveRoundPlaybackActive
+          && G.gameState?.phase === 'live_start_effects'
+          && typeof liveStartPromptNeedsWait === 'function'
+          && liveStartPromptNeedsWait(G.gameState, G.playerId)));
       if (softMergeLiveStart) {
         // Keep reveal/spectacle pipeline alive; presentLiveRound wait observes G.gameState.
         TCG_DEBUG.log('state', 'soft-merge during Live Start wait', {

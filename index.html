@@ -3960,7 +3960,8 @@ body.perf-spectacle-active:has(.overlay.skill-hand-preserve.open)::before{
   #perf-spectacle{transition-duration:.01ms!important}
 }
 
-#overlay-win{position:fixed;inset:0;z-index:8000;background:rgba(8,3,6,.93);
+/* Above #perf-spectacle (8700) so win/loss is never hidden under a stuck Performance stage. */
+#overlay-win{position:fixed;inset:0;z-index:9000;background:rgba(8,3,6,.93);
   display:none;flex-direction:column;align-items:center;justify-content:center;
   gap:18px;padding:24px;backdrop-filter:blur(8px)}
 #overlay-win.open{display:flex}
@@ -8111,8 +8112,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/api-client.js?v=9"></script>
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
-<script src="client/js/game-sync.js?v=12"></script>
-<script src="client/js/state-apply.js?v=30"></script>
+<script src="client/js/game-sync.js?v=13"></script>
+<script src="client/js/state-apply.js?v=31"></script>
 <script src="client/js/stamps.js?v=15"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
 <script src="client/js/prompt-renderer.js?v=27"></script>
@@ -13976,14 +13977,13 @@ function isPresentationSuperseded() {
 
 function abortStuckLiveRoundPlayback(reason) {
   if (!G._liveRoundPlaybackActive && !G._livePollHold && !G._liveSpectacleGateRunning) return false;
-  // Soft-skip: skill prompts advance seq while presentLiveRound awaits Live Start.
-  // Aborting here tears down the gate and skips flips + Performance until refresh.
+  // Soft-skip only while Live Start skill waits own presentLiveRound — broader soft-skip
+  // left playback flags stuck and recovery re-armed ghost Performance loops.
   if (G._awaitingLiveStartPrompts
-      || (G._liveRoundPlaybackActive && (
-        G.gameState?.phase === 'live_start_effects'
-        || (typeof liveStartPromptNeedsWait === 'function'
-          && liveStartPromptNeedsWait(G.gameState, G.playerId))
-      ))) {
+      || (G._liveRoundPlaybackActive
+        && G.gameState?.phase === 'live_start_effects'
+        && typeof liveStartPromptNeedsWait === 'function'
+        && liveStartPromptNeedsWait(G.gameState, G.playerId))) {
     TCG_DEBUG.log('live', 'soft-skip abort during Live Start wait', { reason });
     return false;
   }
@@ -33614,6 +33614,7 @@ function syncWinRankedPrReward(s, win) {
 // ── WIN ──────────────────────────────────────────────
 function showWin(s){
   dismissAllGameplayOverlays();
+  if (typeof perfCloseSpectacle === 'function') perfCloseSpectacle();
   clearActiveGameSession();
   const isSpec = !!G.isSpectator;
   const myId = isSpec ? null : (s.my_id || G.playerId);
