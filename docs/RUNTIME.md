@@ -8,6 +8,7 @@ This document describes what belongs in git vs on-disk runtime state for [lltcgw
 |------|------|
 | `*.php`, `index.html`, `client/js/` | Application code |
 | `cards.json`, `tutorial*.json`, manifests | Card data and static JSON |
+| `config/loveca_points.json` | Official Loveca Point System card list + limit (April 2026); run `php scripts/apply_loveca_points.php` after edits |
 | `config/` | Path, CORS, rate-limit helpers |
 | `src/` | Extracted PHP modules |
 | `tests/`, `scripts/` | Verification |
@@ -17,7 +18,7 @@ This document describes what belongs in git vs on-disk runtime state for [lltcgw
 
 | Path | Env override | Role |
 |------|--------------|------|
-| `data/` | `TCG_DATA_DIR` | SQLite `tcg.db`, queue caches, rate limits |
+| `data/` | `TCG_DATA_DIR` | SQLite `tcg.db` (accounts, collection, ranked, **play stats**), queue caches, rate limits |
 | `games/` | `TCG_GAMES_DIR` | Live match JSON per room |
 | `experiment_decks/` | `TCG_EXPERIMENT_DECKS_DIR` | Guest deck experiment saves |
 | `cardimg/` | `TCG_CARDIMG_DIR` | Cached card face images |

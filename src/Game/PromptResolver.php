@@ -1652,6 +1652,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 $reenter['entered_this_turn'] = true;
                 $reenter['moved_this_turn'] = true;
                 $ownerP['stage'][$slot] = $reenter;
+                notifyMemberEnteredStage($state, $owner, $reenter);
                 $state = addLog($state, $state['players'][$owner]['name'] .
                     ' — [' . ($prompt['source_name'] ?? 'Member') . '] re-entered ' .
                     ($reenter['name_en'] ?? $reenter['name']) . " on $slot.");
@@ -1696,6 +1697,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 $reenter['entered_this_turn'] = true;
                 $reenter['moved_this_turn'] = true;
                 $ownerP['stage'][$slot] = $reenter;
+                notifyMemberEnteredStage($state, $owner, $reenter);
                 $state = addLog($state, $state['players'][$owner]['name'] .
                     ' — [' . ($prompt['source_name'] ?? 'Member') . '] re-entered ' .
                     ($reenter['name_en'] ?? $reenter['name']) . " on $slot.");
@@ -2082,6 +2084,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 throw new Exception('Choose a Live card from your Waiting Room');
             }
             $ownerP['success_lives'][] = $wrLive;
+            notifyLiveEnteredSuccess($state, $owner, $wrLive);
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'Member') . '] put ' .
                 cardDisplayName($wrLive) . ' from Waiting Room into Success Live area.');
@@ -2179,6 +2182,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             array_splice($ownerP['hand'], $handIdx, 1);
             $ownerP['hand'][] = $successCard;
             $ownerP['success_lives'][] = $handLive;
+            notifyLiveEnteredSuccess($state, $owner, $handLive);
             $srcName = $prompt['source_name'] ?? 'Member';
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . $srcName . '] swapped ' .

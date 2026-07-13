@@ -2434,6 +2434,7 @@ function liveJudgePlaceSuccessLive(array $state, string $winnerId, array $toAdd)
     $toAdd = $removed;
     $successIdx = count($state['players'][$winnerId]['success_lives']);
     $state['players'][$winnerId]['success_lives'][] = $toAdd;
+    notifyLiveEnteredSuccess($state, $winnerId, $toAdd);
     $ctx = &$state['_live_judge_ctx'];
     if ($ctx && !in_array($winnerId, $ctx['success_placed_by'] ?? [], true)) {
         $ctx['success_placed_by'][] = $winnerId;

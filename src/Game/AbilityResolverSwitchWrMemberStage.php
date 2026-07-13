@@ -20,6 +20,7 @@ function tryResolveAbilityEffectSwitchWrMemberStage(
                 $placed = putWrMemberToEmptyStageWait($state['players'][$id], $maxCost);
                 if ($placed) {
                     $m = $placed['member'];
+                    notifyMemberEnteredStage($state, $id, $m);
                     $state = addLog($state, $state['players'][$id]['name'] .
                         ' — [' . $name . '] put ' . ($m['name_en'] ?? $m['name']) .
                         ' from Waiting Room onto Stage in Wait.');

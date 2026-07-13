@@ -632,6 +632,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         if (!$played) throw new Exception('No matching Member in Waiting Room');
         $p['waiting_room'][] = $leavingMember;
         $state = resolveOnLeaveStageAbilities($state, $pid, $leavingMember);
+        notifyMemberEnteredStage($state, $pid, $played);
         $state = addLog($state, $state['players'][$pid]['name'] .
             ' — [' . ($leavingMember['name_en'] ?? $leavingMember['name']) . '] left Stage; played ' .
             cardDisplayName($played) . ' from Waiting Room.');

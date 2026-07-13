@@ -28,6 +28,7 @@ require_once __DIR__ . '/s_bp6_effects.php';
 require_once __DIR__ . '/s_sd1_effects.php';
 require_once __DIR__ . '/sp_bp2_effects.php';
 require_once __DIR__ . '/sp_bp5_effects.php';
+require_once __DIR__ . '/play_stats.php';
 require_once __DIR__ . '/pl_muse_gap_effects.php';
 require_once __DIR__ . '/pl_sp_sd2_effects.php';
 require_once __DIR__ . '/batch99_effects.php';
@@ -4507,6 +4508,7 @@ function logAbilityChain(array $state, string $pid, array $source, string $trigg
 // markMemberDualEnterLiveStartFired, shouldSkipDualEnterLiveStartAtLiveStart — see src/Game/LiveStartEffects.php
 
 function resolveOnEnterAbilities(array $state, string $pid, array $member, string $slot = ''): array {
+    notifyMemberEnteredStage($state, $pid, $member);
     $abilities = getAbilitiesByTrigger($member, 'on_enter');
     if (!empty($abilities)) {
         $state = logAbilityChain($state, $pid, $member, 'on_enter');

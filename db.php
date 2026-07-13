@@ -238,6 +238,20 @@ function tcgDbMigrate(PDO $db): void {
     $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_starter_owned_user
         ON tcg_starter_owned(discord_id)');
 
+    $db->exec('CREATE TABLE IF NOT EXISTS tcg_play_stats (
+        discord_id TEXT NOT NULL,
+        tracker TEXT NOT NULL,
+        dim TEXT NOT NULL,
+        key TEXT NOT NULL,
+        count INTEGER NOT NULL DEFAULT 0,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (discord_id, tracker, dim, key),
+        FOREIGN KEY (discord_id) REFERENCES tcg_users(discord_id) ON DELETE CASCADE
+    )');
+
+    $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_play_stats_user_tracker
+        ON tcg_play_stats(discord_id, tracker)');
+
     $db->exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_casual_queue_discord
         ON tcg_casual_queue(discord_id) WHERE discord_id IS NOT NULL');
 
@@ -471,6 +485,7 @@ function tcgResetAccountProgress(string $discordId): void {
         $db->prepare('DELETE FROM tcg_deck_presets WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('DELETE FROM tcg_box_progress WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('DELETE FROM tcg_mission_progress WHERE discord_id = ?')->execute([$discordId]);
+        $db->prepare('DELETE FROM tcg_play_stats WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('DELETE FROM tcg_starter_owned WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('UPDATE tcg_users SET starter_deck = NULL, banner_card_no = NULL, banner_crop = NULL,
             equipped_flag = NULL, stamp_favorites = NULL, star_gems = 0, dupe_gem_migration_done = 0, unranked_games = 0,
