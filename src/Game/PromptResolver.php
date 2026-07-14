@@ -2919,32 +2919,56 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
     }
 
     if ($promptType === 'optional_negate_member_live_start_add_wr') {
-        if ($choice === 'skip') {
+        if ($choice === 'skip' || $choice === 'no') {
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional negate.');
-        } else {
-            $targetSlot = '';
-            foreach ($ownerP['stage'] as $s => $mbr) {
-                if ($mbr && ($mbr['instance_id'] ?? '') === $choice) {
-                    $targetSlot = $s;
-                    $mbr['live_start_negated'] = true;
-                    $ownerP['stage'][$s] = $mbr;
-                    break;
-                }
-            }
-            if ($targetSlot === '') throw new Exception('Invalid Member');
-            $ab = $prompt['ability'] ?? [];
-            $added = addFromWaitingRoomFiltered(
-                $ownerP,
-                $ab['group'] ?? '',
-                '',
-                intval($ab['wr_count'] ?? 1)
-            );
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Member') . "] negated Member's [Live Start]; added $added card(s) from Waiting Room.");
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return $state;
         }
-        unset($state['pending_prompt']);
+        $targetSlot = '';
+        foreach ($ownerP['stage'] as $s => $mbr) {
+            if ($mbr && ($mbr['instance_id'] ?? '') === $choice) {
+                $targetSlot = $s;
+                // Until Live ends — Live Start fire is gated by live_start_negated today.
+                $mbr['live_start_negated'] = true;
+                $ownerP['stage'][$s] = $mbr;
+                break;
+            }
+        }
+        if ($targetSlot === '') {
+            throw new Exception('Invalid Member');
+        }
+        $ab = $prompt['ability'] ?? [];
+        // "1 Liella! / Superstar card" — any card type, not Members only.
+        $cfg = [
+            'group'  => $ab['group'] ?? 'Superstar',
+            'filter' => '',
+        ];
+        $candidates = wrCandidatesMatching($ownerP, $cfg);
+        $negatedName = cardDisplayName($ownerP['stage'][$targetSlot] ?? []);
+        if (empty($candidates)) {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') . "] negated $negatedName's abilities until Live ends (no matching Waiting Room card).");
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return $state;
+        }
+        $state['pending_prompt'] = [
+            'type'          => 'pick_wr_to_hand',
+            'owner'         => $owner,
+            'responder'     => $owner,
+            'source_id'     => $prompt['source_id'] ?? '',
+            'source_name'   => $prompt['source_name'] ?? 'Member',
+            'prompt'        => 'Choose 1 Liella! card from your Waiting Room to add to your hand.',
+            'candidates'    => array_map('cardPromptSummary', $candidates),
+            'ability'       => $ab,
+            'wr_pick_cfg'   => $cfg,
+            'pick_count'    => 1,
+        ];
         $state['seq']++;
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Member') . "] negated $negatedName's abilities; choose a Waiting Room card.");
         return $state;
     }
 

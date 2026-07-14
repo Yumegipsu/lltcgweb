@@ -810,7 +810,7 @@ function tryResolveAbilityEffectSwitchOptional(
             if (!empty($state['pending_prompt'])) break;
             $candidates = [];
             foreach ($p['stage'] as $s => $mbr) {
-                if (!$mbr || ($mbr['instance_id'] ?? '') === ($source['instance_id'] ?? '')) continue;
+                if (!$mbr) continue;
                 if (!cardMatchesGroup($mbr, $ab['group'] ?? '', $ab['filter'] ?? 'member')) continue;
                 $candidates[] = ['slot' => $s, 'summary' => cardPromptSummary($mbr)];
             }
@@ -822,7 +822,7 @@ function tryResolveAbilityEffectSwitchOptional(
                 'source_id'     => $source['instance_id'] ?? '',
                 'source_name'   => $name,
                 'candidates'    => $candidates,
-                'prompt'        => 'Negate [Live Start] abilities of 1 Liella! Member until this Live ends and add 1 Liella! card from your Waiting Room to hand?',
+                'prompt'        => 'Negate all abilities of 1 Liella! Member until this Live ends, then add 1 Liella! card from your Waiting Room to hand?',
                 'choices'       => array_merge(['skip'], array_map(fn($c) => $c['summary']['instance_id'] ?? '', $candidates)),
                 'choice_labels' => array_merge(
                     ['Skip'],
