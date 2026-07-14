@@ -1144,7 +1144,6 @@ body.tcg-spectator-mode #screen-game #btn-resign,
 body.tcg-spectator-mode #screen-game .phase-action-bar{display:none!important}
 body.tcg-spectator-mode #screen-game #btn-phase-primary,
 body.tcg-spectator-mode #screen-game .phase-action-bar,
-body.tcg-spectator-mode #screen-game .tcg-radio-bar,
 body.tcg-spectator-mode #screen-game .tcg-debug-row,
 body.tcg-spectator-mode #screen-game .mat-zone.deck-pile.z-main-deck,
 body.tcg-spectator-mode #screen-game .mat-zone.deck-pile.z-opp-main-deck,
@@ -1153,6 +1152,13 @@ body.tcg-spectator-mode #screen-game .mat-zone.deck-pile.z-opp-energy-deck{point
 body.tcg-spectator-mode #screen-game .mat-zone.deck-pile.wr-pile,
 body.tcg-spectator-mode #screen-game .mat-zone.deck-pile.wr-pile .wr-face-card{
   pointer-events:auto!important;cursor:pointer!important
+}
+/* Radio is local to this browser only — spectators may enable it for themselves. */
+body.tcg-spectator-mode #screen-game .tcg-radio-bar,
+body.tcg-spectator-mode #screen-game .tcg-radio-bar *,
+body.tcg-spectator-mode #screen-game .tcg-radio-stack,
+body.tcg-spectator-mode #screen-game .tcg-radio-stack *{
+  pointer-events:auto!important
 }
 body.tcg-spectator-mode #screen-game .mslot.occupied,
 body.tcg-spectator-mode #screen-game .lcard:not(.live-storage-facedown):not(.live-storage-flip),
