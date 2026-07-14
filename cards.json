@@ -64507,7 +64507,7 @@
                 "all"
             ],
             "rarity": "L",
-            "text": "[Always] All opponent Live cards require +1 additional Gray heart to succeed.",
+            "text": "",
             "text_jp": "",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-026-L.png",
             "score": 4,
@@ -64520,8 +64520,7 @@
                     "color": "any",
                     "count": 3
                 }
-            ],
-            "text_ko": "[상시] 모든 상대 Live 카드 필요로 한다 +1 추가 회색 하트 에 성공한다."
+            ]
         },
         {
             "card_no": "PL!SP-bp2-026-SRL",
@@ -64545,7 +64544,7 @@
                 "all"
             ],
             "rarity": "SRL",
-            "text": "[Always] All opponent Live cards require +1 additional Gray heart to succeed.",
+            "text": "",
             "text_jp": "",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp2-026-SRL.png",
             "score": 4,
@@ -64558,8 +64557,7 @@
                     "color": "any",
                     "count": 3
                 }
-            ],
-            "text_ko": "[상시] 모든 상대 Live 카드 필요로 한다 +1 추가 회색 하트 에 성공한다."
+            ]
         },
         {
             "card_no": "PL!SP-bp2-027-L",
@@ -64591,7 +64589,7 @@
                 "red"
             ],
             "rarity": "L",
-            "text": "[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
+            "text": "",
             "text_jp": "",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-027-L.png",
             "score": 7,
@@ -64614,8 +64612,7 @@
                 }
             ],
             "special_heart": "icon_draw.png",
-            "yell_draw_icon": true,
-            "text_ko": "[상시] 만약 자신에게 1 이상 멤버 자신의 스테이지에 외에 이 멤버, 이 Live가 끝날 때까지, 수의 카드 자신이 공개한다 에 대해 Yell 이다 감소한 만큼 8."
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp2-027-SRL",
@@ -64647,7 +64644,7 @@
                 "red"
             ],
             "rarity": "SRL",
-            "text": "[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
+            "text": "",
             "text_jp": "",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-bp2-027-SRL.png",
             "score": 7,
@@ -64670,8 +64667,7 @@
                 }
             ],
             "special_heart": "icon_draw.png",
-            "yell_draw_icon": true,
-            "text_ko": "[상시] 만약 자신에게 1 이상 멤버 자신의 스테이지에 외에 이 멤버, 이 Live가 끝날 때까지, 수의 카드 자신이 공개한다 에 대해 Yell 이다 감소한 만큼 8."
+            "yell_draw_icon": true
         },
         {
             "card_no": "PL!SP-bp2-028-SECE",

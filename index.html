@@ -16174,7 +16174,22 @@ function enrichCard(card) {
     if (subEn) merged.subunit_en = subEn;
   }
   if (merged.blade === null) delete merged.blade;
-  if (base?.text && (!merged.text || looksJapanese(merged.text))) merged.text = base.text;
+  // Always mirror oracle skill text (including empty) so phantom skills are cleared.
+  if (base && Object.prototype.hasOwnProperty.call(base, 'text')) {
+    merged.text = base.text || '';
+  }
+  if (base && Object.prototype.hasOwnProperty.call(base, 'text_jp')) {
+    merged.text_jp = base.text_jp || '';
+  }
+  if (base && Object.prototype.hasOwnProperty.call(base, 'text_es')) {
+    merged.text_es = base.text_es || '';
+  }
+  if (base && Object.prototype.hasOwnProperty.call(base, 'text_ko')) {
+    merged.text_ko = base.text_ko || '';
+  }
+  if (base && Object.prototype.hasOwnProperty.call(base, 'abilities')) {
+    merged.abilities = Array.isArray(base.abilities) ? base.abilities : [];
+  }
   return merged;
 }
 
