@@ -4454,6 +4454,9 @@ function beginWaitOpponentStagePick(
     $maxCost = intval($effect['max_cost'] ?? 9);
     $pickCount = isset($effect['pick_count']) ? intval($effect['pick_count']) : null;
     $activeOnly = !empty($effect['active_only']);
+    // "Your opponent puts … into Wait" → opponent picks which of their Members.
+    // Default "Put 1 opponent Stage Member … into Wait" → effect controller picks.
+    $oppChooses = !empty($effect['opp_chooses']);
     $members = listOppStageMembersByMaxCost($state, $opp, $maxCost, $activeOnly);
     if (empty($members)) {
         return logOpponentMembersWaitedOutcome($state, $owner, $srcName, 0, $maxCost);
@@ -4466,16 +4469,37 @@ function beginWaitOpponentStagePick(
         waitOpponentMemberAtSlot($state, $opp, $members[0]['slot'], $owner);
         return logOpponentMembersWaitedOutcome($state, $owner, $srcName, 1, $maxCost);
     }
+    if ($oppChooses) {
+        $prompt = $activeOnly
+            ? 'Choose 1 active Member on your Stage to put into Wait.'
+            : 'Choose 1 Member on your Stage to put into Wait.';
+        if ($maxCost < 99) {
+            $prompt = $activeOnly
+                ? "Choose 1 active Member on your Stage with cost ≤$maxCost to put into Wait."
+                : "Choose 1 Member on your Stage with cost ≤$maxCost to put into Wait.";
+        }
+        $responder = $opp;
+    } else {
+        $prompt = $activeOnly
+            ? "Choose 1 active opponent Stage Member"
+            : 'Choose 1 opponent Stage Member';
+        if ($maxCost < 99) {
+            $prompt .= " (cost ≤$maxCost)";
+        }
+        $prompt .= ' to put into Wait.';
+        $responder = $owner;
+    }
     $state['pending_prompt'] = [
         'type'          => 'wait_opponent_stage_pick',
         'step'          => 'pick_opp_wait',
         'owner'         => $owner,
-        'responder'     => $opp,
+        'responder'     => $responder,
         'opp'           => $opp,
+        'opp_chooses'   => $oppChooses,
         'source_id'     => $sourceId,
         'source_name'   => $srcName,
         'live_start'    => $liveStart,
-        'prompt'        => 'Choose 1 active Member on your Stage to put into Wait.',
+        'prompt'        => $prompt,
         'candidates'    => $members,
         'max_cost'      => $maxCost,
         'ability'       => $effect,

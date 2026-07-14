@@ -4471,7 +4471,8 @@
                     "type": "wait_opponent_stage_max_cost",
                     "max_cost": 99,
                     "pick_count": 1,
-                    "active_only": true
+                    "active_only": true,
+                    "opp_chooses": true
                 }
             ],
             "text_es": "[Al entrar] Tu oponente coloca 1 Miembro activo en su Escenario en Wait.",
@@ -4512,7 +4513,8 @@
                     "type": "wait_opponent_stage_max_cost",
                     "max_cost": 99,
                     "pick_count": 1,
-                    "active_only": true
+                    "active_only": true,
+                    "opp_chooses": true
                 }
             ],
             "text_es": "[Al entrar] Tu oponente coloca 1 Miembro activo en su Escenario en Wait.",
