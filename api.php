@@ -1129,6 +1129,8 @@ function actionPlayMember(array $state, string $pid, array $data): array {
         $card['baton_from_group'] = $existing['group'] ?? '';
         $card['baton_from_no_ability'] = !cardHasAbilities($existing);
         $card['baton_wr_member_id'] = $existing['instance_id'] ?? '';
+        // Snapshot before WR append / possible immediate deck refresh so On Enter can still stack.
+        $card['baton_wr_member'] = $existing;
         $card['entered_via_baton'] = true;
         $card['entered_turn'] = intval($state['turn'] ?? 1);
         $batonCount = 1;

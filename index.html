@@ -8123,7 +8123,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=31"></script>
 <script src="client/js/stamps.js?v=15"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
-<script src="client/js/prompt-renderer.js?v=29"></script>
+<script src="client/js/prompt-renderer.js?v=30"></script>
 <script src="client/js/tutorial-interactive.js?v=16"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -23597,7 +23597,7 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'spbp5_wait_draw_discard', 'spbp5_wait_or_discard_activate',
   'sbp5_discard_bladeless_wr_live', 'sbp5_live_start_discard_heart',
   'spbp5_subunit_blade_pick', 'spbp5_distinct_groups', 'spbp5_pick_wr_live',
-  'ssd1_live_start_draw', 'ssd1_reveal_group_deck', 'ssd1_play_wr_empty',
+  'ssd1_live_start_draw', 'ssd1_reveal_group_deck', 'ssd1_play_wr_empty', 'both_wr_member_to_empty_stage',
   'optional_swap_area_on_enter',
   'on_enter_blade_self_and_pick_group', 'live_start_arise_choice', 'surveil2_mus_ability_choice',
   'optional_leave_mus_score_add_wr_live',
@@ -26566,7 +26566,7 @@ function cpuResolvePromptBody(s, cpu, pr) {
     cpuAct('resolve_prompt', { choice: ids.length ? 'yes' : 'no', card_ids: ids });
     return;
   }
-  if(pr.type==='ssd1_play_wr_empty'){
+  if(pr.type==='ssd1_play_wr_empty' || pr.type==='both_wr_member_to_empty_stage'){
     if(pr.step==='pick_wr'){
       const id=pr.candidates?.[0]?.instance_id;
       if(id) cpuAct('resolve_prompt',{card_id:id});
@@ -26742,7 +26742,7 @@ function cpuResolvePromptSmart(s, cpu, pr, tier) {
   if (pr.type === 'sbp5_draw_deck_bottom' || pr.type === 'sbp6_discard_after_draw') {
     if (cpuResolveHandPickPrompt(pr, cpu, tier, winPressure, read)) return true;
   }
-  if (pr.type === 'ssd1_live_start_draw' || pr.type === 'ssd1_reveal_group_deck' || pr.type === 'ssd1_play_wr_empty') {
+  if (pr.type === 'ssd1_live_start_draw' || pr.type === 'ssd1_reveal_group_deck' || pr.type === 'ssd1_play_wr_empty' || pr.type === 'both_wr_member_to_empty_stage') {
     if (cpuResolveStepPrompt(pr, cpu, tier, winPressure, read)) return true;
   }
   if (pr.type === 'live_start_pay_or_discard') {
@@ -31786,23 +31786,49 @@ function collectActivatableAbilities(s, myId) {
   if (!me) return [];
   const ae = (me.energy_zone || []).filter(energyChipActive).length;
   const out = [];
-  const consider = (card, location, stageSlot) => {
-    if (!card || card.card_type !== 'メンバー') return;
+  const pushAbility = (card, location, stageSlot, ability, idx, whoExtra='') => {
     const onStage = location === 'stage';
     const inWr = location === 'wr';
-    (card.abilities || []).forEach((ability, idx) => {
-      if (ability.trigger !== 'activated') return;
-      if (ability.from_wr_only && !inWr) return;
-      if (!ability.from_wr_only && !onStage) return;
-      if (ability.center_only && stageSlot !== 'center') return;
-      const used = card.abilities_used?.[`${card.instance_id}:${idx}`];
-      const payCost = ability.cost ?? (ability.type === 'pay_energy_opp_pick_hand_reveal' ? 2 : 0);
-      const needEnergy = payCost && ae < payCost;
-      const wrBlock = abilityWrBlockReason(me, ability);
-      let who = card.name_en || card.name || 'Member';
-      if (onStage && stageSlot) who = `${stageSlot.charAt(0).toUpperCase() + stageSlot.slice(1)} · ${who}`;
-      else if (inWr) who = `WR · ${who}`;
-      out.push({ card, idx, ability, used, needEnergy, wrBlock, who, label: abilityLabel(ability), stageSlot: onStage ? stageSlot : null });
+    if (ability.trigger !== 'activated') return;
+    if (ability.from_wr_only && !inWr) return;
+    if (!ability.from_wr_only && !onStage) return;
+    if (ability.center_only && stageSlot !== 'center') return;
+    const used = card.abilities_used?.[`${card.instance_id}:${idx}`];
+    const payCost = ability.cost ?? (ability.type === 'pay_energy_opp_pick_hand_reveal' ? 2 : 0);
+    const needEnergy = payCost && ae < payCost;
+    const wrBlock = abilityWrBlockReason(me, ability);
+    let who = card.name_en || card.name || 'Member';
+    if (onStage && stageSlot) who = `${stageSlot.charAt(0).toUpperCase() + stageSlot.slice(1)} · ${who}`;
+    else if (inWr) who = `WR · ${who}`;
+    if (whoExtra) who = `${who} (${whoExtra})`;
+    out.push({ card, idx, ability, used, needEnergy, wrBlock, who, label: abilityLabel(ability), stageSlot: onStage ? stageSlot : null });
+  };
+  const consider = (card, location, stageSlot) => {
+    if (!card || card.card_type !== 'メンバー') return;
+    (card.abilities || []).forEach((ability, idx) => pushAbility(card, location, stageSlot, ability, idx));
+    // Ren-style inherit: Activated abilities from matching Members stacked under this card.
+    let inheritGroup = '';
+    (card.abilities || []).forEach(ab => {
+      if (ab?.trigger === 'continuous' && ab?.type === 'inherit_stacked_group_abilities') {
+        inheritGroup = ab.group || 'Superstar';
+      }
+    });
+    if (!inheritGroup || location !== 'stage') return;
+    (card.stacked_members || []).forEach(stacked => {
+      if (!stacked || (stacked.group || '') !== inheritGroup) return;
+      (stacked.abilities || []).forEach((ability, sIdx) => {
+        if (ability?.trigger !== 'activated') return;
+        const iid = stacked.instance_id || '';
+        if (!iid) return;
+        pushAbility(
+          card,
+          location,
+          stageSlot,
+          ability,
+          `inherit:${iid}:${sIdx}`,
+          stacked.name_en || stacked.name || 'under'
+        );
+      });
     });
   };
   Object.entries(me.stage || {}).forEach(([slot, m]) => consider(m, 'stage', slot));
@@ -32236,6 +32262,7 @@ function wrPickCfgFromPrompt(pr) {
   const hasCfgFilter = !!(pr?.wr_pick_cfg && Object.prototype.hasOwnProperty.call(pr.wr_pick_cfg, 'filter'));
   const memberPromptTypes = new Set([
     'sbp6_leave_play_wr_slot', 'pick_wr_to_hand', 'ssd1_play_wr_empty',
+    'both_wr_member_to_empty_stage',
   ]);
   const memberAbilityTypes = new Set(['activated_leave_play_wr_same_slot']);
   let filter;
@@ -32248,6 +32275,7 @@ function wrPickCfgFromPrompt(pr) {
     filter = 'live';
   } else if (memberPromptTypes.has(pr?.type)
     || (pr?.type === 'ssd1_play_wr_empty' && pr?.step === 'pick_wr')
+    || (pr?.type === 'both_wr_member_to_empty_stage' && pr?.step === 'pick_wr')
     || memberAbilityTypes.has(pr?.ability?.type)) {
     filter = 'member';
   } else if (pr?.type === 'pick_wr_leave_stage_add') {

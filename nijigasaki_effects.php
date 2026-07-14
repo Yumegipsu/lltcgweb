@@ -604,7 +604,7 @@ function nijiMembersShareHeartColor(array $a, array $b): bool {
     return false;
 }
 
-function nijiResolveActivatedEffect(array $state, string $pid, array &$p, array &$member, $slot, array $ab, int $abilityIdx, array $data): ?array {
+function nijiResolveActivatedEffect(array $state, string $pid, array &$p, array &$member, $slot, array $ab, int|string $abilityIdx, array $data): ?array {
     $type = $ab['type'] ?? '';
     if ($type === 'wait_self_only') {
         waitMember($member, $state);

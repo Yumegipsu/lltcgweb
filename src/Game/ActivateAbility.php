@@ -16,7 +16,6 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
     }
 
     $instanceId = $data['card_id'] ?? '';
-    $abilityIdx = intval($data['ability_index'] ?? 0);
 
     $p = &$state['players'][$pid];
     $found = findActivatedAbilitySource($p, $instanceId);
@@ -36,10 +35,21 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
     }
     mergeCardCatalogFields($member);
 
-    $abilities = $member['abilities'] ?? [];
-    if (!isset($abilities[$abilityIdx])) throw new Exception('Invalid ability');
-
-    $ab = $abilities[$abilityIdx];
+    $resolved = spBp2ResolveActivatedAbilityIndex($member, $data['ability_index'] ?? 0);
+    if ($resolved === null) {
+        // Preserve legacy on-enter-from-WR path which may target non-activated abilities.
+        $abilities = $member['abilities'] ?? [];
+        $abilityIdx = intval($data['ability_index'] ?? 0);
+        if (!isset($abilities[$abilityIdx])) {
+            throw new Exception('Invalid ability');
+        }
+        $ab = $abilities[$abilityIdx];
+        $markKey = $abilityIdx;
+    } else {
+        $ab = $resolved['ab'];
+        $abilityIdx = $resolved['mark_key'];
+        $markKey = $resolved['mark_key'];
+    }
     $trigger = $ab['trigger'] ?? '';
     if ($zone === 'stage' && spBp2StageMemberAbilitiesSuppressed($state, $pid)) {
         throw new Exception('Member abilities are currently suppressed');
@@ -51,7 +61,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             'phase' => 'on_enter',
             'from_wr' => true,
         ]);
-        markAbilityUsed($member, $abilityIdx);
+        markAbilityUsed($member, $markKey);
         return $state;
     }
     if ($trigger !== 'activated') throw new Exception('Not an activated ability');
@@ -63,7 +73,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             throw new Exception('Member not on stage');
         }
     }
-    if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $abilityIdx)) {
+    if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $markKey)) {
         throw new Exception('Ability already used this turn');
     }
 

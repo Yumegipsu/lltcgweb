@@ -2551,16 +2551,16 @@ function getMemberBlade(array $member, array $state, string $pid, string $slot =
     return $blade;
 }
 
-function abilityUsedKey(string $instanceId, int $idx): string {
+function abilityUsedKey(string $instanceId, int|string $idx): string {
     return $instanceId . ':' . $idx;
 }
 
-function isAbilityUsed(array $member, int $idx): bool {
+function isAbilityUsed(array $member, int|string $idx): bool {
     $used = $member['abilities_used'] ?? [];
     return !empty($used[abilityUsedKey($member['instance_id'] ?? '', $idx)]);
 }
 
-function markAbilityUsed(array &$member, int $idx): void {
+function markAbilityUsed(array &$member, int|string $idx): void {
     if (!isset($member['abilities_used'])) $member['abilities_used'] = [];
     $member['abilities_used'][abilityUsedKey($member['instance_id'] ?? '', $idx)] = true;
 }
@@ -3606,25 +3606,68 @@ function countWrGroup(array $p, string $group): int {
     ));
 }
 
-function putWrMemberToEmptyStageWait(array &$p, int $maxCost): ?array {
-    $emptySlot = null;
+function listWrMembersByMaxCost(array $p, int $maxCost): array {
+    return array_values(array_filter(
+        $p['waiting_room'] ?? [],
+        fn($c) => ($c['card_type'] ?? '') === 'メンバー' && intval($c['cost'] ?? 0) <= $maxCost
+    ));
+}
+
+function listEmptyStageSlots(array $p): array {
+    $slots = [];
     foreach (['left', 'center', 'right'] as $slot) {
         if (empty($p['stage'][$slot])) {
-            $emptySlot = $slot;
-            break;
+            $slots[] = $slot;
         }
     }
-    if ($emptySlot === null) return null;
+    return $slots;
+}
+
+/** Place a chosen WR Member into an empty Stage area in Wait (and optionally block further entries). */
+function putChosenWrMemberToEmptyStageWait(
+    array &$p,
+    string $cardId,
+    string $slot,
+    array $state,
+    bool $blockSlotEntries = true
+): ?array {
+    if ($slot === '' || !empty($p['stage'][$slot])) {
+        return null;
+    }
     foreach ($p['waiting_room'] as $i => $c) {
-        if (($c['card_type'] ?? '') !== 'メンバー') continue;
-        if (intval($c['cost'] ?? 0) > $maxCost) continue;
+        if (($c['instance_id'] ?? '') !== $cardId) {
+            continue;
+        }
+        if (($c['card_type'] ?? '') !== 'メンバー') {
+            return null;
+        }
         $member = $c;
         array_splice($p['waiting_room'], $i, 1);
-        $member['active'] = false;
-        $p['stage'][$emptySlot] = $member;
-        return ['member' => $member, 'slot' => $emptySlot];
+        waitMember($member, $state);
+        $member['entered_turn'] = intval($state['turn'] ?? 1);
+        if ($blockSlotEntries) {
+            $member['blocks_slot_entries'] = true;
+        }
+        $p['stage'][$slot] = $member;
+        return ['member' => $member, 'slot' => $slot];
     }
     return null;
+}
+
+function putWrMemberToEmptyStageWait(array &$p, int $maxCost, ?array $state = null): ?array {
+    $emptySlots = listEmptyStageSlots($p);
+    $eligible = listWrMembersByMaxCost($p, $maxCost);
+    if (empty($emptySlots) || empty($eligible)) {
+        return null;
+    }
+    $state = $state ?? ['turn' => 1];
+    return putChosenWrMemberToEmptyStageWait(
+        $p,
+        (string)($eligible[0]['instance_id'] ?? ''),
+        $emptySlots[0],
+        $state,
+        true
+    );
 }
 
 function activateSubunitFromWait(array &$p, string $subunit): int {

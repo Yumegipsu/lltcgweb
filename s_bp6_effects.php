@@ -605,7 +605,7 @@ function sBp6ResolveActivatedAbility(
     array &$member,
     ?string $slot,
     array $ab,
-    int $abilityIdx,
+    int|string $abilityIdx,
     array $data
 ): ?array {
     $type = $ab['type'] ?? '';

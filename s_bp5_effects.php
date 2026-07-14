@@ -241,7 +241,7 @@ function sBp5ResolveAutoAreaMove(
     string $pid,
     array &$member,
     ?string $slot,
-    int $abilityIdx,
+    int|string $abilityIdx,
     array $ab
 ): array {
     $type = $ab['type'] ?? '';
@@ -607,7 +607,7 @@ function sBp5ResolveActivatedAbility(
     array &$member,
     ?string $slot,
     array $ab,
-    int $abilityIdx,
+    int|string $abilityIdx,
     array $data = []
 ): ?array {
     if (($ab['type'] ?? '') !== 'activated_position_change_subunit_area') {

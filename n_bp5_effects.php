@@ -534,7 +534,7 @@ function nBp5ResolveActivatedAbility(
     array &$member,
     $slot,
     array $ab,
-    int $abilityIdx,
+    int|string $abilityIdx,
     array $data
 ): ?array {
     $type = $ab['type'] ?? '';

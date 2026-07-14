@@ -176,7 +176,7 @@ function startPickWrToHandPrompt(
     string $pid,
     array &$member,
     string $slot,
-    int $abilityIdx,
+    int|string $abilityIdx,
     array $ab,
     array $cfg,
     bool $leaveStage = false,

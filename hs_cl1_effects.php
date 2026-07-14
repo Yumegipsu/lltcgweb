@@ -163,7 +163,7 @@ function hsCl1ResolveActivatedAbility(
     array &$member,
     ?string $slot,
     array $ab,
-    int $abilityIdx
+    int|string $abilityIdx
 ): ?array {
     if (($ab['type'] ?? '') !== 'activated_wait_self_pick_subunit_blade') {
         return null;

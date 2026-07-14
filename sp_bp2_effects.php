@@ -217,6 +217,90 @@ function spBp2RemoveWrMemberById(array &$p, string $pickId): ?array {
     return $picked;
 }
 
+/** Remove a Member by instance id from WR first, then main deck (post deck-refresh Baton targets). */
+function spBp2TakeMemberByIdFromWrOrDeck(array &$p, string $pickId): ?array {
+    if ($pickId === '') {
+        return null;
+    }
+    $fromWr = spBp2RemoveWrMemberById($p, $pickId);
+    if ($fromWr) {
+        return $fromWr;
+    }
+    $picked = null;
+    $p['main_deck'] = array_values(array_filter(
+        $p['main_deck'] ?? [],
+        function ($c) use ($pickId, &$picked) {
+            if ($picked === null && ($c['instance_id'] ?? '') === $pickId) {
+                $picked = $c;
+                return false;
+            }
+            return true;
+        }
+    ));
+    return $picked;
+}
+
+function spBp2InheritGroupForMember(array $member): string {
+    foreach ($member['abilities'] ?? [] as $ab) {
+        if (($ab['trigger'] ?? '') === 'continuous'
+            && ($ab['type'] ?? '') === 'inherit_stacked_group_abilities') {
+            return (string)($ab['group'] ?? 'Superstar');
+        }
+    }
+    return '';
+}
+
+/**
+ * Resolve an activated ability index on a Member that may inherit stacked abilities.
+ * Native: integer index into member.abilities
+ * Inherited: "inherit:{stackedInstanceId}:{abilityIndex}"
+ *
+ * @return array{ab: array, mark_key: int|string, stacked_id: string}|null
+ */
+function spBp2ResolveActivatedAbilityIndex(array $member, $abilityIdx): ?array {
+    if (is_string($abilityIdx) && str_starts_with($abilityIdx, 'inherit:')) {
+        $parts = explode(':', $abilityIdx, 3);
+        if (count($parts) !== 3) {
+            return null;
+        }
+        $stackedId = $parts[1];
+        $srcIdx = intval($parts[2]);
+        $group = spBp2InheritGroupForMember($member);
+        if ($group === '') {
+            return null;
+        }
+        foreach ($member['stacked_members'] ?? [] as $stacked) {
+            if (($stacked['instance_id'] ?? '') !== $stackedId) {
+                continue;
+            }
+            if (!cardMatchesGroup($stacked, $group, 'member')) {
+                return null;
+            }
+            mergeCardCatalogFields($stacked);
+            $abs = $stacked['abilities'] ?? [];
+            if (!isset($abs[$srcIdx]) || ($abs[$srcIdx]['trigger'] ?? '') !== 'activated') {
+                return null;
+            }
+            return [
+                'ab'         => $abs[$srcIdx],
+                'mark_key'   => $abilityIdx,
+                'stacked_id' => $stackedId,
+            ];
+        }
+        return null;
+    }
+    $idx = intval($abilityIdx);
+    $abs = $member['abilities'] ?? [];
+    if (!isset($abs[$idx]) || ($abs[$idx]['trigger'] ?? '') !== 'activated') {
+        return null;
+    }
+    return [
+        'ab'         => $abs[$idx],
+        'mark_key'   => $idx,
+        'stacked_id' => '',
+    ];
+}
+
 function spBp2LiveZoneHasScoreAbovePrinted(array $p): bool {
     foreach ($p['live_zone'] ?? [] as $lc) {
         if (!$lc || !isLiveTypeCard($lc)) {
@@ -642,20 +726,23 @@ function spBp2ResolveEffect(array $state, string $pid, array $source, array $ab,
                 break;
             }
             $group = $ab['group'] ?? 'Superstar';
-            $batonCard = null;
-            foreach ($p['waiting_room'] as $c) {
-                if (($c['instance_id'] ?? '') === $batonId
-                    && cardMatchesGroup($c, $group, 'member')) {
-                    $batonCard = $c;
-                    break;
-                }
+            // Baton targets often leave WR immediately via empty-deck refresh; take from WR/deck
+            // or fall back to the snapshot captured at Baton Touch time.
+            $batonCard = spBp2TakeMemberByIdFromWrOrDeck($p, $batonId);
+            if (!$batonCard && is_array($source['baton_wr_member'] ?? null)
+                && (($source['baton_wr_member']['instance_id'] ?? '') === $batonId)) {
+                $batonCard = $source['baton_wr_member'];
             }
-            if ($batonCard) {
-                spBp2StackMemberUnder($p, $slot, $batonCard);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] stacked ' . cardDisplayName($batonCard) .
-                    ' from Baton Touch under this Member.');
+            if (!$batonCard || !cardMatchesGroup($batonCard, $group, 'member')) {
+                break;
             }
+            mergeCardCatalogFields($batonCard);
+            spBp2StackMemberUnder($p, $slot, $batonCard);
+            // Drop baton snapshot from the Stage Member so clients/logs stay lean.
+            unset($p['stage'][$slot]['baton_wr_member']);
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                ' — [' . $name . '] stacked ' . cardDisplayName($batonCard) .
+                ' from Baton Touch under this Member.');
             break;
 
         case 'inherit_stacked_group_abilities':
@@ -940,7 +1027,7 @@ function spBp2ResolvePrompt(array $state, string $owner, array $prompt, string $
         $step = $prompt['step'] ?? 'pick_hand';
         $group = $prompt['group'] ?? 'Superstar';
         $slot = $prompt['source_slot'] ?? '';
-        $abIdx = intval($prompt['ability_index'] ?? 0);
+        $abIdx = $prompt['ability_index'] ?? 0;
         $srcName = $prompt['source_name'] ?? 'Member';
 
         if ($step === 'pick_hand') {
