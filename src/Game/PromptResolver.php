@@ -3738,6 +3738,109 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         return $state;
     }
 
+    if ($promptType === 'both_wr_member_to_empty_stage') {
+        $placer = $pid;
+        $placerP = &$state['players'][$placer];
+        $maxCost = intval($prompt['max_cost'] ?? $ability['max_cost'] ?? 2);
+        $sourceName = $prompt['source_name'] ?? 'Member';
+        $remaining = array_values($prompt['remaining'] ?? []);
+        if (($prompt['step'] ?? '') === 'pick_wr') {
+            $cardId = $data['card_id'] ?? $choice;
+            $candidateIds = array_values(array_filter(array_map(
+                fn($c) => $c['instance_id'] ?? '',
+                $prompt['candidates'] ?? []
+            )));
+            if (!in_array($cardId, $candidateIds, true)) {
+                throw new Exception('Choose a Member with cost ' . $maxCost . ' or less from Waiting Room');
+            }
+            $found = null;
+            foreach ($placerP['waiting_room'] as $c) {
+                if (($c['instance_id'] ?? '') === $cardId) {
+                    $found = $c;
+                    break;
+                }
+            }
+            if (!$found || intval($found['cost'] ?? 0) > $maxCost || ($found['card_type'] ?? '') !== 'メンバー') {
+                throw new Exception('Choose a Member with cost ' . $maxCost . ' or less from Waiting Room');
+            }
+            $slots = $prompt['slots'] ?? listEmptyStageSlots($placerP);
+            if (count($slots) === 1) {
+                $placed = putChosenWrMemberToEmptyStageWait(
+                    $placerP,
+                    $cardId,
+                    $slots[0],
+                    $state,
+                    true
+                );
+                if (!$placed) {
+                    throw new Exception('Choose an empty Stage area');
+                }
+                notifyMemberEnteredStage($state, $placer, $placed['member']);
+                $state = addLog($state, $state['players'][$placer]['name'] .
+                    ' — [' . $sourceName . '] put ' .
+                    ($placed['member']['name_en'] ?? $placed['member']['name'] ?? 'Member') .
+                    ' from Waiting Room onto Stage in Wait.');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                $state = continueBothWrMemberToEmptyStage(
+                    $state,
+                    $owner,
+                    $sourceName,
+                    $ability,
+                    $remaining,
+                    (string)($prompt['source_id'] ?? '')
+                );
+                if (!empty($state['pending_prompt'])) {
+                    return $state;
+                }
+                return finishPromptEffects($state);
+            }
+            $state['pending_prompt'] = array_merge($prompt, [
+                'step'    => 'pick_slot',
+                'card_id' => $cardId,
+                'slots'   => $slots,
+                'prompt'  => 'Choose an empty Stage area for that Member (enters in Wait).',
+            ]);
+            $state['seq']++;
+            return $state;
+        }
+        $cardId = $prompt['card_id'] ?? '';
+        $slot = $data['slot'] ?? $choice;
+        $slots = $prompt['slots'] ?? [];
+        if (!in_array($slot, $slots, true) || !empty($placerP['stage'][$slot])) {
+            throw new Exception('Choose an empty Stage area');
+        }
+        $placed = putChosenWrMemberToEmptyStageWait(
+            $placerP,
+            $cardId,
+            $slot,
+            $state,
+            true
+        );
+        if (!$placed) {
+            throw new Exception('Invalid Waiting Room card');
+        }
+        notifyMemberEnteredStage($state, $placer, $placed['member']);
+        $state = addLog($state, $state['players'][$placer]['name'] .
+            ' — [' . $sourceName . '] put ' .
+            ($placed['member']['name_en'] ?? $placed['member']['name'] ?? 'Member') .
+            ' from Waiting Room onto Stage in Wait.');
+        unset($state['pending_prompt']);
+        $state['seq']++;
+        $state = continueBothWrMemberToEmptyStage(
+            $state,
+            $owner,
+            $sourceName,
+            $ability,
+            $remaining,
+            (string)($prompt['source_id'] ?? '')
+        );
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+        return finishPromptEffects($state);
+    }
+
     if ($promptType === 'play_wr_members_combined_cost') {
         if (($data['choice'] ?? $choice) === 'skip' || ($data['choice'] ?? $choice) === 'no') {
             $state = addLog($state, $state['players'][$owner]['name'] .
