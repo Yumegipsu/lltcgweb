@@ -3829,11 +3829,15 @@ function activatedAbilityWrBlockReason(array $p, array $ab): ?string {
         case 'discard_cost_add_live_subunit':
         case 'wait_self_discard_add_wr_live':
         case 'activated_pay_discard_add_wr_live':
+        case 'optional_stack_energy_add_wr_live':
             $need = max(1, intval($ab['count'] ?? 1));
             $cfg = [
-                'group'  => $ab['group'] ?? ($type === 'activated_pay_discard_add_wr_live' ? 'Nijigasaki' : ''),
+                'group'  => $ab['group'] ?? ($type === 'activated_pay_discard_add_wr_live' || $type === 'optional_stack_energy_add_wr_live' ? 'Nijigasaki' : ''),
                 'filter' => $ab['filter'] ?? 'live',
             ];
+            if ($type === 'optional_stack_energy_add_wr_live') {
+                $cfg['group'] = $ab['group'] ?? 'Nijigasaki';
+            }
             if (wrPickMatchCount($p, $cfg, $need) >= $need) {
                 return null;
             }

@@ -471,7 +471,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
             $ok = false;
             foreach (array_merge($p['success_lives'] ?? [], array_filter($p['live_zone'] ?? [])) as $lc) {
                 if (!$lc || ($lc['group'] ?? '') !== $group) continue;
-                if (intval((countHeartsByColor($lc)[$checkColor] ?? 0)) >= $min) {
+                if (countRequiredHeartsOfColor($lc, $checkColor) >= $min) {
                     $ok = true;
                     break;
                 }
@@ -481,8 +481,8 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
             $memberMin = intval($ab['member_min_hearts'] ?? 1);
             $grant = $ab['grant_hearts'] ?? [['color' => $memberColor, 'count' => 4]];
             $maxMembers = intval($ab['max_members'] ?? 1);
-            $granted = 0;
-            foreach ($p['stage'] as $slot => &$mbr) {
+            $candidates = [];
+            foreach ($p['stage'] as $slot => $mbr) {
                 if (!$mbr || ($mbr['group'] ?? '') !== $group) continue;
                 $cnt = 0;
                 foreach ($mbr['hearts'] ?? [] as $h) {
@@ -492,20 +492,46 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
                     if ($c === $memberColor) $cnt++;
                 }
                 if ($cnt < $memberMin) continue;
-                foreach ($grant as $h) {
-                    for ($i = 0; $i < intval($h['count'] ?? 1); $i++) {
-                        $mbr['bonus_hearts'][] = $h['color'] ?? $memberColor;
+                $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
+            }
+            if (empty($candidates)) break;
+            if (count($candidates) === 1 || $maxMembers >= count($candidates)) {
+                $granted = 0;
+                foreach ($candidates as $cand) {
+                    if ($granted >= $maxMembers) break;
+                    $slot = $cand['slot'] ?? '';
+                    if ($slot === '' || empty($p['stage'][$slot])) continue;
+                    $mbr = $p['stage'][$slot];
+                    if (!isset($mbr['bonus_hearts'])) $mbr['bonus_hearts'] = [];
+                    foreach ($grant as $h) {
+                        for ($i = 0; $i < intval($h['count'] ?? 1); $i++) {
+                            $mbr['bonus_hearts'][] = $h['color'] ?? $memberColor;
+                        }
                     }
+                    $p['stage'][$slot] = $mbr;
+                    $granted++;
                 }
-                $p['stage'][$slot] = $mbr;
-                $granted++;
-                if ($granted >= $maxMembers) break;
+                if ($granted > 0) {
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] $granted Member(s) gained bonus hearts.");
+                }
+                break;
             }
-            unset($mbr);
-            if ($granted > 0) {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] $granted Member(s) gained bonus hearts.");
-            }
+            if (!empty($state['pending_prompt'])) break;
+            $state['pending_prompt'] = [
+                'type'        => 'pick_member_grant_hearts',
+                'owner'       => $pid,
+                'responder'   => $pid,
+                'source_id'   => $source['instance_id'] ?? '',
+                'source_name' => $name,
+                'candidates'  => $candidates,
+                'hearts'      => $grant,
+                'pick_count'  => $maxMembers,
+                'prompt'      => 'Choose 1 Nijigasaki Member with a Purple Heart to gain 4 Purple Hearts until this Live ends.',
+                'ability'     => $ab,
+            ];
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] choose a Member for bonus Purple Hearts.");
             break;
 
         case 'live_score_bonus_if_min_entered':
@@ -680,6 +706,29 @@ function nijiResolveActivatedEffect(array $state, string $pid, array &$p, array 
             ' — [' . ($member['name_en'] ?? $member['name']) . '] optional activated effect.');
         return $state;
     }
+    if ($type === 'optional_stack_energy_add_wr_live') {
+        $needEnergy = max(1, intval($ab['energy'] ?? 1));
+        if (countActiveEnergyInZone($p) < $needEnergy) {
+            throw new Exception("Need $needEnergy Energy in Energy Zone");
+        }
+        $cfg = wrPickCfgFromAbility(array_merge($ab, ['filter' => 'live']));
+        if (wrPickMatchCount($p, $cfg, 1) < 1) {
+            return fizzleActivatedAbilityNoWr($state, $pid, $member, 'no matching Live card in Waiting Room.');
+        }
+        $placed = nijiStackEnergyUnderMember($p, $member, $needEnergy);
+        if ($placed < 1) {
+            throw new Exception('Could not place Energy under Member');
+        }
+        if (!empty($ab['once_per_turn'])) {
+            markAbilityUsed($member, $abilityIdx);
+        }
+        startPickWrToHandPrompt($state, $pid, $member, $slot, $abilityIdx, $ab, $cfg);
+        $p['stage'][$slot] = $member;
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            ' — [' . ($member['name_en'] ?? $member['name']) .
+            "] stacked $placed Energy; choose a Nijigasaki Live from Waiting Room.");
+        return $state;
+    }
     if ($type === 'leave_play_named_from_hand_stack_energy') {
         $energyCost = intval($ab['energy_cost'] ?? 0);
         if ($energyCost > 0 && !payEnergyCost($p, $energyCost)) {
@@ -715,7 +764,13 @@ function nijiResolveActivatedEffect(array $state, string $pid, array &$p, array 
 
 function countHeartsByColor(array $card): array {
     $out = [];
-    foreach ($card['hearts'] ?? [] as $h) {
+    // Live "required hearts" checks must use required_hearts (runtime lives often omit hearts).
+    $isLive = (($card['card_type'] ?? '') === 'ライブ')
+        || strcasecmp((string)($card['card_type_en'] ?? ''), 'Live') === 0;
+    $src = $isLive
+        ? ($card['required_hearts'] ?? $card['hearts'] ?? [])
+        : ($card['hearts'] ?? []);
+    foreach ($src as $h) {
         $c = $h['color'] ?? '';
         if ($c === '') continue;
         $out[$c] = ($out[$c] ?? 0) + intval($h['count'] ?? 1);

@@ -41533,7 +41533,7 @@
                 "yellow"
             ],
             "rarity": "P+",
-            "text": "[Always] You gain +1 Blade for each Energy stacked under this Member.\n[On Enter] Place 1 Energy from your Energy Zone under this Member: add 1 Nijigasaki Live card from your Waiting Room to your hand.\n(Energy under Members cannot pay costs. When a Member leaves the Stage, return stacked Energy to your Energy deck.)",
+            "text": "[Always] You gain +1 Blade for each Energy stacked under this Member.\n[Activated] [Once per Turn] Place 1 Energy from your Energy Zone under this Member: add 1 Nijigasaki Live card from your Waiting Room to your hand.\n(Energy under Members cannot pay costs. When a Member leaves the Stage, return stacked Energy to your Energy deck.)",
             "text_jp": "このメンバーの下にあるエネルギーカード1枚につき、を得る。\n\n自分のエネルギー置き場にあるエネルギー1枚をこのメンバーの下に置く：自分の控え室から『虹ヶ咲』のライブカードを1枚手札に加える。\n\n(メンバーがステージから離れたとき、下に置かれているエネルギーカードはエネルギーデッキに戻す。)",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBnj/PL!N-pb1-011-P2.png",
             "subunit": "R3BIRTH",
@@ -41544,14 +41544,15 @@
                     "amount": 1
                 },
                 {
-                    "trigger": "on_enter",
+                    "trigger": "activated",
                     "type": "optional_stack_energy_add_wr_live",
                     "energy": 1,
-                    "group": "Nijigasaki"
+                    "group": "Nijigasaki",
+                    "once_per_turn": true
                 }
             ],
-            "text_es": "[Siempre] Obtienes +1 Blade por cada Energía apilada bajo este Miembro.\n[Al entrar] Coloca 1 Energía de tu Zona de Energía bajo este Miembro: añade 1 carta Live de Nijigasaki de tu Sala de espera a tu mano.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)",
-            "text_ko": "[상시] 이 멤버 밑에 쌓인 에너지 1개마다 Blade +1을 얻는다.\n[등장 시] 자신의 에너지 존에서 에너지 1개를 이 멤버 밑에 놓는다: 자신의 대기실에서 니지가사키 라이브 카드 1장을 패에 추가한다.\n(멤버 밑의 에너지는 코스트 지불에 사용할 수 없다. 멤버가 스테이지를 떠나면 쌓인 에너지를 자신의 에너지 덱으로 되돌린다.)"
+            "text_es": "[Siempre] Obtienes +1 Blade por cada Energía apilada bajo este Miembro.\n[Activado] [Una vez por turno] Coloca 1 Energía de tu Zona de Energía bajo este Miembro: añade 1 carta Live de Nijigasaki de tu Sala de espera a tu mano.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)",
+            "text_ko": "[상시] 이 멤버 밑에 쌓인 에너지 1개마다 Blade +1을 얻는다.\n[기동] [턴 1회] 자신의 에너지 존에서 에너지 1개를 이 멤버 밑에 놓는다: 자신의 대기실에서 니지가사키 라이브 카드 1장을 패에 추가한다.\n(멤버 밑의 에너지는 코스트 지불에 사용할 수 없다. 멤버가 스테이지를 떠나면 쌓인 에너지를 자신의 에너지 덱으로 되돌린다.)"
         },
         {
             "card_no": "PL!N-pb1-011-R",
@@ -41581,7 +41582,7 @@
                 "yellow"
             ],
             "rarity": "R",
-            "text": "[Always] You gain +1 Blade for each Energy stacked under this Member.\n[On Enter] Place 1 Energy from your Energy Zone under this Member: add 1 Nijigasaki Live card from your Waiting Room to your hand.\n(Energy under Members cannot pay costs. When a Member leaves the Stage, return stacked Energy to your Energy deck.)",
+            "text": "[Always] You gain +1 Blade for each Energy stacked under this Member.\n[Activated] [Once per Turn] Place 1 Energy from your Energy Zone under this Member: add 1 Nijigasaki Live card from your Waiting Room to your hand.\n(Energy under Members cannot pay costs. When a Member leaves the Stage, return stacked Energy to your Energy deck.)",
             "text_jp": "このメンバーの下にあるエネルギーカード1枚につき、を得る。\n\n自分のエネルギー置き場にあるエネルギー1枚をこのメンバーの下に置く：自分の控え室から『虹ヶ咲』のライブカードを1枚手札に加える。\n\n(メンバーがステージから離れたとき、下に置かれているエネルギーカードはエネルギーデッキに戻す。)",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBnj/PL!N-pb1-011-R.png",
             "subunit": "R3BIRTH",
@@ -41592,14 +41593,15 @@
                     "amount": 1
                 },
                 {
-                    "trigger": "on_enter",
+                    "trigger": "activated",
                     "type": "optional_stack_energy_add_wr_live",
                     "energy": 1,
-                    "group": "Nijigasaki"
+                    "group": "Nijigasaki",
+                    "once_per_turn": true
                 }
             ],
-            "text_es": "[Siempre] Obtienes +1 Blade por cada Energía apilada bajo este Miembro.\n[Al entrar] Coloca 1 Energía de tu Zona de Energía bajo este Miembro: añade 1 carta Live de Nijigasaki de tu Sala de espera a tu mano.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)",
-            "text_ko": "[상시] 이 멤버 밑에 쌓인 에너지 1개마다 Blade +1을 얻는다.\n[등장 시] 자신의 에너지 존에서 에너지 1개를 이 멤버 밑에 놓는다: 자신의 대기실에서 니지가사키 라이브 카드 1장을 패에 추가한다.\n(멤버 밑의 에너지는 코스트 지불에 사용할 수 없다. 멤버가 스테이지를 떠나면 쌓인 에너지를 자신의 에너지 덱으로 되돌린다.)"
+            "text_es": "[Siempre] Obtienes +1 Blade por cada Energía apilada bajo este Miembro.\n[Activado] [Una vez por turno] Coloca 1 Energía de tu Zona de Energía bajo este Miembro: añade 1 carta Live de Nijigasaki de tu Sala de espera a tu mano.\n(La Energía bajo Miembros no puede pagar costos. Cuando un Miembro sale del Escenario, devuelve la Energía apilada a tu mazo de Energía.)",
+            "text_ko": "[상시] 이 멤버 밑에 쌓인 에너지 1개마다 Blade +1을 얻는다.\n[기동] [턴 1회] 자신의 에너지 존에서 에너지 1개를 이 멤버 밑에 놓는다: 자신의 대기실에서 니지가사키 라이브 카드 1장을 패에 추가한다.\n(멤버 밑의 에너지는 코스트 지불에 사용할 수 없다. 멤버가 스테이지를 떠나면 쌓인 에너지를 자신의 에너지 덱으로 되돌린다.)"
         },
         {
             "card_no": "PL!N-pb1-012-P＋",
