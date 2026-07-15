@@ -7,7 +7,7 @@ namespace LLTCG\Tests\Engine;
 use PHPUnit\Framework\TestCase;
 
 /**
- * PL!HS-pb1-027-L Yumewazurai — Live Success optional mill must resume Performance
+ * PL!HS-pb1-027-L Yume Wazurai — Live Success optional mill must resume Performance
  * (finishPromptEffects), not softlock in live_success_effects.
  */
 final class YumewazuraiLiveSuccessMillTest extends TestCase
@@ -86,7 +86,7 @@ final class YumewazuraiLiveSuccessMillTest extends TestCase
         return [
             'instance_id' => 'yume_live',
             'card_no' => 'PL!HS-pb1-027-L',
-            'name_en' => 'Yumewazurai',
+            'name_en' => 'Yume Wazurai',
             'card_type' => 'ライブ',
             'card_type_en' => 'Live',
             'group' => 'Hasunosora',

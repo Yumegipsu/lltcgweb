@@ -26599,7 +26599,7 @@
         {
             "card_no": "PL!HS-pb1-027-L",
             "name": "ユメワズライ",
-            "name_en": "Yumewazurai",
+            "name_en": "Yume Wazurai",
             "card_type": "ライブ",
             "card_type_en": "Live",
             "group": "Hasunosora",
@@ -26640,7 +26640,9 @@
                 }
             ],
             "text_es": "[Éxito de Live] Si tienes un Miembro Cerise Bouquet en tu Escenario, puedes colocar las 4 cartas superiores de tu mazo en la Sala de espera.",
-            "text_ko": "[라이브 성공] 자신의 스테이지에 스리즈부케 멤버가 있다면, 자신의 덱 위에서 4장을 대기실에 놓아도 된다."
+            "text_ko": "[라이브 성공] 자신의 스테이지에 스리즈부케 멤버가 있다면, 자신의 덱 위에서 4장을 대기실에 놓아도 된다.",
+            "yell_score_icon": true,
+            "special_heart": "icon_score.png"
         },
         {
             "card_no": "PL!HS-pb1-028-L",

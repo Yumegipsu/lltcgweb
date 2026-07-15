@@ -4815,6 +4815,7 @@
   "Yume de Yozora o Terashitai": "꿈으로 밤하늘을 비추고 싶어",
   "Yume ga Bokura no Taiyou sa": "꿈이 우리의 태양이야",
   "Yume no Tobira": "꿈의 문",
+  "Yume Wazurai": "꿈앓이",
   "Yumewazurai": "꿈앓이",
   "Yuuki wa Doko ni? Kimi no Mune ni!": "용기는 어디에? 너의 가슴에!",
   "Zenhoui Kyun♡": "전방위 큥♡",
