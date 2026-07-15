@@ -1309,7 +1309,7 @@
       "subunit": "BiBi",
       "text_es": "[Activada] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano. Si la puntuación total de tus cartas de Live exitoso es 9 o más, activa 2 Energía.",
       "text_ko": "[기동] 이 멤버를 스테이지에서 대기실에 놓는다: 자신의 대기실에서 μ's 라이브 카드 1장을 패에 추가한다. 자신의 성공 라이브 카드 총점이 9 이상이면 에너지 2개를 활성화한다.",
-      "text_zh": "[起动] 将舞台上的该成员放入等候室：将等候室中的1张μ的Live卡加入手牌。如果您的成功活卡总分为 9 或以上，则激活 2 点能量。"
+      "text_zh": "[起动] 将舞台上的该成员放入等候室：将等候室中的1张μ的Live卡加入手牌。如果您的成功Live卡总分为 9 或以上，则激活 2 点能量。"
     },
     {
       "card_no": "PL!-PR-018-PR",
@@ -3751,7 +3751,7 @@
       ],
       "text_es": "[Siempre] Mientras tengas una carta Live en tu Live sin habilidades Live Start ni Live Success, obtienes 2 corazones morados.\n[Activada] [Una vez por turno] Coloca 2 cartas de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano. Solo usable si la puntuación total de tus cartas de Live exitoso es 6 o más.",
       "text_ko": "[상시] 동안 자신이 가지고 있다 Live 카드 에 자신의 Live 와 함께 도 아니고 Live Start 도 아니다 Live Success 능력, 보라 하트 2개를 얻는다.\n[기동] [턴당 1회] 놓는다 2 카드 패에서 대기실로: 자신의 대기실에서 μ의 Live 카드를 1장 패에 더한다. Usable 만 만약 자신의 성공 Live 카드 총 스코어 이다 6 이상.",
-      "text_zh": "[永续] 当您的直播中有一张既没有直播开始也没有直播成功能力的Live卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's Live卡加入手牌。仅当您的 Success Live 卡总分为 6 分或以上时才可用。"
+      "text_zh": "[永续] 当您的直播中有一张既没有Live开始也没有Live成功能力的Live卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's Live卡加入手牌。仅当您的 成功Live 卡总分为 6 分或以上时才可用。"
     },
     {
       "card_no": "PL!-bp4-002-P＋",
@@ -3808,7 +3808,7 @@
       ],
       "text_es": "[Siempre] Mientras tengas una carta Live en tu Live sin habilidades Live Start ni Live Success, obtienes 2 corazones morados.\n[Activada] [Una vez por turno] Coloca 2 cartas de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano. Solo usable si la puntuación total de tus cartas de Live exitoso es 6 o más.",
       "text_ko": "[상시] 동안 자신이 가지고 있다 Live 카드 에 자신의 Live 와 함께 도 아니고 Live Start 도 아니다 Live Success 능력, 보라 하트 2개를 얻는다.\n[기동] [턴당 1회] 놓는다 2 카드 패에서 대기실로: 자신의 대기실에서 μ의 Live 카드를 1장 패에 더한다. Usable 만 만약 자신의 성공 Live 카드 총 스코어 이다 6 이상.",
-      "text_zh": "[永续] 当您的直播中有一张既没有直播开始也没有直播成功能力的Live卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's Live卡加入手牌。仅当您的 Success Live 卡总分为 6 分或以上时才可用。"
+      "text_zh": "[永续] 当您的直播中有一张既没有Live开始也没有Live成功能力的Live卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's Live卡加入手牌。仅当您的 成功Live 卡总分为 6 分或以上时才可用。"
     },
     {
       "card_no": "PL!-bp4-002-R＋",
@@ -3865,7 +3865,7 @@
       ],
       "text_es": "[Siempre] Mientras tengas una carta Live en tu Live sin habilidades Live Start ni Live Success, obtienes 2 corazones morados.\n[Activada] [Una vez por turno] Coloca 2 cartas de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano. Solo usable si la puntuación total de tus cartas de Live exitoso es 6 o más.",
       "text_ko": "[상시] 동안 자신이 가지고 있다 Live 카드 에 자신의 Live 와 함께 도 아니고 Live Start 도 아니다 Live Success 능력, 보라 하트 2개를 얻는다.\n[기동] [턴당 1회] 놓는다 2 카드 패에서 대기실로: 자신의 대기실에서 μ의 Live 카드를 1장 패에 더한다. Usable 만 만약 자신의 성공 Live 카드 총 스코어 이다 6 이상.",
-      "text_zh": "[永续] 当您的直播中有一张既没有直播开始也没有直播成功能力的Live卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's Live卡加入手牌。仅当您的 Success Live 卡总分为 6 分或以上时才可用。"
+      "text_zh": "[永续] 当您的直播中有一张既没有Live开始也没有Live成功能力的Live卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's Live卡加入手牌。仅当您的 成功Live 卡总分为 6 分或以上时才可用。"
     },
     {
       "card_no": "PL!-bp4-002-SEC",
@@ -3922,7 +3922,7 @@
       ],
       "text_es": "[Siempre] Mientras tengas una carta Live en tu Live sin habilidades Live Start ni Live Success, obtienes 2 corazones morados.\n[Activada] [Una vez por turno] Coloca 2 cartas de tu mano en la Sala de espera: añade 1 carta Live de μ's de tu Sala de espera a tu mano. Solo usable si la puntuación total de tus cartas de Live exitoso es 6 o más.",
       "text_ko": "[상시] 동안 자신이 가지고 있다 Live 카드 에 자신의 Live 와 함께 도 아니고 Live Start 도 아니다 Live Success 능력, 보라 하트 2개를 얻는다.\n[기동] [턴당 1회] 놓는다 2 카드 패에서 대기실로: 자신의 대기실에서 μ의 Live 카드를 1장 패에 더한다. Usable 만 만약 자신의 성공 Live 카드 총 스코어 이다 6 이상.",
-      "text_zh": "[永续] 当您的直播中有一张既没有直播开始也没有直播成功能力的Live卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's Live卡加入手牌。仅当您的 Success Live 卡总分为 6 分或以上时才可用。"
+      "text_zh": "[永续] 当您的直播中有一张既没有Live开始也没有Live成功能力的Live卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's Live卡加入手牌。仅当您的 成功Live 卡总分为 6 分或以上时才可用。"
     },
     {
       "card_no": "PL!-bp4-003-P",
@@ -4027,7 +4027,7 @@
       ],
       "text_es": "[Al entrar] Si la puntuación total de tus cartas de Live exitoso es 6 o más, activa 2 Energía.",
       "text_ko": "[등장 시] 만약 자신의 성공 Live 카드 총 스코어 이다 6 이상, 에너지 2개를 활성화한다.",
-      "text_zh": "[入场时] 如果您的成功活卡总分为 6 或以上，则激活 2 点能量。"
+      "text_zh": "[入场时] 如果您的成功Live卡总分为 6 或以上，则激活 2 点能量。"
     },
     {
       "card_no": "PL!-bp4-004-R",
@@ -4062,7 +4062,7 @@
       ],
       "text_es": "[Al entrar] Si la puntuación total de tus cartas de Live exitoso es 6 o más, activa 2 Energía.",
       "text_ko": "[등장 시] 만약 자신의 성공 Live 카드 총 스코어 이다 6 이상, 에너지 2개를 활성화한다.",
-      "text_zh": "[入场时] 如果您的成功活卡总分为 6 或以上，则激活 2 点能量。"
+      "text_zh": "[入场时] 如果您的成功Live卡总分为 6 或以上，则激活 2 点能量。"
     },
     {
       "card_no": "PL!-bp4-005-P",
@@ -4324,7 +4324,7 @@
       ],
       "text_es": "[Al entrar] Si la puntuación total de tus cartas de Live exitoso es 3 o más, mira las 5 cartas superiores de tu mazo. Puedes revelar 1 Miembro de μ's entre ellas y añadirlo a tu mano. Coloca el resto en tu Sala de espera.",
       "text_ko": "[등장 시] 만약 자신의 성공 Live 카드 총 스코어 이다 3 이상, 확인한다 자신의 덱 위에서 5장. 해도 좋다 공개한다 1 μ의 멤버 에서 중에서 그것들 그리고 패에 더한다. 놓는다 나머지 자신의 대기실에.",
-      "text_zh": "[入场时] 如果您的成功活卡总分为 3 或以上，则查看您牌组顶部的 5 张卡。你可以从其中展示1个μ的成员并将其加入你的手牌。将其余的放入等候室。"
+      "text_zh": "[入场时] 如果您的成功Live卡总分为 3 或以上，则查看您牌组顶部的 5 张卡。你可以从其中展示1个μ的成员并将其加入你的手牌。将其余的放入等候室。"
     },
     {
       "card_no": "PL!-bp4-006-R",
@@ -4362,7 +4362,7 @@
       ],
       "text_es": "[Al entrar] Si la puntuación total de tus cartas de Live exitoso es 3 o más, mira las 5 cartas superiores de tu mazo. Puedes revelar 1 Miembro de μ's entre ellas y añadirlo a tu mano. Coloca el resto en tu Sala de espera.",
       "text_ko": "[등장 시] 만약 자신의 성공 Live 카드 총 스코어 이다 3 이상, 확인한다 자신의 덱 위에서 5장. 해도 좋다 공개한다 1 μ의 멤버 에서 중에서 그것들 그리고 패에 더한다. 놓는다 나머지 자신의 대기실에.",
-      "text_zh": "[入场时] 如果您的成功活卡总分为 3 或以上，则查看您牌组顶部的 5 张卡。你可以从其中展示1个μ的成员并将其加入你的手牌。将其余的放入等候室。"
+      "text_zh": "[入场时] 如果您的成功Live卡总分为 3 或以上，则查看您牌组顶部的 5 张卡。你可以从其中展示1个μ的成员并将其加入你的手牌。将其余的放入等候室。"
     },
     {
       "card_no": "PL!-bp4-007-P",
@@ -4855,7 +4855,7 @@
       ],
       "text_es": "[Al entrar] Si la puntuación total de tus cartas de Live exitoso es 3 o más, roba 1 carta.",
       "text_ko": "[등장 시] 만약 자신의 성공 Live 카드 총 스코어 이다 3 이상, 카드 1장을 드로우한다.",
-      "text_zh": "[入场时] 如果您的成功活卡总分为 3 或以上，则抽 1 张卡。"
+      "text_zh": "[入场时] 如果您的成功Live卡总分为 3 或以上，则抽 1 张卡。"
     },
     {
       "card_no": "PL!-bp4-017-N",
@@ -4932,7 +4932,7 @@
       ],
       "text_es": "[Siempre] Mientras la puntuación total de tus cartas de Live exitoso sea mayor que la de tu oponente, obtienes +2 Blade.",
       "text_ko": "[상시] 동안 자신의 성공 Live 카드 총 스코어 상대보다 높다, Blade +2을 얻는다.",
-      "text_zh": "[永续] 当你的成功活卡总分高于对手时，你获得 +2 Blade。"
+      "text_zh": "[永续] 当你的成功Live卡总分高于对手时，你获得 +2 Blade。"
     },
     {
       "card_no": "PL!-bp4-019-L",
@@ -5125,7 +5125,7 @@
       "special_heart": "icon_draw.png",
       "yell_draw_icon": true,
       "text_ko": "[라이브 개시] 만약 자신의 성공 Live 카드 총 스코어 이다 6 이상, 줄인다 이 카드의 필요 하트 만큼 1 회색 하트. 만약 총 이다 9 이상, 이 카드의 스코어 +1.",
-      "text_zh": "[Live开始] 如果您的成功活卡总分为 6 或以上，则将此卡所需的心形数量减少 1 颗灰心。如果总点数为 9 或以上，则这张卡的得分 +1。"
+      "text_zh": "[Live开始] 如果您的成功Live卡总分为 6 或以上，则将此卡所需的心形数量减少 1 颗灰心。如果总点数为 9 或以上，则这张卡的得分 +1。"
     },
     {
       "card_no": "PL!-bp4-022-L",
@@ -6389,7 +6389,7 @@
       "subunit": "lily white",
       "text_es": "[Al entrar] Si la puntuación total de tus cartas de Live exitoso es 6 o más, coloca 1 Energía de tu mazo de Energía en tu Zona de Energía en estado Activo.",
       "text_ko": "[등장 시] 자신의 성공 라이브 카드 총점이 6 이상이라면, 자신의 에너지 덱에서 에너지 1개를 활성 상태로 자신의 에너지 존에 놓는다.",
-      "text_zh": "[入场时] 如果你的成功活卡总分为 6 或以上，则将你的能量牌组中的 1 个能量放入你的能量区并处于活跃状态。"
+      "text_zh": "[入场时] 如果你的成功Live卡总分为 6 或以上，则将你的能量牌组中的 1 个能量放入你的能量区并处于活跃状态。"
     },
     {
       "card_no": "PL!-bp5-005-P",
@@ -6431,7 +6431,7 @@
       "subunit": "lily white",
       "text_es": "[Al entrar] Si la puntuación total de tus cartas de Live exitoso es 6 o más, coloca 1 Energía de tu mazo de Energía en tu Zona de Energía en estado Activo.",
       "text_ko": "[등장 시] 자신의 성공 라이브 카드 총점이 6 이상이라면, 자신의 에너지 덱에서 에너지 1개를 활성 상태로 자신의 에너지 존에 놓는다.",
-      "text_zh": "[入场时] 如果你的成功活卡总分为 6 或以上，则将你的能量牌组中的 1 个能量放入你的能量区并处于活跃状态。"
+      "text_zh": "[入场时] 如果你的成功Live卡总分为 6 或以上，则将你的能量牌组中的 1 个能量放入你的能量区并处于活跃状态。"
     },
     {
       "card_no": "PL!-bp5-005-R",
@@ -6473,7 +6473,7 @@
       "subunit": "lily white",
       "text_es": "[Al entrar] Si la puntuación total de tus cartas de Live exitoso es 6 o más, coloca 1 Energía de tu mazo de Energía en tu Zona de Energía en estado Activo.",
       "text_ko": "[등장 시] 자신의 성공 라이브 카드 총점이 6 이상이라면, 자신의 에너지 덱에서 에너지 1개를 활성 상태로 자신의 에너지 존에 놓는다.",
-      "text_zh": "[入场时] 如果你的成功活卡总分为 6 或以上，则将你的能量牌组中的 1 个能量放入你的能量区并处于活跃状态。"
+      "text_zh": "[入场时] 如果你的成功Live卡总分为 6 或以上，则将你的能量牌组中的 1 个能量放入你的能量区并处于活跃状态。"
     },
     {
       "card_no": "PL!-bp5-006-AR",
@@ -7239,7 +7239,7 @@
       "subunit": "BiBi",
       "text_es": "[Al entrar] Si la puntuación total de tus cartas de Live exitoso es 3 o más, roba 1 carta.",
       "text_ko": "[등장 시] 자신의 성공 라이브 카드 총점이 3 이상이라면, 카드 1장을 드로우한다.",
-      "text_zh": "[入场时] 如果您的成功活卡总分为 3 或以上，则抽 1 张卡。"
+      "text_zh": "[入场时] 如果您的成功Live卡总分为 3 或以上，则抽 1 张卡。"
     },
     {
       "card_no": "PL!-bp5-016-N",
@@ -9560,7 +9560,7 @@
       "subunit": "BiBi",
       "text_es": "[Siempre] Mientras tengas una carta de BiBi en tu área de Live exitoso, obtienes 1 corazón morado.",
       "text_ko": "[상시] 자신의 성공 라이브 영역에 BiBi 카드가 있는 동안, 보라색 하트 1개를 얻는다.",
-      "text_zh": "[永续] 当您的 Success Live 区域中有 BiBi 卡时，您将获得 1 颗紫心形。"
+      "text_zh": "[永续] 当您的 成功Live 区域中有 BiBi 卡时，您将获得 1 颗紫心形。"
     },
     {
       "card_no": "PL!-bp6-016-N",
@@ -29964,7 +29964,7 @@
       "subunit": "A・ZU・NA",
       "text_es": "[Siempre] Mientras haya 4 o más cartas de Live exitoso en los almacenamientos de Live exitoso de ambos jugadores combinados, obtienes +2 Blade.",
       "text_ko": "[상시] 양 플레이어의 성공 라이브 스토리지에 있는 성공 라이브 카드를 합쳐 4장 이상인 동안, Blade +2를 얻는다.",
-      "text_zh": "[永续] 当双方玩家的 Success Live 存储中总共有 4 张或更多 Success Live 卡时，您获得 +2 Blade。"
+      "text_zh": "[永续] 当双方玩家的 成功Live 存储中总共有 4 张或更多 成功Live 卡时，您获得 +2 Blade。"
     },
     {
       "card_no": "PL!N-PR-025-PR",
@@ -34993,7 +34993,7 @@
       ],
       "text_es": "[Inicio de Live] Si tienes una carta de Live exitoso con puntuación 1 o 5, la puntuación de esta carta +1. Si tienes ambas, la puntuación de esta carta +2 en su lugar.",
       "text_ko": "[라이브 개시] 만약 자신에게 Success Live 카드 와 함께 스코어 1 또는 5, 이 카드의 스코어 +1. 만약 자신에게 둘 다, 이 카드의 스코어 +2 대신.",
-      "text_zh": "[Live开始] 如果你有一张得分为1或5的Success Live卡，则这张卡的得分+1。如果两者都有，则这张卡的得分+2。"
+      "text_zh": "[Live开始] 如果你有一张得分为1或5的成功Live卡，则这张卡的得分+1。如果两者都有，则这张卡的得分+2。"
     },
     {
       "card_no": "PL!N-bp3-027-L",
@@ -36694,7 +36694,7 @@
       "subunit": "R3BIRTH",
       "text_es": "[Al entrar] Puedes colocar 1 carta Live de Nijigasaki de tu área de Live exitoso en la Sala de espera. Si lo haces, coloca 1 carta Live de Nijigasaki de tu Sala de espera en tu área de Live exitoso.\n[Inicio de Live] Elige 1 carta Live de Nijigasaki en tu Live. Si hay una carta con el mismo nombre en tu área de Live exitoso, obtienes 4 corazones morados hasta que termine este Live.",
       "text_ko": "[등장 시] 해도 좋다 놓는다 1 Nijigasaki Live 카드 에서 자신의 성공 Live 더미 대기실에. 그렇게 한다면, 놓는다 1 Nijigasaki Live 카드 자신의 대기실에서 에 자신의 성공 Live 더미.\n[라이브 개시] 고른다 1 Nijigasaki Live 카드 에 자신의 Live. 만약 카드 와 함께 같은 이름 이다 에 자신의 성공 Live 더미, 보라 하트 4개를 얻는다 이 Live가 끝날 때까지.",
-      "text_zh": "[入场时] 您可以将 1 张虹咲 Live 卡从您的成功 Live 区域放入等候室。如果这样做，请将 1 张 Nijigasaki Live 卡从你的等候室放入你的 Success Live 区域。\n[Live开始] 在您的Live中选择1张Nijigasaki Live卡。如果你的成功Live区中有一张同名卡牌，则获得 4 颗紫心形，直至此直播结束。"
+      "text_zh": "[入场时] 您可以将 1 张虹咲 Live 卡从您的成功 Live 区域放入等候室。如果这样做，请将 1 张 Nijigasaki Live 卡从你的等候室放入你的 成功Live 区域。\n[Live开始] 在您的Live中选择1张Nijigasaki Live卡。如果你的成功Live区中有一张同名卡牌，则获得 4 颗紫心形，直至此直播结束。"
     },
     {
       "card_no": "PL!N-bp4-010-P＋",
@@ -36743,7 +36743,7 @@
       "subunit": "R3BIRTH",
       "text_es": "[Al entrar] Puedes colocar 1 carta Live de Nijigasaki de tu área de Live exitoso en la Sala de espera. Si lo haces, coloca 1 carta Live de Nijigasaki de tu Sala de espera en tu área de Live exitoso.\n[Inicio de Live] Elige 1 carta Live de Nijigasaki en tu Live. Si hay una carta con el mismo nombre en tu área de Live exitoso, obtienes 4 corazones morados hasta que termine este Live.",
       "text_ko": "[등장 시] 해도 좋다 놓는다 1 Nijigasaki Live 카드 에서 자신의 성공 Live 더미 대기실에. 그렇게 한다면, 놓는다 1 Nijigasaki Live 카드 자신의 대기실에서 에 자신의 성공 Live 더미.\n[라이브 개시] 고른다 1 Nijigasaki Live 카드 에 자신의 Live. 만약 카드 와 함께 같은 이름 이다 에 자신의 성공 Live 더미, 보라 하트 4개를 얻는다 이 Live가 끝날 때까지.",
-      "text_zh": "[入场时] 您可以将 1 张虹咲 Live 卡从您的成功 Live 区域放入等候室。如果这样做，请将 1 张 Nijigasaki Live 卡从你的等候室放入你的 Success Live 区域。\n[Live开始] 在您的Live中选择1张Nijigasaki Live卡。如果你的成功Live区中有一张同名卡牌，则获得 4 颗紫心形，直至此直播结束。"
+      "text_zh": "[入场时] 您可以将 1 张虹咲 Live 卡从您的成功 Live 区域放入等候室。如果这样做，请将 1 张 Nijigasaki Live 卡从你的等候室放入你的 成功Live 区域。\n[Live开始] 在您的Live中选择1张Nijigasaki Live卡。如果你的成功Live区中有一张同名卡牌，则获得 4 颗紫心形，直至此直播结束。"
     },
     {
       "card_no": "PL!N-bp4-010-R＋",
@@ -36792,7 +36792,7 @@
       "subunit": "R3BIRTH",
       "text_es": "[Al entrar] Puedes colocar 1 carta Live de Nijigasaki de tu área de Live exitoso en la Sala de espera. Si lo haces, coloca 1 carta Live de Nijigasaki de tu Sala de espera en tu área de Live exitoso.\n[Inicio de Live] Elige 1 carta Live de Nijigasaki en tu Live. Si hay una carta con el mismo nombre en tu área de Live exitoso, obtienes 4 corazones morados hasta que termine este Live.",
       "text_ko": "[등장 시] 해도 좋다 놓는다 1 Nijigasaki Live 카드 에서 자신의 성공 Live 더미 대기실에. 그렇게 한다면, 놓는다 1 Nijigasaki Live 카드 자신의 대기실에서 에 자신의 성공 Live 더미.\n[라이브 개시] 고른다 1 Nijigasaki Live 카드 에 자신의 Live. 만약 카드 와 함께 같은 이름 이다 에 자신의 성공 Live 더미, 보라 하트 4개를 얻는다 이 Live가 끝날 때까지.",
-      "text_zh": "[入场时] 您可以将 1 张虹咲 Live 卡从您的成功 Live 区域放入等候室。如果这样做，请将 1 张 Nijigasaki Live 卡从你的等候室放入你的 Success Live 区域。\n[Live开始] 在您的Live中选择1张Nijigasaki Live卡。如果你的成功Live区中有一张同名卡牌，则获得 4 颗紫心形，直至此直播结束。"
+      "text_zh": "[入场时] 您可以将 1 张虹咲 Live 卡从您的成功 Live 区域放入等候室。如果这样做，请将 1 张 Nijigasaki Live 卡从你的等候室放入你的 成功Live 区域。\n[Live开始] 在您的Live中选择1张Nijigasaki Live卡。如果你的成功Live区中有一张同名卡牌，则获得 4 颗紫心形，直至此直播结束。"
     },
     {
       "card_no": "PL!N-bp4-010-SEC",
@@ -36841,7 +36841,7 @@
       "subunit": "R3BIRTH",
       "text_es": "[Al entrar] Puedes colocar 1 carta Live de Nijigasaki de tu área de Live exitoso en la Sala de espera. Si lo haces, coloca 1 carta Live de Nijigasaki de tu Sala de espera en tu área de Live exitoso.\n[Inicio de Live] Elige 1 carta Live de Nijigasaki en tu Live. Si hay una carta con el mismo nombre en tu área de Live exitoso, obtienes 4 corazones morados hasta que termine este Live.",
       "text_ko": "[등장 시] 해도 좋다 놓는다 1 Nijigasaki Live 카드 에서 자신의 성공 Live 더미 대기실에. 그렇게 한다면, 놓는다 1 Nijigasaki Live 카드 자신의 대기실에서 에 자신의 성공 Live 더미.\n[라이브 개시] 고른다 1 Nijigasaki Live 카드 에 자신의 Live. 만약 카드 와 함께 같은 이름 이다 에 자신의 성공 Live 더미, 보라 하트 4개를 얻는다 이 Live가 끝날 때까지.",
-      "text_zh": "[入场时] 您可以将 1 张虹咲 Live 卡从您的成功 Live 区域放入等候室。如果这样做，请将 1 张 Nijigasaki Live 卡从你的等候室放入你的 Success Live 区域。\n[Live开始] 在您的Live中选择1张Nijigasaki Live卡。如果你的成功Live区中有一张同名卡牌，则获得 4 颗紫心形，直至此直播结束。"
+      "text_zh": "[入场时] 您可以将 1 张虹咲 Live 卡从您的成功 Live 区域放入等候室。如果这样做，请将 1 张 Nijigasaki Live 卡从你的等候室放入你的 成功Live 区域。\n[Live开始] 在您的Live中选择1张Nijigasaki Live卡。如果你的成功Live区中有一张同名卡牌，则获得 4 颗紫心形，直至此直播结束。"
     },
     {
       "card_no": "PL!N-bp4-011-P",
@@ -37953,7 +37953,7 @@
       ],
       "text_es": "[Éxito de Live] Elige una: coloca 1 Energía de tu mazo de Energía en Wait, o añade 1 carta de Miembro de tu Sala de espera a tu mano. Si tienes una carta de Nijigasaki en tu área de Live exitoso, puedes elegir ambas en su lugar.",
       "text_ko": "[라이브 성공] 하나를 선택한다: 놓는다 1 에너지 에서 자신의 에너지 덱 Wait에, 또는 자신의 대기실에서 멤버 카드를 1장 패에 더한다. 만약 자신에게 Nijigasaki 카드 에 자신의 성공 Live 더미, 해도 좋다 고른다 둘 다 대신.",
-      "text_zh": "[Live成功] 选择一项：将自己的能量卡组中的 1 点能量放入等待，或者将自己的等候室中的 1 张成员卡加入手牌。如果您的 Success Live 区域中有虹咲卡，您可以同时选择两者。"
+      "text_zh": "[Live成功] 选择一项：将自己的能量卡组中的 1 点能量放入等待，或者将自己的等候室中的 1 张成员卡加入手牌。如果您的 成功Live 区域中有虹咲卡，您可以同时选择两者。"
     },
     {
       "card_no": "PL!N-bp4-031-L",
@@ -54782,7 +54782,7 @@
       "subunit": "AZALEA",
       "text_es": "[Inicio de Live] Si tienes 2 o más cartas en almacenamiento Live, puedes elegir 1 carta Live de Aqours sin habilidad (Live Start) y colocarla en la parte superior de tu mazo. Si lo haces, hasta que termine este Live, obtienes 1 corazón rojo y 1 corazón verde.",
       "text_ko": "[라이브 개시] 자신의 라이브 스토리지에 카드가 2장 이상 있다면, (라이브 개시) 능력이 없는 Aqours 라이브 카드 1장을 선택하여 덱 위에 놓아도 된다. 그렇게 하면, 이 라이브가 끝날 때까지 빨간색 하트 1개와 초록색 하트 1개를 얻는다.",
-      "text_zh": "[Live开始] 自己的Live存储区中有2张以上的卡牌时，可以选择1张没有（Live Start）能力的Aqours Live Card放到自己的牌组最上面。如果你这样做，直到本场比赛结束，你将获得 1 颗心形和 1 颗绿心。"
+      "text_zh": "[Live开始] 自己的Live存储区中有2张以上的卡牌时，可以选择1张没有（Live Start）能力的Aqours Live卡放到自己的牌组最上面。如果你这样做，直到本场比赛结束，你将获得 1 颗心形和 1 颗绿心。"
     },
     {
       "card_no": "PL!S-bp6-004-P＋",
@@ -54833,7 +54833,7 @@
       "subunit": "AZALEA",
       "text_es": "[Inicio de Live] Si tienes 2 o más cartas en almacenamiento Live, puedes elegir 1 carta Live de Aqours sin habilidad (Live Start) y colocarla en la parte superior de tu mazo. Si lo haces, hasta que termine este Live, obtienes 1 corazón rojo y 1 corazón verde.",
       "text_ko": "[라이브 개시] 자신의 라이브 스토리지에 카드가 2장 이상 있다면, (라이브 개시) 능력이 없는 Aqours 라이브 카드 1장을 선택하여 덱 위에 놓아도 된다. 그렇게 하면, 이 라이브가 끝날 때까지 빨간색 하트 1개와 초록색 하트 1개를 얻는다.",
-      "text_zh": "[Live开始] 自己的Live存储区中有2张以上的卡牌时，可以选择1张没有（Live Start）能力的Aqours Live Card放到自己的牌组最上面。如果你这样做，直到本场比赛结束，你将获得 1 颗心形和 1 颗绿心。"
+      "text_zh": "[Live开始] 自己的Live存储区中有2张以上的卡牌时，可以选择1张没有（Live Start）能力的Aqours Live卡放到自己的牌组最上面。如果你这样做，直到本场比赛结束，你将获得 1 颗心形和 1 颗绿心。"
     },
     {
       "card_no": "PL!S-bp6-004-R＋",
@@ -54884,7 +54884,7 @@
       "subunit": "AZALEA",
       "text_es": "[Inicio de Live] Si tienes 2 o más cartas en almacenamiento Live, puedes elegir 1 carta Live de Aqours sin habilidad (Live Start) y colocarla en la parte superior de tu mazo. Si lo haces, hasta que termine este Live, obtienes 1 corazón rojo y 1 corazón verde.",
       "text_ko": "[라이브 개시] 자신의 라이브 스토리지에 카드가 2장 이상 있다면, (라이브 개시) 능력이 없는 Aqours 라이브 카드 1장을 선택하여 덱 위에 놓아도 된다. 그렇게 하면, 이 라이브가 끝날 때까지 빨간색 하트 1개와 초록색 하트 1개를 얻는다.",
-      "text_zh": "[Live开始] 自己的Live存储区中有2张以上的卡牌时，可以选择1张没有（Live Start）能力的Aqours Live Card放到自己的牌组最上面。如果你这样做，直到本场比赛结束，你将获得 1 颗心形和 1 颗绿心。"
+      "text_zh": "[Live开始] 自己的Live存储区中有2张以上的卡牌时，可以选择1张没有（Live Start）能力的Aqours Live卡放到自己的牌组最上面。如果你这样做，直到本场比赛结束，你将获得 1 颗心形和 1 颗绿心。"
     },
     {
       "card_no": "PL!S-bp6-004-SEC",
@@ -54935,7 +54935,7 @@
       "subunit": "AZALEA",
       "text_es": "[Inicio de Live] Si tienes 2 o más cartas en almacenamiento Live, puedes elegir 1 carta Live de Aqours sin habilidad (Live Start) y colocarla en la parte superior de tu mazo. Si lo haces, hasta que termine este Live, obtienes 1 corazón rojo y 1 corazón verde.",
       "text_ko": "[라이브 개시] 자신의 라이브 스토리지에 카드가 2장 이상 있다면, (라이브 개시) 능력이 없는 Aqours 라이브 카드 1장을 선택하여 덱 위에 놓아도 된다. 그렇게 하면, 이 라이브가 끝날 때까지 빨간색 하트 1개와 초록색 하트 1개를 얻는다.",
-      "text_zh": "[Live开始] 自己的Live存储区中有2张以上的卡牌时，可以选择1张没有（Live Start）能力的Aqours Live Card放到自己的牌组最上面。如果你这样做，直到本场比赛结束，你将获得 1 颗心形和 1 颗绿心。"
+      "text_zh": "[Live开始] 自己的Live存储区中有2张以上的卡牌时，可以选择1张没有（Live Start）能力的Aqours Live卡放到自己的牌组最上面。如果你这样做，直到本场比赛结束，你将获得 1 颗心形和 1 颗绿心。"
     },
     {
       "card_no": "PL!S-bp6-005-P",
@@ -55977,7 +55977,7 @@
       ],
       "text_es": "[Inicio de Live] Elige una:\n• Esta carta obtiene \"[Éxito de Live] Roba 1 carta.\"\n• Hasta que termine este Live, 1 Miembro de Aqours que entró mediante Baton Touch este turno obtiene 1 corazón rojo.\n• Si tienes 2 o más cartas en tu área de Live exitoso, la puntuación de esta carta +1.",
       "text_ko": "[라이브 개시] 다음 중 하나를 선택한다:\n• 이 카드가 \"[라이브 성공] 카드 1장을 드로우한다.\"를 얻는다.\n• 이 라이브가 끝날 때까지, 이번 턴에 바톤 터치로 등장한 Aqours 멤버 1명이 빨간색 하트 1개를 얻는다.\n• 자신의 성공 라이브 영역에 카드가 2장 이상 있다면, 이 카드의 점수 +1.",
-      "text_zh": "[Live开始] 选择一项：\n・这张卡获得“[Live成功]抽1张卡”的效果。\n• 直到本场比赛结束为止，本回合通过接棒进入的 1 名 Aqours 成员获得 1 颗心形。\n• 如果您的Success Live 区域中有2 张或以上卡牌，则该卡牌的分数+1。"
+      "text_zh": "[Live开始] 选择一项：\n・这张卡获得“[Live成功]抽1张卡”的效果。\n• 直到本场比赛结束为止，本回合通过接棒进入的 1 名 Aqours 成员获得 1 颗心形。\n• 如果您的成功Live 区域中有2 张或以上卡牌，则该卡牌的分数+1。"
     },
     {
       "card_no": "PL!S-bp6-021-L",
