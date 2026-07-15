@@ -28,6 +28,7 @@ exports/*
 /bg/**
 /icons/**
 /cardimg/**
+/titles/**
 
 # Root-level art (playmat, card back, logo, calibration scratch)
 /*.png
@@ -44,6 +45,7 @@ exports/*
 !bg/.gitkeep
 !icons/.gitkeep
 !cardimg/.gitkeep
+!titles/.gitkeep
 !data/.htaccess
 !data/.gitkeep
 !games/.htaccess

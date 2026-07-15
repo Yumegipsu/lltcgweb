@@ -64,7 +64,9 @@
     "label": "Idioma",
     "en": "English",
     "ja": "日本語",
-    "es": "Español"
+    "es": "Español",
+    "zh": "简体中文",
+    "ko": "한국어"
   },
   "lobby": {
     "title": "Juego no clasificado",
@@ -996,9 +998,9 @@
       "cards1600": "Posee 1.600 cartas",
       "cards400": "Posee 400 cartas",
       "cards800": "Posee 800 cartas",
-        "profileBanner": "Actualiza tu banner de perfil",
-        "profileFlag": "Pon una bandera en tu perfil",
-        "profileStamps": "Configura sellos favoritos",
+      "profileBanner": "Actualiza tu banner de perfil",
+      "profileFlag": "Pon una bandera en tu perfil",
+      "profileStamps": "Configura sellos favoritos",
       "ranked1": "Juega 1 partida clasificatoria",
       "ranked10": "Juega 10 partidas clasificatorias",
       "ranked100": "Juega 100 partidas clasificatorias",

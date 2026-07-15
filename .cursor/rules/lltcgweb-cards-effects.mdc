@@ -12,6 +12,7 @@ alwaysApply: false
 2. Implement handler in `effects.php` or set-specific `*_effects.php`.
 3. Add client prompts in `index.html` or `client/js/` when interactive.
 4. Run `php scripts/validate_cards.php` — every `abilities[].type` should map to a known handler.
+5. If the card has printed rules text, populate **`text_es`**, **`text_ko`**, and **`text_zh`** in the same change (localized skill brackets; see `.cursor/rules/user-facing-copy.mdc`).
 
 ## Effect registry
 

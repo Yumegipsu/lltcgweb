@@ -26,7 +26,7 @@ Apply the same rules when mirroring copy to `tutorial_ja.json` or localized `tut
 
 ## i18n (required for all player-visible text)
 
-Supported locales live in `i18n.js` (`LOCALES`, **en** + **ja** + **es** + **ko**). **Every new or changed player-facing string must ship in all locales in the same change** — not English-only.
+Supported locales live in `i18n.js` (`LOCALES`, **en** + **ja** + **es** + **ko** + **zh**). **Every new or changed player-facing string must ship in all locales in the same change** — not English-only.
 
 ### Korean (required — do not skip)
 
@@ -34,49 +34,74 @@ Korean (`STRINGS.ko` / `locales/ko.json` / `tutorial_ko.json`) is a **first-clas
 
 Source of truth for KO UI copy is `locales/ko.json` → inject via `python scripts/inject_i18n_ko.py` when using that workflow; otherwise keep `STRINGS.ko` in `i18n.js` in sync with `locales/ko.json`.
 
+### Chinese / zh-Hans (required — do not skip)
+
+Simplified Chinese (`zh`, `document.documentElement.lang = zh-Hans`) is a **first-class locale**. **Every new or changed player-facing string must include Chinese in the same change** — menus, missions, toasts, overlays, news posts, tutorials, logs, stamps, and JS-built UI. Do not ship en+ja+es+ko without `zh`.
+
+| Surface | Chinese files / fields |
+|---------|------------------------|
+| UI strings | `locales/zh.json` → `python scripts/inject_i18n_zh.py` → `STRINGS.zh` |
+| Names / songs | `locales/zh_names.json` / `locales/zh_songs.json` → `python scripts/inject_i18n_zh_maps.py` |
+| Card rules text | `cards.json` → `text_zh` (brackets: `[入场时]`, `[Live开始]`, `[起动]`, `[永续]`, `[每回合1次]`, …) |
+| Tutorial | `tutorial_zh.json` via `build_tutorial_locale_json.py --locale zh` |
+| Logs / prompts | `log_i18n.js` ZH rules (`localizeLogMessageZh` / `localizePromptTextZh`) |
+| News | `news.json` posts → `title.zh` / `body.zh` |
+| Stamps | `stamps_i18n.json` → `zh` (builder / `inject_stamps_zh.py`) |
+
+See `docs/locales/ZH_PROGRESS.md` and `docs/locales/ZH_NAMES.md`.
+
 ### Where strings go
 
-| Surface | English source | Japanese / Spanish / Korean |
-|---------|----------------|----------|
-| Menus, screens, buttons, toasts, overlays | `i18n.js` → `STRINGS.en.*` | Matching `STRINGS.ja.*` / `STRINGS.es.*` / `STRINGS.ko.*` key |
-| Static HTML labels | `data-i18n="dotted.key"` (+ `data-i18n-placeholder` / `data-i18n-title` / `data-i18n-aria-label` as needed) | Same key in `STRINGS.ja`, `STRINGS.es`, and `STRINGS.ko` |
-| JS-built UI (lists, meta lines, dynamic buttons) | `t('dotted.key', { vars })` — no hardcoded English in `index.html` / `client/js/*` | Same |
-| Interactive tutorial bubbles (`tutorial_guide.json` step `id`) | `dialogue` in JSON (English default) | **`tutorial_ja.json`** / **`tutorial_es.json`** / **`tutorial_ko.json`** entry keyed by step `id` |
-| Legacy slideshow tutorial | `i18n.js` → `tutorial.*` | `tutorial.*` in `STRINGS.ja` / `STRINGS.es` / `STRINGS.ko` **and/or** `tutorial_ja.json` / `tutorial_es.json` / `tutorial_ko.json` |
-| Title-screen news posts | `news.json` → `posts[].title` / `body` per post; optional `bannerStyle`: `crop` (default) or `full` | Same keys under `en` / `ja` / `es` / `ko` on each post |
-| Server log lines shown in the client | `log_i18n.js` if applicable | Matching JA / ES / KO rules via `STRINGS.*.log` and `localizeLogMessage*` |
+| Surface | English source | JA / ES / KO / ZH |
+|---------|----------------|-------------------|
+| Menus, screens, buttons, toasts, overlays | `i18n.js` → `STRINGS.en.*` | Matching `STRINGS.ja.*` / `STRINGS.es.*` / `STRINGS.ko.*` / `STRINGS.zh.*` |
+| Static HTML labels | `data-i18n="dotted.key"` | Same key in `STRINGS.ja`, `STRINGS.es`, `STRINGS.ko`, and `STRINGS.zh` |
+| JS-built UI | `t('dotted.key', { vars })` | Same |
+| Interactive tutorial bubbles | `tutorial.json` dialogue | `tutorial_ja.json` / `tutorial_es.json` / `tutorial_ko.json` / **`tutorial_zh.json`** |
+| Legacy slideshow tutorial | `tutorial.*` | `tutorial.*` in all STRINGS packs **and/or** tutorial_*.json |
+| Title-screen news posts | `news.json` | `en` / `ja` / `es` / `ko` / **`zh`** on each post |
+| Server log lines | `log_i18n.js` | JA / ES / KO / **ZH** rules + `STRINGS.*.log` |
+| Card skill oracle text | `cards.json` `text` | `text_jp` / `text_es` / `text_ko` / **`text_zh`** with localized skill brackets matching `skillKw` |
 
 ### Checklist before finishing a feature with text
 
-1. Add **`STRINGS.en` + `STRINGS.ja` + `STRINGS.es` + `STRINGS.ko`** keys (or `tutorial_ja.json` / `tutorial_es.json` / `tutorial_ko.json` for interactive tutorial steps).
+1. Add **`STRINGS.en` + `STRINGS.ja` + `STRINGS.es` + `STRINGS.ko` + `STRINGS.zh`** keys (or matching `tutorial_*.json` for interactive tutorial steps).
 2. Wire HTML via **`data-i18n`** or JS via **`t()`** — avoid raw English in templates.
 3. If UI is rebuilt on locale change, ensure **`refreshDynamicI18n()`** (or `onLocaleChange`) refreshes it.
-4. Bump **`?v=`** on `i18n.js` / `tutorial_es.json` / `tutorial_ko.json` / `log_i18n.js` when those files change.
-5. Run **`php scripts/validate_i18n.php`** after `STRINGS.es` or `STRINGS.ko` changes (checks both locales against `STRINGS.en`).
-6. For **interactive tutorial** steps (`tutorial.json` → `tutorial_{locale}.json`):
-   - Add curated dialogue under **`locales/{locale}.json` → `tutorial.*`** (or `TUTORIAL_EXACT_OVERRIDES` in `scripts/tutorial_i18n_glossary.py` for long prose).
-   - Run **`python scripts/build_tutorial_locale_json.py --locale {locale}`** — glossary localizes game terms (**Member**, **Hearts**, **Performance**, skill brackets, etc.).
-   - Run **`python scripts/validate_tutorial_i18n.py --locale {locale}`** — every step id must exist; ES/KO must have no English game-term leaks or mixed English prose.
-   - **Do translate** game terms, tooltips, phase names, and skill keywords; **do not translate** character names, group names (Liella!, μ's), or Live/song titles.
-   - Bump **`tutorial_{locale}.json?v=`** in `i18n.js` when that file changes.
+4. Bump **`?v=`** on `i18n.js` / `tutorial_*.json` / `log_i18n.js` when those files change.
+5. Run **`php scripts/validate_i18n.php`** after locale JSON changes (checks es, ko, **zh** against en).
+6. For **interactive tutorial** steps:
+   - Curate under **`locales/{locale}.json` → `tutorial.*`** (or `TUTORIAL_EXACT_OVERRIDES`).
+   - Run **`python scripts/build_tutorial_locale_json.py --locale {locale}`**.
+   - Run **`python scripts/validate_tutorial_i18n.py --locale {locale}`** (es/ko/**zh** leak checks).
+   - Translate game terms/skill keywords; **do not** translate character names, group brands (Liella!, μ's), or Live/song titles in tutorial dialogue.
+7. For **new/changed card rules text**: populate **`text_es` + `text_ko` + `text_zh`** in the same change (localized brackets; quoted names use locale name maps for ko/zh).
 
 ### Korean specifics
 
-- `cardLocaleName` resolves KO card/character names via `KO_NAME_MAP` (`i18n.js`, generated from `locales/ko_names.json` `characters` + `characters_jp` by `scripts/inject_i18n_ko_maps.py`) and song titles via `KO_SONG_MAP` (from `locales/ko_songs.json`). Character **and** song names stay untranslated in the underlying `cards.json` (`name_en`/`name`); only the display layer maps them to Korean.
-- `cardLocaleType` maps JP `card_type` (メンバー/ライブ/エネルギー) to 멤버/Live/에너지 when no `card_type_ko` field is present.
-- `cardLocaleText` looks for `card.text_ko` (populated for all cards with rules text; falls back to `card.text`); see `docs/locales/KO_PROGRESS.md`.
-- Source of truth for KO UI copy is `locales/ko.json` → inject via `python scripts/inject_i18n_ko.py`.
+- `cardLocaleName` resolves KO via `KO_NAME_MAP` / `KO_SONG_MAP`.
+- `cardLocaleText` → `card.text_ko`.
+- Source of truth: `locales/ko.json` → `inject_i18n_ko.py`.
+
+### Chinese specifics
+
+- `cardLocaleName` resolves ZH via `ZH_NAME_MAP` / `ZH_SONG_MAP` (from `zh_names.json` / `zh_songs.json`).
+- `cardLocaleType` → 成员 / Live / 能量.
+- `cardLocaleText` → `card.text_zh`.
+- Source of truth for UI: `locales/zh.json` → `inject_i18n_zh.py`.
+- Skill bracket lock: 入场时 / 离场时 / Live开始 / Live成功 / 起动 / 永续 / 自动 / 每回合1次 / 中央 / Yell — keep identical across `text_zh`, `skillKw`, tutorial, and `log_i18n.js`.
 
 ### Do not
 
 - Ship new menus, replay UI, error popups, or tutorial lines in English only.
-- Add `data-i18n` without a Japanese, Spanish, **and Korean** string in `STRINGS.ja` / `STRINGS.es` / `STRINGS.ko`.
-- Rely on English fallback for JA/ES/KO tutorial step ids — add `tutorial_ja.json` / `tutorial_es.json` / `tutorial_ko.json` keys for each new step `id`.
+- Add `data-i18n` without Japanese, Spanish, Korean, **and Chinese** strings.
+- Rely on English fallback for JA/ES/KO/**ZH** tutorial step ids.
+- Ship new printed abilities without `text_es` / `text_ko` / **`text_zh`**.
 
 ### Title-screen news posts (`news.json`)
 
 - Explain **what changes for the player** — gameplay, deck building, ranked/casual rules, balance.
 - Use **card names and point values**, not file paths, repo names, deploy steps, or dev jargon.
 - Do **not** mention `news.json`, Hostinger, git, APIs, or implementation details.
-- Ship **en + ja + es + ko** for every post title and body in the same change.
-- **Card IDs** in post body (e.g. `PL!N-bp1-003-R＋`) are auto-linked in the news viewer — use exact catalog `card_no` values; idol names should match `cards.json` (`name` / `name_en`).
+- Ship **en + ja + es + ko + zh** for every post title and body in the same change.
+- **Card IDs** in post body are auto-linked — use exact catalog `card_no` values.

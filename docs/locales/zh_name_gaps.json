@@ -1,0 +1,39 @@
+{
+  "source": "cards.json Member/Live distinct name_en (+ JP)",
+  "extract_path_note": "Built from Downloads/_tcg_name_keys.json (Member/Live keys)",
+  "members_total": 65,
+  "members_mapped": 65,
+  "member_gaps": [],
+  "member_jp_total": 75,
+  "member_jp_mapped": 75,
+  "lives_total": 196,
+  "songs_in_map": 197,
+  "song_method_counts": {
+    "semantic": 48,
+    "sino": 18,
+    "keep": 131,
+    "phonetic": 0
+  },
+  "song_optional_wiki_pass": [],
+  "contested_character_aliases": {
+    "南小鸟": [
+      "南琴梨"
+    ],
+    "矢泽妮可": [
+      "矢泽日香",
+      "矢泽妮歌"
+    ],
+    "黑泽黛雅": [
+      "黑泽大雅"
+    ],
+    "黑泽露比": [
+      "黑泽露比伊"
+    ],
+    "米雅·泰勒": [
+      "米娅·泰勒"
+    ],
+    "渡边曜": [
+      "渡边曜子"
+    ]
+  }
+}

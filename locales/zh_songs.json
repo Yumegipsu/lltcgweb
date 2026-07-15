@@ -1,0 +1,792 @@
+{
+  "songs": {
+    "365 Days": {
+      "zh": "365 Days",
+      "method": "keep"
+    },
+    "?←HEARTBEAT": {
+      "zh": "?←HEARTBEAT",
+      "method": "keep"
+    },
+    "A song for You! You? You!!": {
+      "zh": "A song for You! You? You!!",
+      "method": "keep"
+    },
+    "AURORA FLOWER": {
+      "zh": "AURORA FLOWER",
+      "method": "keep"
+    },
+    "AWOKE": {
+      "zh": "AWOKE",
+      "method": "keep"
+    },
+    "Aikotoba!": {
+      "zh": "爱言叶！",
+      "method": "semantic"
+    },
+    "Aishiteru Banzai!": {
+      "zh": "爱您万岁！",
+      "method": "semantic"
+    },
+    "Ai♡Scream!": {
+      "zh": "Ai♡Scream!",
+      "method": "keep"
+    },
+    "Angelic Angel": {
+      "zh": "Angelic Angel",
+      "method": "keep"
+    },
+    "Aoku Haruka": {
+      "zh": "苍然遥远",
+      "method": "semantic"
+    },
+    "Aozora Jumping Heart": {
+      "zh": "青空Jumping Heart",
+      "method": "semantic"
+    },
+    "Aspire": {
+      "zh": "Aspire",
+      "method": "keep"
+    },
+    "Atarayo Hanabi": {
+      "zh": "新夜花火",
+      "method": "semantic"
+    },
+    "Awaken the Power": {
+      "zh": "Awaken the Power",
+      "method": "keep"
+    },
+    "Awakening Promise": {
+      "zh": "Awakening Promise",
+      "method": "keep"
+    },
+    "Binetsu Kara Mystery": {
+      "zh": "从微热到Mystery",
+      "method": "semantic"
+    },
+    "Birdcage": {
+      "zh": "Birdcage",
+      "method": "keep"
+    },
+    "Bloom the smile, Bloom the dream!": {
+      "zh": "Bloom the smile, Bloom the dream!",
+      "method": "keep"
+    },
+    "Blue Moment": {
+      "zh": "Blue Moment",
+      "method": "keep"
+    },
+    "Blue!": {
+      "zh": "Blue!",
+      "method": "keep"
+    },
+    "Bokura no Hashitte Kita Michi wa...": {
+      "zh": "我们一路跑来的路是…",
+      "method": "semantic"
+    },
+    "Bokura no LIVE Kimi to no LIFE": {
+      "zh": "我们的LIVE 与你的LIFE",
+      "method": "semantic"
+    },
+    "Bokura wa Ima no Naka de": {
+      "zh": "我们已于现在之中",
+      "method": "semantic"
+    },
+    "Bouken Type A, B, C!!": {
+      "zh": "冒险Type A, B, C!!",
+      "method": "sino"
+    },
+    "Bring the LOVE!": {
+      "zh": "Bring the LOVE!",
+      "method": "keep"
+    },
+    "Bubble Rise": {
+      "zh": "Bubble Rise",
+      "method": "keep"
+    },
+    "Butterfly": {
+      "zh": "Butterfly",
+      "method": "keep"
+    },
+    "Butterfly Wing": {
+      "zh": "Butterfly Wing",
+      "method": "keep"
+    },
+    "CHASE!": {
+      "zh": "CHASE!",
+      "method": "keep"
+    },
+    "COMPASS": {
+      "zh": "COMPASS",
+      "method": "keep"
+    },
+    "Cara Tesoro": {
+      "zh": "Cara Tesoro",
+      "method": "keep"
+    },
+    "Chance Day, Chance Way!": {
+      "zh": "Chance Day, Chance Way!",
+      "method": "keep"
+    },
+    "Colorful Dreams! Colorful Smiles!": {
+      "zh": "Colorful Dreams! Colorful Smiles!",
+      "method": "keep"
+    },
+    "Cutie Panther": {
+      "zh": "Cutie Panther",
+      "method": "keep"
+    },
+    "DAISUKI FULL POWER": {
+      "zh": "DAISUKI FULL POWER",
+      "method": "keep"
+    },
+    "DIVE!": {
+      "zh": "DIVE!",
+      "method": "keep"
+    },
+    "DREAMY COLOR": {
+      "zh": "DREAMY COLOR",
+      "method": "keep"
+    },
+    "Daisuki dattara Daijoubu!": {
+      "zh": "喜欢的话就没关系！",
+      "method": "semantic"
+    },
+    "Dakishimeru Hanabira": {
+      "zh": "拥抱花瓣",
+      "method": "semantic"
+    },
+    "Dancing stars on me!": {
+      "zh": "Dancing stars on me!",
+      "method": "keep"
+    },
+    "Daydream Mermaid": {
+      "zh": "Daydream Mermaid",
+      "method": "keep"
+    },
+    "Dazzling Game": {
+      "zh": "Dazzling Game",
+      "method": "keep"
+    },
+    "Deep Resonance": {
+      "zh": "Deep Resonance",
+      "method": "keep"
+    },
+    "Diamond Princess no Yuuutsu": {
+      "zh": "钻石公主的忧郁",
+      "method": "semantic"
+    },
+    "Distortion": {
+      "zh": "Distortion",
+      "method": "keep"
+    },
+    "Do! Do! Do!": {
+      "zh": "Do! Do! Do!",
+      "method": "keep"
+    },
+    "Doko ni Itemo Kimi wa Kimi": {
+      "zh": "无论何处你都是你",
+      "method": "semantic"
+    },
+    "Dream Believers": {
+      "zh": "Dream Believers",
+      "method": "keep"
+    },
+    "Dream Believers (104th Ver.)": {
+      "zh": "Dream Believers (104th Ver.)",
+      "method": "keep"
+    },
+    "Dream Believers (105th Ver.)": {
+      "zh": "Dream Believers (105th Ver.)",
+      "method": "keep"
+    },
+    "Dream with You": {
+      "zh": "Dream with You",
+      "method": "keep"
+    },
+    "Dreamin' Go! Go!!": {
+      "zh": "Dreamin' Go! Go!!",
+      "method": "keep"
+    },
+    "EMOTION": {
+      "zh": "EMOTION",
+      "method": "keep"
+    },
+    "Echoes Beyond": {
+      "zh": "Echoes Beyond",
+      "method": "keep"
+    },
+    "Edelied": {
+      "zh": "Edelied",
+      "method": "keep"
+    },
+    "Egao no Promise": {
+      "zh": "笑容的Promise",
+      "method": "semantic"
+    },
+    "Eternalize Love!!": {
+      "zh": "Eternalize Love!!",
+      "method": "keep"
+    },
+    "Eutopia": {
+      "zh": "Eutopia",
+      "method": "keep"
+    },
+    "Fanfare!!!": {
+      "zh": "Fanfare!!!",
+      "method": "keep"
+    },
+    "Fantastic Departure!": {
+      "zh": "Fantastic Departure!",
+      "method": "keep"
+    },
+    "Fusion Crust": {
+      "zh": "Fusion Crust",
+      "method": "keep"
+    },
+    "GALAXY HidE and SeeK": {
+      "zh": "GALAXY HidE and SeeK",
+      "method": "keep"
+    },
+    "Genki Zenkai DAY! DAY! DAY!": {
+      "zh": "元气全开DAY! DAY! DAY!",
+      "method": "sino"
+    },
+    "Genyou Yakou": {
+      "zh": "幻影夜行",
+      "method": "sino"
+    },
+    "Go!! Restart": {
+      "zh": "Go!! Restart",
+      "method": "keep"
+    },
+    "HAPPY PARTY TRAIN": {
+      "zh": "HAPPY PARTY TRAIN",
+      "method": "keep"
+    },
+    "HOT PASSION!!": {
+      "zh": "HOT PASSION!!",
+      "method": "keep"
+    },
+    "Hajimari wa Kimi no Sora": {
+      "zh": "开始是你的天空",
+      "method": "semantic"
+    },
+    "Hanamusubi": {
+      "zh": "花结",
+      "method": "semantic"
+    },
+    "Holiday∞Holiday": {
+      "zh": "Holiday∞Holiday",
+      "method": "keep"
+    },
+    "I Do Me!": {
+      "zh": "I Do Me!",
+      "method": "keep"
+    },
+    "Identity": {
+      "zh": "Identity",
+      "method": "keep"
+    },
+    "JIMO-AI Dash!": {
+      "zh": "JIMO-AI Dash!",
+      "method": "keep"
+    },
+    "Jellyfish": {
+      "zh": "Jellyfish",
+      "method": "keep"
+    },
+    "Joushou Kiryuu": {
+      "zh": "上升气流",
+      "method": "sino"
+    },
+    "Jump Into the New World": {
+      "zh": "Jump Into the New World",
+      "method": "keep"
+    },
+    "Jump up HIGH!!": {
+      "zh": "Jump up HIGH!!",
+      "method": "keep"
+    },
+    "Just Believe!!!": {
+      "zh": "Just Believe!!!",
+      "method": "keep"
+    },
+    "KOKORO Magic \"A to Z\"": {
+      "zh": "KOKORO Magic \"A to Z\"",
+      "method": "keep"
+    },
+    "Kaguya no Shiro de Odoritai": {
+      "zh": "想在辉夜之城里起舞",
+      "method": "semantic"
+    },
+    "KiRa-KiRa Sensation!": {
+      "zh": "KiRa-KiRa Sensation!",
+      "method": "keep"
+    },
+    "Kimi no Kokoro wa Kagayaiteru kai?": {
+      "zh": "你的心灵是否闪耀着？",
+      "method": "semantic"
+    },
+    "Kinmirai Happy End": {
+      "zh": "近未来Happy End",
+      "method": "sino"
+    },
+    "Kitto Seishun ga Kikoeru": {
+      "zh": "一定能听到青春",
+      "method": "semantic"
+    },
+    "Koi ni Naritai AQUARIUM": {
+      "zh": "想要恋爱AQUARIUM",
+      "method": "semantic"
+    },
+    "Kokon Touzai": {
+      "zh": "古今东西",
+      "method": "sino"
+    },
+    "Korekara no Someday": {
+      "zh": "今后的Someday",
+      "method": "semantic"
+    },
+    "Kowareyasuki": {
+      "zh": "易碎的",
+      "method": "semantic"
+    },
+    "La Bella Patria": {
+      "zh": "La Bella Patria",
+      "method": "keep"
+    },
+    "Ladybug": {
+      "zh": "Ladybug",
+      "method": "keep"
+    },
+    "Landing action Yeah!!": {
+      "zh": "Landing action Yeah!!",
+      "method": "keep"
+    },
+    "Let's be ONE": {
+      "zh": "Let's be ONE",
+      "method": "keep"
+    },
+    "Link to the FUTURE": {
+      "zh": "Link to the FUTURE",
+      "method": "keep"
+    },
+    "Link to the FUTURE (104th Ver.)": {
+      "zh": "Link to the FUTURE (104th Ver.)",
+      "method": "keep"
+    },
+    "Live with a smile!": {
+      "zh": "Live with a smile!",
+      "method": "keep"
+    },
+    "Love U my friends": {
+      "zh": "Love U my friends",
+      "method": "keep"
+    },
+    "Love Wing Bell": {
+      "zh": "Love Wing Bell",
+      "method": "keep"
+    },
+    "MIRACLE NEW STORY": {
+      "zh": "MIRACLE NEW STORY",
+      "method": "keep"
+    },
+    "MIRACLE WAVE": {
+      "zh": "MIRACLE WAVE",
+      "method": "keep"
+    },
+    "MIRAI TICKET": {
+      "zh": "MIRAI TICKET",
+      "method": "keep"
+    },
+    "MONSTER GIRLS": {
+      "zh": "MONSTER GIRLS",
+      "method": "keep"
+    },
+    "MY Mai☆TONIGHT": {
+      "zh": "MY Mai☆TONIGHT",
+      "method": "keep"
+    },
+    "Mi wa μ'sic no Mi": {
+      "zh": "实乃μ'sic之实",
+      "method": "semantic"
+    },
+    "Mijuku DREAMER": {
+      "zh": "未熟DREAMER",
+      "method": "sino"
+    },
+    "Mira-Creation": {
+      "zh": "Mira-Creation",
+      "method": "keep"
+    },
+    "Miracle STAY TUNE!": {
+      "zh": "Miracle STAY TUNE!",
+      "method": "keep"
+    },
+    "Mirage Voyage": {
+      "zh": "Mirage Voyage",
+      "method": "keep"
+    },
+    "Mirai Harmony": {
+      "zh": "未来Harmony",
+      "method": "sino"
+    },
+    "Mirai Yohou Hallelujah!": {
+      "zh": "未来预报Hallelujah!",
+      "method": "sino"
+    },
+    "Mirai no Bokura wa Shitteru yo": {
+      "zh": "未来的我们都明白",
+      "method": "semantic"
+    },
+    "Mirai wa Kaze no You ni": {
+      "zh": "未来如风",
+      "method": "semantic"
+    },
+    "Mitaiken HORIZON": {
+      "zh": "未体验HORIZON",
+      "method": "sino"
+    },
+    "Mogyutto \"love\" de Sekkinchuu!": {
+      "zh": "满满\"love\"接近中！",
+      "method": "semantic"
+    },
+    "Music S.T.A.R.T!!": {
+      "zh": "Music S.T.A.R.T!!",
+      "method": "keep"
+    },
+    "Muteki-kyuu*Believer": {
+      "zh": "无敌级*Believer",
+      "method": "sino"
+    },
+    "NEO SKY, NEO MAP!": {
+      "zh": "NEO SKY, NEO MAP!",
+      "method": "keep"
+    },
+    "Natsuiro Egao de 1,2,Jump!": {
+      "zh": "夏色笑颜的1,2,Jump!",
+      "method": "semantic"
+    },
+    "Natsumeki Pain": {
+      "zh": "Natsumeki Pain",
+      "method": "keep"
+    },
+    "Neutral": {
+      "zh": "Neutral",
+      "method": "keep"
+    },
+    "Next SPARKLING!!": {
+      "zh": "Next SPARKLING!!",
+      "method": "keep"
+    },
+    "Nightingale Love Song": {
+      "zh": "Nightingale Love Song",
+      "method": "keep"
+    },
+    "Nijiiro Passions!": {
+      "zh": "虹色Passions!",
+      "method": "semantic"
+    },
+    "No Brand Girls": {
+      "zh": "No Brand Girls",
+      "method": "keep"
+    },
+    "Nonfiction!!": {
+      "zh": "Nonfiction!!",
+      "method": "keep"
+    },
+    "Oh, Love & Peace!": {
+      "zh": "Oh, Love & Peace!",
+      "method": "keep"
+    },
+    "Oikakeru Yume no Saki de": {
+      "zh": "在追逐梦想的尽头",
+      "method": "semantic"
+    },
+    "Omoi yo Hitotsu ni Nare": {
+      "zh": "心意啊合而为一",
+      "method": "semantic"
+    },
+    "Otome Heart de Love Kyuden": {
+      "zh": "少女心恋爱宫殿",
+      "method": "semantic"
+    },
+    "PASTEL": {
+      "zh": "PASTEL",
+      "method": "keep"
+    },
+    "PHOENIX": {
+      "zh": "PHOENIX",
+      "method": "keep"
+    },
+    "Poppin' Up!": {
+      "zh": "Poppin' Up!",
+      "method": "keep"
+    },
+    "Private Wars": {
+      "zh": "Private Wars",
+      "method": "keep"
+    },
+    "Proof": {
+      "zh": "Proof",
+      "method": "keep"
+    },
+    "Reflection in the mirror": {
+      "zh": "Reflection in the mirror",
+      "method": "keep"
+    },
+    "Retrofuture": {
+      "zh": "Retrofuture",
+      "method": "keep"
+    },
+    "Rise Up High!": {
+      "zh": "Rise Up High!",
+      "method": "keep"
+    },
+    "Ryouran! Victory Road": {
+      "zh": "缭乱！Victory Road",
+      "method": "sino"
+    },
+    "SELF CONTROL!!": {
+      "zh": "SELF CONTROL!!",
+      "method": "keep"
+    },
+    "SENTIMENTAL StepS": {
+      "zh": "SENTIMENTAL StepS",
+      "method": "keep"
+    },
+    "SINGING, DREAMING, NOW!": {
+      "zh": "SINGING, DREAMING, NOW!",
+      "method": "keep"
+    },
+    "START!! True dreams": {
+      "zh": "START!! True dreams",
+      "method": "keep"
+    },
+    "START:DASH!!": {
+      "zh": "START:DASH!!",
+      "method": "keep"
+    },
+    "SUKI for you, DREAM for you!": {
+      "zh": "SUKI for you, DREAM for you!",
+      "method": "keep"
+    },
+    "SUNNY DAY SONG": {
+      "zh": "SUNNY DAY SONG",
+      "method": "keep"
+    },
+    "Saikou Heart": {
+      "zh": "最高Heart",
+      "method": "sino"
+    },
+    "Sakaku♡CROSSROADS": {
+      "zh": "错觉♡CROSSROADS",
+      "method": "sino"
+    },
+    "Second Sparkle": {
+      "zh": "Second Sparkle",
+      "method": "keep"
+    },
+    "Shekira☆☆☆": {
+      "zh": "Shekira☆☆☆",
+      "method": "keep"
+    },
+    "Shiranai Love * Oshiete Love": {
+      "zh": "不懂的Love * 教教我Love",
+      "method": "semantic"
+    },
+    "Shooting Voice!!": {
+      "zh": "Shooting Voice!!",
+      "method": "keep"
+    },
+    "Sing! Shine! Smile!": {
+      "zh": "Sing! Shine! Smile!",
+      "method": "keep"
+    },
+    "Snow halation": {
+      "zh": "雪色光晕",
+      "method": "semantic"
+    },
+    "Solitude Rain": {
+      "zh": "Solitude Rain",
+      "method": "keep"
+    },
+    "Sore wa Bokutachi no Kiseki": {
+      "zh": "那就是我们的奇迹",
+      "method": "semantic"
+    },
+    "Sparkly Spot": {
+      "zh": "Sparkly Spot",
+      "method": "keep"
+    },
+    "Special Color": {
+      "zh": "Special Color",
+      "method": "keep"
+    },
+    "Starlight Prologue": {
+      "zh": "Starlight Prologue",
+      "method": "keep"
+    },
+    "Stellar Stream": {
+      "zh": "Stellar Stream",
+      "method": "keep"
+    },
+    "Step! ZERO to ONE": {
+      "zh": "Step! ZERO to ONE",
+      "method": "keep"
+    },
+    "Strawberry Trapper": {
+      "zh": "Strawberry Trapper",
+      "method": "keep"
+    },
+    "Suisai Sekai": {
+      "zh": "水彩世界",
+      "method": "sino"
+    },
+    "THE SECRET NiGHT": {
+      "zh": "THE SECRET NiGHT",
+      "method": "keep"
+    },
+    "TOKIMEKI Runners": {
+      "zh": "TOKIMEKI Runners",
+      "method": "keep"
+    },
+    "Takaramonozu": {
+      "zh": "宝物们",
+      "method": "semantic"
+    },
+    "Tiny Stars": {
+      "zh": "Tiny Stars",
+      "method": "keep"
+    },
+    "Tokonatsu☆Sunshine": {
+      "zh": "常夏☆Sunshine",
+      "method": "semantic"
+    },
+    "Torikoriko PLEASE!!": {
+      "zh": "Torikoriko PLEASE!!",
+      "method": "keep"
+    },
+    "Tousou Meisou Mobius Loop": {
+      "zh": "逃走迷走莫比乌斯环",
+      "method": "sino"
+    },
+    "Towa hours": {
+      "zh": "Towa hours",
+      "method": "keep"
+    },
+    "Tsubasa・La・Liberte": {
+      "zh": "Tsubasa・La・Liberte",
+      "method": "keep"
+    },
+    "Tsukuyomi Kurage": {
+      "zh": "月读水母",
+      "method": "semantic"
+    },
+    "Tsunagaru Connect": {
+      "zh": "Tsunagaru Connect",
+      "method": "keep"
+    },
+    "UNIVERSE!!": {
+      "zh": "UNIVERSE!!",
+      "method": "keep"
+    },
+    "VIVID WORLD": {
+      "zh": "VIVID WORLD",
+      "method": "keep"
+    },
+    "Very! Very! COCO Natsu": {
+      "zh": "Very! Very! COCO Natsu",
+      "method": "keep"
+    },
+    "Vitamin SUMMER!": {
+      "zh": "Vitamin SUMMER!",
+      "method": "keep"
+    },
+    "WAO-WAO Powerful day!": {
+      "zh": "WAO-WAO Powerful day!",
+      "method": "keep"
+    },
+    "WATER BLUE NEW WORLD": {
+      "zh": "WATER BLUE NEW WORLD",
+      "method": "keep"
+    },
+    "WE WILL!!": {
+      "zh": "WE WILL!!",
+      "method": "keep"
+    },
+    "Watashi no Symphony ~Kanon Shibuya Ver.~": {
+      "zh": "我的交响曲～涩谷香音 Ver.～",
+      "method": "semantic"
+    },
+    "Welcome to 僕らのセカイ": {
+      "zh": "Welcome to 我们的世界",
+      "method": "semantic"
+    },
+    "Wish Song": {
+      "zh": "Wish Song",
+      "method": "keep"
+    },
+    "Wonder Zone": {
+      "zh": "Wonder Zone",
+      "method": "keep"
+    },
+    "Wonderful Rush": {
+      "zh": "Wonderful Rush",
+      "method": "keep"
+    },
+    "Yuki Mau Sora to Nibyou no Eien": {
+      "zh": "飞雪的天空与两秒的永恒",
+      "method": "semantic"
+    },
+    "Yume Kataru yori Yume Utaou": {
+      "zh": "与其畅谈梦想不如放声歌唱",
+      "method": "semantic"
+    },
+    "Yume Wazurai": {
+      "zh": "梦患",
+      "method": "semantic"
+    },
+    "Yume de Yozora o Terashitai": {
+      "zh": "想用梦照亮夜空",
+      "method": "semantic"
+    },
+    "Yume ga Bokura no Taiyou sa": {
+      "zh": "梦想就是我们的太阳",
+      "method": "semantic"
+    },
+    "Yume no Tobira": {
+      "zh": "梦之门",
+      "method": "semantic"
+    },
+    "Yumewazurai": {
+      "zh": "梦患",
+      "method": "semantic"
+    },
+    "Yuuki wa Doko ni? Kimi no Mune ni!": {
+      "zh": "勇气在哪里？在你心里！",
+      "method": "semantic"
+    },
+    "Zenhoui Kyun♡": {
+      "zh": "全方位心动♡",
+      "method": "sino"
+    },
+    "not ALONE not HITORI": {
+      "zh": "not ALONE not 一人",
+      "method": "semantic"
+    },
+    "stars we chase": {
+      "zh": "stars we chase",
+      "method": "keep"
+    },
+    "sweet&sweet holiday": {
+      "zh": "sweet&sweet holiday",
+      "method": "keep"
+    },
+    "絶対的LOVER": {
+      "zh": "绝对的LOVER",
+      "method": "sino"
+    }
+  }
+}
