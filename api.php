@@ -346,8 +346,9 @@ function joinRoom(array $body): array {
     if (($body['deck'] ?? '') === 'cpu') {
         $cpuDiff = normalizeCpuDifficulty($body['cpu_difficulty'] ?? 'easy');
         $state['cpu_difficulty'] = $cpuDiff;
+        $state['cpu_solo'] = true;
         unset($state['players']['p2']['discord_id']);
-        $state = addLog($state, 'CPU deck: ' . ($resolved['deck_label'] ?? 'Generated'));
+        $state = addLog($state, 'CPU deck (' . $cpuDiff . '): ' . ($resolved['deck_label'] ?? 'Generated'));
     }
 
     saveGame($roomId, $state);
@@ -3669,6 +3670,9 @@ function filterStateForPlayer(array $state, string $token): array {
             $filtered['players'][$oppId]['hand']  = [];
         } else {
             $filtered['cpu_solo'] = true;
+            if (!empty($state['cpu_difficulty'])) {
+                $filtered['cpu_difficulty'] = normalizeCpuDifficulty($state['cpu_difficulty']);
+            }
         }
         // Deck contents are secret — counts only (Waiting Room stays public, face-up in UI)
         $filtered['players'][$oppId]['main_deck_count'] = count($opp['main_deck'] ?? []);

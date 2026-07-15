@@ -194,6 +194,20 @@ select option{background:#2A1520;color:#fff}
 .field label{display:block;font-weight:800;font-size:11px;
   text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.38);margin-bottom:5px}
 .field input,.field select{width:100%}
+.cpu-diff-pills{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 8px}
+.cpu-diff-pill{
+  appearance:none;border:1px solid rgba(186,228,255,.55);border-radius:10px;
+  background:rgba(52,163,243,.18);color:#fff;font:inherit;font-size:12px;font-weight:800;
+  letter-spacing:.04em;padding:10px 4px;cursor:pointer;line-height:1.2;
+  transition:background .2s ease,border-color .2s ease,transform .15s ease}
+.cpu-diff-pill:hover{background:rgba(52,163,243,.35);border-color:#fff}
+.cpu-diff-pill.is-active{
+  background:rgba(255,107,168,.42);border-color:#ffd0e4;box-shadow:0 0 0 1px rgba(255,208,228,.35)}
+.cpu-diff-hint{
+  margin:0 0 10px;font-size:11px;line-height:1.45;color:rgba(255,255,255,.62);min-height:2.6em}
+.field-cpu-diff .llc-select-wrap{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);
+  clip-path:inset(50%);white-space:nowrap;border:0;padding:0;margin:-1px}
 #inp-code{min-width:11.5em;font-variant-numeric:tabular-nums}
 .deck-prev{margin-top:7px;background:rgba(255,255,255,.05);border:1px solid var(--ui-panel-border);
   border-radius:var(--rsm);padding:9px 11px;font-size:11px;
@@ -287,6 +301,7 @@ select option{background:#2A1520;color:#fff}
 @media(max-width:720px){
   .lobby-cols{flex-direction:column;align-items:center;max-width:430px;margin:0 auto}
   .lobby-col{width:100%;max-width:430px}
+  .cpu-diff-pills{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
 /* ═══ TUTORIAL SPOTLIGHT + DIALOGUE */
@@ -7253,8 +7268,15 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
               <h2 data-i18n="lobby.vsCpu">VS CPU</h2>
               <div class="field field-cpu-diff" id="cpu-diff-field">
                 <label data-i18n="lobby.cpuDifficulty">CPU Difficulty</label>
+                <div class="cpu-diff-pills" id="cpu-diff-pills" role="radiogroup" aria-label="CPU Difficulty">
+                  <button type="button" class="cpu-diff-pill" data-cpu-diff="easy" data-i18n="lobby.cpuEasyShort">Easy</button>
+                  <button type="button" class="cpu-diff-pill" data-cpu-diff="normal" data-i18n="lobby.cpuNormalShort">Normal</button>
+                  <button type="button" class="cpu-diff-pill" data-cpu-diff="hard" data-i18n="lobby.cpuHardShort">Hard</button>
+                  <button type="button" class="cpu-diff-pill" data-cpu-diff="expert" data-i18n="lobby.cpuExpertShort">Expert</button>
+                </div>
+                <p class="cpu-diff-hint" id="cpu-diff-hint" data-i18n="lobby.cpuEasy">Easy — random starter deck</p>
                 <div class="llc-select-wrap">
-                  <select id="sel-cpu-diff">
+                  <select id="sel-cpu-diff" tabindex="-1" aria-hidden="true">
                     <option value="easy" data-i18n="lobby.cpuEasy">Easy — random starter deck</option>
                     <option value="normal" data-i18n="lobby.cpuNormal">Normal — smarter skills &amp; Lives</option>
                     <option value="hard" data-i18n="lobby.cpuHard">Hard — strong deck &amp; skill priority</option>
@@ -8112,7 +8134,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=51"></script>
+<script src="i18n.js?v=52"></script>
 <script src="log_i18n.js?v=9"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=13"></script>
@@ -9753,6 +9775,7 @@ function saveActiveGameSession() {
       playerId: G.playerId,
       isCPU: !!G.isCPU,
       cpuToken: G.cpuToken || null,
+      cpuDifficulty: normalizeCpuDifficultyClient(G.cpuDifficulty),
       screen,
       replayMode: !!G.replayMode,
       replayHandoff: !!G.replayHandoff,
@@ -9893,6 +9916,7 @@ async function reconnectToGame(saved) {
     G.isCPU = !!(saved.isCPU || s.cpu_solo);
     G.cpuToken = saved.cpuToken || null;
     G.cpuPlayerId = G.isCPU ? (G.playerId === 'p1' ? 'p2' : 'p1') : null;
+    syncCpuDifficultyFromState(s, saved);
     if (saved.replayMode && !saved.replayHandoff) {
       G.replayMode = true;
       G.replayStep = saved.replayStep ?? 0;
@@ -17164,20 +17188,25 @@ async function bootApp() {
   if (G.gameState?.players && el('screen-game')?.classList.contains('active')) {
     renderGame(G.gameState);
   }
+  ensureCpuDiffSelectOptions();
   try {
     const savedDiff = localStorage.getItem('tcg_cpu_difficulty');
     if (savedDiff === 'easy' || savedDiff === 'normal' || savedDiff === 'hard' || savedDiff === 'expert') {
-      G.cpuDifficulty = savedDiff;
-      if (el('sel-cpu-diff')) el('sel-cpu-diff').value = savedDiff;
+      setCpuDifficulty(savedDiff, { persist: false });
+    } else {
+      syncCpuDiffUi(G.cpuDifficulty || 'easy');
     }
-  } catch (e) {}
+  } catch (e) {
+    syncCpuDiffUi(G.cpuDifficulty || 'easy');
+  }
   renderLobbyDeckOptions();
   on('sel-cpu-diff', 'change', () => {
-    const v = el('sel-cpu-diff')?.value;
-    if (v === 'easy' || v === 'normal' || v === 'hard' || v === 'expert') {
-      G.cpuDifficulty = v;
-      try { localStorage.setItem('tcg_cpu_difficulty', v); } catch (e) {}
-    }
+    setCpuDifficulty(el('sel-cpu-diff')?.value || 'easy');
+  });
+  el('cpu-diff-pills')?.addEventListener('click', (ev) => {
+    const btn = ev.target?.closest?.('[data-cpu-diff]');
+    if (!btn || !el('cpu-diff-pills')?.contains(btn)) return;
+    setCpuDifficulty(btn.getAttribute('data-cpu-diff') || 'easy');
   });
   on('sel-deck', 'change', () => {
     const v = el('sel-deck')?.value || '';
@@ -18634,8 +18663,7 @@ function applyRematchToLobbyUI(rematch) {
     if ([...sel.options].some(o => o.value === v)) sel.value = v;
     updateDeckPrev();
   }
-  const cpuSel = el('sel-cpu-diff');
-  if (cpuSel && rematch.cpuDifficulty) cpuSel.value = rematch.cpuDifficulty;
+  if (rematch.cpuDifficulty) setCpuDifficulty(rematch.cpuDifficulty, { persist: false });
   if (rematch.phaseTimer) {
     const chk = el('inp-phase-timer');
     if (chk) chk.checked = !!rematch.phaseTimer.enabled;
@@ -18659,9 +18687,7 @@ async function startSoloRematch(rematch) {
   const name = (rematch.name || '').trim() || 'Player 1';
   const deckSel = rematch.deckChoice || 'nijigasaki';
   const timerOpts = rematchPhaseTimerOpts(rematch);
-  const diff = rematch.cpuDifficulty || 'easy';
-  G.cpuDifficulty = (diff === 'normal' || diff === 'hard' || diff === 'expert') ? diff : 'easy';
-  try { localStorage.setItem('tcg_cpu_difficulty', G.cpuDifficulty); } catch (e) {}
+  setCpuDifficulty(rematch.cpuDifficulty || 'easy');
   const r1 = await apiPost('create_room', { name, ...deckPayloadFromChoice(deckSel), ...timerOpts });
   G.roomId = r1.room_id; G.token = r1.player_token; G.playerId = 'p1'; G.isCPU = true;
   captureSyncMeta(r1);
@@ -18692,7 +18718,7 @@ async function startUnrankedRematch(rematch) {
 }
 
 function cpuJoinPayload(deckChoice) {
-  const diff = G.cpuDifficulty || 'easy';
+  const diff = normalizeCpuDifficultyClient(G.cpuDifficulty || 'easy');
   const dc = deckChoice ?? el('sel-deck')?.value ?? 'nijigasaki';
   let hint = null;
   if (dc && dc !== 'random' && !String(dc).startsWith('preset:')) {
@@ -18700,7 +18726,7 @@ function cpuJoinPayload(deckChoice) {
   }
   return {
     deck: 'cpu',
-    cpu_difficulty: (diff === 'normal' || diff === 'hard' || diff === 'expert') ? diff : 'easy',
+    cpu_difficulty: diff,
     ...(hint ? { cpu_group_hint: hint } : {}),
   };
 }
@@ -18771,9 +18797,7 @@ async function doSolo() {
   const name=el('inp-name').value.trim()||'Player 1';
   const deckSel = el('sel-deck').value;
   const timerOpts = lobbyPhaseTimerOpts();
-  const diff = el('sel-cpu-diff')?.value || G.cpuDifficulty || 'easy';
-  G.cpuDifficulty = (diff === 'normal' || diff === 'hard' || diff === 'expert') ? diff : 'easy';
-  try { localStorage.setItem('tcg_cpu_difficulty', G.cpuDifficulty); } catch (e) {}
+  setCpuDifficulty(el('sel-cpu-diff')?.value || G.cpuDifficulty || 'easy');
   setErr('');
   try {
     const r1 = await apiPost('create_room',{name,...lobbyDeckPayload(),...timerOpts});
@@ -22721,9 +22745,85 @@ function scheduleCpuResolvePrompt(s, cpu) {
 }
 
 // ── CPU ───────────────────────────────────────────────
+const CPU_DIFF_HINT_KEYS = {
+  easy: 'lobby.cpuEasy',
+  normal: 'lobby.cpuNormal',
+  hard: 'lobby.cpuHard',
+  expert: 'lobby.cpuExpert',
+};
+
+function normalizeCpuDifficultyClient(diff) {
+  return (diff === 'expert' || diff === 'hard' || diff === 'normal' || diff === 'easy')
+    ? diff
+    : 'easy';
+}
+
+function syncCpuDiffUi(diff = G.cpuDifficulty) {
+  const tier = normalizeCpuDifficultyClient(diff);
+  const sel = el('sel-cpu-diff');
+  if (sel) {
+    ensureCpuDiffSelectOptions(sel);
+    sel.value = tier;
+  }
+  document.querySelectorAll('#cpu-diff-pills .cpu-diff-pill').forEach((btn) => {
+    const on = btn.getAttribute('data-cpu-diff') === tier;
+    btn.classList.toggle('is-active', on);
+    btn.setAttribute('aria-checked', on ? 'true' : 'false');
+    btn.setAttribute('role', 'radio');
+  });
+  const hint = el('cpu-diff-hint');
+  if (hint) {
+    const key = CPU_DIFF_HINT_KEYS[tier] || CPU_DIFF_HINT_KEYS.easy;
+    hint.setAttribute('data-i18n', key);
+    hint.textContent = typeof t === 'function' ? t(key) : hint.textContent;
+  }
+}
+
+function setCpuDifficulty(diff, { persist = true } = {}) {
+  G.cpuDifficulty = normalizeCpuDifficultyClient(diff);
+  syncCpuDiffUi(G.cpuDifficulty);
+  if (persist) {
+    try { localStorage.setItem('tcg_cpu_difficulty', G.cpuDifficulty); } catch (e) {}
+  }
+  return G.cpuDifficulty;
+}
+
+function syncCpuDifficultyFromState(s, saved = null) {
+  const fromState = s?.cpu_difficulty;
+  const fromSaved = saved?.cpuDifficulty;
+  const fromStore = (() => {
+    try { return localStorage.getItem('tcg_cpu_difficulty'); } catch (e) { return null; }
+  })();
+  const pick = fromState || fromSaved || G.cpuDifficulty || fromStore || 'easy';
+  setCpuDifficulty(pick, { persist: !!fromState || !!fromSaved });
+}
+
+function ensureCpuDiffSelectOptions(sel = el('sel-cpu-diff')) {
+  if (!sel) return;
+  const want = [
+    ['easy', 'lobby.cpuEasy', 'Easy — random starter deck'],
+    ['normal', 'lobby.cpuNormal', 'Normal — smarter skills & Lives'],
+    ['hard', 'lobby.cpuHard', 'Hard — strong deck & skill priority'],
+    ['expert', 'lobby.cpuExpert', 'Expert — dry-run search & threat projection'],
+  ];
+  const have = new Set([...sel.options].map((o) => o.value));
+  for (const [value, i18nKey, label] of want) {
+    if (have.has(value)) continue;
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.setAttribute('data-i18n', i18nKey);
+    opt.textContent = typeof t === 'function' ? t(i18nKey) : label;
+    sel.appendChild(opt);
+  }
+}
+
 function cpuDiff() {
-  const d = G.cpuDifficulty;
-  return d === 'expert' || d === 'hard' || d === 'normal' ? d : 'easy';
+  // Prefer server-authored difficulty during an active solo match.
+  if (G.isCPU && G.gameState?.cpu_difficulty) {
+    const serverTier = normalizeCpuDifficultyClient(G.gameState.cpu_difficulty);
+    if (serverTier !== G.cpuDifficulty) G.cpuDifficulty = serverTier;
+  }
+  return normalizeCpuDifficultyClient(G.cpuDifficulty);
 }
 
 /** Hard or Expert — shared stronger heuristics / deckgen-adjacent behavior. */
@@ -24904,6 +25004,7 @@ function doCPU(s) {
   if (G.tutorialLive && G.tutorialHoldCpu) return;
   ensurePollHoldReleased(s);
   clearStaleCpuPromptBusyIfResolved(s);
+  if (s) syncCpuDifficultyFromState(s);
   const cpuId = cpuOpponentId();
   const cpu = s.players?.[cpuId];
   if (!cpu || !G.cpuToken) return;
@@ -25088,6 +25189,10 @@ async function cpuMain() {
       });
       cpuApplyMainAction(expertBest, stateEval);
       return;
+    }
+    if (!G._cpuExpertFallbackToast) {
+      G._cpuExpertFallbackToast = true;
+      TCG_DEBUG.warn('cpu', 'expert search returned null — Hard heuristics fallback');
     }
   }
 
@@ -35987,10 +36092,10 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/spectacle.js?v=16"></script>
-<script src="client/js/cpu-meta-weights.js?v=2"></script>
-<script src="client/js/cpu-eval.js?v=2"></script>
-<script src="client/js/cpu-expert.js?v=1"></script>
-<script src="client/js/cpu-ai.js?v=4"></script>
+<script src="client/js/cpu-meta-weights.js?v=3"></script>
+<script src="client/js/cpu-eval.js?v=3"></script>
+<script src="client/js/cpu-expert.js?v=2"></script>
+<script src="client/js/cpu-ai.js?v=5"></script>
 <script>void bootApp();</script>
 </body>
 </html>
