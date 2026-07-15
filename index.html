@@ -503,17 +503,25 @@ body.tutorial-mode .side-log .sbfoot button{
 body.tutorial-mode #center-banner.show{z-index:8700}
 body.tutorial-mode.tut-pin-card-info #card-hover-panel{opacity:1;pointer-events:none}
 body.tutorial-mode.tut-pin-card-info #card-hover-panel .hc-empty{display:none}
+/* Outline only — never pin transform. Raise / play-sel / drag rely on translateY. */
 body.tutorial-mode #hand-row .hcard.tut-hand-sel{
   outline:2px solid var(--pink);outline-offset:2px;
   box-shadow:0 0 12px rgba(255,107,168,.45),0 0 22px rgba(56,161,105,.35);
-  border-color:rgba(56,161,105,.85);z-index:8;
-}
-body.tutorial-mode #hand-row .hcard.tut-hand-sel:not(.play-sel){
-  transform:none!important;
+  border-color:rgba(56,161,105,.85);z-index:28;
 }
 body.tutorial-mode #hand-row .hcard.tut-hand-sel.play-sel{
   border-color:rgba(56,161,105,.9);
   box-shadow:0 0 22px rgba(56,161,105,.65),0 10px 28px rgba(0,0,0,.5),0 0 12px rgba(255,107,168,.35);
+  z-index:42;
+}
+/* Live hand-play: mute other cards so the guided card is easy to grab. */
+body.tutorial-live-mode.tutorial-live-action #hand-row .hcard:not(.tut-hand-sel){
+  opacity:.48;filter:grayscale(.2);
+  pointer-events:none!important;
+}
+body.tutorial-live-mode.tutorial-live-action #hand-row .hcard.tut-hand-sel{
+  opacity:1;filter:none;
+  pointer-events:auto!important;
 }
 body.tutorial-mode #sb-activatable-wrap.tut-show{outline:2px solid rgba(255,107,168,.35);border-radius:10px}
 
@@ -8150,7 +8158,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/stamps.js?v=15"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
 <script src="client/js/prompt-renderer.js?v=30"></script>
-<script src="client/js/tutorial-interactive.js?v=16"></script>
+<script src="client/js/tutorial-interactive.js?v=17"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -34220,7 +34228,17 @@ function tutorialNudgeBubbleFromScreenEdge(left, top, opts) {
 }
 
 function finishTutorialBubblePlacement(overlay, bar, left, top, placement, opts, arrow = {}) {
-  const nudged = tutorialNudgeBubbleFromScreenEdge(left, top, opts);
+  const { bubbleW, bubbleH, margin = 14, gap = 16, vh = window.innerHeight, vw = window.innerWidth } = opts || {};
+  let L = left;
+  let T = top;
+  const tutStep = G.tutorialData?.steps?.[G.tutorialStep];
+  if (G.tutorialLive && bubbleW && bubbleH && (tutStep?.select_hand
+      || tutStep?.goal?.type === 'play_member'
+      || tutStep?.goal?.type === 'set_live'
+      || tutStep?.goal?.type === 'end_live_set')) {
+    ({ left: L, top: T } = tutorialClampBubbleAwayFromHand(L, T, bubbleW, bubbleH, margin, gap, vh, vw));
+  }
+  const nudged = tutorialNudgeBubbleFromScreenEdge(L, T, opts);
   overlay.style.left = Math.round(nudged.left) + 'px';
   overlay.style.top = Math.round(nudged.top) + 'px';
   overlay.dataset.placement = placement;
@@ -34443,8 +34461,52 @@ function tutorialPlaymatLeftEdge(bubbleW, margin, gap) {
   return Math.max(margin, gutter - bubbleW - gap);
 }
 
+function tutorialMyHandAvoidRect() {
+  const strip = document.querySelector('#screen-game .my-hand-strip');
+  const row = el('hand-row');
+  const r = (row || strip)?.getBoundingClientRect?.();
+  if (!r || r.width < 2 || r.height < 2) return null;
+  // Raised cards extend above the strip — keep clear space for hover/select.
+  const lift = Math.max(48, Math.round(r.height * 0.55));
+  return {
+    left: r.left,
+    top: Math.max(0, r.top - lift),
+    width: r.width,
+    height: r.height + lift,
+  };
+}
+
+function tutorialClampBubbleAwayFromHand(left, top, bubbleW, bubbleH, margin, gap, vh, vw) {
+  const hand = tutorialMyHandAvoidRect();
+  if (!hand) return { left, top };
+  const bubble = { left, top, width: bubbleW, height: bubbleH };
+  if (!tutorialBubbleOverlapsFocus(bubble, hand, gap)) return { left, top };
+  // Prefer sitting fully above the hand, then top-right / top-left.
+  const above = Math.max(margin, hand.top - bubbleH - gap);
+  const candidates = [
+    { left, top: above },
+    { left: Math.max(margin, vw - bubbleW - margin), top: above },
+    { left: margin, top: above },
+    { left: Math.max(margin, vw - bubbleW - margin), top: margin },
+    { left: margin, top: margin },
+  ];
+  for (const c of candidates) {
+    const trial = { left: c.left, top: c.top, width: bubbleW, height: bubbleH };
+    if (!tutorialBubbleOverlapsFocus(trial, hand, gap)) {
+      return {
+        left: Math.max(margin, Math.min(vw - bubbleW - margin, c.left)),
+        top: Math.max(margin, Math.min(vh - bubbleH - margin, c.top)),
+      };
+    }
+  }
+  return {
+    left: Math.max(margin, Math.min(vw - bubbleW - margin, left)),
+    top: Math.max(margin, above),
+  };
+}
+
 function positionTutorialBubblePlaymatLeft(overlay, bar, opts) {
-  const { bubbleW, bubbleH, margin, gap, vh, anchorRatio = 0.34, topBias = null } = opts;
+  const { bubbleW, bubbleH, margin, gap, vh, vw = window.innerWidth, anchorRatio = 0.34, topBias = null } = opts;
   const tutStep = G.tutorialData?.steps?.[G.tutorialStep];
   const lockPlaymatLeft = tutorialStepLocksPlaymatLeft(tutStep);
   const playmat = tutorialTargetRect('playmat-column');
@@ -34472,6 +34534,11 @@ function positionTutorialBubblePlaymatLeft(overlay, bar, opts) {
   } else {
     anchorY = anchorBox.top + anchorBox.height * anchorRatio;
     top = Math.max(margin, Math.min(vh - bubbleH - margin, anchorY - bubbleH * 0.42));
+  }
+  // Live hand-play steps: never cover the guided card in hand.
+  if (G.tutorialLive && (tutStep?.select_hand || tutStep?.goal?.type === 'play_member'
+      || tutStep?.goal?.type === 'set_live' || tutStep?.goal?.type === 'end_live_set')) {
+    ({ left, top } = tutorialClampBubbleAwayFromHand(left, top, bubbleW, bubbleH, margin, gap, vh, vw));
   }
   overlay.style.left = Math.round(left) + 'px';
   overlay.style.top = Math.round(top) + 'px';
