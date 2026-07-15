@@ -137,6 +137,7 @@ function isSelfActivationPromptType(string $type): bool {
         'optional_pay_energy_on_enter',
         'optional_pay_energy_if_baton',
         'optional_pay_energy_live_success',
+        'optional_pay_energy_add_from_wr',
         'optional_pay_energy_up_to',
         'optional_discard_hand',
         'optional_discard_surveil',
@@ -303,6 +304,7 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
         case 'optional_pay_energy_on_enter':
         case 'optional_pay_energy_if_baton':
         case 'optional_pay_energy_live_success':
+        case 'optional_pay_energy_add_from_wr':
         case 'optional_pay_play_hand_member':
         case 'optional_discard_blade_draw_if_live':
         case 'optional_success_live_swap':

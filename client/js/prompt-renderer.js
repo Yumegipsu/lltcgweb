@@ -1408,6 +1408,7 @@ global.handlePromptChoice = function handlePromptChoice(pr, choice, s, myId){
   const discardNeed=promptDiscardCount(pr,choice);
   const needsPay=(choice==='yes'&&!!pr.needs_pay)
     ||(pr.type==='optional_pay_energy_on_enter'&&choice==='yes')
+    ||(pr.type==='optional_pay_energy_add_from_wr'&&choice==='yes')
     ||(pr.type==='live_start_pay_or_discard'&&choice==='pay');
   if(needsPay){
     const ae=(me.energy_zone||[]).filter(energyChipActive).length;
@@ -1890,6 +1891,21 @@ global.renderPrompt = function renderPrompt(s, myId){
     ovl.classList.remove('open');
     el('prompt-ttl').textContent=pr.source_name||'Play Member';
     el('prompt-msg').textContent=pr.prompt||'Choose an area:';
+    const box=el('prompt-btns'); box.innerHTML='';
+    (pr.slots||[]).forEach(slot=>{
+      const b=document.createElement('button');
+      b.className='btn-grad';
+      b.textContent=slotLabel(slot);
+      b.onclick=()=>{ closeM('overlay-prompt'); sendAct('resolve_prompt',{slot}); };
+      box.appendChild(b);
+    });
+    ovl.classList.add('open');
+    return;
+  }
+  if(pr?.type==='both_wr_member_to_empty_stage'&&pr.step==='pick_slot'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    el('prompt-ttl').textContent=pr.source_name||'Waiting Room Member';
+    el('prompt-msg').textContent=pr.prompt||'Choose an empty Stage area:';
     const box=el('prompt-btns'); box.innerHTML='';
     (pr.slots||[]).forEach(slot=>{
       const b=document.createElement('button');
@@ -2493,16 +2509,21 @@ global.renderPrompt = function renderPrompt(s, myId){
     });
     return;
   }
-  if((pr?.type==='bp5_wr_live_deck_position'||pr?.type==='bp5_pick_kasumi_reveal'||pr?.type==='sbp5_pick_revealed_member'||pr?.type==='sbp5_pick_yell_members'||pr?.type==='sbp5_wr_lives_deck_top'||pr?.type==='sbp6_pick_revealed_member'||pr?.type==='sbp6_swap_pick_wr_member'||pr?.type==='sbp6_live_zone_deck_top_hearts'||pr?.type==='sbp6_swap_pick_stage_member'||pr?.type==='ssd1_play_wr_empty'&&pr.step==='pick_wr'||pr?.type==='ssd1_reveal_group_deck'&&pr.step==='pick_hand'||pr?.type==='spbp5_distinct_groups'||pr?.type==='spbp5_subunit_blade_pick'||pr?.type==='spbp5_pick_wr_live'||pr?.type==='spbp5_wait_discard_surveil'&&pr.step==='pick')&&pr.responder===myId){
+  if((pr?.type==='bp5_wr_live_deck_position'||pr?.type==='bp5_pick_kasumi_reveal'||pr?.type==='sbp5_pick_revealed_member'||pr?.type==='sbp5_pick_yell_members'||pr?.type==='sbp5_wr_lives_deck_top'||pr?.type==='sbp6_pick_revealed_member'||pr?.type==='sbp6_swap_pick_wr_member'||pr?.type==='sbp6_live_zone_deck_top_hearts'||pr?.type==='sbp6_swap_pick_stage_member'||pr?.type==='ssd1_play_wr_empty'&&pr.step==='pick_wr'||pr?.type==='both_wr_member_to_empty_stage'&&pr.step==='pick_wr'||pr?.type==='ssd1_reveal_group_deck'&&pr.step==='pick_hand'||pr?.type==='spbp5_distinct_groups'||pr?.type==='spbp5_subunit_blade_pick'||pr?.type==='spbp5_pick_wr_live'||pr?.type==='spbp5_wait_discard_surveil'&&pr.step==='pick')&&pr.responder===myId){
     ovl.classList.remove('open');
+    const mandatoryBothWr = pr.type === 'both_wr_member_to_empty_stage';
     openHandPick({
       hand: pr.candidates||[],
       count: 1,
       min: 1,
       title: pr.source_name||'Choose card',
       msg: pr.prompt||'Choose a card.',
+      allowCancel: !mandatoryBothWr,
       onConfirm: (picked)=> sendAct('resolve_prompt',{card_id:picked[0]}),
-      onCancel: ()=> sendAct('resolve_prompt',{choice:'no'})
+      onCancel: ()=> {
+        if (mandatoryBothWr) return;
+        sendAct('resolve_prompt',{choice:'no'});
+      }
     });
     return;
   }

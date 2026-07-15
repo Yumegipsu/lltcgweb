@@ -1596,6 +1596,41 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         return finishLiveSuccessEffects($state);
     }
 
+    if ($promptType === 'optional_pay_energy_add_from_wr') {
+        if (!isset(['yes' => true, 'no' => true][$choice])) {
+            throw new Exception('Invalid choice');
+        }
+        if ($choice === 'no') {
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishLiveSuccessEffects($state);
+        }
+        $cost = intval($prompt['pay_cost'] ?? $ability['cost'] ?? 0);
+        if ($cost > 0 && !payEnergyCost($ownerP, $cost)) {
+            throw new Exception("Need $cost active Energy");
+        }
+        $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgFromAbility($ability);
+        $need = max(1, intval($ability['count'] ?? 1));
+        if (wrPickMatchCount($ownerP, $cfg, $need) < $need) {
+            throw new Exception('No matching card in Waiting Room');
+        }
+        $srcId = $prompt['source_id'] ?? '';
+        $slot = $prompt['source_slot'] ?? findMemberSlot($ownerP, $srcId);
+        if ($slot === null || $slot === '') {
+            throw new Exception('Member not found');
+        }
+        $member = &$ownerP['stage'][$slot];
+        if (!$member || ($srcId !== '' && ($member['instance_id'] ?? '') !== $srcId)) {
+            throw new Exception('Member not found');
+        }
+        $abilityIdx = intval($prompt['ability_index'] ?? 0);
+        startPickWrToHandPrompt($state, $owner, $member, $slot, $abilityIdx, $ability, $cfg, false, $need);
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Member') . "] paid $cost Energy; choose a card from Waiting Room.");
+        $state['seq']++;
+        return $state;
+    }
+
     if ($promptType === 'on_enter_draw_swap_area') {
         $slot = $choice;
         $srcSlot = $prompt['source_slot'] ?? '';
