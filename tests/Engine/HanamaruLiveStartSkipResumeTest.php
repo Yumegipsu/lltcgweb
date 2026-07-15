@@ -29,10 +29,15 @@ final class HanamaruLiveStartSkipResumeTest extends TestCase
     public function testSkipOptionalRevealSurveilResumesLiveStart(): void
     {
         $hanamaru = $this->cardByNo('PL!S-bp2-007-P', 'hana_center');
-        $this->assertSame(
-            'optional_reveal_live_deck_bottom_surveil',
-            $hanamaru['abilities'][0]['type'] ?? null
-        );
+        $hasSurveil = false;
+        foreach ($hanamaru['abilities'] ?? [] as $ab) {
+            if (($ab['type'] ?? '') === 'optional_reveal_live_deck_bottom_surveil'
+                && ($ab['trigger'] ?? '') === 'live_start') {
+                $hasSurveil = true;
+                break;
+            }
+        }
+        $this->assertTrue($hasSurveil, 'PL!S-bp2-007-P should have Live Start surveil optional');
 
         $live = [
             'instance_id' => 'live_p1',
