@@ -64017,22 +64017,23 @@
                 "red"
             ],
             "rarity": "N",
-            "text": "[Live Start] Choose 1 heart color. Until this Live ends, this Member's printed hearts become hearts of the chosen color.",
+            "text": "[Live Start] You may pay 1 Energy: until this Live ends, you gain +2 Blade.",
             "text_jp": "支払ってもよい：ライブ終了時まで、を得る。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-022-N.png",
             "subunit": "5yncri5e!",
-            "text_es": "Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade.",
+            "text_es": "[Inicio de Live] Puedes pagar 1 Energía: hasta que termine este Live, obtienes +2 Blade.",
             "abilities": [
                 {
                     "trigger": "live_start",
-                    "type": "optional_discard_hand",
-                    "discard": 0,
+                    "type": "optional_pay_energy",
+                    "cost": 1,
                     "then": {
-                        "type": "choose_heart_modifier"
+                        "type": "blade_bonus",
+                        "amount": 2
                     }
                 }
             ],
-            "text_ko": "[라이브 개시] 고른다 1 하트 색. 이 Live가 끝날 때까지, 이 멤버의 표기된 하트 된다 하트 의 chosen 색."
+            "text_ko": "[라이브 개시] 에너지 1개를 지불해도 좋다: 이 Live가 끝날 때까지, Blade +2을 얻는다."
         },
         {
             "card_no": "PL!SP-bp2-023-L",
