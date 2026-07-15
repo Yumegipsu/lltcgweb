@@ -1545,47 +1545,22 @@ function clearYellRevealState(array $state): array {
 
 function skipEmptyPerformanceRound(array $state): array {
     $state = addLog($state, 'No Lives played this turn.');
+    $meta = [
+        'kind' => 'empty',
+        'attempting' => [],
+        'success_placed_by' => [],
+    ];
     $leftoverAnims = [];
-    foreach (['p1', 'p2'] as $pid) {
-        $p = &$state['players'][$pid];
-        if (!empty($p['live_zone'])) {
-            $remaining = [];
-            foreach ($p['live_zone'] as $lc) {
-                $state = sBp6ResolveAutoOnLiveWr($state, $pid, $lc);
-                if (!empty($state['pending_prompt'])) {
-                    $remaining[] = $lc;
-                    continue;
-                }
-                $leftoverAnims = array_merge($leftoverAnims, liveZoneDiscardAnims([$lc], $pid));
-                $p['waiting_room'][] = $lc;
-            }
-            $p['live_zone'] = $remaining;
-        }
-        unset($p);
-    }
+    $state = drainLiveStorageLeftovers($state, $leftoverAnims);
     if (!empty($leftoverAnims)) {
         $state = addLog($state, 'Remaining Live storage sent to Waiting Room.', null, $leftoverAnims);
     }
-    unset($state['live_attempt'], $state['live_perf_success'], $state['live_round_success']);
-    $state['_prev_turn_live_result'] = ['p1' => 'none', 'p2' => 'none'];
-    $state = clearYellRevealState($state);
-
-    foreach (['p1', 'p2'] as $pid) {
-        if (count($state['players'][$pid]['success_lives']) >= 3) {
-            $state['status'] = 'finished';
-            $state['winner'] = $pid;
-            $state = addLog($state, '🎉 ' . $state['players'][$pid]['name'] . ' WINS with 3 successful Lives!');
-            $state['seq']++;
-            return $state;
-        }
+    if (!empty($state['pending_prompt'])) {
+        $state['_pending_live_finalize'] = $meta;
+        $state['seq']++;
+        return $state;
     }
-
-    $state = clearLiveModifiers($state);
-    $state['turn']++;
-    $state = addLog($state, '=== Turn ' . $state['turn'] . ' begins ===');
-    $state = startTurn($state);
-    $state['seq']++;
-    return $state;
+    return completeLiveRoundTurnAdvance($state, $meta);
 }
 
 function actionConfirmLive(array $state, string $pid, array $data): array {
@@ -2596,57 +2571,71 @@ function actionResolvePickJudgeSuccessLive(array $state, string $owner, array $p
     return advanceLiveJudgeWinners($state);
 }
 
-function finalizeLiveJudge(array $state, array $ctx): array {
-    $attempting = $state['live_attempt'] ?? ['p1', 'p2'];
-    $successPlacedBy = $ctx['success_placed_by'] ?? [];
-
-    $leftoverAnims = [];
+/**
+ * Send leftover Live storage to Waiting Room, pausing when a deck-position prompt opens.
+ * Cards still awaiting a prompt stay in live_zone.
+ */
+function drainLiveStorageLeftovers(array $state, array &$leftoverAnims): array {
     foreach (['p1', 'p2'] as $pid) {
         $p = &$state['players'][$pid];
-        if (!empty($p['live_zone'])) {
-            $remaining = [];
-            foreach ($p['live_zone'] as $lc) {
-                $state = sBp6ResolveAutoOnLiveWr($state, $pid, $lc);
-                if (!empty($state['pending_prompt'])) {
-                    $remaining[] = $lc;
-                    continue;
-                }
-                $leftoverAnims = array_merge($leftoverAnims, liveZoneDiscardAnims([$lc], $pid));
-                $p['waiting_room'][] = $lc;
-            }
-            $p['live_zone'] = $remaining;
+        if (empty($p['live_zone'])) {
+            unset($p);
+            continue;
         }
+        $remaining = [];
+        foreach ($p['live_zone'] as $lc) {
+            $state = sBp6ResolveAutoOnLiveWr($state, $pid, $lc);
+            if (!empty($state['pending_prompt'])) {
+                $remaining[] = $lc;
+                continue;
+            }
+            $leftoverAnims = array_merge($leftoverAnims, liveZoneDiscardAnims([$lc], $pid));
+            $p['waiting_room'][] = $lc;
+        }
+        $p['live_zone'] = $remaining;
         unset($p);
     }
-    if (!empty($leftoverAnims)) {
-        $state = addLog($state, 'Remaining Live storage sent to Waiting Room.', null, $leftoverAnims);
-    }
-    $state['_live_perf_snapshot'] = $state['live_perf_success'] ?? ['p1' => [], 'p2' => []];
-    $state['_live_round_success_snapshot'] = $state['live_round_success'] ?? [];
-    if (!empty($state['yell_reveal'])) {
-        $state['_yell_reveal_snapshot'] = $state['yell_reveal'];
-    }
-    $state['_yell_blade_snapshot'] = [
-        'p1' => computeYellBladeTotal($state, 'p1'),
-        'p2' => computeYellBladeTotal($state, 'p2'),
-    ];
-    unset(
-        $state['live_attempt'],
-        $state['live_perf_success'],
-        $state['live_round_success'],
-        $state['_live_judge_ctx']
-    );
-    $state = clearYellRevealState($state);
+    return $state;
+}
 
-    $prevResults = [];
-    foreach (['p1', 'p2'] as $pid) {
-        if (in_array($pid, $attempting, true)) {
-            $prevResults[$pid] = in_array($pid, $successPlacedBy, true) ? 'success' : 'failed';
-        } else {
-            $prevResults[$pid] = 'none';
+/** Complete turn advance after Live leftovers + optional sBp6 prompts are done. */
+function completeLiveRoundTurnAdvance(array $state, array $meta): array {
+    $kind = $meta['kind'] ?? 'judge';
+    $attempting = $meta['attempting'] ?? ['p1', 'p2'];
+    $successPlacedBy = $meta['success_placed_by'] ?? [];
+
+    if ($kind === 'empty') {
+        unset($state['live_attempt'], $state['live_perf_success'], $state['live_round_success']);
+        $state['_prev_turn_live_result'] = ['p1' => 'none', 'p2' => 'none'];
+        $state = clearYellRevealState($state);
+    } else {
+        $state['_live_perf_snapshot'] = $state['live_perf_success'] ?? ['p1' => [], 'p2' => []];
+        $state['_live_round_success_snapshot'] = $state['live_round_success'] ?? [];
+        if (!empty($state['yell_reveal'])) {
+            $state['_yell_reveal_snapshot'] = $state['yell_reveal'];
         }
+        $state['_yell_blade_snapshot'] = [
+            'p1' => computeYellBladeTotal($state, 'p1'),
+            'p2' => computeYellBladeTotal($state, 'p2'),
+        ];
+        unset(
+            $state['live_attempt'],
+            $state['live_perf_success'],
+            $state['live_round_success'],
+            $state['_live_judge_ctx']
+        );
+        $state = clearYellRevealState($state);
+
+        $prevResults = [];
+        foreach (['p1', 'p2'] as $pid) {
+            if (in_array($pid, $attempting, true)) {
+                $prevResults[$pid] = in_array($pid, $successPlacedBy, true) ? 'success' : 'failed';
+            } else {
+                $prevResults[$pid] = 'none';
+            }
+        }
+        $state['_prev_turn_live_result'] = $prevResults;
     }
-    $state['_prev_turn_live_result'] = $prevResults;
 
     foreach (['p1', 'p2'] as $pid) {
         if (count($state['players'][$pid]['success_lives']) >= 3) {
@@ -2658,18 +2647,66 @@ function finalizeLiveJudge(array $state, array $ctx): array {
         }
     }
 
-    if (count($successPlacedBy) === 1) {
+    if ($kind !== 'empty' && count($successPlacedBy) === 1) {
         $state['first_player'] = $successPlacedBy[0];
     }
 
     $state = clearLiveModifiers($state);
-
     $state['turn']++;
     $state = addLog($state, '=== Turn ' . $state['turn'] . ' begins ===');
     $state = startTurn($state);
-
     $state['seq']++;
     return $state;
+}
+
+/**
+ * Resume Live leftover drain after sbp6_live_wr_deck_position (or finish turn advance).
+ */
+function resumePendingLiveFinalize(array $state): array {
+    $meta = $state['_pending_live_finalize'] ?? null;
+    if (!is_array($meta)) {
+        return $state;
+    }
+    unset($state['_pending_live_finalize']);
+
+    $leftoverAnims = [];
+    $state = drainLiveStorageLeftovers($state, $leftoverAnims);
+    if (!empty($leftoverAnims)) {
+        $state = addLog($state, 'Remaining Live storage sent to Waiting Room.', null, $leftoverAnims);
+    }
+    if (!empty($state['pending_prompt'])) {
+        $state['_pending_live_finalize'] = $meta;
+        $state['phase'] = ($meta['kind'] ?? '') === 'empty'
+            ? ($state['phase'] ?? 'live_judge')
+            : 'live_judge';
+        return $state;
+    }
+    return completeLiveRoundTurnAdvance($state, $meta);
+}
+
+function finalizeLiveJudge(array $state, array $ctx): array {
+    $attempting = $state['live_attempt'] ?? ['p1', 'p2'];
+    $successPlacedBy = $ctx['success_placed_by'] ?? [];
+    $meta = [
+        'kind' => 'judge',
+        'attempting' => $attempting,
+        'success_placed_by' => $successPlacedBy,
+    ];
+
+    $leftoverAnims = [];
+    $state = drainLiveStorageLeftovers($state, $leftoverAnims);
+    if (!empty($leftoverAnims)) {
+        $state = addLog($state, 'Remaining Live storage sent to Waiting Room.', null, $leftoverAnims);
+    }
+    // Aqours auto: choose Live deck top/bottom — must not enter Main with leftover faces.
+    if (!empty($state['pending_prompt'])) {
+        $state['_pending_live_finalize'] = $meta;
+        $state['_live_judge_ctx'] = $ctx;
+        $state['phase'] = 'live_judge';
+        $state['seq']++;
+        return $state;
+    }
+    return completeLiveRoundTurnAdvance($state, $meta);
 }
 
 // ─────────────────────────────────────────────

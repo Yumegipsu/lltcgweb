@@ -8119,7 +8119,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/api-client.js?v=9"></script>
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
-<script src="client/js/game-sync.js?v=14"></script>
+<script src="client/js/game-sync.js?v=15"></script>
 <script src="client/js/state-apply.js?v=31"></script>
 <script src="client/js/stamps.js?v=15"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
@@ -30132,8 +30132,14 @@ function renderLiveSlots(prefix, zone, isMe, pid){
     const existingCard = existingWrap?.querySelector('.lcard.live-card');
 
     if (!card) {
-      if (existingCard?.classList.contains('live-storage-flip')) continue;
-      if (existingCard?.classList.contains('card-arriving')) continue;
+      // Mid-reveal / WR flight may still own the shell; otherwise ghost flips from the
+      // previous Live round survive into Main when the server zone is already empty.
+      const flipBusy = existingCard?.classList.contains('live-storage-flip')
+        && (G._liveStorageRevealRunning
+          || ((G._liveStorageRevealAnimCount || 0) > 0)
+          || (G._liveRoundPlaybackActive && G._liveRevealFlips?.size));
+      if (flipBusy) continue;
+      if (existingCard?.classList.contains('card-arriving') && G._liveWrDiscardInProgress) continue;
       e.innerHTML='';
       continue;
     }
@@ -35980,7 +35986,7 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/spectacle.js?v=15"></script>
+<script src="client/js/spectacle.js?v=16"></script>
 <script src="client/js/cpu-meta-weights.js?v=2"></script>
 <script src="client/js/cpu-eval.js?v=2"></script>
 <script src="client/js/cpu-expert.js?v=1"></script>

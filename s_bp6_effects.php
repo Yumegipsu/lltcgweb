@@ -682,6 +682,10 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
         }
         unset($state['pending_prompt']);
         $state['seq']++;
+        // Finish deferred Live Win/Loss / empty-round cleanup after the optional deck place.
+        if (!empty($state['_pending_live_finalize']) && function_exists('resumePendingLiveFinalize')) {
+            return resumePendingLiveFinalize($state);
+        }
         return $state;
     }
 
