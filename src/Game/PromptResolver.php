@@ -3073,7 +3073,8 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                     ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional On Enter effect.');
                 unset($state['pending_prompt']);
                 $state['seq']++;
-                return $state;
+                // Must resume Live Start / optional queue — bare return softlocks Performance.
+                return finishPromptEffects($state);
             }
             $liveHand = array_values(array_filter(
                 $ownerP['hand'],
@@ -3104,13 +3105,13 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             if (empty($top)) {
                 unset($state['pending_prompt']);
                 $state['seq']++;
-                return $state;
+                return finishPromptEffects($state);
             }
             if (count($top) === 1) {
                 $ownerP['main_deck'] = array_merge($top, $ownerP['main_deck']);
                 unset($state['pending_prompt']);
                 $state['seq']++;
-                return $state;
+                return finishPromptEffects($state);
             }
             $state = startSurveilArrangePrompt(
                 $state,
@@ -3136,7 +3137,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                     ' — [' . ($prompt['source_name'] ?? 'Live') . '] skipped optional On Enter effect.');
                 unset($state['pending_prompt']);
                 $state['seq']++;
-                return $state;
+                return finishPromptEffects($state);
             }
             $wrMembers = array_values(array_filter(
                 $ownerP['waiting_room'],
@@ -3167,7 +3168,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             if (empty($stageMembers)) {
                 unset($state['pending_prompt']);
                 $state['seq']++;
-                return $state;
+                return finishPromptEffects($state);
             }
             $state['pending_prompt'] = [
                 'type'          => 'optional_wr_member_deck_top_blade',
@@ -3195,7 +3196,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 ' — [' . ($prompt['source_name'] ?? 'Live') . "] +$bladeAmt Blade on Stage Member until Live ends.");
             unset($state['pending_prompt']);
             $state['seq']++;
-            return $state;
+            return finishPromptEffects($state);
         }
     }
 
