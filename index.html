@@ -204,8 +204,12 @@ select option{background:#2A1520;color:#fff}
 .cpu-diff-pill:hover{background:rgba(52,163,243,.35);border-color:#fff}
 .cpu-diff-pill.is-active{
   background:rgba(255,107,168,.42);border-color:#ffd0e4;box-shadow:0 0 0 1px rgba(255,208,228,.35)}
+.cpu-diff-pill[data-cpu-diff="expert"].is-active{
+  background:linear-gradient(135deg,rgba(255,196,92,.55),rgba(255,107,168,.45));
+  border-color:#ffe6a8;box-shadow:0 0 0 1px rgba(255,230,168,.45)}
 .cpu-diff-hint{
   margin:0 0 10px;font-size:11px;line-height:1.45;color:rgba(255,255,255,.62);min-height:2.6em}
+.field-cpu-diff{position:relative}
 .field-cpu-diff .llc-select-wrap{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);
   clip-path:inset(50%);white-space:nowrap;border:0;padding:0;margin:-1px}
 #inp-code{min-width:11.5em;font-variant-numeric:tabular-nums}
@@ -8134,7 +8138,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=52"></script>
+<script src="i18n.js?v=53"></script>
 <script src="log_i18n.js?v=9"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=13"></script>
@@ -18797,7 +18801,8 @@ async function doSolo() {
   const name=el('inp-name').value.trim()||'Player 1';
   const deckSel = el('sel-deck').value;
   const timerOpts = lobbyPhaseTimerOpts();
-  setCpuDifficulty(el('sel-cpu-diff')?.value || G.cpuDifficulty || 'easy');
+  // Prefer pill-driven G.cpuDifficulty; hidden select is kept in sync by setCpuDifficulty.
+  const diff = setCpuDifficulty(G.cpuDifficulty || el('sel-cpu-diff')?.value || 'easy');
   setErr('');
   try {
     const r1 = await apiPost('create_room',{name,...lobbyDeckPayload(),...timerOpts});
@@ -18810,6 +18815,10 @@ async function doSolo() {
     });
     G.cpuToken = r2.player_token;
     captureSyncMeta(r2);
+    if (r2.cpu_difficulty) setCpuDifficulty(r2.cpu_difficulty, { persist: true });
+    const label = ({ easy: 'Easy', normal: 'Normal', hard: 'Hard', expert: 'Expert' })[diff] || diff;
+    const startMsg = typeof t === 'function' ? t('lobby.soloStarting', { diff: label }) : '';
+    toast((startMsg && startMsg !== 'lobby.soloStarting') ? startMsg : `Starting vs CPU (${label})`, 2200);
     showScr('game'); startPoll();
   } catch(e){ setErr(e.message); }
 }
@@ -25054,8 +25063,12 @@ function doCPU(s) {
     return;
   }
   if ((ph === 'main_first' || ph === 'main_second') && s.active_player === cpuId) {
+    if (G._cpuMainBusy || G._cpuActBusy) {
+      TCG_DEBUG.log('cpu', 'main skipped — busy', { main: !!G._cpuMainBusy, act: !!G._cpuActBusy, diff: cpuDiff() });
+      return;
+    }
     TCG_DEBUG.log('cpu', 'main phase', { turn: s.turn, hand: cpu.hand?.length, diff: cpuDiff() });
-    cpuSchedule(() => cpuMain(), 900);
+    cpuSchedule(() => { void cpuMain(); }, 900);
     return;
   }
   if (ph === 'live_set' && s.active_player === cpuId && !s.live_ready?.[cpuId]) {
@@ -25149,11 +25162,14 @@ function cpuApplyMainAction(best, stateEval) {
 }
 
 async function cpuMain() {
+  if (G._cpuMainBusy) return;
   const snap = cpuSnapshot();
   if (!snap) return;
   const { s, cpu, cpuId } = snap;
   const ph = s.phase;
   if (s.active_player !== cpuId || (ph !== 'main_first' && ph !== 'main_second')) return;
+  G._cpuMainBusy = true;
+  try {
   const ctx = cpuCtx(s, cpu, cpuId);
   const hand = cpu.hand || [];
   if (s.pending_prompt?.responder === cpuId) {
@@ -25176,10 +25192,21 @@ async function cpuMain() {
     } catch (e) {
       TCG_DEBUG.warn('cpu', 'expert choose failed', e?.message || e);
       if (typeof cpuExpertClearQueue === 'function') cpuExpertClearQueue();
+      if (!G._cpuExpertFallbackToast) {
+        G._cpuExpertFallbackToast = true;
+        toast('Expert search failed — using Hard heuristics', 3200);
+      }
+    }
+    // Re-check after await — polls/watchdog must not apply a stale Expert plan.
+    const live = G.gameState || s;
+    if (live.active_player !== cpuId
+        || (live.phase !== 'main_first' && live.phase !== 'main_second')
+        || live.pending_prompt?.responder === cpuId) {
+      return;
     }
     if (expertBest) {
       const stateEval = typeof cpuEvaluateState === 'function'
-        ? cpuEvaluateState(s, cpuId, { tier: ctx.tier, read: ctx.read })
+        ? cpuEvaluateState(live, cpuId, { tier: ctx.tier, read: ctx.read })
         : null;
       cpuTraceScore('main', 'decision', [{ kind: expertBest.kind, score: expertBest.evalScore || expertBest.score, label: expertBest.label }], {
         picked: expertBest.kind,
@@ -25196,17 +25223,18 @@ async function cpuMain() {
     }
   }
 
-  const actions = cpuListMainActions(s, cpu, ctx);
+  const actions = cpuListMainActions(G.gameState || s, cpu, ctx);
   // Synthetic end_main peer so Hard opportunity-cost can prefer ending vs a weak play.
   if (ctx.tier !== 'easy') {
     actions.push({ kind: 'end_main', score: 0, label: 'end_main', payload: {} });
   }
-  const best = cpuBestMainAction(actions, ctx, s, cpuId);
+  const board = G.gameState || s;
+  const best = cpuBestMainAction(actions, ctx, board, cpuId);
   const posture = cpuPosture(ctx);
   const liveCtx = cpuHandLiveContext(cpu);
-  const ladderPlan = cpuBatonLadderPlan(s.turn || 1, cpuMaxStageCost(cpu), cpu);
+  const ladderPlan = cpuBatonLadderPlan(board.turn || 1, cpuMaxStageCost(cpu), cpu);
   const stateEval = typeof cpuEvaluateState === 'function'
-    ? cpuEvaluateState(s, cpuId, { tier: ctx.tier, read: ctx.read })
+    ? cpuEvaluateState(board, cpuId, { tier: ctx.tier, read: ctx.read })
     : null;
   cpuTraceScore('main', 'decision', actions.slice(0, 5).map(a => ({
     kind: a.kind,
@@ -25222,8 +25250,12 @@ async function cpuMain() {
     ladderPhase: ladderPlan.phase,
     maxStageCost: cpuMaxStageCost(cpu),
     evaluateState: stateEval != null ? +stateEval.toFixed(1) : undefined,
+    tier: ctx.tier,
   });
   cpuApplyMainAction(best, stateEval);
+  } finally {
+    G._cpuMainBusy = false;
+  }
 }
 
 function cpuSelectIndependentLives(pool, liveInHand, targetLiveCount, tier, winPressure = 0, read = null, handLen = 0, cpu = null, ctx = null) {
@@ -35374,6 +35406,7 @@ function freshGameGlobals() {
     _cpuPromptRetryTimer:null, _cpuPromptRetryKey:null, _cpuPromptRetryCount:0,
   _cpuPromptHangTimer:null, _cpuPromptHangKey:null, _cpuPromptHangSince:0,
     _cpuActBusy:false, _cpuActInflight:null, _cpuActBusySince:0, _cpuActBusyType:null,
+    _cpuMainBusy:false, _cpuExpertFallbackToast:false,
     animating:false,
   _logFollowTail:true,
     handPointer:null,
@@ -36092,10 +36125,10 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/spectacle.js?v=16"></script>
-<script src="client/js/cpu-meta-weights.js?v=3"></script>
-<script src="client/js/cpu-eval.js?v=3"></script>
-<script src="client/js/cpu-expert.js?v=2"></script>
-<script src="client/js/cpu-ai.js?v=5"></script>
+<script src="client/js/cpu-meta-weights.js?v=4"></script>
+<script src="client/js/cpu-eval.js?v=4"></script>
+<script src="client/js/cpu-expert.js?v=3"></script>
+<script src="client/js/cpu-ai.js?v=6"></script>
 <script>void bootApp();</script>
 </body>
 </html>

@@ -353,13 +353,17 @@ function joinRoom(array $body): array {
 
     saveGame($roomId, $state);
 
-    return tcgSyncAttachMeta([
+    $out = [
         'room_id'      => $roomId,
         'player_token' => $playerToken,
         'player_id'    => 'p2',
         'status'       => 'ready',
-        'message'      => 'Joined! Game starting...'
-    ], $roomId, $playerToken);
+        'message'      => 'Joined! Game starting...',
+    ];
+    if (!empty($state['cpu_difficulty'])) {
+        $out['cpu_difficulty'] = normalizeCpuDifficulty($state['cpu_difficulty']);
+    }
+    return tcgSyncAttachMeta($out, $roomId, $playerToken);
 }
 
 // ─────────────────────────────────────────────
