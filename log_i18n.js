@@ -1,4 +1,4 @@
-/* Client-side game log localization (English server log → ja / es / ko display) */
+/* Client-side game log / skill-prompt localization (English server text → ja / es / ko / zh) */
 (function (global) {
   'use strict';
 
@@ -546,6 +546,14 @@
     [/Waiting Room/g, 'Sala de espera'],
     [/Energy deck/g, 'mazo de Energía'],
     [/Main Deck/g, 'mazo principal'],
+    [/from your hand/g, 'de tu mano'],
+    [/your hand/g, 'tu mano'],
+    [/your deck/g, 'tu mazo'],
+    [/your Stage/g, 'tu Escenario'],
+    [/Member card/g, 'carta de Miembro'],
+    [/Live card/g, 'carta Live'],
+    [/Energy/g, 'Energía'],
+    [/Member/g, 'Miembro'],
     [/ overplayed onto (.+)\.$/, ' sobrescribió sobre $1.'],
     [/ played (.+) to (left|center|right) area\.$/, function (_m, card, slot) {
       var slots = { left: 'izquierda', center: 'centro', right: 'derecha' };
@@ -562,10 +570,55 @@
     [/Energy deck/g, '에너지 덱'],
     [/Main Deck/g, '메인 덱'],
     [/Stage Member/g, '스테이지 멤버'],
+    [/from your hand/g, '손패에서'],
+    [/your hand/g, '손패'],
+    [/your deck/g, '덱'],
+    [/your Stage/g, '스테이지'],
+    [/Member card/g, '멤버 카드'],
+    [/Live card/g, 'Live 카드'],
+    [/Energy/g, '에너지'],
+    [/Member/g, '멤버'],
     [/ overplayed onto (.+)\.$/, ' $1 위에 겹쳐 플레이함.'],
     [/ played (.+) to (left|center|right) area\.$/, function (_m, card, slot) {
       return ' ' + card + '를 ' + (SLOT_KO[slot] || slot) + ' 구역에 플레이함.';
     }],
+  ];
+
+  /** Shared yes/no skill-prompt templates (server pending_prompt.prompt). */
+  var PROMPT_QUESTION_RULES_ES = [
+    [/Put 1 card from your hand into the Waiting Room: look at the top (\d+) cards of your deck, add 1 to your hand, and put the rest into the Waiting Room\?$/,
+      'Pon 1 carta de tu mano en la Sala de espera: mira las $1 cartas superiores de tu mazo, añade 1 a tu mano y pon el resto en la Sala de espera?'],
+    [/Put 1 card from your hand into the Waiting Room: look at the top (\d+) cards of your deck, add 1 to your hand, and put the rest into the Waiting Room\./,
+      'Pon 1 carta de tu mano en la Sala de espera: mira las $1 cartas superiores de tu mazo, añade 1 a tu mano y pon el resto en la Sala de espera.'],
+    [/Put 1 card from your hand into the Waiting Room: add 1 Nijigasaki Live card from your Waiting Room to your hand\?$/,
+      '¿Pones 1 carta de tu mano en la Sala de espera: añadir 1 carta Live de Nijigasaki de tu Sala de espera a tu mano?'],
+    [/Put 1 card from your hand into the Waiting Room\?/, '¿Pones 1 carta de tu mano en la Sala de espera?'],
+    [/Use optional Live Start effect\?/, '¿Usar este efecto de Inicio de Live?'],
+    [/Use optional effect\?/, '¿Usar este efecto?'],
+  ];
+
+  var PROMPT_QUESTION_RULES_KO = [
+    [/Put 1 card from your hand into the Waiting Room: look at the top (\d+) cards of your deck, add 1 to your hand, and put the rest into the Waiting Room\?$/,
+      '손패 1장을 대기실에 두고: 덱 위 $1장을 보고 1장을 손으로, 나머지를 대기실로 보낼까요?'],
+    [/Put 1 card from your hand into the Waiting Room: look at the top (\d+) cards of your deck, add 1 to your hand, and put the rest into the Waiting Room\./,
+      '손패 1장을 대기실에 두고: 덱 위 $1장을 보고 1장을 손으로, 나머지를 대기실로 보냅니다.'],
+    [/Put 1 card from your hand into the Waiting Room: add 1 Nijigasaki Live card from your Waiting Room to your hand\?$/,
+      '손패 1장을 대기실에 두고: 대기실의 니지가스키 Live 카드 1장을 손으로 추가할까요?'],
+    [/Put 1 card from your hand into the Waiting Room\?/, '손패 1장을 대기실에 둘까요?'],
+    [/Use optional Live Start effect\?/, '이 라이브 개시 효과를 사용하시겠습니까?'],
+    [/Use optional effect\?/, '이 효과를 사용하시겠습니까?'],
+  ];
+
+  var PROMPT_QUESTION_RULES_ZH = [
+    [/Put 1 card from your hand into the Waiting Room: look at the top (\d+) cards of your deck, add 1 to your hand, and put the rest into the Waiting Room\?$/,
+      '将1张手牌放入等候室：查看牌组顶$1张卡，将1张加入手牌，其余放入等候室？'],
+    [/Put 1 card from your hand into the Waiting Room: look at the top (\d+) cards of your deck, add 1 to your hand, and put the rest into the Waiting Room\./,
+      '将1张手牌放入等候室：查看牌组顶$1张卡，将1张加入手牌，其余放入等候室。'],
+    [/Put 1 card from your hand into the Waiting Room: add 1 Nijigasaki Live card from your Waiting Room to your hand\?$/,
+      '将1张手牌放入等候室：将等候室中的1张虹咲学园Live卡加入手牌？'],
+    [/Put 1 card from your hand into the Waiting Room\?/, '将1张手牌放入等候室？'],
+    [/Use optional Live Start effect\?/, '使用此Live开始效果吗？'],
+    [/Use optional effect\?/, '使用此效果吗？'],
   ];
 
   /** Effect-detail suffix rules for Spanish (draw / discard / play). */
@@ -578,7 +631,7 @@
     [/optional Live Start \(choose\)\./, 'Live Start opcional (elige).'],
     [/optional Live Start effect \(choose\)\./, 'efecto Live Start opcional (elige).'],
     [/Live Success choice\./, 'elección de Live Success.'],
-  ];
+  ].concat(PROMPT_QUESTION_RULES_ES);
 
   /** Effect-detail suffix rules for Korean (draw / discard / play). */
   var EFFECT_RULES_KO = [
@@ -590,7 +643,7 @@
     [/optional Live Start \(choose\)\./, '선택적 라이브 개시 (선택).'],
     [/optional Live Start effect \(choose\)\./, '선택적 라이브 개시 효과 (선택).'],
     [/Live Success choice\./, '라이브 성공 선택.'],
-  ];
+  ].concat(PROMPT_QUESTION_RULES_KO);
 
   /** Effect-detail suffix rules (after card names are localized). */
   var EFFECT_RULES = [
@@ -711,6 +764,14 @@
     [/Energy deck/g, '能量牌组'],
     [/Main Deck/g, '主牌组'],
     [/Stage Member/g, '舞台成员'],
+    [/from your hand/g, '从你的手牌'],
+    [/your hand/g, '你的手牌'],
+    [/your deck/g, '你的牌组'],
+    [/your Stage/g, '你的舞台'],
+    [/Member card/g, '成员卡'],
+    [/Live card/g, 'Live卡'],
+    [/Energy/g, '能量'],
+    [/Member/g, '成员'],
     [/ overplayed onto (.+)\.$/, ' 叠放在 $1 上。'],
     [/ played (.+) to (left|center|right) area\.$/, function (_m, card, slot) {
       return ' 将 ' + card + ' 打到' + (SLOT_ZH[slot] || slot) + '区域。';
@@ -726,7 +787,7 @@
     [/optional Live Start \(choose\)\./, '可选的Live开始（选择）。'],
     [/optional Live Start effect \(choose\)\./, '可选的Live开始效果（选择）。'],
     [/Live Success choice\./, 'Live成功选择。'],
-  ];
+  ].concat(PROMPT_QUESTION_RULES_ZH);
 
   function clearLogNameCache() {
     namePairs = null;

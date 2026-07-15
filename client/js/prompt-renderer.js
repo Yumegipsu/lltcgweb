@@ -684,34 +684,58 @@ global.promptSourceDisplayName = function promptSourceDisplayName(pr, s) {
   return pr?.source_name || t('prompt.respond');
 }
 
-global.localizePromptDisplayText = function localizePromptDisplayText(text, pr, s) {
-  if (!text) return text;
-  if (getLocale() !== 'ja') return localizeSubunitText(text);
+function isLocalizedPromptLocale(loc) {
+  return loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh';
+}
+
+/** Prefer printed ability text in the active locale when the server sent English effect/prompt. */
+function localizedAbilityLineForPrompt(text, pr, s) {
   const card = findPromptSourceCard(pr, s);
   const idx = card ? promptAbilityIndex(card, pr) : -1;
-  if (card && idx >= 0) {
-    const fromAbility = abilityRulesTextFor(card, idx);
-    const raw = String(text).trim();
-    const enLine = (card.text || '').split(/\n/).map(l => l.trim()).find(l => l && raw.includes(l.slice(0, Math.min(24, l.length))));
-    if (fromAbility && (!raw || raw === (pr?.effect_text || '').trim() || enLine)) return fromAbility;
+  if (!(card && idx >= 0)) {
+    if (card && text && text === (card.text || '').trim()) return cardRulesDisplayText(card);
+    return null;
   }
-  if (card && text === (card.text || '').trim()) return cardRulesDisplayText(card);
+  const fromAbility = abilityRulesTextFor(card, idx);
+  if (!fromAbility) return null;
+  const raw = String(text || '').trim();
+  const effectEn = (pr?.effect_text || '').trim();
+  const abPrompt = String(pr?.ability?.prompt || card.abilities?.[idx]?.prompt || '').trim();
+  const enLine = (card.text || '').split(/\n/).map(l => l.trim()).find(l => l && raw.includes(l.slice(0, Math.min(24, l.length))));
+  const promptMatch = !!abPrompt && (
+    raw === abPrompt
+    || raw === `${abPrompt}?`
+    || abPrompt.startsWith(raw.replace(/\?$/, ''))
+    || raw.replace(/\?$/, '').startsWith(abPrompt.slice(0, Math.min(40, abPrompt.length)))
+  );
+  if (!raw || raw === effectEn || promptMatch || enLine) {
+    if (raw.endsWith('?') && !/[?？]$/.test(fromAbility)) {
+      return fromAbility.replace(/[。．.]$/, '') + (getLocale() === 'zh' || getLocale() === 'ja' ? '？' : '?');
+    }
+    return fromAbility;
+  }
+  return null;
+}
+
+global.localizePromptDisplayText = function localizePromptDisplayText(text, pr, s) {
+  if (!text) return text;
+  const loc = getLocale();
+  if (!isLocalizedPromptLocale(loc)) return localizeSubunitText(text);
+  const fromAbility = localizedAbilityLineForPrompt(text, pr, s);
+  if (fromAbility) return fromAbility;
   if (window.LLTCG_LOG_I18N?.localizePromptText) {
     return LLTCG_LOG_I18N.localizePromptText(text, G.allCards);
   }
   if (window.LLTCG_LOG_I18N?.localizeLogMessage) {
     return LLTCG_LOG_I18N.localizeLogMessage(text, G.allCards);
   }
-  return text;
+  return localizeSubunitText(text);
 }
 
 global.localizePromptEffectText = function localizePromptEffectText(pr, s) {
+  const fromAbility = localizedAbilityLineForPrompt(pr?.effect_text || pr?.prompt || '', pr, s);
+  if (fromAbility) return fromAbility.replace(/[?？]$/, '');
   const card = findPromptSourceCard(pr, s);
-  const idx = card ? promptAbilityIndex(card, pr) : -1;
-  if (card && idx >= 0) {
-    const fromAbility = abilityRulesTextFor(card, idx);
-    if (fromAbility) return fromAbility;
-  }
   if (card && !pr?.effect_text) return cardRulesDisplayText(card);
   return localizePromptDisplayText(pr?.effect_text || '', pr, s);
 }
@@ -729,7 +753,7 @@ global.promptChoiceLabel = function promptChoiceLabel(key, i, pr) {
   if (k === 'no') return t('prompt.noSkip');
   if (k === 'skip') return t('prompt.skip');
   const raw = pr?.choice_labels?.[i];
-  if (raw && (getLocale() === 'ja' || getLocale() === 'ko' || getLocale() === 'es')) {
+  if (raw && isLocalizedPromptLocale(getLocale())) {
     return localizePromptDisplayText(raw, pr, G.gameState);
   }
   return raw || key;
@@ -821,8 +845,11 @@ global.renderPromptEffectText = function renderPromptEffectText(text, pr, s){
   const box=el('prompt-effect');
   if(!box) return;
   const display = text
-    ? (pr ? localizePromptDisplayText(text, pr, s) : ((getLocale() === 'ja' || getLocale() === 'ko' || getLocale() === 'es') && window.LLTCG_LOG_I18N?.localizePromptText
-      ? LLTCG_LOG_I18N.localizePromptText(text, G.allCards) : text))
+    ? (pr
+      ? localizePromptDisplayText(text, pr, s)
+      : (isLocalizedPromptLocale(getLocale()) && window.LLTCG_LOG_I18N?.localizePromptText
+        ? LLTCG_LOG_I18N.localizePromptText(text, G.allCards)
+        : text))
     : '';
   if(!display){
     box.hidden=true;
