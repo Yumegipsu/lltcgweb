@@ -4,6 +4,7 @@
 
   var namePairs = null;
   var namePairsKo = null;
+  var namePairsZh = null;
 
   var SKILL_BRACKETS = {
     'On Enter': '登場時',
@@ -33,9 +34,27 @@
     'Yell': 'Yell',
   };
 
+  var SKILL_BRACKETS_ZH = {
+    'On Enter': '入场时',
+    'On Leave': '离场时',
+    'Live Start': 'Live开始',
+    'Live Success': 'Live成功',
+    'Activated': '起动',
+    'Always': '永续',
+    'Automatic': '自动',
+    'Auto': '自动',
+    'Once per turn': '每回合1次',
+    'Twice per turn': '每回合2次',
+    'Center': '中央',
+    'Yell': 'Yell',
+    'Left Side': '左侧',
+    'Right Side': '右侧',
+  };
+
   var SLOT_JA = { left: '左', center: 'センター', right: '右' };
 
   var SLOT_KO = { left: '왼쪽', center: '센터', right: '오른쪽' };
+  var SLOT_ZH = { left: '左侧', center: '中央', right: '右侧' };
 
   var HEART_COLOR_JA = {
     red: '赤',
@@ -214,6 +233,47 @@
 
     m = msg.match(/^🪙 Coin flip: (.+) won — first player chosen automatically \(time expired\)\.$/);
     if (m) return '🪙 코인 던지기: ' + m[1] + ' 승리 — 시간 초과로 선공이 자동 선택됨.';
+
+    return null;
+  }
+
+  function translateStructuredLineZh(msg) {
+    var m;
+
+    m = msg.match(/^(.+?) performed Live! Blades: (\d+) \| Hearts: \[([^\]]*)\] \| Live success: (\d+) \| Failed: (\d+)( \| Round: failed \(not all Lives succeeded\))?$/);
+    if (m) {
+      var roundNote = m[6] ? ' | 回合失败（未能全部Live成功）' : '';
+      return m[1] + ' 进行了Live！Blade：' + m[2] +
+        ' | 心形：[' + m[3] + ']' +
+        ' | Live成功：' + m[4] + ' | 失败：' + m[5] + roundNote;
+    }
+
+    m = msg.match(/^Live Scores: (.+?) = (\d+) \| (.+?) = (\d+)$/);
+    if (m) return 'Live分数：' + m[1] + ' = ' + m[2] + ' | ' + m[3] + ' = ' + m[4];
+
+    m = msg.match(/^(.+?) wins the Live — (.+) failed\.$/);
+    if (m) return m[1] + '取得Live胜利 — ' + m[2] + '失败。';
+
+    m = msg.match(/^(.+?) wins this Live! "(.+)" added to successes\.$/);
+    if (m) return m[1] + '赢得本次Live！"' + m[2] + '"已加入成功Live。';
+
+    m = msg.match(/^(.+) has no valid Live cards!$/);
+    if (m) return m[1] + tLog('log.hasNoValidLive');
+
+    m = msg.match(/^(.+) — choose a Live card for Success Live\.$/);
+    if (m) return m[1] + tLog('log.chooseSuccessLive');
+
+    if (msg.endsWith(' — score tied; Success Live blocked; Live cards sent to Waiting Room.')) {
+      return msg.slice(0, -' — score tied; Success Live blocked; Live cards sent to Waiting Room.'.length) +
+        tLog('log.scoreTiedBlocked');
+    }
+    if (msg.endsWith(' — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room.')) {
+      return msg.slice(0, -' — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room.'.length) +
+        tLog('log.scoreTiedCap');
+    }
+
+    m = msg.match(/^🪙 Coin flip: (.+) won — first player chosen automatically \(time expired\)\.$/);
+    if (m) return '🪙 抛硬币：' + m[1] + '获胜 — 超时，已自动决定先攻。';
 
     return null;
   }
@@ -433,6 +493,51 @@
     [/Both players drew \(([^)]+)\)\.$/, '두 플레이어 모두 드로우함 ($1).'],
   ];
 
+
+  var STRUCTURAL_PHRASE_RULES_ZH = [
+    [/ — End Main Phase\.$/, ' — 主要阶段结束。'],
+    [/ completed mulligan\.$/, ' 完成换牌。'],
+    [/ resigned\. (.+) wins!$/, ' 投降。$1 获胜！'],
+    [/ WINS with 3 successful Lives!$/, ' 以3次成功Live获胜！'],
+    [/ used Baton Touch! Cost reduced to (\d+)\.$/, ' 使用了接棒！费用降至 $1。'],
+    [/ used second Baton Touch! Cost reduced to (\d+)\.$/, ' 使用了第二次接棒！费用降至 $1。'],
+    [/ placed (\d+) card\(s\) face-down in storage \((\d+)\/3\)\.$/, ' 将 $1 张卡正面朝下放入存放区（$2/3）。'],
+    [/ placed card\(s\) in Live storage\.$/, ' 将卡放入Live存放区。'],
+    [/ — locked in LIVE selection \((\d+) card\(s\) in storage\)\.$/, ' — 已锁定Live选择（存放区 $1 张）。'],
+    [/ — locked in LIVE selection\.$/, ' — 已锁定Live选择。'],
+    [/ — Draw Phase: could not draw \(deck and Waiting Room empty\)\.$/, ' — 抽牌阶段：无法抽牌（牌组与等候室均为空）。'],
+    [/ — Draw Phase\.$/, ' — 抽牌阶段。'],
+    [/ — Active Phase: Energy and Members refreshed\.$/, ' — 激活阶段：能量与成员已重整。'],
+    [/ — Energy Phase: storage full \((\d+)\/(\d+)\), no Energy added\.$/, ' — 能量阶段：存放区已满（$1/$2），未添加能量。'],
+    [/ — Energy Phase: no cards left in Energy deck\.$/, ' — 能量阶段：能量牌组中没有卡。'],
+    [/ — Energy Phase: placed 1 Energy in storage \((\d+)\/(\d+)\)\.$/, ' — 能量阶段：将1张能量放入存放区（$1/$2）。'],
+    [/ — Main Phase time expired \(auto end\)\.$/, ' — 主要阶段超时（自动结束）。'],
+    [/ — LIVE Phase time expired \(auto lock-in\)\.$/, ' — Live阶段超时（自动锁定）。'],
+    [/^(.+?)(?:'s|') Live Phase\.$/, '$1的Live阶段。'],
+    [/ — \[([^\]]+)\] drew (\d+) \(Active → Wait\)\.$/, ' — [$1] 抽了 $2 张（激活 → Wait）。'],
+    [/ — \[([^\]]+)\] optional skill skipped\.$/, ' — [$1] 跳过了可选技能。'],
+    [/ — \[([^\]]+)\] activated\.$/, ' — [$1] 发动。'],
+    [/ — \[([^\]]+)\] Live Start skipped\.$/, ' — [$1] 跳过了Live开始。'],
+    [/ — \[([^\]]+)\] Live Success skipped\.$/, ' — [$1] 跳过了Live成功。'],
+    [/Live SUCCESS/, 'Live成功'],
+    [/Live FAIL/, 'Live失败'],
+    [/Live failed/, 'Live失败'],
+    [/Live succeeded/, 'Live成功'],
+    [/^(.+)'s turn — Main Phase \(Active · Energy · Draw complete\)\.$/, '$1的回合 — 主要阶段（激活 · 能量 · 抽牌完成）。'],
+    [/^(.+) turn — Main Phase \(Active · Energy · Draw complete\)\.$/, '$1的回合 — 主要阶段（激活 · 能量 · 抽牌完成）。'],
+    [/^(.+) turn — Main Phase…$/, '$1的回合 — 主要阶段…'],
+    [/^🪙 Coin flip: (.+) won and chose to go first!$/, '🪙 抛硬币：$1 获胜 — 选择先攻！'],
+    [/^🪙 Coin flip: (.+) won and chose (.+) to go first!$/, '🪙 抛硬币：$1 获胜 — 选择 $2 先攻！'],
+    [/^🎉 (.+) WINS with 3 successful Lives!$/, '🎉 $1 以3次成功Live获胜！'],
+    [/ disconnected\. (.+) wins!$/, ' 断线。$1 获胜！'],
+    [/ had no card in hand to discard\.$/, ' 手牌没有可弃置的卡。'],
+    [/ had no cards in hand to discard\.$/, ' 手牌没有可弃置的卡。'],
+    [/ drew (\d+) but had no cards in hand to discard\.$/, ' 抽了 $1 张但手牌没有可弃置的卡。'],
+    [/ is performing Live with (.+)\.$/, ' 正在用 $1 进行Live。'],
+    [/Both players put (\d+) cards? into the Waiting Room\.$/, '双方各将 $1 张卡放入等候室。'],
+    [/Both players drew \(([^)]+)\)\.$/, '双方都抽了牌（$1）。'],
+  ];
+
   /** Term replacement for Spanish (order matters; Baton Touch stays English). */
   var PHRASE_RULES_ES = [
     [/Success Live card storage/g, 'almacenamiento de Live exitoso'],
@@ -597,9 +702,36 @@
     [/Use optional effect\?/, 'この効果を使いますか？'],
   ];
 
+
+  var PHRASE_RULES_ZH = [
+    [/Success Live card storage/g, '成功Live卡区'],
+    [/Live storage/g, 'Live存放区'],
+    [/Success Live/g, '成功Live'],
+    [/Waiting Room/g, '等候室'],
+    [/Energy deck/g, '能量牌组'],
+    [/Main Deck/g, '主牌组'],
+    [/Stage Member/g, '舞台成员'],
+    [/ overplayed onto (.+)\.$/, ' 叠放在 $1 上。'],
+    [/ played (.+) to (left|center|right) area\.$/, function (_m, card, slot) {
+      return ' 将 ' + card + ' 打到' + (SLOT_ZH[slot] || slot) + '区域。';
+    }],
+  ];
+
+  var EFFECT_RULES_ZH = [
+    [/drew a card\./, '抽了1张卡。'],
+    [/drew (.+)\./, '抽了 $1。'],
+    [/discarded a card\./, '弃置了1张卡。'],
+    [/put (.+) into the Waiting Room\./, '将 $1 放入等候室。'],
+    [/put a card into the Waiting Room\./, '将1张卡放入等候室。'],
+    [/optional Live Start \(choose\)\./, '可选的Live开始（选择）。'],
+    [/optional Live Start effect \(choose\)\./, '可选的Live开始效果（选择）。'],
+    [/Live Success choice\./, 'Live成功选择。'],
+  ];
+
   function clearLogNameCache() {
     namePairs = null;
     namePairsKo = null;
+    namePairsZh = null;
   }
 
   function buildNamePairs(catalog) {
@@ -676,6 +808,42 @@
     return msg;
   }
 
+  function buildNamePairsZh(catalog) {
+    if (!catalog) return [];
+    var i18n = global.LLTCG_I18N;
+    if (!i18n || typeof i18n.cardLocaleName !== 'function') return [];
+    var pairs = [];
+    var seen = Object.create(null);
+    Object.keys(catalog).forEach(function (no) {
+      var c = catalog[no];
+      if (!c) return;
+      var en = String(c.name_en || '').trim();
+      if (!en) return;
+      var zh = String(i18n.cardLocaleName(c) || '').trim();
+      if (!zh || zh === en) return;
+      var key = en.toLowerCase();
+      if (seen[key]) return;
+      seen[key] = 1;
+      pairs.push([en, zh]);
+    });
+    pairs.sort(function (a, b) { return b[0].length - a[0].length; });
+    return pairs;
+  }
+
+  function getNamePairsZh(catalog) {
+    if (!namePairsZh) namePairsZh = buildNamePairsZh(catalog);
+    return namePairsZh;
+  }
+
+  function replaceCardNamesZh(msg, catalog) {
+    if (!msg) return msg;
+    getNamePairsZh(catalog).forEach(function (pair) {
+      if (msg.indexOf(pair[0]) === -1) return;
+      msg = msg.split(pair[0]).join(pair[1]);
+    });
+    return msg;
+  }
+
   function replaceSkillBrackets(msg, map) {
     var brackets = map || SKILL_BRACKETS;
     return msg.replace(/\[([^\]]+)\]/g, function (full, inner) {
@@ -729,6 +897,17 @@
     return out;
   }
 
+  function localizePromptTextZh(msg, catalog) {
+    if (!msg) return msg;
+    catalog = catalog || (global.G && global.G.allCards);
+    var out = String(msg);
+    out = replaceCardNamesZh(out, catalog);
+    out = replaceSkillBrackets(out, SKILL_BRACKETS_ZH);
+    out = applyRules(out, PHRASE_RULES_ZH);
+    out = applyRules(out, EFFECT_RULES_ZH);
+    return out;
+  }
+
   function localizePromptText(msg, catalog) {
     if (!msg) return msg;
     var i18n = global.LLTCG_I18N;
@@ -738,6 +917,7 @@
     if (loc === 'ja') return localizePromptTextJa(msg, catalog);
     if (loc === 'es') return localizePromptTextEs(msg, catalog);
     if (loc === 'ko') return localizePromptTextKo(msg, catalog);
+    if (loc === 'zh') return localizePromptTextZh(msg, catalog);
     return msg;
   }
 
@@ -797,6 +977,25 @@
     return out;
   }
 
+  function localizeLogMessageZh(msg, catalog) {
+    if (!msg) return msg;
+
+    var exact = translateExact(msg);
+    if (exact != null) return exact;
+
+    var structured = translateStructuredLineZh(msg);
+    if (structured != null) return structured;
+
+    catalog = catalog || (global.G && global.G.allCards);
+    var out = String(msg);
+    out = applyRules(out, STRUCTURAL_PHRASE_RULES_ZH);
+    out = replaceCardNamesZh(out, catalog);
+    out = replaceSkillBrackets(out, SKILL_BRACKETS_ZH);
+    out = applyRules(out, PHRASE_RULES_ZH);
+    out = applyRules(out, EFFECT_RULES_ZH);
+    return out;
+  }
+
   function localizeLogMessage(msg, catalog) {
     if (!msg) return msg;
     var i18n = global.LLTCG_I18N;
@@ -806,6 +1005,7 @@
     if (loc === 'ja') return localizeLogMessageJa(msg, catalog);
     if (loc === 'es') return localizeLogMessageEs(msg, catalog);
     if (loc === 'ko') return localizeLogMessageKo(msg, catalog);
+    if (loc === 'zh') return localizeLogMessageZh(msg, catalog);
     return msg;
   }
 

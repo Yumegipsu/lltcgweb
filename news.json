@@ -10,13 +10,15 @@
         "en": "Korean language option",
         "ja": "韓国語に対応",
         "es": "Opción de idioma coreano",
-        "ko": "한국어 언어 옵션 추가"
+        "ko": "한국어 언어 옵션 추가",
+        "zh": "韩语选项"
       },
       "body": {
         "en": "You can now play in **Korean**. Open **Options** or use the language menu on the title screen or hub to switch.\n\nMenus, the hands-on tutorial, game UI, and card rules text are localized. Unlike Spanish — where character and song titles stay in English — Korean shows **Member** and **Live** names in Korean readings (phonetic, meaning-based, or Sino-Korean depending on the title).\n\n**About name accuracy**\nThese readings are a best-effort community localization, not official Bandai translations. Spellings and choices may not match every fan convention, and some titles may be imperfect. If you spot a clear mistake, please tell us so we can correct it.",
         "ja": "**韓国語**でプレイできるようになりました。タイトル画面・ハブ・**オプション**の言語メニューから切り替えられます。\n\nメニュー、ハンズオンチュートリアル、対戦UI、カードルール文に対応しています。スペイン語ではキャラ名・楽曲名を英語のままにしますが、韓国語では**メンバー**／**ライブ**名を韓国語読みで表示します（音訳・意味訳・漢語読みなど、タイトルに応じて使い分け）。\n\n**表記について**\n公式のバンダイ翻訳ではなく、コミュニティ向けの暫定ローカライズです。ファン間の慣用表記と異なる場合や、誤りがある可能性があります。明らかな誤りを見つけた場合はお知らせください。修正します。",
         "es": "Ahora puedes jugar en **coreano**. Abre **Opciones** o usa el menú de idioma en la pantalla de título o el hub para cambiar.\n\nEstán localizados los menús, el tutorial práctico, la interfaz de partida y el texto de reglas de las cartas. A diferencia del español —donde los nombres de personajes y canciones se mantienen en inglés—, el coreano muestra los nombres de **Miembro** y **Live** en lecturas coreanas (fonética, semántica o sino-coreana según el título).\n\n**Sobre la precisión de los nombres**\nEstas lecturas son una localización comunitaria de mejor esfuerzo, no traducciones oficiales de Bandai. La ortografía puede no coincidir con todas las convenciones de fans, y algunos títulos pueden ser imperfectos. Si ves un error claro, avísanos para corregirlo.",
-        "ko": "이제 **한국어**로 플레이할 수 있습니다. 타이틀 화면·허브의 **옵션** 또는 언어 메뉴에서 전환하세요.\n\n메뉴, 실습 튜토리얼, 대전 UI, 카드 규칙 텍스트가 현지화되어 있습니다. 스페인어는 캐릭터·곡 이름을 영어 그대로 두는 반면, 한국어는 **멤버**·**라이브** 이름을 한국어 표기로 보여 줍니다(제목에 따라 음역·의미 번역·한자어 독음 등을 사용).\n\n**이름 표기에 대해**\n이 표기는 공식 반다이 번역이 아니라 커뮤니티용 최선의 현지화입니다. 팬덤에서 쓰이는 표기와 다를 수 있고, 일부 제목은 완벽하지 않을 수 있습니다. 분명한 오류를 발견하시면 알려 주세요. 수정하겠습니다."
+        "ko": "이제 **한국어**로 플레이할 수 있습니다. 타이틀 화면·허브의 **옵션** 또는 언어 메뉴에서 전환하세요.\n\n메뉴, 실습 튜토리얼, 대전 UI, 카드 규칙 텍스트가 현지화되어 있습니다. 스페인어는 캐릭터·곡 이름을 영어 그대로 두는 반면, 한국어는 **멤버**·**라이브** 이름을 한국어 표기로 보여 줍니다(제목에 따라 음역·의미 번역·한자어 독음 등을 사용).\n\n**이름 표기에 대해**\n이 표기는 공식 반다이 번역이 아니라 커뮤니티용 최선의 현지화입니다. 팬덤에서 쓰이는 표기와 다를 수 있고, 일부 제목은 완벽하지 않을 수 있습니다. 분명한 오류를 발견하시면 알려 주세요. 수정하겠습니다.",
+        "zh": "您现在可以用 **韩语** 玩游戏。打开**选项**或使用标题屏幕或中心上的语言菜单进行切换。\n\n菜单、操作教程、游戏用户界面和卡牌规则文本均已本地化。与西班牙语不同的是，西班牙语中的角色和歌曲标题保留为英语，而韩语则在韩语读物中显示**成员**和**实时**名称（语音、基于含义或中韩对照，具体取决于标题）。\n\n**关于姓名准确性**\n这些读物是尽最大努力社区本地化的，而不是官方万代翻译。拼写和选择可能并不符合每个粉丝惯例，并且某些标题可能不完美。如果您发现明显的错误，请告诉我们，以便我们纠正。"
       }
     },
     {
@@ -28,13 +30,15 @@
         "en": "Win ranked matches for PR cards!",
         "ja": "ランクマッチ勝利でPRカードをゲット！",
         "es": "¡Gana partidas clasificatorias y recibe cartas PR!",
-        "ko": "랭크 매치에서 승리하고 PR 카드를 받자!"
+        "ko": "랭크 매치에서 승리하고 PR 카드를 받자!",
+        "zh": "赢得排名赛以获得永久卡！"
       },
       "body": {
         "en": "Signed-in players can now earn a **random PR card** when they **win a ranked match** — similar to store tournament prizes.\n\n**How it works**\n- Queue for **Ranked**, win the match, then return to the hub to see your reward reveal.\n- You can receive up to **5 PR rewards per day** (resets at midnight **JST**).\n- If you already have the **maximum copies** of that card (**4** for Member/Live, **12** for Energy), the reward converts to **Star Gems** instead — same rules as pack opens.\n\nKeep climbing the ladder and grow your collection. Good luck!",
         "ja": "サインイン中のプレイヤーは、**ランクマッチに勝利**すると**ランダムなPRカード**を獲得できるようになりました（店舗大会の景品イメージ）。\n\n**遊び方**\n- **ランク**にマッチングして勝利し、ハブに戻ると報酬演出が表示されます。\n- 1日あたり最大 **5回** まで（毎日0時・**JST** にリセット）。\n- そのカードをすでに**上限枚数**まで持っている場合（メンバー／ライブは**4枚**、エネルギーは**12枚**）は、パック開封と同じく **スタージェム** に変換されます。\n\nランクを駆け上がってコレクションを広げましょう。がんばってください！",
         "es": "Las cuentas con sesión iniciada ya pueden ganar una **carta PR al azar** al **ganar una partida clasificatoria**, al estilo de los premios de torneos locales.\n\n**Cómo funciona**\n- Entra en **Clasificatorio**, gana la partida y vuelve al hub para ver la revelación de la recompensa.\n- Puedes recibir hasta **5 recompensas PR al día** (se reinicia a medianoche **JST**).\n- Si ya tienes el **máximo de copias** de esa carta (**4** para Miembro/Live, **12** para Energía), la recompensa se convierte en **Star Gems**, con las mismas reglas que al abrir sobres.\n\nSigue subiendo en la clasificación y amplía tu colección. ¡Mucha suerte!",
-        "ko": "로그인한 플레이어는 이제 **랭크 매치에서 승리**하면 **랜덤 PR 카드**를 획득할 수 있습니다 — 오프라인 매장 대회 상품과 비슷한 방식입니다.\n\n**진행 방법**\n- **랭크**에 매칭해 승리한 뒤 허브로 돌아오면 보상 연출을 확인할 수 있습니다.\n- 하루 최대 **5회**까지 받을 수 있습니다 (매일 자정 **JST** 기준 초기화).\n- 해당 카드를 이미 **최대 보유 매수**만큼 가지고 있다면 (멤버/Live는 **4장**, 에너지는 **12장**) 팩 개봉과 동일한 규칙으로 **스타젬**으로 대신 전환됩니다.\n\n계속 랭크를 올리며 컬렉션을 늘려보세요. 행운을 빕니다!"
+        "ko": "로그인한 플레이어는 이제 **랭크 매치에서 승리**하면 **랜덤 PR 카드**를 획득할 수 있습니다 — 오프라인 매장 대회 상품과 비슷한 방식입니다.\n\n**진행 방법**\n- **랭크**에 매칭해 승리한 뒤 허브로 돌아오면 보상 연출을 확인할 수 있습니다.\n- 하루 최대 **5회**까지 받을 수 있습니다 (매일 자정 **JST** 기준 초기화).\n- 해당 카드를 이미 **최대 보유 매수**만큼 가지고 있다면 (멤버/Live는 **4장**, 에너지는 **12장**) 팩 개봉과 동일한 규칙으로 **스타젬**으로 대신 전환됩니다.\n\n계속 랭크를 올리며 컬렉션을 늘려보세요. 행운을 빕니다!",
+        "zh": "现在，登录玩家在**赢得排名赛**时可以获得**随机 PR 卡** - 类似于商店锦标赛奖品。\n\n**它是如何运作的**\n- 排队参加**排名**，赢得比赛，然后返回中心查看您的奖励揭晓。\n- 您每天最多可以获得 **5 个 PR 奖励**（在午夜 **JST** 重置）。\n- 如果您已经拥有该卡的**最大副本**（对于会员/Live，**4**，对于能量**12**），奖励将转换为 **星宝石** - 与包打开的规则相同。\n\n不断攀登阶梯并增加您的收藏。祝你好运！"
       }
     },
     {
@@ -46,13 +50,15 @@
         "en": "Star Gem Missions are here!",
         "ja": "スタージェムミッションが追加されました！",
         "es": "¡Misiones de Star Gems disponibles!",
-        "ko": "스타젬 미션이 추가되었습니다!"
+        "ko": "스타젬 미션이 추가되었습니다!",
+        "zh": "星宝石任务来了！"
       },
       "body": {
         "en": "Signed-in players can now earn **Star Gems** from **Missions** on the hub.\n\n**Where to find them**\n- On the hub, tap the green **Missions** button beside your Star Gem count.\n\n**How it works**\n- **Daily** tasks reset at midnight **JST** — open all free booster packs, play a ranked match, use a stamp, and more.\n- **Milestones** are one-time goals like ranked play, profile setup, and winning with a single-group main deck.\n- Finish a task in play, then open Missions and tap **Claim** to collect your gems.\n\nYou'll see a green notice at the top when you complete a mission during a match. Good luck!",
         "ja": "サインイン中のプレイヤーは、ハブの**ミッション**で**スタージェム**を獲得できるようになりました。\n\n**開き方**\n- ハブでスタージェム表示の横にある緑の **ミッション** をタップ。\n\n**遊び方**\n- **デイリー**は毎日0時（**JST**）にリセット — デイリーブースターをすべて開封、ランクマッチをプレイ、スタンプを使うなど。\n- **マイルストーン**はランク戦の回数、プロフィール設定、単一グループのメインデッキでの勝利など、一度きりの目標です。\n- 対戦中に達成したら、ミッション画面で **受け取る** をタップしてジェムを入手。\n\n対戦中にミッションを達成すると、画面上部に緑のお知らせが表示されます。がんばってください！",
         "es": "Las cuentas con sesión iniciada ya pueden ganar **Star Gems** con **Misiones** en el hub.\n\n**Dónde encontrarlas**\n- En el hub, toca el botón verde **Misiones** junto a tu contador de Star Gems.\n\n**Cómo funcionan**\n- Las tareas **Diarias** se reinician a medianoche **JST**: abre todos los sobres diarios gratis, juega una partida clasificatoria, usa un sello y más.\n- Los **Hitos** son metas únicas: partidas clasificatorias, perfil y ganar con un mazo principal de un solo grupo.\n- Completa una tarea en partida, abre Misiones y toca **Reclamar** para recoger tus gemas.\n\nVerás un aviso verde arriba cuando completes una misión durante una partida. ¡Mucha suerte!",
-        "ko": "로그인한 플레이어는 이제 허브의 **미션**에서 **스타젬**을 획득할 수 있습니다.\n\n**찾는 방법**\n- 허브에서 스타젬 개수 옆의 초록색 **미션** 버튼을 탭하세요.\n\n**진행 방법**\n- **데일리** 과제는 매일 자정 (**JST**) 초기화됩니다 — 무료 부스터 팩 전부 개봉, 랭크 매치 플레이, 스탬프 사용 등.\n- **마일스톤**은 랭크 플레이, 프로필 설정, 단일 그룹 메인 덱으로 승리하기 등 한 번만 달성하면 되는 목표입니다.\n- 플레이 중 과제를 완료한 뒤 미션 화면을 열고 **받기**를 탭해 젬을 수령하세요.\n\n대전 중 미션을 완료하면 화면 상단에 초록색 알림이 표시됩니다. 행운을 빕니다!"
+        "ko": "로그인한 플레이어는 이제 허브의 **미션**에서 **스타젬**을 획득할 수 있습니다.\n\n**찾는 방법**\n- 허브에서 스타젬 개수 옆의 초록색 **미션** 버튼을 탭하세요.\n\n**진행 방법**\n- **데일리** 과제는 매일 자정 (**JST**) 초기화됩니다 — 무료 부스터 팩 전부 개봉, 랭크 매치 플레이, 스탬프 사용 등.\n- **마일스톤**은 랭크 플레이, 프로필 설정, 단일 그룹 메인 덱으로 승리하기 등 한 번만 달성하면 되는 목표입니다.\n- 플레이 중 과제를 완료한 뒤 미션 화면을 열고 **받기**를 탭해 젬을 수령하세요.\n\n대전 중 미션을 완료하면 화면 상단에 초록색 알림이 표시됩니다. 행운을 빕니다!",
+        "zh": "已登录的玩家现在可以通过中心的**任务**赚取**星星宝石**。\n\n**在哪里可以找到它们**\n- 在中心上，点击星星宝石计数旁边的绿色 **任务** 按钮。\n\n**它是如何运作的**\n- **每日**任务在午夜重置**日本标准时间** — 打开所有免费的补充包、进行排名比赛、使用印章等等。\n- **里程碑**是一次性目标，例如排名比赛、个人资料设置以及使用单组主牌组获胜。\n- 完成游戏中的任务，然后打开任务并点击**领取**来收集宝石。\n\n当您在比赛期间完成任务时，您会在顶部看到绿色通知。祝你好运！"
       }
     },
     {
@@ -64,13 +70,15 @@
         "en": "PvP stamps are here!",
         "ja": "PvPスタンプが追加されました！",
         "es": "¡Sellos PvP disponibles!",
-        "ko": "PvP 스탬프가 추가되었습니다!"
+        "ko": "PvP 스탬프가 추가되었습니다!",
+        "zh": "PvP 邮票就在这里！"
       },
       "body": {
         "en": "Send quick reactions during **player vs. player** matches with **Stamps**.\n\n**How to use**\n- Tap **💬 Stamps** on the match screen.\n- Pick a stamp from **日本語** or **English**, or open **★ Favorites** for your shortcuts.\n- Your opponent sees it on the board; optional **stamp voice clips** play if you leave audio on.\n\n**Favorite stamps**\nOpen **Options → Favorite stamps** to pin up to **20** stamps for the ★ tab. Tap ☆ on any stamp in the picker to add it on the fly.\n\nStamps are for human PvP only — ranked, casual, and friend rooms.",
         "ja": "**対人戦**で**スタンプ**を送れるようになりました。\n\n**使い方**\n- 対戦画面の **💬 スタンプ** をタップ。\n- **日本語**・**English** から選ぶか、**★ お気に入り** でショートカット。\n- 相手の盤面に表示されます。**スタンプ音声**はオプションでオン・オフできます。\n\n**お気に入り**\n**オプション → お気に入りスタンプ** で最大 **20** 個まで登録できます。ピッカーで ☆ をタップしてその場で追加も可能です。\n\nスタンプは人間同士のPvP専用です（ランク・カジュアル・フレンドルーム）。",
         "es": "Envía reacciones rápidas en partidas **jugador contra jugador** con **Sellos**.\n\n**Cómo usar**\n- Toca **💬 Sellos** en la pantalla de partida.\n- Elige en **日本語** o **English**, o abre **★ Favoritos** para accesos directos.\n- Tu rival lo ve en el tablero; las **voces de sellos** suenan si dejas el audio activado.\n\n**Favoritos**\nEn **Opciones → Sellos favoritos** fija hasta **20** sellos para la pestaña ★. Toca ☆ en el selector para añadir al momento.\n\nLos sellos son solo para PvP humano — clasificatorio, casual y salas de amigos.",
-        "ko": "**대인전**에서 **스탬프**로 빠른 반응을 보낼 수 있게 되었습니다.\n\n**사용 방법**\n- 대전 화면의 **💬 스탬프**를 탭하세요.\n- **日本語** 또는 **English** 중에서 스탬프를 고르거나, **★ 즐겨찾기**를 열어 바로가기를 사용하세요.\n- 상대방의 보드에도 표시됩니다. 오디오를 켜두면 선택적으로 **스탬프 음성**이 재생됩니다.\n\n**즐겨찾는 스탬프**\n**옵션 → 즐겨찾는 스탬프**에서 ★ 탭에 최대 **20**개까지 스탬프를 고정할 수 있습니다. 선택 창에서 ☆를 탭하면 즉시 추가할 수 있습니다.\n\n스탬프는 사람 간 PvP 전용입니다 — 랭크, 캐주얼, 친구방에서 사용 가능합니다."
+        "ko": "**대인전**에서 **스탬프**로 빠른 반응을 보낼 수 있게 되었습니다.\n\n**사용 방법**\n- 대전 화면의 **💬 스탬프**를 탭하세요.\n- **日本語** 또는 **English** 중에서 스탬프를 고르거나, **★ 즐겨찾기**를 열어 바로가기를 사용하세요.\n- 상대방의 보드에도 표시됩니다. 오디오를 켜두면 선택적으로 **스탬프 음성**이 재생됩니다.\n\n**즐겨찾는 스탬프**\n**옵션 → 즐겨찾는 스탬프**에서 ★ 탭에 최대 **20**개까지 스탬프를 고정할 수 있습니다. 선택 창에서 ☆를 탭하면 즉시 추가할 수 있습니다.\n\n스탬프는 사람 간 PvP 전용입니다 — 랭크, 캐주얼, 친구방에서 사용 가능합니다.",
+        "zh": "在**玩家对玩家**比赛期间使用**图章**发送快速反应。\n\n**如何使用**\n- 点击比赛屏幕上的 **💬 邮票**。\n- 从**日本语**或**英语**中选择一个印章，或打开**★收藏夹**作为您的快捷方式。\n- 你的对手在棋盘上看到它；如果您打开音频，可选的**标记语音剪辑**会播放。\n\n**最喜欢的邮票**\n打开 **选项 → 最喜欢的邮票**，为 ★ 选项卡固定最多 **20** 邮票。点击选择器中任何图章上的 ☆ 即可即时添加。\n\n印章仅适用于人类 PvP——排名、休闲和朋友房间。"
       }
     },
     {
@@ -82,13 +90,15 @@
         "en": "News & patch notes",
         "ja": "お知らせ・パッチノート",
         "es": "Noticias y notas del parche",
-        "ko": "공지사항 및 패치 노트"
+        "ko": "공지사항 및 패치 노트",
+        "zh": "新闻和补丁说明"
       },
       "body": {
         "en": "Welcome to the **News** section on the title screen.\n\nFuture game updates, announcements and changelogs will appear here!",
         "ja": "タイトル画面の**お知らせ**へようこそ。\n\n今後のゲームアップデート、お知らせ、変更履歴はこちらに掲載されます！",
         "es": "¡Bienvenido a la sección de **Noticias** en la pantalla de título!\n\n¡Aquí aparecerán futuras actualizaciones del juego, anuncios y listas de cambios!",
-        "ko": "타이틀 화면의 **공지사항** 섹션에 오신 것을 환영합니다.\n\n앞으로 게임 업데이트, 공지, 변경 사항이 이곳에 게시됩니다!"
+        "ko": "타이틀 화면의 **공지사항** 섹션에 오신 것을 환영합니다.\n\n앞으로 게임 업데이트, 공지, 변경 사항이 이곳에 게시됩니다!",
+        "zh": "欢迎来到标题屏幕上的**新闻**部分。\n\n未来的游戏更新、公告和变更日志将出现在这里！"
       }
     },
     {
@@ -100,13 +110,15 @@
         "en": "Deck point limit now in effect",
         "ja": "デッキポイント制限が適用されました",
         "es": "Límite de puntos del mazo en vigor",
-        "ko": "덱 포인트 제한이 적용되었습니다"
+        "ko": "덱 포인트 제한이 적용되었습니다",
+        "zh": "甲板点数限制现已生效"
       },
       "body": {
         "en": "Deck building now follows the official **point limit** for especially strong cards.\n\n**How it works**\n- Only certain cards cost points.\n- Add up every copy in your **main deck** — the total must stay **9 or below**.\n- Energy cards do not count toward this total.\n- Tap a **card ID** below to preview that card.\n\n**Examples of point costs (April 2026)**\n- **4 points:** Shizuku Osaka — PL!N-bp1-003-R＋\n- **3 points:** Lanzhu Zhong — PL!N-bp1-012-R＋ · You Watanabe & Natsumi Onitsuka & Rurino Osawa — LL-bp2-001-R＋\n- **2 points:** Kasumi Nakasu — PL!N-bp1-002-R＋ · Emma Verde — PL!N-sd1-008-SD · Rurino Osawa — PL!HS-bp2-014-N\n- **1 point:** Ren Hazuki — PL!SP-bp1-005-R · Eutopia — PL!N-bp1-029-L · Shiki Wakana — PL!SP-sd1-019-SD · Natsumi Onitsuka — PL!SP-sd1-020-SD · Chisato Arashi — PL!SP-pb1-014-N · Vitamin SUMMER! — PL!SP-bp2-024-L\n\nYou Watanabe — PL!S-bp2-005-R＋ — no longer costs points.\n\nOpen **Deck Builder** to see your running point total. Decks over the limit cannot be saved or used in ranked and casual play.",
         "ja": "特に強力なカードについて、公式の**ポイント制限**に沿ってデッキを組む必要があります。\n\n**ルール**\n- ポイントが設定されているカードだけが対象です。\n- **メインデッキ**に入れた枚数分を合計し、**9以下**にしてください。\n- エネルギーデッキは合計に含まれません。\n- 下の**カードID**をタップすると、そのカードをプレビューできます。\n\n**ポイント例（2026年4月時点）**\n- **4ポイント：** 桜坂しずく — PL!N-bp1-003-R＋\n- **3ポイント：** 鐘 嵐珠 — PL!N-bp1-012-R＋ · 渡辺 曜＆鬼塚夏美＆大沢瑠璃乃 — LL-bp2-001-R＋\n- **2ポイント：** 中須かすみ — PL!N-bp1-002-R＋ · エマ・ヴェルデ — PL!N-sd1-008-SD · 大沢瑠璃乃 — PL!HS-bp2-014-N\n- **1ポイント：** 葉月 恋 — PL!SP-bp1-005-R · Eutopia — PL!N-bp1-029-L · 若菜四季 — PL!SP-sd1-019-SD · 鬼塚夏美 — PL!SP-sd1-020-SD · 嵐 千砂都 — PL!SP-pb1-014-N · ビタミンSUMMER! — PL!SP-bp2-024-L\n\n渡辺 曜 — PL!S-bp2-005-R＋ — はポイント対象外になりました。\n\n**デッキビルダー**でポイント合計を確認できます。上限を超えたデッキは保存できず、ランク・カジュアルでも使用できません。",
         "es": "Al armar mazos ahora se aplica el **límite de puntos** oficial para las cartas especialmente fuertes.\n\n**Cómo funciona**\n- Solo ciertas cartas cuestan puntos.\n- Suma cada copia en tu **mazo principal** — el total debe ser **9 o menos**.\n- Las cartas de Energía no cuentan para este total.\n- Toca un **ID de carta** abajo para verla.\n\n**Ejemplos de costo en puntos (abril 2026)**\n- **4 puntos:** Shizuku Osaka — PL!N-bp1-003-R＋\n- **3 puntos:** Lanzhu Zhong — PL!N-bp1-012-R＋ · You Watanabe & Natsumi Onitsuka & Rurino Osawa — LL-bp2-001-R＋\n- **2 puntos:** Kasumi Nakasu — PL!N-bp1-002-R＋ · Emma Verde — PL!N-sd1-008-SD · Rurino Osawa — PL!HS-bp2-014-N\n- **1 punto:** Ren Hazuki — PL!SP-bp1-005-R · Eutopia — PL!N-bp1-029-L · Shiki Wakana — PL!SP-sd1-019-SD · Natsumi Onitsuka — PL!SP-sd1-020-SD · Chisato Arashi — PL!SP-pb1-014-N · Vitamin SUMMER! — PL!SP-bp2-024-L\n\nYou Watanabe — PL!S-bp2-005-R＋ — ya no cuesta puntos.\n\nAbre el **Constructor de mazos** para ver tu total de puntos. Los mazos por encima del límite no se pueden guardar ni usar en clasificatorio o casual.",
-        "ko": "덱 빌딩에서 특히 강력한 카드에 대해 공식 **포인트 제한**을 따르게 되었습니다.\n\n**작동 방식**\n- 일부 카드만 포인트가 부여됩니다.\n- **메인 덱**에 넣은 매수를 모두 더해 총합이 **9 이하**여야 합니다.\n- 에너지 카드는 이 합계에 포함되지 않습니다.\n- 아래 **카드 ID**를 탭하면 해당 카드를 미리 볼 수 있습니다.\n\n**포인트 예시 (2026년 4월 기준)**\n- **4포인트:** Shizuku Osaka — PL!N-bp1-003-R＋\n- **3포인트:** Lanzhu Zhong — PL!N-bp1-012-R＋ · You Watanabe & Natsumi Onitsuka & Rurino Osawa — LL-bp2-001-R＋\n- **2포인트:** Kasumi Nakasu — PL!N-bp1-002-R＋ · Emma Verde — PL!N-sd1-008-SD · Rurino Osawa — PL!HS-bp2-014-N\n- **1포인트:** Ren Hazuki — PL!SP-bp1-005-R · Eutopia — PL!N-bp1-029-L · Shiki Wakana — PL!SP-sd1-019-SD · Natsumi Onitsuka — PL!SP-sd1-020-SD · Chisato Arashi — PL!SP-pb1-014-N · Vitamin SUMMER! — PL!SP-bp2-024-L\n\nYou Watanabe — PL!S-bp2-005-R＋ — 는 더 이상 포인트가 부여되지 않습니다.\n\n**덱 빌더**를 열면 현재 포인트 합계를 확인할 수 있습니다. 제한을 초과한 덱은 저장할 수 없고 랭크·캐주얼 플레이에서도 사용할 수 없습니다."
+        "ko": "덱 빌딩에서 특히 강력한 카드에 대해 공식 **포인트 제한**을 따르게 되었습니다.\n\n**작동 방식**\n- 일부 카드만 포인트가 부여됩니다.\n- **메인 덱**에 넣은 매수를 모두 더해 총합이 **9 이하**여야 합니다.\n- 에너지 카드는 이 합계에 포함되지 않습니다.\n- 아래 **카드 ID**를 탭하면 해당 카드를 미리 볼 수 있습니다.\n\n**포인트 예시 (2026년 4월 기준)**\n- **4포인트:** Shizuku Osaka — PL!N-bp1-003-R＋\n- **3포인트:** Lanzhu Zhong — PL!N-bp1-012-R＋ · You Watanabe & Natsumi Onitsuka & Rurino Osawa — LL-bp2-001-R＋\n- **2포인트:** Kasumi Nakasu — PL!N-bp1-002-R＋ · Emma Verde — PL!N-sd1-008-SD · Rurino Osawa — PL!HS-bp2-014-N\n- **1포인트:** Ren Hazuki — PL!SP-bp1-005-R · Eutopia — PL!N-bp1-029-L · Shiki Wakana — PL!SP-sd1-019-SD · Natsumi Onitsuka — PL!SP-sd1-020-SD · Chisato Arashi — PL!SP-pb1-014-N · Vitamin SUMMER! — PL!SP-bp2-024-L\n\nYou Watanabe — PL!S-bp2-005-R＋ — 는 더 이상 포인트가 부여되지 않습니다.\n\n**덱 빌더**를 열면 현재 포인트 합계를 확인할 수 있습니다. 제한을 초과한 덱은 저장할 수 없고 랭크·캐주얼 플레이에서도 사용할 수 없습니다.",
+        "zh": "现在，牌组构建遵循特别强卡的官方**点数限制**。\n\n**它是如何运作的**\n- 只有某些卡牌需要积分。\n- 将您的**主牌组**中的每个副本相加 - 总数必须保持在 **9 或以下**。\n- 能量卡不计入此总数。\n- 点击下面的**卡 ID** 即可预览该卡。\n\n**积分成本示例（2026 年 4 月）**\n- **4分：** 大阪雫 — PL!N-bp1-003-R＋\n- **3分：** 钟兰珠 — PL!N-bp1-012-R＋ ·渡边阳 & 鬼冢夏美 & 大泽琉乃 — LL-bp2-001-R＋\n- **2分：** 中洲霞 — PL!N-bp1-002-R＋ · 艾玛·维德 — PL!N-sd1-008-SD · 大泽留乃 — PL!HS-bp2-014-N\n- **1分：** 叶月莲 — PL!SP-bp1-005-R · 乌托邦 — PL!N-bp1-029-L · 若菜志贵 — PL!SP-sd1-019-SD · 鬼冢夏美 — PL!SP-sd1-020-SD · 岚千里 — PL!SP-pb1-014-N · 维生素夏天！ — PL!SP-bp2-024-L\n\n渡边你 — PL!S-bp2-005-R＋ — 不再需要积分。\n\n打开 **Deck Builder** 查看您的总跑分。超过限制的牌组无法在排名和休闲游戏中保存或使用。"
       }
     },
     {
@@ -118,13 +130,15 @@
         "en": "Spanish language option",
         "ja": "スペイン語（ラテンアメリカ）に対応",
         "es": "Opción de idioma español",
-        "ko": "스페인어 언어 옵션 추가"
+        "ko": "스페인어 언어 옵션 추가",
+        "zh": "西班牙语选项"
       },
       "body": {
         "en": "You can now play in **Spanish** (Latin American Spanish). Open **Options** or use the language menu on the title screen or hub to switch.\n\nMenus, tutorial, and starter-deck card rules are localized first; more booster sets will follow in future updates.",
         "ja": "**スペイン語**（ラテンアメリカ）でプレイできるようになりました。タイトル画面・ハブ・**オプション**の言語メニューから切り替えられます。\n\nメニュー、チュートリアル、スターターデッキのカードルールから順次対応中です。今後、ブースターセットの翻訳も追加されます。",
         "es": "Ahora puedes jugar en **Español** (español latinoamericano). Abre **Opciones** o usa el menú de idioma en la pantalla de título o el hub para cambiar.\n\nPrimero están localizados los menús, el tutorial y las reglas de las cartas de mazos iniciales; más sets de sobres llegarán en actualizaciones futuras.",
-        "ko": "이제 **스페인어**(라틴 아메리카 스페인어)로 플레이할 수 있습니다. 타이틀 화면이나 허브의 **옵션** 또는 언어 메뉴에서 전환할 수 있습니다.\n\n메뉴, 튜토리얼, 스타터 덱 카드 규칙이 먼저 현지화되었으며, 향후 업데이트에서 더 많은 부스터 세트가 추가될 예정입니다."
+        "ko": "이제 **스페인어**(라틴 아메리카 스페인어)로 플레이할 수 있습니다. 타이틀 화면이나 허브의 **옵션** 또는 언어 메뉴에서 전환할 수 있습니다.\n\n메뉴, 튜토리얼, 스타터 덱 카드 규칙이 먼저 현지화되었으며, 향후 업데이트에서 더 많은 부스터 세트가 추가될 예정입니다.",
+        "zh": "您现在可以使用**西班牙语**（拉丁美洲西班牙语）进行游戏。打开**选项**或使用标题屏幕或中心上的语言菜单进行切换。\n\n菜单、教程和入门卡牌规则首先本地化；未来的更新中将推出更多补充包。"
       }
     }
   ]

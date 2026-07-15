@@ -23,7 +23,7 @@ if (/[?&]debug(?:=|&|$)/.test(location.search)) {
 }
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 /* ═══════════════════════════════════════ TOKENS */
 :root {
@@ -4550,6 +4550,8 @@ body.locale-ja{font-family:'Zen Kaku Gothic New','Nunito',sans-serif}
 body.locale-ja .llc-menu-item-title{font-family:'Zen Kaku Gothic New','Nunito',sans-serif}
 body.locale-ko{font-family:'Noto Sans KR','Nunito',sans-serif}
 body.locale-ko .llc-menu-item-title{font-family:'Noto Sans KR','Nunito',sans-serif}
+body.locale-zh{font-family:'Noto Sans SC','Nunito',sans-serif}
+body.locale-zh .llc-menu-item-title{font-family:'Noto Sans SC','Nunito',sans-serif}
 .llc-menu-screen .lerr{color:#ffd6e8;font-weight:700}
 .llc-menu-screen .hub-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .llc-menu-screen .hub-top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -6374,6 +6376,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
                   <img class="locale-flag" src="assets/flags/KR_South_Korea_rect.png" alt="" width="20" height="14" decoding="async">
                   <span data-i18n="language.ko">한국어</span>
                 </button>
+                <button type="button" class="locale-picker-option" role="option" data-locale="zh" aria-selected="false">
+                  <img class="locale-flag" src="assets/flags/CN_China_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.zh">简体中文</span>
+                </button>
               </div>
             </div>
           </div>
@@ -6809,6 +6815,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
                   <img class="locale-flag" src="assets/flags/KR_South_Korea_rect.png" alt="" width="20" height="14" decoding="async">
                   <span data-i18n="language.ko">한국어</span>
                 </button>
+                <button type="button" class="locale-picker-option" role="option" data-locale="zh" aria-selected="false">
+                  <img class="locale-flag" src="assets/flags/CN_China_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.zh">简体中文</span>
+                </button>
               </div>
             </div>
           </div>
@@ -6931,6 +6941,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
               <button type="button" class="locale-picker-option" role="option" data-locale="ko" aria-selected="false">
                 <img class="locale-flag" src="assets/flags/KR_South_Korea_rect.png" alt="" width="20" height="14" decoding="async">
                 <span data-i18n="language.ko">한국어</span>
+              </button>
+              <button type="button" class="locale-picker-option" role="option" data-locale="zh" aria-selected="false">
+                <img class="locale-flag" src="assets/flags/CN_China_rect.png" alt="" width="20" height="14" decoding="async">
+                <span data-i18n="language.zh">简体中文</span>
               </button>
             </div>
           </div>
@@ -8146,8 +8160,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=53"></script>
-<script src="log_i18n.js?v=9"></script>
+<script src="i18n.js?v=54"></script>
+<script src="log_i18n.js?v=10"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=13"></script>
 <script src="client/js/api-client.js?v=9"></script>
@@ -8155,7 +8169,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/missions.js?v=5"></script>
 <script src="client/js/game-sync.js?v=15"></script>
 <script src="client/js/state-apply.js?v=31"></script>
-<script src="client/js/stamps.js?v=15"></script>
+<script src="client/js/stamps.js?v=16"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
 <script src="client/js/prompt-renderer.js?v=31"></script>
 <script src="client/js/tutorial-interactive.js?v=17"></script>
@@ -16222,6 +16236,9 @@ function enrichCard(card) {
   }
   if (base && Object.prototype.hasOwnProperty.call(base, 'text_ko')) {
     merged.text_ko = base.text_ko || '';
+  }
+  if (base && Object.prototype.hasOwnProperty.call(base, 'text_zh')) {
+    merged.text_zh = base.text_zh || '';
   }
   if (base && Object.prototype.hasOwnProperty.call(base, 'abilities')) {
     merged.abilities = Array.isArray(base.abilities) ? base.abilities : [];
@@ -28011,6 +28028,7 @@ const RULE_KW_BRACKET_LABELS_EN = 'On Enter|On Leave|Live Start|Live Success|Act
 const RULE_KW_BRACKET_LABELS_JA = '登場時|退場時|ライブ開始時|ライブ開始|ライブ成功時|ライブ成功|起動|常時|ターン1回|自動|センター|エール';
 const RULE_KW_BRACKET_LABELS_ES = 'Al entrar|Al salir|Inicio de Live|Éxito de Live|Activada|Siempre|Una vez por turno|Automático|Centro|Yell';
 const RULE_KW_BRACKET_LABELS_KO = '등장 시|퇴장 시|라이브 개시|라이브 성공|기동|상시|턴에 1회|자동|센터|Yell';
+const RULE_KW_BRACKET_LABELS_ZH = '入场时|离场时|Live开始|Live成功|起动|永续|每回合1次|每回合2次|自动|中央|左侧|右侧|Yell';
 
 const RULE_KW_JA_TO_EN = {
   '登場時': 'On Enter',
@@ -28050,6 +28068,22 @@ const RULE_KW_KO_TO_EN = {
   '턴에 1회': 'Once per turn',
   '자동': 'Automatic',
   '센터': 'Center',
+  'Yell': 'Yell',
+};
+
+const RULE_KW_ZH_TO_EN = {
+  '入场时': 'On Enter',
+  '离场时': 'On Leave',
+  'Live开始': 'Live Start',
+  'Live成功': 'Live Success',
+  '起动': 'Activated',
+  '永续': 'Always',
+  '每回合1次': 'Once per turn',
+  '每回合2次': 'Twice per turn',
+  '自动': 'Automatic',
+  '中央': 'Center',
+  '左侧': 'Left Side',
+  '右侧': 'Right Side',
   'Yell': 'Yell',
 };
 
@@ -28102,18 +28136,24 @@ function getRuleKwBracketPattern() {
       'g'
     );
   }
+  if (loc === 'zh') {
+    return new RegExp(
+      `\\[(?:${RULE_KW_BRACKET_LABELS_ZH}|${RULE_KW_BRACKET_LABELS_EN})\\]`,
+      'g'
+    );
+  }
   return RULE_KW_BRACKET_PATTERN;
 }
 
 function ruleKwKeyFromBracketLabel(label) {
-  return RULE_KW_JA_TO_EN[label] || RULE_KW_ES_TO_EN[label] || RULE_KW_KO_TO_EN[label] || resolveRuleKwKey(label);
+  return RULE_KW_JA_TO_EN[label] || RULE_KW_ES_TO_EN[label] || RULE_KW_KO_TO_EN[label] || RULE_KW_ZH_TO_EN[label] || resolveRuleKwKey(label);
 }
 
 function ruleKeywordInfo(key) {
   const canon = resolveRuleKwKey(key);
   const i18nKey = RULE_KW_TIP_I18N[canon];
   const loc = getLocale();
-  if ((loc === 'ja' || loc === 'es' || loc === 'ko') && i18nKey) {
+  if ((loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh') && i18nKey) {
     const title = t(`${i18nKey}.title`);
     const body = t(`${i18nKey}.body`);
     if (title && body && !String(title).startsWith('skillKw.')) {
@@ -28172,9 +28212,11 @@ function cardRulesDisplayText(card) {
   const jp = (card.text_jp || '').trim();
   const es = (card.text_es || '').trim();
   const ko = (card.text_ko || '').trim();
+  const zh = (card.text_zh || '').trim();
   const loc = getLocale();
   if (loc === 'es') return es || en;
   if (loc === 'ko') return ko || en;
+  if (loc === 'zh') return zh || en;
   if (loc !== 'ja') return en || jp;
   if (!jp) return en;
   if (jp.match(getRuleKwBracketPattern())) return jp;

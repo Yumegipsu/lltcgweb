@@ -3,11 +3,12 @@
   'use strict';
 
   var LLTCG_LOCALE_KEY = 'lltcg_locale';
-  var LOCALES = ['en', 'ja', 'es', 'ko'];
+  var LOCALES = ['en', 'ja', 'es', 'ko', 'zh'];
   var localeChangeCallbacks = [];
   var _tutorialJa = null;
   var _tutorialEs = null;
   var _tutorialKo = null;
+  var _tutorialZh = null;
 
   var STRINGS = {
   "en": {
@@ -125,7 +126,8 @@
       "en": "English",
       "ja": "日本語",
       "es": "Español",
-      "ko": "한국어"
+      "ko": "한국어",
+      "zh": "简体中文"
     },
     "lobby": {
       "title": "Unranked Play",
@@ -1184,7 +1186,8 @@
       "en": "English",
       "ja": "日本語",
       "es": "Español",
-      "ko": "한국어"
+      "ko": "한국어",
+      "zh": "简体中文"
     },
     "lobby": {
       "title": "カジュアル対戦",
@@ -2190,7 +2193,9 @@
       "label": "Idioma",
       "en": "English",
       "ja": "日本語",
-      "es": "Español"
+      "es": "Español",
+      "zh": "简体中文",
+      "ko": "한국어"
     },
     "lobby": {
       "title": "Juego no clasificado",
@@ -2208,11 +2213,6 @@
       "cpuNormal": "Normal: habilidades y Lives más inteligentes",
       "cpuHard": "Difícil: mazo fuerte y prioridad de habilidades",
       "cpuExpert": "Experto: búsqueda dry-run y proyección de amenaza",
-      "cpuEasyShort": "Fácil",
-      "cpuNormalShort": "Normal",
-      "cpuHardShort": "Difícil",
-      "cpuExpertShort": "Experto",
-      "soloStarting": "Empezando vs CPU ({diff})",
       "findRandomMatch": "Buscar partida aleatoria",
       "spectate": "Espectar partida",
       "cancelSearch": "Cancelar búsqueda",
@@ -2686,11 +2686,6 @@
       "selected": "Seleccionada",
       "inStorage": "En almacenamiento",
       "liveScore": "Puntuación de Live",
-      "combinedHearts": "Corazones requeridos totales",
-      "livesSelected": "{n} Lives",
-      "livesSelectedOne": "1 Live",
-      "plusMembers": "+{n} Miembros",
-      "plusMembersOne": "+1 Miembro",
       "liveJudge": "Juez de Live",
       "liveWinLoss": "Verificación de victoria/derrota de Live",
       "yourScore": "Tu puntuación",
@@ -2722,7 +2717,6 @@
       "activateSub": "Elige si activar este efecto.",
       "lookAtDeck": "Mirar el mazo",
       "surveilHint": "La posición 1 es la parte superior de tu mazo. Arrastra cartas entre las posiciones numeradas y la Sala de espera, toca dos cartas para intercambiarlas, o toca una posición / la Sala de espera mientras una carta está seleccionada.",
-      "surveilHintReturnAll": "La posición 1 es la parte superior de tu mazo. Arrastra cartas entre las posiciones numeradas, o toca dos cartas para intercambiarlas. Todas las cartas deben permanecer encima del mazo.",
       "wrPickTitle": "Sala de espera",
       "wrPickMsg": "Elige una carta de tu Sala de espera para añadirla a tu mano.",
       "yellPickTitle": "Yell",
@@ -3265,7 +3259,8 @@
       "en": "English",
       "ja": "日本語",
       "es": "Español",
-      "ko": "한국어"
+      "ko": "한국어",
+      "zh": "简体中文"
     },
     "lobby": {
       "title": "일반전",
@@ -3283,11 +3278,6 @@
       "cpuNormal": "보통 — 더 똑똑한 스킬과 Live",
       "cpuHard": "어려움 — 강력한 덱과 스킬 우선순위",
       "cpuExpert": "전문가 — 시뮬레이션 탐색과 위협 예측",
-      "cpuEasyShort": "쉬움",
-      "cpuNormalShort": "보통",
-      "cpuHardShort": "어려움",
-      "cpuExpertShort": "전문가",
-      "soloStarting": "CPU ({diff}) 대전 시작",
       "findRandomMatch": "무작위 대전 찾기",
       "spectate": "경기 관전",
       "cancelSearch": "검색 취소",
@@ -3771,11 +3761,6 @@
       "selected": "선택됨",
       "inStorage": "스토리지에 있음",
       "liveScore": "Live 스코어",
-      "combinedHearts": "합산 필요 하트",
-      "livesSelected": "Live {n}장",
-      "livesSelectedOne": "Live 1장",
-      "plusMembers": "+멤버 {n}장",
-      "plusMembersOne": "+멤버 1장",
       "liveJudge": "Live 심판",
       "liveWinLoss": "Live 승패 확인",
       "yourScore": "내 스코어",
@@ -3807,7 +3792,6 @@
       "activateSub": "이 효과를 발동할지 선택하세요.",
       "lookAtDeck": "덱 확인",
       "surveilHint": "1번 자리는 덱의 맨 위입니다. 번호가 매겨진 자리와 대기실 사이로 카드를 드래그하거나, 두 카드를 탭해 맞바꾸거나, 카드가 선택된 상태에서 자리나 대기실을 탭하세요.",
-      "surveilHintReturnAll": "1번 자리는 덱의 맨 위입니다. 번호가 매겨진 자리 사이로 드래그하거나 두 카드를 탭해 맞바꾸세요. 모든 카드는 덱 위에 남겨야 합니다.",
       "wrPickTitle": "대기실",
       "wrPickMsg": "대기실에서 손패에 추가할 카드를 선택하세요.",
       "yellPickTitle": "Yell",
@@ -4404,11 +4388,13 @@
   function setLocale(loc) {
     if (LOCALES.indexOf(loc) === -1) loc = 'en';
     try { localStorage.setItem(LLTCG_LOCALE_KEY, loc); } catch (e) { /* ignore */ }
-    try { document.documentElement.lang = loc; } catch (e2) { /* ignore */ }
+    try {
+      document.documentElement.lang = loc === 'zh' ? 'zh-Hans' : loc;
+    } catch (e2) { /* ignore */ }
     try {
       if (document.body) {
-        document.body.classList.remove('locale-ja', 'locale-ko');
-        if (loc === 'ja' || loc === 'ko') document.body.classList.add('locale-' + loc);
+        document.body.classList.remove('locale-ja', 'locale-ko', 'locale-zh');
+        if (loc === 'ja' || loc === 'ko' || loc === 'zh') document.body.classList.add('locale-' + loc);
       }
     } catch (e3) { /* ignore */ }
   }
@@ -4434,7 +4420,7 @@
   function t(key, vars) {
     var loc = getLocale();
     var val = lookupPath(STRINGS[loc], key);
-    if (val == null && (loc === 'ja' || loc === 'es' || loc === 'ko')) val = lookupPath(STRINGS.en, key);
+    if (val == null && (loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh')) val = lookupPath(STRINGS.en, key);
     if (typeof val === 'string') return interpolate(val, vars);
     return key;
   }
@@ -4825,6 +4811,348 @@
   "絶対的LOVER": "절대적 러버"
 };
 
+  var ZH_NAME_MAP = {
+  "Ai Miyashita": "宫下爱",
+  "Anju Yuuki": "优木杏树",
+  "Ayumu Uehara": "上原步梦",
+  "Ayumu Uehara & Kanon Shibuya & Kaho Hinoshita": "上原步梦 & 涩谷香音 & 日野下花帆",
+  "Ceras Yanagida Lilienfeld": "塞拉斯柳田利林菲尔德",
+  "Chika Takami": "高海千歌",
+  "Chisato Arashi": "岚千砂都",
+  "Chisato Arashi ＆ Natsumi Onitsuka": "岚千砂都＆鬼冢夏美",
+  "Dia Kurosawa": "黑泽黛雅",
+  "Eli Ayase": "绚濑绘里",
+  "Eli Ayase & Karin Asaka & Ren Hazuki": "绚濑绘里 & 朝香果林 & 叶月恋",
+  "Emma Verde": "艾玛·维尔德",
+  "Erena Todo": "统堂英玲奈",
+  "Ginko Momose": "百生吟子",
+  "Hanamaru Kunikida": "国木田花丸",
+  "Hanayo Koizumi": "小泉花阳",
+  "Hime Anyoji": "安养寺姬芽",
+  "Honoka Kosaka": "高坂穗乃果",
+  "Izumi Katsuragi": "桂城泉",
+  "Kaho Hinoshita": "日野下花帆",
+  "Kanan Matsuura": "松浦果南",
+  "Kanata Konoe": "近江彼方",
+  "Kanon Shibuya": "涩谷香音",
+  "Karin Asaka": "朝香果林",
+  "Kasumi Nakasu": "中须霞",
+  "Keke Tang": "唐可可",
+  "Kinako Sakurakoji": "樱小路希奈子",
+  "Kosuzu Kachimachi": "徒町小铃",
+  "Kotori Minami": "南小鸟",
+  "Kotori Minami & Dia Kurosawa & Kosuzu Kachimachi": "南小鸟 & 黑泽黛雅 & 徒町小铃",
+  "Kozue Otomune": "乙宗梢",
+  "Lanzhu Zhong": "钟岚珠",
+  "Maki Nishikino": "西木野真姬",
+  "Mao Hiiragi": "柊摩央",
+  "Mari Ohara": "小原鞠莉",
+  "Megumi Fujishima": "藤岛慈",
+  "Mei Yoneme": "米女芽衣",
+  "Mia Taylor": "米雅·泰勒",
+  "Natsumi Onitsuka": "鬼冢夏美",
+  "Nico Yazawa": "矢泽妮可",
+  "Nozomi Tojo": "东条希",
+  "Ren Hazuki": "叶月恋",
+  "Ria Kazuno": "鹿角理亚",
+  "Riko Sakurauchi": "樱内梨子",
+  "Rin Hoshizora": "星空凛",
+  "Rina Tennoji": "天王寺璃奈",
+  "Ruby Kurosawa": "黑泽露比",
+  "Rurino Osawa": "大泽瑠璃乃",
+  "Sayaka Murano": "村野沙耶香",
+  "Seira Kazuno": "鹿角圣良",
+  "Setsuna Yuki": "优木雪菜",
+  "Shiki Wakana": "若菜四季",
+  "Shioriko Mifune": "三船栞子",
+  "Shizuku Osaka": "樱坂雫",
+  "Sumire Heanna": "平安名堇",
+  "Tomari Onitsuka": "鬼冢冬毬",
+  "Tsubasa Kira": "绮罗翼",
+  "Tsuzuri Yugiri": "夕雾缀理",
+  "Umi Sonoda": "园田海未",
+  "Umi Sonoda & Yoshiko Tsushima & Rina Tennoji": "园田海未 & 津岛善子 & 天王寺璃奈",
+  "Wien Margarete": "薇恩·玛格丽特",
+  "Yoshiko Tsushima": "津岛善子",
+  "You Watanabe": "渡边曜",
+  "You Watanabe & Natsumi Onitsuka & Rurino Osawa": "渡边曜 & 鬼冢夏美 & 大泽瑠璃乃",
+  "Yuuna Seizawa": "圣泽悠奈",
+  "ウィーン・マルガレーテ": "薇恩·玛格丽特",
+  "エマ・ヴェルデ": "艾玛·维尔德",
+  "セラス 柳田 リリエンフェルト": "塞拉斯柳田利林菲尔德",
+  "ミア・テイラー": "米雅·泰勒",
+  "三船栞子": "三船栞子",
+  "上原歩夢": "上原步梦",
+  "上原歩夢&澁谷かのん&日野下花帆": "上原步梦 & 涩谷香音 & 日野下花帆",
+  "中須かすみ": "中须霞",
+  "乙宗 梢": "乙宗梢",
+  "優木あんじゅ": "优木杏树",
+  "優木せつ菜": "优木雪菜",
+  "南 ことり": "南小鸟",
+  "南 ことり&黒澤ダイヤ&徒町小鈴": "南小鸟 & 黑泽黛雅 & 徒町小铃",
+  "南ことり": "南小鸟",
+  "唐 可可": "唐可可",
+  "国木田花丸": "国木田花丸",
+  "園田海未": "园田海未",
+  "園田海未&津島善子&天王寺璃奈": "园田海未 & 津岛善子 & 天王寺璃奈",
+  "夕霧綴理": "夕雾缀理",
+  "大沢瑠璃乃": "大泽瑠璃乃",
+  "天王寺璃奈": "天王寺璃奈",
+  "安養寺 姫芽": "安养寺姬芽",
+  "安養寺姫芽": "安养寺姬芽",
+  "宮下 愛": "宫下爱",
+  "小原鞠莉": "小原鞠莉",
+  "小泉 花陽": "小泉花阳",
+  "小泉花陽": "小泉花阳",
+  "嵐 千砂都": "岚千砂都",
+  "嵐 千砂都＆鬼塚夏美": "岚千砂都＆鬼冢夏美",
+  "平安名すみれ": "平安名堇",
+  "徒町 小鈴": "徒町小铃",
+  "徒町小鈴": "徒町小铃",
+  "日野下花帆": "日野下花帆",
+  "星空 凛": "星空凛",
+  "星空凛": "星空凛",
+  "朝香果林": "朝香果林",
+  "村野さやか": "村野沙耶香",
+  "東條 希": "东条希",
+  "松浦果南": "松浦果南",
+  "柊摩央": "柊摩央",
+  "桂城 泉": "桂城泉",
+  "桜内梨子": "樱内梨子",
+  "桜坂しずく": "樱坂雫",
+  "桜小路きな子": "樱小路希奈子",
+  "津島善子": "津岛善子",
+  "渡辺 曜": "渡边曜",
+  "渡辺 曜&鬼塚夏美&大沢瑠璃乃": "渡边曜 & 鬼冢夏美 & 大泽瑠璃乃",
+  "澁谷かのん": "涩谷香音",
+  "百生 吟子": "百生吟子",
+  "百生吟子": "百生吟子",
+  "矢澤 にこ": "矢泽妮可",
+  "矢澤にこ": "矢泽妮可",
+  "米女メイ": "米女芽衣",
+  "絢瀬 絵里": "绚濑绘里",
+  "絢瀬絵里": "绚濑绘里",
+  "絢瀬絵里&朝香果林&葉月 恋": "绚濑绘里 & 朝香果林 & 叶月恋",
+  "統堂英玲奈": "统堂英玲奈",
+  "綺羅ツバサ": "绮罗翼",
+  "聖澤悠奈": "圣泽悠奈",
+  "若菜四季": "若菜四季",
+  "葉月 恋": "叶月恋",
+  "藤島 慈": "藤岛慈",
+  "西木野 真姫": "西木野真姬",
+  "西木野真姫": "西木野真姬",
+  "近江彼方": "近江彼方",
+  "鐘 嵐珠": "钟岚珠",
+  "高坂 穂乃果": "高坂穗乃果",
+  "高坂穂乃果": "高坂穗乃果",
+  "高海千歌": "高海千歌",
+  "鬼塚冬毬": "鬼冢冬毬",
+  "鬼塚夏美": "鬼冢夏美",
+  "鹿角理亞": "鹿角理亚",
+  "鹿角聖良": "鹿角圣良",
+  "黒澤ダイヤ": "黑泽黛雅",
+  "黒澤ルビィ": "黑泽露比"
+};
+  var ZH_SONG_MAP = {
+  "365 Days": "365 Days",
+  "?←HEARTBEAT": "?←HEARTBEAT",
+  "A song for You! You? You!!": "A song for You! You? You!!",
+  "AURORA FLOWER": "AURORA FLOWER",
+  "AWOKE": "AWOKE",
+  "Aikotoba!": "爱言叶！",
+  "Aishiteru Banzai!": "爱您万岁！",
+  "Ai♡Scream!": "Ai♡Scream!",
+  "Angelic Angel": "Angelic Angel",
+  "Aoku Haruka": "苍然遥远",
+  "Aozora Jumping Heart": "青空Jumping Heart",
+  "Aspire": "Aspire",
+  "Atarayo Hanabi": "新夜花火",
+  "Awaken the Power": "Awaken the Power",
+  "Awakening Promise": "Awakening Promise",
+  "Binetsu Kara Mystery": "从微热到Mystery",
+  "Birdcage": "Birdcage",
+  "Bloom the smile, Bloom the dream!": "Bloom the smile, Bloom the dream!",
+  "Blue Moment": "Blue Moment",
+  "Blue!": "Blue!",
+  "Bokura no Hashitte Kita Michi wa...": "我们一路跑来的路是…",
+  "Bokura no LIVE Kimi to no LIFE": "我们的LIVE 与你的LIFE",
+  "Bokura wa Ima no Naka de": "我们已于现在之中",
+  "Bouken Type A, B, C!!": "冒险Type A, B, C!!",
+  "Bring the LOVE!": "Bring the LOVE!",
+  "Bubble Rise": "Bubble Rise",
+  "Butterfly": "Butterfly",
+  "Butterfly Wing": "Butterfly Wing",
+  "CHASE!": "CHASE!",
+  "COMPASS": "COMPASS",
+  "Cara Tesoro": "Cara Tesoro",
+  "Chance Day, Chance Way!": "Chance Day, Chance Way!",
+  "Colorful Dreams! Colorful Smiles!": "Colorful Dreams! Colorful Smiles!",
+  "Cutie Panther": "Cutie Panther",
+  "DAISUKI FULL POWER": "DAISUKI FULL POWER",
+  "DIVE!": "DIVE!",
+  "DREAMY COLOR": "DREAMY COLOR",
+  "Daisuki dattara Daijoubu!": "喜欢的话就没关系！",
+  "Dakishimeru Hanabira": "拥抱花瓣",
+  "Dancing stars on me!": "Dancing stars on me!",
+  "Daydream Mermaid": "Daydream Mermaid",
+  "Dazzling Game": "Dazzling Game",
+  "Deep Resonance": "Deep Resonance",
+  "Diamond Princess no Yuuutsu": "钻石公主的忧郁",
+  "Distortion": "Distortion",
+  "Do! Do! Do!": "Do! Do! Do!",
+  "Doko ni Itemo Kimi wa Kimi": "无论何处你都是你",
+  "Dream Believers": "Dream Believers",
+  "Dream Believers (104th Ver.)": "Dream Believers (104th Ver.)",
+  "Dream Believers (105th Ver.)": "Dream Believers (105th Ver.)",
+  "Dream with You": "Dream with You",
+  "Dreamin' Go! Go!!": "Dreamin' Go! Go!!",
+  "EMOTION": "EMOTION",
+  "Echoes Beyond": "Echoes Beyond",
+  "Edelied": "Edelied",
+  "Egao no Promise": "笑容的Promise",
+  "Eternalize Love!!": "Eternalize Love!!",
+  "Eutopia": "Eutopia",
+  "Fanfare!!!": "Fanfare!!!",
+  "Fantastic Departure!": "Fantastic Departure!",
+  "Fusion Crust": "Fusion Crust",
+  "GALAXY HidE and SeeK": "GALAXY HidE and SeeK",
+  "Genki Zenkai DAY! DAY! DAY!": "元气全开DAY! DAY! DAY!",
+  "Genyou Yakou": "幻影夜行",
+  "Go!! Restart": "Go!! Restart",
+  "HAPPY PARTY TRAIN": "HAPPY PARTY TRAIN",
+  "HOT PASSION!!": "HOT PASSION!!",
+  "Hajimari wa Kimi no Sora": "开始是你的天空",
+  "Hanamusubi": "花结",
+  "Holiday∞Holiday": "Holiday∞Holiday",
+  "I Do Me!": "I Do Me!",
+  "Identity": "Identity",
+  "JIMO-AI Dash!": "JIMO-AI Dash!",
+  "Jellyfish": "Jellyfish",
+  "Joushou Kiryuu": "上升气流",
+  "Jump Into the New World": "Jump Into the New World",
+  "Jump up HIGH!!": "Jump up HIGH!!",
+  "Just Believe!!!": "Just Believe!!!",
+  "KOKORO Magic \"A to Z\"": "KOKORO Magic \"A to Z\"",
+  "Kaguya no Shiro de Odoritai": "想在辉夜之城里起舞",
+  "KiRa-KiRa Sensation!": "KiRa-KiRa Sensation!",
+  "Kimi no Kokoro wa Kagayaiteru kai?": "你的心灵是否闪耀着？",
+  "Kinmirai Happy End": "近未来Happy End",
+  "Kitto Seishun ga Kikoeru": "一定能听到青春",
+  "Koi ni Naritai AQUARIUM": "想要恋爱AQUARIUM",
+  "Kokon Touzai": "古今东西",
+  "Korekara no Someday": "今后的Someday",
+  "Kowareyasuki": "易碎的",
+  "La Bella Patria": "La Bella Patria",
+  "Ladybug": "Ladybug",
+  "Landing action Yeah!!": "Landing action Yeah!!",
+  "Let's be ONE": "Let's be ONE",
+  "Link to the FUTURE": "Link to the FUTURE",
+  "Link to the FUTURE (104th Ver.)": "Link to the FUTURE (104th Ver.)",
+  "Live with a smile!": "Live with a smile!",
+  "Love U my friends": "Love U my friends",
+  "Love Wing Bell": "Love Wing Bell",
+  "MIRACLE NEW STORY": "MIRACLE NEW STORY",
+  "MIRACLE WAVE": "MIRACLE WAVE",
+  "MIRAI TICKET": "MIRAI TICKET",
+  "MONSTER GIRLS": "MONSTER GIRLS",
+  "MY Mai☆TONIGHT": "MY Mai☆TONIGHT",
+  "Mi wa μ'sic no Mi": "实乃μ'sic之实",
+  "Mijuku DREAMER": "未熟DREAMER",
+  "Mira-Creation": "Mira-Creation",
+  "Miracle STAY TUNE!": "Miracle STAY TUNE!",
+  "Mirage Voyage": "Mirage Voyage",
+  "Mirai Harmony": "未来Harmony",
+  "Mirai Yohou Hallelujah!": "未来预报Hallelujah!",
+  "Mirai no Bokura wa Shitteru yo": "未来的我们都明白",
+  "Mirai wa Kaze no You ni": "未来如风",
+  "Mitaiken HORIZON": "未体验HORIZON",
+  "Mogyutto \"love\" de Sekkinchuu!": "满满\"love\"接近中！",
+  "Music S.T.A.R.T!!": "Music S.T.A.R.T!!",
+  "Muteki-kyuu*Believer": "无敌级*Believer",
+  "NEO SKY, NEO MAP!": "NEO SKY, NEO MAP!",
+  "Natsuiro Egao de 1,2,Jump!": "夏色笑颜的1,2,Jump!",
+  "Natsumeki Pain": "Natsumeki Pain",
+  "Neutral": "Neutral",
+  "Next SPARKLING!!": "Next SPARKLING!!",
+  "Nightingale Love Song": "Nightingale Love Song",
+  "Nijiiro Passions!": "虹色Passions!",
+  "No Brand Girls": "No Brand Girls",
+  "Nonfiction!!": "Nonfiction!!",
+  "Oh, Love & Peace!": "Oh, Love & Peace!",
+  "Oikakeru Yume no Saki de": "在追逐梦想的尽头",
+  "Omoi yo Hitotsu ni Nare": "心意啊合而为一",
+  "Otome Heart de Love Kyuden": "少女心恋爱宫殿",
+  "PASTEL": "PASTEL",
+  "PHOENIX": "PHOENIX",
+  "Poppin' Up!": "Poppin' Up!",
+  "Private Wars": "Private Wars",
+  "Proof": "Proof",
+  "Reflection in the mirror": "Reflection in the mirror",
+  "Retrofuture": "Retrofuture",
+  "Rise Up High!": "Rise Up High!",
+  "Ryouran! Victory Road": "缭乱！Victory Road",
+  "SELF CONTROL!!": "SELF CONTROL!!",
+  "SENTIMENTAL StepS": "SENTIMENTAL StepS",
+  "SINGING, DREAMING, NOW!": "SINGING, DREAMING, NOW!",
+  "START!! True dreams": "START!! True dreams",
+  "START:DASH!!": "START:DASH!!",
+  "SUKI for you, DREAM for you!": "SUKI for you, DREAM for you!",
+  "SUNNY DAY SONG": "SUNNY DAY SONG",
+  "Saikou Heart": "最高Heart",
+  "Sakaku♡CROSSROADS": "错觉♡CROSSROADS",
+  "Second Sparkle": "Second Sparkle",
+  "Shekira☆☆☆": "Shekira☆☆☆",
+  "Shiranai Love * Oshiete Love": "不懂的Love * 教教我Love",
+  "Shooting Voice!!": "Shooting Voice!!",
+  "Sing! Shine! Smile!": "Sing! Shine! Smile!",
+  "Snow halation": "雪色光晕",
+  "Solitude Rain": "Solitude Rain",
+  "Sore wa Bokutachi no Kiseki": "那就是我们的奇迹",
+  "Sparkly Spot": "Sparkly Spot",
+  "Special Color": "Special Color",
+  "Starlight Prologue": "Starlight Prologue",
+  "Stellar Stream": "Stellar Stream",
+  "Step! ZERO to ONE": "Step! ZERO to ONE",
+  "Strawberry Trapper": "Strawberry Trapper",
+  "Suisai Sekai": "水彩世界",
+  "THE SECRET NiGHT": "THE SECRET NiGHT",
+  "TOKIMEKI Runners": "TOKIMEKI Runners",
+  "Takaramonozu": "宝物们",
+  "Tiny Stars": "Tiny Stars",
+  "Tokonatsu☆Sunshine": "常夏☆Sunshine",
+  "Torikoriko PLEASE!!": "Torikoriko PLEASE!!",
+  "Tousou Meisou Mobius Loop": "逃走迷走莫比乌斯环",
+  "Towa hours": "Towa hours",
+  "Tsubasa・La・Liberte": "Tsubasa・La・Liberte",
+  "Tsukuyomi Kurage": "月读水母",
+  "Tsunagaru Connect": "Tsunagaru Connect",
+  "UNIVERSE!!": "UNIVERSE!!",
+  "VIVID WORLD": "VIVID WORLD",
+  "Very! Very! COCO Natsu": "Very! Very! COCO Natsu",
+  "Vitamin SUMMER!": "Vitamin SUMMER!",
+  "WAO-WAO Powerful day!": "WAO-WAO Powerful day!",
+  "WATER BLUE NEW WORLD": "WATER BLUE NEW WORLD",
+  "WE WILL!!": "WE WILL!!",
+  "Watashi no Symphony ~Kanon Shibuya Ver.~": "我的交响曲～涩谷香音 Ver.～",
+  "Welcome to 僕らのセカイ": "Welcome to 我们的世界",
+  "Wish Song": "Wish Song",
+  "Wonder Zone": "Wonder Zone",
+  "Wonderful Rush": "Wonderful Rush",
+  "Yuki Mau Sora to Nibyou no Eien": "飞雪的天空与两秒的永恒",
+  "Yume Kataru yori Yume Utaou": "与其畅谈梦想不如放声歌唱",
+  "Yume Wazurai": "梦患",
+  "Yume de Yozora o Terashitai": "想用梦照亮夜空",
+  "Yume ga Bokura no Taiyou sa": "梦想就是我们的太阳",
+  "Yume no Tobira": "梦之门",
+  "Yumewazurai": "梦患",
+  "Yuuki wa Doko ni? Kimi no Mune ni!": "勇气在哪里？在你心里！",
+  "Zenhoui Kyun♡": "全方位心动♡",
+  "not ALONE not HITORI": "not ALONE not 一人",
+  "stars we chase": "stars we chase",
+  "sweet&sweet holiday": "sweet&sweet holiday",
+  "絶対的LOVER": "绝对的LOVER"
+};
+
   function cardLocaleName(card) {
     if (!card) return '';
     var loc = getLocale();
@@ -4836,6 +5164,13 @@
         || (card.name && KO_SONG_MAP[card.name]);
       if (koName) return koName;
     }
+    if (loc === 'zh') {
+      var zhName = (card.name_en && ZH_NAME_MAP[card.name_en])
+        || (card.name && ZH_NAME_MAP[card.name])
+        || (card.name_en && ZH_SONG_MAP[card.name_en])
+        || (card.name && ZH_SONG_MAP[card.name]);
+      if (zhName) return zhName;
+    }
     return card.name_en || card.name || '';
   }
 
@@ -4845,6 +5180,7 @@
     if (loc === 'ja') return card.text_jp || card.text || '';
     if (loc === 'es') return card.text_es || card.text || '';
     if (loc === 'ko') return card.text_ko || card.text || '';
+    if (loc === 'zh') return card.text_zh || card.text || '';
     return card.text || card.text_jp || '';
   }
 
@@ -4858,6 +5194,16 @@
     'Live': '라이브',
     'Energy': '에너지',
   };
+  var ZH_CARD_TYPE_MAP = {
+    'メンバー': '成员',
+    'ライブ': 'Live',
+    'エネルギー': '能量',
+  };
+  var ZH_CARD_TYPE_EN_MAP = {
+    'Member': '成员',
+    'Live': 'Live',
+    'Energy': '能量',
+  };
 
   function cardLocaleType(card) {
     if (!card) return '';
@@ -4869,6 +5215,12 @@
       if (card.card_type && KO_CARD_TYPE_MAP[card.card_type]) return KO_CARD_TYPE_MAP[card.card_type];
       if (card.card_type_en && KO_CARD_TYPE_EN_MAP[card.card_type_en]) return KO_CARD_TYPE_EN_MAP[card.card_type_en];
       return KO_CARD_TYPE_EN_MAP[card.card_type] || card.card_type_en || card.card_type || '';
+    }
+    if (loc === 'zh') {
+      if (card.card_type_zh) return card.card_type_zh;
+      if (card.card_type && ZH_CARD_TYPE_MAP[card.card_type]) return ZH_CARD_TYPE_MAP[card.card_type];
+      if (card.card_type_en && ZH_CARD_TYPE_EN_MAP[card.card_type_en]) return ZH_CARD_TYPE_EN_MAP[card.card_type_en];
+      return ZH_CARD_TYPE_EN_MAP[card.card_type] || card.card_type_en || card.card_type || '';
     }
     return card.card_type_en || card.card_type || '';
   }
@@ -4891,6 +5243,11 @@
       var koTranslated = t('tutorial.' + step.id);
       if (koTranslated !== 'tutorial.' + step.id) return koTranslated;
     }
+    if (loc === 'zh') {
+      if (_tutorialZh && _tutorialZh[step.id]) return _tutorialZh[step.id];
+      var zhTranslated = t('tutorial.' + step.id);
+      if (zhTranslated !== 'tutorial.' + step.id) return zhTranslated;
+    }
     return step.dialogue || '';
   }
 
@@ -4898,7 +5255,8 @@
     en: 'assets/flags/US_United_States_rect.png',
     ja: 'assets/flags/JP_Japan_rect.png',
     es: 'assets/flags/MX_Mexico_rect.png',
-    ko: 'assets/flags/KR_South_Korea_rect.png'
+    ko: 'assets/flags/KR_South_Korea_rect.png',
+    zh: 'assets/flags/CN_China_rect.png'
   };
 
   var LOCALE_PICKER_IDS = ['sel-locale-auth', 'sel-locale-hub', 'sel-locale-options'];
@@ -5072,14 +5430,33 @@
       });
   }
 
+  function loadTutorialZh() {
+    if (_tutorialZh) return Promise.resolve(_tutorialZh);
+    return fetch('./tutorial_zh.json?v=1', { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('tutorial_zh HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        _tutorialZh = data && typeof data === 'object' ? data : {};
+        return _tutorialZh;
+      })
+      .catch(function () {
+        _tutorialZh = {};
+        return _tutorialZh;
+      });
+  }
+
   function initLocale(onChange) {
     if (typeof onChange === 'function') onLocaleChange(onChange);
     var curLoc = getLocale();
-    try { document.documentElement.lang = curLoc; } catch (e) { /* ignore */ }
+    try {
+      document.documentElement.lang = curLoc === 'zh' ? 'zh-Hans' : curLoc;
+    } catch (e) { /* ignore */ }
     try {
       if (document.body) {
-        document.body.classList.remove('locale-ja', 'locale-ko');
-        if (curLoc === 'ja' || curLoc === 'ko') document.body.classList.add('locale-' + curLoc);
+        document.body.classList.remove('locale-ja', 'locale-ko', 'locale-zh');
+        if (curLoc === 'ja' || curLoc === 'ko' || curLoc === 'zh') document.body.classList.add('locale-' + curLoc);
       }
     } catch (e0) { /* ignore */ }
     LOCALE_PICKER_IDS.forEach(function (id) {
@@ -5112,6 +5489,7 @@
     void loadTutorialJa();
     void loadTutorialEs();
     void loadTutorialKo();
+    void loadTutorialZh();
   }
 
   function initLocaleUi() {
@@ -5133,6 +5511,7 @@
     loadTutorialJa: loadTutorialJa,
     loadTutorialEs: loadTutorialEs,
     loadTutorialKo: loadTutorialKo,
+    loadTutorialZh: loadTutorialZh,
     tutorialDialogue: tutorialDialogue,
     initLocale: initLocale,
     initLocaleUi: initLocaleUi,

@@ -179,7 +179,7 @@
 
   function uiLocale() {
     const loc = global.LLTCG_I18N?.getLocale?.();
-    return loc === 'ja' || loc === 'es' || loc === 'ko' ? loc : 'en';
+    return loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh' ? loc : 'en';
   }
 
   function stampDisplayLabel(stampOrId, fallbackLabel) {
