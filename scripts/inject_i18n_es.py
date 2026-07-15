@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inject STRINGS.zh from locales/zh.json into i18n.js (safe multi-locale)."""
+"""Inject STRINGS.es from locales/es.json into i18n.js (safe multi-locale)."""
 from __future__ import annotations
 
 import json
@@ -10,5 +10,5 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 from i18n_inject_lib import inject_locale  # noqa: E402
 
-zh = json.loads((ROOT / "locales" / "zh.json").read_text(encoding="utf-8"))
-inject_locale("zh", zh)
+es = json.loads((ROOT / "locales" / "es.json").read_text(encoding="utf-8"))
+inject_locale("es", es)
