@@ -3777,8 +3777,9 @@ function filterStateForPlayer(array $state, string $token): array {
                 'continuous_hearts' => $oppContinuousHearts,
                 'continuous_heart_grants' => $oppContinuousGrants,
                 'yell'   => $yellBladeOpp,
-                'live_score_bonus' => getLiveScoreBonus($state, $oppId),
-                'active_effects' => collectActiveContinuousEffects($state, $oppId),
+                // Omit face-down Live storage — Active effects / bonus text would spoil Lives set.
+                'live_score_bonus' => getLiveScoreBonusBreakdown($state, $oppId, true)['total'],
+                'active_effects' => collectActiveContinuousEffects($state, $oppId, true),
             ],
         ];
     }

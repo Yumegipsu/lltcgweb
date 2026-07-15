@@ -48,7 +48,12 @@ function continuousEffectDescription(array $ab, ?int $stackedEnergyCount = null)
     return ucwords(str_replace('_', ' ', $type));
 }
 
-function getLiveScoreBonusBreakdown(array $state, string $pid): array {
+/**
+ * @param bool $omitUnrevealedLive When true, skip face-down Live storage (and their
+ *   continuous text). Used for opponent stage-board UI so Active effects cannot
+ *   spoil whether a Live was set during LIVE Phase.
+ */
+function getLiveScoreBonusBreakdown(array $state, string $pid, bool $omitUnrevealedLive = false): array {
     $state = initLiveModifiers($state);
     $entries = [];
     $bonus = 0;
@@ -161,6 +166,9 @@ function getLiveScoreBonusBreakdown(array $state, string $pid): array {
         if (!$live) {
             continue;
         }
+        if ($omitUnrevealedLive && empty($live['revealed'])) {
+            continue;
+        }
         mergeCardCatalogFields($live);
         $who = $live['name_en'] ?? $live['name'] ?? 'Live';
         foreach ($live['abilities'] ?? [] as $ab) {
@@ -183,8 +191,8 @@ function getLiveScoreBonusBreakdown(array $state, string $pid): array {
 }
 
 /** Continuous skills/effects currently applying (score bonuses + Live storage passives). */
-function collectActiveContinuousEffects(array $state, string $pid): array {
-    $effects = getLiveScoreBonusBreakdown($state, $pid)['entries'];
+function collectActiveContinuousEffects(array $state, string $pid, bool $omitUnrevealedLive = false): array {
+    $effects = getLiveScoreBonusBreakdown($state, $pid, $omitUnrevealedLive)['entries'];
     $p = $state['players'][$pid] ?? [];
     $livePassiveTypes = [
         'draw_per_yell_heart',
@@ -193,6 +201,7 @@ function collectActiveContinuousEffects(array $state, string $pid): array {
     ];
     foreach ($p['live_zone'] ?? [] as $live) {
         if (!$live) continue;
+        if ($omitUnrevealedLive && empty($live['revealed'])) continue;
         $who = $live['name_en'] ?? $live['name'] ?? 'Live';
         foreach ($live['abilities'] ?? [] as $ab) {
             if (($ab['trigger'] ?? '') !== 'continuous') continue;
