@@ -442,36 +442,42 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
 
         case 'score_if_success_or_live_zone_color_count':
             $group = $ab['group'] ?? 'Nijigasaki';
-            $min = intval($ab['min_count'] ?? 4);
             $filterColor = $ab['heart_color'] ?? '';
             $found = false;
             foreach (array_merge($p['success_lives'] ?? [], array_filter($p['live_zone'] ?? [])) as $lc) {
                 if (!$lc || ($lc['group'] ?? '') !== $group || ($lc['card_type'] ?? '') !== 'ライブ') continue;
                 $byColor = countHeartsByColor($lc);
                 if ($filterColor !== '') {
-                    if (intval($byColor[$filterColor] ?? 0) >= $min) { $found = true; break; }
+                    if (nijiHeartCountMatches(intval($byColor[$filterColor] ?? 0), $ab, 4)) {
+                        $found = true;
+                        break;
+                    }
                 } else {
                     foreach ($byColor as $cnt) {
-                        if ($cnt >= $min) { $found = true; break 2; }
+                        if (nijiHeartCountMatches(intval($cnt), $ab, 4)) {
+                            $found = true;
+                            break 2;
+                        }
                     }
                 }
             }
             if ($found) {
                 bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['amount'] ?? 1));
                 $colorLabel = $filterColor !== '' ? ucfirst($filterColor) . ' ' : '';
+                $needLabel = nijiHeartCountNeedLabel($ab, 4);
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] score +' . intval($ab['amount'] ?? 1) . " ($min+ {$colorLabel}Hearts).");
+                    ' — [' . $name . '] score +' . intval($ab['amount'] ?? 1) .
+                    " ($needLabel {$colorLabel}Hearts).");
             }
             break;
 
         case 'member_hearts_if_live_zone_heart_color':
             $group = $ab['group'] ?? 'Nijigasaki';
             $checkColor = $ab['check_color'] ?? 'pink';
-            $min = intval($ab['min_count'] ?? 3);
             $ok = false;
             foreach (array_merge($p['success_lives'] ?? [], array_filter($p['live_zone'] ?? [])) as $lc) {
                 if (!$lc || ($lc['group'] ?? '') !== $group) continue;
-                if (countRequiredHeartsOfColor($lc, $checkColor) >= $min) {
+                if (nijiHeartCountMatches(countRequiredHeartsOfColor($lc, $checkColor), $ab, 3)) {
                     $ok = true;
                     break;
                 }
@@ -776,6 +782,21 @@ function countHeartsByColor(array $card): array {
         $out[$c] = ($out[$c] ?? 0) + intval($h['count'] ?? 1);
     }
     return $out;
+}
+
+/** JP「がN」= exactly N; EN used to mistranslate as N+. Prefer exact_count when set. */
+function nijiHeartCountMatches(int $count, array $ab, int $defaultMin = 0): bool {
+    if (array_key_exists('exact_count', $ab)) {
+        return $count === intval($ab['exact_count']);
+    }
+    return $count >= intval($ab['min_count'] ?? $defaultMin);
+}
+
+function nijiHeartCountNeedLabel(array $ab, int $defaultMin = 0): string {
+    if (array_key_exists('exact_count', $ab)) {
+        return 'exactly ' . intval($ab['exact_count']);
+    }
+    return intval($ab['min_count'] ?? $defaultMin) . '+';
 }
 
 function nijiApplyContinuousBlade(array $member, array $ab, array $state, string $pid, string $slot, int $blade): int {

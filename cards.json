@@ -43943,7 +43943,7 @@
         "all"
       ],
       "rarity": "L",
-      "text": "[Live Start] If a Nijigasaki Live card in your Success Live area or Live Card Zone has 4+ Pink Hearts in its required hearts, this card's score +1.",
+      "text": "[Live Start] If a Nijigasaki Live card in your Success Live area or Live Card Zone has exactly 4 Pink Hearts in its required hearts, this card's score +1.",
       "text_jp": "自分の成功ライブカード置き場かライブ中のライブカードの中に、必要ハートに含まれるが4の『虹ヶ咲』のライブカードがある場合、このカードのスコアを＋１する。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBnj/PL!N-pb1-038-L.png",
       "score": 3,
@@ -43971,13 +43971,13 @@
           "type": "score_if_success_or_live_zone_color_count",
           "group": "Nijigasaki",
           "heart_color": "pink",
-          "min_count": 4,
+          "exact_count": 4,
           "amount": 1
         }
       ],
-      "text_es": "[Inicio de Live] Si una carta Live de Nijigasaki en tu área de Live exitoso o Zona de cartas Live tiene 4+ Corazones rosas en sus corazones requeridos, la puntuación de esta carta +1.",
-      "text_ko": "[라이브 개시] 자신의 성공 라이브 영역이나 라이브 카드 구역에 있는 니지가사키 라이브 카드 중 필요 하트에 핑크색 하트가 4개 이상 포함된 카드가 있다면, 이 카드의 점수 +1.",
-      "text_zh": "[Live开始] 如果你的成功Live区或Live卡区中的虹咲Live卡的所需心形数量超过 4 个，则这张卡的得分 +1。"
+      "text_es": "[Inicio de Live] Si una carta Live de Nijigasaki en tu área de Live exitoso o Zona de cartas Live tiene exactamente 4 Corazones rosas en sus corazones requeridos, la puntuación de esta carta +1.",
+      "text_ko": "[라이브 개시] 자신의 성공 라이브 영역이나 라이브 카드 구역에 있는 니지가사키 라이브 카드 중 필요 하트에 핑크색 하트가 정확히 4개 포함된 카드가 있다면, 이 카드의 점수 +1.",
+      "text_zh": "[Live开始] 如果你的成功Live区或Live卡区中有虹咲Live卡的所需心形中恰好包含 4 颗粉红心，则这张卡的得分 +1。"
     },
     {
       "card_no": "PL!N-pb1-039-L",
@@ -44005,7 +44005,7 @@
         "pink"
       ],
       "rarity": "L",
-      "text": "[Live Start] If a Nijigasaki Live card in your Success Live area or Live Card Zone has 3+ Pink Hearts in its required hearts, until this Live ends, 1 Nijigasaki Member with 1 Purple Heart on your Stage gains 4 Purple Hearts.",
+      "text": "[Live Start] If a Nijigasaki Live card in your Success Live area or Live Card Zone has exactly 3 Pink Hearts in its required hearts, until this Live ends, 1 Nijigasaki Member with 1 Purple Heart on your Stage gains 4 Purple Hearts.",
       "text_jp": "自分の成功ライブカード置き場かライブ中のライブカードの中に、必要ハートに含まれるが3の『虹ヶ咲』のライブカードがある場合、ライブ終了時まで、自分のステージにいるを持つ『虹ヶ咲』のメンバー1人はを得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBnj/PL!N-pb1-039-L.png",
       "score": 5,
@@ -44029,7 +44029,7 @@
           "type": "member_hearts_if_live_zone_heart_color",
           "group": "Nijigasaki",
           "check_color": "pink",
-          "min_count": 3,
+          "exact_count": 3,
           "member_color": "purple",
           "member_min_hearts": 1,
           "grant_hearts": [
@@ -44041,11 +44041,11 @@
           "max_members": 1
         }
       ],
-      "text_es": "[Inicio de Live] Si una carta Live de Nijigasaki en tu área de Live exitoso o Zona de cartas Live tiene 3+ Corazones rosas en sus corazones requeridos, hasta que termine este Live, 1 Miembro de Nijigasaki con 1 Corazón morado en tu Escenario obtiene 4 Corazones morados.",
+      "text_es": "[Inicio de Live] Si una carta Live de Nijigasaki en tu área de Live exitoso o Zona de cartas Live tiene exactamente 3 Corazones rosas en sus corazones requeridos, hasta que termine este Live, 1 Miembro de Nijigasaki con 1 Corazón morado en tu Escenario obtiene 4 Corazones morados.",
       "special_heart": "icon_draw.png",
       "yell_draw_icon": true,
-      "text_ko": "[라이브 개시] 자신의 성공 라이브 영역이나 라이브 카드 구역에 있는 니지가사키 라이브 카드 중 필요 하트에 핑크색 하트가 3개 이상 포함된 카드가 있다면, 이 라이브가 끝날 때까지 자신의 스테이지에 있는 보라색 하트 1개를 가진 니지가사키 멤버 1명이 보라색 하트 4개를 얻는다.",
-      "text_zh": "[Live开始] 如果你的成功Live区或Live卡区中的虹咲Live卡的所需心形数量超过 3 颗，则直到本次Live结束，你的舞台上 1 名拥有 1 颗紫心形的虹咲成员将获得 4 颗紫心。"
+      "text_ko": "[라이브 개시] 자신의 성공 라이브 영역이나 라이브 카드 구역에 있는 니지가사키 라이브 카드 중 필요 하트에 핑크색 하트가 정확히 3개 포함된 카드가 있다면, 이 라이브가 끝날 때까지 자신의 스테이지에 있는 보라색 하트 1개를 가진 니지가사키 멤버 1명이 보라색 하트 4개를 얻는다.",
+      "text_zh": "[Live开始] 如果你的成功Live区或Live卡区中有虹咲Live卡的所需心形中恰好包含 3 颗粉红心，则直到本次Live结束，你的舞台上 1 名拥有 1 颗紫心形的虹咲成员将获得 4 颗紫心。"
     },
     {
       "card_no": "PL!N-pb1-040-L",
