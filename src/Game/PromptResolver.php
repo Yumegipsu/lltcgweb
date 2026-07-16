@@ -1398,8 +1398,19 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
     }
 
     if ($promptType === 'pick_member_grant_hearts') {
-        $memberId = $data['member_id'] ?? ($data['member_ids'][0] ?? '');
-        if ($memberId === '') throw new Exception('Choose a Member');
+        $memberId = trim((string)($data['member_id'] ?? ''));
+        if ($memberId === '' && !empty($data['member_ids'][0])) {
+            $memberId = trim((string)$data['member_ids'][0]);
+        }
+        if ($memberId === '') {
+            $memberId = trim((string)($data['card_id'] ?? ''));
+        }
+        if ($memberId === '' && !empty($data['slot'])) {
+            $memberId = trim((string)($ownerP['stage'][$data['slot']]['instance_id'] ?? ''));
+        }
+        if ($memberId === '') {
+            throw new Exception('Choose a Member');
+        }
         $effect = [
             'hearts' => $prompt['hearts'] ?? [],
             'blade'  => intval($prompt['blade'] ?? 0),

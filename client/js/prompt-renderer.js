@@ -1739,6 +1739,17 @@ global.renderPrompt = function renderPrompt(s, myId){
     openStageMemberPickById(pr);
     return;
   }
+  if(pr?.type==='pick_member_grant_hearts'&&pr.responder===myId){
+    // Stellar Stream (+ other grant-hearts picks): Stage Member select.
+    ovl.classList.remove('open');
+    const cands=pr.candidates||[];
+    if(!cands.length){
+      sendAct('resolve_prompt',{choice:'skip'});
+      return;
+    }
+    openStageMemberPickById(pr);
+    return;
+  }
   if(pr?.type==='pick_same_name_member'&&pr.responder===myId){
     ovl.classList.remove('open');
     openMemberWaitPick({...pr, max_members:1, min_members:1}, myId);

@@ -8171,7 +8171,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=31"></script>
 <script src="client/js/stamps.js?v=16"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
-<script src="client/js/prompt-renderer.js?v=33"></script>
+<script src="client/js/prompt-renderer.js?v=34"></script>
 <script src="client/js/tutorial-interactive.js?v=17"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -23749,7 +23749,7 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'surveil_arrange', 'surveil_pick_one', 'surveil_pick_one_hand_rest_wr',
   'surveil_pick_one_deck_top', 'surveil_pick_one_hand_rest_top',
   'live_success_pick_yell_deck_top', 'pick_named_member_blade', 'pick_named_members_grant_blade',
-  'pick_named_members_grant_hearts', 'pick_member_cost_bonus',
+  'pick_named_members_grant_hearts', 'pick_member_grant_hearts', 'pick_member_cost_bonus',
   'sbp6_pick_revealed_member', 'sbp5_pick_revealed_member', 'bp5_pick_kasumi_reveal',
   'sbp6_swap_pick_wr_member', 'sbp6_swap_pick_stage_member', 'sbp6_live_zone_deck_top_hearts',
   'sbp6_leave_play_wr_slot', 'sbp6_pick_members_live_score',
@@ -27114,12 +27114,16 @@ function cpuResolvePromptSmart(s, cpu, pr, tier) {
     const pick = ranked[0] || choices[0];
     if (pick) { cpuAct('resolve_prompt', { choice: pick }); return true; }
   }
-  if (pr.type === 'pick_yell_member' || pr.type === 'pick_same_name_member' || pr.type === 'blade_per_discarded_pick_member') {
+  if (pr.type === 'pick_yell_member' || pr.type === 'pick_same_name_member' || pr.type === 'blade_per_discarded_pick_member' || pr.type === 'pick_member_grant_hearts') {
     const cands = pr.candidates || pr.stage_members || [];
     const best = [...cands].sort((a, b) => (b.blade || 0) - (a.blade || 0))[0];
     const id = best?.instance_id || best?.member_id;
     if (id) {
-      cpuAct('resolve_prompt', pr.type === 'pick_same_name_member' ? { member_id: id } : { card_id: id });
+      if (pr.type === 'pick_same_name_member' || pr.type === 'pick_member_grant_hearts') {
+        cpuAct('resolve_prompt', { member_id: id, card_id: id });
+      } else {
+        cpuAct('resolve_prompt', { card_id: id });
+      }
       return true;
     }
     cpuAct('resolve_prompt', { choice: 'skip' });
