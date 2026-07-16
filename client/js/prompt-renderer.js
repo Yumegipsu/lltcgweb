@@ -267,7 +267,11 @@ global.openStageSlotPick = function openStageSlotPick(pr){
   const step=pr.step||'pick_slot';
   const cards=(pr.candidates||[]).filter(c=>{
     if(step==='pick_named') return !!c.named;
-    if(step==='pick_other') return c&&!c.named;
+    // Second pick: any other Stage Member (including other named targets), not "non-named only".
+    if(step==='pick_other') {
+      const first = pr.first_slot || '';
+      return !!(c && c.slot && c.slot !== first);
+    }
     return !!(c.slot);
   });
   el('pick-ttl').textContent=pr.source_name||'Choose Member';
@@ -2263,7 +2267,7 @@ global.renderPrompt = function renderPrompt(s, myId){
     openStageSlotPick(pr);
     return;
   }
-  if(pr?.type==='pick_named_members_grant_hearts'&&pr.responder===myId){
+  if((pr?.type==='pick_named_members_grant_hearts'||pr?.type==='pick_named_members_grant_blade')&&pr.responder===myId){
     ovl.classList.remove('open');
     openStageSlotPick(pr);
     return;

@@ -8171,7 +8171,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=31"></script>
 <script src="client/js/stamps.js?v=16"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
-<script src="client/js/prompt-renderer.js?v=32"></script>
+<script src="client/js/prompt-renderer.js?v=33"></script>
 <script src="client/js/tutorial-interactive.js?v=17"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -23748,7 +23748,8 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'mandatory_discard_look_reveal', 'effect_discard_hand',
   'surveil_arrange', 'surveil_pick_one', 'surveil_pick_one_hand_rest_wr',
   'surveil_pick_one_deck_top', 'surveil_pick_one_hand_rest_top',
-  'live_success_pick_yell_deck_top', 'pick_named_member_blade', 'pick_member_cost_bonus',
+  'live_success_pick_yell_deck_top', 'pick_named_member_blade', 'pick_named_members_grant_blade',
+  'pick_named_members_grant_hearts', 'pick_member_cost_bonus',
   'sbp6_pick_revealed_member', 'sbp5_pick_revealed_member', 'bp5_pick_kasumi_reveal',
   'sbp6_swap_pick_wr_member', 'sbp6_swap_pick_stage_member', 'sbp6_live_zone_deck_top_hearts',
   'sbp6_leave_play_wr_slot', 'sbp6_pick_members_live_score',
@@ -26690,9 +26691,13 @@ function cpuResolvePromptBody(s, cpu, pr) {
     if(id) cpuAct('resolve_prompt',{choice:id});
     return;
   }
-  if(pr.type==='pick_named_members_grant_hearts'){
+  if(pr.type==='pick_named_members_grant_hearts'||pr.type==='pick_named_members_grant_blade'){
     const step=pr.step||'pick_named';
-    const cands=(pr.candidates||[]).filter(c=>step==='pick_named'?c.named:c&&!c.named);
+    const first=pr.first_slot||'';
+    const cands=(pr.candidates||[]).filter(c=>{
+      if(step==='pick_named') return !!c.named;
+      return !!(c && c.slot && c.slot !== first);
+    });
     const slot=cands[0]?.slot;
     if(slot) cpuAct('resolve_prompt',{slot});
     return;
