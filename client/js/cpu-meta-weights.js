@@ -64,7 +64,10 @@
     const loveca = lovecaPts(card);
     const boost = lookupBoost(MEMBER_META_BOOST, card.card_no);
     const abilityN = Array.isArray(card.abilities) ? Math.min(4, card.abilities.length) : 0;
-    let w = blade * 0.55 + loveca * 1.15 + boost + abilityN * 0.28 - Math.max(0, cost - 3) * 0.12;
+    let w = blade * 0.55 + loveca * 1.85 + boost + abilityN * 0.28 - Math.max(0, cost - 3) * 0.12;
+    // Loveca Point list ≈ competitive priority — Hard/Expert lean into it.
+    if (loveca >= 2) w += loveca * 0.55 * tierMul(tier);
+    if (loveca >= 3) w += 1.2 * tierMul(tier);
     return w * tierMul(tier);
   };
 
@@ -80,8 +83,9 @@
     const req = card.required_hearts || card.hearts || [];
     const heartTax = req.reduce((n, h) => n + (h.count || 1), 0);
     const abilityN = Array.isArray(card.abilities) ? Math.min(4, card.abilities.length) : 0;
-    let w = score * 1.15 + loveca * 1.05 + boost + abilityN * 0.35 - heartTax * 0.08;
-    if ((winPressure || 0) >= 0.45) w += score * 0.35 + boost * 0.25;
+    let w = score * 1.35 + loveca * 1.45 + boost + abilityN * 0.35 - heartTax * 0.05;
+    if ((winPressure || 0) >= 0.45) w += score * 0.45 + boost * 0.25;
+    if (score >= 2) w += 0.85 * tierMul(tier);
     return w * tierMul(tier);
   };
 })(window);

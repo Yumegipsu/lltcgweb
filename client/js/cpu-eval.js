@@ -87,7 +87,11 @@
 
   function viableLiveSignal(cpu) {
     if (typeof global.cpuHandLiveContext === 'function') {
-      const ctx = global.cpuHandLiveContext(cpu);
+      const ctx = global.cpuHandLiveContext(cpu, {
+        s: global.G?.gameState,
+        pid: 'p2',
+        tier: typeof global.cpuDiff === 'function' ? global.cpuDiff() : 'normal',
+      });
       const best = (ctx.viableLives || []).reduce((m, c) => Math.max(m, c.score || 0), 0);
       return {
         viable: ctx.viableLives?.length || 0,
@@ -218,7 +222,15 @@
     if (live.viable > 0 && kind === 'activate' && /blade|heart|color/i.test(label)) {
       adj += 0.85;
     }
+    // Pro tempo: once Lives are clearable, ending Main is often correct.
+    if (live.viable > 0 && kind === 'end_main') {
+      adj += (tier === 'expert' ? 1.35 : 1.05);
+    }
+    if (live.viable > 0 && kind === 'play_member' && !live.needsHearts) {
+      adj -= 0.25; // don't overplay fluff when Live window is open
+    }
     if (kind === 'end_main' && live.viable === 0 && behind) adj -= 0.6;
+    if (kind === 'play_member' && live.needsHearts) adj += 0.55;
     return adj;
   };
 

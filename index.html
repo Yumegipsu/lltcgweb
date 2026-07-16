@@ -22990,11 +22990,12 @@ function cpuSituation(s, cpu, cpuPid = 'p2') {
 
 function cpuCtx(s, cpu, cpuPid = 'p2') {
   const tier = cpuDiff();
+  const liveCtx = cpuHandLiveContext(cpu, { s, pid: cpuPid, tier });
   if (tier === 'easy') {
-    return { s, cpu, tier, sit: null, read: null, winPressure: cpuWinPressure(cpu) };
+    return { s, cpu, tier, sit: null, read: null, winPressure: cpuWinPressure(cpu), liveCtx };
   }
   const sit = cpuSituation(s, cpu, cpuPid);
-  return { s, cpu, tier, sit, read: sit.read, winPressure: sit.urgency };
+  return { s, cpu, tier, sit, read: sit.read, winPressure: sit.urgency, liveCtx };
 }
 
 /** ?debug=cpu — log top scored candidates (no behavior change). */
@@ -23160,9 +23161,9 @@ function cpuMemberBatonLadderBonus(c, cpu, hand, tier, s, read) {
       const anchor4 = cpuStageBatonAnchors(cpu).find(a => cpuCostNearLadderAnchor(a.cost, 4));
       if (anchor4) {
         const batonPay = Math.max(0, ec - anchor4.cost);
-        if (batonPay <= ae) bonus += (cpuTierHardPlus(tier) ? 4.5 : 3.2) * mul;
-        else if (batonPay <= ae + 1) bonus += (cpuTierHardPlus(tier) ? 2.2 : 1.5) * mul;
-      } else if (ae >= ec) bonus += (cpuTierHardPlus(tier) ? 1.8 : 1.1) * mul;
+        if (batonPay <= ae) bonus += (cpuTierHardPlus(tier) ? 5.8 : 3.2) * mul;
+        else if (batonPay <= ae + 1) bonus += (cpuTierHardPlus(tier) ? 3.0 : 1.5) * mul;
+      } else if (ae >= ec) bonus += (cpuTierHardPlus(tier) ? 2.4 : 1.1) * mul;
     }
   }
 
@@ -23171,8 +23172,8 @@ function cpuMemberBatonLadderBonus(c, cpu, hand, tier, s, read) {
       const anchor9 = cpuStageBatonAnchors(cpu).find(a => cpuCostNearLadderAnchor(a.cost, 9));
       if (anchor9) {
         const batonPay = Math.max(0, ec - anchor9.cost);
-        if (batonPay <= ae) bonus += (cpuTierHardPlus(tier) ? 5.2 : 3.8) * mul;
-        else if (batonPay <= ae + 1) bonus += (cpuTierHardPlus(tier) ? 2.6 : 1.7) * mul;
+        if (batonPay <= ae) bonus += (cpuTierHardPlus(tier) ? 6.5 : 3.8) * mul;
+        else if (batonPay <= ae + 1) bonus += (cpuTierHardPlus(tier) ? 3.4 : 1.7) * mul;
       }
     }
   }
@@ -23378,26 +23379,52 @@ function cpuWinPressure(cpu) {
   return 0;
 }
 
-function cpuHandHasViableLive(cpu) {
-  const pool = stageHeartPool(cpu);
-  return (cpu.hand || []).some(c =>
-    isCpuLiveCard(c) && cpuCheckHearts(pool, cpuLiveRequiredHearts(c)));
+function cpuHandHasViableLive(cpu, opts = null) {
+  return cpuHandLiveContext(cpu, opts).hasViableLive;
 }
 
-function cpuHandLiveContext(cpu) {
+function cpuExpectedYellAnyHearts(s, pid, tier) {
+  if (tier === 'easy') return 0;
+  const blades = typeof estimateYellBlade === 'function' ? estimateYellBlade(s, pid) : 0;
+  // Yell flips ≈ blade count; expect blade-hearts on a fraction of milled cards.
+  const factor = tier === 'expert' ? 0.72 : tier === 'hard' ? 0.58 : 0.38;
+  return Math.max(0, Math.floor(blades * factor));
+}
+
+/** Stage hearts + expected Yell wildcards (Hard/Expert pro clear model). */
+function cpuClearHeartPool(cpu, s, pid, tier) {
+  const pool = stageHeartPool(cpu).slice();
+  const extras = cpuExpectedYellAnyHearts(s || G.gameState, pid || 'p2', tier || cpuDiff());
+  for (let i = 0; i < extras; i++) pool.push('any');
+  return pool;
+}
+
+function cpuHandLiveContext(cpu, opts = null) {
   const hand = cpu?.hand || [];
-  const pool = stageHeartPool(cpu);
+  const tier = opts?.tier || (typeof cpuDiff === 'function' ? cpuDiff() : 'normal');
+  const s = opts?.s || G.gameState;
+  const pid = opts?.pid || 'p2';
+  const stagePool = stageHeartPool(cpu);
+  const clearPool = cpuTierHardPlus(tier) || tier === 'normal'
+    ? cpuClearHeartPool(cpu, s, pid, tier)
+    : stagePool;
   const liveInHand = hand.filter(c => isCpuLiveCard(c));
-  const viableLives = liveInHand.filter(c => cpuCheckHearts(pool, cpuLiveRequiredHearts(c)));
-  const unviableLives = liveInHand.filter(c => !cpuCheckHearts(pool, cpuLiveRequiredHearts(c)));
+  const stageViable = liveInHand.filter(c => cpuCheckHearts(stagePool, cpuLiveRequiredHearts(c)));
+  const clearViable = liveInHand.filter(c => cpuCheckHearts(clearPool, cpuLiveRequiredHearts(c)));
+  // Prefer Lives that clear on stage alone; still treat Yell-expected clears as viable on Hard+.
+  const viableLives = (cpuTierHardPlus(tier) ? clearViable : stageViable.length ? stageViable : clearViable);
+  const unviableLives = liveInHand.filter(c => !cpuCheckHearts(clearPool, cpuLiveRequiredHearts(c)));
   return {
-    pool,
+    pool: clearPool,
+    stagePool,
     liveInHand,
     viableLives,
+    stageViable,
     unviableLives,
     hasViableLive: viableLives.length > 0,
     needsLives: liveInHand.length === 0,
     needsHeartsForLives: unviableLives.length > 0 && !viableLives.length,
+    yellExpected: Math.max(0, clearPool.length - stagePool.length),
   };
 }
 
@@ -23833,6 +23860,7 @@ function cpuDesiredLiveStorageTotal(ctx, hand, viableLives, alreadyStored) {
   const bestScore = viableLives.length ? Math.max(...viableLives.map(c => c.score || 0)) : 0;
   const strongCount = viableLives.filter(c => (c.score || 0) >= 2).length;
   const viableCount = viableLives.length;
+  const stageViableCount = ctx.liveCtx?.stageViable?.length ?? viableCount;
   const posture = cpuPosture(ctx);
 
   let target = alreadyStored;
@@ -23841,49 +23869,58 @@ function cpuDesiredLiveStorageTotal(ctx, hand, viableLives, alreadyStored) {
 
   if (viableCount === 0) {
     if (tier === 'easy') return alreadyStored;
-    if (winPressure >= 0.45 && handLen >= 5) target = Math.min(3, alreadyStored + 1);
-    else if (cpuTierHardPlus(tier) && read?.behind && handLen >= 6) target = Math.min(3, alreadyStored + 1);
-    else if (tier === 'normal' && sit?.mustCatchUp && handLen >= 6) target = Math.min(3, alreadyStored + 1);
+    // Member-bluff pressure when behind — still open LIVE when hand allows.
+    if (winPressure >= 0.45 && handLen >= 4) target = Math.min(3, alreadyStored + 1);
+    else if (cpuTierHardPlus(tier) && (read?.behind || sit?.behind) && handLen >= 5) {
+      target = Math.min(3, alreadyStored + 1);
+    } else if (tier === 'normal' && sit?.mustCatchUp && handLen >= 6) {
+      target = Math.min(3, alreadyStored + 1);
+    }
     return target;
   }
 
-  if (winPressure >= 0.45) {
-    const livesWanted = cpuTierHardPlus(tier)
-      ? (strongCount >= 2 && handLen >= 5 ? 2 : 1)
-      : (bestScore >= 2 && handLen >= 6 ? 2 : 1);
+  // Pro-style Hard/Expert: set clearable Lives every LIVE phase when viable.
+  if (cpuTierHardPlus(tier)) {
+    const want = Math.min(
+      3,
+      Math.max(
+        1,
+        stageViableCount >= 2 ? Math.min(3, stageViableCount) : 1,
+        strongCount >= 2 ? 2 : 1,
+        (winPressure >= 0.45 || sit?.behind || sit?.mustCatchUp)
+          ? Math.min(3, viableCount)
+          : Math.min(2, viableCount),
+        handLen >= 5 && viableCount >= 2 ? 2 : 1
+      )
+    );
+    target = Math.min(3, alreadyStored + want);
+  } else if (winPressure >= 0.45) {
+    const livesWanted = bestScore >= 2 && handLen >= 5 ? 2 : 1;
     target = Math.min(3, alreadyStored + livesWanted);
   } else if (sit?.mustCatchUp || sit?.behind) {
-    const push = cpuTierHardPlus(tier)
-      ? Math.min(Math.max(strongCount, 2) + (handLen >= 6 ? 1 : 0), 3)
-      : Math.min(Math.max(strongCount, 1) + (handLen >= 7 ? 1 : 0), 2);
+    const push = Math.min(Math.max(strongCount, 1) + (handLen >= 6 ? 1 : 0), 2);
     target = Math.min(3, alreadyStored + push);
-  } else if (cpuTierHardPlus(tier)) {
-    if (read?.ahead && handLen <= 5) target = Math.min(3, alreadyStored + (viableCount ? 1 : 0));
-    else if (strongCount >= 2 && handLen >= 5) target = Math.min(3, alreadyStored + Math.min(3, strongCount));
-    else if (viableCount >= 2 && handLen >= 5 && bestScore >= 1) target = Math.min(3, alreadyStored + 2);
-    else if (viableCount >= 1 && handLen >= 4) target = Math.min(3, alreadyStored + 1);
   } else if (tier === 'normal') {
     if (bestScore >= 2) target = Math.min(3, alreadyStored + 1);
-    else if (handLen >= 6 && viableCount >= 2 && bestScore >= 1) target = Math.min(3, alreadyStored + 2);
-    else if (handLen >= 5 && viableCount >= 1 && bestScore >= 1) target = Math.min(3, alreadyStored + 1);
-    else if (viableCount >= 1 && handLen >= 4) target = Math.min(3, alreadyStored + 1);
+    else if (handLen >= 5 && viableCount >= 1) target = Math.min(3, alreadyStored + Math.min(2, viableCount));
+    else if (viableCount >= 1 && handLen >= 3) target = Math.min(3, alreadyStored + 1);
   } else {
     target = Math.min(3, alreadyStored + (viableCount ? 1 : 0));
   }
 
-  if (tier !== 'easy' && viableCount >= 1 && handLen >= 3) {
+  if (tier !== 'easy' && viableCount >= 1 && handLen >= 2) {
     target = Math.max(target, Math.min(3, alreadyStored + 1));
   }
-  if (tier !== 'easy' && viableCount >= 1 && bestScore >= 2 && handLen > 3) {
-    target = Math.max(target, Math.min(3, alreadyStored + 1));
+  if (cpuTierHardPlus(tier) && viableCount >= 1) {
+    target = Math.max(target, Math.min(3, alreadyStored + Math.min(viableCount, handLen >= 4 ? 2 : 1)));
   }
   if (tier !== 'easy' && (posture.behind || sit?.mustCatchUp) && strongCount >= 1) {
     const behindTarget = cpuTierHardPlus(tier)
-      ? Math.min(3, alreadyStored + Math.min(strongCount, 3))
+      ? Math.min(3, alreadyStored + Math.min(Math.max(strongCount, viableCount), 3))
       : Math.min(3, alreadyStored + Math.min(strongCount, 2));
     target = Math.max(target, behindTarget);
   }
-  if (cpuTierHardPlus(tier) && posture.ahead && strongCount >= 1 && handLen >= 4) {
+  if (cpuTierHardPlus(tier) && posture.ahead && viableCount >= 1 && handLen >= 3) {
     target = Math.max(target, Math.min(3, alreadyStored + 1));
   }
 
@@ -25290,6 +25327,9 @@ function cpuSelectIndependentLives(pool, liveInHand, targetLiveCount, tier, winP
     if (tier !== 'easy' && typeof cpuEvalLiveBonus === 'function' && ctx?.s) {
       sc += cpuEvalLiveBonus(ctx.s, 'p2', c, ctx);
     }
+    // Prefer stage-clearable Lives over Yell-dependent ones when scores are close.
+    const stagePool = ctx?.liveCtx?.stagePool || stageHeartPool(cpu || {});
+    if (cpuCheckHearts(stagePool, cpuLiveRequiredHearts(c))) sc += cpuTierHardPlus(tier) ? 1.1 : 0.55;
     return sc;
   };
   const viable = liveInHand
@@ -25302,9 +25342,42 @@ function cpuSelectIndependentLives(pool, liveInHand, targetLiveCount, tier, winP
     ? cpuLiveCommitMin(tier, winPressure)
     : cpuTierLiveCommitMin(tier, posture, winPressure);
   const handRetainPenalty = (n) => {
-    let p = n * (cpuTierHardPlus(tier) ? 0.15 : tier === 'normal' ? 0.24 : 0.4);
-    if (handLen > 0 && handLen - n < 3) p += cpuTierHardPlus(tier) ? 0.25 : 0.45;
+    let p = n * (cpuTierHardPlus(tier) ? 0.08 : tier === 'normal' ? 0.18 : 0.4);
+    if (handLen > 0 && handLen - n < 2) p += cpuTierHardPlus(tier) ? 0.15 : 0.35;
     return p;
+  };
+  /** Jointly allocate a shared heart pool (incl. Yell wilds) across a combo. */
+  const comboFeasible = (cards) => {
+    let working = pool.slice();
+    for (const c of cards) {
+      if (!cpuCheckHearts(working, cpuLiveRequiredHearts(c))) return false;
+      // Approximate consumption: remove exact requirement slots from a working pool.
+      const req = cpuLiveRequiredHearts(c) || [];
+      for (const r of sortHeartRequirements(req)) {
+        let need = r.count || 1;
+        const color = normalizeHeartColor(r.color);
+        if (color === 'any') {
+          while (need > 0 && working.length) {
+            working.pop();
+            need--;
+          }
+        } else {
+          for (let i = working.length - 1; i >= 0 && need > 0; i--) {
+            if (working[i] === color) {
+              working.splice(i, 1);
+              need--;
+            }
+          }
+          while (need > 0) {
+            const wi = working.lastIndexOf('any');
+            if (wi < 0) return false;
+            working.splice(wi, 1);
+            need--;
+          }
+        }
+      }
+    }
+    return true;
   };
   const comboValue = (cards) =>
     cards.reduce((s, c) => s + scoreLive(c), 0) - handRetainPenalty(cards.length);
@@ -25319,31 +25392,49 @@ function cpuSelectIndependentLives(pool, liveInHand, targetLiveCount, tier, winP
         if (mask & (1 << i)) pick.push(viable[i]);
       }
       if (pick.length > limit || pick.length === 0) continue;
-      if (pick.every(c => cpuCheckHearts(pool, cpuLiveRequiredHearts(c)))) {
+      if (comboFeasible(pick)) {
         const val = comboValue(pick);
         if (val > bestComboVal) { bestComboVal = val; bestCombo = pick; }
       }
     }
-    if (bestCombo.length && bestComboVal >= minVal) return bestCombo;
+    if (bestCombo.length && (bestComboVal >= minVal || cpuTierHardPlus(tier))) return bestCombo;
   }
 
+  // Greedy joint pick
+  const greedy = [];
+  let working = pool.slice();
+  for (const c of viable) {
+    if (greedy.length >= targetLiveCount) break;
+    if (!cpuCheckHearts(working, cpuLiveRequiredHearts(c))) continue;
+    greedy.push(c);
+    // consume approximately
+    const req = cpuLiveRequiredHearts(c) || [];
+    for (const r of sortHeartRequirements(req)) {
+      let need = r.count || 1;
+      const color = normalizeHeartColor(r.color);
+      if (color === 'any') {
+        while (need > 0 && working.length) { working.pop(); need--; }
+      } else {
+        for (let i = working.length - 1; i >= 0 && need > 0; i--) {
+          if (working[i] === color) { working.splice(i, 1); need--; }
+        }
+        while (need > 0) {
+          const wi = working.lastIndexOf('any');
+          if (wi < 0) break;
+          working.splice(wi, 1);
+          need--;
+        }
+      }
+    }
+  }
+  if (greedy.length && (comboValue(greedy) >= minVal || cpuTierHardPlus(tier))) return greedy;
+
   const top = viable[0];
-  if ((cpuTierHardPlus(tier) || tier === 'normal') && top && (top.score || 0) >= 2) {
-    return viable.slice(0, Math.min(targetLiveCount, viable.length));
-  }
-  if (scoreLive(top) >= minVal) {
-    return viable.slice(0, Math.min(targetLiveCount, viable.length));
-  }
-  if (cpuTierHardPlus(tier) && viable.length) {
-    return viable.slice(0, Math.min(targetLiveCount, viable.length));
-  }
-  if (tier === 'normal' && viable.length && (top.score || 0) >= 1) {
-    return viable.slice(0, Math.min(targetLiveCount, viable.length));
-  }
-  if (tier === 'easy' && viable.length) {
-    return viable.slice(0, Math.min(targetLiveCount, 1));
-  }
-  return [];
+  if (cpuTierHardPlus(tier) && top) return greedy.length ? greedy : [top];
+  if (tier === 'normal' && top && (top.score || 0) >= 1) return greedy.length ? greedy : [top];
+  if (scoreLive(top) >= minVal) return greedy.length ? greedy : [top];
+  if (tier === 'easy' && viable.length) return viable.slice(0, 1);
+  return greedy;
 }
 
 function cpuLiveBluffMembers(members, tier, maxBluffs, handLen, winPressure = 0, read = null) {
@@ -25387,14 +25478,16 @@ function cpuLiveSet() {
     return;
   }
 
-  const pool = stageHeartPool(cpu);
+  const pool = ctx.liveCtx?.pool || cpuClearHeartPool(cpu, s, cpuId, tier);
   const liveInHand = hand.filter(c => isCpuLiveCard(c));
   const members = hand.filter(c => isCpuMemberCard(c));
-  const viableLives = liveInHand.filter(c => cpuCheckHearts(pool, cpuLiveRequiredHearts(c)));
+  const liveCtx = ctx.liveCtx || cpuHandLiveContext(cpu, { s, pid: cpuId, tier });
+  const viableLives = liveCtx.viableLives || liveInHand.filter(c => cpuCheckHearts(pool, cpuLiveRequiredHearts(c)));
+  ctx.liveCtx = liveCtx;
 
   let desiredTotal = cpuDesiredLiveStorageTotal(ctx, hand, viableLives, alreadyStored);
-  if (tier !== 'easy' && viableLives.length && hand.length >= 3 && desiredTotal <= alreadyStored) {
-    desiredTotal = Math.min(3, alreadyStored + 1);
+  if (tier !== 'easy' && viableLives.length && desiredTotal <= alreadyStored) {
+    desiredTotal = Math.min(3, alreadyStored + Math.min(viableLives.length, cpuTierHardPlus(tier) ? 2 : 1));
   }
   if (alreadyStored >= desiredTotal) {
     cpuAct('end_live_set', {});
@@ -36235,8 +36328,8 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/spectacle.js?v=16"></script>
-<script src="client/js/cpu-meta-weights.js?v=4"></script>
-<script src="client/js/cpu-eval.js?v=4"></script>
+<script src="client/js/cpu-meta-weights.js?v=5"></script>
+<script src="client/js/cpu-eval.js?v=5"></script>
 <script src="client/js/cpu-expert.js?v=3"></script>
 <script src="client/js/cpu-ai.js?v=6"></script>
 <script>void bootApp();</script>
