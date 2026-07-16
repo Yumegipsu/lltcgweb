@@ -26,12 +26,33 @@
 
   /** Match doPollLegacy gates — avoid fetching mid-animation (queues states and stacks anims). */
   global.pollPresentationBlocked = function pollPresentationBlocked() {
-    if (G._liveRoundPlaybackActive && !G.animating && !G._perfSpectacleActive && !G._liveSpectacleGateRunning) {
+    // Soft-heal only when the director is idle — never clear flags under an active run.
+    const directorActive = typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active;
+    if (!directorActive
+        && G._liveRoundPlaybackActive && !G.animating && !G._perfSpectacleActive && !G._liveSpectacleGateRunning) {
       TCG_DEBUG.warn('poll', 'clear stale liveRoundPlaybackActive');
       G._liveRoundPlaybackActive = false;
       if (G._livePollHold && typeof releaseLivePolls === 'function') releaseLivePolls();
     }
+    // Stuck Performance chrome after the round already reached Main / judge pick softlocks sync.
+    const ph = G.gameState?.phase;
+    const prType = G.gameState?.pending_prompt?.type;
+    const mainStable = ph === 'main_first' || ph === 'main_second'
+      || ph === 'active_first' || ph === 'active_second';
+    const judgePickReady = ph === 'live_judge'
+      && (prType === 'pick_judge_success_live' || prType === 'sbp6_live_wr_deck_position')
+      && !!G._liveRoundPostSpectacleReady;
+    if (!directorActive
+        && G._perfSpectacleActive && !G.animating && !G._liveSpectacleGateRunning
+        && !G._liveRoundPlaybackActive
+        && (mainStable || judgePickReady)) {
+      TCG_DEBUG.warn('poll', 'clear stuck perfSpectacleActive', { phase: ph, prType });
+      if (typeof perfCloseSpectacle === 'function') perfCloseSpectacle();
+      else G._perfSpectacleActive = false;
+      if (G._livePollHold && typeof releaseLivePolls === 'function') releaseLivePolls();
+    }
     return !!(G.animating || G._perfSpectacleActive || G._livePollHold
+      || directorActive
       || G._replaySeekInFlight || G._replayForwardApply);
   };
 

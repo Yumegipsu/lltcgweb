@@ -8167,8 +8167,8 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/api-client.js?v=10"></script>
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
-<script src="client/js/game-sync.js?v=15"></script>
-<script src="client/js/state-apply.js?v=31"></script>
+<script src="client/js/game-sync.js?v=16"></script>
+<script src="client/js/state-apply.js?v=32"></script>
 <script src="client/js/stamps.js?v=16"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
 <script src="client/js/prompt-renderer.js?v=34"></script>
@@ -9220,10 +9220,12 @@ const SFX_PHASE_MAP = {
   live_set: 'phase_live',
   live_set_first: 'phase_live',
   live_set_second: 'phase_live',
-  live_performance_first: 'phase_performance',
-  live_performance_second: 'phase_performance',
-  live_judge: 'phase_performance',
-  live_success_effects: 'live_success',
+  // Performance / success whistle is owned by LiveRoundDirector + spectacle judge —
+  // never fire from renderGame phase paint (that spoiled wins before spectacle).
+  live_performance_first: null,
+  live_performance_second: null,
+  live_judge: null,
+  live_success_effects: null,
   live_start_effects: 'notify',
 };
 
@@ -9235,6 +9237,8 @@ const SFX_PHASE_OPTS = {
 
 function maybePlayPhaseSfx(s) {
   if (!s?.phase || G.isTutorial || G.isSpectator) return;
+  if (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.blocksPhaseSfx()) return;
+  if (G._liveRoundPlaybackActive || G._perfSpectacleActive || G._livePollHold) return;
   const ph = s.phase;
   if (G._sfxPhase === ph) return;
   G._sfxPhase = ph;
@@ -14033,7 +14037,10 @@ function isPresentationSuperseded() {
 }
 
 function abortStuckLiveRoundPlayback(reason) {
-  if (!G._liveRoundPlaybackActive && !G._livePollHold && !G._liveSpectacleGateRunning) return false;
+  if (!G._liveRoundPlaybackActive && !G._livePollHold && !G._liveSpectacleGateRunning
+      && !(typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active)) {
+    return false;
+  }
   // Soft-skip only while Live Start skill waits own presentLiveRound — broader soft-skip
   // left playback flags stuck and recovery re-armed ghost Performance loops.
   if (G._awaitingLiveStartPrompts
@@ -14045,6 +14052,7 @@ function abortStuckLiveRoundPlayback(reason) {
     return false;
   }
   TCG_DEBUG.warn('live', 'abort stuck live round playback', { reason });
+  if (typeof LiveRoundDirector !== 'undefined') LiveRoundDirector.abort(reason || 'stuck');
   G._liveRoundPlaybackActive = false;
   G._liveRoundPostSpectacleReady = false;
   G._liveSpectacleGateRunning = false;
@@ -14058,6 +14066,9 @@ function abortStuckLiveRoundPlayback(reason) {
 
 function abortGameplayPresentation(opts = {}) {
   if (!opts.skipAbortFlag) G._presentationAborted = true;
+  if (typeof LiveRoundDirector !== 'undefined') {
+    LiveRoundDirector.abort(opts.softReplayForward ? 'softReplayForward' : 'abortGameplay');
+  }
   if (G._perfSpectacleActive && G._perfSpectacleAbort) {
     G._perfSpectacleAbort();
     G._perfSpectacleAborted = true;
@@ -21297,23 +21308,17 @@ function finalizeCardFlip(cardEl) {
   const card = iid ? findCardByIid(G.gameState, iid) : null;
   if (isLive && card) {
     if (iid) syncLiveStorageRevealedInState(iid);
+    const keepSideways = liveStorageUseArtSpin(card);
     while (front.firstChild) cardEl.insertBefore(front.firstChild, inner);
     inner.remove();
-    cardEl.classList.remove('hand-draw-flip', 'live-storage-flip', 'live-flip-axis-x', 'stage-flip', 'stage-flip-axis-x', 'revealed', 'storage-sideways-member');
-    if (liveStorageUseArtSpin(card)) {
-      const directFace = [...cardEl.children].find(n =>
-        n.tagName === 'IMG' || n.classList?.contains('noimg') || n.classList?.contains('card-face-fill')
-      );
-      if (directFace && !cardEl.querySelector('.card-portrait-in-landscape')) {
-        const wrap = document.createElement('div');
-        wrap.className = 'card-portrait-in-landscape card-art storage-member-art';
-        cardEl.insertBefore(wrap, directFace);
-        wrap.appendChild(directFace);
-      }
-    }
+    // One 3D rotateY only — keep member shell orientation; do not re-wrap art
+    // (that snap looked like a second 2D flip after the 3D reveal).
+    cardEl.classList.remove('hand-draw-flip', 'live-storage-flip', 'live-flip-axis-x', 'stage-flip', 'stage-flip-axis-x', 'revealed');
+    if (keepSideways) cardEl.classList.add('storage-sideways-member');
+    else cardEl.classList.remove('storage-sideways-member');
     dedupeFieldCardFace(cardEl);
     applyCardFoilFx(cardEl, card);
-    if (liveWrap) layoutLiveSlots(liveWrap.classList.contains('opp') ? 'opp' : 'my');
+    // Avoid layoutLiveSlots here — it reflows neighbors and can look like a second flip.
     return;
   }
   while (front.firstChild) cardEl.insertBefore(front.firstChild, inner);
@@ -36336,7 +36341,8 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/spectacle.js?v=16"></script>
+<script src="client/js/live-round-director.js?v=1"></script>
+<script src="client/js/spectacle.js?v=17"></script>
 <script src="client/js/cpu-meta-weights.js?v=5"></script>
 <script src="client/js/cpu-eval.js?v=5"></script>
 <script src="client/js/cpu-expert.js?v=3"></script>

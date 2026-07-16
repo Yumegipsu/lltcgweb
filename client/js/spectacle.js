@@ -209,11 +209,14 @@ function liveRoundRequiresSpectacle(prev, next, showTurn = null) {
  */
 
 function isLiveRoundPlaybackActive() {
-  return !!G._liveRoundPlaybackActive;
+  return !!G._liveRoundPlaybackActive
+    || !!(typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active
+      && !LiveRoundDirector.bannersReleased);
 }
 
 function livePlaybackBlocksMainPhaseUi(s, prev) {
-  if (isLiveRoundPlaybackActive()) return true;
+  if (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.blocksPhaseBanners()) return true;
+  if (G._liveRoundPlaybackActive) return true;
   if (G._liveStorageOutcomePending) return true;
   if (!prev || !s) return false;
   const ph = s.phase;
@@ -789,9 +792,17 @@ function sweepStaleLiveStorageFlipDom(s, myId = G.playerId) {
   for (const [prefix, pid] of [['my', myId], ['opp', oppId]]) {
     const zone = s.players[pid]?.live_zone || [];
     for (let i = 0; i < 3; i++) {
+      const slotEl = el(`${prefix}-live-${i}`);
       const card = liveZoneCardAtSlot(zone, i);
-      const cardEl = el(`${prefix}-live-${i}`)?.querySelector('.lcard.live-card');
-      if (!card || !cardEl) continue;
+      const cardEl = slotEl?.querySelector('.lcard.live-card');
+      if (!card) {
+        if (slotEl && cardEl && !liveStorageFlipPlaybackActive(flipKeys, `${pid}:empty-${i}`)) {
+          slotEl.innerHTML = '';
+          settled = true;
+        }
+        continue;
+      }
+      if (!cardEl) continue;
       const flipKey = `${pid}:${card.instance_id}`;
       if (settleStaleLiveStorageFlipCard(cardEl, card, s, flipKeys, flipKey)) settled = true;
     }
@@ -823,6 +834,10 @@ function clearStaleLiveStorageFlipState(prev, next) {
     if (!G._livePostRevealBoard) G._liveSetStorageBaseline = null;
   }
   sweepStaleLiveStorageFlipDom(next, G.playerId);
+  // Force mat slots to match the (usually empty) server zone after leftover cleanup.
+  if (typeof syncLiveStorageSlotsFromState === 'function' && !liveStorageHasCards(next)) {
+    syncLiveStorageSlotsFromState(next, G.playerId);
+  }
 }
 
 /** Main→main polls after a finished Live round must not replay pipeline log banners. */
@@ -900,6 +915,11 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
     ?? detectPendingLiveSpectacleTurn(prev, s);
   if (showTurn == null) return false;
   if (G._liveSpectacleGateRunning) return false;
+  if (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active
+      && LiveRoundDirector.isActive() && G._liveRoundPlaybackActive) {
+    TCG_DEBUG.log('live', 'spectacle gate: director already active');
+    return false;
+  }
   let revealDone = liveStorageRevealDoneForTurn(showTurn);
   if (shouldResetLiveStorageRevealDone(gatePrev, s, showTurn, myId)) {
     G._liveStorageRevealDoneTurns?.delete(showTurn);
@@ -925,10 +945,17 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
   const perfPrev = buildPerfSpectaclePrev(gatePrev, s);
   if (perfPrev && showTurn != null) perfPrev.turn = showTurn;
   G.animating = true;
+  const dirToken = (typeof LiveRoundDirector !== 'undefined')
+    ? LiveRoundDirector.begin('gate')
+    : 0;
   try {
     holdLivePolls();
     G._postSpectacleSplashPause = false;
-    const outcome = await presentLiveRound(perfPrev ?? gatePrev, s, myId, { newEntries, forceSpectacleTurn: showTurn });
+    const outcome = await presentLiveRound(perfPrev ?? gatePrev, s, myId, {
+      newEntries,
+      forceSpectacleTurn: showTurn,
+      directorToken: dirToken,
+    });
     // Prefer post-playback state — gate-entry `s` may still hold a resolved Live Start / Kurage prompt.
     const after = pickLatestStateForPlayback(G.gameState) || pickLatestStateForPlayback(s) || G.gameState || s;
     if (after?.pending_prompt) ensurePendingPromptSurfaced(after, myId);
@@ -944,6 +971,9 @@ async function runLiveSpectacleGate(prev, s, newEntries, myId) {
   } finally {
     G._liveSpectacleGateRunning = false;
     G.animating = false;
+    if (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active) {
+      LiveRoundDirector.end('gate_finally');
+    }
     const after = pickLatestStateForPlayback(G.gameState) || pickLatestStateForPlayback(s) || G.gameState || s;
     if (after?.pending_prompt?.responder === myId) ensurePendingPromptSurfaced(after, myId);
     releaseLivePollsAndFlush();
@@ -1412,11 +1442,12 @@ function clearLiveRoundTransientCaches() {
 
 /** True when live-storage flip CSS must not start (stable Main after reveal, etc.). */
 function shouldSuppressLiveStorageFlipsNow(s = G.gameState) {
-  // Only runLiveStorageRevealSequence may arm/start flip CSS. Sticky flip keys alone
-  // must never keep flips alive into Main / Live Start / Success — that caused
-  // random re-flips on both players' live storage during later phases.
+  // Only the director reveal step (or an in-flight reveal sequence) may run flips.
+  if (typeof LiveRoundDirector !== 'undefined') {
+    if (LiveRoundDirector.allowsLiveStorageFlips()) return false;
+    return true;
+  }
   if (G._liveStorageRevealRunning) return false;
-  // Let an already-started flip CSS transition finish (count bumped after .revealed).
   if ((G._liveStorageRevealAnimCount || 0) > 0) return false;
   return true;
 }
@@ -1945,7 +1976,13 @@ function shouldDeferLogBannerDuringLivePlayback(msg) {
 
 function flushPostLiveLogBanners(prev, next, myId, opts = {}) {
   if (!next || (!isActiveGameplay(next) && next.status !== 'finished')) return;
-  if (isLiveRoundPlaybackActive() || liveSetPlacementInProgress(next)) return;
+  // Director may still be active until gate finally — bannersReleased means we may flush.
+  if (liveSetPlacementInProgress(next)) return;
+  if (G._liveRoundPlaybackActive) return;
+  if (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active
+      && !LiveRoundDirector.bannersReleased) {
+    return;
+  }
   const from = prev?.log?.length || 0;
   let queuedTurnBegin = false;
   for (const entry of (next.log || []).slice(from)) {
@@ -2493,6 +2530,8 @@ async function ensurePerformancePhaseSplash(showTurn, prev, next) {
   const n = next ?? G.gameState;
   const turn = showTurn ?? primaryLiveShowTurn(p, n) ?? inferLiveShowTurn(p, n);
   if (perfSplashAlreadyShown(turn, p, n)) return;
+  if (typeof LiveRoundDirector !== 'undefined') LiveRoundDirector.setStep('performance_splash');
+  if (typeof sfxPlay === 'function') sfxPlay('phase_performance', { volume: 0.85 });
   if (performancePhaseBannerShowing() || performancePhaseBannerQueued()) {
     await waitForBannersIdle();
     markPerfSplashShown(turn, p, n);
@@ -2589,9 +2628,14 @@ function shouldDeferPromptForLivePresentation(s, myId) {
   if (shouldDeferLiveSuccessDiscardUi(s, myId)) return true;
   const pr = s?.pending_prompt;
   if (!pr || pr.responder !== myId) return false;
-  if (pr.type === 'pick_judge_success_live' && s.phase === 'live_judge'
-      && !G._perfSpectacleActive && !G._liveSpectacleGateRunning
-      && !G._liveRoundPlaybackActive && !G.animating) {
+  // Success-Live pick must not softlock Win/Loss behind a stuck spectacle flag.
+  if (pr.type === 'pick_judge_success_live') {
+    if (G._perfSpectacleActive && !G._liveRoundPostSpectacleReady) return true;
+    return false;
+  }
+  // Aqours leftover Live → deck place after judge: also must surface.
+  if (pr.type === 'sbp6_live_wr_deck_position') {
+    if (G._perfSpectacleActive && !G._liveRoundPostSpectacleReady) return true;
     return false;
   }
   if (isMidSpectacleYellRetryPrompt(s)) {
@@ -2820,6 +2864,17 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   holdLivePolls();
   G._liveRoundPlaybackActive = true;
   G._liveRoundPostSpectacleReady = false;
+  let directorOwnedHere = false;
+  let dirToken = opts.directorToken || 0;
+  if (typeof LiveRoundDirector !== 'undefined') {
+    if (!LiveRoundDirector.active) {
+      dirToken = LiveRoundDirector.begin('presentLiveRound');
+      directorOwnedHere = true;
+    } else if (!dirToken) {
+      dirToken = LiveRoundDirector.token;
+    }
+    LiveRoundDirector.bannersReleased = false;
+  }
   let spectacleRan = false;
   let revealRan = false;
   let emptyWrPlayed = false;
@@ -2845,6 +2900,7 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
     await waitForBlockingOverlaysIdle(next);
 
     if (runStorageReveal) {
+      if (typeof LiveRoundDirector !== 'undefined') LiveRoundDirector.setStep('reveal');
       if (liveStorageRevealDoneForTurn(showTurnForReveal)) {
         revealRan = true;
         TCG_DEBUG.log('live', 'presentLiveRound: skip reveal (already done for turn)', { showTurn: showTurnForReveal });
@@ -2889,7 +2945,9 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       }
     }
 
+    if (typeof LiveRoundDirector !== 'undefined') LiveRoundDirector.pause('live_start');
     await awaitLiveStartPromptsIfNeeded(prev, next, myId);
+    if (typeof LiveRoundDirector !== 'undefined') LiveRoundDirector.resume('live_start_done');
     await presentSkippedLiveStartBanners(prev, next, myId);
     next = pickSpectacleStateForPerf(G.gameState || next);
     if (!emptySkip) {
@@ -2990,8 +3048,16 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
         doneKey: G._perfSpectacleDoneKey,
         usedRevealBoard: !!G._livePostRevealBoard,
       });
+      if (typeof LiveRoundDirector !== 'undefined') {
+        LiveRoundDirector.setStep('spectacle');
+      }
+      if (typeof LiveRoundDirector !== 'undefined' && !LiveRoundDirector.check(dirToken)) {
+        spectacleFailedOwed = true;
+        TCG_DEBUG.warn('live', 'presentLiveRound: director token superseded before spectacle');
+      } else {
       spectacleRan = await runPerformanceSpectacle(perfPrev, spectacleNext, myId, {
         forceShowTurn: opts.forceSpectacleTurn ?? plan.showTurn,
+        directorToken: dirToken,
       });
       if (spectacleRan) {
         // Prefer post-mid-spectacle state (prompt cleared) over gate-entry `next`.
@@ -3003,6 +3069,7 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
           prev, s: next, newEntries: opts.newEntries || [], myId,
         };
         TCG_DEBUG.warn('live', 'presentLiveRound: spectacle owed but did not run', { showTurn: showTurnForSpectacle });
+      }
       }
       }
     } else if (liveRoundHadLivesPlayed(prev, next, showTurnForSpectacle)
@@ -3038,11 +3105,15 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
     }
 
     const settledNext = await awaitResolvePostLivePrompts(prev, next, myId, opts);
+    if (typeof LiveRoundDirector !== 'undefined') {
+      LiveRoundDirector.setStep('post_live');
+    }
     const latest = (G.gameState && (G.gameState.seq ?? 0) >= (settledNext?.seq ?? 0))
       ? G.gameState
       : (settledNext || next);
 
     if (!emptyWrPlayed) {
+      if (typeof LiveRoundDirector !== 'undefined') LiveRoundDirector.setStep('wr_flights');
       const storageBoard = G._livePostRevealBoard || latest;
       let storageRan = false;
       if (G._liveStorageOutcomePending) {
@@ -3093,8 +3164,14 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   }
 
   if (!spectacleFailedOwed) {
+    if (typeof LiveRoundDirector !== 'undefined') {
+      LiveRoundDirector.releaseBanners();
+    }
     flushPostLiveLogBanners(prev, next, myId, { emptySkip });
     ensureLiveRoundStateCommitted(prev, next, myId);
+  }
+  if (directorOwnedHere && typeof LiveRoundDirector !== 'undefined') {
+    LiveRoundDirector.end('presentLiveRound');
   }
   if (emptySkip) nudgeCpuAfterStatePresentation(G.gameState || next);
   TCG_DEBUG.log('live', 'presentLiveRound done', { reveal: revealRan, spectacle: spectacleRan, empty: emptySkip, spectacleFailedOwed });
@@ -3407,10 +3484,12 @@ async function runPerformanceSpectacle(perfPrev, next, myId, opts = {}) {
   }
   TCG_DEBUG.log('live', 'spectacle start', TCG_DEBUG.trans(perfPrev, next));
   perfCloseSpectacle();
+  G._perfYellShownIids = { p1: new Set(), p2: new Set() };
   G._skipJudgeOverlay = true;
   let ran = false;
   try {
     await ensurePerformancePhaseSplash(inferLiveShowTurn(perfPrev, next), perfPrev, next);
+    if (typeof LiveRoundDirector !== 'undefined') LiveRoundDirector.setStep('spectacle');
     await perfSeekPhase(perfPrev, next, myId, 'judge', { forward: true, animate: true });
     await perfSleep(500);
     ran = G._perfSpectaclePhase === 'judge';
@@ -3576,7 +3655,15 @@ function ensurePendingPromptSurfaced(s, myId) {
     || el('overlay-hand-pick')?.classList.contains('open')
   )) return;
   // Same identity already answered this round — do not reopen after overlay close.
-  if (G._lastResolvedPromptKey === surfKey) return;
+  // Exception: Success-Live / leftover Live place UI closed while the server still waits.
+  if (G._lastResolvedPromptKey === surfKey) {
+    const needsResurface = (pr.type === 'pick_judge_success_live'
+        || pr.type === 'sbp6_live_wr_deck_position')
+      && !el('overlay-pick')?.classList.contains('open')
+      && !el('overlay-prompt')?.classList.contains('open');
+    if (!needsResurface) return;
+    G._lastResolvedPromptKey = null;
+  }
   G._lastSurfacedPromptKey = surfKey;
   if (isLiveSuccessDiscardPrompt(s)) clearLiveSuccessHandDeferral(s);
   if (pr.type === 'pick_judge_success_live') G._deferPerfSpectaclePrev = null;
@@ -5177,6 +5264,7 @@ function perfCloseSpectacle() {
   G._perfSpectaclePhase = 'closed';
   G._perfSpectacleActive = false;
   G._skipJudgeOverlay = false;
+  G._perfYellShownIids = { p1: new Set(), p2: new Set() };
   clearTimeout(G._liveJudgeOverlayTimer);
   G._liveJudgeOverlayTimer = null;
   G._liveJudgeOverlayHold = false;
@@ -5553,7 +5641,7 @@ function perfApplyPhaseInstant(ctx, phase) {
   if (perfPhaseIdx(phase) >= perfPhaseIdx('judge')) perfSetJudgeInstant(ctx);
 }
 
-async function perfAnimateYellSide(ctx, pid) {
+async function perfAnimateYellSide(ctx, pid, opts = {}) {
   const board = ctx.next.stage_board;
   const isMine = pid === ctx.myId;
   const stageHearts = isMine
@@ -5568,62 +5656,96 @@ async function perfAnimateYellSide(ctx, pid) {
   const yellRail = yellRow?.closest('.perf-yell-rail');
   if (!heartsEl || !bladeEl || !deckEl || !yellRow) return;
 
-  perfFillHearts(heartsEl, stageHearts);
-  const bladeNum = perfRenderBladeRow(bladeEl, totalBlade, { pending: false });
-  yellRow.innerHTML = '';
-  const grants = perfContinuousHeartGrantsForPlayer(ctx, pid);
-  const grantHeartCount = grants.reduce((n, g) => n + (g.hearts?.length || 0), 0);
-  const yellSteps = Math.max(yellCards.length, totalBlade, 1);
-  const introPace = perfYellPaceScale(totalBlade, 0, yellSteps + grantHeartCount);
-  sfxPerf('turn_tick', 0.48);
-  await perfSleepYell(400, introPace);
-  layoutPerfRailSlots();
-  layoutPerfYellRail(yellRail);
-  layoutPerfLiveRows();
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  G._perfYellShownIids = G._perfYellShownIids || { p1: new Set(), p2: new Set() };
+  if (!G._perfYellShownIids[pid]) G._perfYellShownIids[pid] = new Set();
+  const shown = G._perfYellShownIids[pid];
+  const onlyNew = !!opts.onlyNew;
+  const startIndex = onlyNew
+    ? yellCards.findIndex((c) => c?.instance_id && !shown.has(c.instance_id))
+    : 0;
+  if (onlyNew && startIndex < 0) return;
 
-  let ownedPool = buildHeartPoolFromRows(stageHearts);
-  const liveCards = perfSpectacleLiveCards(ctx.prev, ctx.next, pid).map(enrichCard);
-  const yellWildcard = liveCardsHaveYellHeartsWildcard(liveCards);
-  for (let gi = 0; gi < grants.length; gi++) {
-    if (G._perfSpectacleAborted) return;
-    const grant = grants[gi];
-    const memberEl = perfMemberCardElForGrant(ctx, pid, grant);
-    const hearts = grant.hearts || [];
-    for (let hi = 0; hi < hearts.length; hi++) {
+  if (!onlyNew) {
+    shown.clear();
+    perfFillHearts(heartsEl, stageHearts);
+    const bladeNum = perfRenderBladeRow(bladeEl, totalBlade, { pending: false });
+    yellRow.innerHTML = '';
+    var grants = perfContinuousHeartGrantsForPlayer(ctx, pid);
+    var grantHeartCount = grants.reduce((n, g) => n + (g.hearts?.length || 0), 0);
+    var yellSteps = Math.max(yellCards.length, totalBlade, 1);
+    var introPace = perfYellPaceScale(totalBlade, 0, yellSteps + grantHeartCount);
+    sfxPerf('turn_tick', 0.48);
+    await perfSleepYell(400, introPace);
+    layoutPerfRailSlots();
+    layoutPerfYellRail(yellRail);
+    layoutPerfLiveRows();
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    var ownedPool = buildHeartPoolFromRows(stageHearts);
+    var liveCards = perfSpectacleLiveCards(ctx.prev, ctx.next, pid).map(enrichCard);
+    var yellWildcard = liveCardsHaveYellHeartsWildcard(liveCards);
+    for (let gi = 0; gi < grants.length; gi++) {
       if (G._perfSpectacleAborted) return;
-      const heartPace = introPace * (1 - (hi / Math.max(1, hearts.length)) * 0.15);
-      const rawColor = hearts[hi];
-      await perfFlyMemberHeartToPanel(memberEl, heartsEl, rawColor, { pace: heartPace });
-      ownedPool.push(normalizeHeartColor(rawColor));
-      await perfSleepYell(60, heartPace);
+      const grant = grants[gi];
+      const memberEl = perfMemberCardElForGrant(ctx, pid, grant);
+      const hearts = grant.hearts || [];
+      for (let hi = 0; hi < hearts.length; hi++) {
+        if (G._perfSpectacleAborted) return;
+        const heartPace = introPace * (1 - (hi / Math.max(1, hearts.length)) * 0.15);
+        const rawColor = hearts[hi];
+        await perfFlyMemberHeartToPanel(memberEl, heartsEl, rawColor, { pace: heartPace });
+        ownedPool.push(normalizeHeartColor(rawColor));
+        await perfSleepYell(60, heartPace);
+      }
+      if (hearts.length) await perfSleepYell(120, introPace);
     }
-    if (hearts.length) await perfSleepYell(120, introPace);
+  } else {
+    var bladeNum = bladeEl.querySelector('.perf-blade-num') || perfRenderBladeRow(bladeEl, totalBlade, { pending: false });
+    var grants = [];
+    var yellSteps = Math.max(yellCards.length, totalBlade, 1);
+    var ownedPool = buildHeartPoolFromRows(
+      mergeHeartStatRows(
+        stageHearts,
+        perfContinuousHeartsForPlayer(ctx, pid),
+        aggregateYellBladeHeartsFromCards(yellCards.slice(0, Math.max(0, startIndex)), ctx, pid)
+      )
+    );
+    var liveCards = perfSpectacleLiveCards(ctx.prev, ctx.next, pid).map(enrichCard);
+    var yellWildcard = liveCardsHaveYellHeartsWildcard(liveCards);
   }
 
-  let remaining = totalBlade;
-  const drawSteps = Math.max(yellCards.length, totalBlade);
-  for (let i = 0; i < drawSteps; i++) {
+  let remaining = onlyNew
+    ? Math.max(0, totalBlade - Math.max(startIndex, shown.size))
+    : totalBlade;
+  if (bladeNum) bladeNum.textContent = String(remaining);
+  const drawSteps = onlyNew ? yellCards.length : Math.max(yellCards.length, totalBlade);
+  const loopStart = onlyNew ? Math.max(0, startIndex) : 0;
+  for (let i = loopStart; i < drawSteps; i++) {
     if (G._perfSpectacleAborted) return;
     const cardPace = perfYellPaceScale(totalBlade, i, yellSteps);
     remaining = Math.max(0, totalBlade - (i + 1));
     if (bladeNum) bladeNum.textContent = String(remaining);
     const card = yellCards[i] ? enrichCard(yellCards[i]) : null;
     if (!card) {
+      if (onlyNew) continue;
       deckEl?.classList.add('perf-deck-draw');
       sfxPerf('turn_tick', 0.32);
       await perfSleepYell(180, cardPace);
       deckEl?.classList.remove('perf-deck-draw');
       continue;
     }
+    const iid = card.instance_id || '';
+    if (onlyNew && iid && shown.has(iid)) continue;
     await ensureCardImageLoaded(card);
     const chip = document.createElement('div');
     chip.className = 'perf-yell-card';
+    if (iid) chip.dataset.iid = iid;
     appendPerfYellCardFace(chip, card);
     yellRow.appendChild(chip);
     layoutPerfYellStack(yellRow);
     await perfSleepYell(60, cardPace);
     await perfRevealYellCardFromDeck(chip, deckEl, isMine, cardPace);
+    if (iid) shown.add(iid);
     await perfSleepYell(160, cardPace);
     const scoreIcons = card ? cardYellScoreIconCount(card) : 0;
     const drawIcons = card ? cardYellDrawIconCount(card) : 0;
@@ -5664,7 +5786,7 @@ async function perfAnimateYellSide(ctx, pid) {
   while (remaining > 0) {
     if (G._perfSpectacleAborted) return;
     remaining--;
-    bladeNum.textContent = String(remaining);
+    if (bladeNum) bladeNum.textContent = String(remaining);
     await perfSleepYell(90, tailPace);
   }
   const finalHearts = mergeHeartStatRows(
@@ -5687,6 +5809,7 @@ async function perfAnimateOutcomesForPid(ctx, pid) {
   const out = el(isMine ? 'perf-mine-outcomes' : 'perf-opp-outcomes');
   const attempts = isMine ? ctx.mineAttempts : ctx.oppAttempts;
   if (!out) return;
+  if (typeof LiveRoundDirector !== 'undefined') LiveRoundDirector.setStep('outcomes');
   for (const att of attempts) {
     const b = document.createElement('div');
     const cls = att.success ? 'ok' : (att.fail ? 'fail' : 'pending');
@@ -5695,8 +5818,9 @@ async function perfAnimateOutcomesForPid(ctx, pid) {
     out.appendChild(b);
     await perfSleep(80);
     b.classList.add('show');
+    // Quiet tick only — full whistle is reserved for judge (avoids early win spoil).
     if (att.success || att.fail) {
-      sfxPlayCard(att.success ? 'live_success' : 'live_fail', { volume: att.success ? 0.48 : 0.44 });
+      sfxPlayCard('turn_tick', { volume: 0.28 });
     }
     await perfSleep(350);
   }
@@ -5713,6 +5837,7 @@ async function perfAnimateOutcomes(ctx, firstOnly) {
 }
 
 async function perfAnimateJudge(ctx) {
+  if (typeof LiveRoundDirector !== 'undefined') LiveRoundDirector.setStep('judge');
   const bothSucceeded = perfBothSucceeded(ctx);
   const { my: myScore, opp: oppScore, cardMy, cardOpp, bonusMy, bonusOpp } = perfJudgeTotals(ctx);
   const verdict = perfJudgeVerdict(ctx);
@@ -5845,13 +5970,14 @@ async function perfReAnimateYellSideIfChanged(ctx, nextState, pid, prevSig) {
   const newSig = perfYellRevealSignature(nextState, pid);
   if (!newSig || newSig === prevSig) return ctx;
   Object.assign(ctx, perfBuildContext(ctx.prev, nextState, ctx.myId));
-  perfClearYellUi();
-  await perfAnimateYellSide(ctx, pid);
+  // Delta-only: append newly milled yell cards — never clear and replay the whole side.
+  await perfAnimateYellSide(ctx, pid, { onlyNew: true });
   return ctx;
 }
 
 async function awaitMidSpectacleYellRetryPrompts(ctx, myId) {
   let workCtx = ctx;
+  if (typeof LiveRoundDirector !== 'undefined') LiveRoundDirector.pause('mid_yell_prompt');
   const pickCur = () => {
     // Never prefer a stale gate-entry deferred snapshot that still carries the prompt
     // after pullSkillResolutionState / onState already advanced past it.
@@ -5906,6 +6032,7 @@ async function awaitMidSpectacleYellRetryPrompts(ctx, myId) {
   }
   G.gameState = final || G.gameState;
   G._deferredLiveState = final || G._deferredLiveState;
+  if (typeof LiveRoundDirector !== 'undefined') LiveRoundDirector.resume('mid_yell_done');
   return workCtx;
 }
 
@@ -6432,17 +6559,21 @@ function queueStateAnnouncements(prev, s, myId, opts = {}) {
   const holdLivePlayback = !!opts.holdLivePlayback || isLiveRoundPlaybackActive();
   const placementOpen = liveSetPlacementInProgress(s);
   const enteringLiveSet = isEnteringLiveSetPhase(prev, s);
+  const blockBanners = holdLivePlayback || livePlaybackBlocksMainPhaseUi(s, prev)
+    || (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.blocksPhaseBanners());
 
-  if (prev && prev.phase !== s.phase && !holdLivePlayback && !livePlaybackBlocksMainPhaseUi(s, prev) && (!placementOpen || enteringLiveSet)) {
+  if (prev && prev.phase !== s.phase && !blockBanners && (!placementOpen || enteringLiveSet)) {
     if (!shouldSkipStaleLiveLogAnnouncements(prev, s)) {
       showPhaseTransitionBanner(s, myId, prev);
     }
     G._lastPhase = s.phase;
-  } else if (prev && prev.phase !== s.phase) {
+  } else if (prev && prev.phase !== s.phase && !blockBanners) {
     G._lastPhase = s.phase;
-  } else if (G._lastPhase == null) {
+  } else if (G._lastPhase == null && !blockBanners) {
     G._lastPhase = s.phase;
   }
+  // When banners are blocked, do NOT advance _lastPhase — flushPostLiveLogBanners
+  // must still be able to show the correct Main/Live splash for the settled board.
 
   const baseline = G._announceBaseline ?? 0;
   let from = Math.max(prev?.log?.length || 0, baseline);
@@ -6453,6 +6584,7 @@ function queueStateAnnouncements(prev, s, myId, opts = {}) {
   const emptyLiveSkip = opts.emptyLiveSkip || isEmptyLiveSkipTransition(prev, s);
   for (const entry of entries) {
     if (holdLivePlayback && shouldDeferLogBannerDuringLivePlayback(entry.msg)) continue;
+    if (blockBanners && shouldDeferLogBannerDuringLivePlayback(entry.msg)) continue;
     if (placementOpen && (shouldDeferLogBannerDuringLivePlayback(entry.msg) || isPostLivePipelineLogBanner(entry.msg))) continue;
     if (emptyLiveSkip && shouldSuppressLivePipelineBanner(entry.msg, prev, s, from)) continue;
     const banner = parseLogToBanner(entry.msg, entry.kind, s, myId, prev, from);
