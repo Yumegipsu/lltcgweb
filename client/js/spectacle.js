@@ -6383,6 +6383,23 @@ function shouldShowMatchSplash() {
 function queueCenterBanner(opts) {
   if (!opts?.title && !opts?.titleKey) return;
   if (!shouldShowMatchSplash()) return;
+  // Hard gate: Main / turn-begin / Live Set splashes cannot enqueue while the director owns the round.
+  if (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.blocksPhaseBanners()) {
+    const key = String(opts.titleKey || '');
+    const title = String(opts.title || '');
+    const kind = String(opts.kind || '');
+    const isPerfSplash = key === 'phaseBanner.performanceTitle'
+      || /performance/i.test(title);
+    const isMainOrTurn = kind === 'phase'
+      || /phaseBanner\.(your|their)Main/.test(key)
+      || /phaseBanner\.(your|their)Live/.test(key)
+      || /Main Phase|Live Phase|Turn \d+/i.test(title)
+      || key === 'splash.turn';
+    if (isMainOrTurn && !isPerfSplash) {
+      TCG_DEBUG.log('banner', 'blocked by director', key || title, LiveRoundDirector.step);
+      return;
+    }
+  }
   const loc = localizeBannerSpec(opts);
   TCG_DEBUG.log('banner', 'queue', loc.title, loc.subtitle || '', `(q=${(G._bannerQueue?.length || 0) + 1})`);
   G._bannerQueue.push({ ...opts, title: loc.title, subtitle: loc.subtitle, detail: loc.detail });
