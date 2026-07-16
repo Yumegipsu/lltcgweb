@@ -38,7 +38,8 @@ function sBp6IsEffectType(string $type): bool {
 function sBp6CountLiveZoneColorTotal(array $p, string $group, array $colors): int {
     $total = 0;
     foreach ($p['live_zone'] ?? [] as $lc) {
-        if (!$lc) continue;
+        if (!$lc || !is_array($lc)) continue;
+        mergeCardCatalogFields($lc);
         if ($group !== '' && ($lc['group'] ?? '') !== $group) continue;
         foreach ($lc['required_hearts'] ?? $lc['hearts'] ?? [] as $h) {
             $c = $h['color'] ?? '';
@@ -53,7 +54,8 @@ function sBp6CountLiveZoneColorTotal(array $p, string $group, array $colors): in
 function sBp6CountPerformingColorTotal(array $p, string $color): int {
     $total = 0;
     foreach ($p['live_zone'] ?? [] as $lc) {
-        if (!$lc) continue;
+        if (!$lc || !is_array($lc)) continue;
+        mergeCardCatalogFields($lc);
         foreach ($lc['required_hearts'] ?? $lc['hearts'] ?? [] as $h) {
             if (($h['color'] ?? '') === $color) {
                 $total += intval($h['count'] ?? 1);
@@ -66,7 +68,8 @@ function sBp6CountPerformingColorTotal(array $p, string $color): int {
 function sBp6AllLiveZoneMatchGroup(array $p, string $group): bool {
     $found = false;
     foreach ($p['live_zone'] ?? [] as $lc) {
-        if (!$lc) continue;
+        if (!$lc || !is_array($lc)) continue;
+        mergeCardCatalogFields($lc);
         $found = true;
         if (($lc['group'] ?? '') !== $group) return false;
     }
@@ -679,6 +682,9 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
             } else {
                 array_unshift($ownerP['main_deck'], $card);
             }
+        } else {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') . '] Live card was already moved; continuing.');
         }
         unset($state['pending_prompt']);
         $state['seq']++;

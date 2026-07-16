@@ -2571,26 +2571,27 @@ function actionResolvePickJudgeSuccessLive(array $state, string $owner, array $p
 /**
  * Send leftover Live storage to Waiting Room, pausing when a deck-position prompt opens.
  * Cards still awaiting a prompt stay in live_zone.
+ *
+ * Important: never keep a long-lived &$players[$pid] across sBp6ResolveAutoOnLiveWr —
+ * that call may copy-on-write $state, leaving a stale $p that fails to clear live_zone.
  */
 function drainLiveStorageLeftovers(array $state, array &$leftoverAnims): array {
     foreach (['p1', 'p2'] as $pid) {
-        $p = &$state['players'][$pid];
-        if (empty($p['live_zone'])) {
-            unset($p);
+        $zone = $state['players'][$pid]['live_zone'] ?? [];
+        if ($zone === []) {
             continue;
         }
         $remaining = [];
-        foreach ($p['live_zone'] as $lc) {
+        foreach ($zone as $lc) {
             $state = sBp6ResolveAutoOnLiveWr($state, $pid, $lc);
             if (!empty($state['pending_prompt'])) {
                 $remaining[] = $lc;
                 continue;
             }
             $leftoverAnims = array_merge($leftoverAnims, liveZoneDiscardAnims([$lc], $pid));
-            $p['waiting_room'][] = $lc;
+            $state['players'][$pid]['waiting_room'][] = $lc;
         }
-        $p['live_zone'] = $remaining;
-        unset($p);
+        $state['players'][$pid]['live_zone'] = $remaining;
     }
     return $state;
 }

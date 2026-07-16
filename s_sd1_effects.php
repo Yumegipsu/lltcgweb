@@ -224,16 +224,28 @@ function sSd1ResolveActivatedAbility(
         throw new Exception("Must discard exactly $need card(s)");
     }
     discardFromHandByIds($p, $ids);
-    $added = addFromWaitingRoomFiltered(
-        $p,
-        $ab['group'] ?? 'Sunshine',
-        'live',
+    $cfg = wrPickCfgFromAbility($ab);
+    $cfg['group'] = $ab['group'] ?? 'Sunshine';
+    $cfg['filter'] = 'live';
+    $cfg['min_score'] = intval($ab['min_score'] ?? 1);
+    $added = addFromWaitingRoomWithChoice(
+        $state,
+        $pid,
+        $member,
+        $ab,
+        ['slot' => $slot, 'ability_index' => $abilityIdx],
+        $cfg,
         1,
-        null,
-        ['min_score' => intval($ab['min_score'] ?? 1)]
+        false
     );
-    if ($added < 1) {
+    if ($added === 0) {
         throw new Exception('No scored Aqours Live card in Waiting Room');
+    }
+    // null => pick_wr_to_hand prompt opened (once_per_turn already marked).
+    if ($added === null) {
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — [$name] discarded $need; choose a scored Live from WR.");
+        return $state;
     }
     if (!empty($ab['once_per_turn'])) {
         markAbilityUsed($member, $abilityIdx);
