@@ -950,9 +950,11 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
 
     if ($promptType === 'optional_pos_change_subunit_blade') {
         if ($choice === 'no') {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional Position Change.');
             unset($state['pending_prompt']);
             $state['seq']++;
-            return $state;
+            return finishPromptEffects($state);
         }
         $targetSlot = $data['target_slot'] ?? $data['slot'] ?? '';
         $srcSlot = $prompt['source_slot'] ?? '';
@@ -960,6 +962,7 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
         $src = $ownerP['stage'][$srcSlot] ?? null;
         $tgt = $ownerP['stage'][$targetSlot] ?? null;
         if (!$src || !$tgt) throw new Exception('Invalid Position Change');
+        // Position Change: swap areas; moved Members do not become Active.
         $ownerP['stage'][$srcSlot] = $tgt;
         $ownerP['stage'][$targetSlot] = $src;
         $state = applyModifierEffect($state, $owner, [
@@ -972,9 +975,11 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
                 'hearts' => [$hg],
             ]);
         }
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Member') . '] Position Changed and gained Live bonuses.');
         unset($state['pending_prompt']);
         $state['seq']++;
-        return $state;
+        return finishPromptEffects($state);
     }
 
     if ($promptType === 'pick_other_blade_member_bonus' || $promptType === 'pick_other_heart_member_bonus') {
