@@ -2,6 +2,26 @@
   "version": 1,
   "posts": [
     {
+      "id": "2026-07-chinese-locale",
+      "date": "2026-07-15",
+      "banner": "tcglogo.png",
+      "bannerStyle": "full",
+      "title": {
+        "en": "Chinese language option",
+        "ja": "中国語（簡体字）に対応",
+        "es": "Opción de idioma chino",
+        "ko": "중국어(간체) 언어 옵션 추가",
+        "zh": "简体中文语言选项"
+      },
+      "body": {
+        "en": "You can now play in **Simplified Chinese**. Open **Options** or use the language menu on the title screen or hub to switch.\n\nMenus, the hands-on tutorial, game UI, and card rules text are localized. Like Korean — and unlike Spanish, where character and song titles stay in English — Chinese shows **Member** and **Live** names in Simplified Chinese.\n\n**About name accuracy**\nThese names are a best-effort community localization, not official Bandai translations. Choices may not match every fan convention, and some titles may be imperfect. If you spot a clear mistake, please tell us so we can correct it.",
+        "ja": "**中国語（簡体字）**でプレイできるようになりました。タイトル画面・ハブ・**オプション**の言語メニューから切り替えられます。\n\nメニュー、ハンズオンチュートリアル、対戦UI、カードルール文に対応しています。スペイン語ではキャラ名・楽曲名を英語のままにしますが、中国語では韓国語と同様に**メンバー**／**ライブ**名を簡体字で表示します。\n\n**表記について**\n公式のバンダイ翻訳ではなく、コミュニティ向けの暫定ローカライズです。ファン間の慣用表記と異なる場合や、誤りがある可能性があります。明らかな誤りを見つけた場合はお知らせください。修正します。",
+        "es": "Ahora puedes jugar en **chino simplificado**. Abre **Opciones** o usa el menú de idioma en la pantalla de título o el hub para cambiar.\n\nEstán localizados los menús, el tutorial práctico, la interfaz de partida y el texto de reglas de las cartas. Como el coreano — y a diferencia del español, donde los nombres de personajes y canciones se mantienen en inglés — el chino muestra los nombres de **Miembro** y **Live** en chino simplificado.\n\n**Sobre la precisión de los nombres**\nEstos nombres son una localización comunitaria de mejor esfuerzo, no traducciones oficiales de Bandai. Pueden no coincidir con todas las convenciones de fans, y algunos títulos pueden ser imperfectos. Si ves un error claro, avísanos para corregirlo.",
+        "ko": "이제 **중국어(간체)**로 플레이할 수 있습니다. 타이틀 화면·허브의 **옵션** 또는 언어 메뉴에서 전환하세요.\n\n메뉴, 실습 튜토리얼, 대전 UI, 카드 규칙 텍스트가 현지화되어 있습니다. 스페인어는 캐릭터·곡 이름을 영어 그대로 두는 반면, 한국어와 마찬가지로 중국어는 **멤버**·**라이브** 이름을 간체로 보여 줍니다.\n\n**이름 표기에 대해**\n이 표기는 공식 반다이 번역이 아니라 커뮤니티용 최선의 현지화입니다. 팬덤에서 쓰이는 표기와 다를 수 있고, 일부 제목은 완벽하지 않을 수 있습니다. 분명한 오류를 발견하시면 알려 주세요. 수정하겠습니다.",
+        "zh": "现在可以使用 **简体中文** 游玩。打开 **选项**，或在标题画面 / 主页的语言菜单中切换。\n\n菜单、实战教程、对战界面与卡牌规则文本均已本地化。与韩语相同（而西班牙语仍保留英文角色名与曲名），中文会以简体中文显示 **成员** 与 **Live** 名称。\n\n**关于名称准确性**\n这些译名是社区尽力本地化的结果，并非万代官方翻译。可能与部分粉丝习惯不一致，个别标题也可能不够完美。若发现明显错误，请告诉我们，我们会尽快修正。"
+      }
+    },
+    {
       "id": "2026-07-korean-locale",
       "date": "2026-07-12",
       "banner": "tcglogo.png",
