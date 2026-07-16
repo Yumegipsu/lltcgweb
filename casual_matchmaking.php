@@ -31,12 +31,34 @@ function tcgLoadAuthBootstrap(): void {
 if (!function_exists('tcgOptionalAuthUserId')) {
     function tcgOptionalAuthUserId(array $body = []): ?string {
         tcgLoadAuthBootstrap();
-        $token = tcgReadAuthTokenFromRequest($body);
-        if ($token === '') {
-            return null;
+        // Prefer header / auth_token over body.token (seat token on game actions).
+        $candidates = [];
+        $hdr = $_SERVER['HTTP_X_AUTH_TOKEN'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+        if (is_string($hdr) && stripos($hdr, 'Bearer ') === 0) {
+            $hdr = trim(substr($hdr, 7));
+        } elseif (is_string($hdr)) {
+            $hdr = trim($hdr);
+        } else {
+            $hdr = '';
         }
-        $uid = tcgResolveAuthUserId($token);
-        return $uid ? (string)$uid : null;
+        if ($hdr !== '') {
+            $candidates[] = $hdr;
+        }
+        $explicit = trim((string)($body['auth_token'] ?? ''));
+        if ($explicit !== '') {
+            $candidates[] = $explicit;
+        }
+        $bodyTok = trim((string)($body['token'] ?? $_GET['token'] ?? ''));
+        if ($bodyTok !== '') {
+            $candidates[] = $bodyTok;
+        }
+        foreach ($candidates as $token) {
+            $uid = tcgResolveAuthUserId($token);
+            if ($uid) {
+                return (string)$uid;
+            }
+        }
+        return null;
     }
 }
 

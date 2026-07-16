@@ -569,15 +569,7 @@ function handleAction(array $body): array {
         } else {
             if ($type === 'send_stamp') {
                 require_once __DIR__ . '/missions.php';
-                // Seat discord_id can be missing (rematch rebuild, older rooms) even when signed in.
-                tcgMissionBackfillPlayerDiscordFromAuth($state, $playerId, $body);
-                $discordId = tcgPlayerDiscordId($state, $playerId);
-                if (!$discordId && function_exists('tcgOptionalAuthUserId')) {
-                    $discordId = tcgOptionalAuthUserId($body);
-                    if ($discordId) {
-                        $state['players'][$playerId]['discord_id'] = $discordId;
-                    }
-                }
+                $discordId = tcgMissionResolveActingDiscordId($state, $playerId, $body);
                 if ($discordId) {
                     tcgEnsureUser($discordId);
                     $missionCompletions = tcgMissionOnStampSent($discordId);

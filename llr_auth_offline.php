@@ -23,15 +23,22 @@ function tcgResolveAuthUserId(string $tokenMaybe = ''): ?string {
 }
 
 function tcgReadAuthTokenFromRequest(array $body = []): string {
-    $token = trim((string)($body['token'] ?? $_GET['token'] ?? ''));
-    if ($token !== '') {
-        return $token;
-    }
     $hdr = $_SERVER['HTTP_X_AUTH_TOKEN'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? '';
     if (is_string($hdr) && stripos($hdr, 'Bearer ') === 0) {
-        return trim(substr($hdr, 7));
+        $hdr = trim(substr($hdr, 7));
+    } elseif (is_string($hdr)) {
+        $hdr = trim($hdr);
+    } else {
+        $hdr = '';
     }
-    return '';
+    if ($hdr !== '') {
+        return $hdr;
+    }
+    $explicit = trim((string)($body['auth_token'] ?? $_GET['auth_token'] ?? ''));
+    if ($explicit !== '') {
+        return $explicit;
+    }
+    return trim((string)($body['token'] ?? $_GET['token'] ?? ''));
 }
 
 function tcgRequireAuthUser(array $body = []): string {

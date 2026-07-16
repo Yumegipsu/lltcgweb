@@ -43,6 +43,11 @@
     global.G = global.G || {};
     global.G.lastRankedPrReward = res.ranked_pr_reward;
     const reward = res.ranked_pr_reward;
+    // Server only attaches ranked_pr_reward for the winning seat.
+    if (reward && reward.daily && typeof global.syncRankedPrFromReward === 'function') {
+      global.syncRankedPrFromReward(reward);
+      if (typeof global.updateRankedPrUI === 'function') global.updateRankedPrUI();
+    }
     if (reward.star_gems_earned > 0 && global.A && global.A.profile) {
       global.A.profile.star_gems = reward.star_gems ?? global.A.profile.star_gems;
       if (typeof global.syncStarGemsFromProfile === 'function') {
@@ -163,7 +168,10 @@
     // action uses body.token as the seat token; other game API calls may use token for auth.
     if (authToken) {
       headers['X-Auth-Token'] = authToken;
-      if (action !== 'action' && !payload.token) {
+      if (action === 'action') {
+        // Keep seat token in body.token; pass Discord auth separately for missions.
+        payload.auth_token = authToken;
+      } else if (!payload.token) {
         payload.token = authToken;
       }
     }

@@ -470,10 +470,39 @@ function tcgMissionBackfillPlayerDiscordFromAuth(array &$state, string $playerId
             require_once __DIR__ . '/llr_auth_load.php';
         }
     }
-    $uid = tcgOptionalAuthUserId($requestBody);
+    $uid = function_exists('tcgOptionalAuthUserId') ? tcgOptionalAuthUserId($requestBody) : null;
     if ($uid) {
         $state['players'][$playerId]['discord_id'] = $uid;
     }
+}
+
+/**
+ * Resolve Discord id for mission credit on an in-match action (stamps, etc.).
+ * Prefer seat / ranked ids, then auth header / auth_token (not seat token).
+ */
+function tcgMissionResolveActingDiscordId(array &$state, string $playerId, array $requestBody = []): ?string {
+    if (tcgMissionSeatIsCpu($state['players'][$playerId] ?? null)) {
+        return null;
+    }
+    tcgMissionBackfillPlayerDiscordFromAuth($state, $playerId, $requestBody);
+    $discordId = tcgPlayerDiscordId($state, $playerId);
+    if ($discordId) {
+        return $discordId;
+    }
+    if (!function_exists('tcgOptionalAuthUserId')) {
+        if (is_file(__DIR__ . '/llr_auth_load.php')) {
+            require_once __DIR__ . '/llr_auth_load.php';
+        }
+    }
+    if (!function_exists('tcgOptionalAuthUserId')) {
+        return null;
+    }
+    $uid = tcgOptionalAuthUserId($requestBody);
+    if ($uid) {
+        $state['players'][$playerId]['discord_id'] = $uid;
+        return $uid;
+    }
+    return null;
 }
 
 function tcgPlayerDiscordId(array $state, string $playerId): ?string {
