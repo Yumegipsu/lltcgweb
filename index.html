@@ -4164,20 +4164,33 @@ body.missions-overlay-open .llc-sky-dim::after{
 .deck-convert-seal-row .btn-grad img{width:22px;height:22px;object-fit:contain;display:block;flex:0 0 auto}
 .deck-convert-seal-balance{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;font-size:12px;color:rgba(255,255,255,.85)}
 .deck-convert-seal-balance .sticker-card-cost{display:inline-flex;align-items:center;gap:4px}
-.sticker-info-btn{
-  width:28px;height:28px;padding:0;border-radius:50%;
-  border:1.5px solid rgba(255,255,255,.45);background:rgba(255,255,255,.08);
-  color:#fff;font:italic 700 15px/1 'Libre Baskerville',Georgia,serif;
-  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
-  flex:0 0 auto;position:relative;z-index:2
+.sticker-info-fab{flex:0 0 auto}
+.sticker-info-fab .news-fab-icon{width:38px;height:38px;font-size:20px}
+.sticker-info-fab:hover .news-fab-icon{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.34)}
+#modal-sticker-info.llc-menu-screen{
+  position:fixed;inset:0;z-index:8750;display:none;align-items:center;justify-content:center;
+  overflow:auto;padding:clamp(12px,3vw,24px) 16px;
+  background:rgba(4,10,24,.78);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)
 }
-.sticker-info-btn:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.7)}
-#modal-sticker-info .mbox{max-width:min(520px,94vw)}
-.sticker-info-lead{font-size:13px;color:rgba(255,255,255,.72);line-height:1.45;margin:0 0 14px;text-align:center}
-.sticker-info-tiers{display:flex;flex-direction:column;gap:10px;max-height:min(60vh,520px);overflow-y:auto}
+#modal-sticker-info.open{display:flex}
+#modal-sticker-info .sticker-info-shell{
+  max-width:min(560px,94vw);width:100%;margin-block:auto;padding:clamp(16px,2.6vw,24px);
+  border-radius:16px;border:1px solid rgba(255,255,255,.44);
+  background:url("bg/ptn.png") top center/200px 200px repeat,rgba(38,132,210,.9);
+  box-shadow:0 18px 52px rgba(0,0,0,.45),0 0 32px rgba(52,163,243,.24),inset 0 1px 0 rgba(255,255,255,.16);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)
+}
+#modal-sticker-info .sticker-info-panel{
+  width:100%;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none
+}
+#modal-sticker-info .account-screen-head{margin-bottom:8px}
+.sticker-info-lead{font-size:13px;color:rgba(255,255,255,.86);line-height:1.55;margin:0 0 14px;text-align:center}
+.sticker-info-tiers{display:flex;flex-direction:column;gap:10px;max-height:min(60vh,520px);overflow-y:auto;padding-right:3px}
 .sticker-info-tier{
   display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start;
-  padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.2)
+  padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.28);
+  background:url("bg/ptn.png") top center/200px 200px repeat,rgba(20,79,132,.58);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08)
 }
 .sticker-info-tier-head{grid-column:1 / -1;display:flex;align-items:center;gap:8px;font-weight:800;color:#fff;font-size:14px}
 .sticker-info-tier-head img{width:28px;height:28px;object-fit:contain}
@@ -7094,7 +7107,9 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <div class="account-screen-head">
         <button class="btn-ghost" id="btn-sticker-back" type="button" data-i18n="sticker.backHub">← Hub</button>
         <h2 id="sticker-screen-title" data-i18n="sticker.title">Sticker Shop</h2>
-        <button class="sticker-info-btn" id="btn-sticker-info" type="button" data-i18n-aria-label="sticker.infoAria" aria-label="Seal guide" title="i">i</button>
+        <button class="news-fab sticker-info-fab" id="btn-sticker-info" type="button" data-i18n-aria-label="sticker.infoAria" aria-label="Seal guide" aria-haspopup="dialog" aria-controls="modal-sticker-info">
+          <span class="news-fab-icon" aria-hidden="true">i</span>
+        </button>
       </div>
       <div class="hub-seals-pill sticker-seals-bar" id="sticker-seals-bar" data-i18n-aria-label="sticker.sealsAria" aria-label="Seals">
         <span class="hub-seal-chip" data-seal="n"><img src="assets/seals/N.png" alt="N" width="18" height="18"><b id="sticker-seal-n">0</b></span>
@@ -7804,12 +7819,16 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<div class="overlay" id="modal-sticker-info">
-  <div class="mbox">
-    <button class="mcls" id="btn-sticker-info-close" type="button">✕</button>
-    <h2 class="booster-rates-head" data-i18n="sticker.infoTitle">Seal guide</h2>
-    <p class="sticker-info-lead" data-i18n="sticker.infoLead">Convert 1 spare booster card into 1 matching seal. Exchange seals for cards at the costs below.</p>
-    <div class="sticker-info-tiers" id="sticker-info-tiers"></div>
+<div class="llc-menu-screen sticker-info-overlay" id="modal-sticker-info" role="dialog" aria-modal="true" aria-labelledby="sticker-info-title">
+  <div class="account-shell sticker-info-shell">
+    <div class="panel account-panel sticker-info-panel">
+      <div class="account-screen-head">
+        <button class="btn-ghost" id="btn-sticker-info-close" type="button" data-i18n="news.close">Close</button>
+        <h2 id="sticker-info-title" data-i18n="sticker.infoTitle">Seal guide</h2>
+      </div>
+      <p class="sticker-info-lead" data-i18n="sticker.infoLead">Convert 1 spare booster card into 1 matching seal. Exchange seals for cards at the costs below.</p>
+      <div class="sticker-info-tiers" id="sticker-info-tiers"></div>
+    </div>
   </div>
 </div>
 
