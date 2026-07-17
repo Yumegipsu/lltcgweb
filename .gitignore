@@ -25,6 +25,9 @@ exports/*
 !/assets/flags/
 !/assets/flags/**
 !/assets/flags.json
+# Sticker-shop seal currency icons (LLR-made) — keep in git
+!/assets/seals/
+!/assets/seals/**
 /bg/**
 /icons/**
 /cardimg/**
