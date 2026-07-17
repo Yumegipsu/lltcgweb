@@ -4699,9 +4699,19 @@ function perfLiveFailCountFromLog(next, pid, prev = null) {
   return 0;
 }
 
-/** Once the performed-Live log exists, any attempt that is not a success is a fail. */
+/** Once the performed-Live log exists, classify any still-pending attempts. */
 function perfFinalizeAttemptOutcomes(attempts, next, pid, prev = null) {
   if (!attempts?.length) return attempts;
+  const logOk = perfLiveSuccessCountFromLog(next, pid, prev);
+  let okNeed = Math.max(0, logOk - attempts.filter(a => a.success).length);
+  for (const a of attempts) {
+    if (okNeed <= 0) break;
+    if (!a.success) {
+      a.success = true;
+      a.fail = false;
+      okNeed--;
+    }
+  }
   const logFail = perfLiveFailCountFromLog(next, pid, prev);
   let failNeed = Math.max(0, logFail - attempts.filter(a => a.fail).length);
   for (const a of attempts) {
@@ -4711,7 +4721,7 @@ function perfFinalizeAttemptOutcomes(attempts, next, pid, prev = null) {
       failNeed--;
     }
   }
-  // Spectators / batched WR flights: results are known from the log even when the
+  // Spectators / deferred WR flights: results are known from the log even when the
   // card iid is not yet present in waiting_room on the presentation board.
   if (playerHasPerfLogThisRound(next, pid)) {
     for (const a of attempts) {
