@@ -36,6 +36,7 @@
         global.G._lastResolvedPromptKey = global.G._promptSubmitKey;
       }
       global.G._promptSubmitKey = null;
+      global.G._resolvePromptSentKey = null;
       global.G._lastSurfacedPromptKey = null;
       if (global.G._deferredPromptState?.pending_prompt) global.clearDeferredPromptState();
       return;
@@ -44,6 +45,7 @@
     if (!global.G._promptSubmitKey) return;
     if (idKey !== global.G._promptSubmitKey) {
       global.G._promptSubmitKey = null;
+      global.G._resolvePromptSentKey = null;
       global.G._lastSurfacedPromptKey = null;
     }
   };
@@ -2006,11 +2008,27 @@ global.renderPrompt = function renderPrompt(s, myId){
   if(pr?.type==='auto_yell_mill_extra_yell'&&pr.responder===myId){
     ovl.classList.remove('open');
     const owner = pr.owner || myId;
-    const idSet = new Set((pr.candidates || []).map(c => c.instance_id).filter(Boolean));
-    const yellPool = (s.yell_reveal?.[owner] || s.players?.[owner]?.yell_cards || [])
-      .filter(c => idSet.has(c.instance_id));
+    const cands = pr.candidates || [];
+    const idSet = new Set(cands.map(c => c.instance_id).filter(Boolean));
+    // Prefer live board Yell, but never treat a missing yell_reveal (refresh / filter
+    // race) as decline — server already listed eligible cards on the prompt.
+    const boardYell = s.yell_reveal?.[owner]
+      || s._yell_reveal_snapshot?.[owner]
+      || s.players?.[owner]?.yell_cards
+      || [];
+    let yellPool = boardYell.filter(c => idSet.has(c.instance_id));
+    if (!yellPool.length && cands.length) {
+      yellPool = cands
+        .map(c => (typeof enrichCard === 'function' ? enrichCard(c) : c))
+        .filter(c => c?.instance_id);
+    }
     if (!yellPool.length) {
-      sendAct('resolve_prompt', { choice: 'no' });
+      // No candidates from server either — nothing to mill; skip without auto-spam.
+      if (!cands.length) {
+        sendAct('resolve_prompt', { choice: 'no' });
+      } else {
+        toast(pt('prompt.wrEmpty') || 'No Yell cards available to mill.', 3200);
+      }
       return;
     }
     const max = pr.max_pick || yellPool.length;

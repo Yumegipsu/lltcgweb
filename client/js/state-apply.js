@@ -43,6 +43,7 @@
     G._lastAppliedAt = Date.now();
     G._pendingStateQueue = [];
     G._promptSubmitKey = null;
+    G._resolvePromptSentKey = null;
     G.lastSeq = s?.seq ?? G.lastSeq;
     G.playerId = G.isSpectator
       ? ((G.spectatorViewAs === 'p1' || G.spectatorViewAs === 'p2') ? G.spectatorViewAs : (s.view_as || 'p1'))

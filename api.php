@@ -3786,7 +3786,17 @@ function filterStateForPlayer(array $state, string $token): array {
         ], true) || ($state['status'] ?? '') === 'finished';
     }
 
-    if (!empty($state['yell_reveal']) && isInPerformancePhase($state)) {
+    if (!empty($state['yell_reveal']) && (
+        isInPerformancePhase($state)
+        || in_array(($state['pending_prompt']['type'] ?? ''), [
+            'auto_yell_mill_extra_yell',
+            'auto_yell_no_live_retry',
+            'pick_yell_member',
+            'live_success_pick_yell_live',
+            'live_success_pick_yell_deck_top',
+            'sbp5_pick_yell_members',
+        ], true)
+    )) {
         $filtered['yell_reveal'] = $state['yell_reveal'];
     } elseif ($exposePerfCarryover && !empty($state['_yell_reveal_snapshot'])) {
         // Keep last round's Yell draws visible until the next Performance (PvP may

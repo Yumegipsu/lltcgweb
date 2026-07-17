@@ -8168,10 +8168,10 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
 <script src="client/js/game-sync.js?v=17"></script>
-<script src="client/js/state-apply.js?v=33"></script>
+<script src="client/js/state-apply.js?v=34"></script>
 <script src="client/js/stamps.js?v=16"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
-<script src="client/js/prompt-renderer.js?v=34"></script>
+<script src="client/js/prompt-renderer.js?v=35"></script>
 <script src="client/js/tutorial-interactive.js?v=17"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -17016,6 +17016,7 @@ let G = {
   _stageRevealFlips:null,
   _handRevealFlips:null,
   _promptSubmitKey:null,
+  _resolvePromptSentKey:null,
   _lastSurfacedPromptKey:null,
   _lastResolvedPromptKey:null,
   _perfSplashShownForTurn:null,
@@ -32709,14 +32710,21 @@ function yellRevealPickCards(pr, s, myId) {
 
 function confirmHandPick(){
   const ctx=G.handPickCtx; if(!ctx) return;
+  if (typeof isPromptSubmitting === 'function' && isPromptSubmitting(G.gameState)) return;
+  if (G._handPickConfirming) return;
   const min=ctx.min??ctx.count;
   if(G.pickMarked.size<min||G.pickMarked.size>ctx.count){
     toast(`Select ${min}${ctx.count!==min?`–${ctx.count}`:''} card(s)`); return;
   }
-  markPromptSubmitting(G.gameState);
-  closeM('overlay-hand-pick');
-  const ids=[...G.pickMarked]; G.pickMarked.clear(); G.handPickCtx=null;
-  ctx.onConfirm?.(ids);
+  G._handPickConfirming = true;
+  try {
+    markPromptSubmitting(G.gameState);
+    closeM('overlay-hand-pick');
+    const ids=[...G.pickMarked]; G.pickMarked.clear(); G.handPickCtx=null;
+    ctx.onConfirm?.(ids);
+  } finally {
+    G._handPickConfirming = false;
+  }
 }
 
 function cancelHandPick(){
@@ -35689,6 +35697,7 @@ function freshGameGlobals() {
     _stageRevealFlips:null,
     _handRevealFlips:null,
     _promptSubmitKey:null,
+    _resolvePromptSentKey:null,
     _lastSurfacedPromptKey:null,
     _lastResolvedPromptKey:null,
     _perfSplashShownForTurn:null,
@@ -36010,8 +36019,20 @@ async function sendAct(type,data){
     toast(t('toast.resolveSkillFirst'), 2800);
     return;
   }
-  if (type === 'resolve_prompt') markPromptSubmitting(G.gameState);
-  if (type === 'anti_softlock_skip') G._promptSubmitKey = null;
+  if (type === 'resolve_prompt') {
+    const submitKey = typeof promptSubmitKey === 'function' ? promptSubmitKey(G.gameState) : null;
+    // Same prompt already queued/sent (double-click, re-opened overlay, refresh race).
+    if (submitKey && G._resolvePromptSentKey === submitKey) {
+      TCG_DEBUG.log('action', 'sendAct skip duplicate resolve_prompt', submitKey);
+      return;
+    }
+    if (submitKey) G._resolvePromptSentKey = submitKey;
+    markPromptSubmitting(G.gameState);
+  }
+  if (type === 'anti_softlock_skip') {
+    G._promptSubmitKey = null;
+    G._resolvePromptSentKey = null;
+  }
   tcgDebugRecordAction(type, data, 'player');
   TCG_DEBUG.log('action', 'sendAct →', type, data);
   try {
@@ -36033,6 +36054,7 @@ async function sendAct(type,data){
   }
   catch(e){
     G._promptSubmitKey = null;
+    G._resolvePromptSentKey = null;
     if (type === 'resolve_prompt' && G.gameState && G.playerId) {
       G._lastSurfacedPromptKey = null;
       G._lastResolvedPromptKey = null;
