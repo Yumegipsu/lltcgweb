@@ -2,6 +2,26 @@
   "version": 1,
   "posts": [
     {
+      "id": "2026-07-sticker-shop",
+      "date": "2026-07-17",
+      "banner": "assets/seals/SEC.png",
+      "bannerStyle": "full",
+      "title": {
+        "en": "Sticker Shop is here!",
+        "ja": "シールショップがオープン！",
+        "es": "¡La Tienda de stickers ya está aquí!",
+        "ko": "스티커 상점이 추가되었습니다!",
+        "zh": "贴纸商店上线！"
+      },
+      "body": {
+        "en": "Signed-in players can now turn spare booster cards into **seals**, then **exchange** those seals for cards you want in the **Sticker Shop**.\n\n**Get seals**\n- Open **Deck Builder**, open a card you own, and tap **Convert to seal** when you have spare copies.\n- Each convertible card becomes **1 seal** of matching rarity: **N**, **R**, **P**, or **SEC**.\n- Copies used in your **saved decks** stay reserved — only extras can be converted.\n- **PR cards** cannot be converted.\n\n**Exchange for cards**\n- On the hub, open **Sticker Shop**.\n- Browse every **booster** set, plus any **starter decks** you already own.\n- Exchange costs (same seal type as the card):\n  - **N** → **20** N seals\n  - **R** → **15** R seals\n  - **P** → **10** P seals\n  - **SEC** → **5** SEC seals\n- You cannot go past the usual copy limit (**4** Member/Live, **12** Energy).\n\nBuild toward the cards you’re missing — happy collecting!",
+        "ja": "サインイン中のプレイヤーは、余ったブースターカードを**シール**に変換し、**シールショップ**で欲しいカードと**交換**できるようになりました。\n\n**シールを集める**\n- **デッキビルダー**で所持カードを開き、余剰があるときに **シールに変換** をタップ。\n- 変換できるカードは、レアリティに応じて **N** / **R** / **P** / **SEC** のシールを **1枚** 獲得します。\n- **保存済みデッキ**で使っている枚数は予約され、余った分だけ変換できます。\n- **PRカード**は変換できません。\n\n**カードと交換する**\n- ハブの **シールショップ** を開きます。\n- すべての**ブースター**と、すでに所持している**スターターデッキ**を閲覧できます。\n- 交換に必要なシール（カードと同じ種類）：\n  - **N** → Nシール **20**\n  - **R** → Rシール **15**\n  - **P** → Pシール **10**\n  - **SEC** → SECシール **5**\n- 所持上限（メンバー／ライブ **4枚**、エネルギー **12枚**）を超えては交換できません。\n\n欲しいカードを目指して集めましょう。楽しんでください！",
+        "es": "Las cuentas con sesión iniciada ya pueden convertir cartas de booster sobrantes en **sellos** y **intercambiarlos** por las cartas que quieras en la **Tienda de stickers**.\n\n**Conseguir sellos**\n- Abre el **Constructor de mazos**, abre una carta que poseas y toca **Convertir en sello** si tienes copias sobrantes.\n- Cada carta convertible se convierte en **1 sello** de la rareza correspondiente: **N**, **R**, **P** o **SEC**.\n- Las copias usadas en tus **mazos guardados** quedan reservadas: solo se pueden convertir las extras.\n- Las **cartas PR** no se pueden convertir.\n\n**Intercambiar por cartas**\n- En el hub, abre la **Tienda de stickers**.\n- Explora todos los **boosters** y los **mazos iniciales** que ya poseas.\n- Costes de intercambio (mismo tipo de sello que la carta):\n  - **N** → **20** sellos N\n  - **R** → **15** sellos R\n  - **P** → **10** sellos P\n  - **SEC** → **5** sellos SEC\n- No puedes superar el límite habitual (**4** Miembro/Live, **12** Energía).\n\n¡Consigue las cartas que te faltan y disfruta coleccionando!",
+        "ko": "로그인한 플레이어는 이제 남는 부스터 카드를 **씰**로 바꾸고, **스티커 상점**에서 원하는 카드와 **교환**할 수 있습니다.\n\n**씰 얻기**\n- **덱 빌더**에서 보유 카드를 열고, 여유 매수가 있을 때 **씰로 변환**을 탭하세요.\n- 변환 가능한 카드는 레어리티에 맞는 **N** / **R** / **P** / **SEC** 씰을 **1개** 얻습니다.\n- **저장된 덱**에 쓰인 매수는 예약되며, 남는 분만 변환할 수 있습니다.\n- **PR 카드**는 변환할 수 없습니다.\n\n**카드와 교환**\n- 허브에서 **스티커 상점**을 엽니다.\n- 모든 **부스터**와, 이미 보유한 **스타터 덱**을 볼 수 있습니다.\n- 교환 비용 (카드와 같은 씰 종류):\n  - **N** → N 씰 **20**개\n  - **R** → R 씰 **15**개\n  - **P** → P 씰 **10**개\n  - **SEC** → SEC 씰 **5**개\n- 보유 상한(**멤버/Live 4장**, **에너지 12장**)을 넘어서는 교환할 수 없습니다.\n\n부족한 카드를 모아 컬렉션을 키워 보세요. 즐거운 수집 되세요!",
+        "zh": "登录玩家现在可以将多余的补充包卡牌转换为**印章**，并在**贴纸商店**中**兑换**想要的卡牌。\n\n**获取印章**\n- 打开**牌组构筑**，点开你拥有的卡牌，在有多余副本时点击**转换为印章**。\n- 每张可转换的卡牌会获得 **1** 枚对应稀有度印章：**N**、**R**、**P** 或 **SEC**。\n- 已保存在**预设牌组**中的副本会被保留，只有多余的才能转换。\n- **PR 卡**无法转换。\n\n**兑换卡牌**\n- 在主页打开**贴纸商店**。\n- 可浏览全部**补充包**，以及你已拥有的**入门牌组**。\n- 兑换费用（与卡牌同类型印章）：\n  - **N** → **20** 枚 N 印章\n  - **R** → **15** 枚 R 印章\n  - **P** → **10** 枚 P 印章\n  - **SEC** → **5** 枚 SEC 印章\n- 不能超过通常持有上限（成员/Live **4** 张，能量 **12** 张）。\n\n补齐缺少的卡牌，享受收集的乐趣吧！"
+      }
+    },
+    {
       "id": "2026-07-chinese-locale",
       "date": "2026-07-15",
       "banner": "tcglogo.png",
