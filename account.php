@@ -145,6 +145,7 @@ function tcgApiMe(array $body): array {
         'star_gems_per_dupe' => TCG_STAR_GEMS_PER_DUPE,
         'seals' => tcgSealBalances($uid),
         'seal_buy_costs' => TCG_SEAL_BUY_COST,
+        'owned_starters' => tcgOwnedStarterKeys($uid),
         'dupe_migration' => $migration,
         'rank' => tcgFormatRankSummary($rank),
         'banner' => tcgFormatUserBanner($user, $cards),
@@ -215,6 +216,7 @@ function tcgApiStickerShopCatalog(array $body): array {
         'products' => tcgStickerShopCatalog($uid),
         'seals' => tcgSealBalances($uid),
         'seal_buy_costs' => TCG_SEAL_BUY_COST,
+        'owned_starters' => tcgOwnedStarterKeys($uid),
     ];
 }
 
@@ -287,7 +289,7 @@ function tcgApiConvertToSeal(array $body): array {
     }
     $cardsData = tcgLoadCardsData();
     $cardMap = tcgBuildCardMap($cardsData);
-    return tcgConvertCardsToSeals($uid, $cardNo, $qty, $cardMap);
+    return tcgConvertCardsToSeals($uid, $cardNo, $qty, $cardMap, $cardsData);
 }
 
 function tcgApiStickerBuy(array $body): array {

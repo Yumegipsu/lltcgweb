@@ -8427,6 +8427,7 @@ const A = {
   profile: null,
   starGems: 0,
   seals: { n: 0, r: 0, p: 0, sec: 0 },
+  ownedStarters: [],
   sealBuyCosts: { N: 20, R: 15, P: 10, SEC: 5 },
   stickerProductId: null,
   stickerProducts: [],
@@ -8529,13 +8530,22 @@ function syncSealsFromProfile(me) {
   if (me?.seal_buy_costs && typeof me.seal_buy_costs === 'object') {
     A.sealBuyCosts = { ...SEAL_BUY_COSTS, ...me.seal_buy_costs };
   }
+  if (Array.isArray(me?.owned_starters)) {
+    A.ownedStarters = me.owned_starters.slice();
+  } else if (A.profile?.user?.starter_deck && !A.ownedStarters?.length) {
+    A.ownedStarters = [A.profile.user.starter_deck];
+  }
   if (A.profile) A.profile.seals = { ...A.seals };
   updateSealsUI();
 }
 
 function syncSealsFromPayload(payload) {
-  if (!payload?.seals) return;
-  syncSealsFromProfile({ seals: payload.seals, seal_buy_costs: payload.seal_buy_costs });
+  if (!payload) return;
+  syncSealsFromProfile({
+    seals: payload.seals,
+    seal_buy_costs: payload.seal_buy_costs,
+    owned_starters: payload.owned_starters,
+  });
 }
 
 function sealIconHtml(tier, sizePx = 16) {
@@ -8584,6 +8594,25 @@ function clientSealTierForCard(card) {
   return map[r] || null;
 }
 
+function clientCardInOwnedStarter(cardNo) {
+  const no = String(cardNo || '');
+  if (!no) return false;
+  let owned = (A.ownedStarters || []).slice();
+  if (!owned.length) {
+    const primary = A.profile?.user?.starter_deck;
+    if (primary) owned = [primary];
+  }
+  if (!owned.length || !G.starterDecks) return false;
+  for (let i = 0; i < owned.length; i++) {
+    const deck = G.starterDecks[owned[i]];
+    if (!deck) continue;
+    const main = deck.main_deck || [];
+    const energy = deck.energy_deck || [];
+    if (main.includes(no) || energy.includes(no)) return true;
+  }
+  return false;
+}
+
 function clientCardConvertibleToSeal(card) {
   if (!card) return false;
   const full = enrichCard(card) || card;
@@ -8591,6 +8620,7 @@ function clientCardConvertibleToSeal(card) {
   if (pack === 'PRカード') return false;
   const r = normalizeClientRarity(full);
   if (r === 'PR' || r === 'PR+') return false;
+  if (!clientSealTierForCard(full)) return false;
   const no = String(full.card_no || '');
   const gachaFilters = (A.boxes || [])
     .filter(b => ['bp', 'pb', 'pb_duo'].includes(b.kind))
@@ -8601,8 +8631,8 @@ function clientCardConvertibleToSeal(card) {
     || (gachaFilters.length === 0 && /ブースター|プレミアムブースター/.test(pack))
   );
   const codeOk = /-(?:bp|pb)\d+/i.test(no);
-  if (!packOk && !codeOk) return false;
-  return !!clientSealTierForCard(full);
+  if (packOk || codeOk) return true;
+  return clientCardInOwnedStarter(no);
 }
 
 function maxReservedCopiesClient(cardNo) {

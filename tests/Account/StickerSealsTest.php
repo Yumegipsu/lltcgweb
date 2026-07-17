@@ -166,6 +166,33 @@ final class StickerSealsTest extends TestCase
         $this->assertFalse(tcgCardConvertibleToSeal($starter));
     }
 
+    public function testOwnedStarterCardsAreConvertible(): void
+    {
+        $cardsData = $this->cardsData();
+        $starterKey = null;
+        $starterCardNo = null;
+        foreach (tcgStarterDeckKeys() as $key) {
+            $lists = tcgGetStarterDeckLists($key, $cardsData);
+            $no = (string)(($lists['main_deck'][0] ?? ''));
+            if ($no === '') {
+                continue;
+            }
+            $starterKey = $key;
+            $starterCardNo = $no;
+            break;
+        }
+        $this->assertNotNull($starterKey);
+        $map = tcgBuildCardMap($cardsData);
+        $card = $map[$starterCardNo] ?? null;
+        $this->assertNotNull($card);
+        $this->assertFalse(tcgCardConvertibleToSeal($card));
+        tcgRecordStarterOwned($this->discordId, $starterKey, 'test');
+        $this->assertTrue(tcgCardConvertibleToSeal($card, $this->discordId, $cardsData));
+        tcgAddCardsToCollection($this->discordId, [$starterCardNo, $starterCardNo]);
+        $out = tcgConvertCardsToSeals($this->discordId, $starterCardNo, 1, $map, $cardsData);
+        $this->assertSame(1, $out['seals_gained']);
+    }
+
     public function testStickerShopCardSummaryIsSlim(): void
     {
         $card = $this->findGachaCard('N');

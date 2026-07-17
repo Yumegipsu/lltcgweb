@@ -363,7 +363,7 @@
       "sealsAria": "Seals",
       "infoAria": "Seal guide",
       "infoTitle": "Seal guide",
-      "infoLead": "Convert 1 spare booster card into 1 matching seal. Exchange seals for cards at the costs below.",
+      "infoLead": "Convert 1 spare booster or owned-starter card into 1 matching seal. Exchange seals for cards at the costs below.",
       "infoRarities": "Rarities",
       "infoCost": "Exchange cost"
     },
@@ -1452,7 +1452,7 @@
       "sealsAria": "シール",
       "infoAria": "シールガイド",
       "infoTitle": "シールガイド",
-      "infoLead": "余ったブースターカード1枚を、同じレアリティ帯のシール1枚に変換できます。下のコストでシールとカードを交換できます。",
+      "infoLead": "余ったブースターカード、または所持スターターのカード1枚を、同じレアリティ帯のシール1枚に変換できます。下のコストでシールとカードを交換できます。",
       "infoRarities": "レアリティ",
       "infoCost": "交換コスト"
     },
@@ -2482,7 +2482,7 @@
       "sealsAria": "Sellos",
       "infoAria": "Guía de sellos",
       "infoTitle": "Guía de sellos",
-      "infoLead": "Convierte 1 carta de booster sobrante en 1 sello de la rareza correspondiente. Intercambia sellos por cartas con estos costes.",
+      "infoLead": "Convierte 1 carta de booster sobrante o de un mazo inicial que poseas en 1 sello de la rareza correspondiente. Intercambia sellos por cartas con estos costes.",
       "infoRarities": "Rarezas",
       "infoCost": "Coste de intercambio"
     },
@@ -3586,7 +3586,7 @@
       "sealsAria": "씰",
       "infoAria": "씰 안내",
       "infoTitle": "씰 안내",
-      "infoLead": "남는 부스터 카드 1장을 같은 레어리티 대역의 씰 1개로 변환할 수 있습니다. 아래 비용으로 씰과 카드를 교환하세요.",
+      "infoLead": "남는 부스터 카드, 또는 보유 스타터 덱의 카드 1장을 같은 레어리티 대역의 씰 1개로 변환할 수 있습니다. 아래 비용으로 씰과 카드를 교환하세요.",
       "infoRarities": "레어리티",
       "infoCost": "교환 비용"
     },
@@ -4704,7 +4704,7 @@
       "sealsAria": "印章",
       "infoAria": "印章说明",
       "infoTitle": "印章说明",
-      "infoLead": "将 1 张多余的补充包卡牌转换为 1 枚对应稀有度印章。按下列费用用印章兑换卡牌。",
+      "infoLead": "将 1 张多余的补充包卡牌，或你已拥有的入门牌组中的卡牌，转换为 1 枚对应稀有度印章。按下列费用用印章兑换卡牌。",
       "infoRarities": "稀有度",
       "infoCost": "兑换费用"
     },

@@ -149,14 +149,49 @@ function tcgSealBuyCostForTier(string $tier): int {
     return intval(TCG_SEAL_BUY_COST[strtoupper($tier)] ?? 0);
 }
 
-function tcgCardConvertibleToSeal(array $card): bool {
+/** Card nos from starter decks this user owns (buy-back unlocked in sticker shop). */
+function tcgOwnedStarterCardNoSet(string $discordId, array $cardsData): array {
+    static $cache = [];
+    if (isset($cache[$discordId])) {
+        return $cache[$discordId];
+    }
+    $nos = [];
+    foreach (tcgOwnedStarterKeys($discordId) as $key) {
+        try {
+            $lists = tcgGetStarterDeckLists($key, $cardsData);
+        } catch (Throwable $e) {
+            continue;
+        }
+        foreach (array_merge($lists['main_deck'] ?? [], $lists['energy_deck'] ?? []) as $no) {
+            $no = (string)$no;
+            if ($no !== '') {
+                $nos[$no] = true;
+            }
+        }
+    }
+    $cache[$discordId] = $nos;
+    return $nos;
+}
+
+/**
+ * Convertible if non-PR, mapped rarity, and either gacha or from an owned starter
+ * (so players can convert cards they can buy back in the sticker shop).
+ */
+function tcgCardConvertibleToSeal(array $card, ?string $discordId = null, ?array $cardsData = null): bool {
     if (tcgIsPrSealBlockedCard($card)) {
         return false;
     }
-    if (!tcgIsGachaBoosterCard($card)) {
+    if (tcgSealTierForCard($card) === null) {
         return false;
     }
-    return tcgSealTierForCard($card) !== null;
+    if (tcgIsGachaBoosterCard($card)) {
+        return true;
+    }
+    if ($discordId === null || $cardsData === null) {
+        return false;
+    }
+    $no = (string)($card['card_no'] ?? '');
+    return $no !== '' && isset(tcgOwnedStarterCardNoSet($discordId, $cardsData)[$no]);
 }
 
 function tcgCardPurchasableWithSeal(array $card): bool {
@@ -353,13 +388,14 @@ function tcgStickerShopCardSummary(array $card): array {
 /**
  * @return array{success:bool,seals:array,card_no:string,qty_left:int,tier:string,seals_gained:int}
  */
-function tcgConvertCardsToSeals(string $discordId, string $cardNo, int $qty, array $cardMap): array {
+function tcgConvertCardsToSeals(string $discordId, string $cardNo, int $qty, array $cardMap, ?array $cardsData = null): array {
     $qty = max(1, $qty);
     $card = $cardMap[$cardNo] ?? null;
     if (!$card) {
         throw new Exception('Unknown card', 404);
     }
-    if (!tcgCardConvertibleToSeal($card)) {
+    $data = $cardsData ?? ['cards' => array_values($cardMap), 'starter_decks' => []];
+    if (!tcgCardConvertibleToSeal($card, $discordId, $data)) {
         throw new Exception('This card cannot be converted to seals', 400);
     }
     $tier = tcgSealTierForCard($card);
