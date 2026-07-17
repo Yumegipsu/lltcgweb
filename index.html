@@ -7076,7 +7076,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         <span class="hub-seal-chip" data-seal="p"><img src="assets/seals/P.png" alt="P" width="18" height="18"><b id="sticker-seal-p">0</b></span>
         <span class="hub-seal-chip" data-seal="sec"><img src="assets/seals/SEC.png" alt="SEC" width="18" height="18"><b id="sticker-seal-sec">0</b></span>
       </div>
-      <p class="hub-stat" id="sticker-hint" data-i18n="sticker.hint">Convert spare gacha cards in Deck Builder to seals, then buy cards here.</p>
+      <p class="hub-stat" id="sticker-hint" data-i18n="sticker.hint">Convert spare gacha cards in Deck Builder to seals, then exchange seals for cards here.</p>
       <div id="sticker-products-view">
         <div class="box-grid" id="sticker-product-grid"></div>
       </div>
@@ -10636,14 +10636,14 @@ function renderStickerCardsGrid(cards) {
     const buy = document.createElement('button');
     buy.type = 'button';
     buy.className = row.can_buy ? 'btn-grad' : 'btn-out';
-    buy.textContent = t('sticker.buy') || 'Buy';
+    buy.textContent = t('sticker.buy') || 'Exchange';
     buy.disabled = !row.can_buy;
     buy.onclick = async () => {
       buy.disabled = true;
       try {
         const res = await accountPost('sticker_buy', { card_no: row.card_no });
         syncSealsFromPayload(res);
-        toast(t('sticker.buyOk') || 'Card purchased', 2000);
+        toast(t('sticker.buyOk') || 'Card exchanged', 2000);
         if (A.stickerProductId) {
           const refreshed = await accountPost('sticker_shop_cards', { product_id: A.stickerProductId });
           syncSealsFromPayload(refreshed);
@@ -10651,7 +10651,7 @@ function renderStickerCardsGrid(cards) {
         }
         await refreshCollection().catch(() => {});
       } catch (e) {
-        toast(e.message || 'Purchase failed', 3200);
+        toast(e.message || 'Exchange failed', 3200);
         buy.disabled = false;
       }
     };
