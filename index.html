@@ -8168,7 +8168,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
 <script src="client/js/game-sync.js?v=16"></script>
-<script src="client/js/state-apply.js?v=32"></script>
+<script src="client/js/state-apply.js?v=33"></script>
 <script src="client/js/stamps.js?v=16"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
 <script src="client/js/prompt-renderer.js?v=34"></script>
@@ -21308,17 +21308,17 @@ function finalizeCardFlip(cardEl) {
   const card = iid ? findCardByIid(G.gameState, iid) : null;
   if (isLive && card) {
     if (iid) syncLiveStorageRevealedInState(iid);
-    const keepSideways = liveStorageUseArtSpin(card);
-    while (front.firstChild) cardEl.insertBefore(front.firstChild, inner);
-    inner.remove();
-    // One 3D rotateY only — keep member shell orientation; do not re-wrap art
-    // (that snap looked like a second 2D flip after the 3D reveal).
-    cardEl.classList.remove('hand-draw-flip', 'live-storage-flip', 'live-flip-axis-x', 'stage-flip', 'stage-flip-axis-x', 'revealed');
-    if (keepSideways) cardEl.classList.add('storage-sideways-member');
-    else cardEl.classList.remove('storage-sideways-member');
-    dedupeFieldCardFace(cardEl);
+    // Instant settle to the same face layout renderLiveSlots uses (portrait-in-landscape
+    // for members — NOT storage-sideways-member). Keeping the flip shell's 90° rotate
+    // after teardown looked like a 2D horizontal→vertical snap facing the wrong way.
+    cardEl.classList.remove(
+      'hand-draw-flip', 'live-storage-flip', 'live-flip-axis-x',
+      'stage-flip', 'stage-flip-axis-x', 'revealed', 'storage-sideways-member',
+      'live-storage-facedown'
+    );
+    cardEl.replaceChildren();
+    appendLiveStorageFace(cardEl, enrichCard({ ...card, revealed: true }));
     applyCardFoilFx(cardEl, card);
-    // Avoid layoutLiveSlots here — it reflows neighbors and can look like a second flip.
     return;
   }
   while (front.firstChild) cardEl.insertBefore(front.firstChild, inner);
@@ -36341,8 +36341,8 @@ function mkNoImg(card){
   return d;
 }
 </script>
-<script src="client/js/live-round-director.js?v=2"></script>
-<script src="client/js/spectacle.js?v=18"></script>
+<script src="client/js/live-round-director.js?v=3"></script>
+<script src="client/js/spectacle.js?v=19"></script>
 <script src="client/js/cpu-meta-weights.js?v=5"></script>
 <script src="client/js/cpu-eval.js?v=5"></script>
 <script src="client/js/cpu-expert.js?v=3"></script>

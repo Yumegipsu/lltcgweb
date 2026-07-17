@@ -161,7 +161,8 @@
       enqueuePendingState(s);
       return;
     }
-    if (G.animating || G._perfSpectacleActive || G._liveSpectacleGateRunning || G._liveRoundPlaybackActive) {
+    if (G.animating || G._perfSpectacleActive || G._liveSpectacleGateRunning || G._liveRoundPlaybackActive
+        || (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active)) {
       TCG_DEBUG.log('state', 'queue (animating)', { seq: s.seq, phase: s.phase, q: (G._pendingStateQueue?.length || 0) + 1 });
       if (G.tutorialLive && typeof global.TutorialInteractive?.onIncomingState === 'function') {
         global.TutorialInteractive.onIncomingState(s, G.gameState);
@@ -188,6 +189,9 @@
       let playedFinalLiveRound = false;
       if (!resigned && typeof maybePlayFinalLiveRoundPresentation === 'function') {
         playedFinalLiveRound = await maybePlayFinalLiveRoundPresentation(prev, s, newEntries);
+      }
+      if (typeof waitForLivePresentationIdle === 'function') {
+        await waitForLivePresentationIdle();
       }
 
       abortGameplayPresentation();
@@ -227,6 +231,9 @@
     let playedFinalLiveRound = false;
     if (!resigned) {
       playedFinalLiveRound = await maybePlayFinalLiveRoundPresentation(prev, s, newEntries);
+    }
+    if (typeof waitForLivePresentationIdle === 'function') {
+      await waitForLivePresentationIdle();
     }
 
     abortGameplayPresentation();

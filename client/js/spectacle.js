@@ -2578,8 +2578,29 @@ function liveRoundPresentationPlan(prev, next, opts = {}) {
 }
 
 /** Play reveal + performance spectacle when the match ends on the same Live round (e.g. 3rd Success Live). */
+async function waitForLivePresentationIdle(timeoutMs = 120000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const busy = !!(G._liveSpectacleGateRunning || G._liveRoundPlaybackActive || G._perfSpectacleActive
+      || G.animating
+      || (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active));
+    if (!busy) return true;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  TCG_DEBUG.warn('live', 'waitForLivePresentationIdle timed out');
+  return false;
+}
+
 async function maybePlayFinalLiveRoundPresentation(prev, next, newEntries) {
   if (!prev || !next) return false;
+  // If a live round is already presenting, let it finish — do not start a second
+  // spectacle (yell spam) or abort mid-animation into the win overlay.
+  if (G._liveSpectacleGateRunning || G._liveRoundPlaybackActive || G._perfSpectacleActive
+      || (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active)) {
+    TCG_DEBUG.log('live', 'maybePlayFinalLiveRoundPresentation: wait for in-flight presentation');
+    await waitForLivePresentationIdle();
+    return true;
+  }
   const plan = liveRoundPresentationPlan(prev, next);
   if (!plan.needsLiveReveal && !plan.wantsSpectacle && !plan.wantsEmptyRound) return false;
   TCG_DEBUG.log('live', 'maybePlayFinalLiveRoundPresentation', plan, TCG_DEBUG.trans(prev, next));
@@ -3051,9 +3072,11 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       if (typeof LiveRoundDirector !== 'undefined') {
         LiveRoundDirector.setStep('spectacle');
       }
-      if (typeof LiveRoundDirector !== 'undefined' && !LiveRoundDirector.check(dirToken)) {
+      // Only bail if presentation was hard-aborted — token bumps alone must not
+      // skip an owed spectacle (that left Main stuck until refresh).
+      if (typeof isPresentationSuperseded === 'function' && isPresentationSuperseded()) {
         spectacleFailedOwed = true;
-        TCG_DEBUG.warn('live', 'presentLiveRound: director token superseded before spectacle');
+        TCG_DEBUG.warn('live', 'presentLiveRound: presentation aborted before spectacle');
       } else {
       spectacleRan = await runPerformanceSpectacle(perfPrev, spectacleNext, myId, {
         forceShowTurn: opts.forceSpectacleTurn ?? plan.showTurn,
@@ -3159,15 +3182,19 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
       G._liveRoundPostSpectacleReady = false;
       clearLiveRoundTransientCaches();
     }
+    // Always release banners ownership so Main cannot stay softlocked after empty/skip.
+    if (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active) {
+      LiveRoundDirector.releaseBanners();
+    }
     releaseLivePollsAndFlush();
     g.end();
   }
 
   if (!spectacleFailedOwed) {
-    if (typeof LiveRoundDirector !== 'undefined') {
-      LiveRoundDirector.releaseBanners();
-    }
     flushPostLiveLogBanners(prev, next, myId, { emptySkip });
+    ensureLiveRoundStateCommitted(prev, next, myId);
+  } else {
+    // Still commit the server board so empty/failed rounds are not stuck until refresh.
     ensureLiveRoundStateCommitted(prev, next, myId);
   }
   if (directorOwnedHere && typeof LiveRoundDirector !== 'undefined') {
@@ -5264,7 +5291,8 @@ function perfCloseSpectacle() {
   G._perfSpectaclePhase = 'closed';
   G._perfSpectacleActive = false;
   G._skipJudgeOverlay = false;
-  G._perfYellShownIids = { p1: new Set(), p2: new Set() };
+  // Keep _perfYellShownIids across close→reopen within the same round recovery;
+  // cleared when a new spectacle starts (runPerformanceSpectacle).
   clearTimeout(G._liveJudgeOverlayTimer);
   G._liveJudgeOverlayTimer = null;
   G._liveJudgeOverlayHold = false;
@@ -5970,6 +5998,14 @@ async function perfReAnimateYellSideIfChanged(ctx, nextState, pid, prevSig) {
   const newSig = perfYellRevealSignature(nextState, pid);
   if (!newSig || newSig === prevSig) return ctx;
   Object.assign(ctx, perfBuildContext(ctx.prev, nextState, ctx.myId));
+  // Seed already-shown iids from the DOM so a cleared Set cannot re-fly the whole stack.
+  G._perfYellShownIids = G._perfYellShownIids || { p1: new Set(), p2: new Set() };
+  if (!G._perfYellShownIids[pid]) G._perfYellShownIids[pid] = new Set();
+  const yellRow = el(pid === ctx.myId ? 'perf-mine-yell' : 'perf-opp-yell');
+  yellRow?.querySelectorAll('.perf-yell-card[data-iid]')?.forEach((chip) => {
+    const iid = chip.getAttribute('data-iid');
+    if (iid) G._perfYellShownIids[pid].add(iid);
+  });
   // Delta-only: append newly milled yell cards — never clear and replay the whole side.
   await perfAnimateYellSide(ctx, pid, { onlyNew: true });
   return ctx;
