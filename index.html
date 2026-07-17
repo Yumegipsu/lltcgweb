@@ -4164,6 +4164,27 @@ body.missions-overlay-open .llc-sky-dim::after{
 .deck-convert-seal-row .btn-grad img{width:22px;height:22px;object-fit:contain;display:block;flex:0 0 auto}
 .deck-convert-seal-balance{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;font-size:12px;color:rgba(255,255,255,.85)}
 .deck-convert-seal-balance .sticker-card-cost{display:inline-flex;align-items:center;gap:4px}
+.sticker-info-btn{
+  width:28px;height:28px;padding:0;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.45);background:rgba(255,255,255,.08);
+  color:#fff;font:italic 700 15px/1 'Libre Baskerville',Georgia,serif;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  flex:0 0 auto;position:relative;z-index:2
+}
+.sticker-info-btn:hover{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.7)}
+#modal-sticker-info .mbox{max-width:min(520px,94vw)}
+.sticker-info-lead{font-size:13px;color:rgba(255,255,255,.72);line-height:1.45;margin:0 0 14px;text-align:center}
+.sticker-info-tiers{display:flex;flex-direction:column;gap:10px;max-height:min(60vh,520px);overflow-y:auto}
+.sticker-info-tier{
+  display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start;
+  padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.2)
+}
+.sticker-info-tier-head{grid-column:1 / -1;display:flex;align-items:center;gap:8px;font-weight:800;color:#fff;font-size:14px}
+.sticker-info-tier-head img{width:28px;height:28px;object-fit:contain}
+.sticker-info-tier-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(186,228,255,.85);margin-top:2px}
+.sticker-info-tier-value{font-size:12px;color:rgba(255,255,255,.88);line-height:1.4}
+.sticker-info-tier-cost{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:14px;color:#fff}
+.sticker-info-tier-cost img{width:20px;height:20px;object-fit:contain}
 .hub-ranked-pr-pill{
   display:inline-flex;align-items:center;gap:7px;padding:5px 12px 5px 8px;border-radius:999px;
   border:1px solid rgba(186,160,255,.4);background:rgba(120,90,210,.18);
@@ -7073,6 +7094,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       <div class="account-screen-head">
         <button class="btn-ghost" id="btn-sticker-back" type="button" data-i18n="sticker.backHub">← Hub</button>
         <h2 id="sticker-screen-title" data-i18n="sticker.title">Sticker Shop</h2>
+        <button class="sticker-info-btn" id="btn-sticker-info" type="button" data-i18n-aria-label="sticker.infoAria" aria-label="Seal guide" title="i">i</button>
       </div>
       <div class="hub-seals-pill sticker-seals-bar" id="sticker-seals-bar" data-i18n-aria-label="sticker.sealsAria" aria-label="Seals">
         <span class="hub-seal-chip" data-seal="n"><img src="assets/seals/N.png" alt="N" width="18" height="18"><b id="sticker-seal-n">0</b></span>
@@ -7782,6 +7804,15 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
+<div class="overlay" id="modal-sticker-info">
+  <div class="mbox">
+    <button class="mcls" id="btn-sticker-info-close" type="button">✕</button>
+    <h2 class="booster-rates-head" data-i18n="sticker.infoTitle">Seal guide</h2>
+    <p class="sticker-info-lead" data-i18n="sticker.infoLead">Convert 1 spare booster card into 1 matching seal. Exchange seals for cards at the costs below.</p>
+    <div class="sticker-info-tiers" id="sticker-info-tiers"></div>
+  </div>
+</div>
+
 <!-- Ranked profile editor (banner + flag) -->
 <div class="overlay" id="modal-banner-crop">
   <div class="mbox">
@@ -8381,6 +8412,12 @@ const STAR_GEMS_PACK_COST = 100;
 const STAR_GEMS_BOX_COST = 3000;
 const SEAL_ICONS = { N: 'assets/seals/N.png', R: 'assets/seals/R.png', P: 'assets/seals/P.png', SEC: 'assets/seals/SEC.png' };
 const SEAL_BUY_COSTS = { N: 20, R: 15, P: 10, SEC: 5 };
+const SEAL_TIER_RARITIES = {
+  N: ['N', 'SD', 'SD2', 'CL', 'L', 'PE'],
+  R: ['R', 'R+', 'RM', 'RE', 'L+'],
+  P: ['P', 'P+', 'PP', 'AR', 'PE+', 'SRE'],
+  SEC: ['SEC', 'SEC+', 'SECE', 'SECL', 'SECS', 'LLE', 'SRL', 'DUO'],
+};
 const DEFAULT_PACK_SIZE = 5;
 const DEFAULT_PACKS_PER_BOX = 30;
 
@@ -10534,6 +10571,40 @@ async function confirmStarter() {
       else void resumeRankedSearchIfQueued();
     }, 0);
   } catch (e) { el('starter-err').textContent = e.message; }
+}
+
+function openStickerInfoModal() {
+  const body = el('sticker-info-tiers');
+  if (!body) return;
+  body.replaceChildren();
+  const costs = A.sealBuyCosts || SEAL_BUY_COSTS;
+  ['N', 'R', 'P', 'SEC'].forEach(tier => {
+    const row = document.createElement('div');
+    row.className = 'sticker-info-tier';
+    const head = document.createElement('div');
+    head.className = 'sticker-info-tier-head';
+    head.innerHTML = sealIconHtml(tier, 28) + '<span>' + tier + '</span>';
+    const rarLabel = document.createElement('div');
+    rarLabel.className = 'sticker-info-tier-label';
+    rarLabel.textContent = t('sticker.infoRarities') || 'Rarities';
+    const rarVal = document.createElement('div');
+    rarVal.className = 'sticker-info-tier-value';
+    rarVal.textContent = (SEAL_TIER_RARITIES[tier] || []).join(', ');
+    const costLabel = document.createElement('div');
+    costLabel.className = 'sticker-info-tier-label';
+    costLabel.textContent = t('sticker.infoCost') || 'Exchange cost';
+    const costVal = document.createElement('div');
+    costVal.className = 'sticker-info-tier-value';
+    const cost = Number(costs[tier] ?? SEAL_BUY_COSTS[tier] ?? 0);
+    costVal.innerHTML = '<span class="sticker-info-tier-cost">' + sealIconHtml(tier, 20) + '<span>' + cost + '</span></span>';
+    row.appendChild(head);
+    row.appendChild(rarLabel);
+    row.appendChild(rarVal);
+    row.appendChild(costLabel);
+    row.appendChild(costVal);
+    body.appendChild(row);
+  });
+  openM('modal-sticker-info');
 }
 
 function showStickerProductsView() {
@@ -17469,6 +17540,9 @@ async function bootApp() {
   on('btn-lobby-deck-experiment', 'click', openDeckExperiment);
   on('btn-booster-back', 'click', () => enterHub(A.profile));
   on('btn-sticker-back', 'click', () => enterHub(A.profile));
+  on('btn-sticker-info', 'click', openStickerInfoModal);
+  on('btn-sticker-info-close', 'click', () => closeM('modal-sticker-info'));
+  on('modal-sticker-info', 'click', e => { if (e.target === el('modal-sticker-info')) closeM('modal-sticker-info'); });
   on('btn-sticker-products-back', 'click', () => {
     showStickerProductsView();
     renderStickerProductGrid(A.stickerProducts || []);

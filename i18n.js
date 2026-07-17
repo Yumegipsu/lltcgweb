@@ -359,7 +359,12 @@
       "convertOkBalance": "Converted · {tier} seals: {n}",
       "yourSeals": "Your seals",
       "spareCopies": "{n} spare",
-      "sealsAria": "Seals"
+      "sealsAria": "Seals",
+      "infoAria": "Seal guide",
+      "infoTitle": "Seal guide",
+      "infoLead": "Convert 1 spare booster card into 1 matching seal. Exchange seals for cards at the costs below.",
+      "infoRarities": "Rarities",
+      "infoCost": "Exchange cost"
     },
     "ranked": {
       "title": "Ranked PvP",
@@ -1442,7 +1447,12 @@
       "convertOkBalance": "変換しました · {tier} シール: {n}",
       "yourSeals": "所持シール",
       "spareCopies": "余剰 {n} 枚",
-      "sealsAria": "シール"
+      "sealsAria": "シール",
+      "infoAria": "シールガイド",
+      "infoTitle": "シールガイド",
+      "infoLead": "余ったブースターカード1枚を、同じレアリティ帯のシール1枚に変換できます。下のコストでシールとカードを交換できます。",
+      "infoRarities": "レアリティ",
+      "infoCost": "交換コスト"
     },
     "ranked": {
       "title": "ランクPvP",
@@ -2466,7 +2476,12 @@
       "convertOkBalance": "Convertido · sellos {tier}: {n}",
       "yourSeals": "Tus sellos",
       "spareCopies": "{n} sobrante(s)",
-      "sealsAria": "Sellos"
+      "sealsAria": "Sellos",
+      "infoAria": "Guía de sellos",
+      "infoTitle": "Guía de sellos",
+      "infoLead": "Convierte 1 carta de booster sobrante en 1 sello de la rareza correspondiente. Intercambia sellos por cartas con estos costes.",
+      "infoRarities": "Rarezas",
+      "infoCost": "Coste de intercambio"
     },
     "ranked": {
       "title": "PvP clasificatorio",
@@ -3564,7 +3579,12 @@
       "convertOkBalance": "변환 완료 · {tier} 씰: {n}",
       "yourSeals": "보유 씰",
       "spareCopies": "여유 {n}장",
-      "sealsAria": "씰"
+      "sealsAria": "씰",
+      "infoAria": "씰 안내",
+      "infoTitle": "씰 안내",
+      "infoLead": "남는 부스터 카드 1장을 같은 레어리티 대역의 씰 1개로 변환할 수 있습니다. 아래 비용으로 씰과 카드를 교환하세요.",
+      "infoRarities": "레어리티",
+      "infoCost": "교환 비용"
     },
     "ranked": {
       "title": "랭크 PvP",
@@ -4676,7 +4696,12 @@
       "convertOkBalance": "已转换 · {tier} 印章：{n}",
       "yourSeals": "你的印章",
       "spareCopies": "可转换 {n} 张",
-      "sealsAria": "印章"
+      "sealsAria": "印章",
+      "infoAria": "印章说明",
+      "infoTitle": "印章说明",
+      "infoLead": "将 1 张多余的补充包卡牌转换为 1 枚对应稀有度印章。按下列费用用印章兑换卡牌。",
+      "infoRarities": "稀有度",
+      "infoCost": "兑换费用"
     },
     "ranked": {
       "title": "排名对战",
