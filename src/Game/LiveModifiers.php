@@ -55,7 +55,13 @@ function clearLiveModifiers(array $state): array {
                 $p['stage'][$slot] = null;
                 continue;
             }
-            unset($mbr['bonus_hearts'], $mbr['live_blade_bonus'], $mbr['live_score_bonus']);
+            unset(
+                $mbr['bonus_hearts'],
+                $mbr['live_blade_bonus'],
+                $mbr['live_score_bonus'],
+                $mbr['replaced_hearts'],
+                $mbr['hearts_treat_as']
+            );
             unset($mbr['on_enter_or_live_start_fired']);
         }
         unset($mbr, $p);

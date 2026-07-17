@@ -1453,10 +1453,13 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
 
     if ($promptType === 'choose_replace_member_hearts') {
         $srcId = $prompt['source_id'] ?? '';
+        $srcName = $prompt['source_name'] ?? 'Member';
         $slot = findMemberSlot($ownerP, $srcId);
         if ($slot !== null && !empty($ownerP['stage'][$slot])) {
             $ownerP['stage'][$slot]['replaced_hearts'] = [$choice];
         }
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            " — [$srcName] printed hearts become $choice until Live ends.");
         unset($state['pending_prompt']);
         $state['seq']++;
         $state = finishPromptEffects($state);

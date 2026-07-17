@@ -25164,16 +25164,8 @@ function stageHeartPool(p) {
   const pool = [];
   Object.values(p.stage||{}).forEach(m => {
     if (!m) return;
-    (m.hearts||[]).forEach(hg => {
+    memberEffectiveHeartGroups(m).forEach(hg => {
       for (let i = 0; i < (hg.count || 1); i++) pool.push(normalizeHeartColor(hg.color));
-    });
-    (m.bonus_hearts || []).forEach(hg => {
-      if (typeof hg === 'string') {
-        pool.push(normalizeHeartColor(hg));
-        return;
-      }
-      const color = normalizeHeartColor(hg?.color || hg);
-      for (let i = 0; i < (hg?.count || 1); i++) pool.push(color);
     });
   });
   return pool;
@@ -29644,10 +29636,11 @@ function renderStageSlots(prefix, stage, isMe, s, myId) {
         d.onclick = G.isSpectator ? null : () => showCard(mbr, null, s, myId);
         applyCardFoilFx(d, mbr);
       }
-      if(mbr.hearts?.length){
+      const heartGroups = memberEffectiveHeartGroups(mbr);
+      if (heartGroups.length) {
         const hr = document.createElement('div');
         hr.className = 'stage-hearts';
-        appendHeartIcons(hr, mbr.hearts, false, true);
+        appendHeartIcons(hr, heartGroups, false, true);
         d.appendChild(hr);
       }
       applyMemberWaitVisual(d, mbr, { animate: true });
@@ -31738,11 +31731,44 @@ function playToSlot(card, slot, s, myId, existing) {
   }
 }
 
+function memberEffectiveHeartGroups(m) {
+  if (!m) return [];
+  const treat = m.hearts_treat_as || null;
+  const replace = (Array.isArray(m.replaced_hearts) && m.replaced_hearts[0]) || null;
+  const groups = [];
+  (m.hearts || []).forEach(hg => {
+    const color = normalizeHeartColor(treat || replace || hg.color || 'any');
+    groups.push({ color, count: hg.count || 1 });
+  });
+  (m.bonus_hearts || []).forEach(bh => {
+    if (typeof bh === 'string') {
+      groups.push({ color: normalizeHeartColor(treat || bh), count: 1 });
+      return;
+    }
+    groups.push({
+      color: normalizeHeartColor(treat || bh?.color || 'any'),
+      count: bh?.count || 1,
+    });
+  });
+  return groups;
+}
+
+function aggregateModifierBonusHearts(state, pid) {
+  const list = state?.live_modifiers?.[pid]?.bonus_hearts || [];
+  const map = new Map();
+  list.forEach(bh => {
+    const color = normalizeHeartColor(typeof bh === 'string' ? bh : (bh?.color || 'any'));
+    const n = typeof bh === 'string' ? 1 : (bh?.count || 1);
+    map.set(color, (map.get(color) || 0) + n);
+  });
+  return sortHeartsByDisplayOrder([...map.entries()].map(([color, count]) => ({ color, count })));
+}
+
 function aggregateStageHeartsFromStage(stage) {
   const map = new Map();
   Object.values(stage || {}).forEach(m => {
     if (!m) return;
-    (m.hearts || []).forEach(hg => {
+    memberEffectiveHeartGroups(m).forEach(hg => {
       const c = normalizeHeartColor(hg.color || 'any');
       map.set(c, (map.get(c) || 0) + (hg.count || 1));
     });
@@ -32162,8 +32188,14 @@ function renderStageBoardPanel(s, myId) {
   const oppId = myId === 'p1' ? 'p2' : 'p1';
   const opp = s?.players?.[oppId];
   const board = s?.stage_board;
-  const mineStageHearts = board?.mine?.stage_hearts || aggregateStageHeartsFromStage(me?.stage);
-  const oppStageHearts = board?.opp?.stage_hearts || aggregateStageHeartsFromStage(opp?.stage);
+  const mineStageHearts = mergeHeartStatRows(
+    board?.mine?.stage_hearts || aggregateStageHeartsFromStage(me?.stage),
+    board?.mine?.stage_hearts ? [] : aggregateModifierBonusHearts(s, myId)
+  );
+  const oppStageHearts = mergeHeartStatRows(
+    board?.opp?.stage_hearts || aggregateStageHeartsFromStage(opp?.stage),
+    board?.opp?.stage_hearts ? [] : aggregateModifierBonusHearts(s, oppId)
+  );
   const showYellHearts = shouldShowYellHeartsOnStageBoard(s?.phase);
   const sbCtx = { prev: s, next: s, myId, oppId };
   const yellReveal = perfYellRevealFor(s);
@@ -36379,7 +36411,7 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/live-round-director.js?v=3"></script>
-<script src="client/js/spectacle.js?v=23"></script>
+<script src="client/js/spectacle.js?v=24"></script>
 <script src="client/js/cpu-meta-weights.js?v=5"></script>
 <script src="client/js/cpu-eval.js?v=5"></script>
 <script src="client/js/cpu-expert.js?v=3"></script>

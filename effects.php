@@ -1277,6 +1277,50 @@ function mergeHeartColorCounts(array $a, array $b): array {
     return $out;
 }
 
+/**
+ * Flat heart colors a Stage Member contributes until Live ends.
+ * - replaced_hearts: printed hearts become that color (same counts) — Lanzhu / Kasumi-style.
+ * - bonus_hearts: extra member-scoped hearts for this Live.
+ * - hearts_treat_as: force all contributed hearts to one color.
+ */
+function memberPerformanceHeartsFlat(array $member): array {
+    $treatAs = $member['hearts_treat_as'] ?? null;
+    $replaceColor = null;
+    if (!empty($member['replaced_hearts']) && is_array($member['replaced_hearts'])) {
+        $replaceColor = normalizeHeartColor((string)($member['replaced_hearts'][0] ?? ''));
+        if ($replaceColor === '') {
+            $replaceColor = null;
+        }
+    }
+    $out = [];
+    foreach ($member['hearts'] ?? [] as $hg) {
+        $color = $replaceColor ?? normalizeHeartColor((string)($hg['color'] ?? 'any'));
+        if ($treatAs) {
+            $color = normalizeHeartColor((string)$treatAs);
+        }
+        $n = max(1, intval($hg['count'] ?? 1));
+        for ($i = 0; $i < $n; $i++) {
+            $out[] = $color;
+        }
+    }
+    foreach ($member['bonus_hearts'] ?? [] as $bh) {
+        if (is_array($bh)) {
+            $color = normalizeHeartColor((string)($bh['color'] ?? 'any'));
+            $n = max(1, intval($bh['count'] ?? 1));
+        } else {
+            $color = normalizeHeartColor((string)$bh);
+            $n = 1;
+        }
+        if ($treatAs) {
+            $color = normalizeHeartColor((string)$treatAs);
+        }
+        for ($i = 0; $i < $n; $i++) {
+            $out[] = $color;
+        }
+    }
+    return $out;
+}
+
 function aggregateStageHeartsByColor(?array $stage): array {
     $map = [];
     if (!$stage) {
@@ -1286,9 +1330,8 @@ function aggregateStageHeartsByColor(?array $stage): array {
         if (!$member) {
             continue;
         }
-        foreach ($member['hearts'] ?? [] as $hg) {
-            $color = normalizeHeartColor((string)($hg['color'] ?? 'any'));
-            $map[$color] = ($map[$color] ?? 0) + max(1, intval($hg['count'] ?? 1));
+        foreach (memberPerformanceHeartsFlat($member) as $color) {
+            $map[$color] = ($map[$color] ?? 0) + 1;
         }
     }
     ksort($map);

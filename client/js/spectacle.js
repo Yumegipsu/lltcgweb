@@ -3879,12 +3879,23 @@ function buildHeartPoolFromRows(rows) {
   return pool;
 }
 
-function perfStageHeartsForPlayer(ctx, pid) {
+function perfRawStageHeartsForPlayer(ctx, pid) {
   const board = ctx?.next?.stage_board;
   const isMine = pid === ctx?.myId;
-  const stageHearts = isMine
-    ? (board?.mine?.stage_hearts || aggregateStageHeartsFromStage(ctx.next.players[pid]?.stage))
-    : (board?.opp?.stage_hearts || aggregateStageHeartsFromStage(ctx.next.players[pid]?.stage));
+  const fromBoard = isMine ? board?.mine?.stage_hearts : board?.opp?.stage_hearts;
+  let stageHearts = fromBoard
+    || (typeof aggregateStageHeartsFromStage === 'function'
+      ? aggregateStageHeartsFromStage(ctx?.next?.players?.[pid]?.stage)
+      : []);
+  // Older payloads / missing stage_board: fold live_modifiers bonus hearts (Eli/Kotori).
+  if (!fromBoard && typeof aggregateModifierBonusHearts === 'function') {
+    stageHearts = mergeHeartStatRows(stageHearts, aggregateModifierBonusHearts(ctx.next, pid));
+  }
+  return stageHearts || [];
+}
+
+function perfStageHeartsForPlayer(ctx, pid) {
+  const stageHearts = perfRawStageHeartsForPlayer(ctx, pid);
   const continuous = perfContinuousHeartsForPlayer(ctx, pid);
   return mergeHeartStatRows(stageHearts, continuous);
 }
@@ -5553,11 +5564,8 @@ async function perfPopulateBase(ctx) {
 }
 
 function perfSetYellSideInstant(ctx, pid, showAllCards) {
-  const board = ctx.next.stage_board;
   const isMine = pid === ctx.myId;
-  const stageHearts = isMine
-    ? (board?.mine?.stage_hearts || aggregateStageHeartsFromStage(ctx.next.players[pid]?.stage))
-    : (board?.opp?.stage_hearts || aggregateStageHeartsFromStage(ctx.next.players[pid]?.stage));
+  const stageHearts = perfRawStageHeartsForPlayer(ctx, pid);
   const yellCards = ctx.next.yell_reveal?.[pid] || [];
   const totalBlade = stageYellBladeFor(ctx.next, pid, ctx.myId);
   const heartsEl = el(isMine ? 'perf-mine-hearts' : 'perf-opp-hearts');
@@ -5734,11 +5742,8 @@ function perfApplyPhaseInstant(ctx, phase) {
 }
 
 async function perfAnimateYellSide(ctx, pid, opts = {}) {
-  const board = ctx.next.stage_board;
   const isMine = pid === ctx.myId;
-  const stageHearts = isMine
-    ? (board?.mine?.stage_hearts || aggregateStageHeartsFromStage(ctx.next.players[pid]?.stage))
-    : (board?.opp?.stage_hearts || aggregateStageHeartsFromStage(ctx.next.players[pid]?.stage));
+  const stageHearts = perfRawStageHeartsForPlayer(ctx, pid);
   const yellCards = ctx.next.yell_reveal?.[pid] || [];
   const totalBlade = stageYellBladeFor(ctx.next, pid, ctx.myId);
   const heartsEl = el(isMine ? 'perf-mine-hearts' : 'perf-opp-hearts');

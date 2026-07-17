@@ -389,6 +389,14 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
 
     $mineStageHearts = aggregateStageHeartsByColor($state['players'][$viewPid]['stage'] ?? []);
     $oppStageHearts = aggregateStageHeartsByColor($state['players'][$oppId]['stage'] ?? []);
+    $mineStageHearts = mergeHeartColorCounts(
+        $mineStageHearts,
+        aggregateFlatHeartColors(getBonusHeartsFlat($state, $viewPid))
+    );
+    $oppStageHearts = mergeHeartColorCounts(
+        $oppStageHearts,
+        aggregateFlatHeartColors(getBonusHeartsFlat($state, $oppId))
+    );
     $showYellHearts = isInPerformancePhase($state);
     $mineYellHearts = $showYellHearts
         ? aggregateYellHeartsByColor($state['yell_reveal'][$viewPid] ?? [])

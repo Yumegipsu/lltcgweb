@@ -2171,15 +2171,8 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     $ownedHearts = [];
     foreach ($p['stage'] as $member) {
         if ($member) {
-            $treatAs = $member['hearts_treat_as'] ?? null;
-            foreach ($member['hearts'] ?? [] as $hGroup) {
-                $color = $treatAs ?: normalizeHeartColor((string)($hGroup['color'] ?? 'any'));
-                for ($i = 0; $i < ($hGroup['count'] ?? 1); $i++) {
-                    $ownedHearts[] = normalizeHeartColor((string)$color);
-                }
-            }
-            foreach ($member['bonus_hearts'] ?? [] as $color) {
-                $ownedHearts[] = normalizeHeartColor($treatAs ?: (string)$color);
+            foreach (memberPerformanceHeartsFlat($member) as $color) {
+                $ownedHearts[] = $color;
             }
             foreach (hsPb1ApplyContinuousPurpleHeart($member, $state, $pid) as $color) {
                 $ownedHearts[] = normalizeHeartColor((string)$color);
@@ -2906,15 +2899,8 @@ function collectStageHeartPoolForYellResolve(array $state, string $pid): array {
         if (!$member) {
             continue;
         }
-        $treatAs = $member['hearts_treat_as'] ?? null;
-        foreach ($member['hearts'] ?? [] as $hGroup) {
-            $color = $treatAs ?: normalizeHeartColor((string)($hGroup['color'] ?? 'any'));
-            for ($i = 0; $i < ($hGroup['count'] ?? 1); $i++) {
-                $pool[] = normalizeHeartColor((string)$color);
-            }
-        }
-        foreach ($member['bonus_hearts'] ?? [] as $color) {
-            $pool[] = normalizeHeartColor($treatAs ?: (string)$color);
+        foreach (memberPerformanceHeartsFlat($member) as $color) {
+            $pool[] = $color;
         }
         foreach (hsPb1ApplyContinuousPurpleHeart($member, $state, $pid) as $color) {
             $pool[] = normalizeHeartColor((string)$color);
@@ -3727,6 +3713,15 @@ function filterStateForPlayer(array $state, string $token): array {
         ], true) || ($state['status'] ?? '') === 'finished';
         $mineStageHearts = aggregateStageHeartsByColor($state['players'][$myId]['stage'] ?? []);
         $oppStageHearts = aggregateStageHeartsByColor($state['players'][$oppId]['stage'] ?? []);
+        // Live-start modifier hearts (Eli/Kotori choose_heart_per_success, etc.)
+        $mineStageHearts = mergeHeartColorCounts(
+            $mineStageHearts,
+            aggregateFlatHeartColors(getBonusHeartsFlat($state, $myId))
+        );
+        $oppStageHearts = mergeHeartColorCounts(
+            $oppStageHearts,
+            aggregateFlatHeartColors(getBonusHeartsFlat($state, $oppId))
+        );
         $showYellHearts = isInPerformancePhase($state);
         $mineYellHearts = $showYellHearts
             ? aggregateYellHeartsByColor($state['yell_reveal'][$myId] ?? [])
