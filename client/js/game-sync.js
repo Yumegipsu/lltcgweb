@@ -39,16 +39,34 @@
     const prType = G.gameState?.pending_prompt?.type;
     const mainStable = ph === 'main_first' || ph === 'main_second'
       || ph === 'active_first' || ph === 'active_second';
+    const metaType = G.gameState?.pending_prompt_meta?.type || null;
     const judgePickReady = ph === 'live_judge'
-      && (prType === 'pick_judge_success_live' || prType === 'sbp6_live_wr_deck_position')
+      && (prType === 'pick_judge_success_live' || prType === 'sbp6_live_wr_deck_position'
+        || metaType === 'pick_judge_success_live' || metaType === 'sbp6_live_wr_deck_position')
       && !!G._liveRoundPostSpectacleReady;
+    // Spectators never receive full pending_prompt — live_judge must not softlock polls.
+    const judgeWaitNoLocalPrompt = ph === 'live_judge' && !prType;
+    const spectatorJudgeWait = !!G.isSpectator && ph === 'live_judge';
     if (!directorActive
         && G._perfSpectacleActive && !G.animating && !G._liveSpectacleGateRunning
         && !G._liveRoundPlaybackActive
-        && (mainStable || judgePickReady)) {
-      TCG_DEBUG.warn('poll', 'clear stuck perfSpectacleActive', { phase: ph, prType });
+        && (mainStable || judgePickReady || judgeWaitNoLocalPrompt || spectatorJudgeWait)) {
+      TCG_DEBUG.warn('poll', 'clear stuck perfSpectacleActive', { phase: ph, prType, spectator: !!G.isSpectator });
       if (typeof perfCloseSpectacle === 'function') perfCloseSpectacle();
       else G._perfSpectacleActive = false;
+      if (G._livePollHold && typeof releaseLivePolls === 'function') releaseLivePolls();
+    }
+    // Spectators stuck mid Win/Loss with playback held but no animation — release.
+    if (!directorActive
+        && !!G.isSpectator
+        && ph === 'live_judge'
+        && G._liveRoundPlaybackActive
+        && !G.animating
+        && !G._perfSpectacleActive
+        && !G._liveSpectacleGateRunning) {
+      TCG_DEBUG.warn('poll', 'clear stale spectator liveRoundPlaybackActive on live_judge');
+      G._liveRoundPlaybackActive = false;
+      G._liveRoundPostSpectacleReady = true;
       if (G._livePollHold && typeof releaseLivePolls === 'function') releaseLivePolls();
     }
     return !!(G.animating || G._perfSpectacleActive || G._livePollHold

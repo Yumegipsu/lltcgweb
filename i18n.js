@@ -1055,7 +1055,9 @@
       "matchEnded": "Match ended — returning to lobby.",
       "sessionEnded": "Spectator session ended.",
       "count": "Spectators: {n}",
-      "switchPerspective": "Switch perspective"
+      "switchPerspective": "Switch perspective",
+      "waitingJudgePick": "Live Win/Loss — waiting for {name} to choose a Success Live…",
+      "waitingJudgeResolve": "Live Win/Loss — waiting for {name}…"
     },
     "ui": {
       "fullscreen": "Full screen",
@@ -2111,7 +2113,9 @@
       "matchEnded": "対戦が終了しました — ロビーに戻ります。",
       "sessionEnded": "観戦セッションが終了しました。",
       "count": "観戦者: {n}",
-      "switchPerspective": "視点を切り替え"
+      "switchPerspective": "視点を切り替え",
+      "waitingJudgePick": "ライブ勝敗判定 — {name} の成功ライブ選択を待っています…",
+      "waitingJudgeResolve": "ライブ勝敗判定 — {name} の操作待ち…"
     },
     "ui": {
       "fullscreen": "全画面",
@@ -3107,7 +3111,9 @@
       "count": "Espectadores: {n}",
       "matchEnded": "La partida terminó — volviendo al lobby.",
       "sessionEnded": "La sesión de espectador terminó.",
-      "switchPerspective": "Cambiar perspectiva"
+      "switchPerspective": "Cambiar perspectiva",
+      "waitingJudgePick": "Live Victoria/Derrota — esperando a que {name} elija un Live de Éxito…",
+      "waitingJudgeResolve": "Live Victoria/Derrota — esperando a {name}…"
     },
     "missions": {
       "claim": "Reclamar",
@@ -4196,7 +4202,9 @@
       "count": "관전자: {n}",
       "matchEnded": "매치가 종료되어 로비로 돌아갑니다.",
       "sessionEnded": "관전 세션이 종료되었습니다.",
-      "switchPerspective": "시점 전환"
+      "switchPerspective": "시점 전환",
+      "waitingJudgePick": "Live 승패 판정 — {name}의 성공 Live 선택을 기다리는 중…",
+      "waitingJudgeResolve": "Live 승패 판정 — {name} 대기 중…"
     },
     "missions": {
       "claim": "수령",
@@ -5286,7 +5294,9 @@
       "count": "观众：{n}",
       "matchEnded": "对战已结束 — 返回大厅。",
       "sessionEnded": "观战已结束。",
-      "switchPerspective": "切换视角"
+      "switchPerspective": "切换视角",
+      "waitingJudgePick": "Live 胜负判定 — 等待 {name} 选择成功 Live…",
+      "waitingJudgeResolve": "Live 胜负判定 — 等待 {name}…"
     },
     "missions": {
       "claim": "领取",

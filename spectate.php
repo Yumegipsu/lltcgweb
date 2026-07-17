@@ -354,6 +354,17 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
         // Broadcast view: hands are visible; live storage stays full so card art renders (not card_no '?' stubs).
     }
 
+    // Keep type/responder only — spectators must learn Win/Loss is waiting without
+    // seeing pick options (full pending_prompt would spoil Success Live choices).
+    if (!empty($state['pending_prompt']) && is_array($state['pending_prompt'])) {
+        $pr = $state['pending_prompt'];
+        $filtered['pending_prompt_meta'] = [
+            'type' => (string)($pr['type'] ?? ''),
+            'responder' => (string)($pr['responder'] ?? ''),
+        ];
+    } else {
+        unset($filtered['pending_prompt_meta']);
+    }
     unset($filtered['pending_prompt']);
     $filtered['my_id'] = null;
     $filtered['spectator'] = true;

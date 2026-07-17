@@ -2295,10 +2295,16 @@ function primeReplayEmptyLivePresentedFromLog(s) {
 function primePerfSpectacleDoneKeysFromLog(s) {
   const turns = collectPerfSpectacleDoneTurnsFromLog(s);
   if (!turns.size) return;
+  // Only leave the in-pipeline turn unsealed so mid-LIVE joins still get the show.
+  // Refreshing into Main must seal ALL historical turns (otherwise stale flips/splash).
   const pending = detectPendingLiveSpectacleTurn(null, s);
-  if (pending != null) turns.delete(pending);
+  if (pending != null && isLiveSpectaclePipelinePhase(s?.phase)) {
+    turns.delete(pending);
+  }
   if (!turns.size) return;
   G._perfSpectacleDoneTurns = turns;
+  if (!G._liveStorageRevealDoneTurns) G._liveStorageRevealDoneTurns = new Set();
+  for (const t of turns) G._liveStorageRevealDoneTurns.add(t);
   const keys = [...turns].sort((a, b) => a - b).map(t => `${t}:live_show`);
   G._perfSpectacleDoneKey = keys[keys.length - 1];
   try {

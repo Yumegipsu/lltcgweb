@@ -8160,14 +8160,14 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   </div>
 </div>
 
-<script src="i18n.js?v=58"></script>
+<script src="i18n.js?v=59"></script>
 <script src="log_i18n.js?v=11"></script>
 <script src="sfx.js?v=15"></script>
 <script src="client/js/news.js?v=14"></script>
 <script src="client/js/api-client.js?v=10"></script>
 <script src="client/js/ranked-pr-reward.js?v=2"></script>
 <script src="client/js/missions.js?v=5"></script>
-<script src="client/js/game-sync.js?v=16"></script>
+<script src="client/js/game-sync.js?v=17"></script>
 <script src="client/js/state-apply.js?v=33"></script>
 <script src="client/js/stamps.js?v=16"></script>
 <script src="client/js/replay-debug.js?v=6"></script>
@@ -9923,6 +9923,11 @@ function prepareClientReconnectState(s) {
   G._tutCoinFlipAnimKey = null;
   G._prevLogLen = (s?.log || []).length;
   G.lastSeq = s?.seq ?? 0;
+  // Seal historical LIVE spectacles from the log before first poll — otherwise
+  // spectate/reconnect into Main replays stale Performance splash + flips.
+  if (typeof primePerfSpectacleDoneKeysFromLog === 'function') {
+    primePerfSpectacleDoneKeysFromLog(s);
+  }
   restorePerfSpectacleDoneKey();
   markSpectacleDoneFromState(s, null);
   dismissAllGameplayOverlays();
@@ -29410,7 +29415,17 @@ function renderPhaseBar(s,me,opp,myId,oppId) {
   }
   else if(ph==='live_performance_first'||ph==='live_performance_second')
     {msgE.textContent = t('phaseMsg.performance');}
-  else if(ph==='live_judge'){msgE.textContent = t('phaseMsg.liveJudge');}
+  else if(ph==='live_judge'){
+    const meta = s.pending_prompt_meta || null;
+    if (G.isSpectator && meta?.responder) {
+      const who = s.players?.[meta.responder]?.name || meta.responder;
+      msgE.textContent = meta.type === 'pick_judge_success_live'
+        ? t('spectate.waitingJudgePick', { name: who })
+        : t('spectate.waitingJudgeResolve', { name: who });
+    } else {
+      msgE.textContent = t('phaseMsg.liveJudge');
+    }
+  }
   else {msgE.textContent='';}
   updatePhaseActionButton(s, myId);
 }
@@ -36342,7 +36357,7 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/live-round-director.js?v=3"></script>
-<script src="client/js/spectacle.js?v=22"></script>
+<script src="client/js/spectacle.js?v=23"></script>
 <script src="client/js/cpu-meta-weights.js?v=5"></script>
 <script src="client/js/cpu-eval.js?v=5"></script>
 <script src="client/js/cpu-expert.js?v=3"></script>
