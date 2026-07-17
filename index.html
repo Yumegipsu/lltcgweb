@@ -7070,7 +7070,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
         <button class="btn-ghost" id="btn-sticker-back" type="button" data-i18n="sticker.backHub">← Hub</button>
         <h2 id="sticker-screen-title" data-i18n="sticker.title">Sticker Shop</h2>
       </div>
-      <div class="hub-seals-pill sticker-seals-bar" id="sticker-seals-bar" aria-label="Seals">
+      <div class="hub-seals-pill sticker-seals-bar" id="sticker-seals-bar" data-i18n-aria-label="sticker.sealsAria" aria-label="Seals">
         <span class="hub-seal-chip" data-seal="n"><img src="assets/seals/N.png" alt="N" width="18" height="18"><b id="sticker-seal-n">0</b></span>
         <span class="hub-seal-chip" data-seal="r"><img src="assets/seals/R.png" alt="R" width="18" height="18"><b id="sticker-seal-r">0</b></span>
         <span class="hub-seal-chip" data-seal="p"><img src="assets/seals/P.png" alt="P" width="18" height="18"><b id="sticker-seal-p">0</b></span>
@@ -10555,7 +10555,7 @@ function showStickerCardsView(productName) {
 
 async function loadStickerShopScreen() {
   if (!isSignedInAccount()) {
-    toast(t('toast.signInDeckBuilder') || 'Sign in required', 2800);
+    toast(t('toast.signInStickerShop') || t('toast.signInDeckBuilder') || 'Sign in required', 2800);
     return;
   }
   const err = el('sticker-err');
@@ -10573,7 +10573,7 @@ async function loadStickerShopScreen() {
     A.stickerProducts = res.products || [];
     renderStickerProductGrid(A.stickerProducts);
   } catch (e) {
-    if (err) err.textContent = e.message || 'Failed to load sticker shop';
+    if (err) err.textContent = e.message || t('toast.stickerLoadFailed') || 'Failed to load sticker shop';
   }
 }
 
@@ -10605,7 +10605,7 @@ async function openStickerProduct(product) {
     syncSealsFromPayload(res);
     renderStickerCardsGrid(res.cards || []);
   } catch (e) {
-    if (err) err.textContent = e.message || 'Failed to load cards';
+    if (err) err.textContent = e.message || t('toast.stickerCardsLoadFailed') || 'Failed to load cards';
   }
 }
 
@@ -10651,7 +10651,7 @@ function renderStickerCardsGrid(cards) {
         }
         await refreshCollection().catch(() => {});
       } catch (e) {
-        toast(e.message || 'Exchange failed', 3200);
+        toast(e.message || t('toast.stickerExchangeFailed') || 'Exchange failed', 3200);
         buy.disabled = false;
       }
     };
@@ -11195,7 +11195,7 @@ function fillDeckConvertSealAction(container, cardNo) {
       closeM('modal-card');
       document.body.classList.remove('deck-card-preview');
     } catch (err) {
-      toast(err.message || 'Convert failed', 3200);
+      toast(err.message || t('toast.stickerConvertFailed') || 'Convert failed', 3200);
       btn.disabled = false;
     }
   });
