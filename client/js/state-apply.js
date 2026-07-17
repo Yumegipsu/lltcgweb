@@ -411,10 +411,10 @@
     if (await runLiveSpectacleGate(livePrev, s, newEntries, G.playerId)) {
       if (replayForward) commitServerBoardToUi(s);
       const live = G.gameState || s;
-      if (!replayForward
-          && live.pending_prompt?.responder === G.playerId
-          && live.phase === 'live_judge'
-          && live.pending_prompt?.type === 'pick_judge_success_live') {
+      if (!replayForward && live.pending_prompt?.responder === G.playerId
+          && (live.pending_prompt?.type === 'pick_judge_success_live'
+              || live.phase === 'live_success_effects'
+              || (typeof isPostLiveSkillPrompt === 'function' && isPostLiveSkillPrompt(live)))) {
         ensurePendingPromptSurfaced(live, G.playerId);
       }
       if (!replayForward && G.isCPU && !G.animating && !(G.tutorialLive && G.tutorialHoldCpu)) {

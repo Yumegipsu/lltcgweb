@@ -306,7 +306,9 @@ async function waitForPipelinePromptResolution(myId, opts = {}) {
       if (isLiveSuccessDiscardPrompt(cur)) clearLiveSuccessHandDeferral(cur);
       if (isLiveSuccessDiscardPrompt(cur)
           || pr.type === 'pick_judge_success_live'
-          || isMidSpectacleYellRetryPrompt(cur)) {
+          || isMidSpectacleYellRetryPrompt(cur)
+          || isPostLiveSkillPrompt(cur)
+          || isDeferredLiveSuccessPrompt(cur)) {
         ensurePendingPromptSurfaced(cur, myId);
       }
       if (!isMyBlockingPromptOpen(cur)) await pullPromptResolutionState();
@@ -1482,6 +1484,8 @@ function emptyLiveRoundScenario(prev, next) {
 /** Prompts deferred until after judge/performance spectacle completes. */
 const PERF_SPECTACLE_DEFERRED_PROMPTS = new Set([
   'pick_judge_success_live',
+  // Yume Wazurai (PL!HS-pb1-027-L) — Live Success optional mill must not stall the show.
+  'live_success_optional_mill_if_subunit',
 ]);
 
 /** Prompts that pause spectacle after yell_opp, before live outcomes. */
@@ -1494,11 +1498,22 @@ function isMidSpectacleYellRetryPrompt(s) {
   return PERF_SPECTACLE_MID_PROMPTS.has(s?.pending_prompt?.type);
 }
 
+/** Live Success prompts pause the server mid-performance but must not block client spectacle. */
+function isDeferredLiveSuccessPrompt(next) {
+  if (!next?.pending_prompt) return false;
+  if (next.phase === 'live_success_effects') return true;
+  if (PERF_SPECTACLE_DEFERRED_PROMPTS.has(next.pending_prompt.type)) return true;
+  if (typeof isLiveSuccessDiscardPrompt === 'function' && isLiveSuccessDiscardPrompt(next)) return true;
+  return false;
+}
+
 function pendingPromptBlocksPerfSpectacle(next) {
   const pr = next?.pending_prompt;
   if (!pr) return false;
   if (PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type)) return false;
   if (PERF_SPECTACLE_MID_PROMPTS.has(pr.type)) return false;
+  // Live Success mill/discard (Yume Wazurai, etc.): play the show, then surface the prompt.
+  if (isDeferredLiveSuccessPrompt(next)) return false;
   return true;
 }
 
@@ -2665,6 +2680,12 @@ function shouldDeferPromptForLivePresentation(s, myId) {
     if (G._perfSpectacleActive && !G._liveRoundPostSpectacleReady) return true;
     return false;
   }
+  // Yume Wazurai / other Live Success yes-no: hold until Performance finishes.
+  if (isDeferredLiveSuccessPrompt(s) && pr.type !== 'pick_judge_success_live') {
+    if (G._perfSpectacleActive && !G._liveRoundPostSpectacleReady) return true;
+    if (G._liveRoundPlaybackActive && !G._liveRoundPostSpectacleReady) return true;
+    return false;
+  }
   if (isMidSpectacleYellRetryPrompt(s)) {
     // Only defer while early yell spectacle is still animating. Otherwise surface
     // Yes/No (Kurage mill / no-live retry) so Performance can reach heart check.
@@ -2676,7 +2697,8 @@ function shouldDeferPromptForLivePresentation(s, myId) {
   }
   if (G._liveRoundPlaybackActive && !G._liveRoundPostSpectacleReady) {
     if (s.phase === 'live_start_effects') return false;
-    if (PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type) || isLiveSuccessDiscardPrompt(s)) return true;
+    if (PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type) || isLiveSuccessDiscardPrompt(s)
+        || isDeferredLiveSuccessPrompt(s)) return true;
   }
   if (!PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type)) return false;
   const spectaclePrev = G._deferPerfSpectaclePrev;
@@ -2866,9 +2888,10 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
     return { reveal: false, spectacle: false, empty: false };
   }
   if (!needsLiveReveal && !wantsSpectacle && !emptySkip) {
-    const judgePick = next.phase === 'live_judge'
-      && next.pending_prompt?.type === 'pick_judge_success_live';
-    if (judgePick) {
+    const postLive = isPostLiveSkillPrompt(next)
+      || (next.phase === 'live_judge'
+          && next.pending_prompt?.type === 'pick_judge_success_live');
+    if (postLive && next.pending_prompt) {
       G._liveRoundPostSpectacleReady = true;
       await awaitResolvePostLivePrompts(prev, next, myId, opts);
       ensurePendingPromptSurfaced(G.gameState || next, myId);
@@ -4674,12 +4697,15 @@ function liveRoundJudgeReady(next) {
   if (!next) return false;
   if (next.phase === 'live_judge') return true;
   if (!liveRoundPerfLogsComplete(next)) return false;
+  // Check Live Success phase before treating its mill/discard prompt as a blocker
+  // (Yume Wazurai previously made this false and stalled Performance until refresh).
+  if (next.phase === 'live_success_effects') return true;
   const pr = next.pending_prompt;
   if (pr && !PERF_SPECTACLE_DEFERRED_PROMPTS.has(pr.type)
-      && !PERF_SPECTACLE_MID_PROMPTS.has(pr.type)) {
+      && !PERF_SPECTACLE_MID_PROMPTS.has(pr.type)
+      && !isDeferredLiveSuccessPrompt(next)) {
     return false;
   }
-  if (next.phase === 'live_success_effects') return true;
   const start = currentPerformanceRoundLogStart(next);
   return (next.log || []).slice(start).some(e => /^Live Scores: /.test(e.msg || ''));
 }
