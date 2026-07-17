@@ -356,6 +356,8 @@
       "buyOk": "Card purchased",
       "convertOne": "Convert to seal",
       "convertOk": "Converted to 1 {tier} seal",
+      "convertOkBalance": "Converted · {tier} seals: {n}",
+      "yourSeals": "Your seals",
       "spareCopies": "{n} spare"
     },
     "ranked": {
@@ -1431,6 +1433,8 @@
       "buyOk": "カードを購入しました",
       "convertOne": "シールに変換",
       "convertOk": "{tier} シールを1枚獲得",
+      "convertOkBalance": "変換しました · {tier} シール: {n}",
+      "yourSeals": "所持シール",
       "spareCopies": "余剰 {n} 枚"
     },
     "ranked": {
