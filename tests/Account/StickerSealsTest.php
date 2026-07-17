@@ -147,4 +147,33 @@ final class StickerSealsTest extends TestCase
         $this->assertSame(10, tcgSealBuyCostForTier('P'));
         $this->assertSame(5, tcgSealBuyCostForTier('SEC'));
     }
+
+    public function testGachaCodeFallbackWhenPackMismatched(): void
+    {
+        $card = [
+            'card_no' => 'PL!HS-bp1-010-N',
+            'rarity' => 'N',
+            'booster_pack' => 'UNKNOWN_PACK_LABEL',
+        ];
+        $this->assertTrue(tcgIsGachaBoosterCard($card));
+        $this->assertTrue(tcgCardConvertibleToSeal($card));
+        $starter = [
+            'card_no' => 'PL!HS-sd1-001-SD',
+            'rarity' => 'SD',
+            'booster_pack' => 'スタートデッキ ラブライブ！蓮ノ空女学院スクールアイドルクラブ',
+        ];
+        $this->assertFalse(tcgIsGachaBoosterCard($starter));
+        $this->assertFalse(tcgCardConvertibleToSeal($starter));
+    }
+
+    public function testStickerShopCardSummaryIsSlim(): void
+    {
+        $card = $this->findGachaCard('N');
+        $this->assertNotNull($card);
+        $summary = tcgStickerShopCardSummary($card);
+        $this->assertArrayHasKey('card_no', $summary);
+        $this->assertArrayHasKey('image', $summary);
+        $this->assertArrayNotHasKey('abilities', $summary);
+        $this->assertArrayNotHasKey('text', $summary);
+    }
 }

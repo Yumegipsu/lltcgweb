@@ -106,10 +106,15 @@ function tcgGachaBoosterFilters(): array {
 
 function tcgIsGachaBoosterCard(array $card): bool {
     $pack = (string)($card['booster_pack'] ?? '');
-    if ($pack === '' || $pack === 'PRカード') {
+    if ($pack === 'PRカード') {
         return false;
     }
-    return in_array($pack, tcgGachaBoosterFilters(), true);
+    if ($pack !== '' && in_array($pack, tcgGachaBoosterFilters(), true)) {
+        return true;
+    }
+    // Fallback when booster_pack is missing/mismatched: set codes from booster/premium lines.
+    $no = (string)($card['card_no'] ?? '');
+    return $no !== '' && (bool)preg_match('/-(?:bp|pb)\d+/i', $no);
 }
 
 function tcgIsPrSealBlockedCard(array $card): bool {
@@ -311,16 +316,38 @@ function tcgStickerShopProductAllowedForUser(string $discordId, string $productI
 }
 
 /**
+ * Whether card_no appears in a specific sticker-shop product the user can access.
+ */
+function tcgCardInStickerShopProduct(string $discordId, string $cardNo, string $productId, array $cardsData): bool {
+    if (!tcgStickerShopProductAllowedForUser($discordId, $productId)) {
+        return false;
+    }
+    return in_array($cardNo, tcgStickerShopProductCardNos($productId, $cardsData), true);
+}
+
+/**
  * Whether card_no appears in any sticker-shop product the user can access.
  */
 function tcgCardInAccessibleStickerShop(string $discordId, string $cardNo, array $cardsData): bool {
     foreach (tcgStickerShopCatalog($discordId) as $product) {
-        $nos = tcgStickerShopProductCardNos($product['id'], $cardsData);
-        if (in_array($cardNo, $nos, true)) {
+        if (tcgCardInStickerShopProduct($discordId, $cardNo, $product['id'], $cardsData)) {
             return true;
         }
     }
     return false;
+}
+
+/** Slim card fields for sticker shop JSON (avoid multi‑MB ability dumps). */
+function tcgStickerShopCardSummary(array $card): array {
+    return [
+        'card_no' => (string)($card['card_no'] ?? ''),
+        'name' => (string)($card['name'] ?? ''),
+        'name_en' => (string)($card['name_en'] ?? ''),
+        'rarity' => (string)($card['rarity'] ?? ''),
+        'image' => (string)($card['image'] ?? ''),
+        'card_type' => (string)($card['card_type'] ?? ''),
+        'booster_pack' => (string)($card['booster_pack'] ?? ''),
+    ];
 }
 
 /**
@@ -365,7 +392,7 @@ function tcgConvertCardsToSeals(string $discordId, string $cardNo, int $qty, arr
 /**
  * @return array{success:bool,seals:array,card_no:string,owned_qty:int,tier:string,cost:int}
  */
-function tcgStickerBuyCard(string $discordId, string $cardNo, array $cardMap, array $cardsData): array {
+function tcgStickerBuyCard(string $discordId, string $cardNo, array $cardMap, array $cardsData, ?string $productId = null): array {
     $card = $cardMap[$cardNo] ?? null;
     if (!$card) {
         throw new Exception('Unknown card', 404);
@@ -373,7 +400,12 @@ function tcgStickerBuyCard(string $discordId, string $cardNo, array $cardMap, ar
     if (!tcgCardPurchasableWithSeal($card)) {
         throw new Exception('This card is not available in the sticker shop', 400);
     }
-    if (!tcgCardInAccessibleStickerShop($discordId, $cardNo, $cardsData)) {
+    $productId = $productId !== null ? trim($productId) : '';
+    if ($productId !== '') {
+        if (!tcgCardInStickerShopProduct($discordId, $cardNo, $productId, $cardsData)) {
+            throw new Exception('Unlock this product before buying its cards', 400);
+        }
+    } elseif (!tcgCardInAccessibleStickerShop($discordId, $cardNo, $cardsData)) {
         throw new Exception('Unlock this product before buying its cards', 400);
     }
     $tier = tcgSealTierForCard($card);

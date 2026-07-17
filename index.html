@@ -8586,17 +8586,23 @@ function clientSealTierForCard(card) {
 
 function clientCardConvertibleToSeal(card) {
   if (!card) return false;
-  const pack = String(card.booster_pack || '');
+  const full = enrichCard(card) || card;
+  const pack = String(full.booster_pack || '');
   if (pack === 'PRカード') return false;
-  const r = normalizeClientRarity(card);
+  const r = normalizeClientRarity(full);
   if (r === 'PR' || r === 'PR+') return false;
-  if (!pack) return false;
+  const no = String(full.card_no || '');
   const gachaFilters = (A.boxes || [])
     .filter(b => ['bp', 'pb', 'pb_duo'].includes(b.kind))
     .map(b => b.filter)
     .filter(Boolean);
-  if (gachaFilters.length && !gachaFilters.includes(pack)) return false;
-  return !!clientSealTierForCard(card);
+  const packOk = pack !== '' && (
+    (gachaFilters.length > 0 && gachaFilters.includes(pack))
+    || (gachaFilters.length === 0 && /ブースター|プレミアムブースター/.test(pack))
+  );
+  const codeOk = /-(?:bp|pb)\d+/i.test(no);
+  if (!packOk && !codeOk) return false;
+  return !!clientSealTierForCard(full);
 }
 
 function maxReservedCopiesClient(cardNo) {
@@ -10716,7 +10722,7 @@ function renderStickerCardsGrid(cards) {
     buy.onclick = async () => {
       buy.disabled = true;
       try {
-        const res = await accountPost('sticker_buy', { card_no: row.card_no });
+        const res = await accountPost('sticker_buy', { card_no: row.card_no, product_id: A.stickerProductId || undefined });
         syncSealsFromPayload(res);
         toast(t('sticker.buyOk') || 'Card exchanged', 2000);
         if (A.stickerProductId) {
@@ -11243,43 +11249,49 @@ function fillDeckConvertSealAction(container, cardNo) {
   const card = enrichCard(G.allCards[cardNo] || A.collection.find(r => r.card_no === cardNo)?.card);
   if (!card || !clientCardConvertibleToSeal(card)) return;
   const spare = spareConvertibleCopies(cardNo);
-  if (spare < 1) return;
+  const reserved = maxReservedCopiesClient(cardNo);
   const tier = clientSealTierForCard(card);
+  if (!tier) return;
   const have = sealBalanceForTier(tier);
   const row = document.createElement('div');
   row.className = 'deck-convert-seal-row';
   const bal = document.createElement('div');
   bal.className = 'deck-convert-seal-balance';
   bal.innerHTML = (t('sticker.yourSeals') || 'Your seals') + ': ' + sealCostHtml(tier, have, 16)
-    + ' → ' + sealCostHtml(tier, have + 1, 16);
+    + (spare >= 1 ? (' → ' + sealCostHtml(tier, have + 1, 16)) : '');
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'btn-grad';
+  btn.className = spare >= 1 ? 'btn-grad' : 'btn-out';
   const convertLabel = t('sticker.convertOne') || 'Convert to {seal} seal';
-  btn.innerHTML = convertLabel.replace('{seal}', sealIconHtml(tier, 22));
-  btn.addEventListener('click', async e => {
-    e.preventDefault();
-    e.stopPropagation();
-    btn.disabled = true;
-    try {
-      const res = await accountPost('convert_to_seal', { card_no: cardNo, qty: 1 });
-      syncSealsFromPayload(res);
-      await refreshCollection();
-      if (typeof renderDeckBuilder === 'function') renderDeckBuilder();
-      const next = sealBalanceForTier(tier);
-      toast(t('sticker.convertOkBalance', { tier, n: next }) || ('Converted · ' + tier + ' seals: ' + next), 2200);
-      closeM('modal-card');
-      document.body.classList.remove('deck-card-preview');
-    } catch (err) {
-      toast(err.message || t('toast.stickerConvertFailed') || 'Convert failed', 3200);
-      btn.disabled = false;
-    }
-  });
+  btn.innerHTML = convertLabel.split('{seal}').join(sealIconHtml(tier, 22));
+  btn.disabled = spare < 1;
+  if (spare >= 1) {
+    btn.addEventListener('click', async e => {
+      e.preventDefault();
+      e.stopPropagation();
+      btn.disabled = true;
+      try {
+        const res = await accountPost('convert_to_seal', { card_no: cardNo, qty: 1 });
+        syncSealsFromPayload(res);
+        await refreshCollection();
+        if (typeof renderDeckBuilder === 'function') renderDeckBuilder();
+        const next = sealBalanceForTier(tier);
+        toast(t('sticker.convertOkBalance', { tier, n: next }) || ('Converted · ' + tier + ' seals: ' + next), 2200);
+        closeM('modal-card');
+        document.body.classList.remove('deck-card-preview');
+      } catch (err) {
+        toast(err.message || t('toast.stickerConvertFailed') || 'Convert failed', 3200);
+        btn.disabled = false;
+      }
+    });
+  }
   const hint = document.createElement('span');
   hint.className = 'hub-stat';
   hint.style.margin = '0';
   hint.style.fontSize = '12px';
-  hint.textContent = t('sticker.spareCopies', { n: spare }) || (spare + ' spare');
+  hint.textContent = spare >= 1
+    ? (t('sticker.spareCopies', { n: spare }) || (spare + ' spare'))
+    : (t('sticker.reservedCopies', { n: reserved }) || ('Reserved by saved decks (' + reserved + ')'));
   row.appendChild(bal);
   row.appendChild(btn);
   row.appendChild(hint);

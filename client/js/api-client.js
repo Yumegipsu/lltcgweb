@@ -75,6 +75,7 @@
     const q = new URLSearchParams({ action, token, ...extra });
     const r = await global.fetchWithTimeout(global.ACCOUNT_API + '?' + q);
     const d = await global.parseAccountJson(r);
+    if (!d.success && d.error) throw new Error(d.error);
     global.handleMissionCompletions(d);
     return d;
   };

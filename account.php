@@ -247,7 +247,7 @@ function tcgApiStickerShopCards(array $body): array {
         $max = tcgGetDeckMaxCopies($card, $no);
         $list[] = [
             'card_no' => $no,
-            'card' => $card,
+            'card' => tcgStickerShopCardSummary($card),
             'seal_tier' => $tier,
             'cost' => $cost,
             'owned_qty' => $qty,
@@ -264,13 +264,17 @@ function tcgApiStickerShopCards(array $body): array {
         }
         return strcmp($a['card_no'], $b['card_no']);
     });
-    return [
+    $payload = [
         'success' => true,
         'product_id' => $productId,
         'cards' => $list,
         'seals' => $seals,
         'seal_buy_costs' => TCG_SEAL_BUY_COST,
     ];
+    if (json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) === false) {
+        throw new Exception('Could not encode sticker shop cards', 500);
+    }
+    return $payload;
 }
 
 function tcgApiConvertToSeal(array $body): array {
@@ -293,9 +297,10 @@ function tcgApiStickerBuy(array $body): array {
     if ($cardNo === '') {
         throw new Exception('card_no required', 400);
     }
+    $productId = trim((string)($body['product_id'] ?? ''));
     $cardsData = tcgLoadCardsData();
     $cardMap = tcgBuildCardMap($cardsData);
-    return tcgStickerBuyCard($uid, $cardNo, $cardMap, $cardsData);
+    return tcgStickerBuyCard($uid, $cardNo, $cardMap, $cardsData, $productId !== '' ? $productId : null);
 }
 
 function tcgApiBoosterRates(array $params): array {
