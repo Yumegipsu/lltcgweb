@@ -4591,7 +4591,9 @@ function perfRenderBladeRow(bladeEl, totalBlade, { pending = false } = {}) {
 function perfOutcomeLabel(att) {
   if (att.success) return '✓ Live Success';
   if (att.fail) return '✗ Live Failed';
-  return '… Live';
+  // Should be rare after perfFinalizeAttemptOutcomes — keep short so it does not
+  // look like a truncated "Live Cleared/Failed" banner.
+  return '…';
 }
 
 /** Index of the current Performance round in the log (not prior turns). */
@@ -4678,6 +4680,45 @@ function perfLiveSuccessCountFromLog(next, pid, prev = null) {
     if (m) return parseInt(m[1], 10);
   }
   return 0;
+}
+
+function perfLiveFailCountFromLog(next, pid, prev = null) {
+  const name = next?.players?.[pid]?.name;
+  if (!name) return 0;
+  if (!playerAttemptedLiveThisRound(next, pid)) return 0;
+  const esc = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re = new RegExp(
+    `^${esc} performed Live! Blades: \\d+ \\| Hearts: \\[[^\\]]*\\] \\| Live success: \\d+ \\| Failed: (\\d+)`
+  );
+  const start = prev ? (prev.log?.length || 0) : currentPerformanceRoundLogStart(next);
+  const log = (next.log || []).slice(start);
+  for (let i = log.length - 1; i >= 0; i--) {
+    const m = (log[i].msg || '').match(re);
+    if (m) return parseInt(m[1], 10);
+  }
+  return 0;
+}
+
+/** Once the performed-Live log exists, any attempt that is not a success is a fail. */
+function perfFinalizeAttemptOutcomes(attempts, next, pid, prev = null) {
+  if (!attempts?.length) return attempts;
+  const logFail = perfLiveFailCountFromLog(next, pid, prev);
+  let failNeed = Math.max(0, logFail - attempts.filter(a => a.fail).length);
+  for (const a of attempts) {
+    if (failNeed <= 0) break;
+    if (!a.success && !a.fail) {
+      a.fail = true;
+      failNeed--;
+    }
+  }
+  // Spectators / batched WR flights: results are known from the log even when the
+  // card iid is not yet present in waiting_room on the presentation board.
+  if (playerHasPerfLogThisRound(next, pid)) {
+    for (const a of attempts) {
+      if (!a.success && !a.fail) a.fail = true;
+    }
+  }
+  return attempts;
 }
 
 function perfLivePerfSuccessIds(next, pid) {
@@ -4816,14 +4857,18 @@ function perfLiveAttempts(prev, next, pid) {
     if (!isLiveTypeCard(card)) return;
     const inSuccessZone = (next.players?.[pid]?.success_lives || [])
       .some(c => c.instance_id === iid);
+    const stillInLive = (next.players?.[pid]?.live_zone || [])
+      .some(c => c.instance_id === iid);
     const succeeded = succeededOverride !== null
       ? succeededOverride
       : (succeededIds.has(iid) || inSuccessZone);
     attempts.push({
       card,
       success: succeeded,
-      // Only mark fail when the card is actually in WR and not in Success.
-      fail: !succeeded && wrIds.has(iid),
+      // Prefer WR, but also treat as fail once results are logged and the card
+      // is no longer a living success (covers spectator / deferred WR boards).
+      fail: !succeeded && (wrIds.has(iid)
+        || (playerHasPerfLogThisRound(next, pid) && !stillInLive && !inSuccessZone)),
     });
   };
 
@@ -4850,10 +4895,13 @@ function perfLiveAttempts(prev, next, pid) {
     });
   }
 
+  perfFinalizeAttemptOutcomes(attempts, next, pid, prev);
+
   if (TCG_DEBUG.on && TCG_DEBUG.cats.has('live')) {
     TCG_DEBUG.log('live', `attempts ${pid}`, attempts.map(a => ({
       card: a.card?.name_en || a.card?.name,
       ok: a.success,
+      fail: a.fail,
       score: a.card?.score,
     })));
   }
