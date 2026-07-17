@@ -302,7 +302,10 @@ function tcgApiStickerBuy(array $body): array {
     $productId = trim((string)($body['product_id'] ?? ''));
     $cardsData = tcgLoadCardsData();
     $cardMap = tcgBuildCardMap($cardsData);
-    return tcgStickerBuyCard($uid, $cardNo, $cardMap, $cardsData, $productId !== '' ? $productId : null);
+    $result = tcgStickerBuyCard($uid, $cardNo, $cardMap, $cardsData, $productId !== '' ? $productId : null);
+    require_once __DIR__ . '/missions.php';
+    $completions = tcgMissionCheckStickerExchangeThresholds($uid);
+    return tcgMissionAttachCompletions($result, $completions);
 }
 
 function tcgApiBoosterRates(array $params): array {

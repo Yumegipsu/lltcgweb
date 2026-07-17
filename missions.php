@@ -38,6 +38,10 @@ function tcgMissionDefinitions(): array {
         ['id' => 'ms_ranked_100', 'type' => 'milestone', 'reward' => 3000, 'sort' => 250, 'i18n_key' => 'missions.milestone.ranked100', 'threshold' => 100],
         ['id' => 'ms_ranked_500', 'type' => 'milestone', 'reward' => 3000, 'sort' => 260, 'i18n_key' => 'missions.milestone.ranked500', 'threshold' => 500],
         ['id' => 'ms_ranked_1000', 'type' => 'milestone', 'reward' => 5000, 'sort' => 270, 'i18n_key' => 'missions.milestone.ranked1000', 'threshold' => 1000],
+        ['id' => 'ms_sticker_1', 'type' => 'milestone', 'reward' => 200, 'sort' => 280, 'i18n_key' => 'missions.milestone.sticker1', 'threshold' => 1],
+        ['id' => 'ms_sticker_10', 'type' => 'milestone', 'reward' => 200, 'sort' => 281, 'i18n_key' => 'missions.milestone.sticker10', 'threshold' => 10],
+        ['id' => 'ms_sticker_50', 'type' => 'milestone', 'reward' => 500, 'sort' => 282, 'i18n_key' => 'missions.milestone.sticker50', 'threshold' => 50],
+        ['id' => 'ms_sticker_100', 'type' => 'milestone', 'reward' => 1000, 'sort' => 283, 'i18n_key' => 'missions.milestone.sticker100', 'threshold' => 100],
         ['id' => 'ms_win_muse', 'type' => 'milestone', 'reward' => 1000, 'sort' => 300, 'i18n_key' => 'missions.milestone.winMuse', 'group' => "μ's"],
         ['id' => 'ms_win_aqours', 'type' => 'milestone', 'reward' => 1000, 'sort' => 310, 'i18n_key' => 'missions.milestone.winAqours', 'group' => 'Sunshine'],
         ['id' => 'ms_win_liella', 'type' => 'milestone', 'reward' => 1000, 'sort' => 320, 'i18n_key' => 'missions.milestone.winLiella', 'group' => 'Superstar'],
@@ -163,6 +167,7 @@ function tcgMissionClaimableCount(string $discordId): int {
 function tcgMissionListForUser(string $discordId): array {
     tcgMissionBackfillRetroactive($discordId);
     $totalCards = tcgCollectionTotalCards($discordId);
+    $stickerExchanges = tcgGetStickerExchanges($discordId);
     $starterOptions = null;
     $missions = [];
     foreach (tcgMissionDefinitions() as $def) {
@@ -209,6 +214,8 @@ function tcgMissionListForUser(string $discordId): array {
         } elseif (str_starts_with($def['id'], 'ms_cards_') && isset($def['threshold'])) {
             $entry['total_cards'] = $totalCards;
             $entry['progress'] = min($totalCards, intval($def['threshold']));
+        } elseif (str_starts_with($def['id'], 'ms_sticker_') && isset($def['threshold'])) {
+            $entry['progress'] = min($stickerExchanges, intval($def['threshold']));
         }
         $missions[] = $entry;
     }
@@ -438,6 +445,22 @@ function tcgMissionCheckRankedThresholds(string $discordId): array {
     return $completions;
 }
 
+/** Mark sticker-shop seal exchange milestones complete when thresholds are met. */
+function tcgMissionCheckStickerExchangeThresholds(string $discordId): array {
+    $exchanges = tcgGetStickerExchanges($discordId);
+    $completions = [];
+    foreach (tcgMissionDefinitions() as $def) {
+        if (($def['type'] ?? '') !== 'milestone' || !str_starts_with($def['id'], 'ms_sticker_')) {
+            continue;
+        }
+        $threshold = intval($def['threshold'] ?? 0);
+        if ($threshold > 0 && $exchanges >= $threshold) {
+            $completions = tcgMissionMergeCompletions($completions, tcgMissionMarkCompleted($discordId, $def['id']));
+        }
+    }
+    return $completions;
+}
+
 /** Mark collection total-card milestones complete when thresholds are met. */
 function tcgMissionCheckCollectionThresholds(string $discordId): array {
     $total = tcgCollectionTotalCards($discordId);
@@ -619,7 +642,7 @@ function tcgMissionBackfillRetroactive(string $discordId): void {
 
     require_once __DIR__ . '/matchmaking.php';
     $db = tcgDb();
-    $stmt = $db->prepare('SELECT banner_card_no, equipped_flag, stamp_favorites, unranked_games FROM tcg_users WHERE discord_id = ?');
+    $stmt = $db->prepare('SELECT banner_card_no, equipped_flag, stamp_favorites, unranked_games, sticker_exchanges FROM tcg_users WHERE discord_id = ?');
     $stmt->execute([$discordId]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
 
@@ -648,6 +671,17 @@ function tcgMissionBackfillRetroactive(string $discordId): void {
     }
     if (intval($user['unranked_games'] ?? 0) >= 1) {
         tcgMissionMarkCompletedSilent($discordId, 'ms_unranked_1');
+    }
+
+    $stickerExchanges = intval($user['sticker_exchanges'] ?? 0);
+    foreach (tcgMissionDefinitions() as $def) {
+        if (($def['type'] ?? '') !== 'milestone' || !str_starts_with($def['id'], 'ms_sticker_')) {
+            continue;
+        }
+        $threshold = intval($def['threshold'] ?? 0);
+        if ($threshold > 0 && $stickerExchanges >= $threshold) {
+            tcgMissionMarkCompletedSilent($discordId, $def['id']);
+        }
     }
 
     $totalCards = tcgCollectionTotalCards($discordId);

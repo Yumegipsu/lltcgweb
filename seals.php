@@ -456,6 +456,7 @@ function tcgStickerBuyCard(string $discordId, string $cardNo, array $cardMap, ar
     }
     tcgDeductSeals($discordId, $tier, $cost);
     tcgAddCardsToCollection($discordId, [$cardNo]);
+    tcgIncrementStickerExchanges($discordId);
     return [
         'success' => true,
         'card_no' => $cardNo,
@@ -463,5 +464,6 @@ function tcgStickerBuyCard(string $discordId, string $cardNo, array $cardMap, ar
         'tier' => $tier,
         'cost' => $cost,
         'seals' => tcgSealBalances($discordId),
+        'sticker_exchanges' => tcgGetStickerExchanges($discordId),
     ];
 }

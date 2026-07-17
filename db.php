@@ -263,6 +263,7 @@ function tcgDbMigrate(PDO $db): void {
     tcgDbEnsureColumn($db, 'tcg_users', 'star_gems', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'dupe_gem_migration_done', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'unranked_games', 'INTEGER NOT NULL DEFAULT 0');
+    tcgDbEnsureColumn($db, 'tcg_users', 'sticker_exchanges', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'seal_n', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'seal_r', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'seal_p', 'INTEGER NOT NULL DEFAULT 0');
@@ -493,6 +494,7 @@ function tcgResetAccountProgress(string $discordId): void {
         $db->prepare('DELETE FROM tcg_starter_owned WHERE discord_id = ?')->execute([$discordId]);
         $db->prepare('UPDATE tcg_users SET starter_deck = NULL, banner_card_no = NULL, banner_crop = NULL,
             equipped_flag = NULL, stamp_favorites = NULL, star_gems = 0, dupe_gem_migration_done = 0, unranked_games = 0,
+            sticker_exchanges = 0,
             seal_n = 0, seal_r = 0, seal_p = 0, seal_sec = 0,
             updated_at = ? WHERE discord_id = ?')
             ->execute([$now, $discordId]);
@@ -530,6 +532,22 @@ function tcgIncrementUnrankedGames(string $discordId): int {
     $db->prepare('UPDATE tcg_users SET unranked_games = COALESCE(unranked_games, 0) + 1, updated_at = ? WHERE discord_id = ?')
         ->execute([$now, $discordId]);
     return tcgGetUnrankedGames($discordId);
+}
+
+function tcgGetStickerExchanges(string $discordId): int {
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT sticker_exchanges FROM tcg_users WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    $val = $stmt->fetchColumn();
+    return $val === false ? 0 : max(0, intval($val));
+}
+
+function tcgIncrementStickerExchanges(string $discordId): int {
+    $db = tcgDb();
+    $now = time();
+    $db->prepare('UPDATE tcg_users SET sticker_exchanges = COALESCE(sticker_exchanges, 0) + 1, updated_at = ? WHERE discord_id = ?')
+        ->execute([$now, $discordId]);
+    return tcgGetStickerExchanges($discordId);
 }
 
 function tcgAddStarGems(string $discordId, int $amount): int {
