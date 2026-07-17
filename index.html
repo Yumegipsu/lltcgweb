@@ -4156,8 +4156,12 @@ body.missions-overlay-open .llc-sky-dim::after{
 .sticker-card-tile .sticker-card-cost img{width:16px;height:16px}
 .sticker-card-tile .btn-grad,.sticker-card-tile .btn-out{width:100%;padding:6px 8px;font-size:12px}
 .sticker-card-tile.is-owned-max{opacity:.72}
-.deck-convert-seal-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
-.deck-convert-seal-row .btn-grad{flex:1 1 auto}
+.deck-convert-seal-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.deck-convert-seal-row .btn-grad{
+  flex:1 1 auto;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:4px 10px;min-height:0;line-height:1.2;font-size:12px;white-space:nowrap
+}
+.deck-convert-seal-row .btn-grad img{width:22px;height:22px;object-fit:contain;display:block;flex:0 0 auto}
 .deck-convert-seal-balance{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;font-size:12px;color:rgba(255,255,255,.85)}
 .deck-convert-seal-balance .sticker-card-cost{display:inline-flex;align-items:center;gap:4px}
 .hub-ranked-pr-pill{
@@ -11180,7 +11184,8 @@ function fillDeckConvertSealAction(container, cardNo) {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'btn-grad';
-  btn.innerHTML = (t('sticker.convertOne') || 'Convert to seal') + ' ' + sealCostHtml(tier, 1, 16);
+  const convertLabel = t('sticker.convertOne') || 'Convert to {seal} seal';
+  btn.innerHTML = convertLabel.replace('{seal}', sealIconHtml(tier, 22));
   btn.addEventListener('click', async e => {
     e.preventDefault();
     e.stopPropagation();
