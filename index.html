@@ -4132,6 +4132,32 @@ body.missions-overlay-open .llc-sky-dim::after{
   border:1px solid rgba(255,210,120,.35);background:rgba(255,200,80,.12);
   font-family:'Libre Baskerville',serif;font-size:13px;font-weight:700;color:#fff;white-space:nowrap}
 .hub-star-gems-pill img{width:22px;height:22px;object-fit:contain;display:block;flex:0 0 auto}
+.hub-seals-pill{
+  display:inline-flex;align-items:center;flex-wrap:wrap;gap:6px 10px;padding:5px 10px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.22)
+}
+.hub-seal-chip{display:inline-flex;align-items:center;gap:4px;font-family:'Libre Baskerville',serif;font-size:12px;font-weight:700;color:#fff}
+.hub-seal-chip img{width:18px;height:18px;object-fit:contain;display:block}
+.sticker-seals-bar{margin:8px 0 12px}
+.sticker-cards-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;margin-top:12px
+}
+.sticker-card-tile{
+  display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:10px;
+  background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.12);text-align:center
+}
+.sticker-card-tile img.sticker-card-art{
+  width:100%;aspect-ratio:63/88;object-fit:cover;border-radius:6px;background:#111
+}
+.sticker-card-tile .sticker-card-meta{font-size:11px;color:rgba(255,255,255,.75);line-height:1.3}
+.sticker-card-tile .sticker-card-cost{
+  display:inline-flex;align-items:center;justify-content:center;gap:4px;font-weight:800;font-size:13px;color:#fff
+}
+.sticker-card-tile .sticker-card-cost img{width:16px;height:16px}
+.sticker-card-tile .btn-grad,.sticker-card-tile .btn-out{width:100%;padding:6px 8px;font-size:12px}
+.sticker-card-tile.is-owned-max{opacity:.72}
+.deck-convert-seal-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center}
+.deck-convert-seal-row .btn-grad{flex:1 1 auto}
 .hub-ranked-pr-pill{
   display:inline-flex;align-items:center;gap:7px;padding:5px 12px 5px 8px;border-radius:999px;
   border:1px solid rgba(186,160,255,.4);background:rgba(120,90,210,.18);
@@ -6832,6 +6858,12 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <img src="assets/Star_Gem.png" alt="" aria-hidden="true">
           <span id="hub-star-gems-count">0</span>
         </div>
+        <div class="hub-seals-pill" id="hub-seals" hidden aria-label="Seals">
+          <span class="hub-seal-chip" data-seal="n"><img src="assets/seals/N.png" alt="N" width="18" height="18"><b id="hub-seal-n">0</b></span>
+          <span class="hub-seal-chip" data-seal="r"><img src="assets/seals/R.png" alt="R" width="18" height="18"><b id="hub-seal-r">0</b></span>
+          <span class="hub-seal-chip" data-seal="p"><img src="assets/seals/P.png" alt="P" width="18" height="18"><b id="hub-seal-p">0</b></span>
+          <span class="hub-seal-chip" data-seal="sec"><img src="assets/seals/SEC.png" alt="SEC" width="18" height="18"><b id="hub-seal-sec">0</b></span>
+        </div>
         <div class="hub-ranked-pr-pill" id="hub-ranked-pr" hidden title="">
           <span class="hub-ranked-pr-badge" aria-hidden="true">PR</span>
           <span id="hub-ranked-pr-count">5 / 5</span>
@@ -6847,6 +6879,12 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
           <span class="llc-menu-item-body">
             <span class="llc-menu-item-title" data-i18n="hub.booster.title">Open Boosters</span>
             <span class="llc-menu-item-sub" data-i18n="hub.booster.sub">Open card booster packs</span>
+          </span>
+        </button>
+        <button class="llc-menu-item llc-menu-hover" id="btn-hub-sticker" type="button">
+          <span class="llc-menu-item-body">
+            <span class="llc-menu-item-title" data-i18n="hub.sticker.title">Sticker Shop</span>
+            <span class="llc-menu-item-sub" data-i18n="hub.sticker.sub">Trade seals for cards from your packs</span>
           </span>
         </button>
         <button class="llc-menu-item llc-menu-hover" id="btn-hub-deck" type="button">
@@ -7017,6 +7055,41 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
       </div>
       <div class="pack-reveal" id="pack-reveal"></div>
       <p class="lerr" id="booster-err"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STICKER SHOP ══ -->
+<div id="screen-sticker" class="screen llc-menu-screen" hidden aria-hidden="true">
+  <div class="account-shell wide">
+    <div class="logo">
+      <img class="logo-img" src="tcglogo.png" alt="">
+      <div class="logo-foot">
+        <span class="logo-version">v0.1.2</span>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
+      </div>
+    </div>
+    <div class="panel account-panel">
+      <div class="account-screen-head">
+        <button class="btn-ghost" id="btn-sticker-back" type="button" data-i18n="sticker.backHub">← Hub</button>
+        <h2 id="sticker-screen-title" data-i18n="sticker.title">Sticker Shop</h2>
+      </div>
+      <div class="hub-seals-pill sticker-seals-bar" id="sticker-seals-bar" aria-label="Seals">
+        <span class="hub-seal-chip" data-seal="n"><img src="assets/seals/N.png" alt="N" width="18" height="18"><b id="sticker-seal-n">0</b></span>
+        <span class="hub-seal-chip" data-seal="r"><img src="assets/seals/R.png" alt="R" width="18" height="18"><b id="sticker-seal-r">0</b></span>
+        <span class="hub-seal-chip" data-seal="p"><img src="assets/seals/P.png" alt="P" width="18" height="18"><b id="sticker-seal-p">0</b></span>
+        <span class="hub-seal-chip" data-seal="sec"><img src="assets/seals/SEC.png" alt="SEC" width="18" height="18"><b id="sticker-seal-sec">0</b></span>
+      </div>
+      <p class="hub-stat" id="sticker-hint" data-i18n="sticker.hint">Convert spare gacha cards in Deck Builder to seals, then buy cards here.</p>
+      <div id="sticker-products-view">
+        <div class="box-grid" id="sticker-product-grid"></div>
+      </div>
+      <div id="sticker-cards-view" hidden>
+        <button class="btn-ghost" id="btn-sticker-products-back" type="button" data-i18n="sticker.backProducts">← Products</button>
+        <p class="hub-stat" id="sticker-product-name"></p>
+        <div class="sticker-cards-grid" id="sticker-cards-grid"></div>
+      </div>
+      <p class="lerr" id="sticker-err"></p>
     </div>
   </div>
 </div>
@@ -8306,6 +8379,8 @@ const STAR_GEM_ICON = 'assets/Star_Gem.png';
 const STAR_GEMS_PER_DUPE = 10;
 const STAR_GEMS_PACK_COST = 100;
 const STAR_GEMS_BOX_COST = 3000;
+const SEAL_ICONS = { N: 'assets/seals/N.png', R: 'assets/seals/R.png', P: 'assets/seals/P.png', SEC: 'assets/seals/SEC.png' };
+const SEAL_BUY_COSTS = { N: 20, R: 15, P: 10, SEC: 5 };
 const DEFAULT_PACK_SIZE = 5;
 const DEFAULT_PACKS_PER_BOX = 30;
 
@@ -8314,6 +8389,10 @@ const A = {
   user: null,
   profile: null,
   starGems: 0,
+  seals: { n: 0, r: 0, p: 0, sec: 0 },
+  sealBuyCosts: { N: 20, R: 15, P: 10, SEC: 5 },
+  stickerProductId: null,
+  stickerProducts: [],
   boxes: [],
   collection: [],
   collectionMap: {},
@@ -8399,6 +8478,107 @@ function syncStarGemsFromProfile(me) {
   if (!me) return;
   A.starGems = Number(me.star_gems ?? A.profile?.star_gems ?? 0) || 0;
   if (A.profile) A.profile.star_gems = A.starGems;
+  syncSealsFromProfile(me);
+}
+
+function syncSealsFromProfile(me) {
+  const src = me?.seals || A.profile?.seals || A.seals || {};
+  A.seals = {
+    n: Number(src.n ?? 0) || 0,
+    r: Number(src.r ?? 0) || 0,
+    p: Number(src.p ?? 0) || 0,
+    sec: Number(src.sec ?? 0) || 0,
+  };
+  if (me?.seal_buy_costs && typeof me.seal_buy_costs === 'object') {
+    A.sealBuyCosts = { ...SEAL_BUY_COSTS, ...me.seal_buy_costs };
+  }
+  if (A.profile) A.profile.seals = { ...A.seals };
+  updateSealsUI();
+}
+
+function syncSealsFromPayload(payload) {
+  if (!payload?.seals) return;
+  syncSealsFromProfile({ seals: payload.seals, seal_buy_costs: payload.seal_buy_costs });
+}
+
+function sealIconHtml(tier, sizePx = 16) {
+  const t0 = String(tier || 'N').toUpperCase();
+  const src = SEAL_ICONS[t0] || SEAL_ICONS.N;
+  return '<img src="' + src + '" alt="' + t0 + '" aria-hidden="true" style="width:' + sizePx + 'px;height:' + sizePx + 'px;object-fit:contain;display:block">';
+}
+
+function sealCostHtml(tier, amount, sizePx = 16) {
+  return '<span class="sticker-card-cost">' + sealIconHtml(tier, sizePx) + '<span>' + Number(amount || 0) + '</span></span>';
+}
+
+function updateSealsUI() {
+  const signedIn = isSignedInAccount();
+  const hub = el('hub-seals');
+  if (hub) hub.hidden = !signedIn;
+  [['n', 'hub-seal-n'], ['r', 'hub-seal-r'], ['p', 'hub-seal-p'], ['sec', 'hub-seal-sec'],
+   ['n', 'sticker-seal-n'], ['r', 'sticker-seal-r'], ['p', 'sticker-seal-p'], ['sec', 'sticker-seal-sec']].forEach(([k, id]) => {
+    const node = el(id);
+    if (node) node.textContent = String(A.seals?.[k] ?? 0);
+  });
+}
+
+function normalizeClientRarity(card) {
+  let r = String(card?.rarity || '').replace(/＋/g, '+').replace(/　/g, '');
+  const no = String(card?.card_no || '');
+  const m = no.match(/-(DUO|PP|SRL|SECS|SECL|SECE|PE2|P2)$/);
+  if (m) {
+    if (m[1] === 'P2') return 'P+';
+    if (m[1] === 'PE2') return 'PE+';
+    return m[1];
+  }
+  return r;
+}
+
+function clientSealTierForCard(card) {
+  const r = normalizeClientRarity(card);
+  const map = {
+    N: 'N', SD: 'N', SD2: 'N', CL: 'N', L: 'N', PE: 'N',
+    R: 'R', 'R+': 'R', RM: 'R', RE: 'R', 'L+': 'R',
+    P: 'P', 'P+': 'P', PP: 'P', AR: 'P', 'PE+': 'P', SRE: 'P', 'PR+': 'P',
+    SEC: 'SEC', 'SEC+': 'SEC', SECE: 'SEC', SECL: 'SEC', SECS: 'SEC',
+    LLE: 'SEC', SRL: 'SEC', DUO: 'SEC',
+  };
+  return map[r] || null;
+}
+
+function clientCardConvertibleToSeal(card) {
+  if (!card) return false;
+  const pack = String(card.booster_pack || '');
+  if (pack === 'PRカード') return false;
+  const r = normalizeClientRarity(card);
+  if (r === 'PR' || r === 'PR+') return false;
+  if (!pack) return false;
+  const gachaFilters = (A.boxes || [])
+    .filter(b => ['bp', 'pb', 'pb_duo'].includes(b.kind))
+    .map(b => b.filter)
+    .filter(Boolean);
+  if (gachaFilters.length && !gachaFilters.includes(pack)) return false;
+  return !!clientSealTierForCard(card);
+}
+
+function maxReservedCopiesClient(cardNo) {
+  let max = 0;
+  (A.decks || []).forEach(d => {
+    const main = d.main_deck || [];
+    const energy = d.energy_deck || [];
+    let n = 0;
+    main.forEach(x => { if (x === cardNo) n++; });
+    energy.forEach(x => { if (x === cardNo) n++; });
+    if (n > max) max = n;
+  });
+  // Also reserve copies in the deck currently being edited.
+  max = Math.max(max, countInDeck(cardNo));
+  return max;
+}
+
+function spareConvertibleCopies(cardNo) {
+  const owned = Number(A.collectionMap?.[cardNo] || 0);
+  return Math.max(0, owned - maxReservedCopiesClient(cardNo));
 }
 
 function syncStarGemsFromOpen(open) {
@@ -10297,6 +10477,7 @@ function enterHub(me) {
     + (d.first_day_bonus ? t('hub.dailyWelcomeBonus') : '');
   updateStarGemsUI();
   updateRankedPrUI();
+  updateSealsUI();
   if (window.TCGMissions && typeof window.TCGMissions.applyProfileMissions === 'function') {
     window.TCGMissions.applyProfileMissions(A.profile);
   }
@@ -10352,6 +10533,137 @@ async function confirmStarter() {
       else void resumeRankedSearchIfQueued();
     }, 0);
   } catch (e) { el('starter-err').textContent = e.message; }
+}
+
+function showStickerProductsView() {
+  const products = el('sticker-products-view');
+  const cards = el('sticker-cards-view');
+  if (products) products.hidden = false;
+  if (cards) cards.hidden = true;
+  A.stickerProductId = null;
+  const title = el('sticker-screen-title');
+  if (title) title.textContent = t('sticker.title') || 'Sticker Shop';
+}
+
+function showStickerCardsView(productName) {
+  const products = el('sticker-products-view');
+  const cards = el('sticker-cards-view');
+  if (products) products.hidden = true;
+  if (cards) cards.hidden = false;
+  const nameEl = el('sticker-product-name');
+  if (nameEl) nameEl.textContent = productName || '';
+  const title = el('sticker-screen-title');
+  if (title) title.textContent = productName || (t('sticker.title') || 'Sticker Shop');
+}
+
+async function loadStickerShopScreen() {
+  if (!isSignedInAccount()) {
+    toast(t('toast.signInDeckBuilder') || 'Sign in required', 2800);
+    return;
+  }
+  const err = el('sticker-err');
+  if (err) err.textContent = '';
+  showStickerProductsView();
+  showScr('sticker');
+  updateSealsUI();
+  try {
+    if (!A.boxes.length) {
+      const bx = await accountGet('booster_boxes');
+      A.boxes = bx.boxes || [];
+    }
+    const res = await accountGet('sticker_shop_catalog');
+    syncSealsFromPayload(res);
+    A.stickerProducts = res.products || [];
+    renderStickerProductGrid(A.stickerProducts);
+  } catch (e) {
+    if (err) err.textContent = e.message || 'Failed to load sticker shop';
+  }
+}
+
+function renderStickerProductGrid(products) {
+  const grid = el('sticker-product-grid');
+  if (!grid) return;
+  grid.replaceChildren();
+  (products || []).forEach(p => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'starter-opt';
+    b.dataset.id = p.id;
+    const label = p.name_en || p.id;
+    b.innerHTML = '<img src="' + (p.image || '') + '" alt="" onerror="this.style.display=\'none\'"><div class="starter-name">' + escapeHtmlText(label) + '</div>';
+    b.onclick = () => openStickerProduct(p);
+    grid.appendChild(b);
+  });
+}
+
+async function openStickerProduct(product) {
+  const err = el('sticker-err');
+  if (err) err.textContent = '';
+  A.stickerProductId = product.id;
+  showStickerCardsView(product.name_en || product.id);
+  const grid = el('sticker-cards-grid');
+  if (grid) grid.replaceChildren();
+  try {
+    const res = await accountPost('sticker_shop_cards', { product_id: product.id });
+    syncSealsFromPayload(res);
+    renderStickerCardsGrid(res.cards || []);
+  } catch (e) {
+    if (err) err.textContent = e.message || 'Failed to load cards';
+  }
+}
+
+function renderStickerCardsGrid(cards) {
+  const grid = el('sticker-cards-grid');
+  if (!grid) return;
+  grid.replaceChildren();
+  (cards || []).forEach(row => {
+    const card = enrichCard(row.card || G.allCards[row.card_no]);
+    const tier = row.seal_tier || clientSealTierForCard(card) || 'N';
+    const cost = Number(row.cost ?? A.sealBuyCosts?.[tier] ?? SEAL_BUY_COSTS[tier] ?? 0);
+    const owned = Number(row.owned_qty ?? 0);
+    const max = Number(row.max_copies ?? 4);
+    const tile = document.createElement('div');
+    tile.className = 'sticker-card-tile' + (owned >= max ? ' is-owned-max' : '');
+    const img = document.createElement('img');
+    img.className = 'sticker-card-art';
+    img.alt = card?.name_en || row.card_no;
+    if (!applyCardImageToImg(img, card, () => { img.style.display = 'none'; })) {
+      img.src = card?.image || '';
+    }
+    img.onclick = () => showCatalogCard(card || row.card_no);
+    const meta = document.createElement('div');
+    meta.className = 'sticker-card-meta';
+    meta.textContent = (card?.name_en || card?.name || row.card_no) + ' · ' + (card?.rarity || '') + ' · ×' + owned + '/' + max;
+    const costEl = document.createElement('div');
+    costEl.innerHTML = sealCostHtml(tier, cost, 16);
+    const buy = document.createElement('button');
+    buy.type = 'button';
+    buy.className = row.can_buy ? 'btn-grad' : 'btn-out';
+    buy.textContent = t('sticker.buy') || 'Buy';
+    buy.disabled = !row.can_buy;
+    buy.onclick = async () => {
+      buy.disabled = true;
+      try {
+        const res = await accountPost('sticker_buy', { card_no: row.card_no });
+        syncSealsFromPayload(res);
+        toast(t('sticker.buyOk') || 'Card purchased', 2000);
+        if (A.stickerProductId) {
+          const refreshed = await accountPost('sticker_shop_cards', { product_id: A.stickerProductId });
+          syncSealsFromPayload(refreshed);
+          renderStickerCardsGrid(refreshed.cards || []);
+        }
+        await refreshCollection().catch(() => {});
+      } catch (e) {
+        toast(e.message || 'Purchase failed', 3200);
+        buy.disabled = false;
+      }
+    };
+    tile.appendChild(img);
+    tile.appendChild(meta);
+    tile.appendChild(costEl);
+    tile.appendChild(buy);
+    grid.appendChild(tile);
+  });
 }
 
 async function loadBoosterScreen(opts = {}) {
@@ -10769,6 +11081,7 @@ async function refreshCollection() {
   A.collection = res.collection || [];
   A.collectionMap = {};
   A.collection.forEach(row => { A.collectionMap[row.card_no] = row.qty; });
+  if (res.seals) syncSealsFromPayload(res);
 }
 
 function deckLovecaPointForCard(cardNo) {
@@ -10848,7 +11161,49 @@ function fillDeckCardCopyAction(container, cardNo) {
   });
   row.appendChild(btn);
   container.appendChild(row);
+  fillDeckConvertSealAction(container, id);
   container.style.display = '';
+}
+
+function fillDeckConvertSealAction(container, cardNo) {
+  if (!container) return;
+  if (A.deckBuilderMode !== 'account' || !isSignedInAccount()) return;
+  const card = enrichCard(G.allCards[cardNo] || A.collection.find(r => r.card_no === cardNo)?.card);
+  if (!card || !clientCardConvertibleToSeal(card)) return;
+  const spare = spareConvertibleCopies(cardNo);
+  if (spare < 1) return;
+  const tier = clientSealTierForCard(card);
+  const row = document.createElement('div');
+  row.className = 'deck-convert-seal-row';
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn-grad';
+  btn.innerHTML = (t('sticker.convertOne') || 'Convert to seal') + ' ' + sealCostHtml(tier, 1, 16);
+  btn.addEventListener('click', async e => {
+    e.preventDefault();
+    e.stopPropagation();
+    btn.disabled = true;
+    try {
+      const res = await accountPost('convert_to_seal', { card_no: cardNo, qty: 1 });
+      syncSealsFromPayload(res);
+      await refreshCollection();
+      if (typeof renderDeckBuilder === 'function') renderDeckBuilder();
+      toast(t('sticker.convertOk', { tier }) || ('Converted to 1 ' + tier + ' seal'), 2200);
+      closeM('modal-card');
+      document.body.classList.remove('deck-card-preview');
+    } catch (err) {
+      toast(err.message || 'Convert failed', 3200);
+      btn.disabled = false;
+    }
+  });
+  const hint = document.createElement('span');
+  hint.className = 'hub-stat';
+  hint.style.margin = '0';
+  hint.style.fontSize = '12px';
+  hint.textContent = t('sticker.spareCopies', { n: spare }) || (spare + ' spare');
+  row.appendChild(btn);
+  row.appendChild(hint);
+  container.appendChild(row);
 }
 
 let _deckPreviewHideTimer = null;
@@ -17042,6 +17397,7 @@ async function bootApp() {
   syncBatonTouchToggleUi();
   on('btn-starter-confirm', 'click', confirmStarter);
   on('btn-hub-booster', 'click', loadBoosterScreen);
+  on('btn-hub-sticker', 'click', loadStickerShopScreen);
   on('btn-hub-deck', 'click', openDeckBuilder);
   on('btn-hub-ranked', 'click', openRankedScreen);
   on('btn-hub-leaderboard', 'click', openLeaderboardScreen);
@@ -17103,6 +17459,11 @@ async function bootApp() {
   on('btn-lobby-hub', 'click', leaveLobbyToMenu);
   on('btn-lobby-deck-experiment', 'click', openDeckExperiment);
   on('btn-booster-back', 'click', () => enterHub(A.profile));
+  on('btn-sticker-back', 'click', () => enterHub(A.profile));
+  on('btn-sticker-products-back', 'click', () => {
+    showStickerProductsView();
+    renderStickerProductGrid(A.stickerProducts || []);
+  });
   on('btn-pack-another', 'click', () => loadBoosterScreen({ preserveBoxPick: true }));
   on('btn-pack-again', 'click', openSamePackAgain);
   on('btn-pack-hub', 'click', () => enterHub(A.profile));

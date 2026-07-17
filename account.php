@@ -11,7 +11,7 @@
  *   deck_list, deck_save, deck_delete, deck_equip, deck_equip_starter, deck_reset_starter, deck_auto_build, reset_account,
  *   ranked_join, ranked_leave, ranked_status, rank_stats, rank_banner_set, rank_flag_set, stamp_favorites_set, active_game, leave_active_game,
  *   replay_save, replay_list, replay_get, replay_start, missions_list, missions_claim, public_profile,
- *   public_leaderboard
+ *   public_leaderboard, sticker_shop_catalog, sticker_shop_cards, convert_to_seal, sticker_buy
  */
 require_once __DIR__ . '/config/paths.php';
 require_once __DIR__ . '/config/cors.php';
@@ -36,6 +36,7 @@ define('TCG_MAX_DECK_PRESETS', 10);
 require_once __DIR__ . '/llr_auth_load.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/booster.php';
+require_once __DIR__ . '/seals.php';
 require_once __DIR__ . '/stamps.php';
 require_once __DIR__ . '/deck_validate.php';
 require_once __DIR__ . '/matchmaking.php';
@@ -85,6 +86,10 @@ try {
         case 'missions_claim':     echo json_encode(tcgApiMissionsClaim($body)); break;
         case 'public_leaderboard': echo json_encode(tcgApiPublicLeaderboard($_GET + $body)); break;
         case 'public_profile':     echo json_encode(tcgApiPublicProfile($_GET + $body)); break;
+        case 'sticker_shop_catalog': echo json_encode(tcgApiStickerShopCatalog($body)); break;
+        case 'sticker_shop_cards': echo json_encode(tcgApiStickerShopCards($body)); break;
+        case 'convert_to_seal':    echo json_encode(tcgApiConvertToSeal($body)); break;
+        case 'sticker_buy':        echo json_encode(tcgApiStickerBuy($body)); break;
         default:
             http_response_code(404);
             echo json_encode(['success' => false, 'error' => 'Unknown action']);
@@ -138,6 +143,8 @@ function tcgApiMe(array $body): array {
         'star_gems_pack_cost' => TCG_STAR_GEMS_PACK_COST,
         'star_gems_box_cost' => TCG_STAR_GEMS_BOX_COST,
         'star_gems_per_dupe' => TCG_STAR_GEMS_PER_DUPE,
+        'seals' => tcgSealBalances($uid),
+        'seal_buy_costs' => TCG_SEAL_BUY_COST,
         'dupe_migration' => $migration,
         'rank' => tcgFormatRankSummary($rank),
         'banner' => tcgFormatUserBanner($user, $cards),
@@ -192,11 +199,103 @@ function tcgApiCollection(array $body): array {
         'total_unique' => count($list),
         'total_cards' => $totalCards,
         'collection' => $list,
+        'seals' => tcgSealBalances($uid),
     ];
 }
 
 function tcgApiBoosterBoxes(): array {
     return ['success' => true, 'boxes' => tcgBoosterBoxes()];
+}
+
+function tcgApiStickerShopCatalog(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    tcgEnsureUser($uid, tcgAuthUserProfile($uid));
+    return [
+        'success' => true,
+        'products' => tcgStickerShopCatalog($uid),
+        'seals' => tcgSealBalances($uid),
+        'seal_buy_costs' => TCG_SEAL_BUY_COST,
+    ];
+}
+
+function tcgApiStickerShopCards(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    tcgEnsureUser($uid, tcgAuthUserProfile($uid));
+    $productId = trim((string)($body['product_id'] ?? $_GET['product_id'] ?? ''));
+    if ($productId === '') {
+        throw new Exception('product_id required', 400);
+    }
+    if (!tcgStickerShopProductAllowedForUser($uid, $productId)) {
+        throw new Exception('Product not available', 403);
+    }
+    $cardsData = tcgLoadCardsData();
+    $cardMap = tcgBuildCardMap($cardsData);
+    $owned = tcgGetCollectionMap($uid);
+    $seals = tcgSealBalances($uid);
+    $list = [];
+    foreach (tcgStickerShopProductCardNos($productId, $cardsData) as $no) {
+        $card = $cardMap[$no] ?? null;
+        if (!$card || !tcgCardPurchasableWithSeal($card)) {
+            continue;
+        }
+        $tier = tcgSealTierForCard($card);
+        if ($tier === null) {
+            continue;
+        }
+        $cost = tcgSealBuyCostForTier($tier);
+        $qty = intval($owned[$no] ?? 0);
+        $max = tcgGetDeckMaxCopies($card, $no);
+        $list[] = [
+            'card_no' => $no,
+            'card' => $card,
+            'seal_tier' => $tier,
+            'cost' => $cost,
+            'owned_qty' => $qty,
+            'max_copies' => $max,
+            'can_buy' => $qty < $max && ($seals[strtolower($tier)] ?? 0) >= $cost,
+        ];
+    }
+    usort($list, static function ($a, $b) {
+        $ta = $a['seal_tier'] ?? '';
+        $tb = $b['seal_tier'] ?? '';
+        if ($ta !== $tb) {
+            $order = ['N' => 0, 'R' => 1, 'P' => 2, 'SEC' => 3];
+            return ($order[$ta] ?? 9) <=> ($order[$tb] ?? 9);
+        }
+        return strcmp($a['card_no'], $b['card_no']);
+    });
+    return [
+        'success' => true,
+        'product_id' => $productId,
+        'cards' => $list,
+        'seals' => $seals,
+        'seal_buy_costs' => TCG_SEAL_BUY_COST,
+    ];
+}
+
+function tcgApiConvertToSeal(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    tcgEnsureUser($uid, tcgAuthUserProfile($uid));
+    $cardNo = trim((string)($body['card_no'] ?? ''));
+    $qty = max(1, intval($body['qty'] ?? 1));
+    if ($cardNo === '') {
+        throw new Exception('card_no required', 400);
+    }
+    $cardsData = tcgLoadCardsData();
+    $cardMap = tcgBuildCardMap($cardsData);
+    return tcgConvertCardsToSeals($uid, $cardNo, $qty, $cardMap);
+}
+
+function tcgApiStickerBuy(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    tcgEnsureUser($uid, tcgAuthUserProfile($uid));
+    $cardNo = trim((string)($body['card_no'] ?? ''));
+    if ($cardNo === '') {
+        throw new Exception('card_no required', 400);
+    }
+    $cardsData = tcgLoadCardsData();
+    $cardMap = tcgBuildCardMap($cardsData);
+    return tcgStickerBuyCard($uid, $cardNo, $cardMap, $cardsData);
 }
 
 function tcgApiBoosterRates(array $params): array {

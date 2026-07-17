@@ -58,6 +58,8 @@
       "signOut": "Sign out",
       "openBoosters": "Open Boosters",
       "openBoostersSub": "Open card booster packs",
+      "stickerShop": "Sticker Shop",
+      "stickerShopSub": "Trade seals for cards from your packs",
       "deckBuilder": "Deck Builder",
       "deckBuilderSub": "Edit presets and ranked loadout",
       "rankedPvp": "Ranked PvP",
@@ -344,6 +346,17 @@
       "migrationText": "Extra Member/Live copies beyond 4 per card and Energy copies beyond 12 per card were converted into {gems}.",
       "convertedToGems": " · {n} converted to Star Gems",
 
+    },
+    "sticker": {
+      "title": "Sticker Shop",
+      "backHub": "← Hub",
+      "backProducts": "← Products",
+      "hint": "Convert spare gacha cards in Deck Builder to seals, then buy cards here.",
+      "buy": "Buy",
+      "buyOk": "Card purchased",
+      "convertOne": "Convert to seal",
+      "convertOk": "Converted to 1 {tier} seal",
+      "spareCopies": "{n} spare"
     },
     "ranked": {
       "title": "Ranked PvP",
@@ -1120,6 +1133,8 @@
       "signOut": "サインアウト",
       "openBoosters": "ブースターを開封",
       "openBoostersSub": "カードパックを開封",
+      "stickerShop": "シールショップ",
+      "stickerShopSub": "シールで所持パックのカードを交換",
       "deckBuilder": "デッキビルダー",
       "deckBuilderSub": "プリセットとランク用デッキを編集",
       "rankedPvp": "ランクPvP",
@@ -1406,6 +1421,17 @@
       "migrationText": "カード4枚・エネルギー12枚を超える重複は {gems} に変換されました。",
       "convertedToGems": " · {n} をスタージェムに変換",
 
+    },
+    "sticker": {
+      "title": "シールショップ",
+      "backHub": "← ハブ",
+      "backProducts": "← 商品一覧",
+      "hint": "デッキビルダーで余分なガチャカードをシールに変換し、ここでカードを購入できます。",
+      "buy": "購入",
+      "buyOk": "カードを購入しました",
+      "convertOne": "シールに変換",
+      "convertOk": "{tier} シールを1枚獲得",
+      "spareCopies": "余剰 {n} 枚"
     },
     "ranked": {
       "title": "ランクPvP",
@@ -5402,6 +5428,9 @@
     loc.hub.booster = loc.hub.booster || {};
     loc.hub.booster.title = loc.hub.openBoosters;
     loc.hub.booster.sub = loc.hub.openBoostersSub;
+    loc.hub.sticker = loc.hub.sticker || {};
+    loc.hub.sticker.title = loc.hub.stickerShop || 'Sticker Shop';
+    loc.hub.sticker.sub = loc.hub.stickerShopSub || 'Trade seals for cards from your packs';
     loc.hub.deck = loc.hub.deck || {};
     loc.hub.deck.title = loc.hub.deckBuilder;
     loc.hub.deck.sub = loc.hub.deckBuilderSub;
