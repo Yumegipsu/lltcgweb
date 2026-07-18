@@ -15023,7 +15023,7 @@ function renderLeaderboardRows(data) {
       flagImg.className = 'rank-flag';
       flagImg.src = flag.url;
       flagImg.alt = '';
-      flagImg.title = flag.name || '';
+      flagImg.title = profileFlagLocalizedName(flag);
       flagImg.decoding = 'async';
       nameWrap.appendChild(flagImg);
     }
@@ -15398,10 +15398,31 @@ const profileFlagState = {
   loadPromise: null,
 };
 
+const profileFlagRegionNames = new Map();
+
+function profileFlagLocalizedName(flag) {
+  if (!flag) return '';
+  if (flag.id === PROFILE_FLAG_NONE) return t('leaderboard.flagNone');
+  const match = /^([A-Z]{2})_/.exec(String(flag.id || ''));
+  if (match && typeof Intl?.DisplayNames === 'function') {
+    const locale = getLocale();
+    try {
+      let names = profileFlagRegionNames.get(locale);
+      if (!names) {
+        names = new Intl.DisplayNames([locale], { type: 'region' });
+        profileFlagRegionNames.set(locale, names);
+      }
+      const localized = names.of(match[1]);
+      if (localized && localized !== match[1]) return localized;
+    } catch {}
+  }
+  return String(flag.name || flag.id || '');
+}
+
 function profileFlagDisplayName(flagId) {
   if (!flagId || flagId === PROFILE_FLAG_NONE) return t('leaderboard.flagNone');
   const hit = profileFlagState.flags.find(f => f.id === flagId);
-  return hit?.name || flagId;
+  return hit ? profileFlagLocalizedName(hit) : flagId;
 }
 
 async function loadProfileFlagCatalog() {
@@ -15451,11 +15472,17 @@ function renderProfileFlagGrid() {
   if (!grid) return;
   const query = (el('profile-flag-search')?.value || '').trim().toLowerCase();
   grid.replaceChildren();
-  const entries = [{ id: PROFILE_FLAG_NONE, url: '', name: t('leaderboard.flagNone') }, ...profileFlagState.flags];
+  const localizedFlags = [...profileFlagState.flags].sort((a, b) =>
+    profileFlagLocalizedName(a).localeCompare(profileFlagLocalizedName(b), getLocale())
+  );
+  const entries = [
+    { id: PROFILE_FLAG_NONE, url: '', name: t('leaderboard.flagNone') },
+    ...localizedFlags,
+  ];
   for (const flag of entries) {
-    const nameLower = String(flag.name || '').toLowerCase();
-    if (query && !nameLower.includes(query) && flag.id !== PROFILE_FLAG_NONE) continue;
-    if (query && flag.id === PROFILE_FLAG_NONE && !nameLower.includes(query) && query !== 'none' && query !== '없음' && query !== 'なし' && query !== 'ninguna') continue;
+    const localizedName = profileFlagLocalizedName(flag);
+    const searchText = `${localizedName} ${flag.name || ''} ${String(flag.id || '').slice(0, 2)}`.toLowerCase();
+    if (query && !searchText.includes(query)) continue;
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'profile-flag-card' + (flag.id === profileFlagState.selectedId ? ' is-selected' : '');
@@ -15475,7 +15502,7 @@ function renderProfileFlagGrid() {
     }
     const name = document.createElement('div');
     name.className = 'profile-flag-card__name';
-    name.textContent = flag.name;
+    name.textContent = localizedName;
     btn.appendChild(name);
     btn.addEventListener('click', () => {
       profileFlagState.selectedId = flag.id;
