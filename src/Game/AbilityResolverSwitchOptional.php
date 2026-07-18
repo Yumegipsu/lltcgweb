@@ -610,6 +610,8 @@ function tryResolveAbilityEffectSwitchOptional(
                 'responder'     => $pid,
                 'source_id'     => $source['instance_id'] ?? '',
                 'source_name'   => $name,
+                'ability'       => $ab,
+                'ability_index' => $ctx['ability_index'] ?? null,
                 'step'          => 'confirm',
                 'group'         => $group,
                 'filter'        => $filter,

@@ -2359,7 +2359,11 @@ global.renderPrompt = function renderPrompt(s, myId){
       return;
     }
     ovl.classList.remove('open');
-    openWrLivePick(pr);
+    if(pr.step==='pick_success_live'){
+      openSuccessLiveAreaPick(pr, { state:s, myId });
+    }else{
+      openWrLivePick(pr, { state:s, myId });
+    }
     return;
   }
   if(pr?.type==='optional_success_live_swap'&&pr.responder===myId){
