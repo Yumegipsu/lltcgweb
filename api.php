@@ -501,7 +501,8 @@ function handleAction(array $body): array {
         $state = loadGame($roomId);
         if (!$state) throw new Exception('Room not found');
 
-        if (applyPhaseTimeouts($state)) {
+        $phaseTimeoutChanged = applyPhaseTimeouts($state);
+        if ($phaseTimeoutChanged) {
             saveGame($roomId, $state);
         }
         if (applyCoinFlipStalemate($state)) {
@@ -523,14 +524,26 @@ function handleAction(array $body): array {
         if (($state['mode'] ?? '') === 'replay_view') {
             throw new Exception('Replay viewer — use replay controls, not live actions');
         }
+        // A late input that arrives after the third inactivity deadline must not
+        // mutate the finished game. Finalize the ranked result and return the new seq.
+        if ($phaseTimeoutChanged && ($state['status'] ?? '') === 'finished') {
+            maybeApplyRankedFinish($state);
+            saveGame($roomId, $state);
+            return ['ok' => true, 'seq' => $state['seq'], 'finished' => true];
+        }
 
         $prevStatus = $state['status'] ?? '';
+        $prevSeq = intval($state['seq'] ?? 0);
         $state = captureReplayBaselineIfNeeded($state);
         $state = applyAction($state, $playerId, $type, $data);
         // Stale/duplicate resolve_prompt: leave game state untouched (no replay
         // record, no save) so the client just resyncs to the current seq.
         if (!empty($state['_resolve_prompt_noop'])) {
             return ['ok' => true, 'seq' => $state['seq'], 'noop' => true];
+        }
+        if (intval($state['seq'] ?? 0) > $prevSeq
+            && rankedActionShowsPlayerActivity($type)) {
+            resetRankedInactivityTimeouts($state, $playerId);
         }
         // Rule action: never leave a seat with an empty main deck while WR has cards.
         $state = refreshEmptyMainDecks($state);
@@ -3253,6 +3266,19 @@ function getPhaseTimerDuration(array $state): int {
     return getPhaseTimerCfg($state)['duration'];
 }
 
+/** Ranked inactivity clocks shorten only after consecutive timer expiries. */
+function getPhaseTimerDurationForPlayer(array $state, string $pid): int {
+    if (($state['mode'] ?? '') !== 'ranked') {
+        return getPhaseTimerDuration($state);
+    }
+    $timeouts = intval($state['ranked']['inactivity_timeouts'][$pid] ?? 0);
+    return match (true) {
+        $timeouts >= 2 => 15,
+        $timeouts === 1 => 60,
+        default => PHASE_TIMER_MAX,
+    };
+}
+
 function initPhaseTimer(array &$state): void {
     $cfg = getPhaseTimerCfg($state);
     if (!isset($state['phase_timer']) || !is_array($state['phase_timer'])) {
@@ -3260,10 +3286,28 @@ function initPhaseTimer(array &$state): void {
             'enabled' => $cfg['enabled'],
             'duration' => $cfg['duration'],
             'deadlines' => ['p1' => null, 'p2' => null],
+            'durations' => ['p1' => null, 'p2' => null],
+            'window_ids' => ['p1' => null, 'p2' => null],
+            'next_window_id' => 0,
         ];
     } else {
         $state['phase_timer']['enabled'] = $cfg['enabled'];
         $state['phase_timer']['duration'] = $cfg['duration'];
+    }
+    foreach (['deadlines', 'durations', 'window_ids'] as $field) {
+        if (!isset($state['phase_timer'][$field]) || !is_array($state['phase_timer'][$field])) {
+            $state['phase_timer'][$field] = ['p1' => null, 'p2' => null];
+        }
+    }
+    $state['phase_timer']['next_window_id'] = intval($state['phase_timer']['next_window_id'] ?? 0);
+    // Upgrade an already-running timer from an older saved room without resetting it.
+    foreach (['p1', 'p2'] as $pid) {
+        if (!empty($state['phase_timer']['deadlines'][$pid])
+            && empty($state['phase_timer']['window_ids'][$pid])) {
+            $state['phase_timer']['next_window_id']++;
+            $state['phase_timer']['window_ids'][$pid] = $state['phase_timer']['next_window_id'];
+            $state['phase_timer']['durations'][$pid] = getPhaseTimerDurationForPlayer($state, $pid);
+        }
     }
 }
 
@@ -3272,7 +3316,11 @@ function setPhaseDeadline(array &$state, string $pid): void {
         return;
     }
     initPhaseTimer($state);
-    $state['phase_timer']['deadlines'][$pid] = time() + getPhaseTimerDuration($state);
+    $duration = getPhaseTimerDurationForPlayer($state, $pid);
+    $state['phase_timer']['next_window_id']++;
+    $state['phase_timer']['deadlines'][$pid] = time() + $duration;
+    $state['phase_timer']['durations'][$pid] = $duration;
+    $state['phase_timer']['window_ids'][$pid] = $state['phase_timer']['next_window_id'];
 }
 
 function clearPhaseDeadline(array &$state, string $pid): void {
@@ -3281,6 +3329,8 @@ function clearPhaseDeadline(array &$state, string $pid): void {
     }
     if (in_array($pid, ['p1', 'p2'], true)) {
         $state['phase_timer']['deadlines'][$pid] = null;
+        $state['phase_timer']['durations'][$pid] = null;
+        $state['phase_timer']['window_ids'][$pid] = null;
     }
 }
 
@@ -3289,6 +3339,8 @@ function clearAllPhaseDeadlines(array &$state): void {
         return;
     }
     $state['phase_timer']['deadlines'] = ['p1' => null, 'p2' => null];
+    $state['phase_timer']['durations'] = ['p1' => null, 'p2' => null];
+    $state['phase_timer']['window_ids'] = ['p1' => null, 'p2' => null];
 }
 
 function refreshPromptPhaseTimer(array &$state, string $responder): void {
@@ -3432,6 +3484,68 @@ function refreshPvpPhaseTimers(array &$state): void {
     clearAllPhaseDeadlines($state);
 }
 
+/** Non-gameplay messages must not let an inactive ranked player avoid forfeiture. */
+function rankedActionShowsPlayerActivity(string $type): bool {
+    return !in_array($type, ['send_stamp', 'request_rematch', 'resign'], true);
+}
+
+function resetRankedInactivityTimeouts(array &$state, string $pid): void {
+    if (($state['mode'] ?? '') !== 'ranked' || !in_array($pid, ['p1', 'p2'], true)) {
+        return;
+    }
+    $state['ranked']['inactivity_timeouts'][$pid] = 0;
+    unset($state['ranked']['last_timeout_window'][$pid]);
+}
+
+/**
+ * Count one ranked inactivity strike per deadline window.
+ * Returns true when the third consecutive strike has ended the game.
+ */
+function registerRankedInactivityTimeout(array &$state, string $pid): bool {
+    if (($state['mode'] ?? '') !== 'ranked' || !in_array($pid, ['p1', 'p2'], true)) {
+        return false;
+    }
+    initPhaseTimer($state);
+    $windowId = $state['phase_timer']['window_ids'][$pid] ?? null;
+    if ($windowId === null) {
+        $windowId = 'deadline:' . intval($state['phase_timer']['deadlines'][$pid] ?? 0);
+    }
+    if (($state['ranked']['last_timeout_window'][$pid] ?? null) === $windowId) {
+        return false;
+    }
+    $state['ranked']['last_timeout_window'][$pid] = $windowId;
+    $count = intval($state['ranked']['inactivity_timeouts'][$pid] ?? 0) + 1;
+    $state['ranked']['inactivity_timeouts'][$pid] = $count;
+    $name = $state['players'][$pid]['name'] ?? $pid;
+
+    if ($count < 3) {
+        $nextDuration = $count === 1 ? 60 : 15;
+        $state = addLog(
+            $state,
+            "$name — inactivity warning $count/3; next action timer is {$nextDuration}s.",
+            'info'
+        );
+        $state['seq']++;
+        return false;
+    }
+
+    $winner = $pid === 'p1' ? 'p2' : 'p1';
+    unset($state['pending_prompt'], $state['surveil_stash'], $state['_surveil_chain']);
+    $state['status'] = 'finished';
+    $state['winner'] = $winner;
+    $state['end_reason'] = 'resign';
+    $state['resigned_by'] = $pid;
+    $state['ranked']['auto_resigned_for_inactivity'] = $pid;
+    clearAllPhaseDeadlines($state);
+    $winnerName = $state['players'][$winner]['name'] ?? $winner;
+    $state = addLog(
+        $state,
+        "$name was automatically resigned after three consecutive inactivity timeouts. $winnerName wins!"
+    );
+    $state['seq']++;
+    return true;
+}
+
 /** Dismiss an open skill prompt when the phase clock hits zero (skip/no if possible). */
 function dismissPendingPromptBeforePhaseTimeout(array $state, string $pid): array {
     $prompt = $state['pending_prompt'] ?? null;
@@ -3529,6 +3643,9 @@ function applyPhaseTimeouts(array &$state): bool {
     $changed = false;
 
     for ($pass = 0; $pass < 6; $pass++) {
+        if (($state['status'] ?? '') === 'finished') {
+            break;
+        }
         $ph = $state['phase'] ?? '';
         $did = false;
 
@@ -3538,6 +3655,9 @@ function applyPhaseTimeouts(array &$state): bool {
             if (in_array($responder, ['p1', 'p2'], true) && playerUsesPhaseTimer($state, $responder)) {
                 $dl = $state['phase_timer']['deadlines'][$responder] ?? null;
                 if ($dl && $now >= $dl) {
+                    if (registerRankedInactivityTimeout($state, $responder)) {
+                        return true;
+                    }
                     $state = autoResolvePendingPromptForTimeout($state, $responder);
                     if (!empty($state['pending_prompt'])
                         && ($state['pending_prompt']['responder'] ?? '') === $responder) {
@@ -3559,6 +3679,9 @@ function applyPhaseTimeouts(array &$state): bool {
             if (!$ap || !$dl || $now < $dl) {
                 break;
             }
+            if (registerRankedInactivityTimeout($state, $ap)) {
+                return true;
+            }
             $name = $state['players'][$ap]['name'] ?? $ap;
             $state = addLog($state, "$name — Main Phase time expired (auto end).", 'info');
             $state = dismissPendingPromptBeforePhaseTimeout($state, $ap);
@@ -3572,6 +3695,9 @@ function applyPhaseTimeouts(array &$state): bool {
             $dl = $state['phase_timer']['deadlines'][$pid] ?? null;
             if (!$dl || $now < $dl) {
                 break;
+            }
+            if (registerRankedInactivityTimeout($state, $pid)) {
+                return true;
             }
             $name = $state['players'][$pid]['name'] ?? $pid;
             $state = addLog($state, "$name — LIVE Phase time expired (auto lock-in).", 'info');
@@ -3590,6 +3716,9 @@ function applyPhaseTimeouts(array &$state): bool {
             $dl = $state['phase_timer']['deadlines'][$winner] ?? null;
             if (!$dl || $now < $dl) {
                 break;
+            }
+            if (registerRankedInactivityTimeout($state, $winner)) {
+                return true;
             }
             $winnerName = $state['players'][$winner]['name'] ?? $winner;
             $state['first_player'] = $winner;
@@ -3612,6 +3741,9 @@ function applyPhaseTimeouts(array &$state): bool {
                 $dl = $state['phase_timer']['deadlines'][$pid] ?? null;
                 if (!$dl || $now < $dl) {
                     continue;
+                }
+                if (registerRankedInactivityTimeout($state, $pid)) {
+                    return true;
                 }
                 $name = $state['players'][$pid]['name'] ?? $pid;
                 $state = addLog($state, "$name — Mulligan time expired (keeping hand).", 'info');

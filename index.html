@@ -34156,8 +34156,12 @@ function phaseTimerEnabledOnState(s) {
   return !!s?.phase_timer?.enabled;
 }
 
-function statePhaseTimerDuration(s) {
-  const d = Number(s?.phase_timer?.duration ?? s?.phase_timer_cfg?.duration);
+function statePhaseTimerDuration(s, subjectId = null) {
+  const d = Number(
+    (subjectId ? s?.phase_timer?.durations?.[subjectId] : null)
+    ?? s?.phase_timer?.duration
+    ?? s?.phase_timer_cfg?.duration
+  );
   return Number.isFinite(d) && d > 0 ? d : PHASE_TIMER_SEC;
 }
 
@@ -34234,7 +34238,7 @@ function paintPhaseTimer(s, myId) {
     return;
   }
   const deadline = Number(s.phase_timer.deadlines[subjectId]);
-  const duration = statePhaseTimerDuration(s);
+  const duration = statePhaseTimerDuration(s, subjectId);
   const left = Math.max(0, deadline - Date.now() / 1000);
   const ratio = Math.max(0, Math.min(1, left / duration));
   const sec = Math.ceil(left);
