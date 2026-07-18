@@ -2619,8 +2619,20 @@ async function maybePlayFinalLiveRoundPresentation(prev, next, newEntries) {
   if (G._liveSpectacleGateRunning || G._liveRoundPlaybackActive || G._perfSpectacleActive
       || (typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active)) {
     TCG_DEBUG.log('live', 'maybePlayFinalLiveRoundPresentation: wait for in-flight presentation');
-    await waitForLivePresentationIdle();
-    return true;
+    const showTurn = inferLiveShowTurn(prev, next);
+    const settled = await waitForLivePresentationIdle(15000);
+    if (liveSpectacleDoneForTurn(showTurn)) return true;
+    if (!settled) {
+      TCG_DEBUG.warn('live', 'final Live presentation still busy — recovering owed spectacle', {
+        showTurn,
+      });
+      const recovered = typeof abortStuckLiveRoundPlayback === 'function'
+        && abortStuckLiveRoundPlayback('final Live spectacle recovery');
+      if (!recovered && typeof abortGameplayPresentation === 'function') {
+        abortGameplayPresentation({ skipAbortFlag: true });
+      }
+      G._presentationAborted = false;
+    }
   }
   const plan = liveRoundPresentationPlan(prev, next);
   if (!plan.needsLiveReveal && !plan.wantsSpectacle && !plan.wantsEmptyRound) return false;

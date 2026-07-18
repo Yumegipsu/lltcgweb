@@ -732,8 +732,11 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
                 'responder'     => $pid,
                 'source_name'   => $name,
                 'count'         => intval($ab['count'] ?? 4),
+                'prompt'        => 'Live Success — put the top ' . intval($ab['count'] ?? 4) .
+                    ' cards of your deck into the Waiting Room?',
                 'choices'       => ['yes', 'no'],
                 'choice_labels' => ['Yes — Mill ' . intval($ab['count'] ?? 4), 'No — Skip'],
+                'ability'       => $ab,
             ];
             $state = addLog($state, $state['players'][$pid]['name'] . " — [$name] optional mill on Live Success.");
             break;

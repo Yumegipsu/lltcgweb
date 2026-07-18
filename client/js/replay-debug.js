@@ -136,6 +136,10 @@
     if (global.G?._replayAutosavedRoom && global.G._replayAutosavedRoom === creds.roomId) {
       return null;
     }
+    if (global.G?._replayAutosavePendingRoom === creds.roomId) {
+      return null;
+    }
+    if (global.G) G._replayAutosavePendingRoom = creds.roomId;
     try {
       const saved = await global.accountPost('replay_save', {
         room_id: creds.roomId,
@@ -155,6 +159,10 @@
         global.toast(e.message || t('replay.couldNotSave'), 3200);
       }
       return null;
+    } finally {
+      if (global.G?._replayAutosavePendingRoom === creds.roomId) {
+        G._replayAutosavePendingRoom = null;
+      }
     }
   };
 

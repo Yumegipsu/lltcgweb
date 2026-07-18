@@ -136,6 +136,12 @@
     if (G.isSpectator) clearPvPWatchdog();
     if (s.status === 'finished') {
       clearPvPWatchdog();
+      // Persist signed-in players' Recent Matches entry as soon as the finished
+      // server state arrives. Final spectacle or win-overlay presentation must not
+      // be able to prevent replay autosave.
+      if (!G.isSpectator && typeof global.autosaveFinishedReplay === 'function') {
+        void global.autosaveFinishedReplay({ toast: false });
+      }
       // Rematch votes bump seq while both sides stay on finished — sync UI without
       // replaying triumph / re-opening the win flow from scratch.
       if (G.rematchWaiting && G.gameState?.status === 'finished') {
