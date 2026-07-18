@@ -4788,10 +4788,15 @@ function perfFinalizeAttemptOutcomes(attempts, next, pid, prev = null) {
 
 function perfLivePerfSuccessIds(next, pid) {
   const direct = next?.live_perf_success?.[pid];
-  if (direct?.length) return new Set(direct);
+  // An empty array is authoritative too: the player attempted Live, but none
+  // of their Live cards succeeded. Require the matching round result so the
+  // other player's initialized-but-not-yet-resolved [] is not classified early.
+  const directRoundKnown = Object.prototype.hasOwnProperty.call(next?.live_round_success || {}, pid);
+  if (Array.isArray(direct) && (direct.length > 0 || directRoundKnown)) return new Set(direct);
   if (isLiveSetPhase(next?.phase)) return null;
   const snap = next?._live_perf_snapshot?.[pid];
-  if (snap?.length) return new Set(snap);
+  const snapRoundKnown = Object.prototype.hasOwnProperty.call(next?._live_round_success_snapshot || {}, pid);
+  if (Array.isArray(snap) && (snap.length > 0 || snapRoundKnown)) return new Set(snap);
   return null;
 }
 
@@ -4847,7 +4852,7 @@ function bothPlayersClearedLiveThisRound(next) {
 
 function perfSucceededLiveIids(next, pid, beforeZone) {
   const perfOkIds = perfLivePerfSuccessIds(next, pid);
-  if (perfOkIds?.size) return perfOkIds;
+  if (perfOkIds instanceof Set) return perfOkIds;
 
   const beforeLive = (beforeZone || []).filter(c => isLiveTypeCard(c));
   const liveIds = new Set((next.players?.[pid]?.live_zone || []).map(c => c.instance_id));
@@ -4905,7 +4910,9 @@ function perfResolveLiveAttemptCard(perfPrev, next, pid, c) {
 function perfLiveAttempts(prev, next, pid) {
   const perfPrev = buildPerfSpectaclePrev(prev, next);
   const before = perfMergedLiveZone(perfPrev, next, pid);
+  const authoritativeSuccessIds = perfLivePerfSuccessIds(next, pid);
   const succeededIds = perfSucceededLiveIids(next, pid, before);
+  const hasAuthoritativeResults = authoritativeSuccessIds instanceof Set;
   const wrIds = new Set((next.players?.[pid]?.waiting_room || []).map(c => c.instance_id));
   const seen = new Set();
   const attempts = [];
@@ -4933,6 +4940,7 @@ function perfLiveAttempts(prev, next, pid) {
       // Prefer WR, but also treat as fail once results are logged and the card
       // is no longer a living success (covers spectator / deferred WR boards).
       fail: !succeeded && (wrIds.has(iid)
+        || hasAuthoritativeResults
         || (playerHasPerfLogThisRound(next, pid) && !stillInLive && !inSuccessZone)),
     });
   };
