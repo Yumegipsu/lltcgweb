@@ -47,14 +47,15 @@ function tryResolveAbilityEffectSwitchReveal(
             $top = array_splice($p['main_deck'], 0, min($members, count($p['main_deck'])));
             $liveCount = 0;
             foreach ($top as $c) {
-                if (($c['card_type'] ?? '') === 'ライブ') $liveCount++;
+                if (isLiveTypeCard($c)) $liveCount++;
             }
+            $bonus = $liveCount * intval($ab['score_per_live'] ?? 1);
             if ($liveCount > 0) {
-                $bonus = $liveCount * intval($ab['score_per_live'] ?? 1);
                 bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', $bonus);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] revealed $liveCount Live card(s); score +$bonus.");
             }
+            $revealedCount = count($top);
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] revealed $revealedCount card(s), including $liveCount Live card(s); score +$bonus.");
             if (!empty($top)) {
                 $p['waiting_room'] = array_merge($p['waiting_room'], $top);
             }
