@@ -4146,8 +4146,13 @@ body.missions-overlay-open .llc-sky-dim::after{
   display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:10px;
   background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.12);text-align:center
 }
-.sticker-card-tile img.sticker-card-art{
-  width:100%;aspect-ratio:63/88;object-fit:cover;border-radius:6px;background:#111
+.sticker-card-tile .sticker-card-art{
+  position:relative;width:100%;aspect-ratio:63/88;overflow:hidden;
+  border-radius:6px;background:#111;cursor:pointer
+}
+.sticker-card-tile .sticker-card-art > img.card-face-fill,
+.sticker-card-tile .sticker-card-art > .noimg.card-face-fill{
+  width:100%;height:100%;object-fit:cover;border-radius:inherit
 }
 .sticker-card-tile .sticker-card-meta{font-size:11px;color:rgba(255,255,255,.75);line-height:1.3}
 .sticker-card-tile .sticker-card-cost{
@@ -10751,13 +10756,19 @@ function renderStickerCardsGrid(cards) {
     const max = Number(row.max_copies ?? 4);
     const tile = document.createElement('div');
     tile.className = 'sticker-card-tile' + (owned >= max ? ' is-owned-max' : '');
-    const img = document.createElement('img');
-    img.className = 'sticker-card-art';
-    img.alt = card?.name_en || row.card_no;
-    if (!applyCardImageToImg(img, card, () => { img.style.display = 'none'; })) {
-      img.src = card?.image || '';
-    }
-    img.onclick = () => showCatalogCard(card || row.card_no);
+    const art = document.createElement('div');
+    art.className = 'sticker-card-art';
+    art.setAttribute('role', 'button');
+    art.tabIndex = 0;
+    art.setAttribute('aria-label', card?.name_en || row.card_no);
+    appendCardFace(art, card, { sideways: isLiveCard(card), lazy: true });
+    art.onclick = () => showCatalogCard(card || row.card_no);
+    art.onkeydown = event => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        showCatalogCard(card || row.card_no);
+      }
+    };
     const meta = document.createElement('div');
     meta.className = 'sticker-card-meta';
     meta.textContent = (card?.name_en || card?.name || row.card_no) + ' · ' + (card?.rarity || '') + ' · ×' + owned + '/' + max;
@@ -10785,7 +10796,7 @@ function renderStickerCardsGrid(cards) {
         buy.disabled = false;
       }
     };
-    tile.appendChild(img);
+    tile.appendChild(art);
     tile.appendChild(meta);
     tile.appendChild(costEl);
     tile.appendChild(buy);
