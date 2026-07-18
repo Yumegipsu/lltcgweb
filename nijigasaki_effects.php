@@ -1696,9 +1696,9 @@ function nijiOnMemberEntered(array $state, string $pid, array $entered): array {
     $enterCount = $p['members_entered_this_turn'];
     $enteredCost = intval($entered['cost'] ?? 0);
 
-    foreach ($p['stage'] as $mbr) {
+    foreach ($p['stage'] as $slot => $mbr) {
         if (!$mbr) continue;
-        foreach ($mbr['abilities'] ?? [] as $ab) {
+        foreach ($mbr['abilities'] ?? [] as $abilityIdx => $ab) {
             if (($ab['trigger'] ?? '') !== 'auto') continue;
             $type = $ab['type'] ?? '';
             $mName = $mbr['name_en'] ?? $mbr['name'] ?? 'Member';
@@ -1711,7 +1711,14 @@ function nijiOnMemberEntered(array $state, string $pid, array $entered): array {
             if ($type === 'energy_wait_on_stage_cost_enter'
                 && $enteredCost === intval($ab['cost'] ?? 11)
                 && (empty($ab['exclude_self']) || ($mbr['instance_id'] ?? '') !== ($entered['instance_id'] ?? ''))) {
+                if (!empty($ab['once_per_turn'])
+                    && isAbilityUsed($p['stage'][$slot], $abilityIdx)) {
+                    continue;
+                }
                 putEnergyFromDeckInWait($p, $state, $pid);
+                if (!empty($ab['once_per_turn'])) {
+                    markAbilityUsed($p['stage'][$slot], $abilityIdx);
+                }
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$mName] put 1 Energy into Wait (cost {$ab['cost']} entered).");
             }

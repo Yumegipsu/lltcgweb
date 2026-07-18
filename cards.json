@@ -42376,16 +42376,9 @@
         },
         {
           "trigger": "live_success",
-          "type": "optional_discard_prompt",
-          "requires_yell_members": true,
-          "yell_group": "Nijigasaki",
-          "yell_filter": "member",
-          "prompt": "Add 1 Nijigasaki Member revealed for Yell to your hand?",
-          "then": {
-            "type": "pick_yell_member",
-            "group": "Nijigasaki",
-            "filter": "member"
-          }
+          "type": "pick_yell_member",
+          "group": "Nijigasaki",
+          "filter": "member"
         }
       ],
       "text_es": "[Automático] [Una vez por turno] Cuando otro Miembro con costo 11 entra en tu Escenario, coloca 1 Energía de tu mazo de Energía en Wait.\n[Éxito de Live] Añade 1 carta de Miembro de Nijigasaki revelada para Yell a tu mano.",
@@ -42432,16 +42425,9 @@
         },
         {
           "trigger": "live_success",
-          "type": "optional_discard_prompt",
-          "requires_yell_members": true,
-          "yell_group": "Nijigasaki",
-          "yell_filter": "member",
-          "prompt": "Add 1 Nijigasaki Member revealed for Yell to your hand?",
-          "then": {
-            "type": "pick_yell_member",
-            "group": "Nijigasaki",
-            "filter": "member"
-          }
+          "type": "pick_yell_member",
+          "group": "Nijigasaki",
+          "filter": "member"
         }
       ],
       "text_es": "[Automático] [Una vez por turno] Cuando otro Miembro con costo 11 entra en tu Escenario, coloca 1 Energía de tu mazo de Energía en Wait.\n[Éxito de Live] Añade 1 carta de Miembro de Nijigasaki revelada para Yell a tu mano.",
