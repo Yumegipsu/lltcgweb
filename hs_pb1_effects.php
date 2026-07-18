@@ -730,6 +730,7 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
                 'type'          => 'live_success_optional_mill_if_subunit',
                 'owner'         => $pid,
                 'responder'     => $pid,
+                'source_id'     => $source['instance_id'] ?? '',
                 'source_name'   => $name,
                 'count'         => intval($ab['count'] ?? 4),
                 'prompt'        => 'Live Success — put the top ' . intval($ab['count'] ?? 4) .
