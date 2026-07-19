@@ -8,6 +8,16 @@ use PHPUnit\Framework\TestCase;
 
 final class ShiorikoBp4010SwapTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true;
+    }
+
+    protected function tearDown(): void
+    {
+        unset($GLOBALS['TUT_PERF_MANUAL_PHASES']);
+    }
+
     private function cardByNo(string $cardNo, string $instanceId): array
     {
         $data = json_decode((string)file_get_contents((string)constant('CARDS_FILE')), true);
@@ -44,6 +54,7 @@ final class ShiorikoBp4010SwapTest extends TestCase
             'turn' => 2,
             'first_player' => 'p1',
             'active_player' => 'p1',
+            'live_attempt' => ['p1'],
             'log' => [],
             'players' => [
                 'p1' => [
@@ -74,7 +85,7 @@ final class ShiorikoBp4010SwapTest extends TestCase
 
     public function testSwapKeepsSourceContextAndUsesEachCorrectZone(): void
     {
-        $shioriko = $this->cardByNo('PL!N-bp4-010-P', 'shioriko_bp4_010');
+        $shioriko = $this->cardByNo('PL!N-bp4-010-R＋', 'shioriko_bp4_010');
         $state = $this->baseState($shioriko);
 
         $state = \resolveOnEnterAbilities($state, 'p1', $shioriko, 'center');
@@ -99,11 +110,33 @@ final class ShiorikoBp4010SwapTest extends TestCase
         $this->assertSame(['success_live'], array_column($state['players']['p1']['waiting_room'], 'instance_id'));
     }
 
-    public function testClientRoutesSuccessStepToSuccessLivePicker(): void
+    public function testRPlusLiveStartChoosesFromCurrentLiveAndGrantsHearts(): void
+    {
+        $shioriko = $this->cardByNo('PL!N-bp4-010-R＋', 'shioriko_bp4_010_live_start');
+        $live = $this->live('current_live', 'Matching Live');
+        $state = $this->baseState($shioriko);
+        $state['phase'] = 'live_start_effects';
+        $state['players']['p1']['live_zone'] = [$live];
+        $state['players']['p1']['success_lives'] = [$this->live('matched_success', 'Matching Live')];
+
+        $state = \resolveLiveStartAbilities($state, 'p1');
+
+        $this->assertSame('pick_live_match_success_heart', $state['pending_prompt']['type'] ?? null);
+        $this->assertSame(['current_live'], array_column($state['pending_prompt']['candidates'] ?? [], 'instance_id'));
+        $state = \actionResolvePrompt($state, 'p1', ['card_id' => 'current_live']);
+        $this->assertNull($state['pending_prompt'] ?? null);
+        $this->assertSame(['purple', 'purple', 'purple', 'purple'], \getBonusHeartsFlat($state, 'p1'));
+    }
+
+    public function testClientRoutesEachShiorikoStepToCorrectZonePicker(): void
     {
         $renderer = (string)file_get_contents(dirname(__DIR__, 2) . '/client/js/prompt-renderer.js');
         $this->assertMatchesRegularExpression(
             "/pr\\.step==='pick_success_live'[\\s\\S]*openSuccessLiveAreaPick\\(pr/",
+            $renderer
+        );
+        $this->assertMatchesRegularExpression(
+            "/pr\\?\\.type==='pick_live_match_success_heart'[\\s\\S]*openLiveZonePick\\(pr/",
             $renderer
         );
     }
