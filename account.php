@@ -1430,19 +1430,24 @@ function tcgPublicFindCasualMatchForUser(string $discordId): ?array {
     if (!function_exists('tcgIsActiveGameplayStatus')) {
         require_once __DIR__ . '/spectate.php';
     }
-    $files = glob(GAMES_DIR . '*.json') ?: [];
-    foreach ($files as $file) {
-        $base = basename($file);
-        if (str_starts_with($base, 'lock_')
-            || str_starts_with($base, 'presence_')
-            || str_starts_with($base, 'spectators_')) {
-            continue;
-        }
-        $roomId = pathinfo($base, PATHINFO_FILENAME);
+    // Only inspect rooms tracked by casual matchmaking. Scanning every games/*.json
+    // made public_profile take 15–30s and caused Discord /loveca profile to time out
+    // (bot HTTP budget ~12s) for every account — including non-leaderboard players.
+    $db = tcgDb();
+    $stmt = $db->query(
+        'SELECT DISTINCT room_id FROM tcg_casual_matches ORDER BY created_at DESC LIMIT 40'
+    );
+    $roomIds = $stmt ? ($stmt->fetchAll(PDO::FETCH_COLUMN) ?: []) : [];
+    foreach ($roomIds as $roomIdRaw) {
+        $roomId = preg_replace('/[^A-Z0-9]/', '', strtoupper((string)$roomIdRaw));
         if ($roomId === '') {
             continue;
         }
-        $raw = @file_get_contents($file);
+        $path = GAMES_DIR . $roomId . '.json';
+        if (!is_file($path)) {
+            continue;
+        }
+        $raw = @file_get_contents($path);
         if ($raw === false) {
             continue;
         }
