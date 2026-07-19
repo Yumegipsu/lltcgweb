@@ -2130,6 +2130,9 @@ function collectContinuousPerformanceHeartGrants(array $state, string $pid): arr
                 }
             }
         }
+        foreach (hsPb1ApplyContinuousPurpleHeart($member, $state, $pid) as $color) {
+            $memberHearts[] = normalizeHeartColor((string)$color);
+        }
         if (empty($memberHearts)) {
             continue;
         }

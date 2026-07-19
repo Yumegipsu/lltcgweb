@@ -2187,9 +2187,6 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
             foreach (memberPerformanceHeartsFlat($member) as $color) {
                 $ownedHearts[] = $color;
             }
-            foreach (hsPb1ApplyContinuousPurpleHeart($member, $state, $pid) as $color) {
-                $ownedHearts[] = normalizeHeartColor((string)$color);
-            }
         }
     }
     $ownedHearts = array_merge($ownedHearts, $yellHearts);
@@ -2914,9 +2911,6 @@ function collectStageHeartPoolForYellResolve(array $state, string $pid): array {
         }
         foreach (memberPerformanceHeartsFlat($member) as $color) {
             $pool[] = $color;
-        }
-        foreach (hsPb1ApplyContinuousPurpleHeart($member, $state, $pid) as $color) {
-            $pool[] = normalizeHeartColor((string)$color);
         }
     }
     // Match final owned-heart assembly so ALL assignment sees the same colors
