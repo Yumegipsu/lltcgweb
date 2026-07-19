@@ -1960,6 +1960,21 @@ global.renderPrompt = function renderPrompt(s, myId){
     openWrMembersDeckTopPick(pr);
     return;
   }
+  if(pr?.responder===myId
+      && (pr.type==='optional_discard_mill_add_wr_subunit_live'
+        || pr.type==='both_shuffle_wr_members_deck_bottom_threshold'
+        || pr.type==='optional_discard_add_cb_member_hs_live')
+      && pr.step==='pick_wr_live'){
+    ovl.classList.remove('open');
+    openWrLivePick(pr, { state:s, myId });
+    return;
+  }
+  if(pr?.type==='optional_discard_add_cb_member_hs_live'
+      && pr.responder===myId&&pr.step==='pick_wr_member'){
+    ovl.classList.remove('open');
+    openActivateWrMemberPick(pr, { state:s, myId });
+    return;
+  }
   if(pr?.type==='pick_live_match_success_heart'&&pr.responder===myId){
     ovl.classList.remove('open');
     openLiveZonePick(pr, { state:s, myId });

@@ -153,6 +153,34 @@ function hsPb1MemberEffectiveBladeCount(array $member): int {
     return intval($member['blade'] ?? 0) + intval($member['live_blade_bonus'] ?? 0);
 }
 
+function hsPb1WrCandidates(array $player, string $filter, string $group = '', string $subunit = ''): array {
+    return array_values(array_filter(
+        $player['waiting_room'] ?? [],
+        static function (array $card) use ($filter, $group, $subunit): bool {
+            if ($filter === 'live' && !isLiveTypeCard($card)) return false;
+            if ($filter === 'member' && !isMemberCard($card)) return false;
+            if ($group !== '' && ($card['group'] ?? '') !== $group) return false;
+            if ($subunit !== '' && !cardMatchesSubunit($card, $subunit)) return false;
+            return true;
+        }
+    ));
+}
+
+function hsPb1MoveChosenWrCardToHand(array &$player, array $prompt, array $data): array {
+    $cardId = $data['card_id'] ?? '';
+    $candidateIds = array_column($prompt['candidates'] ?? [], 'instance_id');
+    if ($cardId === '' || !in_array($cardId, $candidateIds, true)) {
+        throw new Exception('Choose a valid Waiting Room card');
+    }
+    foreach ($player['waiting_room'] as $index => $card) {
+        if (($card['instance_id'] ?? '') !== $cardId) continue;
+        array_splice($player['waiting_room'], $index, 1);
+        $player['hand'][] = $card;
+        return $card;
+    }
+    throw new Exception('Chosen card is no longer in the Waiting Room');
+}
+
 function hsPb1StageExactOppMinMet(array $state, string $pid, array $ab): bool {
     $p = $state['players'][$pid];
     $opp = ($pid === 'p1') ? 'p2' : 'p1';
@@ -370,6 +398,7 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
                 'type'          => 'optional_discard_mill_add_wr_subunit_live',
                 'owner'         => $pid,
                 'responder'     => $pid,
+                'source_id'     => $source['instance_id'] ?? '',
                 'source_name'   => $name,
                 'ability'       => $ab,
                 'choices'       => ['yes', 'no'],
@@ -543,14 +572,19 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
             $state = addLog($state, $state['players'][$pid]['name'] .
                 " — [$name] both players shuffled WR Members to deck bottom ($total total).");
             if ($total >= intval($ab['threshold'] ?? 20)) {
-                $added = addFromWaitingRoomFiltered($p, '', 'live', 1);
-                if ($added > 0) {
-                    $state = applyModifierEffect($state, $pid, [
-                        'type'   => 'blade_bonus',
-                        'amount' => intval($ab['then_blade'] ?? 1),
-                    ]);
-                    $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] added Live from WR; gained +" . intval($ab['then_blade'] ?? 1) . ' Blade.');
+                $candidates = hsPb1WrCandidates($p, 'live');
+                if (!empty($candidates)) {
+                    $state['pending_prompt'] = [
+                        'type'          => 'both_shuffle_wr_members_deck_bottom_threshold',
+                        'step'          => 'pick_wr_live',
+                        'owner'         => $pid,
+                        'responder'     => $pid,
+                        'source_id'     => $source['instance_id'] ?? '',
+                        'source_name'   => $name,
+                        'ability'       => $ab,
+                        'candidates'    => array_map('cardPromptSummary', $candidates),
+                        'prompt'        => 'Choose 1 Live card from your Waiting Room to add to your hand.',
+                    ];
                 }
             }
             break;
@@ -643,7 +677,9 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
                 'type'          => 'optional_discard_add_cb_member_hs_live',
                 'owner'         => $pid,
                 'responder'     => $pid,
+                'source_id'     => $source['instance_id'] ?? '',
                 'source_name'   => $name,
+                'ability'       => $ab,
                 'discard'       => intval($ab['discard'] ?? 2),
                 'choices'       => ['yes', 'no'],
                 'choice_labels' => ['Yes', 'No — Skip'],
@@ -902,6 +938,15 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
     }
 
     if ($promptType === 'optional_discard_mill_add_wr_subunit_live') {
+        if (($prompt['step'] ?? '') === 'pick_wr_live') {
+            $picked = hsPb1MoveChosenWrCardToHand($ownerP, $prompt, $data);
+            $state = addLog($state, $state['players'][$owner]['name'] . ' — [' .
+                ($prompt['source_name'] ?? 'Member') . '] added ' .
+                ($picked['name_en'] ?? $picked['name'] ?? 'Live') . ' from the Waiting Room.');
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return $state;
+        }
         if ($choice === 'yes') {
             $need = intval($prompt['ability']['discard'] ?? 1);
             $ids = $data['discard_ids'] ?? [];
@@ -910,14 +955,22 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
             $mill = intval($prompt['ability']['mill'] ?? 3);
             $milled = array_splice($ownerP['main_deck'], 0, min($mill, count($ownerP['main_deck'])));
             $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $milled);
-            addFromWaitingRoomFiltered(
+            $candidates = hsPb1WrCandidates(
                 $ownerP,
-                '',
                 'live',
-                1,
-                null,
-                ['subunit' => $prompt['ability']['subunit'] ?? '']
+                '',
+                $prompt['ability']['subunit'] ?? ''
             );
+            if (!empty($candidates)) {
+                $state['pending_prompt'] = array_merge($prompt, [
+                    'step'       => 'pick_wr_live',
+                    'choices'    => [],
+                    'candidates' => array_map('cardPromptSummary', $candidates),
+                    'prompt'     => 'Choose 1 matching Live card from your Waiting Room to add to your hand.',
+                ]);
+                $state['seq']++;
+                return $state;
+            }
         }
         unset($state['pending_prompt']);
         $state['seq']++;
@@ -1000,14 +1053,77 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
         return $state;
     }
 
+    if ($promptType === 'both_shuffle_wr_members_deck_bottom_threshold') {
+        if (($prompt['step'] ?? '') !== 'pick_wr_live') {
+            throw new Exception('Invalid Waiting Room pick step');
+        }
+        $picked = hsPb1MoveChosenWrCardToHand($ownerP, $prompt, $data);
+        $blade = intval($prompt['ability']['then_blade'] ?? 1);
+        $state = applyModifierEffect($state, $owner, [
+            'type'   => 'blade_bonus',
+            'amount' => $blade,
+        ]);
+        $state = addLog($state, $state['players'][$owner]['name'] . ' — [' .
+            ($prompt['source_name'] ?? 'Member') . '] added ' .
+            ($picked['name_en'] ?? $picked['name'] ?? 'Live') .
+            " from the Waiting Room; gained +$blade Blade.");
+        unset($state['pending_prompt']);
+        $state['seq']++;
+        return $state;
+    }
+
     if ($promptType === 'optional_discard_add_cb_member_hs_live') {
+        $step = $prompt['step'] ?? 'confirm';
+        if ($step === 'pick_wr_member') {
+            hsPb1MoveChosenWrCardToHand($ownerP, $prompt, $data);
+            $candidates = hsPb1WrCandidates($ownerP, 'live', 'Hasunosora');
+            if (!empty($candidates)) {
+                $state['pending_prompt'] = array_merge($prompt, [
+                    'step'       => 'pick_wr_live',
+                    'choices'    => [],
+                    'candidates' => array_map('cardPromptSummary', $candidates),
+                    'prompt'     => 'Choose 1 Hasunosora Live card from your Waiting Room to add to your hand.',
+                ]);
+                $state['seq']++;
+                return $state;
+            }
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return $state;
+        }
+        if ($step === 'pick_wr_live') {
+            hsPb1MoveChosenWrCardToHand($ownerP, $prompt, $data);
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return $state;
+        }
         if ($choice === 'yes') {
             $need = intval($prompt['discard'] ?? 2);
             $ids = $data['discard_ids'] ?? [];
             if (count($ids) !== $need) throw new Exception("Discard exactly $need cards");
             discardFromHandByIds($ownerP, $ids, $state, $owner);
-            addFromWaitingRoomFiltered($ownerP, '', 'member', 1, null, ['subunit' => 'スリーズブーケ']);
-            addFromWaitingRoomFiltered($ownerP, 'Hasunosora', 'live', 1);
+            $members = hsPb1WrCandidates($ownerP, 'member', '', 'スリーズブーケ');
+            $lives = hsPb1WrCandidates($ownerP, 'live', 'Hasunosora');
+            if (!empty($members)) {
+                $state['pending_prompt'] = array_merge($prompt, [
+                    'step'       => 'pick_wr_member',
+                    'choices'    => [],
+                    'candidates' => array_map('cardPromptSummary', $members),
+                    'prompt'     => 'Choose 1 Cerise Bouquet Member from your Waiting Room to add to your hand.',
+                ]);
+                $state['seq']++;
+                return $state;
+            }
+            if (!empty($lives)) {
+                $state['pending_prompt'] = array_merge($prompt, [
+                    'step'       => 'pick_wr_live',
+                    'choices'    => [],
+                    'candidates' => array_map('cardPromptSummary', $lives),
+                    'prompt'     => 'Choose 1 Hasunosora Live card from your Waiting Room to add to your hand.',
+                ]);
+                $state['seq']++;
+                return $state;
+            }
         }
         unset($state['pending_prompt']);
         $state['seq']++;
