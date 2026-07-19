@@ -2839,11 +2839,13 @@ function waitOpponentStageByCost(
 }
 
 function memberBladeIconCount(array $member): int {
-    $bh = $member['blade_hearts'] ?? [];
-    if (!empty($bh)) {
-        return count($bh);
+    // `blade` is the card's printed Blade count. `blade_hearts` only records
+    // which heart color each Blade produces and must not be used as the count.
+    if (array_key_exists('blade', $member)) {
+        return intval($member['blade']);
     }
-    return intval($member['blade'] ?? 0) > 0 ? 1 : 0;
+    // Compatibility for legacy/compact card snapshots that omitted `blade`.
+    return count($member['blade_hearts'] ?? []);
 }
 
 function findMemberSlot(array $p, string $instanceId): string {
