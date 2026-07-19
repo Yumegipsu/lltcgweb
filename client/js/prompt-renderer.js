@@ -454,6 +454,40 @@ global.openSuccessLiveAreaPick = function openSuccessLiveAreaPick(pr, opts = {})
 }
 
 
+global.openLiveZonePick = function openLiveZonePick(pr, opts = {}) {
+  const s = opts.state || G.gameState;
+  const myId = opts.myId || G.playerId;
+  const pool = s?.players?.[myId]?.live_zone || [];
+  const byId = new Map(pool.map(c => [c.instance_id, c]));
+  const cards = (pr.candidates || []).map(c => {
+    const full = byId.get(c.instance_id);
+    return full ? { ...c, ...full } : c;
+  }).filter(c => c.instance_id);
+  if (!cards.length) {
+    toast('No cards in your Live', 3200);
+    return;
+  }
+  el('pick-ttl').textContent = pr.source_name || 'Choose Live';
+  el('pick-msg').textContent = pr.prompt || 'Choose 1 Live card in your Live.';
+  const g = el('pick-grid');
+  g.innerHTML = '';
+  G.pickCtx = null;
+  const btnOk = el('btn-pick-ok');
+  const btnCancel = el('btn-pick-cancel');
+  if (btnOk) btnOk.style.display = 'none';
+  if (btnCancel) btnCancel.style.display = 'none';
+  cards.forEach(card => {
+    g.appendChild(mkPickCardEl(card, 'pickcard', () => {
+      closeM('overlay-pick');
+      G.pickCtx = null;
+      sendAct('resolve_prompt', { card_id: card.instance_id });
+    }));
+  });
+  el('pick-count').textContent = '';
+  openM('overlay-pick');
+}
+
+
 global.openWrLivePick = function openWrLivePick(pr, opts = {}){
   openWrToHandPick(pr, opts);
 }
@@ -1928,7 +1962,7 @@ global.renderPrompt = function renderPrompt(s, myId){
   }
   if(pr?.type==='pick_live_match_success_heart'&&pr.responder===myId){
     ovl.classList.remove('open');
-    openWrLivePick(pr);
+    openLiveZonePick(pr, { state:s, myId });
     return;
   }
   if(pr?.type==='ssd1_play_wr_empty'&&pr.step==='pick_slot'&&pr.responder===myId){
