@@ -2720,7 +2720,7 @@ function resolveAutomaticOpponentWaitEffects(array $state, string $sourcePid, ar
             if ($cost > intval($ab['max_opp_cost'] ?? 4)) continue;
             markAbilityUsed($member, $idx);
             $p['stage'][$slot] = $member;
-            $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
+            $drawn = drawCardsForPlayer($state, $sourcePid, intval($ab['draw'] ?? 1));
             $state = addLog($state, $state['players'][$sourcePid]['name'] .
                 ' — [' . ($member['name_en'] ?? $member['name']) . "] drew $drawn (opponent active Member put into Wait by your effect).");
             return $state;

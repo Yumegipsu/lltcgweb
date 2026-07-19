@@ -421,6 +421,18 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
             $slot = $prompt['candidates'][0]['slot'] ?? '';
             return $slot !== '' ? ['slot' => $slot] : ['choice' => 'skip'];
 
+        case 'opp_pick_stage_active':
+            foreach ($prompt['stage_members'] ?? [] as $candidate) {
+                $id = $candidate['instance_id'] ?? '';
+                if ($id === '') continue;
+                $slot = findMemberSlot($state['players'][$pid] ?? [], $id);
+                $member = $slot !== '' ? ($state['players'][$pid]['stage'][$slot] ?? null) : null;
+                if ($member && ($member['active'] ?? true) && !memberIsInWait($member)) {
+                    return ['member_id' => $id];
+                }
+            }
+            return ['choice' => 'confirm'];
+
         default:
             if (!isMandatorySkillPrompt($prompt)) {
                 $choices = $prompt['choices'] ?? [];
@@ -503,6 +515,15 @@ function actionAntiSoftlockSkipPrompt(array $state, string $pid): array {
     }
     $isCpu = playerLooksLikeCpu($state['players'][$pid] ?? []);
     $dismissLabel = $isCpu ? 'CPU hung on skill; auto-skipped' : 'Anti-softlock';
+    if (($prompt['type'] ?? '') === 'opp_pick_stage_active') {
+        try {
+            $data = buildTimeoutPromptResolution($state, $pid, $prompt);
+            if (!empty($data['member_id'])) {
+                return actionResolvePrompt($state, $pid, $data);
+            }
+        } catch (Throwable $ignored) {
+        }
+    }
     if (in_array($prompt['type'] ?? '', ['pick_wr_to_hand', 'pick_wr_leave_stage_add'], true)) {
         foreach ($prompt['candidates'] ?? [] as $cand) {
             $id = $cand['instance_id'] ?? '';
