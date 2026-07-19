@@ -648,12 +648,12 @@ global.openPickMemberReturnEnergy = function openPickMemberReturnEnergy(pr){
   openM('overlay-pick');
 }
 
-global.openHandPick = function openHandPick({hand,count,title,msg,onConfirm,onCancel,min,allowCancel=true,confirmLabel,forceConfirm=false}){
+global.openHandPick = function openHandPick({hand,count,title,msg,onConfirm,onCancel,min,allowCancel=true,confirmLabel,forceConfirm=false,promptKey=null}){
   if (global.G?.isSpectator || (typeof global.isReplayViewing === 'function' && global.isReplayViewing())) return;
   const need=count;
   const minPick=min??count;
   const singleTap=!forceConfirm&&need===1&&minPick===1;
-  G.handPickCtx={count:need,min:minPick,singleTap,onConfirm,onCancel};
+  G.handPickCtx={count:need,min:minPick,singleTap,onConfirm,onCancel,promptKey};
   G.pickMarked.clear();
   el('hpick-ttl').textContent=title||t('prompt.chooseFromHand');
   el('hpick-msg').textContent=localizeSubunitText(msg||(singleTap
@@ -1742,6 +1742,21 @@ global.renderPrompt = function renderPrompt(s, myId){
     if (pr.type === 'effect_discard_hand') closeM('overlay-hand-pick');
     return;
   }
+  const incomingPromptKey = pr ? promptIdentityKey(s) : null;
+  const openHandPromptKey = G.handPickCtx?.promptKey || null;
+  if (openHandPromptKey && el('overlay-hand-pick')?.classList.contains('open')) {
+    if (incomingPromptKey === openHandPromptKey) {
+      // A poll re-rendered the same prompt while its card picker was open.
+      // Preserve the picker and selection instead of stacking the branch dialog over it.
+      ovl?.classList.remove('open');
+      return;
+    }
+    // The server advanced to a genuinely different prompt. Drop only the stale
+    // client picker; never invoke its Cancel callback as a gameplay decision.
+    closeM('overlay-hand-pick');
+    G.handPickCtx = null;
+    G.pickMarked.clear();
+  }
   if(pr?.type==='surveil_arrange'&&pr.responder===myId){
     renderPromptSurveilBranch(s, myId, pr);
     return;
@@ -2101,13 +2116,18 @@ global.renderPrompt = function renderPrompt(s, myId){
           hand: yellPool.map(enrichCard),
           count: max,
           min: 1,
+          promptKey: promptIdentityKey(s),
           title: pr.source_name || 'Yell mill',
           msg: pr.prompt || `Choose up to ${max} Yell card(s) to mill.`,
           onConfirm: (ids) => {
-            if (!ids.length) sendAct('resolve_prompt', { choice: 'no' });
-            else sendAct('resolve_prompt', { choice: 'yes', card_ids: ids });
+            if (ids.length) sendAct('resolve_prompt', { choice: 'yes', card_ids: ids });
           },
-          onCancel: () => sendAct('resolve_prompt', { choice: 'no' }),
+          // Cancel only returns to Kurage's explicit Yes/No branch. It must not
+          // make the irreversible "No — Skip" choice on the player's behalf.
+          onCancel: () => {
+            G._promptSubmitKey = null;
+            if (G.gameState) renderPrompt(G.gameState, myId);
+          },
           forceConfirm: true,
         });
       };
