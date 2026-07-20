@@ -3994,16 +3994,45 @@ function fizzleActivatedAbilityNoWr(array $state, string $pid, array $member, st
     return $state;
 }
 
-function takeWrMemberToStageSlot(array &$p, array $cfg, string $slot): ?array {
+function takeWrMemberToStageSlot(array &$p, array $cfg, string $slot, string $preferInstanceId = ''): ?array {
+    $pickIdx = null;
+    $pickCard = null;
     foreach ($p['waiting_room'] as $i => $c) {
-        if (!cardMatchesWrPick($c, array_merge($cfg, ['filter' => 'member']))) continue;
-        $member = $c;
-        array_splice($p['waiting_room'], $i, 1);
-        $member['active'] = false;
-        $p['stage'][$slot] = $member;
-        return $member;
+        if (!cardMatchesWrPick($c, array_merge($cfg, ['filter' => 'member']))) {
+            continue;
+        }
+        if ($preferInstanceId !== '' && ($c['instance_id'] ?? '') !== $preferInstanceId) {
+            continue;
+        }
+        $pickIdx = $i;
+        $pickCard = $c;
+        break;
     }
-    return null;
+    // If a preferred id was requested but missing/invalid, do not silently take another card.
+    if ($preferInstanceId !== '' && $pickCard === null) {
+        return null;
+    }
+    if ($pickCard === null) {
+        foreach ($p['waiting_room'] as $i => $c) {
+            if (!cardMatchesWrPick($c, array_merge($cfg, ['filter' => 'member']))) {
+                continue;
+            }
+            $pickIdx = $i;
+            $pickCard = $c;
+            break;
+        }
+    }
+    if ($pickCard === null || $pickIdx === null) {
+        return null;
+    }
+    $member = $pickCard;
+    array_splice($p['waiting_room'], $pickIdx, 1);
+    mergeCardCatalogFields($member);
+    // Appearing via skill is not Wait — Active so printed Blades count for Yell.
+    $member['active'] = true;
+    $member['entered_turn'] = intval($member['entered_turn'] ?? 0);
+    $p['stage'][$slot] = $member;
+    return $member;
 }
 
 function autoDiscardFromHand(array &$p, int $count): int {

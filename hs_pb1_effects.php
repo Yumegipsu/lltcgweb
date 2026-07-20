@@ -859,6 +859,66 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
     $promptType = $prompt['type'] ?? '';
     $ownerP = &$state['players'][$owner];
 
+    // Sayaka (PL!HS-bp1-002): pay → leave Stage → play chosen Hasunosora Member from WR (Active).
+    if ($promptType === 'hs_leave_play_wr_slot') {
+        $slot = $prompt['source_slot'] ?? '';
+        $ability = $prompt['ability'] ?? [];
+        $cfg = $prompt['wr_pick_cfg'] ?? [
+            'filter'   => 'member',
+            'group'    => $ability['group'] ?? 'Hasunosora',
+            'max_cost' => intval($ability['max_cost'] ?? 15),
+        ];
+        $cardId = trim((string)($data['card_id'] ?? $data['wr_card_id'] ?? $choice));
+        if ($cardId === '' || in_array($cardId, ['yes', 'no'], true)) {
+            throw new Exception('Choose a Member from your Waiting Room');
+        }
+        if ($slot === '' || empty($ownerP['stage'][$slot])) {
+            throw new Exception('Member no longer on Stage');
+        }
+        $sourceId = (string)($prompt['source_id'] ?? '');
+        $leaving = $ownerP['stage'][$slot];
+        if ($sourceId !== '' && ($leaving['instance_id'] ?? '') !== $sourceId) {
+            throw new Exception('Source Member no longer on Stage');
+        }
+        $played = null;
+        foreach ($ownerP['waiting_room'] as $i => $c) {
+            if (($c['instance_id'] ?? '') !== $cardId) {
+                continue;
+            }
+            if (!cardMatchesWrPick($c, $cfg)) {
+                throw new Exception('Invalid Waiting Room card');
+            }
+            $played = $c;
+            array_splice($ownerP['waiting_room'], $i, 1);
+            break;
+        }
+        if (!$played) {
+            throw new Exception('Invalid Waiting Room card');
+        }
+        // Energy was prepaid on activate for Sayaka.
+        if (empty($prompt['cost_prepaid'])) {
+            $cost = intval($ability['cost'] ?? 2);
+            if ($cost > 0 && !payEnergyCost($ownerP, $cost)) {
+                throw new Exception("Need $cost active Energy");
+            }
+        }
+        $ownerP['stage'][$slot] = null;
+        $ownerP['waiting_room'][] = $leaving;
+        $state = resolveOnLeaveStageAbilities($state, $owner, $leaving);
+        mergeCardCatalogFields($played);
+        $played['active'] = true;
+        $played['entered_turn'] = intval($state['turn'] ?? 1);
+        $ownerP['stage'][$slot] = $played;
+        unset($state['pending_prompt']);
+        notifyMemberEnteredStage($state, $owner, $played);
+        $state = resolveOnEnterAbilities($state, $owner, $played, $slot);
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($leaving['name_en'] ?? $leaving['name'] ?? 'Member') . '] left Stage; played ' .
+            cardDisplayName($played) . ' from Waiting Room.');
+        $state['seq']++;
+        return $state;
+    }
+
     if ($promptType === 'auto_subunit_enter_pay_activate_energy') {
         if ($choice === 'yes') {
             $ab = $prompt['ability'] ?? [];

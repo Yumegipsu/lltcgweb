@@ -634,15 +634,53 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             throw new Exception("Need $cost active Energy");
         }
         $cfg = [
+            'filter'   => 'member',
             'group'    => $ab['group'] ?? '',
             'max_cost' => intval($ab['max_cost'] ?? 99),
         ];
+        $preferId = trim((string)($data['wr_card_id'] ?? $data['target_id'] ?? ''));
+        $eligible = wrCandidatesMatching($p, $cfg);
+        if (empty($eligible)) {
+            throw new Exception('No matching Member in Waiting Room');
+        }
+        // Multiple WR targets: open a pick prompt (energy already paid).
+        if ($preferId === '' && count($eligible) > 1) {
+            $state['pending_prompt'] = [
+                'type'          => 'hs_leave_play_wr_slot',
+                'step'          => 'pick',
+                'owner'         => $pid,
+                'responder'     => $pid,
+                'source_id'     => $member['instance_id'] ?? '',
+                'source_slot'   => $slot,
+                'source_name'   => $member['name_en'] ?? $member['name'] ?? 'Member',
+                'ability'       => $ab,
+                'ability_index' => $abilityIdx,
+                'cost_prepaid'  => true,
+                'candidates'    => array_map('cardPromptSummary', $eligible),
+                'wr_pick_cfg'   => $cfg,
+                'prompt'        => 'Choose 1 '
+                    . (($ab['group'] ?? '') !== '' ? ($ab['group'] . ' ') : '')
+                    . 'Member (cost ' . intval($ab['max_cost'] ?? 15)
+                    . ' or less) from your Waiting Room to play to this area.',
+            ];
+            $p['stage'][$slot] = $member;
+            $state['seq']++;
+            return $state;
+        }
+        if ($preferId === '' && count($eligible) === 1) {
+            $preferId = (string)($eligible[0]['instance_id'] ?? '');
+        }
         $leavingMember = $member;
-        $played = takeWrMemberToStageSlot($p, $cfg, $slot);
-        if (!$played) throw new Exception('No matching Member in Waiting Room');
+        $played = takeWrMemberToStageSlot($p, $cfg, $slot, $preferId);
+        if (!$played) {
+            throw new Exception('No matching Member in Waiting Room');
+        }
         $p['waiting_room'][] = $leavingMember;
         $state = resolveOnLeaveStageAbilities($state, $pid, $leavingMember);
+        $played['entered_turn'] = intval($state['turn'] ?? 1);
+        $p['stage'][$slot] = $played;
         notifyMemberEnteredStage($state, $pid, $played);
+        $state = resolveOnEnterAbilities($state, $pid, $played, $slot);
         $state = addLog($state, $state['players'][$pid]['name'] .
             ' — [' . ($leavingMember['name_en'] ?? $leavingMember['name']) . '] left Stage; played ' .
             cardDisplayName($played) . ' from Waiting Room.');

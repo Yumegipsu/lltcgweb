@@ -1887,6 +1887,18 @@ global.renderPrompt = function renderPrompt(s, myId){
     });
     return;
   }
+  if(pr?.type==='hs_leave_play_wr_slot'&&pr.step==='pick'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    const ids=new Set((pr.candidates||[]).map(c=>c.instance_id));
+    const pool=(me?.waiting_room||[]).filter(c=>ids.has(c.instance_id));
+    openActivateWrMemberPick({
+      ...pr,
+      candidates: pool.length ? pool.map(enrichCard) : (pr.candidates||[]),
+      prompt: pr.prompt||'Choose 1 Member from your Waiting Room.',
+    });
+    return;
+  }
   if(pr?.type==='sbp6_pick_members_live_score'&&pr.responder===myId){
     ovl.classList.remove('open');
     const max=pr.max_pick||2;
