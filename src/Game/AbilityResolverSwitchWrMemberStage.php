@@ -15,23 +15,20 @@ function tryResolveAbilityEffectSwitchWrMemberStage(
 ): array {
     switch ($type) {
         case 'both_wr_member_to_empty_stage':
-            $maxCost = intval($ab['max_cost'] ?? 2);
-            foreach (['p1', 'p2'] as $id) {
-                $placed = putWrMemberToEmptyStageWait($state['players'][$id], $maxCost);
-                if ($placed) {
-                    $m = $placed['member'];
-                    notifyMemberEnteredStage($state, $id, $m);
-                    $state = addLog($state, $state['players'][$id]['name'] .
-                        ' — [' . $name . '] put ' . ($m['name_en'] ?? $m['name']) .
-                        ' from Waiting Room onto Stage in Wait.');
-                }
+            if (!empty($state['pending_prompt'])) {
+                break;
             }
+            $opp = ($pid === 'p1') ? 'p2' : 'p1';
+            // Effect controller chooses first, then opponent — each picks their own WR Member.
+            $state = continueBothWrMemberToEmptyStage(
+                $state,
+                $pid,
+                $name,
+                $ab,
+                [$pid, $opp],
+                (string)($source['instance_id'] ?? '')
+            );
             break;
-
-
-
-
-
 
         case 'play_wr_members_combined_cost':
             if (!empty($state['pending_prompt'])) break;
@@ -61,6 +58,70 @@ function tryResolveAbilityEffectSwitchWrMemberStage(
             ];
             break;
 
+    }
+    return $state;
+}
+
+/**
+ * Open (or auto-resolve) the next eligible player's WR → empty Stage (in Wait) pick.
+ *
+ * @param list<string> $remaining player ids still to act, current first
+ */
+function continueBothWrMemberToEmptyStage(
+    array $state,
+    string $effectOwner,
+    string $sourceName,
+    array $ability,
+    array $remaining,
+    string $sourceId = ''
+): array {
+    $maxCost = intval($ability['max_cost'] ?? 2);
+    while (!empty($remaining)) {
+        $cur = array_shift($remaining);
+        $pl = &$state['players'][$cur];
+        $eligible = listWrMembersByMaxCost($pl, $maxCost);
+        $slots = listEmptyStageSlots($pl);
+        unset($pl);
+        if (empty($eligible) || empty($slots)) {
+            $state = addLog($state, $state['players'][$cur]['name'] .
+                ' — [' . $sourceName . '] no Member (cost ≤' . $maxCost .
+                ') in Waiting Room or no empty Stage area.');
+            continue;
+        }
+        if (count($eligible) === 1 && count($slots) === 1) {
+            $placed = putChosenWrMemberToEmptyStageWait(
+                $state['players'][$cur],
+                (string)($eligible[0]['instance_id'] ?? ''),
+                $slots[0],
+                $state,
+                true
+            );
+            if ($placed) {
+                $m = $placed['member'];
+                notifyMemberEnteredStage($state, $cur, $m);
+                $state = addLog($state, $state['players'][$cur]['name'] .
+                    ' — [' . $sourceName . '] put ' . ($m['name_en'] ?? $m['name']) .
+                    ' from Waiting Room onto Stage in Wait.');
+            }
+            continue;
+        }
+        $state['pending_prompt'] = [
+            'type'          => 'both_wr_member_to_empty_stage',
+            'step'          => 'pick_wr',
+            'owner'         => $effectOwner,
+            'responder'     => $cur,
+            'remaining'     => array_values($remaining),
+            'source_id'     => $sourceId,
+            'source_name'   => $sourceName,
+            'candidates'    => array_map('cardPromptSummary', $eligible),
+            'slots'         => $slots,
+            'max_cost'      => $maxCost,
+            'ability'       => $ability,
+            'prompt'        => 'Choose 1 Member card with cost ' . $maxCost .
+                ' or less from your Waiting Room to put into an empty Stage area in Wait.',
+        ];
+        $state['seq']++;
+        return $state;
     }
     return $state;
 }

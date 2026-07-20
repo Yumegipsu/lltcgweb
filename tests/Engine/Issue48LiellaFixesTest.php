@@ -193,6 +193,7 @@ final class Issue48LiellaFixesTest extends TestCase
 
         $this->assertSame('wait_opponent_stage_pick', $state['pending_prompt']['type'] ?? null);
         $this->assertSame('p2', $state['pending_prompt']['responder'] ?? null);
+        $this->assertTrue(!empty($state['pending_prompt']['opp_chooses']));
 
         $blocked = \actionResolvePrompt($state, 'p1', ['slot' => 'left']);
         $this->assertTrue(!empty($blocked['_resolve_prompt_noop']));

@@ -7,8 +7,8 @@ namespace LLTCG\Tests\Engine;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Replay 8B4552: Ginko On Enter opens opponent Wait pick; playing Kaho before that
- * resolves used to skip Kaho's surveil On Enter (pending_prompt guard).
+ * Replay 8B4552: Ginko On Enter opens a Wait pick for the controller; playing Kaho
+ * before that resolves used to skip Kaho's surveil On Enter (pending_prompt guard).
  */
 final class KahoBp6001OnEnterAfterOppWaitTest extends TestCase
 {
@@ -102,7 +102,7 @@ final class KahoBp6001OnEnterAfterOppWaitTest extends TestCase
 
         $state = \resolveOnEnterAbilities($state, 'p1', $ginko, 'center');
         $this->assertSame('wait_opponent_stage_pick', $state['pending_prompt']['type'] ?? null);
-        $this->assertSame('p2', $state['pending_prompt']['responder'] ?? null);
+        $this->assertSame('p1', $state['pending_prompt']['responder'] ?? null);
 
         $state['players']['p1']['hand'] = [$kaho];
         $state['players']['p1']['energy_zone'] = $this->activeEnergy(4);
@@ -119,7 +119,7 @@ final class KahoBp6001OnEnterAfterOppWaitTest extends TestCase
                 'card_id' => 'kaho_hand',
                 'slot' => 'right',
             ]);
-            $this->fail('Expected play_member to be blocked while opponent Wait prompt is open');
+            $this->fail('Expected play_member to be blocked while Wait prompt is open');
         } catch (\Exception $e) {
             $this->assertStringContainsString('pending skill prompt', $e->getMessage());
         }
@@ -127,7 +127,11 @@ final class KahoBp6001OnEnterAfterOppWaitTest extends TestCase
         $this->assertSame('wait_opponent_stage_pick', $state['pending_prompt']['type'] ?? null);
         $this->assertNull($state['players']['p1']['stage']['right'] ?? null);
 
-        $state = \actionResolvePrompt($state, 'p2', ['slot' => 'left']);
+        $blocked = \actionResolvePrompt($state, 'p2', ['slot' => 'left']);
+        $this->assertTrue(!empty($blocked['_resolve_prompt_noop']));
+        $this->assertSame('wait_opponent_stage_pick', $blocked['pending_prompt']['type'] ?? null);
+
+        $state = \actionResolvePrompt($state, 'p1', ['slot' => 'left']);
         $this->assertEmpty($state['pending_prompt'] ?? null);
 
         $state = \actionPlayMember($state, 'p1', [

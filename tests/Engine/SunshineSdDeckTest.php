@@ -169,19 +169,30 @@ final class SunshineSdDeckTest extends TestCase
         $hanamaru = $this->cardByNo('PL!S-sd1-007-SD', 'hana_sd1');
         $discard1 = ['instance_id' => 'd1', 'card_type' => 'エネルギー'];
         $discard2 = ['instance_id' => 'd2', 'card_type' => 'エネルギー'];
-        $live = $this->cardByNo('PL!S-sd1-019-SD', 'wr_live');
-        $live['instance_id'] = 'wr_live';
+        $liveA = $this->cardByNo('PL!S-sd1-019-SD', 'wr_live_a');
+        $liveA['instance_id'] = 'wr_live_a';
+        $liveB = $this->cardByNo('PL!S-sd1-021-SD', 'wr_live_b');
+        $liveB['instance_id'] = 'wr_live_b';
         $state = $this->baseState();
         $state['players']['p1']['stage']['center'] = $hanamaru;
         $state['players']['p1']['hand'] = [$discard1, $discard2];
-        $state['players']['p1']['waiting_room'] = [$live];
+        $state['players']['p1']['waiting_room'] = [$liveA, $liveB];
 
         $state = \actionActivateAbility($state, 'p1', [
             'card_id' => 'hana_sd1',
             'ability_index' => 0,
             'discard_ids' => ['d1', 'd2'],
         ]);
-        $this->assertContains('wr_live', array_column($state['players']['p1']['hand'], 'instance_id'));
+        $this->assertSame('pick_wr_to_hand', $state['pending_prompt']['type'] ?? null);
+        $candIds = array_column($state['pending_prompt']['candidates'] ?? [], 'instance_id');
+        $this->assertContains('wr_live_a', $candIds);
+        $this->assertContains('wr_live_b', $candIds);
+
+        $state = \actionResolvePrompt($state, 'p1', ['card_id' => 'wr_live_b']);
+        $handIds = array_column($state['players']['p1']['hand'], 'instance_id');
+        $this->assertContains('wr_live_b', $handIds);
+        $this->assertNotContains('wr_live_a', $handIds);
+        $this->assertContains('wr_live_a', array_column($state['players']['p1']['waiting_room'], 'instance_id'));
     }
 
     public function testRubySd009LiveStartRevealDeckBladePrompt(): void

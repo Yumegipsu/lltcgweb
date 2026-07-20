@@ -98,9 +98,6 @@ function tryResolveAbilityEffectSwitchBaton(
             $batonGroups = $source['baton_member_groups'] ?? [];
             $groupCount = count(array_filter($batonGroups, fn($g) => $g === $group));
             if ($groupCount < intval($ab['min_baton'] ?? 2)) break;
-            $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 2));
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$name] drew $drawn (double Baton Touch).");
             $p = &$state['players'][$pid];
             $maxCost = intval($ab['max_cost'] ?? 4);
             $eligible = array_values(array_filter(
@@ -116,6 +113,35 @@ function tryResolveAbilityEffectSwitchBaton(
                 if (empty($p['stage'][$s])) {
                     $emptySlots[] = $s;
                 }
+            }
+            // Stash eligible WR Members aside before draw. Drawing can shuffle the
+            // Waiting Room into a new deck (refresh) and would otherwise erase the
+            // same cards this On Enter is about to play onto Stage.
+            $stashedEligible = [];
+            if (!empty($eligible) && !empty($emptySlots)) {
+                $eligibleIds = array_flip(array_filter(array_map(
+                    static fn($c) => (string)($c['instance_id'] ?? ''),
+                    $eligible
+                )));
+                $keptWr = [];
+                foreach ($p['waiting_room'] as $c) {
+                    $iid = (string)($c['instance_id'] ?? '');
+                    if ($iid !== '' && isset($eligibleIds[$iid])) {
+                        $stashedEligible[] = $c;
+                    } else {
+                        $keptWr[] = $c;
+                    }
+                }
+                $p['waiting_room'] = $keptWr;
+            }
+            $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 2));
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] drew $drawn (double Baton Touch).");
+            $p = &$state['players'][$pid];
+            if (!empty($stashedEligible)) {
+                // Return stashed cards to WR so the prompt/auto-play can take them.
+                $p['waiting_room'] = array_merge($p['waiting_room'], $stashedEligible);
+                $eligible = $stashedEligible;
             }
             if (empty($eligible) || empty($emptySlots)) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
