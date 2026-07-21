@@ -503,7 +503,12 @@ function liveStorageRevealDomComplete(flipKeys, myId = G.playerId) {
     let found = false;
     for (let i = 0; i < 3; i++) {
       const cardEl = el(`opp-live-${i}`)?.querySelector('.lcard.live-card');
-      if (cardEl?.dataset?.iid === iid && cardEl.classList.contains('revealed')) {
+      if (cardEl?.dataset?.iid !== iid) continue;
+      // Spectators paint faces without the `.revealed` flip class (broadcast view).
+      if (cardEl.classList.contains('revealed')
+          || (G.isSpectator && typeof liveStorageCardShowsFace === 'function'
+            && liveStorageCardShowsFace(cardEl)
+            && !cardEl.classList.contains('live-storage-facedown'))) {
         found = true;
         break;
       }
@@ -1183,6 +1188,10 @@ function shouldRevealLiveStorageForRound(prev, next, emptyRound = null) {
   const showTurn = inferLiveShowTurn(prev, next);
   if (liveStorageRevealDoneForTurn(showTurn)) return false;
   const empty = emptyRound ?? isEmptyLiveSkipTransition(prev, next);
+  // Spectators already see Live faces during live_set (broadcast card_no). Requiring
+  // a player-style face-down→flip gate intermittently blocks Performance: DOM never
+  // gets `.revealed`, revealRan stays false, and recovery eventually seals the show.
+  if (G.isSpectator && !empty) return false;
   if (empty) {
     // solo-human: own member bluffs were face-up during live_set — skip flip.
     // solo-cpu: opponent bluffs must flip before empty splash / WR.
@@ -3075,7 +3084,9 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
     } else if (wantsSpectacle) {
       if (needsLiveReveal && !revealRan) {
         const heldBoard = G._livePostRevealBoard || next;
-        const canSkipFlip = (typeof liveStorageRevealBypassOk === 'function'
+        // Spectators never need flip playback to unlock the show (faces already public).
+        const canSkipFlip = !!G.isSpectator
+          || (typeof liveStorageRevealBypassOk === 'function'
             && liveStorageRevealBypassOk(prev, next, showTurnForReveal, myId))
           || !(typeof liveStorageHadFaceDownOppBluff === 'function'
             && (liveStorageHadFaceDownOppBluff(heldBoard, myId)

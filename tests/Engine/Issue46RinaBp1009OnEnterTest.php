@@ -118,6 +118,7 @@ final class Issue46RinaBp1009OnEnterTest extends TestCase
         ]);
 
         $this->assertSame('pick_wr_to_hand', $state['pending_prompt']['type'] ?? null);
+        $this->assertSame(1, $state['pending_prompt']['pick_count'] ?? null);
         $this->assertSame('member', $state['pending_prompt']['wr_pick_cfg']['filter'] ?? null);
         $candidateIds = array_column($state['pending_prompt']['candidates'] ?? [], 'instance_id');
         $this->assertContains($millMember['instance_id'], $candidateIds);
@@ -177,5 +178,34 @@ final class Issue46RinaBp1009OnEnterTest extends TestCase
         $this->assertContains('issue46_wr_b', $candidateIds);
         $this->assertContains('issue46_mill_member', $candidateIds);
         $this->assertGreaterThanOrEqual(3, count($candidateIds));
+    }
+
+    public function testYesCoercesStringDiscardIds(): void
+    {
+        [$state, , $discard, $millMember] = $this->rinaSetup();
+
+        $state = \resolveOnEnterAbilities($state, 'p1', $state['players']['p1']['stage']['center'], 'center');
+        $state = \actionResolvePrompt($state, 'p1', [
+            'choice' => 'yes',
+            'discard_ids' => $discard['instance_id'],
+        ]);
+
+        $this->assertSame('pick_wr_to_hand', $state['pending_prompt']['type'] ?? null);
+        $candidateIds = array_column($state['pending_prompt']['candidates'] ?? [], 'instance_id');
+        $this->assertContains($millMember['instance_id'], $candidateIds);
+        $this->assertEmpty($state['players']['p1']['hand']);
+    }
+
+    public function testSkipAliasResolvesNo(): void
+    {
+        [$state] = $this->rinaSetup();
+
+        $state = \resolveOnEnterAbilities($state, 'p1', $state['players']['p1']['stage']['center'], 'center');
+        $state = \actionResolvePrompt($state, 'p1', ['choice' => 'skip']);
+
+        $this->assertNull($state['pending_prompt'] ?? null);
+        $this->assertCount(1, $state['players']['p1']['hand']);
+        $this->assertEmpty($state['players']['p1']['waiting_room']);
+        $this->assertCount(2, $state['players']['p1']['main_deck']);
     }
 }

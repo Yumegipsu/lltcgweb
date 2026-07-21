@@ -119,7 +119,7 @@ final class KahoBp6001LiveSuccessYellDeckTopTest extends TestCase
         $this->assertSame([], $state['players']['p1']['_pending_yell_wr'] ?? []);
     }
 
-    public function testBarePickChoiceDoesNotThrowAndClearsPrompt(): void
+    public function testBarePickChoiceWithSingleCandidateAutoPicks(): void
     {
         $state = $this->baseState();
         $yell = $this->yellCard('yell_a');
@@ -134,11 +134,33 @@ final class KahoBp6001LiveSuccessYellDeckTopTest extends TestCase
             'choices' => ['pick', 'skip'],
         ];
 
-        // This is what a bad CPU scored-choice path used to send — must not softlock.
+        // Single candidate + bare pick is safe to auto-resolve (CPU scored-choice path).
         $state = \actionResolvePrompt($state, 'p1', ['choice' => 'pick']);
         $this->assertNull($state['pending_prompt'] ?? null);
         $handIds = array_column($state['players']['p1']['hand'] ?? [], 'instance_id');
         $this->assertContains('yell_a', $handIds);
+    }
+
+    public function testBarePickChoiceWithMultipleCandidatesKeepsPrompt(): void
+    {
+        $state = $this->baseState();
+        $yellA = $this->yellCard('yell_a');
+        $yellB = $this->yellCard('yell_b');
+        $state['players']['p1']['_pending_yell_wr'] = [$yellA, $yellB];
+        $state['pending_prompt'] = [
+            'type' => 'live_success_pick_yell_deck_top',
+            'owner' => 'p1',
+            'responder' => 'p1',
+            'optional' => true,
+            'source_name' => 'Kaho Hinoshita',
+            'candidates' => [cardPromptSummary($yellA), cardPromptSummary($yellB)],
+            'choices' => ['pick', 'skip'],
+        ];
+
+        // Human two-step UI may send choice=pick before card_id — must not dismiss.
+        $state = \actionResolvePrompt($state, 'p1', ['choice' => 'pick']);
+        $this->assertSame('live_success_pick_yell_deck_top', $state['pending_prompt']['type'] ?? null);
+        $this->assertCount(2, $state['players']['p1']['_pending_yell_wr'] ?? []);
     }
 
     public function testSkipClearsPrompt(): void

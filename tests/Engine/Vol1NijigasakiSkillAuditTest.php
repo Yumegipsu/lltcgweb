@@ -141,6 +141,49 @@ final class Vol1NijigasakiSkillAuditTest extends TestCase
         return \finishLiveStartEffects($state);
     }
 
+    public function testPb1Lanzhu012AutoEnergyWaitIsOncePerTurn(): void
+    {
+        $lanzhu = $this->cardByNo('PL!N-pb1-012-R', 'pb1_lanzhu_auto');
+        $state = $this->baseState();
+        $state['players']['p1']['stage']['center'] = $lanzhu;
+        $state['players']['p1']['energy_deck'] = $this->activeEnergy(2, 'pb1_lanzhu_ed');
+
+        $state = \nijiOnMemberEntered(
+            $state,
+            'p1',
+            $this->stubMember('pb1_cost11_first', 'Nijigasaki', 11)
+        );
+        $this->assertCount(1, $state['players']['p1']['energy_zone']);
+        $this->assertFalse($state['players']['p1']['energy_zone'][0]['active']);
+
+        $state = \nijiOnMemberEntered(
+            $state,
+            'p1',
+            $this->stubMember('pb1_cost11_second', 'Nijigasaki', 11)
+        );
+        $this->assertCount(1, $state['players']['p1']['energy_zone']);
+        $this->assertCount(1, $state['players']['p1']['energy_deck']);
+    }
+
+    public function testPb1Lanzhu012LiveSuccessPickIsMandatory(): void
+    {
+        $lanzhu = $this->cardByNo('PL!N-pb1-012-R', 'pb1_lanzhu_live_success');
+        $first = $this->stubMember('pb1_lanzhu_yell_first');
+        $second = $this->stubMember('pb1_lanzhu_yell_second');
+        $state = $this->baseState('live_success_effects');
+        $state['players']['p1']['stage']['center'] = $lanzhu;
+        $state['players']['p1']['_pending_yell_wr'] = [$first, $second];
+
+        $state = \resolveLiveSuccessAbilities($state, 'p1', [], 0, [], [$first, $second]);
+
+        $this->assertSame('pick_yell_member', $state['pending_prompt']['type'] ?? null);
+        $this->assertSame(
+            ['pb1_lanzhu_yell_first', 'pb1_lanzhu_yell_second'],
+            array_column($state['pending_prompt']['candidates'] ?? [], 'instance_id')
+        );
+        $this->assertArrayNotHasKey('choices', $state['pending_prompt']);
+    }
+
     public function testAyumu001LiveStartOptionalPayEnergyOpensBladeThen(): void
     {
         $ayumu = $this->cardByNo('PL!N-bp1-001-P', 'vol1n_ayumu');
@@ -367,11 +410,12 @@ final class Vol1NijigasakiSkillAuditTest extends TestCase
         $emma = $this->cardByNo('PL!N-bp1-008-P', 'vol1n_emma');
         $handMember = $this->stubMember('vol1n_emma_hand', 'Nijigasaki', 5);
         $wrLower = $this->stubMember('vol1n_emma_wr', 'Nijigasaki', 3);
+        $wrOther = $this->stubMember('vol1n_emma_wr2', 'Nijigasaki', 2);
 
         $state = $this->baseState();
         $state['players']['p1']['stage']['center'] = $emma;
         $state['players']['p1']['hand'] = [$handMember];
-        $state['players']['p1']['waiting_room'] = [$wrLower];
+        $state['players']['p1']['waiting_room'] = [$wrLower, $wrOther];
 
         $state = \actionActivateAbility($state, 'p1', [
             'card_id' => 'vol1n_emma',
@@ -382,12 +426,34 @@ final class Vol1NijigasakiSkillAuditTest extends TestCase
             'choice' => 'yes',
             'discard_ids' => ['vol1n_emma_hand'],
         ]);
-        if (($state['pending_prompt']['type'] ?? '') === 'pick_wr_to_hand') {
-            $state = \actionResolvePrompt($state, 'p1', ['card_id' => 'vol1n_emma_wr']);
-        }
+        $this->assertSame('pick_wr_to_hand', $state['pending_prompt']['type'] ?? null);
+        $candIds = array_column($state['pending_prompt']['candidates'] ?? [], 'instance_id');
+        $this->assertContains('vol1n_emma_wr', $candIds);
+        $this->assertContains('vol1n_emma_wr2', $candIds);
+        $this->assertNotContains('vol1n_emma_hand', $candIds);
+        $state = \actionResolvePrompt($state, 'p1', ['card_id' => 'vol1n_emma_wr2']);
         $this->assertNull($state['pending_prompt'] ?? null);
-        $this->assertContains('vol1n_emma_wr', array_column($state['players']['p1']['hand'], 'instance_id'));
+        $this->assertContains('vol1n_emma_wr2', array_column($state['players']['p1']['hand'], 'instance_id'));
         $this->assertContains('vol1n_emma_hand', array_column($state['players']['p1']['waiting_room'], 'instance_id'));
+        $this->assertContains('vol1n_emma_wr', array_column($state['players']['p1']['waiting_room'], 'instance_id'));
+    }
+
+    public function testEmma008ActivatedSkipDoesNotError(): void
+    {
+        $emma = $this->cardByNo('PL!N-bp1-008-P', 'vol1n_emma_skip');
+        $handMember = $this->stubMember('vol1n_emma_skip_hand', 'Nijigasaki', 5);
+
+        $state = $this->baseState();
+        $state['players']['p1']['stage']['center'] = $emma;
+        $state['players']['p1']['hand'] = [$handMember];
+
+        $state = \actionActivateAbility($state, 'p1', [
+            'card_id' => 'vol1n_emma_skip',
+            'ability_index' => 0,
+        ]);
+        $state = \actionResolvePrompt($state, 'p1', ['choice' => 'no']);
+        $this->assertNull($state['pending_prompt'] ?? null);
+        $this->assertContains('vol1n_emma_skip_hand', array_column($state['players']['p1']['hand'], 'instance_id'));
     }
 
     public function testRina009OnEnterFullMillWrAddChain(): void

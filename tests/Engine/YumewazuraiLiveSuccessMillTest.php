@@ -107,7 +107,16 @@ final class YumewazuraiLiveSuccessMillTest extends TestCase
 
         $this->assertSame('live_success_optional_mill_if_subunit', $state['pending_prompt']['type'] ?? null);
         $this->assertSame('p1', $state['pending_prompt']['responder'] ?? null);
+        $this->assertSame('yume_live', $state['pending_prompt']['source_id'] ?? null);
         $this->assertSame(4, $state['pending_prompt']['count'] ?? null);
+        $this->assertSame(
+            'Live Success — put the top 4 cards of your deck into the Waiting Room?',
+            $state['pending_prompt']['prompt'] ?? null
+        );
+        $this->assertSame(
+            'live_success_optional_mill_if_subunit',
+            $state['pending_prompt']['ability']['type'] ?? null
+        );
     }
 
     public function testYesMillResumesPastLiveSuccessEffects(): void

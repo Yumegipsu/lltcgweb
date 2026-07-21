@@ -115,11 +115,14 @@ final class StickerSealsTest extends TestCase
             $this->markTestSkipped('Could not find accessible shop card for buy test');
         }
         $before = tcgSealBalances($this->discordId);
+        $this->assertSame(0, tcgGetStickerExchanges($this->discordId));
         $out = tcgStickerBuyCard($this->discordId, $card['card_no'], tcgBuildCardMap($cardsData), $cardsData);
         $key = strtolower($tier);
         $this->assertSame($cost, $out['cost']);
         $this->assertSame(($before[$key] ?? 0) - $cost, $out['seals'][$key]);
         $this->assertSame(1, $out['owned_qty']);
+        $this->assertSame(1, $out['sticker_exchanges']);
+        $this->assertSame(1, tcgGetStickerExchanges($this->discordId));
     }
 
     public function testBuyAtMaxCopiesFails(): void

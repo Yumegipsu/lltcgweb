@@ -45,25 +45,28 @@
         || metaType === 'pick_judge_success_live' || metaType === 'sbp6_live_wr_deck_position')
       && !!G._liveRoundPostSpectacleReady;
     // Spectators never receive full pending_prompt — live_judge must not softlock polls.
+    // Do not special-case spectators beyond missing prompts: a broader live_judge clear
+    // used to abort Performance mid-show when animating briefly dropped.
     const judgeWaitNoLocalPrompt = ph === 'live_judge' && !prType;
-    const spectatorJudgeWait = !!G.isSpectator && ph === 'live_judge';
     if (!directorActive
         && G._perfSpectacleActive && !G.animating && !G._liveSpectacleGateRunning
         && !G._liveRoundPlaybackActive
-        && (mainStable || judgePickReady || judgeWaitNoLocalPrompt || spectatorJudgeWait)) {
+        && (mainStable || judgePickReady || judgeWaitNoLocalPrompt)) {
       TCG_DEBUG.warn('poll', 'clear stuck perfSpectacleActive', { phase: ph, prType, spectator: !!G.isSpectator });
       if (typeof perfCloseSpectacle === 'function') perfCloseSpectacle();
       else G._perfSpectacleActive = false;
       if (G._livePollHold && typeof releaseLivePolls === 'function') releaseLivePolls();
     }
-    // Spectators stuck mid Win/Loss with playback held but no animation — release.
+    // Spectators stuck mid Win/Loss with playback held but no animation — release
+    // only after the show finished or never started (postSpectacleReady / no defer).
     if (!directorActive
         && !!G.isSpectator
         && ph === 'live_judge'
         && G._liveRoundPlaybackActive
         && !G.animating
         && !G._perfSpectacleActive
-        && !G._liveSpectacleGateRunning) {
+        && !G._liveSpectacleGateRunning
+        && (G._liveRoundPostSpectacleReady || !G._deferredLiveState)) {
       TCG_DEBUG.warn('poll', 'clear stale spectator liveRoundPlaybackActive on live_judge');
       G._liveRoundPlaybackActive = false;
       G._liveRoundPostSpectacleReady = true;

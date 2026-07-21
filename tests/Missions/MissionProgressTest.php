@@ -414,4 +414,46 @@ final class MissionProgressTest extends TestCase
         $stmt->execute([$this->discordId]);
         $this->assertSame('liella', $stmt->fetchColumn());
     }
+
+    public function testStickerExchangeMilestonesFromCounter(): void
+    {
+        $db = tcgDb();
+        $db->prepare('UPDATE tcg_users SET sticker_exchanges = 10, updated_at = ? WHERE discord_id = ?')
+            ->execute([time(), $this->discordId]);
+
+        $completions = tcgMissionCheckStickerExchangeThresholds($this->discordId);
+        $ids = array_column($completions, 'id');
+        $this->assertContains('ms_sticker_1', $ids);
+        $this->assertContains('ms_sticker_10', $ids);
+        $this->assertNotContains('ms_sticker_50', $ids);
+
+        $period = '';
+        $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'ms_sticker_1', $period));
+        $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'ms_sticker_10', $period));
+        $this->assertFalse(tcgMissionIsCompleted($this->discordId, 'ms_sticker_50', $period));
+
+        $list = tcgMissionListForUser($this->discordId);
+        $byId = [];
+        foreach ($list as $m) {
+            $byId[$m['id']] = $m;
+        }
+        $this->assertSame(10, $byId['ms_sticker_10']['progress'] ?? null);
+        $this->assertSame(10, $byId['ms_sticker_50']['progress'] ?? null);
+        $this->assertSame(50, $byId['ms_sticker_50']['threshold'] ?? null);
+    }
+
+    public function testStickerExchangeBackfillFromCounter(): void
+    {
+        $db = tcgDb();
+        $db->prepare('UPDATE tcg_users SET sticker_exchanges = 50, updated_at = ? WHERE discord_id = ?')
+            ->execute([time(), $this->discordId]);
+
+        tcgMissionBackfillRetroactive($this->discordId);
+
+        $period = '';
+        $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'ms_sticker_1', $period));
+        $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'ms_sticker_10', $period));
+        $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'ms_sticker_50', $period));
+        $this->assertFalse(tcgMissionIsCompleted($this->discordId, 'ms_sticker_100', $period));
+    }
 }

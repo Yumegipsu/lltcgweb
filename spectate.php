@@ -473,6 +473,10 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
     if (!empty($state['live_round_success'])) {
         $filtered['live_round_success'] = $state['live_round_success'];
     }
+    // Same as player filter — spectacle gating uses live_attempt when present.
+    if (!empty($state['live_attempt']) && isInPerformancePhase($state)) {
+        $filtered['live_attempt'] = array_values($state['live_attempt']);
+    }
     if ($exposePerfCarryover && !empty($state['_live_perf_snapshot'])) {
         $filtered['_live_perf_snapshot'] = $state['_live_perf_snapshot'];
     }
