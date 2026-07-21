@@ -79,6 +79,12 @@ function refreshMainDeckFromWaitingRoom(array &$state, string $pid): int {
     if (empty($wr)) {
         return 0;
     }
+    // Do not shuffle away cards a player is mid-picking from Waiting Room
+    // (e.g. mill→WR Live pick opened with an empty deck; post-action refresh
+    // would otherwise leave the UI showing stale candidates that are no longer in WR).
+    if (deckRefreshBlockedByPendingWrPrompt($state, $pid)) {
+        return 0;
+    }
     $count = count($wr);
     $p['main_deck'] = $wr;
     $p['waiting_room'] = [];
@@ -91,6 +97,37 @@ function refreshMainDeckFromWaitingRoom(array &$state, string $pid): int {
         'action'
     );
     return $count;
+}
+
+/**
+ * True when a pending prompt is selecting cards from this player's Waiting Room.
+ * Deck refresh for that seat must wait until the pick resolves.
+ */
+function deckRefreshBlockedByPendingWrPrompt(array $state, string $pid): bool {
+    $pr = $state['pending_prompt'] ?? null;
+    if (!is_array($pr) || empty($pr['candidates']) || !is_array($pr['candidates'])) {
+        return false;
+    }
+    $owner = (string)($pr['owner'] ?? '');
+    $responder = (string)($pr['responder'] ?? '');
+    if ($owner !== $pid && $responder !== $pid) {
+        return false;
+    }
+    $type = (string)($pr['type'] ?? '');
+    $step = (string)($pr['step'] ?? '');
+    if (isset($pr['wr_pick_cfg'])) {
+        return true;
+    }
+    if (str_contains($type, 'wr') || str_contains($step, 'wr')) {
+        return true;
+    }
+    return in_array($type, [
+        'pick_wr_to_hand',
+        'pick_wr_leave_stage_add',
+        'shuffle_named_from_waiting_pick',
+        'optional_discard_mill_add_wr_subunit_live',
+        'hsbp6_pick_wr_live_and_member',
+    ], true) || in_array($step, ['pick_live', 'pick_member', 'pick_wr'], true);
 }
 
 /**

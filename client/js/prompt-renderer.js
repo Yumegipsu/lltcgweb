@@ -306,21 +306,19 @@ global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
   const s = opts.state || G.gameState;
   const myId = opts.myId || G.playerId;
   const cfg = wrPickCfgFromPrompt(pr);
+  // Live WR only — never fall back to stale prompt.candidates after a deck refresh.
   let cards = wrToHandPickCards(pr, s, myId).filter(c => cardMatchesWrPickClient(c, cfg));
   if (!cards.length && (pr.candidates || []).length) {
-    cards = (pr.candidates || []).map(c => enrichCard(c)).filter(c => c?.instance_id && cardMatchesWrPickClient(c, cfg));
-  }
-  // Server already filtered candidates — never softlock if client punctuation/alias
-  // matching is stricter (e.g. みらくらぱーく! vs ！).
-  if (!cards.length && (pr.candidates || []).length) {
-    cards = (pr.candidates || []).map(c => enrichCard(c)).filter(c => c?.instance_id);
+    // Server listed candidates that match cfg but client filter rejected (punctuation).
+    // Still require the card to be in the current Waiting Room.
+    const wrIds = new Set((s?.players?.[myId]?.waiting_room || []).map(c => c.instance_id).filter(Boolean));
+    cards = wrToHandPickCards(pr, s, myId).filter(c => wrIds.has(c.instance_id));
   }
   if (!cards.length) {
     toast(pt('prompt.wrNoMatch') || pt('prompt.wrEmpty'), 3200);
+    closeM('overlay-pick');
+    G.pickCtx = null;
     return;
-  }
-  if (!cards.some(c => cardMatchesWrPickClient(c, cfg)) && (pr.candidates || []).length) {
-    cards = wrToHandPickCards({ ...pr, candidates: pr.candidates }, s, myId);
   }
   el('pick-ttl').textContent = pr.source_name || pt('prompt.wrPickTitle');
   el('pick-msg').textContent = pr.prompt || pt('prompt.wrPickMsg');

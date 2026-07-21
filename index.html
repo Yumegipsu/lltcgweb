@@ -8299,7 +8299,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=36"></script>
 <script src="client/js/stamps.js?v=16"></script>
 <script src="client/js/replay-debug.js?v=7"></script>
-<script src="client/js/prompt-renderer.js?v=40"></script>
+<script src="client/js/prompt-renderer.js?v=41"></script>
 <script src="client/js/tutorial-interactive.js?v=17"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -33210,7 +33210,9 @@ function wrToHandPickCards(pr, s, myId) {
   const seed = (pr.candidates || []).length ? pr.candidates : wr;
   return seed.map(c => {
     const full = byId.get(c.instance_id);
-    const card = enrichCard(full ? { ...c, ...full } : c);
+    // Never surface WR-pick options that are no longer in Waiting Room (deck refresh).
+    if (!full) return null;
+    const card = enrichCard({ ...c, ...full });
     if (!card?.instance_id) return null;
     return {
       instance_id: card.instance_id,

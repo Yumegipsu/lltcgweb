@@ -125,6 +125,96 @@ final class ZoneMovementTest extends TestCase
         $this->assertCount(1, $state['players']['p2']['waiting_room']);
     }
 
+    public function testDeckRefreshDefersWhileWrPickPromptOpen(): void {
+        $card = static fn(string $id, string $type = 'ライブ'): array => [
+            'instance_id' => $id,
+            'card_type' => $type,
+            'card_type_en' => $type === 'ライブ' ? 'Live' : 'Member',
+            'name' => 'Test',
+            'name_en' => 'Test Live',
+            'group' => 'Hasunosora',
+            'subunit' => 'Cerasus',
+            'cost' => 1,
+        ];
+        $liveA = $card('live-a');
+        $liveB = $card('live-b');
+        $state = [
+            'turn' => 3,
+            'status' => 'playing',
+            'phase' => 'main_first',
+            'seq' => 10,
+            'players' => [
+                'p1' => [
+                    'name' => 'P1',
+                    'hand' => [],
+                    'main_deck' => [], // empty → would refresh
+                    'waiting_room' => [$liveA, $liveB],
+                    'energy_zone' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                ],
+            ],
+            'pending_prompt' => [
+                'type' => 'optional_discard_mill_add_wr_subunit_live',
+                'step' => 'pick_wr_live',
+                'owner' => 'p1',
+                'responder' => 'p1',
+                'source_name' => 'Ginko Momose',
+                'candidates' => [
+                    ['instance_id' => 'live-a', 'card_type' => 'ライブ', 'name_en' => 'Test Live'],
+                    ['instance_id' => 'live-b', 'card_type' => 'ライブ', 'name_en' => 'Test Live'],
+                ],
+                'prompt' => 'Choose 1 matching Live card from your Waiting Room to add to your hand.',
+            ],
+            'log' => [],
+        ];
+
+        $refreshed = refreshMainDeckFromWaitingRoom($state, 'p1');
+        $this->assertSame(0, $refreshed, 'WR pick must block deck refresh');
+        $this->assertEmpty($state['players']['p1']['main_deck']);
+        $this->assertCount(2, $state['players']['p1']['waiting_room']);
+        $this->assertSame('pick_wr_live', $state['pending_prompt']['step'] ?? null);
+
+        // After the pick clears, refresh may proceed.
+        unset($state['pending_prompt']);
+        $refreshed = refreshMainDeckFromWaitingRoom($state, 'p1');
+        $this->assertSame(2, $refreshed);
+        $this->assertCount(2, $state['players']['p1']['main_deck']);
+        $this->assertEmpty($state['players']['p1']['waiting_room']);
+    }
+
+    public function testPickWrToHandAlsoBlocksDeckRefresh(): void {
+        $mem = [
+            'instance_id' => 'wr-mem',
+            'card_type' => 'メンバー',
+            'name_en' => 'Member',
+            'group' => 'μ\'s',
+            'cost' => 2,
+        ];
+        $state = [
+            'turn' => 1,
+            'players' => [
+                'p1' => [
+                    'name' => 'P1',
+                    'hand' => [],
+                    'main_deck' => [],
+                    'waiting_room' => [$mem],
+                    'energy_zone' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                ],
+            ],
+            'pending_prompt' => [
+                'type' => 'pick_wr_to_hand',
+                'owner' => 'p1',
+                'responder' => 'p1',
+                'wr_pick_cfg' => ['group' => 'μ\'s', 'filter' => 'member'],
+                'candidates' => [['instance_id' => 'wr-mem', 'card_type' => 'メンバー']],
+            ],
+            'log' => [],
+        ];
+        $this->assertSame(0, refreshMainDeckFromWaitingRoom($state, 'p1'));
+        $this->assertCount(1, $state['players']['p1']['waiting_room']);
+    }
+
     public function testTakeFromMainDeckTopMillsExpectedCount(): void {
         $state = [
             'turn' => 1,
