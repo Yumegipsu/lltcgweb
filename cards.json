@@ -64686,20 +64686,13 @@
         "red"
       ],
       "rarity": "N",
-      "text": "[Always] [Center] Gain +2 Blade.",
+      "text": "",
       "text_jp": "",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-012-N.png",
       "subunit": "CatChu!",
-      "abilities": [
-        {
-          "trigger": "continuous",
-          "type": "continuous_blade_in_slot",
-          "slot": "center",
-          "amount": 2
-        }
-      ],
-      "text_ko": "[상시] [센터] Blade +2을 얻는다.",
-      "text_zh": "[永续] [中央] 获得 +2 Blade."
+      "abilities": [],
+      "text_ko": "",
+      "text_zh": ""
     },
     {
       "card_no": "PL!SP-bp2-013-N",

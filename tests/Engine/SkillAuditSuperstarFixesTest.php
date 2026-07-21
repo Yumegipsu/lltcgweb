@@ -156,15 +156,18 @@ final class SkillAuditSuperstarFixesTest extends TestCase
         }
     }
 
-    public function testKanonContinuousBladeInCenterSlot(): void
+    public function testKanonBp2012HasNoContinuousCenterBlade(): void
     {
+        // Official PL!SP-bp2-012-N has no skill text / abilities (issue #65).
         $kanon = $this->cardByNo('PL!SP-bp2-012-N', 'ssfix_kanon');
+        $this->assertSame([], $kanon['abilities'] ?? []);
+        $this->assertSame('', trim((string)($kanon['text'] ?? '')));
 
         $state = $this->baseState();
         $state['players']['p1']['stage']['center'] = $kanon;
 
         $blade = \getMemberBlade($kanon, $state, 'p1', 'center');
-        $this->assertSame(3, $blade);
+        $this->assertSame(1, $blade, 'Base blade only — no +2 Center continuous');
     }
 
     public function testKinakoSd2ActivatedOptionalDiscardOpensPrompt(): void
