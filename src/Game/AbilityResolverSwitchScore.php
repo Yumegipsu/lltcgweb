@@ -214,28 +214,31 @@ function tryResolveAbilityEffectSwitchScore(
             $threshold = $checkBlades
                 ? intval($ab['min_blades'])
                 : intval($ab['min_hearts'] ?? 6);
+            // Card text: choose any Aqours Member, then check Blades/hearts.
             $eligible = [];
             foreach ($p['stage'] as $slot => $mbr) {
                 if (!$mbr || ($mbr['group'] ?? '') !== $group) continue;
-                $ok = $checkBlades
-                    ? (intval($mbr['blade'] ?? 0) + intval($mbr['live_blade_bonus'] ?? 0) >= $threshold)
-                    : (memberHeartCount($mbr) >= $threshold);
-                if ($ok) {
-                    $eligible[] = ['slot' => $slot, 'summary' => cardPromptSummary($mbr)];
-                }
+                $eligible[] = ['slot' => $slot, 'summary' => cardPromptSummary($mbr)];
             }
             if (empty($eligible)) break;
+            $amount = intval($ab['amount'] ?? 1);
             $state['pending_prompt'] = [
-                'type'        => 'score_if_stage_member_hearts',
-                'owner'       => $pid,
-                'responder'   => $pid,
-                'source_id'   => $source['instance_id'] ?? '',
-                'source_name' => $name,
-                'candidates'  => $eligible,
-                'amount'      => intval($ab['amount'] ?? 1),
-                'prompt'      => 'Choose 1 Aqours Member with ' . $threshold . '+' .
-                    ($checkBlades ? ' Blades' : ' hearts') . ': this card\'s score +' .
-                    intval($ab['amount'] ?? 1) . '?',
+                'type'         => 'score_if_stage_member_hearts',
+                'owner'        => $pid,
+                'responder'    => $pid,
+                'source_id'    => $source['instance_id'] ?? '',
+                'source_name'  => $name,
+                'candidates'   => $eligible,
+                'amount'       => $amount,
+                'group'        => $group,
+                'check_blades' => $checkBlades,
+                'min_blades'   => $checkBlades ? $threshold : 0,
+                'min_hearts'   => $checkBlades ? 0 : $threshold,
+                'prompt'       => $checkBlades
+                    ? ('Choose 1 Aqours Member. If that Member has ' . $threshold .
+                        '+ Blades, this card\'s score +' . $amount . '.')
+                    : ('Choose 1 Aqours Member. If that Member has ' . $threshold .
+                        '+ hearts, this card\'s score +' . $amount . '.'),
             ];
             break;
 

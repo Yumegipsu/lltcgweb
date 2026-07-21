@@ -362,6 +362,20 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
                     $pool = $lives;
                 }
             }
+            $need = intval($prompt['pick_count'] ?? 1);
+            if ($need > 1) {
+                $ids = [];
+                foreach ($pool as $c) {
+                    if (count($ids) >= $need) {
+                        break;
+                    }
+                    $cid = $c['instance_id'] ?? null;
+                    if ($cid) {
+                        $ids[] = $cid;
+                    }
+                }
+                return ['card_ids' => $ids];
+            }
             $id = $pool[count($pool) - 1]['instance_id'] ?? $pool[0]['instance_id'] ?? null;
             return $id ? ['card_id' => $id] : [];
         }

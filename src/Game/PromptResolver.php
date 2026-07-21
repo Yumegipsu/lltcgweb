@@ -1114,32 +1114,56 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
     }
 
     if ($promptType === 'pick_wr_to_hand') {
-        $pickId = $data['card_id'] ?? '';
-        if ($pickId === '') {
+        $pickCount = intval($prompt['pick_count'] ?? 1);
+        $ids = [];
+        if (!empty($data['card_ids']) && is_array($data['card_ids'])) {
+            $ids = array_values(array_filter($data['card_ids'], fn($id) => $id !== '' && $id !== null));
+        } elseif (($data['card_id'] ?? '') !== '') {
+            $ids = [$data['card_id']];
+        }
+        // "Up to N" (pick_count > 1): allow confirming zero selections.
+        if ($choice === 'skip' || ($pickCount > 1 && empty($ids))) {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') . '] added 0 from Waiting Room.');
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
+        if (empty($ids)) {
             throw new Exception('Choose a card');
         }
-        $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgFromAbility($ability);
-        $picked = null;
-        foreach ($ownerP['waiting_room'] as $i => &$c) {
-            if (($c['instance_id'] ?? '') !== $pickId) {
-                continue;
-            }
-            hydrateWrCardForPick($c);
-            if (!cardMatchesWrPick($c, $cfg)) {
-                throw new Exception('Invalid Waiting Room card');
-            }
-            $picked = $c;
-            array_splice($ownerP['waiting_room'], $i, 1);
-            break;
+        if (count($ids) > max(1, $pickCount)) {
+            throw new Exception('Choose at most ' . max(1, $pickCount) . ' card(s)');
         }
-        unset($c);
-        if (!$picked) {
+        $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgFromAbility($ability);
+        $picked = [];
+        $rest = [];
+        $seen = [];
+        foreach ($ownerP['waiting_room'] as $c) {
+            $cid = $c['instance_id'] ?? '';
+            if ($cid !== '' && in_array($cid, $ids, true)) {
+                if (isset($seen[$cid])) {
+                    throw new Exception('Duplicate Waiting Room card selected');
+                }
+                hydrateWrCardForPick($c);
+                if (!cardMatchesWrPick($c, $cfg)) {
+                    throw new Exception('Invalid Waiting Room card');
+                }
+                $picked[] = $c;
+                $seen[$cid] = true;
+            } else {
+                $rest[] = $c;
+            }
+        }
+        if (count($picked) !== count($ids)) {
             throw new Exception('Invalid Waiting Room card');
         }
-        $ownerP['hand'][] = $picked;
+        $ownerP['waiting_room'] = $rest;
+        $ownerP['hand'] = array_merge($ownerP['hand'], $picked);
+        $names = array_map('cardDisplayName', $picked);
         $state = addLog($state, $state['players'][$owner]['name'] .
             ' — [' . ($prompt['source_name'] ?? 'Member') . '] added ' .
-            cardDisplayName($picked) . ' from Waiting Room to hand.');
+            implode(', ', $names) . ' from Waiting Room to hand.');
         unset($state['pending_prompt']);
         $state['seq']++;
         return finishPromptEffects($state);
@@ -2588,10 +2612,33 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
 
     if ($promptType === 'score_if_stage_member_hearts') {
         $slot = $data['slot'] ?? '';
-        if ($slot === '') throw new Exception('Choose a Member');
-        bumpLiveCardScore($state, $owner, $prompt['source_id'] ?? '', intval($prompt['amount'] ?? 1));
-        $state = addLog($state, $state['players'][$owner]['name'] .
-            ' — [' . ($prompt['source_name'] ?? 'Live') . '] score +' . intval($prompt['amount'] ?? 1) . '.');
+        if ($slot === '') {
+            throw new Exception('Choose a Member');
+        }
+        $mbr = $ownerP['stage'][$slot] ?? null;
+        $group = $prompt['group'] ?? $ability['group'] ?? 'Sunshine';
+        if (!$mbr || ($mbr['group'] ?? '') !== $group) {
+            throw new Exception('Choose an Aqours Member');
+        }
+        $checkBlades = !empty($prompt['check_blades'])
+            || intval($prompt['min_blades'] ?? 0) > 0
+            || !empty($ability['min_blades']);
+        $threshold = $checkBlades
+            ? intval($prompt['min_blades'] ?? $ability['min_blades'] ?? 6)
+            : intval($prompt['min_hearts'] ?? $ability['min_hearts'] ?? 6);
+        $ok = $checkBlades
+            ? (getMemberBlade($mbr, $state, $owner, $slot) >= $threshold)
+            : (memberHeartCount($mbr) >= $threshold);
+        $amount = intval($prompt['amount'] ?? 1);
+        if ($ok) {
+            bumpLiveCardScore($state, $owner, $prompt['source_id'] ?? '', $amount);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Live') . "] score +$amount.");
+        } else {
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Live') . '] no score (' .
+                ($checkBlades ? 'Member under Blade threshold' : 'Member under heart threshold') . ').');
+        }
         unset($state['pending_prompt']);
         $state['seq']++;
         return finishPromptEffects($state);

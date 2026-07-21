@@ -320,29 +320,67 @@ global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
     G.pickCtx = null;
     return;
   }
+  const upTo = need > 1 || !!pr.up_to;
   el('pick-ttl').textContent = pr.source_name || pt('prompt.wrPickTitle');
   el('pick-msg').textContent = pr.prompt || pt('prompt.wrPickMsg');
   const g = el('pick-grid');
   g.innerHTML = '';
-  const onCancel = opts.onCancel;
+  const onCancel = opts.onCancel || (upTo
+    ? () => sendAct('resolve_prompt', { card_ids: [] })
+    : null);
   G.pickCtx = onCancel ? { onCancel } : null;
   const btnOk = el('btn-pick-ok');
   const btnCancel = el('btn-pick-cancel');
-  if (btnOk) btnOk.style.display = 'none';
-  if (btnCancel) btnCancel.style.display = onCancel ? '' : 'none';
   const serverIds = new Set((pr.candidates || []).map(c => c.instance_id).filter(Boolean));
+  if (need === 1 && !upTo) {
+    if (btnOk) btnOk.style.display = 'none';
+    if (btnCancel) btnCancel.style.display = onCancel ? '' : 'none';
+    cards.forEach(card => {
+      const ok = cardMatchesWrPickClient(card, cfg) || serverIds.has(card.instance_id);
+      const elCard = mkPickCardEl(card, 'pickcard', () => {
+        if (!ok || isPromptSubmitting(s)) return;
+        closeM('overlay-pick');
+        G.pickCtx = null;
+        sendAct('resolve_prompt', { card_id: card.instance_id });
+      });
+      if (!ok) elCard.classList.add('ineligible');
+      g.appendChild(elCard);
+    });
+    el('pick-count').textContent = '';
+    openM('overlay-pick');
+    return;
+  }
+  // Multi / up-to-N: toggle select, Confirm sends card_ids (may be empty when upTo).
+  G.pickMarked.clear();
+  G.pickCtx = {
+    count: need,
+    min: upTo ? 0 : need,
+    onConfirm: (ids) => sendAct('resolve_prompt', { card_ids: ids }),
+    onCancel: onCancel || (() => sendAct('resolve_prompt', { card_ids: [] })),
+  };
+  if (btnOk) btnOk.style.display = '';
+  if (btnCancel) btnCancel.style.display = '';
   cards.forEach(card => {
     const ok = cardMatchesWrPickClient(card, cfg) || serverIds.has(card.instance_id);
     const elCard = mkPickCardEl(card, 'pickcard', () => {
       if (!ok || isPromptSubmitting(s)) return;
-      closeM('overlay-pick');
-      G.pickCtx = null;
-      sendAct('resolve_prompt', { card_id: card.instance_id });
+      if (G.pickMarked.has(card.instance_id)) G.pickMarked.delete(card.instance_id);
+      else {
+        if (G.pickMarked.size >= need) { toast(`Select at most ${need}`); return; }
+        G.pickMarked.add(card.instance_id);
+        sfxCardPick();
+      }
+      [...g.children].forEach(c => {
+        if (c.classList?.contains('pickcard'))
+          c.classList.toggle('sel', G.pickMarked.has(c.dataset.id));
+      });
+      el('pick-count').textContent = formatSelectedCount(G.pickMarked.size, need);
     });
     if (!ok) elCard.classList.add('ineligible');
     g.appendChild(elCard);
   });
-  el('pick-count').textContent = '';
+  el('pick-count').textContent = formatSelectedCount(0, need);
+  syncPickOverlayButtons();
   openM('overlay-pick');
 }
 
@@ -2627,6 +2665,7 @@ global.renderPrompt = function renderPrompt(s, myId){
     ||pr?.type==='live_start_edel_note_dual_pick_buff'
     ||pr?.type==='treat_pick_group_member_hearts_as'
     ||pr?.type==='cl1_pick_stage_member_blade'
+    ||pr?.type==='score_if_stage_member_hearts'
     ||pr?.type==='opp_member_match_heart_blade')&&pr.responder===myId){
     ovl.classList.remove('open');
     const raw=pr.candidates||[];

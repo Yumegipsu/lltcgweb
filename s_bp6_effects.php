@@ -240,13 +240,9 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $colors = $ab['colors'] ?? ['red', 'green', 'blue'];
             $eligible = array_values(array_filter($top, function ($c) use ($colors) {
                 if (($c['card_type'] ?? '') !== 'メンバー') return false;
-                $hearts = $c['hearts'] ?? [];
-                if (is_string($hearts)) {
-                    $decoded = json_decode($hearts, true);
-                    $hearts = $decoded['hearts'] ?? $decoded ?? [];
-                }
+                // hearts are [{color, count}, ...] — never a keyed map
                 foreach ($colors as $col) {
-                    if (intval($hearts[$col] ?? 0) < 1) return false;
+                    if (memberHeartColorCount($c, (string)$col) < 1) return false;
                 }
                 return true;
             }));

@@ -126,8 +126,8 @@ function wrPickExtraFiltersFromCfg(array $cfg): array {
 }
 
 /**
- * Add matching WR card(s) to hand. When count is 1 and any cards qualify, opens pick_wr_to_hand
- * so the player always chooses among eligible Waiting Room cards (never auto-first-match).
+ * Add matching WR card(s) to hand. When any cards qualify, opens pick_wr_to_hand
+ * so the player always chooses (never auto-first-match). count > 1 means "up to N".
  *
  * @return int|null Cards added immediately, or null when a pick prompt was opened.
  */
@@ -149,26 +149,14 @@ function addFromWaitingRoomWithChoice(
     if (empty($candidates)) {
         return 0;
     }
-    // Always prompt for a single WR→hand add when anything qualifies — including one option.
-    if ($count === 1) {
-        $slot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
-        if ($slot === null) {
-            $slot = 'center';
-        }
-        $member = !empty($p['stage'][$slot]) ? $p['stage'][$slot] : $source;
-        $abilityIdx = intval($ctx['ability_index'] ?? $ctx['ability_idx'] ?? 0);
-        startPickWrToHandPrompt($state, $pid, $member, $slot, $abilityIdx, $ab, $cfg, $leaveStage, $count);
-        return null;
+    $slot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
+    if ($slot === null) {
+        $slot = 'center';
     }
-    $maxCost = isset($cfg['max_cost']) ? intval($cfg['max_cost']) : null;
-    return addFromWaitingRoomFiltered(
-        $p,
-        $cfg['group'] ?? '',
-        $cfg['filter'] ?? 'member',
-        $count,
-        $maxCost,
-        wrPickExtraFiltersFromCfg($cfg)
-    );
+    $member = !empty($p['stage'][$slot]) ? $p['stage'][$slot] : $source;
+    $abilityIdx = intval($ctx['ability_index'] ?? $ctx['ability_idx'] ?? 0);
+    startPickWrToHandPrompt($state, $pid, $member, $slot, $abilityIdx, $ab, $cfg, $leaveStage, $count);
+    return null;
 }
 
 function startPickWrToHandPrompt(
@@ -194,6 +182,7 @@ function startPickWrToHandPrompt(
     }
     $p['stage'][$slot] = $member;
     $promptType = $leaveStage ? 'pick_wr_leave_stage_add' : 'pick_wr_to_hand';
+    $upTo = $count > 1;
     $state['pending_prompt'] = [
         'type'          => $promptType,
         'owner'         => $pid,
@@ -202,12 +191,16 @@ function startPickWrToHandPrompt(
         'source_slot'   => $slot,
         'source_name'   => $mName,
         'ability_index' => $abilityIdx,
-        'prompt'        => 'Choose ' . max(0, $count) . ' ' . wrPickFilterLabel($filter) .
-            ' card from your Waiting Room to add to your hand.',
+        'prompt'        => $upTo
+            ? ('Choose up to ' . $count . ' ' . wrPickFilterLabel($filter) .
+                ' card(s) from your Waiting Room to add to your hand.')
+            : ('Choose ' . max(0, $count) . ' ' . wrPickFilterLabel($filter) .
+                ' card from your Waiting Room to add to your hand.'),
         'candidates'    => array_map('cardPromptSummary', $candidates),
         'ability'       => $ab,
         'wr_pick_cfg'   => $cfg,
         'pick_count'    => $count,
+        'up_to'         => $upTo,
     ];
 }
 
