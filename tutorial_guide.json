@@ -302,7 +302,12 @@
       "id": "play_member",
       "kind": "action",
       "dialogue": "Let's play **Shiki Wakana** to **Center** — she costs **2 Energy**. Tap/click her in your hand, then tap the **Center** stage slot — or drag her onto Center with mouse or touch.",
-      "highlights": [],
+      "highlights": [
+        {
+          "target": "my-stage-center",
+          "padding": 10
+        }
+      ],
       "spotlightDim": "none",
       "select_hand": "PL!SP-sd1-019-SD",
       "goal": {

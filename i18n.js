@@ -6563,8 +6563,8 @@
     // Back-compat: native <select> or custom picker toggle button
     if (!sel) return;
     if (sel.tagName === 'SELECT') {
-      var loc = getLocale();
-      if (sel.value !== loc) sel.value = loc;
+    var loc = getLocale();
+    if (sel.value !== loc) sel.value = loc;
       return;
     }
     syncLocalePicker(sel);
@@ -6729,8 +6729,8 @@
       if (!sel) return;
       if (sel.tagName === 'SELECT') {
         if (!sel._lltcgLocaleBound) {
-          sel._lltcgLocaleBound = true;
-          sel.addEventListener('change', onLocaleSelectChange);
+        sel._lltcgLocaleBound = true;
+        sel.addEventListener('change', onLocaleSelectChange);
         }
       } else {
         bindLocalePicker(sel);

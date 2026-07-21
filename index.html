@@ -484,6 +484,13 @@ body.tutorial-live-action .tut-btn-next{opacity:.35;pointer-events:none}
 body.tutorial-live-mode.tutorial-live-action #tutorial-spotlight,
 body.tutorial-live-mode.tutorial-live-action #tutorial-spotlight.show{
   pointer-events:none!important;opacity:0!important;visibility:hidden!important}
+/* Dialogue bubble stays clickable; overlay chrome must not eat Stage/hand hits. */
+body.tutorial-live-mode.tutorial-live-action #overlay-tutorial,
+body.tutorial-live-mode.tutorial-live-action #overlay-tutorial.open{
+  pointer-events:none!important}
+body.tutorial-live-mode.tutorial-live-action #overlay-tutorial .tut-bar,
+body.tutorial-live-mode.tutorial-live-action #overlay-tutorial .tut-bar *{
+  pointer-events:auto!important}
 body.tutorial-live-mode.tutorial-live-action #screen-game .playmat-column,
 body.tutorial-live-mode.tutorial-live-action #screen-game .hand-strip,
 body.tutorial-live-mode.tutorial-live-action #screen-game .hand-strip *,
@@ -514,14 +521,14 @@ body.tutorial-mode #hand-row .hcard.tut-hand-sel.play-sel{
   box-shadow:0 0 22px rgba(56,161,105,.65),0 10px 28px rgba(0,0,0,.5),0 0 12px rgba(255,107,168,.35);
   z-index:42;
 }
-/* Live hand-play: mute other cards so the guided card is easy to grab. */
+/* Live hand-play: mute other cards visually. Do NOT kill pointer-events —
+   tut-hand-sel can be briefly missing after hand reflow/shift baselines, and
+   JS already gates plays via TutorialInteractive.handCardAllowed. */
 body.tutorial-live-mode.tutorial-live-action #hand-row .hcard:not(.tut-hand-sel){
   opacity:.48;filter:grayscale(.2);
-  pointer-events:none!important;
 }
 body.tutorial-live-mode.tutorial-live-action #hand-row .hcard.tut-hand-sel{
   opacity:1;filter:none;
-  pointer-events:auto!important;
 }
 body.tutorial-mode #sb-activatable-wrap.tut-show{outline:2px solid rgba(255,107,168,.35);border-radius:10px}
 
@@ -8300,7 +8307,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/stamps.js?v=16"></script>
 <script src="client/js/replay-debug.js?v=7"></script>
 <script src="client/js/prompt-renderer.js?v=42"></script>
-<script src="client/js/tutorial-interactive.js?v=17"></script>
+<script src="client/js/tutorial-interactive.js?v=18"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -18765,7 +18772,8 @@ function snapHandCardsForShiftBaseline() {
   const row = el('hand-row');
   if (row) {
     row.querySelectorAll('.hcard').forEach(n => {
-      n.classList.remove('play-sel', 'hover-sel', 'tut-hand-sel');
+      // Keep tut-hand-sel — live tutorial relies on it for the guided outline.
+      n.classList.remove('play-sel', 'hover-sel');
       n.style.transform = '';
     });
     layoutHandFan(row, { animate: false });
@@ -30670,6 +30678,8 @@ function renderHand(hand,s,myId, opts = {}){
       wrap.querySelector(`.hcard[data-iid="${CSS.escape(card.instance_id)}"]`)?.classList.add('card-arriving');
     });
   }
+  // Hand DOM rebuild clears classes — restore live-tutorial guided card outline.
+  if (typeof reapplyTutorialHandGuide === 'function') reapplyTutorialHandGuide();
 }
 
 function energyZoneLayoutKey(zone) {
@@ -31935,7 +31945,10 @@ function bindHandCardEvents(d, card, s, myId) {
     }
   });
   d.addEventListener('pointerdown', e => {
-    if (e.button !== 0 || G.animating) return;
+    if (e.button !== 0) return;
+    // Live tutorial hand-play must stay responsive even if a prior board anim
+    // flag is still set (otherwise Shiki select/drag softlocks).
+    if (G.animating && !(G.tutorialLive && typeof tutBlocks === 'function' && !tutBlocks('hand'))) return;
     if (typeof tutBlocks === 'function' && tutBlocks('hand')) return;
     e.preventDefault();
     try { d.setPointerCapture(e.pointerId); } catch (_) {}
@@ -35826,8 +35839,27 @@ function clearTutorialCardPreview() {
 
 function applyTutorialHandHighlight(iid) {
   document.querySelectorAll('#hand-row .hcard.tut-hand-sel').forEach(n => n.classList.remove('tut-hand-sel'));
+  G._tutHandGuideIid = iid || null;
   if (!iid) return;
-  document.querySelector(`#hand-row .hcard[data-iid="${iid}"]`)?.classList.add('tut-hand-sel');
+  const node = document.querySelector(`#hand-row .hcard[data-iid="${CSS.escape(iid)}"]`);
+  if (node) node.classList.add('tut-hand-sel');
+}
+
+/** Restore guided hand outline after hand reflow / renderHand rebuilds. */
+function reapplyTutorialHandGuide() {
+  if (!G.isTutorial || !G.tutorialLive) return;
+  const step = G.tutorialData?.steps?.[G.tutorialStep];
+  if (!step || step.kind !== 'action') return;
+  const gType = step.goal?.type;
+  if (gType !== 'play_member' && gType !== 'set_live' && gType !== 'end_live_set') return;
+  const s = G.gameState;
+  const myId = G.playerId || 'p1';
+  if (!s) return;
+  const cardRef = step.select_hand || step.preview_card || step.goal?.card_no;
+  if (!cardRef) return;
+  const found = findTutorialPreviewCard(s, myId, cardRef);
+  if (found?.zone === 'hand') applyTutorialHandHighlight(found.card.instance_id);
+  else if (G._tutHandGuideIid) applyTutorialHandHighlight(G._tutHandGuideIid);
 }
 
 function applyTutorialStepUi(step) {
@@ -35835,7 +35867,7 @@ function applyTutorialStepUi(step) {
   const s = G.gameState;
   const myId = G.playerId || 'p1';
   if (!s) return;
-  const cardRef = step.select_hand || step.preview_card;
+  const cardRef = step.select_hand || step.preview_card || step.goal?.card_no;
   // Live action steps that play from hand need normal select/drag UX — outline the
   // guided card, but do not pin the info panel or suppress play-sel.
   const liveHandPlay = G.tutorialLive && step.kind === 'action'
@@ -35850,6 +35882,8 @@ function applyTutorialStepUi(step) {
       const found = findTutorialPreviewCard(s, myId, cardRef);
       if (found?.zone === 'hand') applyTutorialHandHighlight(found.card.instance_id);
     }
+    // Hand nodes may not exist yet on the first paint — retry next frame.
+    requestAnimationFrame(() => reapplyTutorialHandGuide());
     return;
   }
   const pinPanel = !!cardRef
