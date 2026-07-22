@@ -377,29 +377,34 @@ body.tutorial-spotlight-light #tutorial-spotlight .tut-hole,
 .tut-btn-next{background:linear-gradient(135deg,var(--pink),var(--pink-d));color:#fff;border:none;
   box-shadow:0 3px 12px rgba(214,51,132,.3)}
 .tut-step{display:none!important}
-/* Tutorial: only Kanon bubble nav (Back / Next / Exit) receives clicks */
-body.tutorial-mode #screen-game,
-body.tutorial-mode #screen-game *,
-body.tutorial-mode #overlay-mull,
-body.tutorial-mode #overlay-mull *,
-body.tutorial-mode #overlay-coin,
-body.tutorial-mode #overlay-coin *,
-body.tutorial-mode #overlay-live,
-body.tutorial-mode #overlay-live *,
-body.tutorial-mode #overlay-prompt,
-body.tutorial-mode #overlay-prompt *,
-body.tutorial-mode #overlay-pick,
-body.tutorial-mode #overlay-pick *,
-body.tutorial-mode #overlay-hand-pick,
-body.tutorial-mode #overlay-hand-pick *,
-body.tutorial-mode #overlay-heart,
-body.tutorial-mode #overlay-heart *,
-body.tutorial-mode #overlay-surveil,
-body.tutorial-mode #overlay-surveil *,
-body.tutorial-mode #overlay-zone,
-body.tutorial-mode #overlay-zone *,
-body.tutorial-mode #modal-card,
-body.tutorial-mode #modal-card *,
+/*
+ * Tutorial pointer model
+ * - Slideshow / live info+watch: board blocked; only Kanon bubble is clickable
+ * - Live ACTION steps: board uses normal gameplay hit-testing (JS gates which
+ *   cards/actions). Dialogue chrome must NOT sit on top of the hand/stage.
+ */
+body.tutorial-mode:not(.tutorial-live-action) #screen-game,
+body.tutorial-mode:not(.tutorial-live-action) #screen-game *,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-mull,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-mull *,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-coin,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-coin *,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-live,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-live *,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-prompt,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-prompt *,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-pick,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-pick *,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-hand-pick,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-hand-pick *,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-heart,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-heart *,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-surveil,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-surveil *,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-zone,
+body.tutorial-mode:not(.tutorial-live-mode) #overlay-zone *,
+body.tutorial-mode:not(.tutorial-live-mode) #modal-card,
+body.tutorial-mode:not(.tutorial-live-mode) #modal-card *,
 body.tutorial-mode #perf-spectacle,
 body.tutorial-mode #perf-spectacle *,
 body.tutorial-mode #center-banner,
@@ -412,6 +417,39 @@ body.tutorial-mode #card-flight-layer{
 body.tutorial-mode #tutorial-spotlight.show{pointer-events:auto}
 body.tutorial-mode #overlay-tutorial,
 body.tutorial-mode #overlay-tutorial *{pointer-events:auto}
+/* Live action: keep dialogue visually above the board, but never steal hits.
+ * pointer-events:none on the bubble lets raise/drag reach the hand underneath. */
+body.tutorial-live-mode.tutorial-live-action #overlay-tutorial,
+body.tutorial-live-mode.tutorial-live-action #overlay-tutorial.open{
+  pointer-events:none!important}
+body.tutorial-live-mode.tutorial-live-action #overlay-tutorial .tut-bar,
+body.tutorial-live-mode.tutorial-live-action #overlay-tutorial .tut-bar *{
+  pointer-events:none!important}
+body.tutorial-live-mode.tutorial-live-action #overlay-tutorial .tut-exit,
+body.tutorial-live-mode.tutorial-live-action #overlay-tutorial .tut-nav,
+body.tutorial-live-mode.tutorial-live-action #overlay-tutorial .tut-nav *{
+  pointer-events:auto!important}
+body.tutorial-live-mode.tutorial-live-action #screen-game{
+  pointer-events:auto!important}
+body.tutorial-live-mode.tutorial-live-action #screen-game .my-hand-strip,
+body.tutorial-live-mode.tutorial-live-action #screen-game .my-hand-strip *{
+  pointer-events:auto!important}
+body.tutorial-live-mode.tutorial-live-action #screen-game .playmat-frame.my-mat,
+body.tutorial-live-mode.tutorial-live-action #screen-game .playmat-frame.my-mat *{
+  pointer-events:auto!important}
+body.tutorial-live-mode.tutorial-live-action #screen-game #phase-action-bar,
+body.tutorial-live-mode.tutorial-live-action #screen-game #phase-action-bar *,
+body.tutorial-live-mode.tutorial-live-action #screen-game .card-hover-panel,
+body.tutorial-live-mode.tutorial-live-action #screen-game .card-hover-panel *{
+  pointer-events:auto!important}
+body.tutorial-live-mode.tutorial-live-action #screen-game .opp-hand-strip,
+body.tutorial-live-mode.tutorial-live-action #screen-game .opp-hand-strip *,
+body.tutorial-live-mode.tutorial-live-action #screen-game .playmat-frame.opp-mat,
+body.tutorial-live-mode.tutorial-live-action #screen-game .playmat-frame.opp-mat *{
+  pointer-events:none!important}
+/* Guided card must drag on touch (manipulation cancels drag before threshold). */
+body.tutorial-live-mode.tutorial-live-action #hand-row .hcard.tut-hand-sel{
+  touch-action:none;cursor:grab}
 body.tutorial-mode:not(.tutorial-live-mode) #phase-action-bar{pointer-events:none!important}
 body.tutorial-mode:not(.tutorial-live-mode) #phase-action-bar .btn-phase-primary{
   opacity:1;cursor:not-allowed;transform:none!important;filter:saturate(.92);
@@ -484,25 +522,6 @@ body.tutorial-live-action .tut-btn-next{opacity:.35;pointer-events:none}
 body.tutorial-live-mode.tutorial-live-action #tutorial-spotlight,
 body.tutorial-live-mode.tutorial-live-action #tutorial-spotlight.show{
   pointer-events:none!important;opacity:0!important;visibility:hidden!important}
-/* Dialogue bubble stays clickable; overlay chrome must not eat Stage/hand hits. */
-body.tutorial-live-mode.tutorial-live-action #overlay-tutorial,
-body.tutorial-live-mode.tutorial-live-action #overlay-tutorial.open{
-  pointer-events:none!important}
-body.tutorial-live-mode.tutorial-live-action #overlay-tutorial .tut-bar,
-body.tutorial-live-mode.tutorial-live-action #overlay-tutorial .tut-bar *{
-  pointer-events:auto!important}
-body.tutorial-live-mode.tutorial-live-action #screen-game .playmat-column,
-body.tutorial-live-mode.tutorial-live-action #screen-game .hand-strip,
-body.tutorial-live-mode.tutorial-live-action #screen-game .hand-strip *,
-body.tutorial-live-mode.tutorial-live-action #screen-game #phase-action-bar,
-body.tutorial-live-mode.tutorial-live-action #screen-game #phase-action-bar *,
-body.tutorial-live-mode.tutorial-live-action #screen-game .card-hover-panel,
-body.tutorial-live-mode.tutorial-live-action #screen-game .card-hover-panel *{
-  pointer-events:auto!important}
-body.tutorial-live-mode.tutorial-live-action #screen-game .playmat-column.opp-playmat,
-body.tutorial-live-mode.tutorial-live-action #screen-game .opp-hand-zone,
-body.tutorial-live-mode.tutorial-live-action #screen-game .opp-hand-zone *{
-  pointer-events:none!important}
 body.tutorial-mode .side-log .sbfoot{pointer-events:none!important}
 body.tutorial-mode .side-log .sbfoot button{
   opacity:.72;cursor:not-allowed;transform:none!important;
@@ -520,15 +539,15 @@ body.tutorial-mode #hand-row .hcard.tut-hand-sel.play-sel{
   border-color:rgba(56,161,105,.9);
   box-shadow:0 0 22px rgba(56,161,105,.65),0 10px 28px rgba(0,0,0,.5),0 0 12px rgba(255,107,168,.35);
   z-index:42;
+  /* Explicit raise so tutorial CSS never suppresses normal play-sel lift. */
+  transform:translateY(-28px)!important;
 }
-/* Live hand-play: mute other cards visually. Do NOT kill pointer-events —
-   tut-hand-sel can be briefly missing after hand reflow/shift baselines, and
-   JS already gates plays via TutorialInteractive.handCardAllowed. */
+/* Live hand-play: mute other cards visually; JS gates which card can be played. */
 body.tutorial-live-mode.tutorial-live-action #hand-row .hcard:not(.tut-hand-sel){
   opacity:.48;filter:grayscale(.2);
 }
 body.tutorial-live-mode.tutorial-live-action #hand-row .hcard.tut-hand-sel{
-  opacity:1;filter:none;
+  opacity:1;filter:none;cursor:grab;touch-action:none;
 }
 body.tutorial-mode #sb-activatable-wrap.tut-show{outline:2px solid rgba(255,107,168,.35);border-radius:10px}
 
@@ -1074,6 +1093,10 @@ body:has(.overlay.skill-hand-preserve.open) .playmat-column.play-selecting .play
   position:fixed;left:0;top:0;z-index:7000;pointer-events:none;
   transform-origin:0 0;
   filter:drop-shadow(0 14px 28px rgba(0,0,0,.55));
+}
+/* Tutorial live-action: ghost must paint above Kanon dialogue (z≈8700). */
+body.tutorial-live-mode.tutorial-live-action .drag-hand-wrap{
+  z-index:9200!important;
 }
 .drag-hand-wrap .drag-hand-inner{
   animation:dragDangle .42s ease-in-out infinite alternate;
@@ -8307,7 +8330,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/stamps.js?v=16"></script>
 <script src="client/js/replay-debug.js?v=7"></script>
 <script src="client/js/prompt-renderer.js?v=42"></script>
-<script src="client/js/tutorial-interactive.js?v=18"></script>
+<script src="client/js/tutorial-interactive.js?v=20"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -18268,8 +18291,17 @@ async function bootApp() {
   document.addEventListener('click', e => {
     const tutPinned = G.isTutorial && document.body.classList.contains('tut-pin-card-info');
     if (!tutPinned) {
-      if(!e.target.closest('.hcard') && !e.target.closest('.mbox') && !e.target.closest('.stage-slot') && !e.target.closest('#card-hover-panel'))
-        if(G.selCard) clearPlaySelection();
+      // Live tutorial: Next/Back/Exit sit in #overlay-tutorial. Advancing into
+      // play_member auto-selects the guided card — that same click must not clear it.
+      const tutChromeClick = G.tutorialLive
+        && e.target.closest('#overlay-tutorial');
+      if (!tutChromeClick
+          && !e.target.closest('.hcard')
+          && !e.target.closest('.mbox')
+          && !e.target.closest('.stage-slot')
+          && !e.target.closest('#card-hover-panel')) {
+        if (G.selCard) clearPlaySelection();
+      }
       if (!e.target.closest('#hand-row') && !e.target.closest('.stage-slot') && !G.drag && !G.selCard) clearHoverCardPreview();
     }
   });
@@ -35845,9 +35877,13 @@ function applyTutorialHandHighlight(iid) {
   if (node) node.classList.add('tut-hand-sel');
 }
 
-/** Restore guided hand outline after hand reflow / renderHand rebuilds. */
-function reapplyTutorialHandGuide() {
-  if (!G.isTutorial || !G.tutorialLive) return;
+/**
+ * Live tutorial interactive hand steps: outline the guided card, rebind events,
+ * and for play_member auto-raise it (play-sel) so the player can tap Center / drag
+ * without fighting pointer blockers.
+ */
+function ensureTutorialGuidedHandInteract() {
+  if (!G.isTutorial || !G.tutorialLive || G.drag) return;
   const step = G.tutorialData?.steps?.[G.tutorialStep];
   if (!step || step.kind !== 'action') return;
   const gType = step.goal?.type;
@@ -35860,6 +35896,33 @@ function reapplyTutorialHandGuide() {
   const found = findTutorialPreviewCard(s, myId, cardRef);
   if (found?.zone === 'hand') applyTutorialHandHighlight(found.card.instance_id);
   else if (G._tutHandGuideIid) applyTutorialHandHighlight(G._tutHandGuideIid);
+  else return;
+
+  const card = found?.zone === 'hand' ? found.card
+    : (s.players?.[myId]?.hand || []).find(c => c.instance_id === G._tutHandGuideIid);
+  if (!card) return;
+  const node = document.querySelector(`#hand-row .hcard[data-iid="${CSS.escape(card.instance_id)}"]`);
+  if (node && !G.isSpectator && !node._tcgHandBound) {
+    bindHandCardEvents(node, card, s, myId);
+  }
+  if (gType === 'play_member' && canSelectMemberForPlay(card, s, myId)) {
+    if (window.TutorialInteractive?.handCardAllowed
+        && !TutorialInteractive.handCardAllowed(card)) return;
+    if (G.selCard !== card.instance_id) {
+      G.selCard = card.instance_id;
+      G.previewSlot = null;
+      if (!tcgMobileViewportActive()) showHoverCardPreview(card, s, myId);
+      else G.hoverCardId = card.instance_id;
+    }
+    syncHandSelectionClasses(s, myId);
+    syncMyStagePlayHints(s, myId);
+    updatePlayTargetChrome(s, myId);
+  }
+}
+
+/** Restore guided hand outline after hand reflow / renderHand rebuilds. */
+function reapplyTutorialHandGuide() {
+  ensureTutorialGuidedHandInteract();
 }
 
 function applyTutorialStepUi(step) {
@@ -35877,13 +35940,12 @@ function applyTutorialStepUi(step) {
   if (liveHandPlay) {
     document.body.classList.remove('tut-pin-card-info');
     G.tutPreviewIid = null;
-    applyTutorialHandHighlight(null);
-    if (cardRef) {
-      const found = findTutorialPreviewCard(s, myId, cardRef);
-      if (found?.zone === 'hand') applyTutorialHandHighlight(found.card.instance_id);
-    }
-    // Hand nodes may not exist yet on the first paint — retry next frame.
-    requestAnimationFrame(() => reapplyTutorialHandGuide());
+    ensureTutorialGuidedHandInteract();
+    // Hand nodes may not exist yet on the first paint — retry next frames.
+    requestAnimationFrame(() => {
+      ensureTutorialGuidedHandInteract();
+      requestAnimationFrame(() => ensureTutorialGuidedHandInteract());
+    });
     return;
   }
   const pinPanel = !!cardRef

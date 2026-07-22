@@ -149,12 +149,32 @@
     nextBtn.hidden = !isInfo;
     nextBtn.disabled = !!G()?.tutorialAdvancing;
     if (backBtn) backBtn.disabled = (G()?.tutorialStep ?? 0) <= 0 || !!G()?.tutorialAdvancing;
-    document.body.classList.toggle('tutorial-live-action', isLive() && !isInfo && !isWatch);
+    const liveAction = isLive() && !isInfo && !isWatch;
+    document.body.classList.toggle('tutorial-live-action', liveAction);
+    // Belt-and-suspenders: never let the dialogue layer eat hand/stage hits.
+    const ovl = global.el?.('overlay-tutorial');
+    if (ovl) {
+      if (liveAction) {
+        ovl.style.pointerEvents = 'none';
+        ovl.querySelectorAll('.tut-exit, .tut-nav, .tut-nav *').forEach((n) => {
+          n.style.pointerEvents = 'auto';
+        });
+      } else {
+        ovl.style.pointerEvents = '';
+        ovl.querySelectorAll('.tut-exit, .tut-nav, .tut-nav *').forEach((n) => {
+          n.style.pointerEvents = '';
+        });
+      }
+    }
     const phaseBtn = global.el?.('btn-phase-primary');
     if (phaseBtn) {
       const g = st?.goal?.type;
       const lock = isLive() && !isInfo && g !== 'end_main' && g !== 'end_live_set';
       phaseBtn.classList.toggle('tut-locked', lock);
+    }
+    if (liveAction && typeof global.reapplyTutorialHandGuide === 'function') {
+      global.reapplyTutorialHandGuide();
+      requestAnimationFrame(() => global.reapplyTutorialHandGuide());
     }
   }
 
@@ -363,7 +383,7 @@
       if (typeof global.loadTutorialJa === 'function') await global.loadTutorialJa();
       if (typeof global.loadTutorialEs === 'function') await global.loadTutorialEs();
       if (typeof global.loadTutorialKo === 'function') await global.loadTutorialKo();
-      const r = await fetch('./tutorial_guide.json?v=13', { cache: 'no-store' });
+      const r = await fetch('./tutorial_guide.json?v=15', { cache: 'no-store' });
       if (!r.ok) throw new Error('Could not load tutorial guide (HTTP ' + r.status + ')');
       const data = await r.json();
       if (!data?.steps?.length) throw new Error('Tutorial guide has no steps');
