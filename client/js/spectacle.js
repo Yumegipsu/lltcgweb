@@ -1493,6 +1493,8 @@ function emptyLiveRoundScenario(prev, next) {
 /** Prompts deferred until after judge/performance spectacle completes. */
 const PERF_SPECTACLE_DEFERRED_PROMPTS = new Set([
   'pick_judge_success_live',
+  // Sakaku♡CROSSROADS (PL!-bp6-024-L) — optional WR Success replace after win.
+  'replace_success_with_wr_live',
   // Yume Wazurai (PL!HS-pb1-027-L) — Live Success optional mill must not stall the show.
   'live_success_optional_mill_if_subunit',
 ]);

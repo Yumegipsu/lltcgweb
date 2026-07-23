@@ -8329,7 +8329,7 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 <script src="client/js/state-apply.js?v=36"></script>
 <script src="client/js/stamps.js?v=16"></script>
 <script src="client/js/replay-debug.js?v=7"></script>
-<script src="client/js/prompt-renderer.js?v=44"></script>
+<script src="client/js/prompt-renderer.js?v=45"></script>
 <script src="client/js/tutorial-interactive.js?v=20"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -27012,6 +27012,21 @@ function cpuResolvePromptBody(s, cpu, pr) {
     if(id) cpuAct('resolve_prompt',{card_id:id});
     return;
   }
+  if(pr.type==='replace_success_with_wr_live'){
+    const step=pr.step||'confirm';
+    if(step==='pick_wr'){
+      const cands=pr.candidates||[];
+      const sorted=[...cands].sort((a,b)=>(b.score||0)-(a.score||0));
+      const id=sorted[0]?.instance_id;
+      if(id) cpuAct('resolve_prompt',{card_id:id});
+      else cpuAct('resolve_prompt',{choice:'no'});
+      return;
+    }
+    // Prefer replace when a WR Live exists (candidates present on confirm).
+    if((pr.candidates||[]).length) cpuAct('resolve_prompt',{choice:'yes'});
+    else cpuAct('resolve_prompt',{choice:'no'});
+    return;
+  }
   if(pr.type==='pick_wr_to_hand'||pr.type==='pick_wr_leave_stage_add'){
     const cfg = wrPickCfgFromPrompt(pr);
     const raw = pr.candidates || [];
@@ -37085,7 +37100,7 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/live-round-director.js?v=3"></script>
-<script src="client/js/spectacle.js?v=28"></script>
+<script src="client/js/spectacle.js?v=29"></script>
 <script src="client/js/cpu-meta-weights.js?v=5"></script>
 <script src="client/js/cpu-eval.js?v=5"></script>
 <script src="client/js/cpu-expert.js?v=3"></script>

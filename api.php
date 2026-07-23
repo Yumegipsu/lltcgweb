@@ -2416,7 +2416,13 @@ function liveJudgeRemoveFromZone(array &$zone, string $instanceId): ?array {
     return null;
 }
 
-function liveJudgePlaceSuccessLive(array $state, string $winnerId, array $toAdd): array {
+function liveJudgePlaceSuccessLive(array $state, string $winnerId, array $toAdd, bool $allowReplace = true): array {
+    if ($allowReplace && function_exists('plMuseGapTryOfferReplaceSuccess')) {
+        $offered = plMuseGapTryOfferReplaceSuccess($state, $winnerId, $toAdd);
+        if ($offered !== null) {
+            return $offered;
+        }
+    }
     $zone = &$state['players'][$winnerId]['live_zone'];
     $fromIdx = liveZoneSlotOf($toAdd, 0);
     $removed = liveJudgeRemoveFromZone($zone, $toAdd['instance_id'] ?? '');
@@ -2525,6 +2531,12 @@ function advanceLiveJudgeWinners(array $state): array {
         }
 
         $state = liveJudgePlaceSuccessLive($state, $winnerId, $eligible[0]);
+        if (!empty($state['pending_prompt'])) {
+            $state['phase'] = 'live_judge';
+            $state['_live_judge_ctx'] = $ctx;
+            $state['seq']++;
+            return $state;
+        }
         $ctx = $state['_live_judge_ctx'] ?? $ctx;
         $leftInZone = count($state['players'][$winnerId]['live_zone'] ?? []);
         if ($leftInZone > 0) {
@@ -2572,6 +2584,12 @@ function actionResolvePickJudgeSuccessLive(array $state, string $owner, array $p
 
     unset($state['pending_prompt']);
     $state = liveJudgePlaceSuccessLive($state, $winnerId, $toAdd);
+    if (!empty($state['pending_prompt'])) {
+        $state['phase'] = 'live_judge';
+        $state['_live_judge_ctx'] = $ctx;
+        $state['seq']++;
+        return $state;
+    }
     $leftInZone = count($state['players'][$winnerId]['live_zone'] ?? []);
     if ($leftInZone > 0) {
         $state = addLog($state, $state['players'][$winnerId]['name'] .

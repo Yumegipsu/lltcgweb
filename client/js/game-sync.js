@@ -41,8 +41,8 @@
       || ph === 'active_first' || ph === 'active_second';
     const metaType = G.gameState?.pending_prompt_meta?.type || null;
     const judgePickReady = ph === 'live_judge'
-      && (prType === 'pick_judge_success_live' || prType === 'sbp6_live_wr_deck_position'
-        || metaType === 'pick_judge_success_live' || metaType === 'sbp6_live_wr_deck_position')
+      && (prType === 'pick_judge_success_live' || prType === 'replace_success_with_wr_live' || prType === 'sbp6_live_wr_deck_position'
+        || metaType === 'pick_judge_success_live' || metaType === 'replace_success_with_wr_live' || metaType === 'sbp6_live_wr_deck_position')
       && !!G._liveRoundPostSpectacleReady;
     // Spectators never receive full pending_prompt — live_judge must not softlock polls.
     // Do not special-case spectators beyond missing prompts: a broader live_judge clear

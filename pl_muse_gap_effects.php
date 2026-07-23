@@ -824,6 +824,7 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
         case 'score_if_center_moved_this_turn':
         case 'reduce_hearts_mus_live_min_score_success':
         case 'optional_replace_success_with_wr_live':
+            // Handled at Live Judge placement time (liveJudgePlaceSuccessLive), not via resolveAbilityEffect.
             break;
 
         case 'reveal_hand_named_stack_under':
@@ -896,8 +897,202 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
     return $state;
 }
 
+function plMuseGapLiveReplaceSuccessAbility(array $card): ?array {
+    foreach ($card['abilities'] ?? [] as $ab) {
+        if (($ab['trigger'] ?? '') === 'continuous'
+            && ($ab['type'] ?? '') === 'optional_replace_success_with_wr_live') {
+            return $ab;
+        }
+    }
+    return null;
+}
+
+function plMuseGapWrLivesForReplace(array $p, array $ab): array {
+    $group = $ab['group'] ?? "μ's";
+    $filter = $ab['filter'] ?? 'live';
+    return array_values(array_filter(
+        $p['waiting_room'] ?? [],
+        fn($c) => cardMatchesGroup($c, $group, $filter)
+    ));
+}
+
+/**
+ * If $toAdd has optional_replace_success_with_wr_live and WR has a matching Live,
+ * open a yes/no prompt instead of placing immediately. Returns null when no offer.
+ */
+function plMuseGapTryOfferReplaceSuccess(array $state, string $winnerId, array $toAdd): ?array {
+    $ab = plMuseGapLiveReplaceSuccessAbility($toAdd);
+    if ($ab === null) {
+        return null;
+    }
+    $cands = plMuseGapWrLivesForReplace($state['players'][$winnerId] ?? [], $ab);
+    if ($cands === []) {
+        return null;
+    }
+    $name = $toAdd['name_en'] ?? $toAdd['name'] ?? 'Live';
+    $groupLabel = groupPromptLabel($ab['group'] ?? "μ's");
+    $state['pending_prompt'] = [
+        'type'          => 'replace_success_with_wr_live',
+        'step'          => 'confirm',
+        'owner'         => $winnerId,
+        'responder'     => $winnerId,
+        'source_id'     => $toAdd['instance_id'] ?? '',
+        'source_name'   => $name,
+        'ability'       => $ab,
+        'candidates'    => array_map('cardPromptSummary', $cands),
+        'choices'       => ['yes', 'no'],
+        'choice_labels' => ['Yes — Place from Waiting Room', 'No — Place this Live'],
+        'prompt'        => "Place 1 {$groupLabel} Live from your Waiting Room into Success instead of {$name}?",
+    ];
+    $state = addLog(
+        $state,
+        ($state['players'][$winnerId]['name'] ?? 'Player') .
+        " — [{$name}] may place a {$groupLabel} Live from Waiting Room into Success instead."
+    );
+    return $state;
+}
+
+/** After replace-success prompt resolves: leftover WR dump note + resume Live Judge winners. */
+function plMuseGapFinishReplaceSuccessJudge(array $state, string $owner): array {
+    $leftInZone = count($state['players'][$owner]['live_zone'] ?? []);
+    if ($leftInZone > 0) {
+        $state = addLog(
+            $state,
+            ($state['players'][$owner]['name'] ?? 'Player') .
+            " — $leftInZone other successful Live(s) in storage cannot be placed (only 1 Success Live per Judge win); sent to Waiting Room.",
+            'action'
+        );
+    }
+    $ctx = $state['_live_judge_ctx'] ?? null;
+    if (is_array($ctx)) {
+        $ctx['winner_index'] = intval($ctx['winner_index'] ?? 0) + 1;
+        if (!in_array($owner, $ctx['success_placed_by'] ?? [], true)) {
+            $ctx['success_placed_by'][] = $owner;
+        }
+        $state['_live_judge_ctx'] = $ctx;
+    }
+    $state['seq']++;
+    return advanceLiveJudgeWinners($state);
+}
+
 function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, string $choice, array $data): ?array {
     $type = $prompt['type'] ?? '';
+
+    if ($type === 'replace_success_with_wr_live') {
+        $step = $prompt['step'] ?? 'confirm';
+        $srcId = $prompt['source_id'] ?? '';
+        $ab = $prompt['ability'] ?? [];
+        $srcName = $prompt['source_name'] ?? 'Live';
+        $ownerP = $state['players'][$owner];
+
+        if ($step === 'confirm') {
+            if ($choice === 'no' || $choice === 'skip') {
+                $toAdd = null;
+                foreach ($ownerP['live_zone'] ?? [] as $c) {
+                    if (($c['instance_id'] ?? '') === $srcId) {
+                        $toAdd = $c;
+                        break;
+                    }
+                }
+                if ($toAdd === null) {
+                    throw new Exception('Live card no longer in storage');
+                }
+                unset($state['pending_prompt']);
+                $state = liveJudgePlaceSuccessLive($state, $owner, $toAdd, false);
+                return plMuseGapFinishReplaceSuccessJudge($state, $owner);
+            }
+            if ($choice !== 'yes') {
+                throw new Exception('Invalid choice');
+            }
+            $cands = plMuseGapWrLivesForReplace($ownerP, $ab);
+            if ($cands === []) {
+                unset($state['pending_prompt']);
+                $toAdd = null;
+                foreach ($ownerP['live_zone'] ?? [] as $c) {
+                    if (($c['instance_id'] ?? '') === $srcId) {
+                        $toAdd = $c;
+                        break;
+                    }
+                }
+                if ($toAdd === null) {
+                    throw new Exception('Live card no longer in storage');
+                }
+                $state = liveJudgePlaceSuccessLive($state, $owner, $toAdd, false);
+                return plMuseGapFinishReplaceSuccessJudge($state, $owner);
+            }
+            $groupLabel = groupPromptLabel($ab['group'] ?? "μ's");
+            $state['pending_prompt'] = [
+                'type'        => 'replace_success_with_wr_live',
+                'step'        => 'pick_wr',
+                'owner'       => $owner,
+                'responder'   => $owner,
+                'source_id'   => $srcId,
+                'source_name' => $srcName,
+                'ability'     => $ab,
+                'candidates'  => array_map('cardPromptSummary', $cands),
+                'prompt'      => "Choose 1 {$groupLabel} Live from Waiting Room to place in Success.",
+            ];
+            $state['seq']++;
+            return $state;
+        }
+
+        if ($step === 'pick_wr') {
+            $cardId = $data['card_id'] ?? (($choice !== 'yes' && $choice !== 'no') ? $choice : '');
+            $group = $ab['group'] ?? "μ's";
+            $filter = $ab['filter'] ?? 'live';
+            $wrLive = null;
+            $wr = $ownerP['waiting_room'] ?? [];
+            foreach ($wr as $i => $c) {
+                if (($c['instance_id'] ?? '') !== $cardId) {
+                    continue;
+                }
+                if (!cardMatchesGroup($c, $group, $filter)) {
+                    throw new Exception('Choose a matching Live from Waiting Room');
+                }
+                $wrLive = $c;
+                array_splice($wr, $i, 1);
+                break;
+            }
+            if ($wrLive === null) {
+                throw new Exception('Choose a Live card from your Waiting Room');
+            }
+            $liveZone = $ownerP['live_zone'] ?? [];
+            $fromIdx = 0;
+            foreach ($liveZone as $slotIdx => $c) {
+                if (($c['instance_id'] ?? '') === $srcId) {
+                    $fromIdx = liveZoneSlotOf($c, $slotIdx);
+                    break;
+                }
+            }
+            $removed = liveJudgeRemoveFromZone($liveZone, $srcId);
+            if (!$removed) {
+                throw new Exception('Live card no longer in storage');
+            }
+            $wr[] = $removed;
+            $success = $ownerP['success_lives'] ?? [];
+            $successIdx = count($success);
+            $success[] = $wrLive;
+            $ownerP['waiting_room'] = $wr;
+            $ownerP['live_zone'] = $liveZone;
+            $ownerP['success_lives'] = $success;
+            $state['players'][$owner] = $ownerP;
+            notifyLiveEnteredSuccess($state, $owner, $wrLive);
+            $wrName = $wrLive['name_en'] ?? $wrLive['name'] ?? 'Live';
+            unset($state['pending_prompt']);
+            $state = addLog(
+                $state,
+                ($state['players'][$owner]['name'] ?? 'Player') .
+                " wins this Live! [{$srcName}] placed \"{$wrName}\" from Waiting Room into Success instead.",
+                'good',
+                [
+                    animSpec($srcId, 'live', 'waiting', $owner, ['from_index' => $fromIdx]),
+                    animSpec($cardId, 'waiting', 'success', $owner, ['index' => $successIdx]),
+                ]
+            );
+            return plMuseGapFinishReplaceSuccessJudge($state, $owner);
+        }
+    }
+
     $p = &$state['players'][$owner];
 
     if ($type === 'reveal_hand_named_stack_under') {

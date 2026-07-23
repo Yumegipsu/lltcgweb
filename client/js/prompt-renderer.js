@@ -1988,6 +1988,18 @@ global.renderPrompt = function renderPrompt(s, myId){
     }, { state: s, myId });
     return;
   }
+  if(pr?.type==='replace_success_with_wr_live'&&pr.responder===myId){
+    const step=pr.step||'confirm';
+    if(step==='pick_wr'){
+      ovl.classList.remove('open');
+      openWrLivePick({
+        ...pr,
+        prompt: pr.prompt || 'Choose 1 Live from Waiting Room for Success.',
+      }, { state: s, myId });
+      return;
+    }
+    // confirm: fall through to yes/no choice buttons
+  }
   if((pr?.type==='pick_wr_to_hand'||pr?.type==='pick_wr_leave_stage_add')&&pr.responder===myId){
     ovl.classList.remove('open');
     const filter = wrPickCfgFromPrompt(pr).filter;
