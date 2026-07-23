@@ -87,10 +87,20 @@ function mergeCardCatalogFields(array &$card): void {
     if (empty($card['blade_hearts']) && !empty($base['blade_hearts'])) {
         $card['blade_hearts'] = $base['blade_hearts'];
     }
-    foreach (['special_heart', 'yell_draw_icon', 'yell_score_icon', 'required_hearts', 'score'] as $key) {
+    foreach (['special_heart', 'yell_draw_icon', 'yell_score_icon', 'score'] as $key) {
         if (!isset($card[$key]) && isset($base[$key]) && $base[$key] !== '' && $base[$key] !== []) {
             $card[$key] = $base[$key];
         }
+    }
+    // Empty required_hearts arrays are treated as missing — runtime lives often
+    // store [] after stripping and would otherwise skip catalog hearts (#66).
+    $reqMissing = !isset($card['required_hearts'])
+        || (is_array($card['required_hearts']) && $card['required_hearts'] === []);
+    if ($reqMissing && !empty($base['required_hearts']) && is_array($base['required_hearts'])) {
+        $card['required_hearts'] = $base['required_hearts'];
+    }
+    if (empty($card['hearts']) && !empty($base['hearts']) && is_array($base['hearts'])) {
+        $card['hearts'] = $base['hearts'];
     }
 }
 
@@ -1492,8 +1502,13 @@ function isLiveScoreYellContext(array $state): bool {
 }
 
 function bumpLiveCardScore(array &$state, string $pid, string $instanceId, int $amount): bool {
+    if ($instanceId === '' || $amount === 0) {
+        return false;
+    }
     foreach ($state['players'][$pid]['live_zone'] as &$lc) {
         if ($lc && ($lc['instance_id'] ?? '') === $instanceId) {
+            // Hydrate printed score before bumping — unset score must not become 0+N.
+            mergeCardCatalogFields($lc);
             $lc['score'] = intval($lc['score'] ?? 0) + $amount;
             unset($lc);
             return true;

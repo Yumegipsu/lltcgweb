@@ -2195,15 +2195,29 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
 
     // Each Live card must be paid from one shared heart pool (including Lives that
     // cannot go to Success Live). Hearts consumed by earlier Lives in zone order.
+    // Later Lives' colored requirements are reserved so earlier "any" slots do not
+    // greedily spend colors still needed downstream (issue #66).
     $successCards = [];
     $failCards    = [];
     $failAnims    = [];
     $remaining    = $ownedHearts;
 
+    $liveRequired = [];
     foreach ($liveCards as $li => $lc) {
-        $required = plMuseGapApplySuccessLivePassiveReductions($state, $pid, $lc);
-        $required = applyLiveHeartReductions($required, $lc);
-        [$ok, $newRemaining] = checkHearts($remaining, $required);
+        $liveRequired[$li] = plMuseGapApplySuccessLivePassiveReductions($state, $pid, $lc);
+        $liveRequired[$li] = applyLiveHeartReductions($liveRequired[$li], $lc);
+    }
+
+    foreach ($liveCards as $li => $lc) {
+        $required = $liveRequired[$li];
+        $reserve = [];
+        for ($j = $li + 1, $n = count($liveCards); $j < $n; $j++) {
+            $reserve = mergeColoredHeartDemand(
+                $reserve,
+                coloredHeartDemandFromRequirements($liveRequired[$j] ?? [])
+            );
+        }
+        [$ok, $newRemaining] = checkHearts($remaining, $required, $reserve);
         if ($ok) {
             $successCards[] = $lc;
             $remaining = $newRemaining;
@@ -2755,7 +2769,7 @@ function expandHeartRequirementSlots(array $required): array {
     return $slots;
 }
 
-function heartSlotCandidateIndices(array $pool, string $needColor): array {
+function heartSlotCandidateIndices(array $pool, string $needColor, array $reservedColored = []): array {
     if ($needColor !== 'any') {
         $indices = [];
         foreach ($pool as $i => $h) {
@@ -2770,28 +2784,70 @@ function heartSlotCandidateIndices(array $pool, string $needColor): array {
         }
         return $indices;
     }
-    $nonWild = [];
+    // For "any" slots: spend surplus colors (above later Lives' reserved needs)
+    // before dipping into colors later Lives still require (issue #66 multi-Live).
+    $counts = [];
+    foreach ($pool as $h) {
+        $counts[$h] = ($counts[$h] ?? 0) + 1;
+    }
+    $surplusBudget = [];
+    foreach ($counts as $color => $have) {
+        if (isWildcardHeartColor((string)$color)) {
+            continue;
+        }
+        $surplusBudget[$color] = max(0, intval($have) - intval($reservedColored[$color] ?? 0));
+    }
+    $surplus = [];
+    $reserved = [];
     $wild = [];
+    $usedSurplus = [];
     foreach ($pool as $i => $h) {
         if (isWildcardHeartColor((string)$h)) {
             $wild[] = $i;
+            continue;
+        }
+        $used = intval($usedSurplus[$h] ?? 0);
+        $budget = intval($surplusBudget[$h] ?? 0);
+        if ($used < $budget) {
+            $surplus[] = $i;
+            $usedSurplus[$h] = $used + 1;
         } else {
-            $nonWild[] = $i;
+            $reserved[] = $i;
         }
     }
-    return array_merge($nonWild, $wild);
+    return array_merge($surplus, $wild, $reserved);
 }
 
-function tryConsumeHeartsForRequirementSlots(array $pool, array $slots): ?array {
+function coloredHeartDemandFromRequirements(array $required): array {
+    $demand = [];
+    foreach ($required as $req) {
+        $color = normalizeHeartColor((string)($req['color'] ?? 'any'));
+        if ($color === 'any' || isWildcardHeartColor($color)) {
+            continue;
+        }
+        $demand[$color] = ($demand[$color] ?? 0) + intval($req['count'] ?? 1);
+    }
+    return $demand;
+}
+
+/** Merge colored heart demands (later Lives' reservation map). */
+function mergeColoredHeartDemand(array $a, array $b): array {
+    foreach ($b as $color => $n) {
+        $a[$color] = ($a[$color] ?? 0) + intval($n);
+    }
+    return $a;
+}
+
+function tryConsumeHeartsForRequirementSlots(array $pool, array $slots, array $reservedColored = []): ?array {
     if (empty($slots)) {
         return array_values($pool);
     }
     $need = $slots[0];
     $rest = array_slice($slots, 1);
-    foreach (heartSlotCandidateIndices($pool, $need) as $idx) {
+    foreach (heartSlotCandidateIndices($pool, $need, $reservedColored) as $idx) {
         $nextPool = $pool;
         array_splice($nextPool, $idx, 1);
-        $result = tryConsumeHeartsForRequirementSlots(array_values($nextPool), $rest);
+        $result = tryConsumeHeartsForRequirementSlots(array_values($nextPool), $rest, $reservedColored);
         if ($result !== null) {
             return $result;
         }
@@ -2799,9 +2855,13 @@ function tryConsumeHeartsForRequirementSlots(array $pool, array $slots): ?array 
     return null;
 }
 
-function checkHearts(array $available, array $required): array {
+function checkHearts(array $available, array $required, array $reservedColored = []): array {
     $available = array_values(array_map(fn($h) => normalizeHeartColor((string)$h), $available));
-    $remaining = tryConsumeHeartsForRequirementSlots($available, expandHeartRequirementSlots($required));
+    $remaining = tryConsumeHeartsForRequirementSlots(
+        $available,
+        expandHeartRequirementSlots($required),
+        $reservedColored
+    );
     if ($remaining === null) {
         return [false, $available];
     }

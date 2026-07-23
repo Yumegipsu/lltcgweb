@@ -126,4 +126,14 @@ final class HeartResolutionTest extends TestCase
 
         $this->assertSame(['pink', 'purple'], $resolved);
     }
+
+    public function testMultiLiveAnySlotsDoNotStealLaterColoredNeeds(): void {
+        $reqAny = [['color' => 'any', 'count' => 5]];
+        $reqRed = [['color' => 'red', 'count' => 5]];
+        $pool = array_merge(array_fill(0, 5, 'red'), array_fill(0, 5, 'green'));
+        $reserve = coloredHeartDemandFromRequirements($reqRed);
+        [$ok1, $rem] = checkHearts($pool, $reqAny, $reserve);
+        [$ok2] = checkHearts($rem, $reqRed);
+        $this->assertTrue($ok1 && $ok2);
+    }
 }

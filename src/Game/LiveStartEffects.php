@@ -90,6 +90,21 @@ function resolveLiveStartAbilities(array $state, string $pid): array {
         $entryFlags[$pid] = true;
         $state['live_start_entry_applied'] = $entryFlags;
     }
+    // Hydrate Stage / Live copies so Live Start still fires when hand/storage
+    // cards were stripped of abilities/score/required_hearts (issue #66 SUKI).
+    foreach ($state['players'][$pid]['stage'] as &$stageMbr) {
+        if ($stageMbr) {
+            mergeCardCatalogFields($stageMbr);
+        }
+    }
+    unset($stageMbr);
+    foreach ($state['players'][$pid]['live_zone'] as &$zoneLive) {
+        if ($zoneLive) {
+            mergeCardCatalogFields($zoneLive);
+        }
+    }
+    unset($zoneLive);
+    // Re-read after hydrate — earlier $p would be a stale copy without abilities.
     $p = $state['players'][$pid];
 
     foreach ($p['stage'] as $member) {
@@ -188,11 +203,13 @@ function collectOptionalLiveStartAbilities(array $state): array {
         $sources = [];
         foreach ($p['stage'] ?? [] as $member) {
             if ($member && isMemberCard($member) && memberInstanceOnStage($p, $member['instance_id'] ?? '')) {
+                mergeCardCatalogFields($member);
                 $sources[] = $member;
             }
         }
         foreach ($p['live_zone'] ?? [] as $live) {
             if ($live && isLiveTypeCard($live)) {
+                mergeCardCatalogFields($live);
                 $sources[] = $live;
             }
         }

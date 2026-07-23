@@ -2631,9 +2631,10 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             : (memberHeartCount($mbr) >= $threshold);
         $amount = intval($prompt['amount'] ?? 1);
         if ($ok) {
-            bumpLiveCardScore($state, $owner, $prompt['source_id'] ?? '', $amount);
+            $bumped = bumpLiveCardScore($state, $owner, $prompt['source_id'] ?? '', $amount);
             $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Live') . "] score +$amount.");
+                ' — [' . ($prompt['source_name'] ?? 'Live') . '] ' .
+                ($bumped ? ("score +$amount.") : 'score bonus failed (Live card missing).'));
         } else {
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'Live') . '] no score (' .
