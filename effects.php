@@ -2393,7 +2393,7 @@ function applyNamedMemberHeartsBlade(array &$state, string $pid, string $memberI
     return false;
 }
 
-function takeDiscardedHandCards(array &$p, array $ids): array {
+function takeDiscardedHandCards(array &$p, array $ids, ?array &$notifyState = null, ?string $notifyPid = null): array {
     $taken = [];
     $p['hand'] = array_values(array_filter($p['hand'], function ($c) use ($ids, &$taken, &$p) {
         if (in_array($c['instance_id'] ?? '', $ids, true)) {
@@ -2403,6 +2403,14 @@ function takeDiscardedHandCards(array &$p, array $ids): array {
         }
         return true;
     }));
+    if (!empty($taken) && $notifyState !== null && $notifyPid !== null) {
+        if (function_exists('hsPb1NotifyHandDiscard')) {
+            hsPb1NotifyHandDiscard($notifyState, $notifyPid);
+        }
+        if (function_exists('spBp5NotifyCardsToWr')) {
+            $notifyState = spBp5NotifyCardsToWr($notifyState, $notifyPid, $taken);
+        }
+    }
     return $taken;
 }
 

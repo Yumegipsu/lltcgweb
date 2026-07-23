@@ -54,19 +54,18 @@ function tryResolveAbilityEffectSwitchLive(
             break;
 
         case 'live_success_energy_wait_if_winning':
+            // Compare finalized round scores only. Pending Lives still in the
+            // opponent's zone (not yet heart-checked) must not block this (issue #67).
             $opp = ($pid === 'p1') ? 'p2' : 'p1';
-            $myZone = $p['live_zone'] ?? [];
-            $oppZone = $state['players'][$opp]['live_zone'] ?? [];
-            $myScore = empty($myZone) ? 0
-                : sumLiveZoneCardScores($myZone) + getLiveScoreBonus($state, $pid);
-            $oppScore = empty($oppZone) ? 0
-                : sumLiveZoneCardScores($oppZone) + getLiveScoreBonus($state, $opp);
-            if ($myScore <= $oppScore) break;
-            if (($ab['group'] ?? '') !== '' && !stageHasGroupMember($p, $ab['group'])) break;
-            if (putEnergyFromDeckInWait($p)) {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] put 1 Energy from Energy deck into Wait.');
+            if (!liveRoundScoreIsFinalized($state, $opp)) {
+                $state['_deferred_energy_wait_if_winning'][] = [
+                    'pid'         => $pid,
+                    'group'       => $ab['group'] ?? '',
+                    'source_name' => $name,
+                ];
+                break;
             }
+            $state = applyLiveSuccessEnergyWaitIfWinning($state, $pid, $ab['group'] ?? '', $name);
             break;
 
         case 'live_success_energy_wait_if_excess':
@@ -306,6 +305,73 @@ function tryResolveAbilityEffectSwitchLive(
             ];
             break;
 
+    }
+    return $state;
+}
+
+/** True when this player's Live Performance heart check has finished (or they did not attempt). */
+function liveRoundScoreIsFinalized(array $state, string $pid): bool {
+    if (!in_array($pid, $state['live_attempt'] ?? ['p1', 'p2'], true)) {
+        return true;
+    }
+    return array_key_exists($pid, $state['live_round_success'] ?? []);
+}
+
+/** Score of Lives that succeeded this round (0 if failed / did not attempt). */
+function resolvedSuccessfulLiveRoundScore(array $state, string $pid): int {
+    if (!in_array($pid, $state['live_attempt'] ?? ['p1', 'p2'], true)) {
+        return 0;
+    }
+    if (!($state['live_round_success'][$pid] ?? false)) {
+        return 0;
+    }
+    $zone = $state['players'][$pid]['live_zone'] ?? [];
+    if (empty($zone)) {
+        return 0;
+    }
+    return sumLiveZoneCardScores($zone) + getLiveScoreBonus($state, $pid);
+}
+
+function applyLiveSuccessEnergyWaitIfWinning(
+    array $state,
+    string $pid,
+    string $group,
+    string $name
+): array {
+    if ($pid === '' || !($state['live_round_success'][$pid] ?? false)) {
+        return $state;
+    }
+    $opp = ($pid === 'p1') ? 'p2' : 'p1';
+    $myScore = resolvedSuccessfulLiveRoundScore($state, $pid);
+    $oppScore = resolvedSuccessfulLiveRoundScore($state, $opp);
+    if ($myScore <= $oppScore) {
+        return $state;
+    }
+    $p = &$state['players'][$pid];
+    if ($group !== '' && !stageHasGroupMember($p, $group)) {
+        return $state;
+    }
+    if (putEnergyFromDeckInWait($p)) {
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            ' — [' . $name . '] put 1 Energy from Energy deck into Wait.');
+    }
+    return $state;
+}
+
+/** Run Do! Do! Do!-style effects deferred until both players' Performance results are known. */
+function flushDeferredLiveSuccessEnergyWaitIfWinning(array $state): array {
+    $queue = $state['_deferred_energy_wait_if_winning'] ?? [];
+    unset($state['_deferred_energy_wait_if_winning']);
+    foreach ($queue as $item) {
+        if (!is_array($item)) {
+            continue;
+        }
+        $state = applyLiveSuccessEnergyWaitIfWinning(
+            $state,
+            (string)($item['pid'] ?? ''),
+            (string)($item['group'] ?? ''),
+            (string)($item['source_name'] ?? 'Live')
+        );
     }
     return $state;
 }

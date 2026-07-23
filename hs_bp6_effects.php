@@ -891,7 +891,7 @@ function hsResolveHasunosoraPrompt(array $state, string $owner, array $prompt, s
         $sub = $prompt['subunit'] ?? '';
         $ids = $data['discard_ids'] ?? [];
         if (count($ids) !== 1) throw new Exception('Discard exactly 1 matching card');
-        $discarded = takeDiscardedHandCards($ownerP, $ids);
+        $discarded = takeDiscardedHandCards($ownerP, $ids, $state, $owner);
         if (empty($discarded) || !cardMatchesSubunit($discarded[0], $sub)) {
             throw new Exception('Must discard a matching subunit card');
         }

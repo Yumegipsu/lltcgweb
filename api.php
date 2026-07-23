@@ -2344,6 +2344,7 @@ function playerLiveRoundSucceeded(array $state, string $pid): bool {
 // which successful Live enters Success Live area (pick_judge_success_live prompt).
 
 function resolveLiveJudge(array $state): array {
+    $state = flushDeferredLiveSuccessEnergyWaitIfWinning($state);
     $state = addLog($state, '=== Live Win/Loss Check Phase ===');
     $first  = $state['first_player'];
     $second = ($first === 'p1') ? 'p2' : 'p1';

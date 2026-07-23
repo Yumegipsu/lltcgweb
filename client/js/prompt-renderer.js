@@ -1837,6 +1837,17 @@ global.renderPrompt = function renderPrompt(s, myId){
     openStageMemberPickById(pr);
     return;
   }
+  if(pr?.type==='buff_member_matching_discarded_group'&&pr.responder===myId){
+    // Rurino (HS-bp5-003): after Live Start discard, pick matching-group Member for ♡.
+    ovl.classList.remove('open');
+    const cands=pr.candidates||[];
+    if(!cands.length){
+      sendAct('resolve_prompt',{choice:'skip'});
+      return;
+    }
+    openStageSlotPick(pr);
+    return;
+  }
   if(pr?.type==='pick_same_name_member'&&pr.responder===myId){
     ovl.classList.remove('open');
     openMemberWaitPick({...pr, max_members:1, min_members:1}, myId);

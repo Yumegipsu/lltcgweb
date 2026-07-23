@@ -643,7 +643,7 @@ function resolveOptionalDiscardPromptChoice(
                 throw new Exception("Must select exactly $need card(s) to discard");
             }
             if (!empty($ids)) {
-                $discardedCards = takeDiscardedHandCards($ownerP, $ids);
+                $discardedCards = takeDiscardedHandCards($ownerP, $ids, $state, $owner);
             } else {
                 $discardedCards = [];
             }
@@ -935,11 +935,16 @@ function resolveOptionalDiscardPromptChoice(
                 } else {
                     $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '');
                     if ($source) {
+                        // Clear parent discard prompt so the nested Stage pick can open
+                        // (otherwise resolveAbilityEffect no-ops on non-empty pending_prompt
+                        // and we softlock on the already-answered discard UI — issue #67).
+                        unset($state['pending_prompt']);
                         $state = resolveAbilityEffect($state, $owner, $source, $then, [
                             'discarded_group' => $discGroup,
                             'phase'           => !empty($prompt['live_start']) ? 'live_start' : 'on_enter',
                         ]);
-                        if (!empty($state['pending_prompt'])) {
+                        if (!empty($state['pending_prompt'])
+                            && ($state['pending_prompt']['type'] ?? '') !== 'optional_discard_prompt') {
                             $state['seq']++;
                             return $state;
                         }

@@ -975,21 +975,10 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
 
     if ($promptType === 'discard_subunit_hand_draw') {
         $ids = $data['discard_ids'] ?? [];
-        $n = 0;
-        foreach ($ids as $id) {
-            foreach ($ownerP['hand'] as $i => $c) {
-                if (($c['instance_id'] ?? '') === $id) {
-                    $ownerP['waiting_room'][] = $c;
-                    array_splice($ownerP['hand'], $i, 1);
-                    $n++;
-                    break;
-                }
-            }
-        }
-        if ($n > 0) {
-            drawCardsForPlayer($state, $owner, $n + 1);
-            $state = applyModifierEffect($state, $owner, ['type' => 'blade_bonus', 'amount' => 1]);
-        }
+        $n = discardFromHandByIds($ownerP, $ids, $state, $owner);
+        // "Any number" includes 0 — still draw 0+1. Auto blade/♡ comes from hsPb1NotifyHandDiscard
+        // when n>0 (do not hardcode blade_bonus here — that skipped pink hearts, issue #67).
+        drawCardsForPlayer($state, $owner, $n + 1);
         unset($state['pending_prompt']);
         $state['seq']++;
         $state = addLog($state, $state['players'][$owner]['name'] .
@@ -1292,7 +1281,7 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
         $ids = $data['discard_ids'] ?? [];
         $need = intval($prompt['discard_count'] ?? 1);
         if (count($ids) !== $need) throw new Exception("Discard exactly $need card(s)");
-        discardFromHandByIds($ownerP, $ids);
+        discardFromHandByIds($ownerP, $ids, $state, $owner);
         $state = addLog($state, $state['players'][$owner]['name'] .
             ' — [' . ($prompt['source_name'] ?? 'Member') . "] put $need card(s) into the Waiting Room.");
         unset($state['pending_prompt']);

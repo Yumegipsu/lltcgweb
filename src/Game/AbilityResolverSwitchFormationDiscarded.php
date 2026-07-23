@@ -59,13 +59,24 @@ function tryResolveAbilityEffectSwitchFormationDiscarded(
                 $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
             }
             if (empty($candidates)) break;
+            $hearts = $ab['hearts'] ?? [['color' => 'pink', 'count' => 1]];
+            // Single match — apply immediately (avoids a one-button softlock UI).
+            if (count($candidates) === 1) {
+                $slot = $candidates[0]['slot'];
+                $mbr = &$p['stage'][$slot];
+                addBonusHeartsToMember($mbr, $hearts);
+                unset($mbr);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] granted bonus heart(s) until Live ends.");
+                break;
+            }
             $state['pending_prompt'] = [
                 'type'        => 'buff_member_matching_discarded_group',
                 'owner'       => $pid,
                 'responder'   => $pid,
                 'source_name' => $name,
                 'candidates'  => $candidates,
-                'hearts'      => $ab['hearts'] ?? [['color' => 'pink', 'count' => 1]],
+                'hearts'      => $hearts,
                 'prompt'      => 'Choose 1 Member on your Stage with the same group as the discarded card.',
             ];
             break;
