@@ -1392,6 +1392,8 @@ function promptDiscardCount(pr, choice){
   if(pr.type==='mandatory_discard_after_draw') return pr.discard_count||1;
   if(pr.type==='opp_may_discard_or_modifier') return 1;
   if(pr.type==='reveal_live_opp_discard_or_blade') return 1;
+  // PL!S-bp6-003 Kanan: Yes immediately requires discarding 1 (cost), then stage/WR picks.
+  if(pr.type==='sbp6_swap_stage_wr_member') return pr.ability?.discard || pr.discard_count || 1;
   return 0;
 }
 

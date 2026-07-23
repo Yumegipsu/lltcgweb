@@ -865,12 +865,34 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
             }
             discardFromHandByIds($ownerP, $ids);
             $srcId = $prompt['source_id'] ?? '';
-            $others = array_values(array_filter(
-                listStageMemberChoices($ownerP),
-                fn($c) => ($c['instance_id'] ?? '') !== $srcId
-                    && ($c['group'] ?? '') === ($ability['group'] ?? 'Sunshine')
-            ));
-            if (empty($others)) throw new Exception('No other Aqours Member on Stage');
+            $group = $ability['group'] ?? 'Sunshine';
+            $plus = intval($ability['cost_plus'] ?? 2);
+            $others = [];
+            foreach ($ownerP['stage'] as $slot => $mbr) {
+                if (!$mbr) continue;
+                if (($mbr['instance_id'] ?? '') === $srcId) continue;
+                if (($mbr['group'] ?? '') !== $group) continue;
+                $targetCost = getEffectiveStageMemberCost($state, $owner, $mbr) + $plus;
+                $hasWr = false;
+                foreach ($ownerP['waiting_room'] as $c) {
+                    if (($c['card_type'] ?? '') !== 'メンバー') continue;
+                    if (!cardMatchesGroup($c, $group, 'member')) continue;
+                    if (intval($c['cost'] ?? 0) !== $targetCost) continue;
+                    $hasWr = true;
+                    break;
+                }
+                if (!$hasWr) continue;
+                $others[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
+            }
+            if (empty($others)) {
+                // Cost already paid; no legal Stage→WR swap — end cleanly (do not softlock).
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') .
+                    '] discarded 1, but no legal Aqours Stage/WR swap.');
+                return finishPromptEffects($state);
+            }
             $state['pending_prompt'] = [
                 'type'        => 'sbp6_swap_pick_stage_member',
                 'owner'       => $owner,
@@ -908,8 +930,12 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
                     && intval($c['cost'] ?? 0) === $targetCost
             ));
             if (empty($eligible)) {
-                $ownerP['stage'][$slot] = $removed;
-                throw new Exception("No Aqours Member with cost $targetCost in WR");
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') .
+                    "] put Member into WR, but no cost-$targetCost Aqours in WR to play.");
+                return finishPromptEffects($state);
             }
             $state['pending_prompt'] = [
                 'type'        => 'sbp6_swap_pick_wr_member',
@@ -949,8 +975,13 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
                 && intval($c['cost'] ?? 0) === $targetCost
         ));
         if (empty($eligible)) {
-            $ownerP['stage'][$slot] = $removed;
-            throw new Exception("No Aqours Member with cost $targetCost in WR");
+            // Stage member stays in WR (effect already did that); no replacement — clear prompt.
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                ' — [' . ($prompt['source_name'] ?? 'Member') .
+                "] put Member into WR, but no cost-$targetCost Aqours in WR to play.");
+            return finishPromptEffects($state);
         }
         $state['pending_prompt'] = [
             'type'        => 'sbp6_swap_pick_wr_member',
