@@ -36,7 +36,17 @@ function tryResolveAbilityEffectSwitchPickNamedMembersGrant(
                     }
                 }
             }
-            if (empty($candidates)) break;
+            // Need a named pick and a distinct second Stage Member (group / other named).
+            // Otherwise the second-step UI softlocks with an empty picker (#68).
+            $namedCount = 0;
+            foreach ($candidates as $c) {
+                if (!empty($c['named'])) {
+                    $namedCount++;
+                }
+            }
+            if ($namedCount < 1 || count($candidates) < 2) {
+                break;
+            }
             $state['pending_prompt'] = [
                 'type'          => 'pick_named_members_grant_blade',
                 'owner'         => $pid,
@@ -76,7 +86,15 @@ function tryResolveAbilityEffectSwitchPickNamedMembersGrant(
                     }
                 }
             }
-            if (count($candidates) < 2) break;
+            $namedCount = 0;
+            foreach ($candidates as $c) {
+                if (!empty($c['named'])) {
+                    $namedCount++;
+                }
+            }
+            if ($namedCount < 1 || count($candidates) < 2) {
+                break;
+            }
             $state['pending_prompt'] = [
                 'type'          => 'pick_named_members_grant_hearts',
                 'owner'         => $pid,

@@ -276,6 +276,18 @@ global.openStageSlotPick = function openStageSlotPick(pr){
     }
     return !!(c.slot);
   });
+  // Softlock guard: empty second-step picker (legacy servers / race) — dismiss UI; server should
+  // have already skipped or finished the ability when no other Liella! Member exists (#68).
+  if(step==='pick_other' && !cards.length
+    && (pr.type==='pick_named_members_grant_blade' || pr.type==='pick_named_members_grant_hearts')){
+    closeM('overlay-pick');
+    G.pickCtx=null;
+    if(typeof toast==='function'){
+      toast(pt('prompt.noValidTargets') || 'No other valid Member on Stage.', 2800);
+    }
+    sendAct('resolve_prompt',{choice:'cancel'});
+    return;
+  }
   el('pick-ttl').textContent=pr.source_name||'Choose Member';
   el('pick-msg').textContent=pr.prompt||'Choose a Member on your Stage.';
   const g=el('pick-grid'); g.innerHTML='';

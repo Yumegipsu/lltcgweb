@@ -2440,6 +2440,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         $slot = $data['slot'] ?? $choice;
         $hearts = $prompt['hearts'] ?? [];
         $step = $prompt['step'] ?? 'pick_named';
+        $group = $ability['group'] ?? 'Superstar';
         if ($step === 'pick_named') {
             $mbr = $ownerP['stage'][$slot] ?? null;
             if (!$mbr) throw new Exception('Choose a Member');
@@ -2449,11 +2450,30 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 if ($label === $n || str_contains($label, $n)) { $namedOk = true; break; }
             }
             if (!$namedOk) throw new Exception('Choose a named Member');
-            addBonusHeartsToMember($mbr, $hearts, 1);
-            $ownerP['stage'][$slot] = $mbr;
+            $otherCandidates = [];
+            foreach ($ownerP['stage'] as $oslot => $ombr) {
+                if (!$ombr || $oslot === $slot) {
+                    continue;
+                }
+                if (($ombr['group'] ?? '') !== $group) {
+                    continue;
+                }
+                $otherCandidates[] = array_merge(cardPromptSummary($ombr), [
+                    'slot' => $oslot,
+                    'named' => false,
+                ]);
+            }
+            if ($otherCandidates === []) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Live') . '] could not choose a second Liella! Member (bonus hearts skipped).');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishLiveStartEffects($state);
+            }
             $state['pending_prompt'] = array_merge($prompt, [
                 'step'           => 'pick_other',
                 'first_slot'     => $slot,
+                'candidates'     => $otherCandidates,
                 'prompt'         => 'Choose 1 other Liella! Member for bonus hearts.',
                 'responder'      => $owner,
             ]);
@@ -2461,12 +2481,25 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             return $state;
         }
         if ($step === 'pick_other') {
+            if ($slot === '' || $slot === null || $choice === 'cancel' || $choice === 'skip') {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Live') . '] skipped second Member (bonus hearts cancelled).');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishLiveStartEffects($state);
+            }
             if ($slot === ($prompt['first_slot'] ?? '')) {
                 throw new Exception('Choose a different Member');
             }
             $mbr = $ownerP['stage'][$slot] ?? null;
-            if (!$mbr || ($mbr['group'] ?? '') !== ($ability['group'] ?? 'Superstar')) {
+            if (!$mbr || ($mbr['group'] ?? '') !== $group) {
                 throw new Exception('Choose another Liella! Member');
+            }
+            $firstSlot = $prompt['first_slot'] ?? '';
+            $first = $ownerP['stage'][$firstSlot] ?? null;
+            if ($first) {
+                addBonusHeartsToMember($first, $hearts, 1);
+                $ownerP['stage'][$firstSlot] = $first;
             }
             addBonusHeartsToMember($mbr, $hearts, 1);
             $ownerP['stage'][$slot] = $mbr;
@@ -2482,6 +2515,7 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         $slot = $data['slot'] ?? $choice;
         $blade = intval($prompt['blade'] ?? 1);
         $step = $prompt['step'] ?? 'pick_named';
+        $group = $ability['group'] ?? 'Superstar';
         if ($step === 'pick_named') {
             $mbr = $ownerP['stage'][$slot] ?? null;
             if (!$mbr) throw new Exception('Choose a Member');
@@ -2491,11 +2525,31 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 if ($label === $n || str_contains($label, $n)) { $namedOk = true; break; }
             }
             if (!$namedOk) throw new Exception('Choose a named Member');
-            $mbr['live_blade_bonus'] = intval($mbr['live_blade_bonus'] ?? 0) + $blade;
-            $ownerP['stage'][$slot] = $mbr;
+            // Defer blade until both picks succeed (avoids partial grant + empty second UI #68).
+            $otherCandidates = [];
+            foreach ($ownerP['stage'] as $oslot => $ombr) {
+                if (!$ombr || $oslot === $slot) {
+                    continue;
+                }
+                if (($ombr['group'] ?? '') !== $group) {
+                    continue;
+                }
+                $otherCandidates[] = array_merge(cardPromptSummary($ombr), [
+                    'slot' => $oslot,
+                    'named' => false,
+                ]);
+            }
+            if ($otherCandidates === []) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Live') . '] could not choose a second Liella! Member (+Blade skipped).');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishLiveStartEffects($state);
+            }
             $state['pending_prompt'] = array_merge($prompt, [
                 'step'           => 'pick_other',
                 'first_slot'     => $slot,
+                'candidates'     => $otherCandidates,
                 'prompt'         => 'Choose 1 other Liella! Member for +Blade.',
                 'responder'      => $owner,
             ]);
@@ -2503,12 +2557,26 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
             return $state;
         }
         if ($step === 'pick_other') {
+            // Empty second-step / softlock recovery (#68).
+            if ($slot === '' || $slot === null || $choice === 'cancel' || $choice === 'skip') {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Live') . '] skipped second Member (+Blade cancelled).');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishLiveStartEffects($state);
+            }
             if ($slot === ($prompt['first_slot'] ?? '')) {
                 throw new Exception('Choose a different Member');
             }
             $mbr = $ownerP['stage'][$slot] ?? null;
-            if (!$mbr || ($mbr['group'] ?? '') !== ($ability['group'] ?? 'Superstar')) {
+            if (!$mbr || ($mbr['group'] ?? '') !== $group) {
                 throw new Exception('Choose another Liella! Member');
+            }
+            $firstSlot = $prompt['first_slot'] ?? '';
+            $first = $ownerP['stage'][$firstSlot] ?? null;
+            if ($first) {
+                $first['live_blade_bonus'] = intval($first['live_blade_bonus'] ?? 0) + $blade;
+                $ownerP['stage'][$firstSlot] = $first;
             }
             $mbr['live_blade_bonus'] = intval($mbr['live_blade_bonus'] ?? 0) + $blade;
             $ownerP['stage'][$slot] = $mbr;
