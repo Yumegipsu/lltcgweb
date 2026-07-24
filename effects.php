@@ -1641,14 +1641,78 @@ function countWrSubunitFilter(array $p, string $subunit, string $filter = 'live'
 }
 
 function countDistinctNamedGroupOnStage(array $p, string $group, string $filter = 'member'): int {
-    $names = [];
+    $optionSets = [];
     foreach ($p['stage'] as $mbr) {
-        if (!$mbr) continue;
-        if (!cardMatchesGroup($mbr, $group, $filter)) continue;
-        $n = $mbr['name_en'] ?? $mbr['name'] ?? '';
-        if ($n !== '') $names[$n] = true;
+        if (!$mbr) {
+            continue;
+        }
+        if (!cardMatchesGroup($mbr, $group, $filter)) {
+            continue;
+        }
+        $opts = memberDistinctNameOptions($mbr);
+        if (!empty($opts)) {
+            $optionSets[] = $opts;
+        }
     }
-    return count($names);
+    return maxAssignedDistinctMemberNames($optionSets);
+}
+
+/**
+ * Name identities a Member may count as for "differently named" checks.
+ * Multi-name cards ("A & B & C") may be treated as any one component name (#72).
+ *
+ * @return list<string>
+ */
+function memberDistinctNameOptions(array $mbr): array {
+    $label = trim((string)($mbr['name_en'] ?? $mbr['name'] ?? ''));
+    if ($label === '') {
+        return [];
+    }
+    if (function_exists('tcgSplitIdolNames')) {
+        return array_values(array_unique(tcgSplitIdolNames($label)));
+    }
+    $parts = preg_split('/\s*[&＆]\s*/u', $label) ?: [];
+    $out = [];
+    foreach ($parts as $part) {
+        $part = trim((string)$part);
+        if ($part !== '') {
+            $out[$part] = true;
+        }
+    }
+    return array_keys($out) ?: [$label];
+}
+
+/**
+ * Max number of Stage Members that can simultaneously hold pairwise-distinct
+ * name identities, given each Member's option set (from memberDistinctNameOptions).
+ *
+ * @param list<list<string>> $optionSets
+ */
+function maxAssignedDistinctMemberNames(array $optionSets): int {
+    $n = count($optionSets);
+    if ($n === 0) {
+        return 0;
+    }
+    $best = 0;
+    $dfs = function (int $i, array $used) use (&$dfs, &$best, $optionSets, $n): void {
+        if ($i >= $n) {
+            $best = max($best, count($used));
+            return;
+        }
+        // Skip this Member (not chosen among the distinct set).
+        $dfs($i + 1, $used);
+        foreach ($optionSets[$i] as $name) {
+            $name = (string)$name;
+            if ($name === '' || isset($used[$name])) {
+                continue;
+            }
+            $used[$name] = true;
+            $dfs($i + 1, $used);
+            unset($used[$name]);
+        }
+    };
+    $dfs(0, []);
+    return $best;
 }
 
 function countDistinctCostsOnStage(array $p): int {
