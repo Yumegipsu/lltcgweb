@@ -3716,6 +3716,8 @@ function putChosenWrMemberToEmptyStageWait(
         array_splice($p['waiting_room'], $i, 1);
         waitMember($member, $state);
         $member['entered_turn'] = intval($state['turn'] ?? 1);
+        $member['entered_from_wr'] = true;
+        unset($member['entered_from_hand'], $member['entered_via_baton']);
         if ($blockSlotEntries) {
             $member['blocks_slot_entries'] = true;
         }

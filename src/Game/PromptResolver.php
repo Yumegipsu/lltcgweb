@@ -3944,15 +3944,12 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
                 if (!$placed) {
                     throw new Exception('Choose an empty Stage area');
                 }
-                notifyMemberEnteredStage($state, $placer, $placed['member']);
-                $state = addLog($state, $state['players'][$placer]['name'] .
-                    ' — [' . $sourceName . '] put ' .
-                    ($placed['member']['name_en'] ?? $placed['member']['name'] ?? 'Member') .
-                    ' from Waiting Room onto Stage in Wait.');
                 unset($state['pending_prompt']);
-                $state['seq']++;
-                $state = continueBothWrMemberToEmptyStage(
+                $state = afterBothWrMemberPlacedToStage(
                     $state,
+                    $placer,
+                    $placed['member'],
+                    $placed['slot'],
                     $owner,
                     $sourceName,
                     $ability,
@@ -3989,15 +3986,12 @@ function actionResolvePrompt(array $state, string $pid, array $data): array {
         if (!$placed) {
             throw new Exception('Invalid Waiting Room card');
         }
-        notifyMemberEnteredStage($state, $placer, $placed['member']);
-        $state = addLog($state, $state['players'][$placer]['name'] .
-            ' — [' . $sourceName . '] put ' .
-            ($placed['member']['name_en'] ?? $placed['member']['name'] ?? 'Member') .
-            ' from Waiting Room onto Stage in Wait.');
         unset($state['pending_prompt']);
-        $state['seq']++;
-        $state = continueBothWrMemberToEmptyStage(
+        $state = afterBothWrMemberPlacedToStage(
             $state,
+            $placer,
+            $placed['member'],
+            $placed['slot'],
             $owner,
             $sourceName,
             $ability,

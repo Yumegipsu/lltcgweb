@@ -63,6 +63,49 @@ function tryResolveAbilityEffectSwitchWrMemberStage(
 }
 
 /**
+ * After Nico (etc.) puts a WR Member onto Stage: fire [On Enter], then continue
+ * the both-players chain. If On Enter opens a prompt, stash resume for finishPromptEffects.
+ *
+ * @param list<string> $remaining player ids still to act after this placer
+ */
+function afterBothWrMemberPlacedToStage(
+    array $state,
+    string $placer,
+    array $member,
+    string $slot,
+    string $effectOwner,
+    string $sourceName,
+    array $ability,
+    array $remaining,
+    string $sourceId = ''
+): array {
+    $state = addLog($state, $state['players'][$placer]['name'] .
+        ' — [' . $sourceName . '] put ' . ($member['name_en'] ?? $member['name'] ?? 'Member') .
+        ' from Waiting Room onto Stage in Wait.');
+    $state = resolveOnEnterAbilities($state, $placer, $member, $slot);
+    if (!empty($state['pending_prompt'])) {
+        $state['_resume_both_wr_member_to_empty_stage'] = [
+            'effect_owner' => $effectOwner,
+            'source_name'  => $sourceName,
+            'ability'      => $ability,
+            'remaining'    => array_values($remaining),
+            'source_id'    => $sourceId,
+        ];
+        $state['seq']++;
+        return $state;
+    }
+    $state['seq']++;
+    return continueBothWrMemberToEmptyStage(
+        $state,
+        $effectOwner,
+        $sourceName,
+        $ability,
+        array_values($remaining),
+        $sourceId
+    );
+}
+
+/**
  * Open (or auto-resolve) the next eligible player's WR → empty Stage (in Wait) pick.
  *
  * @param list<string> $remaining player ids still to act, current first
@@ -97,11 +140,17 @@ function continueBothWrMemberToEmptyStage(
                 true
             );
             if ($placed) {
-                $m = $placed['member'];
-                notifyMemberEnteredStage($state, $cur, $m);
-                $state = addLog($state, $state['players'][$cur]['name'] .
-                    ' — [' . $sourceName . '] put ' . ($m['name_en'] ?? $m['name']) .
-                    ' from Waiting Room onto Stage in Wait.');
+                return afterBothWrMemberPlacedToStage(
+                    $state,
+                    $cur,
+                    $placed['member'],
+                    $placed['slot'],
+                    $effectOwner,
+                    $sourceName,
+                    $ability,
+                    $remaining,
+                    $sourceId
+                );
             }
             continue;
         }

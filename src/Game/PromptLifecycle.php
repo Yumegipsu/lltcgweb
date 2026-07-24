@@ -39,6 +39,22 @@ function promptTimerKey(?array $prompt): string {
 }
 
 function finishPromptEffects(array $state): array {
+    // Resume PL!-pb1-018 (etc.) after a summoned Member's [On Enter] prompt chain (#70).
+    if (empty($state['pending_prompt']) && !empty($state['_resume_both_wr_member_to_empty_stage'])) {
+        $r = $state['_resume_both_wr_member_to_empty_stage'];
+        unset($state['_resume_both_wr_member_to_empty_stage']);
+        $state = continueBothWrMemberToEmptyStage(
+            $state,
+            (string)($r['effect_owner'] ?? ''),
+            (string)($r['source_name'] ?? 'Member'),
+            is_array($r['ability'] ?? null) ? $r['ability'] : [],
+            array_values($r['remaining'] ?? []),
+            (string)($r['source_id'] ?? '')
+        );
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
     $phase = $state['phase'] ?? '';
     if ($phase === 'live_success_effects') {
         return finishLiveSuccessEffects($state);
