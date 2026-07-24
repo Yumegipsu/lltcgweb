@@ -2513,6 +2513,15 @@ function flushPendingYellToWr(array $state, string $pid): array {
 function finishLiveSuccessEffects(array $state): array {
     if (!empty($state['pending_prompt'])) {
         $state['phase'] = 'live_success_effects';
+        // Keep a continue marker so clearing this prompt always resumes (#71 softlock).
+        if (empty($state['_performance_continue'])) {
+            $owner = $state['pending_prompt']['owner']
+                ?? $state['pending_prompt']['responder']
+                ?? ($state['_live_success_ctx']['pid'] ?? null);
+            if (is_string($owner) && $owner !== '') {
+                $state['_performance_continue'] = $owner;
+            }
+        }
         return $state;
     }
     // Resume remaining Live Success abilities interrupted by a prompt (#71).
@@ -2520,18 +2529,41 @@ function finishLiveSuccessEffects(array $state): array {
         $state = resumeLiveSuccessEffectPhase($state);
         if (!empty($state['pending_prompt'])) {
             $state['phase'] = 'live_success_effects';
+            if (empty($state['_performance_continue'])) {
+                $owner = $state['_live_success_ctx']['pid']
+                    ?? $state['pending_prompt']['responder']
+                    ?? null;
+                if (is_string($owner) && $owner !== '') {
+                    $state['_performance_continue'] = $owner;
+                }
+            }
             return $state;
         }
     }
-    $pid = $state['_performance_continue'] ?? null;
+    $pid = $state['_performance_continue']
+        ?? ($state['_live_success_ctx']['pid'] ?? null);
+    // Never leave live_success_effects with no prompt — that shows the banner with
+    // nothing for the player to click (requires manual refresh).
+    if (!$pid && ($state['phase'] ?? '') === 'live_success_effects') {
+        $pid = $state['active_player'] ?? $state['first_player'] ?? null;
+    }
     if ($pid && empty($GLOBALS['TUT_PERF_MANUAL_PHASES'])) {
         $state = flushPendingYellToWr($state, $pid);
         unset($state['_performance_continue']);
+        $state = clearLiveSuccessResumeState($state, $pid);
         if (!empty($state['_perf_yell_both_done'])) {
-            $state['_perf_hearts_resolved'][$pid] = true;
+            $resolved = $state['_perf_hearts_resolved'] ?? [];
+            $resolved[$pid] = true;
+            $state['_perf_hearts_resolved'] = $resolved;
             return finishYellRetryAndHearts($state);
         }
         $state = continuePerformancePhase($state, $pid);
+    } elseif (($state['phase'] ?? '') === 'live_success_effects') {
+        // Last-resort heal: no continue pid — go to judge rather than softlock.
+        $state = clearLiveSuccessResumeState($state);
+        unset($state['_performance_continue']);
+        $state['phase'] = 'live_judge';
+        $state = resolveLiveJudge($state);
     }
     return $state;
 }
