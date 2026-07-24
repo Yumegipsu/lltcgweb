@@ -1211,9 +1211,10 @@ function actionPlayMember(array $state, string $pid, array $data): array {
         attachStackedEnergyCardsToMember($card, $batonTransferredEnergyCards);
     }
 
-    // Place member in slot
+    // Place member in slot — always from hand in this action (incl. Baton Touch / overplay).
+    // Baton does not change the origin: the card still entered from the hand (#69).
     $card['entered_turn'] = intval($state['turn'] ?? 1);
-    $card['entered_from_hand'] = empty($card['entered_via_baton']);
+    $card['entered_from_hand'] = true;
     $p['stage'][$targetSlot] = $card;
     array_splice($p['hand'], $cardIdx, 1);
 
