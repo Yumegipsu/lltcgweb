@@ -1538,6 +1538,19 @@ function reduceHeartRequirements(array $required, int $reduce): array {
     return array_values($req);
 }
 
+/**
+ * Gray / any / wild / all are the same wildcard heart bucket on Live cards.
+ * Catalog data mixes "gray" and "any"; Live Start reductions often store "any".
+ */
+function normalizeRequiredHeartColor(string $color): string {
+    $c = strtolower(trim($color));
+    return in_array($c, ['any', 'wild', 'gray', 'all', ''], true) ? 'any' : $c;
+}
+
+function heartRequirementColorsMatch(string $reqColor, string $targetColor): bool {
+    return normalizeRequiredHeartColor($reqColor) === normalizeRequiredHeartColor($targetColor);
+}
+
 function reduceHeartRequirementsByColor(array $required, string $color, int $reduce): array {
     if ($reduce <= 0) return $required;
     $req = array_map(fn($h) => [
@@ -1546,7 +1559,7 @@ function reduceHeartRequirementsByColor(array $required, string $color, int $red
     ], $required);
     foreach ($req as &$h) {
         if ($reduce <= 0) break;
-        if (($h['color'] ?? '') !== $color) continue;
+        if (!heartRequirementColorsMatch((string)($h['color'] ?? ''), $color)) continue;
         $take = min($h['count'], $reduce);
         $h['count'] -= $take;
         $reduce -= $take;
@@ -1564,14 +1577,14 @@ function increaseHeartRequirementsByColor(array $required, string $color, int $a
         'count' => intval($h['count'] ?? 1),
     ], $required);
     foreach ($req as &$h) {
-        if (($h['color'] ?? '') === $color) {
+        if (heartRequirementColorsMatch((string)($h['color'] ?? ''), $color)) {
             $h['count'] += $amount;
             unset($h);
             return $req;
         }
     }
     unset($h);
-    $req[] = ['color' => $color, 'count' => $amount];
+    $req[] = ['color' => normalizeRequiredHeartColor($color), 'count' => $amount];
     return $req;
 }
 

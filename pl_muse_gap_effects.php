@@ -169,6 +169,7 @@ function plMuseGapCardMusSurveilEligible(array $card, string $group): bool {
 }
 
 function plMuseGapApplySuccessLivePassiveReductions(array $state, string $pid, array $liveCard): array {
+    mergeCardCatalogFields($liveCard);
     $required = $liveCard['required_hearts'] ?? $liveCard['hearts'] ?? [];
     if (($liveCard['card_type'] ?? '') !== 'ライブ') return $required;
     if (($liveCard['group'] ?? '') !== "μ's") return $required;
@@ -178,16 +179,19 @@ function plMuseGapApplySuccessLivePassiveReductions(array $state, string $pid, a
     $reduceAmt = 0;
     $heartColor = 'gray';
     foreach ($p['success_lives'] ?? [] as $sl) {
+        mergeCardCatalogFields($sl);
         foreach ($sl['abilities'] ?? [] as $ab) {
             if (($ab['trigger'] ?? '') !== 'continuous') continue;
             if (($ab['type'] ?? '') !== 'reduce_hearts_mus_live_min_score_success') continue;
             if (intval($liveCard['score'] ?? 0) < intval($ab['min_score'] ?? 5)) continue;
+            // Does not stack: multiple Dreamin' Go! Go!! copies use max, not sum.
             $reduceAmt = max($reduceAmt, intval($ab['reduce'] ?? 2));
             $heartColor = (string)($ab['heart_color'] ?? 'gray');
-            break 2;
+            // Keep scanning so a later copy with a higher reduce still wins via max().
         }
     }
     if ($reduceAmt <= 0) return $required;
+    // Gray reductions match both catalog "gray" and "any" requirement slots.
     $reduceColor = ($heartColor === 'gray') ? 'any' : $heartColor;
     return reduceHeartRequirementsByColor($required, $reduceColor, $reduceAmt);
 }
