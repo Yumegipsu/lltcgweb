@@ -3737,11 +3737,16 @@ function ensurePendingPromptSurfaced(s, myId) {
   )) return;
   // Same identity already answered this round — do not reopen after overlay close.
   // Exception: Success-Live / leftover Live place UI closed while the server still waits.
+  // Also Live Success / Live Start: players often dismiss overlays without a successful
+  // resolve_prompt ack; must resurface so the phase banner is not a softlock.
   if (G._lastResolvedPromptKey === surfKey) {
     const needsResurface = (pr.type === 'pick_judge_success_live'
-        || pr.type === 'sbp6_live_wr_deck_position')
+        || pr.type === 'sbp6_live_wr_deck_position'
+        || s.phase === 'live_success_effects'
+        || s.phase === 'live_start_effects')
       && !el('overlay-pick')?.classList.contains('open')
-      && !el('overlay-prompt')?.classList.contains('open');
+      && !el('overlay-prompt')?.classList.contains('open')
+      && !el('overlay-hand-pick')?.classList.contains('open');
     if (!needsResurface) return;
     G._lastResolvedPromptKey = null;
   }

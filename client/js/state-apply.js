@@ -755,8 +755,16 @@
     flushPendingState();
     if (!replayForward && !G.animating && !G._perfSpectacleActive && s.pending_prompt?.responder === G.playerId
         && (s.phase === 'live_success_effects'
+            || s.phase === 'live_start_effects'
             || (s.phase === 'live_judge' && s.pending_prompt?.type === 'pick_judge_success_live'))) {
       ensurePendingPromptSurfaced(s, G.playerId);
+    }
+    // Softlock heal: Live Success banner with nothing to click — server should have advanced;
+    // if a deferred prompt still exists for us, force surface it.
+    if (!replayForward && !G.animating && !G._perfSpectacleActive
+        && s.phase === 'live_success_effects' && !s.pending_prompt
+        && G._deferredPromptState?.pending_prompt?.responder === G.playerId) {
+      ensurePendingPromptSurfaced(G._deferredPromptState, G.playerId);
     }
     clearStaleCpuPromptBusyIfResolved(G.gameState || s);
     if (G.playerId) updateOpponentSkillWaitBanner(G.gameState || s, G.playerId);

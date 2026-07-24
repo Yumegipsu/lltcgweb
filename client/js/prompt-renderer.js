@@ -44,6 +44,11 @@
     const idKey = global.promptIdentityKey(s);
     if (!global.G._promptSubmitKey) return;
     if (idKey !== global.G._promptSubmitKey) {
+      // Chained Live Success / Live Start prompts (e.g. Kimi discard → Natsumi discard):
+      // clear the prior "resolved" lock so the next prompt can open.
+      if (s.phase === 'live_success_effects' || s.phase === 'live_start_effects') {
+        global.G._lastResolvedPromptKey = null;
+      }
       global.G._promptSubmitKey = null;
       global.G._resolvePromptSentKey = null;
       global.G._lastSurfacedPromptKey = null;

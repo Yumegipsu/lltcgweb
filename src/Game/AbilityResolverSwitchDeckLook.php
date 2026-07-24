@@ -116,8 +116,9 @@ function tryResolveAbilityEffectSwitchDeckLook(
                 intval($ab['draw'] ?? 1),
                 intval($ab['discard'] ?? 1),
                 [
-                    'ability'   => $ab,
-                    'source_id' => $source['instance_id'] ?? '',
+                    'ability'        => $ab,
+                    'source_id'      => $source['instance_id'] ?? '',
+                    'ability_index'  => intval($ctx['ability_index'] ?? 0),
                 ]
             );
 

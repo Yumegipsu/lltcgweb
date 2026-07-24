@@ -1752,6 +1752,7 @@ function openNextYellRetryPrompt(array $state): array {
     ];
     $state['phase'] = 'live_success_effects';
     $state['_perf_yell_both_done'] = true;
+    $state['_performance_continue'] = $pid;
     return $state;
 }
 
@@ -1934,6 +1935,11 @@ function finishYellRetryAndHearts(array $state): array {
     unset($state['_perf_hearts_resolved'], $state['_perf_yell_both_done']);
     if (!empty($state['pending_prompt'])) {
         $state['phase'] = 'live_success_effects';
+        if (empty($state['_performance_continue'])) {
+            $state['_performance_continue'] = $state['pending_prompt']['responder']
+                ?? $state['pending_prompt']['owner']
+                ?? $first;
+        }
         return $state;
     }
     $state['phase'] = 'live_judge';
