@@ -119,4 +119,140 @@ final class UmiBp3004LiveStartDiscardHandTest extends TestCase
             $this->assertContains('wr_mus_live', $handIds);
         }
     }
+
+    /** Issue #144: no optional Live Start prompt when WR has no μ's Live. */
+    public function testUmiLiveStartSkippedWhenNoMusLiveInWaitingRoom(): void {
+        $umi = $this->cardByNo('PL!-bp3-004-R＋', 'umi');
+        $handMember = $this->cardByNo('PL!HS-sd1-015-SD', 'hand_any');
+        $successLive = $this->firstMusLive('success_live');
+        $liveInZone = $this->firstMusLive('live_zone');
+        $wrMember = $this->cardByNo('PL!HS-sd1-015-SD', 'wr_member');
+
+        $state = [
+            'room_id' => 'UMI_LS_NO_WR',
+            'status' => 'playing',
+            'seq' => 1,
+            'turn' => 2,
+            'phase' => 'live_set',
+            'first_player' => 'p1',
+            'active_player' => 'p1',
+            'live_attempt' => ['p1'],
+            'log' => [],
+            'players' => [
+                'p1' => [
+                    'id' => 'p1',
+                    'name' => 'P1',
+                    'hand' => [$handMember],
+                    'stage' => ['left' => null, 'center' => $umi, 'right' => null],
+                    // Member only — no μ's Live target for the add-from-WR half.
+                    'waiting_room' => [$wrMember],
+                    'energy_zone' => [
+                        ['instance_id' => 'e0', 'active' => true, 'card_type' => 'エネルギー'],
+                        ['instance_id' => 'e1', 'active' => true, 'card_type' => 'エネルギー'],
+                        ['instance_id' => 'e2', 'active' => true, 'card_type' => 'エネルギー'],
+                    ],
+                    'main_deck' => [['instance_id' => 'd1', 'card_type' => 'メンバー', 'card_type_en' => 'Member']],
+                    'energy_deck' => [],
+                    'live_zone' => [$liveInZone],
+                    'success_lives' => [$successLive],
+                ],
+                'p2' => [
+                    'id' => 'p2',
+                    'name' => 'P2',
+                    'hand' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'waiting_room' => [],
+                    'energy_zone' => [],
+                    'main_deck' => [],
+                    'energy_deck' => [],
+                    'live_zone' => [],
+                    'success_lives' => [],
+                ],
+            ],
+        ];
+
+        $ab = null;
+        foreach ($umi['abilities'] as $a) {
+            if (($a['type'] ?? '') === 'optional_discard_add_from_wr') {
+                $ab = $a;
+                break;
+            }
+        }
+        $this->assertNotNull($ab);
+        $this->assertFalse(
+            optionalLiveStartAbilityEligible($state, 'p1', $umi, $ab),
+            'Must not offer Umi Live Start with no μ\'s Live in Waiting Room'
+        );
+
+        $state = resolveLiveStartAbilities($state, 'p1');
+        $pr = $state['pending_prompt'] ?? null;
+        if ($pr !== null) {
+            $this->assertNotSame(
+                'optional_live_start',
+                $pr['type'] ?? null,
+                'Must not open optional Live Start for Umi with no WR target'
+            );
+            $this->assertNotSame('umi', $pr['source_id'] ?? null);
+        }
+        $this->assertSame(
+            [],
+            collectOptionalLiveStartAbilities($state),
+            'Optional queue must omit Umi when WR has no μ\'s Live'
+        );
+    }
+
+    public function testUmiLiveStartEligibleWhenMusLiveInWaitingRoom(): void {
+        $umi = $this->cardByNo('PL!-bp3-004-R＋', 'umi');
+        $handMember = $this->cardByNo('PL!HS-sd1-015-SD', 'hand_any');
+        $wrLive = $this->firstMusLive('wr_mus_live');
+        $successLive = $this->firstMusLive('success_live');
+
+        $state = [
+            'room_id' => 'UMI_LS_OK',
+            'status' => 'playing',
+            'seq' => 1,
+            'turn' => 2,
+            'phase' => 'live_start_effects',
+            'first_player' => 'p1',
+            'active_player' => 'p1',
+            'live_attempt' => ['p1'],
+            'log' => [],
+            'players' => [
+                'p1' => [
+                    'id' => 'p1',
+                    'name' => 'P1',
+                    'hand' => [$handMember],
+                    'stage' => ['left' => null, 'center' => $umi, 'right' => null],
+                    'waiting_room' => [$wrLive],
+                    'energy_zone' => [],
+                    'main_deck' => [],
+                    'energy_deck' => [],
+                    'live_zone' => [$this->firstMusLive('live_zone')],
+                    'success_lives' => [$successLive],
+                ],
+                'p2' => [
+                    'id' => 'p2',
+                    'name' => 'P2',
+                    'hand' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'waiting_room' => [],
+                    'energy_zone' => [],
+                    'main_deck' => [],
+                    'energy_deck' => [],
+                    'live_zone' => [],
+                    'success_lives' => [],
+                ],
+            ],
+        ];
+
+        $ab = null;
+        foreach ($umi['abilities'] as $a) {
+            if (($a['type'] ?? '') === 'optional_discard_add_from_wr') {
+                $ab = $a;
+                break;
+            }
+        }
+        $this->assertNotNull($ab);
+        $this->assertTrue(optionalLiveStartAbilityEligible($state, 'p1', $umi, $ab));
+    }
 }

@@ -384,6 +384,28 @@ function optionalLiveStartAbilityEligible(array $state, string $pid, array $card
             return false;
         }
     }
+    // Umi PL!-bp3-004 etc.: do not offer discard→WR Live if the cost or target is impossible.
+    if (($ab['type'] ?? '') === 'optional_discard_add_from_wr') {
+        $needDiscard = max(1, intval($ab['discard'] ?? 1));
+        if (count($p['hand'] ?? []) < $needDiscard) {
+            return false;
+        }
+        $cfg = function_exists('wrPickCfgFromAbility')
+            ? wrPickCfgFromAbility($ab)
+            : [
+                'group' => (string)($ab['group'] ?? ''),
+                'filter' => (string)($ab['filter'] ?? 'live'),
+            ];
+        $needAdd = max(1, intval($ab['count'] ?? 1));
+        if (function_exists('wrPickMatchCount')) {
+            if (wrPickMatchCount($p, $cfg, $needAdd) < $needAdd) {
+                return false;
+            }
+        } elseif (function_exists('wrCandidatesMatching')
+            && count(wrCandidatesMatching($p, $cfg)) < $needAdd) {
+            return false;
+        }
+    }
     if (!optionalCostAbilityShouldOpen($state, $pid, $ab)) {
         return false;
     }
