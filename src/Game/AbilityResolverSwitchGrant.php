@@ -16,6 +16,16 @@ function tryResolveAbilityEffectSwitchGrant(
     switch ($type) {
         // grant_hearts / grant_live_score_if_success → EffectHandlers via EffectRegistry
 
+        case 'grant_bonus_hearts':
+            // Until-this-Live hearts on the source Member (Setsuna N-sd2-019, Rina N-pb1-009).
+            // Must not fall through the grant_* prefix as a silent no-op (#147).
+            $state = applyModifierEffect($state, $pid, $ab, $source);
+            if (!empty($ab['hearts'])) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    ' — [' . $name . '] gained bonus heart(s) until this Live ends.');
+            }
+            break;
+
         case 'grant_hearts_if_slot_blade_hearts':
             $slot = $ab['slot'] ?? 'left';
             $mbr = $p['stage'][$slot] ?? null;
