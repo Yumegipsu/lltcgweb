@@ -1062,7 +1062,9 @@ function skillPromptUiState(s) {
   let best = gs || s || null;
   if (gs && s) best = (gs.seq ?? 0) >= (s.seq ?? 0) ? gs : s;
   const def = G._deferredPromptState;
-  if (!def?.pending_prompt) return best;
+  if (!def?.pending_prompt) {
+    return scrubAlreadyResolvedPromptState(best);
+  }
   const bestSeq = best?.seq ?? 0;
   const defSeq = def.seq ?? 0;
   const myId = G.playerId;
@@ -1077,18 +1079,42 @@ function skillPromptUiState(s) {
     && queued[queued.length - 1].pending_prompt?.responder !== oppId;
   if ((!best?.pending_prompt && bestSeq >= defSeq) || queuedCleared || queuedOppResolved) {
     clearDeferredPromptState({ skipBannerRefresh: true });
-    return best;
+    return scrubAlreadyResolvedPromptState(best);
   }
-  if (best?.pending_prompt) return best;
+  if (best?.pending_prompt) return scrubAlreadyResolvedPromptState(best);
   const presentationActive = G.animating || G._perfSpectacleActive || G._liveRoundPlaybackActive;
-  if (presentationActive && def.pending_prompt?.responder === oppId) return def;
-  if (presentationActive && def.pending_prompt) return def;
+  if (presentationActive && def.pending_prompt?.responder === oppId) {
+    return scrubAlreadyResolvedPromptState(def);
+  }
+  if (presentationActive && def.pending_prompt) {
+    return scrubAlreadyResolvedPromptState(def);
+  }
   clearDeferredPromptState({ skipBannerRefresh: true });
-  return best;
+  return scrubAlreadyResolvedPromptState(best);
+}
+
+/** Issue #146: answered skills must not keep End Main stuck on "Resolve skill first". */
+function scrubAlreadyResolvedPromptState(s) {
+  if (!s?.pending_prompt) return s;
+  if (typeof isPromptAlreadyResolved === 'function' && isPromptAlreadyResolved(s)) {
+    if (s === G.gameState) {
+      const cleared = { ...s };
+      delete cleared.pending_prompt;
+      G.gameState = cleared;
+      return cleared;
+    }
+    const cleared = { ...s };
+    delete cleared.pending_prompt;
+    return cleared;
+  }
+  return s;
 }
 
 function hasOpenSkillPrompt(s) {
-  return !!skillPromptUiState(s)?.pending_prompt;
+  const ui = skillPromptUiState(s);
+  if (!ui?.pending_prompt) return false;
+  if (typeof isPromptAlreadyResolved === 'function' && isPromptAlreadyResolved(ui)) return false;
+  return true;
 }
 
 function clearDeferredPromptState(opts = {}) {

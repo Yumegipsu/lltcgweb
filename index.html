@@ -30877,9 +30877,14 @@ function updatePhaseActionButton(s, myId) {
 
   if ((ph === 'main_first' || ph === 'main_second') && isMe) {
     show = true;
-    if (pr) {
+    // Use hasOpenSkillPrompt so a locally-answered prompt (overlay closed, latch set)
+    // cannot grey End Main with "Resolve skill first" (#146).
+    if (typeof hasOpenSkillPrompt === 'function' ? hasOpenSkillPrompt(s) : !!pr) {
       waiting = true;
-      label = pr.responder === myId ? t('game.resolveSkillFirst') : t('game.waitingSkill');
+      const openPr = (typeof skillPromptUiState === 'function'
+        ? skillPromptUiState(s)?.pending_prompt
+        : pr) || pr;
+      label = openPr?.responder === myId ? t('game.resolveSkillFirst') : t('game.waitingSkill');
     } else {
       label = t('game.endMainPhase');
     }
@@ -33995,6 +34000,17 @@ async function sendAct(type,data){
       G._promptSubmitKey = null;
     }
     if (type === 'resolve_prompt') clearDeferredPromptState();
+    if (type === 'resolve_prompt' && G.gameState?.pending_prompt
+        && typeof isPromptAlreadyResolved === 'function'
+        && isPromptAlreadyResolved(G.gameState)) {
+      // Overlay already closed; drop stale pending so End Main is not softlocked (#146).
+      const cleared = { ...G.gameState };
+      delete cleared.pending_prompt;
+      G.gameState = cleared;
+      if (typeof clearDeferredPromptState === 'function') {
+        clearDeferredPromptState({ skipBannerRefresh: true });
+      }
+    }
     if (type !== 'send_stamp' && typeof markPollFastBurst === 'function') {
       markPollFastBurst(2800);
       if (typeof resumePollingTick === 'function') resumePollingTick(80);
@@ -34537,7 +34553,7 @@ function mkNoImg(card){
 </script>
 <script src="client/js/live-round-director.js?v=3"></script>
 <script src="client/js/spectacle.js?v=115"></script>
-<script src="client/js/board-render.js?v=47"></script>
+<script src="client/js/board-render.js?v=48"></script>
 <script src="client/js/components/board-zones.js?v=1"></script>
 <script src="client/js/cpu-meta-weights.js?v=6"></script>
 <script src="client/js/cpu-eval.js?v=6"></script>
