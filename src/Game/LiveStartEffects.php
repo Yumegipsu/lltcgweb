@@ -791,6 +791,11 @@ function beginLiveStartForPerformer(array $state, string $pid): array {
     if (!in_array($pid, $attempting, true)) {
         return resolvePerformancePhase($state, $pid);
     }
+    // Official 8.3.4 → 8.3.8: non-Live cards leave storage before Live Start resolves
+    // (Fanfare!!! / Mira-Cra Park WR counts, etc.). Idempotent if already discarded.
+    if (function_exists('discardLiveZoneMembersToWaitingRoom')) {
+        $state = discardLiveZoneMembersToWaitingRoom($state, $pid);
+    }
     $state['_live_start_perf_pid'] = $pid;
     $state['phase'] = 'live_start_effects';
     // Keep optional/mandatory resolved markers so already-answered skills do not replay.
@@ -840,6 +845,10 @@ function beginLiveStartEffectPhase(array $state, bool $p1Attempt = true, bool $p
         return finishLiveStartEffects($state);
     }
     // Official 8.3: only the current performer's Live Starts before their Yell.
+    // 8.3.4: that performer's Member bluffs are already in WR before Live Start.
+    if (function_exists('discardLiveZoneMembersToWaitingRoom')) {
+        $state = discardLiveZoneMembersToWaitingRoom($state, $perfPid);
+    }
     $state['_live_start_perf_pid'] = $perfPid;
     $state = resolveLiveStartAbilities($state, $perfPid);
     if (!empty($state['pending_prompt'])) {

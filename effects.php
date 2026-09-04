@@ -2515,8 +2515,8 @@ function getEffectiveMemberCost(array $member): int {
 
 /**
  * Count other matching-group Live cards in storage.
- * Member bluffs stay through Live Start spectacle (#45) but must not inflate
- * zone-count skills such as Hanamusubi (reduce_hearts_per_live_zone_group).
+ * Member bluffs leave storage before Live Start (official 8.3.4 / #145) but zone-count
+ * skills such as Hanamusubi must still ignore any leftover non-Live cards.
  */
 function countOtherLiveZoneGroup(array $p, string $group, string $excludeId = ''): int {
     $n = 0;

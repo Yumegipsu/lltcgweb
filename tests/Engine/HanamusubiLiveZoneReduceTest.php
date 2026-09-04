@@ -8,8 +8,9 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * Hanamusubi (PL!HS-bp5-019-L): −2 green per other Hasunosora Live in storage.
- * Member bluffs stay through Live Start (#45) but must not count toward the reduction
- * (FBEF4E: 3 storage with 1–2 Hasunosora Members incorrectly reduced by 4).
+ * Zone-count skills ignore Member bluffs (#45). Production discards bluffs before
+ * Live Start (#145 / official 8.3.4); tests may still place bluffs in-zone to
+ * prove they never inflate the reduction (FBEF4E).
  */
 final class HanamusubiLiveZoneReduceTest extends TestCase
 {

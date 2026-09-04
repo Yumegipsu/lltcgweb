@@ -6,7 +6,7 @@ namespace LLTCG\Tests\Engine;
 
 use PHPUnit\Framework\TestCase;
 
-/** Issue #45: Member bluffs stay through spectacle; zone-count skills count Live cards only. */
+/** Issue #45 / #145: zone-count skills count Live cards only; bluffs leave before Live Start. */
 final class LiveZoneMemberPerformanceTest extends TestCase
 {
     private function member(string $id, string $group = 'Nijigasaki'): array

@@ -2323,8 +2323,9 @@ function beginPerformancePhase(array $state): array {
         $state['_stage_hearts_snapshot'],
         $state['_deferred_mp_extra_hearts']
     );
-    // Members stay through Yell; after heart math, queueLiveShowOutcomes sends them to WR.
-    // Zone-count skills already ignore non-Live cards.
+    // Official 8.3.4: after reveal, Member bluffs go to WR before Live Start (8.3.8).
+    // discardLiveZoneMembersToWaitingRoom runs at Live Start entry (and again at
+    // outcomes as a no-op). Zone-count skills already ignore non-Live cards.
     if (!performanceRoundHasLiveCards($state)) {
         return skipEmptyPerformanceRound($state);
     }
@@ -2601,8 +2602,8 @@ function liveShowStageFullyAcked(array $state): bool {
  * Judge scores and winner movement are intentionally not computed here.
  */
 function queueLiveShowOutcomes(array $state): array {
-    // After Yell spectacle (+ heart math): Member bluffs leave storage → Waiting Room.
-    // Kept through reveal / Live Start / Yell so clients can show them for the show.
+    // Safety net: Member bluffs should already be in WR from Live Start entry
+    // (official 8.3.4). Re-run so any path that skipped Live Start still discards.
     foreach (['p1', 'p2'] as $pid) {
         $state = discardLiveZoneMembersToWaitingRoom($state, $pid);
     }
