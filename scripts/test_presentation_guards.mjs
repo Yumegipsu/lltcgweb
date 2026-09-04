@@ -232,6 +232,13 @@ check('force-apply dismisses local prompt chrome',
   || /dismissLocalPromptChrome\('turn-advance'\)/.test(applySrc));
 check('spectacle defines dismissLocalPromptChrome',
   /function dismissLocalPromptChrome\(/.test(spectacleSrc));
+check('perfCloseSpectacle bumps heart fly epoch when closing active spectacle',
+  /function perfCloseSpectacle\([\s\S]*?wasActive[\s\S]*?_perfHeartFlyEpoch/.test(spectacleSrc));
+check('animated perfSeekPhase bumps heart fly epoch before climb',
+  /New animated climb[\s\S]*?_perfHeartFlyEpoch/.test(spectacleSrc));
+check('abortGameplayPresentation invalidates heart fly epoch',
+  /function abortGameplayPresentation\([\s\S]*?bumpLiveShowRunnerEpoch/.test(indexSrc)
+  || /function abortGameplayPresentation\([\s\S]*?_perfHeartFlyEpoch/.test(indexSrc));
 check('spectacle gates deferred resurface with maySurfaceDeferredPromptState',
   /function maySurfaceDeferredPromptState\(/.test(spectacleSrc));
 check('state-apply softlock uses maySurfaceDeferredPromptState',
@@ -252,6 +259,16 @@ check('renderPrompt respects isPromptAlreadyResolved',
   /isPromptAlreadyResolved/.test(
     fs.readFileSync(path.join(root, 'client/js/prompt-renderer.js'), 'utf8'),
   ));
+const boardRenderSrc = fs.readFileSync(path.join(root, 'client/js/board-render.js'), 'utf8');
+check('skillPromptUiState scrubs already-resolved prompts (#146)',
+  /function scrubAlreadyResolvedPromptState/.test(boardRenderSrc)
+  && /scrubAlreadyResolvedPromptState\(best\)/.test(boardRenderSrc)
+  && /scrubAlreadyResolvedPromptState\(def\)/.test(boardRenderSrc));
+check('hasOpenSkillPrompt ignores already-resolved (#146)',
+  /function hasOpenSkillPrompt[\s\S]{0,500}isPromptAlreadyResolved/.test(boardRenderSrc));
+check('End Main uses hasOpenSkillPrompt not raw pending (#146)',
+  /hasOpenSkillPrompt\(s\)/.test(indexSrc)
+  && /Resolve skill first/.test(indexSrc));
 check('force-apply never clears lastResolvedPromptKey',
   /Never clear _lastResolvedPromptKey/.test(applySrc)
   && !/dismissLocalPromptChrome\('turn-advance'\)[\s\S]{0,400}G\._lastResolvedPromptKey = null/.test(applySrc));
