@@ -2352,12 +2352,19 @@ function renderSuccessLives(id, succs) {
     appendCardFace(d, sc, { sideways: liveStorageUseArtSpin(sc) });
     wrap.appendChild(d);
     wrap.title = sc.name_en || sc.name || 'Live Success';
-    wrap.onclick = typeof boardCardShowClickHandler === 'function'
-      ? boardCardShowClickHandler(sc, G.gameState, G.playerId)
-      : () => showCard(sc, null, G.gameState, G.playerId);
     bindSuccessLiveHover(wrap, sc, G.gameState, G.playerId);
-    if (typeof bindBoardCardLongPressInspect === 'function') {
-      bindBoardCardLongPressInspect(wrap, sc, G.gameState, G.playerId);
+    // Spectators need bindSpectatorCardInspect (player click/long-press no-op for them) (#149).
+    if (G.isSpectator) {
+      if (typeof bindSpectatorCardInspect === 'function') {
+        bindSpectatorCardInspect(wrap, sc, G.gameState);
+      }
+    } else {
+      wrap.onclick = typeof boardCardShowClickHandler === 'function'
+        ? boardCardShowClickHandler(sc, G.gameState, G.playerId)
+        : () => showCard(sc, null, G.gameState, G.playerId);
+      if (typeof bindBoardCardLongPressInspect === 'function') {
+        bindBoardCardLongPressInspect(wrap, sc, G.gameState, G.playerId);
+      }
     }
     stack.appendChild(wrap);
   });
