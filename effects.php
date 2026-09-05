@@ -3965,14 +3965,26 @@ function abilityUsedKey(string $instanceId, int|string $idx): string {
     return $instanceId . ':' . $idx;
 }
 
+/**
+ * Normalize ability indices for once-per-turn bookkeeping.
+ * Ren-style inherited Activated keys are strings like "inherit:{stackedId}:{srcIdx}";
+ * casting those with intval() collapses them to 0 and breaks once_per_turn.
+ */
+function abilityMarkKey(mixed $idx): int|string {
+    if (is_string($idx) && str_starts_with($idx, 'inherit:')) {
+        return $idx;
+    }
+    return intval($idx);
+}
+
 function isAbilityUsed(array $member, int|string $idx): bool {
     $used = $member['abilities_used'] ?? [];
-    return !empty($used[abilityUsedKey($member['instance_id'] ?? '', $idx)]);
+    return !empty($used[abilityUsedKey($member['instance_id'] ?? '', abilityMarkKey($idx))]);
 }
 
 function markAbilityUsed(array &$member, int|string $idx): void {
     if (!isset($member['abilities_used'])) $member['abilities_used'] = [];
-    $member['abilities_used'][abilityUsedKey($member['instance_id'] ?? '', $idx)] = true;
+    $member['abilities_used'][abilityUsedKey($member['instance_id'] ?? '', abilityMarkKey($idx))] = true;
 }
 
 /** Reset per-turn Auto counters (e.g. max_uses_per_turn on stage Members). */

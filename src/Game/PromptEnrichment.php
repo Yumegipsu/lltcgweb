@@ -1575,7 +1575,7 @@ function resolveOptionalDiscardPromptChoice(
         if (isset($prompt['ability_index'])) {
             $slot = $prompt['source_slot'] ?? '';
             if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
-                markAbilityUsed($ownerP['stage'][$slot], intval($prompt['ability_index']));
+                markAbilityUsed($ownerP['stage'][$slot], abilityMarkKey($prompt['ability_index']));
             }
         }
         if ($deferFinish) {

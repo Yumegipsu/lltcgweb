@@ -948,7 +948,7 @@ function sBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
         if ($slot !== null && isset($ownerP['stage'][$slot])) {
             $member = $ownerP['stage'][$slot];
             if ($member && isset($prompt['ability_index'])) {
-                markAbilityUsed($member, intval($prompt['ability_index']));
+                markAbilityUsed($member, abilityMarkKey($prompt['ability_index']));
                 $ownerP['stage'][$slot] = $member;
             }
         }

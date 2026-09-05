@@ -177,7 +177,13 @@ function promptIsCompletedPlaceParent(array $pending, array $answered): bool {
         return false;
     }
     if (isset($answered['ability_index']) || isset($pending['ability_index'])) {
-        if (intval($pending['ability_index'] ?? -999) !== intval($answered['ability_index'] ?? -999)) {
+        $pIdx = $pending['ability_index'] ?? -999;
+        $aIdx = $answered['ability_index'] ?? -999;
+        if (is_string($pIdx) || is_string($aIdx)) {
+            if ((string)$pIdx !== (string)$aIdx) {
+                return false;
+            }
+        } elseif (intval($pIdx) !== intval($aIdx)) {
             return false;
         }
     }

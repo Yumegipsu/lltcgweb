@@ -2195,7 +2195,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         if (empty($state['pending_prompt']) && isset($prompt['ability_index'])) {
             $slot = $prompt['source_slot'] ?? '';
             if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
-                markAbilityUsed($ownerP['stage'][$slot], intval($prompt['ability_index']));
+                markAbilityUsed($ownerP['stage'][$slot], abilityMarkKey($prompt['ability_index']));
             }
         }
         if (empty($state['pending_prompt'])) {
@@ -2233,7 +2233,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         if (isset($prompt['ability_index'])) {
             $slot = $prompt['source_slot'] ?? '';
             if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
-                markAbilityUsed($ownerP['stage'][$slot], intval($prompt['ability_index']));
+                markAbilityUsed($ownerP['stage'][$slot], abilityMarkKey($prompt['ability_index']));
             }
         }
         $state['seq']++;
@@ -4931,7 +4931,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         if (!$discarded) throw new Exception('Discarded Member not found');
         $slot = $prompt['source_slot'] ?? '';
         if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
-            markAbilityUsed($ownerP['stage'][$slot], intval($prompt['ability_index'] ?? 0));
+            markAbilityUsed($ownerP['stage'][$slot], abilityMarkKey($prompt['ability_index'] ?? 0));
         }
         $state = resolveAbilityEffect($state, $owner, $discarded, $onEnter[$abIdx], ['phase' => 'on_enter']);
         $state = addLog($state, $state['players'][$owner]['name'] .
