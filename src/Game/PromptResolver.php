@@ -2438,8 +2438,11 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         $sourceName = $prompt['source_name'] ?? 'Member';
         // Drop the swap prompt before observer autos (e.g. Tomari pb2-022 on move to Center).
         unset($state['pending_prompt']);
+        // Displaced Member first: they may be landing on Center (move-to-Center autos)
+        // before the mover's Center-leave choose prompt (#151).
         if ($other) {
-            $state = resolveAutoAreaMoveAbilities($state, $owner, $other['instance_id'] ?? '', $srcSlot);
+            // $other left $slot and landed on $srcSlot.
+            $state = resolveAutoAreaMoveAbilities($state, $owner, $other['instance_id'] ?? '', $slot);
         }
         if (empty($state['pending_prompt'])) {
             $state = resolveAutoAreaMoveAbilities($state, $owner, $srcId, $srcSlot);
@@ -4188,9 +4191,13 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             ' — [' . ($prompt['source_name'] ?? 'Member') . "] moved to $toSlot area" .
             ($other ? ' (swapped).' : '.'));
         unset($state['pending_prompt']);
-        $state = resolveAutoAreaMoveAbilities($state, $owner, $member['instance_id'] ?? '', $fromSlot);
-        if ($other && empty($state['pending_prompt'])) {
+        // Displaced Member first so move-to-Center autos (pb2-022) are not blocked by
+        // Center-leave choose prompts on the mover (#151).
+        if ($other) {
             $state = resolveAutoAreaMoveAbilities($state, $owner, $other['instance_id'] ?? '', $toSlot);
+        }
+        if (empty($state['pending_prompt'])) {
+            $state = resolveAutoAreaMoveAbilities($state, $owner, $member['instance_id'] ?? '', $fromSlot);
         }
         if (function_exists('spBp2ClearEffectAreaMove')) {
             spBp2ClearEffectAreaMove($state);

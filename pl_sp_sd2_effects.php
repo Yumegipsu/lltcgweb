@@ -274,14 +274,16 @@ function plSpSd2ResolvePrompt(array $state, string $owner, array $prompt, string
             ' — [' . ($prompt['source_name'] ?? 'Member') . "] moved $fromSlot → $toSlot.");
         unset($state['pending_prompt']);
         $fromId = $fromM['instance_id'] ?? '';
-        if ($fromId !== '') {
-            $state = resolveAutoAreaMoveAbilities($state, $owner, $fromId, $fromSlot);
-        }
-        if (empty($state['pending_prompt']) && $toM) {
+        // Process the displaced Member first when present: they may land on Center
+        // (Tomari pb2-022) before the mover's Center-leave choose prompt (#151).
+        if ($toM) {
             $toId = $toM['instance_id'] ?? '';
             if ($toId !== '') {
                 $state = resolveAutoAreaMoveAbilities($state, $owner, $toId, $toSlot);
             }
+        }
+        if (empty($state['pending_prompt']) && $fromId !== '') {
+            $state = resolveAutoAreaMoveAbilities($state, $owner, $fromId, $fromSlot);
         }
         $moveGrp = (string)($fromM['group'] ?? '');
         if ($moveGrp !== '') {

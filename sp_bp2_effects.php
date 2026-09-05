@@ -546,7 +546,7 @@ function spBp2TriggerMoveToCenterHeart(array $state, string $pid, array $movedMe
     }
     $p = &$state['players'][$pid];
     foreach ($p['stage'] as $slot => &$observer) {
-        if (!$observer || ($observer['instance_id'] ?? '') === ($movedMember['instance_id'] ?? '')) {
+        if (!$observer) {
             continue;
         }
         mergeCardCatalogFields($observer);
@@ -568,6 +568,8 @@ function spBp2TriggerMoveToCenterHeart(array $state, string $pid, array $movedMe
             if (spBp2StageMemberAbilitiesSuppressed($state, $pid)) {
                 continue;
             }
+            // Official text: when a matching Member moves to Center, *this card* gains the
+            // bonus — including when this card itself is the one that moved (#151).
             if (!empty($ab['once_per_turn'])) {
                 markAbilityUsed($observer, $idx);
                 $p['stage'][$slot] = $observer;

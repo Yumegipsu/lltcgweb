@@ -90144,7 +90144,7 @@
         "yellow"
       ],
       "rarity": "P＋",
-      "text": "[Automatic] When a 5yncri5e! Member on your Stage moves to Center, this card gains 4<blade> until this Live ends.",
+      "text": "[Automatic] [Once per turn] When a 5yncri5e! Member on your Stage moves to Center, this card gains 4<blade> until this Live ends.",
       "text_jp": "[自動] [ターン1回] 自分のステージにいる『5yncri5e!』のメンバーがセンターエリアに移動したとき、ライブ終了時まで、＋4ブレードを得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-022-P2.png",
       "subunit": "5yncri5e!",
@@ -90191,7 +90191,7 @@
         "yellow"
       ],
       "rarity": "R",
-      "text": "[Automatic] When a 5yncri5e! Member on your Stage moves to Center, this card gains 4<blade> until this Live ends.",
+      "text": "[Automatic] [Once per turn] When a 5yncri5e! Member on your Stage moves to Center, this card gains 4<blade> until this Live ends.",
       "text_jp": "[自動] [ターン1回] 自分のステージにいる『5yncri5e!』のメンバーがセンターエリアに移動したとき、ライブ終了時まで、＋4ブレードを得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-022-R.png",
       "subunit": "5yncri5e!",
@@ -90199,14 +90199,10 @@
       "abilities": [
         {
           "trigger": "auto",
-          "type": "auto_on_move_to_center_subunit_heart",
+          "type": "auto_on_move_to_center_subunit_blade",
           "subunit": "5yncri5e!",
-          "hearts": [
-            {
-              "color": "any",
-              "count": 1
-            }
-          ]
+          "blade": 4,
+          "once_per_turn": true
         }
       ],
       "text_es": "[Automático] Cuando un Miembro 5yncri5e! en tu Escenario se mueve al Centro, obtienes 1 corazón hasta que termine este Live.",
