@@ -269,6 +269,13 @@ check('hasOpenSkillPrompt ignores already-resolved (#146)',
 check('End Main uses hasOpenSkillPrompt not raw pending (#146)',
   /hasOpenSkillPrompt\(s\)/.test(indexSrc)
   && /Resolve skill first/.test(indexSrc));
+check('Success Live binds spectator inspect (#149)',
+  /function renderSuccessLives[\s\S]{0,900}bindSpectatorCardInspect/.test(boardRenderSrc)
+  && /G\.isSpectator[\s\S]{0,200}bindSpectatorCardInspect/.test(
+    boardRenderSrc.match(/function renderSuccessLives[\s\S]{0,1200}/)?.[0] || '',
+  ));
+check('spectator inspect sweep includes Success Live chips (#149)',
+  /\.slive-chip\[data-iid\]/.test(indexSrc));
 check('force-apply never clears lastResolvedPromptKey',
   /Never clear _lastResolvedPromptKey/.test(applySrc)
   && !/dismissLocalPromptChrome\('turn-advance'\)[\s\S]{0,400}G\._lastResolvedPromptKey = null/.test(applySrc));
