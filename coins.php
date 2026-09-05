@@ -82,8 +82,10 @@ function tcgCoinsNaturalFinish(array $state): bool {
     if (($state['status'] ?? '') !== 'finished') {
         return false;
     }
-    $reason = trim((string)($state['end_reason'] ?? ''));
-    return $reason === '';
+    // Natural 3-Success wins set end_reason to "game" (api.php since 041dd4c).
+    // Resign / disconnect must still award 0 coins.
+    $reason = strtolower(trim((string)($state['end_reason'] ?? '')));
+    return $reason === '' || $reason === 'game';
 }
 
 /**

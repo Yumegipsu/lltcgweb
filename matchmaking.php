@@ -396,6 +396,17 @@ function tcgApplyRankedResultFromWebhook(array $body): array {
         } catch (Throwable $e) {
             // Idempotent mission writes are best-effort.
         }
+        // Coins are idempotent per room+discord — still attempt on already-applied
+        // retries so natural finishes that previously skipped (end_reason=game) can grant.
+        try {
+            require_once __DIR__ . '/coins.php';
+            $coinGrants = tcgCoinsOnGameFinished($fakeState);
+            if ($coinGrants !== []) {
+                $out['coin_grants'] = $coinGrants;
+            }
+        } catch (Throwable $e) {
+            // Coins are best-effort.
+        }
         return $out;
     }
 
