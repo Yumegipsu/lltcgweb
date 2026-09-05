@@ -153,4 +153,36 @@ final class RenPb2005BatonStackUnderTest extends TestCase
         $this->assertSame('keke_stage', $renStage['stacked_members'][0]['instance_id'] ?? null);
         $this->assertSame([], $state['players']['p1']['waiting_room']);
     }
+
+    public function testBatonOverKanonStacksOnceNotTwice(): void
+    {
+        $kanon = $this->cardByNo('PL!SP-bp7-001-R', 'kanon_stage');
+        $kanon['entered_turn'] = 1;
+        $ren = $this->cardByNo('PL!SP-pb2-005-R', 'ren_hand');
+        $state = $this->baseState($kanon, $ren);
+        $state['players']['p1']['main_deck'] = [[
+            'instance_id' => 'deck_pad',
+            'card_type' => 'メンバー',
+            'group' => 'Superstar',
+            'cost' => 2,
+        ]];
+
+        $state = \actionPlayMember($state, 'p1', [
+            'card_id' => 'ren_hand',
+            'slot' => 'center',
+            'baton_id' => 'kanon_stage',
+        ]);
+
+        $renStage = $state['players']['p1']['stage']['center'] ?? null;
+        $stacked = $renStage['stacked_members'] ?? [];
+        $this->assertCount(1, $stacked);
+        $this->assertSame('kanon_stage', $stacked[0]['instance_id'] ?? null);
+        $this->assertFalse(in_array(
+            'kanon_stage',
+            array_column($state['players']['p1']['waiting_room'] ?? [], 'instance_id'),
+            true
+        ));
+        $ids = array_column($stacked, 'instance_id');
+        $this->assertSame($ids, array_values(array_unique($ids)));
+    }
 }

@@ -768,6 +768,15 @@ function spBp2ResolveEffect(array $state, string $pid, array $source, array $ab,
             if ($slot === '' || empty($p['stage'][$slot])) {
                 break;
             }
+            // PL!SP-bp7-001 Kanon (etc.) may already have stacked themselves via
+            // auto_on_leave_baton_stack_self_under before this On Enter runs.
+            // Do not re-stack the same instance from the baton snapshot.
+            foreach ($p['stage'][$slot]['stacked_members'] ?? [] as $existing) {
+                if (($existing['instance_id'] ?? '') === $batonId) {
+                    unset($p['stage'][$slot]['baton_wr_member']);
+                    break 2;
+                }
+            }
             $group = $ab['group'] ?? 'Superstar';
             // Baton targets often leave WR immediately via empty-deck refresh; take from WR/deck
             // or fall back to the snapshot captured at Baton Touch time.

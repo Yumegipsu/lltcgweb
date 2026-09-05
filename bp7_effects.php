@@ -2671,13 +2671,19 @@ function bp7ApplyPendingBatonStacks(array $state, string $pid, string $targetSlo
         if (($entry['kind'] ?? '') === 'auto_on_leave_baton_stack_self_under') {
             $group = $ab['group'] ?? '';
             if ($group !== '' && !cardMatchesGroup($incoming, $group, 'member')) continue;
+            $leaveId = (string)($leaving['instance_id'] ?? '');
+            $member = $state['players'][$pid]['stage'][$targetSlot];
+            foreach ($member['stacked_members'] ?? [] as $existing) {
+                if (($existing['instance_id'] ?? '') === $leaveId) {
+                    continue 2;
+                }
+            }
             $card = bp7TakeCardsFromWaitingRoom(
                 $state['players'][$pid],
-                [(string)($leaving['instance_id'] ?? '')]
+                [$leaveId]
             );
             $stacked = $card[0] ?? $leaving;
             mergeCardCatalogFields($stacked);
-            $member = $state['players'][$pid]['stage'][$targetSlot];
             $member['stacked_members'] = array_merge($member['stacked_members'] ?? [], [$stacked]);
             $state['players'][$pid]['stage'][$targetSlot] = $member;
             $state = addLog($state, $state['players'][$pid]['name'] .
