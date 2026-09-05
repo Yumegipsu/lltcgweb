@@ -77833,23 +77833,23 @@
       ],
       "blade_hearts": [],
       "rarity": "P",
-      "text": "[Automatic] When this Member enters or moves to a different area, put 1 opponent Stage Member with 3 or fewer printed Hearts into Wait.",
+      "text": "[Automatic] When this Member enters or moves to a different area, put 1 opponent Stage Member with 3 or fewer printed <blade> into Wait.",
       "text_jp": "[自動] このメンバーが登場か、エリアを移動したとき、相手のステージにいる元々持つブレードの数が3つ以下のメンバー1人をウェイトにする。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP04/PL!SP-bp4-011-P.png",
       "abilities": [
         {
           "trigger": "on_enter_or_auto",
-          "type": "wait_opp_max_original_hearts",
-          "max_original_hearts": 3,
+          "type": "wait_opp_max_original_blade",
+          "max_original_blade": 3,
           "pick_count": 1
         }
       ],
       "subunit": "5yncri5e!",
-      "text_es": "[Automático] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos corazones impresos en Wait.",
-      "text_ko": "[자동] 때 이 멤버 등장한다 또는 이동한다 에 다른 영역, 놓는다 1 상대 스테이지 멤버 와 함께 3 이하 표기된 하트 Wait에.",
-      "text_zh": "[自动] 当该成员进入或移动到不同区域时，将 1 名印有 3 个或更少心形的对手舞台成员置于等待状态。",
-      "text_th": "[อัตโนมัติ] เมื่อสมาชิกนี้เข้าหรือย้ายไปยังพื้นที่อื่น ให้นำสมาชิกสเตจคู่ต่อสู้ 1 คนที่มีหัวใจที่พิมพ์ไว้ 3 อันหรือน้อยกว่าเข้าสู่การรอ",
-      "text_pt": "[Automático] Quando este Membro entrar ou mudar para uma área diferente, coloque 1 Membro no Palco do adversário com 3 ou menos Corações impressos em Repouso."
+      "text_es": "[Automático] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos <blade> impresos en Wait.",
+      "text_ko": "[자동] 이 멤버가 등장하거나 다른 영역으로 이동했을 때, 표기 Blade가 3 이하인 상대 스테이지 멤버 1명을 Wait로 보낸다.",
+      "text_zh": "[自动] 当该成员进入或移动到不同区域时，将对手舞台上印刷刀刃为 3 个或更少的成员 1 名置于等待状态。",
+      "text_th": "[อัตโนมัติ] เมื่อสมาชิกนี้เข้าหรือย้ายไปยังพื้นที่อื่น ให้นำสมาชิกบนสเตจของฝ่ายตรงข้าม 1 คนที่มีใบมีดพิมพ์ 3 หรือน้อยกว่าไปรอ",
+      "text_pt": "[Automático] Quando este Membro entrar ou mudar para uma área diferente, coloque 1 Membro no Palco do adversário com 3 ou menos <blade> impressos em Wait."
     },
     {
       "card_no": "PL!SP-bp4-011-P＋",
@@ -77877,23 +77877,23 @@
       ],
       "blade_hearts": [],
       "rarity": "P+",
-      "text": "[Automatic] When this Member enters or moves to a different area, put 1 opponent Stage Member with 3 or fewer printed Hearts into Wait.",
+      "text": "[Automatic] When this Member enters or moves to a different area, put 1 opponent Stage Member with 3 or fewer printed <blade> into Wait.",
       "text_jp": "[自動] このメンバーが登場か、エリアを移動したとき、相手のステージにいる元々持つブレードの数が3つ以下のメンバー1人をウェイトにする。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP04/PL!SP-bp4-011-P2.png",
       "abilities": [
         {
           "trigger": "on_enter_or_auto",
-          "type": "wait_opp_max_original_hearts",
-          "max_original_hearts": 3,
+          "type": "wait_opp_max_original_blade",
+          "max_original_blade": 3,
           "pick_count": 1
         }
       ],
       "subunit": "5yncri5e!",
-      "text_es": "[Automático] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos corazones impresos en Wait.",
-      "text_ko": "[자동] 때 이 멤버 등장한다 또는 이동한다 에 다른 영역, 놓는다 1 상대 스테이지 멤버 와 함께 3 이하 표기된 하트 Wait에.",
-      "text_zh": "[自动] 当该成员进入或移动到不同区域时，将 1 名印有 3 个或更少心形的对手舞台成员置于等待状态。",
-      "text_th": "[อัตโนมัติ] เมื่อสมาชิกนี้เข้าหรือย้ายไปยังพื้นที่อื่น ให้นำสมาชิกสเตจคู่ต่อสู้ 1 คนที่มีหัวใจที่พิมพ์ไว้ 3 อันหรือน้อยกว่าเข้าสู่การรอ",
-      "text_pt": "[Automático] Quando este Membro entrar ou mudar para uma área diferente, coloque 1 Membro no Palco do adversário com 3 ou menos Corações impressos em Repouso."
+      "text_es": "[Automático] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos <blade> impresos en Wait.",
+      "text_ko": "[자동] 이 멤버가 등장하거나 다른 영역으로 이동했을 때, 표기 Blade가 3 이하인 상대 스테이지 멤버 1명을 Wait로 보낸다.",
+      "text_zh": "[自动] 当该成员进入或移动到不同区域时，将对手舞台上印刷刀刃为 3 个或更少的成员 1 名置于等待状态。",
+      "text_th": "[อัตโนมัติ] เมื่อสมาชิกนี้เข้าหรือย้ายไปยังพื้นที่อื่น ให้นำสมาชิกบนสเตจของฝ่ายตรงข้าม 1 คนที่มีใบมีดพิมพ์ 3 หรือน้อยกว่าไปรอ",
+      "text_pt": "[Automático] Quando este Membro entrar ou mudar para uma área diferente, coloque 1 Membro no Palco do adversário com 3 ou menos <blade> impressos em Wait."
     },
     {
       "card_no": "PL!SP-bp4-011-R＋",
@@ -77921,23 +77921,23 @@
       ],
       "blade_hearts": [],
       "rarity": "R+",
-      "text": "[Automatic] When this Member enters or moves to a different area, put 1 opponent Stage Member with 3 or fewer printed Hearts into Wait.",
+      "text": "[Automatic] When this Member enters or moves to a different area, put 1 opponent Stage Member with 3 or fewer printed <blade> into Wait.",
       "text_jp": "[自動] このメンバーが登場か、エリアを移動したとき、相手のステージにいる元々持つブレードの数が3つ以下のメンバー1人をウェイトにする。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP04/PL!SP-bp4-011-R2.png",
       "abilities": [
         {
           "trigger": "on_enter_or_auto",
-          "type": "wait_opp_max_original_hearts",
-          "max_original_hearts": 3,
+          "type": "wait_opp_max_original_blade",
+          "max_original_blade": 3,
           "pick_count": 1
         }
       ],
       "subunit": "5yncri5e!",
-      "text_es": "[Automático] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos corazones impresos en Wait.",
-      "text_ko": "[자동] 때 이 멤버 등장한다 또는 이동한다 에 다른 영역, 놓는다 1 상대 스테이지 멤버 와 함께 3 이하 표기된 하트 Wait에.",
-      "text_zh": "[自动] 当该成员进入或移动到不同区域时，将 1 名印有 3 个或更少心形的对手舞台成员置于等待状态。",
-      "text_th": "[อัตโนมัติ] เมื่อสมาชิกนี้เข้าหรือย้ายไปยังพื้นที่อื่น ให้นำสมาชิกสเตจคู่ต่อสู้ 1 คนที่มีหัวใจที่พิมพ์ไว้ 3 อันหรือน้อยกว่าเข้าสู่การรอ",
-      "text_pt": "[Automático] Quando este Membro entrar ou mudar para uma área diferente, coloque 1 Membro no Palco do adversário com 3 ou menos Corações impressos em Repouso."
+      "text_es": "[Automático] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos <blade> impresos en Wait.",
+      "text_ko": "[자동] 이 멤버가 등장하거나 다른 영역으로 이동했을 때, 표기 Blade가 3 이하인 상대 스테이지 멤버 1명을 Wait로 보낸다.",
+      "text_zh": "[自动] 当该成员进入或移动到不同区域时，将对手舞台上印刷刀刃为 3 个或更少的成员 1 名置于等待状态。",
+      "text_th": "[อัตโนมัติ] เมื่อสมาชิกนี้เข้าหรือย้ายไปยังพื้นที่อื่น ให้นำสมาชิกบนสเตจของฝ่ายตรงข้าม 1 คนที่มีใบมีดพิมพ์ 3 หรือน้อยกว่าไปรอ",
+      "text_pt": "[Automático] Quando este Membro entrar ou mudar para uma área diferente, coloque 1 Membro no Palco do adversário com 3 ou menos <blade> impressos em Wait."
     },
     {
       "card_no": "PL!SP-bp4-011-SEC",
@@ -77965,23 +77965,23 @@
       ],
       "blade_hearts": [],
       "rarity": "SEC",
-      "text": "[Automatic] When this Member enters or moves to a different area, put 1 opponent Stage Member with 3 or fewer printed Hearts into Wait.",
+      "text": "[Automatic] When this Member enters or moves to a different area, put 1 opponent Stage Member with 3 or fewer printed <blade> into Wait.",
       "text_jp": "[自動] このメンバーが登場か、エリアを移動したとき、相手のステージにいる元々持つブレードの数が3つ以下のメンバー1人をウェイトにする。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP04/PL!SP-bp4-011-SEC.png",
       "abilities": [
         {
           "trigger": "on_enter_or_auto",
-          "type": "wait_opp_max_original_hearts",
-          "max_original_hearts": 3,
+          "type": "wait_opp_max_original_blade",
+          "max_original_blade": 3,
           "pick_count": 1
         }
       ],
       "subunit": "5yncri5e!",
-      "text_es": "[Automático] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos corazones impresos en Wait.",
-      "text_ko": "[자동] 때 이 멤버 등장한다 또는 이동한다 에 다른 영역, 놓는다 1 상대 스테이지 멤버 와 함께 3 이하 표기된 하트 Wait에.",
-      "text_zh": "[自动] 当该成员进入或移动到不同区域时，将 1 名印有 3 个或更少心形的对手舞台成员置于等待状态。",
-      "text_th": "[อัตโนมัติ] เมื่อสมาชิกนี้เข้าหรือย้ายไปยังพื้นที่อื่น ให้นำสมาชิกสเตจคู่ต่อสู้ 1 คนที่มีหัวใจที่พิมพ์ไว้ 3 อันหรือน้อยกว่าเข้าสู่การรอ",
-      "text_pt": "[Automático] Quando este Membro entrar ou mudar para uma área diferente, coloque 1 Membro no Palco do adversário com 3 ou menos Corações impressos em Repouso."
+      "text_es": "[Automático] Cuando este Miembro entra o se mueve a un área distinta, coloca 1 Miembro del Escenario del oponente con 3 o menos <blade> impresos en Wait.",
+      "text_ko": "[자동] 이 멤버가 등장하거나 다른 영역으로 이동했을 때, 표기 Blade가 3 이하인 상대 스테이지 멤버 1명을 Wait로 보낸다.",
+      "text_zh": "[自动] 当该成员进入或移动到不同区域时，将对手舞台上印刷刀刃为 3 个或更少的成员 1 名置于等待状态。",
+      "text_th": "[อัตโนมัติ] เมื่อสมาชิกนี้เข้าหรือย้ายไปยังพื้นที่อื่น ให้นำสมาชิกบนสเตจของฝ่ายตรงข้าม 1 คนที่มีใบมีดพิมพ์ 3 หรือน้อยกว่าไปรอ",
+      "text_pt": "[Automático] Quando este Membro entrar ou mudar para uma área diferente, coloque 1 Membro no Palco do adversário com 3 ou menos <blade> impressos em Wait."
     },
     {
       "card_no": "PL!SP-bp4-012-N",

@@ -82,6 +82,23 @@ function tryResolveAbilityEffectSwitchWaitActivate(
             );
             break;
 
+        case 'wait_opp_max_original_blade':
+            $state = beginWaitOpponentStagePick(
+                $state,
+                $pid,
+                $name,
+                array_merge($ab, [
+                    'max_original_blade' => intval(
+                        $ab['max_original_blade'] ?? $ab['max_original_blades'] ?? 3
+                    ),
+                    'pick_count' => intval($ab['pick_count'] ?? 1),
+                ]),
+                $source['instance_id'] ?? '',
+                ($ctx['phase'] ?? '') === 'live_start'
+                    || ($state['phase'] ?? '') === 'live_start_effects'
+            );
+            break;
+
         case 'wait_opp_max_original_blade_if_stage_group':
             if (!stageAllMembersInGroup($p, $ab['group'] ?? '')) {
                 break;

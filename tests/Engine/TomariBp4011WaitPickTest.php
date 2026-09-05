@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  * PL!SP-bp4-011 Tomari — On Enter / area move must prompt when multiple
- * opponent Stage Members have ≤3 printed hearts (not auto-left).
+ * opponent Stage Members have ≤3 printed Blade (not hearts).
  */
 final class TomariBp4011WaitPickTest extends TestCase
 {
@@ -56,11 +56,18 @@ final class TomariBp4011WaitPickTest extends TestCase
         ];
     }
 
+    /** Force printed Blade for targeting (元々持つブレード). */
+    private function withPrintedBlade(array $card, int $blade): array
+    {
+        $card['blade'] = $blade;
+        return $card;
+    }
+
     public function testOnEnterOpensPickWhenMultipleLegalTargets(): void
     {
         $tomari = $this->cardByNo('PL!SP-bp4-011-P＋', 'tomari');
-        $oppLeft = $this->cardByNo('PL!HS-sd1-015-SD', 'opp_left'); // 1 heart
-        $oppRight = $this->cardByNo('PL!HS-bp5-008-R', 'opp_right'); // 1 heart
+        $oppLeft = $this->withPrintedBlade($this->cardByNo('PL!HS-sd1-015-SD', 'opp_left'), 2);
+        $oppRight = $this->withPrintedBlade($this->cardByNo('PL!HS-bp5-008-R', 'opp_right'), 3);
 
         $p1 = $this->emptyPlayer('p1', 'P1');
         $p1['hand'] = [$tomari];
@@ -98,17 +105,11 @@ final class TomariBp4011WaitPickTest extends TestCase
         $this->assertTrue(memberIsInWait($state['players']['p2']['stage']['right']));
     }
 
-    public function testOnEnterAutoWaitsSingleLegalTarget(): void
+    public function testOnEnterAutoWaitsSingleLegalTargetIgnoresHighBlade(): void
     {
         $tomari = $this->cardByNo('PL!SP-bp4-011-P＋', 'tomari');
-        $oppLeft = $this->cardByNo('PL!HS-sd1-015-SD', 'opp_left'); // 1 heart
-        $oppHigh = $this->cardByNo('PL!SP-sd1-002-SD', 'opp_high'); // 3 hearts? wait — ≤3 still legal
-
-        // Use a member with >3 printed hearts so only left qualifies.
-        $oppHigh['hearts'] = [
-            ['color' => 'red', 'count' => 2],
-            ['color' => 'yellow', 'count' => 2],
-        ];
+        $oppLeft = $this->withPrintedBlade($this->cardByNo('PL!HS-sd1-015-SD', 'opp_left'), 1);
+        $oppHigh = $this->withPrintedBlade($this->cardByNo('PL!SP-sd1-002-SD', 'opp_high'), 4);
 
         $p1 = $this->emptyPlayer('p1', 'P1');
         $p1['hand'] = [$tomari];
@@ -135,11 +136,45 @@ final class TomariBp4011WaitPickTest extends TestCase
         $this->assertFalse(memberIsInWait($state['players']['p2']['stage']['right']));
     }
 
+    public function testHighHeartLowBladeIsLegalTarget(): void
+    {
+        // Regression #150: hearts must not gate the Wait; Blade does.
+        $tomari = $this->cardByNo('PL!SP-bp4-011-P＋', 'tomari');
+        $opp = $this->withPrintedBlade($this->cardByNo('PL!HS-sd1-015-SD', 'opp_blade0'), 0);
+        $opp['hearts'] = [
+            ['color' => 'red', 'count' => 2],
+            ['color' => 'yellow', 'count' => 2],
+        ];
+
+        $p1 = $this->emptyPlayer('p1', 'P1');
+        $p1['hand'] = [$tomari];
+        $p1['energy_zone'] = array_map(
+            static fn (int $i): array => ['instance_id' => "e$i", 'active' => true],
+            range(0, 9)
+        );
+
+        $p2 = $this->emptyPlayer('p2', 'P2');
+        $p2['stage'] = [
+            'left' => $opp,
+            'center' => null,
+            'right' => null,
+        ];
+
+        $state = $this->baseState($p1, $p2);
+        $state = applyAction($state, 'p1', 'play_member', [
+            'card_id' => 'tomari',
+            'slot' => 'center',
+        ]);
+
+        $this->assertNull($state['pending_prompt'] ?? null);
+        $this->assertTrue(memberIsInWait($state['players']['p2']['stage']['left']));
+    }
+
     public function testAreaMoveOpensPickWhenMultipleLegalTargets(): void
     {
         $tomari = $this->cardByNo('PL!SP-bp4-011-P＋', 'tomari');
-        $oppLeft = $this->cardByNo('PL!HS-sd1-015-SD', 'opp_left');
-        $oppRight = $this->cardByNo('PL!HS-bp5-008-R', 'opp_right');
+        $oppLeft = $this->withPrintedBlade($this->cardByNo('PL!HS-sd1-015-SD', 'opp_left'), 2);
+        $oppRight = $this->withPrintedBlade($this->cardByNo('PL!HS-bp5-008-R', 'opp_right'), 1);
 
         $p1 = $this->emptyPlayer('p1', 'P1');
         $p1['stage'] = [

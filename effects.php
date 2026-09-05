@@ -4642,17 +4642,30 @@ function resolveAutoAreaMoveAbilities(array $state, string $pid, string $memberI
         foreach ($member['abilities'] ?? [] as $idx => $ab) {
             $trigger = $ab['trigger'] ?? '';
             $type = $ab['type'] ?? '';
-            if ($trigger === 'on_enter_or_auto' && $type === 'wait_opp_max_original_hearts') {
+            if ($trigger === 'on_enter_or_auto'
+                && ($type === 'wait_opp_max_original_hearts' || $type === 'wait_opp_max_original_blade')) {
                 $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
                 $p['stage'][$slot] = $member;
+                $pickAb = $ab;
+                if ($type === 'wait_opp_max_original_blade') {
+                    $pickAb = array_merge($ab, [
+                        'max_original_blade' => intval(
+                            $ab['max_original_blade'] ?? $ab['max_original_blades'] ?? 3
+                        ),
+                        'pick_count' => intval($ab['pick_count'] ?? 1),
+                    ]);
+                    unset($pickAb['max_original_hearts']);
+                } else {
+                    $pickAb = array_merge($ab, [
+                        'max_original_hearts' => intval($ab['max_original_hearts'] ?? 3),
+                        'pick_count' => intval($ab['pick_count'] ?? 1),
+                    ]);
+                }
                 return beginWaitOpponentStagePick(
                     $state,
                     $pid,
                     $mName,
-                    array_merge($ab, [
-                        'max_original_hearts' => intval($ab['max_original_hearts'] ?? 3),
-                        'pick_count' => intval($ab['pick_count'] ?? 1),
-                    ]),
+                    $pickAb,
                     $memberInstanceId,
                     ($state['phase'] ?? '') === 'live_start_effects'
                 );
