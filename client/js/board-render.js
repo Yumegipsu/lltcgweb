@@ -1889,7 +1889,19 @@ function paintHandCard(d, card, s, myId) {
   d.classList.toggle('play-sel', !tutPinned && (G.selCard === card.instance_id || liveSelected));
   d.classList.toggle('hover-sel', G.hoverCardId === card.instance_id && !liveSelected);
   const isMain = ph === 'main_first' || ph === 'main_second';
-  d.classList.toggle('playable', card.card_type === 'メンバー' && isMe && isMain && effectiveCost(card, hand) <= ae);
+  let handPlayable = false;
+  if (card.card_type === 'メンバー' && isMe && isMain) {
+    if (typeof canPlayMemberToSlot === 'function' && s && myId) {
+      handPlayable = ['left', 'center', 'right'].some(slot => canPlayMemberToSlot(card, slot, s, myId));
+    } else {
+      const base = effectiveCost(card, hand);
+      const min = (typeof playCostWithOptionalOpts === 'function')
+        ? playCostWithOptionalOpts(card, s?.players?.[myId], base)
+        : base;
+      handPlayable = min <= ae;
+    }
+  }
+  d.classList.toggle('playable', handPlayable);
   d.classList.toggle('card-live-hand', isLiveCard(card));
   let cc = d.querySelector('.ccost');
   if (card.cost !== undefined && card.card_type === 'メンバー') {

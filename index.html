@@ -26850,12 +26850,13 @@ function fillCardDetailPanel(prefix, card, s, myId) {
 
 function memberPlayCostForSlot(card, slot, s, myId) {
   const me = s?.players?.[myId];
-  const ec = effectiveCost(card, me?.hand || []);
+  const base = effectiveCost(card, me?.hand || []);
+  const ec = playCostWithOptionalOpts(card, me, base);
   if (!slot) return ec;
   const mode = memberPlayModeForSlot(card, slot, s, myId);
   if (mode === 'baton') {
     const exist = me?.stage?.[slot];
-    return batonPlayCostWithBestDouble(me, card, slot, exist, ec);
+    return batonPlayCostWithBestDouble(me, card, slot, exist, base);
   }
   return ec;
 }
@@ -27282,6 +27283,7 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
   }
   const ae = (me?.energy_zone || []).filter(energyChipActive).length;
   const ec = effectiveCost(card, me?.hand || []);
+  const minEc = playCostWithOptionalOpts(card, me, ec);
   const wrap = document.createElement('div');
   wrap.className = 'hc-play-actions';
   const label = document.createElement('p');
@@ -27297,9 +27299,9 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
       ? affordableEnergyForBatonPlay(me, exist, card)
       : (me?.energy_zone || []).filter(energyChipActive).length;
     const bc = mode === 'baton' ? batonPlayCostWithBestDouble(me, card, slot, exist, ec) : null;
-    const slotCost = mode === 'baton' ? bc : ec;
+    const slotCost = mode === 'baton' ? bc : minEc;
     const canDo = (mode === 'empty'
-      ? slotAe >= ec
+      ? slotAe >= minEc
       : (mode === 'baton'
         ? canAffordBatonWithOptionalDouble(me, card, slot, exist, slotAe, ec)
         : !!mode && slotAe >= slotCost))
@@ -27309,8 +27311,8 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
     b.className = 'btn-smol';
     b.appendChild(document.createTextNode(slotLabel(slot, false)));
     if (mode === 'baton') appendEnergyCost(b, bc, { prefix: ' BT' });
-    else if (mode === 'overplay') appendEnergyCost(b, ec, { prefix: ' OP' });
-    else appendEnergyCost(b, ec, { prefix: ' ' });
+    else if (mode === 'overplay') appendEnergyCost(b, minEc, { prefix: ' OP' });
+    else appendEnergyCost(b, minEc, { prefix: ' ' });
     b.disabled = !interactive || !canDo;
     if (interactive && canDo) {
       b.onclick = () => {
@@ -27321,10 +27323,10 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
     row.appendChild(b);
   });
   wrap.appendChild(row);
-  if (ae < ec) {
+  if (ae < minEc) {
     const w = document.createElement('p');
     w.className = 'hc-play-warn';
-    appendPlayEnergyNeedWarn(w, ec, ae);
+    appendPlayEnergyNeedWarn(w, minEc, ae);
     wrap.appendChild(w);
   }
   container.appendChild(wrap);
@@ -27491,9 +27493,10 @@ function canPlayMemberToSlot(card, slot, s, myId) {
   if (hasOpenSkillPrompt(s)) return false;
   const me = s?.players?.[myId];
   const ec = effectiveCost(card, me?.hand || []);
+  const minEc = playCostWithOptionalOpts(card, me, ec);
   const exist = me?.stage?.[slot];
   if (!exist) {
-    return (me?.energy_zone || []).filter(energyChipActive).length >= ec;
+    return (me?.energy_zone || []).filter(energyChipActive).length >= minEc;
   }
   const mode = memberPlayModeForSlot(card, slot, s, myId);
   if (!mode) return false;
@@ -27501,7 +27504,7 @@ function canPlayMemberToSlot(card, slot, s, myId) {
     const ae = affordableEnergyForBatonPlay(me, exist, card);
     return canAffordBatonWithOptionalDouble(me, card, slot, exist, ae, ec);
   }
-  return (me?.energy_zone || []).filter(energyChipActive).length >= ec;
+  return (me?.energy_zone || []).filter(energyChipActive).length >= minEc;
 }
 
 function updateStageDropHighlights() {
@@ -28225,18 +28228,11 @@ function bestDoubleBatonSecond(me, card, primarySlot, primaryMember, ae, ec) {
   }
   return best;
 }
-function canAffordBatonWithOptionalDouble(me, card, primarySlot, primaryMember, ae, ec) {
-  const primaryRem = Math.max(0, ec - stageMemberEffectiveCost(primaryMember, me));
-  if (ae >= primaryRem) return true;
-  return !!bestDoubleBatonSecond(me, card, primarySlot, primaryMember, ae, ec);
-}
-function batonPlayCostWithBestDouble(me, card, primarySlot, primaryMember, ec) {
-  const primaryRem = Math.max(0, ec - stageMemberEffectiveCost(primaryMember, me));
-  const best = bestDoubleBatonSecond(me, card, primarySlot, primaryMember, Infinity, ec);
-  return best ? Math.min(primaryRem, best.remainder) : primaryRem;
-}
 function cardShuffleWrMembersPlayOpt(card) {
-  return (card?.abilities || []).find(ab =>
+  const abs = (typeof clientCatalogAbilities === 'function')
+    ? clientCatalogAbilities(card)
+    : (card?.abilities || []);
+  return (abs || []).find(ab =>
     ab.trigger === 'continuous' && ab.type === 'play_cost_reduction_if_shuffle_wr_members') || null;
 }
 function waitingRoomMemberCount(me) {
@@ -28248,15 +28244,46 @@ function playCostAfterShuffleWrOpt(card, me, baseEc) {
   if (!ab || waitingRoomMemberCount(me) < 1) return baseEc;
   return Math.max(0, baseEc - Number(ab.amount || 2));
 }
-function sendPlayMemberMaybeShuffleOpt(card, payload, me, ec) {
+/** Best legal play cost for affordability UI (includes optional WR-shuffle −2). */
+function playCostWithOptionalOpts(card, me, baseEc) {
+  return playCostAfterShuffleWrOpt(card, me, baseEc);
+}
+function canAffordBatonWithOptionalDouble(me, card, primarySlot, primaryMember, ae, ec) {
+  // Try full cost and shuffle-reduced cost (#163 Mia Always −2 before pay).
+  const costs = [ec];
+  const reduced = playCostAfterShuffleWrOpt(card, me, ec);
+  if (reduced < ec) costs.push(reduced);
+  for (const c of costs) {
+    const primaryRem = Math.max(0, c - stageMemberEffectiveCost(primaryMember, me));
+    if (ae >= primaryRem) return true;
+    if (bestDoubleBatonSecond(me, card, primarySlot, primaryMember, ae, c)) return true;
+  }
+  return false;
+}
+function batonPlayCostWithBestDouble(me, card, primarySlot, primaryMember, ec) {
+  // Display the lowest reachable remainder (shuffle opt + optional double baton).
+  const costs = [ec];
+  const reduced = playCostAfterShuffleWrOpt(card, me, ec);
+  if (reduced < ec) costs.push(reduced);
+  let bestRem = Infinity;
+  for (const c of costs) {
+    const primaryRem = Math.max(0, c - stageMemberEffectiveCost(primaryMember, me));
+    const best = bestDoubleBatonSecond(me, card, primarySlot, primaryMember, Infinity, c);
+    const rem = best ? Math.min(primaryRem, best.remainder) : primaryRem;
+    if (rem < bestRem) bestRem = rem;
+  }
+  return bestRem === Infinity ? Math.max(0, ec - stageMemberEffectiveCost(primaryMember, me)) : bestRem;
+}
+function sendPlayMemberMaybeShuffleOpt(card, payload, me, ec, payCost = null) {
   const ab = cardShuffleWrMembersPlayOpt(card);
   const n = waitingRoomMemberCount(me);
+  const basePay = payCost != null ? Number(payCost) : Number(ec || 0);
   if (!ab || n < 1) {
     sendAct('play_member', payload);
     return;
   }
   const amt = Number(ab.amount || 2);
-  const reduced = Math.max(0, Number(ec || 0) - amt);
+  const reduced = Math.max(0, basePay - amt);
   const ae = (me?.energy_zone || []).filter(energyChipActive).length;
   const ovl = el('overlay-prompt');
   el('prompt-ttl').textContent = card.name_en || card.name || 'Play';
@@ -28273,8 +28300,8 @@ function sendPlayMemberMaybeShuffleOpt(card, payload, me, ec) {
   box.appendChild(yes);
   const no = document.createElement('button');
   no.className = 'btn-grad';
-  no.textContent = `No — full cost ${ec}`;
-  if (ae < Number(ec || 0)) {
+  no.textContent = `No — full cost ${basePay}`;
+  if (ae < basePay) {
     no.disabled = true;
     no.title = 'Not enough Energy without the reduction';
   } else {
@@ -28289,7 +28316,14 @@ function sendPlayMemberMaybeShuffleOpt(card, payload, me, ec) {
 function sendBatonMemberPlay(card, slot, batonId, batonId2, me, ec) {
   const payload = { card_id: card.instance_id, slot, baton_id: batonId };
   if (batonId2) payload.baton_id2 = batonId2;
-  sendPlayMemberMaybeShuffleOpt(card, payload, me || {}, ec);
+  let pay = Number(ec || 0);
+  const primary = Object.values(me?.stage || {}).find(m => m && (m.instance_id || '') === batonId);
+  if (primary) pay = Math.max(0, pay - stageMemberEffectiveCost(primary, me));
+  if (batonId2) {
+    const second = Object.values(me?.stage || {}).find(m => m && (m.instance_id || '') === batonId2);
+    if (second) pay = Math.max(0, pay - stageMemberEffectiveCost(second, me));
+  }
+  sendPlayMemberMaybeShuffleOpt(card, payload, me || {}, ec, pay);
 }
 function openDoubleBatonSecondPick(card, slot, s, myId, primaryMember, secondTargets, onPlay, opts = {}) {
   const me = s?.players?.[myId];
