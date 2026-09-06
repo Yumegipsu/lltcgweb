@@ -21,6 +21,8 @@
     hubUpcoming: [],
     hubServerSkew: 0,
     hubFocus: null,
+    /** Tournament id last auto-focused in the bracket scroller (once per open). */
+    bracketFocusTid: null,
   };
 
   const TIMEZONE_OPTIONS = [
@@ -1264,6 +1266,7 @@
   async function openDetail(id) {
     setErr('');
     showView('detail');
+    state.bracketFocusTid = null;
     try {
       const res = await global.accountPost('tournament_get', { tournament_id: id });
       if (res && res.tournament && res.tournament.status === 'cancelled') {
@@ -1290,6 +1293,7 @@
   function returnToBulletin(msg) {
     state.detail = null;
     state.registerTid = null;
+    state.bracketFocusTid = null;
     showView('list');
     void loadList();
     persistSession();
@@ -1516,7 +1520,8 @@
     const name = (ent && ent.username) || nameFor(discordId);
     const avatar = ent ? ent.avatar_url : null;
     return (
-      '<div class="tournament-match-seat' + (isWinner ? ' tournament-match-seat--winner' : '') + '">'
+      '<div class="tournament-match-seat' + (isWinner ? ' tournament-match-seat--winner' : '') + '"'
+      + ' data-discord-id="' + escapeAttr(String(discordId)) + '">'
       + personChipHtml(discordId, name, avatar)
       + '</div>'
     );
@@ -1611,6 +1616,8 @@
     const slot = Number(m.bracket_slot) || 0;
     let html = '<article class="tournament-match-card tournament-match-card--' + escapeAttr(status)
       + (isPreview ? ' tournament-match-card--skeleton' : '') + '"'
+      + ' data-status="' + escapeAttr(status) + '"'
+      + (m.id ? ' data-match-id="' + escapeAttr(String(m.id)) + '"' : '')
       + ' data-side="' + escapeAttr(side) + '"'
       + ' data-round="' + escapeAttr(String(round)) + '"'
       + ' data-slot="' + escapeAttr(String(slot)) + '">';
@@ -1856,10 +1863,55 @@
       + '</ol>';
   }
 
+  function getBracketScrollEl(root) {
+    return root ? root.querySelector('.tournament-bracket-scroll') : null;
+  }
+
+  function captureBracketScroll(root) {
+    const sc = getBracketScrollEl(root);
+    if (!sc) return null;
+    return { left: sc.scrollLeft, top: sc.scrollTop };
+  }
+
+  function restoreBracketScroll(root, snap) {
+    if (!snap) return;
+    const sc = getBracketScrollEl(root);
+    if (!sc) return;
+    sc.scrollLeft = snap.left;
+    sc.scrollTop = snap.top;
+  }
+
+  /** Scroll the bracket pane so a live/ready match is centered (prefer the viewer's match). */
+  function focusBracketOnCurrentMatches(root) {
+    if (!root) return false;
+    const sc = getBracketScrollEl(root);
+    if (!sc) return false;
+    const me = state.detail && state.detail.me;
+    const myId = me && me.discord_id ? String(me.discord_id) : '';
+    const cards = [...root.querySelectorAll('.tournament-match-card[data-status="live"], .tournament-match-card[data-status="ready"]')];
+    if (!cards.length) return false;
+    let card = cards[0];
+    if (myId) {
+      const mine = cards.find((c) => {
+        const seats = c.querySelectorAll('[data-discord-id]');
+        return [...seats].some((s) => s.getAttribute('data-discord-id') === myId);
+      });
+      if (mine) card = mine;
+    }
+    const scRect = sc.getBoundingClientRect();
+    const cRect = card.getBoundingClientRect();
+    sc.scrollTop += (cRect.top + cRect.height / 2) - (scRect.top + scRect.height / 2);
+    sc.scrollLeft += (cRect.left + cRect.width / 2) - (scRect.left + scRect.width / 2);
+    return true;
+  }
+
   function renderBracket(matches, preview) {
     const root = el('tournament-bracket');
     if (!root) return;
+    const prevScroll = captureBracketScroll(root);
     const trow = state.detail && state.detail.tournament;
+    const tid = trow && trow.id ? String(trow.id) : '';
+    const shouldFocus = !!(tid && state.bracketFocusTid !== tid);
     const format = (trow && trow.settings && trow.settings.format) || 'single_elim';
     const bestOf = (trow && trow.settings && trow.settings.best_of) || 1;
     const live = Array.isArray(matches) ? matches : [];
@@ -1986,10 +2038,25 @@
       });
     }
     wireAvatarFallbacks(root);
-    if (useTree) bindBracketLayout(root);
-    else {
-      // Still equalize column rhythm a bit for swiss-style boards.
-      requestAnimationFrame(() => syncBracketTreeHeights(root));
+
+    const finishScroll = () => {
+      if (shouldFocus) {
+        focusBracketOnCurrentMatches(root);
+        state.bracketFocusTid = tid;
+      } else if (prevScroll) {
+        restoreBracketScroll(root, prevScroll);
+      }
+    };
+
+    if (useTree) {
+      bindBracketLayout(root);
+      // Layout/connectors adjust heights; restore scroll after that settles.
+      requestAnimationFrame(() => requestAnimationFrame(finishScroll));
+    } else {
+      requestAnimationFrame(() => {
+        syncBracketTreeHeights(root);
+        finishScroll();
+      });
     }
   }
 
