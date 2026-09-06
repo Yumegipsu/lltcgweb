@@ -93,8 +93,7 @@ function resolveAbilityEffectSwitch(
         'hearts_if_combined_energy',
         'live_score_if_opp_success_total',
         'on_self_wait_draw_discard',
-        'optional_named_live_zone_from_wr_on_hand',
-        'member_blade_on_live_zone_faceup',
+        // DIVE! autos are event-driven (WR→hand / face-up live zone), not On Enter.
         'cannot_live_if_solo_stage',
         'blade_bonus_if_center',
         'cost_bonus_if_min_energy',

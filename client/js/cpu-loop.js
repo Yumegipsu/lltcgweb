@@ -999,7 +999,9 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'pick_stage_member',
   'sbp6_pick_revealed_member', 'sbp5_pick_revealed_member', 'bp5_pick_kasumi_reveal',
   'sbp6_swap_pick_wr_member', 'sbp6_swap_pick_stage_member', 'sbp6_live_zone_deck_top_hearts',
-  'sbp6_leave_play_wr_slot', 'hs_leave_play_wr_slot', 'hs_pick_wr_live_to_zone', 'sbp6_pick_members_live_score',
+  'sbp6_leave_play_wr_slot', 'hs_leave_play_wr_slot', 'hs_pick_wr_live_to_zone',
+  'optional_named_live_zone_from_hand', 'pick_group_member_blade_faceup',
+  'sbp6_pick_members_live_score',
   'sbp5_pick_yell_members', 'sbp5_wr_lives_deck_top',
   'spbp5_wait_discard_surveil', 'bp5_wait_discard_look_reveal', 'bp5_discard_pay_wr_live_score',
   'optional_wait_self_look_reveal',
@@ -1836,6 +1838,30 @@ function cpuResolveHangRiskPrompts(pr, cpu, tier, read, s) {
   if (pr.type === 'hs_pick_wr_live_to_zone') {
     const pick = cpuPickBestCandidate(pr.candidates, cpu, hand, tier, read);
     if (pick?.instance_id) { cpuAct('resolve_prompt', { card_id: pick.instance_id }); return true; }
+    cpuSchedulePromptRetryIfStuck(s, cpu);
+    return true;
+  }
+  if (pr.type === 'optional_named_live_zone_from_hand') {
+    if (pr.step === 'pick_hand') {
+      const pick = cpuPickBestCandidate(pr.candidates, cpu, hand, tier, read);
+      if (pick?.instance_id) { cpuAct('resolve_prompt', { card_id: pick.instance_id }); return true; }
+      cpuSchedulePromptRetryIfStuck(s, cpu);
+      return true;
+    }
+    // Prefer yes when Live storage has room — face-up set is usually strong.
+    const zoneLen = (cpu.live_zone || []).filter(Boolean).length;
+    cpuAct('resolve_prompt', { choice: zoneLen < 3 ? 'yes' : 'no' });
+    return true;
+  }
+  if (pr.type === 'pick_group_member_blade_faceup') {
+    const pick = cpuPickBestCandidate(pr.candidates, cpu, hand, tier, read);
+    if (pick?.instance_id || pick?.slot) {
+      cpuAct('resolve_prompt', {
+        card_id: pick.instance_id || '',
+        slot: pick.slot || '',
+      });
+      return true;
+    }
     cpuSchedulePromptRetryIfStuck(s, cpu);
     return true;
   }

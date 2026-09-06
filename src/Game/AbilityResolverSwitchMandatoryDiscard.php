@@ -17,8 +17,6 @@ function tryResolveAbilityEffectSwitchMandatoryDiscard(
         case 'hearts_if_combined_energy':
         case 'live_score_if_opp_success_total':
         case 'on_self_wait_draw_discard':
-        case 'optional_named_live_zone_from_wr_on_hand':
-        case 'member_blade_on_live_zone_faceup':
         case 'cannot_live_if_solo_stage':
         case 'blade_bonus_if_center':
         case 'cost_bonus_if_min_energy':

@@ -158,6 +158,7 @@ function isSelfActivationPromptType(string $type): bool {
         'optional_wr_member_deck_top_blade',
         'optional_success_live_swap',
         'optional_success_wr_live_swap',
+        'optional_named_live_zone_from_hand',
         'optional_return_member_energy',
         'optional_wait_subunit_opp_pick_active',
         'optional_wait_group_member_draw_discard',

@@ -2616,6 +2616,195 @@ function addLiveFromWrToZone(array &$p, array $cfg, string $preferId = ''): int 
     return 1;
 }
 
+/**
+ * DIVE! (PL!N-bp4-026-L) — Main Phase: when this Live is added from WR to hand,
+ * optionally put a named Live from hand face-up into Live storage (cap −N next set).
+ */
+function notifyCardsAddedFromWrToHand(array $state, string $pid, array $cards): array {
+    if (empty($cards) || !empty($state['pending_prompt'])) {
+        return $state;
+    }
+    if (!in_array($state['phase'] ?? '', ['main_first', 'main_second'], true)
+        || ($state['active_player'] ?? '') !== $pid) {
+        return $state;
+    }
+    $p = &$state['players'][$pid];
+    if (liveZoneCount($p['live_zone'] ?? []) >= 3) {
+        return $state;
+    }
+    foreach ($cards as $card) {
+        if (!is_array($card)) {
+            continue;
+        }
+        if (function_exists('mergeCardCatalogFields')) {
+            mergeCardCatalogFields($card);
+        }
+        foreach ($card['abilities'] ?? [] as $abIdx => $ab) {
+            if (($ab['trigger'] ?? '') !== 'auto') {
+                continue;
+            }
+            if (($ab['type'] ?? '') !== 'optional_named_live_zone_from_wr_on_hand') {
+                continue;
+            }
+            $liveName = (string)($ab['name'] ?? ($card['name_en'] ?? $card['name'] ?? ''));
+            $candidates = [];
+            foreach ($p['hand'] as $c) {
+                if (($c['card_type'] ?? '') !== 'ライブ') {
+                    continue;
+                }
+                if ($liveName !== '' && !cardMatchesNames($c, [$liveName])) {
+                    continue;
+                }
+                $candidates[] = $c;
+            }
+            if (empty($candidates)) {
+                continue;
+            }
+            $srcName = $card['name_en'] ?? $card['name'] ?? 'Live';
+            $penalty = max(1, intval($ab['cap_penalty'] ?? 1));
+            $prompt = [
+                'type'          => 'optional_named_live_zone_from_hand',
+                'step'          => 'confirm',
+                'owner'         => $pid,
+                'responder'     => $pid,
+                'source_id'     => $card['instance_id'] ?? '',
+                'source_name'   => $srcName,
+                'ability_index' => $abIdx,
+                'ability'       => $ab,
+                'candidates'    => array_map('cardPromptSummary', $candidates),
+                'prompt'        => 'Put 1 Live card named "' . $liveName .
+                    '" from your hand face-up into Live storage? (Next Live Set place-cap −' .
+                    $penalty . ')',
+                'choices'       => ['yes', 'no'],
+                'choice_labels' => ['Yes', 'No — Skip'],
+            ];
+            $state['pending_prompt'] = function_exists('enrichSelfActivationPrompt')
+                ? enrichSelfActivationPrompt($state, $prompt)
+                : $prompt;
+            return $state;
+        }
+    }
+    unset($p);
+    return $state;
+}
+
+/** Place a named Live from hand face-up into Live storage; apply next-set place-cap penalty. */
+function placeNamedLiveFromHandFaceUp(
+    array $state,
+    string $pid,
+    string $cardId,
+    array $ab
+): array {
+    $p = &$state['players'][$pid];
+    $liveName = (string)($ab['name'] ?? '');
+    $idx = null;
+    $card = null;
+    foreach ($p['hand'] as $i => $c) {
+        if (($c['instance_id'] ?? '') !== $cardId) {
+            continue;
+        }
+        if (($c['card_type'] ?? '') !== 'ライブ') {
+            throw new Exception('Choose a Live card from your hand');
+        }
+        if ($liveName !== '' && !cardMatchesNames($c, [$liveName])) {
+            throw new Exception('Choose a Live card named "' . $liveName . '"');
+        }
+        $idx = $i;
+        $card = $c;
+        break;
+    }
+    if ($card === null) {
+        throw new Exception('Choose a matching Live card from your hand');
+    }
+    if (liveZoneCount($p['live_zone'] ?? []) >= 3) {
+        throw new Exception('Live storage is full');
+    }
+    $slot = liveZoneFirstEmptySlot($p['live_zone'] ?? []);
+    if ($slot < 0) {
+        throw new Exception('Live storage is full');
+    }
+    array_splice($p['hand'], $idx, 1);
+    $card['revealed'] = true;
+    $card['preplaced_live_zone'] = true;
+    $card['live_slot'] = $slot;
+    $p['live_zone'][] = $card;
+    $penalty = intval($ab['cap_penalty'] ?? $ab['next_live_set_cap_penalty'] ?? 0);
+    if ($penalty > 0) {
+        $p['live_set_cap_penalty'] = intval($p['live_set_cap_penalty'] ?? 0) + $penalty;
+    }
+    $srcName = $card['name_en'] ?? $card['name'] ?? 'Live';
+    $state = addLog(
+        $state,
+        $state['players'][$pid]['name'] .
+        " — [$srcName] placed face-up into Live storage" .
+        ($penalty > 0 ? " (next Live Set place-cap −$penalty)" : '') . '.'
+    );
+    return notifyLiveCardPlacedFaceUp($state, $pid, $card);
+}
+
+/**
+ * When a Live is placed face-up in storage — DIVE! grants +Blade to 1 group Member.
+ */
+function notifyLiveCardPlacedFaceUp(array $state, string $pid, array $card): array {
+    if (!empty($state['pending_prompt'])) {
+        return $state;
+    }
+    if (function_exists('mergeCardCatalogFields')) {
+        mergeCardCatalogFields($card);
+    }
+    foreach ($card['abilities'] ?? [] as $abIdx => $ab) {
+        if (($ab['trigger'] ?? '') !== 'auto') {
+            continue;
+        }
+        if (($ab['type'] ?? '') !== 'member_blade_on_live_zone_faceup') {
+            continue;
+        }
+        $group = (string)($ab['group'] ?? 'Nijigasaki');
+        $amount = intval($ab['amount'] ?? 2);
+        $members = [];
+        foreach ($state['players'][$pid]['stage'] as $slot => $mbr) {
+            if (!$mbr) {
+                continue;
+            }
+            if ($group !== '' && ($mbr['group'] ?? '') !== $group) {
+                continue;
+            }
+            $members[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
+        }
+        $srcName = $card['name_en'] ?? $card['name'] ?? 'Live';
+        if (empty($members)) {
+            return addLog($state, $state['players'][$pid]['name'] .
+                " — [$srcName] no $group Members on Stage for Blade.");
+        }
+        if (count($members) === 1) {
+            $slot = (string)($members[0]['slot'] ?? '');
+            if ($slot !== '' && !empty($state['players'][$pid]['stage'][$slot])) {
+                $state['players'][$pid]['stage'][$slot]['live_blade_bonus'] =
+                    intval($state['players'][$pid]['stage'][$slot]['live_blade_bonus'] ?? 0) + $amount;
+                $mName = cardDisplayName($state['players'][$pid]['stage'][$slot]);
+                return addLog($state, $state['players'][$pid]['name'] .
+                    " — [$srcName] $mName gains +$amount Blade until Live ends.");
+            }
+            return $state;
+        }
+        $state['pending_prompt'] = [
+            'type'          => 'pick_group_member_blade_faceup',
+            'owner'         => $pid,
+            'responder'     => $pid,
+            'source_id'     => $card['instance_id'] ?? '',
+            'source_name'   => $srcName,
+            'ability'       => $ab,
+            'ability_index' => $abIdx,
+            'candidates'    => $members,
+            'blade_amount'  => $amount,
+            'group'         => $group,
+            'prompt'        => "Choose 1 $group Member to gain +$amount Blade until Live ends.",
+        ];
+        return $state;
+    }
+    return $state;
+}
+
 /** Hime PL!HS-bp2-018 — WR Live stays face-up; next LIVE Set place-cap −N. */
 function applyPayEnergyAddLiveZoneFromWr(
     array $state,
@@ -2634,6 +2823,7 @@ function applyPayEnergyAddLiveZoneFromWr(
     if (isset($ab['max_live_score'])) {
         $cfg['max_live_score'] = intval($ab['max_live_score']);
     }
+    $beforeIds = array_column($p['live_zone'] ?? [], 'instance_id');
     $added = addLiveFromWrToZone($p, $cfg, $preferId);
     if ($added < 1) {
         throw new Exception('No matching Live card in Waiting Room or Live storage is full');
@@ -2647,11 +2837,27 @@ function applyPayEnergyAddLiveZoneFromWr(
     }
     $p['stage'][$slot] = $member;
     $cost = intval($ab['cost'] ?? 0);
-    return addLog(
+    $state = addLog(
         $state,
         $state['players'][$pid]['name'] .
         ' — [' . ($member['name_en'] ?? $member['name']) . "] paid $cost Energy; placed Live card from Waiting Room into storage face-up."
     );
+    $placed = null;
+    $preferId = trim($preferId);
+    foreach ($p['live_zone'] ?? [] as $lc) {
+        $iid = (string)($lc['instance_id'] ?? '');
+        if ($preferId !== '' && $iid === $preferId) {
+            $placed = $lc;
+            break;
+        }
+        if ($iid !== '' && !in_array($iid, $beforeIds, true)) {
+            $placed = $lc;
+        }
+    }
+    if ($placed) {
+        $state = notifyLiveCardPlacedFaceUp($state, $pid, $placed);
+    }
+    return $state;
 }
 
 function findActivatedAbilitySource(array &$p, string $instanceId): ?array {

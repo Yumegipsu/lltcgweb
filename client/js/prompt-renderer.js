@@ -2667,6 +2667,32 @@ global.renderPrompt = function renderPrompt(s, myId){
     openWrLivePick(pr, { state:s, myId });
     return;
   }
+  if(pr?.type==='optional_named_live_zone_from_hand'&&pr.responder===myId){
+    if(pr.step==='pick_hand'){
+      ovl.classList.remove('open');
+      const ids=new Set((pr.candidates||[]).map(c=>c.instance_id));
+      const me=s.players?.[myId];
+      openHandPick({
+        hand:(me?.hand||[]).filter(c=>ids.has(c.instance_id)),
+        count:1,
+        forceConfirm:true,
+        title:pr.source_name||'Live',
+        msg:promptDisplayText(pr, 'Choose 1 matching Live card from your hand to place face-up.', s),
+        onConfirm:(picked)=> sendAct('resolve_prompt',{card_id:picked[0]}),
+      });
+      return;
+    }
+  }
+  if(pr?.type==='pick_group_member_blade_faceup'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const cands=pr.candidates||[];
+    if(!cands.length){
+      sendAct('resolve_prompt',{choice:'skip'});
+      return;
+    }
+    openStageSlotPick({...pr, candidates:cands});
+    return;
+  }
   if(pr?.type==='hs_leave_play_wr_slot'&&pr.step==='pick'&&pr.responder===myId){
     ovl.classList.remove('open');
     const me=s.players?.[myId];

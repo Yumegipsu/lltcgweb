@@ -1784,6 +1784,105 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         return finishPromptEffects($state);
     }
 
+    if ($promptType === 'optional_named_live_zone_from_hand') {
+        $step = $prompt['step'] ?? 'confirm';
+        $ab = $prompt['ability'] ?? $ability;
+        if ($step === 'confirm') {
+            if (!isset(['yes' => true, 'no' => true][$choice])) {
+                throw new Exception('Invalid choice');
+            }
+            if ($choice === 'no') {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Live') . '] skipped face-up Live storage.');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishPromptEffects($state);
+            }
+            $cands = $prompt['candidates'] ?? [];
+            if (count($cands) === 1) {
+                unset($state['pending_prompt']);
+                $state = placeNamedLiveFromHandFaceUp(
+                    $state,
+                    $owner,
+                    (string)($cands[0]['instance_id'] ?? ''),
+                    $ab
+                );
+                $state['seq']++;
+                return finishPromptEffects($state);
+            }
+            $state['pending_prompt'] = [
+                'type'          => 'optional_named_live_zone_from_hand',
+                'step'          => 'pick_hand',
+                'owner'         => $owner,
+                'responder'     => $owner,
+                'source_id'     => $prompt['source_id'] ?? '',
+                'source_name'   => $prompt['source_name'] ?? 'Live',
+                'ability'       => $ab,
+                'ability_index' => $prompt['ability_index'] ?? null,
+                'candidates'    => $cands,
+                'prompt'        => 'Choose 1 Live card named "' .
+                    ($ab['name'] ?? 'DIVE!') . '" from your hand to place face-up.',
+            ];
+            $state['seq']++;
+            return $state;
+        }
+        if ($step === 'pick_hand') {
+            $cardId = trim((string)($data['card_id'] ?? ''));
+            if ($cardId === '') {
+                throw new Exception('Choose a Live card from your hand');
+            }
+            $ok = false;
+            foreach ($prompt['candidates'] ?? [] as $c) {
+                if (($c['instance_id'] ?? '') === $cardId) {
+                    $ok = true;
+                    break;
+                }
+            }
+            if (!$ok) {
+                throw new Exception('Invalid Live card');
+            }
+            unset($state['pending_prompt']);
+            $state = placeNamedLiveFromHandFaceUp($state, $owner, $cardId, $ab);
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
+        throw new Exception('Invalid prompt step');
+    }
+
+    if ($promptType === 'pick_group_member_blade_faceup') {
+        $slot = (string)($data['slot'] ?? '');
+        $cid = (string)($data['card_id'] ?? $data['member_id'] ?? '');
+        if ($slot === '' && $cid !== '') {
+            foreach ($prompt['candidates'] ?? [] as $c) {
+                if (($c['instance_id'] ?? '') === $cid) {
+                    $slot = (string)($c['slot'] ?? '');
+                    break;
+                }
+            }
+            if ($slot === '') {
+                $slot = findMemberSlot($ownerP, $cid);
+            }
+        }
+        if ($slot === '' || empty($ownerP['stage'][$slot])) {
+            throw new Exception('Choose a Member on Stage');
+        }
+        $group = (string)($prompt['group'] ?? $ability['group'] ?? 'Nijigasaki');
+        $mbr = $ownerP['stage'][$slot];
+        if ($group !== '' && ($mbr['group'] ?? '') !== $group) {
+            throw new Exception("Choose a $group Member");
+        }
+        $amount = intval($prompt['blade_amount'] ?? $ability['amount'] ?? 2);
+        $ownerP['stage'][$slot]['live_blade_bonus'] =
+            intval($ownerP['stage'][$slot]['live_blade_bonus'] ?? 0) + $amount;
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Live') . '] ' .
+            cardDisplayName($ownerP['stage'][$slot]) .
+            " gains +$amount Blade until Live ends.");
+        unset($state['pending_prompt']);
+        $state['seq']++;
+        return finishPromptEffects($state);
+    }
+
     if ($promptType === 'pick_wr_to_hand') {
         $pickCount = intval($prompt['pick_count'] ?? 1);
         $ids = [];
@@ -1837,6 +1936,12 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             implode(', ', $names) . ' from Waiting Room to hand.');
         unset($state['pending_prompt']);
         $state['seq']++;
+        if (function_exists('notifyCardsAddedFromWrToHand')) {
+            $state = notifyCardsAddedFromWrToHand($state, $owner, $picked);
+            if (!empty($state['pending_prompt'])) {
+                return $state;
+            }
+        }
         return finishPromptEffects($state);
     }
 
@@ -1964,6 +2069,13 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         }
         unset($state['pending_prompt']);
         $state['seq']++;
+        if ($pickId !== 'NO_CARD_NEEDED' && is_array($picked)
+            && function_exists('notifyCardsAddedFromWrToHand')) {
+            $state = notifyCardsAddedFromWrToHand($state, $owner, [$picked]);
+            if (!empty($state['pending_prompt'])) {
+                return $state;
+            }
+        }
         return $state;
     }
 
