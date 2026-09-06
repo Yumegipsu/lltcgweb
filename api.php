@@ -672,10 +672,21 @@ function joinRoom(array $body): array {
 // ─────────────────────────────────────────────
 function filterStateForClient(array $state, string $roomId, string $token): array {
     if (tcgIsSpectatorToken($token)) {
-        return filterStateForSpectator($state, $roomId, $token);
+        $filtered = filterStateForSpectator($state, $roomId, $token);
+    } else {
+        $filtered = filterStateForPlayer($state, $token);
+        $filtered['spectator_count'] = tcgLiveSpectatorCount($roomId);
     }
-    $filtered = filterStateForPlayer($state, $token);
-    $filtered['spectator_count'] = tcgLiveSpectatorCount($roomId);
+    $maxId = intval($state['log_id'] ?? $filtered['log_id'] ?? 0);
+    foreach ($filtered['log'] ?? [] as $e) {
+        if (is_array($e) && isset($e['id'])) {
+            $maxId = max($maxId, intval($e['id']));
+        }
+    }
+    $filtered['log_id'] = $maxId;
+    if (!isset($filtered['log_mode'])) {
+        $filtered['log_mode'] = 'full';
+    }
     return $filtered;
 }
 
@@ -742,6 +753,14 @@ function getStatePolling(): void {
     );
     $lastSeq     = intval($_GET['since_seq'] ?? $_GET['seq'] ?? 0);
     $forceFull   = isset($_GET['force']) && (string)$_GET['force'] === '1';
+    $sinceLogId  = intval($_GET['since_log_id'] ?? 0);
+    $wantFullLog = $forceFull || $resumeOnly || $sinceLogId <= 0;
+
+    $emitClientState = static function (array $state) use ($roomId, $playerToken, $sinceLogId, $wantFullLog): void {
+        $filtered = filterStateForClient($state, $roomId, $playerToken);
+        [$filtered] = tcgTrimLogForClient($filtered, $sinceLogId, $wantFullLog);
+        echo json_encode($filtered);
+    };
 
     if (!$roomId || !$playerToken) {
         echo json_encode(['error' => 'room_id and token required']);
@@ -774,6 +793,7 @@ function getStatePolling(): void {
                         echo json_encode(['ok' => true, 'unchanged' => true, 'seq' => $viewSeq]);
                         return;
                     }
+                    [$filtered] = tcgTrimLogForClient($filtered, $sinceLogId, $wantFullLog);
                     echo json_encode($filtered);
                     return;
                 }
@@ -783,7 +803,7 @@ function getStatePolling(): void {
                 echo json_encode(['ok' => true, 'unchanged' => true, 'seq' => $curSeq]);
                 return;
             }
-            echo json_encode(filterStateForClient($state, $roomId, $playerToken));
+            $emitClientState($state);
             return;
         }
 
@@ -818,7 +838,7 @@ function getStatePolling(): void {
                     // Keep the read-only snapshot if the lock is busy.
                 }
             }
-            echo json_encode(filterStateForClient($state, $roomId, $playerToken));
+            $emitClientState($state);
             return;
         }
 
@@ -855,7 +875,7 @@ function getStatePolling(): void {
             return;
         }
 
-        echo json_encode(filterStateForClient($state, $roomId, $playerToken));
+        $emitClientState($state);
         return;
     }
 
@@ -897,7 +917,7 @@ function getStatePolling(): void {
             }
         }
         if ($wakeSeq > $lastSeq) {
-            echo json_encode(filterStateForClient($state, $roomId, $playerToken));
+            $emitClientState($state);
             return;
         }
         if ($isSpectator) {
@@ -926,7 +946,7 @@ function getStatePolling(): void {
         maybeRecoverUnappliedRankedFinish($roomId, $state);
     }
     if ($state) {
-        echo json_encode(filterStateForClient($state, $roomId, $playerToken));
+        $emitClientState($state);
     }
 }
 
@@ -5827,7 +5847,10 @@ function inferLogKind(string $message): string {
 }
 
 function addLog(array $state, string $message, ?string $kind = null, array $anim = [], array $opts = []): array {
+    $state = tcgBackfillLogIds($state);
+    $state['log_id'] = intval($state['log_id'] ?? 0) + 1;
     $entry = [
+        'id'   => intval($state['log_id']),
         'msg'  => $message,
         'ts'   => time(),
         'kind' => $kind ?? inferLogKind($message),
@@ -5844,6 +5867,106 @@ function addLog(array $state, string $message, ?string $kind = null, array $anim
         $state['log'] = array_slice($state['log'], -500);
     }
     return $state;
+}
+
+/**
+ * Ensure every log row has a stable monotonic id (for get_state log deltas).
+ * Legacy rooms without ids are assigned ids in order on first save/backfill.
+ */
+function tcgBackfillLogIds(array $state): array {
+    $log = $state['log'] ?? [];
+    if (!is_array($log)) {
+        $log = [];
+    }
+    $max = intval($state['log_id'] ?? 0);
+    $missing = false;
+    foreach ($log as $e) {
+        if (!is_array($e) || !isset($e['id'])) {
+            $missing = true;
+            break;
+        }
+        $max = max($max, intval($e['id']));
+    }
+    if (!$missing) {
+        $state['log_id'] = max($max, intval($state['log_id'] ?? 0));
+        $state['log'] = $log;
+        return $state;
+    }
+    $next = 0;
+    foreach ($log as &$e) {
+        if (!is_array($e)) {
+            $e = ['msg' => (string)$e, 'ts' => time(), 'kind' => 'info'];
+        }
+        if (!isset($e['id'])) {
+            $next++;
+            $e['id'] = $next;
+        } else {
+            $next = max($next, intval($e['id']));
+        }
+    }
+    unset($e);
+    $state['log'] = array_values($log);
+    $state['log_id'] = max($next, intval($state['log_id'] ?? 0));
+    return $state;
+}
+
+function tcgLogHasStableIds(array $log): bool {
+    foreach ($log as $e) {
+        if (!is_array($e) || !isset($e['id'])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Shrink get_state payloads: send only log rows newer than since_log_id.
+ * Falls back to a full log when the client is behind truncation or ids are unstable.
+ *
+ * @return array{0: array, 1: bool} [filteredState, usedDelta]
+ */
+function tcgTrimLogForClient(array $filtered, int $sinceLogId, bool $wantFull): array {
+    $log = $filtered['log'] ?? [];
+    if (!is_array($log)) {
+        $log = [];
+    }
+    $maxId = intval($filtered['log_id'] ?? 0);
+    foreach ($log as $e) {
+        if (is_array($e) && isset($e['id'])) {
+            $maxId = max($maxId, intval($e['id']));
+        }
+    }
+    $filtered['log_id'] = $maxId;
+
+    if ($wantFull || $sinceLogId <= 0 || $log === [] || !tcgLogHasStableIds($log)) {
+        $filtered['log_mode'] = 'full';
+        $filtered['log'] = array_values($log);
+        return [$filtered, false];
+    }
+
+    $oldest = null;
+    foreach ($log as $e) {
+        $id = intval($e['id'] ?? 0);
+        if ($id > 0 && ($oldest === null || $id < $oldest)) {
+            $oldest = $id;
+        }
+    }
+    // Client is behind the retained window (server truncated past their cursor).
+    if ($oldest !== null && $sinceLogId < $oldest) {
+        $filtered['log_mode'] = 'full';
+        $filtered['log'] = array_values($log);
+        return [$filtered, false];
+    }
+
+    $delta = [];
+    foreach ($log as $e) {
+        if (intval($e['id'] ?? 0) > $sinceLogId) {
+            $delta[] = $e;
+        }
+    }
+    $filtered['log_mode'] = 'delta';
+    $filtered['log'] = $delta;
+    return [$filtered, true];
 }
 
 function generateToken(): string {
@@ -5878,6 +6001,7 @@ function loadGame(string $roomId): ?array {
 }
 
 function saveGame(string $roomId, array $state): void {
+    $state = tcgBackfillLogIds($state);
     tcgResolveGameStore()->save($roomId, $state);
     if (($state['mode'] ?? '') === 'tournament') {
         // Spectate delay ring writes file I/O — defer until the room lock is released

@@ -183,8 +183,38 @@
     return applyStateUpdate(s);
   }
 
+  /**
+   * Expand get_state log deltas onto the client log before apply.
+   * Server may send log_mode=delta with only new rows (since_log_id).
+   */
+  function hydrateIncomingLog(s) {
+    if (!s || typeof s !== 'object' || s.unchanged || s.error) return s;
+    const mode = s.log_mode || 'full';
+    if (mode === 'delta') {
+      const prev = Array.isArray(G.gameState?.log) ? G.gameState.log.slice() : [];
+      const delta = Array.isArray(s.log) ? s.log : [];
+      let merged = prev.concat(delta);
+      if (merged.length > 500) merged = merged.slice(-500);
+      s = { ...s, log: merged, log_mode: 'full' };
+    }
+    const lid = Number(s.log_id);
+    if (Number.isFinite(lid) && lid > 0) {
+      G.lastLogId = Math.max(Number(G.lastLogId) || 0, lid);
+    } else if (Array.isArray(s.log)) {
+      let max = Number(G.lastLogId) || 0;
+      for (let i = 0; i < s.log.length; i++) {
+        const id = Number(s.log[i]?.id);
+        if (Number.isFinite(id) && id > max) max = id;
+      }
+      G.lastLogId = max;
+    }
+    return s;
+  }
+  global.hydrateIncomingLog = hydrateIncomingLog;
+
   global.onState = function onState(s) {
     if (G.isTutorial && !G.tutorialLive) return;
+    s = hydrateIncomingLog(s);
     // Keep reconnect credentials fresh while the match is live, and through the
     // finished win/loss overlay so refresh can restore that screen.
     if (!G.isSpectator && G.roomId && G.token && s

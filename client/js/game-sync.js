@@ -359,9 +359,13 @@
     const since = (sinceSeqOverride != null && Number.isFinite(Number(sinceSeqOverride)))
       ? Number(sinceSeqOverride)
       : (G.lastSeq ?? 0);
+    const forceFullLog = typeof extraQs === 'string'
+      && (extraQs.includes('force=1') || extraQs.includes('resume=1'));
+    const sinceLog = forceFullLog ? 0 : Math.max(0, Number(G.lastLogId) || 0);
     let url = `${gameApiBase()}?action=get_state&room_id=${encodeURIComponent(G.roomId)}`
       + `&token=${encodeURIComponent(G.token)}&seq=${encodeURIComponent(String(since))}`
-      + `&since_seq=${encodeURIComponent(String(since))}&poll=0`;
+      + `&since_seq=${encodeURIComponent(String(since))}`
+      + `&since_log_id=${encodeURIComponent(String(sinceLog))}&poll=0`;
     if (extraQs) url += extraQs;
     return url;
   }
@@ -909,6 +913,7 @@
               TCG_DEBUG.warn('poll', 'force pull: re-paint board at matched seq', {
                 seq: d.seq, phase: d.phase,
               });
+              if (typeof hydrateIncomingLog === 'function') d = hydrateIncomingLog(d);
               G.gameState = d;
               G.lastSeq = Math.max(G.lastSeq ?? 0, d.seq ?? 0);
               renderGame(d, { skipLog: true, skipPrompt: true });

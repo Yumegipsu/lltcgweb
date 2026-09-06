@@ -2918,8 +2918,8 @@ if (/[?&]debug(?:=|&|$)/.test(location.search)) {
 <script src="client/js/presentation-guards.js?v=11"></script>
 <script src="client/js/spectate-pip.js?v=3"></script>
 <script src="client/js/resign-escape.js?v=1"></script>
-<script src="client/js/game-sync.js?v=68"></script>
-<script src="client/js/state-apply.js?v=79"></script>
+<script src="client/js/game-sync.js?v=69"></script>
+<script src="client/js/state-apply.js?v=80"></script>
 <script src="client/js/stamps.js?v=21"></script>
 <script src="client/js/replay-debug.js?v=11"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
@@ -16907,7 +16907,7 @@ let G = {
   cpuPlayerId:null,
   _pendingReplayFile:null,
   gameState:null, allCards:{}, starterDecks:{},
-  lastSeq:0, polling:false, pollTimer:null, _gameSessionEpoch:0,
+  lastSeq:0, lastLogId:0, polling:false, pollTimer:null, _gameSessionEpoch:0,
   syncEnabled:null, syncTicket:null, syncEventSource:null,
   presenceTimer:null, syncFallbackTimer:null, _syncReconnectTimer:null, _syncPullTimer:null, _syncFailCount:0,
   selCard:null, liveSel:[], _liveSetLockPid:null, _oppHandDepartInflight:0, mullMarked:new Set(), mulliganPending:false,
@@ -33072,7 +33072,7 @@ function freshGameGlobals() {
     roomId:null, token:null, cpuToken:null, playerId:null, isCPU:false, casualRandomMatch:false, cpuDifficulty:'easy',
     gameState:null, allCards:G.allCards, starterDecks:G.starterDecks,
     matchStartDeckChoice: G.matchStartDeckChoice || null,
-    lastSeq:0, polling:false, pollTimer:null, _gameSessionEpoch:nextEpoch,
+    lastSeq:0, lastLogId:0, polling:false, pollTimer:null, _gameSessionEpoch:nextEpoch,
     syncEnabled:null, syncTicket:null, syncEventSource:null,
     presenceTimer:null, syncFallbackTimer:null, _syncReconnectTimer:null, _syncPullTimer:null, _syncFailCount:0,
     selCard:null, liveSel:[], _liveSetLockPid:null, _oppHandDepartInflight:0, mullMarked:new Set(), mulliganPending:false,
