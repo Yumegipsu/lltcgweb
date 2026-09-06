@@ -49,6 +49,14 @@ final class DeckValidateTest extends TestCase
         $this->assertSame(8, tcgSumMainDeckLovecaPoints($sample));
     }
 
+    public function testEmmaSd1AllPrintingsShareTwoPoints(): void
+    {
+        foreach (['PL!N-sd1-008-P', 'PL!N-sd1-008-RM', 'PL!N-sd1-008-SD', 'PL!N-sd1-008-SD2'] as $no) {
+            $this->assertSame(2, tcgGetLovecaPointForCardNo($no), $no);
+            $this->assertSame(2, intval(($this->cardMap[$no]['loveca_point'] ?? 0)), $no . ' catalog');
+        }
+    }
+
     public function testOfficialNgLovecaExample(): void
     {
         $data = json_decode((string)file_get_contents(CARDS_FILE), true);
