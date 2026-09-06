@@ -5089,6 +5089,15 @@ function resolveAutoAreaMoveAbilities(array $state, string $pid, string $memberI
         $fromSlotEffective = $fromSlot !== '' ? $fromSlot : ($member['moved_from_slot'] ?? $toSlot);
         unset($member['moved_from_slot']);
         $p['stage'][$toSlot] = $member;
+        // PL!SP-bp7-008 Shiki: activate when moving while in Wait. Was only wired into
+        // BP7-specific Position/Formation helpers, so general swaps/position-change
+        // never fired the Auto (#161).
+        if ($fromSlotEffective !== '' && $fromSlotEffective !== $toSlot
+            && function_exists('bp7ResolveAutoOnAreaMove')) {
+            $state = bp7ResolveAutoOnAreaMove($state, $pid, [
+                ['id' => $memberInstanceId, 'slot' => $toSlot],
+            ]);
+        }
         // Center-move observers (pb2 Tomari choose) before Wait picks (bp4 Tomari).
         // Early Wait return used to skip spBp2OnMemberAreaMove entirely (#160).
         $state = spBp2OnMemberAreaMove($state, $pid, $memberInstanceId, $fromSlotEffective, $toSlot);
