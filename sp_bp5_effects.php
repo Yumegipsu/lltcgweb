@@ -353,24 +353,35 @@ function spBp5ResolveEffect(array $state, string $pid, array $source, array $ab,
             break;
 
         case 'live_success_score_if_success_zones_yell_score':
+            // PL!SP-bp5-023 Shooting Voice!! — official: Success Live storage ≥2
+            // AND Yell revealed a Live with a <score+1> icon (icon_score), not
+            // merely printed score ≥ 1 (almost every Live) or skill score grants.
             $selfCnt = count($p['success_lives'] ?? []);
             $opp = ($pid === 'p1') ? 'p2' : 'p1';
             $oppCnt = count($state['players'][$opp]['success_lives'] ?? []);
             $minZone = intval($ab['min_success_zone'] ?? 2);
-            if ($selfCnt < $minZone && $oppCnt < $minZone) break;
-            $yell = $state['_last_yell_cards'] ?? [];
+            if ($selfCnt < $minZone && $oppCnt < $minZone) {
+                break;
+            }
+            $yell = $ctx['yell_cards'] ?? $state['_last_yell_cards'] ?? $p['yell_cards'] ?? [];
             $hasScoreLive = false;
             foreach ($yell as $yc) {
-                if (($yc['card_type'] ?? '') === 'ライブ' && intval($yc['score'] ?? 0) >= 1) {
+                if (!is_array($yc) || !isLiveTypeCard($yc)) {
+                    continue;
+                }
+                if (cardYellScoreIconCount($yc) > 0) {
                     $hasScoreLive = true;
                     break;
                 }
             }
             if ($hasScoreLive) {
+                $amt = intval($ab['amount'] ?? 2);
                 $state = applyModifierEffect($state, $pid, [
                     'type'   => 'live_score_bonus',
-                    'amount' => intval($ab['amount'] ?? 2),
+                    'amount' => $amt,
                 ]);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] score +$amt (Success Live storage + Yell score icon).");
             }
             break;
 
