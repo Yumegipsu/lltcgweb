@@ -101,6 +101,35 @@ final class CoinsSleevesTest extends TestCase
         }
     }
 
+    /** Opponent resign after natural_win_locked still pays win/loss Coins. */
+    public function testResignAfterNaturalWinLockStillAwardsCoins(): void
+    {
+        $room = 'L' . strtoupper(bin2hex(random_bytes(3)));
+        $opp = 'opp_lock_' . $this->discordId;
+        tcgEnsureUser($opp, ['username' => 'OppLock']);
+        $state = [
+            'status' => 'finished',
+            'end_reason' => 'resign',
+            'resigned_by' => 'p2',
+            'natural_win_locked' => 'p1',
+            'winner' => 'p1',
+            'room_id' => $room,
+            'players' => [
+                'p1' => ['discord_id' => $this->discordId],
+                'p2' => ['discord_id' => $opp],
+            ],
+        ];
+        $this->assertSame(200, tcgCoinsForFinishedMatch($state, 'p1'));
+        $this->assertSame(100, tcgCoinsForFinishedMatch($state, 'p2'));
+        $grants = tcgCoinsOnGameFinished($state);
+        $amounts = [];
+        foreach ($grants as $g) {
+            $amounts[$g['pid']] = $g['amount'];
+        }
+        $this->assertSame(200, $amounts['p1'] ?? 0);
+        $this->assertSame(100, $amounts['p2'] ?? 0);
+    }
+
     public function testCpuDifficultyTiers(): void
     {
         $base = [

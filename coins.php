@@ -82,8 +82,15 @@ function tcgCoinsNaturalFinish(array $state): bool {
     if (($state['status'] ?? '') !== 'finished') {
         return false;
     }
+    // Match-winning Live already locked (3 Success Lives, or 2 + this round's
+    // sole Live win). Opponent resign/disconnect during Live Success prompts
+    // must not zero the winner's Coins.
+    $locked = $state['natural_win_locked'] ?? null;
+    if (($locked === 'p1' || $locked === 'p2') && ($state['winner'] ?? null) === $locked) {
+        return true;
+    }
     // Natural 3-Success wins set end_reason to "game" (api.php since 041dd4c).
-    // Resign / disconnect must still award 0 coins.
+    // Resign / disconnect must still award 0 coins when no lock applies.
     $reason = strtolower(trim((string)($state['end_reason'] ?? '')));
     return $reason === '' || $reason === 'game';
 }

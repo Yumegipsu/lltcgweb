@@ -1558,9 +1558,13 @@ function applyAction(array $state, string $playerId, string $type, array $data):
             $winner = ($playerId === 'p1') ? 'p2' : 'p1';
             $state['end_reason'] = 'resign';
             $state['resigned_by'] = $playerId;
-            $state = addLog($state, $state['players'][$playerId]['name'] . ' resigned. ' .
-                            $state['players'][$winner]['name'] . ' wins!');
             $state['winner'] = $winner;
+            // If the opponent already locked a natural 3-Live win (e.g. mid Live Success
+            // prompts), keep that winner so Coins still pay as a natural finish.
+            applyNaturalWinLockOnEarlyExit($state, $playerId);
+            $winPid = $state['winner'] ?? $winner;
+            $state = addLog($state, $state['players'][$playerId]['name'] . ' resigned. ' .
+                            $state['players'][$winPid]['name'] . ' wins!');
             $state['seq']++;
             return $state;
 
@@ -3491,6 +3495,13 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
         $successCards
     ));
     $state['live_round_success'][$pid] = $liveRoundSuccess;
+    if ($liveRoundSuccess) {
+        maybeLockNaturalMatchWin($state, $pid);
+    }
+    // Opponent may have locked earlier this round (2 Success + their Live win);
+    // this seat's fail makes their match win irreversible.
+    $oppPid = ($pid === 'p1') ? 'p2' : 'p1';
+    maybeLockNaturalMatchWin($state, $oppPid);
 
     $p = &$state['players'][$pid];
     $liveCards = array_values(array_filter(
@@ -3597,6 +3608,77 @@ function playerLiveRoundSucceeded(array $state, string $pid): bool {
     return false;
 }
 
+/**
+ * Seat that has locked a natural match win (Coins / early-exit finishes).
+ */
+function naturalWinLockedPid(array $state): ?string {
+    $pid = $state['natural_win_locked'] ?? null;
+    return ($pid === 'p1' || $pid === 'p2') ? $pid : null;
+}
+
+/**
+ * True when $pid has already won on Lives (3 Success) or is guaranteed to place
+ * the 3rd Success after Judge (2 Success + this round's sole Live win).
+ */
+function seatHasMatchWinningLiveProgress(array $state, string $pid): bool {
+    if ($pid !== 'p1' && $pid !== 'p2') {
+        return false;
+    }
+    $n = count($state['players'][$pid]['success_lives'] ?? []);
+    if ($n >= 3) {
+        return true;
+    }
+    if ($n < 2) {
+        return false;
+    }
+    if (empty($state['live_round_success'][$pid])) {
+        return false;
+    }
+    $opp = ($pid === 'p1') ? 'p2' : 'p1';
+    $attempting = $state['live_attempt'] ?? ['p1', 'p2'];
+    if (!is_array($attempting)) {
+        $attempting = ['p1', 'p2'];
+    }
+    // Opponent not attempting — sole Live win → places Success → match over.
+    if (!in_array($opp, $attempting, true)) {
+        return true;
+    }
+    // Opponent already resolved Performance and failed.
+    if (!array_key_exists($opp, $state['live_round_success'] ?? [])) {
+        return false;
+    }
+    return empty($state['live_round_success'][$opp]);
+}
+
+/** Stamp natural_win_locked when match-winning Live progress is irreversible. */
+function maybeLockNaturalMatchWin(array &$state, string $pid): bool {
+    if ($pid !== 'p1' && $pid !== 'p2') {
+        return false;
+    }
+    if (naturalWinLockedPid($state) !== null) {
+        return false;
+    }
+    if (!seatHasMatchWinningLiveProgress($state, $pid)) {
+        return false;
+    }
+    $state['natural_win_locked'] = $pid;
+    return true;
+}
+
+/**
+ * Opponent left after a natural win was locked — keep the locked winner so Coins pay.
+ */
+function applyNaturalWinLockOnEarlyExit(array &$state, ?string $exitingPid): void {
+    $locked = naturalWinLockedPid($state);
+    if ($locked === null) {
+        return;
+    }
+    if ($exitingPid === $locked) {
+        return;
+    }
+    $state['winner'] = $locked;
+}
+
 // ─────────────────────────────────────────────
 // Live Win/Loss Check (live_judge)
 // ─────────────────────────────────────────────
@@ -3701,6 +3783,7 @@ function liveJudgePlaceSuccessLive(array $state, string $winnerId, array $toAdd,
     $state['players'][$winnerId]['success_lives'][] = $toAdd;
     $state['players'][$winnerId]['succeeded_live_this_turn'] = true;
     notifyLiveEnteredSuccess($state, $winnerId, $toAdd);
+    maybeLockNaturalMatchWin($state, $winnerId);
     $ctx = &$state['_live_judge_ctx'];
     if ($ctx && !in_array($winnerId, $ctx['success_placed_by'] ?? [], true)) {
         $ctx['success_placed_by'][] = $winnerId;
@@ -3988,6 +4071,7 @@ function completeLiveRoundTurnAdvance(array $state, array $meta): array {
         $state['status'] = 'finished';
         $state['winner'] = $matchWinner;
         $state['end_reason'] = $state['end_reason'] ?? 'game';
+        $state['natural_win_locked'] = $matchWinner;
         $state = addLog($state, '🎉 ' . $state['players'][$matchWinner]['name'] . ' WINS with 3 successful Lives!');
         $state['seq']++;
         return $state;
@@ -5047,8 +5131,10 @@ function registerRankedInactivityTimeout(array &$state, string $pid): bool {
     $state['end_reason'] = 'resign';
     $state['resigned_by'] = $pid;
     $state['ranked']['auto_resigned_for_inactivity'] = $pid;
+    applyNaturalWinLockOnEarlyExit($state, $pid);
     clearAllPhaseDeadlines($state);
-    $winnerName = $state['players'][$winner]['name'] ?? $winner;
+    $winPid = $state['winner'] ?? $winner;
+    $winnerName = $state['players'][$winPid]['name'] ?? $winPid;
     $state = addLog(
         $state,
         "$name was automatically resigned after three consecutive inactivity timeouts. $winnerName wins!"
@@ -6199,11 +6285,13 @@ function applyDisconnectForfeits(array &$state, string $roomId): bool {
 
         $winner = ($pid === 'p1') ? 'p2' : 'p1';
         $loserName = $seat['name'];
-        $winnerName = $state['players'][$winner]['name'] ?? $winner;
         $state['status'] = 'finished';
         $state['winner'] = $winner;
         $state['end_reason'] = 'disconnect';
         $state['disconnected_player'] = $pid;
+        applyNaturalWinLockOnEarlyExit($state, $pid);
+        $winPid = $state['winner'] ?? $winner;
+        $winnerName = $state['players'][$winPid]['name'] ?? $winPid;
         $state = addLog($state, "$loserName disconnected. $winnerName wins!", 'info');
         $state['seq']++;
         return true;
