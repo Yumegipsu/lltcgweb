@@ -108,7 +108,9 @@ function tcgApiTournamentRegister(array $body): array {
         (string)$row['game_mode']
     );
     $now = time();
-    $ledgerKey = 'entry:' . $id . ':' . $uid;
+    // Unique per attempt — fixed entry:/refund_unreg: keys blocked re-register
+    // (and a second unregister refund) after a successful leave.
+    $ledgerKey = 'entry:' . $id . ':' . $uid . ':' . $now . ':' . bin2hex(random_bytes(4));
 
     return tcgDbRetry(function () use ($uid, $id, $fee, $snap, $now, $ledgerKey, $body) {
         $db = tcgDb();
@@ -164,7 +166,7 @@ function tcgApiTournamentUnregister(array $body): array {
     }
 
     $paid = (int)($ent['paid_coins'] ?? 0);
-    $refundKey = 'refund_unreg:' . $id . ':' . $uid;
+    $refundKey = 'refund_unreg:' . $id . ':' . $uid . ':' . time() . ':' . bin2hex(random_bytes(4));
 
     return tcgDbRetry(function () use ($uid, $id, $paid, $refundKey, $body) {
         $db = tcgDb();
