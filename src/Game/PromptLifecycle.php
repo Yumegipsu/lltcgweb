@@ -51,6 +51,12 @@ function finishAfterDeckCardsToWaitingRoom(array $state): array {
 }
 
 function finishPromptEffects(array $state): array {
+    if (empty($state['pending_prompt']) && function_exists('flushDeferredAutoAreaMoves')) {
+        $state = flushDeferredAutoAreaMoves($state);
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
     if (empty($state['pending_prompt']) && function_exists('bp7FlushPendingAllyWaits')) {
         $state = bp7FlushPendingAllyWaits($state);
         if (!empty($state['pending_prompt'])) {
@@ -374,6 +380,14 @@ function startEffectDiscardHandPrompt(
 }
 
 function finishAfterBranchChoicePrompt(array $state, array $prompt): array {
+    // Wait picks during Live Start used to jump straight to resumeLiveStartEffectPhase
+    // and drop deferred Center-leave chooses (Tomari pb2 after bp4 Wait) (#160).
+    if (empty($state['pending_prompt']) && function_exists('flushDeferredAutoAreaMoves')) {
+        $state = flushDeferredAutoAreaMoves($state);
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
     if (($state['phase'] ?? '') === 'live_start_effects' || !empty($prompt['live_start'])) {
         return resumeLiveStartEffectPhase($state);
     }

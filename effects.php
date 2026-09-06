@@ -4856,13 +4856,107 @@ function countDistinctNamedOnStage(array $p, array $names): int {
     return count($found);
 }
 
-function resolveAutoAreaMoveAbilities(array $state, string $pid, string $memberInstanceId, string $fromSlot = ''): array {
-    $p = &$state['players'][$pid];
-    if ($fromSlot === '') {
-        $fromSlot = findMemberSlot($p, $memberInstanceId) ?? '';
+/**
+ * Queue an area-move auto pass to run after the current pending_prompt clears.
+ * Used so a Wait pick (bp4 Tomari) does not drop a Center-leave choose (pb2 Tomari) (#160).
+ *
+ * @param array{pid?:string,iid?:string,from?:string,skip_bp2?:bool} $item
+ */
+function queueDeferredAutoAreaMove(array &$state, array $item): void {
+    $iid = (string)($item['iid'] ?? '');
+    $pid = (string)($item['pid'] ?? '');
+    if ($iid === '' || $pid === '') {
+        return;
     }
+    if (!isset($state['_deferred_area_move_abilities']) || !is_array($state['_deferred_area_move_abilities'])) {
+        $state['_deferred_area_move_abilities'] = [];
+    }
+    foreach ($state['_deferred_area_move_abilities'] as $existing) {
+        if (!is_array($existing)) {
+            continue;
+        }
+        if (($existing['pid'] ?? '') === $pid
+            && ($existing['iid'] ?? '') === $iid
+            && (($existing['from'] ?? '') === ($item['from'] ?? ''))
+            && !empty($existing['skip_bp2']) === !empty($item['skip_bp2'])) {
+            return;
+        }
+    }
+    $state['_deferred_area_move_abilities'][] = [
+        'pid' => $pid,
+        'iid' => $iid,
+        'from' => (string)($item['from'] ?? ''),
+        'skip_bp2' => !empty($item['skip_bp2']),
+    ];
+}
+
+/** Resolve queued area-move autos after a prompt finishes (see finishPromptEffects). */
+function flushDeferredAutoAreaMoves(array $state): array {
+    while (empty($state['pending_prompt'])
+        && !empty($state['_deferred_area_move_abilities'])
+        && is_array($state['_deferred_area_move_abilities'])) {
+        $item = array_shift($state['_deferred_area_move_abilities']);
+        if ($state['_deferred_area_move_abilities'] === []) {
+            unset($state['_deferred_area_move_abilities']);
+        }
+        if (!is_array($item)) {
+            continue;
+        }
+        $pid = (string)($item['pid'] ?? '');
+        $iid = (string)($item['iid'] ?? '');
+        $from = (string)($item['from'] ?? '');
+        if ($pid === '' || $iid === '') {
+            continue;
+        }
+        if (!empty($item['skip_bp2'])) {
+            $state = resolveAreaMoveEnterAutos($state, $pid, $iid, $from);
+        } else {
+            $state = resolveAutoAreaMoveAbilities($state, $pid, $iid, $from);
+        }
+    }
+    return $state;
+}
+
+/**
+ * Resolve area-move autos now, or queue if a prompt is already pending.
+ * Swap paths must use this for the second Member so Wait picks do not skip Center-leave (#160).
+ */
+function resolveOrDeferAutoAreaMoveAbilities(
+    array $state,
+    string $pid,
+    string $memberInstanceId,
+    string $fromSlot = ''
+): array {
+    if ($memberInstanceId === '') {
+        return $state;
+    }
+    if (!empty($state['pending_prompt'])) {
+        queueDeferredAutoAreaMove($state, [
+            'pid' => $pid,
+            'iid' => $memberInstanceId,
+            'from' => $fromSlot,
+            'skip_bp2' => false,
+        ]);
+        return $state;
+    }
+    return resolveAutoAreaMoveAbilities($state, $pid, $memberInstanceId, $fromSlot);
+}
+
+/**
+ * On-enter / auto Wait (and sibling) effects for a Member that already moved.
+ * BP2 Center-move observer hooks are handled separately in resolveAutoAreaMoveAbilities.
+ */
+function resolveAreaMoveEnterAutos(
+    array $state,
+    string $pid,
+    string $memberInstanceId,
+    string $fromSlot = ''
+): array {
+    $p = &$state['players'][$pid];
     foreach ($p['stage'] as $slot => &$member) {
-        if (!$member || ($member['instance_id'] ?? '') !== $memberInstanceId) continue;
+        if (!$member || ($member['instance_id'] ?? '') !== $memberInstanceId) {
+            continue;
+        }
         $member['moved_this_turn'] = true;
         spBp2ApplyMovedByGroupEffect($member, $state);
         foreach ($member['abilities'] ?? [] as $idx => $ab) {
@@ -4896,9 +4990,13 @@ function resolveAutoAreaMoveAbilities(array $state, string $pid, string $memberI
                     ($state['phase'] ?? '') === 'live_start_effects'
                 );
             }
-            if ($trigger !== 'auto') continue;
+            if ($trigger !== 'auto') {
+                continue;
+            }
             if ($type === 'auto_area_move_energy_wait') {
-                if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) continue;
+                if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) {
+                    continue;
+                }
                 if (putEnergyFromDeckInWait($p, $state, $pid)) {
                     markAbilityUsed($member, $idx);
                     $p['stage'][$slot] = $member;
@@ -4909,7 +5007,9 @@ function resolveAutoAreaMoveAbilities(array $state, string $pid, string $memberI
                 continue;
             }
             if ($type === 'auto_area_move_wr_live') {
-                if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) continue;
+                if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) {
+                    continue;
+                }
                 $cfg = wrPickCfgFromAbility($ab);
                 $cfg['filter'] = 'live';
                 if (!isset($cfg['max_live_score'])) {
@@ -4932,7 +5032,9 @@ function resolveAutoAreaMoveAbilities(array $state, string $pid, string $memberI
                     return $state;
                 }
                 if ($added > 0) {
-                    if (!empty($ab['once_per_turn'])) markAbilityUsed($member, $idx);
+                    if (!empty($ab['once_per_turn'])) {
+                        markAbilityUsed($member, $idx);
+                    }
                     $p['stage'][$slot] = $member;
                     $state = addLog($state, $state['players'][$pid]['name'] .
                         " — [$mName] added 1 Live card from Waiting Room (area move).");
@@ -4940,12 +5042,16 @@ function resolveAutoAreaMoveAbilities(array $state, string $pid, string $memberI
                 continue;
             }
             if ($type === 'blade_if_entered_or_moved') {
-                if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) continue;
+                if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) {
+                    continue;
+                }
                 $state = applyModifierEffect($state, $pid, [
                     'type'   => 'blade_bonus',
                     'amount' => intval($ab['amount'] ?? 1),
                 ], $member);
-                if (!empty($ab['once_per_turn'])) markAbilityUsed($member, $idx);
+                if (!empty($ab['once_per_turn'])) {
+                    markAbilityUsed($member, $idx);
+                }
                 $p['stage'][$slot] = $member;
                 $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
                 $state = addLog($state, $state['players'][$pid]['name'] .
@@ -4961,11 +5067,42 @@ function resolveAutoAreaMoveAbilities(array $state, string $pid, string $memberI
                     " — [$mName] drew $drawn (area move).");
             }
         }
+        $p['stage'][$slot] = $member;
+        break;
+    }
+    unset($member);
+    return $state;
+}
+
+function resolveAutoAreaMoveAbilities(array $state, string $pid, string $memberInstanceId, string $fromSlot = ''): array {
+    $p = &$state['players'][$pid];
+    if ($fromSlot === '') {
+        $fromSlot = findMemberSlot($p, $memberInstanceId) ?? '';
+    }
+    foreach ($p['stage'] as $slot => &$member) {
+        if (!$member || ($member['instance_id'] ?? '') !== $memberInstanceId) {
+            continue;
+        }
+        $member['moved_this_turn'] = true;
+        spBp2ApplyMovedByGroupEffect($member, $state);
         $toSlot = findMemberSlot($p, $memberInstanceId) ?? $slot;
         $fromSlotEffective = $fromSlot !== '' ? $fromSlot : ($member['moved_from_slot'] ?? $toSlot);
         unset($member['moved_from_slot']);
         $p['stage'][$toSlot] = $member;
+        // Center-move observers (pb2 Tomari choose) before Wait picks (bp4 Tomari).
+        // Early Wait return used to skip spBp2OnMemberAreaMove entirely (#160).
         $state = spBp2OnMemberAreaMove($state, $pid, $memberInstanceId, $fromSlotEffective, $toSlot);
+        if (!empty($state['pending_prompt'])) {
+            queueDeferredAutoAreaMove($state, [
+                'pid' => $pid,
+                'iid' => $memberInstanceId,
+                'from' => $fromSlotEffective,
+                'skip_bp2' => true,
+            ]);
+            spBp2ClearEffectAreaMove($state);
+            return $state;
+        }
+        $state = resolveAreaMoveEnterAutos($state, $pid, $memberInstanceId, $fromSlotEffective);
         break;
     }
     unset($member);
@@ -5251,9 +5388,9 @@ function applyStagePositionChange(array $state, string $pid, string $fromSlot, s
         $other['moved_this_turn'] = true;
         $other['moved_from_slot'] = $toSlot;
         $p['stage'][$fromSlot] = $other;
-        $state = resolveAutoAreaMoveAbilities($state, $pid, $other['instance_id'] ?? '', $toSlot);
+        $state = resolveOrDeferAutoAreaMoveAbilities($state, $pid, $other['instance_id'] ?? '', $toSlot);
     }
-    $state = resolveAutoAreaMoveAbilities($state, $pid, $mover['instance_id'] ?? '', $fromSlot);
+    $state = resolveOrDeferAutoAreaMoveAbilities($state, $pid, $mover['instance_id'] ?? '', $fromSlot);
     if ($effectSource !== [] && function_exists('spBp2ClearEffectAreaMove')) {
         spBp2ClearEffectAreaMove($state);
     }

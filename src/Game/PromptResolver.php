@@ -195,13 +195,7 @@ function applyOptionalFormationChangeGroup(
         if ($from === $slot) {
             continue;
         }
-        $state = resolveAutoAreaMoveAbilities($state, $owner, $iid, $from);
-        if (!empty($state['pending_prompt'])) {
-            if (function_exists('spBp2ClearEffectAreaMove')) {
-                spBp2ClearEffectAreaMove($state);
-            }
-            return $state;
-        }
+        $state = resolveOrDeferAutoAreaMoveAbilities($state, $owner, $iid, $from);
     }
     if (function_exists('spBp2ClearEffectAreaMove')) {
         spBp2ClearEffectAreaMove($state);
@@ -2556,13 +2550,12 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         unset($state['pending_prompt']);
         // Displaced Member first: they may be landing on Center (move-to-Center autos)
         // before the mover's Center-leave choose prompt (#151).
+        // Defer the mover if a Wait pick opens first (#160).
         if ($other) {
             // $other left $slot and landed on $srcSlot.
-            $state = resolveAutoAreaMoveAbilities($state, $owner, $other['instance_id'] ?? '', $slot);
+            $state = resolveOrDeferAutoAreaMoveAbilities($state, $owner, $other['instance_id'] ?? '', $slot);
         }
-        if (empty($state['pending_prompt'])) {
-            $state = resolveAutoAreaMoveAbilities($state, $owner, $srcId, $srcSlot);
-        }
+        $state = resolveOrDeferAutoAreaMoveAbilities($state, $owner, $srcId, $srcSlot);
         if (function_exists('spBp2ClearEffectAreaMove')) {
             spBp2ClearEffectAreaMove($state);
         }
@@ -4308,13 +4301,11 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             ($other ? ' (swapped).' : '.'));
         unset($state['pending_prompt']);
         // Displaced Member first so move-to-Center autos (pb2-022) are not blocked by
-        // Center-leave choose prompts on the mover (#151).
+        // Center-leave choose prompts on the mover (#151). Defer mover if Wait opens (#160).
         if ($other) {
-            $state = resolveAutoAreaMoveAbilities($state, $owner, $other['instance_id'] ?? '', $toSlot);
+            $state = resolveOrDeferAutoAreaMoveAbilities($state, $owner, $other['instance_id'] ?? '', $toSlot);
         }
-        if (empty($state['pending_prompt'])) {
-            $state = resolveAutoAreaMoveAbilities($state, $owner, $member['instance_id'] ?? '', $fromSlot);
-        }
+        $state = resolveOrDeferAutoAreaMoveAbilities($state, $owner, $member['instance_id'] ?? '', $fromSlot);
         if (function_exists('spBp2ClearEffectAreaMove')) {
             spBp2ClearEffectAreaMove($state);
         }
