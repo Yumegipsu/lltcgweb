@@ -1009,16 +1009,20 @@ function nijiApplyContinuousLiveScore(array $state, string $pid, array $source, 
         if ($slot !== null) {
             $mbr = $state['players'][$pid]['stage'][$slot];
             if ($mbr && countMemberStackedEnergy($state['players'][$pid], $mbr) >= intval($ab['min_energy'] ?? 2)) {
-                $state['live_modifiers'][$pid]['live_score_bonus'] =
-                    intval($state['live_modifiers'][$pid]['live_score_bonus'] ?? 0) + intval($ab['amount'] ?? 1);
+                $state = applyModifierEffect($state, $pid, [
+                    'type'   => 'live_score_bonus',
+                    'amount' => intval($ab['amount'] ?? 1),
+                ]);
             }
         }
     }
     if ($type === 'live_score_bonus_if_min_entered') {
         $cnt = intval($state['players'][$pid]['members_entered_this_turn'] ?? 0);
         if ($cnt >= intval($ab['min_entered'] ?? 2)) {
-            $state['live_modifiers'][$pid]['live_score_bonus'] =
-                intval($state['live_modifiers'][$pid]['live_score_bonus'] ?? 0) + intval($ab['amount'] ?? 1);
+            $state = applyModifierEffect($state, $pid, [
+                'type'   => 'live_score_bonus',
+                'amount' => intval($ab['amount'] ?? 1),
+            ]);
         }
     }
     // reduce_hearts_if_same_name_duplicate belongs in nijiResolveNijigasakiEffect (Live Start).

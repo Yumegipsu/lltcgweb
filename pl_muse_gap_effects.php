@@ -822,8 +822,10 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
                 $p['hand'][] = $top;
                 $state = queuePublicSkillReveal($state, $pid, [$top], $name, 'deck');
                 if (($top['card_type'] ?? '') === 'メンバー' && empty($top['blade_hearts'])) {
-                    $state['live_modifiers'][$pid]['live_score_bonus'] =
-                        intval($state['live_modifiers'][$pid]['live_score_bonus'] ?? 0) + 1;
+                    $state = applyModifierEffect($state, $pid, [
+                        'type'   => 'live_score_bonus',
+                        'amount' => 1,
+                    ]);
                 }
             }
             break;
@@ -1012,13 +1014,16 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
             break;
 
         case 'live_start_wr_group_live_score':
+            // PL!-sd1-009 Nico — WR μ's ≥25 → +Live Score until Live ends.
+            // Must use score_bonus (via applyModifierEffect); live_score_bonus key is ignored (#157).
             if (countWrGroup($p, $ab['group'] ?? "μ's") >= intval($ab['min_count'] ?? 25)) {
-                $state = initLiveModifiers($state);
-                $state['live_modifiers'][$pid]['live_score_bonus'] =
-                    intval($state['live_modifiers'][$pid]['live_score_bonus'] ?? 0) +
-                    intval($ab['amount'] ?? 1);
+                $amt = intval($ab['amount'] ?? 1);
+                $state = applyModifierEffect($state, $pid, [
+                    'type'   => 'live_score_bonus',
+                    'amount' => $amt,
+                ]);
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] gained +" . intval($ab['amount'] ?? 1) . ' total Live Score until Live ends.');
+                    " — [$name] gained +$amt total Live Score until Live ends.");
             }
             break;
 
