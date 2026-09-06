@@ -269,16 +269,20 @@ function tcgTournamentSortBySwissStanding(
 }
 
 /**
- * Prior unordered pairs from completed matches (for Swiss rematch avoidance).
+ * Prior unordered pairs from completed matches (for rematch avoidance).
  *
  * @param list<array<string,mixed>> $matches
+ * @param bool $includeWinnersSide Swiss playoffs use bracket_side=winners and must
+ *   stay excluded so Swiss re-pair is not blocked. Double-elim (2 lives) stores
+ *   every round as winners — pass true so those pairs count.
  * @return list<array{0:string,1:string}>
  */
-function tcgTournamentPriorPairsFromMatches(array $matches): array {
+function tcgTournamentPriorPairsFromMatches(array $matches, bool $includeWinnersSide = false): array {
     $pairs = [];
     foreach ($matches as $m) {
-        if ((string)($m['bracket_side'] ?? 'swiss') === 'winners') {
-            // Playoff rematches are fine / expected; don't block Swiss pairing.
+        $side = (string)($m['bracket_side'] ?? 'swiss');
+        if (!$includeWinnersSide && $side === 'winners') {
+            // Swiss playoff rematches are fine / expected; don't block Swiss pairing.
             continue;
         }
         $p1 = (string)($m['p1_discord_id'] ?? '');

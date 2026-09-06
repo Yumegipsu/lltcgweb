@@ -1119,7 +1119,8 @@ function tcgTournamentAdvanceSwissOrDouble(
     $pairings = tcgTournamentBuildSwissPairings(
         $active,
         $records,
-        tcgTournamentPriorPairsFromMatches($matches)
+        // Lives DE uses bracket_side=winners for every round — include those pairs.
+        tcgTournamentPriorPairsFromMatches($matches, true)
     );
     $created = time();
     $nextRound = $maxRound + 1;

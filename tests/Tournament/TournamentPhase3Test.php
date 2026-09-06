@@ -36,6 +36,64 @@ final class TournamentPhase3Test extends TestCase
         }
     }
 
+    public function testPriorPairsSkipWinnersUnlessLivesDeMode(): void
+    {
+        $matches = [
+            [
+                'bracket_side' => 'swiss',
+                'p1_discord_id' => 'A',
+                'p2_discord_id' => 'B',
+            ],
+            [
+                'bracket_side' => 'winners',
+                'p1_discord_id' => 'C',
+                'p2_discord_id' => 'D',
+            ],
+        ];
+        $swissOnly = tcgTournamentPriorPairsFromMatches($matches);
+        $this->assertSame([['A', 'B']], $swissOnly);
+
+        $withWinners = tcgTournamentPriorPairsFromMatches($matches, true);
+        $this->assertCount(2, $withWinners);
+        $this->assertContains(['A', 'B'], $withWinners);
+        $this->assertContains(['C', 'D'], $withWinners);
+    }
+
+    public function testDoubleElimLivesPairingsAvoidRematchWhenPossible(): void
+    {
+        // Lives DE stores rounds as bracket_side=winners; priorPairs must include them.
+        $records = [
+            'A' => ['wins' => 1, 'losses' => 0],
+            'B' => ['wins' => 1, 'losses' => 0],
+            'C' => ['wins' => 0, 'losses' => 1],
+            'D' => ['wins' => 0, 'losses' => 1],
+        ];
+        $prior = tcgTournamentPriorPairsFromMatches([
+            [
+                'bracket_side' => 'winners',
+                'p1_discord_id' => 'A',
+                'p2_discord_id' => 'B',
+            ],
+            [
+                'bracket_side' => 'winners',
+                'p1_discord_id' => 'C',
+                'p2_discord_id' => 'D',
+            ],
+        ], true);
+        $pairings = tcgTournamentBuildSwissPairings(
+            ['A', 'B', 'C', 'D'],
+            $records,
+            $prior
+        );
+        $this->assertCount(2, $pairings);
+        foreach ($pairings as $p) {
+            $pair = [$p['p1'], $p['p2']];
+            sort($pair);
+            $this->assertNotSame(['A', 'B'], $pair);
+            $this->assertNotSame(['C', 'D'], $pair);
+        }
+    }
+
     public function testSwissRoundCountBounds(): void
     {
         $this->assertSame(3, tcgTournamentSwissRoundCount(2));
