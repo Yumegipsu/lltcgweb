@@ -1261,6 +1261,22 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
                 persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
             }
         }
+    } elseif (($ab['type'] ?? '') === 'reveal_hand_look_live_if_no_live') {
+        // PL!N-PR-003 / 008 / 010 — Activated once-per-turn hand reveal → optional Live look.
+        if (!empty($ab['once_per_turn'])) {
+            markAbilityUsed($member, $abilityIdx);
+            persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
+        }
+        $state = resolveAbilityEffect($state, $pid, $member, $ab, [
+            'slot'          => $slot ?? '',
+            'phase'         => 'activated',
+            'ability_index' => $abilityIdx,
+        ]);
+        if (!empty($state['pending_prompt'])) {
+            $state['pending_prompt']['ability_index'] = $abilityIdx;
+            $state['pending_prompt']['source_slot'] = $slot ?? '';
+            $state['pending_prompt']['source_id'] = $member['instance_id'] ?? '';
+        }
     } elseif (($ab['type'] ?? '') === 'reveal_hand_member_cost_live_score') {
         $state = resolveAbilityEffect($state, $pid, $member, $ab, [
             'slot'          => $slot ?? '',

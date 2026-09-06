@@ -30501,14 +30501,14 @@
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-PR-003-PR.png",
       "abilities": [
         {
-          "trigger": "on_enter",
+          "trigger": "activated",
           "type": "reveal_hand_look_live_if_no_live",
           "requires_other_stage_member": true,
           "look": 5,
-          "group": "Nijigasaki",
           "filter": "live",
           "pick": 1,
-          "once_per_turn": true
+          "once_per_turn": true,
+          "optional_pick": true
         }
       ],
       "subunit": "A・ZU・NA",
@@ -30729,14 +30729,14 @@
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-PR-008-PR.png",
       "abilities": [
         {
-          "trigger": "on_enter",
+          "trigger": "activated",
           "type": "reveal_hand_look_live_if_no_live",
           "requires_other_stage_member": true,
           "look": 5,
-          "group": "Nijigasaki",
           "filter": "live",
           "pick": 1,
-          "once_per_turn": true
+          "once_per_turn": true,
+          "optional_pick": true
         }
       ],
       "subunit": "QU4RTZ",
@@ -30853,14 +30853,14 @@
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-PR-010-PR.png",
       "abilities": [
         {
-          "trigger": "on_enter",
+          "trigger": "activated",
           "type": "reveal_hand_look_live_if_no_live",
           "requires_other_stage_member": true,
           "look": 5,
-          "group": "Nijigasaki",
           "filter": "live",
           "pick": 1,
-          "once_per_turn": true
+          "once_per_turn": true,
+          "optional_pick": true
         }
       ],
       "subunit": "QU4RTZ",

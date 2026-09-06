@@ -15,38 +15,43 @@ function tryResolveAbilityEffectSwitchReveal(
 ): array {
     switch ($type) {
         case 'reveal_hand_look_live_if_no_live':
-            if (!empty($ab['requires_other_stage_member'])
-                && !stageHasOtherMember($p, $source['instance_id'] ?? '')) {
-                break;
-            }
+            // Always reveal the hand (activation cost). Look/pick only if another
+            // Stage Member exists and the revealed hand has no Live cards.
+            $hand = $p['hand'] ?? [];
             $handSummary = implode(', ', array_map(
-                fn($c) => cardDisplayName($c),
-                $p['hand'] ?? []
-            ));
-            $hasLive = !empty(array_filter(
-                $p['hand'] ?? [],
-                fn($c) => ($c['card_type'] ?? '') === 'ライブ'
+                static fn($c) => cardDisplayName($c),
+                $hand
             ));
             $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$name] revealed hand ($handSummary).");
-            $state = queuePublicSkillReveal($state, $pid, $p['hand'] ?? [], $name, 'hand');
-            if (!$hasLive) {
-                $picked = lookRevealGroup(
-                    $p,
-                    intval($ab['look'] ?? 5),
-                    $ab['group'] ?? 'Nijigasaki',
-                    $ab['filter'] ?? 'live',
-                    intval($ab['pick'] ?? 1)
-                );
-                $pickedCards = $p['_look_reveal_picked'] ?? [];
-                unset($p['_look_reveal_picked']);
-                if (!empty($pickedCards)) {
-                    $state = queuePublicSkillReveal($state, $pid, $pickedCards, $name, 'deck');
-                } else {
-                    $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] looked at deck top; added $picked Live card(s) to hand.");
-                }
+                " — [$name] revealed hand" . ($handSummary !== '' ? " ($handSummary)" : ' (empty)') . '.');
+            if (!empty($hand)) {
+                $state = queuePublicSkillReveal($state, $pid, $hand, $name, 'hand');
             }
+            $hasOther = empty($ab['requires_other_stage_member'])
+                || stageHasOtherMember($p, $source['instance_id'] ?? '');
+            $hasLive = !empty(array_filter(
+                $hand,
+                static fn($c) => ($c['card_type'] ?? '') === 'ライブ'
+            ));
+            if (!$hasOther) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] no other Member on Stage; look effect skipped.");
+                break;
+            }
+            if ($hasLive) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] hand contained a Live card; look effect skipped.");
+                break;
+            }
+            $lookCfg = [
+                'look' => intval($ab['look'] ?? 5),
+                'pick' => intval($ab['pick'] ?? 1),
+                'filter' => $ab['filter'] ?? 'live',
+                // Official text: any Live — do not inherit a mistaken group gate.
+                'group' => '',
+                'optional_pick' => true,
+            ];
+            $state = beginLookRevealPick($state, $pid, $name, $p, $lookCfg);
             break;
 
         case 'reveal_per_both_stage_member':
