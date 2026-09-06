@@ -1280,8 +1280,45 @@ function tcgTournamentPublicMatch(array $m, ?array $roomToReplayId = null): arra
         'best_of' => (int)($meta['best_of'] ?? 1),
         'p1_wins' => (int)($meta['p1_wins'] ?? 0),
         'p2_wins' => (int)($meta['p2_wins'] ?? 0),
-        'games' => $gamesOut,
+        'games' => $gameOut,
     ];
+}
+
+/**
+ * Flip a seeded match from ready → live so the bracket shows in-progress.
+ * Idempotent; no-op unless status is currently ready.
+ */
+function tcgTournamentPromoteMatchLive(string $matchId): bool {
+    $matchId = strtoupper(trim($matchId));
+    if ($matchId === '') {
+        return false;
+    }
+    $stmt = tcgDb()->prepare(
+        'UPDATE tcg_tournament_matches SET status = "live", updated_at = ? WHERE id = ? AND status = "ready"'
+    );
+    $stmt->execute([time(), $matchId]);
+    return $stmt->rowCount() > 0;
+}
+
+/**
+ * Whether a live room looks occupied / underway (for ready→live sync).
+ *
+ * @param array<string,mixed> $state
+ */
+function tcgTournamentRoomLooksInProgress(array $state): bool {
+    $turn = intval($state['turn'] ?? 0);
+    if ($turn >= 1) {
+        return true;
+    }
+    $st = (string)($state['status'] ?? '');
+    if ($st === 'finished') {
+        return true;
+    }
+    $p1 = is_array($state['players']['p1'] ?? null) ? $state['players']['p1'] : [];
+    $p2 = is_array($state['players']['p2'] ?? null) ? $state['players']['p2'] : [];
+    $p1Here = !empty($p1['connected']) || !empty($p1['last_seen']);
+    $p2Here = !empty($p2['connected']) || !empty($p2['last_seen']);
+    return $p1Here && $p2Here;
 }
 
 /**

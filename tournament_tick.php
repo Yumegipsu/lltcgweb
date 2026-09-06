@@ -62,6 +62,7 @@ function tcgTournamentTickOne(string $id): array {
     }
 
     if ($status === 'running') {
+        tcgTournamentPromoteLiveFromRooms($id);
         tcgTournamentApplyRoomResults($id);
         tcgTournamentApplyConnectForfeits($id, $now);
         if (function_exists('tcgTournamentRetryMissingReplays')) {
@@ -579,6 +580,30 @@ function tcgTournamentLoadRoomState(array $matchRow): ?array {
     }
     $remote = tcgFetchOverflowRoomState($roomId, $token);
     return is_array($remote) ? $remote : null;
+}
+
+/**
+ * Keep bracket status in sync: ready rooms that already have both players (or
+ * have started turns) must show as live for spectators on the tournament page.
+ */
+function tcgTournamentPromoteLiveFromRooms(string $tournamentId): void {
+    tcgTournamentEnsureApi();
+    $matches = tcgTournamentFetchMatches($tournamentId);
+    foreach ($matches as $m) {
+        if ((string)($m['status'] ?? '') !== 'ready') {
+            continue;
+        }
+        if ((string)($m['room_id'] ?? '') === '') {
+            continue;
+        }
+        $state = tcgTournamentLoadRoomState($m);
+        if (!is_array($state)) {
+            continue;
+        }
+        if (tcgTournamentRoomLooksInProgress($state)) {
+            tcgTournamentPromoteMatchLive((string)$m['id']);
+        }
+    }
 }
 
 function tcgTournamentApplyRoomResults(string $tournamentId): void {

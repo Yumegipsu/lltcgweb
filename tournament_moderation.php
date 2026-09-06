@@ -255,9 +255,7 @@ function tcgApiTournamentJoinMatch(array $body): array {
     }
     $isP1 = (string)($m['p1_discord_id'] ?? '') === $uid;
     if ((string)($m['status'] ?? '') === 'ready') {
-        tcgDb()->prepare(
-            'UPDATE tcg_tournament_matches SET status = "live", updated_at = ? WHERE id = ? AND status = "ready"'
-        )->execute([time(), (string)$m['id']]);
+        tcgTournamentPromoteMatchLive((string)$m['id']);
     }
     tcgTournamentMigrateRoomToVps(
         (string)$m['room_id'],
@@ -296,6 +294,11 @@ function tcgGetActiveTournamentGame(string $discordId): ?array {
         return null;
     }
     $isP1 = (string)($m['p1_discord_id'] ?? '') === $discordId;
+    // Reconnect / active_game can enter the room without tournament_join_match —
+    // still flip ready→live so the bracket does not stay "Ready" while both play.
+    if ((string)($m['status'] ?? '') === 'ready') {
+        tcgTournamentPromoteMatchLive((string)$m['id']);
+    }
     tcgTournamentMigrateRoomToVps(
         (string)$m['room_id'],
         (string)($m['p1_token'] ?? ''),
