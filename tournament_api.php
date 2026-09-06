@@ -516,6 +516,18 @@ function tcgApiTournamentCreate(array $body): array {
         $db = tcgDb();
         $db->beginTransaction();
         try {
+            // Insert the tournament row first — ledger has FK → tcg_tournaments(id).
+            // Escrowing the PR pack before INSERT failed under PRAGMA foreign_keys=ON
+            // (schedule with PR pack ticked looked broken; unticked worked).
+            $db->prepare(
+                'INSERT INTO tcg_tournaments
+                 (id, host_discord_id, title, status, game_mode, start_at, checkin_mins,
+                  min_players, max_players, entry_fee_coins, prize_pool_coins, settings_json, created_at, updated_at)
+                 VALUES (?, ?, ?, "open", ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)'
+            )->execute([
+                $id, $uid, $title, $gameMode, $startAt, $checkin,
+                $minP, $maxP, $fee, tcgTournamentEncodeSettings($settings), $now, $now,
+            ]);
             if ($wantPrPack) {
                 tcgDeductCoins($uid, TCG_TOURNAMENT_PR_PACK_COST);
                 if (!tcgTournamentLedgerWrite(
@@ -529,15 +541,6 @@ function tcgApiTournamentCreate(array $body): array {
                     throw new Exception('PR pack escrow conflict', 409);
                 }
             }
-            $db->prepare(
-                'INSERT INTO tcg_tournaments
-                 (id, host_discord_id, title, status, game_mode, start_at, checkin_mins,
-                  min_players, max_players, entry_fee_coins, prize_pool_coins, settings_json, created_at, updated_at)
-                 VALUES (?, ?, ?, "open", ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)'
-            )->execute([
-                $id, $uid, $title, $gameMode, $startAt, $checkin,
-                $minP, $maxP, $fee, tcgTournamentEncodeSettings($settings), $now, $now,
-            ]);
             $db->commit();
         } catch (Throwable $e) {
             if ($db->inTransaction()) {
