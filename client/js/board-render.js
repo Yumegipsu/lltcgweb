@@ -358,8 +358,9 @@ function perfMergedLiveZone(perfPrev, next, pid) {
   const a = perfPrev?.players?.[pid]?.live_zone || [];
   const b = next?.players?.[pid]?.live_zone || [];
   const byId = new Map();
-  a.forEach(c => { if (c?.instance_id) byId.set(c.instance_id, c); });
-  b.forEach(c => { if (c?.instance_id && !byId.has(c.instance_id)) byId.set(c.instance_id, c); });
+  const keyOf = (c) => (typeof liveCardIidKey === 'function' ? liveCardIidKey(c?.instance_id) : String(c?.instance_id || ''));
+  a.forEach(c => { const k = keyOf(c); if (k) byId.set(k, c); });
+  b.forEach(c => { const k = keyOf(c); if (k && !byId.has(k)) byId.set(k, c); });
   return [...byId.values()];
 }
 

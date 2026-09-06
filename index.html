@@ -21751,8 +21751,9 @@ function clampLiveZoneCards(zone, max = LIVE_ZONE_MAX) {
   const candidates = [...(zone || [])].filter(c => c?.instance_id);
   candidates.sort((a, b) => liveZoneSlot(a, 0) - liveZoneSlot(b, 0));
   for (const c of candidates) {
-    if (seen.has(c.instance_id)) continue;
-    seen.add(c.instance_id);
+    const key = typeof liveCardIidKey === 'function' ? liveCardIidKey(c.instance_id) : String(c.instance_id);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
     ordered.push(c);
     if (ordered.length >= max) break;
   }

@@ -724,6 +724,31 @@ function liveShowTurnFromBoards(board, prior = null) {
     ?? inferLiveShowTurn(prior, board);
 }
 
+/** Normalize Live instance ids (server freeze uses strings; zone cards may differ). */
+function liveCardIidKey(iid) {
+  if (iid == null || iid === '') return '';
+  return String(iid);
+}
+
+function sameLiveIid(a, b) {
+  const ka = liveCardIidKey(a);
+  const kb = liveCardIidKey(b);
+  return !!ka && ka === kb;
+}
+
+function normalizeLiveIidList(ids) {
+  if (!Array.isArray(ids)) return [];
+  const out = [];
+  const seen = new Set();
+  for (const iid of ids) {
+    const key = liveCardIidKey(iid);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out;
+}
+
 /** Stable id for one Live show (same turn can host multiple LIVE rounds). */
 function liveShowRoundKey(board, prior = null) {
   const show = board?.live_show || prior?.live_show;
@@ -733,7 +758,7 @@ function liveShowRoundKey(board, prior = null) {
   const pl = show?.played_lives;
   if (pl && (pl.p1?.length || pl.p2?.length)) {
     const fp = ['p1', 'p2']
-      .map((pid) => (pl[pid] || []).slice().filter(Boolean).sort().join(','))
+      .map((pid) => normalizeLiveIidList(pl[pid] || []).slice().sort().join(','))
       .join('|');
     return `${turn}:${fp}`;
   }
@@ -747,10 +772,10 @@ function liveShowPlayedIidsFromBoard(board, pid) {
   // (BE3FA0: Just Believe/Love U ghosted into the next same-turn Performance).
   if (board.live_show && Object.prototype.hasOwnProperty.call(board.live_show, 'played_lives')) {
     const fromShow = board.live_show.played_lives?.[pid];
-    return Array.isArray(fromShow) ? fromShow.filter(Boolean) : [];
+    return normalizeLiveIidList(fromShow);
   }
   const snap = board._live_played_snapshot?.[pid];
-  if (Array.isArray(snap) && snap.length) return snap.filter(Boolean);
+  if (Array.isArray(snap) && snap.length) return normalizeLiveIidList(snap);
   return [];
 }
 
@@ -771,10 +796,9 @@ function rememberLiveShowPlayedLives(board, prior = null) {
       continue;
     }
     const zone = prior?.players?.[pid]?.live_zone || board?.players?.[pid]?.live_zone || [];
-    out[pid] = zone
+    out[pid] = normalizeLiveIidList(zone
       .filter(c => c && (typeof isLiveTypeCard === 'function' ? isLiveTypeCard(c) : c.card_type === 'ライブ'))
-      .map(c => c.instance_id)
-      .filter(Boolean);
+      .map(c => c.instance_id));
   }
   const prev = G._liveShowPlayedIids[roundKey];
   const same = prev
@@ -796,13 +820,14 @@ function liveShowPlayedIidsForPid(board, pid, prior = null) {
   rememberLiveShowPlayedLives(board, prior);
   const roundKey = liveShowRoundKey(board, prior);
   const mem = roundKey != null ? G._liveShowPlayedIids?.[roundKey]?.[pid] : null;
-  if (Array.isArray(mem) && mem.length) return mem;
+  if (Array.isArray(mem) && mem.length) return normalizeLiveIidList(mem);
   if (fromBoard.length) return fromBoard;
   return liveShowPlayedIidsFromBoard(prior, pid);
 }
 
 function hydratePlayedLiveCard(state, pid, iid, extraBoards = []) {
-  if (!iid) return null;
+  const want = liveCardIidKey(iid);
+  if (!want) return null;
   const boards = [state, G._deferPerfSpectaclePrev, G._livePostRevealBoard, ...extraBoards];
   for (const board of boards) {
     if (!board?.players?.[pid]) continue;
@@ -813,23 +838,81 @@ function hydratePlayedLiveCard(state, pid, iid, extraBoards = []) {
     ];
     for (const pool of pools) {
       for (const c of pool || []) {
-        if (c?.instance_id !== iid) continue;
+        if (!sameLiveIid(c?.instance_id, want)) continue;
         let card = c;
         if (typeof isLiveTypeCard === 'function' && !isLiveTypeCard(card)
             && typeof hydrateSpectacleLiveCard === 'function') {
           card = hydrateSpectacleLiveCard(state || board, pid, c) || card;
         }
         if (typeof isLiveTypeCard === 'function' && !isLiveTypeCard(card)) continue;
-        return { ...card, revealed: true };
+        return { ...card, instance_id: card.instance_id ?? want, revealed: true };
       }
     }
   }
   if (typeof perfFindRevealedLiveMeta === 'function') {
     for (const board of boards) {
-      const meta = perfFindRevealedLiveMeta(board, pid, iid);
-      if (meta) return { ...meta, instance_id: iid, revealed: true };
+      const meta = perfFindRevealedLiveMeta(board, pid, want);
+      if (meta) return { ...meta, instance_id: meta.instance_id ?? want, revealed: true };
     }
   }
+  return null;
+}
+
+/**
+ * Resolve live_show.played_lives for spectacle. Only treat the freeze as complete
+ * when every iid hydrates — a partial hit used to early-return and hide the rest
+ * of the opponent's Live row during Performance.
+ */
+function cardsFromPlayedLiveLock(next, pid, lockIds, prev = null) {
+  const ids = normalizeLiveIidList(lockIds);
+  if (!ids.length) return null;
+  const byIid = new Map();
+  const note = (card) => {
+    if (!card) return;
+    const key = liveCardIidKey(card.instance_id);
+    if (!key || byIid.has(key)) return;
+    let resolved = card;
+    if (typeof isLiveTypeCard === 'function' && !isLiveTypeCard(resolved)
+        && typeof hydrateSpectacleLiveCard === 'function') {
+      resolved = hydrateSpectacleLiveCard(next, pid, card) || resolved;
+      if (!isLiveTypeCard(resolved) && prev) {
+        resolved = hydrateSpectacleLiveCard(prev, pid, card) || resolved;
+      }
+    }
+    if (typeof isLiveTypeCard === 'function' && !isLiveTypeCard(resolved)) {
+      const meta = typeof perfFindRevealedLiveMeta === 'function'
+        ? (perfFindRevealedLiveMeta(next, pid, key)
+          || (prev && perfFindRevealedLiveMeta(prev, pid, key)))
+        : null;
+      if (!meta || (typeof isLiveTypeCard === 'function' && !isLiveTypeCard(meta))) return;
+      resolved = meta;
+    }
+    byIid.set(key, { ...resolved, instance_id: resolved.instance_id ?? key, revealed: true });
+  };
+  for (const iid of ids) {
+    note(hydratePlayedLiveCard(next, pid, iid, [prev]));
+  }
+  if (byIid.size >= ids.length) {
+    return ids.map(iid => byIid.get(iid)).filter(Boolean);
+  }
+  const boards = [next, prev, G._deferPerfSpectaclePrev, G._livePostRevealBoard];
+  for (const board of boards) {
+    if (!board?.players?.[pid]) continue;
+    for (const pool of [
+      board.players[pid].live_zone,
+      board.players[pid].success_lives,
+      board.players[pid].waiting_room,
+    ]) {
+      for (const c of pool || []) {
+        if (!ids.some(id => sameLiveIid(id, c?.instance_id))) continue;
+        note(c);
+      }
+    }
+  }
+  if (byIid.size >= ids.length) {
+    return ids.map(iid => byIid.get(iid)).filter(Boolean);
+  }
+  // Incomplete: do not return a truncated freeze (caller falls through collectors).
   return null;
 }
 
@@ -2086,7 +2169,8 @@ function playerHadLivePerformance(next, pid, prev = null, showTurn = null) {
 function hydrateSpectacleLiveCard(state, pid, card) {
   if (!card) return null;
   if (isLiveTypeCard(card)) return card;
-  if (!card.instance_id || !state?.players?.[pid]) return null;
+  const want = liveCardIidKey(card.instance_id);
+  if (!want || !state?.players?.[pid]) return null;
   const pools = [
     state.players[pid].live_zone,
     state.players[pid].success_lives,
@@ -2094,13 +2178,13 @@ function hydrateSpectacleLiveCard(state, pid, card) {
   ];
   for (const pool of pools) {
     for (const c of pool || []) {
-      if (c?.instance_id === card.instance_id && isLiveTypeCard(c)) {
+      if (sameLiveIid(c?.instance_id, want) && isLiveTypeCard(c)) {
         return { ...card, ...c, revealed: true };
       }
     }
   }
   if (typeof perfFindRevealedLiveMeta === 'function') {
-    const meta = perfFindRevealedLiveMeta(state, pid, card.instance_id);
+    const meta = perfFindRevealedLiveMeta(state, pid, want);
     if (isLiveTypeCard(meta)) return { ...card, ...meta, revealed: true };
   }
   return null;
@@ -2151,10 +2235,10 @@ function collectPerfRoundLiveCards(next, pid, prev = null, showTurn = null) {
     ? liveShowPlayedIidsForPid(next, pid, prev)
     : [];
   if (lockIds?.length) {
-    const cards = lockIds
-      .map(iid => hydratePlayedLiveCard(next, pid, iid, [prev]))
-      .filter(Boolean);
-    if (cards.length) return clampLiveZoneCards(cards);
+    const locked = typeof cardsFromPlayedLiveLock === 'function'
+      ? cardsFromPlayedLiveLock(next, pid, lockIds, prev)
+      : null;
+    if (locked?.length) return clampLiveZoneCards(locked);
   }
   if (!playerHadLivePerformance(next, pid, prev, turn)) return [];
   const deferred = G._deferPerfSpectaclePrev;
@@ -2164,7 +2248,7 @@ function collectPerfRoundLiveCards(next, pid, prev = null, showTurn = null) {
   const performedWrIids = new Set();
   const noteZone = (zone) => {
     for (const c of zone || []) {
-      if (c?.instance_id) roundIids.add(c.instance_id);
+      if (c?.instance_id) roundIids.add(liveCardIidKey(c.instance_id));
     }
   };
   noteZone(deferred?.players?.[pid]?.live_zone);
@@ -2173,10 +2257,11 @@ function collectPerfRoundLiveCards(next, pid, prev = null, showTurn = null) {
   const byId = new Map();
   const add = (c) => {
     if (!c?.instance_id) return;
+    const key = liveCardIidKey(c.instance_id);
     let card = isLiveTypeCard(c) ? c : hydrateSpectacleLiveCard(next, pid, c);
     if (!isLiveTypeCard(card) && prev) card = hydrateSpectacleLiveCard(prev, pid, c);
     if (!isLiveTypeCard(card)) return;
-    if (!byId.has(c.instance_id)) byId.set(c.instance_id, enrichCard(card));
+    if (!byId.has(key)) byId.set(key, enrichCard(card));
   };
   if (deferred?.players?.[pid]) {
     (deferred.players[pid].live_zone || []).forEach(add);
@@ -2196,34 +2281,37 @@ function collectPerfRoundLiveCards(next, pid, prev = null, showTurn = null) {
     || (performed && (logSuccess > 0 || logFail > 0 || playerLiveRoundSucceeded(next, pid))));
   if (shouldScanSettled) {
     const allowSettled = (c) => !!c?.instance_id
-      && (!!(okIds?.has(c.instance_id))
-        || roundIids.has(c.instance_id)
-        || yellIds.has(c.instance_id));
+      && (!!(okIds?.has(c.instance_id) || okIds?.has(liveCardIidKey(c.instance_id)))
+        || roundIids.has(liveCardIidKey(c.instance_id))
+        || yellIds.has(c.instance_id) || yellIds.has(liveCardIidKey(c.instance_id)));
     (next.players[pid].success_lives || []).forEach(c => {
       if (allowSettled(c)) add(c);
     });
     (next.players[pid].waiting_room || []).forEach(c => {
-      if (okIds?.has(c.instance_id) || roundIids.has(c.instance_id) || yellIds.has(c.instance_id)) {
+      if (okIds?.has(c.instance_id) || okIds?.has(liveCardIidKey(c.instance_id))
+          || roundIids.has(liveCardIidKey(c.instance_id))
+          || yellIds.has(c.instance_id) || yellIds.has(liveCardIidKey(c.instance_id))) {
         add(c);
       }
     });
     if (performed && (logFail > 0 || logSuccess > 0) && byId.size < (logFail + logSuccess)) {
       collectWrLivesMatchingPerformingLog(next, pid, turn).forEach(c => {
-        if (c?.instance_id) performedWrIids.add(c.instance_id);
+        if (c?.instance_id) performedWrIids.add(liveCardIidKey(c.instance_id));
         add(c);
       });
     }
   }
   let cards = [...byId.values()];
   if (okIds?.size || roundIids.size || performedWrIids.size) {
-    cards = cards.filter(c =>
-      (okIds && okIds.has(c.instance_id))
-      || roundIids.has(c.instance_id)
-      || yellIds.has(c.instance_id)
-      // A batched poll can clear failed Lives before we captured live_zone.
-      // The round's "is performing" log is authoritative for these WR cards.
-      || performedWrIids.has(c.instance_id)
-    );
+    cards = cards.filter(c => {
+      const key = liveCardIidKey(c.instance_id);
+      return (okIds && (okIds.has(c.instance_id) || okIds.has(key)))
+        || roundIids.has(key)
+        || yellIds.has(c.instance_id) || yellIds.has(key)
+        // A batched poll can clear failed Lives before we captured live_zone.
+        // The round's "is performing" log is authoritative for these WR cards.
+        || performedWrIids.has(key);
+    });
   }
   return clampLiveZoneCards(cards);
 }
@@ -7103,34 +7191,36 @@ function perfCacheLiveReveal(state) {
   G._perfLiveReveal = G._perfLiveReveal || {};
   for (const pid of ['p1', 'p2']) {
     for (const c of perfLiveZoneCards(state, pid)) {
-      if (c.instance_id && c.card_no && c.card_no !== '?') {
-        G._perfLiveReveal[`${pid}:${c.instance_id}`] = c;
+      const key = liveCardIidKey(c.instance_id);
+      if (key && c.card_no && c.card_no !== '?') {
+        G._perfLiveReveal[`${pid}:${key}`] = c;
       }
     }
   }
 }
 
 function perfFindRevealedLiveMeta(state, pid, instanceId) {
-  if (!state?.players?.[pid] || !instanceId) return null;
-  const cached = G._perfLiveReveal?.[`${pid}:${instanceId}`];
+  const want = liveCardIidKey(instanceId);
+  if (!state?.players?.[pid] || !want) return null;
+  const cached = G._perfLiveReveal?.[`${pid}:${want}`];
   if (cached?.card_no && cached.card_no !== '?') return cached;
   const p = state.players[pid];
   const pools = [p.live_zone, p.success_lives, p.waiting_room];
   for (const pool of pools) {
     for (const c of pool || []) {
-      if (c.instance_id === instanceId && c.card_no && c.card_no !== '?') return c;
+      if (sameLiveIid(c.instance_id, want) && c.card_no && c.card_no !== '?') return c;
     }
   }
-  const yellIds = new Set((perfYellRevealInline(state)?.[pid] || []).map(c => c?.instance_id).filter(Boolean));
-  if (yellIds.has(instanceId)) {
+  const yellIds = new Set((perfYellRevealInline(state)?.[pid] || []).map(c => liveCardIidKey(c?.instance_id)).filter(Boolean));
+  if (yellIds.has(want)) {
     for (const c of p.hand || []) {
-      if (c.instance_id === instanceId && c.card_no && c.card_no !== '?') return c;
+      if (sameLiveIid(c.instance_id, want) && c.card_no && c.card_no !== '?') return c;
     }
   }
   if (G.isTutorial && G.tutorialData?.steps) {
     for (const step of G.tutorialData.steps) {
       const c = (step.state?.players?.[pid]?.live_zone || []).find(
-        x => x.instance_id === instanceId && x.card_no && x.card_no !== '?'
+        x => sameLiveIid(x.instance_id, want) && x.card_no && x.card_no !== '?'
       );
       if (c) return c;
     }
@@ -7144,10 +7234,8 @@ function perfSpectacleLiveCards(prev, next, pid) {
   rememberLiveShowPlayedLives(next, prev);
   const lockIds = liveShowPlayedIidsForPid(next, pid, prev);
   if (lockIds?.length) {
-    const locked = lockIds
-      .map(iid => hydratePlayedLiveCard(next, pid, iid, [prev]))
-      .filter(Boolean);
-    if (locked.length) return clampLiveZoneLive(locked);
+    const locked = cardsFromPlayedLiveLock(next, pid, lockIds, prev);
+    if (locked?.length) return clampLiveZoneLive(locked);
   }
   const perfPrev = buildPerfSpectaclePrev(prev, next);
   const lockCards = perfMergedLiveZone(perfPrev, next, pid)
@@ -7159,12 +7247,13 @@ function perfSpectacleLiveCards(prev, next, pid) {
     }
     return clampLiveZoneLive(perfLiveZoneCards(next, pid));
   }
-  const nextById = new Map(perfLiveZoneCards(next, pid).map(c => [c.instance_id, c]));
+  const nextById = new Map(perfLiveZoneCards(next, pid).map(c => [liveCardIidKey(c.instance_id), c]));
   const revealed = lockCards.map(c => {
-    let meta = nextById.get(c.instance_id);
+    const key = liveCardIidKey(c.instance_id);
+    let meta = nextById.get(key);
     if (!meta || !meta.card_no || meta.card_no === '?') {
-      meta = perfFindRevealedLiveMeta(next, pid, c.instance_id)
-        || perfFindRevealedLiveMeta(prev, pid, c.instance_id);
+      meta = perfFindRevealedLiveMeta(next, pid, key)
+        || perfFindRevealedLiveMeta(prev, pid, key);
     }
     if (!meta || !meta.card_no || meta.card_no === '?') {
       return { ...c, revealed: true };
