@@ -21925,14 +21925,15 @@ function liveStorageDepartureLatched(iid, roundId = null) {
   return !!(key && G._liveStorageDepartedIids?.has(key));
 }
 
-/** True when a move handoff must not un-hide the source (already left / still flying). */
+/** True when a move handoff should clear anim-hide for this iid. */
 function shouldClearAnimHideAfterHandoff(iid, fromZone) {
+  // Live→WR/Success: source is latched blank; clearing hide can resurrect a twin.
   if (fromZone === 'live' && liveStorageDepartureLatched(iid)) return false;
-  // Stage / under / live / hand sources must stay blank until DOM remove or re-render.
-  // Clearing card-arriving here is what left twins under WR/Success flight ghosts.
-  if (fromZone === 'live' || fromZone === 'stage' || fromZone === 'under' || fromZone === 'hand') {
-    return false;
-  }
+  // Stage/under exits: keep source blank until DOM remove (dest revealed separately).
+  if (fromZone === 'stage' || fromZone === 'under') return false;
+  // hand→live (and other hand exits) MUST clear — otherwise card-arriving sticks on
+  // the Live-storage destination and opponent Lives stay invisible until a later
+  // phase rebuild (#158 regression from twin-flight fix).
   return true;
 }
 
@@ -22330,8 +22331,9 @@ function clearHandArrivingFlags() {
   document.querySelectorAll('.card-arriving').forEach(d => {
     const iid = d.dataset?.iid || d.parentElement?.dataset?.iid;
     if (iid && liveStorageDepartureLatched(iid)) return;
-    // Do not resurrect Live-storage / Stage sources that are still leaving.
-    if (d.classList.contains('live-card') || d.closest?.('.mslot, [id^="my-live-"], [id^="opp-live-"]')) {
+    // Stage sources mid-exit: keep blank (no live-storage departure latch).
+    // Do NOT skip .live-card arrivals — that left hand→live faces invisible (#158).
+    if (d.closest?.('.mslot') && !d.closest?.('[id^="my-live-"], [id^="opp-live-"]')) {
       return;
     }
     d.classList.remove('card-arriving');
