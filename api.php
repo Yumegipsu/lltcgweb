@@ -1100,36 +1100,45 @@ function handleAction(array $body): array {
                 // Resign already saved — ranked/mission side effects are best-effort.
             }
         } elseif ($justFinished) {
-            require_once __DIR__ . '/missions.php';
-            tcgMissionBackfillPlayerDiscordFromAuth($state, $playerId, $body);
-            require_once __DIR__ . '/ranked_room.php';
-            tcgOnGameFinished($state);
-            if (empty($state['_missions_applied'])) {
-                if ($rankedRemoteMissions) {
-                    $missionCompletions = is_array($state['_hostinger_mission_completions'] ?? null)
-                        ? $state['_hostinger_mission_completions']
-                        : [];
-                    unset($state['_hostinger_mission_completions']);
-                    if (!empty($state['_coin_grants']) && is_array($state['_coin_grants'])) {
-                        // already stashed by ranked webhook
-                    }
-                } elseif ($hostingerMissionWrites) {
-                    $bundle = tcgPostMissionGameFinishedBundleToHostinger($state);
-                    $missionCompletions = $bundle['missions'];
-                    if (!empty($bundle['coin_grants'])) {
-                        $state['_coin_grants'] = $bundle['coin_grants'];
-                    }
-                } else {
-                    $missionCompletions = tcgMissionOnGameFinished($state);
-                    require_once __DIR__ . '/coins.php';
-                    $coinGrants = tcgCoinsOnGameFinished($state);
-                    if ($coinGrants !== []) {
-                        $state['_coin_grants'] = $coinGrants;
-                    }
-                }
-                $state['_missions_applied'] = true;
-            }
+            // Persist finished state before ranked/tournament Hostinger apply so
+            // overflow replay_export sees status=finished (same order as resign).
+            // Otherwise tournament archive often races an unfinished Redis snapshot
+            // and permanently misses meta.games[].replay_id for natural 3-Live wins.
             saveGame($roomId, $state);
+            try {
+                require_once __DIR__ . '/missions.php';
+                tcgMissionBackfillPlayerDiscordFromAuth($state, $playerId, $body);
+                require_once __DIR__ . '/ranked_room.php';
+                tcgOnGameFinished($state);
+                if (empty($state['_missions_applied'])) {
+                    if ($rankedRemoteMissions) {
+                        $missionCompletions = is_array($state['_hostinger_mission_completions'] ?? null)
+                            ? $state['_hostinger_mission_completions']
+                            : [];
+                        unset($state['_hostinger_mission_completions']);
+                        if (!empty($state['_coin_grants']) && is_array($state['_coin_grants'])) {
+                            // already stashed by ranked webhook
+                        }
+                    } elseif ($hostingerMissionWrites) {
+                        $bundle = tcgPostMissionGameFinishedBundleToHostinger($state);
+                        $missionCompletions = $bundle['missions'];
+                        if (!empty($bundle['coin_grants'])) {
+                            $state['_coin_grants'] = $bundle['coin_grants'];
+                        }
+                    } else {
+                        $missionCompletions = tcgMissionOnGameFinished($state);
+                        require_once __DIR__ . '/coins.php';
+                        $coinGrants = tcgCoinsOnGameFinished($state);
+                        if ($coinGrants !== []) {
+                            $state['_coin_grants'] = $coinGrants;
+                        }
+                    }
+                    $state['_missions_applied'] = true;
+                }
+                saveGame($roomId, $state);
+            } catch (Throwable $e) {
+                // Finished room already saved — ranked/tournament/mission side effects are best-effort.
+            }
         } else {
             if ($type === 'send_stamp') {
                 require_once __DIR__ . '/missions.php';

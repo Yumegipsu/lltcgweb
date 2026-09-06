@@ -321,10 +321,32 @@ function tcgTournamentRecordGameResult(string $matchId, string $winnerDiscordId,
     }
     $roomId = (string)($m['room_id'] ?? '');
     // Avoid double-counting the same finished room in a Bo3 series.
-    foreach ($meta['games'] as $g) {
-        if (is_array($g) && (string)($g['room_id'] ?? '') === $roomId && $roomId !== '') {
-            return;
+    foreach ($meta['games'] as $gi => $g) {
+        if (!is_array($g) || (string)($g['room_id'] ?? '') !== $roomId || $roomId === '') {
+            continue;
         }
+        // Already recorded — still heal a missing public archive while tokens remain
+        // (natural-finish race used to leave games[] without replay_id forever).
+        if (empty($g['replay_id']) && function_exists('tcgTournamentArchiveFinishedGameReplay')) {
+            try {
+                $healId = tcgTournamentArchiveFinishedGameReplay(
+                    $m,
+                    $roomId,
+                    (string)($g['winner_discord_id'] ?? $winnerDiscordId),
+                    (string)($g['reason'] ?? $reason),
+                    $gi + 1
+                );
+                if ($healId) {
+                    $meta['games'][$gi]['replay_id'] = (int)$healId;
+                    tcgDb()->prepare(
+                        'UPDATE tcg_tournament_matches SET meta_json = ?, updated_at = ? WHERE id = ?'
+                    )->execute([tcgTournamentEncodeMatchMeta($meta), time(), $matchId]);
+                }
+            } catch (Throwable $e) {
+                // Best-effort heal only.
+            }
+        }
+        return;
     }
 
     if ($winnerDiscordId === $p1) {
