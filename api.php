@@ -2509,7 +2509,7 @@ function discardCannotLiveStorageToWaitingRoom(array $state, string $pid): array
         return $state;
     }
     $p['live_zone'] = $keep;
-    $p['waiting_room'] = array_merge($p['waiting_room'] ?? [], $dump);
+    $p['waiting_room'] = array_merge($p['waiting_room'] ?? [], liveCardsRestorePrintedScores($dump));
     unset($p);
     return addLog(
         $state,
@@ -3475,7 +3475,7 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
         fn($c) => $c && !isLiveTypeCard($c)
     ));
 
-    $p['waiting_room'] = array_merge($p['waiting_room'], $failCards);
+    $p['waiting_room'] = array_merge($p['waiting_room'], liveCardsRestorePrintedScores($failCards));
     if ($liveRoundSuccess) {
         $p['live_zone'] = array_merge($successCards, $memberBluffs);
     } else {
@@ -3485,7 +3485,10 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
                     'from_index' => liveZoneSlotOf($lc, $li),
                 ]);
             }
-            $p['waiting_room'] = array_merge($p['waiting_room'], $successCards);
+            $p['waiting_room'] = array_merge(
+                $p['waiting_room'],
+                liveCardsRestorePrintedScores($successCards)
+            );
         }
         $p['live_zone'] = $memberBluffs;
         $successCards = [];
@@ -3695,7 +3698,10 @@ function advanceLiveJudgeWinners(array $state): array {
             if (!empty($zone)) {
                 $tieAnims = liveZoneDiscardAnims($zone, $winnerId);
                 $state['players'][$winnerId]['waiting_room'] =
-                    array_merge($state['players'][$winnerId]['waiting_room'], $zone);
+                    array_merge(
+                        $state['players'][$winnerId]['waiting_room'],
+                        liveCardsRestorePrintedScores($zone)
+                    );
                 $zone = [];
                 $state = addLog($state, $state['players'][$winnerId]['name'] .
                     ' — score tied; Success Live blocked; Live cards sent to Waiting Room.',
@@ -3712,7 +3718,10 @@ function advanceLiveJudgeWinners(array $state): array {
             if (!empty($zone)) {
                 $capAnims = liveZoneDiscardAnims($zone, $winnerId);
                 $state['players'][$winnerId]['waiting_room'] =
-                    array_merge($state['players'][$winnerId]['waiting_room'], $zone);
+                    array_merge(
+                        $state['players'][$winnerId]['waiting_room'],
+                        liveCardsRestorePrintedScores($zone)
+                    );
                 $zone = [];
                 $state = addLog($state, $state['players'][$winnerId]['name'] .
                     ' — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room.',
@@ -3850,7 +3859,8 @@ function drainLiveStorageLeftovers(array $state, array &$leftoverAnims): array {
                 continue;
             }
             $leftoverAnims = array_merge($leftoverAnims, liveZoneDiscardAnims([$lc], $pid));
-            $state['players'][$pid]['waiting_room'][] = $lc;
+            // Issue #155: strip Live Start score bumps before WR (reuse must use printed score).
+            $state['players'][$pid]['waiting_room'][] = liveCardRestorePrintedScore($lc);
         }
         $state['players'][$pid]['live_zone'] = $remaining;
     }

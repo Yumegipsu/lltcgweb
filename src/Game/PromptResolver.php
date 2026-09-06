@@ -1830,7 +1830,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             throw new Exception('Invalid Waiting Room card');
         }
         $ownerP['waiting_room'] = $rest;
-        $ownerP['hand'] = array_merge($ownerP['hand'], $picked);
+        $ownerP['hand'] = array_merge($ownerP['hand'], liveCardsRestorePrintedScores($picked));
         $names = array_map('cardDisplayName', $picked);
         $state = addLog($state, $state['players'][$owner]['name'] .
             ' — [' . ($prompt['source_name'] ?? 'Member') . '] added ' .
@@ -1940,7 +1940,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         }
         $ownerP['waiting_room'][] = $leavingMember;
         if ($pickId !== 'NO_CARD_NEEDED') {
-            $ownerP['hand'][] = $picked;
+            $ownerP['hand'][] = liveCardRestorePrintedScore($picked);
         }
         $mName = $leavingMember['name_en'] ?? $leavingMember['name'] ?? 'Member';
         $state = ($pickId !== 'NO_CARD_NEEDED')
@@ -1951,8 +1951,12 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 ' — [' . $mName . '] left Stage; no card added from Waiting Room.');
         $group = $ability['group'] ?? '';
         $minScore = intval($ability['activate_energy_if_score_min'] ?? 0);
+        // Use printed/characteristic score — Live Start bumps must not apply off-performance (#155 / Shizuku pay).
+        $pickedScore = ($pickId !== 'NO_CARD_NEEDED' && is_array($picked))
+            ? liveCardPrintedScore($picked)
+            : 0;
         if ($pickId !== 'NO_CARD_NEEDED' && $minScore > 0 && ($picked['card_type'] ?? '') === 'ライブ'
-            && intval($picked['score'] ?? 0) >= $minScore
+            && $pickedScore >= $minScore
             && cardMatchesGroup($picked, $group, 'live')) {
             $activated = activateEnergyForPlayer($ownerP, intval($ability['activate_energy_count'] ?? 4));
             $state = addLog($state, $state['players'][$owner]['name'] .
@@ -4422,7 +4426,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             if (!$wrLive) {
                 throw new Exception('Choose a Live card from your Waiting Room');
             }
-            $ownerP['hand'][] = $wrLive;
+            $ownerP['hand'][] = liveCardRestorePrintedScore($wrLive);
             if ($slot !== null && !empty($ownerP['stage'][$slot])) {
                 markAbilityUsed($ownerP['stage'][$slot], $abilityIdx);
             }

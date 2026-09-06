@@ -455,6 +455,26 @@ function liveCardRestorePrintedScore(array $card): array {
     return $card;
 }
 
+/**
+ * Clear Live Start / Yell score bumps when Lives leave storage for the Waiting Room
+ * (issue #155 — Solitude Rain reused from WR kept a prior Live Start bonus).
+ *
+ * @param list<mixed> $cards
+ * @return list<mixed>
+ */
+function liveCardsRestorePrintedScores(array $cards): array {
+    $out = [];
+    foreach ($cards as $c) {
+        $out[] = is_array($c) ? liveCardRestorePrintedScore($c) : $c;
+    }
+    return $out;
+}
+
+/** Official member heart colors for Solitude Rain-style distinct-color scoring. */
+function officialDistinctMemberHeartColors(): array {
+    return ['pink', 'green', 'blue', 'red', 'yellow', 'purple'];
+}
+
 function sumLiveZoneCardScores(array $zone): int {
     $sum = 0;
     foreach ($zone as $c) {
@@ -5362,7 +5382,8 @@ function addFromWaitingRoomFiltered(array &$p, string $group, string $filter, in
     }
     if (empty($picked)) return 0;
     $p['waiting_room'] = $rest;
-    $p['hand'] = array_merge($p['hand'], $picked);
+    // Safety net for Lives that retained Live Start bumps in WR (#155).
+    $p['hand'] = array_merge($p['hand'], liveCardsRestorePrintedScores($picked));
     return count($picked);
 }
 
