@@ -21924,9 +21924,14 @@ function liveStorageDepartureLatched(iid, roundId = null) {
   return !!(key && G._liveStorageDepartedIids?.has(key));
 }
 
-/** True when a move handoff must not un-hide the source (Live storage already left). */
+/** True when a move handoff must not un-hide the source (already left / still flying). */
 function shouldClearAnimHideAfterHandoff(iid, fromZone) {
   if (fromZone === 'live' && liveStorageDepartureLatched(iid)) return false;
+  // Stage / under / live / hand sources must stay blank until DOM remove or re-render.
+  // Clearing card-arriving here is what left twins under WR/Success flight ghosts.
+  if (fromZone === 'live' || fromZone === 'stage' || fromZone === 'under' || fromZone === 'hand') {
+    return false;
+  }
   return true;
 }
 
@@ -22324,6 +22329,10 @@ function clearHandArrivingFlags() {
   document.querySelectorAll('.card-arriving').forEach(d => {
     const iid = d.dataset?.iid || d.parentElement?.dataset?.iid;
     if (iid && liveStorageDepartureLatched(iid)) return;
+    // Do not resurrect Live-storage / Stage sources that are still leaving.
+    if (d.classList.contains('live-card') || d.closest?.('.mslot, [id^="my-live-"], [id^="opp-live-"]')) {
+      return;
+    }
     d.classList.remove('card-arriving');
   });
 }
@@ -22647,8 +22656,40 @@ function commitLiveRoundAfterOutcomes(fallback) {
 }
 
 /** Reveal destination card under the fading flight ghost (avoids blank gap before flip). */
-function revealAnimMoveDestination(iid, state) {
+function domNodeInMoveZone(node, zone) {
+  if (!node || !zone) return false;
+  if (zone === 'live') {
+    return !!(node.classList?.contains('live-card')
+      || node.closest?.('.lcard.live-card, [id^="my-live-"], [id^="opp-live-"]'));
+  }
+  if (zone === 'stage') {
+    return !!(node.classList?.contains('mslot')
+      || node.closest?.('.mslot, [id*="-stage-"]'));
+  }
+  if (zone === 'hand') {
+    return !!(node.classList?.contains('hcard')
+      || node.classList?.contains('opp-hand-card')
+      || node.closest?.('#hand-row, #opp-hand-zone'));
+  }
+  if (zone === 'under') {
+    return !!(node.classList?.contains('under-chip') || node.closest?.('.under-chip'));
+  }
+  if (zone === 'waiting_room') {
+    return !!node.closest?.('[id$="-wait-pile"]');
+  }
+  if (zone === 'success') {
+    return !!(node.classList?.contains('slive-chip')
+      || node.closest?.('.slive-chip, [id$="-pips"], [id^="portrait-"][id$="-wins"]'));
+  }
+  if (zone === 'energy') {
+    return !!node.closest?.('[id$="-energy"], .energy-chip, .nrg-chip');
+  }
+  return false;
+}
+
+function revealAnimMoveDestination(iid, state, opts = {}) {
   if (!iid) return;
+  const fromZone = opts.fromZone || null;
   let card = null;
   for (const pid of ['p1', 'p2']) {
     card = findCardInState(state, iid, pid);
@@ -22656,6 +22697,8 @@ function revealAnimMoveDestination(iid, state) {
   }
   document.querySelectorAll(`[data-iid="${CSS.escape(iid)}"]`).forEach(n => {
     if (liveStorageDepartureLatched(iid) && n.classList.contains('live-card')) return;
+    // Never un-hide the flight source — that leaves a twin under the ghost.
+    if (fromZone && domNodeInMoveZone(n, fromZone)) return;
     n.classList.remove('card-arriving');
     if (card && !isEnergyStorageEl(n)) applyCardFoilFx(n, card);
     else clearCardFoilFx(n);
@@ -22677,7 +22720,8 @@ function finishCardMoveHandoff(iid, opts = {}) {
     renderState = null,
     finalState = null,
   } = opts;
-  if (shouldClearAnimHideAfterHandoff(iid, opts.fromZone || null)) {
+  const fromZone = opts.fromZone || null;
+  if (shouldClearAnimHideAfterHandoff(iid, fromZone)) {
     clearAnimHideIid(iid);
   }
   if (oppStageReveal && stagePid) {
@@ -22698,8 +22742,14 @@ function finishCardMoveHandoff(iid, opts = {}) {
     if (state) G.gameState = state;
     beginHandDrawReveal(iid, state, myId);
   } else if (renderState) {
+    // Live→WR/Success: dest is revealed via wr/success pile helpers; rebinding
+    // G.gameState to the final board mid-flight repaints storage twins.
+    if (fromZone === 'live') return;
     G.gameState = renderState;
-    if (opts.fromZone !== 'live') revealAnimMoveDestination(iid, renderState);
+    revealAnimMoveDestination(iid, renderState, {
+      fromZone,
+      toZone: opts.toZone || null,
+    });
   }
 }
 
@@ -23527,6 +23577,7 @@ async function executeCardMoveAnimation(m, opts) {
       renderState,
       finalState: stateAfter,
       fromZone: m.from?.zone || '',
+      toZone: m.to?.zone || '',
     };
     const runHandoff = () => {
       if (handoffPromise) return handoffPromise;
@@ -23618,6 +23669,8 @@ async function playAnimSpecFlyOnly(spec, playback, finalState, myId, delayMs, ha
       stagePid: spec.pid,
       livePid: spec.pid,
       renderState: finalState,
+      fromZone: fromLoc?.zone || '',
+      toZone: toLoc?.zone || '',
     };
     const runHandoff = () => {
       void (async () => {
@@ -23645,7 +23698,9 @@ async function playAnimSpecFlyOnly(spec, playback, finalState, myId, delayMs, ha
       surfaceDeferredSkillPrompt(playback, finalState, myId);
     }
   } finally {
-    clearAnimHideIid(spec.iid);
+    if (shouldClearAnimHideAfterHandoff(spec.iid, fromLoc?.zone || '')) {
+      clearAnimHideIid(spec.iid);
+    }
   }
 }
 
@@ -23799,6 +23854,8 @@ async function playAnimSpec(spec, playback, finalState, myId, delayMs = 0) {
       livePid: spec.pid,
       renderState: playback,
       finalState: finalState,
+      fromZone: fromLoc?.zone || '',
+      toZone: toLoc?.zone || '',
     };
     const runHandoff = () => {
       void (async () => {
@@ -23827,7 +23884,9 @@ async function playAnimSpec(spec, playback, finalState, myId, delayMs = 0) {
     }
   } finally {
     G._animHideIids = null;
-    clearAnimHideIid(spec.iid);
+    if (shouldClearAnimHideAfterHandoff(spec.iid, fromLoc?.zone || '')) {
+      clearAnimHideIid(spec.iid);
+    }
     if (wrDest && typeof clearWrPileAnimPending === 'function') {
       clearWrPileAnimPending(finalState, myId);
     }
@@ -23915,6 +23974,8 @@ async function playTailMoveAnimations(playback, final, myId, opts = {}) {
       livePid: m.to?.pid,
       renderState: playback,
       finalState: final,
+      fromZone: m.from?.zone || '',
+      toZone: m.to?.zone || '',
     };
     const applyTailMoveState = async () => {
       applyAnimOnPlayback(playback, final, {
@@ -25731,6 +25792,12 @@ function flyCard(card, fromRect, toRect, delayMs = 0, opts = {}) {
       ghost.className = `card-flight ${fromClass}${morphClass}${flightSeatClass}`;
       const flightMs = opts.flightMs ?? FLIGHT_MS;
       ghost.style.setProperty('--flight-ms', flightMs + 'ms');
+      const flightEase = 'cubic-bezier(.22,1,.36,1)';
+      // Opacity handoff uses a short fade; keep transform/size on the full flight
+      // duration so handoff never rewrites transition mid-move (snap/twin bug).
+      ghost.style.transition = (liveArtMorph || memberShellSpin)
+        ? `transform ${flightMs}ms ${flightEase}, width ${flightMs}ms ${flightEase}, height ${flightMs}ms ${flightEase}, opacity ${FLIGHT_HANDOFF_MS}ms ease`
+        : `transform ${flightMs}ms ${flightEase}, opacity ${FLIGHT_HANDOFF_MS}ms ease`;
       const inner = document.createElement('div');
       inner.className = 'flight-inner';
       if (faceDown && (liveArtMorph || memberShellSpin)) {
@@ -25829,10 +25896,8 @@ function flyCard(card, fromRect, toRect, delayMs = 0, opts = {}) {
         handoffDone = true;
         noteOppHandDepartEnd({ zone: fromZone, pid: opts.fromPid }, opts.myId || G.playerId);
         try { opts.onHandoff?.(); } catch (e) { TCG_DEBUG.warn('anim', 'handoff failed', e); }
-        const flightEase = 'cubic-bezier(.22,1,.36,1)';
-        ghost.style.transition = (liveArtMorph || memberShellSpin)
-          ? `transform var(--flight-ms,300ms) ${flightEase}, width var(--flight-ms,300ms) ${flightEase}, height var(--flight-ms,300ms) ${flightEase}, opacity ${FLIGHT_HANDOFF_MS}ms ease`
-          : `transform var(--flight-ms,300ms) ${flightEase}, opacity ${FLIGHT_HANDOFF_MS}ms ease`;
+        // Fade the ghost only — rewriting `transition` mid-flight (including
+        // transform/width/height) can snap morph flights and leave a twin.
         ghost.style.opacity = '0';
       };
       setTimeout(runHandoff, Math.max(0, flightMs - FLIGHT_HANDOFF_MS));
