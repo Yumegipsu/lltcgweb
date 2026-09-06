@@ -74929,11 +74929,11 @@
       ],
       "blade_hearts": [],
       "rarity": "P",
-      "text": "[Always] Each Live card in your opponent's Live storage requires 1 additional <anyH> to succeed.\n[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
+      "text": "[Always] Each Live card in your opponent's Live storage requires 1 additional <anyH> to succeed.\n[Live Start] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
       "text_jp": "[常時] 相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートがグレーハート多くなる。\n\n[ライブ開始時] 自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-P.png",
       "subunit": "KALEIDOSCORE",
-      "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
+      "text_es": "[Siempre] Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n[Inicio de Live] Si tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
       "abilities": [
         {
           "trigger": "continuous",
@@ -74941,16 +74941,18 @@
           "amount": 1
         },
         {
-          "trigger": "continuous",
+          "trigger": "live_start",
           "type": "reduce_yell_reveal_count",
           "min_other_members": 1,
-          "reduce": 8
+          "reduce": 8,
+          "requires_other_members": true,
+          "amount": 8
         }
       ],
-      "text_ko": "[상시] 각각 Live 카드 에 상대의 Live 영역 필요로 한다 1 추가 회색 하트 에 성공한다.\n[상시] 만약 자신에게 1 이상 멤버 자신의 스테이지에 외에 이 멤버, 이 Live가 끝날 때까지, 수의 카드 자신이 공개한다 에 대해 Yell 이다 감소한 만큼 8.",
-      "text_zh": "[永续] 对手活区中的每张活卡都需要额外 1 颗灰心才能成功。\n[永续] 如果你的舞台上除该成员外还有 1 名或更多成员，则直到本次 Live 结束为止，你公开的Yell牌张数减少 8 张。",
-      "text_th": "[ต่อเนื่อง] การ์ดสดแต่ละใบในพื้นที่ถ่ายทอดสดของคู่ต่อสู้ต้องใช้หัวใจสีเทาเพิ่มอีก 1 อันจึงจะสำเร็จ\n[ต่อเนื่อง] หากคุณมีสมาชิก 1 คนขึ้นไปบนเวทีของคุณนอกเหนือจากสมาชิกรายนี้ จนกว่าการถ่ายทอดสดจะสิ้นสุดลง จำนวนการ์ดที่คุณเปิดเผยสำหรับ Yell จะลดลง 8 ใบ",
-      "text_pt": "[Sempre] Cada carta Live na zona de Lives do adversário exige 1<anyH> adicional para ser bem-sucedida.\n[Sempre] Se você tiver 1 ou mais Membros no seu Palco além deste Membro, até o fim desta Live, a quantidade de cartas que você revela pelo Grito é reduzida em 8."
+      "text_ko": "[상시] 각각 Live 카드 에 상대의 Live 영역 필요로 한다 1 추가 회색 하트 에 성공한다.\n[라이브 개시] 만약 자신에게 1 이상 멤버 자신의 스테이지에 외에 이 멤버, 이 Live가 끝날 때까지, 수의 카드 자신이 공개한다 에 대해 Yell 이다 감소한 만큼 8.",
+      "text_zh": "[永续] 对手活区中的每张活卡都需要额外 1 颗灰心才能成功。\n[Live开始] 如果你的舞台上除该成员外还有 1 名或更多成员，则直到本次 Live 结束为止，你公开的Yell牌张数减少 8 张。",
+      "text_th": "[ต่อเนื่อง] การ์ดสดแต่ละใบในพื้นที่ถ่ายทอดสดของคู่ต่อสู้ต้องใช้หัวใจสีเทาเพิ่มอีก 1 อันจึงจะสำเร็จ\n[เริ่ม Live] หากคุณมีสมาชิก 1 คนขึ้นไปบนเวทีของคุณนอกเหนือจากสมาชิกรายนี้ จนกว่าการถ่ายทอดสดจะสิ้นสุดลง จำนวนการ์ดที่คุณเปิดเผยสำหรับ Yell จะลดลง 8 ใบ",
+      "text_pt": "[Sempre] Cada carta Live na zona de Lives do adversário exige 1<anyH> adicional para ser bem-sucedida.\n[Início de Live] Se você tiver 1 ou mais Membros no seu Palco além deste Membro, até o fim desta Live, a quantidade de cartas que você revela pelo Grito é reduzida em 8."
     },
     {
       "card_no": "PL!SP-bp2-010-P＋",
@@ -74978,11 +74980,11 @@
       ],
       "blade_hearts": [],
       "rarity": "P+",
-      "text": "[Always] Each Live card in your opponent's Live storage requires 1 additional <anyH> to succeed.\n[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
+      "text": "[Always] Each Live card in your opponent's Live storage requires 1 additional <anyH> to succeed.\n[Live Start] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
       "text_jp": "[常時] 相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートがグレーハート多くなる。\n\n[ライブ開始時] 自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-P2.png",
       "subunit": "KALEIDOSCORE",
-      "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
+      "text_es": "[Siempre] Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n[Inicio de Live] Si tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
       "abilities": [
         {
           "trigger": "continuous",
@@ -74990,16 +74992,18 @@
           "amount": 1
         },
         {
-          "trigger": "continuous",
+          "trigger": "live_start",
           "type": "reduce_yell_reveal_count",
           "min_other_members": 1,
-          "reduce": 8
+          "reduce": 8,
+          "requires_other_members": true,
+          "amount": 8
         }
       ],
-      "text_ko": "[상시] 각각 Live 카드 에 상대의 Live 영역 필요로 한다 1 추가 회색 하트 에 성공한다.\n[상시] 만약 자신에게 1 이상 멤버 자신의 스테이지에 외에 이 멤버, 이 Live가 끝날 때까지, 수의 카드 자신이 공개한다 에 대해 Yell 이다 감소한 만큼 8.",
-      "text_zh": "[永续] 对手活区中的每张活卡都需要额外 1 颗灰心才能成功。\n[永续] 如果你的舞台上除该成员外还有 1 名或更多成员，则直到本次 Live 结束为止，你公开的Yell牌张数减少 8 张。",
-      "text_th": "[ต่อเนื่อง] การ์ดสดแต่ละใบในพื้นที่ถ่ายทอดสดของคู่ต่อสู้ต้องใช้หัวใจสีเทาเพิ่มอีก 1 อันจึงจะสำเร็จ\n[ต่อเนื่อง] หากคุณมีสมาชิก 1 คนขึ้นไปบนเวทีของคุณนอกเหนือจากสมาชิกรายนี้ จนกว่าการถ่ายทอดสดจะสิ้นสุดลง จำนวนการ์ดที่คุณเปิดเผยสำหรับ Yell จะลดลง 8 ใบ",
-      "text_pt": "[Sempre] Cada carta Live na zona de Lives do adversário exige 1<anyH> adicional para ser bem-sucedida.\n[Sempre] Se você tiver 1 ou mais Membros no seu Palco além deste Membro, até o fim desta Live, a quantidade de cartas que você revela pelo Grito é reduzida em 8."
+      "text_ko": "[상시] 각각 Live 카드 에 상대의 Live 영역 필요로 한다 1 추가 회색 하트 에 성공한다.\n[라이브 개시] 만약 자신에게 1 이상 멤버 자신의 스테이지에 외에 이 멤버, 이 Live가 끝날 때까지, 수의 카드 자신이 공개한다 에 대해 Yell 이다 감소한 만큼 8.",
+      "text_zh": "[永续] 对手活区中的每张活卡都需要额外 1 颗灰心才能成功。\n[Live开始] 如果你的舞台上除该成员外还有 1 名或更多成员，则直到本次 Live 结束为止，你公开的Yell牌张数减少 8 张。",
+      "text_th": "[ต่อเนื่อง] การ์ดสดแต่ละใบในพื้นที่ถ่ายทอดสดของคู่ต่อสู้ต้องใช้หัวใจสีเทาเพิ่มอีก 1 อันจึงจะสำเร็จ\n[เริ่ม Live] หากคุณมีสมาชิก 1 คนขึ้นไปบนเวทีของคุณนอกเหนือจากสมาชิกรายนี้ จนกว่าการถ่ายทอดสดจะสิ้นสุดลง จำนวนการ์ดที่คุณเปิดเผยสำหรับ Yell จะลดลง 8 ใบ",
+      "text_pt": "[Sempre] Cada carta Live na zona de Lives do adversário exige 1<anyH> adicional para ser bem-sucedida.\n[Início de Live] Se você tiver 1 ou mais Membros no seu Palco além deste Membro, até o fim desta Live, a quantidade de cartas que você revela pelo Grito é reduzida em 8."
     },
     {
       "card_no": "PL!SP-bp2-010-R＋",
@@ -75027,11 +75031,11 @@
       ],
       "blade_hearts": [],
       "rarity": "R+",
-      "text": "[Always] Each Live card in your opponent's Live storage requires 1 additional <anyH> to succeed.\n[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
+      "text": "[Always] Each Live card in your opponent's Live storage requires 1 additional <anyH> to succeed.\n[Live Start] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
       "text_jp": "[常時] 相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートがグレーハート多くなる。\n\n[ライブ開始時] 自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-R2.png",
       "subunit": "KALEIDOSCORE",
-      "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
+      "text_es": "[Siempre] Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n[Inicio de Live] Si tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
       "abilities": [
         {
           "trigger": "continuous",
@@ -75039,16 +75043,18 @@
           "amount": 1
         },
         {
-          "trigger": "continuous",
+          "trigger": "live_start",
           "type": "reduce_yell_reveal_count",
           "min_other_members": 1,
-          "reduce": 8
+          "reduce": 8,
+          "requires_other_members": true,
+          "amount": 8
         }
       ],
-      "text_ko": "[상시] 각각 Live 카드 에 상대의 Live 영역 필요로 한다 1 추가 회색 하트 에 성공한다.\n[상시] 만약 자신에게 1 이상 멤버 자신의 스테이지에 외에 이 멤버, 이 Live가 끝날 때까지, 수의 카드 자신이 공개한다 에 대해 Yell 이다 감소한 만큼 8.",
-      "text_zh": "[永续] 对手活区中的每张活卡都需要额外 1 颗灰心才能成功。\n[永续] 如果你的舞台上除该成员外还有 1 名或更多成员，则直到本次 Live 结束为止，你公开的Yell牌张数减少 8 张。",
-      "text_th": "[ต่อเนื่อง] การ์ดสดแต่ละใบในพื้นที่ถ่ายทอดสดของคู่ต่อสู้ต้องใช้หัวใจสีเทาเพิ่มอีก 1 อันจึงจะสำเร็จ\n[ต่อเนื่อง] หากคุณมีสมาชิก 1 คนขึ้นไปบนเวทีของคุณนอกเหนือจากสมาชิกรายนี้ จนกว่าการถ่ายทอดสดจะสิ้นสุดลง จำนวนการ์ดที่คุณเปิดเผยสำหรับ Yell จะลดลง 8 ใบ",
-      "text_pt": "[Sempre] Cada carta Live na zona de Lives do adversário exige 1<anyH> adicional para ser bem-sucedida.\n[Sempre] Se você tiver 1 ou mais Membros no seu Palco além deste Membro, até o fim desta Live, a quantidade de cartas que você revela pelo Grito é reduzida em 8."
+      "text_ko": "[상시] 각각 Live 카드 에 상대의 Live 영역 필요로 한다 1 추가 회색 하트 에 성공한다.\n[라이브 개시] 만약 자신에게 1 이상 멤버 자신의 스테이지에 외에 이 멤버, 이 Live가 끝날 때까지, 수의 카드 자신이 공개한다 에 대해 Yell 이다 감소한 만큼 8.",
+      "text_zh": "[永续] 对手活区中的每张活卡都需要额外 1 颗灰心才能成功。\n[Live开始] 如果你的舞台上除该成员外还有 1 名或更多成员，则直到本次 Live 结束为止，你公开的Yell牌张数减少 8 张。",
+      "text_th": "[ต่อเนื่อง] การ์ดสดแต่ละใบในพื้นที่ถ่ายทอดสดของคู่ต่อสู้ต้องใช้หัวใจสีเทาเพิ่มอีก 1 อันจึงจะสำเร็จ\n[เริ่ม Live] หากคุณมีสมาชิก 1 คนขึ้นไปบนเวทีของคุณนอกเหนือจากสมาชิกรายนี้ จนกว่าการถ่ายทอดสดจะสิ้นสุดลง จำนวนการ์ดที่คุณเปิดเผยสำหรับ Yell จะลดลง 8 ใบ",
+      "text_pt": "[Sempre] Cada carta Live na zona de Lives do adversário exige 1<anyH> adicional para ser bem-sucedida.\n[Início de Live] Se você tiver 1 ou mais Membros no seu Palco além deste Membro, até o fim desta Live, a quantidade de cartas que você revela pelo Grito é reduzida em 8."
     },
     {
       "card_no": "PL!SP-bp2-010-SEC",
@@ -75076,11 +75082,11 @@
       ],
       "blade_hearts": [],
       "rarity": "SEC",
-      "text": "[Always] Each Live card in your opponent's Live storage requires 1 additional <anyH> to succeed.\n[Always] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
+      "text": "[Always] Each Live card in your opponent's Live storage requires 1 additional <anyH> to succeed.\n[Live Start] If you have 1 or more Members on your Stage besides this Member, until this Live ends, the number of cards you reveal for Yell is reduced by 8.",
       "text_jp": "[常時] 相手のライブカード置き場にあるすべてのライブカードは、成功させるための必要ハートがグレーハート多くなる。\n\n[ライブ開始時] 自分のステージにこのメンバー以外のメンバーが1人以上いる場合、ライブ終了時まで、エールによって公開される自分のカードの枚数が8枚減る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP02/PL!SP-bp2-010-SEC.png",
       "subunit": "KALEIDOSCORE",
-      "text_es": "Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n\nSi tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
+      "text_es": "[Siempre] Todas las cartas Live en el área Live de tu oponente requieren +1 Corazón gris adicional cada una para tener éxito.\n[Inicio de Live] Si tienes 1 o más Miembros distintos de este Miembro en tu Escenario, hasta que termine este Live, el número de cartas que revelas para Yell se reduce en 8.",
       "abilities": [
         {
           "trigger": "continuous",
@@ -75088,16 +75094,18 @@
           "amount": 1
         },
         {
-          "trigger": "continuous",
+          "trigger": "live_start",
           "type": "reduce_yell_reveal_count",
           "min_other_members": 1,
-          "reduce": 8
+          "reduce": 8,
+          "requires_other_members": true,
+          "amount": 8
         }
       ],
-      "text_ko": "[상시] 각각 Live 카드 에 상대의 Live 영역 필요로 한다 1 추가 회색 하트 에 성공한다.\n[상시] 만약 자신에게 1 이상 멤버 자신의 스테이지에 외에 이 멤버, 이 Live가 끝날 때까지, 수의 카드 자신이 공개한다 에 대해 Yell 이다 감소한 만큼 8.",
-      "text_zh": "[永续] 对手活区中的每张活卡都需要额外 1 颗灰心才能成功。\n[永续] 如果你的舞台上除该成员外还有 1 名或更多成员，则直到本次 Live 结束为止，你公开的Yell牌张数减少 8 张。",
-      "text_th": "[ต่อเนื่อง] การ์ดสดแต่ละใบในพื้นที่ถ่ายทอดสดของคู่ต่อสู้ต้องใช้หัวใจสีเทาเพิ่มอีก 1 อันจึงจะสำเร็จ\n[ต่อเนื่อง] หากคุณมีสมาชิก 1 คนขึ้นไปบนเวทีของคุณนอกเหนือจากสมาชิกรายนี้ จนกว่าการถ่ายทอดสดจะสิ้นสุดลง จำนวนการ์ดที่คุณเปิดเผยสำหรับ Yell จะลดลง 8 ใบ",
-      "text_pt": "[Sempre] Cada carta Live na zona de Lives do adversário exige 1<anyH> adicional para ser bem-sucedida.\n[Sempre] Se você tiver 1 ou mais Membros no seu Palco além deste Membro, até o fim desta Live, a quantidade de cartas que você revela pelo Grito é reduzida em 8."
+      "text_ko": "[상시] 각각 Live 카드 에 상대의 Live 영역 필요로 한다 1 추가 회색 하트 에 성공한다.\n[라이브 개시] 만약 자신에게 1 이상 멤버 자신의 스테이지에 외에 이 멤버, 이 Live가 끝날 때까지, 수의 카드 자신이 공개한다 에 대해 Yell 이다 감소한 만큼 8.",
+      "text_zh": "[永续] 对手活区中的每张活卡都需要额外 1 颗灰心才能成功。\n[Live开始] 如果你的舞台上除该成员外还有 1 名或更多成员，则直到本次 Live 结束为止，你公开的Yell牌张数减少 8 张。",
+      "text_th": "[ต่อเนื่อง] การ์ดสดแต่ละใบในพื้นที่ถ่ายทอดสดของคู่ต่อสู้ต้องใช้หัวใจสีเทาเพิ่มอีก 1 อันจึงจะสำเร็จ\n[เริ่ม Live] หากคุณมีสมาชิก 1 คนขึ้นไปบนเวทีของคุณนอกเหนือจากสมาชิกรายนี้ จนกว่าการถ่ายทอดสดจะสิ้นสุดลง จำนวนการ์ดที่คุณเปิดเผยสำหรับ Yell จะลดลง 8 ใบ",
+      "text_pt": "[Sempre] Cada carta Live na zona de Lives do adversário exige 1<anyH> adicional para ser bem-sucedida.\n[Início de Live] Se você tiver 1 ou mais Membros no seu Palco além deste Membro, até o fim desta Live, a quantidade de cartas que você revela pelo Grito é reduzida em 8."
     },
     {
       "card_no": "PL!SP-bp2-011-P",

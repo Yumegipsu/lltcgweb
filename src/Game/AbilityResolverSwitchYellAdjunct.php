@@ -36,21 +36,26 @@ function tryResolveAbilityEffectSwitchYellAdjunct(
             break;
 
         case 'reduce_yell_reveal_count':
-            if (!empty($ab['requires_other_members'])) {
+            $minOther = intval($ab['min_other_members'] ?? 0);
+            if (!empty($ab['requires_other_members']) || $minOther > 0) {
+                $need = max(1, $minOther);
                 $others = 0;
                 foreach ($p['stage'] as $mbr) {
                     if ($mbr && ($mbr['instance_id'] ?? '') !== ($source['instance_id'] ?? '')) {
                         $others++;
                     }
                 }
-                if ($others < 1) break;
+                if ($others < $need) {
+                    break;
+                }
             }
+            $amount = intval($ab['amount'] ?? $ab['reduce'] ?? 8);
             $state = initLiveModifiers($state);
             $state['live_modifiers'][$pid]['yell_reveal_reduction'] =
                 intval($state['live_modifiers'][$pid]['yell_reveal_reduction'] ?? 0)
-                + intval($ab['amount'] ?? 8);
+                + $amount;
             $state = addLog($state, $state['players'][$pid]['name'] .
-                ' — [' . $name . '] Yell reveal count reduced by ' . intval($ab['amount'] ?? 8) . ' until Live ends.');
+                ' — [' . $name . '] Yell reveal count reduced by ' . $amount . ' until Live ends.');
             break;
 
     }
