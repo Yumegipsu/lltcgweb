@@ -115,6 +115,7 @@ const fnNames = [
   'clampLiveZoneCards',
   'liveZoneSlot',
   'buildEmptyLiveWrPlayback',
+  'currentPerformancePhaseLogStart',
   'currentPerformanceRoundLogStart',
   'playerAttemptedLiveThisRound',
   'playerHasPerfLogThisRound',
@@ -264,6 +265,35 @@ function livePlaybackBlocksMainPhaseUi(s, prev) {
   if (isLiveRoundPlaybackActive()) return true;
   if (G._liveStorageOutcomePending) return true;
   return false;
+}
+function settledMainBlocksLiveSpectacle() { return false; }
+function isLiveStartPromptResolutionActive(s) {
+  const pr = s?.pending_prompt;
+  if (!pr) return false;
+  if (s.phase === 'live_start_effects') return true;
+  const t = pr.type || '';
+  return t === 'optional_live_start' || (typeof t === 'string' && t.startsWith('live_start_'));
+}
+function liveCardIidKey(iid) {
+  if (iid == null || iid === '') return '';
+  return String(iid);
+}
+function sameLiveIid(a, b) {
+  const ka = liveCardIidKey(a);
+  const kb = liveCardIidKey(b);
+  return !!ka && ka === kb;
+}
+function normalizeLiveIidList(ids) {
+  if (!Array.isArray(ids)) return [];
+  const out = [];
+  const seen = new Set();
+  for (const iid of ids) {
+    const key = liveCardIidKey(iid);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(key);
+  }
+  return out;
 }
 ${fnNames.map(extractFn).join('\n')}
 `;
@@ -487,7 +517,8 @@ sandbox.G._deferPerfSpectaclePrev = {
   },
 };
 clearStalePerfDeferState(mainMainPrev, mainMainNext);
-ok('main→main re-arms recovery while owed (deferred lives)', !!sandbox.G._spectacleRecoveryPending);
+ok('main→main does not re-arm recovery on ordinary Main polls (deferred lives)',
+  !sandbox.G._spectacleRecoveryPending);
 sandbox.G._deferPerfSpectaclePrev = null;
 sandbox.G._spectacleRecoveryPending = null;
 
