@@ -4293,6 +4293,16 @@ function cpuResolvePromptBody(s, cpu, pr) {
     let cands = raw.filter(c => cardMatchesWrPickClient(c, cfg));
     // Summaries used to omit subunit — never softlock if re-filter empties a non-empty list.
     if (!cands.length && raw.length) cands = raw;
+    const need = Math.max(1, Number(pr.pick_count) || 1);
+    if (need > 1) {
+      const ids = cands.slice(0, need).map(c => c.instance_id).filter(Boolean);
+      if (ids.length) {
+        cpuAct('resolve_prompt', { card_ids: ids });
+      } else {
+        cpuSchedulePromptRetryIfStuck(s, cpu);
+      }
+      return;
+    }
     const pick = cpuPickBestCandidate(cands, cpu, hand, tier, read);
     if(pick?.instance_id) {
       cpuAct('resolve_prompt',{card_id:pick.instance_id});

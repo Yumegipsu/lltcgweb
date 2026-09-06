@@ -152,6 +152,55 @@ function nBp5MemberSkipsActivePhase(array $member): bool {
     return false;
 }
 
+/**
+ * Mia PL!N-bp5-011 — after mode is known, let the player pick which WR Live(s) to add.
+ * Card text does not restrict the added Lives by group (conditions are distinct names/groups only).
+ */
+function nBp5StartWrLiveDistinctPick(
+    array $state,
+    string $pid,
+    array $source,
+    string $slot,
+    array $ab,
+    int $count,
+    string $mode
+): array {
+    if (!empty($state['pending_prompt'])) {
+        return $state;
+    }
+    $p = &$state['players'][$pid];
+    $name = $source['name_en'] ?? $source['name'] ?? 'Member';
+    $cfg = ['filter' => 'live', 'group' => ''];
+    $candidates = wrCandidatesMatching($p, $cfg);
+    if (empty($candidates)) {
+        return addLog($state, $state['players'][$pid]['name'] .
+            " — [$name] no Live in Waiting Room to add.");
+    }
+    $count = max(1, min($count, count($candidates)));
+    $member = $source;
+    if ($slot !== '' && !empty($p['stage'][$slot])) {
+        $member = $p['stage'][$slot];
+    }
+    try {
+        startPickWrToHandPrompt($state, $pid, $member, $slot, 0, $ab, $cfg, false, $count);
+    } catch (Exception $e) {
+        return addLog($state, $state['players'][$pid]['name'] .
+            " — [$name] could not open Waiting Room Live pick.");
+    }
+    if (!empty($state['pending_prompt'])) {
+        // Exact N (not "up to") — card text says add 1 / add 2.
+        $state['pending_prompt']['up_to'] = false;
+        $state['pending_prompt']['mode'] = $mode;
+        $state['pending_prompt']['prompt'] = $count === 1
+            ? 'Choose 1 Live card from your Waiting Room to add to your hand.'
+            : "Choose exactly $count Live cards from your Waiting Room to add to your hand.";
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — [$name] choose $count Live from Waiting Room.");
+        $state['seq'] = intval($state['seq'] ?? 0) + 1;
+    }
+    return $state;
+}
+
 function nBp5ResolveEffect(array $state, string $pid, array $source, array $ab, array $ctx = []): array {
     $type = $ab['type'] ?? '';
     if (!nBp5IsEffectType($type)) {
@@ -430,38 +479,38 @@ function nBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $byName = nBp5CountWrDistinctLiveNames($p) >= intval($ab['min_distinct_names'] ?? 3);
             $byGroup = nBp5CountWrDistinctLiveGroups($p) >= intval($ab['min_distinct_groups'] ?? 3);
             if (!$byName && !$byGroup) break;
-            if ($byName && !$byGroup) {
-                $added = addFromWaitingRoomFiltered($p, $ab['group'] ?? '', 'live', intval($ab['count_by_name'] ?? 1));
-                if ($added > 0) {
-                    $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] added $added Live (distinct names).");
-                }
-                break;
-            }
-            if ($byGroup && !$byName) {
-                $added = addFromWaitingRoomFiltered($p, $ab['group'] ?? '', 'live', intval($ab['count_by_group'] ?? 2));
-                if ($added > 0) {
-                    $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] added $added Live (distinct groups).");
-                }
-                break;
-            }
             if (!empty($state['pending_prompt'])) break;
-            $state['pending_prompt'] = [
-                'type'          => 'bp5_wr_live_distinct_choice',
-                'owner'         => $pid,
-                'responder'     => $pid,
-                'source_name'   => $name,
-                'prompt'        => 'Choose an effect:',
-                'choices'       => ['by_name', 'by_group'],
-                'choice_labels' => [
-                    'Add 1 Live (3+ different names in WR)',
-                    'Add 2 Live (3+ different groups in WR)',
-                ],
-                'ability'       => $ab,
-            ];
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$name] choose WR Live effect.");
+            $slot = (string)($ctx['slot'] ?? '');
+            if ($slot === '') {
+                $slot = findMemberSlot($p, $source['instance_id'] ?? '');
+            }
+            // Both modes legal — choose which effect, then pick WR Live(s).
+            if ($byName && $byGroup) {
+                $state['pending_prompt'] = [
+                    'type'          => 'bp5_wr_live_distinct_choice',
+                    'owner'         => $pid,
+                    'responder'     => $pid,
+                    'source_id'     => $source['instance_id'] ?? '',
+                    'source_slot'   => $slot,
+                    'source_name'   => $name,
+                    'prompt'        => 'Choose an effect:',
+                    'choices'       => ['by_name', 'by_group'],
+                    'choice_labels' => [
+                        'Add 1 Live (3+ different names in WR)',
+                        'Add 2 Live (3+ different groups in WR)',
+                    ],
+                    'ability'       => $ab,
+                ];
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] choose WR Live effect.");
+                $state['seq'] = intval($state['seq'] ?? 0) + 1;
+                break;
+            }
+            $count = $byName
+                ? intval($ab['count_by_name'] ?? 1)
+                : intval($ab['count_by_group'] ?? 2);
+            $mode = $byName ? 'by_name' : 'by_group';
+            $state = nBp5StartWrLiveDistinctPick($state, $pid, $source, $slot, $ab, $count, $mode);
             break;
 
         case 'optional_wait_discard_look_reveal_group':
@@ -967,16 +1016,41 @@ function nBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
 
     if ($promptType === 'bp5_wr_live_distinct_choice') {
         $ab = $ability;
-        if ($choice === 'by_name') {
-            addFromWaitingRoomFiltered($ownerP, $ab['group'] ?? '', 'live', intval($ab['count_by_name'] ?? 1));
-        } else {
-            addFromWaitingRoomFiltered($ownerP, $ab['group'] ?? '', 'live', intval($ab['count_by_group'] ?? 2));
+        if ($choice !== 'by_name' && $choice !== 'by_group') {
+            throw new Exception('Choose an effect');
         }
-        $state = addLog($state, $state['players'][$owner]['name'] .
-            ' — [' . ($prompt['source_name'] ?? 'Member') . '] added Live from WR.');
+        $count = $choice === 'by_name'
+            ? intval($ab['count_by_name'] ?? 1)
+            : intval($ab['count_by_group'] ?? 2);
+        $slot = (string)($prompt['source_slot'] ?? '');
+        $srcId = (string)($prompt['source_id'] ?? '');
+        $source = null;
+        if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
+            $source = $ownerP['stage'][$slot];
+            if ($srcId !== '' && ($source['instance_id'] ?? '') !== $srcId) {
+                $source = null;
+            }
+        }
+        if (!$source && $srcId !== '') {
+            foreach ($ownerP['stage'] as $s => $mbr) {
+                if ($mbr && ($mbr['instance_id'] ?? '') === $srcId) {
+                    $source = $mbr;
+                    $slot = (string)$s;
+                    break;
+                }
+            }
+        }
+        if (!$source) {
+            $source = [
+                'instance_id' => $srcId,
+                'name_en'     => $prompt['source_name'] ?? 'Member',
+                'abilities'   => [$ab],
+            ];
+        }
         unset($state['pending_prompt']);
         $state['seq']++;
-        return finishPromptEffects($state);
+        // Open WR Live pick next — do not finish yet.
+        return nBp5StartWrLiveDistinctPick($state, $owner, $source, $slot, $ab, $count, $choice);
     }
 
     if ($promptType === 'bp5_wr_live_deck_position') {

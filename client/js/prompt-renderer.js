@@ -615,7 +615,10 @@ global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
     }
     return;
   }
-  const upTo = need > 1 || !!pr.up_to;
+  // Explicit up_to wins; legacy multi-pick without the flag is "up to N".
+  const upTo = Object.prototype.hasOwnProperty.call(pr || {}, 'up_to')
+    ? !!pr.up_to
+    : (need > 1);
   el('pick-ttl').textContent = promptDisplayTitle(pr, pt('prompt.wrPickTitle'), s);
   el('pick-msg').textContent = promptDisplayText(pr, 'prompt.wrPickMsg', s);
   const g = el('pick-grid');
@@ -651,10 +654,10 @@ global.openWrToHandPick = function openWrToHandPick(pr, opts = {}) {
     count: need,
     min: upTo ? 0 : need,
     onConfirm: (ids) => sendAct('resolve_prompt', { card_ids: ids }),
-    onCancel: onCancel || (() => sendAct('resolve_prompt', { card_ids: [] })),
+    ...(onCancel ? { onCancel } : {}),
   };
   if (btnOk) btnOk.style.display = '';
-  if (btnCancel) btnCancel.style.display = '';
+  if (btnCancel) btnCancel.style.display = onCancel ? '' : 'none';
   cards.forEach(card => {
     const ok = cardMatchesWrPickClient(card, cfg) || serverIds.has(card.instance_id);
     const elCard = mkPickCardEl(card, 'pickcard', () => {

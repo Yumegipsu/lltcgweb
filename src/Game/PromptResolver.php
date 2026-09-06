@@ -1879,14 +1879,18 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
 
     if ($promptType === 'pick_wr_to_hand') {
         $pickCount = intval($prompt['pick_count'] ?? 1);
+        // Explicit up_to wins; legacy multi-pick without the flag is treated as "up to N".
+        $upTo = array_key_exists('up_to', $prompt)
+            ? !empty($prompt['up_to'])
+            : ($pickCount > 1);
         $ids = [];
         if (!empty($data['card_ids']) && is_array($data['card_ids'])) {
             $ids = array_values(array_filter($data['card_ids'], fn($id) => $id !== '' && $id !== null));
         } elseif (($data['card_id'] ?? '') !== '') {
             $ids = [$data['card_id']];
         }
-        // "Up to N" (pick_count > 1): allow confirming zero selections.
-        if ($choice === 'skip' || ($pickCount > 1 && empty($ids))) {
+        // "Up to N": allow confirming zero selections / skip.
+        if ($upTo && ($choice === 'skip' || empty($ids))) {
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'Member') . '] added 0 from Waiting Room.');
             unset($state['pending_prompt']);
@@ -1896,8 +1900,12 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         if (empty($ids)) {
             throw new Exception('Choose a card');
         }
-        if (count($ids) > max(1, $pickCount)) {
-            throw new Exception('Choose at most ' . max(1, $pickCount) . ' card(s)');
+        if ($upTo) {
+            if (count($ids) > max(1, $pickCount)) {
+                throw new Exception('Choose at most ' . max(1, $pickCount) . ' card(s)');
+            }
+        } elseif (count($ids) !== max(1, $pickCount)) {
+            throw new Exception('Choose exactly ' . max(1, $pickCount) . ' card(s)');
         }
         $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgFromAbility($ability);
         $picked = [];
