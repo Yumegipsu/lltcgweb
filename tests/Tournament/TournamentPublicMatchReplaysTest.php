@@ -12,6 +12,7 @@ final class TournamentPublicMatchReplaysTest extends TestCase
     {
         require_once dirname(__DIR__, 2) . '/tournament_formats.php';
         require_once dirname(__DIR__, 2) . '/tournament_lib.php';
+        require_once dirname(__DIR__, 2) . '/tournament_replays.php';
     }
 
     public function testPublicMatchExposesGamesWithReplayIds(): void
@@ -63,5 +64,53 @@ final class TournamentPublicMatchReplaysTest extends TestCase
         $this->assertNull($pub['games'][1]['replay_id']);
         $this->assertSame(99, $pub['games'][2]['replay_id']);
         $this->assertSame('AAAA01', $pub['games'][0]['room_id']);
+    }
+
+    public function testPublicMatchHydratesReplayIdsFromArchiveIndex(): void
+    {
+        $meta = [
+            'best_of' => 1,
+            'p1_wins' => 1,
+            'p2_wins' => 0,
+            'games' => [
+                [
+                    'room_id' => 'bbbb02',
+                    'winner_discord_id' => '111',
+                    'at' => 100,
+                ],
+            ],
+        ];
+        $pub = \tcgTournamentPublicMatch([
+            'id' => 'm2',
+            'tournament_id' => 'T2',
+            'round' => 2,
+            'bracket_slot' => 0,
+            'bracket_side' => 'swiss',
+            'p1_discord_id' => '111',
+            'p2_discord_id' => '222',
+            'room_id' => 'BBBB02',
+            'status' => 'done',
+            'winner_discord_id' => '111',
+            'connect_deadline_at' => null,
+            'meta_json' => json_encode($meta, JSON_UNESCAPED_UNICODE),
+        ], ['BBBB02' => 77]);
+
+        $this->assertSame(77, $pub['games'][0]['replay_id']);
+    }
+
+    public function testHydratePublicGamesFillsOnlyMissingIds(): void
+    {
+        $games = [
+            ['room_id' => 'R1', 'replay_id' => 5],
+            ['room_id' => 'R2', 'replay_id' => null],
+            ['room_id' => 'R3', 'replay_id' => null],
+        ];
+        $out = \tcgTournamentHydratePublicGames($games, [
+            'R1' => 99,
+            'R2' => 88,
+        ]);
+        $this->assertSame(5, $out[0]['replay_id']);
+        $this->assertSame(88, $out[1]['replay_id']);
+        $this->assertNull($out[2]['replay_id']);
     }
 }

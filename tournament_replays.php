@@ -93,10 +93,12 @@ function tcgTournamentExportRoomReplay(string $roomId, string $token): ?array {
         require_once __DIR__ . '/match_bridge.php';
     }
     try {
+        // Longer backoff than casual autosave: tournament tick archives once,
+        // then Bo3 may clear tokens — a short race loses the round forever.
         $payload = tcgFetchOverflowReplayExportWithRetry(
             $roomId,
             $token,
-            [0, 400, 1200, 2800]
+            [0, 400, 1200, 2800, 5000, 8000]
         );
         if (!is_array($payload)) {
             return null;
@@ -184,6 +186,173 @@ function tcgTournamentAutosavePersonalFromPayload(
         ]);
     if (function_exists('tcgReplayTrimAutosaves')) {
         tcgReplayTrimAutosaves($discordId, 10);
+    }
+}
+
+/**
+ * Map room_id → public replay id for a tournament (for bracket hydration).
+ *
+ * @return array<string,int> uppercase room_id => replay id
+ */
+function tcgTournamentReplayIdsByRoom(string $tournamentId): array {
+    $tournamentId = strtoupper(trim($tournamentId));
+    if ($tournamentId === '') {
+        return [];
+    }
+    $stmt = tcgDb()->prepare(
+        'SELECT room_id, id FROM tcg_tournament_replays WHERE tournament_id = ?'
+    );
+    $stmt->execute([$tournamentId]);
+    $out = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $row) {
+        $rid = strtoupper(trim((string)($row['room_id'] ?? '')));
+        $id = (int)($row['id'] ?? 0);
+        if ($rid !== '' && $id > 0) {
+            $out[$rid] = $id;
+        }
+    }
+    return $out;
+}
+
+/**
+ * Fill missing games[].replay_id from the public archive table.
+ *
+ * @param list<array<string,mixed>> $gamesOut
+ * @param array<string,int> $roomToReplayId
+ * @return list<array<string,mixed>>
+ */
+function tcgTournamentHydratePublicGames(array $gamesOut, array $roomToReplayId): array {
+    if ($roomToReplayId === []) {
+        return $gamesOut;
+    }
+    // Normalize lookup keys once (match meta may store mixed-case room ids).
+    $index = [];
+    foreach ($roomToReplayId as $rid => $id) {
+        $key = strtoupper(trim((string)$rid));
+        $nid = (int)$id;
+        if ($key !== '' && $nid > 0) {
+            $index[$key] = $nid;
+        }
+    }
+    if ($index === []) {
+        return $gamesOut;
+    }
+    foreach ($gamesOut as &$g) {
+        if (!is_array($g)) {
+            continue;
+        }
+        if (!empty($g['replay_id'])) {
+            continue;
+        }
+        $rid = strtoupper(trim((string)($g['room_id'] ?? '')));
+        if ($rid !== '' && !empty($index[$rid])) {
+            $g['replay_id'] = (int)$index[$rid];
+        }
+    }
+    unset($g);
+    return $gamesOut;
+}
+
+/**
+ * Persist missing replay_id values into match meta when the archive row exists.
+ *
+ * @param array<string,mixed> $matchRow
+ * @param array<string,int> $roomToReplayId
+ */
+function tcgTournamentPersistMissingReplayIds(array $matchRow, array $roomToReplayId): void {
+    if ($roomToReplayId === [] || !function_exists('tcgTournamentDecodeMatchMeta')) {
+        return;
+    }
+    $matchId = (string)($matchRow['id'] ?? '');
+    if ($matchId === '') {
+        return;
+    }
+    $meta = tcgTournamentDecodeMatchMeta($matchRow['meta_json'] ?? '{}');
+    $changed = false;
+    foreach ($meta['games'] as $i => $g) {
+        if (!is_array($g)) {
+            continue;
+        }
+        if (!empty($g['replay_id'])) {
+            continue;
+        }
+        $rid = strtoupper(trim((string)($g['room_id'] ?? '')));
+        if ($rid === '' || empty($roomToReplayId[$rid])) {
+            continue;
+        }
+        $meta['games'][$i]['replay_id'] = (int)$roomToReplayId[$rid];
+        $changed = true;
+    }
+    if (!$changed) {
+        return;
+    }
+    tcgDb()->prepare(
+        'UPDATE tcg_tournament_matches SET meta_json = ?, updated_at = ? WHERE id = ?'
+    )->execute([tcgTournamentEncodeMatchMeta($meta), time(), $matchId]);
+}
+
+/**
+ * While match tokens remain, retry archive for finished games missing replay_id.
+ */
+function tcgTournamentRetryMissingReplays(string $tournamentId): void {
+    if (!function_exists('tcgTournamentFetchMatches') || !function_exists('tcgTournamentDecodeMatchMeta')) {
+        return;
+    }
+    $tournamentId = strtoupper(trim($tournamentId));
+    if ($tournamentId === '') {
+        return;
+    }
+    $roomIndex = tcgTournamentReplayIdsByRoom($tournamentId);
+    $matches = tcgTournamentFetchMatches($tournamentId);
+    foreach ($matches as $m) {
+        tcgTournamentPersistMissingReplayIds($m, $roomIndex);
+        $meta = tcgTournamentDecodeMatchMeta($m['meta_json'] ?? '{}');
+        $tokensOk = trim((string)($m['p1_token'] ?? '')) !== ''
+            || trim((string)($m['p2_token'] ?? '')) !== '';
+        $currentRoom = strtoupper(trim((string)($m['room_id'] ?? '')));
+        $changed = false;
+        foreach ($meta['games'] as $i => $g) {
+            if (!is_array($g)) {
+                continue;
+            }
+            if (!empty($g['replay_id'])) {
+                continue;
+            }
+            $rid = strtoupper(trim((string)($g['room_id'] ?? '')));
+            if ($rid === '') {
+                continue;
+            }
+            if (!empty($roomIndex[$rid])) {
+                $meta['games'][$i]['replay_id'] = (int)$roomIndex[$rid];
+                $changed = true;
+                continue;
+            }
+            // Only export when credentials for this room are still on the match row.
+            if (!$tokensOk || $currentRoom === '' || $currentRoom !== $rid) {
+                continue;
+            }
+            try {
+                $replayId = tcgTournamentArchiveFinishedGameReplay(
+                    $m,
+                    $rid,
+                    (string)($g['winner_discord_id'] ?? ''),
+                    (string)($g['reason'] ?? 'game'),
+                    $i + 1
+                );
+                if ($replayId) {
+                    $meta['games'][$i]['replay_id'] = (int)$replayId;
+                    $roomIndex[$rid] = (int)$replayId;
+                    $changed = true;
+                }
+            } catch (Throwable $e) {
+                // Keep bracket moving; next tick may retry while tokens last.
+            }
+        }
+        if ($changed) {
+            tcgDb()->prepare(
+                'UPDATE tcg_tournament_matches SET meta_json = ?, updated_at = ? WHERE id = ?'
+            )->execute([tcgTournamentEncodeMatchMeta($meta), time(), (string)$m['id']]);
+        }
     }
 }
 

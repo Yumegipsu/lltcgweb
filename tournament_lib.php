@@ -1225,8 +1225,10 @@ function tcgTournamentPublicEntrant(array $e, bool $includeDeck = false): array 
     return $out;
 }
 
-/** @param array<string,mixed> $m */
-function tcgTournamentPublicMatch(array $m): array {
+/** @param array<string,mixed> $m
+ * @param array<string,int>|null $roomToReplayId optional room_id => replay id map
+ */
+function tcgTournamentPublicMatch(array $m, ?array $roomToReplayId = null): array {
     $meta = function_exists('tcgTournamentDecodeMatchMeta')
         ? tcgTournamentDecodeMatchMeta($m['meta_json'] ?? '{}')
         : ['p1_wins' => 0, 'p2_wins' => 0, 'best_of' => 1, 'games' => []];
@@ -1242,8 +1244,25 @@ function tcgTournamentPublicMatch(array $m): array {
             'winner_discord_id' => isset($g['winner_discord_id']) && $g['winner_discord_id'] !== ''
                 ? (string)$g['winner_discord_id'] : null,
             'replay_id' => $replayId > 0 ? $replayId : null,
+            'game_index' => isset($g['game_index']) ? (int)$g['game_index'] : null,
             'at' => isset($g['at']) ? (int)$g['at'] : null,
         ];
+    }
+    // Preserve positional game index when meta omitted it (Watch G1 / G2 labels).
+    foreach ($gamesOut as $i => &$gRow) {
+        if (empty($gRow['game_index'])) {
+            $gRow['game_index'] = $i + 1;
+        }
+    }
+    unset($gRow);
+    if ($roomToReplayId === null
+        && function_exists('tcgTournamentReplayIdsByRoom')
+        && ($m['tournament_id'] ?? '') !== '') {
+        $roomToReplayId = tcgTournamentReplayIdsByRoom((string)$m['tournament_id']);
+    }
+    if (is_array($roomToReplayId) && $roomToReplayId !== []
+        && function_exists('tcgTournamentHydratePublicGames')) {
+        $gamesOut = tcgTournamentHydratePublicGames($gamesOut, $roomToReplayId);
     }
     return [
         'id' => (string)$m['id'],

@@ -1600,13 +1600,38 @@ function tcgReplayPayloadFromRow(array $row): array {
     return $upgraded;
 }
 
-/** Keep at most $keep non-preserved (autosave) rows per user; oldest deleted. */
+/** Keep at most $keep non-preserved (autosave) rows per user; oldest deleted.
+ * Tournament-archived rooms are excluded so a mid-event FIFO trim cannot drop
+ * a round while later rounds still land in Recent.
+ */
 function tcgReplayTrimAutosaves(string $uid, int $keep = 10): void {
     $keep = max(1, min(50, $keep));
     $db = tcgDb();
-    $stmt = $db->prepare('SELECT id FROM tcg_replays
-        WHERE discord_id = ? AND COALESCE(preserved, 0) = 0
-        ORDER BY saved_at DESC, id DESC');
+    $hasTournamentTable = false;
+    try {
+        $chk = $db->query(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='tcg_tournament_replays' LIMIT 1"
+        );
+        $hasTournamentTable = (bool)($chk && $chk->fetchColumn());
+    } catch (Throwable $e) {
+        $hasTournamentTable = false;
+    }
+    if ($hasTournamentTable) {
+        $stmt = $db->prepare(
+            'SELECT r.id FROM tcg_replays r
+             WHERE r.discord_id = ? AND COALESCE(r.preserved, 0) = 0
+               AND NOT EXISTS (
+                 SELECT 1 FROM tcg_tournament_replays t WHERE t.room_id = r.room_id
+               )
+             ORDER BY r.saved_at DESC, r.id DESC'
+        );
+    } else {
+        $stmt = $db->prepare(
+            'SELECT id FROM tcg_replays
+             WHERE discord_id = ? AND COALESCE(preserved, 0) = 0
+             ORDER BY saved_at DESC, id DESC'
+        );
+    }
     $stmt->execute([$uid]);
     $ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN) ?: []);
     if (count($ids) <= $keep) {

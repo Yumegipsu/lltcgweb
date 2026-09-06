@@ -87,4 +87,79 @@ final class HasunosoraPb1IzumiOriginalBladeTest extends TestCase
         $this->assertFalse(\memberIsInWait($state['players']['p2']['stage']['center']));
         $this->assertTrue(\memberIsInWait($state['players']['p2']['stage']['right']));
     }
+
+    /** On Enter must not re-fire when another ≤3-Blade Member enters later. */
+    public function testSittingIzumiDoesNotWaitLaterEnter(): void
+    {
+        $izumi = $this->cardByNo('PL!HS-pb1-008-R', 'izumi');
+        $maki = $this->cardByNo('PL!-bp5-015-N', 'maki');
+        $this->assertLessThanOrEqual(3, intval($maki['blade'] ?? 99));
+
+        $state = [
+            'status' => 'playing',
+            'phase' => 'main_first',
+            'seq' => 1,
+            'turn' => 2,
+            'first_player' => 'p1',
+            'active_player' => 'p2',
+            'log' => [],
+            'players' => [
+                'p1' => [
+                    'id' => 'p1',
+                    'name' => 'P1',
+                    'hand' => [],
+                    'waiting_room' => [],
+                    'stage' => [
+                        'left' => null,
+                        'center' => $izumi,
+                        'right' => null,
+                    ],
+                    'energy_zone' => [],
+                    'main_deck' => [],
+                    'success_lives' => [],
+                    'live_zone' => [],
+                ],
+                'p2' => [
+                    'id' => 'p2',
+                    'name' => 'P2',
+                    'hand' => [$maki],
+                    'waiting_room' => [],
+                    'stage' => [
+                        'left' => null,
+                        'center' => null,
+                        'right' => null,
+                    ],
+                    'energy_zone' => array_map(
+                        static fn (int $i): array => [
+                            'instance_id' => 'e' . $i,
+                            'active' => true,
+                            'card_type' => 'エネルギー',
+                        ],
+                        range(0, 20)
+                    ),
+                    'main_deck' => [],
+                    'success_lives' => [],
+                    'live_zone' => [],
+                ],
+            ],
+        ];
+
+        $state = \applyAction($state, 'p2', 'play_member', [
+            'card_id' => 'maki',
+            'slot' => 'center',
+        ]);
+
+        $onStage = $state['players']['p2']['stage']['center'] ?? null;
+        $this->assertNotNull($onStage);
+        $this->assertFalse(
+            \memberIsInWait($onStage),
+            'Sitting Izumi must not Wait a Member that enters after her On Enter'
+        );
+
+        $msgs = [];
+        foreach ($state['log'] ?? [] as $entry) {
+            $msgs[] = is_array($entry) ? (string) ($entry['msg'] ?? '') : (string) $entry;
+        }
+        $this->assertStringNotContainsString('Blades into Wait', implode("\n", $msgs));
+    }
 }

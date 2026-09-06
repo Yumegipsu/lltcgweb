@@ -189,9 +189,16 @@ function tcgApiTournamentGet(array $body): array {
     }
     if ((string)($row['status'] ?? '') === 'finished') {
         tcgTournamentRepairFinishedEntrantStatuses($id, $row);
+        if (function_exists('tcgTournamentRetryMissingReplays')) {
+            // Attach archive ids into match meta / public games for past-bracket Watch buttons.
+            tcgTournamentRetryMissingReplays($id);
+            $matches = tcgTournamentFetchMatches($id);
+        }
     }
     $entrants = tcgTournamentFetchEntrants($id);
-    $matches = tcgTournamentFetchMatches($id);
+    if (!isset($matches)) {
+        $matches = tcgTournamentFetchMatches($id);
+    }
     $me = null;
     foreach ($entrants as $e) {
         if ((string)$e['discord_id'] === $uid) {
@@ -220,6 +227,10 @@ function tcgApiTournamentGet(array $body): array {
     $hostName = (string)($hostRow['username'] ?? 'Host');
     $hostAvatar = $hostRow['avatar_url'] ?? null;
 
+    $replayIndex = function_exists('tcgTournamentReplayIdsByRoom')
+        ? tcgTournamentReplayIdsByRoom($id)
+        : [];
+
     return [
         'success' => true,
         'tournament' => $pub,
@@ -229,7 +240,10 @@ function tcgApiTournamentGet(array $body): array {
         'is_host' => (string)$row['host_discord_id'] === $uid,
         'me' => $me,
         'entrants' => array_map(static fn($e) => tcgTournamentPublicEntrant($e, false), $entrants),
-        'matches' => array_map('tcgTournamentPublicMatch', $matches),
+        'matches' => array_map(
+            static fn(array $m) => tcgTournamentPublicMatch($m, $replayIndex),
+            $matches
+        ),
         'bracket_preview' => (count($matches) === 0)
             ? tcgTournamentBracketPreview(
                 tcgTournamentPreviewPlayerCap($row, $entrants, $checked),

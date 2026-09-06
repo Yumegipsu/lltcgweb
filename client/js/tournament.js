@@ -1662,9 +1662,9 @@
     } else if (replayGames.length) {
       html += '<div class="tournament-replay-btns">';
       replayGames.forEach((g, idx) => {
-        const n = idx + 1;
+        const gameNo = Number(g.game_index) > 0 ? Number(g.game_index) : (idx + 1);
         const label = replayGames.length > 1
-          ? t('tournament.bracket.watchGame', 'Watch G{n}', { n: n })
+          ? t('tournament.bracket.watchGame', 'Watch G{n}', { n: gameNo })
           : t('tournament.bracket.watchReplay', 'Watch Replay');
         html += '<button type="button" class="tournament-spec-btn tournament-replay-btn" data-replay="'
           + escapeAttr(String(g.replay_id)) + '"'

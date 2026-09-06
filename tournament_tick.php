@@ -64,18 +64,28 @@ function tcgTournamentTickOne(string $id): array {
     if ($status === 'running') {
         tcgTournamentApplyRoomResults($id);
         tcgTournamentApplyConnectForfeits($id, $now);
+        if (function_exists('tcgTournamentRetryMissingReplays')) {
+            tcgTournamentRetryMissingReplays($id);
+        }
         tcgTournamentSeedPendingRooms($id);
         tcgTournamentAdvanceCompletedRounds($id);
         if (tcgTournamentTryFinish($id)) {
             $events[] = 'finished';
             $row = tcgTournamentFetch($id) ?: $row;
             tcgTournamentNotifyWebhook('finished', $row);
+            $status = 'finished';
         }
         $row = tcgTournamentFetch($id) ?: $row;
+        $status = (string)($row['status'] ?? $status);
+    } elseif ($status === 'finished' && function_exists('tcgTournamentRetryMissingReplays')) {
+        tcgTournamentRetryMissingReplays($id);
     }
 
     $entrants = tcgTournamentFetchEntrants($id);
     $matches = tcgTournamentFetchMatches($id);
+    $replayIndex = function_exists('tcgTournamentReplayIdsByRoom')
+        ? tcgTournamentReplayIdsByRoom($id)
+        : [];
     return [
         'success' => true,
         'tournament' => tcgTournamentPublicRow($row, [
@@ -85,7 +95,10 @@ function tcgTournamentTickOne(string $id): array {
                 static fn($e) => in_array((string)$e['status'], ['checked_in', 'playing', 'eliminated'], true)
             )),
         ]),
-        'matches' => array_map('tcgTournamentPublicMatch', $matches),
+        'matches' => array_map(
+            static fn(array $m) => tcgTournamentPublicMatch($m, $replayIndex),
+            $matches
+        ),
         'events' => $events,
         'server_now' => $now,
     ];
@@ -329,19 +342,35 @@ function tcgTournamentRecordGameResult(string $matchId, string $winnerDiscordId,
 
     // Durable public + personal replays while room tokens are still on the match row.
     if ($roomId !== '' && function_exists('tcgTournamentArchiveFinishedGameReplay')) {
+        $gameIdx = count($meta['games']);
+        $replayId = null;
         try {
             $replayId = tcgTournamentArchiveFinishedGameReplay(
                 $m,
                 $roomId,
                 $winnerDiscordId,
                 $reason,
-                count($meta['games'])
+                $gameIdx
             );
-            if ($replayId) {
-                $meta['games'][count($meta['games']) - 1]['replay_id'] = (int)$replayId;
-            }
         } catch (Throwable $e) {
-            // Never block bracket progression on archive failure (connect forfeits, expired rooms).
+            $replayId = null;
+        }
+        // Second chance before Bo3 clears credentials (overflow finish race).
+        if (!$replayId) {
+            try {
+                $replayId = tcgTournamentArchiveFinishedGameReplay(
+                    $m,
+                    $roomId,
+                    $winnerDiscordId,
+                    $reason,
+                    $gameIdx
+                );
+            } catch (Throwable $e) {
+                $replayId = null;
+            }
+        }
+        if ($replayId) {
+            $meta['games'][count($meta['games']) - 1]['replay_id'] = (int)$replayId;
         }
     }
 
@@ -351,6 +380,25 @@ function tcgTournamentRecordGameResult(string $matchId, string $winnerDiscordId,
         || (int)$meta['p2_wins'] >= $need;
 
     if (!$seriesOver) {
+        // Last-ditch archive while tokens still exist — next seed clears them.
+        $lastGame = $meta['games'][count($meta['games']) - 1] ?? null;
+        if ($roomId !== '' && is_array($lastGame) && empty($lastGame['replay_id'])
+            && function_exists('tcgTournamentArchiveFinishedGameReplay')) {
+            try {
+                $lateId = tcgTournamentArchiveFinishedGameReplay(
+                    $m,
+                    $roomId,
+                    $winnerDiscordId,
+                    $reason,
+                    count($meta['games'])
+                );
+                if ($lateId) {
+                    $meta['games'][count($meta['games']) - 1]['replay_id'] = (int)$lateId;
+                }
+            } catch (Throwable $e) {
+                // Fall through — bracket must still advance.
+            }
+        }
         tcgDb()->prepare(
             'UPDATE tcg_tournament_matches
              SET room_id = NULL, p1_token = NULL, p2_token = NULL, status = "pending",
