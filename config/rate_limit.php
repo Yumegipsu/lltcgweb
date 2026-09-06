@@ -81,7 +81,14 @@ function tcgRateLimitForAction(string $action, array $body = [], ?string $authTo
             break;
         case 'get_state':
             $roomId = preg_replace('/[^A-Z0-9]/', '', strtoupper(trim((string)($body['room_id'] ?? ''))));
+            $token = trim((string)($body['token'] ?? ''));
             $key = $roomId !== '' ? $ip . '_' . $roomId : $ip;
+            // Spectators share get_state with players; keep a tighter per-IP+room
+            // budget so a crowded watch party cannot starve player polls.
+            if (str_starts_with($token, 'spec_')) {
+                tcgRateLimitCheck('get_state_spec', $key, 1200, TCG_RATE_WINDOW_SEC);
+                break;
+            }
             $max = $roomId !== '' ? 4000 : 60;
             tcgRateLimitCheck('get_state', $key, $max, TCG_RATE_WINDOW_SEC);
             break;

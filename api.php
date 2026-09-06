@@ -754,17 +754,40 @@ function getStatePolling(): void {
             echo json_encode(['error' => 'Room not found']);
             return;
         }
-        if (tcgIsSpectatorToken($playerToken)) {
-            if (tcgSpectatorTokenValid($roomId, $playerToken)) {
-                tcgTouchSpectatorPresence($roomId, $playerToken);
+        $isSpectator = tcgIsSpectatorToken($playerToken);
+        if ($isSpectator) {
+            if (!tcgSpectatorTokenValid($roomId, $playerToken)) {
+                echo json_encode(['error' => 'Spectator session expired']);
+                return;
             }
-        } else {
-            touchPresence($roomId, $playerToken);
-        }
-        if (tcgIsSpectatorToken($playerToken) && !tcgSpectatorTokenValid($roomId, $playerToken)) {
-            echo json_encode(['error' => 'Spectator session expired']);
+            tcgTouchSpectatorPresence($roomId, $playerToken);
+            // READ-ONLY for spectators: never run phase/disconnect side-effects or
+            // unlocked saveGame. Players + their get_state remain the timeout owners.
+            // (Many spectators used to stampede applyPhaseTimeouts / forfeit writes.)
+            if (($state['mode'] ?? '') === 'tournament') {
+                require_once __DIR__ . '/tournament_spectate.php';
+                if (tcgTournamentStreamDelaySecs($state) > 0) {
+                    $filtered = filterStateForClient($state, $roomId, $playerToken);
+                    $viewSeq = intval($filtered['seq'] ?? 0);
+                    $waiting = !empty($filtered['spectate_stream_waiting']);
+                    if (!$waiting && $lastSeq > 0 && $lastSeq === $viewSeq) {
+                        echo json_encode(['ok' => true, 'unchanged' => true, 'seq' => $viewSeq]);
+                        return;
+                    }
+                    echo json_encode($filtered);
+                    return;
+                }
+            }
+            $curSeq = intval($state['seq'] ?? 0);
+            if (!$forceFull && $lastSeq > 0 && $lastSeq === $curSeq) {
+                echo json_encode(['ok' => true, 'unchanged' => true, 'seq' => $curSeq]);
+                return;
+            }
+            echo json_encode(filterStateForClient($state, $roomId, $playerToken));
             return;
         }
+
+        touchPresence($roomId, $playerToken);
         // Refresh reconnect: usually read-only — but live_show stalls must still heal.
         // Spectacle parks on resume=1 during "Checking hearts…"; skipping timeouts there
         // left PvP rooms stuck when one player never acked (and thrashing workers OOMed).
@@ -823,23 +846,6 @@ function getStatePolling(): void {
             $curSeq = intval($state['seq'] ?? 0);
         }
 
-        // Delayed tournament spectate keys off the delayed snapshot seq, never live seq.
-        if (tcgIsSpectatorToken($playerToken)
-            && ($state['mode'] ?? '') === 'tournament') {
-            require_once __DIR__ . '/tournament_spectate.php';
-            if (tcgTournamentStreamDelaySecs($state) > 0) {
-                $filtered = filterStateForClient($state, $roomId, $playerToken);
-                $viewSeq = intval($filtered['seq'] ?? 0);
-                $waiting = !empty($filtered['spectate_stream_waiting']);
-                if (!$mutated && !$waiting && $lastSeq > 0 && $lastSeq === $viewSeq) {
-                    echo json_encode(['ok' => true, 'unchanged' => true, 'seq' => $viewSeq]);
-                    return;
-                }
-                echo json_encode($filtered);
-                return;
-            }
-        }
-
         // Client already has this seq and nothing mutated — skip filter/encode.
         // force=1 must NEVER short-circuit: the client uses it when lastSeq was
         // advanced before the board painted (own-turn actions). Returning
@@ -866,20 +872,23 @@ function getStatePolling(): void {
             echo json_encode(['error' => 'Room not found']);
             return;
         }
-        if (applyPhaseTimeouts($state)) {
-            saveGame($roomId, $state);
+        // Spectators: read-only wake loop (no timeout/forfeit mutations).
+        if (!$isSpectator) {
+            if (applyPhaseTimeouts($state)) {
+                saveGame($roomId, $state);
+            }
+            if (applyCoinFlipStalemate($state)) {
+                refreshPvpPhaseTimers($state);
+                saveGame($roomId, $state);
+            }
+            if (applyDisconnectForfeits($state, $roomId)) {
+                saveGame($roomId, $state);
+                maybeApplyRankedFinish($state);
+                maybeCreditCasualFinishMissions($state);
+                saveGame($roomId, $state);
+            }
+            maybeRecoverUnappliedRankedFinish($roomId, $state);
         }
-        if (applyCoinFlipStalemate($state)) {
-            refreshPvpPhaseTimers($state);
-            saveGame($roomId, $state);
-        }
-        if (applyDisconnectForfeits($state, $roomId)) {
-            saveGame($roomId, $state);
-            maybeApplyRankedFinish($state);
-            maybeCreditCasualFinishMissions($state);
-            saveGame($roomId, $state);
-        }
-        maybeRecoverUnappliedRankedFinish($roomId, $state);
         $wakeSeq = intval($state['seq'] ?? 0);
         if ($isSpectator && ($state['mode'] ?? '') === 'tournament') {
             require_once __DIR__ . '/tournament_spectate.php';
@@ -900,21 +909,23 @@ function getStatePolling(): void {
     }
     // Timeout – return current state
     $state = loadGame($roomId);
-    if ($state && applyPhaseTimeouts($state)) {
+    if ($state && !$isSpectator && applyPhaseTimeouts($state)) {
         saveGame($roomId, $state);
     }
-    if ($state && applyCoinFlipStalemate($state)) {
+    if ($state && !$isSpectator && applyCoinFlipStalemate($state)) {
         refreshPvpPhaseTimers($state);
         saveGame($roomId, $state);
     }
-    if ($state && applyDisconnectForfeits($state, $roomId)) {
+    if ($state && !$isSpectator && applyDisconnectForfeits($state, $roomId)) {
         saveGame($roomId, $state);
         maybeApplyRankedFinish($state);
         maybeCreditCasualFinishMissions($state);
         saveGame($roomId, $state);
     }
-    if ($state) {
+    if ($state && !$isSpectator) {
         maybeRecoverUnappliedRankedFinish($roomId, $state);
+    }
+    if ($state) {
         echo json_encode(filterStateForClient($state, $roomId, $playerToken));
     }
 }

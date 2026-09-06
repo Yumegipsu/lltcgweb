@@ -6,6 +6,11 @@
 
 const TCG_SPECTATOR_IDLE_SEC = 120;
 const TCG_SPECTATOR_MAX_PER_ROOM = 32;
+/** Skip rewriting spectators_*.json on every get_state (presence ping covers liveness). */
+const TCG_SPECTATOR_PRESENCE_TOUCH_SEC = 25;
+/** Limit purge/count disk scans under spectator stampedes. */
+const TCG_SPECTATOR_PURGE_THROTTLE_SEC = 20;
+const TCG_SPECTATOR_COUNT_CACHE_SEC = 2;
 
 /** In-progress matches use status "setup", not "playing" (matches client isActiveGameplay). */
 function tcgIsActiveGameplayStatus(array $state): bool {
@@ -59,28 +64,76 @@ function tcgPurgeStaleSpectators(string $roomId, ?int $now = null): array {
     return $spectators;
 }
 
+/**
+ * Throttled purge — full scans on every get_state stampeded disk under many spectators.
+ *
+ * @return array<string, mixed>
+ */
+function tcgPurgeStaleSpectatorsThrottled(string $roomId, ?int $now = null): array {
+    $now = $now ?? time();
+    if (!isset($GLOBALS['_tcg_spec_purge_at']) || !is_array($GLOBALS['_tcg_spec_purge_at'])) {
+        $GLOBALS['_tcg_spec_purge_at'] = [];
+    }
+    $last = intval($GLOBALS['_tcg_spec_purge_at'][$roomId] ?? 0);
+    if ($last > 0 && ($now - $last) < TCG_SPECTATOR_PURGE_THROTTLE_SEC) {
+        return tcgReadSpectators($roomId);
+    }
+    $GLOBALS['_tcg_spec_purge_at'][$roomId] = $now;
+    return tcgPurgeStaleSpectators($roomId, $now);
+}
+
 function tcgSpectatorTokenValid(string $roomId, string $token): bool {
     if (!tcgIsSpectatorToken($token)) {
         return false;
     }
-    $spectators = tcgPurgeStaleSpectators($roomId);
-    return isset($spectators[$token]);
+    $spectators = tcgPurgeStaleSpectatorsThrottled($roomId);
+    if (!isset($spectators[$token])) {
+        return false;
+    }
+    $meta = $spectators[$token];
+    $last = intval(is_array($meta) ? ($meta['last_seen'] ?? $meta['joined_at'] ?? 0) : 0);
+    if ($last > 0 && (time() - $last) >= TCG_SPECTATOR_IDLE_SEC) {
+        return false;
+    }
+    return true;
 }
 
 function tcgLiveSpectatorCount(string $roomId): int {
-    return count(tcgPurgeStaleSpectators($roomId));
+    $now = time();
+    if (!isset($GLOBALS['_tcg_spec_count_cache']) || !is_array($GLOBALS['_tcg_spec_count_cache'])) {
+        $GLOBALS['_tcg_spec_count_cache'] = [];
+    }
+    $cached = $GLOBALS['_tcg_spec_count_cache'][$roomId] ?? null;
+    if (is_array($cached)
+        && intval($cached['t'] ?? 0) > 0
+        && ($now - intval($cached['t'])) < TCG_SPECTATOR_COUNT_CACHE_SEC) {
+        return intval($cached['n'] ?? 0);
+    }
+    $n = count(tcgPurgeStaleSpectatorsThrottled($roomId, $now));
+    $GLOBALS['_tcg_spec_count_cache'][$roomId] = ['t' => $now, 'n' => $n];
+    return $n;
 }
 
 function tcgTouchSpectatorPresence(string $roomId, string $token): void {
     if (!tcgIsSpectatorToken($token)) {
         return;
     }
-    $spectators = tcgPurgeStaleSpectators($roomId);
+    $now = time();
+    $spectators = tcgPurgeStaleSpectatorsThrottled($roomId, $now);
     if (!isset($spectators[$token])) {
         return;
     }
-    $spectators[$token]['last_seen'] = time();
+    $meta = $spectators[$token];
+    $last = intval(is_array($meta) ? ($meta['last_seen'] ?? 0) : 0);
+    // Avoid N spectators × get_state rewriting the same JSON every poll.
+    if ($last > 0 && ($now - $last) < TCG_SPECTATOR_PRESENCE_TOUCH_SEC) {
+        return;
+    }
+    $spectators[$token]['last_seen'] = $now;
     tcgWriteSpectators($roomId, $spectators);
+    if (isset($GLOBALS['_tcg_spec_count_cache']) && is_array($GLOBALS['_tcg_spec_count_cache'])) {
+        unset($GLOBALS['_tcg_spec_count_cache'][$roomId]);
+    }
 }
 
 /** Human PvP with at least one player still connected (presence / recent game activity). */

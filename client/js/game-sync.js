@@ -13,11 +13,17 @@
   global.TCG_SYNC_USE_PHP_PROXY = false;
   /** Debounce SSE→get_state so a burst of seq notifies becomes one fetch. */
   global.TCG_SYNC_SSE_DEBOUNCE_MS = 220;
+  /** Spectators can coalesce more aggressively — they never own the action path. */
+  global.TCG_SYNC_SSE_DEBOUNCE_SPECTATE_MS = 750;
   /** After an in-flight get_state, wait this long before one follow-up pull. */
   global.TCG_SYNC_COALESCE_FOLLOW_MS = 450;
   /** Safety get_state while SSE looks healthy (PvP / CPU). */
   global.TCG_SYNC_SAFETY_POLL_MS = 5500;
   global.TCG_SYNC_SAFETY_POLL_CPU_MS = 5000;
+  /** Spectators: slower safety net so N watchers do not match player poll cadence. */
+  global.TCG_SYNC_SAFETY_POLL_SPECTATE_MS = 16000;
+  /** Fallback poll when SSE is down — spectators use a longer base interval. */
+  global.TCG_SYNC_FALLBACK_POLL_SPECTATE_MS = 12000;
 
   global._tcgSyncStats = global._tcgSyncStats || {
     streamDirect: 0,
@@ -273,7 +279,7 @@
     G._actionApplyEpoch = null;
     G._actionApplyEpochNeedsFollowUp = false;
     if (needsFollow && G.polling && G.syncEnabled && G.syncTicket) {
-      scheduleDeferredSyncPull(global.TCG_SYNC_SSE_DEBOUNCE_MS || 220);
+      scheduleDeferredSyncPull(syncSseDebounceMs());
     }
   };
 
@@ -282,7 +288,7 @@
     if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
     clearTimeout(G.pollTimer);
     if (G.syncEnabled && G.syncTicket) {
-      scheduleDeferredSyncPull(Math.max(delayMs, global.TCG_SYNC_SSE_DEBOUNCE_MS || 220));
+      scheduleDeferredSyncPull(Math.max(delayMs, syncSseDebounceMs()));
     } else {
       G.pollTimer = setTimeout(doPollLegacy, delayMs);
     }
@@ -380,9 +386,17 @@
 
   function syncFallbackDelayMs() {
     const fails = G._syncFailCount || 0;
-    const base = global.TCG_SYNC_FALLBACK_POLL_MS || 5000;
+    const base = G.isSpectator
+      ? (global.TCG_SYNC_FALLBACK_POLL_SPECTATE_MS || global.TCG_SYNC_FALLBACK_POLL_MS || 12000)
+      : (global.TCG_SYNC_FALLBACK_POLL_MS || 5000);
     const max = global.TCG_SYNC_FALLBACK_POLL_MAX_MS || 20000;
     return Math.min(max, base * Math.max(1, Math.pow(1.5, Math.min(fails, 6))));
+  }
+
+  function syncSseDebounceMs() {
+    return G.isSpectator
+      ? (global.TCG_SYNC_SSE_DEBOUNCE_SPECTATE_MS || 750)
+      : (global.TCG_SYNC_SSE_DEBOUNCE_MS || 220);
   }
 
   /** Drop poll responses from a prior room/session (e.g. tutorial boot after CPU match). */
@@ -438,9 +452,11 @@
     clearTimeout(G.syncSafetyTimer);
     if (isReplayViewingSync()) return;
     if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
-    const delay = G.isCPU
-      ? (global.TCG_SYNC_SAFETY_POLL_CPU_MS || 5000)
-      : (global.TCG_SYNC_SAFETY_POLL_MS || 5500);
+    const delay = G.isSpectator
+      ? (global.TCG_SYNC_SAFETY_POLL_SPECTATE_MS || 16000)
+      : (G.isCPU
+        ? (global.TCG_SYNC_SAFETY_POLL_CPU_MS || 5000)
+        : (global.TCG_SYNC_SAFETY_POLL_MS || 5500));
     G.syncSafetyTimer = setTimeout(async () => {
       G.syncSafetyTimer = null;
       if (!G.polling || (G.isTutorial && !G.tutorialLive)) return;
@@ -479,8 +495,8 @@
     TCG_DEBUG.log('sync', 'state event', { seq, last: G.lastSeq });
     // Debounce: several notifies in one action burst → one get_state.
     const delay = pollPresentationBlocked()
-      ? 500
-      : (global.TCG_SYNC_SSE_DEBOUNCE_MS || 220);
+      ? Math.max(500, syncSseDebounceMs())
+      : syncSseDebounceMs();
     scheduleDeferredSyncPull(delay);
   }
 
