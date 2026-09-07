@@ -2470,25 +2470,41 @@ function playerAttemptingLivePerformance(array $state, string $pid): bool {
 
 /**
  * Whether Stage/Live [Live Start] skills may resolve for this seat.
- * Member-bluff-only storage must not fire Live Start. Empty storage is allowed
- * so isolated skill unit tests can call resolveLiveStartAbilities without a full
- * Performance setup (real empty seats are already excluded from live_attempt).
+ * Member-bluff-only storage must not fire Live Start. After official mill of
+ * non-Live storage cards, the zone may be empty — that must still not open
+ * Stage Live Starts for a bluff-only performer (#166).
+ * Empty storage remains allowed for isolated unit tests that call
+ * resolveLiveStartAbilities without a Performance `_live_start_perf_pid`.
  */
 function playerShouldResolveLiveStart(array $state, string $pid): bool {
     if (!empty($state['live_modifiers'][$pid]['cannot_live'])) {
         return false;
     }
-    $anyStorage = false;
+    // Frozen Live Show snapshot survives member-bluff mill.
+    $played = $state['live_show']['played_lives'][$pid] ?? null;
+    if (is_array($played)) {
+        return $played !== [];
+    }
     foreach ($state['players'][$pid]['live_zone'] ?? [] as $c) {
-        if (!$c) {
-            continue;
-        }
-        $anyStorage = true;
-        if (isLiveTypeCard($c)) {
+        if ($c && isLiveTypeCard($c)) {
             return true;
         }
     }
-    return !$anyStorage;
+    // Any non-Live still in storage → bluff-only, no Live Start.
+    foreach ($state['players'][$pid]['live_zone'] ?? [] as $c) {
+        if ($c) {
+            return false;
+        }
+    }
+    // Empty zone during a real Performance Live Start for this seat: bluffs were
+    // already milled — do not treat empty as "isolated test, allow".
+    if (($state['_live_start_perf_pid'] ?? null) === $pid
+        && !empty($state['live_attempt'])
+        && in_array($pid, $state['live_attempt'], true)) {
+        return false;
+    }
+    // Isolated skill tests: empty live_zone, no perf pid.
+    return true;
 }
 
 /** Instance ids of Live cards in storage — frozen for spectacle / Live Judge rows. */

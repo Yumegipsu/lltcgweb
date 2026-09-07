@@ -206,16 +206,78 @@ final class LiveStartRequiresLiveCardsTest extends TestCase
         $this->assertStringNotContainsString('Live Start Effects (BluffOnly)', $log);
     }
 
+    /** Issue #166 — after milling Member bluffs, empty zone must not open Stage Live Start. */
+    public function testBeginLiveStartEffectPhaseSkipsBluffOnlyFirstPerformer(): void
+    {
+        $kaho = $this->kahoWithBlades();
+        $state = $this->baseState(
+            [$this->bluffMember('p1bluff')],
+            [],
+            $kaho
+        );
+        // Only p1 attempts; storage is Member bluff only.
+        $state['live_attempt'] = ['p1'];
+        $state['players']['p1']['stage']['center'] = $kaho;
+        $state['players']['p2']['stage']['center'] = null;
+
+        $this->assertFalse(\playerAttemptingLivePerformance($state, 'p1'));
+        $this->assertFalse(\playerShouldResolveLiveStart($state, 'p1'));
+
+        // Keep finishLiveStartEffects from running Yell → next-turn Draw (would grow hand).
+        $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true;
+        try {
+            $handBefore = count($state['players']['p1']['hand']);
+            $deckBefore = count($state['players']['p1']['main_deck']);
+            $state = \beginLiveStartEffectPhase($state, true, false);
+
+            $this->assertNull($state['pending_prompt'] ?? null, 'Must not open Kaho (or any) Live Start after bluff mill');
+            $this->assertSame($handBefore, count($state['players']['p1']['hand']));
+            $this->assertSame($deckBefore, count($state['players']['p1']['main_deck']));
+            $this->assertCount(0, $state['players']['p1']['live_zone']);
+            $this->assertContains('p1bluff', array_column($state['players']['p1']['waiting_room'], 'instance_id'));
+            $this->assertFalse(\playerShouldResolveLiveStart($state, 'p1'));
+            $log = implode("\n", array_map(
+                static fn($e) => is_array($e) ? (string)($e['msg'] ?? '') : (string)$e,
+                $state['log'] ?? []
+            ));
+            $this->assertStringNotContainsString('Live Start Effects (Performer)', $log);
+            $this->assertStringNotContainsString('[Live Start]', $log);
+        } finally {
+            unset($GLOBALS['TUT_PERF_MANUAL_PHASES']);
+        }
+    }
+
     public function testEmptyStorageStillAllowsIsolatedLiveStartSkillTests(): void
     {
         $kaho = $this->kahoWithBlades();
         $state = $this->baseState([], [], $kaho);
         $state['live_attempt'] = ['p2'];
+        // No _live_start_perf_pid — isolated resolveLiveStartAbilities call.
         $deckBefore = count($state['players']['p2']['main_deck']);
         $state = \resolveLiveStartAbilities($state, 'p2');
         $drewOrPrompted = !empty($state['pending_prompt'])
             || count($state['players']['p2']['main_deck']) < $deckBefore
             || count($state['players']['p2']['hand']) > 0;
         $this->assertTrue($drewOrPrompted, 'Empty live_zone must not block isolated Live Start tests');
+    }
+
+    public function testPlayedLivesSnapshotGatesAfterMill(): void
+    {
+        $kaho = $this->kahoWithBlades();
+        $state = $this->baseState(
+            [$this->bluffMember('p1bluff')],
+            [],
+            $kaho
+        );
+        $state['players']['p1']['stage']['center'] = $kaho;
+        $state['live_attempt'] = ['p1'];
+        $state['_live_start_perf_pid'] = 'p1';
+        $state['live_show'] = [
+            'played_lives' => ['p1' => [], 'p2' => []],
+        ];
+        // Zone still has bluff, but snapshot says no Lives were played.
+        $this->assertFalse(\playerShouldResolveLiveStart($state, 'p1'));
+        $state = \discardLiveZoneMembersToWaitingRoom($state, 'p1');
+        $this->assertFalse(\playerShouldResolveLiveStart($state, 'p1'));
     }
 }

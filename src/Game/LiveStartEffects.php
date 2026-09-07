@@ -806,6 +806,9 @@ function beginLiveStartForPerformer(array $state, string $pid): array {
     if (!in_array($pid, $attempting, true)) {
         return resolvePerformancePhase($state, $pid);
     }
+    // Detect Live vs bluff-only before milling (#166).
+    $attemptingLive = !function_exists('playerAttemptingLivePerformance')
+        || playerAttemptingLivePerformance($state, $pid);
     // Official 8.3.4 → 8.3.8: non-Live cards leave storage before Live Start resolves
     // (Fanfare!!! / Mira-Cra Park WR counts, etc.). Idempotent if already discarded.
     if (function_exists('discardLiveZoneMembersToWaitingRoom')) {
@@ -816,8 +819,7 @@ function beginLiveStartForPerformer(array $state, string $pid): array {
     // Keep optional/mandatory resolved markers so already-answered skills do not replay.
     unset($state['live_start_optional_queue']);
     // Member-bluff-only seats still yell/skip — but do not open Live Start skills.
-    if (function_exists('playerAttemptingLivePerformance')
-        && !playerAttemptingLivePerformance($state, $pid)) {
+    if (!$attemptingLive) {
         return finishLiveStartEffects($state);
     }
     if (performanceRoundHasLiveCards($state)) {
@@ -859,12 +861,19 @@ function beginLiveStartEffectPhase(array $state, bool $p1Attempt = true, bool $p
     if ($perfPid === null) {
         return finishLiveStartEffects($state);
     }
+    // Check before milling so bluff-only seats are detected while storage is intact.
+    // After mill, empty zone must not open Stage Live Starts (#166).
+    $attemptingLive = !function_exists('playerAttemptingLivePerformance')
+        || playerAttemptingLivePerformance($state, $perfPid);
     // Official 8.3: only the current performer's Live Starts before their Yell.
     // 8.3.4: that performer's Member bluffs are already in WR before Live Start.
     if (function_exists('discardLiveZoneMembersToWaitingRoom')) {
         $state = discardLiveZoneMembersToWaitingRoom($state, $perfPid);
     }
     $state['_live_start_perf_pid'] = $perfPid;
+    if (!$attemptingLive) {
+        return finishLiveStartEffects($state);
+    }
     $state = resolveLiveStartAbilities($state, $perfPid);
     if (!empty($state['pending_prompt'])) {
         $state['_live_start_resume_from'] = $perfPid;
