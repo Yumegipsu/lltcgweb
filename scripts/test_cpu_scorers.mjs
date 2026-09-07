@@ -13,6 +13,8 @@ const root = path.resolve(__dirname, '..');
 const cpuLoop = path.join(root, 'client', 'js', 'cpu-loop.js');
 const cpuEval = path.join(root, 'client', 'js', 'cpu-eval.js');
 const cpuAi = path.join(root, 'client', 'js', 'cpu-ai.js');
+const cpuPolicy = path.join(root, 'client', 'js', 'cpu-policy.js');
+const cpuExpert = path.join(root, 'client', 'js', 'cpu-expert.js');
 
 function fail(msg) {
   console.error(`FAIL: ${msg}`);
@@ -26,6 +28,8 @@ function ok(msg) {
 const loopSrc = fs.readFileSync(cpuLoop, 'utf8');
 const evalSrc = fs.readFileSync(cpuEval, 'utf8');
 const aiSrc = fs.readFileSync(cpuAi, 'utf8');
+const policySrc = fs.readFileSync(cpuPolicy, 'utf8');
+const expertSrc = fs.readFileSync(cpuExpert, 'utf8');
 
 // Expert must not fall through to Easy ability multiplier.
 if (!/expert:\s*1\.5/.test(loopSrc) && !/expert:\s*1\.55/.test(loopSrc)) {
@@ -96,6 +100,37 @@ for (const type of [
   } else {
     ok(`ability base ${type}=${m[1]}`);
   }
+}
+
+if (!/function cpuLiveRaceAdvice/.test(evalSrc)) {
+  fail('cpuLiveRaceAdvice missing from cpu-eval.js');
+} else {
+  ok('live-race advice present');
+}
+if (!/tier === 'easy'/.test(evalSrc.match(/function cpuLiveRaceAdvice[\s\S]{0,500}/)?.[0] || '')) {
+  fail('Easy must skip opponent race read');
+} else {
+  ok('Easy does not require opponent race read');
+}
+if (!/cpuPolicyCardBonus/.test(loopSrc) || !/cpuPolicyMulliganReturn/.test(loopSrc)) {
+  fail('cpu-loop must blend policy into Main and mulligan');
+} else {
+  ok('policy blend in Main and mulligan');
+}
+if (!/cpuPolicyPromptChoice/.test(aiSrc)) {
+  fail('cpu-ai must apply policy before prompt type switch');
+} else {
+  ok('prompt policy gate present');
+}
+if (!/MAX_MAIN_ACTIONS:\s*3/.test(expertSrc) || !/cpuPolicyActivateRate/.test(expertSrc)) {
+  fail('Expert search must be policy-guided with play+activate depth');
+} else {
+  ok('Expert search uses policy prior');
+}
+if (!policySrc.includes('cpuPolicyBlend')) {
+  fail('cpu-policy.js missing blend');
+} else {
+  ok('cpu-policy.js loaded by scorer contract');
 }
 
 // Eval weights: expert blend > hard

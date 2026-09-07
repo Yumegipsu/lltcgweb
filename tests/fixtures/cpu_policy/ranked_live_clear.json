@@ -1,0 +1,27 @@
+{
+  "schema_version": 2,
+  "meta": { "mode": "ranked", "room_id": "FIXTURE1" },
+  "baseline": {
+    "game_mode": "standard",
+    "turn": 3,
+    "players": {
+      "p1": {
+        "name": "Alice",
+        "hand": [
+          {"instance_id": "live1", "card_no": "PL!N-bp1-029-R", "card_type": "ライブ", "score": 3, "required_hearts": [{"color": "pink", "count": 1}]},
+          {"instance_id": "m1", "card_no": "PL!N-bp1-003-R", "card_type": "メンバー", "cost": 2, "blade": 1}
+        ],
+        "stage": {"left": null, "center": {"instance_id": "c1", "hearts": [{"color": "pink", "count": 2}]}, "right": null},
+        "success_lives": [],
+        "deck_snapshot": {"main_deck": ["PL!N-bp1-003-R", "PL!N-bp1-029-R"]}
+      },
+      "p2": {"name": "Bob", "hand": [], "stage": {"left": null, "center": null, "right": null}, "success_lives": []}
+    }
+  },
+  "frames": [],
+  "actions": [
+    {"index": 0, "player": "p1", "type": "set_live_cards", "data": {"card_ids": ["live1"]}, "ts": 1, "game_seq": 1},
+    {"index": 1, "player": "p1", "type": "set_live_cards", "data": {"card_ids": ["live1"]}, "ts": 2, "game_seq": 2},
+    {"index": 2, "player": "p1", "type": "mulligan", "data": {"card_ids": []}, "ts": 3, "game_seq": 3}
+  ]
+}

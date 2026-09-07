@@ -1,0 +1,25 @@
+{
+  "schema_version": 2,
+  "meta": { "mode": "ranked", "room_id": "FIXTURE2" },
+  "baseline": {
+    "game_mode": "standard",
+    "turn": 4,
+    "players": {
+      "p1": {
+        "name": "Cara",
+        "hand": [
+          {"instance_id": "live2", "card_no": "PL!SP-bp2-024-L", "card_type": "ライブ", "score": 2, "required_hearts": [{"color": "any", "count": 1}]},
+          {"instance_id": "m2", "card_no": "PL!N-bp1-012-R", "card_type": "メンバー", "cost": 7, "blade": 2}
+        ],
+        "stage": {"center": {"instance_id": "c2", "hearts": [{"color": "red", "count": 2}]}},
+        "success_lives": [{"instance_id": "s1"}],
+        "deck_snapshot": {"main_deck": ["PL!N-bp1-012-R", "PL!SP-bp2-024-L"]}
+      },
+      "p2": {"name": "Dee", "success_lives": []}
+    }
+  },
+  "actions": [
+    {"player": "p1", "type": "set_live_cards", "data": {"card_ids": ["live2"]}},
+    {"player": "p1", "type": "mulligan", "data": {"card_ids": ["m2"]}}
+  ]
+}

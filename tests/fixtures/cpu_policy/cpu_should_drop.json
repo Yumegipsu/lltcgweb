@@ -1,0 +1,12 @@
+{
+  "meta": { "mode": "cpu", "cpu_difficulty": "hard" },
+  "baseline": {
+    "players": {
+      "p1": {"name": "Human"},
+      "p2": {"name": "CPU (Hard)", "is_cpu": true}
+    }
+  },
+  "actions": [
+    {"player": "p2", "type": "set_live_cards", "data": {"card_ids": ["x"]}}
+  ]
+}
