@@ -1214,7 +1214,7 @@ function handleDryRunActions(array $body): array {
         throw new Exception('sequences array required');
     }
 
-    $maxSequences = 16;
+    $maxSequences = 24;
     $maxActionsPerSeq = 4;
     if (count($sequences) > $maxSequences) {
         throw new Exception('Too many sequences (max ' . $maxSequences . ')');

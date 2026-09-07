@@ -6,9 +6,9 @@
   'use strict';
 
   const CONFIG = {
-    MAX_MAIN_ACTIONS: 2,
-    TOP_N_ACTIONS: 5,
-    MAX_SEQUENCES: 16,
+    MAX_MAIN_ACTIONS: 3,
+    TOP_N_ACTIONS: 6,
+    MAX_SEQUENCES: 20,
   };
 
   /** Remaining planned Main actions for this phase (excluding end_main). */
@@ -73,11 +73,13 @@
     const mySuccess = (me?.success_lives || []).length;
     const oppBlade = read?.totalBlade ?? 0;
 
+    const oppHearts = (read?.stageHearts || []).length;
     let pen = oppHand * 9
       + Math.min(3, oppEmpty) * oppHand * 2.5
       + Math.min(oppEnergy, 6) * 4
       + oppBlade * 2.2
-      + oppSuccess * 38;
+      + oppSuccess * 38
+      + oppHearts * 3.5;
 
     if (oppSuccess >= 2) pen += 55;
     if (oppSuccess > mySuccess) pen += 22;
@@ -94,13 +96,28 @@
     return base - opponentTurnPenalty(state, pid);
   }
 
+  function policyPrior(action, ctx) {
+    if (typeof global.cpuPolicyActivateRate !== 'function') return 0;
+    const kind = action.kind || action.type;
+    const behind = !!ctx?.sit?.behind;
+    const opp2 = (ctx?.read?.successCount ?? 0) >= 2;
+    if (kind === 'activate' || kind === 'activate_ability') {
+      const type = action.payload?.ability_type || action.label || '';
+      return (global.cpuPolicyActivateRate(type, { behind, opp2, needLive: !!ctx?.sit?.mustCatchUp }) - 0.5) * 4;
+    }
+    if (kind === 'play_member' && typeof global.cpuPolicyPlayBias === 'function') {
+      return global.cpuPolicyPlayBias({ cost: action.payload?.cost }, ctx?.tier || 'expert', ctx?.sit);
+    }
+    return 0;
+  }
+
   function prefilterActions(s, pid, actions, ctx) {
     if (!actions?.length) return [];
     const scored = actions.map((a) => {
       const evalScore = typeof global.cpuScoreAction === 'function'
         ? global.cpuScoreAction(s, pid, a, ctx, { peers: actions })
         : (a.score || 0);
-      return { ...a, evalScore };
+      return { ...a, evalScore: evalScore + policyPrior(a, ctx) };
     });
     scored.sort((a, b) => b.evalScore - a.evalScore);
     return scored.slice(0, CONFIG.TOP_N_ACTIONS);
@@ -227,8 +244,17 @@
         continue;
       }
       let score = scoreLeafState(res.state, cpuId, tier);
-      // Prefer sequences that open a useful prompt over hard errors; slight noise for variety
-      if (res.stopped === 'pending_prompt') score += 8;
+      // A prompt is only a plus when ranked play usually takes that skill.
+      if (res.stopped === 'pending_prompt') {
+        const rate = typeof global.cpuPolicyActivateRate === 'function'
+          ? global.cpuPolicyActivateRate('draw', {
+            behind: (ctx?.read?.successCount ?? 0) > ((cpu.success_lives || []).length),
+            opp2: (ctx?.read?.successCount ?? 0) >= 2,
+            needLive: !!ctx?.sit?.mustCatchUp,
+          })
+          : 0.5;
+        score += rate >= 0.55 ? 6 : -5;
+      }
       if (res.stopped === 'error') score = -Infinity;
       score += Math.random() * 0.05;
       scored.push({ i: seqIdx, score, stopped: res.stopped, seqLen: seq?.length });

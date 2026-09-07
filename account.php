@@ -1600,12 +1600,59 @@ function tcgReplayPayloadFromRow(array $row): array {
     return $upgraded;
 }
 
-/** Keep at most $keep non-preserved (autosave) rows per user; oldest deleted.
+/** Standard ranked rating high enough that finished games feed the CPU policy corpus. */
+function tcgReplaySaverKeepsRankedCorpus(string $uid): bool
+{
+    if ($uid === '') {
+        return false;
+    }
+    if (!class_exists('CpuPolicy', false)) {
+        $path = __DIR__ . '/src/Game/CpuPolicy.php';
+        if (is_file($path)) {
+            require_once $path;
+        }
+    }
+    $floor = class_exists('CpuPolicy') ? CpuPolicy::RANK_FLOOR : 1100;
+    $minGames = class_exists('CpuPolicy') ? CpuPolicy::RANK_MIN_GAMES : 8;
+    try {
+        $stmt = tcgDb()->prepare(
+            'SELECT rating, games FROM tcg_rank WHERE discord_id = ? AND game_mode = ? LIMIT 1'
+        );
+        $stmt->execute([$uid, defined('TCG_GAME_MODE_STANDARD') ? TCG_GAME_MODE_STANDARD : 'standard']);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        return false;
+    }
+    if (!$row) {
+        return false;
+    }
+    return intval($row['games'] ?? 0) >= $minGames && intval($row['rating'] ?? 0) >= $floor;
+}
+
+function tcgReplayRoomIsRanked(string $roomId): bool
+{
+    if ($roomId === '') {
+        return false;
+    }
+    try {
+        $stmt = tcgDb()->prepare('SELECT 1 FROM tcg_ranked_matches WHERE room_id = ? LIMIT 1');
+        $stmt->execute([$roomId]);
+        return (bool)$stmt->fetchColumn();
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+/**
+ * Keep at most $keep non-preserved (autosave) rows per user; oldest deleted.
  * Tournament-archived rooms are excluded so a mid-event FIFO trim cannot drop
  * a round while later rounds still land in Recent.
+ * Ranked rooms for the policy corpus are trimmed separately (larger keep).
  */
 function tcgReplayTrimAutosaves(string $uid, int $keep = 10): void {
     $keep = max(1, min(50, $keep));
+    $rankedKeep = class_exists('CpuPolicy') ? CpuPolicy::RANKED_AUTOSAVE_KEEP : 40;
+    $protectRanked = tcgReplaySaverKeepsRankedCorpus($uid);
     $db = tcgDb();
     $hasTournamentTable = false;
     try {
@@ -1616,30 +1663,55 @@ function tcgReplayTrimAutosaves(string $uid, int $keep = 10): void {
     } catch (Throwable $e) {
         $hasTournamentTable = false;
     }
+    $rankedExclude = '';
+    if ($protectRanked) {
+        $rankedExclude = ' AND NOT EXISTS (
+                 SELECT 1 FROM tcg_ranked_matches rm WHERE rm.room_id = r.room_id
+               )';
+    }
     if ($hasTournamentTable) {
         $stmt = $db->prepare(
             'SELECT r.id FROM tcg_replays r
              WHERE r.discord_id = ? AND COALESCE(r.preserved, 0) = 0
                AND NOT EXISTS (
                  SELECT 1 FROM tcg_tournament_replays t WHERE t.room_id = r.room_id
-               )
+               )' . $rankedExclude . '
              ORDER BY r.saved_at DESC, r.id DESC'
         );
     } else {
         $stmt = $db->prepare(
-            'SELECT id FROM tcg_replays
-             WHERE discord_id = ? AND COALESCE(preserved, 0) = 0
-             ORDER BY saved_at DESC, id DESC'
+            'SELECT r.id FROM tcg_replays r
+             WHERE r.discord_id = ? AND COALESCE(r.preserved, 0) = 0' . $rankedExclude . '
+             ORDER BY r.saved_at DESC, r.id DESC'
         );
     }
     $stmt->execute([$uid]);
     $ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN) ?: []);
-    if (count($ids) <= $keep) {
+    $del = $db->prepare('DELETE FROM tcg_replays WHERE id = ? AND discord_id = ? AND COALESCE(preserved, 0) = 0');
+    if (count($ids) > $keep) {
+        foreach (array_slice($ids, $keep) as $id) {
+            $del->execute([$id, $uid]);
+        }
+    }
+    if (!$protectRanked) {
         return;
     }
-    $drop = array_slice($ids, $keep);
-    $del = $db->prepare('DELETE FROM tcg_replays WHERE id = ? AND discord_id = ? AND COALESCE(preserved, 0) = 0');
-    foreach ($drop as $id) {
+    try {
+        $rk = $db->prepare(
+            'SELECT r.id FROM tcg_replays r
+             WHERE r.discord_id = ? AND COALESCE(r.preserved, 0) = 0
+               AND EXISTS (SELECT 1 FROM tcg_ranked_matches rm WHERE rm.room_id = r.room_id)
+             ORDER BY r.saved_at DESC, r.id DESC'
+        );
+        $rk->execute([$uid]);
+        $rankedIds = array_map('intval', $rk->fetchAll(PDO::FETCH_COLUMN) ?: []);
+    } catch (Throwable $e) {
+        return;
+    }
+    if (count($rankedIds) <= $rankedKeep) {
+        return;
+    }
+    foreach (array_slice($rankedIds, $rankedKeep) as $id) {
         $del->execute([$id, $uid]);
     }
 }

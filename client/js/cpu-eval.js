@@ -193,6 +193,45 @@
   };
 
   /**
+   * Speed-to-3 and Live Judge value from the public board only.
+   * Never reads the opponent hand. Easy does not use this.
+   */
+  global.cpuLiveRaceAdvice = function cpuLiveRaceAdvice(opts) {
+    const tier = opts?.tier || 'normal';
+    if (tier === 'easy') {
+      return {
+        takeClear: false,
+        preferHighWhenBoth: false,
+        takeLowAtTwo: false,
+        dropUnclearable: false,
+        bluff: false,
+        oppCanClear: false,
+      };
+    }
+    const my = opts?.mySuccess ?? 0;
+    const opp = opts?.oppSuccess ?? 0;
+    const canClear = !!(opts?.canClearStage || opts?.canClearYell);
+    const oppHearts = opts?.oppHearts ?? 0;
+    const oppActive = opts?.oppActive ?? 0;
+    const oppVisible = opts?.oppVisibleScore ?? 0;
+    const oppCanClear = opp < 3 && (oppVisible > 0 || oppHearts >= 3 || (oppActive >= 2 && oppHearts >= 2));
+    const pol = typeof global.cpuPolicyGet === 'function' ? global.cpuPolicyGet() : null;
+    const live = pol?.live || {};
+    const takeLowAtTwo = my >= 2 && canClear && Number(live.take_low_score_at_two_successes ?? 0.96) >= 0.5;
+    const preferHighWhenBoth = canClear && oppCanClear && Number(live.prefer_high_score_when_both_clear ?? 0.92) >= 0.5;
+    const bluff = !canClear && opp >= 2 && Number(live.bluff_when_opp2 ?? 0.22) >= 0.15
+      && (typeof global.cpuPolicyBlend !== 'function' || global.cpuPolicyBlend(tier) >= 0.5);
+    return {
+      takeClear: canClear,
+      preferHighWhenBoth: preferHighWhenBoth || (canClear && !oppCanClear),
+      takeLowAtTwo,
+      dropUnclearable: canClear,
+      bluff,
+      oppCanClear,
+    };
+  };
+
+  /**
    * Hard-only: penalty/bonus for how an action interacts with opp near-win / Live timing.
    */
   global.cpuHardThreatAdjust = function cpuHardThreatAdjust(s, pid, action, ctx) {

@@ -38,7 +38,11 @@
       .replace(/-(SEC|SECL|SRL|RM|SD2|SD|PR|P|R|N|L|C)\d*$/i, '');
   }
 
-  function lookupBoost(map, cardNo) {
+  function lookupBoost(map, cardNo, kind) {
+    if (typeof global.cpuPolicyCardRate === 'function') {
+      const rate = global.cpuPolicyCardRate(kind, cardNo);
+      if (rate > 0) return rate * 4;
+    }
     const raw = String(cardNo || '');
     if (map[raw] != null) return map[raw];
     const base = stripCardNo(raw);
@@ -70,7 +74,7 @@
     const blade = Number(card.blade || 0);
     const cost = Number(card.cost || 0);
     const loveca = lovecaPts(card);
-    const boost = lookupBoost(MEMBER_META_BOOST, card.card_no);
+    const boost = lookupBoost(MEMBER_META_BOOST, card.card_no, 'members');
     const abilityN = Array.isArray(card.abilities) ? Math.min(4, card.abilities.length) : 0;
     let w = blade * 0.55 + loveca * 1.85 + boost + abilityN * 0.28 - Math.max(0, cost - 3) * 0.12;
     if (loveca >= 2) w += loveca * 0.55 * tierMul(tier);
@@ -86,7 +90,7 @@
     if (!card) return 0;
     const score = Number(card.score || 0);
     const loveca = lovecaPts(card);
-    const boost = lookupBoost(LIVE_META_BOOST, card.card_no);
+    const boost = lookupBoost(LIVE_META_BOOST, card.card_no, 'lives');
     const req = card.required_hearts || card.hearts || [];
     const heartTax = req.reduce((n, h) => n + (h.count || 1), 0);
     const abilityN = Array.isArray(card.abilities) ? Math.min(4, card.abilities.length) : 0;

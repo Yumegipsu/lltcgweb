@@ -437,6 +437,12 @@ function cpuScoreMember(c, cpu, hand, stageColors, tier, read = null, s = null) 
   if (typeof cpuMetaMemberWeight === 'function') {
     score += cpuMetaMemberWeight(c, tier);
   }
+  if (typeof cpuPolicyCardBonus === 'function') {
+    score += cpuPolicyCardBonus(c, 'members', tier);
+  }
+  if (typeof cpuPolicyPlayBias === 'function') {
+    score += cpuPolicyPlayBias(c, tier, sit);
+  }
   if (cpuTierHardPlus(tier) && (cpu.success_lives || []).length >= 2) score += ec * 0.15;
   if (read) {
     if (read.oppRichBoard || read.totalBlade >= 5) score += blade * (cpuTierHardPlus(tier) ? 0.45 : 0.28);
@@ -537,7 +543,8 @@ function cpuMemberLiveUnlockBonus(c, cpu, tier, hand) {
   const livePriority = (live) => {
     const printed = live.score || 0;
     const meta = typeof cpuMetaLiveWeight === 'function' ? cpuMetaLiveWeight(live, tier, cpuWinPressure(cpu)) : 0;
-    return printed * 2 + meta;
+    const pol = typeof cpuPolicyCardBonus === 'function' ? cpuPolicyCardBonus(live, 'lives', tier) : 0;
+    return printed * 2 + meta + pol;
   };
   const scorePool = (pool) => {
     let unlocked = 0;
@@ -610,6 +617,30 @@ function cpuScoreLiveForSet(c, tier, winPressure, read = null, cpu = null) {
   score += cpuScoreLiveCardAbilities(c, tier, ctx);
   if (typeof cpuMetaLiveWeight === 'function') {
     score += cpuMetaLiveWeight(c, tier, winPressure);
+  }
+  if (typeof cpuPolicyCardBonus === 'function') {
+    score += cpuPolicyCardBonus(c, 'lives', tier);
+  }
+  if (tier !== 'easy' && cpu && typeof cpuLiveRaceAdvice === 'function') {
+    const stagePool = stageHeartPool(cpu);
+    const clearable = cpuCheckHearts(stagePool, cpuLiveRequiredHearts(c));
+    const liveCtx = typeof cpuHandLiveContext === 'function'
+      ? cpuHandLiveContext(cpu, { tier, s: G.gameState })
+      : null;
+    const advice = cpuLiveRaceAdvice({
+      tier,
+      mySuccess: (cpu.success_lives || []).length,
+      oppSuccess: read?.successCount ?? 0,
+      canClearStage: clearable || (liveCtx?.stageViable || []).some(x => x.instance_id === c.instance_id),
+      canClearYell: !!(liveCtx?.hasViableLive),
+      oppHearts: (read?.stageHearts || []).length,
+      oppActive: read?.activeStage?.length || 0,
+      oppVisibleScore: (read?.liveZoneRevealed || []).reduce((n, l) => n + (l.score || 0), 0),
+    });
+    if (advice.takeClear && clearable) score += 4 + (c.score || 0) * (advice.preferHighWhenBoth ? 2.2 : 1.1);
+    if (advice.takeLowAtTwo && clearable) score += 8;
+    if (advice.dropUnclearable && !clearable) score -= 6 + (c.score || 0);
+    if (advice.preferHighWhenBoth && clearable) score += (c.score || 0) * 1.4;
   }
   if (cpuTierHardPlus(tier)) score += 0.85;
   else if (tier === 'normal') score += 0.4;
@@ -1192,6 +1223,18 @@ function cpuDesiredLiveStorageTotal(ctx, hand, viableLives, alreadyStored) {
 
   if (viableCount === 0) {
     if (tier === 'easy') return alreadyStored;
+    if (typeof cpuLiveRaceAdvice === 'function') {
+      const advice = cpuLiveRaceAdvice({
+        tier,
+        mySuccess: sit?.cpuWins ?? (ctx?.cpu?.success_lives || []).length,
+        oppSuccess: read?.successCount ?? 0,
+        canClearStage: false,
+        canClearYell: false,
+        oppHearts: (read?.stageHearts || []).length,
+        oppActive: read?.activeStage?.length || 0,
+      });
+      if (advice.bluff && handLen >= 4) return Math.min(3, alreadyStored + 1);
+    }
     // Member-bluff pressure when behind — still open LIVE when hand allows.
     if (winPressure >= 0.45 && handLen >= 4) target = Math.min(3, alreadyStored + 1);
     else if (cpuTierHardPlus(tier) && (read?.behind || sit?.behind) && handLen >= 5) {
@@ -2464,6 +2507,10 @@ function cpuMulligan() {
     const lowLives = hand.filter(c => c.card_type === 'ライブ' && (c.score || 0) <= 1 && !isProtected(c));
     if (lowLives.length) toSwap = lowLives.map(c => c.instance_id);
   }
+  if (typeof cpuPolicyMulliganReturn === 'function') {
+    const extra = hand.filter(c => !toSwap.includes(c.instance_id) && !isProtected(c) && cpuPolicyMulliganReturn(c, tier));
+    if (extra.length) toSwap = toSwap.concat(extra.map(c => c.instance_id));
+  }
   cpuAct('mulligan', { card_ids: toSwap.slice(0, cpuTierHardPlus(tier) ? 4 : 3) });
 }
 
@@ -3145,6 +3192,31 @@ function cpuLiveSet() {
   let chosenLives = cpuSelectIndependentLives(
     pool, liveInHand, targetLives, tier, winPressure, read, hand.length, cpu, ctx
   );
+  // Expert/Hard: after Main is locked, rank Live-set candidates locally (hearts + race).
+  if ((tier === 'expert' || tier === 'hard') && typeof cpuLiveRaceAdvice === 'function') {
+    const stagePool = liveCtx.stagePool || stageHeartPool(cpu);
+    const advice = cpuLiveRaceAdvice({
+      tier,
+      mySuccess: (cpu.success_lives || []).length,
+      oppSuccess: read?.successCount ?? 0,
+      canClearStage: viableLives.some(c => cpuCheckHearts(stagePool, cpuLiveRequiredHearts(c))),
+      canClearYell: viableLives.length > 0,
+      oppHearts: (read?.stageHearts || []).length,
+      oppActive: read?.activeStage?.length || 0,
+      oppVisibleScore: (read?.liveZoneRevealed || []).reduce((n, l) => n + (l.score || 0), 0),
+    });
+    if (advice.dropUnclearable && chosenLives.length) {
+      const stageOnly = chosenLives.filter(c => cpuCheckHearts(stagePool, cpuLiveRequiredHearts(c)));
+      if (stageOnly.length) chosenLives = stageOnly;
+    }
+    if (advice.takeLowAtTwo && chosenLives.length > 1) {
+      chosenLives = chosenLives
+        .slice()
+        .sort((a, b) => (cpuCheckHearts(stagePool, cpuLiveRequiredHearts(b)) ? 1 : 0)
+          - (cpuCheckHearts(stagePool, cpuLiveRequiredHearts(a)) ? 1 : 0))
+        .slice(0, 1);
+    }
+  }
   if (!chosenLives.length && viableLives.length && needToAdd > 0 && tier !== 'easy') {
     chosenLives = [...viableLives]
       .sort((a, b) => cpuScoreLiveForSet(b, tier, winPressure, read, cpu)

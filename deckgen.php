@@ -4,6 +4,9 @@
  * Targets 4 → 9 → 15 baton ramp, heart-heavy fillers, and color-aligned Lives.
  */
 require_once __DIR__ . '/loveca_points.php';
+if (is_file(__DIR__ . '/src/Game/CpuPolicy.php')) {
+    require_once __DIR__ . '/src/Game/CpuPolicy.php';
+}
 if (is_file(__DIR__ . '/subunits.php')) {
     require_once __DIR__ . '/subunits.php';
 }
@@ -1284,15 +1287,27 @@ function deckgenStarterKeyToGroup(?string $key): ?string {
     };
 }
 
+function deckgenCpuPolicy(): array {
+    static $policy = null;
+    if ($policy !== null) {
+        return $policy;
+    }
+    $policy = class_exists('CpuPolicy') ? CpuPolicy::loadFile() : ['cards' => ['members' => [], 'lives' => []]];
+    return $policy;
+}
+
 function deckgenCpuMemberScore(array $card, string $tier): int {
     $score = deckgenMemberBuildScore($card);
     if (($card['rarity'] ?? '') !== 'SD') {
-        $score += ($tier === 'hard') ? 6 : 3;
+        $score += ($tier === 'hard' || $tier === 'expert') ? 6 : 3;
     }
-    if ($tier === 'hard' && !empty($card['abilities'])) {
+    if (($tier === 'hard' || $tier === 'expert') && !empty($card['abilities'])) {
         $score += 6;
     } elseif ($tier === 'normal' && !empty($card['abilities'])) {
         $score += 3;
+    }
+    if (class_exists('CpuPolicy')) {
+        $score += CpuPolicy::memberBonus(deckgenCpuPolicy(), (string)($card['card_no'] ?? ''), $tier);
     }
     return $score;
 }
@@ -1300,7 +1315,7 @@ function deckgenCpuMemberScore(array $card, string $tier): int {
 function deckgenCpuLiveFitScore(array $live, array $colorCounts, string $tier): int {
     $score = deckgenLiveBuildScore($live, $colorCounts);
     $liveScore = intval($live['score'] ?? 0);
-    if ($tier === 'hard') {
+    if ($tier === 'hard' || $tier === 'expert') {
         $score += $liveScore * 2;
         if (!empty($live['abilities'])) {
             $score += 8;
@@ -1310,6 +1325,9 @@ function deckgenCpuLiveFitScore(array $live, array $colorCounts, string $tier): 
         if (!empty($live['abilities'])) {
             $score += 4;
         }
+    }
+    if (class_exists('CpuPolicy')) {
+        $score += CpuPolicy::liveBonus(deckgenCpuPolicy(), (string)($live['card_no'] ?? ''), $tier);
     }
     return $score;
 }
@@ -1502,7 +1520,7 @@ function generateEnhancedCpuDeckLists(array $allCards, string $tier, ?string $fo
     $counts = deckgenRebuildCounts($main);
 
     $colorCounts = deckgenColorCountsFromMain($main, $cardMap);
-    $liveTargets = ($tier === 'hard')
+    $liveTargets = ($tier === 'hard' || $tier === 'expert')
         ? ['low' => 2, 'mid' => 4, 'high' => 6]
         : ['low' => 3, 'mid' => 5, 'high' => 4];
     $liveFitFn = fn($c) => deckgenCpuLiveFitScore($c, $colorCounts, $tier)
@@ -1545,9 +1563,13 @@ function generateCpuDeckLists(
     if ($difficulty === 'easy') {
         return generateCpuEasyDeckLists($starterDecks, $groupHint);
     }
-    // Expert uses the same enhanced pool as Hard; AI search differs, not the list builder.
+    // Expert uses the same enhanced pool as Hard; scores still use mined inclusion rates.
     $genTier = $difficulty === 'expert' ? 'hard' : $difficulty;
-    return generateEnhancedCpuDeckLists($allCards, $genTier);
+    $forced = deckgenNormalizeForcedGroup($groupHint);
+    if ($forced !== null && !deckgenIsSchoolGroup($forced) && !deckgenIsSubunitStyleGroup($forced)) {
+        $forced = null;
+    }
+    return generateEnhancedCpuDeckLists($allCards, $genTier, $forced);
 }
 
 function resolveCpuDeckLists(array $cardsData, string $difficulty, ?string $groupHint = null): array {
