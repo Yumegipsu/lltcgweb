@@ -42,11 +42,15 @@
       || pr.type === 'optional_pay_energy_on_enter'
       || pr.type === 'optional_pay_energy_if_baton';
     if (policyYesNo && typeof global.cpuPolicyPromptChoice === 'function' && pr.choices && (pr.choices.includes('yes') || pr.choices.includes('no'))) {
-      const choice = global.cpuPolicyPromptChoice(pr.type, tier, {
+      let choice = global.cpuPolicyPromptChoice(pr.type, tier, {
         behind: (read?.successCount ?? 0) > (cpu.success_lives || []).length,
         opp2: (read?.successCount ?? 0) >= 2,
         needLive: winPressure >= 0.45,
       });
+      if (choice === 'yes' && typeof global.cpuActionNetAdjust === 'function' && typeof global.cpuActionNetSeat === 'function') {
+        const judged = global.cpuActionNetAdjust(tier, global.cpuActionNetSeat(cpu, read, s, { kind: 'prompt' }));
+        if (judged < -0.8) choice = 'no';
+      }
       if (choice === 'yes' || choice === 'no') {
         if (choice === 'yes' && typeof global.cpuBuildOptionalYesPayload === 'function') {
           const data = global.cpuBuildOptionalYesPayload(pr, cpu, tier, winPressure);

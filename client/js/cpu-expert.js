@@ -111,13 +111,29 @@
     return 0;
   }
 
+  function netJudge(action, ctx, pid) {
+    if (typeof global.cpuActionNetAdjust !== 'function') return 0;
+    const s = ctx?.s;
+    const cpu = s?.players?.[pid];
+    const kind = action.kind || action.type;
+    const mapped = kind === 'activate_ability' ? 'activate' : kind;
+    const sit = typeof global.cpuActionNetSeat === 'function'
+      ? global.cpuActionNetSeat(cpu, ctx?.read, s, {
+        kind: mapped,
+        cost: action.payload?.cost || 0,
+        canClear: false,
+      })
+      : { kind: mapped };
+    return global.cpuActionNetAdjust(ctx?.tier || 'expert', sit);
+  }
+
   function prefilterActions(s, pid, actions, ctx) {
     if (!actions?.length) return [];
     const scored = actions.map((a) => {
       const evalScore = typeof global.cpuScoreAction === 'function'
         ? global.cpuScoreAction(s, pid, a, ctx, { peers: actions })
         : (a.score || 0);
-      return { ...a, evalScore: evalScore + policyPrior(a, ctx) };
+      return { ...a, evalScore: evalScore + policyPrior(a, ctx) + netJudge(a, ctx, pid) };
     });
     scored.sort((a, b) => b.evalScore - a.evalScore);
     return scored.slice(0, CONFIG.TOP_N_ACTIONS);

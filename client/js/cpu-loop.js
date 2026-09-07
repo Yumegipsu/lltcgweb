@@ -443,6 +443,14 @@ function cpuScoreMember(c, cpu, hand, stageColors, tier, read = null, s = null) 
   if (typeof cpuPolicyPlayBias === 'function') {
     score += cpuPolicyPlayBias(c, tier, sit);
   }
+  if (typeof cpuActionNetAdjust === 'function') {
+    score += cpuActionNetAdjust(tier, cpuActionNetSeat(cpu, read, state, {
+      kind: 'play_member',
+      cost: ec,
+      blade,
+      canClear: false,
+    }));
+  }
   if (cpuTierHardPlus(tier) && (cpu.success_lives || []).length >= 2) score += ec * 0.15;
   if (read) {
     if (read.oppRichBoard || read.totalBlade >= 5) score += blade * (cpuTierHardPlus(tier) ? 0.45 : 0.28);
@@ -641,6 +649,13 @@ function cpuScoreLiveForSet(c, tier, winPressure, read = null, cpu = null) {
     if (advice.takeLowAtTwo && clearable) score += 8;
     if (advice.dropUnclearable && !clearable) score -= 6 + (c.score || 0);
     if (advice.preferHighWhenBoth && clearable) score += (c.score || 0) * 1.4;
+    if (typeof cpuActionNetAdjust === 'function') {
+      score += cpuActionNetAdjust(tier, cpuActionNetSeat(cpu, read, G.gameState, {
+        kind: 'live_set',
+        score: c.score || 0,
+        canClear: clearable,
+      }));
+    }
   }
   if (cpuTierHardPlus(tier)) score += 0.85;
   else if (tier === 'normal') score += 0.4;
@@ -2192,7 +2207,17 @@ function cpuListActivateCandidates(s, cpu, ctx) {
   cpuClearAbilityBlacklistIfNewTurn(s);
   const hasViableLive = cpuHandHasViableLive(cpu);
   let abilities = collectActivatableAbilities(s, cpuId)
-    .map(a => ({ ...a, score: cpuScoreAbility(a, cpu, tier, read, winPressure) }))
+    .map(a => {
+      let sc = cpuScoreAbility(a, cpu, tier, read, winPressure);
+      if (typeof cpuActionNetAdjust === 'function') {
+        sc += cpuActionNetAdjust(tier, cpuActionNetSeat(cpu, read, s, {
+          kind: 'activate',
+          cost: a.ability?.cost || 0,
+          canClear: !!hasViableLive,
+        }));
+      }
+      return { ...a, score: sc };
+    })
     .filter(a => {
       if (cpuAbilityBlacklisted(a.card?.instance_id, a.idx)) return false;
       if (cpuAbilityNeedsEmptyStage(a.ability) && !cpuStageHasEmptySlot(cpu)) return false;
