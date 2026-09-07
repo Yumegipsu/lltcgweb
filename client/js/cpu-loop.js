@@ -465,6 +465,13 @@ function cpuScoreMember(c, cpu, hand, stageColors, tier, read = null, s = null) 
   if (tier !== 'easy') {
     score += cpuMemberLiveUnlockBonus(c, cpu, tier, hand);
     score += cpuMemberBatonLadderBonus(c, cpu, hand, tier, state, read);
+    const liveCtx = cpuHandLiveContext(cpu, { tier, s: state });
+    if (liveCtx.needsLives || (!liveCtx.hasViableLive && !cpuAnyMemberUnlocksHandLives(cpu, tier))) {
+      const hearts = typeof memberEffectiveHeartGroups === 'function'
+        ? memberEffectiveHeartGroups(c).reduce((n, hg) => n + (hg.count || 1), 0)
+        : 0;
+      score += blade * (cpuTierHardPlus(tier) ? 1.6 : 0.9) + hearts * (cpuTierHardPlus(tier) ? 0.85 : 0.45);
+    }
   }
   return score;
 }
@@ -711,6 +718,26 @@ function cpuAbilityFindsLives(type) {
     || type === 'pay_energy_draw' || type === 'pay_energy_surveil';
 }
 
+function cpuActionDigsForLive(action, cpu) {
+  if (!action || action.kind !== 'activate') return false;
+  const t = action.label || action.payload?.ability_type || '';
+  if (cpuAbilityFindsLives(t)) return true;
+  const wrLive = (cpu?.waiting_room || []).some(c => isCpuLiveCard(c));
+  if (wrLive && (t.includes('wr') || t.includes('waiting') || t.includes('add_from_wr'))) return true;
+  const zoneLive = (cpu?.live_zone || []).some(c => c && (isCpuLiveCard(c) || c.card_type === 'メンバー'));
+  return zoneLive && /live_zone|from_zone/.test(t);
+}
+
+function cpuDigDiscardOk(cpu, ability, tier) {
+  const need = Math.max(ability?.discard || 0, ability?.max_discard || 0);
+  if (!need) return true;
+  const hand = cpu?.hand || [];
+  const lives = hand.filter(c => c.card_type === 'ライブ' || c.card_type_en === 'Live');
+  const members = hand.filter(c => c.card_type === 'メンバー' || c.card_type_en === 'Member');
+  const keepers = lives.length + Math.min(2, members.length);
+  return hand.length - keepers >= need;
+}
+
 function cpuScoreLiveForSet(c, tier, winPressure, read = null, cpu = null) {
   const sit = read && cpu ? {
     mustCatchUp: (read.successCount ?? 0) > (cpu.success_lives?.length ?? 0),
@@ -778,7 +805,8 @@ function cpuPickDiscardIds(hand, count, tier, winPressure = 0, read = null) {
   if (!n) return [];
   const toIds = (cards) => cards.map(c => c.instance_id).filter(Boolean);
   if (tier === 'easy') return toIds(hand.slice(0, n));
-  const protectLives = winPressure >= 0.35 || cpuTierHardPlus(tier) || (read?.successCount ?? 0) >= 1;
+  const noLive = !(hand || []).some(c => c.card_type === 'ライブ' || c.card_type_en === 'Live');
+  const protectLives = winPressure >= 0.35 || cpuTierHardPlus(tier) || (read?.successCount ?? 0) >= 1 || noLive;
   const ranked = [...hand].map(c => {
     let keep = 0;
     if (c.card_type === 'メンバー' || c.card_type_en === 'Member') {
@@ -793,6 +821,12 @@ function cpuPickDiscardIds(hand, count, tier, winPressure = 0, read = null) {
   if (protectLives) {
     const nonLives = ranked.filter(x => x.c.card_type !== 'ライブ' && x.c.card_type_en !== 'Live');
     if (nonLives.length >= n) return toIds(nonLives.slice(0, n).map(x => x.c));
+  }
+  if (noLive && tier !== 'easy') {
+    const members = ranked.filter(x => x.c.card_type === 'メンバー' || x.c.card_type_en === 'Member');
+    const keepIds = new Set(members.slice(-2).map(x => x.c.instance_id));
+    const expendable = ranked.filter(x => !keepIds.has(x.c.instance_id));
+    if (expendable.length >= n) return toIds(expendable.slice(0, n).map(x => x.c));
   }
   return toIds(ranked.slice(0, n).map(x => x.c));
 }
@@ -2195,11 +2229,18 @@ function cpuScoreAbility(entry, cpu, tier, read = null, winPressure = 0) {
   }
   if (t.includes('opp') && read && !read.activeStage.length) score -= 1.5;
   if (tier !== 'easy' && cpuWantsLiveSearch(cpu, tier)) {
-    if (cpuAbilityFindsLives(t)) {
-      score += cpuTierHardPlus(tier) ? 1.85 : 1.15;
-      if (cpuHandLiveContext(cpu).needsLives) score += cpuTierHardPlus(tier) ? 0.65 : 0.4;
-    } else if (t.includes('wr') && (cpu.waiting_room || []).some(c => isCpuLiveCard(c))) {
+    const liveCtx = cpuHandLiveContext(cpu);
+    const wrLive = (cpu.waiting_room || []).some(c => isCpuLiveCard(c));
+    const zoneLive = (cpu.live_zone || []).some(c => isCpuLiveCard(c));
+    if (cpuAbilityFindsLives(t) || (wrLive && (t.includes('wr') || t.includes('waiting') || t.includes('add_from_wr')))) {
+      score += cpuTierHardPlus(tier) ? 6.5 : 4.2;
+      if (liveCtx.needsLives) score += cpuTierHardPlus(tier) ? 2.4 : 1.4;
+    } else if (t.includes('wr') && wrLive) {
       score += cpuTierHardPlus(tier) ? 1.2 : 0.75;
+    } else if (zoneLive && /live_zone|from_zone/.test(t)) {
+      score += cpuTierHardPlus(tier) ? 2.2 : 1.2;
+    } else if (/blade|heart/.test(t) && (liveCtx.needsLives || !liveCtx.hasViableLive)) {
+      score += cpuTierHardPlus(tier) ? 1.4 : 0.7;
     }
   }
   return score;
@@ -2320,7 +2361,10 @@ function cpuListActivateCandidates(s, cpu, ctx) {
       if (cpuAbilityBlacklisted(a.card?.instance_id, a.idx)) return false;
       if (cpuAbilityNeedsEmptyStage(a.ability) && !cpuStageHasEmptySlot(cpu)) return false;
       const wrReason = a.wrBlock || abilityWrBlockReason(cpu, a.ability);
-      return a.score > minScore && !wrReason && cpuCanPayAbilityDiscard(cpu, a.ability);
+      if (a.score <= minScore || wrReason || !cpuCanPayAbilityDiscard(cpu, a.ability)) return false;
+      if (tier !== 'easy' && cpuWantsLiveSearch(cpu, tier) && cpuAbilityFindsLives(a.ability?.type || '')
+        && !cpuDigDiscardOk(cpu, a.ability, tier)) return false;
+      return true;
     })
     .sort((a, b) => b.score - a.score);
   if (winPressure >= 0.35 && hasViableLive) {
@@ -3044,6 +3088,13 @@ async function cpuMain() {
   }
   if (!s.pending_prompt) clearDeferredPromptState();
   if (s.debug_card_test && cpuTryDebugTestCard(s, cpu, ctx.tier, ctx.winPressure, ctx.read)) return;
+  if (ctx.tier !== 'easy' && cpuWantsLiveSearch(cpu, ctx.tier)) {
+    const digs = cpuListActivateCandidates(s, cpu, ctx).filter(a => cpuActionDigsForLive(a, cpu));
+    if (digs.length) {
+      cpuApplyMainAction(digs[0]);
+      return;
+    }
+  }
   if (ctx.tier === 'easy') {
     // Occasional strong activates so Easy still exercises skills without playing optimally.
     if (Math.random() < 0.28) {
