@@ -54,7 +54,13 @@
     const src = pr.source_id || pr.card_instance_id || pr.source_instance_id || '';
     const abIdx = pr.ability_index ?? '';
     const turn = s.turn ?? '';
-    return `${turn}:${pr.type}:${pr.step ?? ''}:${pr.responder ?? ''}:${src}:${abIdx}`;
+    // Order prompts have empty source_id — include candidate ids so a real server
+    // reopen after dismiss/default-order is not treated as "already answered" (#165).
+    let orderIds = '';
+    if (pr.type === 'live_success_order_sources' || pr.type === 'live_start_order_sources') {
+      orderIds = (pr.candidates || []).map((c) => c?.instance_id).filter(Boolean).slice().sort().join(',');
+    }
+    return `${turn}:${pr.type}:${pr.step ?? ''}:${pr.responder ?? ''}:${src}:${abIdx}:${orderIds}`;
   };
 
   global.promptSubmitKey = function promptSubmitKey(s) {

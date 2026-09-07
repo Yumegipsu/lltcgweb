@@ -802,7 +802,21 @@ function forceDismissPendingPromptForPlayer(array $state, string $pid, string $l
         return $state;
     }
     $src = $prompt['source_name'] ?? ($prompt['type'] ?? 'effect');
-    if (($prompt['type'] ?? '') === 'optional_live_start'
+    $ptype = (string)($prompt['type'] ?? '');
+    // Order-of-activation prompts must apply a default order. Bare dismiss → finish
+    // reopens the same Order window forever (#165 Colorful Dreams softlock).
+    if ($ptype === 'live_success_order_sources' || $ptype === 'live_start_order_sources') {
+        try {
+            $data = buildTimeoutPromptResolution($state, $pid, $prompt);
+            if (!empty($data['card_ids'])) {
+                $state = addLog($state, ($state['players'][$pid]['name'] ?? $pid) .
+                    " — {$logPrefix} [{$src}]; using default activation order.", 'info');
+                return actionResolvePrompt($state, $pid, $data);
+            }
+        } catch (Throwable $ignored) {
+        }
+    }
+    if ($ptype === 'optional_live_start'
         && ($state['phase'] ?? '') === 'live_start_effects') {
         $state = markLiveStartOptionalResolved(
             $state,

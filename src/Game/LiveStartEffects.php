@@ -201,7 +201,16 @@ function resolveLiveStartAbilities(array $state, string $pid): array {
     $orderIds = $orderMap[$pid] ?? null;
     if (!is_array($orderIds)) {
         $orderSources = collectLiveStartOrderSources($state, $pid);
-        if (count($orderSources) > 1) {
+        // Order was already offered (or mandatories started) but choice was lost —
+        // do not reopen Order of Activation (#165). Fall through to default order.
+        $orderAsked = !empty(($state['_live_start_order_asked'] ?? [])[$pid]);
+        $alreadyStarted = !empty($state['live_start_mandatory_resolved']);
+        if (count($orderSources) > 1 && !$orderAsked && !$alreadyStarted) {
+            $asked = is_array($state['_live_start_order_asked'] ?? null)
+                ? $state['_live_start_order_asked']
+                : [];
+            $asked[$pid] = true;
+            $state['_live_start_order_asked'] = $asked;
             $state['pending_prompt'] = [
                 'type'          => 'live_start_order_sources',
                 'owner'         => $pid,
@@ -681,6 +690,12 @@ function finishLiveStartEffects(array $state, bool $advancePerformance = true): 
             unset($state['_live_start_order'][$perfPid]);
             if ($state['_live_start_order'] === []) {
                 unset($state['_live_start_order']);
+            }
+        }
+        if (is_array($state['_live_start_order_asked'] ?? null)) {
+            unset($state['_live_start_order_asked'][$perfPid]);
+            if ($state['_live_start_order_asked'] === []) {
+                unset($state['_live_start_order_asked']);
             }
         }
     }

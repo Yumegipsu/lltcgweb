@@ -3625,7 +3625,11 @@ function resolveLiveSuccessAbilitiesBody(
     $orderIds = $ctx['order_ids'] ?? null;
     if (!is_array($orderIds)) {
         $sources = collectLiveSuccessOrderSources($state, $pid, $successCards);
-        if (count($sources) > 1) {
+        // Already mid-resume (Order was shown / abilities started) but order_ids was
+        // lost — never reopen Order of Activation (#165). Use default L→R order.
+        $alreadyResuming = !empty($state['_live_success_resume'])
+            || !empty($state['live_success_resolved']);
+        if (count($sources) > 1 && !$alreadyResuming) {
             $state['pending_prompt'] = [
                 'type'          => 'live_success_order_sources',
                 'owner'         => $pid,

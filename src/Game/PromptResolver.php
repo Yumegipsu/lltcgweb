@@ -375,6 +375,21 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         if (!is_array($state['_live_success_ctx'] ?? null)) {
             $state['_live_success_ctx'] = ['pid' => $owner];
         }
+        $state['_live_success_ctx']['pid'] = $state['_live_success_ctx']['pid'] ?? $owner;
+        // Rebuild success_ids if ctx was stripped while Order was pending (#165).
+        if (empty($state['_live_success_ctx']['success_ids'])) {
+            $successIds = [];
+            foreach ($state['players'][$owner]['live_zone'] ?? [] as $lc) {
+                if (!$lc || !isLiveTypeCard($lc)) {
+                    continue;
+                }
+                $iid = (string)($lc['instance_id'] ?? '');
+                if ($iid !== '') {
+                    $successIds[] = $iid;
+                }
+            }
+            $state['_live_success_ctx']['success_ids'] = $successIds;
+        }
         $state['_live_success_ctx']['order_ids'] = $orderIds;
         $state = addLog($state, $state['players'][$owner]['name'] .
             ' — chose Live Success activation order.');
