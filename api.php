@@ -5440,17 +5440,19 @@ function applyCpuStuckPromptTimeout(array &$state): bool {
         }
         $state['pending_prompt']['opened_at'] = $since;
     }
-    if (time() - $since < 20) {
+    if (time() - $since < 12) {
         return !isset($prompt['opened_at']);
     }
     $seqBefore = intval($state['seq'] ?? 0);
-    $beforeKey = (string)($prompt['type'] ?? '') . '|' . (string)($prompt['step'] ?? '');
+    $beforeKey = (string)($prompt['type'] ?? '') . '|' . (string)($prompt['step'] ?? '')
+        . '|' . (string)($prompt['source_id'] ?? '');
     if (function_exists('autoResolvePendingPromptForTimeout')) {
         $state = autoResolvePendingPromptForTimeout($state, $responder);
     }
     $after = $state['pending_prompt'] ?? null;
     if (is_array($after) && ($after['responder'] ?? '') === $responder) {
-        $afterKey = (string)($after['type'] ?? '') . '|' . (string)($after['step'] ?? '');
+        $afterKey = (string)($after['type'] ?? '') . '|' . (string)($after['step'] ?? '')
+            . '|' . (string)($after['source_id'] ?? '');
         if ($afterKey === $beforeKey) {
             if (function_exists('forceDismissPendingPromptForPlayer')) {
                 $state = forceDismissPendingPromptForPlayer(
@@ -5458,6 +5460,19 @@ function applyCpuStuckPromptTimeout(array &$state): bool {
                     $responder,
                     'CPU prompt timed out'
                 );
+            }
+            // finishPromptEffects can reopen the same dialogue — do not wait another
+            // hang window on that loop (#168).
+            $again = $state['pending_prompt'] ?? null;
+            if (is_array($again) && ($again['responder'] ?? '') === $responder) {
+                $againKey = (string)($again['type'] ?? '') . '|' . (string)($again['step'] ?? '')
+                    . '|' . (string)($again['source_id'] ?? '');
+                if ($againKey === $beforeKey) {
+                    unset($state['pending_prompt'], $state['surveil_stash'], $state['_surveil_chain']);
+                    $state['seq'] = intval($state['seq'] ?? 0) + 1;
+                } else {
+                    $state['pending_prompt']['opened_at'] = time();
+                }
             }
         } else {
             $state['pending_prompt']['opened_at'] = time();

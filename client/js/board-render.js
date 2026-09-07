@@ -1085,6 +1085,15 @@ function skillPromptUiState(s) {
   if (best?.pending_prompt) return scrubAlreadyResolvedPromptState(best);
   const presentationActive = G.animating || G._perfSpectacleActive || G._liveRoundPlaybackActive;
   if (presentationActive && def.pending_prompt?.responder === oppId) {
+    // Human Main with no live prompt: a deferred CPU skill must not keep
+    // "Resolve skill first" / the wait overlay up after the turn has passed (#168).
+    const humanMain = best?.active_player === myId
+      && (best.phase === 'main_first' || best.phase === 'main_second')
+      && !best.pending_prompt;
+    if (humanMain) {
+      clearDeferredPromptState({ skipBannerRefresh: true });
+      return scrubAlreadyResolvedPromptState(best);
+    }
     return scrubAlreadyResolvedPromptState(def);
   }
   if (presentationActive && def.pending_prompt) {

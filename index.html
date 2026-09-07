@@ -24564,6 +24564,7 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
 // silently freezing the match. This caught the exact class of bug found during
 // the CPU-vs-CPU simulation pass and is kept here as a safety net.
 function armWatchdog(s) {
+  noteCpuPresentationUnblock(s || G.gameState);
   clearTimeout(G.watchdogTimer);
   const pr = s.pending_prompt;
   const sig = `${s.turn}|${s.phase}|${s.active_player}|${s.seq}|${pr?.responder || ''}|${pr?.type || ''}`;
@@ -24638,6 +24639,7 @@ function armWatchdog(s) {
       ensurePollHoldReleased(G.gameState);
       doCPU(G.gameState || s);
     }
+    noteCpuPresentationUnblock(G.gameState || s);
     armWatchdog(G.gameState || s);
   }, 4000);
 }
@@ -24752,12 +24754,86 @@ function clearPvPWatchdog() {
   G._pvpWatchStuckCount = 0;
 }
 
+/**
+ * Human's Main Phase in a CPU match, with no skill waiting on either seat.
+ * Stuck spectacle/animation after the CPU's turn otherwise swallows hand clicks
+ * and keeps the board visually thrashing (#168).
+ */
+function cpuHumanTurnInputBlocked(s) {
+  if (!G.isCPU || G.isTutorial || !s || !G.playerId) return false;
+  if (s.status === 'finished') return false;
+  const ph = s.phase;
+  if (ph !== 'main_first' && ph !== 'main_second') return false;
+  if (s.active_player !== G.playerId) return false;
+  const pr = s.pending_prompt;
+  if (pr?.responder) return false;
+  return !!(G.animating || G._livePollHold || G._perfSpectacleActive
+    || G._liveSpectacleGateRunning || G._liveShowRunnerActive
+    || G._liveRoundPlaybackActive || G._perfHeartCheckHold
+    || el('opp-skill-wait')?.classList.contains('show'));
+}
+
+/** Drop leftover CPU-match presentation so the human can play their turn. */
+function unblockCpuHumanTurn(reason) {
+  const s = G.gameState;
+  if (!cpuHumanTurnInputBlocked(s)) return false;
+  TCG_DEBUG.warn('cpu', 'unblock human turn', {
+    reason,
+    phase: s.phase,
+    turn: s.turn,
+    animating: !!G.animating,
+    spectacle: !!G._perfSpectacleActive,
+    liveShow: s.live_show?.stage || null,
+  });
+  G._cpuPresentationBlockSince = 0;
+  clearDeferredPromptState();
+  closeM('overlay-surveil');
+  closeM('overlay-prompt');
+  releaseStuckPresentation({ forceCloseLiveShow: true });
+  if (G.playerId) {
+    updateOpponentSkillWaitBanner(G.gameState || s, G.playerId);
+    updatePhaseActionButton(G.gameState || s, G.playerId);
+  }
+  return !G.animating;
+}
+
+/**
+ * Presentation flags that change every poll never keep a stable watchdog signature,
+ * so the stuck-count path never fires. Track wall time instead (#168).
+ */
+function noteCpuPresentationUnblock(live) {
+  const blocked = !!(G.animating || G._livePollHold || G._perfSpectacleActive
+    || G._liveSpectacleGateRunning || G._liveShowRunnerActive
+    || G._liveRoundPlaybackActive || G._perfHeartCheckHold);
+  if (!blocked) {
+    G._cpuPresentationBlockSince = 0;
+    return;
+  }
+  if (!G._cpuPresentationBlockSince) G._cpuPresentationBlockSince = Date.now();
+  if (Date.now() - G._cpuPresentationBlockSince < 3500) return;
+  const cpuId = typeof cpuOpponentId === 'function' ? cpuOpponentId() : 'p2';
+  const pr = live?.pending_prompt;
+  if (pr?.responder === cpuId) {
+    G._cpuPresentationBlockSince = 0;
+    TCG_DEBUG.warn('cpu', 'release presentation for hung CPU skill', { type: pr.type, step: pr.step });
+    releaseStuckPresentation();
+    if (typeof clearCpuPromptTracking === 'function') clearCpuPromptTracking();
+    if (typeof armCpuPromptHangWatch === 'function') armCpuPromptHangWatch(live);
+    if (typeof doCPU === 'function') doCPU(live);
+    return;
+  }
+  if (cpuHumanTurnInputBlocked(live)) {
+    unblockCpuHumanTurn('watchdog');
+  }
+}
+
 /** Unblock polls/animations without discarding queued server snapshots. */
-function releaseStuckPresentation() {
+function releaseStuckPresentation(opts = {}) {
   const directorHeld = typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active;
   if (!G.animating && !G._livePollHold && !G._perfSpectacleActive && !G._liveSpectacleGateRunning
       && !G._liveShowRunnerActive && !G._liveRoundPlaybackActive && !directorHeld) return;
-  const liveShowInFlight = !!G.gameState?.live_show?.stage
+  const liveShowInFlight = !opts.forceCloseLiveShow
+    && !!G.gameState?.live_show?.stage
     && G.gameState.live_show.stage !== 'done';
   const winLossChrome = typeof LLTCG_PRESENTATION_GUARDS !== 'undefined'
     && LLTCG_PRESENTATION_GUARDS.liveWinLossPresentationActive(G.gameState, {
@@ -25077,6 +25153,8 @@ async function cpuAutoSkipHungPrompt() {
   if (!pr || pr.responder !== cpuId) return;
   const hangMs = Date.now() - (G._cpuPromptHangSince || Date.now());
   TCG_DEBUG.warn('cpu', 'prompt hang auto-skip', { key, type: pr.type, hangMs });
+  // Presentation hold used to swallow the skip and the follow-up pull (#168).
+  releaseStuckPresentation();
   recordTcgBugReport(enrichAntiSoftlockBugReport({
     reporter: 'cpu',
     room_id: G.roomId || null,
@@ -27943,7 +28021,14 @@ function bindHandCardEvents(d, card, s, myId) {
     if (e.button !== 0) return;
     // Live tutorial hand-play must stay responsive even if a prior board anim
     // flag is still set (otherwise Shiki select/drag softlocks).
-    if (G.animating && !(G.tutorialLive && typeof tutBlocks === 'function' && !tutBlocks('hand'))) return;
+    if (G.animating && !(G.tutorialLive && typeof tutBlocks === 'function' && !tutBlocks('hand'))) {
+      const board = (typeof liveGameState === 'function' ? liveGameState(s) : s) || G.gameState;
+      if (typeof unblockCpuHumanTurn === 'function' && unblockCpuHumanTurn('hand-pointer')) {
+        // Presentation was leftover from the CPU's turn — allow this click.
+      } else {
+        return;
+      }
+    }
     if (typeof tutBlocks === 'function' && tutBlocks('hand')) return;
     const portrait = typeof tcgPortraitPlayActive === 'function' && tcgPortraitPlayActive();
     const mobileVp = typeof tcgMobileViewportActive === 'function' && tcgMobileViewportActive();
