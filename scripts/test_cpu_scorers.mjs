@@ -127,6 +127,17 @@ if (!/MAX_MAIN_ACTIONS:\s*3/.test(expertSrc) || !/cpuPolicyActivateRate/.test(ex
 } else {
   ok('Expert search uses policy prior');
 }
+const netSrc = fs.readFileSync(path.join(root, 'client', 'js', 'cpu-action-net.js'), 'utf8');
+if (!/function cpuExpectedYellHeartPool/.test(loopSrc) || !/cpuLiveStageOrYellClear/.test(loopSrc)) {
+  fail('Hard/Expert Live set must model deck blade-heart Yell risk');
+} else {
+  ok('Yell risk uses remaining deck blade hearts');
+}
+if (!/cpuActionNetAdjust/.test(loopSrc) || !/if \(tier === 'expert'\) return 0\.85/.test(netSrc) || !/return 0;/.test(netSrc)) {
+  fail('action critic must score CPU lines and ignore Easy');
+} else {
+  ok('action critic judges own candidates');
+}
 if (!policySrc.includes('cpuPolicyBlend')) {
   fail('cpu-policy.js missing blend');
 } else {

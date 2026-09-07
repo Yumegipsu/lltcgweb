@@ -480,20 +480,116 @@ function cpuHandHasViableLive(cpu, opts = null) {
   return cpuHandLiveContext(cpu, opts).hasViableLive;
 }
 
+function cpuLookupYellCard(card) {
+  if (!card) return card;
+  if (card.blade_hearts?.length || card.abilities?.length) return card;
+  const no = card.card_no;
+  const cat = (no && G?.allCards?.[no]) || null;
+  if (cat) return { ...cat, ...card };
+  return card;
+}
+
+function cpuCardBladeHeartColors(card) {
+  const src = cpuLookupYellCard(card);
+  if (typeof cardYellBladeHeartColors === 'function') {
+    return cardYellBladeHeartColors(src).map(normalizeHeartColor);
+  }
+  const colors = [];
+  (src?.blade_hearts || []).forEach((bh) => {
+    if (typeof bh === 'string') {
+      if (bh === 'draw' || bh === 'score') return;
+      colors.push(normalizeHeartColor(bh));
+      return;
+    }
+    const t = bh?.type || bh?.color || '';
+    if (t === 'draw' || t === 'score') return;
+    colors.push(normalizeHeartColor(bh.color || bh.type || 'any'));
+  });
+  return colors;
+}
+
+function cpuLiveHasYellWildcard(card) {
+  return (cpuLookupYellCard(card)?.abilities || []).some((ab) => ab?.type === 'yell_hearts_wildcard');
+}
+
+/** Hearts a live-start skill is likely to add before the heart check. */
+function cpuLiveStartSkillHeartPool(cpu) {
+  const extra = [];
+  Object.values(cpu?.stage || {}).forEach((m) => {
+    (m?.abilities || []).forEach((ab) => {
+      const type = String(ab?.type || '');
+      const trigger = String(ab?.trigger || '');
+      if (!/heart/.test(type)) return;
+      if (trigger !== 'on_live_start' && trigger !== 'live_start' && !/live_start/.test(type)) return;
+      const n = Math.min(2, Number(ab.amount || ab.count || 1) || 1);
+      const color = normalizeHeartColor(ab.color || ab.heart || 'any');
+      for (let i = 0; i < n; i++) extra.push(color);
+    });
+  });
+  return extra;
+}
+
+/**
+ * Expected blade-hearts from milling `blade` cards of the remaining deck.
+ * Uses printed blade hearts on own main_deck, not a flat wild guess.
+ */
+function cpuExpectedYellHeartPool(cpu, s, pid, tier) {
+  if (tier === 'easy') return [];
+  const blades = typeof estimateYellBlade === 'function' ? estimateYellBlade(s, pid) : 0;
+  if (blades <= 0) return cpuLiveStartSkillHeartPool(cpu);
+  const deck = Array.isArray(cpu?.main_deck) ? cpu.main_deck.filter(Boolean) : [];
+  const mill = Math.min(blades, deck.length);
+  const colors = {};
+  deck.forEach((c) => {
+    cpuCardBladeHeartColors(c).forEach((col) => {
+      colors[col] = (colors[col] || 0) + 1;
+    });
+  });
+  const factor = tier === 'expert' ? 1 : tier === 'hard' ? 0.85 : 0.55;
+  const extraAt = tier === 'expert' ? 0.4 : tier === 'hard' ? 0.62 : 0.9;
+  const pool = [];
+  if (deck.length && mill > 0 && Object.keys(colors).length) {
+    Object.entries(colors).forEach(([color, n]) => {
+      const expected = mill * (n / deck.length) * factor;
+      let take = Math.floor(expected + 1e-9);
+      if (expected - take >= extraAt) take += 1;
+      take = Math.min(take, n);
+      for (let i = 0; i < take; i++) pool.push(color);
+    });
+  } else if (cpuTierHardPlus(tier)) {
+    const fallback = Math.floor(blades * (tier === 'expert' ? 0.35 : 0.25));
+    for (let i = 0; i < fallback; i++) pool.push('any');
+  }
+  return pool.concat(cpuLiveStartSkillHeartPool(cpu));
+}
+
+function cpuYellBackedPool(cpu, s, pid, tier, live) {
+  const stage = stageHeartPool(cpu);
+  const yell = cpuExpectedYellHeartPool(cpu, s, pid, tier);
+  const hearts = cpuLiveHasYellWildcard(live) ? yell.map(() => 'any') : yell;
+  return stage.concat(hearts);
+}
+
+function cpuLiveStageOrYellClear(c, cpu, s, pid, tier) {
+  const req = cpuLiveRequiredHearts(c);
+  if (cpuCheckHearts(stageHeartPool(cpu), req)) return { stage: true, yell: true };
+  const yell = cpuCheckHearts(cpuYellBackedPool(cpu, s, pid, tier, c), req);
+  return { stage: false, yell };
+}
+
 function cpuExpectedYellAnyHearts(s, pid, tier) {
   if (tier === 'easy') return 0;
   const blades = typeof estimateYellBlade === 'function' ? estimateYellBlade(s, pid) : 0;
-  // Yell flips ≈ blade count; expect blade-hearts on a fraction of milled cards.
   const factor = tier === 'expert' ? 0.72 : tier === 'hard' ? 0.58 : 0.38;
   return Math.max(0, Math.floor(blades * factor));
 }
 
-/** Stage hearts + expected Yell wildcards (Hard/Expert pro clear model). */
+/** Stage hearts + expected Yell hearts from the remaining deck and live-start skills. */
 function cpuClearHeartPool(cpu, s, pid, tier) {
   const pool = stageHeartPool(cpu).slice();
-  const extras = cpuExpectedYellAnyHearts(s || G.gameState, pid || (typeof cpuOpponentId === 'function' ? cpuOpponentId() : 'p2'), tier || cpuDiff());
-  for (let i = 0; i < extras; i++) pool.push('any');
-  return pool;
+  const resolvedPid = pid || (typeof cpuOpponentId === 'function' ? cpuOpponentId() : 'p2');
+  const resolvedTier = tier || cpuDiff();
+  return pool.concat(cpuExpectedYellHeartPool(cpu, s || G.gameState, resolvedPid, resolvedTier));
 }
 
 function cpuHandLiveContext(cpu, opts = null) {
@@ -631,7 +727,8 @@ function cpuScoreLiveForSet(c, tier, winPressure, read = null, cpu = null) {
   }
   if (tier !== 'easy' && cpu && typeof cpuLiveRaceAdvice === 'function') {
     const stagePool = stageHeartPool(cpu);
-    const clearable = cpuCheckHearts(stagePool, cpuLiveRequiredHearts(c));
+    const backed = cpuLiveStageOrYellClear(c, cpu, G.gameState, (typeof cpuOpponentId === 'function' ? cpuOpponentId() : 'p2'), tier);
+    const clearable = backed.stage || backed.yell;
     const liveCtx = typeof cpuHandLiveContext === 'function'
       ? cpuHandLiveContext(cpu, { tier, s: G.gameState })
       : null;
@@ -639,13 +736,14 @@ function cpuScoreLiveForSet(c, tier, winPressure, read = null, cpu = null) {
       tier,
       mySuccess: (cpu.success_lives || []).length,
       oppSuccess: read?.successCount ?? 0,
-      canClearStage: clearable || (liveCtx?.stageViable || []).some(x => x.instance_id === c.instance_id),
-      canClearYell: !!(liveCtx?.hasViableLive),
+      canClearStage: backed.stage || (liveCtx?.stageViable || []).some(x => x.instance_id === c.instance_id),
+      canClearYell: backed.yell || !!(liveCtx?.hasViableLive),
       oppHearts: (read?.stageHearts || []).length,
       oppActive: read?.activeStage?.length || 0,
       oppVisibleScore: (read?.liveZoneRevealed || []).reduce((n, l) => n + (l.score || 0), 0),
     });
-    if (advice.takeClear && clearable) score += 4 + (c.score || 0) * (advice.preferHighWhenBoth ? 2.2 : 1.1);
+    if (advice.takeClear && backed.stage) score += 4 + (c.score || 0) * (advice.preferHighWhenBoth ? 2.2 : 1.1);
+    else if (backed.yell) score += (cpuTierHardPlus(tier) ? 2.4 : 1.1) + (c.score || 0) * 0.8;
     if (advice.takeLowAtTwo && clearable) score += 8;
     if (advice.dropUnclearable && !clearable) score -= 6 + (c.score || 0);
     if (advice.preferHighWhenBoth && clearable) score += (c.score || 0) * 1.4;
@@ -653,7 +751,7 @@ function cpuScoreLiveForSet(c, tier, winPressure, read = null, cpu = null) {
       score += cpuActionNetAdjust(tier, cpuActionNetSeat(cpu, read, G.gameState, {
         kind: 'live_set',
         score: c.score || 0,
-        canClear: clearable,
+        canClear: backed.yell || backed.stage,
       }));
     }
   }
@@ -3231,8 +3329,8 @@ function cpuLiveSet() {
       oppVisibleScore: (read?.liveZoneRevealed || []).reduce((n, l) => n + (l.score || 0), 0),
     });
     if (advice.dropUnclearable && chosenLives.length) {
-      const stageOnly = chosenLives.filter(c => cpuCheckHearts(stagePool, cpuLiveRequiredHearts(c)));
-      if (stageOnly.length) chosenLives = stageOnly;
+      const backed = chosenLives.filter(c => cpuLiveStageOrYellClear(c, cpu, s, cpuId, tier).yell);
+      if (backed.length) chosenLives = backed;
     }
     if (advice.takeLowAtTwo && chosenLives.length > 1) {
       chosenLives = chosenLives
