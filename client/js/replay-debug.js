@@ -262,12 +262,16 @@
       const ts = Number(a?.ts || 0);
       const prevTs = idx > 0 ? Number(actions[idx - 1]?.ts || 0) : 0;
       const delta = ts > 0 && prevTs > 0 ? Math.max(0, ts - prevTs) : 0;
+      const data = a?.data && typeof a.data === 'object' ? a.data : {};
       return {
         step: idx + 1,
         ts,
         delta,
         player: a?.player || '',
         type: a?.type || '',
+        turn: Number(a?.turn || 0),
+        card_name: String(a?.card_name || data.card_name || ''),
+        slot: String(a?.slot || data.slot || ''),
       };
     });
   };

@@ -2921,7 +2921,7 @@ if (/[?&]debug(?:=|&|$)/.test(location.search)) {
 <script src="client/js/game-sync.js?v=69"></script>
 <script src="client/js/state-apply.js?v=80"></script>
 <script src="client/js/stamps.js?v=21"></script>
-<script src="client/js/replay-debug.js?v=11"></script>
+<script src="client/js/replay-debug.js?v=12"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
 <script src="client/js/prompt-renderer.js?v=98"></script>
 <script src="client/js/tutorial-interactive.js?v=25"></script>
@@ -11118,9 +11118,29 @@ async function refreshReplayLibrary() {
   }
 }
 
+function mergeReplayActionLabels(actions, labels) {
+  const src = Array.isArray(actions) ? actions : [];
+  const extra = Array.isArray(labels) ? labels : [];
+  if (!extra.length) return src;
+  return src.map((a, i) => {
+    const lab = extra[i];
+    if (!lab || typeof lab !== 'object') return a;
+    const base = a && typeof a === 'object' ? a : { type: lab.type || '' };
+    return {
+      ...base,
+      type: base.type || lab.type || '',
+      turn: Number(base.turn || lab.turn || 0),
+      card_name: base.card_name || lab.card_name || '',
+      slot: base.slot || lab.slot || '',
+      player: base.player || lab.player || '',
+    };
+  });
+}
+
 async function bootReplayFromPayload(startResult, replay) {
   stopReplayAutoPlay();
-  G.replayTimeline = replayTimingFromActions(replay.actions);
+  const labeled = mergeReplayActionLabels(replay.actions, startResult?.action_labels);
+  G.replayTimeline = replayTimingFromActions(labeled);
   G.replayLoadedMeta = replay.meta || null;
   G.replayMode = true;
   G.replayHandoff = false;
@@ -11259,7 +11279,7 @@ function syncReplayControlBar(previewStep) {
   const total = G.replayTotal || 0;
   const label = el('replay-step-label');
   if (label) {
-    label.textContent = `${displayStep} / ${total} · ${formatReplayElapsed(replayElapsedSeconds(displayStep))}`;
+    label.textContent = formatReplayStepLabel(displayStep, total);
   }
   const actionLabel = el('replay-action-label');
   if (actionLabel) {
@@ -11360,12 +11380,53 @@ function replayShouldShowMullOverlay(step, s) {
   return false;
 }
 
+function replayEntryAtStep(step) {
+  const timeline = Array.isArray(G.replayTimeline) ? G.replayTimeline : [];
+  const idx = Math.max(0, Number(step) || 0) - 1;
+  if (idx < 0 || !timeline[idx]) return null;
+  return timeline[idx];
+}
+
+function replayTurnAtStep(step) {
+  const entry = replayEntryAtStep(step);
+  const fromAction = Number(entry?.turn || 0);
+  if (fromAction > 0) return fromAction;
+  const fromState = Number(G.gameState?.turn || 0);
+  return fromState > 0 ? fromState : 0;
+}
+
+function formatReplayStepLabel(step, total) {
+  const time = formatReplayElapsed(replayElapsedSeconds(step));
+  const base = `${step} / ${total} · ${time}`;
+  const turn = replayTurnAtStep(step);
+  if (turn <= 0) return base;
+  const turnText = typeof t === 'function' ? t('splash.turn', { turn }) : `Turn ${turn}`;
+  return `${turnText} · ${base}`;
+}
+
 function replayActionLabelForStep(step) {
-  const recType = replayActionTypeAtStep(step);
+  const entry = replayEntryAtStep(step);
+  const recType = String(entry?.type || replayActionTypeAtStep(step) || '');
   if (!recType) {
     return step <= 0 ? (typeof t === 'function' ? t('replay.startStep') : 'start') : '';
   }
-  return formatReplayActionType(recType);
+  const name = String(entry?.card_name || '').trim();
+  let text = formatReplayActionType(recType);
+  if (name && recType === 'play_member') {
+    text = replayCopy('replay.playCard', `Play ${name}`, { name });
+  } else if (name && recType === 'activate_ability') {
+    text = replayCopy('replay.activateCard', `Activate ${name}`, { name });
+  } else if (name) {
+    text = `${text} · ${name}`;
+  }
+  return text;
+}
+
+function replayCopy(key, fallback, vars) {
+  if (typeof t !== 'function') return fallback;
+  const out = t(key, vars);
+  if (!out || out === key) return fallback;
+  return out;
 }
 
 function formatReplayActionType(type) {

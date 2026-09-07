@@ -75,14 +75,145 @@ function appendReplayAction(array $state, string $playerId, string $type, array 
     if (!isset($state['action_log']) || !is_array($state['action_log'])) {
         $state['action_log'] = [];
     }
-    $state['action_log'][] = [
+    $entry = [
         'index'    => count($state['action_log']) + 1,
         'player'   => $playerId,
         'type'     => $type,
         'data'     => $data,
         'ts'       => time(),
         'game_seq' => intval($state['seq'] ?? 0),
+        'turn'     => intval($state['turn'] ?? 0),
     ];
+    replayStampActionIdentity($entry, $state);
+    $state['action_log'][] = $entry;
+    return $state;
+}
+
+/** Display name for a recorded card id, searching the player's zones. */
+function replayLookupCardName(array $state, string $pid, string $cardId): string {
+    if ($cardId === '' || ($pid !== 'p1' && $pid !== 'p2')) {
+        return '';
+    }
+    $p = $state['players'][$pid] ?? null;
+    if (!is_array($p)) {
+        return '';
+    }
+    $named = static function ($card): string {
+        if (!is_array($card)) {
+            return '';
+        }
+        $name = trim((string)($card['name_en'] ?? $card['name'] ?? ''));
+        return $name;
+    };
+    foreach ($p['stage'] ?? [] as $mbr) {
+        if (is_array($mbr) && ($mbr['instance_id'] ?? '') === $cardId) {
+            $name = $named($mbr);
+            if ($name !== '') {
+                return $name;
+            }
+        }
+    }
+    foreach (['hand', 'waiting_room', 'main_deck', 'live_zone', 'live_storage', 'energy_zone', 'discard'] as $zone) {
+        foreach ($p[$zone] ?? [] as $card) {
+            if (is_array($card) && ($card['instance_id'] ?? '') === $cardId) {
+                $name = $named($card);
+                if ($name !== '') {
+                    return $name;
+                }
+            }
+        }
+    }
+    return '';
+}
+
+/**
+ * Stamp turn + card name onto a recorded action so the viewer can name
+ * play/activate even when re-sim drops the matching log line.
+ */
+function replayStampActionIdentity(array &$action, array $state): void {
+    $pid = (string)($action['player'] ?? '');
+    if (!isset($action['turn'])) {
+        $action['turn'] = intval($state['turn'] ?? 0);
+    }
+    $type = (string)($action['type'] ?? '');
+    if ($type !== 'play_member' && $type !== 'activate_ability') {
+        return;
+    }
+    $data = is_array($action['data'] ?? null) ? $action['data'] : [];
+    if (empty($action['slot']) && !empty($data['slot'])) {
+        $action['slot'] = (string)$data['slot'];
+    }
+    if (!empty($action['card_name'])) {
+        return;
+    }
+    $name = replayLookupCardName($state, $pid, (string)($data['card_id'] ?? ''));
+    if ($name !== '') {
+        $action['card_name'] = $name;
+    }
+}
+
+function replayLogMentions(array $state, string $needle): bool {
+    if ($needle === '') {
+        return false;
+    }
+    $log = $state['log'] ?? [];
+    if (!is_array($log) || $log === []) {
+        return false;
+    }
+    $from = max(0, count($log) - 8);
+    for ($i = count($log) - 1; $i >= $from; $i--) {
+        $msg = (string)($log[$i]['msg'] ?? '');
+        if ($msg !== '' && str_contains($msg, $needle)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * If re-sim cannot apply a recorded play or activate, still show the card
+ * and a log line so the viewer does not skip that moment or the turn it belongs to.
+ */
+function replaySurfaceSkippedPlayOrActivate(array $state, string $pid, string $type, array $data): array {
+    if (($pid !== 'p1' && $pid !== 'p2') || ($type !== 'play_member' && $type !== 'activate_ability')) {
+        return $state;
+    }
+    $cardId = (string)($data['card_id'] ?? '');
+    if ($cardId === '') {
+        return $state;
+    }
+    $slot = (string)($data['slot'] ?? $data['source_slot'] ?? 'center');
+    if ($type === 'play_member') {
+        replayEnsureCardInHand($state, $pid, $cardId);
+        replayEnsureMemberOnStage($state, $pid, $cardId, $slot);
+    } else {
+        $onStage = false;
+        foreach ($state['players'][$pid]['stage'] ?? [] as $mbr) {
+            if (is_array($mbr) && ($mbr['instance_id'] ?? '') === $cardId) {
+                $onStage = true;
+                break;
+            }
+        }
+        if (!$onStage) {
+            replayEnsureMemberOnStage($state, $pid, $cardId, $slot);
+        }
+    }
+    $name = replayLookupCardName($state, $pid, $cardId);
+    if ($name === '') {
+        $name = trim((string)($data['card_name'] ?? ''));
+    }
+    if ($name === '') {
+        $name = 'Member';
+    }
+    $player = (string)($state['players'][$pid]['name'] ?? $pid);
+    if ($type === 'play_member') {
+        $line = $player . ' played ' . $name . ' to ' . $slot . ' area.';
+        if (!replayLogMentions($state, 'played ' . $name)) {
+            $state = addLog($state, $line, 'action');
+        }
+    } elseif (!replayLogMentions($state, '[' . $name . ']')) {
+        $state = addLog($state, $player . ' — [' . $name . '] activated.', 'action');
+    }
     return $state;
 }
 
@@ -245,12 +376,15 @@ function buildReplayLogIndex(array $baseline, array $actions): array {
         if ($type === '') {
             throw new Exception('Replay action #' . ($i + 1) . ' missing type');
         }
+        replayStampActionIdentity($actions[$i], $state);
+        $a = $actions[$i];
+        $data = is_array($a['data'] ?? null) ? $a['data'] : [];
         try {
             $state = replayApplyRecordedAction(
                 $state,
                 $pid,
                 $type,
-                is_array($a['data'] ?? null) ? $a['data'] : [],
+                $data,
                 $i + 1
             );
         } catch (Throwable $e) {
@@ -259,6 +393,7 @@ function buildReplayLogIndex(array $baseline, array $actions): array {
                 'log index #' . ($i + 1) . ' ' . $type . ': ' . $e->getMessage(),
                 $type
             );
+            $state = replaySurfaceSkippedPlayOrActivate($state, $pid, $type, $data);
         }
         if (empty($state['pending_prompt']) && function_exists('flushAutoOnWaitAbilities')) {
             $state = flushAutoOnWaitAbilities($state);
@@ -268,6 +403,7 @@ function buildReplayLogIndex(array $baseline, array $actions): array {
     return [
         'full_log' => is_array($state['log'] ?? null) ? $state['log'] : [],
         'log_ends' => $logEnds,
+        'actions' => $actions,
     ];
 }
 
@@ -290,6 +426,9 @@ function ensureReplayLogIndex(array $replay): array {
     $built = buildReplayLogIndex($baseline, $actions);
     $replay['full_log'] = $built['full_log'];
     $replay['log_ends'] = $built['log_ends'];
+    if (!empty($built['actions']) && is_array($built['actions'])) {
+        $replay['actions'] = $built['actions'];
+    }
     return $replay;
 }
 
@@ -343,12 +482,15 @@ function convertReplayPayloadToV2(array $replay): array {
         if ($type === '') {
             throw new Exception('Replay action #' . ($i + 1) . ' missing type');
         }
+        replayStampActionIdentity($actions[$i], $state);
+        $a = $actions[$i];
+        $data = is_array($a['data'] ?? null) ? $a['data'] : [];
         try {
             $state = replayApplyRecordedAction(
                 $state,
                 $pid,
                 $type,
-                is_array($a['data'] ?? null) ? $a['data'] : [],
+                $data,
                 $i + 1
             );
         } catch (Throwable $e) {
@@ -358,6 +500,7 @@ function convertReplayPayloadToV2(array $replay): array {
                 'convert #' . ($i + 1) . ' ' . $type . ': ' . $e->getMessage(),
                 $type
             );
+            $state = replaySurfaceSkippedPlayOrActivate($state, $pid, $type, $data);
         }
         if (empty($state['pending_prompt']) && function_exists('flushAutoOnWaitAbilities')) {
             $state = flushAutoOnWaitAbilities($state);
@@ -1244,6 +1387,8 @@ function replayLooksLikeSeekDriftError(string $msg): bool {
         'Invalid Live card',
         'Choose a Live card',
         'Ability already used this turn',
+        'Invalid ability',
+        'Not an activated ability',
     ];
     foreach ($needles as $needle) {
         if (str_contains($msg, $needle)) {
@@ -1408,11 +1553,12 @@ function replayApplyRecordedAction(array $state, string $pid, string $type, arra
         || $type === 'anti_softlock_skip'
         || replayLooksLikePromptInteractionError($msg)
         || replayLooksLikeSeekDriftError($msg)) {
-        return replaySoftSkipPendingPrompt(
+        $state = replaySoftSkipPendingPrompt(
             $state,
             '#' . $index . ' ' . $type . ': ' . $msg,
             $type
         );
+        return replaySurfaceSkippedPlayOrActivate($state, $pid, $type, $data);
     }
     throw $lastError ?? new Exception('Replay action #' . $index . ' failed');
 }
@@ -1537,6 +1683,7 @@ function apiReplayStart(array $body): array {
     if (!is_array($baseline) || !is_array($frames) || count($frames) !== count($actions) + 1) {
         throw new Exception('Replay frames missing after convert');
     }
+    $actions = replayStampActionsFromFrames($actions, $frames);
     $saverPid = $replay['meta']['saver_player_id'] ?? 'p1';
     $cpuDiff = in_array($replay['meta']['cpu_difficulty'] ?? '', ['easy', 'normal', 'hard', 'expert'], true)
         ? $replay['meta']['cpu_difficulty'] : 'normal';
@@ -1573,7 +1720,65 @@ function apiReplayStart(array $body): array {
         'player_id'    => $saverPid,
         'total_steps'  => count($actions),
         'saver_name'   => $replay['meta']['saver_name'] ?? $saverPid,
+        'action_labels' => replayActionLabels($actions),
     ];
+}
+
+/** Compact play/activate labels for the replay bar (no full action payloads). */
+function replayActionLabels(array $actions): array {
+    $out = [];
+    foreach ($actions as $a) {
+        if (!is_array($a)) {
+            $out[] = ['type' => '', 'turn' => 0, 'card_name' => '', 'slot' => '', 'player' => ''];
+            continue;
+        }
+        $data = is_array($a['data'] ?? null) ? $a['data'] : [];
+        $out[] = [
+            'type' => (string)($a['type'] ?? ''),
+            'turn' => intval($a['turn'] ?? 0),
+            'card_name' => (string)($a['card_name'] ?? ''),
+            'slot' => (string)($a['slot'] ?? ($data['slot'] ?? '')),
+            'player' => (string)($a['player'] ?? ''),
+        ];
+    }
+    return $out;
+}
+
+/** Fill missing turn/card_name from board frames so older replays still name the card. */
+function replayStampActionsFromFrames(array $actions, array $frames): array {
+    foreach ($actions as $i => &$action) {
+        if (!is_array($action)) {
+            continue;
+        }
+        $after = (isset($frames[$i + 1]) && is_array($frames[$i + 1])) ? $frames[$i + 1] : null;
+        $before = (isset($frames[$i]) && is_array($frames[$i])) ? $frames[$i] : null;
+        $src = $after ?? $before;
+        if ($src && !isset($action['turn']) && isset($src['turn'])) {
+            $action['turn'] = intval($src['turn']);
+        }
+        $type = (string)($action['type'] ?? '');
+        if ($type !== 'play_member' && $type !== 'activate_ability') {
+            continue;
+        }
+        if (!empty($action['card_name'])) {
+            continue;
+        }
+        $data = is_array($action['data'] ?? null) ? $action['data'] : [];
+        $cid = (string)($data['card_id'] ?? '');
+        $pid = (string)($action['player'] ?? '');
+        $name = '';
+        if ($after) {
+            $name = replayLookupCardName($after, $pid, $cid);
+        }
+        if ($name === '' && $before) {
+            $name = replayLookupCardName($before, $pid, $cid);
+        }
+        if ($name !== '') {
+            $action['card_name'] = $name;
+        }
+    }
+    unset($action);
+    return $actions;
 }
 
 function apiReplayGoto(array $body): array {

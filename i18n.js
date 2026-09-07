@@ -1335,7 +1335,9 @@
       "last": "Last action",
       "next": "Next action",
       "prev": "Previous action",
-      "startStep": "Start"
+      "startStep": "Start",
+      "playCard": "Play {name}",
+      "activateCard": "Activate {name}"
     },
     "apiError": {
       "titleClient": "Something went wrong",
@@ -3224,6 +3226,8 @@
       "next": "次のアクション",
       "last": "最後のアクション",
       "startStep": "開始",
+      "playCard": "{name}を登場",
+      "activateCard": "{name}を起動",
       "positionAria": "リプレイ位置",
       "handoffNote": "リプレイ完了 — 操作可能です。COMが相手をプレイします。",
       "exitReplay": "リプレイを終了",
@@ -4914,7 +4918,9 @@
       "last": "Last action",
       "next": "Next action",
       "prev": "Previous action",
-      "startStep": "Start"
+      "startStep": "Start",
+      "playCard": "Jugar {name}",
+      "activateCard": "Activar {name}"
     },
     "apiError": {
       "titleClient": "Algo salió mal",
@@ -6745,7 +6751,9 @@
       "last": "Last action",
       "next": "Next action",
       "prev": "Previous action",
-      "startStep": "Start"
+      "startStep": "Start",
+      "playCard": "{name} 등장",
+      "activateCard": "{name} 발동"
     },
     "apiError": {
       "titleClient": "문제가 발생했습니다",
@@ -8590,7 +8598,9 @@
       "last": "Last action",
       "next": "Next action",
       "prev": "Previous action",
-      "startStep": "Start"
+      "startStep": "Start",
+      "playCard": "打出 {name}",
+      "activateCard": "发动 {name}"
     },
     "apiError": {
       "titleClient": "出了点问题",
@@ -10425,7 +10435,9 @@
       "last": "Last action",
       "next": "Next action",
       "prev": "Previous action",
-      "startStep": "Start"
+      "startStep": "Start",
+      "playCard": "ลง {name}",
+      "activateCard": "ใช้สกิล {name}"
     },
     "apiError": {
       "titleClient": "เกิดข้อผิดพลาด",
@@ -12360,7 +12372,9 @@
       "last": "Última ação",
       "next": "Próxima ação",
       "prev": "Ação anterior",
-      "startStep": "Início"
+      "startStep": "Início",
+      "playCard": "Jogar {name}",
+      "activateCard": "Ativar {name}"
     },
     "apiError": {
       "titleClient": "Algo deu errado",
