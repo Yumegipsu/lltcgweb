@@ -1334,7 +1334,7 @@ global.ensurePromptChoices = function ensurePromptChoices(pr){
   // (that softlocks Ginko / PB1 multi-step WR picks behind an empty choice dialog).
   if(/^pick_wr/.test(step) || step==='pick_live' || step==='pick_member'
       || step==='pick_hand' || step==='pick_slot' || step==='pick'
-      || step==='pick_wait_member' || step==='pick_dest' || step==='assign'){
+      || step==='pick_wait' || step==='pick_wait_member' || step==='pick_dest' || step==='assign'){
     return pr;
   }
   const optionalType=isSelfActivationPrompt(pr)
@@ -1806,7 +1806,10 @@ function promptDiscardCount(pr, choice){
   if(pr.type==='discard_member_add_lower_wr_member') return 1;
   if(pr.type==='optional_discard_mill_wr_add_member') return 1;
   if(pr.type==='optional_discard_grant_heart_other_member') return 1;
-  if(pr.type==='optional_discard_activate_wait_blade'||pr.type==='optional_discard_activate_wait_hearts') return 2;
+  if(pr.type==='optional_discard_activate_wait_blade'||pr.type==='optional_discard_activate_wait_hearts') {
+    if ((pr.step || '') === 'pick_wait') return 0;
+    return 2;
+  }
   if(pr.type==='wait_self_discard_add_wr_live') return pr.ability?.discard||1;
   if(pr.type==='optional_discard_look_reveal_subunit') return pr.ability?.discard||1;
   if(pr.type==='optional_discard_mill_add_wr_subunit_live') return pr.ability?.discard||1;
@@ -2440,6 +2443,21 @@ global.renderPrompt = function renderPrompt(s, myId){
   }
   closeM('overlay-surveil');
   if (renderPromptBp7Pick(s, myId, pr)) return;
+  if ((pr?.type === 'optional_discard_activate_wait_blade' || pr?.type === 'optional_discard_activate_wait_hearts')
+      && pr.step === 'pick_wait' && pr.responder === myId) {
+    ovl.classList.remove('open');
+    const members = (pr.candidates || []).filter(c => c && c.slot);
+    if (!members.length) {
+      sendAct('resolve_prompt', { choice: (pr.wait_slots || [])[0] || 'skip' });
+      return;
+    }
+    openStageSlotPick({
+      ...pr,
+      candidates: members,
+      prompt: pt('prompt.activateWaitMember'),
+    });
+    return;
+  }
   if (pr?.type === 'wait_other_group_draw' && pr.responder === myId) {
     ovl.classList.remove('open');
     const members = pr.stage_members || [];

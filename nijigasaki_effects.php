@@ -1161,6 +1161,17 @@ function nijiApplyWaitOtherGroupDraw(array $state, string $pid, array $prompt, s
     return $state;
 }
 
+/** Other Wait Members on Stage, for the activate-Wait picker (not hand cards). */
+function nijiWaitMemberPickCandidates(array $player, string $srcId): array {
+    $candidates = [];
+    foreach ($player['stage'] ?? [] as $slot => $mbr) {
+        if (!$mbr || ($mbr['instance_id'] ?? '') === $srcId) continue;
+        if (!memberIsInWait($mbr)) continue;
+        $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => (string) $slot]);
+    }
+    return $candidates;
+}
+
 function nijiHandlePrompt(array $state, string $promptType, array $prompt, string $choice, array $data): ?array {
     $owner = $prompt['owner'] ?? '';
     $ownerP = &$state['players'][$owner];
@@ -1376,6 +1387,7 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
         if (count($waitSlots) === 1) {
             $pickSlot = $waitSlots[0];
         } else {
+            $candidates = nijiWaitMemberPickCandidates($ownerP, $srcId);
             $state['pending_prompt'] = [
                 'type'        => $promptType,
                 'step'        => 'pick_wait',
@@ -1384,8 +1396,9 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
                 'source_id'   => $srcId,
                 'source_name' => $prompt['source_name'] ?? 'Member',
                 'wait_slots'  => $waitSlots,
+                'candidates'  => $candidates,
                 'ability'     => $ability,
-                'prompt'      => 'Choose 1 Wait Member to activate.',
+                'prompt'      => 'Choose 1 Wait Member on your Stage to activate.',
             ];
             $state['seq']++;
             return $state;
@@ -1417,7 +1430,10 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
 
     if (in_array($promptType, ['optional_discard_activate_wait_blade', 'optional_discard_activate_wait_hearts'], true)
         && ($prompt['step'] ?? '') === 'pick_wait') {
-        $pickSlot = $choice;
+        $pickSlot = (string) ($data['slot'] ?? '');
+        if ($pickSlot === '') {
+            $pickSlot = (string) $choice;
+        }
         $srcId = $prompt['source_id'] ?? '';
         if (!in_array($pickSlot, $prompt['wait_slots'] ?? [], true)) {
             throw new Exception('Invalid Wait Member');

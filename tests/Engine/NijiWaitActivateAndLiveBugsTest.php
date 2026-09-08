@@ -288,6 +288,69 @@ final class NijiWaitActivateAndLiveBugsTest extends TestCase
         $this->assertCount(2, $state['players']['p1']['waiting_room']);
     }
 
+    public function testEmmaBp3008LiveStartPromptsStageWaitMembersNotHand(): void
+    {
+        $emma = $this->cardByNo('PL!N-bp3-008-SEC', 'emma_sec');
+        $leftWait = $this->cardByNo('PL!N-bp3-009-P', 'wait_rina');
+        $rightWait = $this->cardByNo('PL!N-pb1-011-R', 'wait_mia');
+        $handA = $this->cardByNo('PL!N-bp3-027-L', 'h1');
+        $handB = $this->cardByNo('PL!N-pb1-037-L', 'h2');
+
+        $state = [
+            'status' => 'playing',
+            'phase' => 'live_start_effects',
+            'seq' => 1,
+            'turn' => 3,
+            'players' => $this->basePlayers(),
+        ];
+        waitMember($leftWait, $state);
+        waitMember($rightWait, $state);
+        $state['players']['p1']['stage']['center'] = $emma;
+        $state['players']['p1']['stage']['left'] = $leftWait;
+        $state['players']['p1']['stage']['right'] = $rightWait;
+        $state['players']['p1']['hand'] = [$handA, $handB, $emma];
+
+        $liveStart = null;
+        foreach ($emma['abilities'] as $ab) {
+            if (($ab['type'] ?? '') === 'optional_discard_activate_wait_hearts') {
+                $liveStart = $ab;
+                break;
+            }
+        }
+        $this->assertNotNull($liveStart);
+        $state = resolveAbilityEffect($state, 'p1', $emma, $liveStart, ['phase' => 'live_start']);
+
+        $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true;
+        try {
+            $state = \actionResolvePrompt($state, 'p1', [
+                'choice' => 'yes',
+                'discard_ids' => ['h1', 'h2'],
+            ]);
+        } finally {
+            unset($GLOBALS['TUT_PERF_MANUAL_PHASES']);
+        }
+
+        $prompt = $state['pending_prompt'] ?? [];
+        $this->assertSame('pick_wait', $prompt['step'] ?? null);
+        $slots = array_column($prompt['candidates'] ?? [], 'slot');
+        sort($slots);
+        $this->assertSame(['left', 'right'], $slots);
+        foreach ($prompt['candidates'] ?? [] as $cand) {
+            $this->assertNotSame('emma_sec', $cand['instance_id'] ?? null);
+            $this->assertNotSame('h1', $cand['instance_id'] ?? null);
+        }
+
+        $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true;
+        try {
+            $state = \actionResolvePrompt($state, 'p1', ['slot' => 'right']);
+        } finally {
+            unset($GLOBALS['TUT_PERF_MANUAL_PHASES']);
+        }
+        $this->assertNull($state['pending_prompt'] ?? null);
+        $this->assertTrue(memberIsInWait($state['players']['p1']['stage']['left']));
+        $this->assertFalse(memberIsInWait($state['players']['p1']['stage']['right']));
+    }
+
     public function testEmmaBp3008ActivatedWaitsActiveMemberNotAlreadyWaiting(): void
     {
         $emma = $this->cardByNo('PL!N-bp3-008-SEC', 'emma_sec');
