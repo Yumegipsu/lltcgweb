@@ -1693,7 +1693,7 @@ global.confirmSurveil = async function confirmSurveil(){
 }
 
 function cardMatchesNamedHand(c, names, includeSelf, sourceId) {
-  const label = c.name_en || c.name || '';
+  const label = c?.name_en || c?.name || '';
   for (const n of (names || [])) {
     if (label === n || label.includes(n)) return true;
     if (label.includes('&') || label.includes('＆')) {
@@ -1702,8 +1702,9 @@ function cardMatchesNamedHand(c, names, includeSelf, sourceId) {
       }
     }
   }
-  return !!(includeSelf && sourceId && c.instance_id === sourceId);
+  return !!(includeSelf && sourceId && c?.instance_id === sourceId);
 }
+global.cardMatchesNamedHand = cardMatchesNamedHand;
 
 
 function optionalLiveStartDiscardHand(pr, s, myId) {

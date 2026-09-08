@@ -1572,7 +1572,8 @@ function cpuScoreOptionalAbility(ab, cpu, tier, ae, hand, winPressure = 0, read 
     }
   }
   if (type === 'optional_discard_named') {
-    const matches = (hand || []).filter(c => cardMatchesNamedHand(c, ab.names || [], ab.include_self, '')).length;
+    const matches = (hand || []).filter(c => typeof cardMatchesNamedHand === 'function'
+      && cardMatchesNamedHand(c, ab.names || [], ab.include_self, '')).length;
     if (ab.exact_total) {
       if (matches < ab.exact_total) return -1;
     } else if (matches < 1) {
@@ -1626,7 +1627,8 @@ function cpuBuildOptionalYesPayload(pr, cpu, tier, winPressure, discardFn) {
   const discardGroup = ab.discard_group || '';
   let pickPool = hand;
   if (ab.type === 'optional_discard_named') {
-    pickPool = hand.filter(c => cardMatchesNamedHand(c, ab.names || [], ab.include_self, pr.source_id));
+    pickPool = hand.filter(c => typeof cardMatchesNamedHand === 'function'
+      && cardMatchesNamedHand(c, ab.names || [], ab.include_self, pr.source_id));
   } else if (discardGroup) {
     pickPool = hand.filter(c => c.card_type === 'メンバー' && (c.group || '') === discardGroup);
   }
@@ -2298,7 +2300,9 @@ function cpuBuildActivatePayload(pick, cpu, tier, winPressure, read) {
   if (t === 'shuffle_named_from_waiting') {
     const max = ab.max_total || 6;
     const picked = (cpu.waiting_room || [])
-      .filter(c => c.card_type === 'メンバー' && cardMatchesNamedHand(c, ab.names || [], false, ''))
+      .filter(c => c.card_type === 'メンバー'
+        && typeof cardMatchesNamedHand === 'function'
+        && cardMatchesNamedHand(c, ab.names || [], false, ''))
       .slice(0, max)
       .map(c => c.instance_id)
       .filter(Boolean);

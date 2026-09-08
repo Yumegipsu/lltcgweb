@@ -2923,7 +2923,7 @@ if (/[?&]debug(?:=|&|$)/.test(location.search)) {
 <script src="client/js/stamps.js?v=21"></script>
 <script src="client/js/replay-debug.js?v=12"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
-<script src="client/js/prompt-renderer.js?v=98"></script>
+<script src="client/js/prompt-renderer.js?v=99"></script>
 <script src="client/js/tutorial-interactive.js?v=25"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -16458,20 +16458,36 @@ function cpuClearAbilityBlacklistIfNewTurn(s) {
   }
 }
 
+function namedHandMatches(c, names, includeSelf, sourceId) {
+  if (typeof cardMatchesNamedHand === 'function') {
+    return cardMatchesNamedHand(c, names, includeSelf, sourceId);
+  }
+  const label = c?.name_en || c?.name || '';
+  for (const n of (names || [])) {
+    if (label === n || String(label).includes(n)) return true;
+    if (String(label).includes('&') || String(label).includes('＆')) {
+      for (const part of String(label).split(/[&＆]/)) {
+        if (part.trim() === n) return true;
+      }
+    }
+  }
+  return !!(includeSelf && sourceId && c?.instance_id === sourceId);
+}
+
 function abilityWrBlockReason(cpu, ab) {
   if (!cpu || !ab) return null;
   const wr = cpu.waiting_room || [];
   const t = ab.type || '';
   switch (t) {
     case 'shuffle_named_from_waiting':
-      return wr.some(c => c.card_type === 'メンバー' && cardMatchesNamedHand(c, ab.names || [], false, ''))
+      return wr.some(c => c.card_type === 'メンバー' && namedHandMatches(c, ab.names || [], false, ''))
         ? null : 'No matching Members in Waiting Room.';
     case 'leave_play_named_from_hand_stack_energy': {
       const maxCost = Number(ab.max_cost ?? 13);
       const ok = (cpu.hand || []).some(c =>
         c && (c.card_type === 'メンバー' || c.card_type_en === 'Member')
         && Number(c.cost ?? 0) <= maxCost
-        && cardMatchesNamedHand(c, ab.names || [], false, ''));
+        && namedHandMatches(c, ab.names || [], false, ''));
       return ok ? null : `No matching Member with cost ${maxCost} or less in hand.`;
     }
     case 'discard_hand_add_live_from_wr':
@@ -29557,8 +29573,8 @@ function handEligibleForLeavePlayNamed(hand, ability) {
   return (hand || []).filter(c => {
     if (!c || (c.card_type !== 'メンバー' && c.card_type_en !== 'Member')) return false;
     if (Number(c.cost ?? 0) > maxCost) return false;
-    if (typeof cardMatchesNamedHand === 'function') {
-      return cardMatchesNamedHand(c, names, false, '');
+    if (typeof namedHandMatches === 'function') {
+      return namedHandMatches(c, names, false, '');
     }
     const label = c.name_en || c.name || '';
     return names.some(n => label === n || label.includes(n));
@@ -34811,7 +34827,7 @@ function mkNoImg(card){
 <script src="client/js/cpu-meta-weights.js?v=7"></script>
 <script src="client/js/cpu-eval.js?v=7"></script>
 <script src="client/js/cpu-expert.js?v=6"></script>
-<script src="client/js/cpu-loop.js?v=39"></script>
+<script src="client/js/cpu-loop.js?v=40"></script>
 <script src="client/js/cpu-ai.js?v=13"></script>
 <script src="client/js/portrait-bridge.js?v=30"></script>
 <script src="client/js/portrait-deck.js?v=5"></script>
