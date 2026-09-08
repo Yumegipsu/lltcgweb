@@ -267,10 +267,13 @@ function bp7MillFromDeckTop(array $state, string $pid, int $count, string $srcNa
     if (empty($taken)) {
         return [$state, []];
     }
-    $state = appendCardsToWaitingRoom($state, $pid, $taken);
+    // Do not refresh an empty deck here. appendCardsToWaitingRoom would shuffle
+    // the cards just milled back into the deck before Mia's recover can see them.
+    $state = bp7PlaceMilledCardsInWaitingRoom($state, $pid, $taken);
     $state = addLog($state, $state['players'][$pid]['name'] .
         " — [$srcName] put " . count($taken) . ' card(s) from the top of the deck into the Waiting Room.');
     $state = bp7ResolveAutoSelfMilled($state, $pid, $taken);
+    $state = bp7RefreshDeckAfterMillAutos($state, $pid);
     return [$state, $taken];
 }
 
@@ -280,7 +283,7 @@ function bp7MillFromDeckBottom(array $state, string $pid, int $count, string $sr
     if (empty($taken)) {
         return [$state, []];
     }
-    $state = appendCardsToWaitingRoom($state, $pid, $taken);
+    $state = bp7PlaceMilledCardsInWaitingRoom($state, $pid, $taken);
     $labels = [];
     foreach ($taken as $c) {
         $labels[] = cardDisplayName($c);
@@ -289,7 +292,32 @@ function bp7MillFromDeckBottom(array $state, string $pid, int $count, string $sr
         " — [$srcName] put " . implode(', ', $labels) .
         ' from the bottom of the deck into the Waiting Room.');
     $state = bp7ResolveAutoSelfMilled($state, $pid, $taken);
+    $state = bp7RefreshDeckAfterMillAutos($state, $pid);
     return [$state, $taken];
+}
+
+/** Put milled cards in the Waiting Room without an empty-deck refresh. */
+function bp7PlaceMilledCardsInWaitingRoom(array $state, string $pid, array $cards): array {
+    if (!isset($state['players'][$pid]['waiting_room']) || !is_array($state['players'][$pid]['waiting_room'])) {
+        $state['players'][$pid]['waiting_room'] = [];
+    }
+    foreach ($cards as $c) {
+        if (is_array($c)) {
+            $state['players'][$pid]['waiting_room'][] = $c;
+        }
+    }
+    return $state;
+}
+
+/** Refresh only after mill autos, and not while a recover prompt still needs those cards. */
+function bp7RefreshDeckAfterMillAutos(array $state, string $pid): array {
+    if (!empty($state['pending_prompt'])) {
+        return $state;
+    }
+    if (function_exists('refreshMainDeckFromWaitingRoom')) {
+        refreshMainDeckFromWaitingRoom($state, $pid);
+    }
+    return $state;
 }
 
 function bp7TakeCardsFromWaitingRoom(array &$p, array $ids): array {
@@ -1295,6 +1323,9 @@ function bp7ResolveEffect(array $state, string $pid, array $source, array $ab, a
             $group = $ab['group'] ?? '';
             $hit = false;
             foreach ($milled as $c) {
+                if (!is_array($c)) continue;
+                // Hit is the cards this mill put into the Waiting Room, even if a
+                // milled auto (Mia recover) later adds one of them to hand.
                 if (bp7IsLiveCard($c) && cardMatchesGroup($c, $group, 'live')) { $hit = true; break; }
                 if (bp7IsBladelessMember($c) && cardMatchesGroup($c, $group, 'member')) { $hit = true; break; }
             }
@@ -1303,12 +1334,7 @@ function bp7ResolveEffect(array $state, string $pid, array $source, array $ab, a
                     " — [$name] no $group Live card or $group Member with no Blade hearts among the milled cards.");
                 break;
             }
-            $state = resolveAbilityEffect($state, $pid, $source, [
-                'type'    => 'player_choice',
-                'trigger' => $ab['trigger'] ?? 'activated',
-                'prompt'  => $ab['prompt'] ?? 'Choose one:',
-                'choices' => $ab['choices'] ?? [],
-            ], $ctx);
+            $state = bp7OpenOrDeferMillGroupChoice($state, $pid, $source, $ab, $ctx);
             break;
         }
 
@@ -2773,7 +2799,59 @@ function bp7FinishPrompt(array $state, array $prompt): array {
             }
         }
     }
+    // Kanata mill choice waits until a milled auto (Mia recover) finishes.
+    $state = bp7ResumeMillGroupChoice($state);
+    if (!empty($state['pending_prompt'])) {
+        return $state;
+    }
     return finishAfterBranchChoicePrompt($state, $prompt);
+}
+
+/**
+ * Open Kanata's mill choice now, or after the milled card's auto prompt
+ * (Mia: discard to add herself to hand). The hit already counted those cards.
+ */
+function bp7OpenOrDeferMillGroupChoice(array $state, string $pid, array $source, array $ab, array $ctx): array {
+    $choice = [
+        'type'    => 'player_choice',
+        'trigger' => $ab['trigger'] ?? 'activated',
+        'prompt'  => $ab['prompt'] ?? 'Choose one:',
+        'choices' => $ab['choices'] ?? [],
+    ];
+    if (empty($state['pending_prompt'])) {
+        return resolveAbilityEffect($state, $pid, $source, $choice, $ctx);
+    }
+    $state['_resume_mill_group_choice'] = [
+        'pid'    => $pid,
+        'source' => $source,
+        'ability' => $choice,
+        'ctx'    => $ctx,
+    ];
+    return $state;
+}
+
+function bp7ResumeMillGroupChoice(array $state): array {
+    if (empty($state['_resume_mill_group_choice']) || !empty($state['pending_prompt'])) {
+        return $state;
+    }
+    $r = $state['_resume_mill_group_choice'];
+    unset($state['_resume_mill_group_choice']);
+    $pid = (string)($r['pid'] ?? '');
+    if ($pid !== 'p1' && $pid !== 'p2') {
+        return $state;
+    }
+    $source = is_array($r['source'] ?? null) ? $r['source'] : [];
+    $live = findSourceCard($state, $pid, (string)($source['instance_id'] ?? ''));
+    if (is_array($live)) {
+        $source = $live;
+    }
+    return resolveAbilityEffect(
+        $state,
+        $pid,
+        $source,
+        is_array($r['ability'] ?? null) ? $r['ability'] : [],
+        is_array($r['ctx'] ?? null) ? $r['ctx'] : []
+    );
 }
 
 function bp7PickedIds(array $prompt, string $choice, array $data): array {
@@ -3599,7 +3677,9 @@ function bp7ResolvePrompt(array $state, string $owner, array $prompt, string $ch
                 }
                 break;
             }
-            $state = appendCardsToWaitingRoom($state, $owner, $picked);
+            // Place the discard without an empty-deck refresh. That refresh would
+            // shuffle the milled card away before it is added to hand.
+            $state = bp7PlaceMilledCardsInWaitingRoom($state, $owner, $picked);
             $recovered = bp7TakeCardsFromWaitingRoom(
                 $state['players'][$owner],
                 [(string)($prompt['recover_id'] ?? '')]
@@ -3610,6 +3690,7 @@ function bp7ResolvePrompt(array $state, string $owner, array $prompt, string $ch
                     " — [$name] added " . cardDisplayName($recovered[0]) .
                     ' from the Waiting Room to hand.');
             }
+            $state = bp7RefreshDeckAfterMillAutos($state, $owner);
             break;
         }
 
