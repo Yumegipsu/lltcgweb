@@ -2888,7 +2888,7 @@ if (/[?&]debug(?:=|&|$)/.test(location.search)) {
   </div>
 </div>
 
-<script src="i18n.js?v=187"></script>
+<script src="i18n.js?v=188"></script>
 <script src="log_i18n.js?v=18"></script>
 <script src="sfx.js?v=19"></script>
 <script src="client/js/news.js?v=39"></script>
@@ -2923,7 +2923,7 @@ if (/[?&]debug(?:=|&|$)/.test(location.search)) {
 <script src="client/js/stamps.js?v=21"></script>
 <script src="client/js/replay-debug.js?v=12"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
-<script src="client/js/prompt-renderer.js?v=99"></script>
+<script src="client/js/prompt-renderer.js?v=100"></script>
 <script src="client/js/tutorial-interactive.js?v=25"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -28665,6 +28665,26 @@ function tcgCardInfoInLiveHeartPhase(phase) {
 }
 
 /** Always / continuous heart colors currently granted to this stage member. */
+function clientFacingStageSlot(slot) {
+  if (slot === 'left') return 'right';
+  if (slot === 'right') return 'left';
+  return 'center';
+}
+
+function clientStageMemberCost(member) {
+  if (!member) return 0;
+  if (member.live_cost_override != null && member.live_cost_override !== '') {
+    return Math.max(0, Number(member.live_cost_override) || 0);
+  }
+  let cost = Number(member.cost || 0) + Number(member.live_cost_bonus || 0);
+  for (const ab of member.abilities || []) {
+    if ((ab.trigger || '') !== 'continuous' || ab.type !== 'cost_blade_per_stacked_max') continue;
+    const stacked = Math.min((member.stacked_members || []).length, Number(ab.max_stacked ?? 3));
+    cost += stacked * Number(ab.cost_plus_per ?? 4);
+  }
+  return cost;
+}
+
 function clientMemberContinuousHeartColors(member, state, pid, slot) {
   const out = [];
   const p = state?.players?.[pid];
@@ -28716,6 +28736,13 @@ function clientMemberContinuousHeartColors(member, state, pid, slot) {
     }
     if (type === 'blade_if_exact_stage_members' && (ab.hearts || []).length) {
       if (tcgClientCountStageMembers(p) === Number(ab.count ?? 2)) {
+        appendClientHeartSpecColors(out, ab.hearts);
+      }
+    }
+    if (type === 'heart_if_front_opp_higher_cost') {
+      const oppId = pid === 'p1' ? 'p2' : 'p1';
+      const oppM = state?.players?.[oppId]?.stage?.[clientFacingStageSlot(slot)];
+      if (oppM && clientStageMemberCost(oppM) > clientStageMemberCost(member)) {
         appendClientHeartSpecColors(out, ab.hearts);
       }
     }
@@ -28804,6 +28831,18 @@ function aggregateModifierBonusHearts(state, pid) {
     const color = normalizeHeartColor(typeof bh === 'string' ? bh : (bh?.color || 'any'));
     const n = typeof bh === 'string' ? 1 : (bh?.count || 1);
     map.set(color, (map.get(color) || 0) + n);
+  });
+  return sortHeartsByDisplayOrder([...map.entries()].map(([color, count]) => ({ color, count })));
+}
+
+function aggregateClientContinuousHeartRows(state, pid) {
+  const map = new Map();
+  Object.entries(state?.players?.[pid]?.stage || {}).forEach(([slot, m]) => {
+    if (!m) return;
+    clientMemberContinuousHeartColors(m, state, pid, slot).forEach(c => {
+      const color = normalizeHeartColor(c);
+      map.set(color, (map.get(color) || 0) + 1);
+    });
   });
   return sortHeartsByDisplayOrder([...map.entries()].map(([color, count]) => ({ color, count })));
 }
@@ -29382,10 +29421,10 @@ function renderStageBoardPanel(s, myId) {
     : (showYellHearts ? (board?.opp?.yell_hearts || []) : []);
   const mineContinuousHearts = showYellHearts
     ? perfContinuousHeartsForPlayer(sbCtx, myId)
-    : [];
+    : aggregateClientContinuousHeartRows(s, myId);
   const oppContinuousHearts = showYellHearts
     ? perfContinuousHeartsForPlayer(sbCtx, oppId)
-    : [];
+    : aggregateClientContinuousHeartRows(s, oppId);
   const mineHearts = mergeHeartStatRows(mineStageHearts, mineContinuousHearts, mineYellHearts);
   const oppHearts = mergeHeartStatRows(oppStageHearts, oppContinuousHearts, oppYellHearts);
   renderStageBoardHeartRow(el('sb-my-hearts'), mineHearts);
@@ -34827,7 +34866,7 @@ function mkNoImg(card){
 <script src="client/js/cpu-meta-weights.js?v=7"></script>
 <script src="client/js/cpu-eval.js?v=7"></script>
 <script src="client/js/cpu-expert.js?v=6"></script>
-<script src="client/js/cpu-loop.js?v=40"></script>
+<script src="client/js/cpu-loop.js?v=41"></script>
 <script src="client/js/cpu-ai.js?v=13"></script>
 <script src="client/js/portrait-bridge.js?v=30"></script>
 <script src="client/js/portrait-deck.js?v=5"></script>

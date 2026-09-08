@@ -3704,11 +3704,11 @@ function cpuResolveBranchPickPrompts(pr, cpu, tier, winPressure, read, s) {
     return false;
   }
 
-  // Hime pb1-014: opponent chooses own Stage Member to move into the facing area.
-  // Prefer lowest cost / least valuable so Hime's front isn't a strong piece.
+  // Hime pb1-014: controller chooses which opponent Member moves into the facing area.
+  // Prefer the highest-cost piece so the Always heart can apply.
   if (pr.type === 'pos_change_opp_front_pick') {
     const cands = [...(pr.candidates || [])].sort((a, b) =>
-      (a.cost || 0) - (b.cost || 0) || (a.blade || 0) - (b.blade || 0) || (a.hearts || 0) - (b.hearts || 0)
+      (b.cost || 0) - (a.cost || 0) || (b.blade || 0) - (a.blade || 0) || (b.hearts || 0) - (a.hearts || 0)
     );
     const slot = cands[0]?.slot;
     if (slot) {
@@ -5304,7 +5304,7 @@ function cpuResolvePromptSmart(s, cpu, pr, tier) {
   }
   if (pr.type === 'pos_change_opp_front_pick') {
     const cands = [...(pr.candidates || [])].sort((a, b) =>
-      (a.cost || 0) - (b.cost || 0) || (a.blade || 0) - (b.blade || 0) || (a.hearts || 0) - (b.hearts || 0)
+      (b.cost || 0) - (a.cost || 0) || (b.blade || 0) - (a.blade || 0) || (b.hearts || 0) - (a.hearts || 0)
     );
     const slot = cands[0]?.slot;
     if (slot) { cpuAct('resolve_prompt', { slot }); return true; }

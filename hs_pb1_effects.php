@@ -685,7 +685,7 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
             // 1 opponent Stage Member into the area in front of this Member.
             // That rearranges the OPPONENT's Stage only (swap with whoever is already
             // in the facing slot). It must never exchange ownership between players.
-            // The opponent chooses which of their Members to move (excluding one
+            // The controller chooses which opponent Member to move (excluding one
             // already in the facing slot).
             $onlySub = true;
             $sub = $ab['subunit'] ?? '';
@@ -718,11 +718,10 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
                 );
                 break;
             }
-            $frontLabel = ucfirst($frontSlot);
             $state['pending_prompt'] = [
                 'type'          => 'pos_change_opp_front_pick',
                 'owner'         => $pid,
-                'responder'     => $opp,
+                'responder'     => $pid,
                 'opp'           => $opp,
                 'source_id'     => $source['instance_id'] ?? '',
                 'source_name'   => $name,
@@ -730,11 +729,10 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
                 'front_slot'    => $frontSlot,
                 'candidates'    => $candidates,
                 'ability'       => $ab,
-                'prompt'        => "Choose 1 Member on your Stage to Position Change into your {$frontLabel} area"
-                    . ' (across from ' . $name . ').',
+                'prompt'        => 'Choose 1 opponent Stage Member to Position Change into the area in front of this Member.',
             ];
             $state = addLog($state, $state['players'][$pid]['name'] .
-                ' — [' . $name . '] Position Change: opponent chooses a Stage Member for the facing area.');
+                ' — [' . $name . '] Position Change: choose an opponent Stage Member for the facing area.');
             $state['seq']++;
             break;
 
@@ -1023,7 +1021,7 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
         $frontSlot = (string) ($prompt['front_slot'] ?? '');
         $fromSlot = (string) ($data['slot'] ?? $choice);
         if ($frontSlot === '' || $fromSlot === '' || $fromSlot === $frontSlot) {
-            throw new Exception('Choose a Member on your Stage to Position Change');
+            throw new Exception('Choose an opponent Stage Member to Position Change');
         }
         $allowed = [];
         foreach ($prompt['candidates'] ?? [] as $cand) {
@@ -1032,10 +1030,10 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
             }
         }
         if (!isset($allowed[$fromSlot])) {
-            throw new Exception('Choose a Member that is not already in the facing area');
+            throw new Exception('Choose an opponent Member that is not already in the facing area');
         }
         if (empty($state['players'][$opp]['stage'][$fromSlot])) {
-            throw new Exception('Choose a Member on your Stage');
+            throw new Exception('Choose an opponent Stage Member');
         }
         $state = hsPb1ApplyOppFrontPositionChange(
             $state,

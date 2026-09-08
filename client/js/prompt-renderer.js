@@ -545,7 +545,9 @@ global.openStageSlotPick = function openStageSlotPick(pr){
     return;
   }
   el('pick-ttl').textContent=promptDisplayTitle(pr, pt('prompt.chooseMemberTitle'));
-  el('pick-msg').textContent=promptDisplayText(pr, 'Choose a Member on your Stage.');
+  el('pick-msg').textContent = pr?.type === 'pos_change_opp_front_pick'
+    ? pt('prompt.posChangeOppFront')
+    : promptDisplayText(pr, 'Choose a Member on your Stage.');
   const g=el('pick-grid'); g.innerHTML='';
   const btnOk=el('btn-pick-ok');
   const btnCancel=el('btn-pick-cancel');

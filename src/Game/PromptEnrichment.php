@@ -531,16 +531,16 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
             return ['choice' => $keys[0] ?? 'skip'];
 
         case 'pos_change_opp_front_pick':
-            // Prefer lowest-cost own Member when timer expires (deny facing value).
+            // Controller times out: move the highest-cost opponent Member into the facing area.
             $bestSlot = '';
-            $bestCost = PHP_INT_MAX;
+            $bestCost = -1;
             foreach ($prompt['candidates'] ?? [] as $cand) {
                 $slot = (string) ($cand['slot'] ?? '');
                 if ($slot === '') {
                     continue;
                 }
                 $cost = intval($cand['cost'] ?? 0);
-                if ($cost < $bestCost) {
+                if ($cost > $bestCost) {
                     $bestCost = $cost;
                     $bestSlot = $slot;
                 }
