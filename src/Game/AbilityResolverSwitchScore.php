@@ -175,27 +175,40 @@ function tryResolveAbilityEffectSwitchScore(
             break;
 
         case 'score_per_named_success_live':
+            // Count only Success Live storage (never WR / prior-play leftovers).
             $cnt = countNamedSuccessLives($p, $ab['name'] ?? '');
-            if ($cnt > 0) {
-                $bonus = $cnt * intval($ab['score_per'] ?? 2);
-                bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', $bonus);
-                $inc = $cnt * intval($ab['hearts_increase'] ?? 3);
-                $incColor = $ab['hearts_increase_color'] ?? 'any';
-                foreach ($p['live_zone'] as &$lc) {
-                    if ($lc && ($lc['instance_id'] ?? '') === ($source['instance_id'] ?? '')) {
-                        if ($incColor === 'gray') {
-                            $lc['hearts_increase_gray'] = intval($lc['hearts_increase_gray'] ?? 0) + $inc;
-                        } else {
-                            $lc['hearts_increase'] = intval($lc['hearts_increase'] ?? 0) + $inc;
-                        }
-                        break;
-                    }
+            $srcId = (string) ($source['instance_id'] ?? '');
+            // Drop leftover Live Start score/heart bumps from a prior attempt on
+            // this same physical card (#174) before applying the current count.
+            foreach ($state['players'][$pid]['live_zone'] as &$lc) {
+                if ($lc && ($lc['instance_id'] ?? '') === $srcId) {
+                    $lc = liveCardRestorePrintedScore($lc);
+                    break;
                 }
-                unset($lc);
-                $incLabel = $incColor === 'gray' ? "$inc Gray Hearts" : "$inc hearts";
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] score +$bonus; required $incLabel (EMOTION in Success).");
             }
+            unset($lc);
+            if ($cnt <= 0 || $srcId === '') {
+                break;
+            }
+            $bonus = $cnt * intval($ab['score_per'] ?? 2);
+            bumpLiveCardScore($state, $pid, $srcId, $bonus);
+            $inc = $cnt * intval($ab['hearts_increase'] ?? 3);
+            $incColor = $ab['hearts_increase_color'] ?? 'any';
+            foreach ($state['players'][$pid]['live_zone'] as &$lc) {
+                if (!$lc || ($lc['instance_id'] ?? '') !== $srcId) {
+                    continue;
+                }
+                if ($incColor === 'gray') {
+                    $lc['hearts_increase_gray'] = $inc;
+                } else {
+                    $lc['hearts_increase'] = $inc;
+                }
+                break;
+            }
+            unset($lc);
+            $incLabel = $incColor === 'gray' ? "$inc Gray Hearts" : "$inc hearts";
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] score +$bonus; required $incLabel ($cnt in Success Live).");
             break;
 
         case 'score_if_wr_distinct_live_count':

@@ -222,6 +222,64 @@ final class Issue97CardBugsTest extends TestCase
         $this->assertSame($beforeAny + 3, $afterAny, 'Required gray hearts +3 per prior EMOTION');
     }
 
+    public function testEmotionHeartIncreaseDoesNotStackFromPriorPlayLeftovers(): void
+    {
+        $emotion = $this->cardByNo('PL!N-bp4-027-L', 'issue174_emotion');
+        $prior = $this->cardByNo('PL!N-bp4-027-L', 'issue174_emotion_prior');
+        // Leftover from a previous Live attempt on this physical card (WR reuse bug).
+        $emotion['hearts_increase_gray'] = 9;
+        $emotion['score'] = 20;
+        $emotion['_effect_score_bonus'] = 18;
+
+        $state = $this->baseState('live_start_effects');
+        $state['players']['p1']['live_zone'] = [$emotion];
+        $state['players']['p1']['success_lives'] = [$prior];
+        // WR copies must never inflate the Success Live count.
+        $state['players']['p1']['waiting_room'] = [
+            $this->cardByNo('PL!N-bp4-027-L', 'issue174_wr_a'),
+            $this->cardByNo('PL!N-bp4-027-L', 'issue174_wr_b'),
+        ];
+
+        $printed = $emotion['required_hearts'] ?? $emotion['hearts'] ?? [];
+        $beforeAny = 0;
+        foreach ($printed as $h) {
+            if (in_array($h['color'] ?? '', ['any', 'gray', 'wild', ''], true)) {
+                $beforeAny += intval($h['count'] ?? 1);
+            }
+        }
+
+        $state = \resolveLiveStartAbilities($state, 'p1');
+        $live = $state['players']['p1']['live_zone'][0] ?? null;
+        $this->assertNotNull($live);
+        $this->assertSame(3, intval($live['hearts_increase_gray'] ?? 0), 'Must set from Success count, not stack leftovers');
+        $this->assertSame(4, intval($live['score'] ?? 0), 'Printed 2 + 2 for one Success EMOTION');
+
+        $effective = \applyLiveHeartReductions(
+            $live['required_hearts'] ?? $live['hearts'] ?? [],
+            $live
+        );
+        $afterAny = 0;
+        foreach ($effective as $h) {
+            if (\normalizeRequiredHeartColor((string) ($h['color'] ?? '')) === 'any') {
+                $afterAny += intval($h['count'] ?? 1);
+            }
+        }
+        $this->assertSame($beforeAny + 3, $afterAny);
+    }
+
+    public function testEmotionRestoreClearsHeartIncreaseBeforeWaitingRoom(): void
+    {
+        $emotion = $this->cardByNo('PL!N-bp4-027-L', 'issue174_restore');
+        $emotion['hearts_increase_gray'] = 6;
+        $emotion['score'] = 8;
+        $emotion['_effect_score_bonus'] = 6;
+
+        $restored = \liveCardRestorePrintedScore($emotion);
+        $this->assertSame(2, intval($restored['score'] ?? 0));
+        $this->assertArrayNotHasKey('hearts_increase_gray', $restored);
+        $this->assertArrayNotHasKey('_effect_score_bonus', $restored);
+    }
+
     public function testAyumuAutoOnNijiEnergyStack(): void
     {
         $ayumu = $this->cardByNo('PL!N-bp7-001-P', 'issue97_ayumu');

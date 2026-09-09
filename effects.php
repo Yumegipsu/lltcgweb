@@ -443,7 +443,7 @@ function liveCardCharacteristicScore(array $card): int {
     return liveCardPrintedScore($card);
 }
 
-/** Strip Live-performance score modifiers so the card's printed score is the characteristic. */
+/** Strip Live-performance score / heart modifiers so reused Lives use printed stats. */
 function liveCardRestorePrintedScore(array $card): array {
     if (($card['card_type'] ?? '') !== 'ライブ' && ($card['card_type_en'] ?? '') !== 'Live') {
         return $card;
@@ -451,7 +451,18 @@ function liveCardRestorePrintedScore(array $card): array {
     $printed = liveCardPrintedScore($card);
     $card['_printed_score'] = $printed;
     $card['score'] = $printed;
-    unset($card['live_score_bonus'], $card['_effect_score_bonus']);
+    // EMOTION (#174) and similar Live Start bumps must not survive into WR/hand —
+    // otherwise the next attempt stacks hearts_increase_* on leftover modifiers.
+    unset(
+        $card['live_score_bonus'],
+        $card['_effect_score_bonus'],
+        $card['hearts_increase'],
+        $card['hearts_increase_gray'],
+        $card['hearts_reduction'],
+        $card['hearts_reduction_gray'],
+        $card['hearts_color_reduction'],
+        $card['hearts_color_increase']
+    );
     return $card;
 }
 
@@ -586,10 +597,18 @@ function countDistinctWrLives(array $p, string $group): int {
 }
 
 function countNamedSuccessLives(array $p, string $name): int {
+    $name = trim((string) $name);
+    if ($name === '') {
+        return 0;
+    }
     $n = 0;
     foreach ($p['success_lives'] ?? [] as $c) {
-        $label = $c['name_en'] ?? $c['name'] ?? '';
-        if ($label === $name || str_contains($label, $name)) {
+        if (!$c) {
+            continue;
+        }
+        // Success Live storage only — never Waiting Room / Live zone / hand copies.
+        $label = trim((string) ($c['name_en'] ?? $c['name'] ?? ''));
+        if ($label === $name || ($label !== '' && str_contains($label, $name))) {
             $n++;
         }
     }

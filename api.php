@@ -2053,7 +2053,8 @@ function clearLiveStorageBeforeLiveSet(array $state): array {
             $anims[] = animSpec($lc['instance_id'] ?? '', 'live', 'waiting_room', $pid, [
                 'from_index' => liveZoneSlotOf($lc, $li),
             ]);
-            $state['players'][$pid]['waiting_room'][] = $lc;
+            // Strip prior Live Start score/heart bumps (#155 / #174) before WR reuse.
+            $state['players'][$pid]['waiting_room'][] = liveCardRestorePrintedScore($lc);
             $moved++;
         }
         $state['players'][$pid]['live_zone'] = $keep;
