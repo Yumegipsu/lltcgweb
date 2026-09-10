@@ -652,6 +652,14 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
     $oppContinuousHearts = aggregateFlatHeartColors(getContinuousPerformanceHearts($state, $oppId));
     $yellBladeMine = computeYellBladeTotal($state, $viewPid);
     $yellBladeOpp = computeYellBladeTotal($state, $oppId);
+    $drawnMine = function_exists('yellBladeDrawnTotal') ? yellBladeDrawnTotal($state, $viewPid) : null;
+    $drawnOpp = function_exists('yellBladeDrawnTotal') ? yellBladeDrawnTotal($state, $oppId) : null;
+    if ($drawnMine !== null) {
+        $yellBladeMine = $drawnMine;
+    }
+    if ($drawnOpp !== null) {
+        $yellBladeOpp = $drawnOpp;
+    }
     $yellBladeMinePerf = null;
     $yellBladeOppPerf = null;
     if ($exposePerfCarryover && !empty($state['_yell_blade_snapshot'])) {

@@ -2031,6 +2031,7 @@ function clearLiveStorageBeforeLiveSet(array $state): array {
         $state['_live_round_success_snapshot'],
         $state['_yell_reveal_snapshot'],
         $state['_yell_blade_snapshot'],
+        $state['_yell_blade_drawn'],
         $state['_stage_hearts_snapshot']
     );
     $anims = [];
@@ -2363,6 +2364,7 @@ function beginPerformancePhase(array $state): array {
         $state['live_round_success'],
         $state['_yell_reveal_snapshot'],
         $state['_yell_blade_snapshot'],
+        $state['_yell_blade_drawn'],
         $state['_live_perf_snapshot'],
         $state['_live_round_success_snapshot'],
         $state['_stage_hearts_snapshot'],
@@ -2593,6 +2595,28 @@ function isInPerformancePhase(array $state): bool {
 
 function clearYellRevealState(array $state): array {
     unset($state['yell_reveal']);
+    return $state;
+}
+
+/**
+ * Blade total locked when Yell cards were drawn for $pid.
+ * Mid-Performance Wait (2nd Live Start) must not rewrite the HUD for a Yell
+ * that already resolved (#173).
+ */
+function yellBladeDrawnTotal(array $state, string $pid): ?int {
+    if (!array_key_exists($pid, $state['_yell_blade_drawn'] ?? [])) {
+        return null;
+    }
+    return intval($state['_yell_blade_drawn'][$pid]);
+}
+
+function recordYellBladeDrawn(array $state, string $pid, int $totalBlade): array {
+    $state['_yell_blade_drawn'][$pid] = $totalBlade;
+    // Keep carryover snapshot in sync so clients prefer sticky Yell blade mid-round.
+    if (!isset($state['_yell_blade_snapshot']) || !is_array($state['_yell_blade_snapshot'])) {
+        $state['_yell_blade_snapshot'] = [];
+    }
+    $state['_yell_blade_snapshot'][$pid] = $totalBlade;
     return $state;
 }
 
@@ -2986,6 +3010,7 @@ function drawYellCardsForPlayer(array $state, string $pid): array {
     }
     unset($yc);
     $state = recordYellRevealSnapshot($state, $pid, $yellCards, true);
+    $state = recordYellBladeDrawn($state, $pid, $totalBlade);
     return [$state, $yellCards, $totalBlade, $drawBlade, $yellReduction];
 }
 
@@ -5783,6 +5808,14 @@ function filterStateForPlayer(array $state, string $token): array {
         $oppContinuousHearts = aggregateFlatHeartColors(getContinuousPerformanceHearts($state, $oppId));
         $yellBladeMine = computeYellBladeTotal($state, $myId);
         $yellBladeOpp = computeYellBladeTotal($state, $oppId);
+        $drawnMine = yellBladeDrawnTotal($state, $myId);
+        $drawnOpp = yellBladeDrawnTotal($state, $oppId);
+        if ($drawnMine !== null) {
+            $yellBladeMine = $drawnMine;
+        }
+        if ($drawnOpp !== null) {
+            $yellBladeOpp = $drawnOpp;
+        }
         $yellBladeMinePerf = null;
         $yellBladeOppPerf = null;
         if ($exposePerfCarryover && !empty($state['_yell_blade_snapshot'])) {

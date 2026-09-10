@@ -29166,10 +29166,18 @@ function stageYellBladeFor(s, pid, myId) {
   const fromPerf = optionalYellBladeNumber(side?.perf_yell);
   const fromSnap = optionalYellBladeNumber(s?._yell_blade_snapshot?.[pid]);
   const fromLog = perfYellBladeFromLog(s, pid);
-  // Do NOT use yell_reveal.length here. Extra Yell effects (e.g. Kurage mill)
-  // stack many reveal cards while Blade stays fixed — Math.max(..., yellCount)
-  // was showing 45+ "Blades" after ~3 extra draws.
-  // Do not Math.max(server, estimated): that hid solo −3 when estimate was printed.
+  // Once this seat's Yell was drawn, sticky Blade at draw time beats a live
+  // stage estimate — 2nd-player Live Start Wait must not shrink 1st Yell (#173).
+  const yellLocked = Number.isFinite(fromSnap)
+    || Number.isFinite(fromPerf)
+    || !!(s?.yell_reveal?.[pid]?.length)
+    || !!(s?.players?.[pid]?.yell_cards?.length);
+  if (yellLocked) {
+    if (Number.isFinite(fromSnap)) return fromSnap;
+    if (Number.isFinite(fromPerf)) return fromPerf;
+    if (Number.isFinite(fromBoard)) return fromBoard;
+    if (fromLog > 0) return fromLog;
+  }
   // Prefer a positive client estimate (includes ± blade Always effects), then
   // live stage_board.yell. Skip null perf_yell — PHP sends null, not "unset".
   if (estimated > 0) return estimated;
