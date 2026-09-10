@@ -40,6 +40,34 @@ function nBp5IsEffectType(string $type): bool {
     return in_array($type, nBp5EffectTypes(), true);
 }
 
+/**
+ * Distinct printed heart colors on a card (1 of each — Muteki-kyuu*Believer #175).
+ *
+ * @return list<string>
+ */
+function nBp5DistinctPrintedHeartColors(array $card): array {
+    mergeCardCatalogFields($card);
+    $colors = [];
+    foreach ($card['hearts'] ?? [] as $h) {
+        $c = normalizeHeartColor((string) ($h['color'] ?? ''));
+        if ($c === '') {
+            continue;
+        }
+        $colors[$c] = true;
+    }
+    return array_keys($colors);
+}
+
+/** Grant 1 bonus heart per distinct printed color on $fromCard (not full counts). */
+function nBp5GrantOneOfEachHeartColor(array &$member, array $fromCard): void {
+    if (!isset($member['bonus_hearts']) || !is_array($member['bonus_hearts'])) {
+        $member['bonus_hearts'] = [];
+    }
+    foreach (nBp5DistinctPrintedHeartColors($fromCard) as $color) {
+        $member['bonus_hearts'][] = $color;
+    }
+}
+
 function nBp5CountDistinctBladeHeartTypes(array $yellCards): int {
     $types = [];
     foreach ($yellCards as $yc) {
@@ -548,20 +576,16 @@ function nBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
             ));
             if (count($matches) === 1) {
                 $pick = $matches[0];
-                $hearts = $pick['hearts'] ?? [];
                 foreach ($p['stage'] as $slot => &$mbr) {
-                    if (!$mbr || !cardMatchesNames($mbr, $ab['target_names'] ?? [])) continue;
-                    foreach ($hearts as $h) {
-                        $c = $h['color'] ?? '';
-                        for ($i = 0; $i < intval($h['count'] ?? 1); $i++) {
-                            $mbr['bonus_hearts'][] = $c;
-                        }
+                    if (!$mbr || !cardMatchesNames($mbr, $ab['target_names'] ?? [])) {
+                        continue;
                     }
+                    nBp5GrantOneOfEachHeartColor($mbr, $pick);
                     $p['stage'][$slot] = $mbr;
-                    $state = addLog($state, $state['players'][$pid]['name'] .
-                        ' — [' . $name . '] Kasumi gained hearts from revealed card.');
-                    break;
                 }
+                unset($mbr);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    ' — [' . $name . '] Kasumi gained 1 of each Heart color from the revealed card.');
             } elseif (count($matches) > 1 && !empty($state['pending_prompt'])) {
                 break;
             } elseif (count($matches) > 1) {
@@ -1197,11 +1221,7 @@ function nBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
                     }
                 }
                 if ($full) {
-                    foreach ($full['hearts'] ?? [] as $h) {
-                        for ($i = 0; $i < intval($h['count'] ?? 1); $i++) {
-                            $mbr['bonus_hearts'][] = $h['color'] ?? 'pink';
-                        }
-                    }
+                    nBp5GrantOneOfEachHeartColor($mbr, $full);
                 }
                 $ownerP['stage'][$slot] = $mbr;
             }
