@@ -1881,11 +1881,10 @@
     sc.scrollTop = snap.top;
   }
 
-  /** Scroll the bracket pane so a live/ready match is centered (prefer the viewer's match). */
+  /** Scroll so a live/ready match is centered (page scrolls vertically; bracket pans horizontally). */
   function focusBracketOnCurrentMatches(root) {
     if (!root) return false;
     const sc = getBracketScrollEl(root);
-    if (!sc) return false;
     const me = state.detail && state.detail.me;
     const myId = me && me.discord_id ? String(me.discord_id) : '';
     const cards = [...root.querySelectorAll('.tournament-match-card[data-status="live"], .tournament-match-card[data-status="ready"]')];
@@ -1898,10 +1897,17 @@
       });
       if (mine) card = mine;
     }
-    const scRect = sc.getBoundingClientRect();
-    const cRect = card.getBoundingClientRect();
-    sc.scrollTop += (cRect.top + cRect.height / 2) - (scRect.top + scRect.height / 2);
-    sc.scrollLeft += (cRect.left + cRect.width / 2) - (scRect.left + scRect.width / 2);
+    const menu = el('screen-tournament');
+    if (menu) {
+      const cRect = card.getBoundingClientRect();
+      const mRect = menu.getBoundingClientRect();
+      menu.scrollTop += (cRect.top + cRect.height / 2) - (mRect.top + mRect.height / 2);
+    }
+    if (sc) {
+      const scRect = sc.getBoundingClientRect();
+      const cRect = card.getBoundingClientRect();
+      sc.scrollLeft += (cRect.left + cRect.width / 2) - (scRect.left + scRect.width / 2);
+    }
     return true;
   }
 

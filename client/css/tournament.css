@@ -30,6 +30,11 @@ html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) #llc-
 #screen-tournament .tournament-views {
   margin-top: 8px;
 }
+/* Bracket breakout uses 100vw; clip tiny scrollbar-gutter overflow without trapping vertical scroll. */
+#screen-tournament.llc-menu-screen {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
 .tournament-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -312,7 +317,12 @@ html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) #llc-
   background: rgba(0, 20, 48, 0.28);
 }
 .tournament-bracket {
-  width: 100%;
+  /* Full viewport width — break out of .account-shell.wide margins */
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  box-sizing: border-box;
   padding: 8px 0 16px;
 }
 .tournament-bracket-board {
@@ -320,6 +330,7 @@ html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) #llc-
   flex-direction: column;
   gap: 10px;
   min-width: 0;
+  width: 100%;
 }
 .tournament-bracket-toolbar {
   display: flex;
@@ -327,6 +338,7 @@ html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) #llc-
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  padding: 0 12px;
 }
 .tournament-bracket-caption {
   font-size: 0.9rem;
@@ -353,12 +365,16 @@ html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) #llc-
 .tournament-bracket-scroll {
   width: 100%;
   max-width: 100%;
-  overflow: auto;
+  max-height: none;
+  /* Vertical size grows with content; page (.llc-menu-screen) scrolls.
+     Horizontal pan only when the round tree is wider than the viewport. */
+  overflow-x: auto;
+  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
   padding-bottom: 6px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 0;
+  border: none;
+  border-block: 1px solid rgba(255, 255, 255, 0.16);
   background:
     linear-gradient(180deg, rgba(78, 48, 158, 0.18), rgba(0, 20, 48, 0.22)),
     rgba(0, 12, 32, 0.25);
@@ -538,7 +554,7 @@ html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) #llc-
 
 /* Vertical tree: rounds stack top→bottom; matches sit in a row */
 .tournament-bracket-board[data-orient="vertical"] .tournament-bracket-scroll {
-  max-height: min(70vh, 720px);
+  max-height: none;
 }
 .tournament-bracket-board[data-orient="vertical"] .tournament-bracket-rounds {
   flex-direction: column;
@@ -565,7 +581,7 @@ html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) #llc-
 
 @media (max-width: 720px) {
   .tournament-bracket-scroll {
-    max-height: min(68vh, 640px);
+    max-height: none;
   }
   .tournament-bracket-round {
     width: 188px;
