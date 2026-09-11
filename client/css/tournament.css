@@ -12,6 +12,18 @@ body.tcg-tournament-sky #llc-sky-bg .llc-sky-base {
   background-repeat: repeat, no-repeat;
 }
 
+/* Night mode — deeper purple tournament sky (menus only; in-match sky unchanged). */
+html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) {
+  background-color: #2a0f4a;
+}
+html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) #llc-sky-bg .llc-sky-base {
+  background-color: #2a0f4a;
+  background-image: url("../../bg/ptn.png"), linear-gradient(90deg, #5b21b6 0%, #3b0764 48%, #1e0533 100%);
+  background-position: top center, top center;
+  background-size: 200px 200px, 100% 100%;
+  background-repeat: repeat, no-repeat;
+}
+
 #screen-tournament .tournament-panel {
   width: 100%;
 }

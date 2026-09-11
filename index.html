@@ -103,14 +103,19 @@ document.documentElement.setAttribute('data-tcg-app','1');
 if (/[?&]debug(?:=|&|$)/.test(location.search)) {
   document.documentElement.setAttribute('data-tcg-debug','1');
 }
+try {
+  if (localStorage.getItem('tcg_night_mode') === '1') {
+    document.documentElement.classList.add('tcg-night');
+  }
+} catch (e) {}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=107">
+<link rel="stylesheet" href="client/css/shell-all.css?v=108">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
 <link rel="stylesheet" href="client/css/playmats.css?v=6">
-<link rel="stylesheet" href="client/css/tournament.css?v=20">
+<link rel="stylesheet" href="client/css/tournament.css?v=21">
 <link rel="stylesheet" href="client/css/portrait.css?v=96">
 <link rel="stylesheet" href="client/css/social.css?v=27">
 
@@ -852,6 +857,21 @@ if (/[?&]debug(?:=|&|$)/.test(location.search)) {
         <label class="options-toggle">
           <input type="checkbox" id="chk-foil-fx" checked>
           <span data-i18n="options.foil">Enhanced textures on high rarity cards</span>
+        </label>
+        <label class="options-toggle options-theme-toggle">
+          <input type="checkbox" id="chk-night-mode">
+          <span class="options-theme-icons" aria-hidden="true">
+            <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" focusable="false">
+              <path fill="currentColor" d="M21 14.3A8.5 8.5 0 0 1 9.7 3 7 7 0 1 0 21 14.3z"/>
+            </svg>
+            <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" focusable="false">
+              <circle cx="12" cy="12" r="4.2" fill="currentColor"/>
+              <g stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none">
+                <path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.05 5.05l1.56 1.56M17.39 17.39l1.56 1.56M5.05 18.95l1.56-1.56M17.39 6.61l1.56-1.56"/>
+              </g>
+            </svg>
+          </span>
+          <span data-i18n="options.nightMode">Night mode (darker menu skies)</span>
         </label>
         <label class="options-toggle">
           <input type="checkbox" id="chk-sleeve-conform">
@@ -4340,6 +4360,27 @@ function initFoilFxSetting() {
     try { localStorage.setItem(FOIL_FX_KEY, el('chk-foil-fx').checked ? '1' : '0'); } catch (e) {}
     syncFoilFxSetting();
     if (G.gameState) renderGame(G.gameState);
+  });
+}
+
+const NIGHT_MODE_KEY = 'tcg_night_mode';
+
+function nightModeEnabled() {
+  try { return localStorage.getItem(NIGHT_MODE_KEY) === '1'; } catch (e) { return false; }
+}
+
+function syncNightModeSetting() {
+  const on = nightModeEnabled();
+  document.documentElement.classList.toggle('tcg-night', on);
+  const chk = el('chk-night-mode');
+  if (chk) chk.checked = on;
+}
+
+function initNightModeSetting() {
+  syncNightModeSetting();
+  on('chk-night-mode', 'change', () => {
+    try { localStorage.setItem(NIGHT_MODE_KEY, el('chk-night-mode').checked ? '1' : '0'); } catch (e) {}
+    syncNightModeSetting();
   });
 }
 
@@ -17666,6 +17707,7 @@ async function bootApp() {
     ]);
   }
   initFoilFxSetting();
+  initNightModeSetting();
   if (window.LLTCG_SLEEVES?.initConform) window.LLTCG_SLEEVES.initConform();
   initUiTextScaleSetting();
   initSfxSetting();

@@ -82,6 +82,23 @@ body{font-family:'Nunito',sans-serif;background:transparent;color:#fff;
     linear-gradient(180deg,rgba(4,12,28,.72) 0%,rgba(6,16,34,.48) 38%,rgba(4,10,24,.78) 100%),
     radial-gradient(ellipse 120% 80% at 50% 0%,rgba(255,255,255,.06) 0%,transparent 55%);
 }
+/* Night mode — darker blue menu skies (not applied while a match board is open). */
+html.tcg-night:not(:has(#screen-game.active)){
+  background-color:#0b1f4a;
+}
+html.tcg-night:not(:has(#screen-game.active)) #llc-sky-bg .llc-sky-base{
+  background-color:#0b1f4a;
+  background-image:url("../../bg/ptn.png"),linear-gradient(90deg,#1a3f78 0%,#0b1f4a 100%);
+}
+html.tcg-night:not(:has(#screen-game.active)) #llc-sky-bg .llc-sky-cloud{
+  opacity:.58;
+  filter:brightness(.62) saturate(.8) hue-rotate(8deg);
+}
+html.tcg-night:not(:has(#screen-game.active)) #llc-sky-bg .llc-sky-deco-lower,
+html.tcg-night:not(:has(#screen-game.active)) #llc-sky-bg .llc-sky-wing{
+  filter:brightness(.7) saturate(.85);
+  opacity:.78;
+}
 @keyframes wingFloating01{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(20px)}
@@ -8319,6 +8336,14 @@ html.tcg-mobile-viewport #screen-deck #deck-card-hover-panel{
 .options-section .account-lead{text-align:left;margin-bottom:12px}
 .options-toggle{display:flex;align-items:flex-start;gap:10px;color:rgba(255,255,255,.88);font-size:14px;line-height:1.45;cursor:pointer;user-select:none}
 .options-toggle input{margin-top:3px;accent-color:var(--pink);flex-shrink:0}
+.options-theme-toggle .options-theme-icons{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:22px;height:22px;margin-top:1px;flex-shrink:0;color:#ffd0e4;
+}
+.options-theme-toggle .options-theme-icons .icon-sun{display:none}
+.options-theme-toggle .options-theme-icons .icon-moon{display:block}
+html.tcg-night .options-theme-toggle .options-theme-icons .icon-sun{display:block}
+html.tcg-night .options-theme-toggle .options-theme-icons .icon-moon{display:none}
 .options-sfx-volume{margin:10px 0 0 26px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px;color:rgba(255,255,255,.82);font-size:13px}
 .options-sfx-volume label{flex:0 0 auto}
 .options-sfx-volume input[type=range]{flex:1;min-width:140px;max-width:280px;accent-color:var(--pink)}
