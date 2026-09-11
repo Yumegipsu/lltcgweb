@@ -326,7 +326,11 @@ html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) #llc-
   padding: 8px 0 16px;
   display: flex;
   flex-direction: column;
+  /* Center when content fits; JS toggles --overflow-x for left-aligned scroll. */
   align-items: center;
+}
+.tournament-bracket.tournament-bracket--overflow-x {
+  align-items: stretch;
 }
 .tournament-bracket > .tournament-muted {
   padding: 0 12px;
@@ -340,6 +344,11 @@ html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) #llc-
   width: max-content;
   max-width: 100%;
   min-width: 0;
+}
+.tournament-bracket--overflow-x .tournament-bracket-board {
+  width: 100%;
+  max-width: 100%;
+  align-self: stretch;
 }
 .tournament-bracket-toolbar {
   display: flex;
@@ -389,6 +398,10 @@ html.tcg-night:has(body.tcg-tournament-sky):not(:has(#screen-game.active)) #llc-
     linear-gradient(180deg, rgba(78, 48, 158, 0.18), rgba(0, 20, 48, 0.22)),
     rgba(0, 12, 32, 0.25);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.tournament-bracket--overflow-x .tournament-bracket-scroll {
+  width: 100%;
+  max-width: 100%;
 }
 .tournament-bracket-canvas {
   position: relative;

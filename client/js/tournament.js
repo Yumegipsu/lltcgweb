@@ -1795,10 +1795,36 @@
   }
 
   let _bracketResizeObs = null;
+  let _bracketAlignResizeBound = false;
+
+  /**
+   * Center the bracket when it fits; left-align when horizontal scroll is needed.
+   * Works for both horizontal and vertical orientations (both can overflow on X).
+   */
+  function syncBracketAlign(root) {
+    if (!root) return;
+    const scroll = root.querySelector('.tournament-bracket-scroll');
+    const canvas = root.querySelector('.tournament-bracket-canvas');
+    if (!scroll || !canvas) {
+      root.classList.remove('tournament-bracket--overflow-x');
+      return;
+    }
+    const contentW = Math.max(canvas.scrollWidth, canvas.offsetWidth, 0);
+    const viewportW = Math.max(
+      root.clientWidth || 0,
+      Math.min(window.innerWidth || 0, document.documentElement.clientWidth || 0) || window.innerWidth || 0,
+      1
+    );
+    // Prefer live scroll overflow when already stretched full-width.
+    const scrollOverflow = scroll.scrollWidth > scroll.clientWidth + 2;
+    const needsScroll = scrollOverflow || contentW > viewportW + 2;
+    root.classList.toggle('tournament-bracket--overflow-x', needsScroll);
+  }
 
   function bindBracketLayout(root) {
     const run = () => {
       syncBracketTreeHeights(root);
+      syncBracketAlign(root);
       layoutBracketConnectors(root);
     };
     requestAnimationFrame(() => requestAnimationFrame(run));
@@ -1810,6 +1836,18 @@
       const canvas = root.querySelector('.tournament-bracket-canvas');
       if (canvas) _bracketResizeObs.observe(canvas);
       root.querySelectorAll('.tournament-match-card').forEach((card) => _bracketResizeObs.observe(card));
+      if (root) _bracketResizeObs.observe(root);
+    }
+    if (!_bracketAlignResizeBound) {
+      _bracketAlignResizeBound = true;
+      window.addEventListener('resize', () => {
+        const live = el('tournament-bracket');
+        if (live && live.querySelector('.tournament-bracket-canvas')) {
+          syncBracketTreeHeights(live);
+          syncBracketAlign(live);
+          layoutBracketConnectors(live);
+        }
+      }, { passive: true });
     }
     const scroll = root.querySelector('.tournament-bracket-scroll');
     if (scroll && !scroll.dataset.connScrollBound) {
