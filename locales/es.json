@@ -488,6 +488,11 @@
     "discordPresenceLink": "Link Discord for Presence",
     "discordPresenceOff": "Off — turn on to show menu/match status on Discord.",
     "discordPresenceOn": "On — shares Loveca status while Discord is running.",
+    "pushNotifications": "Push notifications (Android)",
+    "pushNotificationsOff": "Off — enable to get alerts when friends queue or invite you.",
+    "pushNotificationsOn": "On — Loveca can notify you about friend queues and invites.",
+    "pushNotificationsDenied": "Blocked in Android settings — open Settings → Apps → Loveca → Notifications to allow.",
+    "pushNotificationsTap": "Tap the switch to allow notification permission.",
     "apkAssets": {
       "title": "Datos del juego (Android)",
       "lead": "El arte de las cartas y los cosméticos se pueden guardar en el dispositivo. El APK sigue siendo pequeño; la descarga completa usa unos 1,3 GB. Las partidas siguen necesitando red.",
@@ -521,7 +526,8 @@
     },
     "textScale": "Text & UI size",
     "textScaleExp": "Experimental",
-    "textScaleLead": "Scale menu text and buttons. Larger sizes scroll instead of overlapping. In-match side panels stay on-screen; mobile boards keep their fit."
+    "textScaleLead": "Scale menu text and buttons. Larger sizes scroll instead of overlapping. In-match side panels stay on-screen; mobile boards keep their fit.",
+    "nightMode": "Modo nocturno (cielos del menú más oscuros)"
   },
   "starter": {
     "title": "Elige tu mazo inicial",
@@ -813,6 +819,8 @@
     "selectAtMost": "Selecciona como máximo {n}",
     "selectAtLeast": "Selecciona al menos {n}",
     "chooseMemberTitle": "Elegir Miembro",
+    "posChangeOppFront": "Elige 1 Miembro del Escenario del oponente para cambiar su posición al área frente a este Miembro.",
+    "activateWaitMember": "Elige 1 Miembro en Wait en tu Escenario para activarlo.",
     "chooseMembersTitle": "Elegir Miembros",
     "chooseCardTitle": "Elegir carta",
     "chooseArea": "Elige un área:",
@@ -1062,7 +1070,9 @@
     "last": "Last action",
     "next": "Next action",
     "prev": "Previous action",
-    "startStep": "Start"
+    "startStep": "Start",
+    "playCard": "Jugar {name}",
+    "activateCard": "Activar {name}"
   },
   "apiError": {
     "titleClient": "Algo salió mal",
@@ -1396,7 +1406,16 @@
     "batchNotConvertible": "Can’t convert this card",
     "batchOk": "Done",
     "batchSelected": "Selected",
-    "batchSelectedCount": "{count} selected"
+    "batchSelectedCount": "{count} selected",
+    "upgradeTitle": "Mejorar sellos",
+    "upgradeAria": "Mejoras de sellos",
+    "upgradeBtn": "{cost} {from} → 1 {to}",
+    "upgradeConfirm": "¿Canjear {cost} sellos {from} por 1 sello {to}?",
+    "upgradeOk": "Mejorado · 1 sello {to}",
+    "upgradeNeed": "Necesitas {cost} sellos {from}",
+    "infoUpgrade": "Mejoras de sellos",
+    "infoUpgradeLead": "También puedes canjear sellos de menor rareza: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. Los sellos PR no se mejoran.",
+    "infoUpgradePr": "Los sellos PR no se mejoran."
   },
   "tournament": {
     "backHub": "← Hub",
@@ -1858,6 +1877,7 @@
     "acceptInvite": "Aceptar",
     "declineInvite": "Rechazar",
     "inviteSent": "Invitación enviada a {name}",
-    "noFriends": "Añade amigos primero desde la pestaña Amigos."
+    "noFriends": "Añade amigos primero desde la pestaña Amigos.",
+    "permissionDenied": "Notificaciones bloqueadas. Actívalas en Ajustes de Android → Apps → Loveca → Notificaciones."
   }
 }

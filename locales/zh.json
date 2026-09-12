@@ -499,6 +499,11 @@
     "discordPresenceLink": "Link Discord for Presence",
     "discordPresenceOff": "Off — turn on to show menu/match status on Discord.",
     "discordPresenceOn": "On — shares Loveca status while Discord is running.",
+    "pushNotifications": "Push notifications (Android)",
+    "pushNotificationsOff": "Off — enable to get alerts when friends queue or invite you.",
+    "pushNotificationsOn": "On — Loveca can notify you about friend queues and invites.",
+    "pushNotificationsDenied": "Blocked in Android settings — open Settings → Apps → Loveca → Notifications to allow.",
+    "pushNotificationsTap": "Tap the switch to allow notification permission.",
     "apkAssets": {
       "title": "游戏数据（Android）",
       "lead": "可将卡图和外观保存在本机。安装包仍然很小；完整下载约占用 1.3 GB。对战仍需联网。",
@@ -531,7 +536,8 @@
     },
     "textScale": "Text & UI size",
     "textScaleExp": "Experimental",
-    "textScaleLead": "Scale menu text and buttons. Larger sizes scroll instead of overlapping. In-match side panels stay on-screen; mobile boards keep their fit."
+    "textScaleLead": "Scale menu text and buttons. Larger sizes scroll instead of overlapping. In-match side panels stay on-screen; mobile boards keep their fit.",
+    "nightMode": "夜间模式（菜单背景更暗）"
   },
   "starter": {
     "title": "选择入门牌组",
@@ -823,6 +829,8 @@
     "selectAtMost": "最多选择 {n} 张",
     "selectAtLeast": "至少选择 {n} 张",
     "chooseMemberTitle": "选择成员",
+    "posChangeOppFront": "选择 1 名对手舞台成员，将其改变到该成员前面的区域。",
+    "activateWaitMember": "选择你舞台上的 1 名等候成员并激活。",
     "chooseMembersTitle": "选择成员",
     "chooseCardTitle": "选择卡牌",
     "chooseArea": "选择一个区域：",
@@ -1072,7 +1080,9 @@
     "last": "Last action",
     "next": "Next action",
     "prev": "Previous action",
-    "startStep": "Start"
+    "startStep": "Start",
+    "playCard": "打出 {name}",
+    "activateCard": "发动 {name}"
   },
   "apiError": {
     "titleClient": "出了点问题",
@@ -1420,7 +1430,16 @@
     "batchNotConvertible": "Can’t convert this card",
     "batchOk": "Done",
     "batchSelected": "Selected",
-    "batchSelectedCount": "{count} selected"
+    "batchSelectedCount": "{count} selected",
+    "upgradeTitle": "印章升级",
+    "upgradeAria": "印章升级",
+    "upgradeBtn": "{cost} {from} → 1 {to}",
+    "upgradeConfirm": "用 {cost} 枚 {from} 印章换 1 枚 {to} 印章？",
+    "upgradeOk": "已升级 · 1 枚 {to} 印章",
+    "upgradeNeed": "需要 {cost} 枚 {from} 印章",
+    "infoUpgrade": "印章升级",
+    "infoUpgradeLead": "也可用低阶印章向上兑换：5 N → 1 R、6 R → 1 P、10 P → 1 SEC。PR 印章不可升级。",
+    "infoUpgradePr": "PR 印章不可升级。"
   },
   "tournament": {
     "backHub": "← 主页",
@@ -1882,6 +1901,7 @@
     "acceptInvite": "接受",
     "declineInvite": "拒绝",
     "inviteSent": "已向 {name} 发送邀请",
-    "noFriends": "请先在好友标签页添加好友。"
+    "noFriends": "请先在好友标签页添加好友。",
+    "permissionDenied": "通知已被阻止。请在 Android 设置 → 应用 → Loveca → 通知 中启用。"
   }
 }

@@ -489,6 +489,11 @@
     "discordPresenceLink": "Link Discord for Presence",
     "discordPresenceOff": "Off — turn on to show menu/match status on Discord.",
     "discordPresenceOn": "On — shares Loveca status while Discord is running.",
+    "pushNotifications": "Push notifications (Android)",
+    "pushNotificationsOff": "Off — enable to get alerts when friends queue or invite you.",
+    "pushNotificationsOn": "On — Loveca can notify you about friend queues and invites.",
+    "pushNotificationsDenied": "Blocked in Android settings — open Settings → Apps → Loveca → Notifications to allow.",
+    "pushNotificationsTap": "Tap the switch to allow notification permission.",
     "apkAssets": {
       "title": "ข้อมูลเกม (Android)",
       "lead": "สามารถเก็บภาพการ์ดและของตกแต่งในเครื่องได้ ไฟล์แอปยังเล็ก การดาวน์โหลดทั้งหมดใช้ประมาณ 1.3 GB การแข่งขันยังต้องมีเน็ต",
@@ -521,7 +526,8 @@
     },
     "textScale": "Text & UI size",
     "textScaleExp": "Experimental",
-    "textScaleLead": "Scale menu text and buttons. Larger sizes scroll instead of overlapping. In-match side panels stay on-screen; mobile boards keep their fit."
+    "textScaleLead": "Scale menu text and buttons. Larger sizes scroll instead of overlapping. In-match side panels stay on-screen; mobile boards keep their fit.",
+    "nightMode": "โหมดกลางคืน (พื้นหลังเมนูเข้มขึ้น)"
   },
   "starter": {
     "title": "เลือกเด็คสตาร์ทเตอร์",
@@ -813,6 +819,8 @@
     "selectAtMost": "เลือกได้สูงสุด {n}",
     "selectAtLeast": "เลือกอย่างน้อย {n}",
     "chooseMemberTitle": "เลือกสมาชิก",
+    "posChangeOppFront": "เลือกสมาชิกเวทีฝ่ายตรงข้าม 1 คนเพื่อเปลี่ยนตำแหน่งเข้ามาในบริเวณด้านหน้าของสมาชิกรายนี้",
+    "activateWaitMember": "เลือกสมาชิกที่รอ 1 คนบนเวทีของคุณเพื่อเปิดใช้งาน",
     "chooseMembersTitle": "เลือกสมาชิก",
     "chooseCardTitle": "เลือกการ์ด",
     "chooseArea": "เลือกพื้นที่:",
@@ -1062,7 +1070,9 @@
     "last": "Last action",
     "next": "Next action",
     "prev": "Previous action",
-    "startStep": "Start"
+    "startStep": "Start",
+    "playCard": "ลง {name}",
+    "activateCard": "ใช้สกิล {name}"
   },
   "apiError": {
     "titleClient": "เกิดข้อผิดพลาด",
@@ -1396,7 +1406,16 @@
     "batchNotConvertible": "Can’t convert this card",
     "batchOk": "Done",
     "batchSelected": "Selected",
-    "batchSelectedCount": "{count} selected"
+    "batchSelectedCount": "{count} selected",
+    "upgradeTitle": "อัปเกรดซีล",
+    "upgradeAria": "อัปเกรดซีล",
+    "upgradeBtn": "{cost} {from} → 1 {to}",
+    "upgradeConfirm": "แลกซีล {from} {cost} อันเป็นซีล {to} 1 อัน?",
+    "upgradeOk": "อัปเกรดแล้ว · ซีล {to} 1",
+    "upgradeNeed": "ต้องมีซีล {from} {cost} อัน",
+    "infoUpgrade": "อัปเกรดซีล",
+    "infoUpgradeLead": "แลกซีลระดับต่ำขึ้นได้: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC ซีล PR อัปเกรดไม่ได้",
+    "infoUpgradePr": "ซีล PR อัปเกรดไม่ได้"
   },
   "tournament": {
     "backHub": "← ฮับ",
@@ -1858,6 +1877,7 @@
     "acceptInvite": "ยอมรับ",
     "declineInvite": "ปฏิเสธ",
     "inviteSent": "ส่งคำเชิญถึง {name} แล้ว",
-    "noFriends": "เพิ่มเพื่อนก่อนจากแท็บเพื่อน"
+    "noFriends": "เพิ่มเพื่อนก่อนจากแท็บเพื่อน",
+    "permissionDenied": "การแจ้งเตือนถูกบล็อก — เปิดใช้ใน Android Settings → Apps → Loveca → Notifications"
   }
 }

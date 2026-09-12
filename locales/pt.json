@@ -538,7 +538,16 @@
     "batchNotConvertible": "Não é possível converter esta carta",
     "batchOk": "Concluído",
     "batchSelected": "Selecionado",
-    "batchSelectedCount": "{n} selecionadas"
+    "batchSelectedCount": "{n} selecionadas",
+    "upgradeTitle": "Melhorar selos",
+    "upgradeAria": "Melhorias de selos",
+    "upgradeBtn": "{cost} {from} → 1 {to}",
+    "upgradeConfirm": "Trocar {cost} selos {from} por 1 selo {to}?",
+    "upgradeOk": "Melhorado · 1 selo {to}",
+    "upgradeNeed": "Precisa de {cost} selos {from}",
+    "infoUpgrade": "Melhorias de selos",
+    "infoUpgradeLead": "Você também pode trocar selos de raridade menor: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. Selos PR não sobem de nível.",
+    "infoUpgradePr": "Selos PR não sobem de nível."
   },
   "ranked": {
     "title": "PvP Ranqueado",
@@ -624,6 +633,11 @@
     "discordPresenceLink": "Vincular Discord para Presence",
     "discordPresenceOff": "Desligado — ative para mostrar o status do menu/partida no Discord.",
     "discordPresenceOn": "Ligado — compartilha o status do Loveca enquanto o Discord estiver em execução.",
+    "pushNotifications": "Notificações push (Android)",
+    "pushNotificationsOff": "Desligado — ative para receber alertas quando amigos entrarem na fila ou convidarem você.",
+    "pushNotificationsOn": "Ligado — o Loveca pode avisar sobre filas e convites de amigos.",
+    "pushNotificationsDenied": "Bloqueado nas configurações do Android — abra Configurações → Apps → Loveca → Notificações para permitir.",
+    "pushNotificationsTap": "Toque no interruptor para permitir notificações.",
     "apkAssets": {
       "title": "Dados do jogo (Android)",
       "lead": "Artes das cartas e cosméticos podem ser armazenados neste dispositivo. O arquivo do app permanece pequeno; um download completo usa cerca de 1,3 GB do armazenamento do celular. Partidas ainda exigem conexão de rede.",
@@ -659,7 +673,8 @@
     "textScale": "Tamanho do texto e da interface",
     "textScaleExp": "Experimental",
     "textScaleLead": "Redimensiona textos do menu e botões. Tamanhos maiores rolam a tela em vez de se sobreporem. Painéis laterais em partida permanecem na tela; tabuleiros móveis mantêm seu ajuste.",
-    "discordRichPresence": "Presença rica no Discord"
+    "discordRichPresence": "Presença rica no Discord",
+    "nightMode": "Modo noturno (céus do menu mais escuros)"
   },
   "starter": {
     "title": "Escolha Seu Deck Inicial",
@@ -961,6 +976,8 @@
     "selectAtMost": "Selecione no máximo {n}",
     "selectAtLeast": "Selecione no mínimo {n}",
     "chooseMemberTitle": "Escolha o Membro",
+    "posChangeOppFront": "Escolha 1 Membro no Palco do adversário para trocar a posição para a área em frente a este Membro.",
+    "activateWaitMember": "Escolha 1 Membro em Repouso no seu Palco para ativar.",
     "chooseMembersTitle": "Escolha os Membros",
     "chooseCardTitle": "Escolha a carta",
     "chooseArea": "Escolha uma área:",
@@ -1202,7 +1219,9 @@
     "last": "Última ação",
     "next": "Próxima ação",
     "prev": "Ação anterior",
-    "startStep": "Início"
+    "startStep": "Início",
+    "playCard": "Jogar {name}",
+    "activateCard": "Ativar {name}"
   },
   "apiError": {
     "titleClient": "Algo deu errado",
@@ -1883,6 +1902,7 @@
     "acceptInvite": "Aceitar",
     "declineInvite": "Recusar",
     "inviteSent": "Convite enviado para {name}",
-    "noFriends": "Adicione amigos primeiro na aba Amigos."
+    "noFriends": "Adicione amigos primeiro na aba Amigos.",
+    "permissionDenied": "Notificações bloqueadas. Ative em Configurações do Android → Apps → Loveca → Notificações."
   }
 }
