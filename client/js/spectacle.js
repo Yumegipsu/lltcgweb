@@ -5076,6 +5076,16 @@ function buildHeartPoolFromRows(rows) {
   return pool;
 }
 
+/** Inverse of buildHeartPoolFromRows — for syncing the hearts panel to a flat pool. */
+function buildHeartRowsFromPool(pool) {
+  const map = {};
+  (pool || []).forEach((c) => {
+    const key = normalizeHeartColor(c);
+    map[key] = (map[key] || 0) + 1;
+  });
+  return sortHeartsByDisplayOrder(Object.keys(map).map((color) => ({ color, count: map[color] })));
+}
+
 function expandHeartRequirementSlotsClient(required) {
   const slots = [];
   for (const req of sortHeartRequirements(required || [])) {
@@ -6855,7 +6865,25 @@ function perfBumpYellDrawPending(deckEl, pid, addAmount, { animate = true } = {}
   if (n <= 0 || !deckEl) return;
   if (!G._perfYellDrawPending) perfResetYellEffectAccumulators();
   G._perfYellDrawPending[pid] = (G._perfYellDrawPending[pid] || 0) + n;
-  const total = G._perfYellDrawPending[pid];
+  perfPaintYellDrawPendingBadge(deckEl, G._perfYellDrawPending[pid], { animate });
+}
+
+/** Instant / restore paints must SET the draw total — bumping after a prior paint doubles (#178). */
+function perfSetYellDrawPending(deckEl, pid, total, { animate = true } = {}) {
+  if (!deckEl) return;
+  if (!G._perfYellDrawPending) perfResetYellEffectAccumulators();
+  const n = Math.max(0, Number(total) || 0);
+  G._perfYellDrawPending[pid] = n;
+  if (n <= 0) {
+    deckEl.querySelectorAll('.perf-yell-draw-pending').forEach((node) => node.remove());
+    return;
+  }
+  perfPaintYellDrawPendingBadge(deckEl, n, { animate });
+}
+
+function perfPaintYellDrawPendingBadge(deckEl, total, { animate = true } = {}) {
+  const n = Math.max(0, Number(total) || 0);
+  if (n <= 0 || !deckEl) return;
   let badge = deckEl.querySelector('.perf-yell-draw-pending');
   if (!badge) {
     badge = document.createElement('div');
@@ -6866,7 +6894,7 @@ function perfBumpYellDrawPending(deckEl, pid, addAmount, { animate = true } = {}
   badge.appendChild(mkGameIcon('sp_draw.png', 'ticon', 'Yell draw'));
   const val = document.createElement('span');
   val.className = 'perf-yell-draw-val';
-  val.textContent = '+' + total;
+  val.textContent = '+' + n;
   badge.appendChild(val);
   if (animate) {
     badge.classList.remove('show', 'punch');
@@ -7318,6 +7346,9 @@ function perfSetYellSideInstant(ctx, pid, showAllCards) {
   const yellRow = el(isMine ? 'perf-mine-yell' : 'perf-opp-yell');
   if (!heartsEl || !bladeEl || !deckEl || !yellRow) return;
 
+  G._perfYellShownIids = G._perfYellShownIids || { p1: new Set(), p2: new Set() };
+  if (!G._perfYellShownIids[pid]) G._perfYellShownIids[pid] = new Set();
+
   yellRow.innerHTML = '';
   if (showAllCards) {
     // Live cards that actually performed this side — needed for wildcard/draw gating.
@@ -7325,11 +7356,17 @@ function perfSetYellSideInstant(ctx, pid, showAllCards) {
     // paint path (reconnect / once-per-turn skip) and aborting the runner with
     // chrome left open (stuck spectacle + partial content).
     const liveCards = perfSpectacleLiveCards(ctx.prev, ctx.next, pid).map(enrichCard);
+    // Seed shown iids so a later onlyNew climb cannot re-append these chips /
+    // re-fly their hearts (issue #135 / #178 — doubles hearts + cards).
+    G._perfYellShownIids[pid].clear();
     yellCards.forEach(card => {
       const chip = document.createElement('div');
       chip.className = 'perf-yell-card show';
       const c = enrichCard(card);
-      if (c.instance_id) chip.dataset.iid = c.instance_id;
+      if (c.instance_id) {
+        chip.dataset.iid = c.instance_id;
+        G._perfYellShownIids[pid].add(c.instance_id);
+      }
       appendPerfYellCardFace(chip, c);
       perfMarkYellBladeHearts(chip, c, { yellWildcard: liveCardsHaveYellHeartsWildcard(liveCards) });
       yellRow.appendChild(chip);
@@ -7353,8 +7390,16 @@ function perfSetYellSideInstant(ctx, pid, showAllCards) {
       badge.classList.add('show');
       livesRow?.appendChild(badge);
     }
-    if (yellDrawTotal && liveCardsHaveDrawPerYellDraw(liveCards)) {
-      perfBumpYellDrawPending(deckEl, pid, yellDrawTotal, { animate: false });
+    if (liveCardsHaveDrawPerYellDraw(liveCards)) {
+      // Absolute set — bumping here after a prior instant paint doubled draw (#178).
+      perfSetYellDrawPending(
+        deckEl,
+        pid,
+        yellDrawTotal,
+        { animate: false }
+      );
+    } else {
+      perfSetYellDrawPending(deckEl, pid, 0, { animate: false });
     }
     perfRenderBladeRow(bladeEl, 0, { pending: false });
     const finalHearts = mergeHeartStatRows(
@@ -7366,6 +7411,7 @@ function perfSetYellSideInstant(ctx, pid, showAllCards) {
     layoutPerfYellRail(yellRow.closest('.perf-yell-rail'));
     layoutPerfLiveRows();
   } else {
+    G._perfYellShownIids[pid].clear();
     yellRow.innerHTML = '';
     yellRow.style.transform = '';
     yellRow.classList.remove('perf-yell-many');
@@ -7627,6 +7673,9 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
     perfResetLiveReqTrackers(ctx, pid);
     G._perfLiveReqAppliedPool[pid] = ownedPool.slice();
     await perfSyncLiveReqFromAppliedPool(ctx, pid, { animate: false });
+    // Instant paint / tab restore may already show final heart totals. Re-sync the
+    // panel to the already-accounted pool so new flies only add the delta (#178).
+    perfFillHearts(heartsEl, buildHeartRowsFromPool(ownedPool));
   }
 
   let remaining = onlyNew
