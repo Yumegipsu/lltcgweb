@@ -184,6 +184,22 @@ final class StickerSealsTest extends TestCase
         $this->assertSame(20, tcgSealBuyCostForTier('PR'));
     }
 
+    public function testSrlLivesMapToPSealsNotSec(): void
+    {
+        $map = tcgBuildCardMap($this->cardsData());
+        $srl = null;
+        foreach ($map as $c) {
+            $r = tcgNormalizePoolRarity((string)($c['rarity'] ?? ''), (string)($c['card_no'] ?? ''));
+            if ($r === 'SRL') {
+                $srl = $c;
+                break;
+            }
+        }
+        $this->assertNotNull($srl, 'Expected at least one SRL Live in catalog');
+        $this->assertSame('P', tcgSealTierForCard($srl));
+        $this->assertTrue(tcgCardConvertibleToSeal($srl));
+    }
+
     public function testPrShopProductAndBuy(): void
     {
         $cardsData = $this->cardsData();

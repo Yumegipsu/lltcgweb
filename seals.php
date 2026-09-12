@@ -147,11 +147,12 @@ function tcgSealTierForCard(array $card): ?string {
     static $map = [
         'N' => 'N', 'SD' => 'N', 'SD2' => 'N', 'L' => 'N', 'PE' => 'N',
         'R' => 'R', 'R+' => 'R', 'RM' => 'R', 'RE' => 'R', 'L+' => 'R',
-        'P' => 'P', 'P+' => 'P', 'PP' => 'P', 'AR' => 'P', 'PE+' => 'P', 'SRE' => 'P',
+        // SRL is the DUO/Live foil peer of SRE (bulk holo, not SEC chase).
+        'P' => 'P', 'P+' => 'P', 'PP' => 'P', 'AR' => 'P', 'PE+' => 'P', 'SRE' => 'P', 'SRL' => 'P',
         // CL is normalized to PR in tcgNormalizePoolRarity; keep explicit for safety.
         'PR' => 'PR', 'PR+' => 'PR', 'CL' => 'PR',
         'SEC' => 'SEC', 'SEC+' => 'SEC', 'SECE' => 'SEC', 'SECL' => 'SEC', 'SECS' => 'SEC',
-        'LLE' => 'SEC', 'SRL' => 'SEC', 'DUO' => 'SEC',
+        'LLE' => 'SEC', 'DUO' => 'SEC',
     ];
     return $map[$r] ?? null;
 }
