@@ -279,6 +279,11 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         return $hsCl1Prompt;
     }
 
+    $pickMemberBlade = resolvePickMemberBladeBonusPrompt($state, $owner, $prompt, $choice, $data);
+    if ($pickMemberBlade !== null) {
+        return $pickMemberBlade;
+    }
+
     $nBp5Prompt = nBp5ResolvePrompt($state, $owner, $prompt, $choice, $data);
     if ($nBp5Prompt !== null) {
         return $nBp5Prompt;

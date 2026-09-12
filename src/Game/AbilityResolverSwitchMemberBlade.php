@@ -15,10 +15,27 @@ function tryResolveAbilityEffectSwitchMemberBlade(
 ): array {
     switch ($type) {
         case 'member_blade_bonus':
-            $n = applyMemberBladeBonus($state, $pid, $ab);
-            if ($n > 0) {
+            $applied = 0;
+            $state = applyOrPromptMemberBladeBonus(
+                $state,
+                $pid,
+                $ab,
+                [
+                    'source_name' => $name,
+                    'source_id'   => $source['instance_id'] ?? '',
+                    'live_start'  => ($ctx['phase'] ?? '') === 'live_start'
+                        || ($state['phase'] ?? '') === 'live_start_effects',
+                ],
+                $applied
+            );
+            if ($applied === null) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] $n Member(s) gained +" . intval($ab['amount'] ?? 0) . ' Blade until Live ends.');
+                    " — [$name] choose a Stage Member for +" . intval($ab['amount'] ?? 0) . ' Blade.');
+                break;
+            }
+            if ($applied > 0) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] $applied Member(s) gained +" . intval($ab['amount'] ?? 0) . ' Blade until Live ends.');
             }
             break;
 

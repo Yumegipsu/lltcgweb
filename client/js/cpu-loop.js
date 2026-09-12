@@ -5029,7 +5029,7 @@ function cpuResolvePromptBody(s, cpu, pr) {
     'pick_other_blade_member_bonus','pick_other_heart_member_bonus','live_start_wr_group_member_count_pick_heart',
     'live_start_activate_stage_live_start_ability','live_start_edel_note_dual_pick_buff',
     'treat_pick_group_member_hearts_as',
-    'cl1_pick_stage_member_blade','bp5_wr_live_deck_position',
+    'cl1_pick_stage_member_blade','pick_member_blade_bonus','bp5_wr_live_deck_position',
     'pick_named_member_blade','pick_member_cost_bonus',
     'sbp5_pick_stage_member_blade','sbp5_pick_saint_snow_position','sbp5_position_change_slot',
     'sbp6_wait_opp_side_member','opp_member_match_heart_blade',

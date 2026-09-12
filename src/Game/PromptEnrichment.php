@@ -1395,9 +1395,26 @@ function resolveOptionalDiscardPromptChoice(
                     $then['max_members'] = 99;
                     $then['exclude_source_id'] = $prompt['source_id'] ?? '';
                 }
-                $n = applyMemberBladeBonus($state, $owner, $then);
+                $applied = 0;
+                $state = applyOrPromptMemberBladeBonus(
+                    $state,
+                    $owner,
+                    $then,
+                    [
+                        'source_name' => $prompt['source_name'] ?? 'Member',
+                        'source_id'   => $prompt['source_id'] ?? '',
+                        'live_start'  => !empty($prompt['live_start']),
+                    ],
+                    $applied
+                );
+                if ($applied === null) {
+                    $state = addLog($state, $state['players'][$owner]['name'] .
+                        ' — [' . ($prompt['source_name'] ?? 'Member') . "] discarded $need; choose a Stage Member for +" .
+                        intval($then['amount'] ?? 0) . ' Blade.');
+                    return $state;
+                }
                 $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] discarded $need; $n Member(s) gained +" .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] discarded $need; $applied Member(s) gained +" .
                     intval($then['amount'] ?? 0) . ' Blade.');
             } elseif (($then['type'] ?? '') === 'other_member_heart') {
                 $n = applyOtherMemberHeartBonus(

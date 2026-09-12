@@ -2937,6 +2937,64 @@ function totalStageBlade(array $p): int {
     return $n;
 }
 
+function memberBladeBonusStageCandidates(array $state, string $pid, array $effect): array {
+    $group = $effect['group'] ?? '';
+    $excludeId = (string)($effect['exclude_source_id'] ?? '');
+    $slotFilter = $effect['slot'] ?? '';
+    $candidates = [];
+    foreach ($state['players'][$pid]['stage'] ?? [] as $slot => $mbr) {
+        if (!$mbr) {
+            continue;
+        }
+        if ($group !== '' && ($mbr['group'] ?? '') !== $group) {
+            continue;
+        }
+        if ($excludeId !== '' && ($mbr['instance_id'] ?? '') === $excludeId) {
+            continue;
+        }
+        if ($slotFilter !== '' && $slot !== $slotFilter) {
+            continue;
+        }
+        $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
+    }
+    return $candidates;
+}
+
+function applyMemberBladeBonusToSlots(array &$state, string $pid, array $effect, array $slots): int {
+    $amount = intval($effect['amount'] ?? 0);
+    $group = $effect['group'] ?? '';
+    $excludeId = (string)($effect['exclude_source_id'] ?? '');
+    $applied = 0;
+    $seen = [];
+    foreach ($slots as $slot) {
+        $slot = (string)$slot;
+        if ($slot === '' || isset($seen[$slot])) {
+            continue;
+        }
+        $seen[$slot] = true;
+        $mbr = &$state['players'][$pid]['stage'][$slot];
+        if (!$mbr) {
+            unset($mbr);
+            continue;
+        }
+        if ($group !== '' && ($mbr['group'] ?? '') !== $group) {
+            unset($mbr);
+            continue;
+        }
+        if ($excludeId !== '' && ($mbr['instance_id'] ?? '') === $excludeId) {
+            unset($mbr);
+            continue;
+        }
+        $mbr['live_blade_bonus'] = intval($mbr['live_blade_bonus'] ?? 0) + $amount;
+        if (!empty($effect['hearts'])) {
+            addBonusHeartsToMember($mbr, $effect['hearts'], 1);
+        }
+        $applied++;
+        unset($mbr);
+    }
+    return $applied;
+}
+
 function applyMemberBladeBonus(array &$state, string $pid, array $effect): int {
     $amount = intval($effect['amount'] ?? 0);
     $max = intval($effect['max_members'] ?? 1);
@@ -2957,6 +3015,99 @@ function applyMemberBladeBonus(array &$state, string $pid, array $effect): int {
     }
     unset($mbr);
     return $applied;
+}
+
+/**
+ * Apply member_blade_bonus, or open a Stage pick when the player must choose targets.
+ * Sets $applied to the number granted, or null when a pick prompt was opened.
+ */
+function applyOrPromptMemberBladeBonus(
+    array $state,
+    string $pid,
+    array $effect,
+    array $meta = [],
+    ?int &$applied = null
+): array {
+    $max = max(0, intval($effect['max_members'] ?? 1));
+    if ($max <= 0) {
+        $applied = 0;
+        return $state;
+    }
+    $candidates = memberBladeBonusStageCandidates($state, $pid, $effect);
+    if (empty($candidates)) {
+        $applied = 0;
+        return $state;
+    }
+    // Enough (or fewer) eligible Members than the grant count — no choice needed.
+    if (count($candidates) <= $max) {
+        $applied = applyMemberBladeBonus($state, $pid, $effect);
+        return $state;
+    }
+    $amt = intval($effect['amount'] ?? 0);
+    $srcName = $meta['source_name'] ?? 'Card';
+    $promptText = $max === 1
+        ? "Choose 1 Stage Member to gain +{$amt} Blade until this Live ends."
+        : "Choose {$max} Stage Members to gain +{$amt} Blade until this Live ends.";
+    // Overwrite any prompt being resolved (e.g. optional_discard_prompt → then pick).
+    $state['pending_prompt'] = array_merge([
+        'type'         => 'pick_member_blade_bonus',
+        'owner'        => $pid,
+        'responder'    => $pid,
+        'source_name'  => $srcName,
+        'candidates'   => $candidates,
+        'pick_count'   => $max,
+        'blade_amount' => $amt,
+        'prompt'       => $promptText,
+        'ability'      => $effect,
+    ], $meta);
+    $state['seq'] = intval($state['seq'] ?? 0) + 1;
+    $applied = null;
+    return $state;
+}
+
+function resolvePickMemberBladeBonusPrompt(
+    array $state,
+    string $owner,
+    array $prompt,
+    string $choice,
+    array $data
+): ?array {
+    if (($prompt['type'] ?? '') !== 'pick_member_blade_bonus') {
+        return null;
+    }
+    $effect = $prompt['ability'] ?? [];
+    $max = max(1, intval($prompt['pick_count'] ?? ($effect['max_members'] ?? 1)));
+    $slots = [];
+    if (!empty($data['slots']) && is_array($data['slots'])) {
+        $slots = array_values(array_filter(array_map('strval', $data['slots'])));
+    } elseif (($data['slot'] ?? '') !== '') {
+        $slots = [(string)$data['slot']];
+    } elseif ($choice !== '' && $choice !== 'skip' && $choice !== 'cancel') {
+        $slots = [$choice];
+    }
+    if (count($slots) !== $max) {
+        throw new Exception($max === 1
+            ? 'Choose a Member on Stage'
+            : "Choose exactly {$max} Members on Stage");
+    }
+    $allowed = [];
+    foreach ($prompt['candidates'] ?? [] as $c) {
+        if (!empty($c['slot'])) {
+            $allowed[(string)$c['slot']] = true;
+        }
+    }
+    foreach ($slots as $slot) {
+        if (!isset($allowed[$slot])) {
+            throw new Exception('Invalid Stage Member');
+        }
+    }
+    $n = applyMemberBladeBonusToSlots($state, $owner, $effect, $slots);
+    $amt = intval($prompt['blade_amount'] ?? ($effect['amount'] ?? 0));
+    $state = addLog($state, $state['players'][$owner]['name'] .
+        ' — [' . ($prompt['source_name'] ?? 'Card') . "] $n Member(s) gained +{$amt} Blade until Live ends.");
+    unset($state['pending_prompt']);
+    $state['seq'] = intval($state['seq'] ?? 0) + 1;
+    return finishAfterBranchChoicePrompt($state, $prompt);
 }
 
 function applyCenterGroupBladeBonus(array &$state, string $pid, string $group, int $amount): bool {

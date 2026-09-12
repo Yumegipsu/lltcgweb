@@ -118,15 +118,33 @@ function tryResolveAbilityEffectSwitchOptional(
             }
             if (!empty($ab['then'])) {
                 $then = $ab['then'];
-                if (($then['type'] ?? '') === 'member_blade_bonus' && !empty($then['other_only'])) {
-                    $then['exclude_source_id'] = $source['instance_id'] ?? '';
-                }
                 if (($then['type'] ?? '') === 'choose_heart_modifier') {
                     $state = resolveAbilityEffect($state, $pid, $source, $then, $ctx);
                 } elseif (($then['type'] ?? '') === 'member_blade_bonus') {
-                    $n = applyMemberBladeBonus($state, $pid, $then);
+                    if (!empty($then['other_only'])) {
+                        $then['exclude_source_id'] = $source['instance_id'] ?? '';
+                    }
+                    $applied = 0;
+                    $state = applyOrPromptMemberBladeBonus(
+                        $state,
+                        $pid,
+                        $then,
+                        [
+                            'source_name' => $name,
+                            'source_id'   => $source['instance_id'] ?? '',
+                            'live_start'  => ($ctx['phase'] ?? '') === 'live_start'
+                                || ($state['phase'] ?? '') === 'live_start_effects',
+                        ],
+                        $applied
+                    );
+                    if ($applied === null) {
+                        $state = addLog($state, $state['players'][$pid]['name'] .
+                            " — [$name] paid $cost Energy; choose a Stage Member for +" .
+                            intval($then['amount'] ?? 0) . ' Blade.');
+                        break;
+                    }
                     $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] paid $cost Energy; $n Member(s) gained +" .
+                        " — [$name] paid $cost Energy; $applied Member(s) gained +" .
                         intval($then['amount'] ?? 0) . ' Blade.');
                 } elseif (($then['type'] ?? '') === 'shuffle_wr_members_deck_top') {
                     $need = intval($then['count'] ?? 2);
@@ -489,9 +507,27 @@ function tryResolveAbilityEffectSwitchOptional(
                     $then['amount'] = intval($then['amount'] ?? 1);
                     $state = applyModifierEffect($state, $pid, $then);
                 } elseif (($then['type'] ?? '') === 'member_blade_bonus') {
-                    $n = applyMemberBladeBonus($state, $pid, $then);
+                    $applied = 0;
+                    $state = applyOrPromptMemberBladeBonus(
+                        $state,
+                        $pid,
+                        $then,
+                        [
+                            'source_name' => $name,
+                            'source_id'   => $source['instance_id'] ?? '',
+                            'live_start'  => ($ctx['phase'] ?? '') === 'live_start'
+                                || ($state['phase'] ?? '') === 'live_start_effects',
+                        ],
+                        $applied
+                    );
+                    if ($applied === null) {
+                        $state = addLog($state, $state['players'][$pid]['name'] .
+                            " — [$name] discarded $need; choose a Stage Member for +" .
+                            intval($then['amount'] ?? 0) . ' Blade.');
+                        break;
+                    }
                     $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] discarded $need; $n Member(s) gained +" . intval($then['amount'] ?? 0) . ' Blade.');
+                        " — [$name] discarded $need; $applied Member(s) gained +" . intval($then['amount'] ?? 0) . ' Blade.');
                 } else {
                     $state = resolveAbilityEffect($state, $pid, $source, $then, $ctx);
                     if (($then['type'] ?? '') !== 'choose_heart_modifier') {

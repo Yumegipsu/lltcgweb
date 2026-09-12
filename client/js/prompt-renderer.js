@@ -3676,6 +3676,7 @@ global.renderPrompt = function renderPrompt(s, myId){
     ||pr?.type==='live_start_edel_note_dual_pick_buff'
     ||pr?.type==='treat_pick_group_member_hearts_as'
     ||pr?.type==='cl1_pick_stage_member_blade'
+    ||pr?.type==='pick_member_blade_bonus'
     ||pr?.type==='score_if_stage_member_hearts'
     ||pr?.type==='opp_member_match_heart_blade')&&pr.responder===myId){
     ovl.classList.remove('open');
