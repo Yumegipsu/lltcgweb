@@ -28679,6 +28679,26 @@ function tcgClientCountOppWait(state, pid) {
   return Object.values(state?.players?.[opp]?.stage || {}).filter(m => m && m.in_wait).length;
 }
 
+/** Mirror PHP sumSuccessLiveScores (incl. success_self_score_bonus Always on Lives). */
+function tcgClientSumSuccessLiveScores(state, pid) {
+  const p = state?.players?.[pid];
+  if (!p) return 0;
+  let sum = 0;
+  (p.success_lives || []).forEach((c) => {
+    if (!c) return;
+    let score = Number(c.score || 0);
+    (c.abilities || []).forEach((ab) => {
+      if ((ab.trigger || '') !== 'continuous') return;
+      if ((ab.type || '') !== 'success_self_score_bonus') return;
+      const group = ab.group || "μ's";
+      const hasGroup = Object.values(p.stage || {}).some(m => m && (m.group || '') === group);
+      if (hasGroup) score += Number(ab.amount || 0);
+    });
+    sum += score;
+  });
+  return sum;
+}
+
 function appendClientHeartSpecColors(out, spec) {
   (spec || []).forEach(h => {
     const n = Math.max(1, h.count || 1);
@@ -28998,6 +29018,13 @@ function clientMemberContinuousBladeBonus(member, state, pid, slot) {
     }
     if (type === 'blade_bonus_per_success_lives') {
       bonus += (p.success_lives || []).length * Number(ab.amount ?? 1);
+    }
+    if (type === 'blade_if_success_score_higher') {
+      // PL!-bp4-018 Nico — Always: +blade while your Success Live score total beats opponent.
+      const opp = pid === 'p1' ? 'p2' : 'p1';
+      if (tcgClientSumSuccessLiveScores(state, pid) > tcgClientSumSuccessLiveScores(state, opp)) {
+        bonus += Number(ab.amount ?? 2);
+      }
     }
     if (type === 'blade_bonus_if_exact_energy') {
       if ((p.energy_zone || []).length === Number(ab.exact_energy ?? 7)) {
