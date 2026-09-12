@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=108">
+<link rel="stylesheet" href="client/css/shell-all.css?v=109">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
 <link rel="stylesheet" href="client/css/playmats.css?v=6">
@@ -1012,6 +1012,10 @@ try {
         <span class="hub-seal-chip" data-seal="p"><img src="assets/seals/P.png" alt="P" width="18" height="18"><b id="sticker-seal-p">0</b></span>
         <span class="hub-seal-chip" data-seal="sec"><img src="assets/seals/SEC.png" alt="SEC" width="18" height="18"><b id="sticker-seal-sec">0</b></span>
         <span class="hub-seal-chip" data-seal="pr"><img src="assets/seals/PR.png" alt="PR" width="18" height="18"><b id="sticker-seal-pr">0</b></span>
+      </div>
+      <div class="sticker-upgrade-panel" id="sticker-upgrade-panel">
+        <p class="sticker-upgrade-title" data-i18n="sticker.upgradeTitle">Upgrade seals</p>
+        <div class="sticker-upgrade-row" id="sticker-upgrade-row" role="group" data-i18n-aria-label="sticker.upgradeAria" aria-label="Seal upgrades"></div>
       </div>
       <p class="hub-stat" id="sticker-hint" data-i18n="sticker.hint">Convert spare gacha cards in Deck Builder to seals, then exchange seals for cards here.</p>
       <div id="sticker-products-view">
@@ -2350,6 +2354,7 @@ try {
         <h2 id="sticker-info-title" data-i18n="sticker.infoTitle">Seal guide</h2>
       </div>
       <p class="sticker-info-lead" data-i18n="sticker.infoLead">Convert 1 spare booster card into 1 matching seal. Exchange seals for cards at the costs below.</p>
+      <p class="sticker-info-lead sticker-info-upgrade-lead" data-i18n="sticker.infoUpgradeLead">You can also trade lower-tier seals upward: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. PR seals do not upgrade.</p>
       <div class="sticker-info-tiers" id="sticker-info-tiers"></div>
     </div>
   </div>
@@ -3114,11 +3119,16 @@ const DEFAULT_PACK_SIZE = 5;
 const DEFAULT_PACKS_PER_BOX = 10;
 const SEAL_ICONS = { N: 'assets/seals/N.png', R: 'assets/seals/R.png', P: 'assets/seals/P.png', SEC: 'assets/seals/SEC.png', PR: 'assets/seals/PR.png' };
 const SEAL_BUY_COSTS = { N: 20, R: 15, P: 10, SEC: 5, PR: 20 };
+const SEAL_UPGRADE_STEPS_DEFAULT = [
+  { from: 'N', to: 'R', cost: 5 },
+  { from: 'R', to: 'P', cost: 6 },
+  { from: 'P', to: 'SEC', cost: 10 },
+];
 const SEAL_TIER_RARITIES = {
   N: ['N', 'SD', 'SD2', 'L', 'PE'],
   R: ['R', 'R+', 'RM', 'RE', 'L+'],
-  P: ['P', 'P+', 'PP', 'AR', 'PE+', 'SRE'],
-  SEC: ['SEC', 'SEC+', 'SECE', 'SECL', 'SECS', 'LLE', 'SRL', 'DUO'],
+  P: ['P', 'P+', 'PP', 'AR', 'PE+', 'SRE', 'SRL'],
+  SEC: ['SEC', 'SEC+', 'SECE', 'SECL', 'SECS', 'LLE', 'DUO'],
   // Collection Clear Pocket (CL) rolls in PR packs — same seal tier as PR.
   PR: ['PR', 'PR+', 'CL'],
 };
@@ -3141,6 +3151,7 @@ const A = {
   rankedDeckByMode: { standard: null, starters: null },
   lobbyDeckByMode: { standard: null, starters: null },
   sealBuyCosts: { N: 20, R: 15, P: 10, SEC: 5, PR: 20 },
+  sealUpgradeSteps: SEAL_UPGRADE_STEPS_DEFAULT.slice(),
   stickerProductId: null,
   stickerProducts: [],
   deckSealBatchMode: false,
@@ -3334,6 +3345,13 @@ function syncSealsFromProfile(me) {
   if (me?.seal_buy_costs && typeof me.seal_buy_costs === 'object') {
     A.sealBuyCosts = { ...SEAL_BUY_COSTS, ...me.seal_buy_costs };
   }
+  if (Array.isArray(me?.seal_upgrade_steps) && me.seal_upgrade_steps.length) {
+    A.sealUpgradeSteps = me.seal_upgrade_steps.map(s => ({
+      from: String(s.from || '').toUpperCase(),
+      to: String(s.to || '').toUpperCase(),
+      cost: Math.max(1, Number(s.cost) || 1),
+    }));
+  }
   if (Array.isArray(me?.owned_starters)) {
     A.ownedStarters = me.owned_starters.slice();
   } else if (A.profile?.user?.starter_deck && !A.ownedStarters?.length) {
@@ -3348,6 +3366,7 @@ function syncSealsFromPayload(payload) {
   syncSealsFromProfile({
     seals: payload.seals,
     seal_buy_costs: payload.seal_buy_costs,
+    seal_upgrade_steps: payload.seal_upgrade_steps,
     owned_starters: payload.owned_starters,
   });
 }
@@ -3367,11 +3386,80 @@ function updateSealsUI() {
     const node = el(id);
     if (node) node.textContent = String(A.seals?.[k] ?? 0);
   });
+  renderStickerSealUpgrades();
 }
 
 function sealBalanceForTier(tier) {
   const key = String(tier || '').toLowerCase();
   return Number(A.seals?.[key] ?? 0) || 0;
+}
+
+function stickerSealUpgradeSteps() {
+  const steps = Array.isArray(A.sealUpgradeSteps) && A.sealUpgradeSteps.length
+    ? A.sealUpgradeSteps
+    : SEAL_UPGRADE_STEPS_DEFAULT;
+  return steps;
+}
+
+function renderStickerSealUpgrades() {
+  const row = el('sticker-upgrade-row');
+  if (!row) return;
+  row.replaceChildren();
+  stickerSealUpgradeSteps().forEach(step => {
+    const from = String(step.from || '').toUpperCase();
+    const to = String(step.to || '').toUpperCase();
+    const cost = Math.max(1, Number(step.cost) || 1);
+    const have = sealBalanceForTier(from);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sticker-upgrade-btn';
+    btn.disabled = have < cost;
+    btn.dataset.from = from;
+    btn.dataset.to = to;
+    btn.dataset.cost = String(cost);
+    btn.innerHTML =
+      '<span class="sticker-upgrade-btn-cost">' + sealIconHtml(from, 18) + '<b>' + cost + '</b></span>' +
+      '<span class="sticker-upgrade-btn-arrow" aria-hidden="true">→</span>' +
+      '<span class="sticker-upgrade-btn-gain">' + sealIconHtml(to, 18) + '<b>1</b></span>';
+    const label = (t('sticker.upgradeBtn') || '{cost} {from} → 1 {to}')
+      .replace('{cost}', String(cost))
+      .replace('{from}', from)
+      .replace('{to}', to);
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
+    btn.onclick = () => void upgradeSealTier(from, to, cost);
+    row.appendChild(btn);
+  });
+}
+
+async function upgradeSealTier(from, to, cost) {
+  const have = sealBalanceForTier(from);
+  if (have < cost) {
+    toast((t('sticker.upgradeNeed') || 'Need {cost} {from} seals').replace('{cost}', String(cost)).replace('{from}', from), 2400);
+    return;
+  }
+  const msg = (t('sticker.upgradeConfirm') || 'Trade {cost} {from} seals for 1 {to} seal?')
+    .replace('{cost}', String(cost))
+    .replace('{from}', from)
+    .replace('{to}', to);
+  if (!window.confirm(msg)) return;
+  const err = el('sticker-err');
+  if (err) err.textContent = '';
+  try {
+    const res = await accountPost('upgrade_seals', { from_tier: from, times: 1 });
+    syncSealsFromPayload(res);
+    toast((t('sticker.upgradeOk') || 'Upgraded · 1 {to} seal').replace('{to}', String(res.to_tier || to)), 2400);
+    if (A.stickerProductId) {
+      try {
+        const refreshed = await accountGet('sticker_shop_cards', { product_id: A.stickerProductId });
+        syncSealsFromPayload(refreshed);
+        renderStickerCardsGrid(refreshed.cards || []);
+      } catch (_) { /* balances already synced */ }
+    }
+  } catch (e) {
+    if (err) err.textContent = e.message || (t('toast.stickerLoadFailed') || 'Upgrade failed');
+    else toast(e.message || 'Upgrade failed', 2800);
+  }
 }
 
 function normalizeClientRarity(card) {
@@ -6724,6 +6812,26 @@ function openStickerInfoModal() {
     row.appendChild(costVal);
     body.appendChild(row);
   });
+  const upHead = document.createElement('div');
+  upHead.className = 'sticker-info-tier sticker-info-upgrade-block';
+  const upTitle = document.createElement('div');
+  upTitle.className = 'sticker-info-tier-head';
+  upTitle.textContent = t('sticker.infoUpgrade') || 'Seal upgrades';
+  upHead.appendChild(upTitle);
+  stickerSealUpgradeSteps().forEach(step => {
+    const line = document.createElement('div');
+    line.className = 'sticker-info-tier-value sticker-info-upgrade-line';
+    line.innerHTML =
+      '<span class="sticker-info-tier-cost">' + sealIconHtml(step.from, 18) + '<span>' + step.cost + '</span></span>' +
+      '<span aria-hidden="true"> → </span>' +
+      '<span class="sticker-info-tier-cost">' + sealIconHtml(step.to, 18) + '<span>1</span></span>';
+    upHead.appendChild(line);
+  });
+  const prNote = document.createElement('div');
+  prNote.className = 'sticker-info-tier-value';
+  prNote.textContent = t('sticker.infoUpgradePr') || 'PR seals do not upgrade.';
+  upHead.appendChild(prNote);
+  body.appendChild(upHead);
   openM('modal-sticker-info');
 }
 

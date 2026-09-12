@@ -11,7 +11,7 @@
  *   deck_list, deck_save, deck_set_sleeve, deck_delete, deck_equip, deck_equip_starter, deck_reset_starter, deck_auto_build, deck_import_decklog, reset_account,
  *   ranked_join, ranked_leave, ranked_status, ranked_apply_result, mission_stamp_sent, mission_game_finished, rank_stats, rank_banner_set, rank_flag_set, stamp_favorites_set, active_game, leave_active_game,
  *   replay_save, replay_list, replay_get, replay_start, missions_list, missions_claim, login_bonus_status, login_bonus_claim, public_profile,
- *   public_leaderboard, sticker_shop_catalog, sticker_shop_cards, convert_to_seal, convert_to_seals_batch, sticker_buy,
+ *   public_leaderboard, sticker_shop_catalog, sticker_shop_cards, convert_to_seal, convert_to_seals_batch, upgrade_seals, sticker_buy,
  *   presence_action_mint, presence_action_redeem,
  *   tournament_* (local-flagged: list/get/create/update/cancel/deposit/register/checkin/tick/…)
  */
@@ -121,6 +121,7 @@ try {
         case 'sticker_shop_cards': echo json_encode(tcgApiStickerShopCards($body)); break;
         case 'convert_to_seal':    echo json_encode(tcgApiConvertToSeal($body)); break;
         case 'convert_to_seals_batch': echo json_encode(tcgApiConvertToSealsBatch($body)); break;
+        case 'upgrade_seals':      echo json_encode(tcgApiUpgradeSeals($body)); break;
         case 'sticker_buy':        echo json_encode(tcgApiStickerBuy($body)); break;
         case 'sleeve_shop_catalog': echo json_encode(tcgApiSleeveShopCatalog($body)); break;
         case 'sleeve_buy':         echo json_encode(tcgApiSleeveBuy($body)); break;
@@ -259,6 +260,7 @@ function tcgApiMe(array $body): array {
         'star_gems_per_dupe' => TCG_STAR_GEMS_PER_DUPE,
         'seals' => tcgSealBalances($uid),
         'seal_buy_costs' => TCG_SEAL_BUY_COST,
+        'seal_upgrade_steps' => tcgSealUpgradeStepsPublic(),
         'owned_starters' => tcgOwnedStarterKeys($uid),
         'dupe_migration' => $migration,
         'rank' => tcgFormatRankSummary($rank),
@@ -341,6 +343,7 @@ function tcgApiStickerShopCatalog(array $body): array {
         'products' => tcgStickerShopCatalog($uid),
         'seals' => tcgSealBalances($uid),
         'seal_buy_costs' => TCG_SEAL_BUY_COST,
+        'seal_upgrade_steps' => tcgSealUpgradeStepsPublic(),
         'owned_starters' => tcgOwnedStarterKeys($uid),
     ];
 }
@@ -397,11 +400,23 @@ function tcgApiStickerShopCards(array $body): array {
         'cards' => $list,
         'seals' => $seals,
         'seal_buy_costs' => TCG_SEAL_BUY_COST,
+        'seal_upgrade_steps' => tcgSealUpgradeStepsPublic(),
     ];
     if (json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) === false) {
         throw new Exception('Could not encode sticker shop cards', 500);
     }
     return $payload;
+}
+
+function tcgApiUpgradeSeals(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    tcgEnsureUser($uid, tcgAuthUserProfile($uid));
+    $from = trim((string)($body['from_tier'] ?? $body['from'] ?? ''));
+    $times = max(1, intval($body['times'] ?? $body['qty'] ?? 1));
+    if ($from === '') {
+        throw new Exception('from_tier required', 400);
+    }
+    return tcgUpgradeSeals($uid, $from, $times);
 }
 
 function tcgApiConvertToSeal(array $body): array {

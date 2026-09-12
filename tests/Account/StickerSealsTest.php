@@ -200,6 +200,41 @@ final class StickerSealsTest extends TestCase
         $this->assertTrue(tcgCardConvertibleToSeal($srl));
     }
 
+    public function testSealUpgradeLadderNToSecCostsThreeHundred(): void
+    {
+        $steps = tcgSealUpgradeStepsPublic();
+        $this->assertSame([
+            ['from' => 'N', 'to' => 'R', 'cost' => 5],
+            ['from' => 'R', 'to' => 'P', 'cost' => 6],
+            ['from' => 'P', 'to' => 'SEC', 'cost' => 10],
+        ], $steps);
+        $compound = 1;
+        foreach ($steps as $step) {
+            $compound *= intval($step['cost']);
+        }
+        $this->assertSame(300, $compound);
+
+        tcgAddSeals($this->discordId, 'N', 300);
+        $out = tcgUpgradeSeals($this->discordId, 'N', 60); // 60× (5N→1R) = 300N → 60R
+        $this->assertSame('R', $out['to_tier']);
+        $this->assertSame(60, $out['gained']);
+        $out = tcgUpgradeSeals($this->discordId, 'R', 10); // 10× (6R→1P) = 60R → 10P
+        $this->assertSame('P', $out['to_tier']);
+        $out = tcgUpgradeSeals($this->discordId, 'P', 1); // 10P → 1SEC
+        $this->assertSame('SEC', $out['to_tier']);
+        $seals = $out['seals'];
+        $this->assertSame(0, $seals['n']);
+        $this->assertSame(0, $seals['r']);
+        $this->assertSame(0, $seals['p']);
+        $this->assertSame(1, $seals['sec']);
+    }
+
+    public function testSealUpgradeRejectsPrAndInsufficient(): void
+    {
+        $this->expectException(\Exception::class);
+        tcgUpgradeSeals($this->discordId, 'PR', 1);
+    }
+
     public function testPrShopProductAndBuy(): void
     {
         $cardsData = $this->cardsData();

@@ -4807,6 +4807,21 @@ body.missions-overlay-open .llc-sky-dim::after{
 .hub-seal-chip{display:inline-flex;align-items:center;gap:4px;font-family:'Libre Baskerville',serif;font-size:12px;font-weight:700;color:#fff}
 .hub-seal-chip img{width:18px;height:18px;object-fit:contain;display:block}
 .sticker-seals-bar{margin:8px 0 12px}
+.sticker-upgrade-panel{margin:0 0 12px}
+.sticker-upgrade-title{margin:0 0 6px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:rgba(186,228,255,.88);text-align:center}
+.sticker-upgrade-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.sticker-upgrade-btn{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:10px;
+  border:1px solid rgba(186,228,255,.28);background:rgba(12,28,48,.72);color:#fff;cursor:pointer;
+  font-family:'Libre Baskerville',serif;font-size:13px;font-weight:700;
+}
+.sticker-upgrade-btn:hover:not(:disabled){border-color:rgba(186,228,255,.55);background:rgba(20,44,72,.9)}
+.sticker-upgrade-btn:disabled{opacity:.42;cursor:not-allowed}
+.sticker-upgrade-btn-cost,.sticker-upgrade-btn-gain{display:inline-flex;align-items:center;gap:4px}
+.sticker-upgrade-btn-arrow{opacity:.7}
+.sticker-info-upgrade-lead{margin-top:-6px}
+.sticker-info-upgrade-block{display:flex;flex-direction:column;gap:8px}
+.sticker-info-upgrade-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .sticker-cards-grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;margin-top:12px
 }

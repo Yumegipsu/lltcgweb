@@ -17,6 +17,16 @@ const TCG_SEAL_BUY_COST = [
     'PR' => 20,
 ];
 
+/**
+ * Adjacent seal upgrades (lower → higher). PR is excluded both ways.
+ * Compound N→SEC: 5 × 6 × 10 = 300 N for 1 SEC.
+ */
+const TCG_SEAL_UPGRADE_STEPS = [
+    'N' => ['to' => 'R', 'cost' => 5],
+    'R' => ['to' => 'P', 'cost' => 6],
+    'P' => ['to' => 'SEC', 'cost' => 10],
+];
+
 const TCG_SEAL_ICON = [
     'N' => 'assets/seals/N.png',
     'R' => 'assets/seals/R.png',
@@ -24,6 +34,52 @@ const TCG_SEAL_ICON = [
     'SEC' => 'assets/seals/SEC.png',
     'PR' => 'assets/seals/PR.png',
 ];
+
+/** @return list<array{from:string,to:string,cost:int}> */
+function tcgSealUpgradeStepsPublic(): array {
+    $out = [];
+    foreach (TCG_SEAL_UPGRADE_STEPS as $from => $step) {
+        $out[] = [
+            'from' => (string)$from,
+            'to' => (string)($step['to'] ?? ''),
+            'cost' => intval($step['cost'] ?? 0),
+        ];
+    }
+    return $out;
+}
+
+/**
+ * Trade lower-tier seals for the next tier (once or repeated).
+ *
+ * @return array{success:bool,from_tier:string,to_tier:string,times:int,spent:int,gained:int,seals:array,seal_upgrade_steps:list,seal_buy_costs:array}
+ */
+function tcgUpgradeSeals(string $discordId, string $fromTier, int $times = 1): array {
+    $from = strtoupper(trim($fromTier));
+    $step = TCG_SEAL_UPGRADE_STEPS[$from] ?? null;
+    if ($step === null) {
+        throw new Exception('This seal tier cannot be upgraded', 400);
+    }
+    $to = strtoupper((string)($step['to'] ?? ''));
+    $unitCost = intval($step['cost'] ?? 0);
+    if ($to === '' || $unitCost < 1) {
+        throw new Exception('Invalid seal upgrade step', 500);
+    }
+    $times = max(1, min(999, $times));
+    $spend = $unitCost * $times;
+    tcgDeductSeals($discordId, $from, $spend);
+    tcgAddSeals($discordId, $to, $times);
+    return [
+        'success' => true,
+        'from_tier' => $from,
+        'to_tier' => $to,
+        'times' => $times,
+        'spent' => $spend,
+        'gained' => $times,
+        'seals' => tcgSealBalances($discordId),
+        'seal_upgrade_steps' => tcgSealUpgradeStepsPublic(),
+        'seal_buy_costs' => TCG_SEAL_BUY_COST,
+    ];
+}
 
 function tcgSealColumnForTier(string $tier): string {
     $tier = strtoupper($tier);
