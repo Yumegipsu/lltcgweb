@@ -106,21 +106,15 @@ function nBp5StageHasAllSixHeartColors(array $p): bool {
 }
 
 function nBp5MemberHasMostHearts(array $state, string $pid, array $member): bool {
-    $selfCount = memberHeartCount($member);
+    // Include Live-temp bonus hearts (Muteki-kyuu*Believer, etc.) and overrides —
+    // printed-only memberHeartCount missed Believer grants (#177).
+    $selfCount = count(memberPerformanceHeartsFlat($member));
     $selfId = $member['instance_id'] ?? '';
     foreach (['p1', 'p2'] as $checkPid) {
         foreach ($state['players'][$checkPid]['stage'] ?? [] as $mbr) {
             if (!$mbr) continue;
             if (($mbr['instance_id'] ?? '') === $selfId) continue;
-            if (memberHeartCount($mbr) > $selfCount) {
-                return false;
-            }
-        }
-    }
-    foreach (['p1', 'p2'] as $checkPid) {
-        foreach ($state['players'][$checkPid]['stage'] ?? [] as $mbr) {
-            if (!$mbr || ($mbr['instance_id'] ?? '') === $selfId) continue;
-            if (memberHeartCount($mbr) === $selfCount) {
+            if (count(memberPerformanceHeartsFlat($mbr)) >= $selfCount) {
                 return false;
             }
         }
