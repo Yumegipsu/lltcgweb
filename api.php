@@ -228,6 +228,7 @@ try {
         case 'sync_ticket':  echo json_encode(apiSyncTicket($body));    break;
         case 'seed_ranked_room': echo json_encode(apiSeedRankedRoom($body)); break;
         case 'cleanup':      echo json_encode(cleanupOldGames());      break;
+        case 'delete_game_snapshot': echo json_encode(apiDeleteGameSnapshot($body)); break;
         default:
             http_response_code(404);
             echo json_encode(['error' => 'Unknown action']);
@@ -6422,13 +6423,61 @@ function maybeRecoverUnappliedRankedFinish(string $roomId, array &$state): void 
 }
 
 function cleanupOldGames(): array {
-    $files = glob(GAMES_DIR . '*.json');
+    $maxAge = intval(getenv('TCG_GAME_SNAPSHOT_MAX_AGE_SEC') ?: 0);
+    if ($maxAge <= 0) {
+        $maxAge = defined('GAME_TIMEOUT') ? (int)GAME_TIMEOUT : 3600;
+    }
+    $cutoff = time() - $maxAge;
+    $files = glob(GAMES_DIR . '*.json') ?: [];
     $cleaned = 0;
     foreach ($files as $f) {
-        if (filemtime($f) < time() - GAME_TIMEOUT) {
-            unlink($f);
-            $cleaned++;
+        $base = basename($f);
+        // Keep small side files that are not full room trees (presence / poll ticks).
+        if (str_starts_with($base, 'presence_')
+            || str_starts_with($base, 'poll_tick_')
+            || str_starts_with($base, 'spectators_')
+            || str_starts_with($base, 'lock_')) {
+            continue;
+        }
+        $mtime = @filemtime($f);
+        if ($mtime !== false && $mtime < $cutoff) {
+            if (@unlink($f)) {
+                $cleaned++;
+            }
         }
     }
-    return ['cleaned' => $cleaned];
+    return ['cleaned' => $cleaned, 'max_age_sec' => $maxAge];
+}
+
+/**
+ * Hostinger → VPS: unlink finished-room disk snapshot after SQLite archive.
+ * Does not delete the Redis room (TTL still applies for late export / spectate drain).
+ *
+ * @param array<string,mixed> $body
+ * @return array{ok: bool, deleted: bool, room_id: string}
+ */
+function apiDeleteGameSnapshot(array $body): array {
+    require_once __DIR__ . '/match_bridge.php';
+    tcgRequireInternalMatchSecret();
+    $roomId = strtoupper(preg_replace('/[^A-Z0-9]/', '', (string)($body['room_id'] ?? '')) ?? '');
+    if ($roomId === '') {
+        throw new Exception('room_id required', 400);
+    }
+    $deleted = deleteGameSnapshot($roomId);
+    return ['ok' => true, 'deleted' => $deleted, 'room_id' => $roomId];
+}
+
+/**
+ * Best-effort unlink of GAMES_DIR/{ROOM}.json (Redis snapshot dual-write).
+ */
+function deleteGameSnapshot(string $roomId): bool {
+    $store = tcgResolveGameStore();
+    if ($store instanceof \LLTCG\Game\Store\RedisGameStore) {
+        return $store->deleteSnapshot($roomId);
+    }
+    $path = GAMES_DIR . preg_replace('/[^A-Z0-9]/', '', strtoupper($roomId)) . '.json';
+    if (!is_file($path)) {
+        return false;
+    }
+    return @unlink($path);
 }

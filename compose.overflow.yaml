@@ -36,6 +36,8 @@ services:
       TCG_REDIS_URL: "redis://redis:6379"
       TCG_REDIS_PREFIX: "lltcg:room:"
       TCG_GAME_SNAPSHOT_DIR: "/var/www/html/games"
+      # finished-only dual-write (overflow export retry); never every-action — fills the VPS disk
+      TCG_GAME_SNAPSHOT_MODE: "finished"
       # Ranked seed + Elo webhook (set via .env next to this compose file; recreate only after OK)
       TCG_INTERNAL_MATCH_SECRET: "${TCG_INTERNAL_MATCH_SECRET:-}"
       TCG_ELO_APPLY_URL: "${TCG_ELO_APPLY_URL:-https://loveliveradio.ca/tcg/account.php?action=ranked_apply_result}"

@@ -436,5 +436,11 @@ function tcgTournamentArchiveFinishedGameReplay(
         );
     }
 
+    // Historic store is Hostinger SQLite — drop VPS finished snapshot after archive.
+    require_once __DIR__ . '/match_bridge.php';
+    if (function_exists('tcgNotifyOverflowDeleteGameSnapshot')) {
+        tcgNotifyOverflowDeleteGameSnapshot($roomId);
+    }
+
     return $publicId > 0 ? $publicId : null;
 }

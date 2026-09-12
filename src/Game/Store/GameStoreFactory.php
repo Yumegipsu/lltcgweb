@@ -23,6 +23,11 @@ final class GameStoreFactory
             }
             $prefix = (string)(getenv('TCG_REDIS_PREFIX') ?: 'lltcg:room:');
             $snapshot = trim((string)(getenv('TCG_GAME_SNAPSHOT_DIR') ?: ''));
+            // finished = only after match end (VPS default); all = legacy every-save dual-write; off = Redis only
+            $snapshotMode = strtolower(trim((string)(getenv('TCG_GAME_SNAPSHOT_MODE') ?: '')));
+            if ($snapshotMode === '') {
+                $snapshotMode = 'finished';
+            }
             $ttl = intval(getenv('TCG_REDIS_TTL_SEC') ?: 172800);
             return new RedisGameStore(
                 RedisClient::fromUrl($url),
@@ -31,6 +36,7 @@ final class GameStoreFactory
                 $snapshot !== '' ? $snapshot : null,
                 $lockTimeout,
                 $afterSave,
+                $snapshotMode,
             );
         }
 

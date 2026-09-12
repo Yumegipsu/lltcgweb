@@ -67,6 +67,27 @@ bash scripts/vps_overflow_up.sh        # only after explicit OK — redis + tcg-
 
 **Realtime:** SSE notify remains on `wrapped/tcg_sync.py` (seq-only wake → client `get_state`). Optional later: WebSocket fan-out from the same VPS process if poll pressure remains — see `docs/overhaul/01-match-store.md` and Part 1C in `docs/OVERHAUL_PROGRESS.md`.
 
+**Active vs historic storage (required):**
+
+| Role | Store | Notes |
+|------|--------|--------|
+| Live rooms | VPS Redis | `TCG_GAME_STORE=redis` in `compose.overflow.yaml` |
+| Finished-match history | Hostinger SQLite | `tcg_replays`, `tcg_tournament_replays` via autosave / tournament archive |
+| Replay watch sessions | Hostinger `games/` | Short-lived `mode=replay_view` only — not long-lived room dumps |
+| VPS `games/*.json` | Finished-only snapshots | `TCG_GAME_SNAPSHOT_MODE=finished` — never every-action dual-write |
+
+Do **not** bulk-upload VPS `games/*.json` to Hostinger or hydrate finished rooms onto VPS Redis just to spectate. After SQLite archive, Hostinger calls `api.php?action=delete_game_snapshot` on the VPS (keeps Redis until TTL).
+
+**VPS disk hygiene (cron):**
+
+```bash
+# On stream match host — every 30 minutes
+*/30 * * * * /opt/lltcgweb/scripts/vps_cleanup_game_snapshots.sh >>/var/log/lltcgweb-games-cleanup.log 2>&1
+# Equivalent: curl -fsS http://127.0.0.1:5003/api.php?action=cleanup
+```
+
+Optional later: alert when `/` > 85%.
+
 **Rollback:** `runtime-flags.js` / `TCG_MATCH_API_PRIMARY=false`; Hostinger `TCG_HOSTINGER_MATCH_WRITES=1` (or unset); Hostinger `TCG_GAME_STORE=file`.
 
 ### Hostinger-only deploy (no VPS API yet)

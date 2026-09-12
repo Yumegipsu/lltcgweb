@@ -829,6 +829,33 @@ function tcgFetchOverflowReplayExportWithRetry(
     throw new Exception('Room not found', 404);
 }
 
+/**
+ * After Hostinger SQLite archive: drop VPS disk snapshot (Redis room keeps TTL).
+ * Best-effort — failures leave files for cleanup cron / api.php?action=cleanup.
+ */
+function tcgNotifyOverflowDeleteGameSnapshot(string $roomId): void {
+    $roomId = strtoupper(preg_replace('/[^A-Z0-9]/', '', $roomId) ?? '');
+    if ($roomId === '') {
+        return;
+    }
+    // Local file-store Hostinger: unlink directly when this process owns GAMES_DIR.
+    $store = getenv('TCG_GAME_STORE');
+    $isRedis = is_string($store) && strtolower(trim($store)) === 'redis';
+    if (!$isRedis && defined('GAMES_DIR') && function_exists('deleteGameSnapshot')) {
+        try {
+            deleteGameSnapshot($roomId);
+        } catch (Throwable $e) {
+            // ignore
+        }
+    }
+    $url = tcgOverflowMatchApiBase() . '/api.php?action=delete_game_snapshot';
+    try {
+        tcgMatchBridgeHttpPostJson($url, ['room_id' => $roomId], 8);
+    } catch (Throwable $e) {
+        // best-effort
+    }
+}
+
 function tcgResignRankedRoomOnVps(string $roomId, string $token): bool {
     $url = tcgOverflowMatchApiBase() . '/api.php?action=action';
     $payload = json_encode([

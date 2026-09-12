@@ -1808,6 +1808,7 @@ function tcgApiReplaySave(array $body): array {
     $winner = null;
     $endReason = null;
     $state = null;
+    $fromOverflowExport = false;
     $clientReplay = $body['replay'] ?? null;
     if (is_array($clientReplay) && $clientReplay !== []) {
         validateReplayFile($clientReplay);
@@ -1821,6 +1822,7 @@ function tcgApiReplaySave(array $body): array {
         $playerId = (string)($payload['meta']['saver_player_id'] ?? '');
         $winner = $payload['baseline']['winner'] ?? ($payload['frames'][count($payload['frames'] ?? []) - 1]['winner'] ?? null);
         $endReason = $payload['baseline']['end_reason'] ?? null;
+        $fromOverflowExport = true; // client pulled from match API; snapshot can go
     } else {
         $state = loadGame($roomId);
         if ($state) {
@@ -1852,6 +1854,7 @@ function tcgApiReplaySave(array $body): array {
                     $endReason = $last['end_reason'] ?? $endReason;
                 }
             }
+            $fromOverflowExport = true;
         }
     }
     validateReplayFile($payload);
@@ -1893,6 +1896,12 @@ function tcgApiReplaySave(array $body): array {
     $id = intval($db->lastInsertId());
     if (!$preserved) {
         tcgReplayTrimAutosaves($uid, 10);
+    }
+    if ($fromOverflowExport) {
+        require_once __DIR__ . '/match_bridge.php';
+        if (function_exists('tcgNotifyOverflowDeleteGameSnapshot')) {
+            tcgNotifyOverflowDeleteGameSnapshot($roomId);
+        }
     }
     $row = tcgReplayLoadOwnedRow($uid, $id);
     return ['success' => true, 'replay' => tcgReplayRowToSummary($row)];
