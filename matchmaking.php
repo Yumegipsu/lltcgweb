@@ -484,6 +484,67 @@ function tcgApplyRankedResultFromWebhook(array $body): array {
     return $out;
 }
 
+/**
+ * Hostinger heal for overflow-ranked rooms: pull finished VPS state and apply Elo/PR.
+ * Issue #181 — sanitize used to mark pending rows done without applying Elo when the
+ * VPS room was already finished (common after mobile clients stopPoll on finish).
+ *
+ * @param array<string,mixed> $row tcg_ranked_matches row
+ */
+function tcgTryApplyRankedEloFromOverflowFinishedRow(array $row): bool {
+    require_once __DIR__ . '/match_bridge.php';
+    $roomId = strtoupper(preg_replace('/[^A-Z0-9]/', '', (string)($row['room_id'] ?? '')) ?? '');
+    if ($roomId === '') {
+        return false;
+    }
+    $token = trim((string)($row['p1_token'] ?? ''));
+    if ($token === '') {
+        $token = trim((string)($row['p2_token'] ?? ''));
+    }
+    if ($token === '') {
+        return false;
+    }
+    $state = tcgFetchOverflowRoomState($roomId, $token);
+    if (!is_array($state) || ($state['status'] ?? '') !== 'finished') {
+        return false;
+    }
+    $ranked = is_array($state['ranked'] ?? null) ? $state['ranked'] : [];
+    $p1 = is_array($state['players']['p1'] ?? null) ? $state['players']['p1'] : [];
+    $p2 = is_array($state['players']['p2'] ?? null) ? $state['players']['p2'] : [];
+    $body = [
+        'room_id' => $roomId,
+        'winner' => $state['winner'] ?? null,
+        'end_reason' => $state['end_reason'] ?? null,
+        'p1_discord_id' => (string)($ranked['p1_discord_id'] ?? ($row['p1_id'] ?? '')),
+        'p2_discord_id' => (string)($ranked['p2_discord_id'] ?? ($row['p2_id'] ?? '')),
+        'game_mode' => (string)($ranked['game_mode'] ?? ($row['game_mode'] ?? 'standard')),
+        'resigned_by' => $state['resigned_by'] ?? null,
+        'disconnected_player' => $state['disconnected_player'] ?? null,
+        'p1_deck_snapshot' => $p1['deck_snapshot'] ?? null,
+        'p2_deck_snapshot' => $p2['deck_snapshot'] ?? null,
+        'p1_deck_choice' => (string)($p1['deck_choice'] ?? ''),
+        'p2_deck_choice' => (string)($p2['deck_choice'] ?? ''),
+        'p1_name' => (string)($p1['name'] ?? ''),
+        'p2_name' => (string)($p2['name'] ?? ''),
+        'turn' => intval($state['turn'] ?? 0),
+        'mission_peaks' => is_array($state['_mission_peaks'] ?? null)
+            ? $state['_mission_peaks']
+            : (is_array($state['mission_peaks'] ?? null) ? $state['mission_peaks'] : []),
+        'play_stat_deltas' => is_array($state['_play_stat_deltas'] ?? null)
+            ? $state['_play_stat_deltas']
+            : (is_array($state['play_stat_deltas'] ?? null) ? $state['play_stat_deltas'] : []),
+    ];
+    if ($body['p1_discord_id'] === '' || $body['p2_discord_id'] === '') {
+        return false;
+    }
+    try {
+        $out = tcgApplyRankedResultFromWebhook($body);
+        return is_array($out) && !empty($out['success']);
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
 /** Drop pending ranked rows whose game is missing or already finished (Hostinger file or VPS Redis). */
 function tcgSanitizeRankedMatchRow(array|false|null $row): ?array {
     if (!is_array($row)) {
@@ -505,6 +566,19 @@ function tcgSanitizeRankedMatchRow(array|false|null $row): ?array {
         if ($probe === 'live' || $probe === 'unknown') {
             return $row;
         }
+        if ($probe === 'finished') {
+            // Apply Elo/PR from the finished VPS room before clearing pending (issue #181).
+            if (!tcgTryApplyRankedEloFromOverflowFinishedRow($row)) {
+                $created = intval($row['created_at'] ?? 0);
+                // Keep pending briefly so a later hub/queue poll can retry apply.
+                if ($created > 0 && (time() - $created) < 6 * 3600) {
+                    return $row;
+                }
+            }
+            tcgCompleteRankedMatch($roomId);
+            return null;
+        }
+        // missing: Redis room gone — Elo unrecoverable from VPS; free the queue lock.
         tcgCompleteRankedMatch($roomId);
         return null;
     }
@@ -577,7 +651,7 @@ function tcgRankedMatchRowIsStale(string $roomId, array $state, array $row): boo
 function tcgAbandonActiveRankedGame(string $discordId, array $opts = []): array {
     $confirmResign = !empty($opts['confirm_resign']) || !empty($opts['force']);
     $db = tcgDb();
-    $stmt = $db->prepare('SELECT room_id, p1_id, p2_id, p1_token, p2_token FROM tcg_ranked_matches
+    $stmt = $db->prepare('SELECT room_id, p1_id, p2_id, p1_token, p2_token, game_mode, created_at FROM tcg_ranked_matches
         WHERE status = "pending" AND (p1_id = ? OR p2_id = ?) ORDER BY created_at DESC LIMIT 1');
     $stmt->execute([$discordId, $discordId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -651,8 +725,11 @@ function tcgAbandonActiveRankedGame(string $discordId, array $opts = []): array 
                     ];
                 }
                 tcgResignRankedRoomOnVps($roomId, $token);
+            } elseif ($probe === 'finished') {
+                // Webhook may have failed earlier — apply Elo before clearing pending (#181).
+                tcgTryApplyRankedEloFromOverflowFinishedRow($row);
             }
-            // missing/finished: clear Hostinger pending row (Elo already applied via webhook if finished).
+            // missing/finished: clear Hostinger pending row after heal attempt.
         }
     }
     tcgCompleteRankedMatch($roomId);

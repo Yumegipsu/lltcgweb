@@ -302,6 +302,18 @@
         if (typeof global.syncWinRematchUi === 'function') global.syncWinRematchUi(s);
         return;
       }
+      // Ranked post-finish recover polls (#181): refresh applied/PR without replaying win UI.
+      if (G._rankedFinishRecovering && G.gameState?.status === 'finished') {
+        if ((s.seq ?? 0) < (G.lastSeq ?? 0)) return;
+        G.lastSeq = Math.max(G.lastSeq ?? 0, s.seq ?? 0);
+        G.gameState = s;
+        if (s.ranked?.applied) {
+          G._rankedFinishRecovering = false;
+          clearTimeout(G._rankedFinishRecoverTimer);
+          if (typeof stopPoll === 'function') stopPoll();
+        }
+        return;
+      }
       TCG_DEBUG.log('state', 'apply finished (immediate)', TCG_DEBUG.snap(s));
       return applyStateUpdate(s);
     }
@@ -488,10 +500,21 @@
       ? global.captureRematchSettings(s) : null;
     const rematchEligible = typeof global.isFriendPvpRematchEligible === 'function'
       && global.isFriendPvpRematchEligible(rematchSettings);
+    const rankedNeedsRecover = s.mode === 'ranked' && !(s.ranked && s.ranked.applied);
     if (rematchEligible) {
       G.rematchWaiting = true;
       resumePollingTick(400);
+    } else if (rankedNeedsRecover) {
+      // Keep brief polls so VPS maybeRecover can retry Hostinger Elo webhook (#181).
+      G._rankedFinishRecovering = true;
+      clearTimeout(G._rankedFinishRecoverTimer);
+      G._rankedFinishRecoverTimer = setTimeout(() => {
+        G._rankedFinishRecovering = false;
+        if (!G.rematchWaiting && typeof stopPoll === 'function') stopPoll();
+      }, 15000);
+      resumePollingTick(800);
     } else {
+      G._rankedFinishRecovering = false;
       stopPoll();
     }
 
