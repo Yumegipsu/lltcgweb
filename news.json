@@ -2,6 +2,31 @@
   "version": 1,
   "posts": [
     {
+      "id": "2026-09-seal-upgrades",
+      "date": "2026-09-12",
+      "publishedAt": "2026-09-12T23:55:00Z",
+      "banner": "assets/seals/SEC.png",
+      "bannerStyle": "full",
+      "title": {
+        "en": "Upgrade seals in Sticker Exchange",
+        "ja": "シール交換でシールを昇格できるように",
+        "es": "Mejora sellos en el Intercambio de stickers",
+        "ko": "스티커 교환에서 실 승급 가능",
+        "zh": "贴纸兑换中可升级印章",
+        "th": "อัปเกรดซีลได้ในแลกสติกเกอร์",
+        "pt": "Melhore selos na Loja de Selos"
+      },
+      "body": {
+        "en": "In **Sticker Exchange**, you can trade lower-tier seals upward when you have extras.\n\n**Upgrade rates**\n- **5 N** → **1 R**\n- **6 R** → **1 P**\n- **10 P** → **1 SEC**\n\nSo **300 N** seals can become **1 SEC** seal if you upgrade step by step. **PR** seals stay on their own track — they do not upgrade into or from other tiers.\n\n**How to use it**\n1. Sign in and open **Sticker Exchange** from the hub.\n2. Under your seal balances, tap an upgrade button (it lights up when you can afford that step).\n3. Confirm the trade — you spend the lower seals and gain one of the next tier.\n\n**Unchanged**\n- Convert spare booster cards (and unlocked starter cards) into matching seals in **Deck Builder**.\n- Spend seals of the same tier to exchange for cards in each product.\n- Open the **i** seal guide on Sticker Exchange for rarities, buy costs, and these upgrade rates.\n\nSpare N and R seals no longer have to sit unused — climb the ladder toward the stickers you want.",
+        "ja": "**シール交換**で、余った下位シールを上位へ交換できるようになりました。\n\n**昇格レート**\n- **5 N** → **1 R**\n- **6 R** → **1 P**\n- **10 P** → **1 SEC**\n\n段階的に昇格すると、**N シール 300枚**で **SEC シール 1枚**になります。**PR** シールは別ルートのままです（他ティアとの昇格はありません）。\n\n**使い方**\n1. サインインしてハブから **シール交換** を開きます。\n2. 所持シールの下にある昇格ボタンをタップ（足りているときだけ押せます）。\n3. 確認すると、下位シールを消費してひとつ上のティアを1枚獲得します。\n\n**これまでどおり**\n- **デッキビルダー**で余剰ブースター／アンロック済みスターターを同じ帯のシールに変換。\n- 同じティアのシールで各商品のカードと交換。\n- シール交換の **i** ガイドでレアリティ・交換コスト・昇格レートを確認できます。\n\n余った N／R シールを、欲しいステッカーへ近づけるために使いましょう。",
+        "es": "En el **Intercambio de stickers** puedes canjear sellos de rareza menor por el siguiente nivel cuando te sobran.\n\n**Tasas de mejora**\n- **5 N** → **1 R**\n- **6 R** → **1 P**\n- **10 P** → **1 SEC**\n\nSi subes paso a paso, **300 sellos N** equivalen a **1 sello SEC**. Los sellos **PR** siguen su propia vía: no se mejoran hacia ni desde otros niveles.\n\n**Cómo usarlo**\n1. Inicia sesión y abre **Intercambio de stickers** desde el hub.\n2. Bajo tus sellos, toca un botón de mejora (solo se activa si te alcanza).\n3. Confirma: gastas los sellos inferiores y ganas uno del siguiente nivel.\n\n**Sin cambios**\n- Convierte cartas de booster (y starters desbloqueados) en sellos del mismo grupo en el **Constructor de mazos**.\n- Gasta sellos del mismo nivel para canjear cartas en cada producto.\n- La guía **i** del Intercambio muestra rarezas, costes de canje y estas tasas.\n\nLos sellos N y R de más ya no tienen que quedarse quietos: súbelos hacia los stickers que quieras.",
+        "ko": "**스티커 교환**에서 남는 낮은 등급 실을 한 단계 위로 교환할 수 있습니다.\n\n**승급 비율**\n- **5 N** → **1 R**\n- **6 R** → **1 P**\n- **10 P** → **1 SEC**\n\n단계적으로 올리면 **N 실 300개**가 **SEC 실 1개**가 됩니다. **PR** 실은 별도 트랙이라 다른 등급과 승급되지 않습니다.\n\n**사용 방법**\n1. 로그인한 뒤 허브에서 **스티커 교환**을 엽니다.\n2. 실 잔액 아래의 승급 버튼을 탭하세요(충분할 때만 활성화됩니다).\n3. 확인하면 낮은 실을 소모하고 다음 등급 실 1개를 얻습니다.\n\n**기존과 동일**\n- **덱 빌더**에서 남는 부스터(및 해금된 스타터) 카드를 같은 구간의 실로 변환.\n- 같은 등급 실로 각 상품의 카드와 교환.\n- 스티커 교환의 **i** 가이드에서 레어도·교환 비용·승급 비율을 확인할 수 있습니다.\n\n남는 N·R 실로 원하는 스티커에 한 걸음 더 다가가 보세요.",
+        "zh": "在**贴纸兑换**中，多余的低阶印章可以向上兑换到下一档。\n\n**升级比例**\n- **5 N** → **1 R**\n- **6 R** → **1 P**\n- **10 P** → **1 SEC**\n\n按步骤升级时，**300 枚 N 印章**可换成 **1 枚 SEC 印章**。**PR** 印章仍走独立路线，不能与其他档互相升级。\n\n**怎么用**\n1. 登录后从主页打开**贴纸兑换**。\n2. 在印章余额下方点升级按钮（够数量时才会亮起）。\n3. 确认后会消耗低阶印章，获得 1 枚下一档印章。\n\n**不变的部分**\n- 在**牌组构筑**把多余补充包卡（以及已解锁的入门套）换成对应档印章。\n- 用同档印章兑换各商品中的卡牌。\n- 贴纸兑换的 **i** 指南可查看稀有度、兑换费用和上述升级比例。\n\n多余的 N / R 印章可以往上走，换你想要的贴纸。",
+        "th": "ใน**แลกสติกเกอร์** สามารถแลกซีลระดับต่ำขึ้นเป็นระดับถัดไปได้เมื่อมีเหลือ\n\n**อัตราอัปเกรด**\n- **5 N** → **1 R**\n- **6 R** → **1 P**\n- **10 P** → **1 SEC**\n\nถ้าอัปทีละขั้น **ซีล N 300 อัน** จะได้ **ซีล SEC 1 อัน** ซีล **PR** ยังแยกเส้นทาง — ไม่สามารถอัปเข้าหรือออกจากระดับอื่นได้\n\n**วิธีใช้**\n1. เข้าสู่ระบบแล้วเปิด **แลกสติกเกอร์** จากฮับ\n2. ใต้ยอดซีล แตะปุ่มอัปเกรด (เปิดใช้เมื่อมีพอ)\n3. ยืนยัน — ใช้ซีลระดับต่ำ แล้วได้ซีลระดับถัดไป 1 อัน\n\n**ส่วนที่ไม่เปลี่ยน**\n- แปลงการ์ดบูสเตอร์ที่เหลือ (และสตาร์ทเตอร์ที่ปลดล็อก) เป็นซีลกลุ่มเดียวกันใน**ตัวสร้างเด็ค**\n- ใช้ซีลระดับเดียวกันแลกการ์ดในแต่ละสินค้า\n- คู่มือ **i** ในแลกสติกเกอร์แสดงความหายาก ค่าแลก และอัตราอัปเกรดเหล่านี้\n\nซีล N และ R ที่เหลือไม่ต้องนอนนิ่ง — ไต่ขึ้นไปหาสติกเกอร์ที่ต้องการได้",
+        "pt": "Na **Loja de Selos**, você pode trocar selos de raridade menor pelo próximo nível quando sobrar.\n\n**Taxas de melhoria**\n- **5 N** → **1 R**\n- **6 R** → **1 P**\n- **10 P** → **1 SEC**\n\nSubindo passo a passo, **300 selos N** equivalem a **1 selo SEC**. Selos **PR** seguem a própria trilha — não sobem para nem a partir de outros níveis.\n\n**Como usar**\n1. Entre na conta e abra a **Loja de Selos** no hub.\n2. Abaixo dos seus selos, toque em um botão de melhoria (só ativa quando você tem o suficiente).\n3. Confirme: gasta os selos inferiores e ganha um do próximo nível.\n\n**Continua igual**\n- Converta cartas de booster sobrando (e starters desbloqueados) em selos do mesmo grupo no **Construtor de Deck**.\n- Gaste selos do mesmo nível para trocar cartas em cada produto.\n- O guia **i** da Loja de Selos mostra raridades, custos de troca e essas taxas.\n\nSelos N e R extras não precisam ficar parados — suba a escada até os stickers que você quer."
+      }
+    },
+    {
       "id": "2026-08-portuguese-locale",
       "date": "2026-08-31",
       "publishedAt": "2026-08-31T13:30:00Z",
