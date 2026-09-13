@@ -2913,7 +2913,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=189"></script>
+<script src="i18n.js?v=190"></script>
 <script src="log_i18n.js?v=18"></script>
 <script src="sfx.js?v=19"></script>
 <script src="client/js/news.js?v=40"></script>
@@ -3434,21 +3434,24 @@ function renderStickerSealUpgrades() {
 
 async function upgradeSealTier(from, to, cost) {
   const have = sealBalanceForTier(from);
+  const vars = { cost: String(cost), from, to };
   if (have < cost) {
-    toast((t('sticker.upgradeNeed') || 'Need {cost} {from} seals').replace('{cost}', String(cost)).replace('{from}', from), 2400);
+    toast(tt('sticker.upgradeNeed', 'Need {cost} {from} seals.', vars), 2400);
     return;
   }
-  const msg = (t('sticker.upgradeConfirm') || 'Trade {cost} {from} seals for 1 {to} seal?')
-    .replace('{cost}', String(cost))
-    .replace('{from}', from)
-    .replace('{to}', to);
+  const msg = tt(
+    'sticker.upgradeConfirm',
+    'Convert {cost} {from} seals for 1 {to} seal?',
+    vars
+  );
   if (!window.confirm(msg)) return;
   const err = el('sticker-err');
   if (err) err.textContent = '';
   try {
     const res = await accountPost('upgrade_seals', { from_tier: from, times: 1 });
     syncSealsFromPayload(res);
-    toast((t('sticker.upgradeOk') || 'Upgraded · 1 {to} seal').replace('{to}', String(res.to_tier || to)), 2400);
+    const toTier = String(res.to_tier || to);
+    toast(tt('sticker.upgradeOk', 'Converted · 1 {to} seal', { to: toTier }), 2400);
     if (A.stickerProductId) {
       try {
         const refreshed = await accountGet('sticker_shop_cards', { product_id: A.stickerProductId });
@@ -3457,7 +3460,7 @@ async function upgradeSealTier(from, to, cost) {
       } catch (_) { /* balances already synced */ }
     }
   } catch (e) {
-    if (err) err.textContent = e.message || (t('toast.stickerLoadFailed') || 'Upgrade failed');
+    if (err) err.textContent = e.message || tt('toast.stickerLoadFailed', 'Upgrade failed');
     else toast(e.message || 'Upgrade failed', 2800);
   }
 }
