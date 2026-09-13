@@ -5747,16 +5747,18 @@ function perfYellBladeHeartOrigin(fromEl, chip) {
 }
 
 async function perfRevealYellCardFromDeck(chip, deckEl, isMine, pace = 1) {
-  if (!chip || G._perfSpectacleAborted) return;
+  if (!chip || G._perfSpectacleAborted) return false;
   const reduced = tcgSpectacleReduced();
   if (reduced || !deckEl) {
     chip.classList.add('show');
-    return;
+    chip.style.visibility = '';
+    return true;
   }
   const deckRect = deckEl.getBoundingClientRect();
   if (deckRect.width < 4) {
     chip.classList.add('show');
-    return;
+    chip.style.visibility = '';
+    return true;
   }
   const yellRow = chip.parentElement;
   // Absolute stack chips need a layout pass before measuring the top slot.
@@ -5787,28 +5789,57 @@ async function perfRevealYellCardFromDeck(chip, deckEl, isMine, pace = 1) {
   chip.style.visibility = 'hidden';
   deckEl.classList.add('perf-deck-draw');
   sfxPlayCard('yell_reveal', { volume: 0.38 });
-  await perfSleepYell(40, pace);
-  if (G._perfSpectacleAborted) {
+  let landed = false;
+  try {
+    await perfSleepYell(40, pace);
+    if (G._perfSpectacleAborted) return false;
+    let chipRect = chip.getBoundingClientRect();
+    if (chipRect.width < 4 || chipRect.height < 4) {
+      chipRect = (rowRect?.width >= 4 ? rowRect : null) || yellRow?.getBoundingClientRect?.() || deckRect;
+    }
+    const sx = deckRect.left + deckRect.width / 2;
+    const sy = deckRect.top + deckRect.height / 2;
+    const tx = chipRect.left + chipRect.width / 2;
+    const ty = chipRect.top + chipRect.height / 2;
+    fly.style.opacity = '1';
+    fly.style.transform = `translate(calc(-50% + ${tx - sx}px), calc(-50% + ${ty - sy}px)) scale(1) rotateY(0deg)`;
+    await perfSleepYell(500, pace);
+    // Abort mid-flight: still finalize the slot face so we never leave a dark
+    // edge-on chip (issue #183). Caller only marks shown after true.
+    landed = true;
+    chip.classList.add('show');
+    return true;
+  } finally {
     fly.remove();
     chip.style.visibility = '';
     deckEl.classList.remove('perf-deck-draw');
-    return;
+    if (!landed && chip.isConnected && !chip.classList.contains('show')) {
+      // Incomplete reveal — drop the placeholder so onlyNew / repair can repaint.
+      chip.remove();
+    }
   }
-  let chipRect = chip.getBoundingClientRect();
-  if (chipRect.width < 4 || chipRect.height < 4) {
-    chipRect = (rowRect?.width >= 4 ? rowRect : null) || yellRow?.getBoundingClientRect?.() || deckRect;
-  }
-  const sx = deckRect.left + deckRect.width / 2;
-  const sy = deckRect.top + deckRect.height / 2;
-  const tx = chipRect.left + chipRect.width / 2;
-  const ty = chipRect.top + chipRect.height / 2;
-  fly.style.opacity = '1';
-  fly.style.transform = `translate(calc(-50% + ${tx - sx}px), calc(-50% + ${ty - sy}px)) scale(1) rotateY(0deg)`;
-  await perfSleepYell(500, pace);
-  fly.remove();
-  chip.style.visibility = '';
-  chip.classList.add('show');
-  deckEl.classList.remove('perf-deck-draw');
+}
+
+/**
+ * True when the yell row is missing faces vs yell_reveal (abort / tab mid-climb).
+ * Incomplete chips (no .show) count as broken even if the iid is in the shown set.
+ */
+function perfYellSidePaintIncomplete(ctx, pid) {
+  const yellCards = ctx?.next?.yell_reveal?.[pid] || [];
+  if (!yellCards.length) return false;
+  const yellRow = el(pid === ctx.myId ? 'perf-mine-yell' : 'perf-opp-yell');
+  if (!yellRow) return true;
+  const shownFaces = yellRow.querySelectorAll('.perf-yell-card.show').length;
+  const incomplete = yellRow.querySelectorAll('.perf-yell-card:not(.show)').length;
+  return incomplete > 0 || shownFaces < yellCards.length;
+}
+
+/** Snap the yell pile to final faces when a climb aborted or skipped with a broken row. */
+function perfRepairYellSideIfIncomplete(ctx, pid) {
+  if (!ctx || !pid || !perfYellSidePaintIncomplete(ctx, pid)) return false;
+  TCG_DEBUG.warn('live', 'repair incomplete yell side paint', { pid });
+  perfSetYellSideInstant(ctx, pid, true);
+  return true;
 }
 
 async function perfFlyMemberHeartToPanel(fromEl, heartsEl, color, opts = {}) {
@@ -7603,24 +7634,39 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
   if (!G._perfYellShownIids[pid]) G._perfYellShownIids[pid] = new Set();
   const shown = G._perfYellShownIids[pid];
   const onlyNew = !!opts.onlyNew;
-  const startIndex = onlyNew
+  let startIndex = onlyNew
     ? yellCards.findIndex((c) => c?.instance_id && !shown.has(c.instance_id))
     : 0;
-  if (onlyNew && startIndex < 0) return;
+  if (onlyNew && startIndex < 0) {
+    // All iids marked shown — still repair if DOM faces are missing (#183).
+    perfRepairYellSideIfIncomplete(ctx, pid);
+    return;
+  }
+
+  const bailYellSide = () => {
+    perfRepairYellSideIfIncomplete(ctx, pid);
+  };
+
+  let bladeNum = null;
+  let grants = [];
+  let yellSteps = Math.max(yellCards.length, totalBlade, 1);
+  let ownedPool = [];
+  let liveCards = [];
+  let yellWildcard = false;
 
   if (!onlyNew) {
     shown.clear();
     perfFillHearts(heartsEl, stageHearts);
-    const bladeNum = perfRenderBladeRow(bladeEl, bladeParts.total, {
+    bladeNum = perfRenderBladeRow(bladeEl, bladeParts.total, {
       pending: false,
       printed: bladeParts.printed,
       bonus: bladeParts.bonus,
     });
     yellRow.innerHTML = '';
-    var grants = perfContinuousHeartGrantsForPlayer(ctx, pid);
-    var grantHeartCount = grants.reduce((n, g) => n + (g.hearts?.length || 0), 0);
-    var yellSteps = Math.max(yellCards.length, totalBlade, 1);
-    var introPace = perfYellPaceScale(totalBlade, 0, yellSteps + grantHeartCount);
+    grants = perfContinuousHeartGrantsForPlayer(ctx, pid);
+    const grantHeartCount = grants.reduce((n, g) => n + (g.hearts?.length || 0), 0);
+    yellSteps = Math.max(yellCards.length, totalBlade, 1);
+    const introPace = perfYellPaceScale(totalBlade, 0, yellSteps + grantHeartCount);
     sfxPerf('turn_tick', 0.48);
     await perfSleepYell(400, introPace);
     layoutPerfRailSlots();
@@ -7628,21 +7674,21 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
     layoutPerfLiveRows();
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-    var ownedPool = buildHeartPoolFromRows(stageHearts);
-    var liveCards = perfSpectacleLiveCards(ctx.prev, ctx.next, pid).map(enrichCard);
-    var yellWildcard = liveCardsHaveYellHeartsWildcard(liveCards);
+    ownedPool = buildHeartPoolFromRows(stageHearts);
+    liveCards = perfSpectacleLiveCards(ctx.prev, ctx.next, pid).map(enrichCard);
+    yellWildcard = liveCardsHaveYellHeartsWildcard(liveCards);
     // Stage hearts clear Live reqs first (compact counts tick down).
     perfResetLiveReqTrackers(ctx, pid);
     if (ownedPool.length) {
       await perfApplyHeartsToLiveReqs(ctx, pid, ownedPool, { animate: true, batch: true });
     }
     for (let gi = 0; gi < grants.length; gi++) {
-      if (G._perfSpectacleAborted) return;
+      if (G._perfSpectacleAborted) { bailYellSide(); return; }
       const grant = grants[gi];
       const memberEl = perfMemberCardElForGrant(ctx, pid, grant);
       const hearts = grant.hearts || [];
       for (let hi = 0; hi < hearts.length; hi++) {
-        if (G._perfSpectacleAborted) return;
+        if (G._perfSpectacleAborted) { bailYellSide(); return; }
         const heartPace = introPace * (1 - (hi / Math.max(1, hearts.length)) * 0.15);
         const rawColor = hearts[hi];
         await perfFlyMemberHeartToPanel(memberEl, heartsEl, rawColor, { pace: heartPace });
@@ -7653,22 +7699,33 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
       if (hearts.length) await perfSleepYell(120, introPace);
     }
   } else {
-    var bladeNum = bladeEl.querySelector('.perf-blade-num') || perfRenderBladeRow(bladeEl, bladeParts.total, {
+    // Drop ghost incomplete chips so onlyNew can re-fly them (#183).
+    yellRow.querySelectorAll('.perf-yell-card:not(.show)').forEach((chip) => {
+      const iid = chip.getAttribute('data-iid');
+      if (iid) shown.delete(iid);
+      chip.remove();
+    });
+    startIndex = yellCards.findIndex((c) => c?.instance_id && !shown.has(c.instance_id));
+    if (startIndex < 0) {
+      perfRepairYellSideIfIncomplete(ctx, pid);
+      return;
+    }
+    bladeNum = bladeEl.querySelector('.perf-blade-num') || perfRenderBladeRow(bladeEl, bladeParts.total, {
       pending: false,
       printed: bladeParts.printed,
       bonus: bladeParts.bonus,
     });
-    var grants = [];
-    var yellSteps = Math.max(yellCards.length, totalBlade, 1);
-    var ownedPool = buildHeartPoolFromRows(
+    grants = [];
+    yellSteps = Math.max(yellCards.length, totalBlade, 1);
+    ownedPool = buildHeartPoolFromRows(
       mergeHeartStatRows(
         stageHearts,
         perfContinuousHeartsForPlayer(ctx, pid),
         aggregateYellBladeHeartsFromCards(yellCards.slice(0, Math.max(0, startIndex)), ctx, pid)
       )
     );
-    var liveCards = perfSpectacleLiveCards(ctx.prev, ctx.next, pid).map(enrichCard);
-    var yellWildcard = liveCardsHaveYellHeartsWildcard(liveCards);
+    liveCards = perfSpectacleLiveCards(ctx.prev, ctx.next, pid).map(enrichCard);
+    yellWildcard = liveCardsHaveYellHeartsWildcard(liveCards);
     // Catch-up req clearing for hearts already applied before this onlyNew slice.
     perfResetLiveReqTrackers(ctx, pid);
     G._perfLiveReqAppliedPool[pid] = ownedPool.slice();
@@ -7685,7 +7742,7 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
   const drawSteps = onlyNew ? yellCards.length : Math.max(yellCards.length, totalBlade);
   const loopStart = onlyNew ? Math.max(0, startIndex) : 0;
   for (let i = loopStart; i < drawSteps; i++) {
-    if (G._perfSpectacleAborted) return;
+    if (G._perfSpectacleAborted) { bailYellSide(); return; }
     const cardPace = perfYellPaceScale(totalBlade, i, yellSteps);
     remaining = Math.max(0, totalBlade - (i + 1));
     if (bladeNum) bladeNum.textContent = String(remaining);
@@ -7708,7 +7765,13 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
     yellRow.appendChild(chip);
     layoutPerfYellStack(yellRow);
     await perfSleepYell(60, cardPace);
-    await perfRevealYellCardFromDeck(chip, deckEl, isMine, cardPace);
+    const revealed = await perfRevealYellCardFromDeck(chip, deckEl, isMine, cardPace);
+    if (!revealed || !chip.isConnected || !chip.classList.contains('show')) {
+      if (iid) shown.delete(iid);
+      chip.remove();
+      if (G._perfSpectacleAborted) { bailYellSide(); return; }
+      continue;
+    }
     if (iid) shown.add(iid);
     await perfSleepYell(160, cardPace);
     const scoreIcons = card ? cardYellScoreIconCount(card) : 0;
@@ -7726,7 +7789,7 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
     if (bladeEntries.length) {
       const icons = bladeWrap ? [...bladeWrap.querySelectorAll('.hicon.bheart')] : [];
       for (let j = 0; j < bladeEntries.length; j++) {
-        if (G._perfSpectacleAborted) return;
+        if (G._perfSpectacleAborted) { bailYellSide(); return; }
         const heartPace = cardPace * (1 - (j / Math.max(1, bladeEntries.length)) * 0.22);
         const { raw: rawColor } = bladeEntries[j];
         const icon = icons[j] || null;
@@ -7750,7 +7813,7 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
   }
   const tailPace = perfYellPaceScale(totalBlade, yellCards.length, yellSteps);
   while (remaining > 0) {
-    if (G._perfSpectacleAborted) return;
+    if (G._perfSpectacleAborted) { bailYellSide(); return; }
     remaining--;
     if (bladeNum) bladeNum.textContent = String(remaining);
     await perfSleepYell(90, tailPace);
@@ -7773,6 +7836,8 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
   layoutPerfColSides();
   await perfSleepYell(350, tailPace);
   heartsEl.classList.remove('pulse');
+  // Final safety: if anything still unfinished, snap faces (#183).
+  perfRepairYellSideIfIncomplete(ctx, pid);
 }
 
 function perfClearHeartCheckHold() {
@@ -8004,9 +8069,15 @@ async function perfReAnimateYellSideIfChanged(ctx, nextState, pid, prevSig) {
   G._perfYellShownIids = G._perfYellShownIids || { p1: new Set(), p2: new Set() };
   if (!G._perfYellShownIids[pid]) G._perfYellShownIids[pid] = new Set();
   const yellRow = el(pid === ctx.myId ? 'perf-mine-yell' : 'perf-opp-yell');
-  yellRow?.querySelectorAll('.perf-yell-card[data-iid]')?.forEach((chip) => {
+  yellRow?.querySelectorAll('.perf-yell-card.show[data-iid]')?.forEach((chip) => {
     const iid = chip.getAttribute('data-iid');
     if (iid) G._perfYellShownIids[pid].add(iid);
+  });
+  // Drop unfinished placeholders before delta climb (#183).
+  yellRow?.querySelectorAll('.perf-yell-card:not(.show)')?.forEach((chip) => {
+    const iid = chip.getAttribute('data-iid');
+    if (iid) G._perfYellShownIids[pid].delete(iid);
+    chip.remove();
   });
   const yellCards = ctx.next.yell_reveal?.[pid] || [];
   // Kurage mill removes cards from yell_reveal; without pruning, milled chips stay and
@@ -8014,6 +8085,8 @@ async function perfReAnimateYellSideIfChanged(ctx, nextState, pid, prevSig) {
   perfPruneYellRowToReveal(yellRow, yellCards, G._perfYellShownIids[pid]);
   // Delta-only: append newly drawn yell cards — never clear and replay the whole side.
   await perfAnimateYellSide(ctx, pid, { onlyNew: true });
+  // If delta climb aborted mid-first-card, snap the full pile (#183).
+  perfRepairYellSideIfIncomplete(ctx, pid);
   return ctx;
 }
 
