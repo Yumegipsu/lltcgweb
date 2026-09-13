@@ -542,9 +542,9 @@
     "upgradeTitle": "Melhorar selos",
     "upgradeAria": "Melhorias de selos",
     "upgradeBtn": "{cost} {from} → 1 {to}",
-    "upgradeConfirm": "Trocar {cost} selos {from} por 1 selo {to}?",
-    "upgradeOk": "Melhorado · 1 selo {to}",
-    "upgradeNeed": "Precisa de {cost} selos {from}",
+    "upgradeConfirm": "Converter {cost} selos {from} por 1 selo {to}?",
+    "upgradeOk": "Convertido · 1 selo {to}",
+    "upgradeNeed": "Precisa de {cost} selos {from}.",
     "infoUpgrade": "Melhorias de selos",
     "infoUpgradeLead": "Você também pode trocar selos de raridade menor: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. Selos PR não sobem de nível.",
     "infoUpgradePr": "Selos PR não sobem de nível."

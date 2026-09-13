@@ -1434,9 +1434,9 @@
     "upgradeTitle": "실 승급",
     "upgradeAria": "실 승급",
     "upgradeBtn": "{cost} {from} → 1 {to}",
-    "upgradeConfirm": "{from} 실 {cost}개를 {to} 실 1개로 교환할까요?",
-    "upgradeOk": "승급 완료 · {to} 실 1",
-    "upgradeNeed": "{from} 실이 {cost}개 필요합니다",
+    "upgradeConfirm": "{from} 실 {cost}개를 {to} 실 1개로 변환할까요?",
+    "upgradeOk": "변환 완료 · {to} 실 1",
+    "upgradeNeed": "{from} 실이 {cost}개 필요합니다.",
     "infoUpgrade": "실 승급",
     "infoUpgradeLead": "낮은 등급 실을 올려 교환할 수 있습니다: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. PR 실은 승급할 수 없습니다.",
     "infoUpgradePr": "PR 실은 승급할 수 없습니다."

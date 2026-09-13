@@ -1410,9 +1410,9 @@
     "upgradeTitle": "Mejorar sellos",
     "upgradeAria": "Mejoras de sellos",
     "upgradeBtn": "{cost} {from} → 1 {to}",
-    "upgradeConfirm": "¿Canjear {cost} sellos {from} por 1 sello {to}?",
-    "upgradeOk": "Mejorado · 1 sello {to}",
-    "upgradeNeed": "Necesitas {cost} sellos {from}",
+    "upgradeConfirm": "¿Convertir {cost} sellos {from} por 1 sello {to}?",
+    "upgradeOk": "Convertido · 1 sello {to}",
+    "upgradeNeed": "Necesitas {cost} sellos {from}.",
     "infoUpgrade": "Mejoras de sellos",
     "infoUpgradeLead": "También puedes canjear sellos de menor rareza: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. Los sellos PR no se mejoran.",
     "infoUpgradePr": "Los sellos PR no se mejoran."

@@ -1434,9 +1434,9 @@
     "upgradeTitle": "印章升级",
     "upgradeAria": "印章升级",
     "upgradeBtn": "{cost} {from} → 1 {to}",
-    "upgradeConfirm": "用 {cost} 枚 {from} 印章换 1 枚 {to} 印章？",
-    "upgradeOk": "已升级 · 1 枚 {to} 印章",
-    "upgradeNeed": "需要 {cost} 枚 {from} 印章",
+    "upgradeConfirm": "将 {cost} 枚 {from} 印章转换为 1 枚 {to} 印章？",
+    "upgradeOk": "已转换 · 1 枚 {to} 印章",
+    "upgradeNeed": "需要 {cost} 枚 {from} 印章。",
     "infoUpgrade": "印章升级",
     "infoUpgradeLead": "也可用低阶印章向上兑换：5 N → 1 R、6 R → 1 P、10 P → 1 SEC。PR 印章不可升级。",
     "infoUpgradePr": "PR 印章不可升级。"

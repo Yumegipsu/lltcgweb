@@ -539,9 +539,9 @@
     "upgradeTitle": "Upgrade seals",
     "upgradeAria": "Seal upgrades",
     "upgradeBtn": "{cost} {from} → 1 {to}",
-    "upgradeConfirm": "Trade {cost} {from} seals for 1 {to} seal?",
-    "upgradeOk": "Upgraded · 1 {to} seal",
-    "upgradeNeed": "Need {cost} {from} seals",
+    "upgradeConfirm": "Convert {cost} {from} seals for 1 {to} seal?",
+    "upgradeOk": "Converted · 1 {to} seal",
+    "upgradeNeed": "Need {cost} {from} seals.",
     "infoUpgrade": "Seal upgrades",
     "infoUpgradeLead": "You can also trade lower-tier seals upward: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. PR seals do not upgrade.",
     "infoUpgradePr": "PR seals do not upgrade."
