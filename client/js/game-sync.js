@@ -198,6 +198,8 @@
       G._animHideIids = null;
       G._logSyncInFlight = false;
       G._logSyncStartedAt = 0;
+      if (typeof bumpLogSyncEpoch === 'function') bumpLogSyncEpoch();
+      else G._logSyncEpoch = (G._logSyncEpoch || 0) + 1;
       G._mainZeroFlightSince = 0;
       if (typeof clearHandArrivingFlags === 'function') clearHandArrivingFlags();
       if (typeof releaseLivePolls === 'function') releaseLivePolls({ forceResume: true });
@@ -759,6 +761,7 @@
         }
         return d;
       }
+      if (typeof hydrateIncomingLog === 'function') d = hydrateIncomingLog(d);
       G.lastSeq = d.seq;
       G.playerId = G.isSpectator
         ? ((G.spectatorViewAs === 'p1' || G.spectatorViewAs === 'p2') ? G.spectatorViewAs : (d.view_as || 'p1'))

@@ -2943,8 +2943,8 @@ try {
 <script src="client/js/presentation-guards.js?v=11"></script>
 <script src="client/js/spectate-pip.js?v=3"></script>
 <script src="client/js/resign-escape.js?v=1"></script>
-<script src="client/js/game-sync.js?v=69"></script>
-<script src="client/js/state-apply.js?v=80"></script>
+<script src="client/js/game-sync.js?v=70"></script>
+<script src="client/js/state-apply.js?v=81"></script>
 <script src="client/js/stamps.js?v=21"></script>
 <script src="client/js/replay-debug.js?v=12"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
@@ -12472,6 +12472,15 @@ function isPresentationSuperseded() {
   return !!G._presentationAborted;
 }
 
+function bumpLogSyncEpoch() {
+  G._logSyncEpoch = (G._logSyncEpoch || 0) + 1;
+  return G._logSyncEpoch;
+}
+
+function isLogSyncSuperseded(epoch) {
+  return (Number(G._logSyncEpoch) || 0) !== (Number(epoch) || 0);
+}
+
 function abortStuckLiveRoundPlayback(reason) {
   if (!G._liveRoundPlaybackActive && !G._livePollHold && !G._liveSpectacleGateRunning
       && !(typeof LiveRoundDirector !== 'undefined' && LiveRoundDirector.active)) {
@@ -17189,6 +17198,7 @@ let G = {
   _pendingStateQueue:[],
   _presentationAborted:false,
   _logSyncInFlight:false,
+  _logSyncEpoch:0,
   _livePollHold:false,
   _liveRoundPlaybackActive:false,
   _liveRoundPostSpectacleReady:false,
@@ -23192,6 +23202,8 @@ function createLogLineElement(entry, { animate = false, animDelay = 0, clientOnl
   if (m.endsWith(':') && cls.includes('effect')) cls += ' fx-hdr';
   d.className = cls;
   d.dataset.logMsg = m;
+  const logId = Number(entry?.id);
+  if (Number.isFinite(logId) && logId > 0) d.dataset.logId = String(logId);
   if (clientOnly) d.dataset.clientLog = '1';
   if (animate && animDelay > 0) d.style.animationDelay = animDelay + 'ms';
   const fx = formatLogMessage(m);
@@ -23365,6 +23377,11 @@ function absorbOpponentSkillWaitClientLog(logEl, entry) {
 function appendSingleLogEntry(entry, opts = {}) {
   const e = el('game-log');
   if (!e) return;
+  const logId = Number(entry?.id);
+  if (Number.isFinite(logId) && logId > 0
+      && e.querySelector(`[data-log-id="${logId}"]`)) {
+    return;
+  }
   e.appendChild(createLogLineElement(entry, { animate: true, clientOnly: !!opts.clientOnly }));
   maybeScrollGameLog(e, { animated: true });
 }
@@ -24614,6 +24631,9 @@ function filterLogSyncAnimSpecs(specs, final) {
 }
 
 async function playLogSyncedSequence(prev, final, newEntries, myId) {
+  // Own this playback generation so board catch-up / a newer apply can kill this
+  // loop without relying on _presentationAborted (cleared at every applyStateUpdate).
+  const syncEpoch = bumpLogSyncEpoch();
   if (logWasTruncated(prev, final)) resyncGameLogFromState(final);
   const batchEmpty = batchHasEmptyLiveSkipEntries(newEntries);
   const livePrev = batchEmpty ? (effectiveEmptyLiveRoundPrev(prev, final) || prev) : prev;
@@ -24640,7 +24660,8 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
   }
   const livePlan = liveRoundPresentationPlan(prev, final, { forceSpectacleTurn: pendingTurn });
   const allowFinishedSpectacle = final?.status === 'finished' && livePlan.wantsSpectacle;
-  if (isPresentationSuperseded() || (final?.status === 'finished' && !allowFinishedSpectacle)) return;
+  if (isPresentationSuperseded() || isLogSyncSuperseded(syncEpoch)
+      || (final?.status === 'finished' && !allowFinishedSpectacle)) return;
 
   const { needsLiveReveal, wantsSpectacle, wantsEmptyRound } = livePlan;
   const emptyRoundPlayback = wantsEmptyRound || isEmptyLiveSkipTransition(prev, final);
@@ -24674,6 +24695,16 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
     playback.turn = final.turn;
     G.gameState = playback;
   }
+  if (isPresentationSuperseded() || isLogSyncSuperseded(syncEpoch)) {
+    const snap = pickLatestStateForPlayback(final);
+    if (snap) {
+      G.gameState = snap;
+      G.lastSeq = Math.max(G.lastSeq ?? 0, snap.seq ?? 0);
+      G._prevLogLen = snap.log?.length || 0;
+      renderGame(snap, { skipHand: handLayoutUnchanged(prev, snap, G.playerId) });
+    }
+    return;
+  }
   if (G._deferredPromptState) {
     updateOpponentSkillWaitBanner(G._deferredPromptState, myId);
     updatePhaseActionButton(G._deferredPromptState, myId);
@@ -24686,7 +24717,7 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
   G._logSyncStartedAt = Date.now();
   try {
     for (const entry of newEntries) {
-      if (isPresentationSuperseded()) break;
+      if (isPresentationSuperseded() || isLogSyncSuperseded(syncEpoch)) break;
       if (entry.anim?.length) {
         let specs = entry.anim.filter(spec => findCardInState(final, spec.iid, spec.pid));
         specs = filterLogSyncAnimSpecs(specs, final);
@@ -24700,7 +24731,11 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
         else if (specs.length === 1) await playAnimSpec(specs[0], playback, final, myId, 0);
       }
       appendSingleLogEntry(entry);
-      playback.log.push(entry);
+      const eid = Number(entry?.id);
+      if (!(Number.isFinite(eid) && eid > 0
+          && playback.log.some(e => Number(e?.id) === eid))) {
+        playback.log.push(entry);
+      }
       G._prevLogLen = playback.log.length;
       if (syncTurnPrepLogEntry(playback, final, entry) && !batchEmpty) {
         G.gameState = playback;
@@ -24722,7 +24757,7 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
       }
     }
 
-    if (!isPresentationSuperseded()) {
+    if (!isPresentationSuperseded() && !isLogSyncSuperseded(syncEpoch)) {
       await playTailMoveAnimations(playback, final, myId, {
         excludeOpeningHand: openingDeal,
         deferredDrawIids,
@@ -24730,7 +24765,7 @@ async function playLogSyncedSequence(prev, final, newEntries, myId) {
     }
 
     const latestFinal = pickLatestStateForPlayback(final);
-    if (isPresentationSuperseded()) {
+    if (isPresentationSuperseded() || isLogSyncSuperseded(syncEpoch)) {
       const snap = pickLatestStateForPlayback(latestFinal);
       if (snap) {
         G.gameState = snap;
@@ -25118,6 +25153,9 @@ function releaseStuckPresentation(opts = {}) {
   G._liveRoundPlaybackActive = false;
   G._liveSpectacleGateRunning = false;
   G._animHideIids = null;
+  // Kill in-flight playLogSyncedSequence before clearing aborted (apply clears that flag).
+  if (typeof bumpLogSyncEpoch === 'function') bumpLogSyncEpoch();
+  else G._logSyncEpoch = (G._logSyncEpoch || 0) + 1;
   G._logSyncInFlight = false;
   if (typeof clearHandArrivingFlags === 'function') clearHandArrivingFlags();
   // Do not leave _presentationAborted set — flushPendingState refuses to apply when true.

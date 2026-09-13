@@ -186,16 +186,30 @@
   /**
    * Expand get_state log deltas onto the client log before apply.
    * Server may send log_mode=delta with only new rows (since_log_id).
+   * Dedupes by entry.id so overlapping deltas / mid-playback prev never
+   * inflate the log and trigger a full historical re-flight (#182).
    */
   function hydrateIncomingLog(s) {
     if (!s || typeof s !== 'object' || s.unchanged || s.error) return s;
     const mode = s.log_mode || 'full';
     if (mode === 'delta') {
-      const prev = Array.isArray(G.gameState?.log) ? G.gameState.log.slice() : [];
+      const prev = Array.isArray(G.gameState?.log) ? G.gameState.log : [];
       const delta = Array.isArray(s.log) ? s.log : [];
-      let merged = prev.concat(delta);
-      if (merged.length > 500) merged = merged.slice(-500);
-      s = { ...s, log: merged, log_mode: 'full' };
+      const seen = new Set();
+      const merged = [];
+      const pushUnique = (e) => {
+        const id = Number(e?.id);
+        if (Number.isFinite(id) && id > 0) {
+          if (seen.has(id)) return;
+          seen.add(id);
+        }
+        merged.push(e);
+      };
+      for (let i = 0; i < prev.length; i++) pushUnique(prev[i]);
+      for (let i = 0; i < delta.length; i++) pushUnique(delta[i]);
+      let out = merged;
+      if (out.length > 500) out = out.slice(-500);
+      s = { ...s, log: out, log_mode: 'full' };
     }
     const lid = Number(s.log_id);
     if (Number.isFinite(lid) && lid > 0) {
@@ -211,6 +225,34 @@
     return s;
   }
   global.hydrateIncomingLog = hydrateIncomingLog;
+
+  /**
+   * Entries that arrived after `prev` for log-sync animation.
+   * After a truncation resync the DOM already has the full body — return [].
+   * Prefer id alignment so a mid-playback prev.log length does not mis-slice.
+   */
+  function sliceNewLogEntriesForAnim(prev, next, truncated) {
+    const nextLog = Array.isArray(next?.log) ? next.log : [];
+    if (truncated) return [];
+    if (!nextLog.length) return [];
+    if (!prev?.log?.length) return nextLog.slice();
+    let lastId = null;
+    for (let i = prev.log.length - 1; i >= 0; i--) {
+      const id = Number(prev.log[i]?.id);
+      if (Number.isFinite(id) && id > 0) {
+        lastId = id;
+        break;
+      }
+    }
+    if (lastId != null) {
+      const idx = nextLog.findIndex(e => Number(e?.id) === lastId);
+      if (idx >= 0) return nextLog.slice(idx + 1);
+      // Cannot align ids (rare) — avoid replaying the whole history.
+      return [];
+    }
+    return nextLog.slice(prev.log.length);
+  }
+  global.sliceNewLogEntriesForAnim = sliceNewLogEntriesForAnim;
 
   global.onState = function onState(s) {
     if (G.isTutorial && !G.tutorialLive) return;
@@ -578,8 +620,12 @@
     const oppId = G.playerId === 'p1' ? 'p2' : 'p1';
     const truncated = prev && logWasTruncated(prev, s);
     if (truncated) resyncGameLogFromState(s);
-    const prevLogLen = truncated ? 0 : (prev?.log?.length || 0);
-    const newEntries = (s.log || []).slice(prevLogLen);
+    // After truncation the panel was fully rebuilt — never treat the whole log
+    // as newEntries (that re-played Turn 1 while placing a later card; #182).
+    const newEntries = sliceNewLogEntriesForAnim(prev, s, truncated);
+    const prevLogLen = truncated
+      ? ((s.log || []).length)
+      : ((s.log || []).length - newEntries.length);
     const hasAnimSteps = newEntries.some(e => e.anim?.length);
     ensurePerfSpectacleNotStaleDone(prev, s);
     maybeToastWrFizzleFromLog(newEntries);
@@ -898,6 +944,12 @@
     }
 
       if (prev && newEntries.length && hasAnimSteps) {
+      // Supersede any in-flight log-sync (opening deal / prior catch-up) so two
+      // playLogSyncedSequence loops cannot append the same turn headers (#182).
+      if (G._logSyncInFlight) {
+        G._logSyncEpoch = (G._logSyncEpoch || 0) + 1;
+        G._logSyncInFlight = false;
+      }
       TCG_DEBUG.log('apply', 'playLogSyncedSequence', { entries: newEntries.length, anims: newEntries.filter(e => e.anim?.length).length, ...TCG_DEBUG.trans(prev, s) });
       G.animating = true;
       try {
