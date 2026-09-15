@@ -245,6 +245,7 @@ function tcgApiMe(array $body): array {
                 }
             })(),
             'is_social_mod' => tcgSocialIsOwner($uid),
+            'open_report_count' => tcgSocialIsOwner($uid) ? tcgSocialOpenReportCount() : 0,
         ],
         'daily' => $daily,
         'ranked_pr' => $rankedPr,

@@ -19,6 +19,13 @@ function tcgSocialIsOwner(string $discordId): bool {
     return $discordId === TCG_SOCIAL_OWNER_ID;
 }
 
+/** Open profile-report count for the mod inbox badge. */
+function tcgSocialOpenReportCount(): int {
+    tcgSocialEnsureSchema();
+    $n = tcgDb()->query("SELECT COUNT(*) FROM tcg_profile_reports WHERE status = 'open'")->fetchColumn();
+    return max(0, (int)$n);
+}
+
 function tcgSocialEnsureSchema(): void {
     static $done = false;
     if ($done) {
@@ -1344,7 +1351,11 @@ function tcgApiSocialModInbox(array $body): array {
          ORDER BY r.created_at DESC
          LIMIT 80'
     );
-    return ['success' => true, 'reports' => $st ? $st->fetchAll(PDO::FETCH_ASSOC) : []];
+    return [
+        'success' => true,
+        'open_count' => tcgSocialOpenReportCount(),
+        'reports' => $st ? $st->fetchAll(PDO::FETCH_ASSOC) : [],
+    ];
 }
 
 function tcgApiSocialModAction(array $body): array {

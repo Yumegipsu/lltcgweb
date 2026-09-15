@@ -112,12 +112,25 @@
   cursor: not-allowed;
 }
 .social-rail-btn.is-mod {
+  position: relative;
   color: #f4c36a;
   font-size: 28px;
   font-weight: 800;
   line-height: 56px;
   background: transparent;
 }
+.social-rail-mod-mark{display:block;line-height:inherit}
+.social-rail-mod-badge{
+  position:absolute;top:-4px;right:-6px;min-width:18px;height:18px;padding:0 5px;
+  border-radius:999px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;
+  line-height:18px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.35);pointer-events:none
+}
+.social-rail-mod-badge[hidden]{display:none!important}
+.social-mod-name{
+  display:inline;margin:0;padding:0;border:0;background:none;color:#bae4ff;
+  font:inherit;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:2px
+}
+.social-mod-name:hover,.social-mod-name:focus-visible{color:#fff}
 @media (max-width: 1279px) {
   #social-rail { right: 8px; gap: 10px; }
   .social-rail-btn { width: 44px; height: 44px; }

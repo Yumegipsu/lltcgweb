@@ -288,6 +288,7 @@
     rail.classList.toggle('is-open', open);
     btn?.setAttribute('aria-expanded', open ? 'true' : 'false');
     playSocialSfx(open ? 'menu_tap' : 'menu_back', open ? 0.95 : 0.85);
+    if (open && isMod()) refreshModReportBadge();
   }
 
   function syncSocialRail(screenId) {
@@ -308,8 +309,54 @@
       btn.title = logged ? '' : tt('social.signInHint', 'Sign in with Discord to use Profile and Friends');
     });
     const modBtn = document.getElementById('btn-social-mod');
-    if (modBtn) modBtn.hidden = !isMod();
+    if (modBtn) {
+      modBtn.hidden = !isMod();
+      if (isMod()) {
+        const A = global.A || {};
+        const cached = Number(A.user?.open_report_count);
+        if (Number.isFinite(cached)) updateModReportBadge(cached);
+        else refreshModReportBadge();
+      } else {
+        updateModReportBadge(0);
+      }
+    }
     if (logged) showPendingNotices();
+  }
+
+  function updateModReportBadge(count) {
+    const badge = document.getElementById('social-mod-badge');
+    const modBtn = document.getElementById('btn-social-mod');
+    const n = Math.max(0, Math.floor(Number(count) || 0));
+    const A = global.A || {};
+    if (A.user) A.user.open_report_count = n;
+    if (!badge) return;
+    if (!isMod() || n <= 0) {
+      badge.hidden = true;
+      badge.textContent = '0';
+      if (modBtn) modBtn.removeAttribute('data-report-count');
+      return;
+    }
+    badge.hidden = false;
+    badge.textContent = n > 99 ? '99+' : String(n);
+    if (modBtn) modBtn.setAttribute('data-report-count', String(n));
+  }
+
+  async function refreshModReportBadge() {
+    if (!isMod()) {
+      updateModReportBadge(0);
+      return;
+    }
+    try {
+      const data = await accountPost('social_mod_inbox', {});
+      const n = Number.isFinite(Number(data.open_count))
+        ? Number(data.open_count)
+        : ((data.reports || []).length);
+      updateModReportBadge(n);
+      return data;
+    } catch (_) {
+      /* ignore badge refresh errors */
+      return null;
+    }
   }
 
   function openOverlay(id) {
@@ -1028,9 +1075,13 @@
     const bansRoot = document.getElementById('profile-mod-bans');
     try {
       const data = await accountPost('social_mod_inbox', {});
-      root.innerHTML = (data.reports || []).map((r) => `
+      const reports = data.reports || [];
+      updateModReportBadge(
+        Number.isFinite(Number(data.open_count)) ? Number(data.open_count) : reports.length
+      );
+      root.innerHTML = reports.map((r) => `
         <div class="social-row" style="flex-wrap:wrap">
-          <div><strong>${esc(r.username || r.target_id)}</strong> · ${esc(reportReasonLabel(r.field))} · ${tt('profileMod.warns', 'Warnings')}: ${r.profile_warnings || 0}</div>
+          <div><button type="button" class="social-mod-name" data-open-profile="${esc(r.target_id)}">${esc(r.username || r.target_id)}</button> · ${esc(reportReasonLabel(r.field))} · ${tt('profileMod.warns', 'Warnings')}: ${r.profile_warnings || 0}</div>
           <p>${esc(r.snippet || r.bio || '')}</p>
           <button type="button" class="btn-ghost" data-act="clear_bio" data-id="${esc(r.target_id)}" data-rid="${r.id}" data-reason="${esc(r.field || '')}">${tt('profileMod.clearBio', 'Clear bio')}</button>
           <button type="button" class="btn-ghost" data-act="warn" data-id="${esc(r.target_id)}" data-rid="${r.id}" data-reason="${esc(r.field || '')}">${tt('profileMod.warn', 'Warn')}</button>
@@ -1038,6 +1089,9 @@
           <button type="button" class="btn-ghost" data-act="ban" data-id="${esc(r.target_id)}" data-rid="${r.id}" data-reason="${esc(r.field || '')}">${tt('profileMod.ban', 'Ban account')}</button>
           <button type="button" class="btn-ghost" data-act="dismiss" data-id="${esc(r.target_id)}" data-rid="${r.id}" data-reason="${esc(r.field || '')}">${tt('profileMod.dismiss', 'Dismiss')}</button>
         </div>`).join('') || `<p>${tt('profileMod.empty', 'No open reports.')}</p>`;
+      root.querySelectorAll('[data-open-profile]').forEach((b) => {
+        b.addEventListener('click', () => openProfile(b.getAttribute('data-open-profile')));
+      });
       root.querySelectorAll('[data-act]').forEach((b) => {
         b.addEventListener('click', async () => {
           const act = b.getAttribute('data-act');
@@ -1061,9 +1115,12 @@
         const bans = await accountPost('social_ban_list', {});
         bansRoot.innerHTML = (bans.bans || []).map((row) => `
           <div class="social-row" style="flex-wrap:wrap">
-            <div><strong>${esc(row.username || row.discord_id)}</strong> · ${esc(row.discord_id)} · ${esc(reportReasonLabel(row.reason))}</div>
+            <div><button type="button" class="social-mod-name" data-open-profile="${esc(row.discord_id)}">${esc(row.username || row.discord_id)}</button> · ${esc(row.discord_id)} · ${esc(reportReasonLabel(row.reason))}</div>
             <button type="button" class="btn-ghost" data-unban="${esc(row.discord_id)}">${tt('profileMod.unban', 'Unban & restore')}</button>
           </div>`).join('') || `<p>${tt('profileMod.emptyBans', 'No banned accounts.')}</p>`;
+        bansRoot.querySelectorAll('[data-open-profile]').forEach((b) => {
+          b.addEventListener('click', () => openProfile(b.getAttribute('data-open-profile')));
+        });
         bansRoot.querySelectorAll('[data-unban]').forEach((b) => {
           b.addEventListener('click', async () => {
             if (!window.confirm(tt('profileMod.unbanConfirm', 'Unban this account and restore its snapshot?'))) return;
