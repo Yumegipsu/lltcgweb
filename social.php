@@ -1033,6 +1033,9 @@ function tcgApiSocialGetProfile(array $body): array {
     tcgEnsureUser($viewer, tcgAuthUserProfile($viewer));
     tcgSocialEnsureSchema();
     tcgSocialEnsureFriendCode($viewer);
+    if (!function_exists('tcgFormatEquippedTitle')) {
+        require_once __DIR__ . '/titles.php';
+    }
     $target = trim((string)($body['user_id'] ?? $body['discord_id'] ?? $viewer));
     if ($target === '') {
         $target = $viewer;
@@ -1070,6 +1073,9 @@ function tcgApiSocialGetProfile(array $body): array {
             'bio' => (string)($user['bio'] ?? ''),
             'bio_locked' => intval($user['bio_locked'] ?? 0) === 1,
             'title_id' => $user['title_id'] ?? null,
+            'title' => function_exists('tcgFormatEquippedTitle')
+                ? tcgFormatEquippedTitle($user['title_id'] ?? null)
+                : null,
             'profile_warnings' => tcgSocialIsOwner($viewer) ? intval($user['profile_warnings'] ?? 0) : null,
             'ranked' => tcgSocialRankedWl($target, $body['game_mode'] ?? null),
             'unranked_games' => intval($user['unranked_games'] ?? 0),

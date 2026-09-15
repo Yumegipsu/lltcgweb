@@ -9,7 +9,7 @@
  * Endpoints (action=):
  *   me, pick_starter, collection, booster_boxes, booster_rates, daily_status, open_booster,
  *   deck_list, deck_save, deck_set_sleeve, deck_delete, deck_equip, deck_equip_starter, deck_reset_starter, deck_auto_build, deck_import_decklog, reset_account,
- *   ranked_join, ranked_leave, ranked_status, ranked_apply_result, mission_stamp_sent, mission_game_finished, rank_stats, rank_banner_set, rank_flag_set, stamp_favorites_set, active_game, leave_active_game,
+ *   ranked_join, ranked_leave, ranked_status, ranked_apply_result, mission_stamp_sent, mission_game_finished, rank_stats, rank_banner_set, rank_flag_set, titles_list, title_set, stamp_favorites_set, active_game, leave_active_game,
  *   replay_save, replay_list, replay_get, replay_start, missions_list, missions_claim, login_bonus_status, login_bonus_claim, public_profile,
  *   public_leaderboard, sticker_shop_catalog, sticker_shop_cards, convert_to_seal, convert_to_seals_batch, upgrade_seals, sticker_buy,
  *   presence_action_mint, presence_action_redeem,
@@ -20,6 +20,7 @@ require_once __DIR__ . '/config/cors.php';
 require_once __DIR__ . '/config/errors.php';
 require_once __DIR__ . '/config/rate_limit.php';
 require_once __DIR__ . '/flags.php';
+require_once __DIR__ . '/titles.php';
 require_once __DIR__ . '/cards_data.php';
 tcgDefinePathConstants();
 
@@ -102,6 +103,8 @@ try {
         case 'rank_stats':         echo json_encode(tcgApiRankStats($body)); break;
         case 'rank_banner_set':    echo json_encode(tcgApiRankBannerSet($body)); break;
         case 'rank_flag_set':      echo json_encode(tcgApiRankFlagSet($body)); break;
+        case 'titles_list':        echo json_encode(tcgApiTitlesList($body)); break;
+        case 'title_set':          echo json_encode(tcgApiTitleSet($body)); break;
         case 'stamp_favorites_set': echo json_encode(tcgApiStampFavoritesSet($body)); break;
         case 'active_game':        echo json_encode(tcgApiActiveGame($body)); break;
         case 'leave_active_game':  echo json_encode(tcgApiLeaveActiveGame($body)); break;
@@ -266,6 +269,7 @@ function tcgApiMe(array $body): array {
         'rank' => tcgFormatRankSummary($rank),
         'banner' => tcgFormatUserBanner($user, $cards),
         'equipped_flag' => tcgFormatEquippedFlag($user['equipped_flag'] ?? null),
+        'title' => tcgFormatEquippedTitle($user['title_id'] ?? null),
         'stamp_favorites' => tcgFormatStampFavorites($user['stamp_favorites'] ?? null),
         'equipped_deck_slot' => ($equippedLoadout === 'preset') ? intval($equipped['slot']) : null,
         'equipped_deck_name' => $equipped ? tcgNormalizeDeckPresetName($equipped['name'] ?? '') : null,
@@ -1832,11 +1836,11 @@ function tcgApiReplaySave(array $body): array {
             throw new Exception('Replay room mismatch', 400);
         }
         tcgAssertReplaySaveAllowedFromPayload($uid, $clientReplay);
-        // Slim v1 transfer (no frames) or legacy full v2 — convert once on Hostinger.
-        $payload = ensureReplayPayloadV2($clientReplay);
+        // Store slim v1 — lazy-convert to seekable frames on replay_get (#186).
+        $payload = replayPayloadForLibraryStorage($clientReplay);
         $playerId = (string)($payload['meta']['saver_player_id'] ?? '');
-        $winner = $payload['baseline']['winner'] ?? ($payload['frames'][count($payload['frames'] ?? []) - 1]['winner'] ?? null);
-        $endReason = $payload['baseline']['end_reason'] ?? null;
+        $winner = $payload['meta']['winner'] ?? ($payload['baseline']['winner'] ?? null);
+        $endReason = $payload['meta']['end_reason'] ?? ($payload['baseline']['end_reason'] ?? null);
         $fromOverflowExport = true; // client pulled from match API; snapshot can go
     } else {
         $state = loadGame($roomId);
@@ -1849,32 +1853,19 @@ function tcgApiReplaySave(array $body): array {
             if (($state['status'] ?? '') !== 'finished') {
                 throw new Exception('Replay can only be saved after the match finishes', 400);
             }
-            $payload = buildReplayExportPayload($state, $playerId);
-            $winner = $state['winner'] ?? null;
-            $endReason = $state['end_reason'] ?? null;
+            $payload = replayPayloadForLibraryStorage(buildReplayExportPayload($state, $playerId));
+            $winner = $state['winner'] ?? ($payload['meta']['winner'] ?? null);
+            $endReason = $state['end_reason'] ?? ($payload['meta']['end_reason'] ?? null);
         } else {
             require_once __DIR__ . '/match_bridge.php';
-            $payload = tcgFetchOverflowReplayExportWithRetry($roomId, $token);
-            validateReplayFile($payload);
-            tcgAssertReplaySaveAllowedFromPayload($uid, $payload);
-            $payload = ensureReplayPayloadV2($payload);
+            $fetched = tcgFetchOverflowReplayExportWithRetry($roomId, $token);
+            tcgAssertReplaySaveAllowedFromPayload($uid, $fetched);
+            $payload = replayPayloadForLibraryStorage($fetched);
             $playerId = (string)($payload['meta']['saver_player_id'] ?? '');
-            $winner = $payload['baseline']['winner'] ?? null;
-            $endReason = $payload['baseline']['end_reason'] ?? null;
-            $frames = is_array($payload['frames'] ?? null) ? $payload['frames'] : [];
-            if (($winner === null || $winner === '') && $frames !== []) {
-                $last = $frames[count($frames) - 1];
-                if (is_array($last)) {
-                    $winner = $last['winner'] ?? $winner;
-                    $endReason = $last['end_reason'] ?? $endReason;
-                }
-            }
+            $winner = $payload['meta']['winner'] ?? ($payload['baseline']['winner'] ?? null);
+            $endReason = $payload['meta']['end_reason'] ?? ($payload['baseline']['end_reason'] ?? null);
             $fromOverflowExport = true;
         }
-    }
-    validateReplayFile($payload);
-    if (count($payload['actions'] ?? []) === 0) {
-        throw new Exception('No recorded actions yet', 400);
     }
     if ($playerId !== 'p1' && $playerId !== 'p2') {
         throw new Exception('Invalid saver player', 400);
@@ -2264,7 +2255,7 @@ function tcgApiRankStats(array $body): array {
     $cards = tcgLoadCardsData();
     $db = tcgDb();
     $stmt = $db->prepare('SELECT r.discord_id, r.rating, r.wins, r.losses, r.draws, r.games, r.game_mode,
-            u.username, u.avatar_url, u.banner_card_no, u.banner_crop, u.equipped_flag, u.stamp_favorites
+            u.username, u.avatar_url, u.banner_card_no, u.banner_crop, u.equipped_flag, u.title_id, u.stamp_favorites
         FROM tcg_rank r
         JOIN tcg_users u ON u.discord_id = r.discord_id
         WHERE r.games > 0 AND r.game_mode = ?
@@ -2289,6 +2280,7 @@ function tcgApiRankStats(array $body): array {
             'loss_rate' => $summary['loss_rate'],
             'banner' => tcgFormatUserBanner($row, $cards),
             'equipped_flag' => tcgFormatEquippedFlag($row['equipped_flag'] ?? null),
+            'title' => tcgFormatEquippedTitle($row['title_id'] ?? null),
             'is_you' => $row['discord_id'] === $uid,
         ];
     }
@@ -2310,6 +2302,7 @@ function tcgApiRankStats(array $body): array {
                 'avatar_url' => $user['avatar_url'] ?? $profile['avatar_url'] ?? null,
                 'banner' => tcgFormatUserBanner($user, $cards),
                 'equipped_flag' => tcgFormatEquippedFlag($user['equipped_flag'] ?? null),
+                'title' => tcgFormatEquippedTitle($user['title_id'] ?? null),
             ]
         ),
         'leaderboard' => $leaderboard,
@@ -2572,6 +2565,7 @@ function tcgApiPublicProfile(array $params): array {
             'banner' => $banner,
             'banner_image_url' => $bannerUrl,
             'equipped_flag' => tcgFormatEquippedFlag($user['equipped_flag'] ?? null),
+            'title' => tcgFormatEquippedTitle($user['title_id'] ?? null),
             'queue' => tcgPublicQueueStatus($discordId),
         ],
     ];

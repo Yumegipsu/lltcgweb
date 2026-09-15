@@ -321,7 +321,7 @@ body.social-overlay-open #modal-card.open {
 .social-head {
   display: flex;
   gap: 12px;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 12px;
 }
 .social-avatar {
@@ -786,4 +786,39 @@ button.social-bar-art { cursor: pointer; }
   color: inherit;
   font-weight: 700;
   cursor: pointer;
+}
+
+/* Titles on profile + picker */
+.player-title-slot{display:block;margin-top:6px;border:none;background:transparent;padding:0}
+.player-title-empty{font-size:12px;color:rgba(255,255,255,.55)}
+.player-title,.player-title--btn{
+  display:inline-flex;align-items:center;border:none!important;background:transparent!important;
+  box-shadow:none!important;padding:0;margin:0;cursor:default;max-width:100%
+}
+button.player-title--btn{cursor:pointer}
+.player-title-img{display:block;border:none;background:transparent;object-fit:contain}
+.player-title--wide .player-title-img{height:30px;width:auto;max-width:min(240px,72vw)}
+.player-title--portrait .player-title-img{height:64px;width:auto;max-width:80px}
+.titles-picker-status{font-size:12px;color:rgba(255,255,255,.75);margin:0 0 8px}
+.titles-picker-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;
+  padding:4px 2px 16px
+}
+.title-pick-slot{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  min-height:52px;padding:8px;border-radius:10px;
+  border:1px dashed rgba(255,255,255,.22);background:rgba(0,0,0,.18);
+  cursor:pointer;overflow:hidden
+}
+.title-pick-slot img{display:block;border:none;background:transparent;max-width:100%;object-fit:contain}
+.title-pick-slot--wide img{height:32px;width:auto;max-width:100%}
+.title-pick-slot--portrait{min-height:84px}
+.title-pick-slot--portrait img{height:72px;width:auto;max-width:100%}
+.title-pick-slot--none{font-size:12px;font-weight:700;color:rgba(255,255,255,.8)}
+.title-pick-slot.is-locked{
+  cursor:default;background:rgba(0,0,0,.28);border-style:solid;border-color:rgba(255,255,255,.1)
+}
+.title-pick-slot.is-equipped{
+  border-style:solid;border-color:rgba(186,228,255,.85);
+  box-shadow:0 0 0 1px rgba(186,228,255,.35)
 }

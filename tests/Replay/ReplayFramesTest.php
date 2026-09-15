@@ -37,7 +37,7 @@ final class ReplayFramesTest extends TestCase
         }
     }
 
-    public function testExportIsAlwaysV2(): void
+    public function testExportIsSlimV1ForFastAutosave(): void
     {
         $created = createRoom(['name' => 'Export P1', 'deck' => 'nijigasaki']);
         joinRoom([
@@ -55,10 +55,12 @@ final class ReplayFramesTest extends TestCase
         $state = applyAction($state, 'p2', 'mulligan', ['card_ids' => []]);
         $state = appendReplayAction($state, 'p2', 'mulligan', ['card_ids' => []]);
         $payload = buildReplayExportPayload($state, 'p1');
-        $this->assertSame(REPLAY_SCHEMA_VERSION, $payload['schema_version']);
-        $this->assertArrayHasKey('frames', $payload);
-        $this->assertCount(count($payload['actions']) + 1, $payload['frames']);
+        $this->assertSame(1, $payload['schema_version']);
+        $this->assertTrue(isReplayTransferSlim($payload));
         $this->assertGreaterThan(0, count($payload['actions']));
+        $v2 = ensureReplayPayloadV2($payload);
+        $this->assertSame(REPLAY_SCHEMA_VERSION, $v2['schema_version']);
+        $this->assertCount(count($v2['actions']) + 1, $v2['frames']);
     }
 
     public function testReplayGotoLoadsFramesWithoutResimAbort(): void

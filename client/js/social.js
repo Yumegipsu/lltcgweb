@@ -489,13 +489,18 @@
       : vis === 'friends'
         ? tt('profile.visFriends', 'Friends')
         : tt('profile.visPrivate', 'Private');
+    const titleHtml = `<div class="player-title-slot" id="profile-title-slot"></div>`;
+    const titleAction = self
+      ? `<button type="button" class="btn-ghost" id="btn-profile-titles">${esc(tt('titles.change', 'Change title'))}</button>`
+      : '';
     root.innerHTML = `
       <div class="social-head">
         <img class="social-avatar" alt="" src="${esc(p.avatar_url || '')}">
         <div>
           <h3>${esc(p.username || 'Player')}</h3>
           ${friendIdBtn(p.friend_code)}
-          <div class="hub-stat">${tt('profile.noTitles', 'No titles yet')}</div>
+          ${titleHtml}
+          ${titleAction}
         </div>
       </div>
       ${friendActionsHtml(data, p)}
@@ -574,6 +579,28 @@
     const count = document.getElementById('profile-bio-count');
     const tick = () => { if (count && bio) count.textContent = `${bio.value.length}/${bioMax}`; };
     if (bio) { bio.addEventListener('input', tick); tick(); }
+    const titleSlot = document.getElementById('profile-title-slot');
+    if (titleSlot && typeof window.TCGTitles?.mountTitleEl === 'function') {
+      window.TCGTitles.mountTitleEl(titleSlot, p.title || null, {
+        emptyLabel: tt('profile.noTitles', 'No titles yet'),
+        button: self,
+        onClick: self ? () => { if (typeof window.openTitlePicker === 'function') window.openTitlePicker(); } : null,
+      });
+    }
+    document.getElementById('btn-profile-titles')?.addEventListener('click', () => {
+      if (typeof window.openTitlePicker === 'function') window.openTitlePicker();
+    });
+    window.refreshProfileTitleDisplay = (title) => {
+      if (_profileCache?.profile) _profileCache.profile.title = title || null;
+      const slot = document.getElementById('profile-title-slot');
+      if (slot && typeof window.TCGTitles?.mountTitleEl === 'function') {
+        window.TCGTitles.mountTitleEl(slot, title || null, {
+          emptyLabel: tt('profile.noTitles', 'No titles yet'),
+          button: true,
+          onClick: () => { if (typeof window.openTitlePicker === 'function') window.openTitlePicker(); },
+        });
+      }
+    };
     root.querySelectorAll('#profile-showcase .social-card-thumb').forEach((b) => {
       b.addEventListener('click', () => {
         const slot = parseInt(b.getAttribute('data-slot'), 10);

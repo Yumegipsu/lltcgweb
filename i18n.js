@@ -1022,6 +1022,16 @@
       "moderation": "Moderation",
       "menu": "Menu"
     },
+    "titles": {
+      "title": "Titles",
+      "lead": "Unlock Fan titles by playing that Member on Stage 500 times. Locked slots stay blank until earned.",
+      "change": "Change title",
+      "unequip": "No title",
+      "progress": "{have} / {total} titles unlocked",
+      "unlockHint": "Play {idol} as a Stage Member {n} times.",
+      "loadError": "Could not load titles",
+      "equipError": "Could not equip title"
+    },
     "profile": {
       "noTitles": "No titles yet",
       "emptyBio": "No bio yet.",

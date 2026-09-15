@@ -111,13 +111,13 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=109">
+<link rel="stylesheet" href="client/css/shell-all.css?v=110">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
 <link rel="stylesheet" href="client/css/playmats.css?v=6">
 <link rel="stylesheet" href="client/css/tournament.css?v=24">
 <link rel="stylesheet" href="client/css/portrait.css?v=96">
-<link rel="stylesheet" href="client/css/social.css?v=27">
+<link rel="stylesheet" href="client/css/social.css?v=28">
 
 </head>
 <body role="application" aria-label="Love Live! TCG web player">
@@ -2610,6 +2610,22 @@ try {
     </div>
   </div>
 </div>
+<div id="overlay-titles" class="llc-menu-screen social-overlay" aria-modal="true" aria-labelledby="titles-panel-title" aria-hidden="true" hidden>
+  <div class="account-shell social-shell">
+    <div class="panel account-panel social-panel-shell">
+      <div class="account-screen-head">
+        <button type="button" class="btn-ghost" id="btn-titles-close" data-i18n="social.close">Close</button>
+        <h2 id="titles-panel-title" data-i18n="titles.title">Titles</h2>
+      </div>
+      <p class="social-vis-hint" data-i18n="titles.lead">Unlock Fan titles by playing that Member on Stage 500 times. Locked slots stay blank until earned.</p>
+      <p class="titles-picker-status" id="titles-picker-status"></p>
+      <div class="social-scroll" id="titles-picker-body">
+        <div class="titles-picker-grid" id="titles-picker-grid"></div>
+      </div>
+      <p class="social-err" id="titles-picker-err"></p>
+    </div>
+  </div>
+</div>
 <div id="overlay-profile-stats" class="llc-menu-screen social-overlay" aria-modal="true" aria-labelledby="profile-stats-title" aria-hidden="true">
   <div class="account-shell social-shell">
     <div class="panel account-panel social-panel-shell">
@@ -2917,10 +2933,11 @@ try {
 <script src="log_i18n.js?v=18"></script>
 <script src="sfx.js?v=19"></script>
 <script src="client/js/news.js?v=40"></script>
-<script src="client/js/social.js?v=29"></script>
+<script src="client/js/social.js?v=30"></script>
+<script src="client/js/titles.js?v=1"></script>
 <script src="client/js/friend-push.js?v=12"></script>
 <script src="client/js/runtime-flags.js?v=5"></script>
-<script src="client/js/api-client.js?v=37"></script>
+<script src="client/js/api-client.js?v=38"></script>
 <script>
 /* Local Docker fake Discord only — skipped on production (no 404 for missing file). */
 (function () {
@@ -2946,7 +2963,7 @@ try {
 <script src="client/js/game-sync.js?v=70"></script>
 <script src="client/js/state-apply.js?v=81"></script>
 <script src="client/js/stamps.js?v=21"></script>
-<script src="client/js/replay-debug.js?v=12"></script>
+<script src="client/js/replay-debug.js?v=13"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
 <script src="client/js/prompt-renderer.js?v=102"></script>
 <script src="client/js/tutorial-interactive.js?v=25"></script>
@@ -13807,6 +13824,8 @@ function renderLeaderboardRows(data) {
     pos.textContent = '#' + (row.rank || '—');
     const nameWrap = document.createElement('span');
     nameWrap.className = 'rank-name-wrap';
+    const nameRow = document.createElement('span');
+    nameRow.className = 'rank-name-row';
     const flag = row.equipped_flag || row.flag;
     if (flag?.url) {
       const flagImg = document.createElement('img');
@@ -13815,7 +13834,7 @@ function renderLeaderboardRows(data) {
       flagImg.alt = '';
       flagImg.title = profileFlagLocalizedName(flag);
       flagImg.decoding = 'async';
-      nameWrap.appendChild(flagImg);
+      nameRow.appendChild(flagImg);
     }
     const name = document.createElement('button');
     name.type = 'button';
@@ -13828,7 +13847,11 @@ function renderLeaderboardRows(data) {
         if (typeof window.openSocialProfile === 'function') window.openSocialProfile(profileId);
       });
     }
-    nameWrap.appendChild(name);
+    nameRow.appendChild(name);
+    nameWrap.appendChild(nameRow);
+    if (row.title && typeof window.TCGTitles?.appendTitleUnderName === 'function') {
+      window.TCGTitles.appendTitleUnderName(nameWrap, row.title);
+    }
     line.appendChild(pos);
     line.appendChild(nameWrap);
     meta.appendChild(line);

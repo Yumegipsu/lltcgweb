@@ -6618,8 +6618,9 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 }
 .profile-flag-actions{display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap}
 .profile-flag-status{font-size:12px;color:rgba(255,255,255,.72);text-align:center;margin:8px 0 0;min-height:1.2em}
-.rank-line{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-.rank-name-wrap{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:100%}
+.rank-line{display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.rank-name-wrap{display:inline-flex;flex-direction:column;align-items:flex-start;gap:4px;min-width:0;max-width:100%}
+.rank-name-row{display:inline-flex;align-items:center;gap:6px;min-width:0;max-width:100%}
 .rank-flag{
   width:18px;height:13px;border-radius:2px;object-fit:cover;flex:0 0 auto;
   border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.25)
@@ -8595,3 +8596,46 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
   -webkit-backface-visibility:hidden;
   backface-visibility:hidden;
 }
+
+/* Profile / leaderboard titles (no chrome — sit on the panel background) */
+.player-title-slot{display:block;margin-top:4px;min-height:0;border:none;background:transparent;padding:0}
+.player-title-slot.is-empty{min-height:1.1em}
+.player-title-empty{font-size:12px;color:rgba(255,255,255,.55)}
+.player-title,.player-title--btn{
+  display:inline-flex;align-items:center;justify-content:flex-start;
+  border:none!important;outline:none;background:transparent!important;box-shadow:none!important;
+  padding:0;margin:0;border-radius:0;cursor:default;max-width:100%
+}
+button.player-title--btn{cursor:pointer}
+.player-title-img{display:block;border:none;background:transparent;box-shadow:none;object-fit:contain;object-position:left center}
+.player-title--wide .player-title-img{height:28px;width:auto;max-width:min(220px,70vw)}
+.player-title--portrait .player-title-img{height:56px;width:auto;max-width:min(72px,28vw)}
+.player-title-slot--inline{margin-top:2px}
+.titles-picker-status{font-size:12px;color:rgba(255,255,255,.75);margin:0 0 8px}
+.titles-picker-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;
+  padding:4px 2px 16px
+}
+.title-pick-slot{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  min-height:52px;padding:8px;border-radius:10px;
+  border:1px dashed rgba(255,255,255,.22);background:rgba(0,0,0,.18);
+  cursor:pointer;overflow:hidden
+}
+.title-pick-slot img{display:block;border:none;background:transparent;max-width:100%;object-fit:contain}
+.title-pick-slot--wide{min-height:52px}
+.title-pick-slot--wide img{height:32px;width:auto;max-width:100%}
+.title-pick-slot--portrait{min-height:84px}
+.title-pick-slot--portrait img{height:72px;width:auto;max-width:100%}
+.title-pick-slot--none{min-height:52px;font-size:12px;font-weight:700;color:rgba(255,255,255,.8)}
+.title-pick-slot.is-locked{
+  cursor:default;background:rgba(0,0,0,.28);border-style:solid;border-color:rgba(255,255,255,.1)
+}
+.title-pick-slot.is-locked::after{
+  content:'';position:absolute;inset:0;background:rgba(8,10,18,.35)
+}
+.title-pick-slot.is-equipped{
+  border-style:solid;border-color:rgba(186,228,255,.85);
+  box-shadow:0 0 0 1px rgba(186,228,255,.35)
+}
+.title-pick-slot:disabled{opacity:1}

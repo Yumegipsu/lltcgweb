@@ -83,7 +83,9 @@ function tcgTournamentExportRoomReplay(string $roomId, string $token): ?array {
             if ($pid === 'p1' || $pid === 'p2') {
                 $payload = buildReplayExportPayload($state, $pid);
                 if (is_array($payload) && count($payload['actions'] ?? []) > 0) {
-                    return ensureReplayPayloadV2($payload);
+                    return function_exists('replayPayloadForLibraryStorage')
+                        ? replayPayloadForLibraryStorage($payload)
+                        : $payload;
                 }
             }
         }
@@ -104,7 +106,9 @@ function tcgTournamentExportRoomReplay(string $roomId, string $token): ?array {
             return null;
         }
         validateReplayFile($payload);
-        $payload = ensureReplayPayloadV2($payload);
+        $payload = function_exists('replayPayloadForLibraryStorage')
+            ? replayPayloadForLibraryStorage($payload)
+            : $payload;
         if (count($payload['actions'] ?? []) === 0) {
             return null;
         }

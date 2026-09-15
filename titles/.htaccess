@@ -1,0 +1,5 @@
+# Allow title sprite PNGs (directory is otherwise deploy-only / often gitignored).
+<IfModule mod_authz_core.c>
+  Require all granted
+</IfModule>
+Options -Indexes
