@@ -1029,6 +1029,8 @@
       "set": "Set title",
       "unequip": "No title",
       "noneSet": "No title set",
+      "locked": "Locked",
+      "unlocked": "Unlocked",
       "progress": "{have} / {total} titles unlocked",
       "unlockHint": "Play {idol} as a Stage Member {n} times.",
       "loadError": "Could not load titles",

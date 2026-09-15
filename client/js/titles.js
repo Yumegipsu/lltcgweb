@@ -4,6 +4,9 @@
 (function (global) {
   'use strict';
 
+  const TITLE_LONG_PRESS_MS = 420;
+  const TITLE_DRAG_THRESHOLD = 10;
+
   let _pickerCache = null;
   let _pickerEquipped = null;
 
@@ -33,9 +36,93 @@
           n: title.unlock_plays,
         })
         : '');
-    if (title.unlocked === false && hint) return name + ' — ' + hint;
-    if (hint) return name + ' — ' + hint;
+    if (hint) return name ? (name + ' — ' + hint) : hint;
     return name;
+  }
+
+  function closeTitlePreview() {
+    const prev = document.getElementById('title-preview');
+    if (!prev) return;
+    prev.hidden = true;
+    prev.setAttribute('aria-hidden', 'true');
+  }
+
+  function showTitlePreview(title) {
+    if (!title) return;
+    const prev = document.getElementById('title-preview');
+    const art = document.getElementById('title-preview-art');
+    const nameEl = document.getElementById('title-preview-name');
+    const metaEl = document.getElementById('title-preview-meta');
+    const hintEl = document.getElementById('title-preview-hint');
+    if (!prev || !art || !nameEl) return;
+
+    const style = title.style === 'portrait' ? 'portrait' : 'wide';
+    art.className = 'title-preview-art is-' + style;
+    art.replaceChildren();
+    if (title.url) {
+      const img = document.createElement('img');
+      img.src = title.url;
+      img.alt = title.name || '';
+      img.decoding = 'async';
+      img.draggable = false;
+      art.appendChild(img);
+    }
+
+    nameEl.textContent = title.name || '';
+    const bits = [];
+    if (title.unit) bits.push(String(title.unit));
+    if (title.unlocked === false) bits.push(tt('titles.locked', 'Locked'));
+    else if (title.unlocked === true) bits.push(tt('titles.unlocked', 'Unlocked'));
+    if (metaEl) metaEl.textContent = bits.join(' · ');
+    if (hintEl) {
+      hintEl.textContent = title.unlock_hint
+        || titleTip(title).replace(/^[^—]+—\s*/, '')
+        || tt('titles.unlockHint', 'Play {idol} as a Stage Member {n} times.', {
+          idol: title.idol || title.idol_short || 'this Member',
+          n: title.unlock_plays || 500,
+        });
+    }
+
+    prev.hidden = false;
+    prev.setAttribute('aria-hidden', 'false');
+  }
+
+  /** Hold / right-click preview; optional onTap for short press. */
+  function bindTitleHold(node, title, onTap) {
+    if (!node || !title) return;
+    node.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      showTitlePreview(title);
+    });
+    node.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      try { node.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+      node.classList.add('is-hold-pending');
+      const ptr = { sx: e.clientX, sy: e.clientY, moved: false, longFired: false, timer: null };
+      ptr.timer = setTimeout(() => {
+        if (ptr.moved) return;
+        ptr.longFired = true;
+        node.classList.remove('is-hold-pending');
+        showTitlePreview(title);
+      }, TITLE_LONG_PRESS_MS);
+      const onMove = (ev) => {
+        if (Math.hypot(ev.clientX - ptr.sx, ev.clientY - ptr.sy) > TITLE_DRAG_THRESHOLD) {
+          ptr.moved = true;
+        }
+      };
+      const onUp = (ev) => {
+        if (ptr.timer) clearTimeout(ptr.timer);
+        node.classList.remove('is-hold-pending');
+        node.removeEventListener('pointermove', onMove);
+        node.removeEventListener('pointerup', onUp);
+        node.removeEventListener('pointercancel', onUp);
+        try { node.releasePointerCapture(ev.pointerId); } catch (_) { /* ignore */ }
+        if (!ptr.moved && !ptr.longFired && typeof onTap === 'function') onTap();
+      };
+      node.addEventListener('pointermove', onMove);
+      node.addEventListener('pointerup', onUp);
+      node.addEventListener('pointercancel', onUp);
+    });
   }
 
   /** Render an equipped title (no chrome / border) into a container element. */
@@ -71,7 +158,9 @@
     img.decoding = 'async';
     img.draggable = false;
     wrap.appendChild(img);
-    if (opts && typeof opts.onClick === 'function') {
+    if (opts && opts.button) {
+      bindTitleHold(wrap, title, typeof opts.onClick === 'function' ? opts.onClick : null);
+    } else if (typeof opts?.onClick === 'function') {
       wrap.addEventListener('click', opts.onClick);
     }
     container.appendChild(wrap);
@@ -109,6 +198,7 @@
   }
 
   function closeTitlePickerOverlay() {
+    closeTitlePreview();
     if (typeof global.closeSocialOverlay === 'function') {
       global.closeSocialOverlay('overlay-titles');
       return;
@@ -150,8 +240,8 @@
         + (unlocked ? '' : ' is-locked')
         + (_pickerEquipped === String(t.id) ? ' is-equipped' : '');
       btn.title = titleTip(t);
-      btn.disabled = !unlocked;
-      if (unlocked && t.url) {
+      // Keep enabled so hold-to-preview works on locked slots.
+      if (t.url) {
         const img = document.createElement('img');
         img.src = t.url;
         img.alt = t.name || '';
@@ -161,9 +251,7 @@
       } else {
         btn.setAttribute('aria-label', titleTip(t) || (t.name || 'Locked title'));
       }
-      if (unlocked) {
-        btn.addEventListener('click', () => equipTitle(t.id));
-      }
+      bindTitleHold(btn, t, unlocked ? () => equipTitle(t.id) : null);
       grid.appendChild(btn);
     });
 
@@ -180,6 +268,7 @@
   async function openTitlePicker() {
     const err = document.getElementById('titles-picker-err');
     if (err) err.textContent = '';
+    closeTitlePreview();
     openTitlePickerOverlay();
     const body = document.getElementById('titles-picker-body');
     if (body) body.classList.add('is-loading');
@@ -242,6 +331,16 @@
         if (ev.target === ov) closeTitlePickerOverlay();
       });
     }
+    const dismiss = document.getElementById('title-preview-dismiss');
+    const previewClose = document.getElementById('title-preview-close');
+    if (dismiss && !dismiss.dataset.bound) {
+      dismiss.dataset.bound = '1';
+      dismiss.addEventListener('click', closeTitlePreview);
+    }
+    if (previewClose && !previewClose.dataset.bound) {
+      previewClose.dataset.bound = '1';
+      previewClose.addEventListener('click', closeTitlePreview);
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -255,6 +354,8 @@
     appendTitleUnderName,
     openTitlePicker,
     closeTitlePickerOverlay,
+    showTitlePreview,
+    closeTitlePreview,
     titleTip,
   };
   global.openTitlePicker = openTitlePicker;
