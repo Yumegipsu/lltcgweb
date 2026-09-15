@@ -1026,6 +1026,7 @@
       "title": "Titles",
       "lead": "Unlock Fan titles by playing that Member on Stage 500 times. Locked slots stay blank until earned.",
       "change": "Change title",
+      "set": "Set title",
       "unequip": "No title",
       "noneSet": "No title set",
       "progress": "{have} / {total} titles unlocked",

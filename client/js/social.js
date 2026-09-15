@@ -495,8 +495,9 @@
         ? tt('profile.visFriends', 'Friends')
         : tt('profile.visPrivate', 'Private');
     const titleHtml = `<div class="player-title-slot" id="profile-title-slot"></div>`;
-    const titleAction = self
-      ? `<button type="button" class="btn-ghost" id="btn-profile-titles">${esc(tt('titles.change', 'Change title'))}</button>`
+    const hasTitle = !!(p.title && p.title.url);
+    const titleAction = self && !hasTitle
+      ? `<button type="button" class="btn-ghost" id="btn-profile-titles">${esc(tt('titles.set', 'Set title'))}</button>`
       : '';
     root.innerHTML = `
       <div class="social-head">
@@ -598,12 +599,31 @@
     window.refreshProfileTitleDisplay = (title) => {
       if (_profileCache?.profile) _profileCache.profile.title = title || null;
       const slot = document.getElementById('profile-title-slot');
+      const isSelf = !!_profileCache?.is_self;
       if (slot && typeof window.TCGTitles?.mountTitleEl === 'function') {
         window.TCGTitles.mountTitleEl(slot, title || null, {
           emptyLabel: tt('titles.noneSet', 'No title set'),
-          button: true,
-          onClick: () => { if (typeof window.openTitlePicker === 'function') window.openTitlePicker(); },
+          button: isSelf,
+          onClick: isSelf ? () => { if (typeof window.openTitlePicker === 'function') window.openTitlePicker(); } : null,
         });
+      }
+      let setBtn = document.getElementById('btn-profile-titles');
+      const has = !!(title && title.url);
+      if (isSelf && !has && !setBtn && slot?.parentElement) {
+        setBtn = document.createElement('button');
+        setBtn.type = 'button';
+        setBtn.className = 'btn-ghost';
+        setBtn.id = 'btn-profile-titles';
+        setBtn.textContent = tt('titles.set', 'Set title');
+        setBtn.addEventListener('click', () => {
+          if (typeof window.openTitlePicker === 'function') window.openTitlePicker();
+        });
+        slot.parentElement.insertBefore(setBtn, slot.nextSibling);
+      } else if (has && setBtn) {
+        setBtn.remove();
+      } else if (setBtn && !has) {
+        setBtn.textContent = tt('titles.set', 'Set title');
+        setBtn.hidden = false;
       }
     };
     root.querySelectorAll('#profile-showcase .social-card-thumb').forEach((b) => {
