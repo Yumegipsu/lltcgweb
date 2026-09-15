@@ -7,6 +7,8 @@ USE_VPS_API
 MATCH_WRITES_DISABLED
 
 data/fcm_server_key.txt
+data/fcm_service_account.json
+data/fcm_oauth_cache.json
 .env
 .env.*
 !.env.example
@@ -47,8 +49,9 @@ exports/*
 /icons/**
 /cardimg/**
 /titles/**
-# Local TCGPlayer sleeve art dumps (not for deploy/git)
-/Sleeves/
+!titles/.gitkeep
+!titles/.htaccess
+# Title art under titles/Sprite/ stays gitignored (deploy from disk). Catalog: titles_catalog.json
 # Local Bushiroad playmat art dumps (not for deploy/git)
 /Playmats/
 
