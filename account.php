@@ -2255,11 +2255,15 @@ function tcgApiRankStats(array $body): array {
     $rank = tcgRankRow($uid, $gameMode);
     $cards = tcgLoadCardsData();
     $db = tcgDb();
+    if (function_exists('tcgBanEnsureSchema')) {
+        tcgBanEnsureSchema();
+    }
+    $banExclude = function_exists('tcgBanLeaderboardExcludeSql') ? tcgBanLeaderboardExcludeSql('r.discord_id') : '';
     $stmt = $db->prepare('SELECT r.discord_id, r.rating, r.wins, r.losses, r.draws, r.games, r.game_mode,
             u.username, u.avatar_url, u.banner_card_no, u.banner_crop, u.equipped_flag, u.title_id, u.stamp_favorites
         FROM tcg_rank r
         JOIN tcg_users u ON u.discord_id = r.discord_id
-        WHERE r.games > 0 AND r.game_mode = ?
+        WHERE r.games > 0 AND r.game_mode = ?' . $banExclude . '
         ORDER BY r.rating DESC, r.wins DESC');
     $stmt->execute([$gameMode]);
     $leaderboard = [];
@@ -2403,10 +2407,14 @@ function tcgApiPublicLeaderboard(array $params): array {
         $limit = 0;
     }
     $db = tcgDb();
+    if (function_exists('tcgBanEnsureSchema')) {
+        tcgBanEnsureSchema();
+    }
+    $banExclude = function_exists('tcgBanLeaderboardExcludeSql') ? tcgBanLeaderboardExcludeSql('r.discord_id') : '';
     $sql = 'SELECT r.discord_id, r.rating, r.wins, r.losses, r.draws, r.games, u.username
          FROM tcg_rank r
          JOIN tcg_users u ON u.discord_id = r.discord_id
-         WHERE r.games > 0 AND r.game_mode = ?
+         WHERE r.games > 0 AND r.game_mode = ?' . $banExclude . '
          ORDER BY r.rating DESC, r.wins DESC';
     if ($limit > 0) {
         $sql .= ' LIMIT ' . $limit;

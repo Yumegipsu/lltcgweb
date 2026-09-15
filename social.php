@@ -852,6 +852,9 @@ function tcgSocialOpponents(string $discordId, int $limit = 8): array {
         if ($oppId === '' || strcasecmp($oppId, 'cpu') === 0 || $oppId === $discordId) {
             continue;
         }
+        if (function_exists('tcgBanIsActive') && tcgBanIsActive($oppId)) {
+            continue;
+        }
         if (!tcgSocialMatchHasWinner($row)) {
             continue;
         }
@@ -896,6 +899,9 @@ function tcgSocialMatchHistory(string $discordId, int $offset = 0, int $limit = 
         $oppId = $row['p1_id'] === $discordId ? $row['p2_id'] : $row['p1_id'];
         $oppId = trim((string)$oppId);
         if ($oppId === '' || strcasecmp($oppId, 'cpu') === 0) {
+            continue;
+        }
+        if (function_exists('tcgBanIsActive') && tcgBanIsActive($oppId)) {
             continue;
         }
         if (!tcgSocialMatchHasWinner($row)) {

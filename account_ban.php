@@ -218,23 +218,76 @@ function tcgBanEloDelta(int $winnerRating, int $loserRating): int {
 }
 
 /**
- * Reverse ranked W–L (and approximate Elo) opponents got vs this account.
+ * Reverse ranked W–L (and approximate Elo) opponents got vs this account,
+ * and casual unranked_games counts from PvP rows.
  *
- * @return list<array{discord_id:string,game_mode:string,wins:int,losses:int,draws:int,games:int,rating:int}>
+ * @return list<array{discord_id:string,game_mode:string,wins:int,losses:int,draws:int,games:int,rating:int,unranked_games?:int}>
  */
 function tcgBanComputeAdjustments(string $bannedId): array {
     $db = tcgDb();
-    if (!tcgBanTableExists($db, 'tcg_ranked_matches')) {
-        return [];
+    $agg = [];
+    $bannedRatings = [];
+    $rankSt = null;
+    if (tcgBanTableExists($db, 'tcg_rank')) {
+        $rankSt = $db->prepare('SELECT rating FROM tcg_rank WHERE discord_id = ? AND game_mode = ?');
     }
+
+    $pvpWinnerByRoom = [];
+    if (tcgBanTableExists($db, 'tcg_pvp_results')) {
+        $pvpSt = $db->prepare(
+            'SELECT room_id, mode, p1_id, p2_id, winner_id FROM tcg_pvp_results
+             WHERE p1_id = ? OR p2_id = ?'
+        );
+        $pvpSt->execute([$bannedId, $bannedId]);
+        while ($prow = $pvpSt->fetch(PDO::FETCH_ASSOC)) {
+            $rid = strtoupper(preg_replace('/[^A-Z0-9]/', '', (string)($prow['room_id'] ?? '')) ?? '');
+            $win = trim((string)($prow['winner_id'] ?? ''));
+            if ($rid !== '' && $win !== '') {
+                $pvpWinnerByRoom[$rid] = $win;
+            }
+            $p1 = (string)($prow['p1_id'] ?? '');
+            $p2 = (string)($prow['p2_id'] ?? '');
+            $opp = $p1 === $bannedId ? $p2 : $p1;
+            if ($opp === '' || $opp === $bannedId) {
+                continue;
+            }
+            $mode = strtolower(trim((string)($prow['mode'] ?? '')));
+            // Casual / unranked profile counter (not Elo).
+            if ($mode === '' || $mode === 'casual' || $mode === 'unranked' || str_contains($mode, 'casual')) {
+                $key = $opp . "\0__unranked__";
+                if (!isset($agg[$key])) {
+                    $agg[$key] = [
+                        'discord_id' => $opp,
+                        'game_mode' => TCG_GAME_MODE_STANDARD,
+                        'wins' => 0,
+                        'losses' => 0,
+                        'draws' => 0,
+                        'games' => 0,
+                        'rating' => 0,
+                        'unranked_games' => 0,
+                    ];
+                }
+                $agg[$key]['unranked_games'] = intval($agg[$key]['unranked_games'] ?? 0) + 1;
+            }
+        }
+    }
+
+    if (!tcgBanTableExists($db, 'tcg_ranked_matches')) {
+        return array_values(array_filter($agg, static function ($a) {
+            return intval($a['wins'] ?? 0) !== 0
+                || intval($a['losses'] ?? 0) !== 0
+                || intval($a['draws'] ?? 0) !== 0
+                || intval($a['games'] ?? 0) !== 0
+                || intval($a['rating'] ?? 0) !== 0
+                || intval($a['unranked_games'] ?? 0) !== 0;
+        }));
+    }
+
     $st = $db->prepare(
-        "SELECT p1_id, p2_id, winner_pid, game_mode FROM tcg_ranked_matches
+        "SELECT room_id, p1_id, p2_id, winner_pid, game_mode FROM tcg_ranked_matches
          WHERE status = 'done' AND (p1_id = ? OR p2_id = ?)"
     );
     $st->execute([$bannedId, $bannedId]);
-    $agg = [];
-    $bannedRatings = [];
-    $rankSt = $db->prepare('SELECT rating FROM tcg_rank WHERE discord_id = ? AND game_mode = ?');
     while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
         $p1 = (string)$row['p1_id'];
         $p2 = (string)$row['p2_id'];
@@ -253,36 +306,52 @@ function tcgBanComputeAdjustments(string $bannedId): array {
                 'draws' => 0,
                 'games' => 0,
                 'rating' => 0,
+                'unranked_games' => 0,
             ];
         }
         $wp = (string)($row['winner_pid'] ?? '');
         $bannedWon = ($wp === 'p1' && $p1 === $bannedId) || ($wp === 'p2' && $p2 === $bannedId);
         $oppWon = ($wp === 'p1' && $p1 === $opp) || ($wp === 'p2' && $p2 === $opp);
+        if (!$bannedWon && !$oppWon) {
+            $rid = strtoupper(preg_replace('/[^A-Z0-9]/', '', (string)($row['room_id'] ?? '')) ?? '');
+            $winId = $rid !== '' ? ($pvpWinnerByRoom[$rid] ?? '') : '';
+            if ($winId === $bannedId) {
+                $bannedWon = true;
+            } elseif ($winId === $opp) {
+                $oppWon = true;
+            }
+        }
         $agg[$key]['games']++;
         if (!$bannedWon && !$oppWon) {
             $agg[$key]['draws']++;
             continue;
         }
-        if (!isset($bannedRatings[$mode])) {
-            $rankSt->execute([$bannedId, $mode]);
-            $bannedRatings[$mode] = intval($rankSt->fetchColumn() ?: 1000);
-        }
-        $rankSt->execute([$opp, $mode]);
-        $oppRating = intval($rankSt->fetchColumn() ?: 1000);
-        $bRating = $bannedRatings[$mode];
-        if ($oppWon) {
+        if ($rankSt) {
+            if (!isset($bannedRatings[$mode])) {
+                $rankSt->execute([$bannedId, $mode]);
+                $bannedRatings[$mode] = intval($rankSt->fetchColumn() ?: 1000);
+            }
+            $rankSt->execute([$opp, $mode]);
+            $oppRating = intval($rankSt->fetchColumn() ?: 1000);
+            $bRating = $bannedRatings[$mode];
+            if ($oppWon) {
+                $agg[$key]['wins']++;
+                $agg[$key]['rating'] -= tcgBanEloDelta($oppRating, $bRating);
+            } else {
+                $agg[$key]['losses']++;
+                $agg[$key]['rating'] += tcgBanEloDelta($bRating, $oppRating);
+            }
+        } elseif ($oppWon) {
             $agg[$key]['wins']++;
-            $agg[$key]['rating'] -= tcgBanEloDelta($oppRating, $bRating);
         } else {
             $agg[$key]['losses']++;
-            $agg[$key]['rating'] += tcgBanEloDelta($bRating, $oppRating);
         }
     }
     return array_values($agg);
 }
 
 /**
- * @param list<array{discord_id:string,game_mode:string,wins:int,losses:int,draws:int,games:int,rating:int}> $adjustments
+ * @param list<array{discord_id:string,game_mode:string,wins:int,losses:int,draws:int,games:int,rating:int,unranked_games?:int}> $adjustments
  * @param int $sign -1 when banning (remove W/L), +1 when unbanning (restore)
  */
 function tcgBanApplyAdjustments(array $adjustments, int $sign): void {
@@ -299,19 +368,33 @@ function tcgBanApplyAdjustments(array $adjustments, int $sign): void {
         $d = $sign * intval($a['draws'] ?? 0);
         $g = $sign * intval($a['games'] ?? 0);
         $r = $sign * intval($a['rating'] ?? 0);
-        if ($w === 0 && $l === 0 && $d === 0 && $g === 0 && $r === 0) {
-            continue;
+        $uq = $sign * intval($a['unranked_games'] ?? 0);
+        if ($w !== 0 || $l !== 0 || $d !== 0 || $g !== 0 || $r !== 0) {
+            if (tcgBanTableExists($db, 'tcg_rank')) {
+                $db->prepare(
+                    'UPDATE tcg_rank SET
+                        wins = MAX(0, wins + ?),
+                        losses = MAX(0, losses + ?),
+                        draws = MAX(0, draws + ?),
+                        games = MAX(0, games + ?),
+                        rating = MAX(100, rating + ?),
+                        updated_at = ?
+                     WHERE discord_id = ? AND game_mode = ?'
+                )->execute([$w, $l, $d, $g, $r, $now, $uid, $mode]);
+            }
         }
-        $db->prepare(
-            'UPDATE tcg_rank SET
-                wins = MAX(0, wins + ?),
-                losses = MAX(0, losses + ?),
-                draws = MAX(0, draws + ?),
-                games = MAX(0, games + ?),
-                rating = MAX(100, rating + ?),
-                updated_at = ?
-             WHERE discord_id = ? AND game_mode = ?'
-        )->execute([$w, $l, $d, $g, $r, $now, $uid, $mode]);
+        if ($uq !== 0 && tcgBanTableExists($db, 'tcg_users')) {
+            try {
+                $db->prepare(
+                    'UPDATE tcg_users SET
+                        unranked_games = MAX(0, COALESCE(unranked_games, 0) + ?),
+                        updated_at = ?
+                     WHERE discord_id = ?'
+                )->execute([$uq, $now, $uid]);
+            } catch (Throwable $e) {
+                // Older DBs without unranked_games.
+            }
+        }
     }
 }
 
@@ -445,4 +528,31 @@ function tcgBanListActive(): array {
          FROM tcg_account_bans WHERE restored_at IS NULL ORDER BY banned_at DESC LIMIT 200'
     );
     return $st ? $st->fetchAll(PDO::FETCH_ASSOC) : [];
+}
+
+function tcgBanIsActive(string $discordId): bool {
+    $discordId = trim($discordId);
+    if ($discordId === '') {
+        return false;
+    }
+    tcgBanEnsureSchema();
+    $st = tcgDb()->prepare(
+        'SELECT 1 FROM tcg_account_bans WHERE discord_id = ? AND restored_at IS NULL LIMIT 1'
+    );
+    $st->execute([$discordId]);
+    return (bool)$st->fetchColumn();
+}
+
+/**
+ * SQL fragment: exclude Discord IDs with an active ban (for leaderboard / public lists).
+ * Caller must ensure tcg_account_bans exists (tcgBanEnsureSchema).
+ */
+function tcgBanLeaderboardExcludeSql(string $discordIdExpr = 'r.discord_id'): string {
+    if (!preg_match('/^[a-zA-Z0-9_.]+$/', $discordIdExpr)) {
+        $discordIdExpr = 'r.discord_id';
+    }
+    return " AND NOT EXISTS (
+        SELECT 1 FROM tcg_account_bans b
+        WHERE b.discord_id = {$discordIdExpr} AND b.restored_at IS NULL
+    )";
 }

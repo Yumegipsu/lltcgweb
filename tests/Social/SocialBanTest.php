@@ -93,4 +93,51 @@ final class SocialBanTest extends TestCase
         tcgBanAckNotice($this->alt, intval($notes[0]['id']));
         $this->assertSame([], tcgBanPendingNotices($this->alt));
     }
+
+    public function testBanUsesPvpWinnerWhenWinnerPidMissingAndDropsLeaderboard(): void
+    {
+        $now = time();
+        $db = tcgDb();
+        $room = 'ROOM' . substr($this->alt, -5) . 'X';
+        $db->prepare(
+            'INSERT INTO tcg_ranked_matches
+                (match_id, room_id, p1_id, p2_id, p1_token, p2_token, status, created_at, game_mode, winner_pid)
+             VALUES (?, ?, ?, ?, ?, ?, \'done\', ?, \'standard\', NULL)'
+        )->execute(['m2' . $this->alt, $room, $this->main, $this->alt, 't1', 't2', $now]);
+        tcgSocialEnsureSchema();
+        $db->prepare(
+            'INSERT OR IGNORE INTO tcg_pvp_results (room_id, mode, p1_id, p2_id, winner_id, ended_at)
+             VALUES (?, ?, ?, ?, ?, ?)'
+        )->execute([$room, 'ranked', $this->main, $this->alt, $this->main, $now]);
+        $db->prepare(
+            'INSERT OR IGNORE INTO tcg_pvp_results (room_id, mode, p1_id, p2_id, winner_id, ended_at)
+             VALUES (?, ?, ?, ?, ?, ?)'
+        )->execute(['C' . substr($this->alt, -7), 'casual', $this->main, $this->alt, $this->main, $now]);
+        $db->prepare('UPDATE tcg_users SET unranked_games = 3 WHERE discord_id = ?')->execute([$this->main]);
+
+        tcgBanAccount($this->alt, $this->owner, 'alt_abuse');
+
+        $st = $db->prepare('SELECT wins, losses, games FROM tcg_rank WHERE discord_id = ? AND game_mode = ?');
+        $st->execute([$this->main, 'standard']);
+        $row = $st->fetch(\PDO::FETCH_ASSOC);
+        // Original test match (p1 win) + missing-winner_pid match resolved via pvp → −2 wins, −2 games
+        $this->assertSame(8, intval($row['wins']));
+        $this->assertSame(2, intval($row['losses']));
+        $this->assertSame(10, intval($row['games']));
+
+        $uq = $db->prepare('SELECT unranked_games FROM tcg_users WHERE discord_id = ?');
+        $uq->execute([$this->main]);
+        $this->assertSame(2, intval($uq->fetchColumn()));
+
+        $this->assertTrue(tcgBanIsActive($this->alt));
+        tcgBanEnsureSchema();
+        $boardSql = 'SELECT r.discord_id FROM tcg_rank r
+            JOIN tcg_users u ON u.discord_id = r.discord_id
+            WHERE r.games > 0 AND r.game_mode = ?' . tcgBanLeaderboardExcludeSql('r.discord_id');
+        $board = $db->prepare($boardSql);
+        $board->execute(['standard']);
+        $ids = $board->fetchAll(\PDO::FETCH_COLUMN);
+        $this->assertNotContains($this->alt, array_map('strval', $ids ?: []));
+        $this->assertContains($this->main, array_map('strval', $ids ?: []));
+    }
 }
