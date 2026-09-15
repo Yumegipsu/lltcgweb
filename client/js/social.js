@@ -328,6 +328,7 @@
     el.style.setProperty('z-index', String(Math.min(z + 20, 8880)));
     el.classList.add('open', 'social-stack-top');
     el.setAttribute('aria-hidden', 'false');
+    el.hidden = false;
     document.body.classList.add('social-overlay-open');
     closeSocialMenu({ silent: true });
     playSocialSfx('screen_open', 0.9);
@@ -339,6 +340,10 @@
     el.classList.remove('open', 'social-stack-top');
     el.setAttribute('aria-hidden', 'true');
     el.style.removeProperty('z-index');
+    if (el.hasAttribute('hidden') || id === 'overlay-titles' || id === 'overlay-invite-friend'
+        || id === 'overlay-social-notice') {
+      el.hidden = true;
+    }
     if (!document.querySelector('.social-overlay.open')) {
       document.body.classList.remove('social-overlay-open');
     }
@@ -582,7 +587,7 @@
     const titleSlot = document.getElementById('profile-title-slot');
     if (titleSlot && typeof window.TCGTitles?.mountTitleEl === 'function') {
       window.TCGTitles.mountTitleEl(titleSlot, p.title || null, {
-        emptyLabel: tt('profile.noTitles', 'No titles yet'),
+        emptyLabel: tt('titles.noneSet', 'No title set'),
         button: self,
         onClick: self ? () => { if (typeof window.openTitlePicker === 'function') window.openTitlePicker(); } : null,
       });
@@ -595,7 +600,7 @@
       const slot = document.getElementById('profile-title-slot');
       if (slot && typeof window.TCGTitles?.mountTitleEl === 'function') {
         window.TCGTitles.mountTitleEl(slot, title || null, {
-          emptyLabel: tt('profile.noTitles', 'No titles yet'),
+          emptyLabel: tt('titles.noneSet', 'No title set'),
           button: true,
           onClick: () => { if (typeof window.openTitlePicker === 'function') window.openTitlePicker(); },
         });
@@ -1120,6 +1125,8 @@
 
   global.syncSocialRail = syncSocialRail;
   global.openSocialProfile = openProfile;
+  global.openSocialOverlay = openOverlay;
+  global.closeSocialOverlay = closeOverlay;
   global.closeAllSocialOverlays = closeAllSocial;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
   else bind();

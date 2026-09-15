@@ -94,19 +94,30 @@
   }
 
   function openTitlePickerOverlay() {
+    if (typeof global.openSocialOverlay === 'function') {
+      global.openSocialOverlay('overlay-titles');
+      return;
+    }
     const ov = document.getElementById('overlay-titles');
     if (!ov) return;
-    ov.classList.add('open');
+    if (ov.parentNode) ov.parentNode.appendChild(ov);
+    ov.style.setProperty('z-index', '8800');
+    ov.classList.add('open', 'social-stack-top');
     ov.setAttribute('aria-hidden', 'false');
     ov.hidden = false;
     document.body.classList.add('social-overlay-open');
   }
 
   function closeTitlePickerOverlay() {
+    if (typeof global.closeSocialOverlay === 'function') {
+      global.closeSocialOverlay('overlay-titles');
+      return;
+    }
     const ov = document.getElementById('overlay-titles');
     if (!ov) return;
-    ov.classList.remove('open');
+    ov.classList.remove('open', 'social-stack-top');
     ov.setAttribute('aria-hidden', 'true');
+    ov.style.removeProperty('z-index');
     ov.hidden = true;
     if (!document.querySelector('.social-overlay.open')) {
       document.body.classList.remove('social-overlay-open');
@@ -126,8 +137,8 @@
     noneBtn.type = 'button';
     noneBtn.className = 'title-pick-slot title-pick-slot--none'
       + (!_pickerEquipped ? ' is-equipped' : '');
-    noneBtn.title = tt('titles.unequip', 'No title');
-    noneBtn.innerHTML = `<span>${esc(tt('titles.unequip', 'No title'))}</span>`;
+    noneBtn.title = tt('titles.noneSet', 'No title set');
+    noneBtn.innerHTML = `<span>${esc(tt('titles.noneSet', 'No title set'))}</span>`;
     noneBtn.addEventListener('click', () => equipTitle(''));
     grid.appendChild(noneBtn);
 
