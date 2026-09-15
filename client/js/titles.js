@@ -60,8 +60,10 @@
 
   function titleTip(title) {
     if (!title) return '';
-    const name = title.name || '';
     const hint = titleUnlockHint(title);
+    // Locked: unlock requirements only (no title name/art reveal).
+    if (title.unlocked === false) return hint || tt('titles.locked', 'Locked');
+    const name = title.name || '';
     if (hint) return name ? (name + ' — ' + hint) : hint;
     return name;
   }
@@ -83,9 +85,11 @@
     if (!prev || !art || !nameEl) return;
 
     const style = title.style === 'portrait' ? 'portrait' : 'wide';
-    art.className = 'title-preview-art is-' + style;
+    const unlocked = title.unlocked !== false;
+    art.className = 'title-preview-art is-' + style + (unlocked ? '' : ' is-blank');
     art.replaceChildren();
-    if (title.url) {
+    // Locked titles stay blank — never reveal art until owned.
+    if (unlocked && title.url) {
       const img = document.createElement('img');
       img.src = title.url;
       img.alt = title.name || '';
@@ -94,12 +98,14 @@
       art.appendChild(img);
     }
 
-    nameEl.textContent = title.name || '';
+    nameEl.textContent = unlocked
+      ? (title.name || '')
+      : tt('titles.locked', 'Locked');
     const bits = [];
-    if (title.unit) bits.push(String(title.unit));
-    if (title.unlocked === false) bits.push(tt('titles.locked', 'Locked'));
-    else if (title.unlocked === true) bits.push(tt('titles.unlocked', 'Unlocked'));
-    if (metaEl) metaEl.textContent = bits.join(' · ');
+    if (unlocked && title.unit) bits.push(String(title.unit));
+    if (!unlocked) bits.push(tt('titles.locked', 'Locked'));
+    else bits.push(tt('titles.unlocked', 'Unlocked'));
+    if (metaEl) metaEl.textContent = bits.filter((b, i, a) => a.indexOf(b) === i).join(' · ');
     if (hintEl) {
       hintEl.textContent = titleUnlockHint(title);
     }
@@ -261,16 +267,15 @@
         + (unlocked ? '' : ' is-locked')
         + (_pickerEquipped === String(t.id) ? ' is-equipped' : '');
       btn.title = titleTip(t);
-      // Keep enabled so hold-to-preview works on locked slots.
-      if (t.url) {
+      btn.setAttribute('aria-label', titleTip(t) || (unlocked ? (t.name || 'Title') : tt('titles.locked', 'Locked')));
+      // Owned titles show art; locked slots stay blank (hover/hold still explain unlock).
+      if (unlocked && t.url) {
         const img = document.createElement('img');
         img.src = t.url;
         img.alt = t.name || '';
         img.decoding = 'async';
         img.draggable = false;
         btn.appendChild(img);
-      } else {
-        btn.setAttribute('aria-label', titleTip(t) || (t.name || 'Locked title'));
       }
       bindTitleHold(btn, t, unlocked ? () => equipTitle(t.id) : null);
       grid.appendChild(btn);

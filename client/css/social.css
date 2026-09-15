@@ -818,11 +818,9 @@ button.player-title--btn{cursor:pointer}
 .title-pick-slot--portrait img{height:100px;width:auto;max-width:100%}
 .title-pick-slot--none{min-height:56px;font-size:12px;font-weight:700;color:rgba(255,255,255,.8)}
 .title-pick-slot.is-locked{
-  cursor:pointer;background:rgba(0,0,0,.28);border-style:solid;border-color:rgba(255,255,255,.1)
+  cursor:pointer;background:rgba(0,0,0,.22);border-style:dashed;border-color:rgba(255,255,255,.14)
 }
-.title-pick-slot.is-locked::after{
-  content:'';position:absolute;inset:0;background:rgba(8,10,18,.35);pointer-events:none
-}
+.title-preview-art.is-blank{min-height:48px}
 .title-pick-slot.is-equipped{
   border-style:solid;border-color:rgba(186,228,255,.85);
   box-shadow:0 0 0 1px rgba(186,228,255,.35)
