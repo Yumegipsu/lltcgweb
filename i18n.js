@@ -1033,6 +1033,8 @@
       "unlocked": "Unlocked",
       "progress": "{have} / {total} titles unlocked",
       "unlockHint": "Play {idol} as a Stage Member {n} times.",
+      "unlockProgress": "Play {idol} as a Stage Member {n} times. ({have}/{n})",
+      "unlockDone": "Unlocked by playing {idol} as a Stage Member {n} times.",
       "loadError": "Could not load titles",
       "equipError": "Could not equip title"
     },

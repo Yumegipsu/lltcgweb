@@ -10,12 +10,17 @@
   let _pickerCache = null;
   let _pickerEquipped = null;
 
+  function interpolate(str, vars) {
+    if (!vars || typeof str !== 'string') return str;
+    return str.replace(/\{([^}]+)\}/g, (_m, name) => (
+      vars[name] != null ? String(vars[name]) : _m
+    ));
+  }
+
   function tt(key, fallback, vars) {
-    if (typeof global.tt === 'function') return global.tt(key, fallback, vars);
-    if (typeof global.t === 'function') {
-      try { return global.t(key, vars) || fallback; } catch (e) { /* ignore */ }
-    }
-    return fallback;
+    const fn = global.LLTCG_I18N && global.LLTCG_I18N.tt;
+    if (typeof fn === 'function') return fn(key, fallback, vars);
+    return fallback != null ? interpolate(String(fallback), vars) : key;
   }
 
   function esc(s) {
@@ -26,16 +31,37 @@
       .replace(/"/g, '&quot;');
   }
 
+  function titleUnlockHint(title) {
+    if (!title) return '';
+    if (title.unlock_hint) return String(title.unlock_hint);
+    const idol = title.idol || title.idol_short || 'this Member';
+    const n = title.unlock_plays || 500;
+    const have = title.progress;
+    if (title.unlocked) {
+      return tt(
+        'titles.unlockDone',
+        'Unlocked by playing {idol} as a Stage Member {n} times.',
+        { idol, n }
+      );
+    }
+    if (have != null && Number.isFinite(Number(have))) {
+      return tt(
+        'titles.unlockProgress',
+        'Play {idol} as a Stage Member {n} times. ({have}/{n})',
+        { idol, n, have }
+      );
+    }
+    return tt(
+      'titles.unlockHint',
+      'Play {idol} as a Stage Member {n} times.',
+      { idol, n }
+    );
+  }
+
   function titleTip(title) {
     if (!title) return '';
     const name = title.name || '';
-    const hint = title.unlock_hint
-      || (title.unlock_plays
-        ? tt('titles.unlockHint', 'Play {idol} as a Stage Member {n} times.', {
-          idol: title.idol || title.idol_short || 'this Member',
-          n: title.unlock_plays,
-        })
-        : '');
+    const hint = titleUnlockHint(title);
     if (hint) return name ? (name + ' — ' + hint) : hint;
     return name;
   }
@@ -75,12 +101,7 @@
     else if (title.unlocked === true) bits.push(tt('titles.unlocked', 'Unlocked'));
     if (metaEl) metaEl.textContent = bits.join(' · ');
     if (hintEl) {
-      hintEl.textContent = title.unlock_hint
-        || titleTip(title).replace(/^[^—]+—\s*/, '')
-        || tt('titles.unlockHint', 'Play {idol} as a Stage Member {n} times.', {
-          idol: title.idol || title.idol_short || 'this Member',
-          n: title.unlock_plays || 500,
-        });
+      hintEl.textContent = titleUnlockHint(title);
     }
 
     prev.hidden = false;
