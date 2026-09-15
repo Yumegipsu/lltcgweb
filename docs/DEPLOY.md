@@ -24,6 +24,13 @@ Hostinger remains the default game/account API. The VPS runs a **capped** Docker
 
 `https://stream.loveliveradio.ca/tcg/api/`
 
+That path is a **match API only**. It must not look like the public TCG hub (Google
+indexed `/tcg/api/` when nginx proxied the whole Docker docroot). After deploy:
+
+- Repo `.htaccess` on Host=`stream.loveliveradio.ca` returns a blank 404 for `/`
+  and `index.html`, serves `Disallow: /` robots, and blocks non-API paths.
+- Optional nginx harden (reload required): `bash scripts/vps_harden_tcg_api_ui.sh`
+
 **Client behavior** ([`client/js/api-client.js`](../client/js/api-client.js)):
 
 - Counts Hostinger timeouts / 5xx / 429.

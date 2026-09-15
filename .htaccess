@@ -7,9 +7,36 @@
 # the VPS match host serves this same repo with AllowOverride All, so anything set
 # in this file also disables writes on the host that actually owns the rooms.
 
+# VPS match API (Docker docroot behind nginx /tcg/api/) — never serve the playable
+# UI shell. Host is stream.loveliveradio.ca; Hostinger apex/www are unaffected.
+<IfModule mod_headers.c>
+  <If "%{HTTP_HOST} == 'stream.loveliveradio.ca'">
+    Header always set X-Robots-Tag "noindex, nofollow, noarchive"
+  </If>
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /tcg/
+
+  # Match host: blank root / index; robots Disallow; block static UI trees.
+  # Substitutions are site-root absolute so they work when this file is the
+  # Docker docroot .htaccess (RewriteBase /tcg/ would otherwise break paths).
+  RewriteCond %{HTTP_HOST} ^stream\.loveliveradio\.ca$ [NC]
+  RewriteRule ^robots\.txt$ /match_host_robots.txt [L]
+
+  RewriteCond %{HTTP_HOST} ^stream\.loveliveradio\.ca$ [NC]
+  RewriteRule ^$ /match_host_blank.php [L]
+
+  RewriteCond %{HTTP_HOST} ^stream\.loveliveradio\.ca$ [NC]
+  RewriteRule ^index\.html$ /match_host_blank.php [L]
+
+  RewriteCond %{HTTP_HOST} ^stream\.loveliveradio\.ca$ [NC]
+  RewriteCond %{REQUEST_URI} !^/(api|account|spectate|bannerimg|cardimg|cardimg_cache|replay)\.php(?:$|\?) [NC]
+  RewriteCond %{REQUEST_URI} !^/match_host_blank\.php$ [NC]
+  RewriteCond %{REQUEST_URI} !^/match_host_robots\.txt$ [NC]
+  RewriteCond %{REQUEST_URI} !^/robots\.txt$ [NC]
+  RewriteRule ^ - [R=404,L]
 
   # Optional: Apache proxy to VPS SSE (often unavailable on shared Hostinger — clients prefer stream.loveliveradio.ca)
   # RewriteRule ^sync-stream$ https://stream.loveliveradio.ca/tcg/sync/stream [P,QSA,L]
