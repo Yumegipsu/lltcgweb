@@ -8665,7 +8665,7 @@ button.player-title--btn{cursor:pointer}
 .title-preview-meta{margin:0 0 8px;font-size:13px;color:rgba(186,228,255,.9)}
 .title-preview-hint{margin:0;font-size:13px;line-height:1.4;color:rgba(255,255,255,.78)}
 
-/* Scout / Gacha — copy left, art pinned to far-right pocket */
+/* Scout / Gacha — one continuous tile; big art anchored to far right */
 #scout-hub-grid.shop-hub-grid{
   grid-template-columns:1fr 1fr;
   max-width:860px
@@ -8681,7 +8681,8 @@ button.player-title--btn{cursor:pointer}
   text-align:left;
   min-height:148px;
   padding:20px 22px;
-  isolation:isolate
+  isolation:isolate;
+  background:rgba(8,14,28,.72)
 }
 #scout-hub-grid .scout-hub-tile__copy{
   position:relative;
@@ -8690,21 +8691,32 @@ button.player-title--btn{cursor:pointer}
   flex-direction:column;
   gap:4px;
   min-width:0;
-  max-width:48%;
+  max-width:42%;
   text-align:left;
-  text-shadow:0 2px 10px rgba(0,0,0,.65),0 0 18px rgba(0,0,0,.45);
+  text-shadow:0 2px 10px rgba(0,0,0,.7),0 0 18px rgba(0,0,0,.5);
   pointer-events:none
 }
 #scout-hub-grid .scout-hub-tile__copy .shop-hub-tile__sub{opacity:.78}
 
-/* Booster: pack in far-right pocket */
+/* Soft full-width wash — no mid-button seam */
+#scout-hub-grid .scout-hub-tile--boosters::after,
+#scout-hub-grid .scout-hub-tile--gacha::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:2;
+  pointer-events:none;
+  background:linear-gradient(90deg,rgba(8,14,28,.55) 0%,rgba(8,14,28,.28) 45%,rgba(8,14,28,.08) 72%,transparent 100%)
+}
+
+/* Booster pack: far right */
 #scout-hub-grid .scout-hub-tile__pack{
   position:absolute;
   z-index:1;
-  right:6%;
+  right:4%;
   top:4%;
   bottom:4%;
-  width:57%;
+  width:52%;
   height:auto;
   max-height:92%;
   margin:0;
@@ -8718,57 +8730,45 @@ button.player-title--btn{cursor:pointer}
   pointer-events:none;
   filter:drop-shadow(0 10px 18px rgba(0,0,0,.4))
 }
-.scout-hub-tile--boosters::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:2;
-  pointer-events:none;
-  background:linear-gradient(85deg,rgba(8,14,28,.72) 0%,rgba(8,14,28,.45) 42%,rgba(8,14,28,.1) 70%,transparent 100%)
-}
 
-/* Gacha: same far-right pocket as pack — crop inside the box (no scale spill) */
+/* Gacha: large scale like before, anchored to far-right (origin top right) */
 #scout-hub-grid .scout-hub-tile__visual{
   position:absolute;
   z-index:1;
-  right:4%;
+  right:0;
   left:auto;
-  top:2%;
-  bottom:2%;
-  width:46%;
+  top:0;
+  bottom:0;
+  width:58%;
   height:auto;
-  border-radius:0;
-  overflow:hidden;
+  overflow:visible;
   background:transparent;
   box-shadow:none;
+  border:0;
+  border-radius:0;
   pointer-events:none
 }
 #scout-hub-grid .scout-hub-tile__render{
   position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  /* Heavy top crop without transform:scale (scale was spilling into the text) */
-  background-size:220% auto;
+  right:6%;
+  left:auto;
+  top:-12%;
+  width:150px;
+  height:170%;
+  background-size:cover;
   background-position:center top;
   background-repeat:no-repeat;
-  transform:none;
+  transform:scale(2.85);
+  transform-origin:top right;
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))
 }
-#scout-hub-grid .scout-hub-tile__render::after{
-  content:"";
-  position:absolute;
-  left:0;right:0;bottom:0;
-  height:48%;
-  background:linear-gradient(to top,rgba(8,12,24,.96) 0%,rgba(8,12,24,.4) 45%,transparent 100%);
-  pointer-events:none
-}
+#scout-hub-grid .scout-hub-tile__render::after{display:none}
 #scout-hub-grid .scout-hub-tile__gem{
   position:absolute;
   z-index:2;
-  right:6%;
+  right:8%;
   left:auto;
-  bottom:14%;
+  bottom:10%;
   top:auto;
   width:56px;
   height:56px;
@@ -8777,14 +8777,6 @@ button.player-title--btn{cursor:pointer}
   filter:drop-shadow(0 6px 14px rgba(0,0,0,.55));
   pointer-events:none
 }
-.scout-hub-tile--gacha::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:2;
-  pointer-events:none;
-  background:linear-gradient(85deg,rgba(8,14,28,.72) 0%,rgba(8,14,28,.45) 42%,rgba(8,14,28,.1) 70%,transparent 100%)
-}
 #btn-scout-gacha.is-locked{
   opacity:.55;filter:grayscale(.35);cursor:not-allowed
 }
@@ -8792,10 +8784,11 @@ button.player-title--btn{cursor:pointer}
 @media (max-width:640px){
   #scout-hub-grid.shop-hub-grid{grid-template-columns:1fr;max-width:420px;margin-inline:auto}
   #scout-hub-grid .shop-hub-tile{min-height:128px;padding:16px 18px}
-  #scout-hub-grid .scout-hub-tile__copy{max-width:50%}
-  #scout-hub-grid .scout-hub-tile__pack{width:52%;right:5%;top:6%;max-height:88%}
-  #scout-hub-grid .scout-hub-tile__visual{width:44%;right:4%}
-  #scout-hub-grid .scout-hub-tile__gem{width:52px;height:52px;right:4%;bottom:12%}
+  #scout-hub-grid .scout-hub-tile__copy{max-width:46%}
+  #scout-hub-grid .scout-hub-tile__pack{width:48%;right:3%}
+  #scout-hub-grid .scout-hub-tile__visual{width:56%}
+  #scout-hub-grid .scout-hub-tile__render{width:128px;right:4%}
+  #scout-hub-grid .scout-hub-tile__gem{width:52px;height:52px;right:6%;bottom:8%}
 }
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}
