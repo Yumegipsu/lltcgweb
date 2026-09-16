@@ -6494,17 +6494,30 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .rank-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.22);flex-shrink:0;background:rgba(0,0,0,.35);align-self:center}
 .rank-avatar-fallback{display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:rgba(255,255,255,.85);letter-spacing:0;line-height:1;user-select:none}
 .rank-meta{min-width:0;align-self:center}
-.rank-title-slot{
-  grid-column:3;grid-row:1;align-self:center;justify-self:center;
-  margin:0;padding:0;min-width:0;width:100%;max-width:100%;
-  display:flex;align-items:center;justify-content:center
+.rank-title-slot,
+.rank-title-slot.player-title-slot{
+  grid-column:3;grid-row:1;align-self:stretch;justify-self:center;
+  margin:0!important;padding:0;min-width:0;width:100%;max-width:100%;
+  display:flex!important;align-items:center;justify-content:center;
+  border:none;background:transparent
 }
 .rank-title-slot .player-title{max-width:100%}
 /* Thin (wide) strips — ~2× prior leaderboard size */
 .rank-title-slot .player-title--wide .player-title-img{height:44px;max-width:min(280px,100%)}
-/* Hasu portrait titles — fill the row with tiny vertical margins */
-.rank-title-slot .player-title--portrait{margin:2px 0}
-.rank-title-slot .player-title--portrait .player-title-img{height:56px;max-width:64px}
+/* Hasu portrait titles — same X center as wide strips; fill row height */
+.rank-title-slot .player-title--portrait{
+  margin:0;
+  height:100%;
+  display:inline-flex;align-items:center;justify-content:center
+}
+.rank-title-slot .player-title--portrait .player-title-img{
+  height:100%;
+  width:auto;
+  max-height:100%;
+  max-width:min(72px,100%);
+  object-fit:contain;
+  object-position:center center
+}
 .rank-pos{font-size:13px;font-weight:800;color:var(--pink-l);min-width:2.2em}
 .rank-name{appearance:none;-webkit-appearance:none;background:none;border:none;padding:0;margin:0;font-family:inherit;font-size:15px;font-weight:800;color:#fff;line-height:1.25;text-align:inherit;text-decoration:none;box-shadow:none}
 .rank-name:focus{outline:none}
@@ -6516,7 +6529,7 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   .rank-card-body{grid-template-columns:auto minmax(0,1fr) minmax(120px,0.9fr)}
   .rank-title-slot{grid-column:3;grid-row:1}
   .rank-title-slot .player-title--wide .player-title-img{height:36px;max-width:min(200px,100%)}
-  .rank-title-slot .player-title--portrait .player-title-img{height:48px;max-width:54px}
+  .rank-title-slot .player-title--portrait .player-title-img{max-width:min(64px,100%)}
   .rank-card .rank-banner-wrap{
     grid-column:1 / -1;grid-row:2;max-width:none;width:100%;margin-top:2px}
 }
