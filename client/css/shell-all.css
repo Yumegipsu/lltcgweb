@@ -8733,8 +8733,8 @@ button.player-title--btn{cursor:pointer}
 
 /*
  * Gacha visual pocket on the far right.
- * Renders have lots of transparent padding — use contain + right bias so the
- * painted character sits next to the gem, not the empty canvas margin.
+ * Renders are 1920×900 with the figure ~33–40% from the left and huge empty
+ * canvas to the right — crop into that figure so it sits next to the gem.
  */
 #scout-hub-grid .scout-hub-tile__visual{
   position:absolute;
@@ -8742,31 +8742,30 @@ button.player-title--btn{cursor:pointer}
   right:0;
   top:0;
   bottom:0;
-  width:62%;
+  width:58%;
   overflow:hidden;
   background:transparent;
   pointer-events:none
 }
 #scout-hub-grid .scout-hub-tile__render{
   position:absolute;
-  right:18%;
+  right:11%;
   left:auto;
-  top:-18%;
-  bottom:-22%;
-  width:auto;
-  height:140%;
+  top:-10%;
+  bottom:-14%;
+  width:36%;
+  height:auto;
   max-width:none;
-  object-fit:contain;
-  object-position:center top;
-  transform:scale(1.85);
-  transform-origin:top center;
+  object-fit:cover;
+  object-position:36% 48%;
+  transform:none;
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.35));
   pointer-events:none
 }
 #scout-hub-grid .scout-hub-tile__gem{
   position:absolute;
   z-index:2;
-  right:5%;
+  right:3%;
   left:auto;
   bottom:12%;
   top:auto;
@@ -8786,9 +8785,9 @@ button.player-title--btn{cursor:pointer}
   #scout-hub-grid .shop-hub-tile{min-height:128px;padding:16px 18px}
   #scout-hub-grid .scout-hub-tile__copy{max-width:44%}
   #scout-hub-grid .scout-hub-tile__pack{width:48%;right:3%}
-  #scout-hub-grid .scout-hub-tile__visual{width:60%}
-  #scout-hub-grid .scout-hub-tile__render{right:16%;height:135%;transform:scale(1.7)}
-  #scout-hub-grid .scout-hub-tile__gem{width:52px;height:52px;right:4%;bottom:10%}
+  #scout-hub-grid .scout-hub-tile__visual{width:56%}
+  #scout-hub-grid .scout-hub-tile__render{right:12%;width:38%;object-position:36% 48%}
+  #scout-hub-grid .scout-hub-tile__gem{width:52px;height:52px;right:3%;bottom:10%}
 }
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}
