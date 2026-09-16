@@ -232,71 +232,33 @@
     });
   }
 
-  function sleep(ms) {
-    return new Promise((r) => setTimeout(r, ms));
-  }
-
-  async function playSpotlight(pull) {
+  async function playSpectacle(pulls) {
     const ov = el('overlay-gacha-pull');
-    const stage = el('gacha-pull-stage');
-    const flash = el('gacha-pull-flash');
-    const cardImgEl = el('gacha-pull-card');
-    const tierEl = el('gacha-pull-tier');
-    const renderWrap = el('gacha-pull-render-wrap');
-    const renderImg = el('gacha-pull-render');
-    const idolIcon = el('gacha-pull-idol-icon');
-    const idolName = el('gacha-pull-idol-name');
-    const hint = el('gacha-pull-hint');
-    if (!ov || !stage || !cardImgEl) return;
+    const spot = el('gacha-spot');
+    if (!ov || !spot || !global.GachaSpotlight) return;
 
-    const tier = String(pull.tier || 'n');
-    stage.className = 'gacha-pull-stage is-' + tier;
-    if (flash) flash.className = 'gacha-pull-flash is-' + tier;
     ov.hidden = false;
     ov.setAttribute('aria-hidden', 'false');
     document.body.classList.add('gacha-pull-open');
 
-    if (hint) hint.textContent = tt('gacha.tapContinue', 'Tap to continue');
-    if (tierEl) {
-      const label = tier === 'ur'
-        ? tt('gacha.tierUr', 'UR')
-        : (tier === 'sr' ? tt('gacha.tierSr', 'SR') : tt('gacha.tierN', 'N'));
-      tierEl.textContent = label;
-    }
+    const results = global.GachaSpotlight.fromPulls(pulls, (p) => cardImg(p.card_no, 280));
+    await global.GachaSpotlight.play(results, {
+      root: spot,
+      sfx,
+      labels: {
+        ur: tt('gacha.tierUr', 'UR'),
+        sr: tt('gacha.tierSr', 'SR'),
+        urSub: tt('gacha.flourishUr', 'guaranteed in this scout'),
+        srSub: tt('gacha.flourishSr', 'high rarity ahead'),
+        skip: tt('gacha.skip', 'Skip'),
+        hint: tt('gacha.tapContinue', 'Tap to continue'),
+      },
+    });
 
-    const meta = idolMeta(pull);
-    const showChar = tier === 'ur' || tier === 'sr';
-    if (renderWrap) {
-      if (showChar && meta.render) {
-        renderWrap.hidden = false;
-        if (renderImg) {
-          renderImg.src = meta.render;
-          renderImg.alt = meta.name || '';
-          renderImg.onerror = () => { renderWrap.hidden = true; };
-        }
-        if (idolName) idolName.textContent = meta.name || '';
-        if (idolIcon) {
-          if (meta.icon) {
-            idolIcon.hidden = false;
-            idolIcon.src = meta.icon;
-            idolIcon.onerror = () => { idolIcon.hidden = true; };
-          } else {
-            idolIcon.hidden = true;
-          }
-        }
-        sfx(tier === 'ur' ? 'yell_reveal' : 'pack_reveal');
-        await sleep(tier === 'ur' ? 900 : 550);
-      } else {
-        renderWrap.hidden = true;
-      }
-    }
-
-    cardImgEl.src = cardImg(pull.card_no, 360);
-    cardImgEl.alt = pull.name_en || pull.card_no || '';
-    sfx(tier === 'ur' ? 'pack_reveal' : 'card_flip');
-    stage.classList.add('is-show-card');
+    // Allow a beat to admire / tilt UR cards, then tap to leave.
     await waitTap(ov);
-    stage.classList.remove('is-show-card');
+
+    if (global.GachaSpotlight) global.GachaSpotlight.stop();
     ov.hidden = true;
     ov.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('gacha-pull-open');
@@ -355,16 +317,8 @@
       const res = await accountPost('open_gacha', { mode: _lastMode });
       await loadIdolMap();
       const pulls = res.pulls || [];
-      // Spotlight every UR, and first SR; skip spam on long N-only multis.
-      for (const pull of pulls) {
-        if (pull.tier === 'ur' || pull.tier === 'sr') {
-          await playSpotlight(pull);
-        }
-      }
-      // Always spotlight the last card if none were SR/UR so single N still has flair.
-      if (!pulls.some((p) => p.tier === 'ur' || p.tier === 'sr') && pulls[0]) {
-        await playSpotlight(pulls[pulls.length - 1]);
-      }
+      // Predetermined pulls → SIFAS spotlight (beams + rarity flips) → results grid.
+      await playSpectacle(pulls);
       showGachaResults(res);
       _info = { ...(_info || {}), star_gems: res.star_gems };
     } catch (e) {
