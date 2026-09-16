@@ -195,18 +195,26 @@
     layout();
   }
 
+  function slotFloorY(s) {
+    return Number.isFinite(s?.by) ? s.by : floorY;
+  }
+
   function layout() {
     const n = slots.length;
     if (!n) return;
 
-    // Beam pools stay on one floor row (spectacle).
-    const beamPad = n > 4 ? 0.04 : 0.28;
-    slots.forEach((s, i) => {
-      s.bx = n === 1 ? W / 2 : W * beamPad + i * (W * (1 - beamPad * 2) / (n - 1));
+    const place = (s, x, y, cw) => {
+      s.bx = x;
+      s.by = y;
+      // Truss anchors fan toward center so beams hang from overhead.
       s.ax = W / 2 + (s.bx - W / 2) * 0.52;
-    });
+      if (!s.el) return;
+      s.el.style.left = x + 'px';
+      s.el.style.top = y + 'px';
+      s.el.style.width = cw + 'px';
+    };
 
-    // Card faces: 10+1 uses 5 / 5 / 1 so each card stays readable.
+    // 10+1: 5 / 5 / 1 grid — each beam aims at its card (not a single mid-floor row).
     if (n >= 10) {
       const cols = 5;
       const hPad = Math.min(0.05, 28 / W);
@@ -224,7 +232,6 @@
       const topRowBaseline = baseY - stackH + cardH;
 
       slots.forEach((s, i) => {
-        if (!s.el) return;
         let row;
         let col;
         let rowLen;
@@ -245,30 +252,27 @@
         const left0 = (W - rowWidth) / 2;
         const x = left0 + col * (cw + gap) + cw / 2;
         const y = topRowBaseline + row * (cardH + vGap);
-        s.el.style.left = x + 'px';
-        s.el.style.top = y + 'px';
-        s.el.style.width = cw + 'px';
+        place(s, x, y, cw);
       });
       return;
     }
 
+    // Single / few pulls: one floor row — card sits in its beam pool.
     const pad = n > 4 ? 0.06 : 0.28;
     slots.forEach((s, i) => {
-      if (!s.el) return;
       const span = n === 1 ? W * 0.42 : (W * (1 - pad * 2) / Math.max(1, n - 1));
       const maxW = n === 1 ? 230 : (n >= 6 ? 128 : 140);
       const cw = Math.min(n === 1 ? 230 : span * 0.9, maxW);
       const x = n === 1 ? W / 2 : W * pad + i * (W * (1 - pad * 2) / (n - 1));
-      s.el.style.left = x + 'px';
-      s.el.style.top = (floorY - 6) + 'px';
-      s.el.style.width = cw + 'px';
+      place(s, x, floorY - 6, cw);
     });
   }
 
   function mote(s) {
+    const fy = slotFloorY(s);
     parts.push({
       x: s.bx + (Math.random() - 0.5) * 70,
-      y: floorY - Math.random() * 30,
+      y: fy - Math.random() * 30,
       vx: (Math.random() - 0.5) * 10,
       vy: -18 - Math.random() * 40,
       life: 1,
@@ -281,8 +285,9 @@
   }
 
   function sparkle(s, p) {
+    const fy = slotFloorY(s);
     const x = s.ax + (s.bx - s.ax) * p + (Math.random() - 0.5) * 46 * p;
-    const y = rigY + (floorY - rigY) * p;
+    const y = rigY + (fy - rigY) * p;
     parts.push({
       x,
       y,
@@ -350,6 +355,7 @@
     if (age < 0) return;
     const t = TIER[s.tier];
     if (!t) return;
+    const fy = slotFloorY(s);
 
     const rise = Math.min(1, age / 300);
     const strike = 1 + 1.2 * Math.exp(-age / 140) * Math.sin(age / 62);
@@ -375,11 +381,11 @@
         if (s.tier !== s.finalTier) {
           s.tier = s.finalTier;
           flash = Math.max(flash, 0.75);
-          rings.push({ x: s.bx, y: floorY, r: 14, a: 1, col: '#ffffff' });
-          rings.push({ x: s.bx, y: floorY, r: 8, a: 0.8, col: TIER[s.finalTier].pool });
+          rings.push({ x: s.bx, y: fy, r: 14, a: 1, col: '#ffffff' });
+          rings.push({ x: s.bx, y: fy, r: 8, a: 0.8, col: TIER[s.finalTier].pool });
           burst(
             s.bx,
-            floorY - 30,
+            fy - 30,
             26,
             s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
           );
@@ -401,7 +407,7 @@
     const bx = s.bx + sway;
 
     const dx = bx - s.ax;
-    const dy = floorY - rigY;
+    const dy = fy - rigY;
     const len = Math.hypot(dx, dy) * (0.99 + 0.02 * flick);
     const ang = Math.atan2(dx, -dy);
     const baseW = (W < 560 ? 130 : 182)
@@ -426,9 +432,9 @@
     const pw = baseW * 1.9;
     const ph = pw * 0.28;
     ctx.globalAlpha = Math.min(1, rise) * (0.62 + 0.3 * boost) * t.power;
-    ctx.drawImage(glow(poolCol, 256), bx - pw / 2, floorY - ph / 2, pw, ph);
+    ctx.drawImage(glow(poolCol, 256), bx - pw / 2, fy - ph / 2, pw, ph);
     ctx.globalAlpha *= 0.8;
-    ctx.drawImage(glow(t.core, 128), bx - pw * 0.34, floorY - ph * 0.3, pw * 0.68, ph * 0.6);
+    ctx.drawImage(glow(t.core, 128), bx - pw * 0.34, fy - ph * 0.3, pw * 0.68, ph * 0.6);
 
     if (!reduceMotion && parts.length < Q.motes && Math.random() < 0.12) mote(s);
   }
@@ -462,7 +468,7 @@
     if (ur) {
       slots.forEach((s) => burst(
         s.bx,
-        floorY - H * 0.2,
+        slotFloorY(s) - H * 0.12,
         10,
         s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
       ));
@@ -507,9 +513,10 @@
       setTimeout(() => {
         if (!s.el) return;
         s.el.classList.add('is-in');
+        const fy = slotFloorY(s);
         burst(
           s.bx,
-          floorY - 50,
+          fy - 50,
           7,
           s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
         );
