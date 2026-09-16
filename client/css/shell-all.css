@@ -8772,8 +8772,9 @@ button.player-title--btn{cursor:pointer}
 }
 
 /*
- * Gacha visual: figure beside the gem, top-aligned face, clear of the
- * rounded right border. Keep the render box = pocket width (no 180% strip).
+ * Gacha visual: figure beside gem, face top-aligned.
+ * Gem inset enough for rotate(30deg) AABB inside the rounded button.
+ * Render uses an explicit width (not width:auto) so the <img> doesn’t collapse.
  */
 #scout-hub-grid .scout-hub-tile--gacha{
   overflow:hidden
@@ -8781,11 +8782,11 @@ button.player-title--btn{cursor:pointer}
 #scout-hub-grid .scout-hub-tile__visual{
   position:absolute;
   z-index:1;
-  right:10px;
-  top:4px;
-  bottom:4px;
-  width:52%;
-  overflow:hidden;
+  right:0;
+  top:0;
+  bottom:0;
+  width:58%;
+  overflow:visible;
   background:transparent;
   pointer-events:none
 }
@@ -8793,14 +8794,12 @@ button.player-title--btn{cursor:pointer}
   position:absolute;
   top:0;
   left:0;
-  /* Leave a gem lane on the right so the figure isn’t clipped by the curve */
-  right:58px;
-  bottom:auto;
-  width:auto;
-  height:220%;
+  /* Explicit width — left+right+width:auto collapses replaced <img>s */
+  width:calc(100% - 88px);
+  height:210%;
   max-width:none;
   object-fit:cover;
-  object-position:34% 5%;
+  object-position:34% 6%;
   transform:none;
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.35));
   pointer-events:none
@@ -8808,12 +8807,13 @@ button.player-title--btn{cursor:pointer}
 #scout-hub-grid .scout-hub-tile__gem{
   position:absolute;
   z-index:2;
-  right:2px;
+  /* ~22px clears rotated AABB past the ~14–16px corner radius */
+  right:22px;
   left:auto;
-  bottom:8%;
+  bottom:14px;
   top:auto;
-  width:56px;
-  height:56px;
+  width:52px;
+  height:52px;
   object-fit:contain;
   transform:rotate(30deg);
   filter:drop-shadow(0 6px 14px rgba(0,0,0,.55));
@@ -8828,9 +8828,9 @@ button.player-title--btn{cursor:pointer}
   #scout-hub-grid .shop-hub-tile{min-height:128px;padding:16px 18px}
   #scout-hub-grid .scout-hub-tile__copy{max-width:44%}
   #scout-hub-grid .scout-hub-tile__pack{width:48%;right:3%}
-  #scout-hub-grid .scout-hub-tile__visual{width:54%;right:8px;top:4px;bottom:4px}
-  #scout-hub-grid .scout-hub-tile__render{right:52px;height:210%;object-position:34% 5%}
-  #scout-hub-grid .scout-hub-tile__gem{width:52px;height:52px;right:2px;bottom:8%}
+  #scout-hub-grid .scout-hub-tile__visual{width:56%}
+  #scout-hub-grid .scout-hub-tile__render{width:calc(100% - 80px);height:200%;object-position:34% 6%}
+  #scout-hub-grid .scout-hub-tile__gem{width:48px;height:48px;right:18px;bottom:12px}
 }
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}
