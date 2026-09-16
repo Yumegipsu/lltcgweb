@@ -198,6 +198,15 @@ final class StickerSealsTest extends TestCase
         $this->assertNotNull($srl, 'Expected at least one SRL Live in catalog');
         $this->assertSame('P', tcgSealTierForCard($srl));
         $this->assertTrue(tcgCardConvertibleToSeal($srl));
+
+        // Regression: converting must credit P seals (client once toasted SEC and looked empty).
+        tcgAddCardsToCollection($this->discordId, [$srl['card_no'], $srl['card_no']]);
+        $before = tcgSealBalances($this->discordId);
+        $out = tcgConvertCardsToSeals($this->discordId, $srl['card_no'], 1, $map);
+        $this->assertSame('P', $out['tier']);
+        $this->assertSame(1, $out['seals_gained']);
+        $this->assertSame(($before['p'] ?? 0) + 1, $out['seals']['p']);
+        $this->assertSame($before['sec'] ?? 0, $out['seals']['sec']);
     }
 
     public function testSealUpgradeLadderNToSecCostsThreeHundred(): void

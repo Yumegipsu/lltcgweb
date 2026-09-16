@@ -3597,13 +3597,14 @@ function normalizeClientRarity(card) {
 
 function clientSealTierForCard(card) {
   const r = normalizeClientRarity(card);
+  // Keep in sync with seals.php tcgSealTierForCard — SRL Lives are P (SRE peer), not SEC.
   const map = {
     N: 'N', SD: 'N', SD2: 'N', L: 'N', PE: 'N',
     R: 'R', 'R+': 'R', RM: 'R', RE: 'R', 'L+': 'R',
-    P: 'P', 'P+': 'P', PP: 'P', AR: 'P', 'PE+': 'P', SRE: 'P',
+    P: 'P', 'P+': 'P', PP: 'P', AR: 'P', 'PE+': 'P', SRE: 'P', SRL: 'P',
     PR: 'PR', 'PR+': 'PR', CL: 'PR',
     SEC: 'SEC', 'SEC+': 'SEC', SECE: 'SEC', SECL: 'SEC', SECS: 'SEC',
-    LLE: 'SEC', SRL: 'SEC', DUO: 'SEC',
+    LLE: 'SEC', DUO: 'SEC',
   };
   return map[r] || null;
 }
@@ -8791,8 +8792,10 @@ function fillDeckConvertSealAction(container, cardNo) {
         syncSealsFromPayload(res);
         await refreshCollection();
         if (typeof renderDeckBuilder === 'function') renderDeckBuilder();
-        const next = sealBalanceForTier(tier);
-        toast(t('sticker.convertOkBalance', { tier, n: next }) || ('Converted · ' + tier + ' seals: ' + next), 2200);
+        // Prefer server tier — client map drift must not toast the wrong counter.
+        const credited = String(res.tier || tier).toUpperCase();
+        const next = sealBalanceForTier(credited);
+        toast(t('sticker.convertOkBalance', { tier: credited, n: next }) || ('Converted · ' + credited + ' seals: ' + next), 2200);
         closeM('modal-card');
         document.body.classList.remove('deck-card-preview');
       } catch (err) {
