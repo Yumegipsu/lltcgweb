@@ -272,13 +272,144 @@ function tcgGachaPackCatalog(): array {
     return ['included' => $included, 'excluded' => $excluded];
 }
 
+/**
+ * Full rate disclosure for Standard Gacha (Loveca rarities + per-card odds).
+ *
+ * Pull model: roll scout band (N/SR/UR weights) then uniform card within that band.
+ * Percents are chance per single pull.
+ *
+ * @return array{
+ *   pool: array{n:int,sr:int,ur:int,total:int},
+ *   scout_bands: array{n:float,sr:float,ur:float},
+ *   rarity_rates: list<array{rarity:string,percent:float,count:int}>,
+ *   cards: list<array{card_no:string,name_en:string,rarity:string,tier:string,percent:float,image:?string}>,
+ *   packs_included: list<array{id:string,name_en:string,name_jp:string,kind:string}>,
+ *   packs_excluded: list<array{id:string,name_en:string,name_jp:string,kind:string}>,
+ *   notes: list<string>
+ * }
+ */
+function tcgComputeGachaRates(array $cardsData): array {
+    $pools = tcgGachaBuildPools($cardsData);
+    $cardMap = tcgBuildCardMap($cardsData);
+    $tierWeights = [
+        'n' => TCG_GACHA_WEIGHT_N,
+        'sr' => TCG_GACHA_WEIGHT_SR,
+        'ur' => TCG_GACHA_WEIGHT_UR,
+    ];
+    $totalW = array_sum($tierWeights);
+    if ($totalW <= 0) {
+        $totalW = 10000;
+    }
+
+    $cardProb = [];
+    $cardMeta = [];
+    $tierRank = ['n' => 1, 'sr' => 2, 'ur' => 3];
+
+    foreach (['n', 'sr', 'ur'] as $tier) {
+        $list = $pools[$tier] ?? [];
+        $n = count($list);
+        if ($n === 0) {
+            continue;
+        }
+        $tierP = $tierWeights[$tier] / $totalW;
+        $perCard = $tierP / $n;
+        foreach ($list as $no) {
+            $c = $cardMap[$no] ?? null;
+            $r = is_array($c)
+                ? tcgNormalizePoolRarity((string)($c['rarity'] ?? 'N'), $no)
+                : 'N';
+            if ($r === '') {
+                $r = 'N';
+            }
+            $cardProb[$no] = ($cardProb[$no] ?? 0.0) + $perCard;
+            $prev = $cardMeta[$no] ?? null;
+            $prevRank = is_array($prev) ? ($tierRank[(string)($prev['tier'] ?? 'n')] ?? 0) : 0;
+            if ($prevRank <= ($tierRank[$tier] ?? 0)) {
+                $cardMeta[$no] = [
+                    'rarity' => $r,
+                    'tier' => $tier,
+                    'name_en' => is_array($c)
+                        ? (string)($c['name_en'] ?? $c['name'] ?? $no)
+                        : $no,
+                    'image' => is_array($c) ? ($c['image'] ?? null) : null,
+                ];
+            }
+        }
+    }
+
+    $cardsOut = [];
+    $rarityProb = [];
+    $rarityCount = [];
+    foreach ($cardProb as $no => $p) {
+        $meta = $cardMeta[$no] ?? [
+            'rarity' => 'N',
+            'tier' => 'n',
+            'name_en' => $no,
+            'image' => null,
+        ];
+        $r = (string)$meta['rarity'];
+        $cardsOut[] = [
+            'card_no' => $no,
+            'name_en' => (string)$meta['name_en'],
+            'rarity' => $r,
+            'tier' => (string)$meta['tier'],
+            'percent' => round($p * 100, 6),
+            'image' => $meta['image'],
+        ];
+        $rarityProb[$r] = ($rarityProb[$r] ?? 0.0) + $p;
+        $rarityCount[$r] = ($rarityCount[$r] ?? 0) + 1;
+    }
+
+    usort($cardsOut, static function ($a, $b) {
+        return $b['percent'] <=> $a['percent']
+            ?: strcmp((string)$a['card_no'], (string)$b['card_no']);
+    });
+
+    $rarityRates = [];
+    foreach ($rarityProb as $r => $p) {
+        $rarityRates[] = [
+            'rarity' => $r,
+            'percent' => round($p * 100, 4),
+            'count' => (int)($rarityCount[$r] ?? 0),
+        ];
+    }
+    usort($rarityRates, static function ($a, $b) {
+        return $b['percent'] <=> $a['percent']
+            ?: strcmp((string)$a['rarity'], (string)$b['rarity']);
+    });
+
+    $packs = tcgGachaPackCatalog();
+    return [
+        'pool' => [
+            'n' => count($pools['n']),
+            'sr' => count($pools['sr']),
+            'ur' => count($pools['ur']),
+            'total' => count($pools['all']),
+        ],
+        'scout_bands' => [
+            'n' => TCG_GACHA_WEIGHT_N / 100,
+            'sr' => TCG_GACHA_WEIGHT_SR / 100,
+            'ur' => TCG_GACHA_WEIGHT_UR / 100,
+        ],
+        'rarity_rates' => $rarityRates,
+        'cards' => $cardsOut,
+        'packs_included' => $packs['included'],
+        'packs_excluded' => $packs['excluded'],
+        'notes' => [
+            'Each pull first rolls a scout band, then picks one card uniformly from that band.',
+            'Percents are chance per single Scout ×1 pull (10+1 uses the same odds eleven times).',
+            'PR, DUO, and Premium Booster cards are not in this pool.',
+            'MELLOW MOMENT is not in this pool yet.',
+        ],
+    ];
+}
+
 function tcgApiGachaInfo(array $body): array {
     $uid = tcgRequireAuthUser($body);
     tcgEnsureUser($uid, tcgAuthUserProfile($uid));
     $unlocked = tcgGachaUserHasAccess($uid);
     $cards = tcgLoadCardsData();
     $pools = tcgGachaBuildPools($cards);
-    $packs = tcgGachaPackCatalog();
     return [
         'success' => true,
         'unlocked' => $unlocked,
@@ -298,8 +429,16 @@ function tcgApiGachaInfo(array $body): array {
             'ur' => count($pools['ur']),
             'total' => count($pools['all']),
         ],
-        'packs_included' => $packs['included'],
-        'packs_excluded' => $packs['excluded'],
+    ];
+}
+
+function tcgApiGachaRates(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    tcgEnsureUser($uid, tcgAuthUserProfile($uid));
+    $cards = tcgLoadCardsData();
+    return [
+        'success' => true,
+        'rates' => tcgComputeGachaRates($cards),
     ];
 }
 

@@ -41,6 +41,7 @@
   let _pullBusy = false;
   let _lastMode = 'single';
   let _unlocked = false;
+  let _ratesCache = null;
 
   function isUnlocked() {
     if (_info && typeof _info.unlocked === 'boolean') return !!_info.unlocked;
@@ -118,17 +119,11 @@
   }
 
   function updateRateCopy(info) {
-    const rates = info.rates || {};
     const ratesEl = el('gacha-rates');
     if (ratesEl) {
       ratesEl.textContent = tt(
         'gacha.ratesLead',
-        'N ~{n}% · SR ~{sr}% · UR ~{ur}%',
-        {
-          n: rates.n != null ? rates.n : 90,
-          sr: rates.sr != null ? rates.sr : 9.2,
-          ur: rates.ur != null ? rates.ur : 0.8,
-        }
+        'Tap Info for rarity rates and card odds'
       );
     }
     const pool = info.pool || {};
@@ -136,13 +131,8 @@
     if (poolEl) {
       poolEl.textContent = tt(
         'gacha.poolInfo',
-        '{total} cards in pool · UR {ur} · SR {sr} · N {n}',
-        {
-          total: pool.total || 0,
-          ur: pool.ur || 0,
-          sr: pool.sr || 0,
-          n: pool.n || 0,
-        }
+        '{total} cards in pool',
+        { total: pool.total || 0 }
       );
     }
     const single = el('btn-gacha-single');
@@ -155,6 +145,17 @@
     if (multi) {
       multi.textContent = tt('gacha.multi', 'Scout 10+1 ({n})', { n: mc });
     }
+  }
+
+  function formatRatePercent(n) {
+    if (typeof global.formatPackRatePercent === 'function') {
+      return global.formatPackRatePercent(n);
+    }
+    const v = Number(n);
+    if (!Number.isFinite(v) || v <= 0) return '0%';
+    if (v >= 10) return v.toFixed(2).replace(/\.?0+$/, '') + '%';
+    if (v >= 1) return v.toFixed(3).replace(/\.?0+$/, '') + '%';
+    return v.toFixed(4).replace(/\.?0+$/, '') + '%';
   }
 
   function packDisplayName(row) {
@@ -194,7 +195,15 @@
     parent.appendChild(wrap);
   }
 
-  function renderGachaRatesModal(info) {
+  function cardLocaleNameSafe(row) {
+    if (typeof global.cardLocaleName === 'function') return global.cardLocaleName(row) || row.card_no || '?';
+    if (global.LLTCG_I18N && typeof global.LLTCG_I18N.cardLocaleName === 'function') {
+      return global.LLTCG_I18N.cardLocaleName(row) || row.card_no || '?';
+    }
+    return row.name_en || row.card_no || '?';
+  }
+
+  function renderGachaRatesModal(rates) {
     const body = el('gacha-rates-body');
     if (!body) return;
     body.replaceChildren();
@@ -205,32 +214,37 @@
     if (lead) {
       lead.textContent = tt(
         'gacha.ratesLeadDetail',
-        'Per pull · within a tier each card is equally likely'
+        'Per pull · tap a card for details'
       );
     }
 
-    const rates = info.rates || {};
     const rarityWrap = document.createElement('div');
     rarityWrap.className = 'booster-rates-rarity';
     const rarityTitle = document.createElement('h3');
-    rarityTitle.textContent = tt('gacha.ratesSection', 'Pull rates');
+    rarityTitle.textContent = tt('gacha.ratesSection', 'Rarity rates');
     rarityWrap.appendChild(rarityTitle);
     const rarityGrid = document.createElement('div');
     rarityGrid.className = 'booster-rates-rarity-grid';
-    [
-      { key: 'n', label: tt('gacha.tierN', 'N'), pct: rates.n != null ? rates.n : 90 },
-      { key: 'sr', label: tt('gacha.tierSr', 'SR'), pct: rates.sr != null ? rates.sr : 9.2 },
-      { key: 'ur', label: tt('gacha.tierUr', 'UR'), pct: rates.ur != null ? rates.ur : 0.8 },
-    ].forEach((row) => {
+    (rates?.rarity_rates || []).forEach((row) => {
       const chip = document.createElement('span');
-      chip.className = 'booster-rarity-chip gacha-rarity-chip gacha-rarity-chip--' + row.key;
-      chip.innerHTML = `${row.label}<span class="brp">${row.pct}%</span>`;
+      chip.className = 'booster-rarity-chip';
+      if (row.count != null) {
+        chip.title = tt('gacha.rarityCount', '{n} cards', { n: row.count });
+      }
+      chip.innerHTML = `${row.rarity}<span class="brp">${formatRatePercent(row.percent)}</span>`;
       rarityGrid.appendChild(chip);
     });
+    if (!rarityGrid.childElementCount) {
+      const empty = document.createElement('p');
+      empty.className = 'booster-rates-lead';
+      empty.style.margin = '0';
+      empty.textContent = tt('gacha.ratesEmpty', 'No rarity data for this pool.');
+      rarityGrid.appendChild(empty);
+    }
     rarityWrap.appendChild(rarityGrid);
     body.appendChild(rarityWrap);
 
-    const pool = info.pool || {};
+    const pool = rates.pool || {};
     const poolWrap = document.createElement('div');
     poolWrap.className = 'gacha-rates-pool';
     const poolTitle = document.createElement('h3');
@@ -241,42 +255,109 @@
     poolLine.style.margin = '0';
     poolLine.textContent = tt(
       'gacha.poolInfo',
-      '{total} cards in pool · UR {ur} · SR {sr} · N {n}',
-      {
-        total: pool.total || 0,
-        ur: pool.ur || 0,
-        sr: pool.sr || 0,
-        n: pool.n || 0,
-      }
+      '{total} cards in pool',
+      { total: pool.total || 0 }
     );
     poolWrap.appendChild(poolLine);
     body.appendChild(poolWrap);
 
+    const cardsWrap = document.createElement('div');
+    cardsWrap.className = 'booster-rates-cards';
+    const cardsTitle = document.createElement('h3');
+    cardsTitle.textContent = tt('gacha.cardsSection', 'Card pull rates');
+    cardsWrap.appendChild(cardsTitle);
+    const scroll = document.createElement('div');
+    scroll.className = 'booster-rates-scroll';
+    const list = document.createElement('ul');
+    list.className = 'booster-rates-cardlist';
+    const G = global.G || {};
+    const allCards = G.allCards || {};
+    (rates?.cards || []).forEach((row) => {
+      const li = document.createElement('li');
+      li.className = 'booster-rates-card';
+      const thumbBtn = document.createElement('button');
+      thumbBtn.type = 'button';
+      thumbBtn.className = 'booster-rates-thumb';
+      thumbBtn.title = tt('gacha.viewCard', 'View card details');
+      const base = allCards[row.card_no] || row;
+      const cardObj = typeof global.enrichCard === 'function' ? global.enrichCard(base) : base;
+      if (typeof global.appendCardFace === 'function') {
+        global.appendCardFace(thumbBtn, cardObj, {
+          sideways: typeof global.isLiveCard === 'function' ? global.isLiveCard(cardObj) : false,
+          lazy: true,
+          thumbWidth: 96,
+        });
+      } else {
+        const img = document.createElement('img');
+        img.src = cardImg(row.card_no, 96);
+        img.alt = '';
+        img.loading = 'lazy';
+        thumbBtn.appendChild(img);
+      }
+      thumbBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (typeof global.showCatalogCard === 'function') global.showCatalogCard(cardObj);
+      });
+      const meta = document.createElement('div');
+      meta.className = 'booster-rates-meta';
+      const idEl = document.createElement('div');
+      idEl.className = 'booster-rates-id';
+      idEl.textContent = row.card_no || '';
+      const nameEl = document.createElement('div');
+      nameEl.className = 'booster-rates-name';
+      nameEl.textContent = cardLocaleNameSafe(row);
+      const subEl = document.createElement('div');
+      subEl.className = 'booster-rates-sub';
+      subEl.textContent = row.rarity || '';
+      meta.appendChild(idEl);
+      meta.appendChild(nameEl);
+      meta.appendChild(subEl);
+      const pct = document.createElement('div');
+      pct.className = 'booster-rates-pct';
+      pct.textContent = formatRatePercent(row.percent);
+      li.appendChild(thumbBtn);
+      li.appendChild(meta);
+      li.appendChild(pct);
+      list.appendChild(li);
+    });
+    if (!list.childElementCount) {
+      const empty = document.createElement('p');
+      empty.className = 'booster-rates-loading';
+      empty.textContent = tt('gacha.cardsEmpty', 'No cards in this pool.');
+      scroll.appendChild(empty);
+    } else {
+      scroll.appendChild(list);
+    }
+    cardsWrap.appendChild(scroll);
+    body.appendChild(cardsWrap);
+
     appendPackList(
       body,
       tt('gacha.includedSection', 'Included packs'),
-      info.packs_included,
+      rates.packs_included,
       '—'
     );
     appendPackList(
       body,
       tt('gacha.excludedSection', 'Not included'),
-      info.packs_excluded,
+      rates.packs_excluded,
       '—'
     );
 
-    const notes = document.createElement('ul');
-    notes.className = 'booster-rates-notes';
-    [
-      tt('gacha.noteEqual', 'After rarity is rolled, each card in that tier is equally likely.'),
+    const notes = [
+      tt('gacha.noteEqual', 'Each pull first rolls a scout band, then picks one card uniformly from that band.'),
+      tt('gacha.notePerPull', 'Percents are chance per single Scout ×1 pull (10+1 uses the same odds eleven times).'),
       tt('gacha.noteNoPrDuo', 'PR, DUO, and Premium Booster cards are not in this pool.'),
       tt('gacha.noteMellow', 'MELLOW MOMENT is not in this pool yet.'),
-    ].forEach((text) => {
+    ];
+    const notesEl = document.createElement('ul');
+    notesEl.className = 'booster-rates-notes';
+    notes.forEach((text) => {
       const li = document.createElement('li');
       li.textContent = text;
-      notes.appendChild(li);
+      notesEl.appendChild(li);
     });
-    body.appendChild(notes);
+    body.appendChild(notesEl);
   }
 
   async function openGachaRates() {
@@ -298,13 +379,11 @@
       if (modal) modal.classList.add('open');
     }
     try {
-      if (!_info || !_info.packs_included) {
-        _info = await accountPost('gacha_info', {});
-        syncScoutTileLock(!!_info.unlocked);
-        updateRateCopy(_info);
-        syncGems(_info.star_gems);
+      if (!_ratesCache) {
+        const res = await accountPost('gacha_rates', {});
+        _ratesCache = res.rates || res;
       }
-      renderGachaRatesModal(_info);
+      renderGachaRatesModal(_ratesCache);
     } catch (e) {
       if (body) {
         body.replaceChildren();

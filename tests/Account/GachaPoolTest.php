@@ -100,4 +100,39 @@ final class GachaPoolTest extends TestCase
         $this->assertNotContains('bp_mellow', $incIds);
         $this->assertNotContains('pb_muse', $incIds);
     }
+
+    public function testComputeRatesUsesLovecaRaritiesAndPerCardOdds(): void
+    {
+        $cards = tcgLoadCardsData();
+        $rates = tcgComputeGachaRates($cards);
+        $this->assertNotEmpty($rates['rarity_rates']);
+        $this->assertNotEmpty($rates['cards']);
+        $this->assertGreaterThan(100, count($rates['cards']));
+
+        $rarities = array_column($rates['rarity_rates'], 'rarity');
+        $this->assertContains('N', $rarities);
+        $this->assertNotContains('n', $rarities);
+        $this->assertNotContains('sr', $rarities);
+        $this->assertNotContains('ur', $rarities);
+        $this->assertNotContains('SR', $rarities);
+        $this->assertNotContains('UR', $rarities);
+
+        $sumRarity = 0.0;
+        foreach ($rates['rarity_rates'] as $row) {
+            $sumRarity += (float)$row['percent'];
+            $this->assertGreaterThan(0, $row['percent']);
+            $this->assertGreaterThan(0, $row['count']);
+        }
+        $this->assertEqualsWithDelta(100.0, $sumRarity, 0.05);
+
+        $sumCards = 0.0;
+        foreach ($rates['cards'] as $row) {
+            $sumCards += (float)$row['percent'];
+            $this->assertNotSame('', $row['card_no']);
+            $this->assertNotSame('', $row['rarity']);
+            $this->assertContains($row['tier'], ['n', 'sr', 'ur']);
+            $this->assertGreaterThan(0, $row['percent']);
+        }
+        $this->assertEqualsWithDelta(100.0, $sumCards, 0.05);
+    }
 }

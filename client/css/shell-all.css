@@ -9000,6 +9000,7 @@ button.player-title--btn{cursor:pointer}
 }
 #modal-gacha-rates .mbox{max-width:min(720px,96vw);max-height:min(88vh,920px);display:flex;flex-direction:column}
 #gacha-rates-body{flex:1;min-height:0;overflow-y:auto;padding-right:2px}
+#gacha-rates-body .booster-rates-scroll{max-height:min(42vh,420px);margin-bottom:12px}
 .gacha-rates-pool{margin:0 0 14px}
 .gacha-rates-pool h3,.gacha-rates-packs h3{
   margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(186,228,255,.92)
