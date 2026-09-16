@@ -8664,3 +8664,43 @@ button.player-title--btn{cursor:pointer}
 .title-preview-name{margin:0 0 6px;font-size:18px;font-weight:800;color:#fff}
 .title-preview-meta{margin:0 0 8px;font-size:13px;color:rgba(186,228,255,.9)}
 .title-preview-hint{margin:0;font-size:13px;line-height:1.4;color:rgba(255,255,255,.78)}
+
+/* Scout / Gacha */
+.scout-hub-tile--boosters .shop-hub-tile__art,
+.scout-hub-tile--gacha .shop-hub-tile__art{
+  background-size:contain;background-position:center;background-repeat:no-repeat;
+  background-color:rgba(0,0,0,.22)
+}
+.scout-hub-tile--gacha .shop-hub-tile__art{background-size:42%}
+.gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
+.gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}
+.gacha-pull-overlay{
+  position:fixed;inset:0;z-index:9200;display:flex;align-items:center;justify-content:center;
+  background:rgba(4,8,18,.88);cursor:pointer
+}
+.gacha-pull-overlay[hidden]{display:none!important}
+body.gacha-pull-open{overflow:hidden}
+.gacha-pull-stage{
+  position:relative;width:min(520px,94vw);min-height:min(70vh,560px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px
+}
+.gacha-pull-flash{
+  position:absolute;inset:8%;border-radius:24px;pointer-events:none;opacity:.55;
+  animation:gacha-flash-pulse 1.1s ease-in-out infinite
+}
+.gacha-pull-flash.is-n{box-shadow:0 0 0 3px rgba(180,190,210,.55),0 0 48px rgba(140,150,170,.35);background:radial-gradient(circle,rgba(160,170,190,.25),transparent 70%)}
+.gacha-pull-flash.is-sr{box-shadow:0 0 0 3px rgba(245,200,66,.85),0 0 64px rgba(245,180,40,.45);background:radial-gradient(circle,rgba(245,200,66,.28),transparent 70%)}
+.gacha-pull-flash.is-ur{box-shadow:0 0 0 3px rgba(255,120,220,.9),0 0 80px rgba(120,200,255,.55),0 0 120px rgba(255,80,180,.35);background:conic-gradient(from 0deg,rgba(255,80,180,.35),rgba(120,200,255,.35),rgba(255,220,80,.35),rgba(255,80,180,.35))}
+@keyframes gacha-flash-pulse{0%,100%{transform:scale(1);opacity:.5}50%{transform:scale(1.03);opacity:.75}}
+.gacha-pull-render-wrap{position:relative;z-index:1;text-align:center;margin-bottom:8px}
+.gacha-pull-render{display:block;max-height:min(42vh,360px);max-width:min(90vw,420px);object-fit:contain;filter:drop-shadow(0 8px 24px rgba(0,0,0,.45))}
+.gacha-pull-idol{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px}
+.gacha-pull-idol-icon{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.55)}
+.gacha-pull-idol-name{font-size:18px;font-weight:800;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.gacha-pull-card-wrap{position:relative;z-index:2;opacity:0;transform:translateY(12px) scale(.96);transition:opacity .28s ease,transform .28s ease}
+.gacha-pull-stage.is-show-card .gacha-pull-card-wrap{opacity:1;transform:none}
+.gacha-pull-card{display:block;width:min(220px,56vw);height:auto;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.gacha-pull-stage.is-ur .gacha-pull-card{box-shadow:0 0 0 2px rgba(255,140,220,.8),0 12px 48px rgba(120,80,200,.55)}
+.gacha-pull-stage.is-sr .gacha-pull-card{box-shadow:0 0 0 2px rgba(245,200,66,.75),0 12px 40px rgba(180,120,20,.4)}
+.gacha-pull-tier{margin:8px 0 0;font-size:14px;font-weight:800;letter-spacing:.08em;color:rgba(255,255,255,.9);text-align:center}
+.gacha-pull-hint{position:relative;z-index:2;margin:10px 0 0;font-size:13px;color:rgba(255,255,255,.7)}

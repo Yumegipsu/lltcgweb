@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=112">
+<link rel="stylesheet" href="client/css/shell-all.css?v=113">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
 <link rel="stylesheet" href="client/css/playmats.css?v=6">
@@ -696,10 +696,10 @@ try {
       <div class="hub-stat" id="hub-rank"></div>
       <div class="llc-menu-list">
         <div class="llc-menu-row llc-menu-row--collect">
-          <button class="llc-menu-item llc-menu-hover llc-menu-item--wide llc-menu-accent-pink" id="btn-hub-booster" type="button">
+          <button class="llc-menu-item llc-menu-hover llc-menu-item--wide llc-menu-accent-pink" id="btn-hub-scout" type="button">
             <span class="llc-menu-item-body">
-              <span class="llc-menu-item-title" data-i18n="hub.booster.title">Open Boosters</span>
-              <span class="llc-menu-item-sub" data-i18n="hub.booster.sub">Open card booster packs</span>
+              <span class="llc-menu-item-title" data-i18n="hub.scout.title">Scout</span>
+              <span class="llc-menu-item-sub" data-i18n="hub.scout.sub">Pull cards for your collection!</span>
             </span>
           </button>
           <button class="llc-menu-item llc-menu-hover llc-menu-item--narrow llc-menu-accent-pink" id="btn-hub-sticker" type="button">
@@ -973,7 +973,7 @@ try {
     </div>
     <div class="panel account-panel">
       <div class="account-screen-head">
-        <button class="btn-ghost" id="btn-booster-back" type="button" data-i18n="booster.backHub">← Hub</button>
+        <button class="btn-ghost" id="btn-booster-back" type="button" data-i18n="booster.backScout">← Scout</button>
         <h2 data-i18n="booster.title">Open Boosters</h2>
       </div>
       <p id="booster-daily-info" class="hub-stat"></p>
@@ -1029,6 +1029,86 @@ try {
       </div>
       <p class="lerr" id="sticker-err"></p>
     </div>
+  </div>
+</div>
+
+<!-- ══ SCOUT HUB ══ -->
+<div id="screen-scout" class="screen llc-menu-screen" hidden aria-hidden="true">
+  <div class="account-shell">
+    <div class="logo">
+      <img class="logo-img" src="tcglogo.png" alt="">
+      <div class="logo-foot">
+        <span class="logo-version">v0.1.7</span>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
+      </div>
+    </div>
+    <div class="panel account-panel">
+      <div class="account-screen-head">
+        <button class="btn-ghost" id="btn-scout-back" type="button" data-i18n="scout.backHub">← Hub</button>
+        <h2 data-i18n="scout.title">Scout</h2>
+      </div>
+      <p class="hub-stat" data-i18n="scout.hint">Open booster packs or pull from the general gacha.</p>
+      <div class="shop-hub-grid" id="scout-hub-grid">
+        <button type="button" class="shop-hub-tile scout-hub-tile--boosters" id="btn-scout-boosters">
+          <span class="shop-hub-tile__art" id="scout-hub-boosters-art" aria-hidden="true"></span>
+          <span class="shop-hub-tile__label" data-i18n="scout.boostersTitle">Booster Packs</span>
+          <span class="shop-hub-tile__sub" data-i18n="scout.boostersSub">Open set booster packs</span>
+        </button>
+        <button type="button" class="shop-hub-tile scout-hub-tile--gacha" id="btn-scout-gacha">
+          <span class="shop-hub-tile__art" id="scout-hub-gacha-art" aria-hidden="true"></span>
+          <span class="shop-hub-tile__label" data-i18n="scout.gachaTitle">Gacha</span>
+          <span class="shop-hub-tile__sub" data-i18n="scout.gachaSub">General Scout pulls</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GACHA ══ -->
+<div id="screen-gacha" class="screen llc-menu-screen" hidden aria-hidden="true">
+  <div class="account-shell">
+    <div class="logo">
+      <img class="logo-img" src="tcglogo.png" alt="">
+      <div class="logo-foot">
+        <span class="logo-version">v0.1.7</span>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
+      </div>
+    </div>
+    <div class="panel account-panel">
+      <div class="account-screen-head">
+        <button class="btn-ghost" id="btn-gacha-back" type="button" data-i18n="gacha.backScout">← Scout</button>
+        <h2 data-i18n="gacha.title">Gacha</h2>
+      </div>
+      <div class="hub-coins-pill sticker-seals-bar" id="gacha-gems-bar" data-i18n-aria-label="gacha.gemsAria" aria-label="Star Gems">
+        <img src="assets/Star_Gem.png" alt="" width="22" height="22" aria-hidden="true">
+        <b id="gacha-gems">0</b>
+      </div>
+      <p class="hub-stat" id="gacha-rates" data-i18n="gacha.ratesLead">N ~90% · SR ~9.2% · UR ~0.8%</p>
+      <p class="hub-stat" id="gacha-pool-info"></p>
+      <div class="gacha-actions">
+        <button class="btn-grad" id="btn-gacha-single" type="button" data-i18n="gacha.single">Scout ×1 (20)</button>
+        <button class="btn-out" id="btn-gacha-multi" type="button" data-i18n="gacha.multi">Scout 10+1 (200)</button>
+      </div>
+      <p class="lerr" id="gacha-err"></p>
+    </div>
+  </div>
+</div>
+
+<div id="overlay-gacha-pull" class="gacha-pull-overlay" hidden aria-hidden="true">
+  <div class="gacha-pull-stage" id="gacha-pull-stage">
+    <div class="gacha-pull-flash" id="gacha-pull-flash" aria-hidden="true"></div>
+    <div class="gacha-pull-render-wrap" id="gacha-pull-render-wrap" hidden>
+      <img class="gacha-pull-render" id="gacha-pull-render" alt="" decoding="async">
+      <div class="gacha-pull-idol">
+        <img class="gacha-pull-idol-icon" id="gacha-pull-idol-icon" alt="" decoding="async">
+        <span class="gacha-pull-idol-name" id="gacha-pull-idol-name"></span>
+      </div>
+    </div>
+    <div class="gacha-pull-card-wrap" id="gacha-pull-card-wrap">
+      <img class="gacha-pull-card" id="gacha-pull-card" alt="" decoding="async">
+      <p class="gacha-pull-tier" id="gacha-pull-tier"></p>
+    </div>
+    <p class="gacha-pull-hint" id="gacha-pull-hint" data-i18n="gacha.tapContinue">Tap to continue</p>
   </div>
 </div>
 
@@ -2940,7 +3020,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=190"></script>
+<script src="i18n.js?v=191"></script>
 <script src="log_i18n.js?v=18"></script>
 <script src="sfx.js?v=19"></script>
 <script src="client/js/news.js?v=41"></script>
@@ -2948,7 +3028,7 @@ try {
 <script src="client/js/titles.js?v=5"></script>
 <script src="client/js/friend-push.js?v=12"></script>
 <script src="client/js/runtime-flags.js?v=5"></script>
-<script src="client/js/api-client.js?v=38"></script>
+<script src="client/js/api-client.js?v=39"></script>
 <script>
 /* Local Docker fake Discord only — skipped on production (no 404 for missing file). */
 (function () {
@@ -2964,6 +3044,7 @@ try {
 <script src="client/js/playmats.js?v=8"></script>
 <script src="client/js/apk-asset-cache.js?v=8"></script>
 <script src="client/js/shop-new.js?v=2"></script>
+<script src="client/js/gacha.js?v=1"></script>
 <script src="client/js/ranked-pr-reward.js?v=6"></script>
 <script src="client/js/missions.js?v=14"></script>
 <script src="client/js/login-bonus.js?v=3"></script>
@@ -7420,6 +7501,23 @@ function closePlaymatShopLightbox() {
   if (frame) frame.style.backgroundImage = '';
   return true;
 }
+
+async function loadScoutHubScreen() {
+  if (!isSignedInAccount()) {
+    toast(t('toast.signInDeckBuilder') || 'Sign in required', 2800);
+    return;
+  }
+  showScr('scout');
+  const art = el('scout-hub-boosters-art');
+  if (art) {
+    art.style.backgroundImage = 'url("assets/packs/boxes/bp_vol1.webp")';
+  }
+  const gachaArt = el('scout-hub-gacha-art');
+  if (gachaArt) {
+    gachaArt.style.backgroundImage = 'url("assets/Star_Gem.png")';
+  }
+}
+window.loadScoutHubScreen = loadScoutHubScreen;
 
 async function loadShopHubScreen() {
   if (!isSignedInAccount()) {
@@ -17296,7 +17394,12 @@ async function bootApp() {
   on('baton-touch-toggle', 'click', toggleBatonTouchMode);
   syncBatonTouchToggleUi();
   on('btn-starter-confirm', 'click', confirmStarter);
-  on('btn-hub-booster', 'click', loadBoosterScreen);
+  on('btn-hub-scout', 'click', () => { void loadScoutHubScreen(); });
+  on('btn-scout-back', 'click', () => { enterHub(A.profile); });
+  on('btn-scout-boosters', 'click', () => { void loadBoosterScreen(); });
+  on('btn-scout-gacha', 'click', () => {
+    if (typeof window.loadGachaScreen === 'function') window.loadGachaScreen();
+  });
   on('btn-hub-sticker', 'click', loadStickerShopScreen);
   on('btn-hub-shop', 'click', () => { void loadShopHubScreen(); });
   on('btn-shop-back', 'click', () => { enterHub(A.profile); });
@@ -17457,7 +17560,7 @@ async function bootApp() {
   });
   on('btn-lobby-hub', 'click', leaveLobbyToMenu);
   on('btn-lobby-deck-experiment', 'click', () => openDeckExperiment({ returnTo: 'lobby' }));
-  on('btn-booster-back', 'click', () => enterHub(A.profile));
+  on('btn-booster-back', 'click', () => { void loadScoutHubScreen(); });
   on('btn-sticker-back', 'click', () => enterHub(A.profile));
   on('btn-sticker-info', 'click', openStickerInfoModal);
   on('btn-sticker-info-close', 'click', () => closeM('modal-sticker-info'));

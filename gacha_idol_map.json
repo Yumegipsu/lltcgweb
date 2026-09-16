@@ -1,0 +1,522 @@
+{
+  "eli": {
+    "first": "Eli",
+    "name_en": "Eli Ayase",
+    "idol_short": "Eli",
+    "render": "assets/gacha/renders/eli.png",
+    "portrait": "https://i.idol.st/u/idol/1Ayase-Eli-MqG2az.png",
+    "unit": "µ's"
+  },
+  "hanayo": {
+    "first": "Hanayo",
+    "name_en": "Hanayo Koizumi",
+    "idol_short": "Hanayo",
+    "render": "assets/gacha/renders/hanayo.png",
+    "portrait": "https://i.idol.st/u/idol/3Koizumi-Hanayo-kdVFUI.png",
+    "unit": "µ's"
+  },
+  "honoka": {
+    "first": "Honoka",
+    "name_en": "Honoka Kosaka",
+    "idol_short": "Honoka",
+    "render": "assets/gacha/renders/honoka.png",
+    "portrait": "https://i.idol.st/u/idol/4Kousaka-Honoka-m1dEvp.png",
+    "unit": "µ's"
+  },
+  "kotori": {
+    "first": "Kotori",
+    "name_en": "Kotori Minami",
+    "idol_short": "Kotori",
+    "render": "assets/gacha/renders/kotori.png",
+    "portrait": "https://i.idol.st/u/idol/9Minami-Kotori-06DzDA.png",
+    "unit": "µ's"
+  },
+  "maki": {
+    "first": "Maki",
+    "name_en": "Maki Nishikino",
+    "idol_short": "Maki",
+    "render": "assets/gacha/renders/maki.png",
+    "portrait": "https://i.idol.st/u/idol/10Nishikino-Maki-UFQB4E.png",
+    "unit": "µ's"
+  },
+  "nico": {
+    "first": "Nico",
+    "name_en": "Nico Yazawa",
+    "idol_short": "Nico",
+    "render": "assets/gacha/renders/nico.png",
+    "portrait": "https://i.idol.st/u/idol/18Yazawa-Nico-agidhY.png",
+    "unit": "µ's"
+  },
+  "nozomi": {
+    "first": "Nozomi",
+    "name_en": "Nozomi Tojo",
+    "idol_short": "Nozomi",
+    "render": "assets/gacha/renders/nozomi.png",
+    "portrait": "https://i.idol.st/u/idol/15Toujou-Nozomi-ToXNZh.png",
+    "unit": "µ's"
+  },
+  "rin": {
+    "first": "Rin",
+    "name_en": "Rin Hoshizora",
+    "idol_short": "Rin",
+    "render": "assets/gacha/renders/rin.png",
+    "portrait": "https://i.idol.st/u/idol/2Hoshizora-Rin-sgemWZ.png",
+    "unit": "µ's"
+  },
+  "umi": {
+    "first": "Umi",
+    "name_en": "Umi Sonoda",
+    "idol_short": "Umi",
+    "render": "assets/gacha/renders/umi.png",
+    "portrait": "https://i.idol.st/u/idol/13Sonoda-Umi-RVB62t.png",
+    "unit": "µ's"
+  },
+  "chika": {
+    "first": "Chika",
+    "name_en": "Chika Takami",
+    "idol_short": "Chika",
+    "render": "assets/gacha/renders/chika.png",
+    "portrait": "https://i.idol.st/u/idol/14Takami-Chika-RUJSlZ.png",
+    "unit": "Aqours"
+  },
+  "dia": {
+    "first": "Dia",
+    "name_en": "Dia Kurosawa",
+    "idol_short": "Dia",
+    "render": "assets/gacha/renders/dia.png",
+    "portrait": "https://i.idol.st/u/idol/6Kurosawa-Dia-gjXWOR.png",
+    "unit": "Aqours"
+  },
+  "hanamaru": {
+    "first": "Hanamaru",
+    "name_en": "Hanamaru Kunikida",
+    "idol_short": "Hanamaru",
+    "render": "assets/gacha/renders/hanamaru.png",
+    "portrait": "https://i.idol.st/u/idol/5Kunikida-Hanamaru-nqbGF1.png",
+    "unit": "Aqours"
+  },
+  "kanan": {
+    "first": "Kanan",
+    "name_en": "Kanan Matsuura",
+    "idol_short": "Kanan",
+    "render": "assets/gacha/renders/kanan.png",
+    "portrait": "https://i.idol.st/u/idol/8Matsuura-Kanan-qlLtYT.png",
+    "unit": "Aqours"
+  },
+  "mari": {
+    "first": "Mari",
+    "name_en": "Mari Ohara",
+    "idol_short": "Mari",
+    "render": "assets/gacha/renders/mari.png",
+    "portrait": "https://i.idol.st/u/idol/11Ohara-Mari-npxzmE.png",
+    "unit": "Aqours"
+  },
+  "riko": {
+    "first": "Riko",
+    "name_en": "Riko Sakurauchi",
+    "idol_short": "Riko",
+    "render": "assets/gacha/renders/riko.png",
+    "portrait": "https://i.idol.st/u/idol/12Sakurauchi-Riko-xHBC2K.png",
+    "unit": "Aqours"
+  },
+  "ruby": {
+    "first": "Ruby",
+    "name_en": "Ruby Kurosawa",
+    "idol_short": "Ruby",
+    "render": "assets/gacha/renders/ruby.png",
+    "portrait": "https://i.idol.st/u/idol/7Kurosawa-Ruby-UbPDc8.png",
+    "unit": "Aqours"
+  },
+  "yoshiko": {
+    "first": "Yoshiko",
+    "name_en": "Yoshiko Tsushima",
+    "idol_short": "Yoshiko",
+    "render": "assets/gacha/renders/yoshiko.png",
+    "portrait": "https://i.idol.st/u/idol/16Tsushima-Yoshiko-VytOHY.png",
+    "unit": "Aqours"
+  },
+  "you": {
+    "first": "You",
+    "name_en": "You Watanabe",
+    "idol_short": "You",
+    "render": "assets/gacha/renders/you.png",
+    "portrait": "https://i.idol.st/u/idol/17Watanabe-You-ohUDHk.png",
+    "unit": "Aqours"
+  },
+  "ai": {
+    "first": "Ai",
+    "name_en": "Ai Miyashita",
+    "idol_short": "Ai",
+    "render": "assets/gacha/renders/ai.png",
+    "portrait": "https://i.idol.st/u/idol/62Miyashita-Ai-3rwYaJ.png",
+    "unit": "Nijigasaki"
+  },
+  "ayumu": {
+    "first": "Ayumu",
+    "name_en": "Ayumu Uehara",
+    "idol_short": "Ayumu",
+    "render": "assets/gacha/renders/ayumu.png",
+    "portrait": "https://i.idol.st/u/idol/102Uehara-Ayumu-TgB2p1.png",
+    "unit": "Nijigasaki"
+  },
+  "emma": {
+    "first": "Emma",
+    "name_en": "Emma Verde",
+    "idol_short": "Emma",
+    "render": "assets/gacha/renders/emma.png",
+    "portrait": "https://i.idol.st/u/idol/28Emma-Verde-cn5mja.png",
+    "unit": "Nijigasaki"
+  },
+  "kanata": {
+    "first": "Kanata",
+    "name_en": "Kanata Konoe",
+    "idol_short": "Kanata",
+    "render": "assets/gacha/renders/kanata.png",
+    "portrait": "https://i.idol.st/u/idol/50Konoe-Kanata-xB16n7.png",
+    "unit": "Nijigasaki"
+  },
+  "karin": {
+    "first": "Karin",
+    "name_en": "Karin Asaka",
+    "idol_short": "Karin",
+    "render": "assets/gacha/renders/karin.png",
+    "portrait": "https://i.idol.st/u/idol/24Asaka-Karin-fd7iBo.png",
+    "unit": "Nijigasaki"
+  },
+  "kasumi": {
+    "first": "Kasumi",
+    "name_en": "Kasumi Nakasu",
+    "idol_short": "Kasumi",
+    "render": "assets/gacha/renders/kasumi.png",
+    "portrait": "https://i.idol.st/u/idol/67Nakasu-Kasumi-M5ZCuB.png",
+    "unit": "Nijigasaki"
+  },
+  "lanzhu": {
+    "first": "Lanzhu",
+    "name_en": "Lanzhu Zhong",
+    "idol_short": "Lanzhu",
+    "render": "assets/gacha/renders/lanzhu.png",
+    "portrait": "https://i.idol.st/u/idol/124Lanzhu-ttDPY2.png",
+    "unit": "Nijigasaki"
+  },
+  "mia": {
+    "first": "Mia",
+    "name_en": "Mia Taylor",
+    "idol_short": "Mia",
+    "render": "assets/gacha/renders/mia.png",
+    "portrait": "https://i.idol.st/u/idol/123Mia-Taylor-88B8V6.png",
+    "unit": "Nijigasaki"
+  },
+  "rina": {
+    "first": "Rina",
+    "name_en": "Rina Tennoji",
+    "idol_short": "Rina",
+    "render": "assets/gacha/renders/rina.png",
+    "portrait": "https://i.idol.st/u/idol/97Tennoji-Rina-tZo8rZ.png",
+    "unit": "Nijigasaki"
+  },
+  "setsuna": {
+    "first": "Setsuna",
+    "name_en": "Setsuna Yuki",
+    "idol_short": "Setsuna",
+    "render": "assets/gacha/renders/setsuna.png",
+    "portrait": "https://i.idol.st/u/idol/110Yuki-Setsuna-44Ojdt.png",
+    "unit": "Nijigasaki"
+  },
+  "shioriko": {
+    "first": "Shioriko",
+    "name_en": "Shioriko Mifune",
+    "idol_short": "Shioriko",
+    "render": "assets/gacha/renders/shioriko.png",
+    "portrait": "https://i.idol.st/u/idol/113Mifune-Shioriko-o5YINu.png",
+    "unit": "Nijigasaki"
+  },
+  "shizuku": {
+    "first": "Shizuku",
+    "name_en": "Shizuku Osaka",
+    "idol_short": "Shizuku",
+    "render": "assets/gacha/renders/shizuku.png",
+    "portrait": "https://i.idol.st/u/idol/70Osaka-Shizuku-4TmRNm.png",
+    "unit": "Nijigasaki"
+  },
+  "chisato": {
+    "first": "Chisato",
+    "name_en": "Chisato Arashi",
+    "idol_short": "Chisato",
+    "render": "assets/gacha/renders/chisato.png",
+    "portrait": "https://i.idol.st/u/idol/120Arashi-Chisato-NGhy5X.png",
+    "unit": "Liella!"
+  },
+  "kanon": {
+    "first": "Kanon",
+    "name_en": "Kanon Shibuya",
+    "idol_short": "Kanon",
+    "render": "assets/gacha/renders/kanon.png",
+    "portrait": "https://i.idol.st/u/idol/118Shibuya-Kanon-v7t9EL.png",
+    "unit": "Liella!"
+  },
+  "keke": {
+    "first": "Keke",
+    "name_en": "Keke Tang",
+    "idol_short": "Keke",
+    "render": "assets/gacha/renders/keke.png",
+    "portrait": "https://i.idol.st/u/idol/119Tang-Keke-DsQVZW.png",
+    "unit": "Liella!"
+  },
+  "kinako": {
+    "first": "Kinako",
+    "name_en": "Kinako Sakurakoji",
+    "idol_short": "Kinako",
+    "render": "assets/gacha/renders/kinako.png",
+    "portrait": "https://i.idol.st/u/idol/172Sakurakoji-Kinako-dQVwkG.png",
+    "unit": "Liella!"
+  },
+  "mei": {
+    "first": "Mei",
+    "name_en": "Mei Yoneme",
+    "idol_short": "Mei",
+    "render": "assets/gacha/renders/mei.png",
+    "portrait": "https://i.idol.st/u/idol/173Yoneme-Mei-tsct9m.png",
+    "unit": "Liella!"
+  },
+  "natsumi": {
+    "first": "Natsumi",
+    "name_en": "Natsumi Onitsuka",
+    "idol_short": "Natsumi",
+    "render": "assets/gacha/renders/natsumi.png",
+    "portrait": "https://i.idol.st/u/idol/175Onitsuka-Natsumi-pUUL81.png",
+    "unit": "Liella!"
+  },
+  "ren": {
+    "first": "Ren",
+    "name_en": "Ren Hazuki",
+    "idol_short": "Ren",
+    "render": "assets/gacha/renders/ren.png",
+    "portrait": "https://i.idol.st/u/idol/122Hazuki-Ren-vhPCUT.png",
+    "unit": "Liella!"
+  },
+  "shiki": {
+    "first": "Shiki",
+    "name_en": "Shiki Wakana",
+    "idol_short": "Shiki",
+    "render": "assets/gacha/renders/shiki.png",
+    "portrait": "https://i.idol.st/u/idol/174Wakana-Shiki-fxvbKO.png",
+    "unit": "Liella!"
+  },
+  "sumire": {
+    "first": "Sumire",
+    "name_en": "Sumire Heanna",
+    "idol_short": "Sumire",
+    "render": "assets/gacha/renders/sumire.png",
+    "portrait": "https://i.idol.st/u/idol/121Heanna-Sumire-pZiy0V.png",
+    "unit": "Liella!"
+  },
+  "tomari": {
+    "first": "Tomari",
+    "name_en": "Tomari",
+    "idol_short": "Tomari",
+    "render": "assets/gacha/renders/tomari.png",
+    "portrait": "https://i.idol.st/u/idol/209Onitsuka-Tomari-OoFGci.png",
+    "unit": "Liella!"
+  },
+  "ceras": {
+    "first": "Ceras",
+    "name_en": "Ceras Yanagida Lilienfeld",
+    "idol_short": "Ceras",
+    "render": "assets/gacha/renders/ceras.png",
+    "portrait": "https://i.idol.st/u/idol/230Ceras-Yanagida-Lilienfeld-PyBP4A.png",
+    "unit": "Hasunosora"
+  },
+  "ginko": {
+    "first": "Ginko",
+    "name_en": "Ginko Momose",
+    "idol_short": "Ginko",
+    "render": "assets/gacha/renders/ginko.png",
+    "portrait": "https://i.idol.st/u/idol/224Momose-Ginko-Hm4PD6.png",
+    "unit": "Hasunosora"
+  },
+  "hime": {
+    "first": "Hime",
+    "name_en": "Hime Anyoji",
+    "idol_short": "Hime",
+    "render": "assets/gacha/renders/hime.png",
+    "portrait": "https://i.idol.st/u/idol/226Anyoji-Hime-17MyBC.png",
+    "unit": "Hasunosora"
+  },
+  "izumi": {
+    "first": "Izumi",
+    "name_en": "Izumi Katsuragi",
+    "idol_short": "Izumi",
+    "render": "assets/gacha/renders/izumi.png",
+    "portrait": "https://i.idol.st/u/idol/229Izumi-Katsuragi-8RhvDG.png",
+    "unit": "Hasunosora"
+  },
+  "kaho": {
+    "first": "Kaho",
+    "name_en": "Kaho Hinoshita",
+    "idol_short": "Kaho",
+    "render": "assets/gacha/renders/kaho.png",
+    "portrait": "https://i.idol.st/u/idol/203Hinoshita-Kaho-bnlm1L.png",
+    "unit": "Hasunosora"
+  },
+  "kosuzu": {
+    "first": "Kosuzu",
+    "name_en": "Kosuzu Kachimachi",
+    "idol_short": "Kosuzu",
+    "render": "assets/gacha/renders/kosuzu.png",
+    "portrait": "https://i.idol.st/u/idol/225Kachimachi-Kosuzu-nJo81o.png",
+    "unit": "Hasunosora"
+  },
+  "kozue": {
+    "first": "Kozue",
+    "name_en": "Kozue Otomune",
+    "idol_short": "Kozue",
+    "render": "assets/gacha/renders/kozue.png",
+    "portrait": "https://i.idol.st/u/idol/205Otomune-Kozue-6DRx95.png",
+    "unit": "Hasunosora"
+  },
+  "megumi": {
+    "first": "Megumi",
+    "name_en": "Megumi",
+    "idol_short": "Megumi",
+    "render": "assets/gacha/renders/megumi.png",
+    "portrait": "https://i.idol.st/u/idol/208Fujishima-Megumi-Fuxbjx.png",
+    "unit": "Hasunosora"
+  },
+  "rurino": {
+    "first": "Rurino",
+    "name_en": "Rurino",
+    "idol_short": "Rurino",
+    "render": "assets/gacha/renders/rurino.png",
+    "portrait": "https://i.idol.st/u/idol/207Osawa-Rurino-CPI7XV.png",
+    "unit": "Hasunosora"
+  },
+  "sayaka": {
+    "first": "Sayaka",
+    "name_en": "Sayaka Murano",
+    "idol_short": "Sayaka",
+    "render": "assets/gacha/renders/sayaka.png",
+    "portrait": "https://i.idol.st/u/idol/204Murano-Sayaka-lDSNbX.png",
+    "unit": "Hasunosora"
+  },
+  "tsuzuri": {
+    "first": "Tsuzuri",
+    "name_en": "Tsuzuri Yugiri",
+    "idol_short": "Tsuzuri",
+    "render": "assets/gacha/renders/tsuzuri.png",
+    "portrait": "https://i.idol.st/u/idol/206Yugiri-Tsuzuri-SYB1m0.png",
+    "unit": "Hasunosora"
+  },
+  "akira": {
+    "first": "Akira",
+    "name_en": "Akira",
+    "idol_short": "Akira",
+    "render": "assets/gacha/renders/akira.png",
+    "portrait": "https://i.imgur.com/Y4D5PpT.png",
+    "unit": "Ikizurai-Bu!"
+  },
+  "aurora": {
+    "first": "Aurora",
+    "name_en": "Aurora",
+    "idol_short": "Aurora",
+    "render": "assets/gacha/renders/aurora.png",
+    "portrait": "https://i.imgur.com/UEDrsP1.png",
+    "unit": "Ikizurai-Bu!"
+  },
+  "hanabi": {
+    "first": "Hanabi",
+    "name_en": "Hanabi",
+    "idol_short": "Hanabi",
+    "render": "assets/gacha/renders/hanabi.png",
+    "portrait": "https://i.imgur.com/YFGfcz9.png",
+    "unit": "Ikizurai-Bu!"
+  },
+  "leah": {
+    "first": "Leah",
+    "name_en": "Leah Kazuno",
+    "idol_short": "Leah",
+    "render": "assets/gacha/renders/leah.png",
+    "portrait": "https://i.idol.st/u/idol/42Kazuno-Leah-FUFPXq.png",
+    "unit": "Saint Snow"
+  },
+  "mai": {
+    "first": "Mai",
+    "name_en": "Mai",
+    "idol_short": "Mai",
+    "render": "assets/gacha/renders/mai.png",
+    "portrait": "https://i.imgur.com/610CeQD.png",
+    "unit": "Ikizurai-Bu!"
+  },
+  "mao": {
+    "first": "Mao",
+    "name_en": "Mao",
+    "idol_short": "Mao",
+    "render": "assets/gacha/renders/mao.png",
+    "portrait": "https://i.idol.st/u/idol/133Hiiragi-Mao-yuL7qs.png",
+    "unit": "Sunny Passion"
+  },
+  "midori": {
+    "first": "Midori",
+    "name_en": "Midori",
+    "idol_short": "Midori",
+    "render": "assets/gacha/renders/midori.png",
+    "portrait": "https://i.imgur.com/WQlLfsP.png",
+    "unit": "Ikizurai-Bu!"
+  },
+  "miracle": {
+    "first": "Miracle",
+    "name_en": "Miracle",
+    "idol_short": "Miracle",
+    "render": "assets/gacha/renders/miracle.png",
+    "portrait": "https://i.imgur.com/KpUERnq.png",
+    "unit": "Ikizurai-Bu!"
+  },
+  "noriko": {
+    "first": "Noriko",
+    "name_en": "Noriko",
+    "idol_short": "Noriko",
+    "render": "assets/gacha/renders/noriko.png",
+    "portrait": "https://i.imgur.com/5XKgWuJ.png",
+    "unit": "Ikizurai-Bu!"
+  },
+  "polka": {
+    "first": "Polka",
+    "name_en": "Polka",
+    "idol_short": "Polka",
+    "render": "assets/gacha/renders/polka.png",
+    "portrait": "https://i.imgur.com/HvRWjaF.png",
+    "unit": "Ikizurai-Bu!"
+  },
+  "sarah": {
+    "first": "Sarah",
+    "name_en": "Sarah Kazuno",
+    "idol_short": "Sarah",
+    "render": "assets/gacha/renders/sarah.png",
+    "portrait": "https://i.idol.st/u/idol/43Kazuno-Sarah-J0mfHD.png",
+    "unit": "Saint Snow"
+  },
+  "shion": {
+    "first": "Shion",
+    "name_en": "Shion",
+    "idol_short": "Shion",
+    "render": "assets/gacha/renders/shion.png",
+    "portrait": "https://i.imgur.com/7rtNUzQ.png",
+    "unit": "Ikizurai-Bu!"
+  },
+  "yukuri": {
+    "first": "Yukuri",
+    "name_en": "Yukuri",
+    "idol_short": "Yukuri",
+    "render": "assets/gacha/renders/yukuri.png",
+    "portrait": "https://i.imgur.com/KMKGGEd.png",
+    "unit": "Ikizurai-Bu!"
+  },
+  "yuna": {
+    "first": "Yuna",
+    "name_en": "Yuna",
+    "idol_short": "Yuna",
+    "render": "assets/gacha/renders/yuna.png",
+    "portrait": "https://i.idol.st/u/idol/134Hijirisawa-Yuna-B8Wlcu.png",
+    "unit": "Sunny Passion"
+  }
+}

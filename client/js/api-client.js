@@ -27,6 +27,8 @@
   global.TCG_SYNC_STREAM_FALLBACK_URL = global.TCG_SYNC_STREAM_FALLBACK_URL || './sync-stream';
   global.AUTH_FETCH_TIMEOUT_MS = global.AUTH_FETCH_TIMEOUT_MS || 12000;
   global.RECONNECT_FETCH_TIMEOUT_MS = global.RECONNECT_FETCH_TIMEOUT_MS || 12000;
+  /** Longer budget for replay library write/read (lazy v2 convert on get/start). */
+  global.REPLAY_ACCOUNT_TIMEOUT_MS = global.REPLAY_ACCOUNT_TIMEOUT_MS || 90000;
   global.AUTH_ME_RETRY_COUNT = global.AUTH_ME_RETRY_COUNT || 3;
 
   const HOSTINGER_URLS = { API: './api.php', ACCOUNT_API: './account.php', origin: 'hostinger' };
@@ -70,7 +72,7 @@
     deck_set_sleeve: 1,
     deck_equip: 1, deck_equip_starter: 1, deck_reset_starter: 1,
     deck_auto_build: 1, deck_import_decklog: 1,
-    daily_status: 1, open_booster: 1, pick_starter: 1,
+    daily_status: 1, open_booster: 1, open_gacha: 1, gacha_info: 1, pick_starter: 1,
     missions_list: 1, missions_claim: 1,
     rank_stats: 1, rank_banner_set: 1, rank_flag_set: 1,
     stamp_favorites_set: 1, public_profile: 1, public_leaderboard: 1,
@@ -490,13 +492,16 @@
         payload.token = authToken;
       }
     }
+    const timeoutMs = (action === 'replay_save' || action === 'replay_get' || action === 'replay_start')
+      ? global.REPLAY_ACCOUNT_TIMEOUT_MS
+      : global.AUTH_FETCH_TIMEOUT_MS;
     let r;
     try {
       r = await global.fetchWithTimeout(urls.ACCOUNT_API + '?action=' + encodeURIComponent(action), {
         method: 'POST',
         headers,
         body: JSON.stringify(payload),
-      });
+      }, timeoutMs);
     } catch (e) {
       if (e && typeof e === 'object' && !e.httpStatus) e.httpStatus = 0;
       throw tagAccountError(e, urls);

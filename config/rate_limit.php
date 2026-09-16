@@ -104,6 +104,9 @@ function tcgRateLimitForAction(string $action, array $body = [], ?string $authTo
         case 'open_booster':
             tcgRateLimitCheck('open_booster', tcgRateLimitAuthKey($body, $authToken), 20, TCG_RATE_WINDOW_SEC);
             break;
+        case 'open_gacha':
+            tcgRateLimitCheck('open_gacha', tcgRateLimitAuthKey($body, $authToken), 20, TCG_RATE_WINDOW_SEC);
+            break;
         case 'ranked_join':
             tcgRateLimitCheck('ranked_join', tcgRateLimitAuthKey($body, $authToken), 20, TCG_RATE_WINDOW_SEC);
             break;

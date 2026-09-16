@@ -93,6 +93,10 @@
         "sub": "Open packs from your collection",
         "title": "Boosters"
       },
+      "scout": {
+        "title": "Scout",
+        "sub": "Pull cards for your collection!"
+      },
       "cardList": {
         "sub": "Browse the full catalog",
         "title": "Card List"
@@ -504,6 +508,7 @@
       "mainMenu": "Main menu",
       "backHub": "← Hub",
       "noDailyPacks": "No daily packs left",
+      "backScout": "← Scout",
       "paidLead": "Spend Star Gems to keep opening packs today.",
       "openOnePack": "Open 1 pack",
       "starGemsLabel": "Star Gems:",
@@ -526,6 +531,33 @@
       "openSamePackAgain": "Open same pack again",
       "openSameBoxAgain": "Open same box again"
     },
+    "scout": {
+      "title": "Scout",
+      "hint": "Open booster packs or pull from the general gacha.",
+      "backHub": "← Hub",
+      "boostersTitle": "Booster Packs",
+      "boostersSub": "Open set booster packs",
+      "gachaTitle": "Gacha",
+      "gachaSub": "General Scout pulls"
+    },
+    "gacha": {
+      "title": "Gacha",
+      "backScout": "← Scout",
+      "gemsAria": "Star Gems",
+      "ratesLead": "N ~{n}% · SR ~{sr}% · UR ~{ur}%",
+      "poolInfo": "{total} cards in pool · UR {ur} · SR {sr} · N {n}",
+      "single": "Scout ×1 ({n})",
+      "multi": "Scout 10+1 ({n})",
+      "tapContinue": "Tap to continue",
+      "tierN": "N",
+      "tierSr": "SR",
+      "tierUr": "UR",
+      "scoutAgain": "Scout again",
+      "backToGacha": "Back to Gacha",
+      "loadError": "Could not load gacha",
+      "pullError": "Could not scout"
+    },
+
     "sticker": {
       "title": "Sticker Exchange",
       "backHub": "← Hub",
@@ -2094,6 +2126,10 @@
         "sub": "Open packs from your collection",
         "title": "Boosters"
       },
+      "scout": {
+        "title": "スカウト",
+        "sub": "コレクション用のカードを引こう！"
+      },
       "cardList": {
         "sub": "Browse the full catalog",
         "title": "Card List"
@@ -2513,6 +2549,7 @@
       "packsLeft": "本日（JST）残り {n} パック",
       "mainMenu": "メインメニュー",
       "backHub": "← ハブ",
+      "backScout": "← スカウト",
       "noDailyPacks": "本日の無料パックはありません",
       "paidLead": "スタージェムを使って本日もパックを開けられます。",
       "openOnePack": "パックを1つ開ける",
@@ -2536,6 +2573,33 @@
       "openSamePackAgain": "同じパックをもう一度",
       "openSameBoxAgain": "同じボックスをもう一度"
     },
+    "scout": {
+      "title": "スカウト",
+      "hint": "ブースターパックか、総合ガチャからカードを入手できます。",
+      "backHub": "← ハブ",
+      "boostersTitle": "ブースターパック",
+      "boostersSub": "セットのブースターを開封",
+      "gachaTitle": "ガチャ",
+      "gachaSub": "総合スカウト"
+    },
+    "gacha": {
+      "title": "ガチャ",
+      "backScout": "← スカウト",
+      "gemsAria": "スタージェム",
+      "ratesLead": "N 約{n}% · SR 約{sr}% · UR 約{ur}%",
+      "poolInfo": "プール {total}枚 · UR {ur} · SR {sr} · N {n}",
+      "single": "スカウト×1（{n}）",
+      "multi": "スカウト10+1（{n}）",
+      "tapContinue": "タップして続ける",
+      "tierN": "N",
+      "tierSr": "SR",
+      "tierUr": "UR",
+      "scoutAgain": "もう一度スカウト",
+      "backToGacha": "ガチャに戻る",
+      "loadError": "ガチャを読み込めませんでした",
+      "pullError": "スカウトできませんでした"
+    },
+
     "sticker": {
       "title": "シール交換",
       "backHub": "← ハブ",
@@ -3953,6 +4017,10 @@
         "sub": "Open packs from your collection",
         "title": "Boosters"
       },
+      "scout": {
+        "title": "Scout",
+        "sub": "¡Saca cartas para tu colección!"
+      },
       "cardList": {
         "sub": "Consulta todas las cartas",
         "title": "Lista de cartas"
@@ -4284,6 +4352,7 @@
       "packsLeft": "Quedan {n} sobre(s) hoy (JST)",
       "mainMenu": "Menú principal",
       "backHub": "← Hub",
+      "backScout": "← Scout",
       "noDailyPacks": "No quedan sobres diarios",
       "paidLead": "Gasta Star Gems para seguir abriendo sobres hoy.",
       "openOnePack": "Abrir 1 sobre",
@@ -4311,6 +4380,33 @@
       "openBox": "Abrir caja ({n} sobres)",
       "selectBoxFirst": "Elige un booster primero"
     },
+    "scout": {
+      "title": "Scout",
+      "hint": "Abre sobres o tira del gacha general.",
+      "backHub": "← Hub",
+      "boostersTitle": "Sobres",
+      "boostersSub": "Abre sobres de set",
+      "gachaTitle": "Gacha",
+      "gachaSub": "Scout general"
+    },
+    "gacha": {
+      "title": "Gacha",
+      "backScout": "← Scout",
+      "gemsAria": "Star Gems",
+      "ratesLead": "N ~{n}% · SR ~{sr}% · UR ~{ur}%",
+      "poolInfo": "{total} cartas en el pool · UR {ur} · SR {sr} · N {n}",
+      "single": "Scout ×1 ({n})",
+      "multi": "Scout 10+1 ({n})",
+      "tapContinue": "Toca para continuar",
+      "tierN": "N",
+      "tierSr": "SR",
+      "tierUr": "UR",
+      "scoutAgain": "Scout de nuevo",
+      "backToGacha": "Volver al gacha",
+      "loadError": "No se pudo cargar el gacha",
+      "pullError": "No se pudo hacer scout"
+    },
+
     "ranked": {
       "title": "PvP clasificatorio",
       "findMatch": "Buscar partida",
@@ -5788,6 +5884,10 @@
         "sub": "Open packs from your collection",
         "title": "Boosters"
       },
+      "scout": {
+        "title": "스카우트",
+        "sub": "컬렉션용 카드를 뽑으세요!"
+      },
       "cardList": {
         "sub": "모든 카드 보기",
         "title": "카드 목록"
@@ -6129,6 +6229,7 @@
       "packsLeft": "오늘 남은 팩 {n}개 (JST)",
       "mainMenu": "메인 메뉴",
       "backHub": "← 허브",
+      "backScout": "← 스카우트",
       "noDailyPacks": "오늘의 팩이 모두 소진되었습니다",
       "paidLead": "Star Gems를 사용해 오늘 팩을 계속 열 수 있습니다.",
       "openOnePack": "팩 1개 열기",
@@ -6156,6 +6257,33 @@
       "openBox": "박스 열기 (팩 {n}개)",
       "selectBoxFirst": "먼저 부스터 세트를 선택하세요"
     },
+    "scout": {
+      "title": "스카우트",
+      "hint": "부스터 팩을 열거나 종합 가챠에서 카드를 뽑으세요.",
+      "backHub": "← 허브",
+      "boostersTitle": "부스터 팩",
+      "boostersSub": "세트 부스터 개봉",
+      "gachaTitle": "가챠",
+      "gachaSub": "종합 스카우트"
+    },
+    "gacha": {
+      "title": "가챠",
+      "backScout": "← 스카우트",
+      "gemsAria": "스타 젬",
+      "ratesLead": "N 약{n}% · SR 약{sr}% · UR 약{ur}%",
+      "poolInfo": "풀 {total}장 · UR {ur} · SR {sr} · N {n}",
+      "single": "스카우트 ×1 ({n})",
+      "multi": "스카우트 10+1 ({n})",
+      "tapContinue": "탭하여 계속",
+      "tierN": "N",
+      "tierSr": "SR",
+      "tierUr": "UR",
+      "scoutAgain": "다시 스카우트",
+      "backToGacha": "가챠로 돌아가기",
+      "loadError": "가챠를 불러올 수 없습니다",
+      "pullError": "스카우트할 수 없습니다"
+    },
+
     "ranked": {
       "title": "랭크 PvP",
       "findMatch": "대전 찾기",
@@ -7647,6 +7775,10 @@
         "sub": "Open packs from your collection",
         "title": "Boosters"
       },
+      "scout": {
+        "title": "招募",
+        "sub": "抽取收藏卡牌！"
+      },
       "cardList": {
         "sub": "浏览全部卡牌",
         "title": "卡牌列表"
@@ -7988,6 +8120,7 @@
       "packsLeft": "今日剩余 {n} 包（JST）",
       "mainMenu": "主菜单",
       "backHub": "← 主页",
+      "backScout": "← 招募",
       "noDailyPacks": "今日免费卡包已用完",
       "paidLead": "花费星宝石以继续今日开包。",
       "openOnePack": "打开 1 包",
@@ -8015,6 +8148,33 @@
       "openBox": "打开盒装（{n} 包）",
       "selectBoxFirst": "请先选择补充包系列"
     },
+    "scout": {
+      "title": "招募",
+      "hint": "开启补充包，或从综合扭蛋抽取卡牌。",
+      "backHub": "← 主页",
+      "boostersTitle": "补充包",
+      "boostersSub": "开启系列补充包",
+      "gachaTitle": "扭蛋",
+      "gachaSub": "综合招募"
+    },
+    "gacha": {
+      "title": "扭蛋",
+      "backScout": "← 招募",
+      "gemsAria": "星宝石",
+      "ratesLead": "N 约{n}% · SR 约{sr}% · UR 约{ur}%",
+      "poolInfo": "卡池 {total} 张 · UR {ur} · SR {sr} · N {n}",
+      "single": "招募 ×1（{n}）",
+      "multi": "招募 10+1（{n}）",
+      "tapContinue": "点击继续",
+      "tierN": "N",
+      "tierSr": "SR",
+      "tierUr": "UR",
+      "scoutAgain": "再抽一次",
+      "backToGacha": "返回扭蛋",
+      "loadError": "无法加载扭蛋",
+      "pullError": "无法招募"
+    },
+
     "ranked": {
       "title": "排名对战",
       "findMatch": "寻找对战",
@@ -9506,6 +9666,10 @@
         "sub": "Open packs from your collection",
         "title": "Boosters"
       },
+      "scout": {
+        "title": "สเกาต์",
+        "sub": "สุ่มการ์ดเข้าคลังของคุณ!"
+      },
       "cardList": {
         "sub": "ดูการ์ดทั้งหมด",
         "title": "รายการการ์ด"
@@ -9837,6 +10001,7 @@
       "packsLeft": "เหลือ {n} แพ็กวันนี้ (JST)",
       "mainMenu": "เมนูหลัก",
       "backHub": "← ฮับ",
+      "backScout": "← สเกาต์",
       "noDailyPacks": "ไม่มีแพ็กรายวันเหลือ",
       "paidLead": "ใช้ Star Gems เพื่อเปิดแพ็กต่อวันนี้",
       "openOnePack": "เปิด 1 แพ็ก",
@@ -9864,6 +10029,33 @@
       "openBox": "เปิดกล่อง ({n} แพ็ก)",
       "selectBoxFirst": "เลือกชุดบูสเตอร์ก่อน"
     },
+    "scout": {
+      "title": "สเกาต์",
+      "hint": "เปิดบูสเตอร์ หรือสุ่มจากกาชาทั่วไป",
+      "backHub": "← ฮับ",
+      "boostersTitle": "บูสเตอร์แพ็ก",
+      "boostersSub": "เปิดบูสเตอร์ของเซ็ต",
+      "gachaTitle": "กาชา",
+      "gachaSub": "สเกาต์ทั่วไป"
+    },
+    "gacha": {
+      "title": "กาชา",
+      "backScout": "← สเกาต์",
+      "gemsAria": "สตาร์เจม",
+      "ratesLead": "N ~{n}% · SR ~{sr}% · UR ~{ur}%",
+      "poolInfo": "พูล {total} ใบ · UR {ur} · SR {sr} · N {n}",
+      "single": "สเกาต์ ×1 ({n})",
+      "multi": "สเกาต์ 10+1 ({n})",
+      "tapContinue": "แตะเพื่อไปต่อ",
+      "tierN": "N",
+      "tierSr": "SR",
+      "tierUr": "UR",
+      "scoutAgain": "สเกาต์อีกครั้ง",
+      "backToGacha": "กลับไปกาชา",
+      "loadError": "โหลดกาชาไม่ได้",
+      "pullError": "สเกาต์ไม่ได้"
+    },
+
     "ranked": {
       "title": "แรงก์ PvP",
       "findMatch": "หาแมตช์",
@@ -11331,6 +11523,10 @@
         "sub": "Abra pacotes de diversas coleções",
         "title": "Boosters"
       },
+      "scout": {
+        "title": "Scout",
+        "sub": "Puxe cartas para sua coleção!"
+      },
       "cardList": {
         "sub": "Navegue pelo catálogo completo",
         "title": "Lista de Cartas"
@@ -11739,6 +11935,7 @@
       "packsLeft": "{n} pacote(s) restante(s) hoje (JST)",
       "mainMenu": "Menu principal",
       "backHub": "← Menu",
+      "backScout": "← Scout",
       "noDailyPacks": "Sem pacotes diários restantes",
       "paidLead": "Gaste Star Gems para continuar abrindo pacotes hoje.",
       "openOnePack": "Abrir 1 pacote",
@@ -11762,6 +11959,33 @@
       "openSamePackAgain": "Abrir outro pacote igual",
       "openSameBoxAgain": "Abrir outra caixa igual"
     },
+    "scout": {
+      "title": "Scout",
+      "hint": "Abra boosters ou puxe no gacha geral.",
+      "backHub": "← Hub",
+      "boostersTitle": "Boosters",
+      "boostersSub": "Abra boosters do set",
+      "gachaTitle": "Gacha",
+      "gachaSub": "Scout geral"
+    },
+    "gacha": {
+      "title": "Gacha",
+      "backScout": "← Scout",
+      "gemsAria": "Star Gems",
+      "ratesLead": "N ~{n}% · SR ~{sr}% · UR ~{ur}%",
+      "poolInfo": "{total} cartas no pool · UR {ur} · SR {sr} · N {n}",
+      "single": "Scout ×1 ({n})",
+      "multi": "Scout 10+1 ({n})",
+      "tapContinue": "Toque para continuar",
+      "tierN": "N",
+      "tierSr": "SR",
+      "tierUr": "UR",
+      "scoutAgain": "Scout de novo",
+      "backToGacha": "Voltar ao gacha",
+      "loadError": "Não foi possível carregar o gacha",
+      "pullError": "Não foi possível fazer scout"
+    },
+
     "sticker": {
       "title": "Loja de Selos",
       "backHub": "← Menu",
@@ -13218,6 +13442,9 @@
     var booster = ensureHubButton(loc.hub, 'booster');
     booster.title = pickLocalizedText(isEn, booster.title, enHub.booster && enHub.booster.title, loc.hub.openBoosters);
     booster.sub = pickLocalizedText(isEn, booster.sub, enHub.booster && enHub.booster.sub, loc.hub.openBoostersSub);
+    var scout = ensureHubButton(loc.hub, 'scout');
+    scout.title = pickLocalizedText(isEn, scout.title, enHub.scout && enHub.scout.title, 'Scout');
+    scout.sub = pickLocalizedText(isEn, scout.sub, enHub.scout && enHub.scout.sub, 'Pull cards for your collection!');
     var sticker = ensureHubButton(loc.hub, 'sticker');
     sticker.title = pickLocalizedText(isEn, sticker.title, enHub.sticker && enHub.sticker.title, loc.hub.stickerShop, loc.sticker && loc.sticker.title);
     sticker.sub = pickLocalizedText(isEn, sticker.sub, enHub.sticker && enHub.sticker.sub, loc.hub.stickerShopSub);

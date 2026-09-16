@@ -42,6 +42,7 @@ require_once __DIR__ . '/sleeves.php';
 require_once __DIR__ . '/playmats.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/booster.php';
+require_once __DIR__ . '/gacha.php';
 require_once __DIR__ . '/seals.php';
 require_once __DIR__ . '/coins.php';
 require_once __DIR__ . '/sleeve_shop.php';
@@ -77,6 +78,8 @@ try {
         case 'booster_rates':      echo json_encode(tcgApiBoosterRates($_GET + $body)); break;
         case 'daily_status':       echo json_encode(tcgApiDailyStatus($body)); break;
         case 'open_booster':       echo json_encode(tcgApiOpenBooster($body)); break;
+        case 'gacha_info':         echo json_encode(tcgApiGachaInfo($body)); break;
+        case 'open_gacha':         echo json_encode(tcgApiOpenGacha($body)); break;
         case 'deck_list':          echo json_encode(tcgApiDeckList($body)); break;
         case 'deck_save':          echo json_encode(tcgApiDeckSave($body)); break;
         case 'deck_set_sleeve':    echo json_encode(tcgApiDeckSetSleeve($body)); break;
