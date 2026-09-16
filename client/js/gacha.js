@@ -166,24 +166,15 @@
     return urls[Math.floor(Math.random() * urls.length)];
   }
 
-  async function refreshGachaMenuHero() {
-    const hero = el('gacha-menu-hero');
-    const img = el('gacha-menu-hero-img');
-    if (!hero || !img) return;
+  async function refreshScoutGachaTileArt() {
+    const render = el('scout-hub-gacha-render');
+    if (!render) return;
     const url = await pickRandomRenderUrl();
     if (!url) {
-      hero.hidden = true;
+      render.style.backgroundImage = '';
       return;
     }
-    hero.hidden = false;
-    img.onload = () => { hero.classList.add('is-ready'); };
-    img.onerror = () => {
-      hero.hidden = true;
-      hero.classList.remove('is-ready');
-    };
-    hero.classList.remove('is-ready');
-    img.src = url;
-    img.alt = '';
+    render.style.backgroundImage = 'url("' + String(url).replace(/"/g, '\\"') + '")';
   }
 
   async function loadGachaScreen() {
@@ -205,7 +196,6 @@
       showScr('gacha');
       syncGems(_info.star_gems);
       updateRateCopy(_info);
-      void refreshGachaMenuHero();
     } catch (e) {
       showScr('gacha');
       if (err) err.textContent = e.message || tt('gacha.loadError', 'Could not load gacha');
@@ -420,5 +410,6 @@
   global.loadGachaScreen = loadGachaScreen;
   global.openGachaPull = openGacha;
   global.refreshGachaAccess = refreshGachaAccess;
+  global.refreshScoutGachaTileArt = refreshScoutGachaTileArt;
   global.syncGachaScoutTile = syncScoutTileLock;
 })(typeof window !== 'undefined' ? window : globalThis);
