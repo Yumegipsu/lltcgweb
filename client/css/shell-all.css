@@ -6504,7 +6504,14 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .rank-title-slot .player-title{max-width:100%}
 /* Thin (wide) strips — ~2× prior leaderboard size */
 .rank-title-slot .player-title--wide .player-title-img{height:44px;max-width:min(280px,100%)}
-/* Hasu portrait titles — same X center as wide strips; fill row height */
+/* Hasu portrait — bleed through card padding so art nearly touches tile edges */
+.rank-title-slot:has(.player-title--portrait){
+  align-self:center;
+  margin-top:-10px!important;
+  margin-bottom:-10px!important;
+  height:calc(100% + 20px);
+  max-height:none
+}
 .rank-title-slot .player-title--portrait{
   margin:0;
   height:100%;
@@ -6513,8 +6520,8 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .rank-title-slot .player-title--portrait .player-title-img{
   height:100%;
   width:auto;
-  max-height:100%;
-  max-width:min(72px,100%);
+  max-height:none;
+  max-width:none;
   object-fit:contain;
   object-position:center center
 }
@@ -6529,7 +6536,11 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
   .rank-card-body{grid-template-columns:auto minmax(0,1fr) minmax(120px,0.9fr)}
   .rank-title-slot{grid-column:3;grid-row:1}
   .rank-title-slot .player-title--wide .player-title-img{height:36px;max-width:min(200px,100%)}
-  .rank-title-slot .player-title--portrait .player-title-img{max-width:min(64px,100%)}
+  .rank-title-slot:has(.player-title--portrait){
+    margin-top:-10px!important;
+    margin-bottom:-10px!important;
+    height:calc(100% + 20px)
+  }
   .rank-card .rank-banner-wrap{
     grid-column:1 / -1;grid-row:2;max-width:none;width:100%;margin-top:2px}
 }
