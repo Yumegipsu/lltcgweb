@@ -8672,6 +8672,10 @@ button.player-title--btn{cursor:pointer}
   background-color:rgba(0,0,0,.22)
 }
 .scout-hub-tile--gacha .shop-hub-tile__art{background-size:42%}
+#btn-scout-gacha.is-locked{
+  opacity:.55;filter:grayscale(.35);cursor:not-allowed
+}
+#btn-scout-gacha.is-locked .shop-hub-tile__art{filter:grayscale(.55) brightness(.85)}
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}
 .gacha-pull-overlay{

@@ -76,4 +76,13 @@ final class GachaPoolTest extends TestCase
         }
         $this->assertGreaterThan(10, $hit);
     }
+
+    public function testAccessAllowlistIncludesOwnerOnly(): void
+    {
+        $list = tcgGachaAccessAllowlist();
+        $this->assertSame(['213038604975472640'], $list);
+        $this->assertTrue(tcgGachaUserHasAccess('213038604975472640'));
+        $this->assertFalse(tcgGachaUserHasAccess('0'));
+        $this->assertFalse(tcgGachaUserHasAccess('999'));
+    }
 }

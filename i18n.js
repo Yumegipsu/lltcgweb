@@ -538,7 +538,8 @@
       "boostersTitle": "Booster Packs",
       "boostersSub": "Open set booster packs",
       "gachaTitle": "Gacha",
-      "gachaSub": "General Scout pulls"
+      "gachaSub": "General Scout pulls",
+      "gachaSubLocked": "Coming soon"
     },
     "gacha": {
       "title": "Gacha",
@@ -555,7 +556,9 @@
       "scoutAgain": "Scout again",
       "backToGacha": "Back to Gacha",
       "loadError": "Could not load gacha",
-      "pullError": "Could not scout"
+      "pullError": "Could not scout",
+      "locked": "Coming soon",
+      "lockedToast": "Gacha is not available yet."
     },
 
     "sticker": {
@@ -2580,7 +2583,8 @@
       "boostersTitle": "ブースターパック",
       "boostersSub": "セットのブースターを開封",
       "gachaTitle": "ガチャ",
-      "gachaSub": "総合スカウト"
+      "gachaSub": "総合スカウト",
+      "gachaSubLocked": "近日公開"
     },
     "gacha": {
       "title": "ガチャ",
@@ -2597,7 +2601,9 @@
       "scoutAgain": "もう一度スカウト",
       "backToGacha": "ガチャに戻る",
       "loadError": "ガチャを読み込めませんでした",
-      "pullError": "スカウトできませんでした"
+      "pullError": "スカウトできませんでした",
+      "locked": "近日公開",
+      "lockedToast": "ガチャはまだ利用できません。"
     },
 
     "sticker": {
@@ -4387,7 +4393,8 @@
       "boostersTitle": "Sobres",
       "boostersSub": "Abre sobres de set",
       "gachaTitle": "Gacha",
-      "gachaSub": "Scout general"
+      "gachaSub": "Scout general",
+      "gachaSubLocked": "Próximamente"
     },
     "gacha": {
       "title": "Gacha",
@@ -4404,7 +4411,9 @@
       "scoutAgain": "Scout de nuevo",
       "backToGacha": "Volver al gacha",
       "loadError": "No se pudo cargar el gacha",
-      "pullError": "No se pudo hacer scout"
+      "pullError": "No se pudo hacer scout",
+      "locked": "Próximamente",
+      "lockedToast": "El gacha aún no está disponible."
     },
 
     "ranked": {
@@ -6264,7 +6273,8 @@
       "boostersTitle": "부스터 팩",
       "boostersSub": "세트 부스터 개봉",
       "gachaTitle": "가챠",
-      "gachaSub": "종합 스카우트"
+      "gachaSub": "종합 스카우트",
+      "gachaSubLocked": "곧 공개"
     },
     "gacha": {
       "title": "가챠",
@@ -6281,7 +6291,9 @@
       "scoutAgain": "다시 스카우트",
       "backToGacha": "가챠로 돌아가기",
       "loadError": "가챠를 불러올 수 없습니다",
-      "pullError": "스카우트할 수 없습니다"
+      "pullError": "스카우트할 수 없습니다",
+      "locked": "곧 공개",
+      "lockedToast": "아직 가챠를 이용할 수 없습니다."
     },
 
     "ranked": {
@@ -8155,7 +8167,8 @@
       "boostersTitle": "补充包",
       "boostersSub": "开启系列补充包",
       "gachaTitle": "扭蛋",
-      "gachaSub": "综合招募"
+      "gachaSub": "综合招募",
+      "gachaSubLocked": "即将开放"
     },
     "gacha": {
       "title": "扭蛋",
@@ -8172,7 +8185,9 @@
       "scoutAgain": "再抽一次",
       "backToGacha": "返回扭蛋",
       "loadError": "无法加载扭蛋",
-      "pullError": "无法招募"
+      "pullError": "无法招募",
+      "locked": "即将开放",
+      "lockedToast": "扭蛋尚未开放。"
     },
 
     "ranked": {
@@ -10036,7 +10051,8 @@
       "boostersTitle": "บูสเตอร์แพ็ก",
       "boostersSub": "เปิดบูสเตอร์ของเซ็ต",
       "gachaTitle": "กาชา",
-      "gachaSub": "สเกาต์ทั่วไป"
+      "gachaSub": "สเกาต์ทั่วไป",
+      "gachaSubLocked": "เร็วๆ นี้"
     },
     "gacha": {
       "title": "กาชา",
@@ -10053,7 +10069,9 @@
       "scoutAgain": "สเกาต์อีกครั้ง",
       "backToGacha": "กลับไปกาชา",
       "loadError": "โหลดกาชาไม่ได้",
-      "pullError": "สเกาต์ไม่ได้"
+      "pullError": "สเกาต์ไม่ได้",
+      "locked": "เร็วๆ นี้",
+      "lockedToast": "กาชายังไม่พร้อมใช้งาน"
     },
 
     "ranked": {
@@ -11966,7 +11984,8 @@
       "boostersTitle": "Boosters",
       "boostersSub": "Abra boosters do set",
       "gachaTitle": "Gacha",
-      "gachaSub": "Scout geral"
+      "gachaSub": "Scout geral",
+      "gachaSubLocked": "Em breve"
     },
     "gacha": {
       "title": "Gacha",
@@ -11983,7 +12002,9 @@
       "scoutAgain": "Scout de novo",
       "backToGacha": "Voltar ao gacha",
       "loadError": "Não foi possível carregar o gacha",
-      "pullError": "Não foi possível fazer scout"
+      "pullError": "Não foi possível fazer scout",
+      "locked": "Em breve",
+      "lockedToast": "O gacha ainda não está disponível."
     },
 
     "sticker": {

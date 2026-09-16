@@ -40,6 +40,44 @@
   let _idolMap = null;
   let _pullBusy = false;
   let _lastMode = 'single';
+  let _unlocked = false;
+
+  function isUnlocked() {
+    if (_info && typeof _info.unlocked === 'boolean') return !!_info.unlocked;
+    return _unlocked;
+  }
+
+  function syncScoutTileLock(unlocked) {
+    _unlocked = !!unlocked;
+    const tile = el('btn-scout-gacha');
+    if (!tile) return;
+    tile.classList.toggle('is-locked', !_unlocked);
+    tile.setAttribute('aria-disabled', _unlocked ? 'false' : 'true');
+    const sub = tile.querySelector('.shop-hub-tile__sub');
+    if (sub) {
+      sub.textContent = _unlocked
+        ? tt('scout.gachaSub', 'General Scout pulls')
+        : tt('scout.gachaSubLocked', 'Coming soon');
+    }
+    const label = tile.querySelector('.shop-hub-tile__label');
+    if (label && !_unlocked) {
+      // Keep title; locked state is on the tile + sub.
+      label.setAttribute('data-gacha-locked', '1');
+    } else if (label) {
+      label.removeAttribute('data-gacha-locked');
+    }
+  }
+
+  async function refreshGachaAccess() {
+    try {
+      _info = await accountPost('gacha_info', {});
+      syncScoutTileLock(!!_info.unlocked);
+      return !!_info.unlocked;
+    } catch (_) {
+      syncScoutTileLock(false);
+      return false;
+    }
+  }
 
   async function loadIdolMap() {
     if (_idolMap) return _idolMap;
@@ -122,13 +160,24 @@
   async function loadGachaScreen() {
     const err = el('gacha-err');
     if (err) err.textContent = '';
-    showScr('gacha');
     await loadIdolMap();
     try {
       _info = await accountPost('gacha_info', {});
+      syncScoutTileLock(!!_info.unlocked);
+      if (!_info.unlocked) {
+        toast(tt('gacha.lockedToast', 'Gacha is not available yet.'), 2800);
+        if (typeof global.loadScoutHubScreen === 'function') {
+          void global.loadScoutHubScreen();
+        } else {
+          showScr('scout');
+        }
+        return;
+      }
+      showScr('gacha');
       syncGems(_info.star_gems);
       updateRateCopy(_info);
     } catch (e) {
+      showScr('gacha');
       if (err) err.textContent = e.message || tt('gacha.loadError', 'Could not load gacha');
     }
   }
@@ -259,6 +308,10 @@
 
   async function openGacha(mode) {
     if (_pullBusy) return;
+    if (!isUnlocked()) {
+      toast(tt('gacha.lockedToast', 'Gacha is not available yet.'), 2800);
+      return;
+    }
     const err = el('gacha-err');
     if (err) err.textContent = '';
     _pullBusy = true;
@@ -336,4 +389,6 @@
 
   global.loadGachaScreen = loadGachaScreen;
   global.openGachaPull = openGacha;
+  global.refreshGachaAccess = refreshGachaAccess;
+  global.syncGachaScoutTile = syncScoutTileLock;
 })(typeof window !== 'undefined' ? window : globalThis);

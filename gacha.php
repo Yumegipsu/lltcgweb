@@ -10,6 +10,24 @@ const TCG_GACHA_SINGLE_COST = 20;
 const TCG_GACHA_MULTI_COST = 200;
 const TCG_GACHA_MULTI_COUNT = 11;
 
+/**
+ * Temporary preview lock: only these Discord IDs may open general gacha.
+ * Empty array = open to everyone. Keep in sync with TCG_SOCIAL_OWNER_ID.
+ *
+ * @return list<string>
+ */
+function tcgGachaAccessAllowlist(): array {
+    return ['213038604975472640'];
+}
+
+function tcgGachaUserHasAccess(string $discordId): bool {
+    $list = tcgGachaAccessAllowlist();
+    if ($list === []) {
+        return true;
+    }
+    return in_array($discordId, $list, true);
+}
+
 /** Tier weights out of 10_000 (SIF-style: ~90% N, ~9.2% SR, ~0.8% UR). */
 const TCG_GACHA_WEIGHT_N = 9000;
 const TCG_GACHA_WEIGHT_SR = 920;
@@ -216,10 +234,13 @@ function tcgGachaIdolKeyFromCard(?array $card): string {
 function tcgApiGachaInfo(array $body): array {
     $uid = tcgRequireAuthUser($body);
     tcgEnsureUser($uid, tcgAuthUserProfile($uid));
+    $unlocked = tcgGachaUserHasAccess($uid);
     $cards = tcgLoadCardsData();
     $pools = tcgGachaBuildPools($cards);
     return [
         'success' => true,
+        'unlocked' => $unlocked,
+        'locked' => !$unlocked,
         'star_gems' => tcgGetStarGems($uid),
         'single_cost' => TCG_GACHA_SINGLE_COST,
         'multi_cost' => TCG_GACHA_MULTI_COST,
@@ -241,6 +262,9 @@ function tcgApiGachaInfo(array $body): array {
 function tcgApiOpenGacha(array $body): array {
     tcgRateLimitForAction('open_gacha', $body);
     $uid = tcgRequireAuthUser($body);
+    if (!tcgGachaUserHasAccess($uid)) {
+        throw new Exception('Gacha is not available yet', 403);
+    }
     $user = tcgEnsureUser($uid, tcgAuthUserProfile($uid));
     if (empty($user['starter_deck'])) {
         throw new Exception('Choose a starter deck first', 400);

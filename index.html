@@ -3044,7 +3044,7 @@ try {
 <script src="client/js/playmats.js?v=8"></script>
 <script src="client/js/apk-asset-cache.js?v=8"></script>
 <script src="client/js/shop-new.js?v=2"></script>
-<script src="client/js/gacha.js?v=1"></script>
+<script src="client/js/gacha.js?v=2"></script>
 <script src="client/js/ranked-pr-reward.js?v=6"></script>
 <script src="client/js/missions.js?v=14"></script>
 <script src="client/js/login-bonus.js?v=3"></script>
@@ -7515,6 +7515,9 @@ async function loadScoutHubScreen() {
   const gachaArt = el('scout-hub-gacha-art');
   if (gachaArt) {
     gachaArt.style.backgroundImage = 'url("assets/Star_Gem.png")';
+  }
+  if (typeof window.refreshGachaAccess === 'function') {
+    try { await window.refreshGachaAccess(); } catch (_) { /* ignore */ }
   }
 }
 window.loadScoutHubScreen = loadScoutHubScreen;
@@ -17398,6 +17401,11 @@ async function bootApp() {
   on('btn-scout-back', 'click', () => { enterHub(A.profile); });
   on('btn-scout-boosters', 'click', () => { void loadBoosterScreen(); });
   on('btn-scout-gacha', 'click', () => {
+    const tile = el('btn-scout-gacha');
+    if (tile && tile.classList.contains('is-locked')) {
+      toast(tt('gacha.lockedToast', 'Gacha is not available yet.'), 2800);
+      return;
+    }
     if (typeof window.loadGachaScreen === 'function') window.loadGachaScreen();
   });
   on('btn-hub-sticker', 'click', loadStickerShopScreen);
