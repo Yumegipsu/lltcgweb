@@ -6485,7 +6485,7 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .rank-banner-wrap.empty{background:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,.04))}
 .rank-banner-img{display:block;max-width:none;object-fit:fill;object-position:left top}
 .rank-card-body{
-  display:grid;grid-template-columns:auto minmax(0,1fr) auto min(210px,38vw);
+  display:grid;grid-template-columns:auto minmax(0,1.05fr) minmax(170px,0.95fr) min(210px,38vw);
   align-items:center;gap:10px 12px;padding:10px 12px}
 .rank-card .rank-banner-wrap{
   grid-column:4;grid-row:1;align-self:center;justify-self:stretch;
@@ -6495,13 +6495,16 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .rank-avatar-fallback{display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:rgba(255,255,255,.85);letter-spacing:0;line-height:1;user-select:none}
 .rank-meta{min-width:0;align-self:center}
 .rank-title-slot{
-  grid-column:3;grid-row:1;align-self:center;justify-self:end;
-  margin:0;padding:0;min-width:0;max-width:min(150px,26vw);
-  display:flex;align-items:center;justify-content:flex-end
+  grid-column:3;grid-row:1;align-self:center;justify-self:center;
+  margin:0;padding:0;min-width:0;width:100%;max-width:100%;
+  display:flex;align-items:center;justify-content:center
 }
 .rank-title-slot .player-title{max-width:100%}
-.rank-title-slot .player-title--wide .player-title-img{height:22px;max-width:min(140px,24vw)}
-.rank-title-slot .player-title--portrait .player-title-img{height:40px;max-width:44px}
+/* Thin (wide) strips — ~2× prior leaderboard size */
+.rank-title-slot .player-title--wide .player-title-img{height:44px;max-width:min(280px,100%)}
+/* Hasu portrait titles — fill the row with tiny vertical margins */
+.rank-title-slot .player-title--portrait{margin:2px 0}
+.rank-title-slot .player-title--portrait .player-title-img{height:56px;max-width:64px}
 .rank-pos{font-size:13px;font-weight:800;color:var(--pink-l);min-width:2.2em}
 .rank-name{appearance:none;-webkit-appearance:none;background:none;border:none;padding:0;margin:0;font-family:inherit;font-size:15px;font-weight:800;color:#fff;line-height:1.25;text-align:inherit;text-decoration:none;box-shadow:none}
 .rank-name:focus{outline:none}
@@ -6510,8 +6513,10 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .rank-record{font-size:12px;color:rgba(255,255,255,.78);margin-top:2px;line-height:1.3}
 .leaderboard-empty{font-size:14px;color:rgba(255,255,255,.72);text-align:center;padding:24px 12px}
 @media (max-width:520px){
-  .rank-card-body{grid-template-columns:auto minmax(0,1fr) auto}
-  .rank-title-slot{grid-column:3;grid-row:1;max-width:min(120px,32vw)}
+  .rank-card-body{grid-template-columns:auto minmax(0,1fr) minmax(120px,0.9fr)}
+  .rank-title-slot{grid-column:3;grid-row:1}
+  .rank-title-slot .player-title--wide .player-title-img{height:36px;max-width:min(200px,100%)}
+  .rank-title-slot .player-title--portrait .player-title-img{height:48px;max-width:54px}
   .rank-card .rank-banner-wrap{
     grid-column:1 / -1;grid-row:2;max-width:none;width:100%;margin-top:2px}
 }

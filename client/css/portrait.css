@@ -1127,7 +1127,7 @@ html.tcg-portrait-play #screen-leaderboard .rank-card{
 }
 html.tcg-portrait-play #screen-leaderboard .rank-card-body{
   display:grid;
-  grid-template-columns:auto minmax(0,1fr) auto min(132px,34vw);
+  grid-template-columns:auto minmax(0,1.05fr) minmax(110px,0.95fr) min(132px,34vw);
   align-items:center;
   gap:6px 8px;
   padding:6px 8px;
@@ -1135,15 +1135,20 @@ html.tcg-portrait-play #screen-leaderboard .rank-card-body{
 html.tcg-portrait-play #screen-leaderboard .rank-title-slot{
   grid-column:3;
   grid-row:1;
-  max-width:min(96px,22vw);
+  justify-self:center;
+  width:100%;
+  max-width:100%;
 }
 html.tcg-portrait-play #screen-leaderboard .rank-title-slot .player-title--wide .player-title-img{
-  height:16px;
-  max-width:min(90px,20vw);
+  height:32px;
+  max-width:min(180px,100%);
+}
+html.tcg-portrait-play #screen-leaderboard .rank-title-slot .player-title--portrait{
+  margin:2px 0;
 }
 html.tcg-portrait-play #screen-leaderboard .rank-title-slot .player-title--portrait .player-title-img{
-  height:28px;
-  max-width:32px;
+  height:40px;
+  max-width:46px;
 }
 html.tcg-portrait-play #screen-leaderboard .rank-card .rank-banner-wrap{
   grid-column:4;
