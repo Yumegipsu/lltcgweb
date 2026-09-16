@@ -8666,16 +8666,52 @@ button.player-title--btn{cursor:pointer}
 .title-preview-hint{margin:0;font-size:13px;line-height:1.4;color:rgba(255,255,255,.78)}
 
 /* Scout / Gacha */
-.scout-hub-tile--boosters .shop-hub-tile__art,
-.scout-hub-tile--gacha .shop-hub-tile__art{
-  background-size:contain;background-position:center;background-repeat:no-repeat;
+.scout-hub-tile--boosters .shop-hub-tile__art{
+  background-size:contain;background-position:center top;background-repeat:no-repeat;
   background-color:rgba(0,0,0,.22)
 }
-.scout-hub-tile--gacha .shop-hub-tile__art{background-size:42%}
+.scout-hub-tile--gacha .shop-hub-tile__art{
+  background-size:42%;background-position:center;background-repeat:no-repeat;
+  background-color:rgba(0,0,0,.22)
+}
 #btn-scout-gacha.is-locked{
   opacity:.55;filter:grayscale(.35);cursor:not-allowed
 }
 #btn-scout-gacha.is-locked .shop-hub-tile__art{filter:grayscale(.55) brightness(.85)}
+.gacha-menu-hero{
+  display:flex;align-items:stretch;gap:10px;
+  height:min(230px,38vh);margin:4px 0 12px;border-radius:14px;overflow:hidden;
+  background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);
+  opacity:0;transition:opacity .25s ease
+}
+.gacha-menu-hero.is-ready{opacity:1}
+.gacha-menu-hero[hidden]{display:none!important}
+.gacha-menu-hero-render{
+  position:relative;flex:1 1 auto;min-width:0;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 20%,rgba(120,160,220,.18),transparent 60%)
+}
+.gacha-menu-hero-img{
+  display:block;width:100%;height:100%;
+  object-fit:cover;object-position:top center
+}
+.gacha-menu-hero-render::after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:58%;
+  background:linear-gradient(to top,rgba(8,12,24,.97) 0%,rgba(8,12,24,.55) 42%,transparent 100%);
+  pointer-events:none
+}
+.gacha-menu-hero-gem{
+  flex:0 0 96px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.18))
+}
+.gacha-menu-hero-gem img{
+  width:64px;height:64px;object-fit:contain;
+  filter:drop-shadow(0 6px 16px rgba(0,0,0,.45))
+}
+@media (max-width:520px){
+  .gacha-menu-hero{height:min(190px,34vh)}
+  .gacha-menu-hero-gem{flex-basis:72px}
+  .gacha-menu-hero-gem img{width:48px;height:48px}
+}
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}
 .gacha-pull-overlay{

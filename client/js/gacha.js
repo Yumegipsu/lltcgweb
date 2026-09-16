@@ -157,6 +157,35 @@
     }
   }
 
+  async function pickRandomRenderUrl() {
+    const map = await loadIdolMap();
+    const urls = Object.keys(map || {})
+      .map((k) => map[k] && map[k].render)
+      .filter((u) => typeof u === 'string' && u);
+    if (!urls.length) return '';
+    return urls[Math.floor(Math.random() * urls.length)];
+  }
+
+  async function refreshGachaMenuHero() {
+    const hero = el('gacha-menu-hero');
+    const img = el('gacha-menu-hero-img');
+    if (!hero || !img) return;
+    const url = await pickRandomRenderUrl();
+    if (!url) {
+      hero.hidden = true;
+      return;
+    }
+    hero.hidden = false;
+    img.onload = () => { hero.classList.add('is-ready'); };
+    img.onerror = () => {
+      hero.hidden = true;
+      hero.classList.remove('is-ready');
+    };
+    hero.classList.remove('is-ready');
+    img.src = url;
+    img.alt = '';
+  }
+
   async function loadGachaScreen() {
     const err = el('gacha-err');
     if (err) err.textContent = '';
@@ -176,6 +205,7 @@
       showScr('gacha');
       syncGems(_info.star_gems);
       updateRateCopy(_info);
+      void refreshGachaMenuHero();
     } catch (e) {
       showScr('gacha');
       if (err) err.textContent = e.message || tt('gacha.loadError', 'Could not load gacha');

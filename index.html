@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=114">
+<link rel="stylesheet" href="client/css/shell-all.css?v=115">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
 <link rel="stylesheet" href="client/css/playmats.css?v=6">
@@ -1078,6 +1078,14 @@ try {
       <div class="account-screen-head">
         <button class="btn-ghost" id="btn-gacha-back" type="button" data-i18n="gacha.backScout">← Scout</button>
         <h2 data-i18n="gacha.title">Gacha</h2>
+      </div>
+      <div class="gacha-menu-hero" id="gacha-menu-hero" aria-hidden="true">
+        <div class="gacha-menu-hero-render">
+          <img id="gacha-menu-hero-img" class="gacha-menu-hero-img" alt="" decoding="async">
+        </div>
+        <div class="gacha-menu-hero-gem">
+          <img src="assets/Star_Gem.png" alt="" width="64" height="64" decoding="async">
+        </div>
       </div>
       <div class="hub-coins-pill sticker-seals-bar" id="gacha-gems-bar" data-i18n-aria-label="gacha.gemsAria" aria-label="Star Gems">
         <img src="assets/Star_Gem.png" alt="" width="22" height="22" aria-hidden="true">
@@ -3044,7 +3052,7 @@ try {
 <script src="client/js/playmats.js?v=8"></script>
 <script src="client/js/apk-asset-cache.js?v=8"></script>
 <script src="client/js/shop-new.js?v=2"></script>
-<script src="client/js/gacha.js?v=2"></script>
+<script src="client/js/gacha.js?v=3"></script>
 <script src="client/js/ranked-pr-reward.js?v=6"></script>
 <script src="client/js/missions.js?v=14"></script>
 <script src="client/js/login-bonus.js?v=3"></script>
@@ -7508,9 +7516,28 @@ async function loadScoutHubScreen() {
     return;
   }
   showScr('scout');
+  try {
+    if (!A.boxes?.length || A.boxes.some(b => /^https?:\/\//i.test(String(b.image || '')))) {
+      const bx = await accountGet('booster_boxes');
+      A.boxes = bx.boxes || [];
+    }
+  } catch (_) { /* ignore */ }
   const art = el('scout-hub-boosters-art');
   if (art) {
-    art.style.backgroundImage = 'url("assets/packs/boxes/bp_vol1.webp")';
+    const wrappers = [];
+    (A.boxes || []).forEach((b) => {
+      if (Array.isArray(b.pack_images)) {
+        b.pack_images.forEach((src) => {
+          if (typeof src === 'string' && src) wrappers.push(src);
+        });
+      } else if (typeof b.pack_image === 'string' && b.pack_image) {
+        wrappers.push(b.pack_image);
+      }
+    });
+    const pick = wrappers.length
+      ? wrappers[Math.floor(Math.random() * wrappers.length)]
+      : 'assets/packs/boxes/bp_vol1.webp';
+    art.style.backgroundImage = 'url("' + String(pick).replace(/"/g, '\\"') + '")';
   }
   const gachaArt = el('scout-hub-gacha-art');
   if (gachaArt) {
