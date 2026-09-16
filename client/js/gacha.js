@@ -181,10 +181,12 @@
     if (!render) return;
     const url = await pickRandomRenderUrl();
     if (!url) {
-      render.style.backgroundImage = '';
+      render.removeAttribute('src');
+      render.hidden = true;
       return;
     }
-    render.style.backgroundImage = 'url("' + String(url).replace(/"/g, '\\"') + '")';
+    render.hidden = false;
+    render.src = String(url);
   }
 
   async function loadGachaScreen() {
