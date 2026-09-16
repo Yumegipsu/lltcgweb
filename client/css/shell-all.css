@@ -6485,15 +6485,23 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .rank-banner-wrap.empty{background:linear-gradient(90deg,rgba(255,255,255,.08),rgba(255,255,255,.04))}
 .rank-banner-img{display:block;max-width:none;object-fit:fill;object-position:left top}
 .rank-card-body{
-  display:grid;grid-template-columns:auto minmax(0,1fr) min(210px,38vw);
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto min(210px,38vw);
   align-items:center;gap:10px 12px;padding:10px 12px}
 .rank-card .rank-banner-wrap{
-  grid-column:3;grid-row:1;align-self:center;justify-self:stretch;
+  grid-column:4;grid-row:1;align-self:center;justify-self:stretch;
   width:100%;max-width:210px;aspect-ratio:3.5 / 1;
   border-radius:8px;border:1px solid rgba(255,255,255,.12)}
 .rank-avatar{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.22);flex-shrink:0;background:rgba(0,0,0,.35);align-self:center}
 .rank-avatar-fallback{display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:rgba(255,255,255,.85);letter-spacing:0;line-height:1;user-select:none}
 .rank-meta{min-width:0;align-self:center}
+.rank-title-slot{
+  grid-column:3;grid-row:1;align-self:center;justify-self:end;
+  margin:0;padding:0;min-width:0;max-width:min(150px,26vw);
+  display:flex;align-items:center;justify-content:flex-end
+}
+.rank-title-slot .player-title{max-width:100%}
+.rank-title-slot .player-title--wide .player-title-img{height:22px;max-width:min(140px,24vw)}
+.rank-title-slot .player-title--portrait .player-title-img{height:40px;max-width:44px}
 .rank-pos{font-size:13px;font-weight:800;color:var(--pink-l);min-width:2.2em}
 .rank-name{appearance:none;-webkit-appearance:none;background:none;border:none;padding:0;margin:0;font-family:inherit;font-size:15px;font-weight:800;color:#fff;line-height:1.25;text-align:inherit;text-decoration:none;box-shadow:none}
 .rank-name:focus{outline:none}
@@ -6502,7 +6510,8 @@ body.tcg-debug-on .llc-menu-item.tcg-debug-only{display:flex}
 .rank-record{font-size:12px;color:rgba(255,255,255,.78);margin-top:2px;line-height:1.3}
 .leaderboard-empty{font-size:14px;color:rgba(255,255,255,.72);text-align:center;padding:24px 12px}
 @media (max-width:520px){
-  .rank-card-body{grid-template-columns:auto minmax(0,1fr)}
+  .rank-card-body{grid-template-columns:auto minmax(0,1fr) auto}
+  .rank-title-slot{grid-column:3;grid-row:1;max-width:min(120px,32vw)}
   .rank-card .rank-banner-wrap{
     grid-column:1 / -1;grid-row:2;max-width:none;width:100%;margin-top:2px}
 }
