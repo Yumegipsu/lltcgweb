@@ -8665,7 +8665,7 @@ button.player-title--btn{cursor:pointer}
 .title-preview-meta{margin:0 0 8px;font-size:13px;color:rgba(186,228,255,.9)}
 .title-preview-hint{margin:0;font-size:13px;line-height:1.4;color:rgba(255,255,255,.78)}
 
-/* Scout / Gacha — graphic tiles (copy left, art far right) */
+/* Scout / Gacha — copy left, art pinned to far-right pocket */
 #scout-hub-grid.shop-hub-grid{
   grid-template-columns:1fr 1fr;
   max-width:860px
@@ -8690,14 +8690,14 @@ button.player-title--btn{cursor:pointer}
   flex-direction:column;
   gap:4px;
   min-width:0;
-  max-width:55%;
+  max-width:48%;
   text-align:left;
   text-shadow:0 2px 10px rgba(0,0,0,.65),0 0 18px rgba(0,0,0,.45);
   pointer-events:none
 }
 #scout-hub-grid .scout-hub-tile__copy .shop-hub-tile__sub{opacity:.78}
 
-/* Booster: 1.5x prior pack size, still inset on the far right */
+/* Booster: pack in far-right pocket */
 #scout-hub-grid .scout-hub-tile__pack{
   position:absolute;
   z-index:1;
@@ -8724,51 +8724,52 @@ button.player-title--btn{cursor:pointer}
   inset:0;
   z-index:2;
   pointer-events:none;
-  background:linear-gradient(85deg,rgba(8,14,28,.72) 0%,rgba(8,14,28,.4) 38%,rgba(8,14,28,.08) 68%,transparent 100%)
+  background:linear-gradient(85deg,rgba(8,14,28,.72) 0%,rgba(8,14,28,.45) 42%,rgba(8,14,28,.1) 70%,transparent 100%)
 }
 
-/* Gacha: same far-right pocket as pack; render up so face clears gem */
+/* Gacha: same far-right pocket as pack — crop inside the box (no scale spill) */
 #scout-hub-grid .scout-hub-tile__visual{
   position:absolute;
   z-index:1;
   right:4%;
   left:auto;
-  top:0;
-  width:48%;
-  height:100%;
+  top:2%;
+  bottom:2%;
+  width:46%;
+  height:auto;
   border-radius:0;
-  overflow:visible;
+  overflow:hidden;
   background:transparent;
   box-shadow:none;
   pointer-events:none
 }
 #scout-hub-grid .scout-hub-tile__render{
   position:absolute;
-  left:0;right:0;
-  top:-6%;
-  bottom:-15%;
+  inset:0;
   width:100%;
-  height:112%;
-  background-size:cover;
+  height:100%;
+  /* Heavy top crop without transform:scale (scale was spilling into the text) */
+  background-size:220% auto;
   background-position:center top;
   background-repeat:no-repeat;
-  transform:scale(3);
-  transform-origin:top center;
+  transform:none;
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))
 }
 #scout-hub-grid .scout-hub-tile__render::after{
   content:"";
   position:absolute;
   left:0;right:0;bottom:0;
-  height:55%;
-  background:linear-gradient(to top,rgba(8,12,24,.96) 0%,rgba(8,12,24,.45) 42%,transparent 100%);
+  height:48%;
+  background:linear-gradient(to top,rgba(8,12,24,.96) 0%,rgba(8,12,24,.4) 45%,transparent 100%);
   pointer-events:none
 }
 #scout-hub-grid .scout-hub-tile__gem{
   position:absolute;
   z-index:2;
-  left:6%;
-  top:52%;
+  right:6%;
+  left:auto;
+  bottom:14%;
+  top:auto;
   width:56px;
   height:56px;
   object-fit:contain;
@@ -8782,7 +8783,7 @@ button.player-title--btn{cursor:pointer}
   inset:0;
   z-index:2;
   pointer-events:none;
-  background:linear-gradient(85deg,rgba(8,14,28,.72) 0%,rgba(8,14,28,.4) 38%,rgba(8,14,28,.08) 68%,transparent 100%)
+  background:linear-gradient(85deg,rgba(8,14,28,.72) 0%,rgba(8,14,28,.45) 42%,rgba(8,14,28,.1) 70%,transparent 100%)
 }
 #btn-scout-gacha.is-locked{
   opacity:.55;filter:grayscale(.35);cursor:not-allowed
@@ -8791,10 +8792,10 @@ button.player-title--btn{cursor:pointer}
 @media (max-width:640px){
   #scout-hub-grid.shop-hub-grid{grid-template-columns:1fr;max-width:420px;margin-inline:auto}
   #scout-hub-grid .shop-hub-tile{min-height:128px;padding:16px 18px}
-  #scout-hub-grid .scout-hub-tile__copy{max-width:58%}
+  #scout-hub-grid .scout-hub-tile__copy{max-width:50%}
   #scout-hub-grid .scout-hub-tile__pack{width:52%;right:5%;top:6%;max-height:88%}
-  #scout-hub-grid .scout-hub-tile__visual{width:46%;right:4%}
-  #scout-hub-grid .scout-hub-tile__gem{width:56px;height:56px;left:4%;top:50%}
+  #scout-hub-grid .scout-hub-tile__visual{width:44%;right:4%}
+  #scout-hub-grid .scout-hub-tile__gem{width:52px;height:52px;right:4%;bottom:12%}
 }
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}
