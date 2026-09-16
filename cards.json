@@ -6912,9 +6912,9 @@
             "abilities": [
                 {
                     "trigger": "on_enter",
-                    "type": "activate_energy_if_success",
+                    "type": "activate_energy_from_deck_if_success",
                     "min_success_score_sum": 6,
-                    "energy": 1
+                    "count": 1
                 }
             ],
             "subunit": "lily white",
@@ -6956,9 +6956,9 @@
             "abilities": [
                 {
                     "trigger": "on_enter",
-                    "type": "activate_energy_if_success",
+                    "type": "activate_energy_from_deck_if_success",
                     "min_success_score_sum": 6,
-                    "energy": 1
+                    "count": 1
                 }
             ],
             "subunit": "lily white",
@@ -7000,9 +7000,9 @@
             "abilities": [
                 {
                     "trigger": "on_enter",
-                    "type": "activate_energy_if_success",
+                    "type": "activate_energy_from_deck_if_success",
                     "min_success_score_sum": 6,
-                    "energy": 1
+                    "count": 1
                 }
             ],
             "subunit": "lily white",
@@ -62220,6 +62220,7 @@
                     "trigger": "activated",
                     "type": "activated_swap_stage_wr_member",
                     "group": "Sunshine",
+                    "energy_cost": 2,
                     "discard": 1,
                     "cost_plus": 2,
                     "once_per_turn": true
@@ -62266,6 +62267,7 @@
                     "trigger": "activated",
                     "type": "activated_swap_stage_wr_member",
                     "group": "Sunshine",
+                    "energy_cost": 2,
                     "discard": 1,
                     "cost_plus": 2,
                     "once_per_turn": true

@@ -183,10 +183,13 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
 
         case 'activated_swap_stage_wr_member':
             if (!empty($state['pending_prompt'])) break;
+            // responder is required — without it the client hides the prompt and
+            // resolve_prompt no-ops (GitHub #190 softlock).
             $state['pending_prompt'] = [
                 'type'          => 'sbp6_swap_stage_wr_member',
                 'step'          => 'confirm',
                 'owner'         => $pid,
+                'responder'     => $pid,
                 'source_id'     => $source['instance_id'] ?? '',
                 'source_name'   => $name,
                 'ability'       => $ab,
@@ -624,7 +627,17 @@ function sBp6ResolveActivatedAbility(
     if (!sBp6IsEffectType($type)) return null;
 
     if ($type === 'activated_swap_stage_wr_member') {
-        return sBp6ResolveEffect($state, $pid, $member, $ab, ['phase' => 'activated']);
+        // Burn once-per-turn on activation (Yes/No confirm still follows).
+        if (!empty($ab['once_per_turn'])) {
+            markAbilityUsed($member, $abilityIdx);
+            if ($slot !== null && isset($p['stage'][$slot])) {
+                $p['stage'][$slot] = $member;
+            }
+        }
+        return sBp6ResolveEffect($state, $pid, $member, $ab, [
+            'phase' => 'activated',
+            'ability_index' => $abilityIdx,
+        ]);
     }
     if ($type === 'activated_leave_play_wr_same_slot') {
         return sBp6ResolveEffect($state, $pid, $member, $ab, [
@@ -872,6 +885,10 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
             return finishPromptEffects($state);
         }
         if ($step === 'confirm' && $choice === 'yes') {
+            $energyCost = intval($ability['energy_cost'] ?? $ability['cost'] ?? 0);
+            if ($energyCost > 0 && !payEnergyCost($ownerP, $energyCost)) {
+                throw new Exception("Need $energyCost active Energy");
+            }
             $ids = $data['discard_ids'] ?? [];
             if (count($ids) !== 1) {
                 throw new Exception('Discard exactly 1 card');

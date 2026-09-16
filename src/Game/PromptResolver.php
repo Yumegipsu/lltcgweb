@@ -217,7 +217,13 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
     // resolved (poll/submit race or double-click), or it now belongs to the
     // opponent. Treat as an idempotent no-op so the client silently resyncs
     // instead of surfacing a "Not your prompt to answer" error toast.
-    if (!$prompt || ($prompt['responder'] ?? '') !== $pid) {
+    // Legacy prompts sometimes omitted responder (e.g. Kanan #190) — treat owner
+    // as the responder so in-flight games can still answer.
+    $responder = (string)($prompt['responder'] ?? '');
+    if ($responder === '' && is_array($prompt)) {
+        $responder = (string)($prompt['owner'] ?? '');
+    }
+    if (!$prompt || $responder !== $pid) {
         $state['_resolve_prompt_noop'] = true;
         return $state;
     }

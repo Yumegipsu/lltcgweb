@@ -1819,7 +1819,10 @@ function promptDiscardCount(pr, choice){
   if(pr.type==='opp_may_discard_or_modifier') return 1;
   if(pr.type==='reveal_live_opp_discard_or_blade') return 1;
   // PL!S-bp6-003 Kanan: Yes immediately requires discarding 1 (cost), then stage/WR picks.
-  if(pr.type==='sbp6_swap_stage_wr_member') return pr.ability?.discard || pr.discard_count || 1;
+  if(pr.type==='sbp6_swap_stage_wr_member'){
+    if(choice==='no'||choice==='skip') return 0;
+    return pr.ability?.discard || pr.discard_count || 1;
+  }
   return 0;
 }
 
@@ -3773,7 +3776,18 @@ global.renderPrompt = function renderPrompt(s, myId){
     });
     return;
   }
-  if((pr?.type==='bp5_wr_live_deck_position'||pr?.type==='bp5_pick_kasumi_reveal'||pr?.type==='bp5_discard_pay_wr_live_score'&&pr.step==='pick_live'||pr?.type==='sbp5_pick_revealed_member'||pr?.type==='sbp5_pick_yell_members'||pr?.type==='sbp5_wr_lives_deck_top'||pr?.type==='sbp6_pick_revealed_member'||pr?.type==='sbp6_swap_pick_wr_member'||pr?.type==='sbp6_live_zone_deck_top_hearts'||pr?.type==='sbp6_swap_pick_stage_member'||pr?.type==='ssd1_play_wr_empty'&&pr.step==='pick_wr'||pr?.type==='both_wr_member_to_empty_stage'&&pr.step==='pick_wr'||pr?.type==='ssd1_reveal_group_deck'&&pr.step==='pick_hand'||pr?.type==='spbp5_distinct_groups'||pr?.type==='spbp5_subunit_blade_pick'||pr?.type==='spbp5_pick_wr_live'||pr?.type==='spbp5_wait_discard_surveil'&&pr.step==='pick')&&pr.responder===myId){
+  if(pr?.type==='sbp6_swap_pick_stage_member'&&(pr.responder||pr.owner)===myId){
+    ovl.classList.remove('open');
+    const cands=(pr.candidates||[]).filter(c=>c&&c.instance_id);
+    if(!cands.length){
+      sendAct('resolve_prompt',{choice:'skip'});
+      return;
+    }
+    // Cost already paid — stage pick is mandatory (no cancel → softlock).
+    openStageMemberPickById({...pr, candidates:cands, optional:false, choices:[]});
+    return;
+  }
+  if((pr?.type==='bp5_wr_live_deck_position'||pr?.type==='bp5_pick_kasumi_reveal'||pr?.type==='bp5_discard_pay_wr_live_score'&&pr.step==='pick_live'||pr?.type==='sbp5_pick_revealed_member'||pr?.type==='sbp5_pick_yell_members'||pr?.type==='sbp5_wr_lives_deck_top'||pr?.type==='sbp6_pick_revealed_member'||pr?.type==='sbp6_swap_pick_wr_member'||pr?.type==='sbp6_live_zone_deck_top_hearts'||pr?.type==='ssd1_play_wr_empty'&&pr.step==='pick_wr'||pr?.type==='both_wr_member_to_empty_stage'&&pr.step==='pick_wr'||pr?.type==='ssd1_reveal_group_deck'&&pr.step==='pick_hand'||pr?.type==='spbp5_distinct_groups'||pr?.type==='spbp5_subunit_blade_pick'||pr?.type==='spbp5_pick_wr_live'||pr?.type==='spbp5_wait_discard_surveil'&&pr.step==='pick')&&(pr.responder||pr.owner)===myId){
     ovl.classList.remove('open');
     const mandatoryBothWr = pr.type === 'both_wr_member_to_empty_stage';
     openHandPick({
@@ -3885,7 +3899,7 @@ global.renderPrompt = function renderPrompt(s, myId){
     ovl.classList.add('open');
     return;
   }
-  if(!pr||pr.responder!==myId){
+  if(!pr||(pr.responder||pr.owner)!==myId){
     ovl.classList.remove('open');
     hideTextAnswerPrompt();
     hidePromptEffectText();
