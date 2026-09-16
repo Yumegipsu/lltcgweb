@@ -8772,9 +8772,8 @@ button.player-title--btn{cursor:pointer}
 }
 
 /*
- * Gacha visual pocket on the far right.
- * Renders are 1920×900 with the figure ~33–40% from the left — cover-crop
- * into the face (top), keep clear of the tile’s right border + gem.
+ * Gacha visual: figure beside the gem, top-aligned face, clear of the
+ * rounded right border. Keep the render box = pocket width (no 180% strip).
  */
 #scout-hub-grid .scout-hub-tile--gacha{
   overflow:hidden
@@ -8782,10 +8781,10 @@ button.player-title--btn{cursor:pointer}
 #scout-hub-grid .scout-hub-tile__visual{
   position:absolute;
   z-index:1;
-  right:4%;
-  top:4%;
-  bottom:4%;
-  width:46%;
+  right:10px;
+  top:4px;
+  bottom:4px;
+  width:52%;
   overflow:hidden;
   background:transparent;
   pointer-events:none
@@ -8793,16 +8792,15 @@ button.player-title--btn{cursor:pointer}
 #scout-hub-grid .scout-hub-tile__render{
   position:absolute;
   top:0;
+  left:0;
+  /* Leave a gem lane on the right so the figure isn’t clipped by the curve */
+  right:58px;
   bottom:auto;
-  left:auto;
-  /* Stay inside the visual — do not bleed into the right border/gem */
-  right:14%;
-  width:180%;
-  height:250%;
+  width:auto;
+  height:220%;
   max-width:none;
   object-fit:cover;
-  /* Face toward top; figure centered in the crop (not jammed into the right) */
-  object-position:30% 6%;
+  object-position:34% 5%;
   transform:none;
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.35));
   pointer-events:none
@@ -8810,7 +8808,7 @@ button.player-title--btn{cursor:pointer}
 #scout-hub-grid .scout-hub-tile__gem{
   position:absolute;
   z-index:2;
-  right:2%;
+  right:2px;
   left:auto;
   bottom:8%;
   top:auto;
@@ -8830,9 +8828,9 @@ button.player-title--btn{cursor:pointer}
   #scout-hub-grid .shop-hub-tile{min-height:128px;padding:16px 18px}
   #scout-hub-grid .scout-hub-tile__copy{max-width:44%}
   #scout-hub-grid .scout-hub-tile__pack{width:48%;right:3%}
-  #scout-hub-grid .scout-hub-tile__visual{width:48%;right:3%;top:4%;bottom:4%}
-  #scout-hub-grid .scout-hub-tile__render{right:12%;height:240%;object-position:30% 6%}
-  #scout-hub-grid .scout-hub-tile__gem{width:52px;height:52px;right:2%;bottom:8%}
+  #scout-hub-grid .scout-hub-tile__visual{width:54%;right:8px;top:4px;bottom:4px}
+  #scout-hub-grid .scout-hub-tile__render{right:52px;height:210%;object-position:34% 5%}
+  #scout-hub-grid .scout-hub-tile__gem{width:52px;height:52px;right:2px;bottom:8%}
 }
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}
