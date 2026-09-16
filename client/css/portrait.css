@@ -1153,17 +1153,16 @@ html.tcg-portrait-play #screen-leaderboard .rank-title-slot:has(.player-title--p
   align-self:center;
   margin-top:-6px!important;
   margin-bottom:-6px!important;
-  height:calc(100% + 12px);
+  height:50px;
 }
 html.tcg-portrait-play #screen-leaderboard .rank-title-slot .player-title--portrait{
   margin:0;
   height:100%;
 }
 html.tcg-portrait-play #screen-leaderboard .rank-title-slot .player-title--portrait .player-title-img{
-  height:100%;
+  height:50px;
   width:auto;
-  max-height:none;
-  max-width:none;
+  max-width:50px;
 }
 html.tcg-portrait-play #screen-leaderboard .rank-card .rank-banner-wrap{
   grid-column:4;
