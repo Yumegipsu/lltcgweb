@@ -1,5 +1,5 @@
 /**
- * SIFAS-style scout spotlight — canvas beams, rarity flips, card reveal.
+ * Overhead scout spotlight rig — beams hang from a truss, splay to floor pools.
  * Rarities: grey (N) · gold (SR) · rainbow (UR). Results are predetermined;
  * `from` is spectacle-only (e.g. gold → rainbow for UR).
  *
@@ -10,55 +10,39 @@
 
   const TIER = {
     grey: {
-      rank: 0,
-      beam: ['#cddff5', '#ffffff'],
-      hot: '#dbe8ff',
-      frame: '#b6c8e0',
-      halo: 'rgba(180,210,255,.5)',
-      text: 'N',
-      power: 0.62,
-      game: 'n',
+      rank: 0, core: '#ffffff', edge: '#cfe0f2', pool: '#e8f1ff',
+      frame: '#cfe0f5', halo: 'rgba(205,228,255,.5)', text: 'N', power: 0.8, game: 'n',
     },
     gold: {
-      rank: 1,
-      beam: ['#ffd166', '#fff3c6'],
-      hot: '#ffd88a',
-      frame: '#ffc84d',
-      halo: 'rgba(255,190,70,.6)',
-      text: 'SR',
-      power: 0.95,
-      game: 'sr',
+      rank: 1, core: '#fff6d2', edge: '#ffbc3d', pool: '#ffd88a',
+      frame: '#ffc84d', halo: 'rgba(255,190,70,.6)', text: 'SR', power: 1.05, game: 'sr',
     },
     rainbow: {
-      rank: 2,
-      beam: null,
-      hot: '#ffffff',
-      frame: '#ffffff',
-      halo: 'rgba(190,160,255,.7)',
-      text: 'UR',
-      power: 1.35,
-      game: 'ur',
+      rank: 2, core: '#ffffff', edge: '#ffffff', pool: '#ffffff',
+      frame: '#ffffff', halo: 'rgba(190,160,255,.7)', text: 'UR', power: 1.3, game: 'ur',
     },
   };
-  const HUES = 12;
-  const RAINBOW = Array.from({ length: HUES }, (_, i) => `hsl(${(i * 360) / HUES | 0} 100% 66%)`);
+  const BANDS = ['#ff6fae', '#ffd36a', '#9df5a8', '#5fd8ff', '#b08bff'];
 
-  const TIMING = {
-    first: 380,
-    gap: 115,
-    flipLead: 520,
-    flipLen: 560,
-    flipGap: 340,
-    flourish: 420,
+  const T = {
+    first: 340,
+    gap: 255,
+    flipLead: 620,
+    glitter: 480,
+    bloomIn: 230,
+    settle: 520,
+    flipGap: 420,
+    flourishDelay: 420,
     flourishLen: 1150,
     cardGap: 85,
   };
+  const FLIP_LEN = T.glitter + T.bloomIn + T.settle;
 
   const Q = {
     dpr: Math.min(global.devicePixelRatio || 1, 2),
-    motes: 40,
-    burst: 34,
-    sprite: [128, 560],
+    motes: 46,
+    sparkles: 26,
+    sprite: [160, 700],
   };
 
   let reduceMotion = false;
@@ -66,8 +50,8 @@
     reduceMotion = !!global.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   } catch (_) { /* ignore */ }
   if (reduceMotion) {
-    Q.motes = 8;
-    Q.burst = 10;
+    Q.motes = 10;
+    Q.sparkles = 8;
   }
 
   const cache = new Map();
@@ -76,7 +60,7 @@
   let canvas = null;
   let ctx = null;
   let stage = null;
-  let lip = null;
+  let floorline = null;
   let cardsEl = null;
   let flourishEl = null;
   let flourishBig = null;
@@ -87,6 +71,7 @@
   let W = 0;
   let H = 0;
   let floorY = 0;
+  let rigY = 0;
   let diag = 0;
   let slots = [];
   let running = false;
@@ -97,49 +82,70 @@
   let flash = 0;
   let rings = [];
   let parts = [];
-  let sweep = -1;
+  let wash = 0;
   let plan = null;
   let resolveDone = null;
   let onResizeBound = null;
   let onStageClick = null;
   let onSkipClick = null;
   let sfxFn = null;
-  let labels = { ur: 'UR', sr: 'SR', urSub: '', srSub: '', skip: 'Skip', hint: 'Tap to continue' };
+  let labels = {
+    ur: 'UR', sr: 'SR', urSub: '', srSub: '', skip: 'Skip', hint: 'Tap to continue',
+  };
 
-  function tint(col, a) {
-    if (col[0] === '#') {
-      let h = col.slice(1);
-      if (h.length === 3) h = h.split('').map((x) => x + x).join('');
-      const n = parseInt(h, 16);
-      return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
-    }
-    return col.replace('hsl', 'hsla').replace(')', ` / ${a})`);
+  const RB_PHASES = 6;
+
+  function fade(hex, a) {
+    let h = String(hex || '').replace('#', '');
+    if (h.length === 3) h = h.split('').map((x) => x + x).join('');
+    const n = parseInt(h, 16) || 0;
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
   }
 
-  function beamSprite(color) {
-    const k = 'b' + color;
-    if (cache.has(k)) return cache.get(k);
+  function cone(key, stops) {
+    if (cache.has(key)) return cache.get(key);
     const [w, h] = Q.sprite;
     const c = document.createElement('canvas');
     c.width = w;
     c.height = h;
     const g = c.getContext('2d');
     for (let y = 0; y < h; y += 2) {
-      const t = 1 - y / h;
-      const half = (w / 2) * (0.045 + 0.955 * Math.pow(1 - t, 0.62)) + 1;
-      const a = Math.pow(t, 1.5) * 0.92;
+      const s = y / h;
+      const half = (w / 2) * (0.028 + 0.972 * Math.pow(1 - s, 0.52)) + 1;
+      const a = (0.3 + 0.7 * Math.pow(s, 0.85)) * 0.55;
       const grad = g.createLinearGradient(w / 2 - half, 0, w / 2 + half, 0);
-      grad.addColorStop(0, 'rgba(0,0,0,0)');
-      grad.addColorStop(0.42, color);
-      grad.addColorStop(0.5, '#ffffff');
-      grad.addColorStop(0.58, color);
-      grad.addColorStop(1, 'rgba(0,0,0,0)');
+      for (const [p, col] of stops) grad.addColorStop(p, col);
       g.globalAlpha = a;
       g.fillStyle = grad;
       g.fillRect(w / 2 - half, y, half * 2, 3);
     }
-    cache.set(k, c);
+    cache.set(key, c);
     return c;
+  }
+
+  function solidCone(t) {
+    return cone('s' + t.core + t.edge, [
+      [0, 'rgba(0,0,0,0)'],
+      [0.16, fade(t.edge, 0.35)],
+      [0.34, t.edge],
+      [0.5, t.core],
+      [0.66, t.edge],
+      [0.84, fade(t.edge, 0.35)],
+      [1, 'rgba(0,0,0,0)'],
+    ]);
+  }
+
+  function rainbowCone(phase) {
+    const k = 'rb' + phase;
+    if (cache.has(k)) return cache.get(k);
+    const stops = [[0, 'rgba(0,0,0,0)']];
+    const n = BANDS.length;
+    for (let i = 0; i < n; i++) {
+      const p = 0.12 + (0.76 * i) / (n - 1);
+      stops.push([p, BANDS[(i + phase) % n]]);
+    }
+    stops.push([1, 'rgba(0,0,0,0)']);
+    return cone(k, stops);
   }
 
   function glow(color, size) {
@@ -151,26 +157,8 @@
     const r = size / 2;
     const gr = g.createRadialGradient(r, r, 0, r, r, r);
     gr.addColorStop(0, 'rgba(255,255,255,1)');
-    gr.addColorStop(0.16, color);
-    gr.addColorStop(0.42, tint(color, 0.35));
-    gr.addColorStop(1, 'rgba(0,0,0,0)');
-    g.fillStyle = gr;
-    g.fillRect(0, 0, size, size);
-    cache.set(k, c);
-    return c;
-  }
-
-  function ringSprite(color, size) {
-    const k = 'r' + color + size;
-    if (cache.has(k)) return cache.get(k);
-    const c = document.createElement('canvas');
-    c.width = c.height = size;
-    const g = c.getContext('2d');
-    const r = size / 2;
-    const gr = g.createRadialGradient(r, r, r * 0.66, r, r, r);
-    gr.addColorStop(0, 'rgba(0,0,0,0)');
-    gr.addColorStop(0.6, tint(color, 0.7));
-    gr.addColorStop(0.85, color);
+    gr.addColorStop(0.18, color);
+    gr.addColorStop(0.44, fade(color, 0.34));
     gr.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = gr;
     g.fillRect(0, 0, size, size);
@@ -182,9 +170,15 @@
     if (Q.dpr > 1) Q.dpr = 1;
     else {
       Q.motes = (Q.motes * 0.5) | 0;
-      Q.burst = (Q.burst * 0.5) | 0;
+      Q.sparkles = (Q.sparkles * 0.5) | 0;
     }
     resize();
+  }
+
+  function playSfx(id) {
+    try {
+      if (typeof sfxFn === 'function') sfxFn(id);
+    } catch (_) { /* ignore */ }
   }
 
   function resize() {
@@ -194,24 +188,25 @@
     canvas.width = Math.round(W * Q.dpr);
     canvas.height = Math.round(H * Q.dpr);
     ctx.setTransform(Q.dpr, 0, 0, Q.dpr, 0, 0);
-    floorY = H * 0.76;
+    floorY = H * 0.785;
+    rigY = -H * 0.22;
     diag = Math.hypot(W, H);
-    if (lip) lip.style.top = floorY + 'px';
-    layoutSlots();
+    if (floorline) floorline.style.top = (floorY / H * 100) + '%';
+    layout();
   }
 
-  function layoutSlots() {
+  function layout() {
     const n = slots.length;
     if (!n) return;
-    const pad = n > 4 ? 0.04 : 0.24;
+    const pad = n > 4 ? 0.075 : 0.28;
     slots.forEach((s, i) => {
-      s.x = n === 1 ? W / 2 : W * pad + i * (W * (1 - pad * 2) / (n - 1));
-      s.tilt = ((s.x - W / 2) / W) * 0.3;
+      s.bx = n === 1 ? W / 2 : W * pad + i * (W * (1 - pad * 2) / (n - 1));
+      s.ax = W / 2 + (s.bx - W / 2) * 0.52;
       if (s.el) {
         const span = n === 1 ? W * 0.42 : (W * (1 - pad * 2) / (n - 1));
-        const cw = Math.min(n === 1 ? 230 : span * 0.82, n === 1 ? 230 : n > 8 ? 72 : 104);
-        s.el.style.left = s.x + 'px';
-        s.el.style.top = (floorY - 10) + 'px';
+        const cw = Math.min(n === 1 ? 230 : span * 0.84, n === 1 ? 230 : n > 8 ? 72 : 106);
+        s.el.style.left = s.bx + 'px';
+        s.el.style.top = (floorY - 6) + 'px';
         s.el.style.width = cw + 'px';
       }
     });
@@ -219,40 +214,49 @@
 
   function mote(s) {
     parts.push({
-      x: s.x + (Math.random() - 0.5) * 36,
-      y: floorY - Math.random() * 20,
-      vx: (Math.random() - 0.5) * 14 + s.tilt * 40,
-      vy: -30 - Math.random() * 70,
+      x: s.bx + (Math.random() - 0.5) * 70,
+      y: floorY - Math.random() * 30,
+      vx: (Math.random() - 0.5) * 10,
+      vy: -18 - Math.random() * 40,
       life: 1,
-      decay: 0.32 + Math.random() * 0.3,
-      size: 3 + Math.random() * 7,
-      tier: s.tier,
-      hue: (Math.random() * HUES) | 0,
+      decay: 0.3 + Math.random() * 0.3,
+      size: 3 + Math.random() * 6,
+      col: s.tier === 'rainbow'
+        ? BANDS[(Math.random() * BANDS.length) | 0]
+        : TIER[s.tier].pool,
     });
   }
 
-  function burst(x, y, n, tier) {
+  function sparkle(s, p) {
+    const x = s.ax + (s.bx - s.ax) * p + (Math.random() - 0.5) * 46 * p;
+    const y = rigY + (floorY - rigY) * p;
+    parts.push({
+      x,
+      y,
+      vx: (s.bx - s.ax) * 0.22,
+      vy: 170 + Math.random() * 190,
+      life: 1,
+      decay: 0.5 + Math.random() * 0.4,
+      size: 4 + Math.random() * 8,
+      col: Math.random() < 0.5 ? '#fff6d2' : BANDS[(Math.random() * BANDS.length) | 0],
+    });
+  }
+
+  function burst(x, y, n, col) {
     for (let i = 0; i < n; i++) {
       const a = Math.random() * Math.PI * 2;
-      const sp = 90 + Math.random() * 380;
+      const sp = 80 + Math.random() * 340;
       parts.push({
         x,
         y,
         vx: Math.cos(a) * sp,
-        vy: Math.sin(a) * sp * 0.7 - 60,
+        vy: Math.sin(a) * sp * 0.62 - 70,
         life: 1,
-        decay: 0.7 + Math.random() * 0.5,
-        size: 5 + Math.random() * 11,
-        tier,
-        hue: (Math.random() * HUES) | 0,
+        decay: 0.65 + Math.random() * 0.5,
+        size: 5 + Math.random() * 10,
+        col: col === 'rainbow' ? BANDS[(Math.random() * BANDS.length) | 0] : col,
       });
     }
-  }
-
-  function playSfx(id) {
-    try {
-      if (typeof sfxFn === 'function') sfxFn(id);
-    } catch (_) { /* ignore */ }
   }
 
   function buildPlan(results) {
@@ -262,35 +266,30 @@
       from: r.from || null,
       name: r.name || '',
       image: r.image || null,
-      ignite: TIMING.first + i * TIMING.gap,
+      ignite: T.first + i * T.gap,
       flipAt: 0,
-      flipped: !r.from,
+      done: !r.from,
       i,
+      phase: 0,
     }));
-    const lastIgnite = TIMING.first + (slots.length - 1) * TIMING.gap;
-    let cursor = lastIgnite + TIMING.flipLead;
+    const last = T.first + (slots.length - 1) * T.gap;
+    let cur = last + T.flipLead;
     slots.filter((s) => s.from).forEach((s) => {
-      s.flipAt = cursor;
-      cursor += TIMING.flipGap;
+      s.flipAt = cur;
+      cur += FLIP_LEN + T.flipGap;
     });
-    const flipsEnd = slots.some((s) => s.from) ? cursor + TIMING.flipLen : lastIgnite + 250;
+    const flipsEnd = slots.some((s) => s.from) ? cur - T.flipGap : last + 260;
     const best = slots.reduce((m, s) => Math.max(m, TIER[s.finalTier]?.rank ?? 0), 0);
-    const flourishAt = flipsEnd + TIMING.flourish;
-    const hasFlourish = best >= 1;
-    const cardsAt = hasFlourish ? flourishAt + TIMING.flourishLen : flipsEnd + 300;
+    const fAt = flipsEnd + T.flourishDelay;
+    const has = best >= 1;
+    const cAt = has ? fAt + T.flourishLen : flipsEnd + 320;
     return {
       best,
-      hasFlourish,
-      flourishAt,
-      cardsAt,
-      endAt: cardsAt + slots.length * TIMING.cardGap + 400,
+      has,
+      fAt,
+      cAt,
+      endAt: cAt + slots.length * T.cardGap + 420,
     };
-  }
-
-  function beamColors(tier, i, timeMs) {
-    if (tier !== 'rainbow') return TIER[tier].beam;
-    const o = Math.floor(timeMs / 85) + i * 3;
-    return [RAINBOW[o % HUES], RAINBOW[(o + 4) % HUES]];
   }
 
   function drawSlot(s) {
@@ -299,54 +298,86 @@
     const t = TIER[s.tier];
     if (!t) return;
 
-    const rise = Math.min(1, age / 240);
-    const pop = 1 + 0.9 * Math.exp(-age / 120) * Math.sin(age / 55);
-    let width = 1;
-    let extra = 0;
+    const rise = Math.min(1, age / 300);
+    const strike = 1 + 1.2 * Math.exp(-age / 140) * Math.sin(age / 62);
+    let widen = 1;
+    let boost = 0;
+    let dim = 1;
 
-    if (s.from && !s.flipped && now >= s.flipAt) {
-      const p = (now - s.flipAt) / TIMING.flipLen;
-      if (p < 0.46) {
-        width = Math.max(0.06, 1 - p / 0.46);
-        extra = p * 1.6;
-      } else {
+    if (s.from && !s.done && now >= s.flipAt) {
+      const e = now - s.flipAt;
+      if (e < T.glitter) {
+        const p = e / T.glitter;
+        boost = p * 1.3;
+        widen = 1 + p * 0.1;
+        if (!s._glitterSfx) {
+          s._glitterSfx = true;
+          playSfx('energy_chip');
+        }
+        if (!reduceMotion && parts.length < Q.motes + Q.sparkles && Math.random() < 0.85) {
+          sparkle(s, Math.random() * 0.95);
+        }
+      } else if (e < T.glitter + T.bloomIn) {
+        const p = (e - T.glitter) / T.bloomIn;
         if (s.tier !== s.finalTier) {
           s.tier = s.finalTier;
-          flash = Math.max(flash, 0.55);
-          rings.push({ x: s.x, y: floorY, r: 10, a: 0.9, tier: s.tier });
-          burst(s.x, floorY - 40, (Q.burst * 0.7) | 0, s.tier);
-          playSfx(s.tier === 'rainbow' ? 'yell_reveal' : 'pack_reveal');
+          flash = Math.max(flash, 0.75);
+          rings.push({ x: s.bx, y: floorY, r: 14, a: 1, col: '#ffffff' });
+          rings.push({ x: s.bx, y: floorY, r: 8, a: 0.8, col: TIER[s.finalTier].pool });
+          burst(
+            s.bx,
+            floorY - 30,
+            26,
+            s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
+          );
+          playSfx(s.finalTier === 'rainbow' ? 'yell_reveal' : 'pack_reveal');
         }
-        const q = (p - 0.46) / 0.54;
-        width = 0.06 + (1 - 0.06) * (1 - Math.pow(1 - q, 3)) * (1 + 0.28 * Math.exp(-q * 6) * Math.sin(q * 14));
-        extra = (1 - q) * 1.1;
+        boost = 2.2 * (1 - p);
+        dim = 1 + 1.4 * (1 - p);
+        widen = 1.3 - 0.2 * p;
+      } else {
+        const p = Math.min(1, (e - T.glitter - T.bloomIn) / T.settle);
+        boost = 0.8 * (1 - p);
+        widen = 1.12 - 0.12 * p;
+        if (p >= 1) s.done = true;
       }
-      if (p >= 1) s.flipped = true;
     }
 
-    const flick = 0.78 + 0.22 * Math.sin(now * 0.006 + s.i * 2.1);
-    const alpha = Math.min(1, rise) * (0.3 + 0.22 * extra) * t.power * flick;
-    const [c1, c2] = beamColors(s.tier, s.i, now);
-    const len = (H * 0.92) * (0.9 + 0.1 * flick) * Math.min(1.15, pop * rise);
+    const flick = 0.86 + 0.14 * Math.sin(now * 0.0042 + s.i * 2.3);
+    const sway = reduceMotion ? 0 : Math.sin(now * 0.0011 + s.i * 1.7) * W * 0.006;
+    const bx = s.bx + sway;
+
+    const dx = bx - s.ax;
+    const dy = floorY - rigY;
+    const len = Math.hypot(dx, dy) * (0.99 + 0.02 * flick);
+    const ang = Math.atan2(dx, -dy);
+    const baseW = (W < 560 ? 130 : 182)
+      * (slots.length === 1 ? 2.0 : slots.length > 8 ? 0.72 : 1)
+      * widen;
+
+    const sprite = s.tier === 'rainbow'
+      ? rainbowCone(Math.floor(now / 140) % RB_PHASES)
+      : solidCone(t);
 
     ctx.save();
-    ctx.translate(s.x, floorY);
-    ctx.rotate(s.tilt);
-
-    const baseW = (W < 560 ? 112 : 160) * (slots.length === 1 ? 2.1 : slots.length > 8 ? 0.72 : 1);
-    ctx.globalAlpha = alpha;
-    ctx.drawImage(beamSprite(c1), -baseW * width / 2, -len, baseW * width, len);
-    ctx.globalAlpha = alpha * 0.75;
-    ctx.drawImage(beamSprite(c2), -baseW * width * 0.42 / 2, -len * 0.82, baseW * width * 0.42, len * 0.82);
+    ctx.translate(s.ax, rigY);
+    ctx.rotate(ang);
+    ctx.globalAlpha = Math.min(1, rise * strike)
+      * (0.62 + 0.2 * boost) * t.power * flick * dim;
+    ctx.drawImage(sprite, -baseW / 2, -len, baseW, len);
     ctx.restore();
 
-    const hot = glow(s.tier === 'rainbow' ? beamColors(s.tier, s.i, now)[0] : t.hot, 256);
-    const hw = baseW * width * 2.1;
-    const hh = hw * 0.34;
-    ctx.globalAlpha = Math.min(1, rise) * (0.5 + 0.4 * extra) * t.power;
-    ctx.drawImage(hot, s.x - hw / 2, floorY - hh / 2, hw, hh);
+    const poolCol = s.tier === 'rainbow'
+      ? BANDS[(now / 140 | 0) % BANDS.length]
+      : t.pool;
+    const pw = baseW * 1.9;
+    const ph = pw * 0.28;
+    ctx.globalAlpha = Math.min(1, rise) * (0.62 + 0.3 * boost) * t.power;
+    ctx.drawImage(glow(poolCol, 256), bx - pw / 2, floorY - ph / 2, pw, ph);
+    ctx.globalAlpha *= 0.8;
+    ctx.drawImage(glow(t.core, 128), bx - pw * 0.34, floorY - ph * 0.3, pw * 0.68, ph * 0.6);
 
-    if (!reduceMotion && parts.length < Q.motes && Math.random() < 0.22) mote(s);
+    if (!reduceMotion && parts.length < Q.motes && Math.random() < 0.12) mote(s);
   }
 
   let perfAcc = 0;
@@ -373,11 +404,15 @@
     flourishSub.textContent = ur ? labels.urSub : labels.srSub;
     void flourishEl.offsetWidth;
     flourishEl.classList.add('is-show');
-    flash = Math.max(flash, ur ? 0.8 : 0.45);
-    playSfx(ur ? 'yell_reveal' : 'pack_reveal');
+    flash = Math.max(flash, ur ? 0.7 : 0.4);
+    playSfx(ur ? 'splash_success' : 'splash_live');
     if (ur) {
-      sweep = 0;
-      slots.forEach((s) => burst(s.x, floorY - H * 0.25, (Q.burst * 0.5) | 0, s.finalTier));
+      slots.forEach((s) => burst(
+        s.bx,
+        floorY - H * 0.2,
+        10,
+        s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
+      ));
     }
   }
 
@@ -406,7 +441,6 @@
       const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
       mini.style.setProperty('--foil-x', `${x * 100}%`);
       mini.style.setProperty('--foil-y', `${y * 100}%`);
-      // Slightly stronger than in-game hand tilt for spotlight flair.
       mini.style.setProperty('--foil-ry', `${(x - 0.5) * 18}deg`);
       mini.style.setProperty('--foil-rx', `${(0.5 - y) * 14}deg`);
     };
@@ -420,13 +454,19 @@
       setTimeout(() => {
         if (!s.el) return;
         s.el.classList.add('is-in');
-        burst(s.x, floorY - 60, 8, s.finalTier);
-        if (i === 0) playSfx('card_flip');
+        burst(
+          s.bx,
+          floorY - 50,
+          7,
+          s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
+        );
+        if (i === 0) playSfx('pack_reveal');
+        else if (i % 2 === 0) playSfx('card_flip');
         if (s.finalTier === 'rainbow') {
           const mini = s.el.querySelector('.gacha-spot-mini');
           if (mini) bindUrTilt(mini);
         }
-      }, i * TIMING.cardGap);
+      }, i * T.cardGap);
     });
   }
 
@@ -436,7 +476,8 @@
     slots.forEach((s) => {
       const t = TIER[s.finalTier] || TIER.grey;
       const el = document.createElement('div');
-      el.className = 'gacha-spot-slot' + (s.finalTier === 'rainbow' ? ' is-ur' : s.finalTier === 'gold' ? ' is-sr' : ' is-n');
+      el.className = 'gacha-spot-slot'
+        + (s.finalTier === 'rainbow' ? ' is-ur' : s.finalTier === 'gold' ? ' is-sr' : ' is-n');
       el.style.setProperty('--frame', t.frame);
       el.style.setProperty('--halo', t.halo);
       const mini = document.createElement('div');
@@ -457,7 +498,7 @@
       cardsEl.appendChild(el);
       s.el = el;
     });
-    layoutSlots();
+    layout();
   }
 
   function frame(ts) {
@@ -470,59 +511,46 @@
     ctx.clearRect(0, 0, W, H);
     ctx.globalCompositeOperation = 'lighter';
 
-    const haze = glow('#4a6fd0', 512);
-    ctx.globalAlpha = 0.22;
-    ctx.drawImage(haze, -W * 0.1, floorY - H * 0.09, W * 1.2, H * 0.18);
+    const lit = slots.reduce(
+      (a, s) => a + (now >= s.ignite ? (TIER[s.tier]?.power || 0) : 0),
+      0
+    );
+    wash += ((lit / Math.max(1, slots.length)) - wash) * Math.min(1, dt * 3);
+    ctx.globalAlpha = 0.1 * wash;
+    ctx.drawImage(glow('#b98bff', 512), -W * 0.15, floorY - H * 0.55, W * 1.3, H * 0.72);
 
     for (const s of slots) drawSlot(s);
 
     for (let i = rings.length - 1; i >= 0; i--) {
       const r = rings[i];
-      r.r += dt * diag * 1.1;
-      r.a -= dt * 1.4;
+      r.r += dt * diag * 1.25;
+      r.a -= dt * 1.6;
       if (r.a <= 0) {
         rings.splice(i, 1);
         continue;
       }
-      const sp = ringSprite(r.tier === 'rainbow' ? RAINBOW[(now / 80 | 0) % HUES] : TIER[r.tier].hot, 256);
-      ctx.globalAlpha = r.a;
-      ctx.drawImage(sp, r.x - r.r, r.y - r.r * 0.36, r.r * 2, r.r * 0.72);
+      ctx.globalAlpha = r.a * 0.8;
+      ctx.drawImage(glow(r.col, 256), r.x - r.r, r.y - r.r * 0.34, r.r * 2, r.r * 0.68);
     }
 
     for (let i = parts.length - 1; i >= 0; i--) {
       const p = parts[i];
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      p.vy += 22 * dt;
+      p.vy += 30 * dt;
       p.life -= p.decay * dt;
       if (p.life <= 0) {
         parts.splice(i, 1);
         continue;
       }
-      const col = p.tier === 'rainbow' ? RAINBOW[p.hue] : TIER[p.tier]?.hot || '#fff';
-      const s2 = p.size * (0.6 + p.life);
-      ctx.globalAlpha = p.life * 0.8;
-      ctx.drawImage(glow(col, 64), p.x - s2 / 2, p.y - s2 / 2, s2, s2);
-    }
-
-    if (sweep >= 0) {
-      sweep += dt * 1.5;
-      if (sweep > 1.4) sweep = -1;
-      else {
-        const x = -W * 0.4 + sweep * W * 1.5;
-        const g = ctx.createLinearGradient(x - W * 0.3, 0, x + W * 0.3, 0);
-        g.addColorStop(0, 'rgba(0,0,0,0)');
-        g.addColorStop(0.5, 'rgba(255,255,255,.16)');
-        g.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.globalAlpha = Math.max(0, 1 - Math.abs(sweep - 0.6));
-        ctx.fillStyle = g;
-        ctx.fillRect(0, 0, W, H);
-      }
+      const s2 = p.size * (0.55 + p.life);
+      ctx.globalAlpha = p.life * 0.85;
+      ctx.drawImage(glow(p.col, 64), p.x - s2 / 2, p.y - s2 / 2, s2, s2);
     }
 
     if (flash > 0) {
-      flash -= dt * 2.6;
-      ctx.globalAlpha = Math.max(0, flash) * 0.85;
+      flash -= dt * 2.7;
+      ctx.globalAlpha = Math.max(0, flash) * 0.8;
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, W, H);
     }
@@ -533,22 +561,23 @@
     for (const s of slots) {
       if (!s._lit && now >= s.ignite) {
         s._lit = true;
-        rings.push({ x: s.x, y: floorY, r: 6, a: 0.7, tier: s.tier });
-        burst(s.x, floorY - 10, 6, s.tier);
+        rings.push({ x: s.bx, y: floorY, r: 6, a: 0.6, col: TIER[s.tier].pool });
+        burst(s.bx, floorY - 8, 5, TIER[s.tier].pool);
         if (s.i === 0) playSfx('pack_open');
+        else playSfx('skill_tick');
       }
     }
-    if (plan.hasFlourish && !plan._flourish && now >= plan.flourishAt) {
-      plan._flourish = true;
+    if (plan.has && !plan._f && now >= plan.fAt) {
+      plan._f = true;
       showFlourish(plan.best);
     }
-    if (!plan._cards && now >= plan.cardsAt) {
-      plan._cards = true;
+    if (!plan._c && now >= plan.cAt) {
+      plan._c = true;
       hideFlourish();
       revealCards();
     }
-    if (!plan._done && now >= plan.endAt) {
-      plan._done = true;
+    if (!plan._d && now >= plan.endAt) {
+      plan._d = true;
       if (hintEl) {
         hintEl.hidden = false;
         hintEl.textContent = labels.hint;
@@ -568,9 +597,13 @@
     stage = root || document.getElementById('gacha-spot');
     if (!stage) return false;
     canvas = stage.querySelector('#gacha-spot-fx') || document.getElementById('gacha-spot-fx');
-    lip = stage.querySelector('#gacha-spot-lip') || document.getElementById('gacha-spot-lip');
+    floorline = stage.querySelector('#gacha-spot-floorline')
+      || stage.querySelector('#gacha-spot-lip')
+      || document.getElementById('gacha-spot-floorline')
+      || document.getElementById('gacha-spot-lip');
     cardsEl = stage.querySelector('#gacha-spot-cards') || document.getElementById('gacha-spot-cards');
-    flourishEl = stage.querySelector('#gacha-spot-flourish') || document.getElementById('gacha-spot-flourish');
+    flourishEl = stage.querySelector('#gacha-spot-flourish')
+      || document.getElementById('gacha-spot-flourish');
     flourishBig = flourishEl?.querySelector('.gacha-spot-flourish-big');
     flourishSub = flourishEl?.querySelector('.gacha-spot-flourish-sub');
     skipBtn = document.getElementById('gacha-spot-skip');
@@ -584,36 +617,16 @@
     if (!running || !plan) return;
     slots.forEach((s) => {
       s.tier = s.finalTier;
-      s.flipped = true;
+      s.done = true;
       s._lit = true;
       s.ignite = -1;
     });
     hideFlourish();
-    if (!plan._cards) {
-      plan._cards = true;
+    if (!plan._c) {
+      plan._c = true;
       revealCards();
     }
-    plan.endAt = now + slots.length * TIMING.cardGap + 200;
-  }
-
-  function stop() {
-    running = false;
-    cancelAnimationFrame(raf);
-    parts.length = 0;
-    rings.length = 0;
-    flash = 0;
-    sweep = -1;
-    resolveDone = null;
-    if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (flourishEl) {
-      flourishEl.className = 'gacha-spot-flourish';
-      flourishEl.style.opacity = '';
-    }
-    if (hintEl) hintEl.hidden = true;
-    if (cardsEl) cardsEl.innerHTML = '';
-    slots = [];
-    plan = null;
-    unbindListeners();
+    plan.endAt = now + slots.length * T.cardGap + 250;
   }
 
   function unbindListeners() {
@@ -631,6 +644,26 @@
     }
   }
 
+  function stop() {
+    running = false;
+    cancelAnimationFrame(raf);
+    parts.length = 0;
+    rings.length = 0;
+    flash = 0;
+    wash = 0;
+    resolveDone = null;
+    if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (flourishEl) {
+      flourishEl.className = 'gacha-spot-flourish';
+      flourishEl.style.opacity = '';
+    }
+    if (hintEl) hintEl.hidden = true;
+    if (cardsEl) cardsEl.innerHTML = '';
+    slots = [];
+    plan = null;
+    unbindListeners();
+  }
+
   /**
    * @param {Array<{rarity:string,from?:string,name?:string,image?:string}>} results
    * @param {{sfx?:Function,labels?:object,root?:HTMLElement}} [opts]
@@ -638,9 +671,7 @@
    */
   function play(results, opts) {
     opts = opts || {};
-    if (!bindDom(opts.root)) {
-      return Promise.resolve();
-    }
+    if (!bindDom(opts.root)) return Promise.resolve();
     sfxFn = opts.sfx || null;
     if (opts.labels) labels = { ...labels, ...opts.labels };
     if (skipBtn) skipBtn.textContent = labels.skip;
@@ -667,16 +698,14 @@
     t0 = 0;
     lastTs = 0;
     now = 0;
+    wash = 0;
     raf = requestAnimationFrame(frame);
 
     return new Promise((resolve) => {
-      resolveDone = () => {
-        resolve();
-      };
+      resolveDone = () => resolve();
     });
   }
 
-  /** Map game tiers n/sr/ur → spotlight rarities + flip bait. */
   function fromPulls(pulls, imageFn) {
     return (pulls || []).map((p) => {
       const tier = String(p.tier || 'n');
@@ -686,7 +715,6 @@
         name: p.name_en || p.name || '',
         image: typeof imageFn === 'function' ? imageFn(p) : (p.image || ''),
       };
-      // Predetermined flips for spectacle (result already known).
       if (tier === 'ur') row.from = 'gold';
       else if (tier === 'sr') row.from = 'grey';
       return row;
