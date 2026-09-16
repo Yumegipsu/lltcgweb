@@ -82,7 +82,7 @@
   async function loadIdolMap() {
     if (_idolMap) return _idolMap;
     try {
-      const res = await fetch('./gacha_idol_map.json?v=1', { cache: 'no-store' });
+      const res = await fetch('./gacha_idol_map.json?v=2', { cache: 'no-store' });
       _idolMap = res.ok ? await res.json() : {};
     } catch (_) {
       _idolMap = {};
@@ -157,11 +157,21 @@
     }
   }
 
+  /** School idols currently featured in Loveca (excludes Bluebird / rivals / side units). */
+  const SCOUT_RENDER_UNITS = {
+    "µ's": 1,
+    Aqours: 1,
+    Nijigasaki: 1,
+    'Liella!': 1,
+    Hasunosora: 1,
+  };
+
   async function pickRandomRenderUrl() {
     const map = await loadIdolMap();
     const urls = Object.keys(map || {})
-      .map((k) => map[k] && map[k].render)
-      .filter((u) => typeof u === 'string' && u);
+      .map((k) => map[k])
+      .filter((e) => e && SCOUT_RENDER_UNITS[e.unit] && typeof e.render === 'string' && e.render)
+      .map((e) => e.render);
     if (!urls.length) return '';
     return urls[Math.floor(Math.random() * urls.length)];
   }
