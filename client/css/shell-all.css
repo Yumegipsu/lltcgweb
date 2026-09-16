@@ -8834,6 +8834,74 @@ button.player-title--btn{cursor:pointer}
 }
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}
+
+/* Gacha screen — Standard pool banner (Honoka crop matches Scout tile) */
+.gacha-banner{
+  position:relative;
+  display:block;
+  width:100%;
+  min-height:168px;
+  margin:12px 0 10px;
+  padding:18px 20px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:16px;
+  overflow:hidden;
+  isolation:isolate;
+  text-align:left;
+  cursor:default;
+  background:rgba(8,14,28,.78);
+  box-shadow:0 10px 28px rgba(0,0,0,.28);
+  font:inherit;color:inherit
+}
+.gacha-banner:focus{outline:none}
+.gacha-banner:focus-visible{outline:2px solid rgba(186,228,255,.7);outline-offset:2px}
+.gacha-banner::after{
+  content:"";
+  position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:linear-gradient(90deg,rgba(8,14,28,.55) 0%,rgba(8,14,28,.22) 42%,transparent 76%)
+}
+.gacha-banner__copy{
+  position:relative;z-index:3;
+  display:flex;flex-direction:column;gap:4px;
+  max-width:46%;
+  text-shadow:0 2px 10px rgba(0,0,0,.7),0 0 18px rgba(0,0,0,.45);
+  pointer-events:none
+}
+.gacha-banner__label{font-size:20px;font-weight:800;color:#fff;line-height:1.2}
+.gacha-banner__sub{font-size:13px;font-weight:600;color:rgba(255,255,255,.78);line-height:1.3}
+.gacha-banner__visual{
+  position:absolute;z-index:1;
+  right:0;top:0;bottom:0;width:58%;
+  overflow:visible;pointer-events:none
+}
+.gacha-banner__render{
+  position:absolute;
+  top:0;left:0;
+  width:calc(100% - 88px);
+  height:210%;
+  max-width:none;
+  object-fit:cover;
+  object-position:34% 6%;
+  filter:drop-shadow(0 8px 16px rgba(0,0,0,.35));
+  pointer-events:none
+}
+.gacha-banner__gem{
+  position:absolute;z-index:2;
+  right:22px;bottom:14px;
+  width:52px;height:52px;
+  object-fit:contain;
+  transform:rotate(30deg);
+  filter:drop-shadow(0 6px 14px rgba(0,0,0,.55));
+  pointer-events:none
+}
+@media (max-width:640px){
+  .gacha-banner{min-height:148px;padding:16px 18px}
+  .gacha-banner__copy{max-width:48%}
+  .gacha-banner__label{font-size:18px}
+  .gacha-banner__visual{width:56%}
+  .gacha-banner__render{width:calc(100% - 80px);height:200%}
+  .gacha-banner__gem{width:48px;height:48px;right:18px;bottom:12px}
+}
 .gacha-pull-overlay{
   position:fixed;inset:0;z-index:9200;display:flex;align-items:center;justify-content:center;
   background:rgba(4,8,18,.88);cursor:pointer

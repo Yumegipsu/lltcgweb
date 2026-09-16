@@ -558,7 +558,9 @@
       "loadError": "Could not load gacha",
       "pullError": "Could not scout",
       "locked": "Coming soon",
-      "lockedToast": "Gacha is not available yet."
+      "lockedToast": "Gacha is not available yet.",
+      "standardTitle": "Standard Gacha",
+      "standardSub": "General Scout pool"
     },
 
     "sticker": {
@@ -2603,7 +2605,9 @@
       "loadError": "ガチャを読み込めませんでした",
       "pullError": "スカウトできませんでした",
       "locked": "近日公開",
-      "lockedToast": "ガチャはまだ利用できません。"
+      "lockedToast": "ガチャはまだ利用できません。",
+      "standardTitle": "スタンダードガチャ",
+      "standardSub": "共通スカウトプール"
     },
 
     "sticker": {
@@ -4413,7 +4417,9 @@
       "loadError": "No se pudo cargar el gacha",
       "pullError": "No se pudo hacer scout",
       "locked": "Próximamente",
-      "lockedToast": "El gacha aún no está disponible."
+      "lockedToast": "El gacha aún no está disponible.",
+      "standardTitle": "Gacha estándar",
+      "standardSub": "Pool general de Scout"
     },
 
     "ranked": {
@@ -6293,7 +6299,9 @@
       "loadError": "가챠를 불러올 수 없습니다",
       "pullError": "스카우트할 수 없습니다",
       "locked": "곧 공개",
-      "lockedToast": "아직 가챠를 이용할 수 없습니다."
+      "lockedToast": "아직 가챠를 이용할 수 없습니다.",
+      "standardTitle": "스탠다드 가챠",
+      "standardSub": "일반 스카우트 풀"
     },
 
     "ranked": {
@@ -8187,7 +8195,9 @@
       "loadError": "无法加载扭蛋",
       "pullError": "无法招募",
       "locked": "即将开放",
-      "lockedToast": "扭蛋尚未开放。"
+      "lockedToast": "扭蛋尚未开放。",
+      "standardTitle": "标准扭蛋",
+      "standardSub": "通用招募卡池"
     },
 
     "ranked": {
@@ -10071,7 +10081,9 @@
       "loadError": "โหลดกาชาไม่ได้",
       "pullError": "สเกาต์ไม่ได้",
       "locked": "เร็วๆ นี้",
-      "lockedToast": "กาชายังไม่พร้อมใช้งาน"
+      "lockedToast": "กาชายังไม่พร้อมใช้งาน",
+      "standardTitle": "กาชามาตรฐาน",
+      "standardSub": "พูลสเกาต์ทั่วไป"
     },
 
     "ranked": {
@@ -12004,7 +12016,9 @@
       "loadError": "Não foi possível carregar o gacha",
       "pullError": "Não foi possível fazer scout",
       "locked": "Em breve",
-      "lockedToast": "O gacha ainda não está disponível."
+      "lockedToast": "O gacha ainda não está disponível.",
+      "standardTitle": "Gacha padrão",
+      "standardSub": "Pool geral de Scout"
     },
 
     "sticker": {
