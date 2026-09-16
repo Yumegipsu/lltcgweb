@@ -621,8 +621,9 @@
     for (const s of slots) {
       if (!s._lit && now >= s.ignite) {
         s._lit = true;
-        rings.push({ x: s.bx, y: floorY, r: 6, a: 0.6, col: TIER[s.tier].pool });
-        burst(s.bx, floorY - 8, 5, TIER[s.tier].pool);
+        const fy = slotFloorY(s);
+        rings.push({ x: s.bx, y: fy, r: 6, a: 0.6, col: TIER[s.tier].pool });
+        burst(s.bx, fy - 8, 5, TIER[s.tier].pool);
         if (s.i === 0) playSfx('pack_open');
         else playSfx('skill_tick');
       }
