@@ -8749,15 +8749,17 @@ button.player-title--btn{cursor:pointer}
 }
 #scout-hub-grid .scout-hub-tile__render{
   position:absolute;
-  right:2%;
+  right:1%;
   left:auto;
-  top:-14%;
+  top:-16%;
   bottom:auto;
-  width:78%;
-  height:128%;
+  width:88%;
+  height:132%;
   max-width:none;
   object-fit:cover;
-  object-position:34% 38%;
+  /* Figures sit ~35% from the left of wide 1920×900 PNGs; a low X%
+     shifts that paint toward the right edge (next to the gem). */
+  object-position:14% 36%;
   transform:none;
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.35));
   pointer-events:none
@@ -8786,7 +8788,7 @@ button.player-title--btn{cursor:pointer}
   #scout-hub-grid .scout-hub-tile__copy{max-width:44%}
   #scout-hub-grid .scout-hub-tile__pack{width:48%;right:3%}
   #scout-hub-grid .scout-hub-tile__visual{width:56%}
-  #scout-hub-grid .scout-hub-tile__render{right:2%;width:82%;height:130%;object-position:34% 38%}
+  #scout-hub-grid .scout-hub-tile__render{right:1%;width:90%;height:134%;object-position:14% 36%}
   #scout-hub-grid .scout-hub-tile__gem{width:52px;height:52px;right:3%;bottom:10%}
 }
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
