@@ -8690,31 +8690,30 @@ button.player-title--btn{cursor:pointer}
   flex-direction:column;
   gap:4px;
   min-width:0;
-  max-width:52%;
+  max-width:48%;
   text-align:left;
   text-shadow:0 2px 10px rgba(0,0,0,.55)
 }
 #scout-hub-grid .scout-hub-tile__copy .shop-hub-tile__sub{opacity:.78}
 
-/* Booster: pack on the right, top-cropped, slight tilt */
-.scout-hub-tile--boosters .shop-hub-tile__art{
+/* Booster: pack img on the right, top-cropped, slight tilt */
+#scout-hub-grid .scout-hub-tile__pack{
   position:absolute;
   z-index:1;
-  right:-4%;
-  top:-10%;
-  width:54%;
-  height:122%;
+  right:-8%;
+  top:-12%;
+  width:56%;
+  height:130%;
   margin:0;
+  padding:0;
+  border:0;
   border-radius:0;
-  box-shadow:none;
-  background-color:transparent !important;
-  background-size:cover;
-  background-position:top center;
-  background-repeat:no-repeat;
+  object-fit:cover;
+  object-position:top center;
   transform:rotate(8deg);
   transform-origin:center center;
   pointer-events:none;
-  filter:drop-shadow(0 10px 18px rgba(0,0,0,.35))
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.4))
 }
 .scout-hub-tile--boosters::after{
   content:"";
@@ -8722,49 +8721,49 @@ button.player-title--btn{cursor:pointer}
   inset:0;
   z-index:2;
   pointer-events:none;
-  background:linear-gradient(85deg,rgba(8,14,28,.62) 0%,rgba(8,14,28,.38) 36%,rgba(8,14,28,.08) 62%,transparent 100%)
+  background:linear-gradient(85deg,rgba(8,14,28,.7) 0%,rgba(8,14,28,.42) 34%,rgba(8,14,28,.1) 58%,transparent 100%)
 }
 
-/* Gacha: tight face crop on the right + overlapping gem */
-.scout-hub-tile__visual{
+/* Gacha: face crop on the right + overlapping gem */
+#scout-hub-grid .scout-hub-tile__visual{
   position:absolute;
   z-index:1;
-  right:-6%;
+  right:-4%;
   left:auto;
-  top:-22%;
-  width:58%;
-  height:140%;
+  top:-18%;
+  width:56%;
+  height:136%;
   border-radius:0;
-  overflow:visible;
+  overflow:hidden;
   background:transparent;
   box-shadow:none;
   pointer-events:none
 }
-.scout-hub-tile__render{
+#scout-hub-grid .scout-hub-tile__render{
   position:absolute;
   left:0;top:0;
   width:100%;
   height:100%;
   background-size:cover;
-  background-position:center 6%;
+  background-position:center top;
   background-repeat:no-repeat;
-  transform:scale(1.45);
+  transform:scale(1.5);
   transform-origin:top center;
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))
 }
-.scout-hub-tile__render::after{
+#scout-hub-grid .scout-hub-tile__render::after{
   content:"";
   position:absolute;
   left:0;right:0;bottom:0;
-  height:58%;
+  height:55%;
   background:linear-gradient(to top,rgba(8,12,24,.96) 0%,rgba(8,12,24,.45) 42%,transparent 100%);
   pointer-events:none
 }
-.scout-hub-tile__gem{
+#scout-hub-grid .scout-hub-tile__gem{
   position:absolute;
   z-index:2;
-  left:8%;
-  top:36%;
+  left:4%;
+  top:38%;
   width:56px;
   height:56px;
   object-fit:contain;
@@ -8778,7 +8777,7 @@ button.player-title--btn{cursor:pointer}
   inset:0;
   z-index:2;
   pointer-events:none;
-  background:linear-gradient(95deg,rgba(8,14,28,.62) 0%,rgba(8,14,28,.38) 36%,rgba(8,14,28,.08) 62%,transparent 100%)
+  background:linear-gradient(85deg,rgba(8,14,28,.7) 0%,rgba(8,14,28,.42) 34%,rgba(8,14,28,.1) 58%,transparent 100%)
 }
 #btn-scout-gacha.is-locked{
   opacity:.55;filter:grayscale(.35);cursor:not-allowed
@@ -8787,10 +8786,10 @@ button.player-title--btn{cursor:pointer}
 @media (max-width:640px){
   #scout-hub-grid.shop-hub-grid{grid-template-columns:1fr;max-width:420px;margin-inline:auto}
   #scout-hub-grid .shop-hub-tile{min-height:128px;padding:16px 18px}
-  #scout-hub-grid .scout-hub-tile__copy{max-width:58%}
-  .scout-hub-tile--boosters .shop-hub-tile__art{width:50%;right:-6%}
-  .scout-hub-tile__visual{width:54%;right:-8%}
-  .scout-hub-tile__gem{width:46px;height:46px;left:6%;top:34%}
+  #scout-hub-grid .scout-hub-tile__copy{max-width:54%}
+  #scout-hub-grid .scout-hub-tile__pack{width:52%;right:-10%}
+  #scout-hub-grid .scout-hub-tile__visual{width:52%;right:-6%}
+  #scout-hub-grid .scout-hub-tile__gem{width:46px;height:46px;left:2%;top:36%}
 }
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}

@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=119">
+<link rel="stylesheet" href="client/css/shell-all.css?v=120">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
 <link rel="stylesheet" href="client/css/playmats.css?v=6">
@@ -1050,20 +1050,20 @@ try {
       <p class="hub-stat" data-i18n="scout.hint">Open booster packs or pull from the general gacha.</p>
       <div class="shop-hub-grid" id="scout-hub-grid">
         <button type="button" class="shop-hub-tile scout-hub-tile--boosters" id="btn-scout-boosters">
-          <span class="scout-hub-tile__art" id="scout-hub-boosters-art" aria-hidden="true"></span>
           <span class="scout-hub-tile__copy">
             <span class="shop-hub-tile__label" data-i18n="scout.boostersTitle">Booster Packs</span>
             <span class="shop-hub-tile__sub" data-i18n="scout.boostersSub">Open set booster packs</span>
           </span>
+          <img class="scout-hub-tile__pack" id="scout-hub-boosters-art" alt="" aria-hidden="true" decoding="async">
         </button>
         <button type="button" class="shop-hub-tile scout-hub-tile--gacha" id="btn-scout-gacha">
-          <span class="scout-hub-tile__visual" aria-hidden="true">
-            <span class="scout-hub-tile__render" id="scout-hub-gacha-render"></span>
-            <img class="scout-hub-tile__gem" src="assets/Star_Gem.png" alt="" width="56" height="56" decoding="async">
-          </span>
           <span class="scout-hub-tile__copy">
             <span class="shop-hub-tile__label" data-i18n="scout.gachaTitle">Gacha</span>
             <span class="shop-hub-tile__sub" data-i18n="scout.gachaSub">General Scout pulls</span>
+          </span>
+          <span class="scout-hub-tile__visual" aria-hidden="true">
+            <span class="scout-hub-tile__render" id="scout-hub-gacha-render"></span>
+            <img class="scout-hub-tile__gem" src="assets/Star_Gem.png" alt="" width="56" height="56" decoding="async">
           </span>
         </button>
       </div>
