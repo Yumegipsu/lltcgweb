@@ -563,7 +563,22 @@
       "locked": "Coming soon",
       "lockedToast": "Gacha is not available yet.",
       "standardTitle": "Standard Gacha",
-      "standardSub": "General Scout pool"
+      "standardSub": "General Scout pool",
+      "infoBtn": "Info",
+      "infoAria": "Gacha rates and pool",
+      "ratesTitle": "Standard Gacha",
+      "ratesLeadDetail": "Per pull · within a tier each card is equally likely",
+      "ratesSection": "Pull rates",
+      "poolSection": "Pool size",
+      "includedSection": "Included packs",
+      "excludedSection": "Not included",
+      "packStarters": "Starter decks",
+      "packPr": "PR cards",
+      "noteEqual": "After rarity is rolled, each card in that tier is equally likely.",
+      "noteNoPrDuo": "PR, DUO, and Premium Booster cards are not in this pool.",
+      "noteMellow": "MELLOW MOMENT is not in this pool yet.",
+      "ratesLoading": "Loading rates…",
+      "ratesError": "Could not load gacha rates"
     },
 
     "sticker": {
@@ -2613,7 +2628,22 @@
       "locked": "近日公開",
       "lockedToast": "ガチャはまだ利用できません。",
       "standardTitle": "スタンダードガチャ",
-      "standardSub": "共通スカウトプール"
+      "standardSub": "共通スカウトプール",
+      "infoBtn": "情報",
+      "infoAria": "ガチャ排出率とプール",
+      "ratesTitle": "スタンダードガチャ",
+      "ratesLeadDetail": "1回あたり · 同一レア内は均等抽選",
+      "ratesSection": "排出率",
+      "poolSection": "プール枚数",
+      "includedSection": "対象パック",
+      "excludedSection": "対象外",
+      "packStarters": "スタートデッキ",
+      "packPr": "PRカード",
+      "noteEqual": "レアリティ決定後は、そのティア内の各カードが均等に選ばれます。",
+      "noteNoPrDuo": "PR・DUO・プレミアムブースターのカードは含まれません。",
+      "noteMellow": "MELLOW MOMENTはまだこのプールに含まれません。",
+      "ratesLoading": "排出率を読み込み中…",
+      "ratesError": "ガチャの排出率を読み込めませんでした"
     },
 
     "sticker": {
@@ -4428,7 +4458,22 @@
       "locked": "Próximamente",
       "lockedToast": "El gacha aún no está disponible.",
       "standardTitle": "Gacha estándar",
-      "standardSub": "Pool general de Scout"
+      "standardSub": "Pool general de Scout",
+      "infoBtn": "Info",
+      "infoAria": "Probabilidades y pool del gacha",
+      "ratesTitle": "Gacha estándar",
+      "ratesLeadDetail": "Por tirada · dentro de un nivel cada carta es igual de probable",
+      "ratesSection": "Probabilidades",
+      "poolSection": "Tamaño del pool",
+      "includedSection": "Packs incluidos",
+      "excludedSection": "No incluidos",
+      "packStarters": "Mazos iniciales",
+      "packPr": "Cartas PR",
+      "noteEqual": "Tras elegir rareza, cada carta de ese nivel tiene la misma probabilidad.",
+      "noteNoPrDuo": "Las cartas PR, DUO y de Premium Booster no están en este pool.",
+      "noteMellow": "MELLOW MOMENT aún no está en este pool.",
+      "ratesLoading": "Cargando probabilidades…",
+      "ratesError": "No se pudieron cargar las probabilidades del gacha"
     },
 
     "ranked": {
@@ -6313,7 +6358,22 @@
       "locked": "곧 공개",
       "lockedToast": "아직 가챠를 이용할 수 없습니다.",
       "standardTitle": "스탠다드 가챠",
-      "standardSub": "일반 스카우트 풀"
+      "standardSub": "일반 스카우트 풀",
+      "infoBtn": "정보",
+      "infoAria": "가챠 확률과 풀",
+      "ratesTitle": "스탠다드 가챠",
+      "ratesLeadDetail": "1회당 · 같은 티어 안에서는 카드별 동일 확률",
+      "ratesSection": "뽑기 확률",
+      "poolSection": "풀 크기",
+      "includedSection": "포함 팩",
+      "excludedSection": "미포함",
+      "packStarters": "스타터 덱",
+      "packPr": "PR 카드",
+      "noteEqual": "레어도가 정해진 뒤, 해당 티어의 각 카드는 같은 확률로 뽑힙니다.",
+      "noteNoPrDuo": "PR, DUO, 프리미엄 부스터 카드는 이 풀에 없습니다.",
+      "noteMellow": "MELLOW MOMENT는 아직 이 풀에 없습니다.",
+      "ratesLoading": "확률 불러오는 중…",
+      "ratesError": "가챠 확률을 불러올 수 없습니다"
     },
 
     "ranked": {
@@ -8212,7 +8272,22 @@
       "locked": "即将开放",
       "lockedToast": "扭蛋尚未开放。",
       "standardTitle": "标准扭蛋",
-      "standardSub": "通用招募卡池"
+      "standardSub": "通用招募卡池",
+      "infoBtn": "详情",
+      "infoAria": "扭蛋概率与卡池",
+      "ratesTitle": "标准扭蛋",
+      "ratesLeadDetail": "每次抽取 · 同稀有度内各卡概率相等",
+      "ratesSection": "抽取概率",
+      "poolSection": "卡池规模",
+      "includedSection": "包含卡包",
+      "excludedSection": "不包含",
+      "packStarters": "起始牌组",
+      "packPr": "PR卡",
+      "noteEqual": "稀有度决定后，该档位内每张卡被抽中的概率相同。",
+      "noteNoPrDuo": "PR、DUO 与 Premium Booster 卡不在本卡池中。",
+      "noteMellow": "MELLOW MOMENT 暂未加入本卡池。",
+      "ratesLoading": "正在加载概率…",
+      "ratesError": "无法加载扭蛋概率"
     },
 
     "ranked": {
@@ -10101,7 +10176,22 @@
       "locked": "เร็วๆ นี้",
       "lockedToast": "กาชายังไม่พร้อมใช้งาน",
       "standardTitle": "กาชามาตรฐาน",
-      "standardSub": "พูลสเกาต์ทั่วไป"
+      "standardSub": "พูลสเกาต์ทั่วไป",
+      "infoBtn": "ข้อมูล",
+      "infoAria": "อัตรากาชาและพูล",
+      "ratesTitle": "กาชามาตรฐาน",
+      "ratesLeadDetail": "ต่อการสุ่ม · ในเราริตี้เดียวกันโอกาสเท่ากัน",
+      "ratesSection": "อัตราการสุ่ม",
+      "poolSection": "ขนาดพูล",
+      "includedSection": "แพ็กที่รวม",
+      "excludedSection": "ไม่รวม",
+      "packStarters": "เด็คเริ่มต้น",
+      "packPr": "การ์ด PR",
+      "noteEqual": "หลังกำหนดเราริตี้แล้ว การ์ดในระดับนั้นมีโอกาสเท่ากัน",
+      "noteNoPrDuo": "การ์ด PR, DUO และ Premium Booster ไม่อยู่ในพูลนี้",
+      "noteMellow": "MELLOW MOMENT ยังไม่อยู่ในพูลนี้",
+      "ratesLoading": "กำลังโหลดอัตรา…",
+      "ratesError": "โหลดอัตรากาชาไม่ได้"
     },
 
     "ranked": {
@@ -12039,7 +12129,22 @@
       "locked": "Em breve",
       "lockedToast": "O gacha ainda não está disponível.",
       "standardTitle": "Gacha padrão",
-      "standardSub": "Pool geral de Scout"
+      "standardSub": "Pool geral de Scout",
+      "infoBtn": "Info",
+      "infoAria": "Taxas e pool do gacha",
+      "ratesTitle": "Gacha padrão",
+      "ratesLeadDetail": "Por puxada · dentro do tier cada carta tem chance igual",
+      "ratesSection": "Taxas de puxada",
+      "poolSection": "Tamanho do pool",
+      "includedSection": "Pacotes incluídos",
+      "excludedSection": "Não incluídos",
+      "packStarters": "Decks iniciais",
+      "packPr": "Cartas PR",
+      "noteEqual": "Depois da raridade, cada carta daquele tier tem a mesma chance.",
+      "noteNoPrDuo": "Cartas PR, DUO e de Premium Booster não estão neste pool.",
+      "noteMellow": "MELLOW MOMENT ainda não está neste pool.",
+      "ratesLoading": "Carregando taxas…",
+      "ratesError": "Não foi possível carregar as taxas do gacha"
     },
 
     "sticker": {

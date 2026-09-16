@@ -231,12 +231,54 @@ function tcgGachaIdolKeyFromCard(?array $card): string {
     return '';
 }
 
+/**
+ * Catalog of products in / out of the general Scout pool (for the rates modal).
+ *
+ * @return array{
+ *   included: list<array{id:string,name_en:string,name_jp:string,kind:string}>,
+ *   excluded: list<array{id:string,name_en:string,name_jp:string,kind:string}>
+ * }
+ */
+function tcgGachaPackCatalog(): array {
+    $included = [];
+    $excluded = [];
+    foreach (tcgBoosterBoxes() as $box) {
+        $entry = [
+            'id' => (string)($box['id'] ?? ''),
+            'name_en' => (string)($box['name_en'] ?? $box['id'] ?? ''),
+            'name_jp' => (string)($box['name_jp'] ?? ''),
+            'kind' => (string)($box['kind'] ?? ''),
+        ];
+        $kind = $entry['kind'];
+        $id = $entry['id'];
+        if ($kind === 'bp' && $id !== 'bp_mellow') {
+            $included[] = $entry;
+        } else {
+            $excluded[] = $entry;
+        }
+    }
+    $included[] = [
+        'id' => 'starters',
+        'name_en' => 'Starter decks',
+        'name_jp' => 'スタートデッキ',
+        'kind' => 'starter',
+    ];
+    $excluded[] = [
+        'id' => 'pr_cards',
+        'name_en' => 'PR cards',
+        'name_jp' => 'PRカード',
+        'kind' => 'pr',
+    ];
+    return ['included' => $included, 'excluded' => $excluded];
+}
+
 function tcgApiGachaInfo(array $body): array {
     $uid = tcgRequireAuthUser($body);
     tcgEnsureUser($uid, tcgAuthUserProfile($uid));
     $unlocked = tcgGachaUserHasAccess($uid);
     $cards = tcgLoadCardsData();
     $pools = tcgGachaBuildPools($cards);
+    $packs = tcgGachaPackCatalog();
     return [
         'success' => true,
         'unlocked' => $unlocked,
@@ -256,6 +298,8 @@ function tcgApiGachaInfo(array $body): array {
             'ur' => count($pools['ur']),
             'total' => count($pools['all']),
         ],
+        'packs_included' => $packs['included'],
+        'packs_excluded' => $packs['excluded'],
     ];
 }
 

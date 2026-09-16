@@ -823,6 +823,7 @@ html.tcg-portrait-play #screen-booster.booster-has-pick .account-panel{
 }
 /* Rates (and other overlays) cover the dock — don't leave actions clicking through */
 html.tcg-portrait-play body:has(#modal-booster-rates.open) #screen-booster .booster-open-actions,
+html.tcg-portrait-play body:has(#modal-gacha-rates.open) #screen-gacha .gacha-actions,
 html.tcg-portrait-play body:has(#modal-paid-booster.open) #screen-booster .booster-open-actions{
   visibility:hidden;
   pointer-events:none;

@@ -85,4 +85,19 @@ final class GachaPoolTest extends TestCase
         $this->assertFalse(tcgGachaUserHasAccess('0'));
         $this->assertFalse(tcgGachaUserHasAccess('999'));
     }
+
+    public function testPackCatalogListsIncludedAndExcluded(): void
+    {
+        $cat = tcgGachaPackCatalog();
+        $incIds = array_column($cat['included'], 'id');
+        $excIds = array_column($cat['excluded'], 'id');
+        $this->assertContains('bp_vol1', $incIds);
+        $this->assertContains('bp_royal', $incIds);
+        $this->assertContains('starters', $incIds);
+        $this->assertContains('bp_mellow', $excIds);
+        $this->assertContains('pb_muse', $excIds);
+        $this->assertContains('pr_cards', $excIds);
+        $this->assertNotContains('bp_mellow', $incIds);
+        $this->assertNotContains('pb_muse', $incIds);
+    }
 }

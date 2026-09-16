@@ -157,6 +157,173 @@
     }
   }
 
+  function packDisplayName(row) {
+    const id = String(row && row.id || '');
+    if (id === 'starters') return tt('gacha.packStarters', 'Starter decks');
+    if (id === 'pr_cards') return tt('gacha.packPr', 'PR cards');
+    const loc = (global.LLTCG_I18N && global.LLTCG_I18N.getLocale)
+      ? String(global.LLTCG_I18N.getLocale() || 'en')
+      : 'en';
+    if (loc === 'ja' && row && row.name_jp) return String(row.name_jp);
+    return String((row && (row.name_en || row.id)) || '');
+  }
+
+  function appendPackList(parent, title, rows, emptyLabel) {
+    const wrap = document.createElement('div');
+    wrap.className = 'gacha-rates-packs';
+    const h = document.createElement('h3');
+    h.textContent = title;
+    wrap.appendChild(h);
+    const ul = document.createElement('ul');
+    ul.className = 'gacha-rates-packlist';
+    const list = Array.isArray(rows) ? rows : [];
+    if (!list.length) {
+      const li = document.createElement('li');
+      li.className = 'gacha-rates-pack gacha-rates-pack--empty';
+      li.textContent = emptyLabel;
+      ul.appendChild(li);
+    } else {
+      list.forEach((row) => {
+        const li = document.createElement('li');
+        li.className = 'gacha-rates-pack';
+        li.textContent = packDisplayName(row);
+        ul.appendChild(li);
+      });
+    }
+    wrap.appendChild(ul);
+    parent.appendChild(wrap);
+  }
+
+  function renderGachaRatesModal(info) {
+    const body = el('gacha-rates-body');
+    if (!body) return;
+    body.replaceChildren();
+
+    const title = el('gacha-rates-title');
+    if (title) title.textContent = tt('gacha.ratesTitle', 'Standard Gacha');
+    const lead = el('gacha-rates-lead');
+    if (lead) {
+      lead.textContent = tt(
+        'gacha.ratesLeadDetail',
+        'Per pull · within a tier each card is equally likely'
+      );
+    }
+
+    const rates = info.rates || {};
+    const rarityWrap = document.createElement('div');
+    rarityWrap.className = 'booster-rates-rarity';
+    const rarityTitle = document.createElement('h3');
+    rarityTitle.textContent = tt('gacha.ratesSection', 'Pull rates');
+    rarityWrap.appendChild(rarityTitle);
+    const rarityGrid = document.createElement('div');
+    rarityGrid.className = 'booster-rates-rarity-grid';
+    [
+      { key: 'n', label: tt('gacha.tierN', 'N'), pct: rates.n != null ? rates.n : 90 },
+      { key: 'sr', label: tt('gacha.tierSr', 'SR'), pct: rates.sr != null ? rates.sr : 9.2 },
+      { key: 'ur', label: tt('gacha.tierUr', 'UR'), pct: rates.ur != null ? rates.ur : 0.8 },
+    ].forEach((row) => {
+      const chip = document.createElement('span');
+      chip.className = 'booster-rarity-chip gacha-rarity-chip gacha-rarity-chip--' + row.key;
+      chip.innerHTML = `${row.label}<span class="brp">${row.pct}%</span>`;
+      rarityGrid.appendChild(chip);
+    });
+    rarityWrap.appendChild(rarityGrid);
+    body.appendChild(rarityWrap);
+
+    const pool = info.pool || {};
+    const poolWrap = document.createElement('div');
+    poolWrap.className = 'gacha-rates-pool';
+    const poolTitle = document.createElement('h3');
+    poolTitle.textContent = tt('gacha.poolSection', 'Pool size');
+    poolWrap.appendChild(poolTitle);
+    const poolLine = document.createElement('p');
+    poolLine.className = 'booster-rates-lead';
+    poolLine.style.margin = '0';
+    poolLine.textContent = tt(
+      'gacha.poolInfo',
+      '{total} cards in pool · UR {ur} · SR {sr} · N {n}',
+      {
+        total: pool.total || 0,
+        ur: pool.ur || 0,
+        sr: pool.sr || 0,
+        n: pool.n || 0,
+      }
+    );
+    poolWrap.appendChild(poolLine);
+    body.appendChild(poolWrap);
+
+    appendPackList(
+      body,
+      tt('gacha.includedSection', 'Included packs'),
+      info.packs_included,
+      '—'
+    );
+    appendPackList(
+      body,
+      tt('gacha.excludedSection', 'Not included'),
+      info.packs_excluded,
+      '—'
+    );
+
+    const notes = document.createElement('ul');
+    notes.className = 'booster-rates-notes';
+    [
+      tt('gacha.noteEqual', 'After rarity is rolled, each card in that tier is equally likely.'),
+      tt('gacha.noteNoPrDuo', 'PR, DUO, and Premium Booster cards are not in this pool.'),
+      tt('gacha.noteMellow', 'MELLOW MOMENT is not in this pool yet.'),
+    ].forEach((text) => {
+      const li = document.createElement('li');
+      li.textContent = text;
+      notes.appendChild(li);
+    });
+    body.appendChild(notes);
+  }
+
+  async function openGachaRates() {
+    const body = el('gacha-rates-body');
+    if (body) {
+      body.replaceChildren();
+      const loading = document.createElement('p');
+      loading.className = 'booster-rates-loading';
+      loading.textContent = tt('gacha.ratesLoading', 'Loading rates…');
+      body.appendChild(loading);
+    }
+    const title = el('gacha-rates-title');
+    if (title) title.textContent = tt('gacha.ratesTitle', 'Standard Gacha');
+    const lead = el('gacha-rates-lead');
+    if (lead) lead.textContent = tt('gacha.ratesLoading', 'Loading rates…');
+    if (typeof global.openM === 'function') global.openM('modal-gacha-rates');
+    else {
+      const modal = el('modal-gacha-rates');
+      if (modal) modal.classList.add('open');
+    }
+    try {
+      if (!_info || !_info.packs_included) {
+        _info = await accountPost('gacha_info', {});
+        syncScoutTileLock(!!_info.unlocked);
+        updateRateCopy(_info);
+        syncGems(_info.star_gems);
+      }
+      renderGachaRatesModal(_info);
+    } catch (e) {
+      if (body) {
+        body.replaceChildren();
+        const err = document.createElement('p');
+        err.className = 'booster-rates-loading';
+        err.textContent = e.message || tt('gacha.ratesError', 'Could not load gacha rates');
+        body.appendChild(err);
+      }
+    }
+  }
+
+  function closeGachaRates() {
+    if (typeof global.closeM === 'function') global.closeM('modal-gacha-rates');
+    else {
+      const modal = el('modal-gacha-rates');
+      if (modal) modal.classList.remove('open');
+    }
+  }
+
   /** School idols currently featured in Loveca (excludes Bluebird / rivals / side units). */
   const SCOUT_RENDER_UNITS = {
     "µ's": 1,
@@ -366,6 +533,15 @@
     });
     el('btn-gacha-single')?.addEventListener('click', () => openGacha('single'));
     el('btn-gacha-multi')?.addEventListener('click', () => openGacha('multi'));
+    el('btn-gacha-rates')?.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      void openGachaRates();
+    });
+    el('btn-gacha-rates-close')?.addEventListener('click', () => closeGachaRates());
+    el('modal-gacha-rates')?.addEventListener('click', (e) => {
+      if (e.target === el('modal-gacha-rates')) closeGachaRates();
+    });
     wirePackResultsForGacha();
   }
 

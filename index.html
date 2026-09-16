@@ -111,12 +111,12 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=145">
+<link rel="stylesheet" href="client/css/shell-all.css?v=146">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
 <link rel="stylesheet" href="client/css/playmats.css?v=6">
 <link rel="stylesheet" href="client/css/tournament.css?v=24">
-<link rel="stylesheet" href="client/css/portrait.css?v=102">
+<link rel="stylesheet" href="client/css/portrait.css?v=103">
 <link rel="stylesheet" href="client/css/social.css?v=32">
 
 </head>
@@ -1090,7 +1090,8 @@ try {
         <img src="assets/Star_Gem.png" alt="" width="22" height="22" aria-hidden="true">
         <b id="gacha-gems">0</b>
       </div>
-      <button type="button" class="gacha-banner" id="btn-gacha-banner" aria-pressed="true">
+      <div class="gacha-banner" id="gacha-banner" role="group" aria-label="Standard Gacha">
+        <button type="button" class="box-info-btn gacha-banner-info-btn" id="btn-gacha-rates" data-i18n="gacha.infoBtn" data-i18n-aria-label="gacha.infoAria" aria-label="Gacha rates and pool" aria-haspopup="dialog" aria-controls="modal-gacha-rates">Info</button>
         <span class="gacha-banner__copy">
           <span class="gacha-banner__label" data-i18n="gacha.standardTitle">Standard Gacha</span>
           <span class="gacha-banner__sub" data-i18n="gacha.standardSub">General Scout pool</span>
@@ -1099,7 +1100,7 @@ try {
           <img class="gacha-banner__render" id="gacha-banner-render" src="assets/gacha/renders/honoka.png" alt="" decoding="async">
           <img class="gacha-banner__gem" src="assets/Star_Gem.png" alt="" width="56" height="56" decoding="async">
         </span>
-      </button>
+      </div>
       <p class="hub-stat" id="gacha-rates" data-i18n="gacha.ratesLead">N ~90% · SR ~9.2% · UR ~0.8%</p>
       <p class="hub-stat" id="gacha-pool-info"></p>
       <div class="gacha-actions">
@@ -2440,6 +2441,18 @@ try {
   </div>
 </div>
 
+<!-- Gacha banner rates + pack inclusion -->
+<div class="overlay" id="modal-gacha-rates">
+  <div class="mbox">
+    <button class="mcls" id="btn-gacha-rates-close" type="button">✕</button>
+    <h2 class="booster-rates-head" id="gacha-rates-title" data-i18n="gacha.ratesTitle">Standard Gacha</h2>
+    <p class="booster-rates-lead" id="gacha-rates-lead" data-i18n="gacha.ratesLeadDetail">Per pull · within a tier each card is equally likely</p>
+    <div id="gacha-rates-body">
+      <p class="booster-rates-loading" data-i18n="gacha.ratesLoading">Loading rates…</p>
+    </div>
+  </div>
+</div>
+
 <div class="llc-menu-screen sticker-info-overlay" id="modal-sticker-info" role="dialog" aria-modal="true" aria-labelledby="sticker-info-title">
   <div class="account-shell sticker-info-shell">
     <div class="panel account-panel sticker-info-panel">
@@ -3033,7 +3046,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=193"></script>
+<script src="i18n.js?v=194"></script>
 <script src="log_i18n.js?v=18"></script>
 <script src="sfx.js?v=19"></script>
 <script src="client/js/news.js?v=41"></script>
@@ -3058,7 +3071,7 @@ try {
 <script src="client/js/apk-asset-cache.js?v=8"></script>
 <script src="client/js/shop-new.js?v=2"></script>
 <script src="client/js/gacha-spotlight.js?v=3"></script>
-<script src="client/js/gacha.js?v=9"></script>
+<script src="client/js/gacha.js?v=10"></script>
 <script src="client/js/ranked-pr-reward.js?v=6"></script>
 <script src="client/js/missions.js?v=14"></script>
 <script src="client/js/login-bonus.js?v=3"></script>

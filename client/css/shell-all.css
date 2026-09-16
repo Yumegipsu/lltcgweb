@@ -8945,6 +8945,10 @@ button.player-title--btn{cursor:pointer}
   box-shadow:0 10px 28px rgba(0,0,0,.28);
   font:inherit;color:inherit
 }
+.gacha-banner-info-btn{
+  z-index:4;
+  pointer-events:auto
+}
 .gacha-banner:focus{outline:none}
 .gacha-banner:focus-visible{outline:2px solid rgba(186,228,255,.7);outline-offset:2px}
 .gacha-banner::after{
@@ -8994,6 +8998,23 @@ button.player-title--btn{cursor:pointer}
   .gacha-banner__render{width:calc(100% - 80px);height:200%}
   .gacha-banner__gem{width:48px;height:48px;right:18px;bottom:12px}
 }
+#modal-gacha-rates .mbox{max-width:min(720px,96vw);max-height:min(88vh,920px);display:flex;flex-direction:column}
+#gacha-rates-body{flex:1;min-height:0;overflow-y:auto;padding-right:2px}
+.gacha-rates-pool{margin:0 0 14px}
+.gacha-rates-pool h3,.gacha-rates-packs h3{
+  margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(186,228,255,.92)
+}
+.gacha-rates-packs{margin:0 0 14px}
+.gacha-rates-packlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.gacha-rates-pack{
+  font-size:12px;font-weight:600;color:rgba(255,255,255,.88);line-height:1.35;
+  padding:7px 10px;border-radius:8px;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)
+}
+.gacha-rates-pack--empty{color:rgba(255,255,255,.45);font-weight:500}
+.gacha-rarity-chip--ur{border-color:rgba(255,196,92,.45);background:rgba(255,180,60,.12)}
+.gacha-rarity-chip--sr{border-color:rgba(186,228,255,.4);background:rgba(120,180,255,.1)}
+.gacha-rarity-chip--n{border-color:rgba(255,255,255,.2)}
 .gacha-pull-overlay{
   position:fixed;inset:0;z-index:9200;display:flex;align-items:stretch;justify-content:stretch;
   background:#0a0410;cursor:pointer
