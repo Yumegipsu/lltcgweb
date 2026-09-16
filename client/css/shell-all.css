@@ -8665,7 +8665,7 @@ button.player-title--btn{cursor:pointer}
 .title-preview-meta{margin:0 0 8px;font-size:13px;color:rgba(186,228,255,.9)}
 .title-preview-hint{margin:0;font-size:13px;line-height:1.4;color:rgba(255,255,255,.78)}
 
-/* Scout / Gacha — graphic tiles (copy left, bleed art on the right) */
+/* Scout / Gacha — graphic tiles (copy left overlay, art on the right) */
 #scout-hub-grid.shop-hub-grid{
   grid-template-columns:1fr 1fr;
   max-width:860px
@@ -8690,27 +8690,30 @@ button.player-title--btn{cursor:pointer}
   flex-direction:column;
   gap:4px;
   min-width:0;
-  max-width:48%;
+  max-width:62%;
   text-align:left;
-  text-shadow:0 2px 10px rgba(0,0,0,.55)
+  text-shadow:0 2px 10px rgba(0,0,0,.65),0 0 18px rgba(0,0,0,.45);
+  pointer-events:none
 }
 #scout-hub-grid .scout-hub-tile__copy .shop-hub-tile__sub{opacity:.78}
 
-/* Booster: pack img on the right, top-cropped, slight tilt */
+/* Booster: smaller pack inset from the right — both sides + top visible */
 #scout-hub-grid .scout-hub-tile__pack{
   position:absolute;
   z-index:1;
-  right:-8%;
-  top:-12%;
-  width:56%;
-  height:130%;
+  right:10%;
+  top:8%;
+  bottom:8%;
+  width:38%;
+  height:auto;
+  max-height:84%;
   margin:0;
   padding:0;
   border:0;
   border-radius:0;
-  object-fit:cover;
+  object-fit:contain;
   object-position:top center;
-  transform:rotate(8deg);
+  transform:rotate(7deg);
   transform-origin:center center;
   pointer-events:none;
   filter:drop-shadow(0 10px 18px rgba(0,0,0,.4))
@@ -8721,33 +8724,35 @@ button.player-title--btn{cursor:pointer}
   inset:0;
   z-index:2;
   pointer-events:none;
-  background:linear-gradient(85deg,rgba(8,14,28,.7) 0%,rgba(8,14,28,.42) 34%,rgba(8,14,28,.1) 58%,transparent 100%)
+  background:linear-gradient(85deg,rgba(8,14,28,.72) 0%,rgba(8,14,28,.4) 38%,rgba(8,14,28,.08) 68%,transparent 100%)
 }
 
-/* Gacha: face crop on the right + overlapping gem */
+/* Gacha: 2x larger face crop, extends under text; gem size unchanged */
 #scout-hub-grid .scout-hub-tile__visual{
   position:absolute;
   z-index:1;
-  right:-4%;
-  left:auto;
-  top:-18%;
-  width:56%;
-  height:136%;
+  right:0;
+  left:18%;
+  top:0;
+  width:auto;
+  height:100%;
   border-radius:0;
-  overflow:hidden;
+  overflow:visible;
   background:transparent;
   box-shadow:none;
   pointer-events:none
 }
 #scout-hub-grid .scout-hub-tile__render{
   position:absolute;
-  left:0;top:0;
+  left:0;right:0;
+  top:8%;
+  bottom:-20%;
   width:100%;
-  height:100%;
+  height:112%;
   background-size:cover;
   background-position:center top;
   background-repeat:no-repeat;
-  transform:scale(1.5);
+  transform:scale(3);
   transform-origin:top center;
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.35))
 }
@@ -8762,8 +8767,8 @@ button.player-title--btn{cursor:pointer}
 #scout-hub-grid .scout-hub-tile__gem{
   position:absolute;
   z-index:2;
-  left:4%;
-  top:38%;
+  left:10%;
+  top:44%;
   width:56px;
   height:56px;
   object-fit:contain;
@@ -8777,7 +8782,7 @@ button.player-title--btn{cursor:pointer}
   inset:0;
   z-index:2;
   pointer-events:none;
-  background:linear-gradient(85deg,rgba(8,14,28,.7) 0%,rgba(8,14,28,.42) 34%,rgba(8,14,28,.1) 58%,transparent 100%)
+  background:linear-gradient(85deg,rgba(8,14,28,.72) 0%,rgba(8,14,28,.4) 38%,rgba(8,14,28,.08) 68%,transparent 100%)
 }
 #btn-scout-gacha.is-locked{
   opacity:.55;filter:grayscale(.35);cursor:not-allowed
@@ -8786,10 +8791,10 @@ button.player-title--btn{cursor:pointer}
 @media (max-width:640px){
   #scout-hub-grid.shop-hub-grid{grid-template-columns:1fr;max-width:420px;margin-inline:auto}
   #scout-hub-grid .shop-hub-tile{min-height:128px;padding:16px 18px}
-  #scout-hub-grid .scout-hub-tile__copy{max-width:54%}
-  #scout-hub-grid .scout-hub-tile__pack{width:52%;right:-10%}
-  #scout-hub-grid .scout-hub-tile__visual{width:52%;right:-6%}
-  #scout-hub-grid .scout-hub-tile__gem{width:46px;height:46px;left:2%;top:36%}
+  #scout-hub-grid .scout-hub-tile__copy{max-width:68%}
+  #scout-hub-grid .scout-hub-tile__pack{width:36%;right:8%;top:10%;max-height:80%}
+  #scout-hub-grid .scout-hub-tile__visual{left:14%}
+  #scout-hub-grid .scout-hub-tile__gem{width:56px;height:56px;left:8%;top:42%}
 }
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}
