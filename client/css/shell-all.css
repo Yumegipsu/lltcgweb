@@ -8749,15 +8749,15 @@ button.player-title--btn{cursor:pointer}
 }
 #scout-hub-grid .scout-hub-tile__render{
   position:absolute;
-  right:11%;
+  right:8%;
   left:auto;
-  top:-10%;
-  bottom:-14%;
-  width:36%;
-  height:auto;
+  top:-8%;
+  bottom:auto;
+  width:40%;
+  height:116%;
   max-width:none;
   object-fit:cover;
-  object-position:36% 48%;
+  object-position:36% 45%;
   transform:none;
   filter:drop-shadow(0 8px 16px rgba(0,0,0,.35));
   pointer-events:none
@@ -8786,7 +8786,7 @@ button.player-title--btn{cursor:pointer}
   #scout-hub-grid .scout-hub-tile__copy{max-width:44%}
   #scout-hub-grid .scout-hub-tile__pack{width:48%;right:3%}
   #scout-hub-grid .scout-hub-tile__visual{width:56%}
-  #scout-hub-grid .scout-hub-tile__render{right:12%;width:38%;object-position:36% 48%}
+  #scout-hub-grid .scout-hub-tile__render{right:10%;width:42%;height:118%;object-position:36% 45%}
   #scout-hub-grid .scout-hub-tile__gem{width:52px;height:52px;right:3%;bottom:10%}
 }
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
