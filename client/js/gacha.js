@@ -320,9 +320,11 @@
     global.A._gachaLastMode = res.mode || _lastMode;
     syncGems(res.star_gems);
     if (typeof global.showPackResults === 'function') {
+      const isMulti = (res.mode || _lastMode) === 'multi' || cards.length >= 11;
       global.showPackResults(cards, tt('gacha.title', 'Gacha'), {
         godPack: false,
         starGemsEarned: res.star_gems_earned || 0,
+        gachaMulti: isMulti,
       });
       const again = el('btn-pack-again');
       const another = el('btn-pack-another');
