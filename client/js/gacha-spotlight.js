@@ -203,68 +203,19 @@
     const n = slots.length;
     if (!n) return;
 
-    const place = (s, x, y, cw) => {
-      s.bx = x;
-      s.by = y;
-      // Truss anchors fan toward center so beams hang from overhead.
+    // Beams + cards share one floor row (spectacle is independent of the results grid).
+    const pad = n > 4 ? 0.04 : 0.28;
+    slots.forEach((s, i) => {
+      s.bx = n === 1 ? W / 2 : W * pad + i * (W * (1 - pad * 2) / (n - 1));
+      s.by = floorY - 6;
       s.ax = W / 2 + (s.bx - W / 2) * 0.52;
       if (!s.el) return;
-      s.el.style.left = x + 'px';
-      s.el.style.top = y + 'px';
-      s.el.style.width = cw + 'px';
-    };
-
-    // 10+1: 5 / 5 / 1 grid — each beam aims at its card (not a single mid-floor row).
-    if (n >= 10) {
-      const cols = 5;
-      const hPad = Math.min(0.05, 28 / W);
-      const usable = W * (1 - hPad * 2);
-      const gap = Math.min(16, Math.max(6, usable * 0.018));
-      const cw = Math.min(
-        Math.max(96, Math.min(148, W * 0.14)),
-        (usable - gap * (cols - 1)) / cols
-      );
-      const cardH = cw * (4.1 / 3);
-      const vGap = Math.min(14, cardH * 0.08);
-      const rowsUsed = n > 10 ? 3 : 2;
-      const stackH = rowsUsed * cardH + (rowsUsed - 1) * vGap;
-      const baseY = Math.min(floorY - 8, H * 0.92);
-      const topRowBaseline = baseY - stackH + cardH;
-
-      slots.forEach((s, i) => {
-        let row;
-        let col;
-        let rowLen;
-        if (i < 5) {
-          row = 0;
-          col = i;
-          rowLen = 5;
-        } else if (i < 10) {
-          row = 1;
-          col = i - 5;
-          rowLen = 5;
-        } else {
-          row = 2;
-          col = 0;
-          rowLen = 1;
-        }
-        const rowWidth = rowLen * cw + (rowLen - 1) * gap;
-        const left0 = (W - rowWidth) / 2;
-        const x = left0 + col * (cw + gap) + cw / 2;
-        const y = topRowBaseline + row * (cardH + vGap);
-        place(s, x, y, cw);
-      });
-      return;
-    }
-
-    // Single / few pulls: one floor row — card sits in its beam pool.
-    const pad = n > 4 ? 0.06 : 0.28;
-    slots.forEach((s, i) => {
       const span = n === 1 ? W * 0.42 : (W * (1 - pad * 2) / Math.max(1, n - 1));
-      const maxW = n === 1 ? 230 : (n >= 6 ? 128 : 140);
-      const cw = Math.min(n === 1 ? 230 : span * 0.9, maxW);
-      const x = n === 1 ? W / 2 : W * pad + i * (W * (1 - pad * 2) / (n - 1));
-      place(s, x, floorY - 6, cw);
+      const maxW = n === 1 ? 230 : (n >= 10 ? 92 : n >= 6 ? 128 : 140);
+      const cw = Math.min(n === 1 ? 230 : span * 0.88, maxW);
+      s.el.style.left = s.bx + 'px';
+      s.el.style.top = s.by + 'px';
+      s.el.style.width = cw + 'px';
     });
   }
 
