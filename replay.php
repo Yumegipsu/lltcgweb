@@ -533,6 +533,11 @@ function ensureReplayPayloadV2(array $replay): array {
     return convertReplayPayloadToV2($replay);
 }
 
+/**
+ * Finished-match export for library autosave / overflow fetch.
+ * Returns slim schema v1 (baseline + actions only) — full frame re-sim is deferred
+ * to replay_get / replay_start so long matches do not time out mid-save (#186).
+ */
 function buildReplayExportPayload(array $state, string $saverPid): array {
     $baseline = $state['replay_baseline'] ?? null;
     $actions = $state['action_log'] ?? [];
@@ -543,7 +548,7 @@ function buildReplayExportPayload(array $state, string $saverPid): array {
         throw new Exception('Invalid saver player');
     }
     $saverName = $state['players'][$saverPid]['name'] ?? $saverPid;
-    $v1 = [
+    return [
         'schema_version' => 1,
         'meta' => [
             'saved_at'         => gmdate('c'),
@@ -558,11 +563,23 @@ function buildReplayExportPayload(array $state, string $saverPid): array {
             'cpu_difficulty'   => $state['cpu_difficulty'] ?? null,
             'timing_source'    => !empty($state['phase_timer']) ? 'phase_timer' : 'action_timestamps',
             'duration_seconds' => replayDurationSeconds($actions),
+            'winner'           => $state['winner'] ?? null,
+            'end_reason'       => $state['end_reason'] ?? null,
         ],
         'baseline' => $baseline,
         'actions'  => $actions,
     ];
-    return convertReplayPayloadToV2($v1);
+}
+
+/** Normalize any export/client payload to slim v1 for SQLite library storage. */
+function replayPayloadForLibraryStorage(array $replay): array {
+    validateReplayFile($replay);
+    $slim = stripReplayForTransfer($replay);
+    validateReplayFile($slim);
+    if (count($slim['actions'] ?? []) === 0) {
+        throw new Exception('No recorded actions yet', 503);
+    }
+    return $slim;
 }
 
 /** Encode payload for SQLite / disk; gzip when large. */
@@ -1664,9 +1681,14 @@ function apiReplayExport(array $body): array {
     if (count($actions) === 0) {
         throw new Exception('No recorded actions yet — play at least one move after this update');
     }
+    $payload = buildReplayExportPayload($state, $playerId);
+    // Debug / steppable downloads may request frames; default stays slim for autosave.
+    if (!empty($body['debug_mode']) || !empty($body['want_frames'])) {
+        $payload = ensureReplayPayloadV2($payload);
+    }
     return [
         'ok'     => true,
-        'replay' => buildReplayExportPayload($state, $playerId),
+        'replay' => $payload,
     ];
 }
 

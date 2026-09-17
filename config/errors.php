@@ -116,5 +116,21 @@ function tcgPublicErrorPayload(Throwable $e, int $httpCode): array {
             ? 'lock_timeout'
             : 'database_busy';
     }
+    if ($httpCode === 503 && tcgIsRetryableReplayNotReady($e)) {
+        $payload['retryable'] = true;
+        $payload['code'] = 'replay_not_ready';
+    }
     return $payload;
+}
+
+/** True when replay export/save should be retried (finish race / overflow lag). */
+function tcgIsRetryableReplayNotReady(Throwable $e): bool {
+    $msg = strtolower($e->getMessage());
+    return str_contains($msg, 'not finished')
+        || str_contains($msg, 'only be saved after the match finishes')
+        || str_contains($msg, 'no recorded actions')
+        || str_contains($msg, 'match export not ready')
+        || str_contains($msg, 'export not ready')
+        || str_contains($msg, 'host unreachable')
+        || str_contains($msg, 'room not found');
 }

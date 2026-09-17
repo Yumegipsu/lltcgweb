@@ -200,4 +200,73 @@ final class SavedReplaySaveTest extends TestCase
         $stored = replayPayloadDecodeFromStorage((string)$row['payload_json']);
         $this->assertCount(count($payload['actions']), $stored['actions'] ?? []);
     }
+
+    public function testReplaySaveRejectsEmptyActionsAsRetryable(): void
+    {
+        if (!extension_loaded('pdo_sqlite')) {
+            $this->markTestSkipped('pdo_sqlite extension required');
+        }
+
+        putenv('TCG_LOCAL_FAKE_AUTH=1');
+        $uid = '900000000000000001';
+        $token = \tcgLocalIssueToken($uid);
+        [$created, $payload] = $this->sampleReplayPayload('EMPTY1');
+        $empty = stripReplayForTransfer($payload);
+        $empty['actions'] = [];
+
+        try {
+            tcgApiReplaySave([
+                'auth_token' => $token,
+                'room_id' => 'EMPTY1',
+                'player_token' => $created['player_token'],
+                'autosave' => true,
+                'kind' => 'autosave',
+                'replay' => $empty,
+            ]);
+            $this->fail('Expected empty actions to throw');
+        } catch (\Throwable $e) {
+            $this->assertSame(503, intval($e->getCode()), $e->getMessage());
+            $this->assertTrue(tcgIsRetryableReplayNotReady($e));
+            $payload = tcgPublicErrorPayload($e, 503);
+            $this->assertTrue(!empty($payload['retryable']));
+            $this->assertSame('replay_not_ready', $payload['code'] ?? null);
+        }
+    }
+
+    public function testReplaySaveUnfinishedLocalRoomIsRetryable(): void
+    {
+        if (!extension_loaded('pdo_sqlite')) {
+            $this->markTestSkipped('pdo_sqlite extension required');
+        }
+
+        putenv('TCG_LOCAL_FAKE_AUTH=1');
+        $uid = '900000000000000001';
+        $token = \tcgLocalIssueToken($uid);
+        $created = createRoom(['name' => 'Saver', 'deck' => 'nijigasaki']);
+        joinRoom([
+            'room_id' => $created['room_id'],
+            'name' => 'Opp',
+            'deck' => 'cpu',
+            'cpu_difficulty' => 'easy',
+            'first_player' => 'p1',
+        ]);
+        $state = loadGame($created['room_id']);
+        $this->assertIsArray($state);
+        $state['status'] = 'playing';
+        saveGame($created['room_id'], $state);
+
+        try {
+            tcgApiReplaySave([
+                'auth_token' => $token,
+                'room_id' => $created['room_id'],
+                'player_token' => $created['player_token'],
+                'autosave' => true,
+                'kind' => 'autosave',
+            ]);
+            $this->fail('Expected unfinished room to throw');
+        } catch (\Throwable $e) {
+            $this->assertSame(503, intval($e->getCode()), $e->getMessage());
+            $this->assertTrue(tcgIsRetryableReplayNotReady($e));
+        }
+    }
 }

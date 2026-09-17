@@ -1838,14 +1838,26 @@ function tcgApiReplaySave(array $body): array {
             }
             tcgAssertReplaySaveAllowedForAccount($uid, $state, $playerId);
             if (($state['status'] ?? '') !== 'finished') {
-                throw new Exception('Replay can only be saved after the match finishes', 400);
+                throw new Exception('Replay can only be saved after the match finishes', 503);
             }
             $payload = replayPayloadForLibraryStorage(buildReplayExportPayload($state, $playerId));
             $winner = $state['winner'] ?? ($payload['meta']['winner'] ?? null);
             $endReason = $state['end_reason'] ?? ($payload['meta']['end_reason'] ?? null);
         } else {
             require_once __DIR__ . '/match_bridge.php';
-            $fetched = tcgFetchOverflowReplayExportWithRetry($roomId, $token);
+            try {
+                $fetched = tcgFetchOverflowReplayExportWithRetry($roomId, $token);
+            } catch (Throwable $e) {
+                if (function_exists('tcgIsRetryableReplayNotReady') && tcgIsRetryableReplayNotReady($e)) {
+                    throw new Exception($e->getMessage(), 503);
+                }
+                $code = intval($e->getCode());
+                if ($code === 503 || (function_exists('tcgReplayExportErrorIsRetryable')
+                    && tcgReplayExportErrorIsRetryable($e))) {
+                    throw new Exception($e->getMessage(), 503);
+                }
+                throw $e;
+            }
             tcgAssertReplaySaveAllowedFromPayload($uid, $fetched);
             $payload = replayPayloadForLibraryStorage($fetched);
             $playerId = (string)($payload['meta']['saver_player_id'] ?? '');
@@ -1857,9 +1869,12 @@ function tcgApiReplaySave(array $body): array {
     if ($playerId !== 'p1' && $playerId !== 'p2') {
         throw new Exception('Invalid saver player', 400);
     }
+    $actionCount = count($payload['actions'] ?? []);
+    if ($actionCount <= 0) {
+        throw new Exception('No recorded actions yet', 503);
+    }
     $payloadJson = replayPayloadEncodeForStorage($payload);
     $meta = $payload['meta'] ?? [];
-    $actionCount = count($payload['actions'] ?? []);
     $db = tcgDb();
     $now = time();
     $opponentName = isset($state) && is_array($state)
@@ -1920,7 +1935,7 @@ function tcgApiReplaySave(array $body): array {
         if (!$preserved) {
             tcgReplayTrimAutosaves($uid, 10);
         }
-        if ($fromOverflowExport && $shouldRefresh) {
+        if ($fromOverflowExport && $shouldRefresh && $actionCount > 0) {
             require_once __DIR__ . '/match_bridge.php';
             if (function_exists('tcgNotifyOverflowDeleteGameSnapshot')) {
                 tcgNotifyOverflowDeleteGameSnapshot($roomId);
@@ -1960,7 +1975,7 @@ function tcgApiReplaySave(array $body): array {
     if (!$preserved) {
         tcgReplayTrimAutosaves($uid, 10);
     }
-    if ($fromOverflowExport) {
+    if ($fromOverflowExport && $actionCount > 0) {
         require_once __DIR__ . '/match_bridge.php';
         if (function_exists('tcgNotifyOverflowDeleteGameSnapshot')) {
             tcgNotifyOverflowDeleteGameSnapshot($roomId);
