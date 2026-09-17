@@ -2202,7 +2202,56 @@ global.renderPromptBp7Pick = function renderPromptBp7Pick(s, myId, pr) {
       sendAct('resolve_prompt', { choice: 'skip' });
       return true;
     }
-    openStageMemberPickById(pr);
+    // Just Believe!!! etc.: pick_max matches cards discarded — multi-select (#188).
+    const max = Math.max(1, Number(pr.pick_max ?? 1));
+    const multi = !!pr.multi || max > 1;
+    if (!multi) {
+      openStageMemberPickById(pr);
+      return true;
+    }
+    const min = Math.max(0, Number(pr.pick_min ?? 0));
+    const enrich = (c) => (typeof enrichCard === 'function' ? enrichCard(c) : c);
+    const cards = cands.map(enrich);
+    const slotById = new Map(cards.map((c) => [c.instance_id, c.slot]));
+    el('pick-ttl').textContent = promptDisplayTitle(pr, 'Choose Member(s)', s);
+    el('pick-msg').textContent = promptDisplayText(pr,
+      `Choose up to ${max} Member(s) on your Stage.`, s);
+    const g = el('pick-grid');
+    g.innerHTML = '';
+    g.classList.remove('pick-grid-order');
+    const btnOk = el('btn-pick-ok');
+    const btnCancel = el('btn-pick-cancel');
+    if (btnOk) btnOk.style.display = '';
+    if (btnCancel) btnCancel.style.display = '';
+    G.pickMarked.clear();
+    G.pickCtx = {
+      count: max,
+      min,
+      onConfirm: (ids) => {
+        const slots = ids.map((id) => slotById.get(id)).filter(Boolean);
+        sendAct('resolve_prompt', {
+          slots,
+          card_ids: ids,
+          member_ids: ids,
+        });
+      },
+      onCancel: () => sendAct('resolve_prompt', { slots: [], card_ids: [], choice: 'skip' }),
+    };
+    cards.forEach((card) => {
+      g.appendChild(mkPickCardEl(card, 'pickcard', () => {
+        if (G.pickMarked.has(card.instance_id)) G.pickMarked.delete(card.instance_id);
+        else {
+          if (G.pickMarked.size >= max) { toast(t('prompt.selectAtMost', { n: max })); return; }
+          G.pickMarked.add(card.instance_id);
+          sfxCardPick();
+        }
+        [...g.children].forEach((c) => c.classList.toggle('sel', G.pickMarked.has(c.dataset.id)));
+        el('pick-count').textContent = formatSelectedCount(G.pickMarked.size, max);
+      }));
+    });
+    el('pick-count').textContent = formatSelectedCount(0, max);
+    syncPickOverlayButtons();
+    openM('overlay-pick');
     return true;
   }
 

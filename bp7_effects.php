@@ -2855,9 +2855,9 @@ function bp7ResumeMillGroupChoice(array $state): array {
 }
 
 function bp7PickedIds(array $prompt, string $choice, array $data): array {
-    $ids = $data['card_ids'] ?? $data['discard_ids'] ?? null;
+    $ids = $data['card_ids'] ?? $data['discard_ids'] ?? $data['member_ids'] ?? null;
     if (!is_array($ids)) {
-        $single = $data['card_id'] ?? null;
+        $single = $data['card_id'] ?? $data['member_id'] ?? null;
         $ids = is_string($single) && $single !== '' ? [$single] : [];
     }
     if (empty($ids) && ($choice === 'skip' || $choice === 'no')) {
@@ -3105,7 +3105,27 @@ function bp7ResolvePrompt(array $state, string $owner, array $prompt, string $ch
         }
 
         case 'grant_blade_members': {
-            $slots = $data['slots'] ?? ($slot !== '' ? [$slot] : []);
+            $slots = $data['slots'] ?? null;
+            if (!is_array($slots) || $slots === []) {
+                $slots = [];
+                if ($slot !== '') {
+                    $slots[] = $slot;
+                }
+                // Multi-pick UI may send card_ids / member_ids without slots (#188).
+                $idList = $ids;
+                if ($idList === [] && !empty($data['member_ids']) && is_array($data['member_ids'])) {
+                    $idList = array_values(array_filter($data['member_ids'], 'is_string'));
+                }
+                foreach ($idList as $id) {
+                    foreach ($prompt['candidates'] ?? [] as $cand) {
+                        if (($cand['instance_id'] ?? '') === $id && ($cand['slot'] ?? '') !== '') {
+                            $slots[] = (string)$cand['slot'];
+                            break;
+                        }
+                    }
+                }
+            }
+            $slots = array_values(array_unique(array_filter($slots, 'is_string')));
             $max = max(1, intval($prompt['pick_max'] ?? 1));
             $done = 0;
             foreach ($slots as $s) {

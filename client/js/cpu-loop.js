@@ -1010,9 +1010,22 @@ function cpuResolveBp7Prompt(s, cpu, pr, tier, winPressure, read) {
       return true;
     }
     // Prefer the highest-Blade Member: BP07 stage picks grant Blade / stack cards.
-    const best = [...cands].sort((a, b) => (Number(b.blade || 0) - Number(a.blade || 0))
-      || (Number(b.cost || 0) - Number(a.cost || 0)))[0];
-    cpuAct('resolve_prompt', { card_id: best.instance_id, slot: best.slot || '' });
+    const ranked = [...cands].sort((a, b) => (Number(b.blade || 0) - Number(a.blade || 0))
+      || (Number(b.cost || 0) - Number(a.cost || 0)));
+    const max = Math.max(1, Number(pr.pick_max ?? 1));
+    const multi = !!pr.multi || max > 1;
+    if (!multi) {
+      const best = ranked[0];
+      cpuAct('resolve_prompt', { card_id: best.instance_id, slot: best.slot || '' });
+      return true;
+    }
+    const take = Math.min(max, ranked.length);
+    const picked = ranked.slice(0, take);
+    cpuAct('resolve_prompt', {
+      slots: picked.map((c) => c.slot).filter(Boolean),
+      card_ids: picked.map((c) => c.instance_id).filter(Boolean),
+      member_ids: picked.map((c) => c.instance_id).filter(Boolean),
+    });
     return true;
   }
 
