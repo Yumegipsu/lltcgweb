@@ -2614,6 +2614,15 @@ global.renderPrompt = function renderPrompt(s, myId){
     openMemberWaitPick({...pr, max_members:1, min_members:1}, myId);
     return;
   }
+  if(pr?.type==='bp5_pick_kasumi_stage_hearts'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openMemberWaitPick({
+      ...pr,
+      max_members: pr.max_members || 1,
+      min_members: pr.min_members || pr.max_members || 1,
+    }, myId);
+    return;
+  }
   if(pr?.type==='pick_member_return_energy'&&pr.responder===myId){
     ovl.classList.remove('open');
     openPickMemberReturnEnergy(pr);

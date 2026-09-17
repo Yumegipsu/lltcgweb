@@ -42846,7 +42846,7 @@
             ],
             "blade_hearts": [],
             "rarity": "L",
-            "text": "[Live Start] If you have \"Kasumi Nakasu\" on your Stage, reveal the top 4 cards of your deck. Choose 1 \"Kasumi Nakasu\" card among them. Until this Live ends, each \"Kasumi Nakasu\" on your Stage gains 1 of each Heart color on the chosen card. Put all revealed cards into the Waiting Room.",
+            "text": "[Live Start] If you have \"Kasumi Nakasu\" on your Stage, reveal the top 4 cards of your deck. Choose 1 \"Kasumi Nakasu\" card among them. Until this Live ends, 1 \"Kasumi Nakasu\" on your Stage gains 1 of each Heart color on the chosen card. Put all revealed cards into the Waiting Room.",
             "text_jp": "[ライブ開始時] 自分のステージに「中須かすみ」がいる場合、自分のデッキの上からカードを4枚公開する。自分はそれらの中から「中須かすみ」のカードを1枚選ぶ。ライブ終了時まで、自分のステージにいる「中須かすみ」1人は、これにより選んだカードが持つ色のハートを1つずつ得る。公開したカードをすべて控え室に置く。",
             "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP05/PL!N-bp5-029-L.png",
             "score": 7,
@@ -42888,13 +42888,13 @@
                     "max_members": 1
                 }
             ],
-            "text_es": "[Inicio de Live] Si tienes a Kasumi Nakasu en tu Escenario, revela las 4 cartas superiores de tu mazo. Elige 1 carta de Kasumi Nakasu entre ellas. Hasta que termine este Live, cada Kasumi Nakasu en tu Escenario obtiene 1 de cada color de corazón de la carta elegida. Coloca todas las cartas reveladas en la Sala de espera.",
+            "text_es": "[Inicio de Live] Si tienes a \"Kasumi Nakasu\" en tu Escenario, revela las 4 cartas superiores de tu mazo. Elige 1 carta de \"Kasumi Nakasu\" entre ellas. Hasta que termine este Live, 1 \"Kasumi Nakasu\" en tu Escenario obtiene 1 de cada color de corazón de la carta elegida. Coloca todas las cartas reveladas en la Sala de espera.",
             "special_heart": "icon_score.png",
             "yell_score_icon": true,
-            "text_ko": "[라이브 개시] 자신의 스테이지에 나카스 카스미가 있다면, 자신의 덱 위에서 4장을 공개한다. 그중 나카스 카스미 카드 1장을 선택한다. 이 라이브가 끝날 때까지, 자신의 스테이지에 있는 나카스 카스미 각각이 선택한 카드에 있는 하트 색마다 1개씩 얻는다. 공개된 카드는 모두 대기실에 놓는다.",
-            "text_zh": "[Live开始] 舞台上有中洲霞的话，公开你的卡组顶4张卡。选择其中1张中洲霞卡。直到本次直播结束为止，你舞台上的每名中洲霞都会获得所选卡牌上每种心形颜色各 1 点。将所有翻开的牌放入等候室。",
-            "text_th": "[เริ่ม Live] หากคุณมีคาซึมิ นากาสุอยู่บนเวที แสดงการ์ด 4 ใบบนสุดของเด็คของคุณ เลือกการ์ดคาซึมิ นากาสุ 1 ใบจากในนั้น จนกว่าการถ่ายทอดสดจะจบลง คาซึมิ นากาสุ แต่ละคนบนเวทีของคุณจะได้รับหัวใจ 1 สีบนการ์ดที่เลือก นำการ์ดที่เปิดเผยทั้งหมดไปไว้ในห้องรอ",
-            "text_pt": "[Início de Live] Se você tiver \"Kasumi Nakasu\" no seu Palco, revele as 4 cartas do topo do seu deck. Escolha 1 carta \"Kasumi Nakasu\" entre elas. Até o fim desta Live, cada \"Kasumi Nakasu\" no seu Palco ganha 1 de cada cor de Coração que a carta escolhida tiver. Coloque todas as cartas reveladas na Sala de Espera."
+            "text_ko": "[라이브 개시] 자신의 스테이지에 「나카스 카스미」가 있다면, 자신의 덱 위에서 카드 4장을 공개한다. 그중 「나카스 카스미」 카드 1장을 고른다. 이 라이브가 끝날 때까지, 자신의 스테이지에 있는 「나카스 카스미」 1명이 고른 카드가 가진 하트 색마다 1개씩 얻는다. 공개한 카드는 모두 대기실에 놓는다.",
+            "text_zh": "[Live开始] 如果你的舞台上有「中须霞」，公开牌库顶4张卡。从中选择1张「中须霞」卡。直到本次Live结束为止，你舞台上的1名「中须霞」获得所选卡上每种心形颜色各1点。将公开的卡全部放入等候室。",
+            "text_th": "[เริ่ม Live] หากมี \"คาสึมิ นากาสุ\" บนเวทีของคุณ ให้เปิดการ์ด 4 ใบบนสุดของเด็ค เลือกการ์ด \"คาสึมิ นากาสุ\" 1 ใบจากในนั้น จนกว่า Live นี้จะจบ  \"คาสึมิ นากาสุ\" 1 คนบนเวทีของคุณจะได้รับหัวใจสีละ 1 จากสีที่มีบนการ์ดที่เลือก นำการ์ดที่เปิดทั้งหมดไปไว้ในห้องรอ",
+            "text_pt": "[Início de Live] Se você tiver \"Kasumi Nakasu\" no seu Palco, revele as 4 cartas do topo do seu deck. Escolha 1 carta \"Kasumi Nakasu\" entre elas. Até o fim desta Live, 1 \"Kasumi Nakasu\" no seu Palco ganha 1 de cada cor de Coração que a carta escolhida tiver. Coloque todas as cartas reveladas na Sala de Espera."
         },
         {
             "card_no": "PL!N-bp5-030-L",

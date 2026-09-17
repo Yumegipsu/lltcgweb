@@ -302,7 +302,7 @@ function cpuAbilityBaseScores() {
     blade_per_opp_wait: 3, blade_per_other_subunit: 2.8, blade_per_stage_excl_subunit: 2.6,
     hearts_and_blade_bonus: 2.8, activate_energy: 2.8, pay_energy_draw: 3.2,
     pay_energy_surveil: 3.4, optional_pay_energy: 2.4, energy_wait_from_deck: 2.6,
-    activate_energy_if_success: 2.2, activate_energy_if_other_group: 2.4,
+    activate_energy_if_success: 2.2, activate_energy_from_deck_if_success: 2.3, activate_energy_if_other_group: 2.4,
     activate_energy_if_other_subunit: 2.4, activate_subunit_members: 2.6,
     hand_cost_reduction: 2, if_baton_lower_cost: 1.8,
     continuous_hearts_in_slot: 2.2, continuous_mus_blade_if_live_zone: 2.4, yell_hearts_wildcard: 2,
@@ -1176,6 +1176,7 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'pick_named_members_grant_hearts', 'pick_member_grant_hearts', 'pick_member_cost_bonus',
   'pick_stage_member',
   'sbp6_pick_revealed_member', 'sbp5_pick_revealed_member', 'bp5_pick_kasumi_reveal',
+  'bp5_pick_kasumi_stage_hearts',
   'sbp6_swap_pick_wr_member', 'sbp6_swap_pick_stage_member', 'sbp6_live_zone_deck_top_hearts',
   'sbp6_leave_play_wr_slot', 'hs_leave_play_wr_slot', 'hs_pick_wr_live_to_zone',
   'optional_named_live_zone_from_hand', 'pick_group_member_blade_faceup',
@@ -1987,6 +1988,7 @@ function cpuResolveHangRiskPrompts(pr, cpu, tier, read, s) {
     'sbp6_pick_revealed_member', 'sbp5_pick_revealed_member', 'bp5_pick_kasumi_reveal',
     'sbp6_swap_pick_wr_member', 'sbp6_swap_pick_stage_member',
   ]);
+  // bp5_pick_kasumi_stage_hearts is handled later via stage_members / member_ids.
   if (cardPickTypes.has(pr.type)) {
     const pick = cpuPickBestCandidate(pr.candidates, cpu, hand, tier, read);
     if (pick?.instance_id) { cpuAct('resolve_prompt', { card_id: pick.instance_id }); return true; }
@@ -4760,6 +4762,12 @@ function cpuResolvePromptBody(s, cpu, pr) {
   if(pr.type==='wait_members_pick'){
     const ids=(pr.stage_members||[]).slice(0,pr.max_members||1).map(c=>c.instance_id);
     cpuAct('resolve_prompt',{member_ids:ids});
+    return;
+  }
+  if(pr.type==='bp5_pick_kasumi_stage_hearts'||pr.type==='pick_same_name_member'){
+    const ids=(pr.stage_members||[]).slice(0,pr.max_members||1).map(c=>c.instance_id).filter(Boolean);
+    if(ids.length){ cpuAct('resolve_prompt',{member_ids:ids}); return; }
+    cpuSchedulePromptRetryIfStuck(s, cpu);
     return;
   }
   if(pr.type==='wait_subunit_member_pick'){

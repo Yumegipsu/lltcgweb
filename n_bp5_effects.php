@@ -68,6 +68,81 @@ function nBp5GrantOneOfEachHeartColor(array &$member, array $fromCard): void {
     }
 }
 
+/**
+ * Stage Members matching $names (slot + summary for prompts).
+ *
+ * @return list<array{slot:string,member:array,summary:array}>
+ */
+function nBp5CollectNamedStageTargets(array $p, array $names): array {
+    $out = [];
+    foreach ($p['stage'] as $slot => $mbr) {
+        if (!$mbr || !cardMatchesNames($mbr, $names)) {
+            continue;
+        }
+        $out[] = [
+            'slot' => (string)$slot,
+            'member' => $mbr,
+            'summary' => cardPromptSummary($mbr) + ['slot' => (string)$slot],
+        ];
+    }
+    return $out;
+}
+
+/**
+ * Apply Muteki-kyuu*Believer heart grant to up to max_members named Stage Members.
+ * If more candidates than max_members, opens a Stage pick prompt.
+ *
+ * @return array Updated state
+ */
+function nBp5ApplyRevealPickNamedHearts(
+    array $state,
+    string $pid,
+    array $fromCard,
+    array $ab,
+    string $sourceName
+): array {
+    $p = &$state['players'][$pid];
+    $names = $ab['target_names'] ?? [];
+    $max = max(1, intval($ab['max_members'] ?? 1));
+    $targets = nBp5CollectNamedStageTargets($p, $names);
+    if ($targets === []) {
+        return $state;
+    }
+    if (count($targets) <= $max) {
+        foreach ($targets as $t) {
+            $slot = $t['slot'];
+            $mbr = $p['stage'][$slot];
+            if (!$mbr) {
+                continue;
+            }
+            nBp5GrantOneOfEachHeartColor($mbr, $fromCard);
+            $p['stage'][$slot] = $mbr;
+        }
+        $n = count($targets);
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            ' — [' . $sourceName . '] ' . $n .
+            ' matching Member' . ($n === 1 ? '' : 's') .
+            ' gained 1 of each Heart color from the revealed card.');
+        return $state;
+    }
+    $state['pending_prompt'] = [
+        'type'          => 'bp5_pick_kasumi_stage_hearts',
+        'owner'         => $pid,
+        'responder'     => $pid,
+        'source_name'   => $sourceName,
+        'from_card'     => $fromCard,
+        'max_members'   => $max,
+        'min_members'   => $max,
+        'stage_members' => array_map(static fn ($t) => $t['summary'], $targets),
+        'target_names'  => $names,
+        'prompt'        => 'Choose 1 Kasumi Nakasu on your Stage to gain hearts.',
+        'ability'       => $ab,
+    ];
+    $state = addLog($state, $state['players'][$pid]['name'] .
+        ' — [' . $sourceName . '] choose 1 matching Stage Member to gain hearts.');
+    return $state;
+}
+
 function nBp5CountDistinctBladeHeartTypes(array $yellCards): int {
     $types = [];
     foreach ($yellCards as $yc) {
@@ -570,16 +645,11 @@ function nBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
             ));
             if (count($matches) === 1) {
                 $pick = $matches[0];
-                foreach ($p['stage'] as $slot => &$mbr) {
-                    if (!$mbr || !cardMatchesNames($mbr, $ab['target_names'] ?? [])) {
-                        continue;
-                    }
-                    nBp5GrantOneOfEachHeartColor($mbr, $pick);
-                    $p['stage'][$slot] = $mbr;
-                }
-                unset($mbr);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] Kasumi gained 1 of each Heart color from the revealed card.');
+                $p['waiting_room'] = array_merge($p['waiting_room'], $revealed);
+                $state = nBp5ApplyRevealPickNamedHearts($state, $pid, $pick, $ab, $name);
+                // Re-bind $p after helper may have set pending_prompt / mutated stage.
+                $p = &$state['players'][$pid];
+                break;
             } elseif (count($matches) > 1 && !empty($state['pending_prompt'])) {
                 break;
             } elseif (count($matches) > 1) {
@@ -594,8 +664,8 @@ function nBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
                         fn($c) => !in_array($c['instance_id'] ?? '', array_map(fn($m) => $m['instance_id'] ?? '', $matches), true)
                     ))),
                     'target_names'  => $ab['target_names'] ?? [],
-                    'prompt'        => 'Choose 1 Kasumi Nakasu card revealed.',
                     'ability'       => $ab,
+                    'prompt'        => 'Choose 1 Kasumi Nakasu card revealed.',
                 ];
                 $p['waiting_room'] = array_merge($p['waiting_room'], $revealed);
                 $state = addLog($state, $state['players'][$pid]['name'] .
@@ -1202,25 +1272,72 @@ function nBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
 
     if ($promptType === 'bp5_pick_kasumi_reveal') {
         $cardId = $data['card_id'] ?? '';
-        $targetNames = $prompt['target_names'] ?? [];
-        foreach ($prompt['candidates'] ?? [] as $c) {
-            if (($c['instance_id'] ?? '') !== $cardId) continue;
-            foreach ($ownerP['stage'] as $slot => &$mbr) {
-                if (!$mbr || !cardMatchesNames($mbr, $targetNames)) continue;
-                $full = null;
-                foreach ($ownerP['waiting_room'] as $wr) {
-                    if (($wr['instance_id'] ?? '') === $cardId) {
-                        $full = $wr;
-                        break;
-                    }
-                }
-                if ($full) {
-                    nBp5GrantOneOfEachHeartColor($mbr, $full);
-                }
-                $ownerP['stage'][$slot] = $mbr;
+        $ab = $prompt['ability'] ?? [];
+        $full = null;
+        foreach ($ownerP['waiting_room'] as $wr) {
+            if (($wr['instance_id'] ?? '') === $cardId) {
+                $full = $wr;
+                break;
             }
-            unset($mbr);
         }
+        if (!$full) {
+            foreach ($prompt['candidates'] ?? [] as $c) {
+                if (($c['instance_id'] ?? '') === $cardId) {
+                    // Fallback: rebuild minimal from summary hearts if present.
+                    $full = $c;
+                    break;
+                }
+            }
+        }
+        unset($state['pending_prompt']);
+        if ($full) {
+            $state = nBp5ApplyRevealPickNamedHearts(
+                $state,
+                $owner,
+                $full,
+                $ab,
+                (string)($prompt['source_name'] ?? 'Member')
+            );
+        }
+        $state['seq']++;
+        return finishPromptEffects($state);
+    }
+
+    if ($promptType === 'bp5_pick_kasumi_stage_hearts') {
+        $ids = array_values(array_filter(array_map('strval', $data['member_ids'] ?? [])));
+        if ($ids === [] && !empty($data['member_id'])) {
+            $ids = [(string)$data['member_id']];
+        }
+        if ($ids === [] && !empty($data['card_id'])) {
+            $ids = [(string)$data['card_id']];
+        }
+        $max = max(1, intval($prompt['max_members'] ?? 1));
+        if (count($ids) !== $max) {
+            throw new Exception('Choose ' . $max . ' Member(s)');
+        }
+        $fromCard = $prompt['from_card'] ?? null;
+        if (!is_array($fromCard)) {
+            throw new Exception('Missing heart source card');
+        }
+        $names = $prompt['target_names'] ?? [];
+        $granted = 0;
+        foreach ($ownerP['stage'] as $slot => &$mbr) {
+            if (!$mbr || !in_array((string)($mbr['instance_id'] ?? ''), $ids, true)) {
+                continue;
+            }
+            if ($names && !cardMatchesNames($mbr, $names)) {
+                throw new Exception('Cannot choose that Member');
+            }
+            nBp5GrantOneOfEachHeartColor($mbr, $fromCard);
+            $ownerP['stage'][$slot] = $mbr;
+            $granted++;
+        }
+        unset($mbr);
+        if ($granted !== $max) {
+            throw new Exception('Choose ' . $max . ' matching Stage Member(s)');
+        }
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Member') . '] 1 matching Member gained 1 of each Heart color from the revealed card.');
         unset($state['pending_prompt']);
         $state['seq']++;
         return finishPromptEffects($state);
