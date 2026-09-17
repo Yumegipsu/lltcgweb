@@ -245,12 +245,15 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
             break;
 
         case 'auto_activate_if_live_zone_score_max':
+            // "Activate this Member" must clear Wait (in_wait), not only set active=true.
             foreach ($p['live_zone'] ?? [] as $lc) {
-                if (!$lc || ($lc['card_type'] ?? '') !== 'ライブ') continue;
+                if (!$lc || !isLiveTypeCard($lc)) {
+                    continue;
+                }
                 if (intval($lc['score'] ?? 99) <= intval($ab['max_live_score'] ?? 2)) {
                     $slot = findMemberSlot($p, $source['instance_id'] ?? '');
-                    if ($slot !== null && !empty($p['stage'][$slot])) {
-                        $p['stage'][$slot]['active'] = true;
+                    if ($slot !== null && $slot !== '' && !empty($p['stage'][$slot])) {
+                        activateMemberFully($p['stage'][$slot]);
                         $state = addLog($state, $state['players'][$pid]['name'] .
                             " — [$name] activated (low-score Live in zone).");
                     }
