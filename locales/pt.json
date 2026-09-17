@@ -998,6 +998,7 @@
     "noMemberInHand": "Nenhuma carta Membro na mão",
     "enterNumber0to99": "Digite um número de 0 a 99",
     "noYellMill": "Nenhuma carta do Grito disponível para descartar.",
+    "noHandLive": "Nenhuma carta Live elegível na mão.",
     "cardNotEligible": "Essa carta não é elegível.",
     "onePerGroup": "Escolha uma por grupo."
   },

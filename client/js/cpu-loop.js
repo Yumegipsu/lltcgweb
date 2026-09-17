@@ -5025,8 +5025,8 @@ function cpuResolvePromptBody(s, cpu, pr) {
     return;
   }
   if(pr.type==='auto_yell_mill_extra_yell'){
-    const owner = pr.owner || pr.responder || (typeof cpuOpponentId === 'function' ? cpuOpponentId() : 'p2');
-    const ids = (pr.candidates || []).slice(0, 2).map(c => c.instance_id).filter(Boolean);
+    const max = Math.max(1, Number(pr.max_pick) || (pr.from_hand || pr.ability?.filter === 'live' ? 1 : 2));
+    const ids = (pr.candidates || []).slice(0, max).map(c => c.instance_id).filter(Boolean);
     cpuAct('resolve_prompt', { choice: ids.length ? 'yes' : 'no', card_ids: ids });
     return;
   }

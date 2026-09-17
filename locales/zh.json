@@ -851,6 +851,7 @@
     "noMemberInHand": "手牌中没有成员卡",
     "enterNumber0to99": "请输入 0 到 99 的数字",
     "noYellMill": "没有可送入磨牌区的Yell卡。",
+    "noHandLive": "手牌中没有符合条件的Live卡。",
     "cardNotEligible": "该卡不符合条件。",
     "onePerGroup": "每个团体选择一张。"
   },

@@ -841,6 +841,7 @@
     "noMemberInHand": "ไม่มีการ์ดสมาชิกในมือ",
     "enterNumber0to99": "ใส่ตัวเลข 0 ถึง 99",
     "noYellMill": "ไม่มีการ์ด Yell ที่จะมิลได้",
+    "noHandLive": "ไม่มี Live ที่เข้าเงื่อนไขในมือ",
     "cardNotEligible": "การ์ดนี้ไม่เข้าเงื่อนไข",
     "onePerGroup": "เลือกอย่างละหนึ่งต่อกลุ่ม"
   },

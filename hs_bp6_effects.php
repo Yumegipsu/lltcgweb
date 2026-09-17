@@ -420,8 +420,43 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
 
         case 'auto_yell_mill_extra_yell':
             if (!empty($state['pending_prompt'])) break;
-            $yellCards = $ctx['yell_cards'] ?? [];
             $group = $ab['group'] ?? 'Hasunosora';
+            $groupLabel = groupPromptLabel($group);
+            // Natsumi (filter=live): discard 1 group Live from hand for fixed extra Yell.
+            // Kurage (no filter / mill Yell reveals): different zone and eligibility.
+            if (($ab['filter'] ?? '') === 'live') {
+                $handCands = [];
+                foreach ($p['hand'] ?? [] as $hc) {
+                    if ($hc && cardMatchesGroup($hc, $group, 'live')) {
+                        $handCands[] = $hc;
+                    }
+                }
+                if (empty($handCands)) {
+                    break;
+                }
+                $extra = max(1, intval($ab['extra_yell'] ?? 2));
+                $state['pending_prompt'] = [
+                    'type'            => 'auto_yell_mill_extra_yell',
+                    'from_hand'       => true,
+                    'owner'           => $pid,
+                    'responder'       => $pid,
+                    'source_name'     => $name,
+                    'source_id'       => $source['instance_id'] ?? '',
+                    'live_zone_index' => $ctx['live_zone_index'] ?? null,
+                    'member_slot'     => $ctx['member_slot'] ?? null,
+                    'ability_index'   => $ctx['ability_index'] ?? null,
+                    'candidates'      => array_map('cardPromptSummary', $handCands),
+                    'max_pick'        => 1,
+                    'prompt'          => "Put 1 $groupLabel Live card from your hand into the Waiting Room for $extra additional Yell?",
+                    'choices'         => ['yes', 'no'],
+                    'choice_labels'   => ['Yes', 'No — Skip'],
+                    'ability'         => $ab,
+                ];
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] optional hand Live discard for extra Yell (choose).");
+                break;
+            }
+            $yellCards = $ctx['yell_cards'] ?? [];
             $candidates = array_values(array_filter(
                 $yellCards,
                 fn($c) => yellCardEligibleForKurageMill($c, $group)
@@ -440,7 +475,7 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
                 'ability_index' => $ctx['ability_index'] ?? null,
                 'candidates'    => array_map('cardPromptSummary', $candidates),
                 'max_pick'      => $max,
-                'prompt'        => "Put up to $max Hasunosora Yell card(s) without Blade hearts or Score icons into the Waiting Room for extra Yell?",
+                'prompt'        => "Put up to $max $groupLabel Yell card(s) without Blade hearts or Score icons into the Waiting Room for extra Yell?",
                 'choices'       => ['yes', 'no'],
                 'choice_labels' => ['Yes', 'No — Skip'],
                 'ability'       => $ab,
@@ -1169,19 +1204,59 @@ function hsResolveHasunosoraPrompt(array $state, string $owner, array $prompt, s
 
     if ($promptType === 'auto_yell_mill_extra_yell') {
         $sourceName = $prompt['source_name'] ?? 'Member';
+        $fromHand = !empty($prompt['from_hand'])
+            || (($prompt['ability']['filter'] ?? '') === 'live');
         if ($choice !== 'yes') {
             unset($state['pending_prompt']);
             $state['seq']++;
             $state = addLog($state, $state['players'][$owner]['name'] .
-                " — [$sourceName] kept Yell cards (declined mill).");
+                ($fromHand
+                    ? " — [$sourceName] declined hand Live discard for extra Yell."
+                    : " — [$sourceName] kept Yell cards (declined mill)."));
             return continuePerformanceAfterYellAbilities($state, $owner);
         }
         $ids = $data['card_ids'] ?? ($data['discard_ids'] ?? []);
         if (!is_array($ids)) {
             $ids = $ids !== '' && $ids !== null ? [$ids] : [];
         }
-        $pool = currentPlayerYellCards($state, $owner);
         $group = $prompt['ability']['group'] ?? 'Hasunosora';
+
+        if ($fromHand) {
+            $validIds = [];
+            foreach ($state['players'][$owner]['hand'] ?? [] as $hc) {
+                $iid = $hc['instance_id'] ?? '';
+                if ($iid === '' || !in_array($iid, $ids, true)) {
+                    continue;
+                }
+                if (!cardMatchesGroup($hc, $group, 'live')) {
+                    continue;
+                }
+                $validIds[] = $iid;
+            }
+            $validIds = array_slice($validIds, 0, max(1, intval($prompt['max_pick'] ?? 1)));
+            if (empty($validIds)) {
+                throw new Exception('Choose 1 eligible Live card from hand');
+            }
+            $pOwner = &$state['players'][$owner];
+            $discarded = discardFromHandByIds($pOwner, $validIds, $state, $owner);
+            unset($pOwner);
+            if ($discarded < 1) {
+                throw new Exception('Choose 1 eligible Live card from hand');
+            }
+            $extra = max(1, intval($prompt['ability']['extra_yell'] ?? 2));
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$sourceName] put $discarded Live from hand into WR for +$extra extra Yell.");
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            $state = executeExtraYellDraws($state, $owner, $extra, $sourceName);
+            if (!empty($state['pending_prompt'])) {
+                $state['_performance_continue'] = $owner;
+                return $state;
+            }
+            return continuePerformanceAfterYellAbilities($state, $owner);
+        }
+
+        $pool = currentPlayerYellCards($state, $owner);
         $validIds = [];
         foreach ($pool as $c) {
             $iid = $c['instance_id'] ?? '';
@@ -1200,7 +1275,7 @@ function hsResolveHasunosoraPrompt(array $state, string $owner, array $prompt, s
         }
         $state = millPlayerYellCardsToWr($state, $owner, $validIds);
         $milled = count($validIds);
-        // Fixed extra_yell (e.g. Natsumi +2) wins; otherwise mill count (Kurage).
+        // Kurage: extra Yell equals milled count (no fixed extra_yell on ability).
         $extra = intval($prompt['ability']['extra_yell'] ?? 0);
         if ($extra <= 0) {
             $extra = $milled;

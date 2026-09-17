@@ -841,6 +841,7 @@
     "noMemberInHand": "No hay carta de Miembro en la mano",
     "enterNumber0to99": "Introduce un número del 0 al 99",
     "noYellMill": "No hay cartas Yell para enviar al molino.",
+    "noHandLive": "No hay cartas Live elegibles en la mano.",
     "cardNotEligible": "Esa carta no es elegible.",
     "onePerGroup": "Elige una por grupo."
   },

@@ -851,6 +851,7 @@
     "noMemberInHand": "손패에 멤버 카드가 없습니다",
     "enterNumber0to99": "0부터 99 사이의 숫자를 입력하세요",
     "noYellMill": "밀할 Yell 카드가 없습니다.",
+    "noHandLive": "패에 대상 Live 카드가 없습니다.",
     "cardNotEligible": "해당 카드는 대상이 아닙니다.",
     "onePerGroup": "그룹당 하나씩 선택하세요."
   },

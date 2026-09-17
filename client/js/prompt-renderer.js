@@ -3010,31 +3010,55 @@ global.renderPrompt = function renderPrompt(s, myId){
     const owner = pr.owner || myId;
     const cands = pr.candidates || [];
     const idSet = new Set(cands.map(c => c.instance_id).filter(Boolean));
-    // Prefer live board Yell, but never treat a missing yell_reveal (refresh / filter
-    // race) as decline — server already listed eligible cards on the prompt.
-    const boardYell = s.yell_reveal?.[owner]
-      || s._yell_reveal_snapshot?.[owner]
-      || s.players?.[owner]?.yell_cards
-      || [];
-    let yellPool = boardYell.filter(c => idSet.has(c.instance_id));
-    if (!yellPool.length && cands.length) {
-      yellPool = cands
-        .map(c => (typeof enrichCard === 'function' ? enrichCard(c) : c))
-        .filter(c => c?.instance_id);
-    }
-    if (!yellPool.length) {
-      // No candidates from server either — nothing to mill; skip without auto-spam.
-      if (!cands.length) {
-        sendAct('resolve_prompt', { choice: 'no' });
-      } else {
-        toast(pt('prompt.noYellMill'), 3200);
+    const fromHand = !!(pr.from_hand || pr.ability?.filter === 'live');
+    const max = pr.max_pick || (fromHand ? 1 : cands.length) || 1;
+
+    let pickPool = [];
+    if (fromHand) {
+      const hand = s.players?.[owner]?.hand || [];
+      pickPool = hand.filter(c => idSet.has(c.instance_id));
+      if (!pickPool.length && cands.length) {
+        pickPool = cands
+          .map(c => (typeof enrichCard === 'function' ? enrichCard(c) : c))
+          .filter(c => c?.instance_id);
       }
-      return;
+      if (!pickPool.length) {
+        if (!cands.length) {
+          sendAct('resolve_prompt', { choice: 'no' });
+        } else {
+          toast(pt('prompt.noHandLive'), 3200);
+        }
+        return;
+      }
+    } else {
+      // Prefer live board Yell, but never treat a missing yell_reveal (refresh / filter
+      // race) as decline — server already listed eligible cards on the prompt.
+      const boardYell = s.yell_reveal?.[owner]
+        || s._yell_reveal_snapshot?.[owner]
+        || s.players?.[owner]?.yell_cards
+        || [];
+      pickPool = boardYell.filter(c => idSet.has(c.instance_id));
+      if (!pickPool.length && cands.length) {
+        pickPool = cands
+          .map(c => (typeof enrichCard === 'function' ? enrichCard(c) : c))
+          .filter(c => c?.instance_id);
+      }
+      if (!pickPool.length) {
+        // No candidates from server either — nothing to mill; skip without auto-spam.
+        if (!cands.length) {
+          sendAct('resolve_prompt', { choice: 'no' });
+        } else {
+          toast(pt('prompt.noYellMill'), 3200);
+        }
+        return;
+      }
     }
-    const max = pr.max_pick || yellPool.length;
-    el('prompt-ttl').textContent = promptDisplayTitle(pr, 'Yell mill', s);
+
+    el('prompt-ttl').textContent = promptDisplayTitle(pr, fromHand ? 'Extra Yell' : 'Yell mill', s);
     el('prompt-msg').textContent = promptDisplayText(pr,
-      `Put up to ${max} non-Blade-heart Hasunosora Yell card(s) into the Waiting Room for extra Yell?`, s);
+      fromHand
+        ? `Put 1 Live card from your hand into the Waiting Room for additional Yell?`
+        : `Put up to ${max} Yell card(s) without Blade hearts or Score icons into the Waiting Room for extra Yell?`, s);
     const box = el('prompt-btns');
     box.innerHTML = '';
     const labels = pr.choice_labels || ['Yes', 'No — Skip'];
@@ -3049,12 +3073,15 @@ global.renderPrompt = function renderPrompt(s, myId){
           return;
         }
         openHandPick({
-          hand: yellPool.map(enrichCard),
+          hand: pickPool.map(enrichCard),
           count: max,
           min: 1,
           promptKey: promptIdentityKey(s),
-          title: pr.source_name || 'Yell mill',
-          msg: promptDisplayText(pr, `Choose up to ${max} Yell card(s) to mill.`, s),
+          title: pr.source_name || (fromHand ? 'Extra Yell' : 'Yell mill'),
+          msg: promptDisplayText(pr,
+            fromHand
+              ? `Choose 1 Live card from your hand to put into the Waiting Room.`
+              : `Choose up to ${max} Yell card(s) to mill.`, s),
           onConfirm: (ids) => {
             if (ids.length) sendAct('resolve_prompt', { choice: 'yes', card_ids: ids });
           },

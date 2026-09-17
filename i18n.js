@@ -1072,6 +1072,7 @@
       "noMemberInHand": "No Member card in hand",
       "enterNumber0to99": "Enter a number from 0 to 99",
       "noYellMill": "No Yell cards available to mill.",
+      "noHandLive": "No eligible Live cards in hand.",
       "cardNotEligible": "That card is not eligible.",
       "onePerGroup": "Pick one per group."
     },
@@ -3214,6 +3215,7 @@
       "noMemberInHand": "手札にメンバーカードがありません",
       "enterNumber0to99": "0〜99の数字を入力してください",
       "noYellMill": "ミルできるエールカードがありません。",
+      "noHandLive": "手札に対象のライブカードがありません。",
       "cardNotEligible": "そのカードは対象外です。",
       "onePerGroup": "グループごとに1枚選んでください。"
     },
@@ -4921,6 +4923,7 @@
       "noMemberInHand": "No hay carta de Miembro en la mano",
       "enterNumber0to99": "Introduce un número del 0 al 99",
       "noYellMill": "No hay cartas Yell para enviar al molino.",
+      "noHandLive": "No hay cartas Live elegibles en la mano.",
       "cardNotEligible": "Esa carta no es elegible.",
       "onePerGroup": "Elige una por grupo."
     },
@@ -6829,6 +6832,7 @@
       "noMemberInHand": "손패에 멤버 카드가 없습니다",
       "enterNumber0to99": "0부터 99 사이의 숫자를 입력하세요",
       "noYellMill": "밀할 Yell 카드가 없습니다.",
+      "noHandLive": "패에 대상 Live 카드가 없습니다.",
       "cardNotEligible": "해당 카드는 대상이 아닙니다.",
       "onePerGroup": "그룹당 하나씩 선택하세요."
     },
@@ -8751,6 +8755,7 @@
       "noMemberInHand": "手牌中没有成员卡",
       "enterNumber0to99": "请输入 0 到 99 的数字",
       "noYellMill": "没有可送入磨牌区的Yell卡。",
+      "noHandLive": "手牌中没有符合条件的Live卡。",
       "cardNotEligible": "该卡不符合条件。",
       "onePerGroup": "每个团体选择一张。"
     },
@@ -10663,6 +10668,7 @@
       "noMemberInHand": "ไม่มีการ์ดสมาชิกในมือ",
       "enterNumber0to99": "ใส่ตัวเลข 0 ถึง 99",
       "noYellMill": "ไม่มีการ์ด Yell ที่จะมิลได้",
+      "noHandLive": "ไม่มี Live ที่เข้าเงื่อนไขในมือ",
       "cardNotEligible": "การ์ดนี้ไม่เข้าเงื่อนไข",
       "onePerGroup": "เลือกอย่างละหนึ่งต่อกลุ่ม"
     },
@@ -12692,6 +12698,7 @@
       "noMemberInHand": "Nenhuma carta Membro na mão",
       "enterNumber0to99": "Digite um número de 0 a 99",
       "noYellMill": "Nenhuma carta do Grito disponível para descartar.",
+      "noHandLive": "Nenhuma carta Live elegível na mão.",
       "cardNotEligible": "Essa carta não é elegível.",
       "onePerGroup": "Escolha uma por grupo."
     },

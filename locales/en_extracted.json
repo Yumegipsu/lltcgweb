@@ -988,6 +988,7 @@
     "noMemberInHand": "No Member card in hand",
     "enterNumber0to99": "Enter a number from 0 to 99",
     "noYellMill": "No Yell cards available to mill.",
+    "noHandLive": "No eligible Live cards in hand.",
     "cardNotEligible": "That card is not eligible.",
     "onePerGroup": "Pick one per group."
   },
