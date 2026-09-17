@@ -19,6 +19,10 @@
     if (f === 'alt_abuse' || f === 'leaderboard_alt') {
       return tt('profile.reportReasonAlt', 'Leaderboard Alt Abuse');
     }
+    if (f === 'chat_spam') return tt('chat.reportSpam', 'Chat spam');
+    if (f === 'chat_rules') return tt('chat.reportRules', 'Breaking chat rules');
+    if (f === 'chat_harassment') return tt('chat.reportHarassment', 'Harassment');
+    if (f === 'chat_other') return tt('chat.reportOther', 'Other chat issue');
     return tt('profile.reportReasonBio', 'Profile/deck bio');
   }
   function esc(s) {

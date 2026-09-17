@@ -103,7 +103,12 @@
     }
     wrap('game-stage', 'll-stage-board');
     wrap('hand-row', 'll-hand-zone');
-    wrap('game-log', 'll-side-panel');
+    // Prefer the feed host so Log + Chat share one flex child under .side-log.
+    if (doc.getElementById('match-side-feed')) {
+      wrap('match-side-feed', 'll-side-panel');
+    } else {
+      wrap('game-log', 'll-side-panel');
+    }
     const live = doc.querySelector('.z-live, #my-live, [data-zone="live"]');
     if (live && !live.closest('ll-live-zone')) {
       const host = doc.createElement('ll-live-zone');

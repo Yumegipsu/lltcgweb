@@ -1232,6 +1232,29 @@ function tcgApiSocialFriends(array $body): array {
     ];
 }
 
+/** Accepted friend Discord ids for ephemeral match-chat friends room (VPS hub). */
+function tcgApiMatchChatFriendIds(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    tcgSocialEnsureSchema();
+    $ids = [];
+    $st = tcgDb()->prepare(
+        "SELECT user_lo, user_hi FROM tcg_friends
+         WHERE status = 'accepted' AND (user_lo = ? OR user_hi = ?)"
+    );
+    $st->execute([$uid, $uid]);
+    while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+        $other = $row['user_lo'] === $uid ? $row['user_hi'] : $row['user_lo'];
+        $other = trim((string)$other);
+        if ($other !== '') {
+            $ids[] = $other;
+        }
+    }
+    return [
+        'success' => true,
+        'friend_ids' => array_values(array_unique($ids)),
+    ];
+}
+
 function tcgApiSocialFriendAdd(array $body): array {
     $uid = tcgRequireAuthUser($body);
     tcgSocialEnsureSchema();
@@ -1324,10 +1347,13 @@ function tcgApiSocialReport(array $body): array {
     $uid = tcgRequireAuthUser($body);
     $target = trim((string)($body['user_id'] ?? ''));
     $field = (string)($body['reason'] ?? $body['field'] ?? 'bio');
+    $chatFields = ['chat_spam', 'chat_rules', 'chat_harassment', 'chat_other'];
     if (in_array($field, ['bio', 'deck_desc', 'profile_bio'], true)) {
         $field = 'profile_bio';
     } elseif (in_array($field, ['alt_abuse', 'leaderboard_alt'], true)) {
         $field = 'alt_abuse';
+    } elseif (in_array($field, $chatFields, true)) {
+        // keep chat_* as-is
     } else {
         $field = 'profile_bio';
     }
@@ -1335,7 +1361,8 @@ function tcgApiSocialReport(array $body): array {
         throw new Exception('Invalid report target', 400);
     }
     tcgSocialEnsureSchema();
-    $snippet = mb_substr(trim((string)($body['snippet'] ?? '')), 0, 200);
+    $snippetMax = in_array($field, $chatFields, true) ? 500 : 200;
+    $snippet = mb_substr(trim((string)($body['snippet'] ?? '')), 0, $snippetMax);
     tcgDb()->prepare(
         'INSERT INTO tcg_profile_reports (reporter_id, target_id, field, snippet, status, created_at)
          VALUES (?, ?, ?, ?, ?, ?)'

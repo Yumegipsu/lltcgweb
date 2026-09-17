@@ -169,6 +169,7 @@ try {
         case 'social_stats':          echo json_encode(tcgApiSocialGetStats($body)); break;
         case 'social_save_profile':   echo json_encode(tcgApiSocialSaveProfile($body)); break;
         case 'social_friends':        echo json_encode(tcgApiSocialFriends($body)); break;
+        case 'match_chat_friend_ids': echo json_encode(tcgApiMatchChatFriendIds($body)); break;
         case 'social_friend_add':     echo json_encode(tcgApiSocialFriendAdd($body)); break;
         case 'social_friend_accept':  echo json_encode(tcgApiSocialFriendRespond($body, true)); break;
         case 'social_friend_decline': echo json_encode(tcgApiSocialFriendRespond($body, false)); break;
