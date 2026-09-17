@@ -110,6 +110,10 @@ function tcgGachaIsExcludedCard(array $card): bool {
 
 /**
  * Map normalized rarity → gacha tier: n | sr | ur.
+ *
+ * grey (N):  N, R, R+, L, L+, PE, and anything else not listed below
+ * gold (SR): P, P+, PP, SRE, SRL, RM, PE+, AR, RE
+ * rainbow (UR): SEC / SECL / SECE / SECS / SEC+ / LLE (and other SEC*)
  */
 function tcgGachaTierForRarity(string $rarity): string {
     $r = strtoupper(str_replace(['＋', '　'], ['+', ''], $rarity));
@@ -194,6 +198,47 @@ function tcgGachaPickCardNo(array $pools, string $tier): string {
 }
 
 /**
+ * SR+ pity roll: SR vs UR using the same relative weights as a normal pull
+ * (UR stays scarce; guarantee does not inflate rainbow odds within SR+).
+ */
+function tcgGachaPickSrPlusTier(): string {
+    $total = TCG_GACHA_WEIGHT_SR + TCG_GACHA_WEIGHT_UR;
+    if ($total <= 0) {
+        return 'sr';
+    }
+    $roll = random_int(1, $total);
+    return $roll <= TCG_GACHA_WEIGHT_UR ? 'ur' : 'sr';
+}
+
+/**
+ * @param list<array{card_no:string,tier:string,rarity:string}> $out
+ * @param array{n:list<string>,sr:list<string>,ur:list<string>,all:list<string>} $pools
+ */
+function tcgGachaEnsureMultiSrPlus(array &$out, array $pools, array $cardMap): void {
+    if (count($out) < TCG_GACHA_MULTI_COUNT) {
+        return;
+    }
+    foreach ($out as $row) {
+        $tier = (string)($row['tier'] ?? '');
+        if ($tier === 'sr' || $tier === 'ur') {
+            return;
+        }
+    }
+    $i = array_rand($out);
+    $tier = tcgGachaPickSrPlusTier();
+    $no = tcgGachaPickCardNo($pools, $tier);
+    $card = $cardMap[$no] ?? null;
+    $r = is_array($card)
+        ? tcgNormalizePoolRarity((string)($card['rarity'] ?? 'N'), $no)
+        : 'N';
+    $out[$i] = [
+        'card_no' => $no,
+        'tier' => $tier,
+        'rarity' => $r,
+    ];
+}
+
+/**
  * @return list<array{card_no:string,tier:string,rarity:string}>
  */
 function tcgGachaRollPulls(int $count, array $cardsData, array $cardMap): array {
@@ -212,6 +257,10 @@ function tcgGachaRollPulls(int $count, array $cardsData, array $cardMap): array 
             'tier' => $tier,
             'rarity' => $r,
         ];
+    }
+    // Scout 10+1: at least one SR+ (gold/rainbow). UR within that slot stays rare.
+    if ($count >= TCG_GACHA_MULTI_COUNT) {
+        tcgGachaEnsureMultiSrPlus($out, $pools, $cardMap);
     }
     return $out;
 }
@@ -397,7 +446,11 @@ function tcgComputeGachaRates(array $cardsData): array {
         'packs_excluded' => $packs['excluded'],
         'notes' => [
             'Each pull first rolls a scout band, then picks one card uniformly from that band.',
-            'Percents are chance per single Scout ×1 pull (10+1 uses the same odds eleven times).',
+            'Percents are chance per single Scout ×1 pull.',
+            'Scout 10+1 guarantees at least one SR+ (gold/rainbow); UR within that guarantee stays rare.',
+            'Grey (N): N, R, R+, L, L+, PE, and other non-listed rarities.',
+            'Gold (SR): P, P+, PP, SRE, SRL, RM, PE+, AR, RE.',
+            'Rainbow (UR): SEC / SECL / SECE / SECS / SEC+ / LLE.',
             'PR, DUO, and Premium Booster cards are not in this pool.',
             'MELLOW MOMENT is not in this pool yet.',
         ],

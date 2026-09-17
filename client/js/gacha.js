@@ -346,7 +346,9 @@
 
     const notes = [
       tt('gacha.noteEqual', 'Each pull first rolls a scout band, then picks one card uniformly from that band.'),
-      tt('gacha.notePerPull', 'Percents are chance per single Scout ×1 pull (10+1 uses the same odds eleven times).'),
+      tt('gacha.notePerPull', 'Percents are chance per single Scout ×1 pull.'),
+      tt('gacha.noteGuarantee', 'Scout 10+1 guarantees at least one SR+ (gold/rainbow); UR within that guarantee stays rare.'),
+      tt('gacha.noteBands', 'Grey: N/R/L/PE… · Gold: P/SRE/RM… · Rainbow: SEC/LLE.'),
       tt('gacha.noteNoPrDuo', 'PR, DUO, and Premium Booster cards are not in this pool.'),
       tt('gacha.noteMellow', 'MELLOW MOMENT is not in this pool yet.'),
     ];

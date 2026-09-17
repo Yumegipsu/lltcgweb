@@ -61,6 +61,36 @@ final class GachaPoolTest extends TestCase
         }
     }
 
+    public function testMultiGuaranteesAtLeastOneSrPlus(): void
+    {
+        $cards = tcgLoadCardsData();
+        $map = tcgBuildCardMap($cards);
+        for ($t = 0; $t < 40; $t++) {
+            $pulls = tcgGachaRollPulls(TCG_GACHA_MULTI_COUNT, $cards, $map);
+            $srPlus = 0;
+            foreach ($pulls as $p) {
+                if ($p['tier'] === 'sr' || $p['tier'] === 'ur') {
+                    $srPlus++;
+                }
+            }
+            $this->assertGreaterThanOrEqual(1, $srPlus, 'Scout 10+1 must include at least one SR+');
+        }
+    }
+
+    public function testTierMappingMatchesScoutBands(): void
+    {
+        $this->assertSame('n', tcgGachaTierForRarity('N'));
+        $this->assertSame('n', tcgGachaTierForRarity('R'));
+        $this->assertSame('n', tcgGachaTierForRarity('L'));
+        $this->assertSame('n', tcgGachaTierForRarity('PE'));
+        $this->assertSame('sr', tcgGachaTierForRarity('P'));
+        $this->assertSame('sr', tcgGachaTierForRarity('SRE'));
+        $this->assertSame('sr', tcgGachaTierForRarity('PE+'));
+        $this->assertSame('ur', tcgGachaTierForRarity('SEC'));
+        $this->assertSame('ur', tcgGachaTierForRarity('SECL'));
+        $this->assertSame('ur', tcgGachaTierForRarity('LLE'));
+    }
+
     public function testStarterCardsAppearInPool(): void
     {
         $cards = tcgLoadCardsData();
