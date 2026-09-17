@@ -204,15 +204,17 @@
     if (!n) return;
 
     // Beams + cards share one floor row (spectacle is independent of the results grid).
-    const pad = n > 4 ? 0.04 : 0.28;
+    const pad = n > 4 ? 0.03 : 0.28;
     slots.forEach((s, i) => {
       s.bx = n === 1 ? W / 2 : W * pad + i * (W * (1 - pad * 2) / (n - 1));
       s.by = floorY - 6;
       s.ax = W / 2 + (s.bx - W / 2) * 0.52;
       if (!s.el) return;
       const span = n === 1 ? W * 0.42 : (W * (1 - pad * 2) / Math.max(1, n - 1));
-      const maxW = n === 1 ? 230 : (n >= 10 ? 92 : n >= 6 ? 128 : 140);
-      const cw = Math.min(n === 1 ? 230 : span * 0.88, maxW);
+      // Fill beam spacing (slight overlap on 10+1 so faces stay large).
+      const maxW = n === 1 ? 240 : (n >= 10 ? 136 : n >= 6 ? 132 : 148);
+      const fill = n >= 10 ? 1.12 : (n >= 6 ? 0.94 : 0.9);
+      const cw = Math.min(n === 1 ? 240 : span * fill, maxW);
       s.el.style.left = s.bx + 'px';
       s.el.style.top = s.by + 'px';
       s.el.style.width = cw + 'px';
@@ -471,8 +473,8 @@
           7,
           s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
         );
-        if (i === 0) playSfx('pack_reveal');
-        else if (i % 2 === 0) playSfx('card_flip');
+        // One SFX per card (was every-other → only ~6 of 11).
+        playSfx(i === 0 ? 'pack_reveal' : 'card_flip');
         if (s.finalTier === 'rainbow') {
           const mini = s.el.querySelector('.gacha-spot-mini');
           if (mini) bindUrTilt(mini);
