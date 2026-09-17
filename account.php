@@ -1807,25 +1807,6 @@ function tcgApiReplaySave(array $body): array {
         $wantPreserve = false;
     }
 
-    $existing = tcgReplayFindOwnedByRoom($uid, $roomId);
-    if ($existing && tcgReplayRowNeedsRepair($existing)) {
-        tcgDb()->prepare('DELETE FROM tcg_replays WHERE id = ? AND discord_id = ?')
-            ->execute([intval($existing['id']), $uid]);
-        $existing = null;
-    }
-    if ($existing) {
-        if ($wantPreserve && empty($existing['preserved'])) {
-            tcgDb()->prepare('UPDATE tcg_replays SET preserved = 1 WHERE id = ? AND discord_id = ?')
-                ->execute([intval($existing['id']), $uid]);
-            $existing = tcgReplayLoadOwnedRow($uid, intval($existing['id']));
-        }
-        return [
-            'success' => true,
-            'replay' => tcgReplayRowToSummary($existing),
-            'upserted' => true,
-        ];
-    }
-
     // Match-primary: finished rooms live on VPS Redis/disk. Prefer a client-exported
     // payload (already pulled from the match origin), else fetch replay_export from overflow.
     $payload = null;
@@ -1877,14 +1858,84 @@ function tcgApiReplaySave(array $body): array {
         throw new Exception('Invalid saver player', 400);
     }
     $payloadJson = replayPayloadEncodeForStorage($payload);
-
     $meta = $payload['meta'] ?? [];
+    $actionCount = count($payload['actions'] ?? []);
     $db = tcgDb();
     $now = time();
-    $preserved = $wantPreserve ? 1 : 0;
     $opponentName = isset($state) && is_array($state)
         ? tcgReplayOpponentName($state, $playerId)
         : tcgReplayOpponentNameFromPayload($payload);
+
+    $existing = tcgReplayFindOwnedByRoom($uid, $roomId);
+    if ($existing && tcgReplayRowNeedsRepair($existing)) {
+        $db->prepare('DELETE FROM tcg_replays WHERE id = ? AND discord_id = ?')
+            ->execute([intval($existing['id']), $uid]);
+        $existing = null;
+    }
+
+    // Same room_id: refresh payload when the new export is longer / newer so an early
+    // partial autosave cannot permanently truncate the library copy (#187). Manual
+    // Save Replay (preserve) must also be able to overwrite a shorter Recent entry.
+    if ($existing) {
+        $existingId = intval($existing['id']);
+        $prevCount = intval($existing['action_count'] ?? 0);
+        $prevSeq = 0;
+        try {
+            $prevPayload = replayPayloadDecodeFromStorage((string)($existing['payload_json'] ?? ''));
+            $prevSeq = intval($prevPayload['meta']['game_seq'] ?? 0);
+        } catch (Throwable $e) {
+            $prevSeq = 0;
+        }
+        $newSeq = intval($meta['game_seq'] ?? 0);
+        $shouldRefresh = $actionCount > $prevCount
+            || ($actionCount === $prevCount && $newSeq > $prevSeq)
+            || ($actionCount > 0 && $prevCount <= 0);
+        $preserved = (!empty($existing['preserved']) || $wantPreserve) ? 1 : 0;
+        if ($shouldRefresh) {
+            $db->prepare('UPDATE tcg_replays SET
+                    saver_player_id = ?, saver_name = ?, opponent_name = ?, winner = ?, end_reason = ?,
+                    turn = ?, phase = ?, action_count = ?, duration_seconds = ?, payload_json = ?,
+                    saved_at = ?, preserved = ?
+                WHERE id = ? AND discord_id = ?')
+                ->execute([
+                    $playerId,
+                    (string)($meta['saver_name'] ?? $playerId),
+                    $opponentName,
+                    $winner,
+                    $endReason,
+                    intval($meta['turn'] ?? ($payload['baseline']['turn'] ?? 0)),
+                    (string)($meta['phase'] ?? ($payload['baseline']['phase'] ?? '')),
+                    $actionCount,
+                    intval($meta['duration_seconds'] ?? 0),
+                    $payloadJson,
+                    $now,
+                    $preserved,
+                    $existingId,
+                    $uid,
+                ]);
+        } elseif ($wantPreserve && empty($existing['preserved'])) {
+            $db->prepare('UPDATE tcg_replays SET preserved = 1 WHERE id = ? AND discord_id = ?')
+                ->execute([$existingId, $uid]);
+        }
+        if (!$preserved) {
+            tcgReplayTrimAutosaves($uid, 10);
+        }
+        if ($fromOverflowExport && $shouldRefresh) {
+            require_once __DIR__ . '/match_bridge.php';
+            if (function_exists('tcgNotifyOverflowDeleteGameSnapshot')) {
+                tcgNotifyOverflowDeleteGameSnapshot($roomId);
+            }
+        }
+        $row = tcgReplayLoadOwnedRow($uid, $existingId);
+        return [
+            'success' => true,
+            'replay' => tcgReplayRowToSummary($row),
+            'upserted' => true,
+            'refreshed' => $shouldRefresh,
+        ];
+    }
+
+    $preserved = $wantPreserve ? 1 : 0;
     $db->prepare('INSERT INTO tcg_replays (
             discord_id, room_id, saver_player_id, saver_name, opponent_name, winner, end_reason,
             turn, phase, action_count, duration_seconds, payload_json, saved_at, preserved
@@ -1899,7 +1950,7 @@ function tcgApiReplaySave(array $body): array {
             $endReason,
             intval($meta['turn'] ?? ($payload['baseline']['turn'] ?? 0)),
             (string)($meta['phase'] ?? ($payload['baseline']['phase'] ?? '')),
-            count($payload['actions'] ?? []),
+            $actionCount,
             intval($meta['duration_seconds'] ?? 0),
             $payloadJson,
             $now,

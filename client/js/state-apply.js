@@ -652,6 +652,25 @@
       return;
     }
     if (s.status === 'finished') {
+      // Replay forward (+1 autoplay / step): never open the live win overlay until the
+      // final recorded step. Soft-skips can mark status=finished early; popping showWin
+      // mid-timeline made replays look truncated (#187).
+      if (replayForward || (typeof global.isReplayViewing === 'function' && global.isReplayViewing())
+          || (s.mode || '') === 'replay_view') {
+        const step = Number(s.replay?.step ?? G.replayStep ?? 0);
+        const total = Number(s.replay?.total ?? G.replayTotal ?? 0);
+        G.gameState = s;
+        G.lastSeq = Math.max(G.lastSeq ?? 0, s.seq ?? 0);
+        if (typeof applyReplayStateFromPoll === 'function') applyReplayStateFromPoll(s);
+        if (typeof renderGame === 'function') {
+          renderGame(s, { skipPrompt: true, skipLog: true });
+        }
+        if (typeof catchUpGameLog === 'function') catchUpGameLog(s, prev);
+        if (total > 0 && step >= total && typeof showWin === 'function') {
+          showWin(s);
+        }
+        return;
+      }
       await applyFinishedState(s, prev);
       return;
     }

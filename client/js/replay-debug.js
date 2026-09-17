@@ -111,16 +111,20 @@
     return /Room not found|not finished|not ready|export not ready|host unreachable|503|Server busy|Lock timeout/i.test(msg);
   }
 
-  async function postReplaySave(creds, opts, allowSlimFallback) {
+  async function postReplaySave(creds, opts, allowSlimFallback, prefetchedSlim) {
     const body = {
       room_id: creds.roomId,
       player_token: creds.token,
       ...opts,
     };
+    // Prefer a prefetched slim payload — Hostinger stores v1 without re-sim (#186).
+    if (prefetchedSlim && typeof prefetchedSlim === 'object') {
+      body.replay = prefetchedSlim;
+    }
     try {
       const saved = await global.accountPost('replay_save', body);
       if (saved.error) throw new Error(saved.error);
-      return { saved, replay: null };
+      return { saved, replay: body.replay || null };
     } catch (serverErr) {
       if (!allowSlimFallback || !isRetryableReplaySaveError(serverErr)) {
         throw serverErr;
@@ -129,18 +133,26 @@
       body.replay = global.stripReplayForTransfer(replay);
       const saved = await global.accountPost('replay_save', body);
       if (saved.error) throw new Error(saved.error);
-      return { saved, replay };
+      return { saved, replay: body.replay };
     }
   }
 
   async function postReplaySaveWithRetry(creds, opts, delaysMs) {
     let lastErr = null;
+    let slim = null;
+    // Export slim once up front while the match room is still on Redis.
+    try {
+      slim = global.stripReplayForTransfer(await global.exportReplayPayload(creds));
+    } catch (e) {
+      // Fall through to server-side overflow fetch on Hostinger.
+      lastErr = e;
+    }
     for (let i = 0; i < delaysMs.length; i++) {
       if (i > 0 && delaysMs[i] > 0) {
         await new Promise((resolve) => setTimeout(resolve, delaysMs[i]));
       }
       try {
-        return await postReplaySave(creds, opts, false);
+        return await postReplaySave(creds, opts, false, slim);
       } catch (e) {
         lastErr = e;
         if (!isRetryableReplaySaveError(e)) {
@@ -151,7 +163,16 @@
     if (lastErr && !isRetryableReplaySaveError(lastErr)) {
       throw lastErr;
     }
-    return postReplaySave(creds, opts, true);
+    return postReplaySave(creds, opts, true, slim);
+  }
+
+  function stashFinishedReplayCredentials(creds) {
+    if (!creds?.roomId || !creds?.token || !global.G) return;
+    G.lastFinishedExport = {
+      roomId: creds.roomId,
+      token: creds.token,
+      at: Date.now(),
+    };
   }
 
   /** End-of-match replay — account library (realtime) or JSON download. */
@@ -165,6 +186,7 @@
       global.toast(t('replay.noCredentials'));
       return;
     }
+    stashFinishedReplayCredentials(creds);
     try {
       if (typeof global.isSignedInAccount === 'function' && global.isSignedInAccount()) {
         const { saved } = await postReplaySaveWithRetry(creds, {
@@ -195,6 +217,9 @@
   /**
    * Silent FIFO autosave (last 10) for signed-in players when a match finishes.
    * Manual Save Replay / Preserve upgrades the same room to permanent.
+   * Concurrent callers (onState + showWin) share one in-flight promise so the
+   * second call does not drop a retry after the first attempt fails (#186).
+   * A delayed refresh pass can overwrite a shorter first export (#187).
    */
   global.autosaveFinishedReplay = async function autosaveFinishedReplay(opts = {}) {
     if (global.G?.isSpectator || global.G?.isTutorial || global.G?.replayMode) return null;
@@ -202,35 +227,74 @@
     if (!global.replaySaveEnabled()) return null;
     const creds = global.getReplayExportCredentials();
     if (!creds) return null;
-    if (global.G?._replayAutosavedRoom && global.G._replayAutosavedRoom === creds.roomId) {
+    stashFinishedReplayCredentials(creds);
+    if (!opts._refreshPass
+        && global.G?._replayAutosavedRoom
+        && global.G._replayAutosavedRoom === creds.roomId) {
       return null;
     }
-    if (global.G?._replayAutosavePendingRoom === creds.roomId) {
-      return null;
+    if (!opts._refreshPass
+        && global.G?._replayAutosavePromise
+        && global.G._replayAutosavePromiseRoom === creds.roomId) {
+      return global.G._replayAutosavePromise;
     }
-    if (global.G) G._replayAutosavePendingRoom = creds.roomId;
-    try {
-      const { saved } = await postReplaySaveWithRetry(creds, {
-        autosave: true,
-        kind: 'autosave',
-      }, [800, 2500, 6000]);
-      if (saved.error) throw new Error(saved.error);
-      if (global.G) G._replayAutosavedRoom = creds.roomId;
-      if (opts.toast !== false) {
-        global.toast(t('replay.autosavedRecent'), 2400);
-      }
-      return saved.replay || null;
-    } catch (e) {
-      // Non-fatal — match UI should not block on library write failures.
-      if (opts.toastError) {
-        global.toast(e.message || t('replay.couldNotSave'), 3200);
-      }
-      return null;
-    } finally {
-      if (global.G?._replayAutosavePendingRoom === creds.roomId) {
-        G._replayAutosavePendingRoom = null;
-      }
+    if (global.G) {
+      G._replayAutosavePendingRoom = creds.roomId;
+      G._replayAutosavePromiseRoom = creds.roomId;
     }
+    const run = (async () => {
+      try {
+        const { saved } = await postReplaySaveWithRetry(creds, {
+          autosave: true,
+          kind: 'autosave',
+        }, [0, 1200, 3500]);
+        if (saved.error) throw new Error(saved.error);
+        if (global.G) G._replayAutosavedRoom = creds.roomId;
+        if (opts.toast !== false) {
+          global.toast(t('replay.autosavedRecent'), 2400);
+        }
+        // One silent refresh so a racey short first export can be replaced (#187).
+        if (!opts._refreshPass && !opts._bgRetry && global.G) {
+          setTimeout(() => {
+            void global.autosaveFinishedReplay({
+              toast: false,
+              toastError: false,
+              _refreshPass: true,
+              _bgRetry: true,
+            });
+          }, 2800);
+        }
+        return saved.replay || null;
+      } catch (e) {
+        // Non-fatal — match UI should not block on library write failures.
+        if (opts.toastError) {
+          global.toast(e.message || t('replay.couldNotSave'), 3200);
+        }
+        // One delayed background retry after poll has stopped (showWin path).
+        if (!opts._bgRetry && global.G) {
+          const roomId = creds.roomId;
+          setTimeout(() => {
+            if (!global.G || global.G._replayAutosavedRoom === roomId) return;
+            void global.autosaveFinishedReplay({
+              toast: false,
+              toastError: false,
+              _bgRetry: true,
+            });
+          }, 5000);
+        }
+        return null;
+      } finally {
+        if (global.G?._replayAutosavePendingRoom === creds.roomId) {
+          G._replayAutosavePendingRoom = null;
+        }
+        if (global.G?._replayAutosavePromiseRoom === creds.roomId) {
+          G._replayAutosavePromise = null;
+          G._replayAutosavePromiseRoom = null;
+        }
+      }
+    })();
+    if (global.G && !opts._refreshPass) G._replayAutosavePromise = run;
+    return run;
   };
 
   global.preserveSavedReplay = async function preserveSavedReplay(replayId) {
