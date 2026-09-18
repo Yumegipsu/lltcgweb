@@ -1,16 +1,21 @@
 /**
- * In-match Log/Chat tabs — ephemeral Public / Friends / Spectate lobbies via WRAPPED_API SSE.
+ * In-match Log/Chat tabs — Public / Friends / Spectate lobbies scoped to the
+ * active game room (WRAPPED_API SSE + short-lived server history).
  */
 (function (global) {
   'use strict';
 
   const MATCH_CHAT_OPT_KEY = 'tcg_match_chat_enabled';
-  const CHAT_DOM_MAX_LINES = 40;
+  const CHAT_DOM_MAX_LINES = 80;
   const emojiById = new Map();
   const emojiByName = new Map();
   const seenIds = new Set();
+  /** @type {Record<string, object[]>} */
+  let buffers = { public: [], friends: [], spectate: [] };
 
   let eventSource = null;
+  let streamRoomId = null;
+  let boundRoomId = null;
   let activeTab = 'log';
   let activeRoom = 'public';
   let emotesLoaded = false;
@@ -26,6 +31,36 @@
 
   function G() {
     return global.G || {};
+  }
+
+  function currentRoomId() {
+    const rid = String(G().roomId || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    return rid.length >= 4 ? rid : '';
+  }
+
+  function resetRoomBuffers() {
+    buffers = { public: [], friends: [], spectate: [] };
+    seenIds.clear();
+    const messagesEl = document.getElementById('match-chat-messages');
+    if (messagesEl) messagesEl.innerHTML = '';
+  }
+
+  function adoptActiveRoom() {
+    const rid = currentRoomId();
+    if (!rid) {
+      if (boundRoomId) {
+        boundRoomId = null;
+        resetRoomBuffers();
+        disconnectStream();
+      }
+      return '';
+    }
+    if (boundRoomId && boundRoomId !== rid) {
+      resetRoomBuffers();
+      disconnectStream();
+    }
+    boundRoomId = rid;
+    return rid;
   }
 
   function matchChatUserEnabled() {
@@ -57,7 +92,7 @@
     if (!inGameScreen()) return false;
     const g = G();
     if (g.isTutorial || g.isCPU || isReplay()) return false;
-    if (!g.roomId) return false;
+    if (!currentRoomId()) return false;
     return true;
   }
 
@@ -176,23 +211,30 @@
 
   function trimMessages(messagesEl) {
     while (messagesEl.children.length > CHAT_DOM_MAX_LINES) {
-      const first = messagesEl.firstElementChild;
-      if (!first) break;
-      const mid = first.dataset?.msgId;
-      if (mid) seenIds.delete(String(mid));
-      first.remove();
+      messagesEl.firstElementChild?.remove();
     }
   }
 
-  function appendLine(msg) {
+  function storeMessage(msg) {
+    if (msg == null || msg.id == null) return null;
+    const channel = String(msg.channel || 'public');
+    if (channel !== 'public' && channel !== 'friends' && channel !== 'spectate') return null;
+    const idKey = String(msg.id) + ':' + channel;
+    if (seenIds.has(idKey)) return null;
+    seenIds.add(idKey);
+    if (!buffers[channel]) buffers[channel] = [];
+    buffers[channel].push(msg);
+    if (buffers[channel].length > CHAT_DOM_MAX_LINES) {
+      const dropped = buffers[channel].splice(0, buffers[channel].length - CHAT_DOM_MAX_LINES);
+      dropped.forEach((m) => seenIds.delete(String(m.id) + ':' + channel));
+    }
+    return channel;
+  }
+
+  function paintLine(msg) {
     const messagesEl = document.getElementById('match-chat-messages');
     if (!messagesEl || msg == null || msg.id == null) return;
     const channel = String(msg.channel || 'public');
-    if (channel !== activeRoom) return;
-    const idKey = String(msg.id) + ':' + channel;
-    if (seenIds.has(idKey)) return;
-    seenIds.add(idKey);
-
     const me = myProfile().id;
     const div = document.createElement('div');
     div.className = 'match-chat-line channel-' + channel;
@@ -220,10 +262,17 @@
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
-  function clearVisibleMessages() {
+  function appendLine(msg) {
+    const channel = storeMessage(msg);
+    if (!channel) return;
+    if (channel === activeRoom && activeTab === 'chat') paintLine(msg);
+  }
+
+  function renderActiveChannel() {
     const messagesEl = document.getElementById('match-chat-messages');
-    if (messagesEl) messagesEl.innerHTML = '';
-    seenIds.clear();
+    if (!messagesEl) return;
+    messagesEl.innerHTML = '';
+    (buffers[activeRoom] || []).forEach((msg) => paintLine(msg));
   }
 
   function setComposerEnabled(on) {
@@ -258,6 +307,8 @@
       return;
     }
 
+    adoptActiveRoom();
+
     document.querySelectorAll('.match-log-chat-tab').forEach((btn) => {
       const is = btn.getAttribute('data-match-tab') === activeTab;
       btn.classList.toggle('is-active', is);
@@ -268,6 +319,7 @@
       if (logEl) logEl.hidden = true;
       if (chatPanel) chatPanel.hidden = false;
       if (title) title.textContent = tt('game.chatTab', 'Chat');
+      renderActiveChannel();
       ensureStream();
       loadEmotesOnce();
       setComposerEnabled(!!authToken());
@@ -275,6 +327,8 @@
       if (logEl) logEl.hidden = false;
       if (chatPanel) chatPanel.hidden = true;
       if (title) title.textContent = tt('game.gameLog', 'Game Log');
+      // Keep SSE connected while eligible so history stays warm on tab return.
+      ensureStream();
     }
 
     const specBtn = document.getElementById('btn-match-chat-spectate');
@@ -302,7 +356,7 @@
     if (next !== 'public' && next !== 'friends' && next !== 'spectate') return;
     if (activeRoom === next) return;
     activeRoom = next;
-    clearVisibleMessages();
+    renderActiveChannel();
     syncTabUi();
   }
 
@@ -317,10 +371,16 @@
       } catch (e) { /* ignore */ }
       eventSource = null;
     }
+    streamRoomId = null;
   }
 
   function ensureStream() {
-    if (!matchChatEligible() || activeTab !== 'chat') {
+    if (!matchChatEligible()) {
+      disconnectStream();
+      return;
+    }
+    const rid = adoptActiveRoom();
+    if (!rid) {
       disconnectStream();
       return;
     }
@@ -330,19 +390,24 @@
       setComposerEnabled(false);
       return;
     }
-    if (eventSource) return;
+    if (eventSource && streamRoomId === rid) return;
+    disconnectStream();
 
     const role = G().isSpectator ? 'spectator' : 'player';
     const url =
       wrappedApi() +
       '?action=tcg_match_chat_stream&role=' +
       encodeURIComponent(role) +
+      '&room_id=' +
+      encodeURIComponent(rid) +
       '&token=' +
       encodeURIComponent(token);
     try {
       eventSource = new EventSource(url);
+      streamRoomId = rid;
     } catch (e) {
       eventSource = null;
+      streamRoomId = null;
       scheduleReconnect();
       return;
     }
@@ -362,7 +427,7 @@
   }
 
   function scheduleReconnect() {
-    if (reconnectTimer || !matchChatEligible() || activeTab !== 'chat') return;
+    if (reconnectTimer || !matchChatEligible()) return;
     reconnectTimer = setTimeout(() => {
       reconnectTimer = null;
       ensureStream();
@@ -451,7 +516,8 @@
   async function sendMessage() {
     const ta = document.getElementById('match-chat-input');
     const token = authToken();
-    if (!ta || !token) return;
+    const rid = adoptActiveRoom();
+    if (!ta || !token || !rid) return;
     const text = String(ta.value || '').trim();
     if (!text) return;
     setStatus('');
@@ -459,6 +525,7 @@
     const body = {
       text,
       channel: activeRoom,
+      room_id: rid,
       role: G().isSpectator ? 'spectator' : 'player',
       session_token: token,
       token,
@@ -673,8 +740,11 @@
   function syncMatchChat() {
     bindUi();
     syncTabUi();
-    if (matchChatEligible() && activeTab === 'chat') ensureStream();
-    else if (!matchChatEligible()) disconnectStream();
+    if (matchChatEligible()) ensureStream();
+    else {
+      disconnectStream();
+      if (!currentRoomId()) resetRoomBuffers();
+    }
   }
 
   function hookLifecycle() {
@@ -701,7 +771,7 @@
     hookLifecycle();
     syncMatchChat();
     setInterval(() => {
-      if (matchChatEligible() && activeTab === 'chat' && !eventSource) ensureStream();
+      if (matchChatEligible() && (!eventSource || streamRoomId !== currentRoomId())) ensureStream();
       else if (!matchChatEligible() && eventSource) disconnectStream();
     }, 4000);
   }
