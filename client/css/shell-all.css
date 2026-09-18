@@ -1596,11 +1596,11 @@ body.tcg-replay-view-mode .overlay.replay-prompt-readonly .heart-btn{cursor:defa
   color:rgba(255,255,255,.7);cursor:pointer;text-decoration:underline;
 }
 .match-chat-line .match-chat-report:hover{opacity:1}
-.match-chat-composer{flex:0 0 auto;padding:6px 8px 8px;border-top:1px solid rgba(255,255,255,.06)}
-.match-chat-composer-row{display:flex;gap:6px;align-items:flex-end}
+.match-chat-composer{flex:0 0 auto;padding:8px 10px 10px;border-top:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:8px}
+.match-chat-composer-row{display:flex;gap:8px;align-items:center;justify-content:space-between}
 .match-chat-emoji-wrap{position:relative;flex:0 0 auto}
 .match-chat-emoji-btn{
-  width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.14);
+  width:36px;height:36px;border-radius:8px;border:1px solid rgba(255,255,255,.14);
   background:rgba(255,255,255,.06);color:#fff;cursor:pointer;padding:0;overflow:hidden;
 }
 .match-chat-emoji-btn img{width:100%;height:100%;object-fit:contain}
@@ -1629,14 +1629,15 @@ body.tcg-replay-view-mode .overlay.replay-prompt-readonly .heart-btn{cursor:defa
 .match-chat-emoji-autocomplete button:hover{background:rgba(255,255,255,.1)}
 .match-chat-emoji-autocomplete button img{width:18px;height:18px}
 .match-chat-composer textarea{
-  flex:1 1 auto;min-width:0;resize:none;min-height:32px;max-height:72px;font-size:12px;
-  padding:6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.14);
-  background:rgba(0,0,0,.25);color:#fff;
+  display:block;width:100%;box-sizing:border-box;resize:none;
+  min-height:56px;max-height:140px;font-size:13px;line-height:1.35;
+  padding:10px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.16);
+  background:rgba(0,0,0,.32);color:#fff;
 }
 .match-chat-composer textarea:disabled{opacity:.5}
-.match-chat-composer #match-chat-send-btn{flex:0 0 auto;font-size:11px;padding:7px 10px}
+.match-chat-composer #match-chat-send-btn{flex:0 0 auto;font-size:12px;padding:9px 16px;min-height:36px}
 .match-chat-composer #match-chat-send-btn:disabled{opacity:.45}
-.match-chat-status{margin:4px 0 0;font-size:10px;color:#f0a0a8}
+.match-chat-status{margin:0;font-size:10px;color:#f0a0a8}
 html:not(.tcg-mobile-viewport) .side-log.radio-open{
   --tcg-radio-stack-h:300px;
   display:grid;

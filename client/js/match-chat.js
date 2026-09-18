@@ -425,6 +425,14 @@
     });
   }
 
+  function resizeComposerInput() {
+    const ta = document.getElementById('match-chat-input');
+    if (!ta) return;
+    ta.style.height = 'auto';
+    const next = Math.min(Math.max(ta.scrollHeight, 56), 140);
+    ta.style.height = next + 'px';
+  }
+
   function insertEmoteToken(em) {
     const ta = document.getElementById('match-chat-input');
     if (!ta || !em) return;
@@ -437,6 +445,7 @@
     ta.focus();
     const pos = start + token.length;
     ta.setSelectionRange(pos, pos);
+    resizeComposerInput();
   }
 
   async function sendMessage() {
@@ -472,6 +481,7 @@
         return;
       }
       ta.value = '';
+      resizeComposerInput();
       if (d.message) appendLine(d.message);
     } catch (e) {
       setStatus(tt('chat.sendFailed', 'Could not send.'));
@@ -569,6 +579,7 @@
     ta.setSelectionRange(np, np);
     if (box) box.hidden = true;
     autocompleteItems = [];
+    resizeComposerInput();
   }
 
   function bindUi() {
@@ -619,7 +630,11 @@
         void sendMessage();
       }
     });
-    ta?.addEventListener('input', updateAutocomplete);
+    ta?.addEventListener('input', () => {
+      resizeComposerInput();
+      updateAutocomplete();
+    });
+    resizeComposerInput();
 
     document.getElementById('match-chat-emoji-btn')?.addEventListener('click', () => {
       const pop = document.getElementById('match-chat-emoji-popover');
