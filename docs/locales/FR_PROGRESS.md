@@ -48,3 +48,9 @@ Character / song / group brand names stay **English** (same as es/pt).
 ## Policy
 
 Every new or changed player-facing string must include French in the same change — see `.cursor/rules/user-facing-copy.mdc`.
+
+## Audit (2026-09-18 polish)
+
+- UI: `locales/fr.json` vs `en_extracted` — **0 missing**; leftovers identical to EN are intentional keepers (Live, Wait, Scout, set names, placeholders, language names).
+- Skills: all rules cards have `text_fr`; rebuilt via ES→FR pivot + exact overrides. Real English-phrase leak count driven to **0**.
+- Known awkward hub copy fixed: `menu.unrankedPlay` → Partie libre; `options.matchChat` → Activer le chat texte en partie.

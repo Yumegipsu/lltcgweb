@@ -34,6 +34,7 @@ from translate_text_es_batch import (  # noqa: E402
     card_batch_id,
     export_batch_texts,
 )
+from fr_glossary_extra import EXTRA_GLOSSARY  # noqa: E402
 
 # English skill-type brackets → FR (match locales/fr.json skillKw.*.title).
 BRACKET_EN_TO_FR: dict[str, str] = {
@@ -468,7 +469,6 @@ GLOSSARY: list[tuple[str, str]] = [
     ("this turn", "ce tour"),
     ("Once per turn", "Une fois par tour"),
     ("Once per Turn", "Une fois par tour"),
-    ("Rest", "Repos"),
     ("Stand", "Debout"),
     ("hand", "main"),
     ("Success", "Réussite"),
@@ -534,7 +534,8 @@ def translate_fr_glossary(text: str) -> str:
     """Apply French glossary to English rules text (brackets + quotes protected)."""
     protected, bracket_tokens = protect_brackets(text)
     protected, quote_tokens = protect_quotes(protected)
-    for en, fr in sorted(GLOSSARY, key=lambda pair: len(pair[0]), reverse=True):
+    combined = list(GLOSSARY) + list(EXTRA_GLOSSARY)
+    for en, fr in sorted(combined, key=lambda pair: len(pair[0]), reverse=True):
         protected = protected.replace(en, fr)
     protected = restore_quotes(protected, quote_tokens)
     return restore_brackets(protected, bracket_tokens)
