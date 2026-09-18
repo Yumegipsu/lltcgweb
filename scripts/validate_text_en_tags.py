@@ -61,7 +61,7 @@ NOTE_CARDS = {
     "PL!S-sd1-007-SD",
 }
 
-TEXT_FIELDS = ("text", "text_pt")
+TEXT_FIELDS = ("text", "text_pt", "text_fr")
 
 
 def check_text(no: str, text: str, field: str, errors: list[str], warnings: list[str]) -> bool:

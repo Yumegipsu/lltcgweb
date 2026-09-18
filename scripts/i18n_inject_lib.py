@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 I18N = ROOT / "i18n.js"
 
-LOCALE_ORDER = ["en", "ja", "es", "ko", "zh", "th", "pt"]
+LOCALE_ORDER = ["en", "ja", "es", "ko", "zh", "th", "pt", "fr"]
 
 
 def format_locale_block(code: str, data: dict) -> str:
@@ -48,7 +48,7 @@ def split_top_level_locales(body: str) -> dict[str, str]:
     inner = body[1:-1]
     locales: dict[str, str] = {}
     # Find each "code": {
-    for m in re.finditer(r'\n  "(en|ja|es|ko|zh|th|pt)": \{', inner):
+    for m in re.finditer(r'\n  "(en|ja|es|ko|zh|th|pt|fr)": \{', inner):
         code = m.group(1)
         brace_at = m.end() - 1
         depth = 0
@@ -112,7 +112,7 @@ def inject_locale(code: str, data: dict, locales_js: list[str] | None = None) ->
 
 def _parse_locale_json_block(block: str) -> dict:
     """Parse a formatted '"xx": { ... }' block into a dict."""
-    m = re.match(r'\s*"(?:en|ja|es|ko|zh|th|pt)":\s*(\{)', block)
+    m = re.match(r'\s*"(?:en|ja|es|ko|zh|th|pt|fr)":\s*(\{)', block)
     if not m:
         raise SystemExit(f"cannot parse locale block: {block[:40]!r}")
     start = m.start(1)

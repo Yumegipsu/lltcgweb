@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from card_text_line_breaks import format_card_rules_text  # noqa: E402
 
 CARDS_PATH = ROOT / "cards.json"
-FIELDS = ("text", "text_pt")
+FIELDS = ("text", "text_pt", "text_fr")
 
 
 def main() -> int:

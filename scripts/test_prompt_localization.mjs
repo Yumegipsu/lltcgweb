@@ -96,7 +96,7 @@ if (!i18n?.setLocale || !logI18n?.localizePromptText) {
   process.exit(1);
 }
 
-const locales = ['ja', 'es', 'ko', 'zh', 'th', 'pt'];
+const locales = ['ja', 'es', 'ko', 'zh', 'th', 'pt', 'fr'];
 let failures = 0;
 for (const loc of locales) {
   i18n.setLocale(loc);

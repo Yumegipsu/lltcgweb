@@ -19,6 +19,7 @@ $locales = [
     'zh' => $root . '/locales/zh.json',
     'th' => $root . '/locales/th.json',
     'pt' => $root . '/locales/pt.json',
+    'fr' => $root . '/locales/fr.json',
 ];
 
 /** Keys under these prefixes are created in i18n.js hydrate, not stored as JSON leaves. */
