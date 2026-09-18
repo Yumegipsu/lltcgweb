@@ -55,7 +55,7 @@ function tcgLoadCardsData(bool $includeOracleText = false): array {
     }
 
     $data = tcgLoadCardsData(true);
-    $drop = ['text', 'text_jp', 'text_es', 'text_ko', 'text_zh', 'text_th', 'text_pt'];
+    $drop = ['text', 'text_jp', 'text_es', 'text_ko', 'text_zh', 'text_th', 'text_pt', 'text_fr'];
     if (isset($data['cards']) && is_array($data['cards'])) {
         foreach ($data['cards'] as &$card) {
             if (!is_array($card)) {

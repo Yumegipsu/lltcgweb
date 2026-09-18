@@ -1086,7 +1086,7 @@ global.promptSourceDisplayName = function promptSourceDisplayName(pr, s) {
 }
 
 function isLocalizedPromptLocale(loc) {
-  return loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh' || loc === 'th' || loc === 'pt';
+  return loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh' || loc === 'th' || loc === 'pt' || loc === 'fr';
 }
 
 /** Normalize card/prompt copy for matching tagged EN vs server prose. */

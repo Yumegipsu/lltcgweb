@@ -3,7 +3,7 @@
   'use strict';
 
   var LLTCG_LOCALE_KEY = 'lltcg_locale';
-  var LOCALES = ['en', 'ja', 'es', 'ko', 'zh', 'th', 'pt'];
+  var LOCALES = ['en', 'ja', 'es', 'ko', 'zh', 'th', 'pt', 'fr'];
   var localeChangeCallbacks = [];
   var _tutorialJa = null;
   var _tutorialEs = null;
@@ -11,6 +11,7 @@
   var _tutorialZh = null;
   var _tutorialTh = null;
   var _tutorialPt = null;
+  var _tutorialFr = null;
 
   var STRINGS = {
   "en": {
@@ -218,7 +219,9 @@
       "es": "Español",
       "ko": "한국어",
       "zh": "简体中文",
-      "th": "ไทย"
+      "th": "ไทย",
+      "fr": "Français",
+      "pt": "Português (Brasil)"
     },
     "lobby": {
       "title": "Unranked Play",
@@ -588,7 +591,6 @@
       "ratesLoading": "Loading rates…",
       "ratesError": "Could not load gacha rates"
     },
-
     "sticker": {
       "title": "Sticker Exchange",
       "backHub": "← Hub",
@@ -2307,7 +2309,9 @@
       "es": "Español",
       "ko": "한국어",
       "zh": "简体中文",
-      "th": "ไทย"
+      "th": "ไทย",
+      "fr": "Français",
+      "pt": "Português (Brasil)"
     },
     "lobby": {
       "title": "カジュアル対戦",
@@ -2682,7 +2686,6 @@
       "ratesLoading": "排出率を読み込み中…",
       "ratesError": "ガチャの排出率を読み込めませんでした"
     },
-
     "sticker": {
       "title": "シール交換",
       "backHub": "← ハブ",
@@ -4171,7 +4174,9 @@
       "es": "Español",
       "zh": "简体中文",
       "ko": "한국어",
-      "th": "ไทย"
+      "th": "ไทย",
+      "fr": "Français",
+      "pt": "Português (Brasil)"
     },
     "lobby": {
       "title": "Juego no clasificado",
@@ -4541,7 +4546,6 @@
       "ratesLoading": "Cargando probabilidades…",
       "ratesError": "No se pudieron cargar las probabilidades del gacha"
     },
-
     "ranked": {
       "title": "PvP clasificatorio",
       "findMatch": "Buscar partida",
@@ -6090,7 +6094,9 @@
       "es": "Español",
       "ko": "한국어",
       "zh": "简体中文",
-      "th": "ไทย"
+      "th": "ไทย",
+      "fr": "Français",
+      "pt": "Português (Brasil)"
     },
     "lobby": {
       "title": "일반전",
@@ -6470,7 +6476,6 @@
       "ratesLoading": "확률 불러오는 중…",
       "ratesError": "가챠 확률을 불러올 수 없습니다"
     },
-
     "ranked": {
       "title": "랭크 PvP",
       "findMatch": "대전 찾기",
@@ -8033,7 +8038,9 @@
       "es": "Español",
       "ko": "한국어",
       "zh": "简体中文",
-      "th": "ไทย"
+      "th": "ไทย",
+      "fr": "Français",
+      "pt": "Português (Brasil)"
     },
     "lobby": {
       "title": "非排名对战",
@@ -8413,7 +8420,6 @@
       "ratesLoading": "正在加载概率…",
       "ratesError": "无法加载扭蛋概率"
     },
-
     "ranked": {
       "title": "排名对战",
       "findMatch": "寻找对战",
@@ -9976,7 +9982,9 @@
       "es": "Español",
       "ko": "한국어",
       "zh": "简体中文",
-      "th": "ไทย"
+      "th": "ไทย",
+      "fr": "Français",
+      "pt": "Português (Brasil)"
     },
     "lobby": {
       "title": "เล่นอันแรงก์",
@@ -10346,7 +10354,6 @@
       "ratesLoading": "กำลังโหลดอัตรา…",
       "ratesError": "โหลดอัตรากาชาไม่ได้"
     },
-
     "ranked": {
       "title": "แรงก์ PvP",
       "findMatch": "หาแมตช์",
@@ -11956,7 +11963,8 @@
       "ko": "한국어",
       "zh": "简体中文",
       "th": "ไทย",
-      "pt": "Português (Brasil)"
+      "pt": "Português (Brasil)",
+      "fr": "Français"
     },
     "lobby": {
       "title": "Modo Casual",
@@ -12328,7 +12336,6 @@
       "ratesLoading": "Carregando taxas…",
       "ratesError": "Não foi possível carregar as taxas do gacha"
     },
-
     "sticker": {
       "title": "Loja de Selos",
       "backHub": "← Menu",
@@ -13745,6 +13752,2088 @@
       "inviteSent": "Convite enviado para {name}",
       "noFriends": "Adicione amigos primeiro na aba Amigos."
     }
+  },
+  "fr": {
+    "logo": {
+      "tagline": "Le lecteur web non officiel"
+    },
+    "news": {
+      "label": "Actualités",
+      "title": "Actualités",
+      "close": "Fermer",
+      "backToList": "← Toutes les actualités",
+      "empty": "Aucune actualité pour le moment.",
+      "untitled": "Sans titre",
+      "cardUnknown": "Carte introuvable : {id}",
+      "newBadge": "Nouveau !"
+    },
+    "auth": {
+      "checking": "Vérification de la connexion Discord…",
+      "signingIn": "Connexion…",
+      "signInDiscord": "Se connecter avec Discord",
+      "guestPrompt": "Connectez-vous avec Discord pour sauvegarder votre collection et jouer en classé.",
+      "guestPlayHint": "Jouez en parties libres sans compte, ou connectez-vous pour le mode classé.",
+      "sessionExpired": "Session expirée — reconnectez-vous, ou jouez en parties libres sans compte.",
+      "loadError": "Impossible de charger le compte — vous pouvez toujours jouer en parties libres.",
+      "guestTimeout": "Délai de connexion dépassé — jouez en parties libres, ou réessayez Discord.",
+      "accountBanned": "Ce compte Discord est banni de Loveca."
+    },
+    "menu": {
+      "unrankedPlay": "Libre Play",
+      "unrankedSub": "Chambres, amis ou entraînement vs CPU",
+      "deckExperiment": "Expérimentateur de decks",
+      "deckExperimentSub": "Construisez avec toutes les cartes — visiteurs uniquement, parties libres",
+      "howToPlay": "Comment jouer",
+      "howToPlaySub": "Cours pratique pour débutants avec Kanon"
+    },
+    "hub": {
+      "signedIn": "Connecté",
+      "signedInAs": "Connecté en tant que",
+      "signedInAsHtml": "Connecté en tant que <b>{name}</b>",
+      "dailyBoosters": "Boosters quotidiens : {remaining} / {limit} restants aujourd'hui (JST)",
+      "dailyWelcomeBonus": " (bonus de bienvenue !)",
+      "daily": "Boosters quotidiens : {remaining} / {limit} restants aujourd'hui (JST)",
+      "dailyBonus": " (bonus de bienvenue !)",
+      "rankedPrCount": "{remaining} / {limit}",
+      "rankedPrTitle": "Récompenses PR classées restantes aujourd'hui : {remaining} / {limit} (JST)",
+      "rankLine": "ELO {elo} · {wins}V-{losses}D · {winPct} % de victoires",
+      "options": "Options",
+      "signOut": "Se déconnecter",
+      "openBoosters": "Ouvrir des boosters",
+      "openBoostersSub": "Ouvrez des boosters de cartes",
+      "stickerShop": "Échange de sceaux",
+      "stickerShopSub": "Échangez des sceaux contre des cartes de vos boosters",
+      "deckBuilder": "Constructeur de decks",
+      "deckBuilderSub": "Modifiez les prédéfinitions et votre deck classé",
+      "rankedPvp": "PvP classé",
+      "rankedPvpSub": "Montez votre ELO en parties matchmakées",
+      "leaderboard": {
+        "sub": "Voir le classement classé",
+        "title": "Classement"
+      },
+      "leaderboardSub": "Voir le classement en ligne",
+      "unranked": {
+        "sub": "Parties libres",
+        "title": "Libre"
+      },
+      "unrankedSub": "Salons, amis ou entraînement vs CPU",
+      "tournamentMode": "Mode tournoi",
+      "tournamentModeSub": "Bientôt",
+      "howToPlay": "Comment jouer",
+      "howToPlaySub": "Tutoriel interactif pour débutants avec Kanon",
+      "backHub": "← Menu",
+      "missions": "Missions",
+      "tournamentModeSubLive": "Événements et tableaux",
+      "loginBonus": "Connexion",
+      "apk": {
+        "sub": "Téléchargez Loveca v1.2, autorisez les apps inconnues, puis ouvrez l'APK.",
+        "title": "Vous jouez sur Android ? Téléchargez l'APK !"
+      },
+      "booster": {
+        "sub": "Ouvrez des boosters de vos collections",
+        "title": "Boosters"
+      },
+      "cardList": {
+        "sub": "Parcourir le catalogue complet",
+        "title": "Liste des cartes"
+      },
+      "deck": {
+        "sub": "Construisez et équipez des decks depuis votre collection",
+        "title": "Constructeur de decks"
+      },
+      "experiment": {
+        "sub": "Testez librement n'importe quelle carte",
+        "title": "Expérimentateur de decks"
+      },
+      "missionsClaimable": "Missions — {n} à récupérer",
+      "officialVideo": "Vidéo officielle de 8 min ↗",
+      "ranked": {
+        "sub": "Matchmaking compétitif",
+        "title": "Classé"
+      },
+      "replay": {
+        "sub": "Regarder des parties passées",
+        "title": "Replays"
+      },
+      "shop": {
+        "sub": "Sleeves et playmats",
+        "title": "Boutique"
+      },
+      "sleeveShop": {
+        "sub": "Achetez des sleeves avec des Pièces",
+        "title": "Boutique de sleeves"
+      },
+      "sticker": {
+        "sub": "Convertir les cartes en double",
+        "title": "Sceaux"
+      },
+      "tournament": {
+        "subLive": "Événements en direct",
+        "title": "Tournois",
+        "sub": "Coming Soon",
+        "countdown": "{d}d {h}h {m}m {s}s",
+        "liveNow": "LIVE",
+        "promoSub": "{title} · prix {prix} · {n} entered",
+        "joinedSub": "{title} · {n} entered"
+      },
+      "tutorial": {
+        "officialVideo": "Vidéo officielle de 8 min ↗",
+        "sub": "Apprendre les règles",
+        "title": "Comment jouer"
+      },
+      "scout": {
+        "title": "Scout",
+        "sub": "Pull cards for your collection!"
+      }
+    },
+    "missions": {
+      "title": "Missions",
+      "tabDaily": "Quotidiennes",
+      "tabMilestone": "Jalons",
+      "claim": "Réclamer",
+      "loading": "Loading missions…",
+      "empty": "No missions in this tab.",
+      "statusActive": "En cours",
+      "statusReady": "Prêt à récupérer",
+      "statusClaimed": "Récupéré",
+      "statusLocked": "Verrouillé",
+      "completeToast": "Mission terminée : {title}",
+      "claimedToast": "Demandé {title} (+{reward})",
+      "daily": {
+        "openAllBoosters": "Open all daily booster packs",
+        "rankedMatch": "Play a ranked match",
+        "useStamp": "Use a stamp during a match",
+        "completeAll": "Complete all daily missions"
+      },
+      "milestone": {
+        "profileBanner": "Mettez à jour la bannière de votre profil",
+        "profileFlag": "Définissez un drapeau sur votre profil",
+        "profileStamps": "Définissez vos figurines favorites",
+        "friend1": "Add a friend",
+        "friend10": "Ajoutez 10 amis",
+        "ranked1": "Jouez 1 partie classée",
+        "unranked1": "Jouez 1 partie libre",
+        "ranked5": "Jouez 5 parties classées",
+        "ranked10": "Jouez 10 parties classées",
+        "ranked50": "Jouez 50 parties classées",
+        "ranked100": "Jouez 100 parties classées",
+        "ranked500": "Jouez 500 parties classées",
+        "ranked1000": "Jouez 1 000 parties classées",
+        "sticker1": "Échangez des sceaux dans la boutique de sceaux",
+        "sticker10": "Échangez des sceaux dans la boutique de sceaux 10 fois",
+        "sticker50": "Échangez des sceaux dans la boutique de sceaux 50 fois",
+        "sticker100": "Échangez des sceaux dans la boutique de sceaux 100 fois",
+        "winMuse": "Gagnez avec un deck principal uniquement μ's",
+        "winAqours": "Gagnez avec un deck principal uniquement Aqours",
+        "winLiella": "Gagnez avec un deck principal uniquement Liella!",
+        "winHasunosora": "Gagnez avec un deck principal uniquement Hasunosora",
+        "winNijigasaki": "Gagnez avec un deck principal uniquement Nijigasaki",
+        "cards400": "Own 400 cards",
+        "cards800": "Own 800 cards",
+        "cards1200": "Own 1,200 cards",
+        "cards1600": "Own 1,600 cards",
+        "cards2000": "Own 2,000 cards",
+        "cards2400": "Own 2,400 cards",
+        "winTurn3": "Gagnez une partie à votre 3e tour",
+        "yellScore20": "Atteignez un score Yell de 20 ou plus",
+        "liveScore15": "Atteignez un score Live de 15 ou plus en une seule manche"
+      },
+      "rewardStarter": "Choisissez un deck initial",
+      "rewardStarterOwned": "Déjà obtenu",
+      "claimedStarterToast": "Demandé {title} — débloqué {deck}",
+      "starterPickTitle": "Choisissez un deck initial",
+      "starterPickConfirm": "Débloquer l'initial",
+      "starterPickCancel": "Annuler",
+      "rewardCoinsAndPrPack": "+{coins} Pièces · Pack PR",
+      "claimedCoinsAndPrToast": "Demandé {title} (+{coins} Pièces · Pack RP)",
+      "rewardFreeSleeve": "Récupération de sleeve gratuit",
+      "claimedFreeSleeveToast": "Revendiqué {title} — manche libre déverrouillée dans la boutique de manches",
+      "claimedCoinsToast": "Demandé {title} (+{coins} jeton)",
+      "claimedGemsAndCoinsToast": "Demandé {title} (+{gems} · +{coins} pièces)"
+    },
+    "language": {
+      "label": "Langue",
+      "en": "English",
+      "ja": "日本語",
+      "es": "Español",
+      "ko": "한국어",
+      "zh": "简体中文",
+      "th": "ไทย",
+      "pt": "Português (Brasil)",
+      "fr": "Français"
+    },
+    "lobby": {
+      "title": "Mode libre",
+      "yourName": "Votre nom",
+      "namePlaceholder": "Nom d'idol…",
+      "deck": "Deck",
+      "createRoom": "Créer un salon",
+      "joinRoom": "Rejoindre un salon",
+      "roomCode": "Code du salon",
+      "roomCodePlaceholder": "ABCD1234",
+      "vsPlayer": "VS Joueur",
+      "vsCpu": "VS CPU",
+      "practiceCpu": "Entraînement vs CPU",
+      "cpuDifficulty": "Difficulté CPU",
+      "cpuEasy": "Facile — deck initial aléatoire",
+      "cpuNormal": "Normal — capacités et Lives plus intelligentes",
+      "cpuHard": "Difficile — deck fort et priorité des capacités",
+      "cpuExpert": "Expert — simulation de coups et projection de menaces",
+      "cpuEasyShort": "Facile",
+      "cpuNormalShort": "Normal",
+      "cpuHardShort": "Difficile",
+      "cpuExpertShort": "Expert",
+      "soloStarting": "Démarrage vs CPU ({diff})",
+      "player1Default": "Joueur 1",
+      "player2Default": "Joueur 2",
+      "findRandomMatch": "Partie aléatoire",
+      "spectate": "Regarder une partie",
+      "cancelSearch": "Annuler la recherche",
+      "phaseTimer": "Minuteur de phase (Principale et Live)",
+      "phaseTimerSec": "Secondes par phase (10–120)",
+      "backHub": "← Menu",
+      "orJoinFriend": "ou rejoignez un ami",
+      "orMatchRandomly": "ou appariement aléatoire",
+      "casualHint": "PvP libre — pas d'ELO ni d'historique classé",
+      "experimentDeckPassword": "Mot de passe du deck d'expérience",
+      "experimentPasswordPlaceholder": "Code de 8 lettres",
+      "experimentDeckBtn": "Expérimentateur de decks",
+      "experimentDeckHint": "Construisez dans l'Expérimentateur, générez un mot de passe, puis saisissez-le ici — ou choisissez un deck enregistré ci-dessous.",
+      "secondsLabel": "{n}s",
+      "casualQueueStats": "{waiting} en attente · {inGame} en parties libres",
+      "casualSearching": "Recherche d'adversaire… ({seconds}s)",
+      "cpuCosmeticDefault": "Par défaut",
+      "cpuCosmeticRandom": "Aléatoire (possédés)",
+      "cpuCosmeticsHint": "Choisissez des cosmétiques possédés ou tirez au hasard parmi ceux que vous avez.",
+      "cpuPlaymat": "Playmat de la CPU",
+      "cpuSleeve": "Sleeve de la CPU",
+      "experimentDeckIncomplete": "Le deck d'expérience est incomplet.",
+      "freeDeckEmpty": "Aucun deck libre/expérience enregistré pour le moment.",
+      "otherModesQueuedLead": "Joueurs en attente dans d'autres modes :",
+      "presetDeckIncomplete": "Le deck prédéfini est incomplet.",
+      "inviteFriend": "Inviter un ami",
+      "inviteFriendHint": "Crée un salon et le notifie. S'il accepte, il rejoint votre partie.",
+      "joining": "Entrée dans le salon…",
+      "creating": "Création du salon…"
+    },
+    "deck": {
+      "basicDecks": "Decks de base",
+      "starters": {
+        "nijigasaki": "Deck initial Nijigasaki",
+        "muse": "Deck initial μ's",
+        "liella": "Deck initial Liella!",
+        "hasunosora": "Deck initial Hasunosora",
+        "sunshine": "Deck initial Sunshine!!"
+      },
+      "title": "Constructeur de decks",
+      "experimentTitle": "Expérimentateur de decks",
+      "deckName": "Nom du deck",
+      "presetSlot": "Emplacement de prédéfinition (max. 10)",
+      "search": "Rechercher des cartes",
+      "searchPlaceholder": "Nom, ID ou texte de règles…",
+      "collection": "Collection",
+      "currentDeck": "Deck actuel",
+      "savePreset": "Enregistrer la prédéfinition",
+      "equipRanked": "Équiper en classé",
+      "autoBuild": "Auto-construction",
+      "clear": "Effacer",
+      "hint": "L'auto-construction optimise depuis votre collection · touchez pour ajouter/retirer · survolez pour prévisualiser · total de points ≤ 9",
+      "hoverEmpty": "Survolez une carte du deck pour la prévisualiser ici.",
+      "backHub": "← Menu",
+      "backMenu": "← Menu",
+      "deckPassword": "Mot de passe du deck",
+      "deckPasswordPlaceholder": "Entrez le mot de passe pour charger",
+      "load": "Charger",
+      "savedPassword": "Mot de passe enregistré :",
+      "copy": "Copier",
+      "cardPool": "Pool de cartes",
+      "resetStarter": "Restaurer l'initial",
+      "useStarter": "Utiliser l'initial",
+      "randomDeck": "Deck aléatoire",
+      "updateSavedDeck": "Mettre à jour le deck enregistré",
+      "generatePassword": "Générer un mot de passe",
+      "experimentHint": "Pool de cartes complet · construisez un deck légal pour générer un mot de passe · total de points ≤ 9 · maintenez ou clic droit pour les détails",
+      "collectionOwned": "Total de cartes possédées · {count}",
+      "collectionLoading": "Pool de cartes complet · chargement…",
+      "collectionMatch": "Collection · {match} correspondance",
+      "collectionMatchPlural": "Collection · {match} correspondances",
+      "collectionMatchAddable": "Collection · {match} correspondances · {addable} ajoutables",
+      "poolNoMatch": "Aucune carte ne correspond à votre recherche ou à vos filtres.",
+      "poolNoDeckable": "Aucune carte disponible pour construire un deck.",
+      "fullPoolZero": "Pool de cartes complet · 0 correspondance",
+      "fullPoolBrowse": "Pool de cartes complet · faites défiler pour parcourir toutes les cartes",
+      "fullPoolMatches": "Pool de cartes complet · {n} correspondances",
+      "fullPoolCards": "Pool de cartes complet · {n} cartes",
+      "deckStats": "Total {total}/72 · Membres {members}/48 · Lives {lives}/12 · Énergie {energy}/12 · Points {lovecaPoints}/{lovecaLimit}",
+      "lovecaPointLabel": "Points",
+      "lovecaPointBadge": "{n}pt",
+      "lovecaOverLimit": "Le total de points serait {total} (max. {limit}).",
+      "lovecaDeckIllegal": "Le total de points est {total} — le deck doit être à {limit} ou moins.",
+      "deckIllegalSize": "Le deck doit être légal : 60 en principal (48 Membres, 12 Lives) et 12 d'Énergie.",
+      "lovecaExplain": "Certaines cartes puissantes coûtent des points. Le total de points de votre deck principal doit rester à 9 ou moins (chaque copie compte).",
+      "deckEmpty": "Touchez des cartes de votre collection pour construire un deck.",
+      "deckEmptyExperiment": "Touchez des cartes du pool pour construire un deck légal 60+12.",
+      "experimentStarterTitle": "Choisir le deck initial",
+      "experimentStarterLead": "Chargez une liste initiale officielle comme base — éditez librement depuis le pool complet.",
+      "accountStarterHint": "Deck initial de votre compte : {starter} · la prédéfinition n°1 part de cette liste.",
+      "noStarterOnAccount": "Aucun deck initial sur ce compte.",
+      "loadedStarterIntoPreset": "{name} chargé dans la prédéfinition n°{slot}.",
+      "loadedStarterFallbackName": "deck initial",
+      "chooseStarterFirst": "Choisissez d'abord un deck initial.",
+      "building": "Construction…",
+      "autoBuiltSuccess": "Deck légal construit automatiquement à partir de votre collection.",
+      "starterDecksNotLoaded": "Decks initiaux pas encore chargés.",
+      "equippedRanked": "Équipé pour le mode classé.",
+      "filters": {
+        "title": "Filtres",
+        "showAdvanced": "Afficher les filtres avancés",
+        "hideAdvanced": "Masquer les filtres avancés",
+        "all": "Tous",
+        "allTypes": "Tous les types",
+        "allFields": "Tous les champs",
+        "allProducts": "Tous les produits",
+        "allSets": "Toutes les séries",
+        "any": "N'importe",
+        "min": "Min.",
+        "max": "Max.",
+        "notIncluded": "Non inclus",
+        "heartAll": "Tous",
+        "drawIcon": "Icône de pioche",
+        "scoreIcon": "Icône de score",
+        "label": {
+          "type": "Type",
+          "group": "Groupe",
+          "rarity": "Rareté",
+          "keywordIn": "Mot-clé dans",
+          "product": "Produit",
+          "productSet": "Série du produit",
+          "subunit": "Subunit",
+          "parallel": "Parallèle",
+          "printedHearts": "Cœurs imprimés",
+          "requiredHearts": "Cœurs requis",
+          "bladeHearts": "Cœurs Blade",
+          "blade": "Blade",
+          "cost": "Coût",
+          "score": "Score"
+        },
+        "type": {
+          "member": "Membre",
+          "live": "Live",
+          "energy": "Énergie"
+        },
+        "searchMode": {
+          "all": "Tous les champs",
+          "name": "Nom",
+          "text": "Texte",
+          "id": "ID de carte"
+        },
+        "searchPlaceholder": {
+          "all": "Nom, ID ou texte de règles…",
+          "name": "Nom de la carte…",
+          "text": "Texte de règles…",
+          "id": "ID de carte ex. PL!N-sd1-021-SD"
+        },
+        "productKind": {
+          "bp": "Booster Pack",
+          "pb": "Premium Booster",
+          "pb_duo": "Premium Booster (DUO)",
+          "sd": "Deck initial",
+          "collection": "Collection",
+          "pr": "PR"
+        },
+        "parallel": {
+          "normal": "Normales uniquement",
+          "parallel": "Parallèles uniquement"
+        },
+        "groups": {
+          "mus": "μ's",
+          "nijigasaki": "Nijigasaki",
+          "sunshine": "Sunshine",
+          "superstar": "Superstar",
+          "hasunosora": "Hasunosora",
+          "saintsnow": "Saint Snow",
+          "arise": "A-RISE",
+          "sunnypassion": "Sunny Passion"
+        },
+        "sort": {
+          "aria": "Tri de la collection",
+          "sortBy": "Trier par",
+          "order": "Ordre",
+          "asc": "Croissant",
+          "desc": "Décroissant",
+          "id": "ID de carte",
+          "rarity": "Rareté",
+          "name": "Nom (idol)",
+          "type": "Type de carte",
+          "group": "Groupe / école",
+          "recent": "Acquises récemment"
+        }
+      },
+      "decklogAccountHint": "Collez un code Deck Log ou une URL — charge dans cette prédéfinition si vous possédez les cartes.",
+      "decklogApplySubs": "Remplacer et ajouter le deck",
+      "decklogAutoEnergy": "Remplacer automatiquement les Énergies manquantes",
+      "decklogAutoSubs": "Choisir les substituts automatiquement",
+      "decklogChangeSub": "Changer le substitut",
+      "decklogChooseSub": "Choisir un substitut",
+      "decklogCode": "Code Deck Log",
+      "decklogCodePlaceholder": "Code OU URL",
+      "decklogHint": "Collez un code Deck Log ou une URL — importe dans ce constructeur et enregistre un mot de passe d'expérience.",
+      "decklogImport": "Importer",
+      "decklogImported": "Importé {code}.",
+      "decklogImportedAccount": "Importé {code}. Enregistrez une prédéfinition pour le conserver.",
+      "decklogImportedSaved": "Importé {code}. Mot de passe d'expérience : {password}",
+      "decklogImporting": "Import depuis Deck Log…",
+      "decklogImportingShort": "Import…",
+      "decklogMissingLead": "Remplacez les copies manquantes par des substituts de votre collection, ou annulez.",
+      "decklogMissingTitle": "Les cartes suivantes manquent pour créer ce deck",
+      "decklogNeedAllSubs": "Choisissez des substituts pour chaque copie manquante, ou annulez.",
+      "decklogNeedCode": "Entrez un code Deck Log ou une URL.",
+      "decklogNeedHave": "Requis {need} · Possédés {have}",
+      "decklogNeedSignIn": "Connectez-vous pour importer dans un deck de collection.",
+      "decklogObtainBooster": "Ouvrir des boosters : {pack}",
+      "decklogObtainCollection": "Collection : {pack}",
+      "decklogObtainPr": "Pack de cartes PR ou échange de sceaux",
+      "decklogObtainStarter": "Deck initial : {pack}",
+      "decklogObtainUnknown": "Voir la liste des cartes / échange de sceaux",
+      "decklogSubNone": "Aucun substitut sélectionné",
+      "decklogSubNoneAvailable": "Aucun substitut possédé disponible",
+      "decklogSubNoneCount": "Choisissez {n} substitut(s)",
+      "decklogSubPickConfirm": "Confirmer les substituts",
+      "decklogSubPickCount": "Encore {n}",
+      "decklogSubPickCountReady": "Sélection terminée — confirmez",
+      "decklogSubPickLead": "Clic droit ou toucher pour ajouter une copie à la fois. Refaire pour retirer quand c'est plein. Confirmez quand vous êtes prêt.",
+      "decklogSubPickRemoveHint": "Retirer",
+      "decklogSubPickReplacing": "Remplacement",
+      "decklogSubPickShortfall": "Substitut {n}",
+      "decklogSubPickTitle": "Choisir les substituts",
+      "decklogSubPickTitleFor": "Choisissez {n} substitut(s) pour {name}",
+      "decklogSubPicked": "Substitut : {name}",
+      "decklogSubPickedCount": "Substituts ({n})",
+      "decklogSubsStillShort": "Il manque encore des cartes — choisissez plus de substituts ou annulez.",
+      "decklogSubstitute": "Carte substitut",
+      "emptySlot": "Emplacement vide",
+      "experimentHintSignedIn": "Enregistrez des prédéfinitions d'expérience ou chargez avec un mot de passe partagé.",
+      "experimentSaved": "Deck d'expérience enregistré.",
+      "experimentSlot": "Emplacement d'expérience",
+      "more": "Plus",
+      "playmat": "Playmat",
+      "playmatBrightness": "Luminosité",
+      "playmatConfirm": "Confirmer",
+      "playmatEmpty": "Aucun playmat disponible pour le moment.",
+      "playmatHint": "Le playmat équipé apparaît à votre place en partie. Plateau par défaut si aucun n'est choisi.",
+      "playmatPickLead": "Sélectionnez un playmat que vous possédez, ajustez la luminosité, puis confirmez.",
+      "playmatPickTitle": "Choisir le playmat",
+      "saveExperiment": "Enregistrer l'expérience",
+      "savedPresets": "Prédéfinitions enregistrées",
+      "sleeve": "Sleeve",
+      "sleeveEmpty": "Aucun sleeve disponible pour le moment.",
+      "sleeveHint": "Le sleeve équipé remplace le dos de vos cartes en partie. Par défaut : aucun.",
+      "sleevePickLead": "Touchez un sleeve que vous possédez pour l'équiper sur ce deck.",
+      "sleevePickTitle": "Choisir le sleeve",
+      "sort": "Trier",
+      "saved": "Deck enregistré",
+      "savedInProgress": "Brouillon enregistré. Terminez les comptes de cartes avant de l'utiliser en partie.",
+      "inProgress": "En cours d'édition"
+    },
+    "booster": {
+      "title": "Ouvrir des boosters",
+      "openPack": "Ouvrir un booster ({n} cartes)",
+      "openBox": "Ouvrir une box ({n} boosters)",
+      "openPaidBox": "Ouvrir 1 box ({n} boosters)",
+      "selectBoxFirst": "Sélectionnez d'abord une série de boosters",
+      "needMoreGems": "Il faut {n} Star Gems pour ouvrir une box",
+      "noPacksOrGems": "Plus de boosters quotidiens et pas assez de Star Gems.",
+      "ratesLead": "{pool} cartes dans le pool · chance d'apparaître dans un booster de {n} cartes",
+      "packOpened": "Booster ouvert",
+      "godPack": "GOD PACK!",
+      "openAnother": "Ouvrir un autre booster",
+      "openSameAgain": "Ouvrir le même à nouveau",
+      "packsLeft": "{n} booster(s) restant(s) aujourd'hui (JST)",
+      "mainMenu": "Menu principal",
+      "backHub": "← Menu",
+      "noDailyPacks": "Plus de boosters quotidiens",
+      "paidLead": "Dépensez des Star Gems pour continuer à ouvrir des boosters aujourd'hui.",
+      "openOnePack": "Ouvrir 1 booster",
+      "starGemsLabel": "Star Gems :",
+      "starGemsUnit": "{n} Star Gems",
+      "dailyPack": "Booster quotidien",
+      "packRatesTitle": "Taux des boosters",
+      "packRatesPerPack": "Par booster · touchez une carte pour les détails",
+      "ratesLoading": "Chargement des taux…",
+      "duplicatesConverted": "Doublons convertis",
+      "migrationText": "Les copies supplémentaires de Membres/Lives au-delà de 4 par carte et d'Énergie au-delà de 12 par carte ont été converties en {gems}.",
+      "convertedToGems": " · {n} convertie(s) en Star Gems",
+      "gemsBonus": " (+{gems})",
+      "cardsAdded": "{n} cartes ajoutées à votre collection",
+      "cardsAddedOne": "1 carte ajoutée à votre collection",
+      "boxFromPacks": "{cards} cartes issues de {packs} boosters",
+      "keptAdded": "{kept} cartes ajoutées à la collection",
+      "duplicateConvertedOne": "1 doublon converti en Star Gems (+{gems})",
+      "duplicatesConvertedCount": "{n} doublons convertis en Star Gems (+{gems})",
+      "godPackFlavor": "Cinq cartes Énergie LLE — la meilleure pioche de collectionneur !",
+      "openSamePackAgain": "Ouvrir le même booster à nouveau",
+      "openSameBoxAgain": "Ouvrir la même box à nouveau",
+      "backScout": "← Scout"
+    },
+    "sticker": {
+      "title": "Échange d'autocollants",
+      "backHub": "← Hub",
+      "backProducts": "← Produits",
+      "hint": "Convertissez les cartes gacha de rechange dans Deck Builder en sceaux, puis échangez des sceaux contre des cartes ici.",
+      "buy": "Échange",
+      "buyOk": "Carte échangée",
+      "convertOne": "Convertir en sceau{seal}",
+      "convertConfirm": "Convertir 1 copie de rechange de{name}en 1 joint{seal}?\n\nCela ne peut pas être annulé.",
+      "convertOk": "Converti en 1 sceau{tier}",
+      "convertOkBalance": "Converti · Joints{tier}:{n}",
+      "yourSeals": "Vos sceaux",
+      "spareCopies": "{n}Pièces de rechange",
+      "reservedCopies": "Réservé par les ponts enregistrés ({n})",
+      "sealsAria": "Sceaux",
+      "infoAria": "Guide des scellés",
+      "infoTitle": "Guide des scellés",
+      "infoLead": "Convertir 1 booster de rechange ou carte de démarrage en 1 joint correspondant. Échangez les sceaux contre les cartes aux frais ci-dessous.",
+      "infoRarities": "Taux",
+      "infoCost": "Coût de change",
+      "batchConfirm": "Convertir",
+      "batchConfirmMsg": "Convertir les cartes de rechange{count}en scellés?",
+      "batchConvert": "Convertisseur de lots",
+      "batchConvertActive": "Sélectionner des cartes...",
+      "batchEmpty": "Aucune carte de rechange sélectionnée",
+      "batchNoSpare": "Pas de pièces de rechange convertibles",
+      "batchNotConvertible": "Convertissez cette carte",
+      "batchOk": "Fait",
+      "batchSelected": "Sélectionné",
+      "batchSelectedCount": "{count}sélectionné",
+      "upgradeTitle": "Mise à niveau des joints",
+      "upgradeAria": "Mises à niveau des scellés",
+      "upgradeBtn": "{cost}{from}→ 1{to}",
+      "upgradeConfirm": "Convertir Joints{cost}{from}pour 1 joint{to}?",
+      "upgradeOk": "Converti · 1 joint{to}",
+      "upgradeNeed": "Besoin de joints{cost}{from}.",
+      "infoUpgrade": "Mises à niveau des scellés",
+      "infoUpgradeLead": "Vous pouvez également échanger des joints inférieurs vers le haut: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. Les scellés PR ne sont pas mis à niveau.",
+      "infoUpgradePr": "Les scellés PR ne sont pas mis à niveau."
+    },
+    "ranked": {
+      "title": "Classé PvP",
+      "findMatch": "Trouver la correspondance",
+      "cancelSearch": "Annuler la recherche",
+      "spectate": "Regarder une partie",
+      "timerNote": "Les phases principales & LIVE utilisent une minuterie 120s.",
+      "deckLabel": "Deck classé",
+      "matchSound": "Jouer le son lorsque la correspondance est trouvée",
+      "leaderboard": "Tableau de bord",
+      "leaderboardTitle": "Classé tableau de classement",
+      "backHub": "← Hub",
+      "infoLine": "ELO{elo}·{record}",
+      "prRemaining": "Récompenses PR aujourd'hui:{remaining}/{limit}restant (JST)",
+      "record": "{wins}W-{losses}L ·{winPct}% de gain",
+      "recordFull": "{wins}W-{losses}L ·{winPct}% gain ·{lossPct}% perte",
+      "queueStats": "{waiting}en attente ·{inGame}dans les jeux classés",
+      "searching": "Recherche... ({seconds}s)",
+      "readySearch": "Prêt à rechercher"
+    },
+    "leaderboard": {
+      "title": "Classement classé",
+      "lead": "Meilleur ELO du PvP classé. Définissez une bannière de carte et un drapeau pour votre ligne de profil.",
+      "empty": "Aucune partie classée pour le moment — jouez en PvP classé pour apparaître ici.",
+      "editBanner": "Modifier le profil",
+      "eloSuffix": " ELO",
+      "eloLabel": "{elo} ELO",
+      "profileBanner": "Bannière de profil",
+      "bannerLead": "Choisissez une carte que vous possédez, puis faites glisser la bande verticalement pour choisir l'illustration de votre carte de classement.",
+      "bannerSearchPlaceholder": "Rechercher par nom de carte…",
+      "bannerNoMatch": "Aucune carte ne correspond à votre recherche.",
+      "bannerPreview": "Aperçu",
+      "saveBanner": "Enregistrer la bannière",
+      "profileFlag": "Drapeau de profil",
+      "flagLead": "Choisissez un drapeau à afficher à côté de votre nom dans le classement.",
+      "flagSearchPlaceholder": "Rechercher des drapeaux…",
+      "equipFlag": "Équiper le drapeau",
+      "flagNone": "Aucun",
+      "flagEquipped": "Actuellement équipé.",
+      "flagReady": "Équiper {name} ?",
+      "flagLoading": "Chargement des drapeaux…",
+      "selectCardFirst": "Sélectionnez d'abord une carte",
+      "yourRank": "Votre position : #{rank}",
+      "jumpToYou": "Aller à ma position",
+      "bannerSaved": "Résultat enregistré",
+      "yourRankNotPlayed": "Votre position : pas encore joué"
+    },
+    "stamps": {
+      "send": "💬 Figurines",
+      "pickerTitle": "Envoyer une figurine",
+      "profilePickTitle": "Figurines favorites",
+      "profileSection": "Figurines favorites",
+      "editProfile": "Modifier les figurines favorites",
+      "profilePickLead": "Touchez les figurines pour ajouter ou retirer (max. 20). Utilisées dans l'onglet ★ Favoris en PvP.",
+      "profileCount": "{n} / {max} sélectionnées",
+      "profileHint": "Elles apparaissent dans l'onglet ★ Favoris quand vous envoyez des figurines en PvP.",
+      "profileHintEmpty": "Optionnel — choisissez jusqu'à 20 figurines pour un accès rapide en partie.",
+      "profileFull": "Vous ne pouvez enregistrer que {max} figurines favorites.",
+      "tabJa": "日本語",
+      "tabEn": "English",
+      "tabFavorites": "★ Favoris",
+      "audio": "Audio des figurines",
+      "audioMenu": "Voix des figurines",
+      "voiceVolume": "Volume de la voix des figurines",
+      "favoritesEmpty": "Aucun favori pour le moment — définissez-les dans Options ou touchez ☆ sur une figurine.",
+      "empty": "Aucune figurine.",
+      "cooldown": "Patientez un instant…",
+      "done": "Terminé"
+    },
+    "options": {
+      "title": "Options",
+      "enhancedTextures": "Textures améliorées sur les cartes de haute rareté",
+      "soundEffects": "Effets sonores",
+      "sfxVolume": "Volume des effets",
+      "stuckTitle": "Bloqué dans une partie ?",
+      "stuckLead": "Si le mode classé vous reconnecte à une partie cassée ou terminée, quittez l'enregistrement de partie active ici. Cela compte comme un abandon si la partie est encore en cours.",
+      "resetTitle": "Réinitialiser le compte",
+      "resetLead": "Supprimez toutes les cartes de collection, prédéfinitions, stats classées et progression des boosters. Vous choisirez un nouveau deck initial. Irréversible.",
+      "resetAccount": "Réinitialiser le compte",
+      "backHub": "← Menu",
+      "back": "← Retour",
+      "discordPresence": "Discord Rich Presence (Android)",
+      "discordPresenceLink": "Lier Discord pour Presence",
+      "discordPresenceOff": "Désactivé — activez pour afficher le statut menu/partie sur Discord.",
+      "discordPresenceOn": "Activé — partage le statut Loveca tant que Discord tourne.",
+      "pushNotifications": "Notifications push (Android)",
+      "pushNotificationsOff": "Désactivé — activez pour recevoir des alertes quand des amis rejoignent la file ou vous invitent.",
+      "pushNotificationsOn": "Activé — Loveca peut vous prévenir des files et invitations d'amis.",
+      "pushNotificationsDenied": "Bloqué dans les paramètres Android — ouvrez Paramètres → Apps → Loveca → Notifications pour autoriser.",
+      "pushNotificationsTap": "Touchez l'interrupteur pour autoriser les notifications.",
+      "apkAssets": {
+        "title": "Données de jeu (Android)",
+        "lead": "Les illustrations et cosmétiques peuvent être stockés sur cet appareil. Le fichier de l'app reste petit ; un téléchargement complet utilise environ 1,3 Go. Les parties nécessitent toujours une connexion.",
+        "wifi": "Utilisez le Wi‑Fi pour le téléchargement complet.",
+        "downloading": "Téléchargement des données de jeu…",
+        "percent": "{pct}%",
+        "full": "Tout télécharger",
+        "demand": "Télécharger au besoin",
+        "modeFull": "Tout télécharger",
+        "modeDemand": "Télécharger au besoin",
+        "modeUnset": "Pas encore choisi",
+        "progress": "{done} / {total} fichiers",
+        "paused": "en pause",
+        "pause": "Mettre en pause",
+        "resume": "Reprendre le téléchargement",
+        "clear": "Supprimer les données téléchargées",
+        "clearConfirm": "Supprimer les illustrations et cosmétiques téléchargés de cet appareil ?",
+        "updating": "Mise à jour des données de jeu…"
+      },
+      "foil": "Textures améliorées",
+      "leaveActive": "Quitter la partie active",
+      "leaveActiveConfirm": "Quitter la partie active et revenir au menu ?",
+      "reset": {
+        "btn": "Réinitialiser le compte",
+        "lead": "Cela efface les données locales du compte sur cet appareil.",
+        "title": "Réinitialiser le compte"
+      },
+      "sleeveConform": "Ajuster les sleeves à la taille des cartes (coins arrondis, sans débord carré)",
+      "stuck": {
+        "lead": "Si le jeu est bloqué, quittez la partie et revenez au menu.",
+        "title": "Bloqué ?"
+      },
+      "textScale": "Taille du texte et de l'interface",
+      "textScaleExp": "Expérimental",
+      "textScaleLead": "Redimensionne les textes et boutons du menu. Les tailles plus grandes font défiler au lieu de se chevaucher. Les panneaux latéraux en partie restent à l'écran ; les plateaux mobiles gardent leur ajustement.",
+      "discordRichPresence": "Présence riche Discord",
+      "nightMode": "Mode nuit (cieux du menu plus sombres)",
+      "matchChat": "Enable in-game text chat"
+    },
+    "starter": {
+      "title": "Choisissez votre Deck de démarrage",
+      "lead": "Choisissez un pont de départ officiel comme base de collecte. Ce choix est permanent.",
+      "confirm": "Confirmer le démarrage"
+    },
+    "waiting": {
+      "roomCreated": "Chambre créée !",
+      "shareCode": "Partagez ce code avec votre adversaire:",
+      "tapCopy": "Appuyez sur pour copier",
+      "clickCopy": "Cliquez pour copier",
+      "waitingOpponent": "Attendre que l'adversaire rejoigne...",
+      "cancel": "Annuler",
+      "phaseTimerInfo": "Chronomètre de phase:{sec}s par tour principal et direct"
+    },
+    "game": {
+      "you": "Vous",
+      "opponent": "Adversaire",
+      "opp": "Adv.",
+      "gameLog": "Journal de partie",
+      "resign": "🏳 Abandonner",
+      "resignConfirm": "Abandonner ?",
+      "enableRadio": "📻 Activer la radio",
+      "endMainPhase": "Terminer la phase principale",
+      "endLivePhase": "Terminer la phase Live",
+      "setLiveCards": "Placer des cartes Live",
+      "waitingOpponent": "En attente de l'adversaire",
+      "resolveSkillFirst": "Résolvez d'abord la capacité",
+      "waitingSkill": "En attente d'une capacité",
+      "yourHand": "Votre main",
+      "mainDeck": "Deck principal",
+      "waitingRoom": "Salle d'attente",
+      "oppWaitingRoom": "Salle d'attente de l'adversaire",
+      "deckHidden": "Le deck de l'adversaire est caché.",
+      "zoneEmpty": "Vide",
+      "energyDeck": "Deck d'Énergie",
+      "liveStorage": "Zone Live",
+      "successStorage": "Zone de Réussite",
+      "stageBoard": "Scène",
+      "activatableSkills": "Capacités activables",
+      "activeEffects": "Effets actifs",
+      "hoverHandEmpty": "Survolez une carte de votre main pour la prévisualiser ici.",
+      "hoverPickerEmpty": "Survolez une carte pour la prévisualiser ici.",
+      "starting": "Démarrage…",
+      "hand": "Main",
+      "wr": "SA",
+      "spectating": "Spectateur — {p1} vs {p2} (lecture seule)",
+      "oppActivatingSkill": "L'adversaire active une capacité…",
+      "activeEnergy": "active",
+      "pickSlot": "Choisissez un emplacement",
+      "batonPassHint": "Baton Touch",
+      "overplayHint": "Superposition",
+      "slotLeft": "Côté gauche",
+      "slotCenter": "Centre",
+      "slotRight": "Côté droit",
+      "baton": "Bâton",
+      "batonToggleOn": "Touchez pour le mode superposition",
+      "batonToggleOff": "Touchez pour Baton Touch",
+      "opponentSkillWait": "{name} active une capacité…",
+      "perfYou": "Vous",
+      "perfOpp": "Adversaire",
+      "sidebarInfo": "{turn}<span class=\"turn-sep\">·</span>Phase : {phase}<span class=\"turn-sep\">·</span>Actif : {active}<span class=\"turn-sep\">·</span>Premier : {first}",
+      "deckTopLabel": "Dessus du deck",
+      "oppPiles": "Piles de l'adv.",
+      "placeLiveCard": "Placer une carte",
+      "placeLiveCards": "Placer des cartes",
+      "yourPiles": "Vos piles",
+      "cpuWaitLeave": "Quitter la partie",
+      "reconnecting": "Reconnexion…",
+      "logTab": "Log",
+      "chatTab": "Chat"
+    },
+    "slot": {
+      "left": "Gauche",
+      "center": "Centre",
+      "right": "Droite"
+    },
+    "phase": {
+      "waiting": "En attente",
+      "setup": "Préparation (Mulligan)",
+      "main": "Phase principale",
+      "main_first": "Phase principale",
+      "main_second": "Phase principale",
+      "live": "Phase Live",
+      "live_set": "Phase Live",
+      "live_set_first": "Phase Live",
+      "live_set_second": "Phase Live",
+      "live_start_effects": "Début de Live",
+      "live_success_effects": "Live réussi",
+      "performance": "Phase Performance",
+      "live_performance_first": "Phase Performance",
+      "live_performance_second": "Phase Performance",
+      "coinFlip": "Pile ou face",
+      "preparation": "Préparation",
+      "active": "Phase active",
+      "active_first": "Phase active",
+      "active_second": "Phase active",
+      "live_judge": "Vérification du résultat Live"
+    },
+    "phaseId": {
+      "waiting": "En attente",
+      "coin_flip": "Pile ou face",
+      "setup": "Préparation (Mulligan)",
+      "active_first": "Phase active",
+      "active_second": "Phase active",
+      "main_first": "Phase principale",
+      "main_second": "Phase principale",
+      "live_set": "Phase Live",
+      "live_set_first": "Phase Live",
+      "live_set_second": "Phase Live",
+      "live_start_effects": "Début de Live",
+      "live_success_effects": "Live réussi",
+      "live_performance_first": "Phase Performance",
+      "live_performance_second": "Phase Performance",
+      "live_judge": "Vérification du résultat Live"
+    },
+    "phaseBar": {
+      "spectating": "Spectateur — {p1} vs {p2} (lecture seule)",
+      "setupWaitMulligan": "En attente que l'adversaire termine le mulligan…",
+      "setupMulligan": "Préparation — examinez votre main de départ, échangez les cartes voulues, puis confirmez.",
+      "coinFlip": "Pile ou face — le gagnant choisit qui commence…",
+      "mainYour": "Votre phase principale — jouez des Membres ({energy} disponibles). Terminez la phase principale quand vous êtes prêt.",
+      "mainOpp": "Tour de {name} — phase principale…",
+      "mainOppS": "Tour de {name} — phase principale…",
+      "liveRaised": "Phase Live — {count} carte sélectionnée · touchez la main pour ajuster · confirmez via le bouton sous le journal",
+      "liveRaisedPlural": "Phase Live — {count} cartes sélectionnées · touchez la main pour ajuster · confirmez via le bouton sous le journal",
+      "liveStored": "Phase Live — {stored} en zone · placez jusqu'à {slots} de plus (Live ou Membre) ou terminez la phase Live sous le journal",
+      "livePlace": "Phase Live — placez 0–{slots} cartes (Live ou Membre) puis terminez la phase Live · bouton sous le journal",
+      "liveBothLocked": "Les deux joueurs ont confirmé — Performance en cours…",
+      "liveYouLocked": "Vous avez confirmé — en attente que l'adversaire termine la sélection Live…",
+      "liveStartEffects": "Résolvez les déclencheurs Début de Live — les effets optionnels apparaîtront à l'écran.",
+      "liveSuccessEffects": "Résolvez les déclencheurs Live réussi — les effets optionnels apparaîtront à l'écran.",
+      "performance": "Phase Performance — Yell · Cœurs · vérification Live réussi",
+      "liveJudge": "Phase de vérification du résultat Live…",
+      "setupWaitMulliganYou": "Vous avez échangé {n} carte(s). En attente que l'adversaire termine le mulligan…",
+      "setupWaitMulliganYouKept": "Vous avez gardé votre main de départ. En attente que l'adversaire termine le mulligan…",
+      "setupMulliganPlayerN": "{name} a échangé {n} carte(s)",
+      "setupMulliganPlayerKept": "{name} a gardé",
+      "liveSet": "Placer des Lives",
+      "liveSetShort": "Set",
+      "performanceShort": "Perf.",
+      "liveJudgeShort": "Vérif."
+    },
+    "phaseBanner": {
+      "coinFlipTitle": "Pile ou face",
+      "coinFlipSub": "Le gagnant choisit qui commence",
+      "setupTitle": "Préparation",
+      "setupSub": "Mulligan optionnel (un échange)",
+      "activeTitle": "Phase active",
+      "activeSub": "Active Énergie et Membres",
+      "mainYour": "Votre phase principale",
+      "mainOpp": "Phase principale de {name}",
+      "mainOppS": "Phase principale de {name}",
+      "liveTitle": "Phase Live",
+      "livePlayer": "Phase Live de {name}",
+      "livePlayerS": "Phase Live de {name}",
+      "liveSub": "Placez 0–3 cartes (Live ou Membre) puis terminez la phase Live",
+      "liveStartTitle": "Début de Live",
+      "liveStartSub": "Effets optionnels avant la Performance",
+      "liveSuccessTitle": "Live réussi",
+      "liveSuccessSub": "Effets optionnels après les cœurs",
+      "performanceTitle": "Phase Performance",
+      "performanceSub": "Révéler · Yell · Cœurs",
+      "liveJudgeTitle": "Vérification du résultat Live",
+      "liveJudgeSub": "Comparaison des scores Live…",
+      "yourMain": "Votre phase principale",
+      "theirMain": "Phase principale de {name}",
+      "theirMainS": "Phase principale de {name}",
+      "yourLive": "Votre phase Live",
+      "theirLive": "Phase Live de {name}",
+      "theirLiveS": "Phase Live de {name}"
+    },
+    "splash": {
+      "turn": "Tour {turn}",
+      "turnBegin": "Le tour {turn} commence",
+      "noLives": "Aucune Live jouée ce tour",
+      "gameStart": "Début de partie",
+      "deckRefresh": "Rafraîchissement du deck (Refresh)",
+      "deckRefreshOpp": "{name} — Rafraîchissement du deck (Refresh)",
+      "deckRefreshSub": "{n} carte(s) mélangée(s) depuis la Salle d'attente",
+      "youAttemptLive": "Vous avez tenté une Live !",
+      "theyAttemptLive": "{name} tente une Live",
+      "attemptSub": "Pioche Yell · vérification des cœurs",
+      "youWait": "Vous attendez",
+      "theyWait": "{name} attend",
+      "youWaitSub": "Les cartes Live restent en zone",
+      "theyWaitSub": "Les cartes Live restent dans sa zone",
+      "perfRoundFailed": "{ok} réussie · manche échouée (toutes les Lives doivent réussir)",
+      "perfCleared": "{ok} carte(s) Live ont terminé la manche",
+      "perfMixed": "{ok} réussie · {fail} échouée → Salle d'attente",
+      "yourLivePerformance": "Votre Performance Live",
+      "theirLive": "Live de {name}",
+      "perfSubYell": "Yell {blades} · {sub}",
+      "successLiveYou": "Live réussi !",
+      "successLiveThey": "{name} — Live réussi !",
+      "successLiveSubYou": "Une carte Live a été ajoutée à votre zone de Réussite",
+      "successLiveSubThey": "Une carte Live a été ajoutée à sa zone de Réussite",
+      "bothWait": "Les deux joueurs attendent",
+      "bothWaitSub": "Les cartes Live restent en zone",
+      "liveStartFlash": "DÉBUT DE LIVE",
+      "liveJudgeTieCappedBoth": "Égalité au score Live — aucun n'ajoute une Réussite Live (les deux sont déjà à 2)",
+      "liveJudgeTieYouCappedWin": "Égalité — vous avez atteint la limite de 2 Réussites Live",
+      "liveJudgeTieOppEarns": "Égalité — l'adversaire gagne une Réussite Live",
+      "liveJudgeTieYouEarns": "Égalité — vous gagnez une Réussite Live",
+      "liveJudgeTieOppCappedWin": "Égalité — l'adversaire a atteint la limite de 2 Réussites Live",
+      "liveJudgeTieBothSucceed": "Égalité au score Live — les deux réussissent !",
+      "liveJudgeYouWin": "Vous gagnez au score Live !",
+      "liveJudgeOppWin": "L'adversaire gagne au score Live",
+      "liveJudgeNamedWin": "{name} gagne au score Live",
+      "heartCheck": "Vérification des cœurs…"
+    },
+    "mulligan": {
+      "title": "Main de départ 🌸",
+      "hint": "Touchez les cartes pour les marquer au remplacement. Maintenez une carte pour les détails. Retouchez pour démarker.",
+      "tutorialKeepHint": "Satisfait de cette main ? Touchez Garder la main pour continuer.",
+      "tutorialReplaceHint": "Touchez la carte mise en évidence pour la marquer au remplacement, puis confirmez.",
+      "keepHand": "Garder la main",
+      "replaceCard": "Remplacer {n} carte",
+      "replaceCards": "Remplacer {n} cartes",
+      "declareSub": "{a}: {aN} · {b}: {bN}",
+      "declareTitle": "Mulligan"
+    },
+    "coin": {
+      "title": "Premier joueur",
+      "flipping": "Lancer de pièce…",
+      "goFirst": "Je commence",
+      "escortFirst": "L'escorte commence",
+      "opponentFirst": "L'adversaire commence",
+      "waitingOppFlip": "En attente que l'adversaire finisse de regarder le lancer…",
+      "waitingOpp": "En attente de l'adversaire…",
+      "wonFlip": "{name} a gagné le pile ou face !",
+      "wonFlipShort": "{name} a gagné le pile ou face",
+      "winnerChoosing": "Choix de qui commence…",
+      "chooseFirst": "Choisissez qui commence",
+      "youWon": "Vous avez gagné le pile ou face !",
+      "oppGoesFirst": "{name} commence"
+    },
+    "live": {
+      "overlayTitle": "Phase Live — Placer des cartes",
+      "overlayHint": "Phase Live : placez 0–3 cartes (Live ou Membre) dans la zone Live — les vôtres restent face visible ; celles de l'adversaire restent cachées jusqu'à la Performance. Piochez 1 pour chaque carte placée, puis terminez la phase Live. La Performance révèle la zone adverse d'un coup.",
+      "placeInStorage": "Placer en zone",
+      "selected": "Sélectionné",
+      "inStorage": "En zone",
+      "liveScore": "Score Live",
+      "combinedHearts": "Cœurs requis combinés",
+      "livesSelected": "{n} Lives",
+      "livesSelectedOne": "1 Live",
+      "plusMembers": "+{n} Membres",
+      "plusMembersOne": "+1 Membre",
+      "liveJudge": "Juge Live",
+      "liveWinLoss": "Vérification Victoire/Défaite Live",
+      "yourScore": "Votre score",
+      "oppScore": "Score adv.",
+      "combinedScore": "Score {score}",
+      "combinedScoreBonus": "Score {base} +{bonus}"
+    },
+    "prompt": {
+      "confirm": "Confirmer",
+      "cancel": "Annuler",
+      "respond": "Répondre",
+      "chooseCards": "Choisir des cartes",
+      "chooseFromHand": "Choisissez parmi la main",
+      "chooseHeart": "Choisir un cœur",
+      "discardFromHand": "Éliminer de la main",
+      "discardOne": "Choisissez une carte à envoyer à la Salle d'attente.",
+      "discardMany": "Choisissez les cartes{count}à envoyer à la salle d'attente.",
+      "selectThenConfirm": "Sélectionnez les cartes, puis appuyez sur Confirmer.",
+      "tapCardConfirm": "Appuyez sur une carte pour confirmer.",
+      "yes": "Oui",
+      "noSkip": "Non — Sauter",
+      "skip": "Sauter",
+      "tapOption": "Appuyez sur une option ci-dessous.",
+      "useLiveStart": "Utilisez cet effet Début de Live ?",
+      "useEffect": "Utiliser cet effet ?",
+      "answer": "Réponse",
+      "typeAnswer": "Saisissez votre réponse...",
+      "typeAnswerHint": "Tapez votre réponse — l'orthographe et la formulation peuvent varier.",
+      "confirmArrangement": "Confirmer l'arrangement",
+      "selectedCount": "Sélectionné:{n}/{max}",
+      "activateSub": "Choisissez d'activer cet effet.",
+      "lookAtDeck": "Regardez le deck",
+      "surveilHint": "Le point 1 est le sommet de votre deck. Faites glisser les cartes entre les points numérotés et la Salle d'attente, appuyez sur deux cartes pour échanger, ou tapez sur un point / la Salle d'attente pendant qu'une carte est sélectionnée.",
+      "surveilHintReturnAll": "Le point 1 est le sommet de votre deck. Faites glisser les cartes entre les points numérotés, ou appuyez sur deux cartes pour échanger. Toutes les cartes doivent rester sur le deck.",
+      "wrPickTitle": "Salle d'attente",
+      "wrPickMsg": "Choisissez une carte de votre salle d'attente à ajouter à votre main.",
+      "yellPickTitle": "Yell",
+      "yellPickMsg": "Choisissez 1 carte révélée par Yell.",
+      "successLivePickTitle": "Réussite",
+      "successLivePickMsg": "Choisissez 1 carte Live à placer à Réussite Live.",
+      "successLiveHandTitle": "Réussite",
+      "successLiveHandMsg": "Choisissez 1 carte dans votre secteur Réussite Live à ajouter à votre main.",
+      "deckTopTitle": "Plancher",
+      "deckTopMsg": "Choisissez 1 carte révélée pour Yell pour mettre sur votre deck.",
+      "wrEmpty": "Salle d'attente est vide",
+      "wrNoMatch": "Pas de cartes correspondantes à Salle d'attente",
+      "yellNoCards": "Pas de cartes Yell à choisir",
+      "noLiveSuccess": "Pas de cartes Live à placer à Réussite Live",
+      "searchDeckFor": "Recherche de...",
+      "deckTopPick": "Plancher",
+      "noValidTargets": "Pas de membre valide sur Scène.",
+      "selectAtMost": "Sélectionner au plus{n}",
+      "selectAtLeast": "Sélectionner au moins{n}",
+      "chooseMemberTitle": "Choisir Membre",
+      "posChangeOppFront": "Choisissez 1 adversaire Scène Membre à Position Changer dans la zone devant ce Membre.",
+      "activateWaitMember": "Choisissez 1 Wait Membre sur votre Scène pour activer.",
+      "chooseMembersTitle": "Choisissez Membres",
+      "chooseCardTitle": "Choisir une carte",
+      "chooseArea": "Choisissez une zone :",
+      "chooseEmptyStage": "Choisissez une zone Scène vide :",
+      "payEnergyTitle": "Rémunération Énergie",
+      "howMuchEnergy": "Combien Énergie à payer ?",
+      "howManyEnergyActivate": "Combien d'Énergie à activer ?",
+      "skipAllWaitingRoom": "Passer — tout mettre dans la salle d'attente",
+      "noMatchAllWaitingRoom": "Pas de cartes correspondantes — mettre tout en salle d'attente",
+      "addToHand": "Ajouter à la main",
+      "playToSlot": "Jouer à{slot}",
+      "combinedCostMax": "Le coût combiné doit être ≤{n}",
+      "noCardsSuccessLive": "Pas de cartes dans la zone Réussite Live",
+      "noCardsInLive": "Pas de cartes dans votre Live",
+      "surveilReturnAll": "Remettre chaque carte sur le deck",
+      "surveilAssignAll": "Assigner chaque carte à un poste de deck ou à une salle d'attente",
+      "noLiveInHand": "Pas de carte Live en main",
+      "noMemberInHand": "Pas de carte en main",
+      "enterNumber0to99": "Saisissez un nombre de 0 à 99",
+      "noYellMill": "Pas de cartes Yell disponibles pour le moulin.",
+      "noHandLive": "Pas de cartes Live éligibles en main.",
+      "cardNotEligible": "Cette carte n'est pas admissible.",
+      "onePerGroup": "Choisissez une par groupe."
+    },
+    "skill": {
+      "alreadyUsed": "Déjà utilisé ce tour",
+      "needEnergy": "Besoin{n}actif Énergie",
+      "tutorialDemo": "Démo Tutorielle — utilisez Suivant pour continuer"
+    },
+    "skillKw": {
+      "onEnter": {
+        "title": "À l'entrée",
+        "body": "Se déclenche une fois lorsque ce Membre est joué de votre main sur votre Scène."
+      },
+      "onLeave": {
+        "title": "À la sortie",
+        "body": "Se déclenche lorsque ce Membre quitte votre Scène (envoyé en Salle d'attente, Baton Touch, etc.)."
+      },
+      "liveStart": {
+        "title": "Début de Live",
+        "body": "Se résout pendant l'étape Début de Live après avoir tenté une Live. Beaucoup d'effets sont optionnels — cherchez « vous pouvez »."
+      },
+      "liveSuccess": {
+        "title": "Live réussi",
+        "body": "Se résout lorsque votre Performance Live réussit — les cœurs requis ont été atteints sur les cartes Live tentées."
+      },
+      "activated": {
+        "title": "Activé",
+        "body": "Vous choisissez de l'utiliser pendant votre phase principale tant que le Membre est actif sur la Scène. Payez d'abord tous les coûts indiqués."
+      },
+      "always": {
+        "title": "Permanent",
+        "body": "Effet passif qui reste actif tant que ce Membre est en jeu et que ses conditions sont remplies. Rien à activer."
+      },
+      "oncePerTurn": {
+        "title": "Une fois par tour",
+        "body": "Vous ne pouvez utiliser cet effet qu'une fois par tour."
+      },
+      "automatic": {
+        "title": "Automatique",
+        "body": "Se déclenche seul lorsque la condition indiquée se produit — aucune activation n'est nécessaire."
+      },
+      "center": {
+        "title": "Centre",
+        "body": "Ne s'applique que si ce Membre est dans l'emplacement central de la Scène lorsque l'effet est résolu."
+      },
+      "yell": {
+        "title": "Yell",
+        "body": "Pendant la Performance Live, piochez autant de cartes de votre deck que votre Blade total (des Membres actifs sur la Scène). Ces cartes sont révélées — les cœurs Blade qu'elles montrent comptent pour atteindre le requis de cœurs de votre Live. Les cartes Yell sont ensuite envoyées en Salle d'attente."
+      },
+      "wait": {
+        "title": "Wait",
+        "body": "Un Membre placé en Wait ne peut pas contribuer son Blade ce tour — son Blade n'augmente pas les cartes révélées par le Yell pendant la Performance Live. Ce n'est pas la Salle d'attente."
+      },
+      "twicePerTurn": {
+        "title": "Deux fois par tour",
+        "body": "Vous pouvez utiliser cet effet jusqu'à deux fois par tour."
+      }
+    },
+    "heart": {
+      "pickColor": "Choisissez une couleur de cœur pour cet effet.",
+      "yellow": "Jaune",
+      "pink": "Rose",
+      "purple": "Violet",
+      "red": "Rouge",
+      "green": "Vert",
+      "blue": "Bleu",
+      "gray": "Gris",
+      "any": "N'importe",
+      "waived": "annulé",
+      "twicePlusGray": "2× {color} + Gris",
+      "waivedSuffix": " — annulé"
+    },
+    "card": {
+      "cost": "Coût",
+      "blade": "Blade",
+      "score": "Score",
+      "requiredHearts": "Cœurs requis",
+      "hearts": "Cœurs",
+      "bladeHearts": "Cœurs Blade",
+      "yellIcons": "Icônes Yell",
+      "playToSlot": "Jouer dans l'emplacement :",
+      "needEnergy": "Requis",
+      "haveEnergy": "possédée",
+      "allBladeHeartsTip": "Lors de la vérification des cœurs requis, TOUS les blades du Yell comptent comme n'importe quelle couleur de cœur."
+    },
+    "pack": {
+      "opened": "Booster ouvert",
+      "boxOpened": "Box ouverte"
+    },
+    "log": {
+      "gameStartedCoinFlip": "Partie lancée ! Pile ou face — le gagnant choisit qui commence.",
+      "preparationDrawEnergy": "Préparation : chaque joueur a pioché 6 cartes et placé 3 Énergies en zone.",
+      "preparationMulligan": "Préparation — Mulligan : vous pouvez remplacer n'importe quel nombre de cartes de la main de départ une fois.",
+      "livePhaseIntro": "Phase Live : placez 0–3 cartes (Live ou Membre) face cachée dans la zone Live (piochez 1 par carte placée), puis terminez la phase Live.",
+      "bothRevealLive": "Les deux joueurs révèlent la zone Live simultanément.",
+      "noLivesThisTurn": "Aucune Live jouée ce tour.",
+      "remainingLiveToWr": "Zone Live restante envoyée en Salle d'attente.",
+      "neitherWrFromHand": "Aucun joueur n'avait de cartes en main à envoyer en Salle d'attente.",
+      "neitherCouldDraw": "Aucun joueur n'a pu piocher (deck vide).",
+      "neitherLiveWinner": "Aucun joueur ne réussit — pas de vainqueur Live ce tour.",
+      "coinFlipAuto": "Pile ou face — poursuivi automatiquement (le joueur n'a pas répondu à temps).",
+      "cpuDeck": "Deck CPU : {label}",
+      "dividerLive": "=== Phase Live ===",
+      "dividerPerformance": "=== Phase Performance ===",
+      "dividerLiveShow": "=== Live Show ===",
+      "dividerLiveJudge": "=== Vérification Victoire/Défaite Live ===",
+      "dividerTurnBegin": "=== Le tour {turn} commence ===",
+      "dividerTurn": "--- Tour {turn} ---",
+      "hasNoValidLive": " n'a pas de cartes Live valides !",
+      "disconnectedWin": "{loser} s'est déconnecté. {winner} gagne !",
+      "chooseSuccessLive": " — choisissez une carte Live pour la Réussite.",
+      "scoreTiedBlocked": " — score égal ; Réussite Live bloquée ; cartes Live envoyées en Salle d'attente.",
+      "scoreTiedCap": " — score égal, mais déjà 2 Réussites Live ; cartes Live envoyées en Salle d'attente."
+    },
+    "win": {
+      "youWin": "Vous gagnez !",
+      "youLose": "Vous perdez !",
+      "playAgain": "Jouer encore",
+      "returnMenu": "Retour au menu",
+      "viewLeaderboard": "Afficher le tableau de bord",
+      "resigned": "Vous avez démissionné",
+      "conceded": "Vous avez concédé le match.",
+      "oppResigned": "{name}a démissionné.",
+      "threeLives": "{name}a obtenu 3 LLIVETERMS!",
+      "spectatorWinner": "{name}Gagne !",
+      "spectatorStatsLine": "Turn: {turn} | {p1}: {p1Lives}/3 | {p2}: {p2Lives}/3",
+      "findAnother": "Trouver une autre correspondance",
+      "rematchOffer": "Remplacement",
+      "rematchAccept": "Accepter le remplacement",
+      "rematchWaiting": "Attendre...",
+      "rematchWaitingHint": "En attendant que votre adversaire accepte la revanche.",
+      "rematchOppWants": "{name}veut une revanche !",
+      "disconnectedYou": "Vous étiez déconnecté du match.",
+      "disconnectedOpp": "{name}déconnecté.",
+      "statsLine": "Tourner:{turn}= Vos succès:{yours}/3=Opp succès:{opp}/3",
+      "debugSaveReplay": "Enregistrer le replay",
+      "saveReplay": "Enregistrer le replay",
+      "saveReplayToLibrary": "Enregistrer le replay dans la bibliothèque",
+      "downloadReplayJson": "Télécharger Replay JSON",
+      "debugSaveLog": "Enregistrer le journal de débogage",
+      "debugCopyLog": "Copier le journal",
+      "debugSaveBundle": "Groupe de débogage à l'exportation",
+      "rankedPrNew": "Récompense de victoire classée:{name}",
+      "rankedPrDupe": "{name}converti en{gems}Star Gems (sur la limite de copie)",
+      "rankedPrDailyCap": "Récompenses quotidiennes de PR utilisées ({limit}/ jour JST)",
+      "rankedPrPopupTitle": "Gagner une récompense !",
+      "rankedPrPackWon": "Gagnant classé: PR Pack ×{count}— ouvrir le menu",
+      "rankedPrPackPopupTitle": "Classé PR Pack ×{count}!",
+      "rankedPrPackSummary": "Carte(s){count}",
+      "rankedPrPackDupes": "{count}duplicata(s) →{gems}Star Gems"
+    },
+    "replay": {
+      "menuTitle": "Rejouer le visionneur",
+      "menuSubAuth": "Charger un replay de match sauvegardé et le regarder en temps réel",
+      "menuSubHub": "Regarder les replays enregistrés de votre bibliothèque",
+      "title": "Rejouer le visionneur",
+      "back": "← Retour",
+      "lead": "Finies matches autosave to Recent (dernier 10). Les replays sauvegardés manuellement restent à jamais sous Saved — vous pouvez également conserver un replay récent depuis cet écran.",
+      "refreshLibrary": "Rafraîchir la bibliothèque",
+      "recentSection": "Résultats récents",
+      "recentHint": "Autosauvé de vos 10 derniers jeux. L'ancien est remplacé automatiquement.",
+      "savedSection": "Sauvé pour toujours",
+      "savedHint": "Conservé lorsque vous enregistrez depuis l'écran de résultats, ou conservez un replay récent ici.",
+      "preserve": "Garde pour toujours",
+      "preservedToast": "Rejouer déplacé à Sauvé pour toujours",
+      "autosavedRecent": "Rejouer automatiquement enregistré sur Récent",
+      "emptyRecent": "Pas encore d'autosaves. Terminer un match signé pour remplir cette liste.",
+      "emptySaved": "Pas encore d'économies permanentes. Utilisez Save Replay sur l'écran de résultats, ou maintenez toujours sur un replay récent.",
+      "importLead": "Avez-vous un fichier de replay exporté? Importez JSON ici comme option secondaire.",
+      "fileLabel": "Rejouer le fichier",
+      "noFileSelected": "Aucun fichier sélectionné.",
+      "startImported": "Démarrer le replay importé",
+      "playPause": "Jouer / Pause",
+      "positionAria": "Rejouer la position",
+      "handoffNote": "Rejouez complètement — vous avez le contrôle. CPU joue l'adversaire.",
+      "exitReplay": "Sortie Replay",
+      "hideBar": "Masquer",
+      "pinBar": "Épingle",
+      "hideBarTitle": "Cacher les commandes de replay. Plongez ou tapez sur le bas de l'écran pour les montrer à nouveau.",
+      "phaseBarHint": "Replay{step}/{total}— utilisez la barre de replay ci-dessous pour passer par des actions enregistrées.",
+      "signInLibrary": "Connectez-vous pour enregistrer et afficher les replays dans votre bibliothèque.",
+      "emptyLibrary": "Pas encore de replays enregistrés. Terminer un match — il va enregistrer automatiquement à Recent.",
+      "watch": "Regardez",
+      "downloadJson": "Télécharger JSON",
+      "loadingLibrary": "Chargement des replays sauvegardés...",
+      "loadLibraryFailed": "Impossible de charger les replays sauvegardés.",
+      "win": "Gagner",
+      "loss": "Perte",
+      "replayLabel": "Rejouer",
+      "resultAs": "{result}comme{name}",
+      "summarySaved": "Enregistrer{date}",
+      "summaryRoom": "Salle{room}",
+      "summaryVs": "contre{name}",
+      "summaryTurn": "Tourner{turn}",
+      "summaryActions": "Action{count}",
+      "summaryActionsPlural": "Actions{count}",
+      "metaSaver": "Économiser:{name}",
+      "metaPerspective": "Perspectives:{id}",
+      "metaSavedAt": "Enregistrer:{at}",
+      "metaSnapshot": "Snapshot: tourner{turn}, phase{phase}",
+      "metaDuration": "Durée:{duration}",
+      "metaActions": "Actions:{count}",
+      "unknownDate": "Date inconnue",
+      "loadedToast": "Rejouer chargé —{count}action(s)",
+      "downloadedJson": "Rejouer JSON téléchargé",
+      "downloadFailed": "Impossible de télécharger le replay",
+      "payloadMissing": "Rejouer la charge utile manquante",
+      "startSavedFailed": "Impossible de démarrer le replay enregistré",
+      "unsupportedSchema": "Schéma de replay non pris en charge",
+      "invalidFile": "Fichier de lecture non valide",
+      "chooseFileFirst": "Choisissez d'abord un fichier replay.",
+      "saveAfterFinish": "Enregistrer le replay est disponible après la fin du match.",
+      "noCredentials": "Aucune identification de correspondance trouvée pour l'exportation de replay.",
+      "savedToLibrary": "Rejouer sauvé pour toujours dans votre bibliothèque",
+      "savedToLibraryId": "Rejouer sauvé pour toujours (#{id})",
+      "downloadedAsJson": "Rejouer téléchargé sous JSON",
+      "couldNotSave": "Impossible d'enregistrer le replay",
+      "first": "Première action",
+      "last": "Dernière action",
+      "next": "Action suivante",
+      "prev": "Action précédente",
+      "startStep": "Démarrer",
+      "playCard": "Jouer à{name}",
+      "activateCard": "Activer{name}"
+    },
+    "apiError": {
+      "titleClient": "Une erreur s'est produite",
+      "titleServer": "Erreur serveur",
+      "hintClient": "Actualisez la page si la partie semble bloquée.",
+      "hintServer": "Actualisez la page. Si le problème continue, attendez un moment et réessayez.",
+      "connectionFailed": "Impossible d'atteindre le serveur. Essayez d'actualiser la page."
+    },
+    "tutorialMeta": {
+      "title": "Tutoriel débutant",
+      "labelOpponent": "Joueur2"
+    },
+    "tutorial": {
+      "speaker": "C'est Shibuya Kanon",
+      "exitTitle": "Sortie vers le titre",
+      "back": "← Retour",
+      "next": "Suivant →",
+      "finish": "Finition",
+      "intro_welcome": "Bonjour ! Je suis **Shibuya Kanon**. Bienvenue au **L'Amour LLIVETERM! Official Card Game** tutoriel!",
+      "intro_what": "C'est un jeu de cartes ** à deux joueurs** sur **idoles scolaires**! Vous recruterez **Membres** sur votre Scène, gérerez **Énergie**, et jouerez **Lives** pour dépasser votre adversaire.",
+      "intro_goal": "** État du vent:** Réussitement effectuer **3 Lives** devant votre adversaire. Quand votre **Live** est un succès, ce Live passe au **Réussite Live card stockage** — d'abord à trois gagne le match!",
+      "intro_decks": "Ce jeu utilise trois types de cartes. **Les cartes du Membre**, **Live** et **Énergie**. Chaque joueur dispose d'un **Deck principal** de **60** cartes (**48 Membre** cartes et **12 Live** cartes) et d'un **Deck Énergie** de **12 Énergie** cartes.",
+      "intro_card_member": "**Les cartes de mémoire** sont les idoles qui se produiront sur Scène. Payer **Énergie** égal à leur coût pour les jouer de votre main. Chaque Membre a une certaine quantité de couleur **Cœurs** (droite) qui sont utilisés lors de l'exécution de vies. Il y a aussi **Blades** (les icônes de la plume ronde) et **Cœurs de la lame** (Les cœurs latéraux), mais nous allons nous concentrer sur le cœur droit pour le moment. Shiki ici a **1 cœur violet**.",
+      "intro_card_live": "**Les cartes Live** sont les chansons que vous jouez. Vous pouvez jouer jusqu'à 3 à la fois. Lives sont nettoyés à l'aide des cartes **Membre** que vous avez placées sur votre scène - nous en reparlerons plus tard.",
+      "intro_card_energy": "**Les cartes Énergie** de votre jeu **Énergie** sont placées ici. Vous commencez par **3 Énergie** et gagnez **+1** chaque tour (jusqu'à ce que tout **12** de votre énergie soit en jeu). Énergie est dépensée pour placer **Membre cartes** sur votre **stage**.",
+      "intro_demo": "Je vais vous guider dans une démo — **Liella!** vs **μ's** sur le playmat. Vous êtes en bas, votre adversaire est en haut.",
+      "intro_deck_piles": "La pile supérieure est votre **Main Deck**, où vous tirez des cartes. Ci-dessous se trouve le deck **Énergie**.",
+      "intro_stage": "Le **Scène** (Left / Centre / Droite) est l'endroit où siègent les Membres. Leurs couleurs **Cœur** et **Blade** évaluent le carburant Lives pendant Performance.",
+      "intro_live": "**LLIVETERM Storage** peut contenir jusqu'à 3 cartes face à face pendant la phase Live. Vous pourrez voir vos propres cartes dans cette version web, mais les cartes de votre adversaire seront cachées.",
+      "intro_success": "Compléter une **live** déplace cette carte en direct vers le stockage **succès** pile! Gardez une trace de la façon dont vous êtes près de gagner ici!",
+      "intro_wr": "Le **Salle d'attente** est la pile de déchets.",
+      "intro_hands": "Normalement, la main de votre adversaire sera cachée, mais elle est visible pour ce tutoriel. Votre main se compose de **Membre** et **Live** cartes de votre jeu.",
+      "setup_coin": "Avant le début de la pièce, un **coin flip** choisit un gagnant — ils **choisissent** qui va en premier. Regardez ça au début de chaque match !",
+      "setup_coin_p1": "...**Liella** commence !",
+      "setup_coin_p2": "Maintenant nous pouvons voir notre ** main de départ!**",
+      "setup_mulligan": "Vous commencez par **6** cartes. Si vous n'êtes pas satisfait des cartes que vous avez tirées, cet écran vous donne l'occasion d'échanger autant de cartes que vous le souhaitez et de dessiner des remplacements (Nous appelons cela un **mulligan**).",
+      "setup_mull_p1": "Flux de jeu : **Phase principale** -> **Phase LLIVETERM** -> ** Phase de rendement** -> Je répète.",
+      "setup_mull_p2": "**Phase principale!**. Une nouvelle carte a été tirée de votre deck.",
+      "t1_structure": "Chaque **Phase principale**, le premier joueur joue, puis le deuxième – c'est là que vous jouez les Membres... et que vous utilisez des compétences. Vous appuyez sur **End Phase principale** ici quand vous avez fini d'exécuter des actions.",
+      "t1_energy_refresh": "Au début d'un nouveau tour, vous gagnerez en énergie **+1**. Vous continuerez à gagner de l'énergie **1** avec chaque nouveau tour jusqu'à ce que toutes les cartes énergétiques **12** soient en jeu.",
+      "t1_main_p1": "Liella's **Phase principale** — Jouons d'abord une carte Membre!",
+      "t1_play_shiki_plain": "Nous dépensons **2 Énergie** pour jouer cette carte et l'envoyer à un endroit libre sur notre Scène ! (Spent Énergie est inversée latéralement)",
+      "t1_no_skill": "Nous avons maintenant un seul membre au centre de notre scène. Si vous n'avez pas l'énergie nécessaire pour placer plus de cartes, vous pouvez terminer votre phase principale.",
+      "t1_end_main_p1": "Liella termine sa phase principale — c'est maintenant au tour de l'adversaire de mettre leurs cartes!",
+      "t1_main_p2": "μ's plays **Rin Hoshizora** à leur Scène - avec **1 cœur rose**.",
+      "t1_hearts": "Vous pouvez voir le montant total de **Cœurs** et **Blades** pour les cartes actives sur votre et votre adversaire **Scène** ici!",
+      "t1_end_main_p2": "Après que les deux joueurs aient terminé leur phase principale, il est temps pour le **Phase Live**!",
+      "t1_live_intro": "Placez 0 à 3 cartes (Live ou Membre) dans le stockage de la carte Live**. Tirez 1 nouvelle carte de votre jeu pour chaque carte que vous avez placée. Les cartes de mémoire placées dans le stockage Live seront jetées dans la prochaine phase — vous pouvez remplacer les cartes indésirables de cette façon!",
+      "t1_live_p1": "Lorsque vous définissez une carte **Live** dans la phase Live, elle doit être tentée plus tard au même tour, alors choisissez sagement! Liella sets **WE WILL!!** — il a besoin de 1 ** rouge** cœur, 1 ** pourpre** cœur, et 1 cœur supplémentaire de ** toute couleur** (indiqué par un cœur gris) pour être éclairci avec succès.",
+      "t1_live_p1_lock": "Liella termine leur **Phase Live**, verrouillant leur sélection. Contrairement à la Phase principale, la Phase Live de votre adversaire se produit en même temps. Si la phase Live de votre adversaire n'est pas encore terminée, vous les attendrez avant de passer à autre chose.",
+      "t1_live_p2": "μ's définit une face vers le bas **Live** en stockage - Vous verrez ce qu'il est dans la phase **Performance**.",
+      "t1_live_p2_lock": "Les écluses de μ sont là.",
+      "t1_end": "1 tour terminé — vous avez joué un Membre, défini un Live, et appris **Cœur matching** pendant Performance.",
+      "t2_start": "**Turn 2** — Une carte est tirée à votre main, et vous gagnez +1 énergie.",
+      "t2_skill_intro": "Les cartes que nous avons joué jusqu'à présent ne donnent que **cœurs** et **blades**, mais certaines cartes ont aussi **skills** qui affectent le jeu de différentes manières. Jetez un coup d'oeil à cette carte, il dispose de texte de compétence.",
+      "t2_skill_preview": "C'est une compétence **[À l'entrée]**, c'est-à-dire quand cette carte entre sur scène de votre main, quelque chose arrive.",
+      "t2_play_shiki_skill": "Liella joue Shiki à la bonne fente. Regardez — le jeu vous demandera si vous voulez son effet **À l'entrée**.",
+      "t2_on_enter_offer": "Si une compétence dit « vous pouvez » qui signifie l'activer est facultatif, et vous pouvez choisir de sauter l'effet. Liella accepte de **activer** la compétence. Après avoir payé **1 Énergie**, Liella peut choisir une nouvelle carte en haut de leur deck pour l'ajouter à leur main !",
+      "t2_on_enter_confirm": "Maintenant ils choisissent la carte à conserver. Liella choisira **1 carte** à conserver, et renvoyer les autres à la **Salle d'attente**.",
+      "t2_on_enter_result": "La compétence de Shiki se résolve — une carte rejoint la main de Liella, deux vont à la salle d'attente**. C'est une compétence en action.",
+      "t2_end_p1": "Liella termine Main.",
+      "t2_main_p2": "μ joue un Membre abordable pour ajouter Cœurs.",
+      "t2_end_p2": "μ's fin Main.",
+      "t2_live_skill_intro": "Les cartes Live peuvent aussi avoir des compétences ! Certains ont **[Début de Live]** — qui déclenche quand la performance de Live commence.",
+      "t2_live_p1": "Liella met une carte Live.",
+      "t2_live_p1_lock": "Verrouillé.",
+      "t2_live_p2": "Les jeux de μ **START:DASH!!** face vers le bas.",
+      "t2_live_p2_lock": "Les écluses de μ sont là.",
+      "t3_start": "**Turn 3** — μ's va d'abord ce tour parce qu'ils ont éliminé la seule Réussite Live dernière Performance.",
+      "t3_main_p2": "μ joue un Membre abordable pour ajouter Cœurs.",
+      "t3_p2_end": "μ's fin Main.",
+      "t3_turn": "**Turn 3** — votre phase principale. Vous avez dessiné une carte et gagné **+1 Énergie** (**6** en stockage).",
+      "t3_baton_intro": "Je vais maintenant expliquer un autre mécanicien appelé **Baton Touch**. En jouant une carte sur une autre carte déjà sur votre Scène, vous pouvez **wap** l'ancienne carte avec la nouvelle. Lorsque Baton Touching, vous êtes traité comme ayant payé le coût du remplacement en les transférant à la **Salle d'attente** — vous ne paierez que la **différence** dans Énergie.",
+      "t3_baton_example": "**Coûts de Mei Yoneme** **7** — normalement **7 Énergie** de main, mais Baton Touch over **Shiki** (coût **4**) sur **Coûts de Right** seulement **3** (7−4). **Shiki** reste sur **Centre** (**2 Blade**), **Mei** sur **Right** ajoute **1 rouge** et **2 pourpre** — vous allez mettre **Mirai wa Kaze no You ni** de **hand** dans **Phase Live**, et Scène est un Cœur à court de le nettoyer jusqu'à **Yell**.",
+      "t3_baton_play": "Liella **Baton Touche** Mei sur **Right**!",
+      "skill_glossary_intro": "Vous avez maintenant vu plusieurs timings de compétences en direct. Voici des mots-clés communs** que vous verrez sur les cartes:",
+      "skill_on_enter": "**[À l'entrée]** — tire une fois lorsque le Membre est joué de main sur votre Scène (comme vient de le faire Shiki). Beaucoup disent *vous pouvez * — ils sont facultatifs.",
+      "skill_live_start": "**[Début de Live]** — feu quand une performance Live avec cette carte commence (comme START:DASH). Aussi souvent facultatif.",
+      "skill_activated": "**[Activé]** — pendant votre phase principale, utilisez les boutons sous **Compétences Activables**. Certains Membres comme **Kinako** peuvent laisser Scène ajouter un **Live** de votre **Salle d'attente** à votre main.",
+      "skill_wr_note": "Quelques **[Activé]** compétences ne fonctionnent que pendant que le Membre est ** dans la Salle d'attente** — la liste montre **WR ·** avant leur nom. Les compétences de Scène montrent plutôt la fente.",
+      "skill_always": "**[Permanent]** / **[Automatique]** — reste actif pendant que les conditions sont remplies; aucun bouton pour appuyer. ** Automatique** déclenche par lui-même quand quelque chose arrive.",
+      "skill_once": "**[Une fois par tour]** — même si vous pouviez payer à nouveau le coût, vous n'obtenez qu'une seule utilisation à chaque tour.",
+      "skill_center": "**[Centre]** — ne fonctionne que si ce Membre est dans le **centre** Scène fente.",
+      "skill_on_leave": "**[À la sortie]** — feu lorsque le Membre quitte Scène (Baton Touch, effets de retrait, etc.).",
+      "t3_stage_hearts": "Avec **Left** ouvert, set **Mirai wa Kaze no You ni** de **hand** dans le **Phase Live**. **Shiki** sur **Centre** et **Mei** sur **Right** fournissent quelques Cœurs — **Mirai wa Kaze no You ni** a encore besoin d'autres Cœurs, qui devraient être fournis par **Yell**. **Mirai wa Kaze no You ni** permet à **Yell** cœurs de compter comme **any** couleur, ce qui améliore nos chances.",
+      "t3_end_p1": "Liella termine Main.",
+      "t3_live1": "Liella sets **Mirai wa Kaze no You ni** de **hand**.",
+      "t3_live1_lock": "Liella s'enferme.",
+      "t3_live2": "Les jeux de μ **START:DASH!!** face vers le bas.",
+      "t3_live2_lock": "Les écluses de μ dans — Performance finale!",
+      "outro": "Boucle de base : **Main → Live Set → Performance → Juge**. Les compétences ajoutent des épices sur le dessus. Essayez **Practice vs CPU** suivant!",
+      "outro_link": "Règles complètes: llofficial-cardgame.com/rule/ — Bonne chance!"
+    },
+    "mobile": {
+      "rotateTitle": "Ce jeu se joue en paysage",
+      "rotateSub": "Faites pivoter votre appareil pour continuer.",
+      "deckInspectHint": "Touchez une carte pour prévisualiser",
+      "offlineNeedNetwork": "Pas de réseau — reconnectez-vous pour jouer.",
+      "openLog": "Journal",
+      "portraitHint": "Mode portrait pour téléphones",
+      "refresh": "Actualiser",
+      "stamps": "Figurines"
+    },
+    "common": {
+      "loading": "Chargement…",
+      "back": "← Retour",
+      "hubBack": "← Menu",
+      "confirm": "Confirmer",
+      "cancel": "Annuler",
+      "copy": "Copier",
+      "load": "Charger",
+      "preview": "Aperçu",
+      "menu": "Menu principal",
+      "seconds": "{n}s",
+      "ok": "OK"
+    },
+    "toast": {
+      "reconnected": "Reconnecté à votre jeu",
+      "leftActiveMatch": "Match actif gauche",
+      "noActiveMatch": "Aucune correspondance active trouvée",
+      "noCardId": "Aucun numéro de carte à copier",
+      "cardIdCopied": "Numéro de carte copié",
+      "couldNotCopyCardId": "Impossible de copier l'identifiant de la carte",
+      "signInDeckBuilder": "Connectez-vous pour utiliser le Deck Builder.",
+      "cardsLoadFailed": "Impossible de charger le catalogue de cartes. Vérifiez votre connexion et essayez à nouveau.",
+      "signInStickerShop": "Connectez-vous pour utiliser Sticker Exchange.",
+      "stickerLoadFailed": "Impossible de charger l'échange d'autocollants",
+      "stickerCardsLoadFailed": "Impossible de charger les cartes",
+      "stickerExchangeFailed": "L'échange a échoué",
+      "stickerConvertFailed": "La conversion a échoué",
+      "signOutDeckExperiment": "Signez pour utiliser Deck Experiment.",
+      "rankedMatchFound": "J'ai trouvé le match !",
+      "casualMatchFound": "Un match occasionnel trouvé !",
+      "passwordCopied": "Mot de passe copié",
+      "copyFailed": "La copie a échoué",
+      "copied": "Copié !",
+      "liveOnly": "Seules les cartes Live ou Membre peuvent aller au stockage Live",
+      "onlyLiveOrMember": "Seules les cartes Live ou Membre peuvent aller au stockage Live",
+      "maxLiveCards": "Carte Max{slots}pour le stockage Live",
+      "maxLiveCardsPlural": "Cartes Max{slots}pour le stockage Live",
+      "maxLiveStorage": "Carte Max{slots}pour le stockage Live",
+      "maxLiveStoragePlural": "Cartes Max{slots}pour le stockage Live",
+      "liveStorageFull": "Le stockage est complet",
+      "logCopied": "Loger copié",
+      "couldNotCopyLog": "Impossible de copier le journal",
+      "alreadyInRanked": "Déjà dans un match classé.",
+      "coinsEarned": "+ pièces{n}",
+      "leftDeadMatch": "Laisser une correspondance terminée/déconnectée.",
+      "playmatBought": "Jeu déverrouillé !",
+      "resolveSkillFirst": "Résoudre d'abord l'appel de compétences.",
+      "signInShop": "Connectez-vous pour utiliser la boutique.",
+      "signInSleeveShop": "Connectez-vous pour utiliser le magasin à manches.",
+      "sleeveBought": "Manche déverrouillée !",
+      "sleeveClaimedFree": "C'est ce qu'on a dit !",
+      "sleeveShopLoadFailed": "Je ne pouvais pas charger la boutique."
+    },
+    "tutorialUi": {
+      "exitTitle": "Sortie vers le titre",
+      "back": "← Retour",
+      "next": "Suivant →",
+      "finish": "Finition"
+    },
+    "spectate": {
+      "listTitle": "Regarder une partie",
+      "listTitleRanked": "Spectate classé match",
+      "listTitleCasual": "Spectate match non classé",
+      "lead": "Regardez un match en cours — vue seulement, aucune interaction.",
+      "barReadOnly": "Spectation — lire seulement",
+      "barNames": "Spectating{p1}vs{p2}",
+      "leave": "Congé",
+      "reconnected": "Reconnecté au spectateur.",
+      "watch": "Regardez",
+      "loading": "Chargement...",
+      "noMatches": "Pas de matches disponibles pour les spectateurs.",
+      "matchEnded": "Le match s'est terminé — retour dans le hall.",
+      "sessionEnded": "La séance des spectateurs s'est terminée.",
+      "count": "Spectateurs:{n}",
+      "switchPerspective": "Changer de perspective",
+      "waitingJudgePick": "LONGUEUR Win/Loss — attendant que{name}choisisse un Réussite Live...",
+      "waitingJudgeResolve": "LONGUEUR Gagner / perdre — attendre{name}...",
+      "listTitleTournament": "Tournoi spectaculaire",
+      "hiddenHands": "Mains cachées",
+      "hiddenHandsOn": "Mains cachées",
+      "hiddenHandsOnTitle": "Brouillard des spectateurs: les mains sont cachées",
+      "hiddenHandsTitle": "Cacher les deux mains des joueurs pendant que l'on regarde",
+      "delayHold": "Stream retardé — attendant jusqu'à{n}s derrière live",
+      "delayLive": "Stream retardé{n}s",
+      "hiddenHandsLockedTitle": "Névoa de mão definida pelo organizador do torneio",
+      "hiddenHandsLocked": "Névoa de mão (bloqueada)",
+      "pip": "Picture-in-Picture",
+      "pipExit": "Exit PiP",
+      "pipTitle": "Picture-in-Picture — float the match while you multitask",
+      "pipExitTitle": "Exit Picture-in-Picture",
+      "pipPlaceholder": "Spectating in Picture-in-Picture. Fermer the floating window or tap below to return.",
+      "pipReturn": "Return to game",
+      "pipDrag": "Drag",
+      "pipExpand": "Full",
+      "pipExpandTitle": "Return to full game",
+      "pipInappHint": "Floating match — drag, resize, or tap Full to return",
+      "pipSpectateOnly": "Picture-in-Picture is available while spectating.",
+      "bo3NextWait": "Game over — waiting for the next game…",
+      "bo3NextJoin": "Spectating next game…"
+    },
+    "ui": {
+      "fullscreen": "Plein écran",
+      "rankedSearch": "Recherche classée",
+      "casualSearch": "Recherche occasionnelle",
+      "skipToResults": "Passer aux résultats",
+      "clickToOpen": "Cliquez pour ouvrir"
+    },
+    "cardType": {
+      "member": "Membre",
+      "live": "Live",
+      "energy": "Énergie"
+    },
+    "tournament": {
+      "backHub": "← Hub",
+      "title": "Mode tournoi",
+      "lead": "Planifiez les événements, verrouillez les ponts, enregistrez-vous et lancez un support uni-échelle.",
+      "timezoneLabel": "Fuseau horaire",
+      "timezoneAria": "Afficher le fuseau horaire",
+      "tzHint": "Heures indiquées dans{tz}",
+      "tzHintJstFallback": "Temps montrés en 0",
+      "createEvent": "Créer un événement",
+      "refresh": "Actualiser",
+      "filterMode": "Mode",
+      "mode": {
+        "all": "Tous",
+        "standard": "Norme",
+        "starters": "Démarreurs",
+        "randomized": "randomisé",
+        "free": "Gratuit",
+        "freeDeckExperiment": "Gratuit (Expérience de pont)"
+      },
+      "listEmpty": "Pas encore de tournois ouverts. Créer un pour commencer.",
+      "card": {
+        "fee": "Taxe{n}",
+        "watching": "{n}regarder",
+        "starts": "démarre{when}",
+        "fog": "brouillard{fog}",
+        "delay": "retard{n}s",
+        "metaSep": "·"
+      },
+      "backBulletin": "← Bulletin",
+      "notify": {
+        "title": "Tournoi LLTCG",
+        "checkinOpen": "Enregistrement ouvert:{title}",
+        "checkinSoon": "Enregistrement bientôt:{title}"
+      },
+      "createHeading": "Créer un tournoi",
+      "createTzNote": "Heure de début utilise{tz}.",
+      "createTzNoteFallback": "L'heure de début utilise votre fuseau horaire sélectionné.",
+      "field": {
+        "title": "Titre",
+        "titlePlaceholder": "Bracket du vendredi soir",
+        "startLocal": "Début (local)",
+        "checkinMins": "Heure d'arrivée",
+        "minPlayers": "Joueurs mineurs",
+        "maxPlayers": "Max joueurs",
+        "entryFee": "Frais d'entrée (pièces)",
+        "gameMode": "Mode jeu",
+        "format": "Format",
+        "matchLength": "Longueur de correspondance",
+        "fog": "Le brouillard de la guerre",
+        "rules": "Modèle de règles",
+        "rulesTitle": "Règles de pont supplémentaires; seule la norme s'applique aux démarreurs / randomisé",
+        "streamDelay": "Délai de traitement (spectat)",
+        "prPack": "Add 5-card PR pack prix (1000 Pièces)",
+        "prPackHint": "Requires 10 check-ins at start or the 1000 Pièces are refunded. Vainqueur gets the pack in addition to the coin pool."
+      },
+      "format": {
+        "singleElim": "Élimination unique",
+        "doubleElimBracket": "Double élim (gains/pertes)",
+        "doubleElimLives": "Double elim (2 vies)",
+        "swiss": "Suisse",
+        "single_elim": "Élimination unique",
+        "double_elim_bracket": "Double élim (gains/pertes)",
+        "double_elim": "Double elim (2 vies)"
+      },
+      "bestOf": {
+        "1": "Meilleur de 1",
+        "3": "Meilleur de 3"
+      },
+      "fog": {
+        "hiddenHands": "Mains cachées (spectateurs)",
+        "openHands": "Mains ouvertes",
+        "hiddenHandsShort": "mains cachées",
+        "openHandsShort": "les mains ouvertes"
+      },
+      "rules": {
+        "standardOption": "Norme (aucune limite supplémentaire)",
+        "pauperOption": "Pauper (N/R)",
+        "highlanderOption": "Highlander (1 de)",
+        "standard": {
+          "label": "Norme",
+          "help": "Aucune limite de jeu supplémentaire au-delà du mode de jeu sélectionné. Des limites de rareté et de copie normales s'appliquent."
+        },
+        "pauper": {
+          "label": "Pauper (N/R)",
+          "help": "Seulement des raretés inférieures : N, R, C, U et CL. Des raretés plus élevées (SR+, SEC, etc.) ne sont pas autorisées."
+        },
+        "highlander": {
+          "label": "Highlander (1 de)",
+          "help": "Au plus une copie de chaque carte dans tout le jeu (main + énergie). Aucun numéro de carte en double."
+        }
+      },
+      "rulesHelp": {
+        "modeLockedPrefix": "Le mode jeu définit déjà les règles de jeu — seul Standard s'applique ici."
+      },
+      "delay": {
+        "none": "Aucune",
+        "secs": "{n}secondes"
+      },
+      "schedule": "Tableau",
+      "detail": {
+        "host": "Hôte",
+        "hostFallback": "Hôte",
+        "prize": "prix{n}",
+        "watching": "regarder{n}",
+        "starts": "démarre{when}",
+        "mode": "mode{mode}",
+        "rules": "règles{rules}",
+        "fog": "brouillard{fog}",
+        "streamDelay": "retard du flux{n}s",
+        "bestOfShort": "Bo{n}",
+        "prizePool": "prix pool {n}"
+      },
+      "entrantsHeading": "Participants",
+      "bracketHeading": "Barrette",
+      "entrantsEmpty": "Aucun participant",
+      "person": {
+        "playerFallback": "Joueur"
+      },
+      "standingsHeading": "Sièges",
+      "standings": {
+        "record": "{wins}W–{losses}L",
+        "omw": "OMW {n}%"
+      },
+      "action": {
+        "register": "Registre",
+        "registerTip": "Verrouillez dans un pont et entrez dans cet événement. Paye les frais d'entrée dans le pool de prix si un est fixé.",
+        "checkin": "Enregistrement",
+        "checkinTip": "Confirmez que vous êtes présent avant le début du crochet. L'enregistrement manquant vous indique qu'il n'y a pas de spectacle.",
+        "unregister": "Désinscrire",
+        "unregisterTip": "Quitter l'événement avant de commencer et rembourser vos frais d'entrée.",
+        "checkedIn": "Enregistré",
+        "checkedInTip": "Vous êtes enregistré et vous attendez que le support commence.",
+        "deposit": "Prix de dépôt",
+        "depositTip": "Ajouter des pièces de votre solde à ce pool de prix de l'événement (hôte seulement).",
+        "cancel": "Annuler (remboursement)",
+        "cancelTip": "Annuler le tournoi et rembourser les frais d'entrée plus les autres dépôts de prix d'hôte.",
+        "tick": "Rafraîchir / cocher",
+        "tickTip": "Rafraîchissez cet événement et avancez les minuteurs du serveur (fenêtre d'enregistrement, support, semis de salle).",
+        "join": "Rejoignez mon match",
+        "joinTip": "Entrez votre salle de match de tournoi prête lorsque votre jeu de support est disponible.",
+        "spectateList": "Des allumettes spectaculaires",
+        "spectateListTip": "Parcourir et regarder les matchs en direct de ce tournoi en tant que spectateur."
+      },
+      "prompt": {
+        "deposit": "Pièces à déposer dans le coffre-fort du prix :",
+        "depositDefault": "1000"
+      },
+      "confirm": {
+        "cancel": "Annuler le tournoi et rembourser les participants?"
+      },
+      "bracket": {
+        "empty": "La disposition des supports apparaît une fois que max players / format est défini.",
+        "previewSuffix": "Aperçu (noms après l'enregistrement)",
+        "slot": "Fente",
+        "tbd": "À déterminer",
+        "bye": "Au revoir.",
+        "waiting": "Attendre...",
+        "spectate": "Spectate",
+        "spectateTip": "Regardez ce match en tant que spectateur (les non-joueurs sont les bienvenus)",
+        "winner": "Gagnant :{name}Z",
+        "namesLock": "Noms verrouillés au début du support",
+        "orientHorizontal": "Horizontale",
+        "orientVertical": "Vertical",
+        "orientTip": "Mise en page de la console de commutation",
+        "sideWinners": "Support des gagnants",
+        "sideLosers": "Support des perdants",
+        "sideGrandFinal": "Grande finale",
+        "sideSwiss": "Tours suisses",
+        "sidePlayoff": "Playoff",
+        "seriesScore": "Round {n} · {a}–{b}",
+        "seriesTip": "Best of 3 series score",
+        "watchReplay": "Watch Replay",
+        "watchGame": "Watch G{n}",
+        "watchTip": "Watch the recorded tournament game"
+      },
+      "formatCaption": {
+        "swiss": "Tours suisses",
+        "doubleElimLives": "Double elim (2 vies)",
+        "doubleElimBracket": "Double élim (gains/pertes)",
+        "singleElim": "Élimination unique"
+      },
+      "round": {
+        "swiss": "Suisse · Rond{n}",
+        "losersFinal": "Pertes finales",
+        "losers": "Pertes · R{n}",
+        "grandFinal": "Grande finale",
+        "grandFinalReset": "Grande finale (reprise)",
+        "winnersFinal": "Finale des gagnants",
+        "semifinals": "Demi-finales",
+        "roundOf": "Ronde de{n}",
+        "final": "Final"
+      },
+      "matchStatus": {
+        "live": "Live",
+        "ready": "Prêt",
+        "done": "Fait",
+        "pending": "À venir"
+      },
+      "register": {
+        "backEvent": "← Événement",
+        "heading": "Choisir le pont à verrouiller",
+        "leadDefault": "Ce jeu est verrouillé pour le tournoi lorsque vous vous inscrivez.",
+        "leadPick": "Choisissez un pont légal à verrouiller pour cet événement.",
+        "leadEmpty": "Pas encore de pont admissible — construire un dans Deck Builder, puis revenir.",
+        "leadFreePick": "Choisissez un préréglage de Deck Experiment, un jeu de comptes sauvegardés ou entrez un mot de passe d'expérience.",
+        "leadFreeEmpty": "Pas encore de jeux libres enregistrés — open Deck Experiment, enregistrer un préréglage (ou utiliser un mot de passe de partage), puis revenir.",
+        "noEligible": "Pas de jeux admissibles pour ce mode de jeu.",
+        "noFreeDecks": "Pas de préréglages d'expérience ou de jeux de comptes trouvés.",
+        "deckFallback": "Deck",
+        "metaPreset": "Préréglage de la fente{slot}",
+        "metaEquipped": "· équipés",
+        "metaStarter": "Démarreur ·{label}",
+        "metaExperiment": "Deck Experiment · fente{slot}",
+        "passwordLabel": "Mot de passe expérimental",
+        "passwordPlaceholder": "Code d'expérience partagé du pont",
+        "withPassword": "Inscrivez-vous avec le mot de passe",
+        "openDeckBuilder": "Ouvrir le constructeur de pont",
+        "openDeckExperiment": "Expérience de pont ouvert"
+      },
+      "status": {
+        "open": "Ouvrir",
+        "checkin": "Enregistrement",
+        "running": "Courir",
+        "finished": "Terminé",
+        "cancelled": "Annulé"
+      },
+      "entrant": {
+        "registered": "Inscrit",
+        "checked_in": "Enregistré",
+        "no_show": "Pas de spectacle",
+        "eliminated": "Éliminé",
+        "active": "Activité",
+        "cutOmw": "Cut (opp. win %)",
+        "cutSwiss": "Cut (Swiss)",
+        "winner": "Vainqueur"
+      },
+      "err": {
+        "cancelled": "Ce tournoi a été annulé.",
+        "unavailable": "Ce tournoi n'est plus disponible.",
+        "cancelRefunded": "Tournoi annulé — les participants remboursés.",
+        "pickStart": "Choisissez une date et une heure de début",
+        "startTooSoon": "L'heure de départ doit être d'au moins 1 minute.",
+        "pickStartSoon": "Choisissez une heure de départ au moins 1 minute à partir de maintenant",
+        "experimentPassword": "Saisissez un mot de passe d'expérience",
+        "joinHelperMissing": "Joindre l'aide manquante",
+        "spectateHelperMissing": "Spectate helper manquant",
+        "replayHelperMissing": "Assistant de replay introuvable."
+      },
+      "toast": {
+        "noMatchReady": "Aucun match de tournoi prêt"
+      },
+      "cal": {
+        "pickDateTime": "Choisir la date et l'heure",
+        "dialogAria": "Choisissez la date et l'heure de début",
+        "prevMonth": "Mois précédent",
+        "nextMonth": "Le mois prochain",
+        "monthFallback": "Mois",
+        "dow": {
+          "su": "Suède",
+          "mo": "Pays",
+          "tu": "Tu es",
+          "we": "Nous",
+          "th": "Th",
+          "fr": "En",
+          "sa": "Sa"
+        },
+        "hour": "Heure",
+        "min": "Min.",
+        "cancel": "Annuler",
+        "apply": "Appliquer"
+      },
+      "tz": {
+        "Asia/Tokyo": "Japon",
+        "America/New_York": "États-Unis Est",
+        "America/Chicago": "États-Unis Central",
+        "America/Denver": "Montagne américaine",
+        "America/Los_Angeles": "États-Unis Pacifique",
+        "America/Toronto": "Canada Est",
+        "America/Vancouver": "Canada Pacifique",
+        "Europe/London": "Royaume Uni (Londres)",
+        "Europe/Paris": "Europe centrale",
+        "Europe/Berlin": "Allemagne",
+        "Australia/Sydney": "Sydney",
+        "Asia/Singapore": "Singapour",
+        "Asia/Seoul": "Corée (KST)",
+        "Asia/Shanghai": "Chine",
+        "Asia/Hong_Kong": "Hong Kong",
+        "Asia/Bangkok": "Bangkok",
+        "Pacific/Auckland": "Auckland",
+        "UTC": "UTC"
+      },
+      "startRemind": {
+        "toggle": "Prévenez-moi quand ce tournoi commencera bientôt.",
+        "m5": "5 min",
+        "m10": "10 min",
+        "m30": "30 min",
+        "h1": "1 heure",
+        "h3": "3 heures",
+        "h10": "10 heures"
+      },
+      "bracketTitle": "Chaves",
+      "checkInOpen": "Enregistrement d'aberto",
+      "checkInClosed": "Encerrado d'enregistrement",
+      "deckLocked": "Deck bloqueado para este evento",
+      "eventFull": "Même Lotado",
+      "hostControls": "Les contrôles font organizador",
+      "spectatorMode": "Éspectateur de Modo",
+      "liveHeading": "Live & upcoming",
+      "past": {
+        "heading": "Past tournaments",
+        "empty": "No finished tournaments yet.",
+        "pool": "pool {n}",
+        "ended": "ended {when}",
+        "winner": "Vainqueur: {name}",
+        "winnerPrize": "prix {n} Pièces",
+        "noWinner": "No winner recorded",
+        "entered": "Entered ({n}): {names}",
+        "moreEntrants": "+{n} more"
+      },
+      "place": {
+        "first": "1st",
+        "second": "2nd",
+        "third": "3rd",
+        "nth": "{n}th"
+      },
+      "results": {
+        "heading": "Final results",
+        "winner": "Champion",
+        "winnerPrize": "+{n} Pièces",
+        "prizePool": "Prize pool: {n} Pièces",
+        "coins": "{n} Pièces"
+      },
+      "prPack": {
+        "awarded": "PR Pack ×{n}",
+        "dropped": "PR pack refunded",
+        "escrowed": "PR pack (needs {n} check-ins)"
+      },
+      "champion": {
+        "kicker": "Tournoi champion",
+        "view": "View results"
+      },
+      "featured": {
+        "kickerLive": "Live tournament",
+        "kickerCheckin": "Check-in open",
+        "kickerOpen": "Featured tournament",
+        "field": "{n}/{max} players",
+        "open": "Open event"
+      }
+    },
+    "loginBonus": {
+      "title": "Bonus de connexion",
+      "lead": "Connectez-vous chaque jour (JST) pour réclamer le prochain bonus. Les jours manqués sont sautés — votre série reste.",
+      "day": "Jour {day}",
+      "reward": {
+        "gems": "{amount} Gems",
+        "nSeals": "{amount} sceaux N",
+        "srSeal": "{amount} sceau SR",
+        "prPack": "Pack PR"
+      },
+      "gotGems": "{amount} Star Gem(s) reçue(s) !",
+      "gotNSeals": "{amount} sceau(x) N reçu(s) !",
+      "gotSrSeal": "{amount} sceau(x) SR reçu(s) !",
+      "gotPrPack": "Pack PR reçu ! Ouverture…"
+    },
+    "cardList": {
+      "backHub": "← Menu",
+      "collection": "Collection",
+      "lead": "Parcourez les cartes que vous possédez et le catalogue complet.",
+      "notOwned": "Non possédée",
+      "other": "Autre",
+      "ownedProgress": "{owned}/{total} possédées",
+      "prCards": "Cartes PR",
+      "title": "Liste des cartes",
+      "hubSub": "Parcourir toutes les cartes"
+    },
+    "playmatShop": {
+      "backChars": "← Personnages",
+      "backShop": "← Boutique",
+      "buyConfirm": "Acheter ce playmat pour {price} Pièces ?",
+      "hint": "Touchez un playmat pour prévisualiser, puis achetez ou équipez.",
+      "hoverEmpty": "Sélectionnez un playmat",
+      "title": "Playmats"
+    },
+    "shop": {
+      "backHub": "← Hub",
+      "hint": "Dépensez des pièces sur les manches et les jeux.",
+      "playmatsSub": "Historique du conseil",
+      "playmatsTitle": "Jeux",
+      "sleevesSub": "Dossiers de cartes",
+      "sleevesTitle": "Manches",
+      "title": "Magasiner"
+    },
+    "sleeveShop": {
+      "backChars": "← personnages",
+      "backShop": "← Magasiner",
+      "buyConfirm": "Acheter cette manche pour les pièces{price}?",
+      "hint": "Appuyez sur un manchon pour prévisualiser, puis achetez ou équipez.",
+      "hoverEmpty": "Sélectionner une manche",
+      "title": "Manches"
+    },
+    "gameMode": {
+      "free": "Libre",
+      "freeDesc": "Utilisez des decks de l'Expérimentateur. Toutes les cartes du jeu sont OK (possession non requise). Pas de classement pour ce mode.",
+      "label": "Mode de jeu",
+      "randomized": "Decks aléatoires",
+      "randomizedDesc": "Les deux joueurs reçoivent un deck légal aléatoire du pool complet (possession non requise). Le classé a son propre classement.",
+      "short": {
+        "free": "Libre",
+        "randomized": "Aléatoire",
+        "standard": "Standard",
+        "starters": "Initiaux"
+      },
+      "standard": "Standard",
+      "standardDesc": "Mode TCG normal. Construisez des decks avec les cartes que vous possédez et jouez contre d'autres joueurs.",
+      "starters": "Initiaux uniquement",
+      "startersDesc": "Uniquement les decks initiaux débloqués. Les listes officielles restent utilisables même après échange de cartes."
+    },
+    "lang": {
+      "label": "Langue"
+    },
+    "social": {
+      "profile": "Profil",
+      "friends": "Amis",
+      "close": "Fermer",
+      "loading": "Chargement...",
+      "error": "Quelque chose a mal tourné",
+      "signInHint": "Connectez-vous avec Discord pour utiliser Profil et Amis",
+      "moderation": "Modération",
+      "menu": "Menu"
+    },
+    "profile": {
+      "noTitles": "Pas encore de titres",
+      "emptyBio": "Pas encore de bio.",
+      "bioLocked": "L'édition de la bio est verrouillée.",
+      "showcase": "Afficher",
+      "rankedWl": "Classé",
+      "unranked": "Jeux non classés",
+      "tournament": "Torneios",
+      "tournamentRecord": "Partidas de toreio",
+      "tournamentEvents": "Événement",
+      "tournamentCoins": "Moedas ganhas",
+      "tournamentPlacements": "Colocações récentes",
+      "tournamentPrize": "{n}moedas",
+      "tournamentEmpty": "Nenhuma colocação em toreio ainda.",
+      "gameStats": "Stats du jeu",
+      "featuredDeck": "Présentation",
+      "visPrivate": "Privé",
+      "visFriends": "Amis",
+      "visPublic": "Public",
+      "useEquipped": "Actuellement équipés",
+      "save": "Enregistrer",
+      "report": "Rapport annuel",
+      "reported": "Rapport envoyé.",
+      "deckHidden": "Ce pont est privé.",
+      "types": "Membre / Live / Énergie",
+      "byMode": "Par mode",
+      "opponents": "Les adversaires les plus joués",
+      "idols": "Hauts idoles",
+      "history": "Historique des correspondances",
+      "friendId": "Nom de l'ami",
+      "copied": "Copié",
+      "edit": "Modifier",
+      "bio": "Bio",
+      "deckDesc": "Description du pont",
+      "visibility": "Visibilité",
+      "openDeck": "Affichage du pont complet",
+      "closeDeck": "Cacher le pont complet",
+      "members": "Membre",
+      "lives": "Live",
+      "energy": "Énergie",
+      "cost": "Coût",
+      "bladeHearts": "Cœurs Blade",
+      "bladeHeartCount": "Cœurs Blade",
+      "hearts": "Cœurs",
+      "showcaseHint": "Appuyez sur une fente pour choisir une carte de votre collection.",
+      "searchCollection": "Collecte des recherches",
+      "clearSlot": "Vider l'emplacement",
+      "reportAsk": "Choisissez une raison. Les modérateurs examineront ce rapport.",
+      "reportReasonBio": "Profil/couche bio",
+      "reportReasonAlt": "Tableau de classement Alt Abus",
+      "reportConfirm": "Oui, rapport.",
+      "modeRanked": "Classé",
+      "modeCasual": "Casuel",
+      "modeMatch": "Correspondance",
+      "games": "jeux",
+      "units": "Unités supérieures",
+      "noOwnedCards": "Pas de cartes correspondantes dans votre collection."
+    },
+    "friends": {
+      "view": "Voir",
+      "accept": "Accepter",
+      "decline": "Refuser",
+      "remove": "Retirer",
+      "incoming": "Reçues",
+      "outgoing": "Envoyées",
+      "yourCode": "Votre code",
+      "tabFriends": "Amis",
+      "tabRequests": "Demandes",
+      "tabRecent": "Récents",
+      "recentHint": "Joueurs contre qui vous avez récemment joué",
+      "codePlaceholder": "LCXXXXXX",
+      "add": "Ajouter",
+      "addFromProfile": "Envoyer une demande d'ami",
+      "requestSent": "Demande d'ami envoyée",
+      "alreadyFriends": "Amis"
+    },
+    "profileMod": {
+      "title": "Rapports",
+      "warns": "Avertissements",
+      "clearBio": "Biologie claire",
+      "warn": "Avertissement",
+      "lockBio": "Verrouiller la bio",
+      "dismiss": "Rejet",
+      "empty": "Aucun rapport ouvert.",
+      "ban": "Compte d ' interdiction",
+      "banConfirm": "Interdire ce compte Discord ? Les records sont effacés, les adversaires perdent W–L des jeux contre eux, et ils ne peuvent pas se connecter. Un instantané est conservé pour que vous puissiez vous libérer.",
+      "banlist": "Bannière",
+      "unban": "Unban & restaurer",
+      "unbanConfirm": "Libérer ce compte et restaurer son instantané ?",
+      "emptyBans": "Pas de comptes interdits.",
+      "warnNoticeTitle": "Avertissement de compte",
+      "warnNoticeAlt": "Vous avez été prévenu pour abus de leader.",
+      "warnNoticeBio": "On vous a prévenu pour votre profil ou votre bio de pont.",
+      "warnNoticeOk": "OK",
+      "bannedSignIn": "Ce compte Discord est interdit de 0."
+    },
+    "friendPush": {
+      "queueTapHint": "Rejoignez la file si vous voulez jouer.",
+      "inviteExpired": "Cette invitation a expiré.",
+      "aFriend": "Un ami",
+      "inviteBody": "{name} vous a invité à une partie {mode} !",
+      "acceptInvite": "Accepter",
+      "declineInvite": "Refuser",
+      "inviteSent": "Invitation envoyée à {name}",
+      "noFriends": "Ajoutez d'abord des amis depuis l'onglet Amis.",
+      "permissionDenied": "Notifications bloquées. Activez-les dans Paramètres Android → Apps → Loveca → Notifications."
+    },
+    "scout": {
+      "title": "Scout",
+      "hint": "Open booster packs or pull from the general gacha.",
+      "backHub": "← Hub",
+      "boostersTitle": "Booster Packs",
+      "boostersSub": "Open set booster packs",
+      "gachaTitle": "Gacha",
+      "gachaSub": "General Scout pulls",
+      "gachaSubLocked": "Coming soon"
+    },
+    "gacha": {
+      "title": "Gacha",
+      "backScout": "← Scout",
+      "gemsAria": "Star Gems",
+      "ratesLead": "Tap Info for rarity rates and card odds",
+      "poolInfo": "{total} cards in pool",
+      "single": "Scout ×1 ({n})",
+      "multi": "Scout 10+1 ({n})",
+      "tapContinue": "Tap to continue",
+      "tierN": "N",
+      "tierSr": "SR",
+      "tierUr": "UR",
+      "flourishUr": "guaranteed in this scout",
+      "flourishSr": "high rarity ahead",
+      "skip": "Skip",
+      "scoutAgain": "Scout again",
+      "backToGacha": "Retour to Gacha",
+      "loadError": "Could not load gacha",
+      "pullError": "Could not scout",
+      "locked": "Coming soon",
+      "lockedToast": "Gacha is not available yet.",
+      "standardTitle": "Standard Gacha",
+      "standardSub": "General Scout pool",
+      "infoBtn": "Info",
+      "infoAria": "Gacha rates and pool",
+      "ratesTitle": "Standard Gacha",
+      "ratesLeadDetail": "Per pull · tap a card for details",
+      "ratesSection": "Rarity rates",
+      "cardsSection": "Card pull rates",
+      "poolSection": "Pool size",
+      "includedSection": "Included packs",
+      "excludedSection": "Not included",
+      "packStarters": "Starter decks",
+      "packPr": "PR cards",
+      "rarityCount": "{n} cards",
+      "ratesEmpty": "No rarity data for this pool.",
+      "cardsEmpty": "No cards in this pool.",
+      "viewCard": "View card details",
+      "noteEqual": "Each pull first rolls a scout band, then picks one card uniformly from that band.",
+      "notePerPull": "Percents are chance per single Scout ×1 pull.",
+      "noteGuarantee": "Scout 10+1 guarantees at least one SR+ (gold/rainbow); UR within that guarantee stays rare.",
+      "noteBands": "Grey: N/R/L/PE… · Gold: P/SRE/RM… · Rainbow: SEC/LLE.",
+      "noteNoPrDuo": "PR, DUO, and Premium Booster cards are not in this pool.",
+      "noteMellow": "MELLOW MOMENT is not in this pool yet.",
+      "ratesLoading": "Chargement rates…",
+      "ratesError": "Could not load gacha rates"
+    },
+    "chat": {
+      "roomPublic": "Public",
+      "roomFriends": "Amis",
+      "roomSpectate": "Spectateurs",
+      "placeholder": "Message…",
+      "send": "Envoyer",
+      "signIn": "Connectez-vous pour discuter…",
+      "sendFailed": "Échec de l'envoi du message.",
+      "report": "Signaler",
+      "reportAsk": "Motif du signalement:\n1 Spam\n2 Infraction aux règles\n3 Harcèlement\n4 Autre\nEntrez 1-4 :",
+      "reportSpam": "Spam dans le chat",
+      "reportRules": "Infraction aux règles du chat",
+      "reportHarassment": "Harcèlement",
+      "reportOther": "Autre problème de chat",
+      "reported": "Signalement envoyé.",
+      "reportFailed": "Échec du signalement."
+    },
+    "titles": {
+      "title": "Titles",
+      "lead": "Unlock Fan titles by playing that Membre on Scène 500 times. Locked slots stay blank until earned.",
+      "change": "Change title",
+      "set": "Set title",
+      "unequip": "No title",
+      "noneSet": "No title set",
+      "locked": "Locked",
+      "unlocked": "Unlocked",
+      "progress": "{have} / {total} titles unlocked",
+      "unlockHint": "Play {idol} as a Scène Membre {n} times.",
+      "unlockProgress": "Play {idol} as a Scène Membre {n} times. ({have}/{n})",
+      "unlockDone": "Unlocked by playing {idol} as a Scène Membre {n} times.",
+      "loadError": "Could not load titles",
+      "equipError": "Could not equip title"
+    }
   }
 };
 
@@ -14262,6 +16351,7 @@
   if (STRINGS.zh) mergeLocaleAliases(STRINGS.zh);
   if (STRINGS.th) mergeLocaleAliases(STRINGS.th);
   if (STRINGS.pt) mergeLocaleAliases(STRINGS.pt);
+  if (STRINGS.fr) mergeLocaleAliases(STRINGS.fr);
   if (STRINGS.ja && STRINGS.ja.options) {
     STRINGS.ja.options.leaveActive = STRINGS.ja.options.leaveActive || '進行中の対戦を退出';
   }
@@ -14312,7 +16402,7 @@
   function t(key, vars) {
     var loc = getLocale();
     var val = lookupPath(STRINGS[loc], key);
-    if (val == null && (loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh' || loc === 'th' || loc === 'pt')) val = lookupPath(STRINGS.en, key);
+    if (val == null && (loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh' || loc === 'th' || loc === 'pt' || loc === 'fr')) val = lookupPath(STRINGS.en, key);
     if (typeof val === 'string') return interpolate(val, vars);
     return key;
   }
@@ -15863,6 +17953,7 @@
     if (loc === 'zh') return card.text_zh || card.text || '';
     if (loc === 'th') return card.text_th || card.text || '';
     if (loc === 'pt') return card.text_pt || card.text || '';
+    if (loc === 'fr') return card.text_fr || card.text || '';
     var en = card.text || '';
     if (en) return en;
     var jp = card.text_jp || '';
@@ -15916,6 +18007,14 @@
       if (ptType === 'Energy') return t('cardType.energy');
       return card.card_type_en || card.card_type || '';
     }
+    if (loc === 'fr') {
+      if (card.card_type_fr) return card.card_type_fr;
+      var frType = card.card_type_en || '';
+      if (frType === 'Member') return t('cardType.member');
+      if (frType === 'Live') return t('cardType.live');
+      if (frType === 'Energy') return t('cardType.energy');
+      return card.card_type_en || card.card_type || '';
+    }
     if (loc === 'ko') {
       if (card.card_type_ko) return card.card_type_ko;
       if (card.card_type && KO_CARD_TYPE_MAP[card.card_type]) return KO_CARD_TYPE_MAP[card.card_type];
@@ -15959,6 +18058,7 @@
     else if (loc === 'zh') packedPortrait = fromPack(_tutorialZh);
     else if (loc === 'th') packedPortrait = fromPack(_tutorialTh);
     else if (loc === 'pt') packedPortrait = fromPack(_tutorialPt);
+    else if (loc === 'fr') packedPortrait = fromPack(_tutorialFr);
     if (packedPortrait) return packedPortrait;
     if (portrait && step.dialogue_portrait) return step.dialogue_portrait;
     if (loc === 'ja') {
@@ -15991,6 +18091,11 @@
       var ptTranslated = t('tutorial.' + step.id);
       if (ptTranslated !== 'tutorial.' + step.id) return ptTranslated;
     }
+    if (loc === 'fr') {
+      if (_tutorialFr && _tutorialFr[step.id]) return _tutorialFr[step.id];
+      var frTranslated = t('tutorial.' + step.id);
+      if (frTranslated !== 'tutorial.' + step.id) return frTranslated;
+    }
     return step.dialogue || '';
   }
 
@@ -16001,7 +18106,8 @@
     ko: 'assets/flags/KR_South_Korea_rect.png',
     zh: 'assets/flags/CN_China_rect.png',
     th: 'assets/flags/TH_Thailand_rect.png',
-    pt: 'assets/flags/BR_Brazil_rect.png'
+    pt: 'assets/flags/BR_Brazil_rect.png',
+    fr: 'assets/flags/FR_France_rect.png'
   };
 
   var LOCALE_PICKER_IDS = ['sel-locale-auth', 'sel-locale-hub', 'sel-locale-options'];
@@ -16227,6 +18333,23 @@
       });
   }
 
+  function loadTutorialFr() {
+    if (_tutorialFr) return Promise.resolve(_tutorialFr);
+    return fetch('./tutorial_fr.json?v=1', { cache: 'no-store' })
+      .then(function (r) {
+        if (!r.ok) throw new Error('tutorial_fr HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function (data) {
+        _tutorialFr = data && typeof data === 'object' ? data : {};
+        return _tutorialFr;
+      })
+      .catch(function () {
+        _tutorialFr = {};
+        return _tutorialFr;
+      });
+  }
+
   function initLocale(onChange) {
     if (typeof onChange === 'function') onLocaleChange(onChange);
     var curLoc = getLocale();
@@ -16272,6 +18395,7 @@
     void loadTutorialZh();
     void loadTutorialTh();
     void loadTutorialPt();
+    void loadTutorialFr();
   }
 
   function initLocaleUi() {
@@ -16301,6 +18425,7 @@
     loadTutorialZh: loadTutorialZh,
     loadTutorialTh: loadTutorialTh,
     loadTutorialPt: loadTutorialPt,
+    loadTutorialFr: loadTutorialFr,
     tutorialDialogue: tutorialDialogue,
     initLocale: initLocale,
     initLocaleUi: initLocaleUi,

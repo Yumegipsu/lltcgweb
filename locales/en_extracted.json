@@ -78,6 +78,10 @@
       "sub": "Open packs from your collection",
       "title": "Boosters"
     },
+    "scout": {
+      "title": "Scout",
+      "sub": "Pull cards for your collection!"
+    },
     "cardList": {
       "sub": "Browse the full catalog",
       "title": "Card List"
@@ -113,8 +117,13 @@
       "title": "Stickers"
     },
     "tournament": {
-      "subLive": "Live events",
-      "title": "Tournaments"
+      "sub": "Coming Soon",
+      "subLive": "Events & brackets",
+      "title": "Tournament Mode",
+      "countdown": "{d}d {h}h {m}m {s}s",
+      "liveNow": "LIVE",
+      "promoSub": "{title} · prize {prize} · {n} entered",
+      "joinedSub": "{title} · {n} entered"
     },
     "tutorial": {
       "officialVideo": "Official 8-min video ↗",
@@ -194,7 +203,9 @@
     "es": "Español",
     "ko": "한국어",
     "zh": "简体中文",
-    "th": "ไทย"
+    "th": "ไทย",
+    "fr": "Français",
+    "pt": "Português (Brasil)"
   },
   "lobby": {
     "title": "Unranked Play",
@@ -484,6 +495,7 @@
     "mainMenu": "Main menu",
     "backHub": "← Hub",
     "noDailyPacks": "No daily packs left",
+    "backScout": "← Scout",
     "paidLead": "Spend Star Gems to keep opening packs today.",
     "openOnePack": "Open 1 pack",
     "starGemsLabel": "Star Gems:",
@@ -506,6 +518,63 @@
     "openSamePackAgain": "Open same pack again",
     "openSameBoxAgain": "Open same box again"
   },
+  "scout": {
+    "title": "Scout",
+    "hint": "Open booster packs or pull from the general gacha.",
+    "backHub": "← Hub",
+    "boostersTitle": "Booster Packs",
+    "boostersSub": "Open set booster packs",
+    "gachaTitle": "Gacha",
+    "gachaSub": "General Scout pulls",
+    "gachaSubLocked": "Coming soon"
+  },
+  "gacha": {
+    "title": "Gacha",
+    "backScout": "← Scout",
+    "gemsAria": "Star Gems",
+    "ratesLead": "Tap Info for rarity rates and card odds",
+    "poolInfo": "{total} cards in pool",
+    "single": "Scout ×1 ({n})",
+    "multi": "Scout 10+1 ({n})",
+    "tapContinue": "Tap to continue",
+    "tierN": "N",
+    "tierSr": "SR",
+    "tierUr": "UR",
+    "flourishUr": "guaranteed in this scout",
+    "flourishSr": "high rarity ahead",
+    "skip": "Skip",
+    "scoutAgain": "Scout again",
+    "backToGacha": "Back to Gacha",
+    "loadError": "Could not load gacha",
+    "pullError": "Could not scout",
+    "locked": "Coming soon",
+    "lockedToast": "Gacha is not available yet.",
+    "standardTitle": "Standard Gacha",
+    "standardSub": "General Scout pool",
+    "infoBtn": "Info",
+    "infoAria": "Gacha rates and pool",
+    "ratesTitle": "Standard Gacha",
+    "ratesLeadDetail": "Per pull · tap a card for details",
+    "ratesSection": "Rarity rates",
+    "cardsSection": "Card pull rates",
+    "poolSection": "Pool size",
+    "includedSection": "Included packs",
+    "excludedSection": "Not included",
+    "packStarters": "Starter decks",
+    "packPr": "PR cards",
+    "rarityCount": "{n} cards",
+    "ratesEmpty": "No rarity data for this pool.",
+    "cardsEmpty": "No cards in this pool.",
+    "viewCard": "View card details",
+    "noteEqual": "Each pull first rolls a scout band, then picks one card uniformly from that band.",
+    "notePerPull": "Percents are chance per single Scout ×1 pull.",
+    "noteGuarantee": "Scout 10+1 guarantees at least one SR+ (gold/rainbow); UR within that guarantee stays rare.",
+    "noteBands": "Grey: N/R/L/PE… · Gold: P/SRE/RM… · Rainbow: SEC/LLE.",
+    "noteNoPrDuo": "PR, DUO, and Premium Booster cards are not in this pool.",
+    "noteMellow": "MELLOW MOMENT is not in this pool yet.",
+    "ratesLoading": "Loading rates…",
+    "ratesError": "Could not load gacha rates"
+  },
   "sticker": {
     "title": "Sticker Exchange",
     "backHub": "← Hub",
@@ -526,6 +595,15 @@
     "infoLead": "Convert 1 spare booster or owned-starter card into 1 matching seal. Exchange seals for cards at the costs below.",
     "infoRarities": "Rarities",
     "infoCost": "Exchange cost",
+    "upgradeTitle": "Upgrade seals",
+    "upgradeAria": "Seal upgrades",
+    "upgradeBtn": "{cost} {from} → 1 {to}",
+    "upgradeConfirm": "Convert {cost} {from} seals for 1 {to} seal?",
+    "upgradeOk": "Converted · 1 {to} seal",
+    "upgradeNeed": "Need {cost} {from} seals.",
+    "infoUpgrade": "Seal upgrades",
+    "infoUpgradeLead": "You can also trade lower-tier seals upward: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. PR seals do not upgrade.",
+    "infoUpgradePr": "PR seals do not upgrade.",
     "batchConfirm": "Convert",
     "batchConfirmMsg": "Convert {count} spare card(s) into seals?",
     "batchConvert": "Batch convert",
@@ -535,16 +613,7 @@
     "batchNotConvertible": "Can’t convert this card",
     "batchOk": "Done",
     "batchSelected": "Selected",
-    "batchSelectedCount": "{count} selected",
-    "upgradeTitle": "Upgrade seals",
-    "upgradeAria": "Seal upgrades",
-    "upgradeBtn": "{cost} {from} → 1 {to}",
-    "upgradeConfirm": "Convert {cost} {from} seals for 1 {to} seal?",
-    "upgradeOk": "Converted · 1 {to} seal",
-    "upgradeNeed": "Need {cost} {from} seals.",
-    "infoUpgrade": "Seal upgrades",
-    "infoUpgradeLead": "You can also trade lower-tier seals upward: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. PR seals do not upgrade.",
-    "infoUpgradePr": "PR seals do not upgrade."
+    "batchSelectedCount": "{count} selected"
   },
   "ranked": {
     "title": "Ranked PvP",
@@ -614,10 +683,29 @@
     "cooldown": "Wait a moment…",
     "done": "Done"
   },
+  "chat": {
+    "roomPublic": "Public",
+    "roomFriends": "Friends",
+    "roomSpectate": "Spectate",
+    "placeholder": "Message…",
+    "send": "Send",
+    "signIn": "Sign in to chat…",
+    "sendFailed": "Could not send.",
+    "report": "Report",
+    "reportAsk": "Report reason:\n1 Spam\n2 Breaking rules\n3 Harassment\n4 Other\nEnter 1-4:",
+    "reportSpam": "Chat spam",
+    "reportRules": "Breaking chat rules",
+    "reportHarassment": "Harassment",
+    "reportOther": "Other chat issue",
+    "reported": "Report sent.",
+    "reportFailed": "Report failed."
+  },
   "options": {
     "title": "Options",
     "enhancedTextures": "Enhanced textures on high rarity cards",
     "soundEffects": "Sound effects",
+    "matchChat": "Enable in-game text chat",
+    "nightMode": "Night mode (darker menu skies)",
     "sfxVolume": "SFX volume",
     "stuckTitle": "Stuck in a match?",
     "stuckLead": "If ranked reconnects you to a broken or finished game, leave the active match record here. This counts as a resign if the game is still in progress.",
@@ -690,6 +778,8 @@
     "opponent": "Opponent",
     "opp": "Opp",
     "gameLog": "Game Log",
+    "logTab": "Log",
+    "chatTab": "Chat",
     "resign": "🏳 Resign",
     "resignConfirm": "Resign?",
     "enableRadio": "📻 Enable Radio",
@@ -1002,13 +1092,36 @@
     "moderation": "Moderation",
     "menu": "Menu"
   },
+  "titles": {
+    "title": "Titles",
+    "lead": "Unlock Fan titles by playing that Member on Stage 500 times. Locked slots stay blank until earned.",
+    "change": "Change title",
+    "set": "Set title",
+    "unequip": "No title",
+    "noneSet": "No title set",
+    "locked": "Locked",
+    "unlocked": "Unlocked",
+    "progress": "{have} / {total} titles unlocked",
+    "unlockHint": "Play {idol} as a Stage Member {n} times.",
+    "unlockProgress": "Play {idol} as a Stage Member {n} times. ({have}/{n})",
+    "unlockDone": "Unlocked by playing {idol} as a Stage Member {n} times.",
+    "loadError": "Could not load titles",
+    "equipError": "Could not equip title"
+  },
   "profile": {
-    "noTitles": "No titles yet",
+    "noTitles": "No title set",
     "emptyBio": "No bio yet.",
     "bioLocked": "Bio editing is locked.",
     "showcase": "Showcase",
     "rankedWl": "Ranked",
     "unranked": "Unranked games",
+    "tournament": "Tournaments",
+    "tournamentRecord": "Tournament matches",
+    "tournamentEvents": "Events",
+    "tournamentCoins": "Coins earned",
+    "tournamentPlacements": "Recent placements",
+    "tournamentPrize": "{n} Coins",
+    "tournamentEmpty": "No tournament placements yet.",
     "gameStats": "Game stats",
     "featuredDeck": "Featured deck",
     "visPrivate": "Private",
@@ -1508,8 +1621,23 @@
     "hiddenHandsOn": "Hands hidden",
     "hiddenHandsOnTitle": "Spectator fog: hands are hidden",
     "hiddenHandsTitle": "Hide both players’ hands while spectating",
+    "hiddenHandsLockedTitle": "Hand fog is set by the tournament host",
+    "hiddenHandsLocked": "Hand fog (locked)",
     "delayHold": "Stream delayed — waiting until {n}s behind live",
-    "delayLive": "Stream delayed {n}s"
+    "delayLive": "Stream delayed {n}s",
+    "pip": "Picture-in-Picture",
+    "pipExit": "Exit PiP",
+    "pipTitle": "Picture-in-Picture — float the match while you multitask",
+    "pipExitTitle": "Exit Picture-in-Picture",
+    "pipPlaceholder": "Spectating in Picture-in-Picture. Close the floating window or tap below to return.",
+    "pipReturn": "Return to game",
+    "pipDrag": "Drag",
+    "pipExpand": "Full",
+    "pipExpandTitle": "Return to full game",
+    "pipInappHint": "Floating match — drag, resize, or tap Full to return",
+    "pipSpectateOnly": "Picture-in-Picture is available while spectating.",
+    "bo3NextWait": "Game over — waiting for the next game…",
+    "bo3NextJoin": "Spectating next game…"
   },
   "ui": {
     "fullscreen": "Full screen",
@@ -1543,6 +1671,47 @@
       "freeDeckExperiment": "Free (Deck Experiment)"
     },
     "listEmpty": "No open tournaments yet. Create one to get started.",
+    "liveHeading": "Live & upcoming",
+    "past": {
+      "heading": "Past tournaments",
+      "empty": "No finished tournaments yet.",
+      "pool": "pool {n}",
+      "ended": "ended {when}",
+      "winner": "Winner: {name}",
+      "winnerPrize": "prize {n} Coins",
+      "noWinner": "No winner recorded",
+      "entered": "Entered ({n}): {names}",
+      "moreEntrants": "+{n} more"
+    },
+    "place": {
+      "first": "1st",
+      "second": "2nd",
+      "third": "3rd",
+      "nth": "{n}th"
+    },
+    "results": {
+      "heading": "Final results",
+      "winner": "Champion",
+      "winnerPrize": "+{n} Coins",
+      "prizePool": "Prize pool: {n} Coins",
+      "coins": "{n} Coins"
+    },
+    "prPack": {
+      "awarded": "PR Pack ×{n}",
+      "dropped": "PR pack refunded",
+      "escrowed": "PR pack (needs {n} check-ins)"
+    },
+    "champion": {
+      "kicker": "Tournament champion",
+      "view": "View results"
+    },
+    "featured": {
+      "kickerLive": "Live tournament",
+      "kickerCheckin": "Check-in open",
+      "kickerOpen": "Featured tournament",
+      "field": "{n}/{max} players",
+      "open": "Open event"
+    },
     "card": {
       "fee": "fee {n}",
       "watching": "{n} watching",
@@ -1577,6 +1746,8 @@
       "minPlayers": "Min players",
       "maxPlayers": "Max players",
       "entryFee": "Entry fee (Coins)",
+      "prPack": "Add 5-card PR pack prize (1000 Coins)",
+      "prPackHint": "Requires 10 check-ins at start or the 1000 Coins are refunded. Winner gets the pack in addition to the coin pool.",
       "gameMode": "Game mode",
       "format": "Format",
       "matchLength": "Match length",
@@ -1589,7 +1760,7 @@
       "singleElim": "Single elimination",
       "doubleElimBracket": "Double elim (Winners/Losers)",
       "doubleElimLives": "Double elim (2 lives)",
-      "swiss": "Swiss",
+      "swiss": "Swiss + playoff",
       "single_elim": "Single elimination",
       "double_elim_bracket": "Double elim (Winners/Losers)",
       "double_elim": "Double elim (2 lives)"
@@ -1639,7 +1810,8 @@
       "rules": "rules {rules}",
       "fog": "fog {fog}",
       "streamDelay": "stream delay {n}s",
-      "bestOfShort": "Bo{n}"
+      "bestOfShort": "Bo{n}",
+      "prizePool": "prize pool {n}"
     },
     "entrantsHeading": "Entrants",
     "bracketHeading": "Bracket",
@@ -1649,7 +1821,8 @@
     },
     "standingsHeading": "Standings",
     "standings": {
-      "record": "{wins}W–{losses}L"
+      "record": "{wins}W–{losses}L",
+      "omw": "OMW {n}%"
     },
     "action": {
       "register": "Register",
@@ -1695,10 +1868,16 @@
       "sideWinners": "Winners bracket",
       "sideLosers": "Losers bracket",
       "sideGrandFinal": "Grand Final",
-      "sideSwiss": "Swiss rounds"
+      "sideSwiss": "Swiss rounds",
+      "sidePlayoff": "Playoff",
+      "seriesScore": "Round {n} · {a}–{b}",
+      "seriesTip": "Best of 3 series score",
+      "watchReplay": "Watch Replay",
+      "watchGame": "Watch G{n}",
+      "watchTip": "Watch the recorded tournament game"
     },
     "formatCaption": {
-      "swiss": "Swiss rounds",
+      "swiss": "Swiss → single-elim playoff",
       "doubleElimLives": "Double elim (2 lives)",
       "doubleElimBracket": "Double elim (Winners/Losers)",
       "singleElim": "Single elimination"
@@ -1710,6 +1889,7 @@
       "grandFinal": "Grand Final",
       "grandFinalReset": "Grand Final (Reset)",
       "winnersFinal": "Winners Final",
+      "final": "Final",
       "semifinals": "Semifinals",
       "roundOf": "Round of {n}"
     },
@@ -1752,7 +1932,10 @@
       "checked_in": "Checked in",
       "no_show": "No-show",
       "eliminated": "Eliminated",
-      "active": "Active"
+      "cutOmw": "Cut (opp. win %)",
+      "cutSwiss": "Cut (Swiss)",
+      "active": "Active",
+      "winner": "Winner"
     },
     "err": {
       "cancelled": "This tournament was cancelled.",
@@ -1763,7 +1946,8 @@
       "pickStartSoon": "Pick a start time at least 1 minute from now",
       "experimentPassword": "Enter an experiment password",
       "joinHelperMissing": "Join helper missing",
-      "spectateHelperMissing": "Spectate helper missing"
+      "spectateHelperMissing": "Spectate helper missing",
+      "replayHelperMissing": "Replay helper missing"
     },
     "toast": {
       "noMatchReady": "No tournament match ready"

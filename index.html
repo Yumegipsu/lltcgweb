@@ -202,6 +202,10 @@ try {
                   <img class="locale-flag" src="assets/flags/BR_Brazil_rect.png" alt="" width="20" height="14" decoding="async">
                   <span data-i18n="language.pt">Português (Brasil)</span>
                 </button>
+                <button type="button" class="locale-picker-option" role="option" data-locale="fr" aria-selected="false">
+                  <img class="locale-flag" src="assets/flags/FR_France_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.fr">Français</span>
+                </button>
               </div>
             </div>
           </div>
@@ -663,6 +667,10 @@ try {
                   <img class="locale-flag" src="assets/flags/BR_Brazil_rect.png" alt="" width="20" height="14" decoding="async">
                   <span data-i18n="language.pt">Português (Brasil)</span>
                 </button>
+                <button type="button" class="locale-picker-option" role="option" data-locale="fr" aria-selected="false">
+                  <img class="locale-flag" src="assets/flags/FR_France_rect.png" alt="" width="20" height="14" decoding="async">
+                  <span data-i18n="language.fr">Français</span>
+                </button>
               </div>
             </div>
           </div>
@@ -851,6 +859,10 @@ try {
               <button type="button" class="locale-picker-option" role="option" data-locale="pt" aria-selected="false">
                 <img class="locale-flag" src="assets/flags/BR_Brazil_rect.png" alt="" width="20" height="14" decoding="async">
                 <span data-i18n="language.pt">Português (Brasil)</span>
+              </button>
+              <button type="button" class="locale-picker-option" role="option" data-locale="fr" aria-selected="false">
+                <img class="locale-flag" src="assets/flags/FR_France_rect.png" alt="" width="20" height="14" decoding="async">
+                <span data-i18n="language.fr">Français</span>
               </button>
             </div>
           </div>
@@ -3078,8 +3090,8 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=198"></script>
-<script src="log_i18n.js?v=19"></script>
+<script src="i18n.js?v=199"></script>
+<script src="log_i18n.js?v=20"></script>
 <script src="sfx.js?v=19"></script>
 <script src="client/js/news.js?v=41"></script>
 <script src="client/js/social.js?v=34"></script>
@@ -26619,6 +26631,7 @@ const RULE_KW_BRACKET_LABELS_KO = '등장 시|퇴장 시|라이브 개시|라이
 const RULE_KW_BRACKET_LABELS_ZH = '入场时|离场时|Live开始|Live成功|起动|永续|每回合1次|每回合2次|自动|中央|左侧|右侧|Yell';
 const RULE_KW_BRACKET_LABELS_TH = 'เมื่อเข้าสนาม|เมื่อออกจากสนาม|เริ่ม Live|Live สำเร็จ|เปิดใช้|ต่อเนื่อง|เทิร์นละ 1 ครั้ง|เทิร์นละ 2 ครั้ง|อัตโนมัติ|เซ็นเตอร์|Yell|ฝั่งซ้าย|ฝั่งขวา';
 const RULE_KW_BRACKET_LABELS_PT = 'Ao Entrar|Ao Sair|Início de Live|Live Bem-Sucedida|Ativado|Sempre|Uma vez por turno|Duas vezes por turno|Automático|Centro|Lado Esquerdo|Lado Direito|Yell';
+const RULE_KW_BRACKET_LABELS_FR = 'À l\\'entrée|À la sortie|Début de Live|Live réussi|Activé|Permanent|Une fois par tour|Deux fois par tour|Automatique|Centre|Côté gauche|Côté droit|Yell';
 
 const RULE_KW_JA_TO_EN = {
   '登場時': 'On Enter',
@@ -26718,6 +26731,22 @@ const RULE_KW_PT_TO_EN = {
   'Yell': 'Yell',
 };
 
+const RULE_KW_FR_TO_EN = {
+  "À l'entrée": 'On Enter',
+  'À la sortie': 'On Leave',
+  'Début de Live': 'Live Start',
+  'Live réussi': 'Live Success',
+  'Activé': 'Activated',
+  'Permanent': 'Always',
+  'Une fois par tour': 'Once per turn',
+  'Deux fois par tour': 'Twice per turn',
+  'Automatique': 'Automatic',
+  'Centre': 'Center',
+  'Côté gauche': 'Left Side',
+  'Côté droit': 'Right Side',
+  'Yell': 'Yell',
+};
+
 const RULE_KW_EN_TO_JA = {
   'On Enter': '登場時',
   'On Leave': '退場時',
@@ -26791,18 +26820,24 @@ function getRuleKwBracketPattern() {
       'g'
     );
   }
+  if (loc === 'fr') {
+    return new RegExp(
+      `\\[(?:${RULE_KW_BRACKET_LABELS_FR}|${RULE_KW_BRACKET_LABELS_EN})\\]`,
+      'g'
+    );
+  }
   return RULE_KW_BRACKET_PATTERN;
 }
 
 function ruleKwKeyFromBracketLabel(label) {
-  return RULE_KW_JA_TO_EN[label] || RULE_KW_ES_TO_EN[label] || RULE_KW_KO_TO_EN[label] || RULE_KW_ZH_TO_EN[label] || RULE_KW_TH_TO_EN[label] || RULE_KW_PT_TO_EN[label] || resolveRuleKwKey(label);
+  return RULE_KW_JA_TO_EN[label] || RULE_KW_ES_TO_EN[label] || RULE_KW_KO_TO_EN[label] || RULE_KW_ZH_TO_EN[label] || RULE_KW_TH_TO_EN[label] || RULE_KW_PT_TO_EN[label] || RULE_KW_FR_TO_EN[label] || resolveRuleKwKey(label);
 }
 
 function ruleKeywordInfo(key) {
   const canon = resolveRuleKwKey(key);
   const i18nKey = RULE_KW_TIP_I18N[canon];
   const loc = getLocale();
-  if ((loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh' || loc === 'th' || loc === 'pt') && i18nKey) {
+  if ((loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh' || loc === 'th' || loc === 'pt' || loc === 'fr') && i18nKey) {
     const title = t(`${i18nKey}.title`);
     const body = t(`${i18nKey}.body`);
     if (title && body && !String(title).startsWith('skillKw.')) {
@@ -26815,7 +26850,7 @@ function ruleKeywordInfo(key) {
 function ruleKwBracketDisplayLabel(rawBracket, kwKey) {
   const key = resolveRuleKwKey(kwKey);
   const loc = getLocale();
-  if (loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh' || loc === 'th' || loc === 'pt') {
+  if (loc === 'ja' || loc === 'es' || loc === 'ko' || loc === 'zh' || loc === 'th' || loc === 'pt' || loc === 'fr') {
     const i18nKey = RULE_KW_TIP_I18N[key];
     if (i18nKey) {
       const title = t(`${i18nKey}.title`);
@@ -26957,12 +26992,14 @@ function cardRulesDisplayText(card) {
   const zh = stripAllBladeHeartsRulesReminder(card.text_zh || '');
   const th = stripAllBladeHeartsRulesReminder(card.text_th || '');
   const pt = stripAllBladeHeartsRulesReminder(card.text_pt || '');
+  const fr = stripAllBladeHeartsRulesReminder(card.text_fr || '');
   const loc = getLocale();
   if (loc === 'es') return formatCardRulesLineBreaks(es || en, card);
   if (loc === 'ko') return formatCardRulesLineBreaks(ko || en, card);
   if (loc === 'zh') return formatCardRulesLineBreaks(zh || en, card);
   if (loc === 'th') return formatCardRulesLineBreaks(th || en, card);
   if (loc === 'pt') return formatCardRulesLineBreaks(pt || en, card);
+  if (loc === 'fr') return formatCardRulesLineBreaks(fr || en, card);
   if (loc !== 'ja') return formatCardRulesLineBreaks(en || jp, card);
   if (!jp) return en;
   if (jp.match(getRuleKwBracketPattern())) return jp;
@@ -27167,6 +27204,10 @@ function renderCardRulesText(text, container) {
     text = text.replace(/\[Continuous\]/gi, '[Sempre]');
     text = text.replace(/\[On Play\]/gi, '[Sempre]');
     text = text.replace(/\[Auto\]/gi, '[Automático]');
+  } else if (loc === 'fr') {
+    text = text.replace(/\[Continuous\]/gi, '[Permanent]');
+    text = text.replace(/\[On Play\]/gi, '[Permanent]');
+    text = text.replace(/\[Auto\]/gi, '[Automatique]');
   } else {
     text = text.replace(/\[Continuous\]/gi, '[Always]');
     text = text.replace(/\[On Play\]/gi, '[Always]');

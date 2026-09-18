@@ -1,4 +1,4 @@
-/* Client-side game log / skill-prompt localization (English server text → ja / es / ko / zh / th / pt) */
+/* Client-side game log / skill-prompt localization (English server text → ja / es / ko / zh / th / pt / fr) */
 (function (global) {
   'use strict';
 
@@ -116,6 +116,28 @@
   };
 
   var SLOT_PT = { left: 'esquerda', center: 'centro', right: 'direita' };
+
+  var SKILL_BRACKETS_FR = {
+    'On Enter': 'À l\'entrée',
+    'On Leave': 'À la sortie',
+    'Live Start': 'Début de Live',
+    'Live Success': 'Live réussi',
+    'Activated': 'Activé',
+    'Always': 'Permanent',
+    'Automatic': 'Automatique',
+    'Auto': 'Automatique',
+    'Once per turn': 'Une fois par tour',
+    'Once per Turn': 'Une fois par tour',
+    'Twice per turn': 'Deux fois par tour',
+    'Twice per Turn': 'Deux fois par tour',
+    'Center': 'Centre',
+    'Yell': 'Yell',
+    'Left Side': 'Côté gauche',
+    'Right Side': 'Côté droit',
+  };
+
+  var SLOT_FR = { left: 'gauche', center: 'centre', right: 'droite' };
+
 
 
   var HEART_COLOR_JA = {
@@ -295,6 +317,47 @@
 
     m = msg.match(/^🪙 Coin flip: (.+) won — first player chosen automatically \(time expired\)\.$/);
     if (m) return '🪙 Cara ou coroa: ' + m[1] + ' venceu — primeiro jogador escolhido automaticamente (tempo esgotado).';
+
+    return null;
+  }
+
+  function translateStructuredLineFr(msg) {
+    var m;
+
+    m = msg.match(/^(.+?) performed Live! Blades: (\d+) \| Hearts: \[([^\]]*)\] \| Live success: (\d+) \| Failed: (\d+)( \| Round: failed \(not all Lives succeeded\))?$/);
+    if (m) {
+      var roundNote = m[6] ? ' | Manche échouée (toutes les Lives n\'ont pas réussi)' : '';
+      return m[1] + ' a réalisé une Live ! Blades : ' + m[2] +
+        ' | Cœurs : [' + m[3] + ']' +
+        ' | Live réussi : ' + m[4] + ' | Échecs : ' + m[5] + roundNote;
+    }
+
+    m = msg.match(/^Live Scores: (.+?) = (\d+) \| (.+?) = (\d+)$/);
+    if (m) return 'Scores Live : ' + m[1] + ' = ' + m[2] + ' | ' + m[3] + ' = ' + m[4];
+
+    m = msg.match(/^(.+?) wins the Live — (.+) failed\.$/);
+    if (m) return m[1] + ' remporte la Live — ' + m[2] + ' a échoué.';
+
+    m = msg.match(/^(.+?) wins this Live! "(.+)" added to successes\.$/);
+    if (m) return m[1] + ' remporte cette Live ! "' + m[2] + '" ajoutée aux réussites.';
+
+    m = msg.match(/^(.+) has no valid Live cards!$/);
+    if (m) return m[1] + tLog('log.hasNoValidLive');
+
+    m = msg.match(/^(.+) — choose a Live card for Success Live\.$/);
+    if (m) return m[1] + tLog('log.chooseSuccessLive');
+
+    if (msg.endsWith(' — score tied; Success Live blocked; Live cards sent to Waiting Room.')) {
+      return msg.slice(0, -' — score tied; Success Live blocked; Live cards sent to Waiting Room.'.length) +
+        tLog('log.scoreTiedBlocked');
+    }
+    if (msg.endsWith(' — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room.')) {
+      return msg.slice(0, -' — score tied, but already has 2 Success Lives; Live cards sent to Waiting Room.'.length) +
+        tLog('log.scoreTiedCap');
+    }
+
+    m = msg.match(/^🪙 Coin flip: (.+) won — first player chosen automatically \(time expired\)\.$/);
+    if (m) return '🪙 Pile ou face : ' + m[1] + ' a gagné — premier joueur choisi automatiquement (temps écoulé).';
 
     return null;
   }
@@ -786,6 +849,28 @@
     }],
   ];
 
+  /** Term replacement for French (order matters). */
+  var PHRASE_RULES_FR = [
+    [/Success Live card storage/g, 'Zone de Lives réussies'],
+    [/Live storage/g, 'Zone Live'],
+    [/Success Live/g, 'Live réussi'],
+    [/Waiting Room/g, 'Salle d\'attente'],
+    [/Energy deck/g, 'Deck d\'Énergie'],
+    [/Main Deck/g, 'Deck principal'],
+    [/from your hand/g, 'de votre main'],
+    [/your hand/g, 'votre main'],
+    [/your deck/g, 'votre deck'],
+    [/your Stage/g, 'votre Scène'],
+    [/Member card/g, 'carte Membre'],
+    [/Live card/g, 'carte Live'],
+    [/Energy/g, 'Énergie'],
+    [/Member/g, 'Membre'],
+    [/ overplayed onto (.+)\.$/, ' a été superposé sur $1.'],
+    [/ played (.+) to (left|center|right) area\.$/, function (_m, card, slot) {
+      return ' a joué ' + card + ' dans la zone ' + (SLOT_FR[slot] || slot) + '.';
+    }],
+  ];
+
   /** Core structural phrases for Brazilian Portuguese. */
   var STRUCTURAL_PHRASE_RULES_PT = [
     [/ — End Main Phase\.$/, ' — Fim da Fase Principal.'],
@@ -832,6 +917,54 @@
     [/ is performing Live with (.+)\.$/, ' está realizando Live com $1.'],
     [/Both players put (\d+) cards? into the Waiting Room\.$/, 'Ambos os jogadores colocaram $1 carta(s) na Sala de Espera.'],
     [/Both players drew \(([^)]+)\)\.$/, 'Ambos os jogadores compraram ($1).'],
+  ];
+
+  /** Core structural phrases for French. */
+  var STRUCTURAL_PHRASE_RULES_FR = [
+    [/ — End Main Phase\.$/, ' — Fin de la Phase principale.'],
+    [/ completed mulligan\.$/, ' a terminé le mulligan.'],
+    [/ mulliganed: redrew (\d+) card\(s\)\.$/, ' a fait un mulligan : a pioché à nouveau $1 carte(s).'],
+    [/ mulliganed: kept hand\.$/, ' a fait un mulligan : a gardé sa main.'],
+    [/^Mulligan — (.+) redrew (\d+), (.+) redrew (\d+)\.$/, 'Mulligan — $1 a pioché à nouveau $2, $3 a pioché à nouveau $4.'],
+    [/ resigned\. (.+) wins!$/, ' a abandonné. $1 gagne !'],
+    [/ WINS with 3 successful Lives!$/, ' GAGNE avec 3 Lives réussies !'],
+    [/ used Baton Touch! Cost reduced to (\d+)\.$/, ' a utilisé Baton Touch ! Coût réduit à $1.'],
+    [/ used second Baton Touch! Cost reduced to (\d+)\.$/, ' a utilisé un second Baton Touch ! Coût réduit à $1.'],
+    [/ placed (\d+) card\(s\) face-down in storage \((\d+)\/3\)\.$/, ' a placé $1 carte(s) face cachée dans la zone ($2/3).'],
+    [/ placed card\(s\) in Live storage\.$/, ' a placé des carte(s) dans la zone Live.'],
+    [/ — locked in LIVE selection \((\d+) card\(s\) in storage\)\.$/, ' — sélection Live confirmée ($1 carte(s) dans la zone).'],
+    [/ — locked in LIVE selection\.$/, ' — sélection Live confirmée.'],
+    [/ — Draw Phase: could not draw \(deck and Waiting Room empty\)\.$/, ' — Phase de pioche : impossible de piocher (deck et Salle d\'attente vides).'],
+    [/ — Draw Phase\.$/, ' — Phase de pioche.'],
+    [/ — Active Phase: Energy and Members refreshed\.$/, ' — Phase active : Énergie et Membres restaurés.'],
+    [/ — Energy Phase: storage full \((\d+)\/(\d+)\), no Energy added\.$/, ' — Phase d\'Énergie : zone pleine ($1/$2), aucune Énergie ajoutée.'],
+    [/ — Energy Phase: no cards left in Energy deck\.$/, ' — Phase d\'Énergie : plus de cartes dans le deck d\'Énergie.'],
+    [/ — Energy Phase: placed 1 Energy in storage \((\d+)\/(\d+)\)\.$/, ' — Phase d\'Énergie : a placé 1 Énergie dans la zone ($1/$2).'],
+    [/ — Main Phase time expired \(auto end\)\.$/, ' — Phase principale : temps écoulé (fin automatique).'],
+    [/ — LIVE Phase time expired \(auto lock-in\)\.$/, ' — Phase LIVE : temps écoulé (confirmation automatique).'],
+    [/^(.+?)(?:'s|') Live Phase\.$/, 'Phase Live de $1.'],
+    [/ — \[([^\]]+)\] drew (\d+) \(Active → Wait\)\.$/, ' — [$1] a pioché $2 (Actif → Wait).'],
+    [/ — \[([^\]]+)\] optional skill skipped\.$/, ' — [$1] compétence optionnelle ignorée.'],
+    [/ — \[([^\]]+)\] activated\.$/, ' — [$1] activée.'],
+    [/ — \[([^\]]+)\] Live Start skipped\.$/, ' — [$1] Début de Live ignoré.'],
+    [/ — \[([^\]]+)\] Live Success skipped\.$/, ' — [$1] Live réussi ignoré.'],
+    [/Live SUCCESS/, 'Live RÉUSSI'],
+    [/Live FAIL/, 'Live ÉCHOUÉ'],
+    [/Live failed/, 'Live échoué'],
+    [/Live succeeded/, 'Live réussi'],
+    [/^(.+)'s turn — Main Phase \(Active · Energy · Draw complete\)\.$/, 'Tour de $1 — Phase principale (Active · Énergie · Pioche terminées).'],
+    [/^(.+) turn — Main Phase \(Active · Energy · Draw complete\)\.$/, 'Tour de $1 — Phase principale (Active · Énergie · Pioche terminées).'],
+    [/^(.+) turn — Main Phase…$/, 'Tour de $1 — Phase principale…'],
+    [/^🪙 Coin flip: (.+) won and chose to go first!$/, '🪙 Pile ou face : $1 a gagné et a choisi de commencer !'],
+    [/^🪙 Coin flip: (.+) won and chose (.+) to go first!$/, '🪙 Pile ou face : $1 a gagné et a choisi $2 pour commencer !'],
+    [/^🎉 (.+) WINS with 3 successful Lives!$/, '🎉 $1 GAGNE avec 3 Lives réussies !'],
+    [/ disconnected\. (.+) wins!$/, ' s\'est déconnecté. $1 gagne !'],
+    [/ had no card in hand to discard\.$/, ' n\'avait aucune carte en main à défausser.'],
+    [/ had no cards in hand to discard\.$/, ' n\'avait aucune carte en main à défausser.'],
+    [/ drew (\d+) but had no cards in hand to discard\.$/, ' a pioché $1 mais n\'avait aucune carte en main à défausser.'],
+    [/ is performing Live with (.+)\.$/, ' réalise une Live avec $1.'],
+    [/Both players put (\d+) cards? into the Waiting Room\.$/, 'Les deux joueurs ont envoyé $1 carte(s) en Salle d\'attente.'],
+    [/Both players drew \(([^)]+)\)\.$/, 'Les deux joueurs ont pioché ($1).'],
   ];
 
   /** Term replacement for Korean (order matters; Baton Touch stays English). */
@@ -904,6 +1037,7 @@
       ja: 'ライブ終了まで$1メンバー1体を選び、刃+1。',
       es: 'Elige 1 Miembro $1 para +Blade hasta que termine el Live.',
       pt: 'Escolha 1 Membro $1 para +Blade até o fim desta Live.',
+      fr: 'Choisissez 1 Membre $1 para +Blade jusqu\'à la fin de cette Live.',
       ko: 'Live가 끝날 때까지 $1 멤버 1명을 선택해 +Blade.',
       zh: '选择1名$1成员，直到Live结束前+刃。',
       th: 'เลือกสมาชิก $1 1 คนเพื่อ +Blade จน Live จบ',
@@ -912,6 +1046,7 @@
       ja: '$1メンバー1体を選び、刃+$2。',
       es: 'Elige 1 Miembro $1 para +$2 Blade.',
       pt: 'Escolha 1 Membro $1 para +$2 Blade.',
+      fr: 'Choisissez 1 Membre $1 para +$2 Blade.',
       ko: '$1 멤버 1명을 선택해 +$2 Blade.',
       zh: '选择1名$1成员，+刃$2。',
       th: 'เลือกสมาชิก $1 1 คนเพื่อ +Blade $2',
@@ -920,6 +1055,7 @@
       ja: '他の$1メンバー1体を選び、刃+1。',
       es: 'Elige 1 otro Miembro $1 para +Blade.',
       pt: 'Escolha 1 outro Membro $1 para +Blade.',
+      fr: 'Choisissez 1 autre Membre $1 para +Blade.',
       ko: '다른 $1 멤버 1명을 선택해 +Blade.',
       zh: '选择1名其他$1成员，+刃。',
       th: 'เลือกสมาชิก $1 อีก 1 คนเพื่อ +Blade',
@@ -928,6 +1064,7 @@
       ja: '他の$1メンバー1体を選び、ボーナスハート。',
       es: 'Elige 1 otro Miembro $1 para corazones extra.',
       pt: 'Escolha 1 outro Membro $1 para corações extras.',
+      fr: 'Choisissez 1 autre Membre $1 para cœurs bonus.',
       ko: '다른 $1 멤버 1명을 선택해 보너스 하트.',
       zh: '选择1名其他$1成员，获得额外心形。',
       th: 'เลือกสมาชิก $1 อีก 1 คนเพื่อหัวใจโบนัส',
@@ -936,6 +1073,7 @@
       ja: '他の$1メンバー1体を選び、控え室へ。',
       es: 'Elige 1 otro Miembro $1 para enviarlo a la Sala de espera.',
       pt: 'Escolha 1 outro Membro $1 para colocar na Sala de Espera.',
+      fr: 'Choisissez 1 autre Membre $1 à placer dans la Salle d\'attente.',
       ko: '다른 $1 멤버 1명을 선택해 대기실로 보냅니다.',
       zh: '选择1名其他$1成员放入等候室。',
       th: 'เลือกสมาชิก $1 อีก 1 คนเพื่อส่งไปห้องรอ',
@@ -944,6 +1082,7 @@
       ja: '他のLiella!メンバー1体を選び、刃+1。',
       es: 'Elige 1 otro Miembro Liella! para +Blade.',
       pt: 'Escolha 1 outro Membro Liella! para +Blade.',
+      fr: 'Choisissez 1 autre Membre Liella! para +Blade.',
       ko: '다른 Liella! 멤버 1명을 선택해 +Blade.',
       zh: '选择1名其他Liella!成员，+刃。',
       th: 'เลือกสมาชิก Liella! อีก 1 คนเพื่อ +Blade',
@@ -952,6 +1091,7 @@
       ja: '他のLiella!メンバー1体を選び、ボーナスハート。',
       es: 'Elige 1 otro Miembro Liella! para corazones extra.',
       pt: 'Escolha 1 outro Membro Liella! para corações extras.',
+      fr: 'Choisissez 1 autre Membre Liella! para cœurs bonus.',
       ko: '다른 Liella! 멤버 1명을 선택해 보너스 하트.',
       zh: '选择1名其他Liella!成员，获得额外心形。',
       th: 'เลือกสมาชิก Liella! อีก 1 คนเพื่อหัวใจโบนัส',
@@ -960,6 +1100,7 @@
       ja: '$1メンバー1体を選び、ポジションチェンジ。',
       es: 'Elige 1 Miembro $1 para cambiar de posición.',
       pt: 'Escolha 1 Membro $1 para mudar de posição.',
+      fr: 'Choisissez 1 Membre $1 para mudar de position.',
       ko: '$1 멤버 1명을 선택해 포지션 체인지.',
       zh: '选择1名$1成员进行位置变更。',
       th: 'เลือกสมาชิก $1 1 คนเพื่อเปลี่ยนตำแหน่ง',
@@ -968,6 +1109,7 @@
       ja: 'Saint Snowメンバー1体を選び、ポジションチェンジ。',
       es: 'Elige 1 Miembro Saint Snow para cambiar de posición.',
       pt: 'Escolha 1 Membro Saint Snow para mudar de posição.',
+      fr: 'Choisissez 1 Membre Saint Snow para mudar de position.',
       ko: 'Saint Snow 멤버 1명을 선택해 포지션 체인지.',
       zh: '选择1名Saint Snow成员进行位置变更。',
       th: 'เลือกสมาชิก Saint Snow 1 คนเพื่อเปลี่ยนตำแหน่ง',
@@ -976,6 +1118,7 @@
       ja: 'ウェイトのメンバー1体を選び、起動（ライブ終了まで刃+1）。',
       es: 'Elige 1 Miembro en Espera para activar (+Blade hasta que termine el Live).',
       pt: 'Escolha 1 Membro em Repouso para ativar (+Blade até o fim desta Live).',
+      fr: 'Choisissez 1 Membre en Wait pour activer (+Blade jusqu\'à la fin de cette Live).',
       ko: 'Wait 상태 멤버 1명을 선택해 발동(+Blade, Live 종료까지).',
       zh: '选择1名Wait成员发动（直到Live结束前+刃）。',
       th: 'เลือกสมาชิกใน Wait 1 คนเพื่อเปิดใช้ (+Blade จน Live จบ)',
@@ -984,6 +1127,7 @@
       ja: 'ステージのメンバー1体を選び、このライブ終了まで刃+$1。',
       es: 'Elige 1 Miembro en el Escenario para ganar +$1 Blade hasta que termine este Live.',
       pt: 'Escolha 1 Membro no Palco para ganhar +$1 Blade até o fim desta Live.',
+      fr: 'Choisissez 1 Membre sur le Scène pour gagner +$1 Blade jusqu\'à la fin de cette Live.',
       ko: '스테이지 멤버 1명을 선택해 이번 Live 종료까지 +$1 Blade.',
       zh: '选择1名舞台成员，直到本次Live结束前+刃$1。',
       th: 'เลือกสมาชิกบนเวที 1 คนเพื่อ +Blade $1 จน Live นี้จบ',
@@ -992,6 +1136,7 @@
       ja: 'ステージのアクティブなメンバー1体を選び、ウェイトに。',
       es: 'Elige 1 Miembro activo en tu Escenario para ponerlo en Espera.',
       pt: 'Escolha 1 Membro ativo no seu Palco para colocar em Repouso.',
+      fr: 'Choisissez 1 Membre actif sur le votre Scène à placer en Wait.',
       ko: '스테이지의 액티브 멤버 1명을 선택해 Wait로 보냅니다.',
       zh: '选择你舞台上1名活跃成员放入Wait。',
       th: 'เลือกสมาชิก Active บนเวที 1 คนเพื่อใส่ Wait',
@@ -1000,6 +1145,7 @@
       ja: '自分のステージのメンバー1体を選ぶ。',
       es: 'Elige 1 Miembro en tu Escenario.',
       pt: 'Escolha 1 Membro no seu Palco.',
+      fr: 'Choisissez 1 Membre sur le votre Scène.',
       ko: '자신의 스테이지에서 멤버 1명을 선택합니다.',
       zh: '选择你舞台上的1名成员。',
       th: 'เลือกสมาชิกบนเวที 1 คน',
@@ -1008,6 +1154,7 @@
       ja: '自分のステージのメンバー1体を選ぶ。',
       es: 'Elige un Miembro en tu Escenario.',
       pt: 'Escolha um Membro no seu Palco.',
+      fr: 'Choisissez un Membre sur le votre Scène.',
       ko: '자신의 스테이지에서 멤버를 선택합니다.',
       zh: '选择你舞台上的一名成员。',
       th: 'เลือกสมาชิกบนเวที',
@@ -1016,6 +1163,7 @@
       ja: 'メンバー1体を選び、ポジションチェンジ。',
       es: 'Elige 1 Miembro para cambiar de posición.',
       pt: 'Escolha 1 Membro para mudar de posição.',
+      fr: 'Choisissez 1 Membre para mudar de position.',
       ko: '멤버 1명을 선택해 포지션 체인지.',
       zh: '选择1名成员进行位置变更。',
       th: 'เลือกสมาชิก 1 คนเพื่อเปลี่ยนตำแหน่ง',
@@ -1024,6 +1172,7 @@
       ja: 'ポジションチェンジ先のエリアを選ぶ。',
       es: 'Elige un área a la que cambiar de posición.',
       pt: 'Escolha uma área para mudar de posição.',
+      fr: 'Choisissez une zone para mudar de position.',
       ko: '포지션 체인지할 구역을 선택합니다.',
       zh: '选择要进行位置变更的区域。',
       th: 'เลือกพื้นที่เพื่อเปลี่ยนตำแหน่ง',
@@ -1032,6 +1181,7 @@
       ja: 'このメンバーのポジションチェンジ先エリアを選ぶ。',
       es: 'Elige un área a la que mover este Miembro.',
       pt: 'Escolha uma área mover este Membro.',
+      fr: 'Choisissez une zone déplacer ce Membre.',
       ko: '이 멤버를 포지션 체인지할 구역을 선택합니다.',
       zh: '选择要将此成员移动到的区域。',
       th: 'เลือกพื้นที่เพื่อย้ายสมาชิกคนนี้',
@@ -1040,6 +1190,7 @@
       ja: 'このメンバーのエリアを選ぶ。',
       es: 'Elige un área para este Miembro.',
       pt: 'Escolha uma área para este Membro.',
+      fr: 'Choisissez une zone para este Membre.',
       ko: '이 멤버의 구역을 선택합니다.',
       zh: '为此成员选择一个区域。',
       th: 'เลือกพื้นที่สำหรับสมาชิกคนนี้',
@@ -1048,6 +1199,7 @@
       ja: '控え室から$1メンバー1体を選ぶ。',
       es: 'Elige 1 Miembro $1 de tu Sala de espera.',
       pt: 'Escolha 1 Membro $1 da sua Sala de Espera.',
+      fr: 'Choisissez 1 Membre $1 da votre Salle d\'attente.',
       ko: '대기실에서 $1 멤버 1명을 선택합니다.',
       zh: '从你的等候室选择1名$1成员。',
       th: 'เลือกสมาชิก $1 1 คนจากห้องรอ',
@@ -1056,6 +1208,7 @@
       ja: '控え室からメンバー1体を選ぶ。',
       es: 'Elige 1 Miembro de tu Sala de espera.',
       pt: 'Escolha 1 Membro da sua Sala de Espera.',
+      fr: 'Choisissez 1 Membre da votre Salle d\'attente.',
       ko: '대기실에서 멤버 1명을 선택합니다.',
       zh: '从你的等候室选择1名成员。',
       th: 'เลือกสมาชิก 1 คนจากห้องรอ',
@@ -1064,6 +1217,7 @@
       ja: '自分のライブ置き場のライブカード1枚を選ぶ。',
       es: 'Elige 1 carta Live en tu Live.',
       pt: 'Escolha 1 carta Live na sua Live.',
+      fr: 'Choisissez 1 carta Live dans la votre Live.',
       ko: 'Live에 있는 Live 카드 1장을 선택합니다.',
       zh: '选择你Live中的1张Live卡。',
       th: 'เลือกการ์ด Live 1 ใบใน Live ของคุณ',
@@ -1072,6 +1226,7 @@
       ja: '手札からライブカード1枚を選ぶ。',
       es: 'Elige 1 carta Live de tu mano.',
       pt: 'Escolha 1 carta Live da sua mão.',
+      fr: 'Choisissez 1 carta Live da votre main.',
       ko: '손패에서 Live 카드 1장을 선택합니다.',
       zh: '从手牌选择1张Live卡。',
       th: 'เลือกการ์ด Live 1 ใบจากมือ',
@@ -1080,6 +1235,7 @@
       ja: '手札からライブカード1枚を選び、公開する。',
       es: 'Elige 1 carta Live de tu mano para revelarla.',
       pt: 'Escolha 1 carta Live da sua mão para revelar.',
+      fr: 'Choisissez 1 carta Live da votre main pour révéler.',
       ko: '손패에서 Live 카드 1장을 선택해 공개합니다.',
       zh: '从手牌选择1张Live卡并公开。',
       th: 'เลือกการ์ด Live 1 ใบจากมือเพื่อเปิดเผย',
@@ -1088,6 +1244,7 @@
       ja: '控え室から成功ライブ用のライブ1枚を選ぶ。',
       es: 'Elige 1 Live de la Sala de espera para el Live exitoso.',
       pt: 'Escolha 1 Live da Sala de Espera para ser colocada nas Lives Bem-Sucedidas.',
+      fr: 'Choisissez 1 Live da Salle d\'attente para ser colocada nas Lives réussies.',
       ko: '대기실에서 성공 Live용 Live 1장을 선택합니다.',
       zh: '从等候室选择1张Live作为成功Live。',
       th: 'เลือก Live 1 ใบจากห้องรอสำหรับ Live สำเร็จ',
@@ -1096,6 +1253,7 @@
       ja: '発動する能力を1つ選ぶ。',
       es: 'Elige 1 habilidad para activar.',
       pt: 'Escolha 1 habilidade para ativar.',
+      fr: 'Choisissez 1 compétence pour activer.',
       ko: '발동할 능력 1개를 선택합니다.',
       zh: '选择1个要发动的能力。',
       th: 'เลือกความสามารถ 1 อย่างเพื่อเปิดใช้',
@@ -1104,6 +1262,7 @@
       ja: 'このメンバーをポジションチェンジしますか？',
       es: '¿Cambiar de posición a este Miembro?',
       pt: 'Mudar de posição com este Membro?',
+      fr: 'Mudar de position com este Membre?',
       ko: '이 멤버를 포지션 체인지하시겠습니까?',
       zh: '要对此成员进行位置变更吗？',
       th: 'เปลี่ยนตำแหน่งสมาชิกคนนี้ไหม?',
@@ -1112,6 +1271,7 @@
       ja: '任意のウェイト効果',
       es: 'Efecto de Espera opcional',
       pt: 'Efeito de Repouso opcional',
+      fr: 'Effet Wait optionnel',
       ko: '선택적 Wait 효과',
       zh: '可选Wait效果',
       th: 'เอฟเฟกต์ Wait ทางเลือก',
@@ -1120,6 +1280,7 @@
       ja: 'カードを1枚選ぶ。',
       es: 'Elige una carta.',
       pt: 'Escolha uma carta.',
+      fr: 'Choisissez une carta.',
       ko: '카드를 선택합니다.',
       zh: '选择一张卡。',
       th: 'เลือกการ์ด',
@@ -1128,6 +1289,7 @@
       ja: '手札から捨てる。',
       es: 'Descarta de la mano.',
       pt: 'Descarte de sua mão.',
+      fr: 'Défaussez de votre main.',
       ko: '손패에서 버립니다.',
       zh: '从手牌弃置。',
       th: 'ทิ้งจากมือ',
@@ -1136,6 +1298,7 @@
       ja: '控え室からカード1枚を選び、デッキの上に置く。',
       es: 'Elige 1 carta de tu Sala de espera para ponerla en la parte superior de tu mazo.',
       pt: 'Escolha 1 carta da sua Sala de Espera para colocar no topo do seu deck.',
+      fr: 'Choisissez 1 carta da votre Salle d\'attente à placer sur le dessus do votre deck.',
       ko: '대기실에서 카드 1장을 선택해 덱 위에 둡니다.',
       zh: '从等候室选择1张卡放到牌组顶。',
       th: 'เลือกการ์ด 1 ใบจากห้องรอเพื่อวางบนสุดของเด็ค',
@@ -1144,6 +1307,7 @@
       ja: '控え室に送るカードを選ぶ。',
       es: 'Elige una carta para enviarla a la Sala de espera.',
       pt: 'Escolha uma carta para colocar na Sala de Espera.',
+      fr: 'Choisissez une carta à placer dans la Salle d\'attente.',
       ko: '대기실로 보낼 카드를 선택합니다.',
       zh: '选择一张卡放入等候室。',
       th: 'เลือกการ์ดเพื่อส่งไปห้องรอ',
@@ -1152,6 +1316,7 @@
       ja: '控え室に送るカード1枚を選ぶ。',
       es: 'Elige 1 carta para enviarla a la Sala de espera.',
       pt: 'Escolha 1 carta para colocar na Sala de Espera.',
+      fr: 'Choisissez 1 carta à placer dans la Salle d\'attente.',
       ko: '대기실로 보낼 카드 1장을 선택합니다.',
       zh: '选择1张卡放入等候室。',
       th: 'เลือกการ์ด 1 ใบเพื่อส่งไปห้องรอ',
@@ -1160,6 +1325,7 @@
       ja: '控え室に送るカードを選ぶ。',
       es: 'Elige carta(s) para enviarlas a la Sala de espera.',
       pt: 'Escolha carta(s) para colocar na Sala de Espera.',
+      fr: 'Choisissez carta(s) à placer dans la Salle d\'attente.',
       ko: '대기실로 보낼 카드를 선택합니다.',
       zh: '选择要放入等候室的卡。',
       th: 'เลือกการ์ดเพื่อส่งไปห้องรอ',
@@ -1168,6 +1334,7 @@
       ja: '手札から一致するメンバー1体を選び、このメンバーの下に重ねる。',
       es: 'Elige un Miembro coincidente de tu mano para apilarlo bajo este Miembro.',
       pt: 'Escolha um Membro correspondente da sua mão para colocar debaixo deste Membro.',
+      fr: 'Choisissez un Membre correspondente da votre main à placer sous ce Membre.',
       ko: '손패에서 일치하는 멤버를 선택해 이 멤버 아래에 쌓습니다.',
       zh: '从手牌选择1名匹配成员叠在此成员下方。',
       th: 'เลือกสมาชิกที่ตรงกันจากมือเพื่อวางใต้สมาชิกคนนี้',
@@ -1176,6 +1343,7 @@
       ja: '控え室からメンバー1体を選び、このメンバーの下に重ねる。',
       es: 'Elige un Miembro de tu Sala de espera para apilarlo bajo este Miembro.',
       pt: 'Escolha um Membro da sua Sala de Espera para colocar debaixo deste Membro.',
+      fr: 'Choisissez un Membre da votre Salle d\'attente à placer sous ce Membre.',
       ko: '대기실에서 멤버를 선택해 이 멤버 아래에 쌓습니다.',
       zh: '从等候室选择1名成员叠在此成员下方。',
       th: 'เลือกสมาชิกจากห้องรอเพื่อวางใต้สมาชิกคนนี้',
@@ -1184,6 +1352,7 @@
       ja: '見ずにカード1枚を選ぶ。',
       es: 'Elige 1 carta sin mirar.',
       pt: 'Escolha 1 carta sem olhar.',
+      fr: 'Choisissez 1 carta sans regarder.',
       ko: '보지 않고 카드 1장을 선택합니다.',
       zh: '不查看地选择1张卡。',
       th: 'เลือกการ์ด 1 ใบโดยไม่ดู',
@@ -1192,6 +1361,7 @@
       ja: 'エネルギーが重なったメンバー1体を選び、返す。',
       es: 'Elige un Miembro con Energía apilada para devolverla.',
       pt: 'Escolha um Membro com Energia embaixo dele para retornar.',
+      fr: 'Choisissez un Membre com Énergie embaixo dele para retornar.',
       ko: '겹쳐진 에너지가 있는 멤버를 선택해 반환합니다.',
       zh: '选择1名有叠放能量的成员并返还。',
       th: 'เลือกสมาชิกที่มีพลังงานซ้อนเพื่อคืน',
@@ -1200,6 +1370,7 @@
       ja: '手札に加えるか、空のステージエリアにプレイしますか？',
       es: '¿Añadir a la mano o jugar en un área vacía del Escenario?',
       pt: 'Adicionar à mão ou jogar em uma área vazia do Palco?',
+      fr: 'Ajouter à la main ou jouer dans une zone vide de la Scène ?',
       ko: '손패에 추가하거나 빈 스테이지 구역에 플레이하시겠습니까?',
       zh: '加入手牌或打到一个空的舞台区域？',
       th: 'เพิ่มเข้ามือหรือเล่นลงพื้นที่เวทีว่าง?',
@@ -1208,6 +1379,7 @@
       ja: '好きなものは？',
       es: '¿Qué te gusta?',
       pt: 'Do que você mais gosta?',
+      fr: 'Qu\'est-ce que vous aimez le plus ?',
       ko: '무엇을 좋아하나요?',
       zh: '你喜欢什么？',
       th: 'คุณชอบอะไร?',
@@ -1216,6 +1388,7 @@
       ja: '公開された「中須かすみ」のカード1枚を選ぶ。',
       es: 'Elige 1 carta de Kasumi Nakasu revelada.',
       pt: 'Escolha 1 carta Kasumi Nakasu revelada.',
+      fr: 'Choisissez 1 carta Kasumi Nakasu revelada.',
       ko: '공개된 「나카스 카스미」 카드 1장을 선택합니다.',
       zh: '选择1张已公开的「中须霞」卡。',
       th: 'เลือกการ์ด "คาสึมิ นากาสุ" ที่เปิดเผย 1 ใบ',
@@ -1224,6 +1397,7 @@
       ja: 'ステージの「中須かすみ」1人を選び、ハートを得る。',
       es: 'Elige 1 Kasumi Nakasu en tu Escenario para obtener corazones.',
       pt: 'Escolha 1 Kasumi Nakasu no seu Palco para ganhar corações.',
+      fr: 'Choisissez 1 Kasumi Nakasu sur le votre Scène pour gagner cœurs.',
       ko: '스테이지의 「나카스 카스미」 1명을 골라 하트를 얻습니다.',
       zh: '选择你舞台上的1名「中须霞」获得心形。',
       th: 'เลือก "คาสึมิ นากาสุ" 1 คนบนเวทีเพื่อรับหัวใจ',
@@ -1232,6 +1406,7 @@
       ja: '別のライブを選ぶ（または完了を確認）。',
       es: 'Elige otro Live (o confirma que terminaste).',
       pt: 'Escolha outra Live (ou confirme que terminou).',
+      fr: 'Choisissez une autre Live (ou confirmez que vous avez terminé).',
       ko: '다른 Live를 선택하거나 완료를 확인합니다.',
       zh: '选择另一张Live（或确认完成）。',
       th: 'เลือก Live อื่น (หรือยืนยันว่าเสร็จแล้ว)',
@@ -1240,6 +1415,7 @@
       ja: 'このターンに移動したメンバーのハート色を1つ選ぶ。',
       es: 'Elige 1 color de corazón para los Miembros que se movieron este turno.',
       pt: 'Escolha 1 cor de coração para os Membros que se moveram este turno.',
+      fr: 'Choisissez 1 cor de cœur para os Membres qui se sont déplacés ce tour.',
       ko: '이번 턴에 이동한 멤버의 하트 색 1개를 선택합니다.',
       zh: '为本回合移动的成员选择1种心形颜色。',
       th: 'เลือกสีหัวใจ 1 สีสำหรับสมาชิกที่ย้ายในเทิร์นนี้',
@@ -1248,6 +1424,7 @@
       ja: 'このターンに登場したAqours以外のメンバーのハート色を選ぶ。',
       es: 'Elige un color de corazón para los Miembros que no son Aqours que entraron este turno.',
       pt: 'Escolha uma cor de coração para os Membros Não-Aqours que entraram neste turno.',
+      fr: 'Choisissez une cor de cœur para os Membres non-Aqours qui sont entrés ce tour.',
       ko: '이번 턴에 등장한 Aqours가 아닌 멤버의 하트 색을 선택합니다.',
       zh: '为本回合登场的非Aqours成员选择心形颜色。',
       th: 'เลือกสีหัวใจสำหรับสมาชิกที่ไม่ใช่ Aqours ที่เข้าในเทิร์นนี้',
@@ -1256,6 +1433,7 @@
       ja: 'AqoursまたはSaint Snowメンバーがいるエリアへ移動先を選ぶ。',
       es: 'Elige un área con un Miembro Aqours o Saint Snow al que moverte.',
       pt: 'Escolha uma área com um Membro Aqours ou Saint Snow para mover esta carta.',
+      fr: 'Choisissez une zone avec un Membre Aqours ou Saint Snow pour déplacer cette carte.',
       ko: 'Aqours 또는 Saint Snow 멤버가 있는 구역으로 이동할 곳을 선택합니다.',
       zh: '选择要移动到有Aqours或Saint Snow成员的区域。',
       th: 'เลือกพื้นที่ที่มีสมาชิก Aqours หรือ Saint Snow เพื่อย้ายไป',
@@ -1264,6 +1442,7 @@
       ja: '手札に加えるカード1枚を選ぶ（残りは控え室へ）。',
       es: 'Elige 1 carta para añadir a la mano (el resto a la Sala de espera).',
       pt: 'Escolha 1 carta para adicionar à mão (restante ficará na Sala de Espera).',
+      fr: 'Choisissez 1 carta à ajouter à main (restante ficará dans la Salle d\'attente).',
       ko: '손패에 추가할 카드 1장을 선택합니다(나머지는 대기실).',
       zh: '选择1张卡加入手牌（其余放入等候室）。',
       th: 'เลือกการ์ด 1 ใบเพื่อเพิ่มเข้ามือ (ที่เหลือไปห้องรอ)',
@@ -1272,6 +1451,7 @@
       ja: '任意枚数のサブユニットメンバーを捨て、その枚数+1枚ドローする。',
       es: 'Elige cualquier cantidad de Miembros del subgrupo para descartar y roba esa cantidad +1.',
       pt: 'Escolha qualquer quantidade de Membros da Subunit para descartar, e então comprar esta mesma quantidade +1.',
+      fr: 'Choisissez n\'importe quel nombre de Membres de la Subunit à défausser, puis piochez ce même nombre +1.',
       ko: '임의의 서브유닛 멤버를 버리고 그 수+1장 드로우합니다.',
       zh: '选择任意数量的子团体成员弃置，然后抽该数量+1张。',
       th: 'เลือกสมาชิกย่อยจำนวนเท่าใดก็ได้เพื่อทิ้ง แล้วจั่วเพิ่มอีก 1 ใบ',
@@ -1280,6 +1460,7 @@
       ja: '0以上の数字を選び、デッキの上を公開する。',
       es: 'Elige un número (0 o más) y revela la parte superior de tu mazo.',
       pt: 'Escolha um número (0 ou mais) e revele o topo do seu deck.',
+      fr: 'Choisissez un número (0 ou mais) e revele o dessus do votre deck.',
       ko: '0 이상의 숫자를 선택한 뒤 덱 위를 공개합니다.',
       zh: '选择一个数字（0或更高），然后公开牌组顶。',
       th: 'เลือกตัวเลข (0 ขึ้นไป) แล้วเปิดเผยการ์ดบนสุดของเด็ค',
@@ -1288,6 +1469,7 @@
       ja: '手札から公開するメンバーカードを選ぶ。',
       es: 'Selecciona cartas de Miembro de tu mano para revelarlas.',
       pt: 'Escolha cartas Membro da sua mão para revelar.',
+      fr: 'Choisissez cartas Membre da votre main pour révéler.',
       ko: '손패에서 공개할 멤버 카드를 선택합니다.',
       zh: '从手牌选择要公开的成员卡。',
       th: 'เลือกการ์ดสมาชิกจากมือเพื่อเปิดเผย',
@@ -1296,6 +1478,7 @@
       ja: '一致するメンバーを手札に加えるか、スキップする。',
       es: 'Elige un Miembro coincidente para añadir a tu mano, u omite.',
       pt: 'Escolha um Membro correspondente para adicionar à sua mão, ou pular.',
+      fr: 'Choisissez un Membre correspondente à ajouter à votre main, ou pular.',
       ko: '일치하는 멤버를 손패에 추가하거나 건너뜁니다.',
       zh: '选择1名匹配成员加入手牌，或跳过。',
       th: 'เลือกสมาชิกที่ตรงกันเพื่อเพิ่มเข้ามือ หรือข้าม',
@@ -1304,6 +1487,7 @@
       ja: 'ステージの$1メンバー1体を選び、ボーナスハートを付与。',
       es: 'Elige 1 Miembro $1 en el Escenario para conceder corazones extra.',
       pt: 'Escolha 1 Membro $1 no Palco para conceder corações extras.',
+      fr: 'Choisissez 1 Membre $1 sur le Scène pour accorder des cœurs bonus.',
       ko: '스테이지의 $1 멤버 1명을 선택해 보너스 하트를 부여합니다.',
       zh: '选择舞台上1名$1成员给予额外心形。',
       th: 'เลือกสมาชิก $1 บนเวที 1 คนเพื่อให้หัวใจโบนัส',
@@ -1312,6 +1496,7 @@
       ja: '控え室からメンバーカード1枚を選び、手札に加える。',
       es: 'Elige 1 carta de Miembro de tu Sala de espera para añadirla a tu mano.',
       pt: 'Escolha 1 carta de Membro da seu Sala de Espera para adicionar à sua mão.',
+      fr: 'Choisissez 1 carte Membre da votre Salle d\'attente à ajouter à votre main.',
       ko: '대기실에서 멤버 카드 1장을 선택해 손패에 추가합니다.',
       zh: '从等候室选择1张成员卡加入手牌。',
       th: 'เลือกการ์ดสมาชิก 1 ใบจากห้องรอเพื่อเพิ่มเข้ามือ',
@@ -1320,6 +1505,7 @@
       ja: '控え室から一致するライブカード1枚を選び、手札に加える。',
       es: 'Elige 1 carta Live coincidente de tu Sala de espera para añadirla a tu mano.',
       pt: 'Escolha 1 carta Live correspondente da sua Sala de Espera para adicionar à sua mão.',
+      fr: 'Choisissez 1 carte Live correspondante da votre Salle d\'attente à ajouter à votre main.',
       ko: '대기실에서 일치하는 Live 카드 1장을 선택해 손패에 추가합니다.',
       zh: '从等候室选择1张匹配的Live卡加入手牌。',
       th: 'เลือกการ์ด Live ที่ตรงกัน 1 ใบจากห้องรอเพื่อเพิ่มเข้ามือ',
@@ -1328,6 +1514,7 @@
       ja: '控え室から$1ライブカード1枚を選び、手札に加える。',
       es: 'Elige 1 carta Live $1 de tu Sala de espera para añadirla a tu mano.',
       pt: 'Escolha 1 carta Live $1 da sua Sala de Espera para adicionar à sua mão.',
+      fr: 'Choisissez 1 carta Live $1 da votre Salle d\'attente à ajouter à votre main.',
       ko: '대기실에서 $1 Live 카드 1장을 선택해 손패에 추가합니다.',
       zh: '从等候室选择1张$1 Live卡加入手牌。',
       th: 'เลือกการ์ด Live $1 1 ใบจากห้องรอเพื่อเพิ่มเข้ามือ',
@@ -1336,6 +1523,7 @@
       ja: '控え室からライブカード1枚を選ぶ。',
       es: 'Elige 1 carta Live de tu Sala de espera.',
       pt: 'Escolha 1 carta Live da sua Sala de Espera.',
+      fr: 'Choisissez 1 carta Live da votre Salle d\'attente.',
       ko: '대기실에서 Live 카드 1장을 선택합니다.',
       zh: '从等候室选择1张Live卡。',
       th: 'เลือกการ์ด Live 1 ใบจากห้องรอ',
@@ -1344,6 +1532,7 @@
       ja: '控え室に置いたばかりのカード1枚を選ぶ。',
       es: 'Elige 1 carta que acabas de poner en tu Sala de espera.',
       pt: 'Escolha 1 carta que acabou de ser colocada na sua Sala de Espera.',
+      fr: 'Choisissez 1 carta qui vient d\'être placée dans la votre Salle d\'attente.',
       ko: '방금 대기실에 둔 카드 1장을 선택합니다.',
       zh: '选择刚放入等候室的1张卡。',
       th: 'เลือกการ์ด 1 ใบที่เพิ่งวางลงห้องรอ',
@@ -1352,6 +1541,7 @@
       ja: 'μ\'sメンバー1体を選び、控え室へ。',
       es: 'Elige 1 Miembro μ\'s para enviarlo a la Sala de espera.',
       pt: 'Escolha 1 Membro μ\'s para colocar na Sala de Espera.',
+      fr: 'Choisissez 1 Membre μ\'s à placer dans la Salle d\'attente.',
       ko: 'μ\'s 멤버 1명을 선택해 대기실로 보냅니다.',
       zh: '选择1名μ\'s成员放入等候室。',
       th: 'เลือกสมาชิก μ\'s 1 คนเพื่อส่งไปห้องรอ',
@@ -1360,6 +1550,7 @@
       ja: '$1メンバー1体を選び、ウェイトに。',
       es: 'Elige 1 Miembro $1 para ponerlo en Espera.',
       pt: 'Escolha 1 Membro $1 para colocar em Repouso.',
+      fr: 'Choisissez 1 Membre $1 à placer en Wait.',
       ko: '$1 멤버 1명을 선택해 Wait로 보냅니다.',
       zh: '选择1名$1成员放入Wait。',
       th: 'เลือกสมาชิก $1 1 คนเพื่อใส่ Wait',
@@ -1368,6 +1559,7 @@
       ja: '空のステージエリアを選ぶ。',
       es: 'Elige un área vacía del Escenario.',
       pt: 'Escolha uma área vazia do Palco.',
+      fr: 'Choisissez une zone vazia do Scène.',
       ko: '빈 스테이지 구역을 선택합니다.',
       zh: '选择一个空的舞台区域。',
       th: 'เลือกพื้นที่เวทีว่าง',
@@ -1376,6 +1568,7 @@
       ja: '控え室からコスト$2以下の$1メンバー1体を選ぶ。',
       es: 'Elige 1 Miembro $1 (coste ≤$2) de tu Sala de espera.',
       pt: 'Escolha 1 Membro $1 (coste ≤$2) da sua Sala de Espera.',
+      fr: 'Choisissez 1 Membre $1 (coût ≤$2) da votre Salle d\'attente.',
       ko: '대기실에서 코스트 $2 이하의 $1 멤버 1명을 선택합니다.',
       zh: '从等候室选择1名费用≤$2的$1成员。',
       th: 'เลือกสมาชิก $1 (Cost ≤$2) 1 คนจากห้องรอ',
@@ -1384,6 +1577,7 @@
       ja: '赤・緑・青ハートを持つメンバー1体を選び、手札に加える。',
       es: 'Elige 1 Miembro con corazones Rojo, Verde y Azul para añadir a la mano.',
       pt: 'Escolha 1 Membro com corações Vermelho, Verde e Azul para adicionar à sua mão.',
+      fr: 'Choisissez 1 Membre avec des cœurs Rouge, Vert et Bleu à ajouter à votre main.',
       ko: '빨강·초록·파랑 하트를 가진 멤버 1명을 선택해 손패에 추가합니다.',
       zh: '选择1名拥有红、绿、蓝心的成员加入手牌。',
       th: 'เลือกสมาชิกที่มีหัวใจแดง เขียว และน้ำเงิน 1 คนเพื่อเพิ่มเข้ามือ',
@@ -1392,6 +1586,7 @@
       ja: 'このターンにバトンタッチで登場した$1メンバー1体を選び、赤ハート1つ。',
       es: 'Elige 1 Miembro $1 que entró por Baton Touch este turno para ganar 1 corazón Rojo.',
       pt: 'Escolha 1 Membro $1 que entrou via Passe de Bastão neste turno para ganhar 1 Coração Vermelho.',
+      fr: 'Choisissez 1 Membre $1 que entrou via Baton Touch neste tursur le pour gagner 1 Coração Vermelho.',
       ko: '이번 턴 Baton Touch로 등장한 $1 멤버 1명을 선택해 빨간 하트 1개.',
       zh: '选择本回合通过Baton Touch登场的1名$1成员，获得1颗红心。',
       th: 'เลือกสมาชิก $1 ที่เข้าผ่าน Baton Touch ในเทิร์นนี้ 1 คนเพื่อได้หัวใจแดง 1',
@@ -1400,6 +1595,7 @@
       ja: '控え室と入れ替えるステージのメンバー1体を選ぶ。',
       es: 'Elige un Miembro en tu Escenario para intercambiarlo con la Sala de espera.',
       pt: 'Escolha um Membro no seu Palco para revezar da Sala de Espera.',
+      fr: 'Choisissez un Membre sur le votre Scène à échanger depuis la Salle d\'attente.',
       ko: '대기실과 교환할 스테이지 멤버를 선택합니다.',
       zh: '选择舞台上1名成员与等候室交换。',
       th: 'เลือกสมาชิกบนเวทีเพื่อสลับกับห้องรอ',
@@ -1408,6 +1604,7 @@
       ja: 'ステージのメンバー1体と、エネルギーデッキに戻す重ねエネルギー枚数を選ぶ。',
       es: 'Elige un Miembro del Escenario y cuánta Energía apilada devolver al mazo de Energía.',
       pt: 'Escolha um Membro do Palco e quantas Energias empilhadas para retornar ao seu Deck de Energia.',
+      fr: 'Choisissez un Membre de la Scène et combien d\'Énergies empilées à renvoyer dans votre Deck d\'Énergie.',
       ko: '스테이지 멤버와 에너지 덱으로 돌릴 겹쳐진 에너지 수를 선택합니다.',
       zh: '选择1名舞台成员以及要返还到能量牌组的叠放能量数量。',
       th: 'เลือกสมาชิกบนเวทีและจำนวนพลังงานที่ซ้อนเพื่อคืนไปเด็คพลังงาน',
@@ -1416,6 +1613,7 @@
       ja: '効果を1つ選ぶ：',
       es: 'Elige un efecto:',
       pt: 'Escolha um efeito:',
+      fr: 'Choisissez un efeito:',
       ko: '효과를 하나 선택:',
       zh: '选择一个效果：',
       th: 'เลือกเอฟเฟกต์หนึ่งอย่าง:',
@@ -1424,6 +1622,7 @@
       ja: '効果を1つ選ぶ：',
       es: 'Elige un efecto:',
       pt: 'Escolha um efeito:',
+      fr: 'Choisissez un efeito:',
       ko: '효과를 하나 선택:',
       zh: '选择一个效果：',
       th: 'เลือกเอฟเฟกต์หนึ่งอย่าง:',
@@ -1528,6 +1727,48 @@
     [/^Put 1 card from your hand into the Waiting Room\?$/, 'Colocar 1 carta da sua mão na Sala de Espera?'],
     [/^Use optional Live Start effect\?$/, 'Usar este efeito de Início de Live?'],
     [/^Use optional effect\?$/, 'Usar este efeito?'],
+  ];
+
+  var PROMPT_QUESTION_RULES_FR = [
+    [/^Put 1 card from your hand into the Waiting Room: look at the top (\d+) cards of your deck, add 1 to your hand, and put the rest into the Waiting Room[?.]?$/,
+      'Placez 1 carte de votre main dans la Salle d\'attente : regardez les $1 cartes du dessus de votre deck, ajoutez-en 1 à votre main et placez le reste dans la Salle d\'attente ?'],
+    [/^Put 1 card from your hand into the Waiting Room: add 1 (.+?) from your Waiting Room to your hand[?.]?$/,
+      'Placez 1 carte de votre main dans la Salle d\'attente : ajoutez 1 $1 de votre Salle d\'attente à votre main.'],
+    [/^Put 1 card from your hand into the Waiting Room: add (\d+) Energy[?.]?$/, 'Placez 1 carte de votre main dans la Salle d\'attente : ajoutez $1 Énergie.'],
+    [/^Choose (up to )?(\d+) (Member|Live|card) card(?:s|\(s\))? from your Waiting Room to add to your hand(?:,? or skip)?\.?$/,
+      function (_m, upTo, count, kind) {
+        var plural = count !== '1';
+        var type = kind === 'Member' ? (plural ? 'cartes Membre' : 'carte Membre') :
+          kind === 'Live' ? (plural ? 'cartes Live' : 'carte Live') : (plural ? 'cartes' : 'carte');
+        return 'Choisissez ' + (upTo ? "jusqu'à " : '') + count + ' ' + type + ' de votre Salle d\'attente et ajoutez-les à votre main.';
+      }],
+    [/^Choose a (?:matching )?(?:Member )?card from your Waiting Room to add to your hand\.?$/,
+      'Choisissez une carte de votre Salle d\'attente à ajouter à votre main.'],
+    [/^Choose (\d+) (.+?) card(?:s|\(s\))? from your Waiting Room to add to your hand(?:,? or skip)?\.?$/,
+      'Choisissez $1 carte(s) $2 de votre Salle d\'attente et ajoutez-les à votre main.'],
+    [/^Choose (up to )?(\d+) (Member |Live )?card(?:s|\(s\))? from your Waiting Room to add to your hand(?:,? or skip)?\.?$/,
+      function (_m, upTo, count, kind) {
+        var plural = count !== '1';
+        var type = kind === 'Member ' ? (plural ? 'cartes Membre' : 'carte Membre') :
+          kind === 'Live ' ? (plural ? 'cartes Live' : 'carte Live') : (plural ? 'cartes' : 'carte');
+        return 'Choisissez ' + (upTo ? "jusqu'à " : '') + count + ' ' + type + ' de votre Salle d\'attente et ajoutez-les à votre main.';
+      }],
+    [/^Choose 1 card from your Waiting Room to add to your hand \(the rest go to the Waiting Room\)\.?$/,
+      'Choisissez 1 carte de votre Salle d\'attente à ajouter à votre main ; le reste ira en Salle d\'attente.'],
+    [/^Choose 1 card revealed by Yell to add to your hand\.?$/, 'Choisissez 1 carte révélée par Yell à ajouter à votre main.'],
+    [/^Choose (?:up to )?(\d+) Member(?:s)? on your Stage\.?$/, 'Choisissez jusqu\'à $1 Membre(s) sur votre Scène.'],
+    [/^Choose (\d+) card(?:s|\(s\))? from your hand to (?:send to|put into) the Waiting Room\.?$/, 'Choisissez $1 carte(s) de votre main à placer en Salle d\'attente.'],
+    [/^Discard (\d+) card(?:s|\(s\))? from your hand\.?$/, 'Défaussez $1 carte(s) de votre main.'],
+    [/^Look at the top (\d+) cards? of your deck\.?$/, 'Regardez les $1 cartes du dessus de votre deck.'],
+    [/^Choose (?:an effect|one effect|one):?$/, 'Choisissez un effet.'],
+    [/^Choose a heart color\.?$/, 'Choisissez une couleur de cœur.'],
+    [/^Choose (?:yourself|you) or your opponent\.?$/, 'Choisissez vous-même ou votre adversaire.'],
+    [/^Choose a Live card for Success Live\.?$/, 'Choisissez une carte Live pour la zone de Lives réussies.'],
+    [/^Choose 1 card to add to your hand \(the rest go to the Waiting Room\)\.?$/, 'Choisissez 1 carte à ajouter à votre main ; le reste ira en Salle d\'attente.'],
+    [/^Ask your opponent: "(.+)"$/, 'Demandez à votre adversaire : "$1"'],
+    [/^Put 1 card from your hand into the Waiting Room\?$/, 'Placer 1 carte de votre main en Salle d\'attente ?'],
+    [/^Use optional Live Start effect\?$/, 'Utiliser cet effet de Début de Live ?'],
+    [/^Use optional effect\?$/, 'Utiliser cet effet ?'],
   ];
 
   var PROMPT_QUESTION_RULES_KO = [
@@ -1666,6 +1907,18 @@
     [/optional Live Start effect \(choose\)\./, 'efeito de Início de Live opcional (escolha).'],
     [/Live Success choice\./, 'escolha de Live Bem-Sucedida.'],
   ].concat(PROMPT_QUESTION_RULES_PT);
+  /** Effect-detail suffix rules for French. */
+  var EFFECT_RULES_FR = [
+    [/drew a card\./, 'a pioché une carte.'],
+    [/drew (.+)\./, 'a pioché $1.'],
+    [/discarded a card\./, 'a défaussé une carte.'],
+    [/put (.+) into the Waiting Room\./, 'a envoyé $1 en Salle d\'attente.'],
+    [/put a card into the Waiting Room\./, 'a envoyé une carte en Salle d\'attente.'],
+    [/optional Live Start \(choose\)\./, 'Début de Live optionnel (choix).'],
+    [/optional Live Start effect \(choose\)\./, 'effet de Début de Live optionnel (choix).'],
+    [/Live Success choice\./, 'choix de Live réussi.'],
+  ].concat(PROMPT_QUESTION_RULES_FR);
+
 
 
   /** Effect-detail suffix rules for Korean (draw / discard / play). */
@@ -2135,6 +2388,35 @@
     return out;
   }
 
+
+  function localizePromptTextFr(msg, catalog) {
+    if (!msg) return msg;
+    var out = String(msg);
+    out = applyPromptChoosePatterns(out, 'fr');
+    out = replaceSkillBrackets(out, SKILL_BRACKETS_FR);
+    out = applyRules(out, PROMPT_QUESTION_RULES_FR);
+    out = applyRules(out, PHRASE_RULES_FR);
+    out = applyRules(out, EFFECT_RULES_FR);
+    return out;
+  }
+
+  function localizeLogMessageFr(msg, catalog) {
+    if (!msg) return msg;
+
+    var exact = translateExact(msg);
+    if (exact != null) return exact;
+
+    var structured = translateStructuredLineFr(msg);
+    if (structured != null) return structured;
+
+    var out = String(msg);
+    out = applyRules(out, STRUCTURAL_PHRASE_RULES_FR);
+    out = replaceSkillBrackets(out, SKILL_BRACKETS_FR);
+    out = applyRules(out, PHRASE_RULES_FR);
+    out = applyRules(out, EFFECT_RULES_FR);
+    return out;
+  }
+
   function localizePromptText(msg, catalog) {
     if (!msg) return msg;
     var i18n = global.LLTCG_I18N;
@@ -2147,6 +2429,7 @@
     if (loc === 'zh') return localizePromptTextZh(msg, catalog);
     if (loc === 'th') return localizePromptTextTh(msg, catalog);
     if (loc === 'pt') return localizePromptTextPt(msg, catalog);
+    if (loc === 'fr') return localizePromptTextFr(msg, catalog);
     return msg;
   }
 
@@ -2257,6 +2540,7 @@
     if (loc === 'zh') return localizeLogMessageZh(msg, catalog);
     if (loc === 'th') return localizeLogMessageTh(msg, catalog);
     if (loc === 'pt') return localizeLogMessagePt(msg, catalog);
+    if (loc === 'fr') return localizeLogMessageFr(msg, catalog);
     return msg;
   }
 

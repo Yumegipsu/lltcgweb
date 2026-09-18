@@ -129,7 +129,9 @@
     "es": "Español",
     "ko": "한국어",
     "zh": "简体中文",
-    "th": "ไทย"
+    "th": "ไทย",
+    "fr": "Français",
+    "pt": "Português (Brasil)"
   },
   "lobby": {
     "title": "非排名对战",
