@@ -394,7 +394,7 @@
    * non-English players see the English `dialogue` fallback on the opening steps.
    */
   async function loadTutorialLocalePacks() {
-    const loaders = ['loadTutorialJa', 'loadTutorialEs', 'loadTutorialKo', 'loadTutorialZh', 'loadTutorialTh', 'loadTutorialPt'];
+    const loaders = ['loadTutorialJa', 'loadTutorialEs', 'loadTutorialKo', 'loadTutorialZh', 'loadTutorialTh', 'loadTutorialPt', 'loadTutorialFr'];
     for (const name of loaders) {
       const fn = global.LLTCG_I18N?.[name] || global[name];
       if (typeof fn !== 'function') continue;

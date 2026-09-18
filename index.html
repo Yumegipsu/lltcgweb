@@ -3090,7 +3090,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=200"></script>
+<script src="i18n.js?v=201"></script>
 <script src="log_i18n.js?v=20"></script>
 <script src="sfx.js?v=19"></script>
 <script src="client/js/news.js?v=41"></script>
@@ -3129,7 +3129,7 @@ try {
 <script src="client/js/replay-debug.js?v=15"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
 <script src="client/js/prompt-renderer.js?v=106"></script>
-<script src="client/js/tutorial-interactive.js?v=25"></script>
+<script src="client/js/tutorial-interactive.js?v=26"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
 (function () {
@@ -3223,7 +3223,7 @@ try {
 if (!window.LLTCG_I18N) {
   console.error('LLTCG_I18N failed to load — check i18n.js for syntax errors');
 }
-const { getLocale, setLocale, t, tt, cardLocaleName, cardLocaleText, cardLocaleType, deckLocaleName, loadTutorialJa, loadTutorialEs, loadTutorialKo, loadTutorialZh, loadTutorialTh, loadTutorialPt, tutorialDialogue, applyI18n, initLocale } = window.LLTCG_I18N || {
+const { getLocale, setLocale, t, tt, cardLocaleName, cardLocaleText, cardLocaleType, deckLocaleName, loadTutorialJa, loadTutorialEs, loadTutorialKo, loadTutorialZh, loadTutorialTh, loadTutorialPt, loadTutorialFr, tutorialDialogue, applyI18n, initLocale } = window.LLTCG_I18N || {
   getLocale: () => 'en',
   setLocale: () => {},
   t: (k) => k,
@@ -3244,6 +3244,7 @@ const { getLocale, setLocale, t, tt, cardLocaleName, cardLocaleText, cardLocaleT
   loadTutorialZh: () => Promise.resolve({}),
   loadTutorialTh: () => Promise.resolve({}),
   loadTutorialPt: () => Promise.resolve({}),
+  loadTutorialFr: () => Promise.resolve({}),
   tutorialDialogue: (s) => (s && s.dialogue) || '',
   applyI18n: () => {},
   initLocale: () => {},
@@ -33811,6 +33812,7 @@ async function startTutorial() {
     await loadTutorialZh();
     await loadTutorialTh();
     await loadTutorialPt();
+    await loadTutorialFr();
     const r = await fetch('./tutorial.json?v=3', { cache: 'no-store' });
     if (!r.ok) throw new Error('Could not load tutorial (HTTP ' + r.status + ')');
     const data = await r.json();
