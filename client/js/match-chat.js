@@ -58,6 +58,10 @@
     if (boundRoomId && boundRoomId !== rid) {
       resetRoomBuffers();
       disconnectStream();
+      activeRoom = G().isSpectator ? 'spectate' : 'public';
+    }
+    if (!boundRoomId) {
+      activeRoom = G().isSpectator ? 'spectate' : 'public';
     }
     boundRoomId = rid;
     return rid;
@@ -275,18 +279,30 @@
     (buffers[activeRoom] || []).forEach((msg) => paintLine(msg));
   }
 
+  function canSendInActiveRoom() {
+    if (!authToken()) return false;
+    const isSpec = !!G().isSpectator;
+    if (isSpec) return activeRoom === 'spectate';
+    return activeRoom === 'public' || activeRoom === 'friends';
+  }
+
   function setComposerEnabled(on) {
     const ta = document.getElementById('match-chat-input');
     const send = document.getElementById('match-chat-send-btn');
     const emojiBtn = document.getElementById('match-chat-emoji-btn');
+    const allow = !!on && canSendInActiveRoom();
     if (ta) {
-      ta.disabled = !on;
-      ta.placeholder = on
-        ? tt('chat.placeholder', 'Message…')
-        : tt('chat.signIn', 'Sign in to chat…');
+      ta.disabled = !allow;
+      if (!authToken()) {
+        ta.placeholder = tt('chat.signIn', 'Sign in to chat…');
+      } else if (G().isSpectator && activeRoom !== 'spectate') {
+        ta.placeholder = tt('chat.spectateReadOnly', 'Spectators chat in Spectate…');
+      } else {
+        ta.placeholder = tt('chat.placeholder', 'Message…');
+      }
     }
-    if (send) send.disabled = !on;
-    if (emojiBtn) emojiBtn.disabled = !on;
+    if (send) send.disabled = !allow;
+    if (emojiBtn) emojiBtn.disabled = !allow;
   }
 
   function syncTabUi() {
@@ -332,17 +348,33 @@
     }
 
     const specBtn = document.getElementById('btn-match-chat-spectate');
+    const friendsBtn = document.querySelector('.match-chat-room[data-chat-room="friends"]');
+    const publicBtn = document.querySelector('.match-chat-room[data-chat-room="public"]');
     const isSpec = !!G().isSpectator;
     if (specBtn) {
+      // Players never open Spectate; spectators always have it.
       specBtn.hidden = !isSpec;
-      if (!isSpec && activeRoom === 'spectate') {
-        setRoom('public');
-      }
+    }
+    if (friendsBtn) {
+      // Friends lobby is player-only (mutual friends among players in the match).
+      friendsBtn.hidden = !!isSpec;
+    }
+    if (publicBtn) {
+      // Spectators can read Public (player talk) but cannot send there.
+      publicBtn.hidden = false;
+    }
+    if (isSpec) {
+      if (activeRoom === 'friends') activeRoom = 'spectate';
+      if (activeRoom !== 'public' && activeRoom !== 'spectate') activeRoom = 'spectate';
+    } else if (activeRoom === 'spectate') {
+      activeRoom = 'public';
     }
     document.querySelectorAll('.match-chat-room').forEach((btn) => {
       const room = btn.getAttribute('data-chat-room');
       btn.classList.toggle('is-active', room === activeRoom);
     });
+    if (activeTab === 'chat') renderActiveChannel();
+    setComposerEnabled(!!authToken());
   }
 
   function setTab(tab) {
@@ -352,7 +384,9 @@
 
   function setRoom(room) {
     const next = String(room || 'public');
-    if (next === 'spectate' && !G().isSpectator) return;
+    const isSpec = !!G().isSpectator;
+    if (next === 'spectate' && !isSpec) return;
+    if (next === 'friends' && isSpec) return;
     if (next !== 'public' && next !== 'friends' && next !== 'spectate') return;
     if (activeRoom === next) return;
     activeRoom = next;
@@ -518,15 +552,21 @@
     const token = authToken();
     const rid = adoptActiveRoom();
     if (!ta || !token || !rid) return;
+    if (!canSendInActiveRoom()) {
+      setStatus(tt('chat.spectateReadOnly', 'Spectators chat in Spectate…'));
+      return;
+    }
     const text = String(ta.value || '').trim();
     if (!text) return;
     setStatus('');
+    const isSpec = !!G().isSpectator;
+    const channel = isSpec ? 'spectate' : (activeRoom === 'friends' ? 'friends' : 'public');
     const profile = myProfile();
     const body = {
       text,
-      channel: activeRoom,
+      channel,
       room_id: rid,
-      role: G().isSpectator ? 'spectator' : 'player',
+      role: isSpec ? 'spectator' : 'player',
       session_token: token,
       token,
       username: profile.username,
