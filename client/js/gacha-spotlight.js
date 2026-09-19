@@ -348,7 +348,7 @@
             26,
             s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
           );
-          playSfx(s.finalTier === 'rainbow' ? 'match_found' : 'menu_confirm');
+          playSfx(s.finalTier === 'rainbow' ? 'pack_open' : 'pack_reveal');
           if (s.finalTier === 'rainbow' && s._rbCycleStart == null) {
             s._rbCycleStart = now;
           }
@@ -440,7 +440,7 @@
     void flourishEl.offsetWidth;
     flourishEl.classList.add('is-show');
     flash = Math.max(flash, ur ? 0.7 : 0.4);
-    playSfx(ur ? 'match_found' : 'menu_confirm');
+    playSfx(ur ? 'pack_open' : 'pack_reveal');
     if (ur) {
       slots.forEach((s) => burst(
         s.bx,
@@ -496,8 +496,10 @@
           7,
           s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
         );
-        // Soft UI/lobby chimes — avoid pack/match combat SFX already used in-game.
-        playSfx(i === 0 ? 'screen_open' : 'active_refresh');
+        // Pack-family reveals for rares; soft tick for commons.
+        if (s.finalTier === 'rainbow') playSfx('pack_open');
+        else if (s.finalTier === 'gold') playSfx('pack_reveal');
+        else playSfx(i === 0 ? 'yell_reveal' : 'active_refresh');
         if (s.finalTier === 'rainbow') {
           const mini = s.el.querySelector('.gacha-spot-mini');
           if (mini) {
