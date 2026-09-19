@@ -488,7 +488,7 @@
     slots.forEach((s, i) => {
       setTimeout(() => {
         if (!s.el) return;
-        s.el.classList.add('is-in');
+        s.el.classList.add('is-in', 'revealing');
         const fy = slotFloorY(s);
         burst(
           s.bx,
@@ -514,6 +514,9 @@
             if (s._rbCycleStart == null) s._rbCycleStart = now;
           }
         }
+        // Drop revealing after pack FX settle so idle glow remains.
+        const settleMs = s.finalTier === 'rainbow' ? 1100 : s.finalTier === 'gold' ? 900 : 400;
+        setTimeout(() => s.el?.classList.remove('revealing'), settleMs);
       }, i * T.cardGap);
     });
   }
@@ -523,13 +526,41 @@
     cardsEl.innerHTML = '';
     slots.forEach((s) => {
       const t = TIER[s.finalTier] || TIER.grey;
+      const isUr = s.finalTier === 'rainbow';
+      const isSr = s.finalTier === 'gold';
+      const packTier = isUr ? 3 : isSr ? 2 : 0;
       const el = document.createElement('div');
       el.className = 'gacha-spot-slot'
-        + (s.finalTier === 'rainbow' ? ' is-ur' : s.finalTier === 'gold' ? ' is-sr' : ' is-n');
+        + (isUr ? ' is-ur' : isSr ? ' is-sr' : ' is-n');
       el.style.setProperty('--frame', t.frame);
       el.style.setProperty('--halo', t.halo);
       const mini = document.createElement('div');
-      mini.className = 'gacha-spot-mini' + (s.finalTier === 'rainbow' ? ' is-rainbow' : '');
+      mini.className = 'gacha-spot-mini'
+        + (isUr ? ' is-rainbow' : '')
+        + (packTier >= 2 ? ' is-holo' : '')
+        + (packTier > 0 ? ` pack-reveal-t${packTier}` : '');
+
+      if (packTier >= 1) {
+        const frame = document.createElement('div');
+        frame.className = 'pack-open-rarity-frame';
+        frame.setAttribute('aria-hidden', 'true');
+        mini.appendChild(frame);
+      }
+
+      const inner = document.createElement('div');
+      inner.className = 'gacha-spot-face-wrap';
+      if (packTier >= 2) {
+        const burst = document.createElement('div');
+        burst.className = 'pack-open-burst';
+        burst.setAttribute('aria-hidden', 'true');
+        inner.appendChild(burst);
+      }
+      if (packTier >= 3) {
+        const spark = document.createElement('div');
+        spark.className = 'pack-open-sparkle-layer';
+        spark.setAttribute('aria-hidden', 'true');
+        inner.appendChild(spark);
+      }
       const face = document.createElement('div');
       face.className = 'gacha-spot-face';
       if (s.image) {
@@ -541,7 +572,14 @@
       } else {
         face.textContent = t.text;
       }
-      mini.appendChild(face);
+      inner.appendChild(face);
+      if (packTier >= 1) {
+        const shine = document.createElement('div');
+        shine.className = 'pack-open-shine';
+        shine.setAttribute('aria-hidden', 'true');
+        inner.appendChild(shine);
+      }
+      mini.appendChild(inner);
       el.appendChild(mini);
       cardsEl.appendChild(el);
       s.el = el;
