@@ -535,13 +535,14 @@
       body.sr_count = Math.max(0, Number(el('gacha-sim-sr')?.value || 0));
     }
     try {
-      sfx('pack_open');
+      sfx('screen_open');
       const res = await accountPost('gacha_sim', body);
       await loadIdolMap();
       const pulls = res.pulls || [];
       await playSpectacle(pulls);
-      toast(tt('gacha.simDone', 'Simulation only — nothing added ({n} pulls)', { n: pulls.length }), 3200);
+      await showGachaResults(res, { simulated: true });
     } catch (e) {
+      closeGachaOverlay();
       if (err) err.textContent = e.message || tt('gacha.pullError', 'Could not scout');
       toast(e.message || tt('gacha.pullError', 'Could not scout'), 2800);
     } finally {
@@ -549,22 +550,72 @@
     }
   }
 
-  function waitTap(node) {
-    return new Promise((resolve) => {
-      const done = () => {
-        node.removeEventListener('click', done);
-        node.removeEventListener('keydown', onKey);
-        resolve();
-      };
-      const onKey = (ev) => {
-        if (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'Escape') {
-          ev.preventDefault();
-          done();
-        }
-      };
-      node.addEventListener('click', done);
-      node.addEventListener('keydown', onKey);
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function closeGachaOverlay() {
+    const ov = el('overlay-gacha-pull');
+    if (global.GachaSpotlight) global.GachaSpotlight.stop();
+    if (ov) {
+      ov.hidden = true;
+      ov.setAttribute('aria-hidden', 'true');
+    }
+    document.body.classList.remove('gacha-pull-open');
+  }
+
+  async function flySpotlightCardsToResults() {
+    const minis = typeof global.GachaSpotlight?.getSlotMinis === 'function'
+      ? global.GachaSpotlight.getSlotMinis()
+      : [];
+    const targets = Array.from(document.querySelectorAll('#pack-results-grid .pack-results-card'));
+    if (!minis.length || !targets.length) return;
+    const reduce = !!global.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    const clones = [];
+    minis.forEach((mini, i) => {
+      if (!mini || !targets[i]) return;
+      const from = mini.getBoundingClientRect();
+      const img = mini.querySelector('img');
+      const clone = document.createElement('div');
+      clone.className = 'gacha-fly-clone';
+      if (img && img.src) {
+        const im = document.createElement('img');
+        im.src = img.src;
+        im.alt = '';
+        clone.appendChild(im);
+      }
+      Object.assign(clone.style, {
+        left: `${from.left}px`,
+        top: `${from.top}px`,
+        width: `${from.width}px`,
+        height: `${from.height}px`,
+        opacity: '1',
+      });
+      document.body.appendChild(clone);
+      // Hide source so only the flying clone is visible.
+      mini.style.opacity = '0';
+      clones.push({ clone, target: targets[i], item: targets[i].closest('.pack-results-item') });
     });
+    if (!clones.length) return;
+    await sleep(reduce ? 16 : 32);
+    clones.forEach(({ clone, target }) => {
+      const to = target.getBoundingClientRect();
+      clone.style.left = `${to.left}px`;
+      clone.style.top = `${to.top}px`;
+      clone.style.width = `${to.width}px`;
+      clone.style.height = `${to.height}px`;
+    });
+    await sleep(reduce ? 40 : 580);
+    clones.forEach(({ clone, item }) => {
+      clone.style.opacity = '0';
+      if (item) {
+        item.classList.remove('is-awaiting-fly');
+        item.classList.add('is-fly-landed');
+      }
+    });
+    await sleep(reduce ? 20 : 160);
+    clones.forEach(({ clone }) => clone.remove());
+    sfx('screen_open');
   }
 
   async function playSpectacle(pulls) {
@@ -589,14 +640,6 @@
         hint: tt('gacha.tapContinue', 'Tap to continue'),
       },
     });
-
-    // Allow a beat to admire / tilt UR cards, then tap to leave.
-    await waitTap(ov);
-
-    if (global.GachaSpotlight) global.GachaSpotlight.stop();
-    ov.hidden = true;
-    ov.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('gacha-pull-open');
   }
 
   function toResultCards(pulls) {
@@ -609,33 +652,54 @@
     }));
   }
 
-  function showGachaResults(res) {
+  async function showGachaResults(res, opts) {
     const pulls = res.pulls || [];
     const cards = toResultCards(pulls);
+    const simulated = !!(opts && opts.simulated) || !!res.simulated;
     global.A = global.A || {};
     global.A._fromGacha = true;
     global.A._gachaLastMode = res.mode || _lastMode;
     global.A._gachaLastCurrency = res.currency === 'scouting_tickets' ? 'tickets' : 'star_gems';
     syncGems(res.star_gems);
     syncTickets(res.scouting_tickets);
-    if (typeof global.showPackResults === 'function') {
-      const isMulti = (res.mode || _lastMode) === 'multi' || cards.length >= 10;
-      global.showPackResults(cards, tt('gacha.title', 'Gacha'), {
-        godPack: false,
-        starGemsEarned: res.star_gems_earned || 0,
-        gachaMulti: isMulti,
-      });
-      const again = el('btn-pack-again');
-      const another = el('btn-pack-another');
-      if (again) {
-        again.hidden = false;
+    if (typeof global.showPackResults !== 'function') {
+      closeGachaOverlay();
+      showScr('gacha');
+      return;
+    }
+    const isMulti = (res.mode || _lastMode) === 'multi' || cards.length >= 10;
+    const title = simulated
+      ? tt('gacha.simResultsTitle', 'Gacha (simulation)')
+      : tt('gacha.title', 'Gacha');
+    // Build results under the overlay, then fly spotlight cards into place.
+    global.showPackResults(cards, title, {
+      godPack: false,
+      starGemsEarned: simulated ? 0 : (res.star_gems_earned || 0),
+      gachaMulti: isMulti,
+      awaitingFly: true,
+      skipRevealSfx: true,
+    });
+    if (simulated) {
+      const sub = el('pack-results-sub');
+      if (sub) {
+        sub.textContent = tt(
+          'gacha.simResultsSub',
+          'Simulation only — cards were not added to your collection.'
+        );
+      }
+    }
+    await flySpotlightCardsToResults();
+    closeGachaOverlay();
+    const again = el('btn-pack-again');
+    const another = el('btn-pack-another');
+    if (again) {
+      again.hidden = !!simulated;
+      if (!simulated) {
         again.textContent = tt('gacha.scoutAgain', 'Scout again');
       }
-      if (another) {
-        another.textContent = tt('gacha.backToGacha', 'Back to Gacha');
-      }
-    } else {
-      showScr('gacha');
+    }
+    if (another) {
+      another.textContent = tt('gacha.backToGacha', 'Back to Gacha');
     }
   }
 
@@ -655,12 +719,12 @@
       global.A._gachaLastCurrency = payWith;
     }
     try {
-      sfx('pack_open');
+      sfx('screen_open');
       const res = await accountPost('open_gacha', { mode: _lastMode, currency: payWith });
       await loadIdolMap();
       const pulls = res.pulls || [];
       await playSpectacle(pulls);
-      showGachaResults(res);
+      await showGachaResults(res);
       _info = {
         ...(_info || {}),
         star_gems: res.star_gems,
@@ -669,6 +733,7 @@
       syncGems(res.star_gems);
       syncTickets(res.scouting_tickets);
     } catch (e) {
+      closeGachaOverlay();
       if (err) err.textContent = e.message || tt('gacha.pullError', 'Could not scout');
       toast(e.message || tt('gacha.pullError', 'Could not scout'), 2800);
     } finally {

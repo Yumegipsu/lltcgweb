@@ -299,7 +299,7 @@
       has,
       fAt,
       cAt,
-      endAt: cAt + slots.length * T.cardGap + 420,
+      endAt: cAt + Math.max(0, slots.length - 1) * T.cardGap + 980,
     };
   }
 
@@ -324,7 +324,7 @@
         widen = 1 + p * 0.1;
         if (!s._glitterSfx) {
           s._glitterSfx = true;
-          playSfx('energy_chip');
+          playSfx('notify');
         }
         if (!reduceMotion && parts.length < Q.motes + Q.sparkles && Math.random() < 0.85) {
           sparkle(s, Math.random() * 0.95);
@@ -342,7 +342,10 @@
             26,
             s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
           );
-          playSfx(s.finalTier === 'rainbow' ? 'yell_reveal' : 'pack_reveal');
+          playSfx(s.finalTier === 'rainbow' ? 'match_found' : 'menu_confirm');
+          if (s.finalTier === 'rainbow' && s._rbCycleStart == null) {
+            s._rbCycleStart = now;
+          }
         }
         boost = 2.2 * (1 - p);
         dim = 1 + 1.4 * (1 - p);
@@ -367,9 +370,19 @@
       * (slots.length === 1 ? 2.0 : slots.length > 8 ? 0.72 : 1)
       * widen;
 
-    const sprite = s.tier === 'rainbow'
-      ? rainbowCone(Math.floor(now / 140) % RB_PHASES)
-      : solidCone(t);
+    const sprite = (() => {
+      if (s.tier !== 'rainbow') return solidCone(t);
+      const cycleMs = 140 * RB_PHASES;
+      if (s._rbLock != null) return rainbowCone(s._rbLock);
+      if (s._rbCycleStart == null) s._rbCycleStart = now;
+      const elapsed = now - s._rbCycleStart;
+      const phase = Math.floor(elapsed / 140) % RB_PHASES;
+      if (elapsed >= cycleMs) {
+        s._rbLock = phase;
+        return rainbowCone(phase);
+      }
+      return rainbowCone(phase);
+    })();
 
     ctx.save();
     ctx.translate(s.ax, rigY);
@@ -379,9 +392,11 @@
     ctx.drawImage(sprite, -baseW / 2, -len, baseW, len);
     ctx.restore();
 
-    const poolCol = s.tier === 'rainbow'
-      ? BANDS[(now / 140 | 0) % BANDS.length]
-      : t.pool;
+    const poolCol = (() => {
+      if (s.tier !== 'rainbow') return t.pool;
+      if (s._rbLock != null) return BANDS[s._rbLock % BANDS.length];
+      return BANDS[(now / 140 | 0) % BANDS.length];
+    })();
     const pw = baseW * 1.9;
     const ph = pw * 0.28;
     ctx.globalAlpha = Math.min(1, rise) * (0.62 + 0.3 * boost) * t.power;
@@ -417,7 +432,7 @@
     void flourishEl.offsetWidth;
     flourishEl.classList.add('is-show');
     flash = Math.max(flash, ur ? 0.7 : 0.4);
-    playSfx(ur ? 'splash_success' : 'splash_live');
+    playSfx(ur ? 'match_found' : 'menu_confirm');
     if (ur) {
       slots.forEach((s) => burst(
         s.bx,
@@ -473,11 +488,23 @@
           7,
           s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
         );
-        // One SFX per card (was every-other → only ~6 of 11).
-        playSfx(i === 0 ? 'pack_reveal' : 'card_flip');
+        // Soft UI/lobby chimes — avoid pack/match combat SFX already used in-game.
+        playSfx(i === 0 ? 'screen_open' : 'active_refresh');
         if (s.finalTier === 'rainbow') {
           const mini = s.el.querySelector('.gacha-spot-mini');
-          if (mini) bindUrTilt(mini);
+          if (mini) {
+            const onSpinEnd = () => {
+              mini.classList.add('is-spin-done');
+              mini.removeEventListener('animationend', onSpinEnd);
+              bindUrTilt(mini);
+            };
+            mini.addEventListener('animationend', onSpinEnd);
+            if (reduceMotion) {
+              mini.classList.add('is-spin-done');
+              bindUrTilt(mini);
+            }
+            if (s._rbCycleStart == null) s._rbCycleStart = now;
+          }
         }
       }, i * T.cardGap);
     });
@@ -577,8 +604,8 @@
         const fy = slotFloorY(s);
         rings.push({ x: s.bx, y: fy, r: 6, a: 0.6, col: TIER[s.tier].pool });
         burst(s.bx, fy - 8, 5, TIER[s.tier].pool);
-        if (s.i === 0) playSfx('pack_open');
-        else playSfx('skill_tick');
+        if (s.i === 0) playSfx('screen_open');
+        else playSfx('active_refresh');
       }
     }
     if (plan.has && !plan._f && now >= plan.fAt) {
@@ -592,10 +619,7 @@
     }
     if (!plan._d && now >= plan.endAt) {
       plan._d = true;
-      if (hintEl) {
-        hintEl.hidden = false;
-        hintEl.textContent = labels.hint;
-      }
+      if (hintEl) hintEl.hidden = true;
       if (resolveDone) {
         const done = resolveDone;
         resolveDone = null;
@@ -640,7 +664,7 @@
       plan._c = true;
       revealCards();
     }
-    plan.endAt = now + slots.length * T.cardGap + 250;
+    plan.endAt = now + Math.max(0, slots.length - 1) * T.cardGap + 980;
   }
 
   function unbindListeners() {
@@ -740,6 +764,9 @@
     stop,
     finish,
     fromPulls,
+    getSlotMinis() {
+      return slots.map((s) => s.el?.querySelector('.gacha-spot-mini') || null);
+    },
     get isPlaying() {
       return running;
     },

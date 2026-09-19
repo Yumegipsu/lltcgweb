@@ -9171,7 +9171,7 @@ body.gacha-pull-open{overflow:hidden}
   pointer-events:auto;
 }
 .gacha-spot-slot.is-in{opacity:1;transform:translate(-50%,-100%) scale(1) rotateY(0deg)}
-/* UR: no spin-in — rise + Balatro-style tilt on hover */
+/* UR: rise in, then one full spin of card + rainbow frame, then stop (tilt after). */
 .gacha-spot-slot.is-ur{perspective:900px;transform:translate(-50%,-100%) scale(.72);transition:opacity .35s ease, transform .5s cubic-bezier(.15,1.05,.3,1)}
 .gacha-spot-slot.is-ur.is-in{transform:translate(-50%,-100%) scale(1)}
 .gacha-spot-mini{
@@ -9186,15 +9186,34 @@ body.gacha-pull-open{overflow:hidden}
 .gacha-spot-mini.is-rainbow::before{
   content:'';position:absolute;inset:-2px;border-radius:11px;z-index:0;
   background:conic-gradient(from 0deg,#ff5f9e,#ffd36a,#8ef6c1,#6ad6ff,#b58bff,#ff5f9e);
-  animation:gacha-spot-spin 3.4s linear infinite;
+  transform:rotate(0deg);
 }
-@keyframes gacha-spot-spin{to{transform:rotate(360deg)}}
+.gacha-spot-slot.is-ur.is-in .gacha-spot-mini.is-rainbow{
+  animation:gacha-ur-spin-once .9s cubic-bezier(.18,.9,.22,1) forwards;
+}
+.gacha-spot-slot.is-ur.is-in .gacha-spot-mini.is-rainbow::before{
+  animation:gacha-spot-spin-once .9s cubic-bezier(.18,.9,.22,1) forwards;
+}
+.gacha-spot-slot.is-ur.is-in .gacha-spot-mini.is-rainbow.is-spin-done,
+.gacha-spot-slot.is-ur.is-in .gacha-spot-mini.is-rainbow.is-spin-done::before{
+  animation:none;
+  transform:rotate(0deg);
+}
+@keyframes gacha-spot-spin-once{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@keyframes gacha-ur-spin-once{
+  from{transform:rotate(0deg) scale(1)}
+  to{transform:rotate(360deg) scale(1)}
+}
 .gacha-spot-mini.gacha-spot-tilt.is-tilting{
+  animation:none!important;
   transform:rotateX(var(--foil-rx,0deg)) rotateY(var(--foil-ry,0deg)) scale(1.06);
   box-shadow:0 16px 36px rgba(0,0,0,.55),0 0 28px rgba(190,140,255,.45);
   z-index:5;
 }
-.gacha-spot-mini.gacha-spot-tilt.is-tilting::before{animation-play-state:paused}
+.gacha-spot-mini.gacha-spot-tilt.is-tilting::before{animation:none!important}
 .gacha-spot-face{
   position:relative;z-index:1;width:100%;height:100%;border-radius:7px;overflow:hidden;
   background:linear-gradient(165deg,#1b1330,#0b0716);
@@ -9224,14 +9243,14 @@ body.gacha-pull-open{overflow:hidden}
   background-size:220% 100%;
   -webkit-background-clip:text;background-clip:text;
   filter:drop-shadow(0 0 30px rgba(190,150,255,.85));
-  animation:gacha-spot-slide 2.4s linear infinite;
+  animation:gacha-spot-slide-once .9s ease-out forwards;
 }
 .gacha-spot-flourish.is-gold .gacha-spot-flourish-big{
   background:linear-gradient(100deg,#ffeaa8,#ffc44d 45%,#fff6d6 62%,#ffb224);
   -webkit-background-clip:text;background-clip:text;
   filter:drop-shadow(0 0 24px rgba(255,190,80,.75));
 }
-@keyframes gacha-spot-slide{to{background-position:220% 0}}
+@keyframes gacha-spot-slide-once{from{background-position:0% 0}to{background-position:220% 0}}
 .gacha-spot-flourish.is-show{animation:gacha-spot-flourish-in .6s cubic-bezier(.13,1,.3,1) forwards}
 @keyframes gacha-spot-flourish-in{
   0%{opacity:0;transform:scale(1.3);filter:blur(9px)}
@@ -9253,8 +9272,23 @@ body.gacha-pull-open{overflow:hidden}
   pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.5);
 }
 .gacha-spot-hint[hidden]{display:none!important}
+.gacha-fly-clone{
+  position:fixed;z-index:10050;pointer-events:none;margin:0;border-radius:9px;
+  will-change:left,top,width,height,transform,opacity;
+  transition:left .55s cubic-bezier(.2,.85,.25,1),top .55s cubic-bezier(.2,.85,.25,1),
+    width .55s cubic-bezier(.2,.85,.25,1),height .55s cubic-bezier(.2,.85,.25,1),
+    transform .55s cubic-bezier(.2,.85,.25,1),opacity .18s ease;
+  box-shadow:0 12px 28px rgba(0,0,0,.55);
+  overflow:hidden;background:#12081a;
+}
+.gacha-fly-clone img{width:100%;height:100%;object-fit:cover;display:block}
+.pack-results-item.is-awaiting-fly{opacity:0}
+.pack-results-item.is-fly-landed{opacity:1;transition:opacity .18s ease}
 @media (prefers-reduced-motion:reduce){
   .gacha-spot-mini.is-rainbow::before{animation:none}
+  .gacha-spot-slot.is-ur.is-in .gacha-spot-mini.is-rainbow,
+  .gacha-spot-slot.is-ur.is-in .gacha-spot-mini.is-rainbow::before{animation:none}
   .gacha-spot-flourish.is-rainbow .gacha-spot-flourish-big{animation:none}
   .gacha-spot-slot,.gacha-spot-slot.is-ur{transition-duration:.01ms}
+  .gacha-fly-clone{transition-duration:.01ms}
 }

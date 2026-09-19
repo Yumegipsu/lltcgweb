@@ -591,6 +591,8 @@
       "ticketMulti": "Scout ×{count} ({n} tickets)",
       "simDenied": "Admin only",
       "simDone": "Simulation only — nothing added ({n} pulls)",
+      "simResultsTitle": "Gacha (simulation)",
+      "simResultsSub": "Simulation only — cards were not added to your collection.",
       "ratesLead": "Tap Info for rarity rates and card odds",
       "poolInfo": "{total} cards in pool",
       "single": "Scout ×1 ({n})",

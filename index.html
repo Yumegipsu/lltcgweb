@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=152">
+<link rel="stylesheet" href="client/css/shell-all.css?v=153">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
 <link rel="stylesheet" href="client/css/playmats.css?v=6">
@@ -3257,8 +3257,8 @@ try {
 <script src="client/js/playmats.js?v=8"></script>
 <script src="client/js/apk-asset-cache.js?v=8"></script>
 <script src="client/js/shop-new.js?v=2"></script>
-<script src="client/js/gacha-spotlight.js?v=7"></script>
-<script src="client/js/gacha.js?v=14"></script>
+<script src="client/js/gacha-spotlight.js?v=8"></script>
+<script src="client/js/gacha.js?v=15"></script>
 <script src="client/js/ranked-pr-reward.js?v=6"></script>
 <script src="client/js/missions.js?v=14"></script>
 <script src="client/js/admin-events.js?v=2"></script>
@@ -5099,7 +5099,7 @@ function packResultRarityClass(rarity) {
   return 'rarity-base-n';
 }
 
-function showPackResults(cards, boxName, { godPack = false, faceSrcByIndex = null, boxMode = false, gachaMulti = false, starGemsEarned = 0, packsPerBox = DEFAULT_PACKS_PER_BOX } = {}) {
+function showPackResults(cards, boxName, { godPack = false, faceSrcByIndex = null, boxMode = false, gachaMulti = false, starGemsEarned = 0, packsPerBox = DEFAULT_PACKS_PER_BOX, awaitingFly = false, skipRevealSfx = false } = {}) {
   A.lastPackCards = cards || [];
   const title = el('pack-results-title');
   const sub = el('pack-results-sub');
@@ -5125,7 +5125,9 @@ function showPackResults(cards, boxName, { godPack = false, faceSrcByIndex = nul
     const converted = !!c?.converted;
     const preferSrc = faceSrcByIndex?.[idx] || '';
     const item = document.createElement('div');
-    item.className = 'pack-results-item' + (converted ? ' pack-results-item--converted' : '');
+    item.className = 'pack-results-item'
+      + (converted ? ' pack-results-item--converted' : '')
+      + (awaitingFly ? ' is-awaiting-fly' : '');
 
     if (!boxMode) {
       const name = document.createElement('div');
@@ -5155,7 +5157,7 @@ function showPackResults(cards, boxName, { godPack = false, faceSrcByIndex = nul
   });
   updatePackAgainButton(mode);
   updateStarGemsUI();
-  sfxPlay('pack_reveal');
+  if (!skipRevealSfx) sfxPlay(awaitingFly ? 'screen_open' : 'pack_reveal');
   showScr('pack-results');
   // Tall box grids used to sit vertically centered, so scrollTop=0 could not reach the title.
   const resultsScr = el('screen-pack-results');
