@@ -215,6 +215,9 @@ function tcgGachaPickSrPlusTier(): string {
 }
 
 /**
+ * Multi scout: ensure at least one SR+, and that card is always the final pull
+ * (spotlight + results end on the guarantee).
+ *
  * @param list<array{card_no:string,tier:string,rarity:string}> $out
  * @param array{n:list<string>,sr:list<string>,ur:list<string>,all:list<string>} $pools
  */
@@ -222,20 +225,40 @@ function tcgGachaEnsureMultiSrPlus(array &$out, array $pools, array $cardMap): v
     if (count($out) < TCG_GACHA_TICKET_MULTI_COUNT) {
         return;
     }
-    foreach ($out as $row) {
+    $last = count($out) - 1;
+    $lastTier = (string)($out[$last]['tier'] ?? '');
+    if ($lastTier === 'sr' || $lastTier === 'ur') {
+        return;
+    }
+
+    // Prefer moving an existing UR, else any SR, into the final slot.
+    $moveIdx = null;
+    $moveRank = 0; // 2 = UR, 1 = SR
+    foreach ($out as $i => $row) {
+        if ($i === $last) {
+            continue;
+        }
         $tier = (string)($row['tier'] ?? '');
-        if ($tier === 'sr' || $tier === 'ur') {
-            return;
+        $rank = $tier === 'ur' ? 2 : ($tier === 'sr' ? 1 : 0);
+        if ($rank > $moveRank) {
+            $moveRank = $rank;
+            $moveIdx = $i;
         }
     }
-    $i = array_rand($out);
+    if ($moveIdx !== null) {
+        $tmp = $out[$last];
+        $out[$last] = $out[$moveIdx];
+        $out[$moveIdx] = $tmp;
+        return;
+    }
+
     $tier = tcgGachaPickSrPlusTier();
     $no = tcgGachaPickCardNo($pools, $tier);
     $card = $cardMap[$no] ?? null;
     $r = is_array($card)
         ? tcgNormalizePoolRarity((string)($card['rarity'] ?? 'N'), $no)
         : 'N';
-    $out[$i] = [
+    $out[$last] = [
         'card_no' => $no,
         'tier' => $tier,
         'rarity' => $r,

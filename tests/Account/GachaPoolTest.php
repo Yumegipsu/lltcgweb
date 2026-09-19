@@ -77,6 +77,24 @@ final class GachaPoolTest extends TestCase
         }
     }
 
+    public function testMultiGuaranteedSrPlusIsFinalCard(): void
+    {
+        $cards = tcgLoadCardsData();
+        $map = tcgBuildCardMap($cards);
+        foreach ([TCG_GACHA_MULTI_COUNT, TCG_GACHA_TICKET_MULTI_COUNT] as $count) {
+            for ($t = 0; $t < 50; $t++) {
+                $pulls = tcgGachaRollPulls($count, $cards, $map);
+                $this->assertCount($count, $pulls);
+                $last = $pulls[$count - 1];
+                $this->assertContains(
+                    $last['tier'],
+                    ['sr', 'ur'],
+                    "Multi pull ({$count}) final card must be SR+"
+                );
+            }
+        }
+    }
+
     public function testTierMappingMatchesScoutBands(): void
     {
         $this->assertSame('n', tcgGachaTierForRarity('N'));
