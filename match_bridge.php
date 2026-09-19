@@ -168,7 +168,7 @@ function tcgPostMissionGameFinishedToHostinger(array $state): array {
  * Post finish missions + coins to Hostinger.
  *
  * @param array<string,mixed> $state
- * @return array{missions: list, coin_grants: list}
+ * @return array{missions: list, coin_grants: list, event_point_grants: list}
  */
 function tcgPostMissionGameFinishedBundleToHostinger(array $state): array {
     if (!function_exists('tcgPlayStatDeltasExport') && is_file(__DIR__ . '/play_stats.php')) {
@@ -211,13 +211,15 @@ function tcgPostMissionGameFinishedBundleToHostinger(array $state): array {
         12
     );
     if (!is_array($res) || empty($res['success'])) {
-        return ['missions' => [], 'coin_grants' => []];
+        return ['missions' => [], 'coin_grants' => [], 'event_point_grants' => []];
     }
     $missions = $res['mission_completions'] ?? [];
     $coins = $res['coin_grants'] ?? [];
+    $ep = $res['event_point_grants'] ?? [];
     return [
         'missions' => is_array($missions) ? $missions : [],
         'coin_grants' => is_array($coins) ? $coins : [],
+        'event_point_grants' => is_array($ep) ? $ep : [],
     ];
 }
 
@@ -481,6 +483,9 @@ function tcgPostRankedApplyResultToHostinger(array &$state): bool {
     }
     if (!empty($res['coin_grants']) && is_array($res['coin_grants'])) {
         $state['_coin_grants'] = $res['coin_grants'];
+    }
+    if (!empty($res['event_point_grants']) && is_array($res['event_point_grants'])) {
+        $state['_event_point_grants'] = $res['event_point_grants'];
     }
     return true;
 }

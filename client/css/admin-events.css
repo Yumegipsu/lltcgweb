@@ -1,0 +1,172 @@
+/* Admin Events + player Events scaffold */
+
+.llc-menu-item--disabled {
+  opacity: 0.48;
+  filter: grayscale(0.35);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+#btn-hub-admin[hidden] {
+  display: none !important;
+}
+
+.admin-events-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+
+.admin-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-events-card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.admin-events-thumb {
+  width: 96px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.admin-events-card-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-events-card-body h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+.admin-events-meta {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.admin-events-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-events-muted {
+  opacity: 0.7;
+  font-size: 0.95rem;
+}
+
+.admin-event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.admin-event-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.admin-event-form input,
+.admin-event-form select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font: inherit;
+}
+
+.admin-reward-block {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-reward-block h4 {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.admin-reward-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-reward-row label {
+  min-width: 110px;
+  flex: 1 1 120px;
+}
+
+.admin-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.events-banner {
+  display: block;
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.events-player-card {
+  margin-bottom: 18px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.events-player-card h3 {
+  margin: 0 0 4px;
+}
+
+.events-player-card h4 {
+  margin: 12px 0 6px;
+  font-size: 0.95rem;
+}
+
+.events-my-points {
+  margin: 8px 0;
+  font-size: 1.15rem;
+}
+
+.events-ms-list,
+.events-lb-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.92rem;
+}
+
+.events-ms-list li.is-hit {
+  color: #9ae6b4;
+}

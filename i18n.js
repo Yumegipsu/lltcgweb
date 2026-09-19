@@ -141,11 +141,49 @@
         "promoSub": "{title} · prize {prize} · {n} entered",
         "joinedSub": "{title} · {n} entered"
       },
+      "events": {
+        "title": "Events",
+        "sub": "Limited-time Event Points & rewards",
+        "comingSoon": "Coming soon"
+      },
+      "admin": {
+        "title": "Admin",
+        "sub": "Schedule events & rewards"
+      },
       "tutorial": {
         "officialVideo": "Official 8-min video ↗",
         "sub": "Learn the rules",
         "title": "How to Play"
       }
+    },
+    "admin": {
+      "backHub": "← Hub",
+      "title": "Admin",
+      "eventsLead": "Schedule JST events, milestones, and ranking rewards.",
+      "newEvent": "New event",
+      "refresh": "Refresh",
+      "forceTick": "Force status tick",
+      "milestones": "Milestones",
+      "rankRewards": "Rank rewards",
+      "addMilestone": "Add milestone",
+      "addRank": "Add rank bracket",
+      "save": "Save",
+      "cancel": "Cancel",
+      "field": {
+        "name": "Name",
+        "banner": "Banner URL (https)",
+        "starts": "Start (JST)",
+        "ends": "End (JST)"
+      }
+    },
+    "events": {
+      "backHub": "← Hub",
+      "title": "Events",
+      "lead": "Earn Event Points from ranked PvP and CPU matches.",
+      "refresh": "Refresh",
+      "none": "No active events right now.",
+      "milestones": "Milestones",
+      "leaderboard": "Leaderboard"
     },
     "missions": {
       "title": "Missions",
@@ -1599,6 +1637,7 @@
       "couldNotCopyLog": "Could not copy log",
       "alreadyInRanked": "Already in a ranked match.",
       "coinsEarned": "+{n} Coins",
+      "eventPointsEarned": "+{n} Event Points",
       "leftDeadMatch": "Left a finished/disconnected match.",
       "playmatBought": "Playmat unlocked!",
       "resolveSkillFirst": "Resolve the skill prompt first.",
@@ -3616,6 +3655,7 @@
       "sleeveBought": "スリーブを解放しました！",
       "sleeveClaimedFree": "無料スリーブを受け取りました！",
       "coinsEarned": "+{n} コイン",
+      "eventPointsEarned": "+{n} イベントポイント",
       "stickerLoadFailed": "シール交換の読み込みに失敗しました",
       "stickerCardsLoadFailed": "カードの読み込みに失敗しました",
       "stickerExchangeFailed": "交換に失敗しました",
@@ -5388,6 +5428,7 @@
       "stickerConvertFailed": "Conversión fallida",
       "alreadyInRanked": "Already in a ranked match.",
       "coinsEarned": "+{n} Coins",
+      "eventPointsEarned": "+{n} Event Points",
       "leftDeadMatch": "Left a finished/disconnected match.",
       "playmatBought": "Playmat unlocked!",
       "signInShop": "Sign in to use the shop.",
@@ -7332,6 +7373,7 @@
       "stickerConvertFailed": "변환 실패",
       "alreadyInRanked": "Already in a ranked match.",
       "coinsEarned": "+{n} Coins",
+      "eventPointsEarned": "+{n} Event Points",
       "leftDeadMatch": "Left a finished/disconnected match.",
       "playmatBought": "Playmat unlocked!",
       "signInShop": "Sign in to use the shop.",
@@ -9276,6 +9318,7 @@
       "stickerConvertFailed": "转换失败",
       "alreadyInRanked": "Already in a ranked match.",
       "coinsEarned": "+{n} Coins",
+      "eventPointsEarned": "+{n} Event Points",
       "leftDeadMatch": "Left a finished/disconnected match.",
       "playmatBought": "Playmat unlocked!",
       "signInShop": "Sign in to use the shop.",
@@ -11196,6 +11239,7 @@
       "stickerConvertFailed": "แปลงไม่สำเร็จ",
       "alreadyInRanked": "Already in a ranked match.",
       "coinsEarned": "+{n} Coins",
+      "eventPointsEarned": "+{n} Event Points",
       "leftDeadMatch": "Left a finished/disconnected match.",
       "playmatBought": "Playmat unlocked!",
       "signInShop": "Sign in to use the shop.",
@@ -13217,6 +13261,7 @@
       "couldNotCopyLog": "Não foi possível copiar o histórico",
       "alreadyInRanked": "Você já está em uma partida ranqueada.",
       "coinsEarned": "+{n} Moedas",
+      "eventPointsEarned": "+{n} Pontos de Evento",
       "leftDeadMatch": "Saiu de uma partida encerrada/desconectada.",
       "playmatBought": "Playmat desbloqueado!",
       "resolveSkillFirst": "Resolva a solicitação de habilidade primeiro.",
@@ -15194,6 +15239,7 @@
       "couldNotCopyLog": "Impossible de copier le journal",
       "alreadyInRanked": "Déjà dans un match classé.",
       "coinsEarned": "+ pièces{n}",
+      "eventPointsEarned": "+{n} points d'événement",
       "leftDeadMatch": "Laisser une correspondance terminée/déconnectée.",
       "playmatBought": "Jeu déverrouillé !",
       "resolveSkillFirst": "Résoudre d'abord l'appel de compétences.",

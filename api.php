@@ -1086,12 +1086,20 @@ function handleAction(array $body): array {
                         if (!empty($bundle['coin_grants'])) {
                             $state['_coin_grants'] = $bundle['coin_grants'];
                         }
+                        if (!empty($bundle['event_point_grants'])) {
+                            $state['_event_point_grants'] = $bundle['event_point_grants'];
+                        }
                     } else {
                         $missionCompletions = tcgMissionOnGameFinished($state);
                         require_once __DIR__ . '/coins.php';
                         $coinGrants = tcgCoinsOnGameFinished($state);
                         if ($coinGrants !== []) {
                             $state['_coin_grants'] = $coinGrants;
+                        }
+                        require_once __DIR__ . '/events.php';
+                        $epGrants = tcgEventPointsOnGameFinished($state);
+                        if ($epGrants !== []) {
+                            $state['_event_point_grants'] = $epGrants;
                         }
                     }
                     $state['_missions_applied'] = true;
@@ -1126,12 +1134,20 @@ function handleAction(array $body): array {
                         if (!empty($bundle['coin_grants'])) {
                             $state['_coin_grants'] = $bundle['coin_grants'];
                         }
+                        if (!empty($bundle['event_point_grants'])) {
+                            $state['_event_point_grants'] = $bundle['event_point_grants'];
+                        }
                     } else {
                         $missionCompletions = tcgMissionOnGameFinished($state);
                         require_once __DIR__ . '/coins.php';
                         $coinGrants = tcgCoinsOnGameFinished($state);
                         if ($coinGrants !== []) {
                             $state['_coin_grants'] = $coinGrants;
+                        }
+                        require_once __DIR__ . '/events.php';
+                        $epGrants = tcgEventPointsOnGameFinished($state);
+                        if ($epGrants !== []) {
+                            $state['_event_point_grants'] = $epGrants;
                         }
                     }
                     $state['_missions_applied'] = true;
@@ -1174,6 +1190,22 @@ function handleAction(array $body): array {
                     ];
                     break;
                 }
+            }
+        }
+        if (!empty($state['_event_point_grants']) && is_array($state['_event_point_grants'])) {
+            $epAmt = 0;
+            $epBal = null;
+            foreach ($state['_event_point_grants'] as $g) {
+                if (($g['pid'] ?? '') === $playerId) {
+                    $epAmt += intval($g['amount'] ?? 0);
+                    $epBal = intval($g['balance'] ?? 0);
+                }
+            }
+            if ($epAmt > 0) {
+                $out['event_point_grant'] = [
+                    'amount' => $epAmt,
+                    'balance' => $epBal,
+                ];
             }
         }
         if (($state['mode'] ?? '') === 'ranked' && ($state['status'] ?? '') === 'finished') {
@@ -6398,6 +6430,9 @@ function maybeCreditCasualFinishMissions(array &$state): void {
     }
     if (!empty($bundle['coin_grants'])) {
         $state['_coin_grants'] = $bundle['coin_grants'];
+    }
+    if (!empty($bundle['event_point_grants'])) {
+        $state['_event_point_grants'] = $bundle['event_point_grants'];
     }
 }
 

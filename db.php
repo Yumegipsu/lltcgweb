@@ -422,6 +422,11 @@ function tcgDbMigrate(PDO $db): void {
             ON tcg_user_notices(discord_id, acked_at)');
     });
 
+    tcgDbRunMigrationOnce($db, 'events_20260919', function (PDO $db): void {
+        require_once __DIR__ . '/events.php';
+        tcgEventsEnsureSchema($db);
+    });
+
     $done = true;
 }
 

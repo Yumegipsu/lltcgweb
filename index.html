@@ -118,6 +118,7 @@ try {
 <link rel="stylesheet" href="client/css/tournament.css?v=24">
 <link rel="stylesheet" href="client/css/portrait.css?v=103">
 <link rel="stylesheet" href="client/css/social.css?v=32">
+<link rel="stylesheet" href="client/css/admin-events.css?v=1">
 
 </head>
 <body role="application" aria-label="Love Live! TCG web player">
@@ -763,13 +764,27 @@ try {
             </span>
           </button>
         </div>
-        <button class="llc-menu-item llc-menu-hover llc-menu-accent-violet" id="btn-hub-tournament" type="button">
-          <span class="llc-menu-item-body">
-            <span class="llc-menu-item-title-row">
-              <span class="llc-menu-item-title" data-i18n="hub.tournament.title">Tournament Mode</span>
-              <span class="llc-menu-tournament-cd" id="hub-tournament-cd" hidden aria-live="polite"></span>
+        <div class="llc-menu-row">
+          <button class="llc-menu-item llc-menu-hover llc-menu-accent-violet" id="btn-hub-tournament" type="button">
+            <span class="llc-menu-item-body">
+              <span class="llc-menu-item-title-row">
+                <span class="llc-menu-item-title" data-i18n="hub.tournament.title">Tournament Mode</span>
+                <span class="llc-menu-tournament-cd" id="hub-tournament-cd" hidden aria-live="polite"></span>
+              </span>
+              <span class="llc-menu-item-sub" data-i18n="hub.tournament.subLive" id="hub-tournament-sub">Events & brackets</span>
             </span>
-            <span class="llc-menu-item-sub" data-i18n="hub.tournament.subLive" id="hub-tournament-sub">Events & brackets</span>
+          </button>
+          <button class="llc-menu-item llc-menu-hover llc-menu-accent-violet llc-menu-item--disabled" id="btn-hub-events" type="button" disabled aria-disabled="true">
+            <span class="llc-menu-item-body">
+              <span class="llc-menu-item-title" data-i18n="hub.events.title">Events</span>
+              <span class="llc-menu-item-sub" data-i18n="hub.events.comingSoon">Coming soon</span>
+            </span>
+          </button>
+        </div>
+        <button class="llc-menu-item llc-menu-hover llc-menu-accent-purple" id="btn-hub-admin" type="button" hidden>
+          <span class="llc-menu-item-body">
+            <span class="llc-menu-item-title" data-i18n="hub.admin.title">Admin</span>
+            <span class="llc-menu-item-sub" data-i18n="hub.admin.sub">Schedule events &amp; rewards</span>
           </span>
         </button>
         <div class="llc-menu-row">
@@ -2274,6 +2289,89 @@ try {
   </div>
 </div>
 
+<!-- ══ ADMIN (owner / social mod) ══ -->
+<div id="screen-admin" class="screen llc-menu-screen" hidden aria-hidden="true">
+  <div class="account-shell wide">
+    <div class="logo">
+      <img class="logo-img" src="tcglogo.png" alt="">
+      <div class="logo-foot">
+        <span class="logo-version">v0.1.7</span>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
+      </div>
+    </div>
+    <div class="panel account-panel">
+      <div class="account-screen-head">
+        <button class="btn-ghost" id="btn-admin-back" type="button" data-i18n="admin.backHub">← Hub</button>
+        <h2 data-i18n="admin.title">Admin</h2>
+      </div>
+      <p class="account-lead" data-i18n="admin.eventsLead">Schedule JST events, milestones, and ranking rewards.</p>
+      <p class="lerr" id="admin-events-err"></p>
+      <div class="admin-events-toolbar">
+        <button type="button" class="btn-grad" id="btn-admin-new-event" data-i18n="admin.newEvent">New event</button>
+        <button type="button" class="btn-out" id="btn-admin-refresh" data-i18n="admin.refresh">Refresh</button>
+        <button type="button" class="btn-out" id="btn-admin-force-tick" data-i18n="admin.forceTick">Force status tick</button>
+      </div>
+      <div id="admin-events-list" class="admin-events-list"></div>
+      <div id="admin-event-form-wrap" hidden>
+        <h3 class="tournament-subhead" id="admin-event-form-title">New event</h3>
+        <form class="admin-event-form" id="admin-event-form">
+          <input type="hidden" id="admin-event-id" value="">
+          <label><span data-i18n="admin.field.name">Name</span>
+            <input id="admin-event-name" required maxlength="120" placeholder="Spring Cup">
+          </label>
+          <label><span data-i18n="admin.field.banner">Banner URL (https)</span>
+            <input id="admin-event-banner" type="url" placeholder="https://…">
+          </label>
+          <label><span data-i18n="admin.field.starts">Start (JST)</span>
+            <input id="admin-event-starts" type="datetime-local" required>
+          </label>
+          <label><span data-i18n="admin.field.ends">End (JST)</span>
+            <input id="admin-event-ends" type="datetime-local" required>
+          </label>
+          <div class="admin-reward-block">
+            <h4 data-i18n="admin.milestones">Milestones</h4>
+            <div id="admin-milestones"></div>
+            <button type="button" class="btn-out" id="btn-admin-add-milestone" data-i18n="admin.addMilestone">Add milestone</button>
+          </div>
+          <div class="admin-reward-block">
+            <h4 data-i18n="admin.rankRewards">Rank rewards</h4>
+            <div id="admin-ranks"></div>
+            <button type="button" class="btn-out" id="btn-admin-add-rank" data-i18n="admin.addRank">Add rank bracket</button>
+          </div>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn-grad" data-i18n="admin.save">Save</button>
+            <button type="button" class="btn-ghost" id="btn-admin-cancel-edit" data-i18n="admin.cancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EVENTS (player; gated by TCG_EVENTS_HUB_ENABLED) ══ -->
+<div id="screen-events" class="screen llc-menu-screen" hidden aria-hidden="true">
+  <div class="account-shell wide">
+    <div class="logo">
+      <img class="logo-img" src="tcglogo.png" alt="">
+      <div class="logo-foot">
+        <span class="logo-version">v0.1.7</span>
+        <p class="logo-tagline" data-i18n="tagline">The Unofficial Web Player</p>
+      </div>
+    </div>
+    <div class="panel account-panel">
+      <div class="account-screen-head">
+        <button class="btn-ghost" id="btn-events-back" type="button" data-i18n="events.backHub">← Hub</button>
+        <h2 data-i18n="events.title">Events</h2>
+      </div>
+      <p class="account-lead" data-i18n="events.lead">Earn Event Points from ranked PvP and CPU matches.</p>
+      <div class="admin-events-toolbar">
+        <button type="button" class="btn-out" id="btn-events-refresh" data-i18n="events.refresh">Refresh</button>
+      </div>
+      <div id="events-player-root"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ TOURNAMENT MODE (local-flagged) ══ -->
 <div id="screen-tournament" class="screen llc-menu-screen" hidden aria-hidden="true">
   <div class="account-shell wide">
@@ -3118,6 +3216,7 @@ try {
 <script src="client/js/gacha.js?v=12"></script>
 <script src="client/js/ranked-pr-reward.js?v=6"></script>
 <script src="client/js/missions.js?v=14"></script>
+<script src="client/js/admin-events.js?v=1"></script>
 <script src="client/js/login-bonus.js?v=3"></script>
 <script src="client/js/discord-presence.js?v=12"></script>
 <script src="client/js/presentation-guards.js?v=11"></script>
@@ -3513,6 +3612,13 @@ function toastCoinGrant(grant) {
   toast(t('toast.coinsEarned', { n: amount }) || (`+${amount} Coins`), 3200);
 }
 window.toastCoinGrant = toastCoinGrant;
+
+function toastEventPointGrant(grant) {
+  const amount = Number(grant?.amount || 0);
+  if (amount <= 0) return;
+  toast(t('toast.eventPointsEarned', { n: amount }) || (`+${amount} Event Points`), 3200);
+}
+window.toastEventPointGrant = toastEventPointGrant;
 
 function syncSealsFromProfile(me) {
   const src = me?.seals || A.profile?.seals || A.seals || {};
@@ -6641,6 +6747,7 @@ async function initAccountFlow() {
     A.user = me.user;
     A.profile = me;
     if (typeof window.syncSocialRail === 'function') window.syncSocialRail();
+    try { window.TCGAdminEvents?.syncHubButtons?.(); } catch (e) { /* ignore */ }
     if (window.TCG_STAMPS?.applyFavorites && me.stamp_favorites) {
       window.TCG_STAMPS.applyFavorites(me.stamp_favorites);
     }

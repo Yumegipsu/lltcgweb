@@ -327,7 +327,7 @@
     return /timed out|timeout|network|failed to fetch|server (error|busy)|account error \(5|could not reach/.test(msg);
   };
 
-  global.handleMissionCompletions = function handleMissionCompletions(res) {
+    global.handleMissionCompletions = function handleMissionCompletions(res) {
     if (!res || typeof res !== 'object') return;
     if (Array.isArray(res.mission_completions) && res.mission_completions.length) {
       if (global.TCGMissions && typeof global.TCGMissions.onMissionCompletions === 'function') {
@@ -341,6 +341,7 @@
     }
     global.handleRankedPrReward(res);
     global.handleCoinGrant(res);
+    global.handleEventPointGrant(res);
   };
 
   global.handleCoinGrant = function handleCoinGrant(res) {
@@ -360,6 +361,35 @@
     if (typeof global.toast === 'function') {
       const tFn = typeof global.t === 'function' ? global.t : null;
       global.toast((tFn && tFn('toast.coinsEarned', { n: amount })) || ('+' + amount + ' Coins'), 3200);
+    }
+  };
+
+  global.handleEventPointGrant = function handleEventPointGrant(res) {
+    if (!res || typeof res !== 'object') return;
+    if (res.spectator || (global.G && global.G.isSpectator)) return;
+    let grant = res.event_point_grant || null;
+    if (!grant && Array.isArray(res.event_point_grants) && res.event_point_grants.length) {
+      let amount = 0;
+      let balance = null;
+      res.event_point_grants.forEach((g) => {
+        amount += Number(g.amount || 0) || 0;
+        if (g.balance != null) balance = Number(g.balance) || 0;
+      });
+      grant = { amount, balance };
+    }
+    if (!grant || typeof grant !== 'object') return;
+    const amount = Number(grant.amount || 0);
+    if (amount <= 0) return;
+    if (typeof global.toastEventPointGrant === 'function') {
+      global.toastEventPointGrant(grant);
+      return;
+    }
+    if (typeof global.toast === 'function') {
+      const tFn = typeof global.t === 'function' ? global.t : null;
+      global.toast(
+        (tFn && tFn('toast.eventPointsEarned', { n: amount })) || ('+' + amount + ' Event Points'),
+        3200
+      );
     }
   };
 

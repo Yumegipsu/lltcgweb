@@ -407,6 +407,15 @@ function tcgApplyRankedResultFromWebhook(array $body): array {
         } catch (Throwable $e) {
             // Coins are best-effort.
         }
+        try {
+            require_once __DIR__ . '/events.php';
+            $epGrants = tcgEventPointsOnGameFinished($fakeState);
+            if ($epGrants !== []) {
+                $out['event_point_grants'] = $epGrants;
+            }
+        } catch (Throwable $e) {
+            // EP best-effort.
+        }
         return $out;
     }
 
@@ -464,6 +473,13 @@ function tcgApplyRankedResultFromWebhook(array $body): array {
     } catch (Throwable $e) {
         // Coins are best-effort.
     }
+    $eventPointGrants = [];
+    try {
+        require_once __DIR__ . '/events.php';
+        $eventPointGrants = tcgEventPointsOnGameFinished($fakeState);
+    } catch (Throwable $e) {
+        // EP best-effort.
+    }
 
     $out = ['success' => true, 'room_id' => $roomId];
     if ($alreadyDone) {
@@ -480,6 +496,9 @@ function tcgApplyRankedResultFromWebhook(array $body): array {
     }
     if ($coinGrants !== []) {
         $out['coin_grants'] = $coinGrants;
+    }
+    if ($eventPointGrants !== []) {
+        $out['event_point_grants'] = $eventPointGrants;
     }
     return $out;
 }

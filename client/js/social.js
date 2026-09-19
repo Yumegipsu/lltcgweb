@@ -266,6 +266,8 @@
     'playmat-shop': 1,
     'sleeve-shop': 1,
     tournament: 1,
+    admin: 1,
+    events: 1,
   };
 
   function playSocialSfx(id, volume) {

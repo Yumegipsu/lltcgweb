@@ -46,6 +46,7 @@ require_once __DIR__ . '/booster.php';
 require_once __DIR__ . '/gacha.php';
 require_once __DIR__ . '/seals.php';
 require_once __DIR__ . '/coins.php';
+require_once __DIR__ . '/events.php';
 require_once __DIR__ . '/sleeve_shop.php';
 require_once __DIR__ . '/playmat_shop.php';
 require_once __DIR__ . '/stamps.php';
@@ -105,6 +106,13 @@ try {
         case 'ranked_apply_result': echo json_encode(tcgApiRankedApplyResult($body)); break;
         case 'mission_stamp_sent': echo json_encode(tcgApiMissionStampSent($body)); break;
         case 'mission_game_finished': echo json_encode(tcgApiMissionGameFinished($body)); break;
+        case 'events_admin_list':     echo json_encode(tcgApiEventsAdminList($body)); break;
+        case 'events_admin_upsert':   echo json_encode(tcgApiEventsAdminUpsert($body)); break;
+        case 'events_admin_delete':   echo json_encode(tcgApiEventsAdminDelete($body)); break;
+        case 'events_admin_force_tick': echo json_encode(tcgApiEventsAdminForceTick($body)); break;
+        case 'events_active_summary': echo json_encode(tcgApiEventsActiveSummary($body)); break;
+        case 'events_leaderboard':    echo json_encode(tcgApiEventsLeaderboard($body)); break;
+        case 'events_my_progress':    echo json_encode(tcgApiEventsMyProgress($body)); break;
         case 'rank_stats':         echo json_encode(tcgApiRankStats($body)); break;
         case 'rank_banner_set':    echo json_encode(tcgApiRankBannerSet($body)); break;
         case 'rank_flag_set':      echo json_encode(tcgApiRankFlagSet($body)); break;
@@ -1494,6 +1502,12 @@ function tcgApiMissionGameFinished(array $body): array {
     }
     $completions = tcgMissionOnGameFinished($state);
     $coinGrants = tcgCoinsOnGameFinished($state);
+    $eventPointGrants = [];
+    try {
+        $eventPointGrants = tcgEventPointsOnGameFinished($state);
+    } catch (Throwable $e) {
+        // EP best-effort
+    }
     $mode = strtolower((string)($state['mode'] ?? ''));
     if (empty($state['cpu_solo']) && $mode !== 'cpu' && !str_contains($mode, 'cpu')) {
         $p1Id = (string)($p1['discord_id'] ?? '');
@@ -1508,6 +1522,7 @@ function tcgApiMissionGameFinished(array $body): array {
         'success' => true,
         'mission_completions' => $completions,
         'coin_grants' => $coinGrants,
+        'event_point_grants' => $eventPointGrants,
     ];
 }
 
