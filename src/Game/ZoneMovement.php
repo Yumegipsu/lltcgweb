@@ -452,6 +452,7 @@ function wrPickCfgFromAbility(array $ab): array {
         'activated_pay_discard_add_wr_live',
         'activated_discard_add_wr_scored_live',
         'wait_self_discard_add_wr_live',
+        'mandatory_wait_self_add_wr_live',
         'pay_energy_add_live_zone_from_wr',
         'discard_cost_add_live_subunit',
         'auto_area_move_wr_live',

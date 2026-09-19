@@ -227,21 +227,37 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
             break;
 
         case 'mandatory_wait_self_add_wr_live':
+            // On Enter (Izumi PL!HS-bp6-008): Wait self, then the player chooses
+            // 1 matching Live from WR (never auto-first / random — #194).
+            if (!empty($state['pending_prompt'])) {
+                break;
+            }
             waitMember($source, $state);
             $slot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
             if ($slot !== null && $slot !== '') {
                 $p['stage'][$slot] = $source;
             }
-            $added = addFromWaitingRoomFiltered(
-                $p,
-                $ab['group'] ?? 'Hasunosora',
-                'live',
+            $cfg = wrPickCfgFromAbility(array_merge($ab, ['filter' => 'live']));
+            if (!isset($cfg['max_live_score'])) {
+                $cfg['max_live_score'] = intval($ab['max_live_score'] ?? 4);
+            }
+            $added = addFromWaitingRoomWithChoice(
+                $state,
+                $pid,
+                $source,
+                $ab,
+                array_merge($ctx, ['slot' => (string)($slot ?? '')]),
+                $cfg,
                 1,
-                null,
-                ['max_live_score' => intval($ab['max_live_score'] ?? 4)]
+                false
             );
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$name] Waited self; added $added Live from Waiting Room.");
+            if ($added === null) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] Waited self; choose a Live from Waiting Room.");
+            } else {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] Waited self; no matching Live in Waiting Room.");
+            }
             break;
 
         case 'auto_activate_if_live_zone_score_max':
