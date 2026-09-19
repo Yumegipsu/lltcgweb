@@ -427,6 +427,10 @@ function tcgDbMigrate(PDO $db): void {
         tcgEventsEnsureSchema($db);
     });
 
+    tcgDbRunMigrationOnce($db, 'scouting_tickets_20260919', function (PDO $db): void {
+        tcgDbEnsureColumn($db, 'tcg_users', 'scouting_tickets', 'INTEGER NOT NULL DEFAULT 0');
+    });
+
     $done = true;
 }
 
@@ -646,6 +650,7 @@ function tcgDbMigrateBootstrap(PDO $db): void {
     tcgDbEnsureColumn($db, 'tcg_users', 'ranked_equipped_starter', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'ranked_starter_key', 'TEXT');
     tcgDbEnsureColumn($db, 'tcg_users', 'star_gems', 'INTEGER NOT NULL DEFAULT 0');
+    tcgDbEnsureColumn($db, 'tcg_users', 'scouting_tickets', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'dupe_gem_migration_done', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'unranked_games', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'sticker_exchanges', 'INTEGER NOT NULL DEFAULT 0');
@@ -1207,6 +1212,53 @@ function tcgGetStarGems(string $discordId): int {
     $stmt->execute([$discordId]);
     $val = $stmt->fetchColumn();
     return $val === false ? 0 : max(0, intval($val));
+}
+
+function tcgGetScoutingTickets(string $discordId): int {
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT scouting_tickets FROM tcg_users WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    $val = $stmt->fetchColumn();
+    return $val === false ? 0 : max(0, intval($val));
+}
+
+function tcgAddScoutingTickets(string $discordId, int $amount): int {
+    if ($amount <= 0) {
+        return tcgGetScoutingTickets($discordId);
+    }
+    $db = tcgDb();
+    $db->prepare(
+        'UPDATE tcg_users SET scouting_tickets = COALESCE(scouting_tickets, 0) + ?, updated_at = ? WHERE discord_id = ?'
+    )->execute([$amount, time(), $discordId]);
+    return tcgGetScoutingTickets($discordId);
+}
+
+function tcgDeductScoutingTickets(string $discordId, int $amount): int {
+    if ($amount <= 0) {
+        return tcgGetScoutingTickets($discordId);
+    }
+    return tcgDbRetry(function () use ($discordId, $amount) {
+        $db = tcgDb();
+        $db->beginTransaction();
+        try {
+            $stmt = $db->prepare('SELECT scouting_tickets FROM tcg_users WHERE discord_id = ?');
+            $stmt->execute([$discordId]);
+            $have = max(0, intval($stmt->fetchColumn() ?: 0));
+            if ($have < $amount) {
+                throw new Exception('Not enough Scouting Tickets', 400);
+            }
+            $db->prepare(
+                'UPDATE tcg_users SET scouting_tickets = scouting_tickets - ?, updated_at = ? WHERE discord_id = ?'
+            )->execute([$amount, time(), $discordId]);
+            $db->commit();
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
+        return tcgGetScoutingTickets($discordId);
+    });
 }
 
 function tcgGetUnrankedGames(string $discordId): int {

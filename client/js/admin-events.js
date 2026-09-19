@@ -8,7 +8,7 @@
   /** Flip with PHP TCG_EVENTS_HUB_ENABLED when player Events UI should open. */
   const TCG_EVENTS_HUB_ENABLED = false;
 
-  const REWARD_TYPES = ['coins', 'star_gems', 'card', 'sleeve', 'playmat'];
+  const REWARD_TYPES = ['coins', 'star_gems', 'scouting_ticket', 'card', 'sleeve', 'playmat'];
 
   const state = {
     events: [],
@@ -226,7 +226,7 @@
     }
     fields += `<label>Type <select data-reward-type data-f="reward_type">${typeOpts}</select></label>`;
     const rt = row.reward_type;
-    if (rt === 'coins' || rt === 'star_gems') {
+    if (rt === 'coins' || rt === 'star_gems' || rt === 'scouting_ticket') {
       fields += `<label>Amount <input type="number" min="1" data-f="amount" value="${esc(row.amount)}"></label>`;
     } else if (rt === 'card') {
       fields += `<label>Card no <input data-f="card_no" value="${esc(row.card_no)}" placeholder="LL01-001"></label>`;
@@ -274,7 +274,7 @@
         base.rank_from = Math.max(1, Number(row.rank_from) || 1);
         base.rank_to = Math.max(base.rank_from, Number(row.rank_to) || base.rank_from);
       }
-      if (row.reward_type === 'coins' || row.reward_type === 'star_gems') {
+      if (row.reward_type === 'coins' || row.reward_type === 'star_gems' || row.reward_type === 'scouting_ticket') {
         base.reward_payload = { amount: Math.max(1, Number(row.amount) || 1) };
       } else if (row.reward_type === 'card') {
         base.reward_payload = { card_no: String(row.card_no || '').trim(), qty: Math.max(1, Number(row.qty) || 1) };

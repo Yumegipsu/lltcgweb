@@ -9042,6 +9042,11 @@ button.player-title--btn{cursor:pointer}
 }
 .gacha-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 8px}
 .gacha-actions .btn-grad,.gacha-actions .btn-out{flex:1 1 160px}
+.gacha-currency-bars{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 10px}
+.gacha-tickets-bar img{object-fit:contain}
+.gacha-actions--tickets{margin-top:4px}
+.gacha-btn-ticket{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.gacha-btn-ticket img{flex:0 0 auto;object-fit:contain}
 
 /* Gacha screen — Standard pool banner (Honoka crop matches Scout tile) */
 .gacha-banner{

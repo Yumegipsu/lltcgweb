@@ -118,6 +118,39 @@
     }
   }
 
+  function syncTickets(n) {
+    const tickets = Number.isFinite(Number(n))
+      ? Number(n)
+      : ((_info && _info.scouting_tickets) || 0);
+    if (global.A) {
+      global.A.scoutingTickets = tickets;
+      if (global.A.profile) global.A.profile.scouting_tickets = tickets;
+      if (global.A.user) global.A.user.scouting_tickets = tickets;
+    }
+    const node = el('gacha-tickets');
+    if (node) node.textContent = tickets.toLocaleString();
+    const bar = el('gacha-tickets-bar');
+    const actions = el('gacha-ticket-actions');
+    const show = tickets > 0;
+    if (bar) bar.hidden = !show;
+    if (actions) actions.hidden = !show;
+    const single = el('btn-gacha-ticket-single');
+    const multi = el('btn-gacha-ticket-multi');
+    const sc = (_info && _info.ticket_single_cost) || 1;
+    const mc = (_info && _info.ticket_multi_cost) || 10;
+    const mcount = (_info && _info.ticket_multi_count) || 10;
+    if (single) {
+      const label = single.querySelector('span') || single;
+      label.textContent = tt('gacha.ticketSingle', 'Scout ×1 ({n} ticket)', { n: sc });
+      single.disabled = tickets < sc;
+    }
+    if (multi) {
+      const label = multi.querySelector('span') || multi;
+      label.textContent = tt('gacha.ticketMulti', 'Scout ×{count} ({n} tickets)', { count: mcount, n: mc });
+      multi.disabled = tickets < mc;
+    }
+  }
+
   function updateRateCopy(info) {
     const ratesEl = el('gacha-rates');
     if (ratesEl) {
@@ -145,6 +178,7 @@
     if (multi) {
       multi.textContent = tt('gacha.multi', 'Scout 10+1 ({n})', { n: mc });
     }
+    syncTickets(info.scouting_tickets);
   }
 
   function formatRatePercent(n) {
@@ -455,6 +489,7 @@
       }
       showScr('gacha');
       syncGems(_info.star_gems);
+      syncTickets(_info.scouting_tickets);
       updateRateCopy(_info);
     } catch (e) {
       showScr('gacha');
@@ -528,9 +563,11 @@
     global.A = global.A || {};
     global.A._fromGacha = true;
     global.A._gachaLastMode = res.mode || _lastMode;
+    global.A._gachaLastCurrency = res.currency === 'scouting_tickets' ? 'tickets' : 'star_gems';
     syncGems(res.star_gems);
+    syncTickets(res.scouting_tickets);
     if (typeof global.showPackResults === 'function') {
-      const isMulti = (res.mode || _lastMode) === 'multi' || cards.length >= 11;
+      const isMulti = (res.mode || _lastMode) === 'multi' || cards.length >= 10;
       global.showPackResults(cards, tt('gacha.title', 'Gacha'), {
         godPack: false,
         starGemsEarned: res.star_gems_earned || 0,
@@ -550,7 +587,7 @@
     }
   }
 
-  async function openGacha(mode) {
+  async function openGacha(mode, currency) {
     if (_pullBusy) return;
     if (!isUnlocked()) {
       toast(tt('gacha.lockedToast', 'Gacha is not available yet.'), 2800);
@@ -559,16 +596,26 @@
     const err = el('gacha-err');
     if (err) err.textContent = '';
     _pullBusy = true;
+    const payWith = currency === 'tickets' ? 'tickets' : 'star_gems';
     _lastMode = mode === 'multi' ? 'multi' : 'single';
+    if (global.A) {
+      global.A._gachaLastMode = _lastMode;
+      global.A._gachaLastCurrency = payWith;
+    }
     try {
       sfx('pack_open');
-      const res = await accountPost('open_gacha', { mode: _lastMode });
+      const res = await accountPost('open_gacha', { mode: _lastMode, currency: payWith });
       await loadIdolMap();
       const pulls = res.pulls || [];
-      // Predetermined pulls → SIFAS spotlight (beams + rarity flips) → results grid.
       await playSpectacle(pulls);
       showGachaResults(res);
-      _info = { ...(_info || {}), star_gems: res.star_gems };
+      _info = {
+        ...(_info || {}),
+        star_gems: res.star_gems,
+        scouting_tickets: res.scouting_tickets,
+      };
+      syncGems(res.star_gems);
+      syncTickets(res.scouting_tickets);
     } catch (e) {
       if (err) err.textContent = e.message || tt('gacha.pullError', 'Could not scout');
       toast(e.message || tt('gacha.pullError', 'Could not scout'), 2800);
@@ -587,7 +634,7 @@
         if (!(global.A && global.A._fromGacha)) return;
         ev.stopImmediatePropagation();
         global.A._fromGacha = false;
-        void openGacha(global.A._gachaLastMode || 'single');
+        void openGacha(global.A._gachaLastMode || 'single', global.A._gachaLastCurrency || 'star_gems');
       }, true);
     }
     if (another && !another.dataset.gachaBound) {
@@ -612,8 +659,10 @@
       if (typeof global.loadScoutHubScreen === 'function') global.loadScoutHubScreen();
       else showScr('scout');
     });
-    el('btn-gacha-single')?.addEventListener('click', () => openGacha('single'));
-    el('btn-gacha-multi')?.addEventListener('click', () => openGacha('multi'));
+    el('btn-gacha-single')?.addEventListener('click', () => openGacha('single', 'star_gems'));
+    el('btn-gacha-multi')?.addEventListener('click', () => openGacha('multi', 'star_gems'));
+    el('btn-gacha-ticket-single')?.addEventListener('click', () => openGacha('single', 'tickets'));
+    el('btn-gacha-ticket-multi')?.addEventListener('click', () => openGacha('multi', 'tickets'));
     el('btn-gacha-rates')?.addEventListener('click', (ev) => {
       ev.preventDefault();
       ev.stopPropagation();

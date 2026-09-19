@@ -9,6 +9,10 @@ require_once __DIR__ . '/db.php';
 const TCG_GACHA_SINGLE_COST = 20;
 const TCG_GACHA_MULTI_COST = 200;
 const TCG_GACHA_MULTI_COUNT = 11;
+/** Ticket costs / pull counts (alternate currency for the same pool). */
+const TCG_GACHA_TICKET_SINGLE_COST = 1;
+const TCG_GACHA_TICKET_MULTI_COST = 10;
+const TCG_GACHA_TICKET_MULTI_COUNT = 10;
 
 /**
  * Temporary preview lock: only these Discord IDs may open general gacha.
@@ -215,7 +219,7 @@ function tcgGachaPickSrPlusTier(): string {
  * @param array{n:list<string>,sr:list<string>,ur:list<string>,all:list<string>} $pools
  */
 function tcgGachaEnsureMultiSrPlus(array &$out, array $pools, array $cardMap): void {
-    if (count($out) < TCG_GACHA_MULTI_COUNT) {
+    if (count($out) < TCG_GACHA_TICKET_MULTI_COUNT) {
         return;
     }
     foreach ($out as $row) {
@@ -258,8 +262,8 @@ function tcgGachaRollPulls(int $count, array $cardsData, array $cardMap): array 
             'rarity' => $r,
         ];
     }
-    // Scout 10+1: at least one SR+ (gold/rainbow). UR within that slot stays rare.
-    if ($count >= TCG_GACHA_MULTI_COUNT) {
+    // Multi scout (gems 10+1 or tickets ×10): at least one SR+ (gold/rainbow).
+    if ($count >= TCG_GACHA_TICKET_MULTI_COUNT) {
         tcgGachaEnsureMultiSrPlus($out, $pools, $cardMap);
     }
     return $out;
@@ -468,9 +472,13 @@ function tcgApiGachaInfo(array $body): array {
         'unlocked' => $unlocked,
         'locked' => !$unlocked,
         'star_gems' => tcgGetStarGems($uid),
+        'scouting_tickets' => tcgGetScoutingTickets($uid),
         'single_cost' => TCG_GACHA_SINGLE_COST,
         'multi_cost' => TCG_GACHA_MULTI_COST,
         'multi_count' => TCG_GACHA_MULTI_COUNT,
+        'ticket_single_cost' => TCG_GACHA_TICKET_SINGLE_COST,
+        'ticket_multi_cost' => TCG_GACHA_TICKET_MULTI_COST,
+        'ticket_multi_count' => TCG_GACHA_TICKET_MULTI_COUNT,
         'rates' => [
             'n' => TCG_GACHA_WEIGHT_N / 100,
             'sr' => TCG_GACHA_WEIGHT_SR / 100,
@@ -505,26 +513,50 @@ function tcgApiOpenGacha(array $body): array {
     if (empty($user['starter_deck'])) {
         throw new Exception('Choose a starter deck first', 400);
     }
+    $payWith = strtolower(trim((string)($body['currency'] ?? $body['pay_with'] ?? 'star_gems')));
+    $useTickets = in_array($payWith, ['ticket', 'tickets', 'scouting_ticket', 'scouting_tickets'], true);
     $mode = trim(strtolower((string)($body['mode'] ?? $body['pull'] ?? 'single')));
-    if (in_array($mode, ['multi', '10', '10+1', 'eleven', 'x11'], true)
-        || intval($body['count'] ?? 0) === TCG_GACHA_MULTI_COUNT) {
-        $count = TCG_GACHA_MULTI_COUNT;
-        $cost = TCG_GACHA_MULTI_COST;
-        $mode = 'multi';
+    $wantMulti = in_array($mode, ['multi', '10', '10+1', 'eleven', 'x11', 'x10'], true)
+        || intval($body['count'] ?? 0) === TCG_GACHA_MULTI_COUNT
+        || intval($body['count'] ?? 0) === TCG_GACHA_TICKET_MULTI_COUNT;
+    if ($useTickets) {
+        if ($wantMulti) {
+            $count = TCG_GACHA_TICKET_MULTI_COUNT;
+            $cost = TCG_GACHA_TICKET_MULTI_COST;
+            $mode = 'multi';
+        } else {
+            $count = 1;
+            $cost = TCG_GACHA_TICKET_SINGLE_COST;
+            $mode = 'single';
+        }
+        $have = tcgGetScoutingTickets($uid);
+        if ($have < $cost) {
+            throw new Exception('Not enough Scouting Tickets', 400);
+        }
     } else {
-        $count = 1;
-        $cost = TCG_GACHA_SINGLE_COST;
-        $mode = 'single';
-    }
-    $have = tcgGetStarGems($uid);
-    if ($have < $cost) {
-        throw new Exception('Not enough Star Gems', 400);
+        if ($wantMulti) {
+            $count = TCG_GACHA_MULTI_COUNT;
+            $cost = TCG_GACHA_MULTI_COST;
+            $mode = 'multi';
+        } else {
+            $count = 1;
+            $cost = TCG_GACHA_SINGLE_COST;
+            $mode = 'single';
+        }
+        $have = tcgGetStarGems($uid);
+        if ($have < $cost) {
+            throw new Exception('Not enough Star Gems', 400);
+        }
     }
     $cards = tcgLoadCardsData();
     $cardMap = tcgBuildCardMap($cards);
     $rolled = tcgGachaRollPulls($count, $cards, $cardMap);
     $nos = array_map(static fn ($r) => $r['card_no'], $rolled);
-    tcgDeductStarGems($uid, $cost);
+    if ($useTickets) {
+        tcgDeductScoutingTickets($uid, $cost);
+    } else {
+        tcgDeductStarGems($uid, $cost);
+    }
     $applied = tcgApplyBoosterPullWithGems($uid, $nos, $cardMap);
     $pulls = [];
     foreach ($rolled as $i => $row) {
@@ -548,11 +580,13 @@ function tcgApiOpenGacha(array $body): array {
     $payload = [
         'success' => true,
         'mode' => $mode,
+        'currency' => $useTickets ? 'scouting_tickets' : 'star_gems',
         'cost' => $cost,
         'count' => $count,
         'pulls' => $pulls,
         'star_gems_earned' => intval($applied['star_gems_earned'] ?? 0),
         'star_gems' => intval($applied['star_gems'] ?? tcgGetStarGems($uid)),
+        'scouting_tickets' => tcgGetScoutingTickets($uid),
     ];
     if (function_exists('tcgMissionAttachCompletions')) {
         return tcgMissionAttachCompletions($payload, $completions);
