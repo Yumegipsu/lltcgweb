@@ -102,8 +102,9 @@
     return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
   }
 
-  function cone(key, stops) {
+  function cone(key, stops, opts) {
     if (cache.has(key)) return cache.get(key);
+    const fadeFoot = !!(opts && opts.fadeFoot);
     const [w, h] = Q.sprite;
     const c = document.createElement('canvas');
     c.width = w;
@@ -112,7 +113,9 @@
     for (let y = 0; y < h; y += 2) {
       const s = y / h;
       const half = (w / 2) * (0.028 + 0.972 * Math.pow(1 - s, 0.52)) + 1;
-      const a = (0.3 + 0.7 * Math.pow(s, 0.85)) * 0.55;
+      // Soften the floor tip so angled beams don't show a hard diagonal cut.
+      const foot = fadeFoot && s > 0.72 ? Math.max(0, 1 - (s - 0.72) / 0.28) : 1;
+      const a = (0.3 + 0.7 * Math.pow(s, 0.85)) * 0.55 * foot;
       const grad = g.createLinearGradient(w / 2 - half, 0, w / 2 + half, 0);
       for (const [p, col] of stops) grad.addColorStop(p, col);
       g.globalAlpha = a;
@@ -124,7 +127,7 @@
   }
 
   function solidCone(t) {
-    return cone('s' + t.core + t.edge, [
+    return cone('sf' + t.core + t.edge, [
       [0, 'rgba(0,0,0,0)'],
       [0.16, fade(t.edge, 0.35)],
       [0.34, t.edge],
@@ -132,20 +135,23 @@
       [0.66, t.edge],
       [0.84, fade(t.edge, 0.35)],
       [1, 'rgba(0,0,0,0)'],
-    ]);
+    ], { fadeFoot: true });
   }
 
   function rainbowCone(phase) {
-    const k = 'rb' + phase;
+    const k = 'rbF' + phase;
     if (cache.has(k)) return cache.get(k);
+    // Soft-edge rainbow matching solid cones so the floor tip blends.
     const stops = [[0, 'rgba(0,0,0,0)']];
     const n = BANDS.length;
     for (let i = 0; i < n; i++) {
       const p = 0.12 + (0.76 * i) / (n - 1);
-      stops.push([p, BANDS[(i + phase) % n]]);
+      const band = BANDS[(i + phase) % n];
+      // Core band leans white so stripes don't read as a hard cut at the foot.
+      stops.push([p, i === Math.floor(n / 2) ? '#ffffff' : band]);
     }
     stops.push([1, 'rgba(0,0,0,0)']);
-    return cone(k, stops);
+    return cone(k, stops, { fadeFoot: true });
   }
 
   function glow(color, size) {
@@ -364,7 +370,8 @@
 
     const dx = bx - s.ax;
     const dy = fy - rigY;
-    const len = Math.hypot(dx, dy) * (0.99 + 0.02 * flick);
+    // Overshoot the floor slightly so the (softened) tip sits under the pool glow.
+    const len = Math.hypot(dx, dy) * (1.04 + 0.02 * flick);
     const ang = Math.atan2(dx, -dy);
     const baseW = (W < 560 ? 130 : 182)
       * (slots.length === 1 ? 2.0 : slots.length > 8 ? 0.72 : 1)
@@ -392,17 +399,19 @@
     ctx.drawImage(sprite, -baseW / 2, -len, baseW, len);
     ctx.restore();
 
-    const poolCol = (() => {
-      if (s.tier !== 'rainbow') return t.pool;
-      if (s._rbLock != null) return BANDS[s._rbLock % BANDS.length];
-      return BANDS[(now / 140 | 0) % BANDS.length];
-    })();
+    // Floor pool: soft white + tier wash (rainbow uses soft lavender, not a hard band color).
+    const poolCol = s.tier === 'rainbow' ? '#e8d8ff' : t.pool;
     const pw = baseW * 1.9;
     const ph = pw * 0.28;
     ctx.globalAlpha = Math.min(1, rise) * (0.62 + 0.3 * boost) * t.power;
     ctx.drawImage(glow(poolCol, 256), bx - pw / 2, fy - ph / 2, pw, ph);
-    ctx.globalAlpha *= 0.8;
+    ctx.globalAlpha *= 0.85;
     ctx.drawImage(glow(t.core, 128), bx - pw * 0.34, fy - ph * 0.3, pw * 0.68, ph * 0.6);
+    if (s.tier === 'rainbow') {
+      // Extra soft bloom to hide any remaining angled tip.
+      ctx.globalAlpha = Math.min(1, rise) * 0.35 * t.power;
+      ctx.drawImage(glow('#ffffff', 256), bx - pw * 0.55, fy - ph * 0.55, pw * 1.1, ph * 1.1);
+    }
 
     if (!reduceMotion && parts.length < Q.motes && Math.random() < 0.12) mote(s);
   }
@@ -753,8 +762,10 @@
         name: p.name_en || p.name || '',
         image: typeof imageFn === 'function' ? imageFn(p) : (p.image || ''),
       };
-      if (tier === 'ur') row.from = 'gold';
-      else if (tier === 'sr') row.from = 'grey';
+      // Spectacle rarity-flip is uncommon — most SR/UR light as their final tier.
+      // (~18% SR grey→gold, ~25% UR gold→rainbow)
+      if (tier === 'ur' && Math.random() < 0.25) row.from = 'gold';
+      else if (tier === 'sr' && Math.random() < 0.18) row.from = 'grey';
       return row;
     });
   }
