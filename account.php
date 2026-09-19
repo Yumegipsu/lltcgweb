@@ -8,7 +8,7 @@
  *
  * Endpoints (action=):
  *   me, pick_starter, collection, booster_boxes, booster_rates, daily_status, open_booster,
- *   gacha_info, gacha_rates, open_gacha,
+ *   gacha_info, gacha_rates, open_gacha, gacha_sim,
  *   deck_list, deck_save, deck_set_sleeve, deck_delete, deck_equip, deck_equip_starter, deck_reset_starter, deck_auto_build, deck_import_decklog, reset_account,
  *   ranked_join, ranked_leave, ranked_status, ranked_apply_result, mission_stamp_sent, mission_game_finished, rank_stats, rank_banner_set, rank_flag_set, titles_list, title_set, stamp_favorites_set, active_game, leave_active_game,
  *   replay_save, replay_list, replay_get, replay_start, missions_list, missions_claim, login_bonus_status, login_bonus_claim, public_profile,
@@ -83,6 +83,7 @@ try {
         case 'gacha_info':         echo json_encode(tcgApiGachaInfo($body)); break;
         case 'gacha_rates':        echo json_encode(tcgApiGachaRates($body)); break;
         case 'open_gacha':         echo json_encode(tcgApiOpenGacha($body)); break;
+        case 'gacha_sim':          echo json_encode(tcgApiGachaSim($body)); break;
         case 'deck_list':          echo json_encode(tcgApiDeckList($body)); break;
         case 'deck_save':          echo json_encode(tcgApiDeckSave($body)); break;
         case 'deck_set_sleeve':    echo json_encode(tcgApiDeckSetSleeve($body)); break;

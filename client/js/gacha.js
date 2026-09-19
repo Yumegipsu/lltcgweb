@@ -491,9 +491,61 @@
       syncGems(_info.star_gems);
       syncTickets(_info.scouting_tickets);
       updateRateCopy(_info);
+      syncSimPanel(_info);
     } catch (e) {
       showScr('gacha');
       if (err) err.textContent = e.message || tt('gacha.loadError', 'Could not load gacha');
+    }
+  }
+
+  function isAdminSim() {
+    return !!(global.A && global.A.user && global.A.user.is_social_mod);
+  }
+
+  function syncSimPanel(info) {
+    const panel = el('gacha-sim-panel');
+    if (!panel) return;
+    const show = isAdminSim() || !!(info && info.sim_available);
+    panel.hidden = !show;
+  }
+
+  function simCount() {
+    const sel = el('gacha-sim-count');
+    const n = sel ? Number(sel.value) : 11;
+    return Number.isFinite(n) && n > 0 ? Math.min(20, Math.floor(n)) : 11;
+  }
+
+  async function runGachaSim(force) {
+    if (_pullBusy) return;
+    if (!isAdminSim() && !(_info && _info.sim_available)) {
+      toast(tt('gacha.simDenied', 'Admin only'), 2200);
+      return;
+    }
+    const err = el('gacha-err');
+    if (err) err.textContent = '';
+    _pullBusy = true;
+    const count = simCount();
+    const body = {
+      count,
+      mode: count > 1 ? 'multi' : 'single',
+      force: force === 'custom' ? 'custom' : 'random',
+    };
+    if (body.force === 'custom') {
+      body.ur_count = Math.max(0, Number(el('gacha-sim-ur')?.value || 0));
+      body.sr_count = Math.max(0, Number(el('gacha-sim-sr')?.value || 0));
+    }
+    try {
+      sfx('pack_open');
+      const res = await accountPost('gacha_sim', body);
+      await loadIdolMap();
+      const pulls = res.pulls || [];
+      await playSpectacle(pulls);
+      toast(tt('gacha.simDone', 'Simulation only — nothing added ({n} pulls)', { n: pulls.length }), 3200);
+    } catch (e) {
+      if (err) err.textContent = e.message || tt('gacha.pullError', 'Could not scout');
+      toast(e.message || tt('gacha.pullError', 'Could not scout'), 2800);
+    } finally {
+      _pullBusy = false;
     }
   }
 
@@ -663,6 +715,8 @@
     el('btn-gacha-multi')?.addEventListener('click', () => openGacha('multi', 'star_gems'));
     el('btn-gacha-ticket-single')?.addEventListener('click', () => openGacha('single', 'tickets'));
     el('btn-gacha-ticket-multi')?.addEventListener('click', () => openGacha('multi', 'tickets'));
+    el('btn-gacha-sim-random')?.addEventListener('click', () => void runGachaSim('random'));
+    el('btn-gacha-sim-forced')?.addEventListener('click', () => void runGachaSim('custom'));
     el('btn-gacha-rates')?.addEventListener('click', (ev) => {
       ev.preventDefault();
       ev.stopPropagation();

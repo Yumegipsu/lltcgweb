@@ -269,6 +269,81 @@ function tcgGachaRollPulls(int $count, array $cardsData, array $cardMap): array 
     return $out;
 }
 
+/**
+ * Build a forced tier list for sim pulls. Remaining slots are N.
+ *
+ * @return list<string> tiers n|sr|ur
+ */
+function tcgGachaBuildForcedTier(int $count, int $urCount, int $srCount): array {
+    $count = max(1, min(20, $count));
+    $urCount = max(0, min($count, $urCount));
+    $srCount = max(0, min($count - $urCount, $srCount));
+    $tiers = array_merge(
+        array_fill(0, $urCount, 'ur'),
+        array_fill(0, $srCount, 'sr'),
+        array_fill(0, $count - $urCount - $srCount, 'n')
+    );
+    // Shuffle so forced high/mid cards aren't always first in the spotlight order.
+    for ($i = count($tiers) - 1; $i > 0; $i--) {
+        $j = random_int(0, $i);
+        $tmp = $tiers[$i];
+        $tiers[$i] = $tiers[$j];
+        $tiers[$j] = $tmp;
+    }
+    return $tiers;
+}
+
+/**
+ * Roll pulls with an explicit tier plan (no pity rewrite). Simulation / testing only.
+ *
+ * @param list<string> $tiers
+ * @return list<array{card_no:string,tier:string,rarity:string}>
+ */
+function tcgGachaRollPullsForced(array $tiers, array $cardsData, array $cardMap): array {
+    $pools = tcgGachaBuildPools($cardsData);
+    $out = [];
+    foreach ($tiers as $tierRaw) {
+        $tier = strtolower(trim((string)$tierRaw));
+        if ($tier !== 'n' && $tier !== 'sr' && $tier !== 'ur') {
+            $tier = 'n';
+        }
+        $no = tcgGachaPickCardNo($pools, $tier);
+        $card = $cardMap[$no] ?? null;
+        $r = is_array($card)
+            ? tcgNormalizePoolRarity((string)($card['rarity'] ?? 'N'), $no)
+            : 'N';
+        $out[] = [
+            'card_no' => $no,
+            'tier' => $tier,
+            'rarity' => $r,
+        ];
+    }
+    return $out;
+}
+
+/**
+ * Serialize rolled pulls for API (no collection apply).
+ *
+ * @param list<array{card_no:string,tier:string,rarity:string}> $rolled
+ * @return list<array<string,mixed>>
+ */
+function tcgGachaSerializePulls(array $rolled, array $cardMap): array {
+    $pulls = [];
+    foreach ($rolled as $row) {
+        $card = $cardMap[$row['card_no']] ?? null;
+        $pulls[] = [
+            'card_no' => $row['card_no'],
+            'tier' => $row['tier'],
+            'rarity' => $row['rarity'],
+            'name_en' => is_array($card) ? (string)($card['name_en'] ?? '') : '',
+            'idol_key' => tcgGachaIdolKeyFromCard(is_array($card) ? $card : null),
+            'converted' => false,
+            'star_gems' => 0,
+        ];
+    }
+    return $pulls;
+}
+
 function tcgGachaIdolKeyFromCard(?array $card): string {
     if (!is_array($card)) {
         return '';
@@ -467,6 +542,9 @@ function tcgApiGachaInfo(array $body): array {
     $unlocked = tcgGachaUserHasAccess($uid);
     $cards = tcgLoadCardsData();
     $pools = tcgGachaBuildPools($cards);
+    if (!function_exists('tcgSocialIsOwner')) {
+        require_once __DIR__ . '/social.php';
+    }
     return [
         'success' => true,
         'unlocked' => $unlocked,
@@ -490,6 +568,7 @@ function tcgApiGachaInfo(array $body): array {
             'ur' => count($pools['ur']),
             'total' => count($pools['all']),
         ],
+        'sim_available' => tcgSocialIsOwner($uid),
     ];
 }
 
@@ -593,3 +672,62 @@ function tcgApiOpenGacha(array $body): array {
     }
     return $payload;
 }
+
+/**
+ * Owner-only animation sim — rolls from the real pool but never grants cards or spends currency.
+ *
+ * Body:
+ *   mode: single|multi (default single → 1, multi → TCG_GACHA_MULTI_COUNT)
+ *   count: optional override 1–20
+ *   force: random|custom (default random)
+ *   ur_count / sr_count: forced high/mid slots when force=custom (rest N)
+ *
+ * @param array<string,mixed> $body
+ * @return array<string,mixed>
+ */
+function tcgApiGachaSim(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    if (!function_exists('tcgSocialIsOwner')) {
+        require_once __DIR__ . '/social.php';
+    }
+    if (!tcgSocialIsOwner($uid)) {
+        throw new Exception('Admin only', 403);
+    }
+    $mode = trim(strtolower((string)($body['mode'] ?? 'single')));
+    $wantMulti = in_array($mode, ['multi', '10', '10+1', 'eleven', 'x11', 'x10'], true);
+    $count = isset($body['count']) ? intval($body['count']) : 0;
+    if ($count < 1) {
+        $count = $wantMulti ? TCG_GACHA_MULTI_COUNT : 1;
+    }
+    $count = max(1, min(20, $count));
+    $mode = $count > 1 ? 'multi' : 'single';
+
+    $force = strtolower(trim((string)($body['force'] ?? 'random')));
+    $cards = tcgLoadCardsData();
+    $cardMap = tcgBuildCardMap($cards);
+    if ($force === 'custom' || $force === 'forced' || isset($body['ur_count']) || isset($body['sr_count'])) {
+        $ur = intval($body['ur_count'] ?? $body['high'] ?? 0);
+        $sr = intval($body['sr_count'] ?? $body['mid'] ?? 0);
+        $tiers = tcgGachaBuildForcedTier($count, $ur, $sr);
+        $rolled = tcgGachaRollPullsForced($tiers, $cards, $cardMap);
+        $force = 'custom';
+    } else {
+        $rolled = tcgGachaRollPulls($count, $cards, $cardMap);
+        $force = 'random';
+    }
+
+    return [
+        'success' => true,
+        'simulated' => true,
+        'mode' => $mode,
+        'force' => $force,
+        'count' => $count,
+        'cost' => 0,
+        'currency' => 'sim',
+        'pulls' => tcgGachaSerializePulls($rolled, $cardMap),
+        'star_gems_earned' => 0,
+        'star_gems' => tcgGetStarGems($uid),
+        'scouting_tickets' => tcgGetScoutingTickets($uid),
+    ];
+}
+

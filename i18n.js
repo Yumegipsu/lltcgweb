@@ -589,6 +589,8 @@
       "ticketsAria": "Scouting Tickets",
       "ticketSingle": "Scout ×1 ({n} ticket)",
       "ticketMulti": "Scout ×{count} ({n} tickets)",
+      "simDenied": "Admin only",
+      "simDone": "Simulation only — nothing added ({n} pulls)",
       "ratesLead": "Tap Info for rarity rates and card odds",
       "poolInfo": "{total} cards in pool",
       "single": "Scout ×1 ({n})",

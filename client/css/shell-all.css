@@ -9047,6 +9047,17 @@ button.player-title--btn{cursor:pointer}
 .gacha-actions--tickets{margin-top:4px}
 .gacha-btn-ticket{display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .gacha-btn-ticket img{flex:0 0 auto;object-fit:contain}
+.gacha-sim-panel{margin:16px 0 8px;padding:12px;border-radius:12px;border:1px dashed rgba(251,191,36,.55);background:rgba(40,24,8,.45)}
+.gacha-sim-banner{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.gacha-sim-banner__badge{flex:0 0 auto;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:rgba(251,191,36,.2);color:#fbbf24;border:1px solid rgba(251,191,36,.45)}
+.gacha-sim-banner__copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.gacha-sim-banner__label{font-weight:800;font-size:1rem}
+.gacha-sim-banner__sub{font-size:.85rem;opacity:.75}
+.gacha-sim-controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.gacha-sim-field{display:flex;flex-direction:column;gap:4px;font-size:.85rem;min-width:88px;flex:1 1 88px}
+.gacha-sim-field input,.gacha-sim-field select{padding:7px 8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.35);color:#fff;font:inherit}
+.gacha-sim-hint{margin:6px 0 0;font-size:.8rem;opacity:.65;line-height:1.35}
+.gacha-actions--sim{margin-top:0}
 
 /* Gacha screen — Standard pool banner (Honoka crop matches Scout tile) */
 .gacha-banner{

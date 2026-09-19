@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=151">
+<link rel="stylesheet" href="client/css/shell-all.css?v=152">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
 <link rel="stylesheet" href="client/css/playmats.css?v=6">
@@ -1153,6 +1153,35 @@ try {
           <img src="assets/Scout_Ticket.webp" alt="" width="18" height="18" aria-hidden="true">
           <span data-i18n="gacha.ticketMulti">Scout ×10 (10 tickets)</span>
         </button>
+      </div>
+      <div class="gacha-sim-panel" id="gacha-sim-panel" hidden>
+        <div class="gacha-sim-banner" role="group" aria-label="Admin pull simulation">
+          <span class="gacha-sim-banner__badge">Admin</span>
+          <span class="gacha-sim-banner__copy">
+            <span class="gacha-sim-banner__label">Pull simulator</span>
+            <span class="gacha-sim-banner__sub">Animation only — nothing added to collection</span>
+          </span>
+        </div>
+        <div class="gacha-sim-controls">
+          <label class="gacha-sim-field">Count
+            <select id="gacha-sim-count">
+              <option value="1">×1</option>
+              <option value="11" selected>×11 (10+1)</option>
+              <option value="10">×10</option>
+            </select>
+          </label>
+          <label class="gacha-sim-field">UR (high)
+            <input type="number" id="gacha-sim-ur" min="0" max="20" value="0">
+          </label>
+          <label class="gacha-sim-field">SR (mid)
+            <input type="number" id="gacha-sim-sr" min="0" max="20" value="0">
+          </label>
+        </div>
+        <div class="gacha-actions gacha-actions--sim">
+          <button type="button" class="btn-out" id="btn-gacha-sim-random">Sim random</button>
+          <button type="button" class="btn-grad" id="btn-gacha-sim-forced">Sim forced mix</button>
+        </div>
+        <p class="gacha-sim-hint">Forced mix fills UR + SR first; remaining slots are N. Leave both at 0 and use Sim random for normal rates.</p>
       </div>
       <p class="lerr" id="gacha-err"></p>
     </div>
@@ -3229,7 +3258,7 @@ try {
 <script src="client/js/apk-asset-cache.js?v=8"></script>
 <script src="client/js/shop-new.js?v=2"></script>
 <script src="client/js/gacha-spotlight.js?v=7"></script>
-<script src="client/js/gacha.js?v=13"></script>
+<script src="client/js/gacha.js?v=14"></script>
 <script src="client/js/ranked-pr-reward.js?v=6"></script>
 <script src="client/js/missions.js?v=14"></script>
 <script src="client/js/admin-events.js?v=2"></script>
