@@ -31,12 +31,78 @@ final class GachaPoolTest extends TestCase
             $this->assertIsArray($c);
             $pack = (string)($c['booster_pack'] ?? '');
             $this->assertStringNotContainsString('プレミアムブースター', $pack);
-            $this->assertNotSame('ブースターパック MELLOW MOMENT', $pack);
             $this->assertFalse(tcgCardEligibleForPrBoosterPool($c));
             $r = tcgNormalizePoolRarity((string)($c['rarity'] ?? ''), $no);
             $this->assertNotSame('DUO', $r);
             $this->assertDoesNotMatchRegularExpression('/-DUO$/i', $no);
         }
+    }
+
+    public function testNewSetEmbargoOneMonthAfterRelease(): void
+    {
+        $tz = new \DateTimeZone('Asia/Tokyo');
+        $mellow = null;
+        foreach (tcgBoosterBoxes() as $box) {
+            if (($box['id'] ?? '') === 'bp_mellow') {
+                $mellow = $box;
+                break;
+            }
+        }
+        $this->assertIsArray($mellow);
+        $this->assertSame('2026-08-08', $mellow['release_date']);
+
+        // During embargo window (release day).
+        $during = (new \DateTimeImmutable('2026-08-08 12:00:00', $tz))->getTimestamp();
+        $this->assertTrue(tcgGachaBpIsNewSetEmbargoed($mellow, $during));
+
+        // Still embargoed just before +1 month.
+        $almost = (new \DateTimeImmutable('2026-09-07 23:59:59', $tz))->getTimestamp();
+        $this->assertTrue(tcgGachaBpIsNewSetEmbargoed($mellow, $almost));
+
+        // Unlocked at +1 calendar month.
+        $unlocked = (new \DateTimeImmutable('2026-09-08 00:00:00', $tz))->getTimestamp();
+        $this->assertFalse(tcgGachaBpIsNewSetEmbargoed($mellow, $unlocked));
+
+        // Remains unlocked while still the newest set.
+        $later = (new \DateTimeImmutable('2026-12-01 00:00:00', $tz))->getTimestamp();
+        $this->assertFalse(tcgGachaBpIsNewSetEmbargoed($mellow, $later));
+    }
+
+    public function testPackCatalogUsesEmbargoNotForeverNewest(): void
+    {
+        $tz = new \DateTimeZone('Asia/Tokyo');
+        tcgGachaClearPoolCache();
+
+        $during = (new \DateTimeImmutable('2026-08-20 12:00:00', $tz))->getTimestamp();
+        $catDuring = tcgGachaPackCatalog($during);
+        $this->assertContains('bp_mellow', array_column($catDuring['excluded'], 'id'));
+        $this->assertNotContains('bp_mellow', array_column($catDuring['included'], 'id'));
+        $this->assertContains('bp_royal', array_column($catDuring['included'], 'id'));
+
+        $after = (new \DateTimeImmutable('2026-09-19 12:00:00', $tz))->getTimestamp();
+        $catAfter = tcgGachaPackCatalog($after);
+        $this->assertContains('bp_mellow', array_column($catAfter['included'], 'id'));
+        $this->assertNotContains('bp_mellow', array_column($catAfter['excluded'], 'id'));
+        $this->assertContains('pb_muse', array_column($catAfter['excluded'], 'id'));
+        $this->assertContains('pr_cards', array_column($catAfter['excluded'], 'id'));
+    }
+
+    public function testPoolIncludesMellowAfterEmbargo(): void
+    {
+        $tz = new \DateTimeZone('Asia/Tokyo');
+        $cards = tcgLoadCardsData();
+        tcgGachaClearPoolCache();
+        $after = (new \DateTimeImmutable('2026-09-19 12:00:00', $tz))->getTimestamp();
+        $pools = tcgGachaBuildPools($cards, $after);
+        $map = tcgBuildCardMap($cards);
+        $hit = 0;
+        foreach ($pools['all'] as $no) {
+            $c = $map[$no] ?? null;
+            if (is_array($c) && ($c['booster_pack'] ?? '') === 'ブースターパック MELLOW MOMENT') {
+                $hit++;
+            }
+        }
+        $this->assertGreaterThan(0, $hit, 'MELLOW MOMENT should enter the pool one month after release');
     }
 
     public function testTierWeightsAreSifStyle(): void
@@ -136,16 +202,17 @@ final class GachaPoolTest extends TestCase
 
     public function testPackCatalogListsIncludedAndExcluded(): void
     {
-        $cat = tcgGachaPackCatalog();
+        $tz = new \DateTimeZone('Asia/Tokyo');
+        $after = (new \DateTimeImmutable('2026-09-19 12:00:00', $tz))->getTimestamp();
+        $cat = tcgGachaPackCatalog($after);
         $incIds = array_column($cat['included'], 'id');
         $excIds = array_column($cat['excluded'], 'id');
         $this->assertContains('bp_vol1', $incIds);
         $this->assertContains('bp_royal', $incIds);
+        $this->assertContains('bp_mellow', $incIds);
         $this->assertContains('starters', $incIds);
-        $this->assertContains('bp_mellow', $excIds);
         $this->assertContains('pb_muse', $excIds);
         $this->assertContains('pr_cards', $excIds);
-        $this->assertNotContains('bp_mellow', $incIds);
         $this->assertNotContains('pb_muse', $incIds);
     }
 

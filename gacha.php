@@ -38,19 +38,59 @@ const TCG_GACHA_WEIGHT_SR = 920;
 const TCG_GACHA_WEIGHT_UR = 80;
 
 /**
- * Standard BP filters allowed in the general gacha (excludes MELLOW MOMENT).
+ * Standard BPs stay out of general Scout for one calendar month after JP release
+ * (not "while newest" forever). Premium / special kinds are never included here.
+ */
+const TCG_GACHA_NEW_SET_EMBARGO = 'P1M';
+
+/** Optional test override via $GLOBALS['tcg_gacha_now'] (unix). */
+function tcgGachaNow(): int {
+    if (array_key_exists('tcg_gacha_now', $GLOBALS) && is_int($GLOBALS['tcg_gacha_now'])) {
+        return $GLOBALS['tcg_gacha_now'];
+    }
+    return time();
+}
+
+function tcgGachaClearPoolCache(): void {
+    $GLOBALS['tcg_gacha_pool_cache'] = null;
+}
+
+/**
+ * @param array<string,mixed> $box
+ */
+function tcgGachaBpIsNewSetEmbargoed(array $box, ?int $now = null): bool {
+    if ((string)($box['kind'] ?? '') !== 'bp') {
+        return false;
+    }
+    $rd = trim((string)($box['release_date'] ?? ''));
+    if ($rd === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $rd)) {
+        return false;
+    }
+    try {
+        $tz = new DateTimeZone('Asia/Tokyo');
+        $release = new DateTimeImmutable($rd . ' 00:00:00', $tz);
+        $unlock = $release->add(new DateInterval(TCG_GACHA_NEW_SET_EMBARGO));
+        $nowTs = $now ?? tcgGachaNow();
+        $nowDt = (new DateTimeImmutable('@' . $nowTs))->setTimezone($tz);
+        return $nowDt < $unlock;
+    } catch (Throwable $e) {
+        return false;
+    }
+}
+
+/**
+ * Standard BP filters currently allowed in the general gacha.
  *
  * @return list<string>
  */
-function tcgGachaAllowedBoosterFilters(): array {
+function tcgGachaAllowedBoosterFilters(?int $now = null): array {
     $out = [];
     foreach (tcgBoosterBoxes() as $box) {
         $kind = (string)($box['kind'] ?? '');
-        $id = (string)($box['id'] ?? '');
         if ($kind !== 'bp') {
             continue;
         }
-        if ($id === 'bp_mellow') {
+        if (tcgGachaBpIsNewSetEmbargoed($box, $now)) {
             continue;
         }
         $filter = (string)($box['filter'] ?? '');
@@ -106,9 +146,6 @@ function tcgGachaIsExcludedCard(array $card): bool {
     if (str_contains($pack, 'プレミアムブースター') || stripos($pack, 'premium') !== false) {
         return true;
     }
-    if ($pack === 'ブースターパック MELLOW MOMENT') {
-        return true;
-    }
     return false;
 }
 
@@ -135,12 +172,14 @@ function tcgGachaTierForRarity(string $rarity): string {
 /**
  * @return array{n:list<string>,sr:list<string>,ur:list<string>,all:list<string>}
  */
-function tcgGachaBuildPools(array $cardsData): array {
-    static $cache = null;
-    if (is_array($cache)) {
-        return $cache;
+function tcgGachaBuildPools(array $cardsData, ?int $now = null): array {
+    $nowTs = $now ?? tcgGachaNow();
+    $dayKey = gmdate('Y-m-d', $nowTs);
+    $cache = $GLOBALS['tcg_gacha_pool_cache'] ?? null;
+    if (is_array($cache) && ($cache['_day'] ?? '') === $dayKey && is_array($cache['pools'] ?? null)) {
+        return $cache['pools'];
     }
-    $allowed = array_fill_keys(tcgGachaAllowedBoosterFilters(), true);
+    $allowed = array_fill_keys(tcgGachaAllowedBoosterFilters($nowTs), true);
     $starterNos = array_fill_keys(tcgGachaStarterCardNos($cardsData), true);
     $pools = ['n' => [], 'sr' => [], 'ur' => [], 'all' => []];
     foreach ($cardsData['cards'] ?? [] as $card) {
@@ -172,7 +211,7 @@ function tcgGachaBuildPools(array $cardsData): array {
     if (!$pools['n'] && $pools['all']) {
         $pools['n'] = $pools['all'];
     }
-    $cache = $pools;
+    $GLOBALS['tcg_gacha_pool_cache'] = ['_day' => $dayKey, 'pools' => $pools];
     return $pools;
 }
 
@@ -390,9 +429,10 @@ function tcgGachaIdolKeyFromCard(?array $card): string {
  *   excluded: list<array{id:string,name_en:string,name_jp:string,kind:string}>
  * }
  */
-function tcgGachaPackCatalog(): array {
+function tcgGachaPackCatalog(?int $now = null): array {
     $included = [];
     $excluded = [];
+    $nowTs = $now ?? tcgGachaNow();
     foreach (tcgBoosterBoxes() as $box) {
         $entry = [
             'id' => (string)($box['id'] ?? ''),
@@ -401,10 +441,13 @@ function tcgGachaPackCatalog(): array {
             'kind' => (string)($box['kind'] ?? ''),
         ];
         $kind = $entry['kind'];
-        $id = $entry['id'];
-        if ($kind === 'bp' && $id !== 'bp_mellow') {
+        if ($kind === 'bp' && !tcgGachaBpIsNewSetEmbargoed($box, $nowTs)) {
             $included[] = $entry;
         } else {
+            if ($kind === 'bp' && !empty($box['release_date'])) {
+                $entry['release_date'] = (string)$box['release_date'];
+                $entry['embargo'] = true;
+            }
             $excluded[] = $entry;
         }
     }
@@ -554,7 +597,7 @@ function tcgComputeGachaRates(array $cardsData): array {
             'Gold (SR): P, P+, PP, SRE, SRL, RM, PE+, AR, RE.',
             'Rainbow (UR): SEC / SECL / SECE / SECS / SEC+ / LLE.',
             'PR, DUO, and Premium Booster cards are not in this pool.',
-            'MELLOW MOMENT is not in this pool yet.',
+            'New standard booster packs join this pool one month after release.',
         ],
     ];
 }

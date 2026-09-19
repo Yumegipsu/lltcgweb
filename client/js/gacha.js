@@ -384,7 +384,7 @@
       tt('gacha.noteGuarantee', 'Scout 10+1 guarantees at least one SR+ (gold/rainbow); UR within that guarantee stays rare.'),
       tt('gacha.noteBands', 'Grey: N/R/L/PE… · Gold: P/SRE/RM… · Rainbow: SEC/LLE.'),
       tt('gacha.noteNoPrDuo', 'PR, DUO, and Premium Booster cards are not in this pool.'),
-      tt('gacha.noteMellow', 'MELLOW MOMENT is not in this pool yet.'),
+      tt('gacha.noteNewSetEmbargo', 'New standard booster packs join this pool one month after release.'),
     ];
     const notesEl = document.createElement('ul');
     notesEl.className = 'booster-rates-notes';

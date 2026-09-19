@@ -632,7 +632,7 @@
       "noteGuarantee": "Scout 10+1 guarantees at least one SR+ (gold/rainbow); UR within that guarantee stays rare.",
       "noteBands": "Grey: N/R/L/PE… · Gold: P/SRE/RM… · Rainbow: SEC/LLE.",
       "noteNoPrDuo": "PR, DUO, and Premium Booster cards are not in this pool.",
-      "noteMellow": "MELLOW MOMENT is not in this pool yet.",
+      "noteNewSetEmbargo": "New standard booster packs join this pool one month after release.",
       "ratesLoading": "Loading rates…",
       "ratesError": "Could not load gacha rates"
     },
@@ -2728,7 +2728,7 @@
       "noteGuarantee": "スカウト10+1はSR以上を1枚以上保証します（その枠内のURは低確率のまま）。",
       "noteBands": "灰: N/R/L/PE… · 金: P/SRE/RM… · 虹: SEC/LLE。",
       "noteNoPrDuo": "PR・DUO・プレミアムブースターのカードは含まれません。",
-      "noteMellow": "MELLOW MOMENTはまだこのプールに含まれません。",
+      "noteNewSetEmbargo": "新しい通常ブースターは発売から1か月後にこのプールへ入ります。",
       "ratesLoading": "排出率を読み込み中…",
       "ratesError": "ガチャの排出率を読み込めませんでした"
     },
@@ -4589,7 +4589,7 @@
       "noteGuarantee": "Scout 10+1 garantiza al menos una SR+ (oro/arcoíris); la UR en esa garantía sigue siendo rara.",
       "noteBands": "Gris: N/R/L/PE… · Oro: P/SRE/RM… · Arcoíris: SEC/LLE.",
       "noteNoPrDuo": "Las cartas PR, DUO y de Premium Booster no están en este pool.",
-      "noteMellow": "MELLOW MOMENT aún no está en este pool.",
+      "noteNewSetEmbargo": "Los boosters estándar nuevos entran en este pool un mes después del lanzamiento.",
       "ratesLoading": "Cargando probabilidades…",
       "ratesError": "No se pudieron cargar las probabilidades del gacha"
     },
@@ -6520,7 +6520,7 @@
       "noteGuarantee": "스카우트 10+1은 SR 이상을 최소 1장 보장합니다(그 보장 안의 UR은 여전히 희귀).",
       "noteBands": "회색: N/R/L/PE… · 금: P/SRE/RM… · 무지개: SEC/LLE.",
       "noteNoPrDuo": "PR, DUO, 프리미엄 부스터 카드는 이 풀에 없습니다.",
-      "noteMellow": "MELLOW MOMENT는 아직 이 풀에 없습니다.",
+      "noteNewSetEmbargo": "새 일반 부스터는 발매 1개월 후에 이 풀에 들어갑니다.",
       "ratesLoading": "확률 불러오는 중…",
       "ratesError": "가챠 확률을 불러올 수 없습니다"
     },
@@ -8465,7 +8465,7 @@
       "noteGuarantee": "招募 10+1 至少保证 1 张 SR+（金/虹）；该保底内的 UR 仍保持低概率。",
       "noteBands": "灰：N/R/L/PE… · 金：P/SRE/RM… · 虹：SEC/LLE。",
       "noteNoPrDuo": "PR、DUO 与 Premium Booster 卡不在本卡池中。",
-      "noteMellow": "MELLOW MOMENT 暂未加入本卡池。",
+      "noteNewSetEmbargo": "新标准补充包于发售后一个月加入本卡池。",
       "ratesLoading": "正在加载概率…",
       "ratesError": "无法加载扭蛋概率"
     },
@@ -10400,7 +10400,7 @@
       "noteGuarantee": "สเกาต์ 10+1 รับประกัน SR+ อย่างน้อย 1 ใบ (ทอง/รุ้ง) โดย UR ในกรอบนั้นยังหายาก",
       "noteBands": "เทา: N/R/L/PE… · ทอง: P/SRE/RM… · รุ้ง: SEC/LLE",
       "noteNoPrDuo": "การ์ด PR, DUO และ Premium Booster ไม่อยู่ในพูลนี้",
-      "noteMellow": "MELLOW MOMENT ยังไม่อยู่ในพูลนี้",
+      "noteNewSetEmbargo": "บูสเตอร์มาตรฐานชุดใหม่จะเข้าพูลนี้หนึ่งเดือนหลังวางจำหน่าย",
       "ratesLoading": "กำลังโหลดอัตรา…",
       "ratesError": "โหลดอัตรากาชาไม่ได้"
     },
@@ -12383,7 +12383,7 @@
       "noteGuarantee": "Scout 10+1 garante pelo menos uma SR+ (ouro/arco-íris); UR nessa garantia continua rara.",
       "noteBands": "Cinza: N/R/L/PE… · Ouro: P/SRE/RM… · Arco-íris: SEC/LLE.",
       "noteNoPrDuo": "Cartas PR, DUO e de Premium Booster não estão neste pool.",
-      "noteMellow": "MELLOW MOMENT ainda não está neste pool.",
+      "noteNewSetEmbargo": "Boosters padrão novos entram neste pool um mês após o lançamento.",
       "ratesLoading": "Carregando taxas…",
       "ratesError": "Não foi possível carregar as taxas do gacha"
     },
@@ -15905,7 +15905,7 @@
       "noteGuarantee": "Scout 10+1 garantit au moins un SR+ (or/arc-en-ciel) ; l’UR reste rare dans cette garantie.",
       "noteBands": "Gris : N/R/L/PE… · Or : P/SRE/RM… · Arc-en-ciel : SEC/LLE.",
       "noteNoPrDuo": "Les cartes PR, DUO et Premium Booster ne sont pas dans ce pool.",
-      "noteMellow": "MELLOW MOMENT n'est pas encore dans ce pool.",
+      "noteNewSetEmbargo": "Les boosters standards récents rejoignent ce pool un mois après leur sortie.",
       "ratesLoading": "Chargement rates…",
       "ratesError": "Impossible de charger les taux du gacha"
     },
