@@ -113,8 +113,8 @@
     for (let y = 0; y < h; y += 2) {
       const s = y / h;
       const half = (w / 2) * (0.028 + 0.972 * Math.pow(1 - s, 0.52)) + 1;
-      // Soften the floor tip so angled beams don't show a hard diagonal cut.
-      const foot = fadeFoot && s > 0.72 ? Math.max(0, 1 - (s - 0.72) / 0.28) : 1;
+      // Soft tip only in the last ~12% so the beam still meets the oval equator cleanly.
+      const foot = fadeFoot && s > 0.88 ? Math.max(0, 1 - (s - 0.88) / 0.12) : 1;
       const a = (0.3 + 0.7 * Math.pow(s, 0.85)) * 0.55 * foot;
       const grad = g.createLinearGradient(w / 2 - half, 0, w / 2 + half, 0);
       for (const [p, col] of stops) grad.addColorStop(p, col);
@@ -370,8 +370,8 @@
 
     const dx = bx - s.ax;
     const dy = fy - rigY;
-    // Overshoot the floor slightly so the (softened) tip sits under the pool glow.
-    const len = Math.hypot(dx, dy) * (1.04 + 0.02 * flick);
+    // Tip lands exactly at the oval equator (fy) — no overshoot below the floor glow.
+    const len = Math.hypot(dx, dy);
     const ang = Math.atan2(dx, -dy);
     const baseW = (W < 560 ? 130 : 182)
       * (slots.length === 1 ? 2.0 : slots.length > 8 ? 0.72 : 1)
@@ -399,18 +399,17 @@
     ctx.drawImage(sprite, -baseW / 2, -len, baseW, len);
     ctx.restore();
 
-    // Floor pool: soft white + tier wash (rainbow uses soft lavender, not a hard band color).
+    // Floor pool sits on the tip so the join reads as the oval equator.
     const poolCol = s.tier === 'rainbow' ? '#e8d8ff' : t.pool;
     const pw = baseW * 1.9;
     const ph = pw * 0.28;
-    ctx.globalAlpha = Math.min(1, rise) * (0.62 + 0.3 * boost) * t.power;
+    ctx.globalAlpha = Math.min(1, rise) * (0.7 + 0.3 * boost) * t.power;
     ctx.drawImage(glow(poolCol, 256), bx - pw / 2, fy - ph / 2, pw, ph);
-    ctx.globalAlpha *= 0.85;
+    ctx.globalAlpha *= 0.9;
     ctx.drawImage(glow(t.core, 128), bx - pw * 0.34, fy - ph * 0.3, pw * 0.68, ph * 0.6);
     if (s.tier === 'rainbow') {
-      // Extra soft bloom to hide any remaining angled tip.
-      ctx.globalAlpha = Math.min(1, rise) * 0.35 * t.power;
-      ctx.drawImage(glow('#ffffff', 256), bx - pw * 0.55, fy - ph * 0.55, pw * 1.1, ph * 1.1);
+      ctx.globalAlpha = Math.min(1, rise) * 0.4 * t.power;
+      ctx.drawImage(glow('#ffffff', 256), bx - pw * 0.5, fy - ph * 0.5, pw, ph);
     }
 
     if (!reduceMotion && parts.length < Q.motes && Math.random() < 0.12) mote(s);
