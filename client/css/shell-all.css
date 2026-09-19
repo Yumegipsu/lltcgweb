@@ -3872,20 +3872,44 @@ body.deck-card-preview #modal-card{z-index:970}
 /* Full-screen hand discard picker */
 .overlay.hand-pick-overlay{
   background:rgba(2,6,18,.94);backdrop-filter:blur(10px);z-index:960;
-  align-items:flex-end;padding:0 0 max(28px,5vh);
+  align-items:flex-end;justify-content:center;
+  overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding:max(16px,2vh) 0 max(28px,5vh);
 }
-.hand-pick-shell{width:100%;max-width:1040px;text-align:center;padding:0 20px 8px}
+/* Large WR / pool picks: start from the top so nothing is clipped (#193). */
+.overlay.hand-pick-overlay.hand-pick-overflow{
+  align-items:flex-start;
+}
+.hand-pick-shell{
+  width:100%;max-width:1040px;text-align:center;padding:0 20px 8px;
+  margin:auto 0;box-sizing:border-box;
+}
 .hand-pick-shell h2{font-size:clamp(20px,3vw,26px);margin:0 0 8px;color:#fff;font-weight:700}
 .hand-pick-shell .hpick-msg{font-size:clamp(14px,2vw,17px);color:rgba(255,255,255,.78);margin:0 0 22px;line-height:1.45}
 .hand-pick-fan{
-  display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:clamp(12px,2vw,20px);
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;align-content:flex-end;
+  gap:clamp(12px,2vw,20px);
   margin:0 auto 18px;min-height:calc(var(--hand-pick-card-h) + 12px);
+}
+.overlay.hand-pick-overflow .hand-pick-fan{
+  align-items:flex-start;align-content:flex-start;gap:clamp(10px,1.6vw,18px);
+  max-height:min(68vh,720px);overflow-x:hidden;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding:6px 4px 10px;box-sizing:border-box;
+}
+.hand-pick-fan.hand-pick-fan--dense{
+  max-height:min(72vh,780px);gap:clamp(8px,1.2vw,14px);
+}
+.hand-pick-fan.hand-pick-fan--dense .hand-pick-card{
+  --hand-pick-card-h:clamp(96px,15vh,150px);
 }
 .hand-pick-card{
   --hand-pick-card-h:clamp(130px,22vh,210px);
   position:relative;height:var(--hand-pick-card-h);width:calc(var(--hand-pick-card-h)*0.714);
   border-radius:8px;overflow:hidden;cursor:pointer;border:3px solid rgba(255,255,255,.18);
   box-shadow:0 8px 28px rgba(0,0,0,.55);transition:transform .15s,border-color .15s,box-shadow .15s;
+  flex:0 0 auto;
 }
 .hand-pick-card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.45)}
 .hand-pick-card.sel{border-color:var(--pink);box-shadow:0 0 0 2px var(--pink),0 12px 32px rgba(255,107,168,.35);transform:translateY(-10px)}

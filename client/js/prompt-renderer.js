@@ -1021,7 +1021,13 @@ global.openHandPick = function openHandPick({hand,count,title,msg,onConfirm,onCa
     ? t('prompt.discardOne')
     : t('prompt.discardMany', { count: need })));
   const fan=el('hpick-fan'); fan.innerHTML='';
-  (hand||[]).forEach(card=>{
+  const handList = hand || [];
+  const ov = el('overlay-hand-pick');
+  // Dense + scrollable layout when WR / large pools would clip off-screen (#193).
+  const overflow = handList.length > 8;
+  fan.classList.toggle('hand-pick-fan--dense', handList.length > 10);
+  ov?.classList.toggle('hand-pick-overflow', overflow);
+  handList.forEach(card=>{
     fan.appendChild(mkPickCardEl(card,'hand-pick-card',()=>{
       const ctx=G.handPickCtx; if(!ctx) return;
       if(ctx.singleTap){
