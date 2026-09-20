@@ -558,7 +558,7 @@ function buildReplayExportPayload(array $state, string $saverPid): array {
             'turn'             => intval($state['turn'] ?? 0),
             'phase'            => (string)($state['phase'] ?? ''),
             'game_seq'         => intval($state['seq'] ?? 0),
-            'client_version'   => '0.1.6',
+            'client_version'   => '0.2.0',
             'mode'             => $state['mode'] ?? null,
             'cpu_difficulty'   => $state['cpu_difficulty'] ?? null,
             'timing_source'    => !empty($state['phase_timer']) ? 'phase_timer' : 'action_timestamps',
