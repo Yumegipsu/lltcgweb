@@ -9349,6 +9349,18 @@ body.gacha-pull-open{overflow:hidden}
   /* Avoid soft upscales when the face is promoted to a compositor layer */
   image-rendering:auto;-webkit-backface-visibility:hidden;backface-visibility:hidden;
 }
+/* Live cards: landscape art rotated into the portrait spotlight frame (same as pack results) */
+.gacha-spot-face.card-live-hand{overflow:hidden}
+.gacha-spot-face.card-live-hand .card-landscape-in-portrait,
+.gacha-spot-face.card-live-hand .card-art.live-sideways{
+  border-radius:7px;
+}
+.gacha-spot-face.card-live-hand .card-landscape-in-portrait img,
+.gacha-spot-face.card-live-hand .card-landscape-in-portrait .noimg,
+.gacha-spot-face.card-live-hand .card-art.live-sideways img,
+.gacha-spot-face.card-live-hand .card-art.live-sideways .noimg{
+  width:100%;height:100%;object-fit:contain;display:block;pointer-events:none;
+}
 .gacha-spot-flourish{
   position:absolute;left:0;right:0;top:22%;text-align:center;z-index:4;
   pointer-events:none;opacity:0;
@@ -9405,6 +9417,17 @@ body.gacha-pull-open{overflow:hidden}
   overflow:hidden;background:#12081a;
 }
 .gacha-fly-clone img{width:100%;height:100%;object-fit:cover;display:block}
+.gacha-fly-clone.is-live{background:#12081a}
+.gacha-fly-clone.is-live > .gacha-spot-face{
+  position:relative;width:100%;height:100%;overflow:hidden;border-radius:inherit;
+  background:transparent;display:block;
+}
+.gacha-fly-clone.is-live .card-landscape-in-portrait img,
+.gacha-fly-clone.is-live .card-landscape-in-portrait .noimg,
+.gacha-fly-clone.is-live .card-art.live-sideways img,
+.gacha-fly-clone.is-live .card-art.live-sideways .noimg{
+  width:100%;height:100%;object-fit:contain;display:block;
+}
 .pack-results-item.is-awaiting-fly{opacity:0}
 .pack-results-item.is-fly-landed{opacity:1;transition:opacity .18s ease}
 @media (prefers-reduced-motion:reduce){

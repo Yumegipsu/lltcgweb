@@ -634,14 +634,21 @@
     minis.forEach((mini, i) => {
       if (!mini || !targets[i]) return;
       const from = mini.getBoundingClientRect();
-      const img = mini.querySelector('img');
+      const face = mini.querySelector('.gacha-spot-face');
+      const live = mini.classList.contains('is-live')
+        || !!(face && face.classList.contains('card-live-hand'));
       const clone = document.createElement('div');
-      clone.className = 'gacha-fly-clone';
-      if (img && img.src) {
-        const im = document.createElement('img');
-        im.src = img.src;
-        im.alt = '';
-        clone.appendChild(im);
+      clone.className = 'gacha-fly-clone' + (live ? ' is-live' : '');
+      if (live && face) {
+        clone.appendChild(face.cloneNode(true));
+      } else {
+        const img = mini.querySelector('img');
+        if (img && img.src) {
+          const im = document.createElement('img');
+          im.src = img.src;
+          im.alt = '';
+          clone.appendChild(im);
+        }
       }
       Object.assign(clone.style, {
         left: `${from.left}px`,

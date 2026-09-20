@@ -303,6 +303,8 @@
         from: r.from || null,
         name: r.name || '',
         image: r.image || null,
+        cardNo: r.card_no || r.cardNo || '',
+        live: !!r.live,
         cardRarity: String(r.cardRarity || r.pullRarity || '').trim(),
         ignite: igniteAt,
         flipAt: 0,
@@ -602,13 +604,41 @@
         inner.appendChild(spark);
       }
       const face = document.createElement('div');
-      face.className = 'gacha-spot-face';
-      if (s.image) {
-        const im = new Image();
-        im.src = s.image;
-        im.alt = s.name || '';
-        im.decoding = 'async';
-        face.appendChild(im);
+      const live = !!s.live;
+      face.className = 'gacha-spot-face' + (live ? ' card-live-hand' : '');
+      if (live) mini.classList.add('is-live');
+      const cardNo = s.cardNo || '';
+      const catalog = (global.G && global.G.allCards && cardNo)
+        ? global.G.allCards[cardNo]
+        : null;
+      const cardObj = catalog || (cardNo
+        ? { card_no: cardNo, name_en: s.name || '' }
+        : null);
+      const enriched = cardObj && typeof global.enrichCard === 'function'
+        ? global.enrichCard(cardObj)
+        : cardObj;
+      if (enriched && typeof global.appendCardFace === 'function') {
+        global.appendCardFace(face, enriched, {
+          sideways: live,
+          preferSrc: s.image || '',
+        });
+      } else if (s.image) {
+        if (live) {
+          const wrap = document.createElement('div');
+          wrap.className = 'card-landscape-in-portrait card-art live-sideways';
+          const im = new Image();
+          im.src = s.image;
+          im.alt = s.name || '';
+          im.decoding = 'async';
+          wrap.appendChild(im);
+          face.appendChild(wrap);
+        } else {
+          const im = new Image();
+          im.src = s.image;
+          im.alt = s.name || '';
+          im.decoding = 'async';
+          face.appendChild(im);
+        }
       } else {
         face.textContent = t.text;
       }
@@ -829,6 +859,15 @@
     });
   }
 
+  function pullIsLive(p) {
+    const no = p && p.card_no;
+    const G = global.G || {};
+    const base = (no && G.allCards && G.allCards[no]) || p || {};
+    const card = typeof global.enrichCard === 'function' ? global.enrichCard(base) : base;
+    if (typeof global.isLiveCard === 'function') return !!global.isLiveCard(card);
+    return card?.card_type === 'ライブ' || card?.card_type_en === 'Live';
+  }
+
   function fromPulls(pulls, imageFn) {
     return (pulls || []).map((p) => {
       const tier = String(p.tier || 'n');
@@ -837,6 +876,8 @@
         rarity,
         cardRarity: String(p.rarity || '').trim(),
         name: p.name_en || p.name || '',
+        card_no: p.card_no || '',
+        live: pullIsLive(p),
         image: typeof imageFn === 'function' ? imageFn(p) : (p.image || ''),
       };
       // Spectacle rarity-flip is uncommon — most SR/UR light as their final tier.
