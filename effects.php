@@ -384,6 +384,24 @@ function putEnergyFromDeckInWait(array &$p, ?array &$state = null, ?string $pid 
     return true;
 }
 
+/** Put 1 Energy from the Energy deck into Energy storage in Active state. */
+function putEnergyFromDeckInActive(array &$p, ?array &$state = null, ?string $pid = null): bool {
+    if (empty($p['energy_deck'])) {
+        return false;
+    }
+    if (defined('ENERGY_ZONE_MAX') && count($p['energy_zone'] ?? []) >= ENERGY_ZONE_MAX) {
+        return false;
+    }
+    $e = array_shift($p['energy_deck']);
+    $e['active'] = true;
+    $p['energy_zone'][] = $e;
+    if ($state !== null && $pid !== null) {
+        $state = resolveEnergyPlacedAbilities($state, $pid);
+        $state = spBp5OnEnergyPlaced($state, $pid);
+    }
+    return true;
+}
+
 /** Put 1 Energy from the Energy zone back into the Energy deck (face-down / inactive). */
 function returnOneEnergyFromZoneToDeck(array &$p): bool {
     if (empty($p['energy_zone'])) {
@@ -797,6 +815,9 @@ function flushAutoOnWaitAbilities(array $state): array {
                 continue;
             }
             $state = resolveAutoOnWaitAbilities($state, $pid, $mbr);
+            if (function_exists('prVol9ResolveAutoOnEitherStageWaitBlade')) {
+                $state = prVol9ResolveAutoOnEitherStageWaitBlade($state, $pid, $mbr);
+            }
             $p['stage'][$slot] = $mbr;
             if (!empty($state['pending_prompt'])) {
                 unset($p);
@@ -3378,6 +3399,9 @@ function collectContinuousPerformanceHeartGrants(array $state, string $pid): arr
                 }
             }
             $memberHearts = plMuseGapApplyContinuousHearts($state, $pid, $member, $ab, $memberHearts);
+            if (function_exists('prVol9ApplyContinuousHearts')) {
+                $memberHearts = prVol9ApplyContinuousHearts($state, $pid, $member, $ab, $memberHearts);
+            }
             $memberHearts = spBp2ApplyContinuousHearts($state, $pid, $member, $ab, $memberHearts);
             $memberHearts = bp7ApplyContinuousHearts($state, $pid, $member, (string)$slot, $ab, $memberHearts);
             if (($ab['type'] ?? '') === 'blade_if_exact_stage_members' && !empty($ab['hearts'])) {

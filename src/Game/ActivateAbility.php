@@ -373,6 +373,34 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         $p['stage'][$slot] = $member;
         $state = addLog($state, $state['players'][$pid]['name'] .
             ' — [' . ($member['name_en'] ?? $member['name']) . "] Waited, discarded $need, drew $drawn.");
+    } elseif (($ab['type'] ?? '') === 'wait_own_member_discard_draw') {
+        $waitSlot = (string)($data['wait_slot'] ?? $data['target_slot'] ?? '');
+        $ids = $data['discard_ids'] ?? [];
+        $need = intval($ab['discard'] ?? 1);
+        if ($waitSlot !== '' && is_array($ids) && count($ids) === $need) {
+            if (empty($p['stage'][$waitSlot]) || memberIsInWait($p['stage'][$waitSlot])) {
+                throw new Exception('Choose a valid Stage Member to Wait');
+            }
+            waitMember($p['stage'][$waitSlot], $state);
+            discardFromHandByIds($p, $ids, $state, $pid);
+            $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
+            if (!empty($ab['once_per_turn'])) {
+                markAbilityUsed($member, $abilityIdx);
+            }
+            $p['stage'][$slot] = $member;
+            $wName = $p['stage'][$waitSlot]['name_en'] ?? $p['stage'][$waitSlot]['name'] ?? 'Member';
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                ' — [' . ($member['name_en'] ?? $member['name']) .
+                "] Waited $wName, discarded $need, drew $drawn.");
+        } else {
+            $state = prVol9BeginWaitOwnMemberDiscardDraw($state, $pid, $member, $ab, [
+                'ability_index' => $abilityIdx,
+                'slot'          => $slot,
+            ]);
+            if ($slot !== null && isset($p['stage'][$slot])) {
+                $p['stage'][$slot] = $member;
+            }
+        }
     } elseif (($ab['type'] ?? '') === 'wait_self_discard_reveal_until') {
         if (!empty($ab['center_only']) && $slot !== 'center') {
             throw new Exception('This ability can only be used from the Center position');

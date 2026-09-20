@@ -2544,6 +2544,20 @@ global.renderPrompt = function renderPrompt(s, myId){
     });
     return;
   }
+  if (pr?.type === 'wait_own_member_discard_draw' && pr.step === 'pick_member' && pr.responder === myId) {
+    ovl.classList.remove('open');
+    const members = pr.stage_members || [];
+    if (!members.length) {
+      sendAct('resolve_prompt', { choice: 'skip' });
+      return;
+    }
+    openOppActiveMemberPick({
+      ...pr,
+      stage_members: members,
+      prompt: promptDisplayText(pr, 'Choose 1 of your Stage Members to put into Wait.', s),
+    });
+    return;
+  }
   if (pr?.type === 'optional_wait_group_member_blade' && pr.responder === myId) {
     if (pr.step === 'pick_member') {
       ovl.classList.remove('open');

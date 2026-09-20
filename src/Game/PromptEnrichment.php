@@ -289,6 +289,10 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
             }
             return ['choice' => 'no'];
 
+        case 'wait_own_member_discard_draw':
+            $id = $prompt['stage_members'][0]['instance_id'] ?? '';
+            return $id !== '' ? ['member_id' => $id] : ['choice' => 'skip'];
+
         case 'wait_other_group_draw':
             $id = $prompt['stage_members'][0]['instance_id'] ?? '';
             return $id !== '' ? ['member_id' => $id] : ['choice' => 'skip'];

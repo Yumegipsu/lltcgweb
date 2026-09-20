@@ -30,13 +30,25 @@ function tryResolveAbilityEffectSwitchDeckLook(
 
         case 'deck_surveil':
             $look = intval($ab['look'] ?? 2);
+            if (!empty($ab['look_minus_hand'])) {
+                $base = intval($ab['look_base'] ?? $ab['look'] ?? 10);
+                $look = max(0, $base - count($p['hand'] ?? []));
+            }
             $pick = intval($ab['pick'] ?? 0);
             // pick>0 = add N to hand, rest WR (e.g. LL-bp6-001). Otherwise arrange top/WR.
             if ($pick > 0) {
+                if ($look < 1) {
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] looked at 0 cards (hand size ≥ look base).");
+                    break;
+                }
                 $state = beginLookRevealPick($state, $pid, $name, $p, array_merge($ab, [
-                    'look'        => $look,
-                    'pick'        => $pick,
-                    'destination' => $ab['destination'] ?? 'hand',
+                    'look'          => $look,
+                    'pick'          => $pick,
+                    'destination'   => $ab['destination'] ?? 'hand',
+                    'optional_pick' => array_key_exists('optional_pick', $ab)
+                        ? !empty($ab['optional_pick'])
+                        : true,
                 ]));
                 break;
             }

@@ -2152,6 +2152,18 @@ function nijiOnMemberEntered(array $state, string $pid, array $entered): array {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$mName] drew to " . intval($ab['draw_to'] ?? 5) . " (3rd enter).");
             }
+            if ($type === 'draw_on_member_enter_from_wr'
+                && !empty($entered['entered_from_wr'])) {
+                if (!empty($ab['once_per_turn']) && isAbilityUsed($p['stage'][$slot], $abilityIdx)) {
+                    continue;
+                }
+                $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
+                if (!empty($ab['once_per_turn'])) {
+                    markAbilityUsed($p['stage'][$slot], $abilityIdx);
+                }
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$mName] drew $drawn (Member entered from Waiting Room).");
+            }
         }
     }
     return batch99OnMemberEntered($state, $pid, $entered);
