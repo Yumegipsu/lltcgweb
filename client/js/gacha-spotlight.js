@@ -27,6 +27,9 @@
   const T = {
     first: 340,
     gap: 255,
+    // Extra linger after gold/UR appear so their longer stings can breathe.
+    gapSr: 920,
+    gapUr: 1520,
     flipLead: 620,
     glitter: 480,
     bloomIn: 230,
@@ -37,6 +40,12 @@
     cardGap: 85,
   };
   const FLIP_LEN = T.glitter + T.bloomIn + T.settle;
+
+  function appearHold(tier) {
+    if (tier === 'rainbow') return T.gapUr;
+    if (tier === 'gold') return T.gapSr;
+    return T.gap;
+  }
 
   const Q = {
     dpr: Math.min(global.devicePixelRatio || 1, 2),
@@ -285,20 +294,26 @@
   }
 
   function buildPlan(results) {
-    slots = results.map((r, i) => ({
-      tier: r.from || r.rarity,
-      finalTier: r.rarity,
-      from: r.from || null,
-      name: r.name || '',
-      image: r.image || null,
-      cardRarity: String(r.cardRarity || r.pullRarity || '').trim(),
-      ignite: T.first + i * T.gap,
-      flipAt: 0,
-      done: !r.from,
-      i,
-      phase: 0,
-    }));
-    const last = T.first + (slots.length - 1) * T.gap;
+    let igniteAt = T.first;
+    slots = results.map((r, i) => {
+      const appearTier = r.from || r.rarity;
+      const slot = {
+        tier: appearTier,
+        finalTier: r.rarity,
+        from: r.from || null,
+        name: r.name || '',
+        image: r.image || null,
+        cardRarity: String(r.cardRarity || r.pullRarity || '').trim(),
+        ignite: igniteAt,
+        flipAt: 0,
+        done: !r.from,
+        i,
+        phase: 0,
+      };
+      igniteAt += appearHold(appearTier);
+      return slot;
+    });
+    const last = slots.length ? slots[slots.length - 1].ignite : T.first;
     let cur = last + T.flipLead;
     slots.filter((s) => s.from).forEach((s) => {
       s.flipAt = cur;
