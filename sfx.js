@@ -60,7 +60,7 @@
 
   function loadManifest() {
     if (manifest) return Promise.resolve(manifest);
-    return fetch('./sfx_manifest.web.json?v=14')
+    return fetch('./sfx_manifest.web.json?v=15')
       .then(function (r) {
         if (!r.ok) throw new Error('sfx manifest HTTP ' + r.status);
         return r.json();

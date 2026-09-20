@@ -187,6 +187,12 @@
     } catch (_) { /* ignore */ }
   }
 
+  function sfxForTier(tier) {
+    if (tier === 'rainbow') return 'gacha_spot_ur';
+    if (tier === 'gold') return 'gacha_spot_sr';
+    return 'gacha_spot_n';
+  }
+
   function resize() {
     if (!stage || !canvas || !ctx) return;
     W = stage.clientWidth;
@@ -331,7 +337,7 @@
         widen = 1 + p * 0.1;
         if (!s._glitterSfx) {
           s._glitterSfx = true;
-          playSfx('notify');
+          playSfx('gacha_flip');
         }
         if (!reduceMotion && parts.length < Q.motes + Q.sparkles && Math.random() < 0.85) {
           sparkle(s, Math.random() * 0.95);
@@ -349,7 +355,7 @@
             26,
             s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
           );
-          playSfx(s.finalTier === 'rainbow' ? 'pack_open' : 'pack_reveal');
+          playSfx(sfxForTier(s.finalTier));
           if (s.finalTier === 'rainbow' && s._rbCycleStart == null) {
             s._rbCycleStart = now;
           }
@@ -458,7 +464,7 @@
     void flourishEl.offsetWidth;
     flourishEl.classList.add('is-show');
     flash = Math.max(flash, ur ? 0.7 : 0.4);
-    playSfx(ur ? 'pack_open' : 'pack_reveal');
+    // Tier SFX already played on beam appear / flip land — no flourish cue.
     if (ur) {
       slots.forEach((s) => burst(
         s.bx,
@@ -503,6 +509,7 @@
   }
 
   function revealCards() {
+    playSfx('gacha_reveal_all');
     slots.forEach((s, i) => {
       setTimeout(() => {
         if (!s.el) return;
@@ -514,10 +521,6 @@
           7,
           s.finalTier === 'rainbow' ? 'rainbow' : TIER[s.finalTier].pool
         );
-        // Pack-family reveals for rares; soft tick for commons.
-        if (s.finalTier === 'rainbow') playSfx('pack_open');
-        else if (s.finalTier === 'gold') playSfx('pack_reveal');
-        else playSfx(i === 0 ? 'yell_reveal' : 'active_refresh');
         if (s.finalTier === 'rainbow') {
           const mini = s.el.querySelector('.gacha-spot-mini');
           if (mini) {
@@ -670,8 +673,7 @@
         const fy = slotFloorY(s);
         rings.push({ x: s.bx, y: fy, r: 6, a: 0.6, col: TIER[s.tier].pool });
         burst(s.bx, fy - 8, 5, TIER[s.tier].pool);
-        if (s.i === 0) playSfx('screen_open');
-        else playSfx('active_refresh');
+        playSfx(sfxForTier(s.tier));
       }
     }
     if (plan.has && !plan._f && now >= plan.fAt) {

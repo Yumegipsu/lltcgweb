@@ -864,6 +864,71 @@
           "centroid_hz": 3129.2
         }
       ]
+    },
+    "gacha_spot_n": {
+      "variants": [
+        {
+          "file": "gacha_spot_n.wav",
+          "source": "se_010_0039.wav",
+          "source_category": "Menu",
+          "duration_ms": 1450.0,
+          "tags": ["medium", "gacha", "spotlight"],
+          "score": 1,
+          "volume": 0.78
+        }
+      ]
+    },
+    "gacha_spot_sr": {
+      "variants": [
+        {
+          "file": "gacha_spot_sr.wav",
+          "source": "se_010_0037.wav",
+          "source_category": "Menu",
+          "duration_ms": 2360.0,
+          "tags": ["medium", "gacha", "spotlight", "gold"],
+          "score": 1,
+          "volume": 0.82
+        }
+      ]
+    },
+    "gacha_spot_ur": {
+      "variants": [
+        {
+          "file": "gacha_spot_ur.wav",
+          "source": "se_010_0047.wav",
+          "source_category": "Menu",
+          "duration_ms": 3715.9,
+          "tags": ["long", "gacha", "spotlight", "rainbow"],
+          "score": 1,
+          "volume": 0.88
+        }
+      ]
+    },
+    "gacha_flip": {
+      "variants": [
+        {
+          "file": "gacha_flip.wav",
+          "source": "se_010_0048.wav",
+          "source_category": "Menu",
+          "duration_ms": 3704.4,
+          "tags": ["long", "gacha", "flip"],
+          "score": 1,
+          "volume": 0.85
+        }
+      ]
+    },
+    "gacha_reveal_all": {
+      "variants": [
+        {
+          "file": "gacha_reveal_all.wav",
+          "source": "se_010_0056.wav",
+          "source_category": "Menu",
+          "duration_ms": 3109.1,
+          "tags": ["long", "gacha", "reveal"],
+          "score": 1,
+          "volume": 0.9
+        }
+      ]
     }
   }
 }
