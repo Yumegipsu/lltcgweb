@@ -558,13 +558,17 @@
   }
 
   function isAdminSim() {
-    return !!(global.A && global.A.user && global.A.user.is_social_mod);
+    // Owner-only pull simulator (server: tcgSocialIsOwner → sim_available).
+    return !!(
+      (_info && _info.sim_available)
+      || (global.A && global.A.user && global.A.user.is_owner)
+    );
   }
 
   function syncSimPanel(info) {
     const panel = el('gacha-sim-panel');
     if (!panel) return;
-    const show = isAdminSim() || !!(info && info.sim_available);
+    const show = !!(info && info.sim_available);
     panel.hidden = !show;
   }
 
@@ -576,7 +580,7 @@
 
   async function runGachaSim(force) {
     if (_pullBusy) return;
-    if (!isAdminSim() && !(_info && _info.sim_available)) {
+    if (!isAdminSim()) {
       toast(tt('gacha.simDenied', 'Admin only'), 2200);
       return;
     }

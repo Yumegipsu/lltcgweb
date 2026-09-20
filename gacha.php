@@ -15,13 +15,13 @@ const TCG_GACHA_TICKET_MULTI_COST = 10;
 const TCG_GACHA_TICKET_MULTI_COUNT = 10;
 
 /**
- * Temporary preview lock: only these Discord IDs may open general gacha.
- * Empty array = open to everyone. Keep in sync with TCG_SOCIAL_OWNER_ID.
+ * Preview allowlist for general gacha. Empty = open to everyone.
+ * Keep any temporary IDs in sync with TCG_SOCIAL_OWNER_ID when used.
  *
  * @return list<string>
  */
 function tcgGachaAccessAllowlist(): array {
-    return ['213038604975472640'];
+    return [];
 }
 
 function tcgGachaUserHasAccess(string $discordId): bool {
