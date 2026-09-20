@@ -665,7 +665,13 @@ function tcgApiOpenGacha(array $body): array {
         || intval($body['count'] ?? 0) === TCG_GACHA_MULTI_COUNT
         || intval($body['count'] ?? 0) === TCG_GACHA_TICKET_MULTI_COUNT;
     if ($useTickets) {
-        if ($wantMulti) {
+        // 1 ticket = 1 pull. Prefer explicit count from the ticket picker.
+        $reqCount = intval($body['count'] ?? $body['tickets'] ?? 0);
+        if ($reqCount > 0) {
+            $count = max(1, min(20, $reqCount));
+            $cost = $count * TCG_GACHA_TICKET_SINGLE_COST;
+            $mode = $count >= TCG_GACHA_TICKET_MULTI_COUNT ? 'multi' : 'single';
+        } elseif ($wantMulti) {
             $count = TCG_GACHA_TICKET_MULTI_COUNT;
             $cost = TCG_GACHA_TICKET_MULTI_COST;
             $mode = 'multi';

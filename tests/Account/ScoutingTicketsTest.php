@@ -44,6 +44,14 @@ final class ScoutingTicketsTest extends TestCase
         $this->assertSame(10, TCG_GACHA_TICKET_MULTI_COUNT);
     }
 
+    public function testTicketSpendIsOnePerPull(): void
+    {
+        // Picker sends count; cost is 1 ticket per pull (capped like rolls at 20).
+        $this->assertSame(7, 7 * TCG_GACHA_TICKET_SINGLE_COST);
+        $this->assertSame(10, 10 * TCG_GACHA_TICKET_SINGLE_COST);
+        $this->assertSame(TCG_GACHA_TICKET_MULTI_COST, TCG_GACHA_TICKET_MULTI_COUNT * TCG_GACHA_TICKET_SINGLE_COST);
+    }
+
     public function testNormalizeScoutingTicketReward(): void
     {
         $payload = tcgEventsNormalizeRewardPayload('scouting_ticket', ['amount' => 3]);

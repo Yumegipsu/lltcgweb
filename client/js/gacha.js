@@ -40,8 +40,10 @@
   let _idolMap = null;
   let _pullBusy = false;
   let _lastMode = 'single';
+  let _lastTicketCount = 1;
   let _unlocked = false;
   let _ratesCache = null;
+  let _ticketQty = 1;
 
   function isUnlocked() {
     if (_info && typeof _info.unlocked === 'boolean') return !!_info.unlocked;
@@ -118,6 +120,69 @@
     }
   }
 
+  function ticketBalance() {
+    if (Number.isFinite(Number(global.A?.scoutingTickets))) {
+      return Math.max(0, Number(global.A.scoutingTickets));
+    }
+    return Math.max(0, Number((_info && _info.scouting_tickets) || 0));
+  }
+
+  function ticketMaxSpend() {
+    return Math.max(1, Math.min(20, ticketBalance() || 1));
+  }
+
+  function clampTicketQty(n) {
+    const max = ticketMaxSpend();
+    const v = Math.floor(Number(n) || 1);
+    return Math.max(1, Math.min(max, v));
+  }
+
+  function syncTicketQtyUi() {
+    _ticketQty = clampTicketQty(_ticketQty);
+    const input = el('gacha-ticket-qty');
+    if (input) {
+      input.value = String(_ticketQty);
+      input.max = String(ticketMaxSpend());
+      input.min = '1';
+    }
+    const dec = el('btn-gacha-ticket-dec');
+    const inc = el('btn-gacha-ticket-inc');
+    if (dec) dec.disabled = _ticketQty <= 1;
+    if (inc) inc.disabled = _ticketQty >= ticketMaxSpend();
+    const have = el('gacha-ticket-have');
+    if (have) {
+      have.textContent = tt('gacha.ticketHave', 'You have {n}', { n: ticketBalance() });
+    }
+    const hint = el('gacha-ticket-qty-hint');
+    if (hint) {
+      hint.textContent = tt('gacha.ticketQtyHint', 'Scout ×{n} · {n} ticket(s)', { n: _ticketQty });
+    }
+    const confirm = el('btn-gacha-ticket-confirm');
+    if (confirm) confirm.disabled = ticketBalance() < 1;
+  }
+
+  function openTicketPicker() {
+    if (ticketBalance() < 1) {
+      toast(tt('gacha.noTickets', 'No Scouting Tickets'), 2200);
+      return;
+    }
+    _ticketQty = clampTicketQty(_lastTicketCount || 1);
+    syncTicketQtyUi();
+    if (typeof global.openM === 'function') global.openM('modal-gacha-tickets');
+    else {
+      const modal = el('modal-gacha-tickets');
+      if (modal) modal.classList.add('open');
+    }
+  }
+
+  function closeTicketPicker() {
+    if (typeof global.closeM === 'function') global.closeM('modal-gacha-tickets');
+    else {
+      const modal = el('modal-gacha-tickets');
+      if (modal) modal.classList.remove('open');
+    }
+  }
+
   function syncTickets(n) {
     const tickets = Number.isFinite(Number(n))
       ? Number(n)
@@ -134,20 +199,14 @@
     const show = tickets > 0;
     if (bar) bar.hidden = !show;
     if (actions) actions.hidden = !show;
-    const single = el('btn-gacha-ticket-single');
-    const multi = el('btn-gacha-ticket-multi');
-    const sc = (_info && _info.ticket_single_cost) || 1;
-    const mc = (_info && _info.ticket_multi_cost) || 10;
-    const mcount = (_info && _info.ticket_multi_count) || 10;
-    if (single) {
-      const label = single.querySelector('span') || single;
-      label.textContent = tt('gacha.ticketSingle', 'Scout ×1 ({n} ticket)', { n: sc });
-      single.disabled = tickets < sc;
+    const useBtn = el('btn-gacha-use-tickets');
+    if (useBtn) {
+      const label = useBtn.querySelector('span') || useBtn;
+      label.textContent = tt('gacha.useTickets', 'Use Scouting Tickets');
+      useBtn.disabled = !show;
     }
-    if (multi) {
-      const label = multi.querySelector('span') || multi;
-      label.textContent = tt('gacha.ticketMulti', 'Scout ×{count} ({n} tickets)', { count: mcount, n: mc });
-      multi.disabled = tickets < mc;
+    if (el('modal-gacha-tickets')?.classList.contains('open')) {
+      syncTicketQtyUi();
     }
   }
 
@@ -699,7 +758,7 @@
     }
   }
 
-  async function openGacha(mode, currency) {
+  async function openGacha(mode, currency, count) {
     if (_pullBusy) return;
     if (!isUnlocked()) {
       toast(tt('gacha.lockedToast', 'Gacha is not available yet.'), 2800);
@@ -709,14 +768,31 @@
     if (err) err.textContent = '';
     _pullBusy = true;
     const payWith = currency === 'tickets' ? 'tickets' : 'star_gems';
-    _lastMode = mode === 'multi' ? 'multi' : 'single';
+    const body = { currency: payWith };
+    if (payWith === 'tickets') {
+      const n = clampTicketQty(count != null ? count : (_lastTicketCount || 1));
+      if (ticketBalance() < n) {
+        _pullBusy = false;
+        toast(tt('gacha.noTickets', 'No Scouting Tickets'), 2200);
+        return;
+      }
+      body.count = n;
+      body.mode = n >= 10 ? 'multi' : 'single';
+      _lastMode = body.mode;
+      _lastTicketCount = n;
+    } else {
+      body.mode = mode === 'multi' ? 'multi' : 'single';
+      _lastMode = body.mode;
+    }
     if (global.A) {
       global.A._gachaLastMode = _lastMode;
       global.A._gachaLastCurrency = payWith;
+      global.A._gachaLastTicketCount = _lastTicketCount;
     }
     try {
+      closeTicketPicker();
       sfx('screen_open');
-      const res = await accountPost('open_gacha', { mode: _lastMode, currency: payWith });
+      const res = await accountPost('open_gacha', body);
       await loadIdolMap();
       const pulls = res.pulls || [];
       await playSpectacle(pulls);
@@ -747,7 +823,12 @@
         if (!(global.A && global.A._fromGacha)) return;
         ev.stopImmediatePropagation();
         global.A._fromGacha = false;
-        void openGacha(global.A._gachaLastMode || 'single', global.A._gachaLastCurrency || 'star_gems');
+        const cur = global.A._gachaLastCurrency || 'star_gems';
+        if (cur === 'tickets') {
+          void openGacha('single', 'tickets', global.A._gachaLastTicketCount || 1);
+        } else {
+          void openGacha(global.A._gachaLastMode || 'single', 'star_gems');
+        }
       }, true);
     }
     if (another && !another.dataset.gachaBound) {
@@ -774,8 +855,26 @@
     });
     el('btn-gacha-single')?.addEventListener('click', () => openGacha('single', 'star_gems'));
     el('btn-gacha-multi')?.addEventListener('click', () => openGacha('multi', 'star_gems'));
-    el('btn-gacha-ticket-single')?.addEventListener('click', () => openGacha('single', 'tickets'));
-    el('btn-gacha-ticket-multi')?.addEventListener('click', () => openGacha('multi', 'tickets'));
+    el('btn-gacha-use-tickets')?.addEventListener('click', () => openTicketPicker());
+    el('btn-gacha-tickets-close')?.addEventListener('click', () => closeTicketPicker());
+    el('modal-gacha-tickets')?.addEventListener('click', (e) => {
+      if (e.target === el('modal-gacha-tickets')) closeTicketPicker();
+    });
+    el('btn-gacha-ticket-dec')?.addEventListener('click', () => {
+      _ticketQty = clampTicketQty(_ticketQty - 1);
+      syncTicketQtyUi();
+    });
+    el('btn-gacha-ticket-inc')?.addEventListener('click', () => {
+      _ticketQty = clampTicketQty(_ticketQty + 1);
+      syncTicketQtyUi();
+    });
+    el('gacha-ticket-qty')?.addEventListener('input', () => {
+      _ticketQty = clampTicketQty(el('gacha-ticket-qty')?.value);
+      syncTicketQtyUi();
+    });
+    el('btn-gacha-ticket-confirm')?.addEventListener('click', () => {
+      void openGacha('single', 'tickets', _ticketQty);
+    });
     el('btn-gacha-sim-random')?.addEventListener('click', () => void runGachaSim('random'));
     el('btn-gacha-sim-forced')?.addEventListener('click', () => void runGachaSim('custom'));
     el('btn-gacha-rates')?.addEventListener('click', (ev) => {

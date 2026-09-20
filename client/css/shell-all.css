@@ -9047,6 +9047,21 @@ button.player-title--btn{cursor:pointer}
 .gacha-actions--tickets{margin-top:4px}
 .gacha-btn-ticket{display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .gacha-btn-ticket img{flex:0 0 auto;object-fit:contain}
+.gacha-ticket-mbox{max-width:340px;text-align:center}
+.gacha-ticket-mbox h2{margin:0 0 8px;color:#fff;font-size:1.15rem}
+.gacha-ticket-modal-lead,.gacha-ticket-have,.gacha-ticket-qty-hint{
+  margin:0 0 10px;color:rgba(220,230,255,.78);font-size:.9rem
+}
+.gacha-ticket-stepper{
+  display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0 12px
+}
+.gacha-ticket-step{min-width:44px;font-size:1.25rem;line-height:1;padding:8px 12px}
+.gacha-ticket-qty{
+  width:4.5rem;text-align:center;font:inherit;font-size:1.35rem;font-weight:700;
+  color:#fff;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);
+  border-radius:10px;padding:8px 6px
+}
+.gacha-ticket-mbox .gacha-btn-ticket{width:100%;margin-top:4px}
 .gacha-sim-panel{margin:16px 0 8px;padding:12px;border-radius:12px;border:1px dashed rgba(251,191,36,.55);background:rgba(40,24,8,.45)}
 .gacha-sim-banner{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
 .gacha-sim-banner__badge{flex:0 0 auto;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:rgba(251,191,36,.2);color:#fbbf24;border:1px solid rgba(251,191,36,.45)}
