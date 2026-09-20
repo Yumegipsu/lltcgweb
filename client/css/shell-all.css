@@ -9300,16 +9300,13 @@ body.gacha-pull-open{overflow:hidden}
   pointer-events:none;opacity:0;
 }
 .gacha-spot-flourish-big{
-  font-size:clamp(32px,9vw,76px);font-weight:800;line-height:1;
-  letter-spacing:.2em;text-indent:.2em;
+  font-size:clamp(28px,7.5vw,64px);font-weight:800;line-height:1.05;
+  letter-spacing:.06em;padding:0 16px;
   background:linear-gradient(100deg,#fff,#d8e6ff 45%,#fff 62%,#c3d6ff);
   -webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 0 24px rgba(180,210,255,.7));
 }
-.gacha-spot-flourish-sub{
-  margin-top:12px;font-size:clamp(10px,2.6vw,13px);font-weight:600;
-  letter-spacing:.4em;text-indent:.4em;color:#9fb0cf;text-transform:uppercase;
-}
+.gacha-spot-flourish-sub{display:none!important}
 .gacha-spot-flourish.is-rainbow .gacha-spot-flourish-big{
   background:linear-gradient(100deg,#ff6b8b,#ffd166 22%,#8ef6a5 44%,#5ad1ff 66%,#b08bff 88%,#ff6b8b);
   background-size:220% 100%;

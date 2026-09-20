@@ -283,6 +283,7 @@
       from: r.from || null,
       name: r.name || '',
       image: r.image || null,
+      cardRarity: String(r.cardRarity || r.pullRarity || '').trim(),
       ignite: T.first + i * T.gap,
       flipAt: 0,
       done: !r.from,
@@ -431,12 +432,29 @@
     }
   }
 
+  function flourishRarityText(best) {
+    const seen = new Set();
+    const rares = [];
+    slots.forEach((s) => {
+      if (s.finalTier !== 'gold' && s.finalTier !== 'rainbow') return;
+      const r = String(s.cardRarity || '').trim();
+      if (!r || seen.has(r)) return;
+      seen.add(r);
+      rares.push(r);
+    });
+    if (rares.length) return rares.join(', ');
+    return best >= 2 ? (labels.ur || 'UR') : (labels.sr || 'SR');
+  }
+
   function showFlourish(best) {
-    if (!flourishEl || !flourishBig || !flourishSub) return;
+    if (!flourishEl || !flourishBig) return;
     const ur = best === 2;
     flourishEl.className = 'gacha-spot-flourish ' + (ur ? 'is-rainbow' : 'is-gold');
-    flourishBig.textContent = ur ? labels.ur : labels.sr;
-    flourishSub.textContent = ur ? labels.urSub : labels.srSub;
+    flourishBig.textContent = flourishRarityText(best);
+    if (flourishSub) {
+      flourishSub.textContent = '';
+      flourishSub.hidden = true;
+    }
     void flourishEl.offsetWidth;
     flourishEl.classList.add('is-show');
     flash = Math.max(flash, ur ? 0.7 : 0.4);
@@ -798,6 +816,7 @@
       const rarity = tier === 'ur' ? 'rainbow' : tier === 'sr' ? 'gold' : 'grey';
       const row = {
         rarity,
+        cardRarity: String(p.rarity || '').trim(),
         name: p.name_en || p.name || '',
         image: typeof imageFn === 'function' ? imageFn(p) : (p.image || ''),
       };

@@ -632,10 +632,6 @@
       root: spot,
       sfx,
       labels: {
-        ur: tt('gacha.tierUr', 'UR'),
-        sr: tt('gacha.tierSr', 'SR'),
-        urSub: tt('gacha.flourishUr', 'guaranteed in this scout'),
-        srSub: tt('gacha.flourishSr', 'high rarity ahead'),
         skip: tt('gacha.skip', 'Skip'),
         hint: tt('gacha.tapContinue', 'Tap to continue'),
       },
