@@ -191,6 +191,22 @@ final class GachaPoolTest extends TestCase
         $this->assertGreaterThan(10, $hit);
     }
 
+    public function testStarterBasicEnergyNotInPool(): void
+    {
+        $cards = tcgLoadCardsData();
+        $pools = tcgGachaBuildPools($cards);
+        $set = array_fill_keys($pools['all'], true);
+        foreach (TCG_STARTER_BASIC_ENERGY_CARD_NOS as $no) {
+            $this->assertArrayNotHasKey($no, $set, "basic energy {$no} must not be in gacha");
+        }
+        foreach ($pools['all'] as $no) {
+            $this->assertFalse(
+                tcgIsStarterBasicEnergyCard($no),
+                "gacha pool must not include starter basic energy {$no}"
+            );
+        }
+    }
+
     public function testAccessAllowlistOpenToEveryone(): void
     {
         $list = tcgGachaAccessAllowlist();

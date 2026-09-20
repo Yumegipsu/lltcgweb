@@ -132,6 +132,10 @@ function tcgGachaIsExcludedCard(array $card): bool {
     if ($no === '') {
         return true;
     }
+    // Starter-pack basic Energy (symbol-only art, e.g. LL-E-*-SD) — not scouts.
+    if (function_exists('tcgIsStarterBasicEnergyCard') && tcgIsStarterBasicEnergyCard($no)) {
+        return true;
+    }
     if (tcgCardEligibleForPrBoosterPool($card)) {
         return true;
     }
