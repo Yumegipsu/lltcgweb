@@ -8567,8 +8567,10 @@
       "abilities": [
         {
           "trigger": "on_enter",
-          "type": "optional_wait_self_surveil",
-          "look": 3
+          "type": "optional_wait_self_look_reveal",
+          "discard": 1,
+          "look": 3,
+          "pick": 1
         }
       ],
       "subunit": "A-RISE",
@@ -8605,8 +8607,10 @@
       "abilities": [
         {
           "trigger": "on_enter",
-          "type": "optional_wait_self_surveil",
-          "look": 3
+          "type": "optional_wait_self_look_reveal",
+          "discard": 1,
+          "look": 3,
+          "pick": 1
         }
       ],
       "subunit": "A-RISE",
