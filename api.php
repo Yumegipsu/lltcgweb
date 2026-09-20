@@ -4958,13 +4958,14 @@ function initPhaseTimer(array &$state): void {
             'deadlines' => ['p1' => null, 'p2' => null],
             'durations' => ['p1' => null, 'p2' => null],
             'window_ids' => ['p1' => null, 'p2' => null],
+            'paused_remaining' => ['p1' => null, 'p2' => null],
             'next_window_id' => 0,
         ];
     } else {
         $state['phase_timer']['enabled'] = $cfg['enabled'];
         $state['phase_timer']['duration'] = $cfg['duration'];
     }
-    foreach (['deadlines', 'durations', 'window_ids'] as $field) {
+    foreach (['deadlines', 'durations', 'window_ids', 'paused_remaining'] as $field) {
         if (!isset($state['phase_timer'][$field]) || !is_array($state['phase_timer'][$field])) {
             $state['phase_timer'][$field] = ['p1' => null, 'p2' => null];
         }
@@ -4991,9 +4992,10 @@ function setPhaseDeadline(array &$state, string $pid): void {
     $state['phase_timer']['deadlines'][$pid] = time() + $duration;
     $state['phase_timer']['durations'][$pid] = $duration;
     $state['phase_timer']['window_ids'][$pid] = $state['phase_timer']['next_window_id'];
+    $state['phase_timer']['paused_remaining'][$pid] = null;
 }
 
-function clearPhaseDeadline(array &$state, string $pid): void {
+function clearPhaseDeadline(array &$state, string $pid, bool $clearPaused = true): void {
     if (!isset($state['phase_timer']['deadlines'])) {
         return;
     }
@@ -5001,6 +5003,9 @@ function clearPhaseDeadline(array &$state, string $pid): void {
         $state['phase_timer']['deadlines'][$pid] = null;
         $state['phase_timer']['durations'][$pid] = null;
         $state['phase_timer']['window_ids'][$pid] = null;
+        if ($clearPaused && isset($state['phase_timer']['paused_remaining'])) {
+            $state['phase_timer']['paused_remaining'][$pid] = null;
+        }
     }
 }
 
@@ -5011,24 +5016,123 @@ function clearAllPhaseDeadlines(array &$state): void {
     $state['phase_timer']['deadlines'] = ['p1' => null, 'p2' => null];
     $state['phase_timer']['durations'] = ['p1' => null, 'p2' => null];
     $state['phase_timer']['window_ids'] = ['p1' => null, 'p2' => null];
+    $state['phase_timer']['paused_remaining'] = ['p1' => null, 'p2' => null];
 }
 
-function refreshPromptPhaseTimer(array &$state, string $responder): void {
-    if (!playerUsesPhaseTimer($state, $responder)) {
-        clearPhaseDeadline($state, $responder);
+/**
+ * Seat whose Main / LIVE clock owns the turn (null outside those phases).
+ */
+function phaseTimerTurnOwner(array $state): ?string {
+    $ph = $state['phase'] ?? '';
+    if ($ph === 'main_first' || $ph === 'main_second') {
+        $ap = $state['active_player'] ?? '';
+        return in_array($ap, ['p1', 'p2'], true) ? $ap : null;
+    }
+    if ($ph === 'live_set') {
+        $ap = currentLiveSetPlayer($state);
+        return in_array($ap, ['p1', 'p2'], true) ? $ap : null;
+    }
+    return null;
+}
+
+/** Freeze a running deadline into paused_remaining (seconds left). */
+function pausePhaseDeadline(array &$state, string $pid): void {
+    if (!in_array($pid, ['p1', 'p2'], true)) {
         return;
     }
     initPhaseTimer($state);
+    $dl = $state['phase_timer']['deadlines'][$pid] ?? null;
+    if ($dl) {
+        $state['phase_timer']['paused_remaining'][$pid] = max(1, intval($dl) - time());
+    }
+    $state['phase_timer']['deadlines'][$pid] = null;
+}
+
+/** Restore a paused deadline, or start a fresh one if nothing was saved. */
+function resumePhaseDeadline(array &$state, string $pid): void {
+    if (!in_array($pid, ['p1', 'p2'], true)) {
+        return;
+    }
+    initPhaseTimer($state);
+    $rem = $state['phase_timer']['paused_remaining'][$pid] ?? null;
+    $state['phase_timer']['paused_remaining'][$pid] = null;
+    if ($rem === null) {
+        if (empty($state['phase_timer']['deadlines'][$pid])) {
+            setPhaseDeadline($state, $pid);
+        }
+        return;
+    }
+    $remaining = max(1, intval($rem));
+    $state['phase_timer']['next_window_id']++;
+    $state['phase_timer']['deadlines'][$pid] = time() + $remaining;
+    if (empty($state['phase_timer']['durations'][$pid])) {
+        $state['phase_timer']['durations'][$pid] = getPhaseTimerDurationForPlayer($state, $pid);
+    }
+    $state['phase_timer']['window_ids'][$pid] = $state['phase_timer']['next_window_id'];
+}
+
+/**
+ * While an opponent-facing skill prompt is open: pause the turn owner's clock
+ * and run a separate choice timer for the responder. Own prompts keep the
+ * turn clock ticking (no pause).
+ */
+function refreshPromptPhaseTimer(array &$state, string $responder): void {
+    initPhaseTimer($state);
     $prompt = $state['pending_prompt'] ?? null;
     $state['phase_timer']['prompt_key'] = promptTimerKey($prompt);
-    foreach (['p1', 'p2'] as $pid) {
-        if ($pid !== $responder) {
-            clearPhaseDeadline($state, $pid);
+    $turnOwner = phaseTimerTurnOwner($state);
+    $oppFacing = $turnOwner !== null
+        && in_array($responder, ['p1', 'p2'], true)
+        && $responder !== $turnOwner;
+
+    if ($oppFacing && playerUsesPhaseTimer($state, $turnOwner)) {
+        if (!empty($state['phase_timer']['deadlines'][$turnOwner])) {
+            pausePhaseDeadline($state, $turnOwner);
         }
     }
-    // Keep the existing Main/LIVE deadline — do not refresh the clock per prompt step.
-    if (empty($state['phase_timer']['deadlines'][$responder])) {
-        setPhaseDeadline($state, $responder);
+
+    if (!playerUsesPhaseTimer($state, $responder)) {
+        clearPhaseDeadline($state, $responder, true);
+        foreach (['p1', 'p2'] as $pid) {
+            if ($pid === $responder) {
+                continue;
+            }
+            if ($oppFacing && $pid === $turnOwner) {
+                $state['phase_timer']['deadlines'][$pid] = null;
+                continue;
+            }
+            clearPhaseDeadline($state, $pid, true);
+        }
+        return;
+    }
+
+    foreach (['p1', 'p2'] as $pid) {
+        if ($pid === $responder) {
+            continue;
+        }
+        if ($oppFacing && $pid === $turnOwner) {
+            $state['phase_timer']['deadlines'][$pid] = null;
+            continue;
+        }
+        clearPhaseDeadline($state, $pid, true);
+    }
+
+    // Fresh choice timer for the responder (do not inherit the turn clock).
+    if ($oppFacing || empty($state['phase_timer']['deadlines'][$responder])) {
+        if ($oppFacing) {
+            // Always give the opponent their own full window for this prompt.
+            $prevKey = $state['phase_timer']['choice_prompt_key'] ?? '';
+            $key = promptTimerKey($prompt);
+            if ($key !== $prevKey || empty($state['phase_timer']['deadlines'][$responder])) {
+                setPhaseDeadline($state, $responder);
+                $state['phase_timer']['choice_prompt_key'] = $key;
+            }
+        } else {
+            // Own prompt: keep existing Main/LIVE deadline when present.
+            if (empty($state['phase_timer']['deadlines'][$responder])) {
+                setPhaseDeadline($state, $responder);
+            }
+        }
     }
 }
 
@@ -5050,7 +5154,7 @@ function refreshPvpPhaseTimers(array &$state): void {
             return;
         }
         unset($state['phase_timer']['prompt_key'], $state['phase_timer']['live_key'],
-            $state['phase_timer']['live_keys']);
+            $state['phase_timer']['live_keys'], $state['phase_timer']['choice_prompt_key']);
         $ap = $state['active_player'] ?? '';
         $turn = intval($state['turn'] ?? 0);
         $mainKey = $ph . '|' . $ap . '|t' . $turn;
@@ -5065,12 +5169,15 @@ function refreshPvpPhaseTimers(array &$state): void {
         }
         foreach (['p1', 'p2'] as $pid) {
             if ($pid !== $ap) {
-                clearPhaseDeadline($state, $pid);
+                clearPhaseDeadline($state, $pid, true);
             }
         }
-        if (in_array($ap, ['p1', 'p2'], true) && playerUsesPhaseTimer($state, $ap)
-            && empty($state['phase_timer']['deadlines'][$ap])) {
-            setPhaseDeadline($state, $ap);
+        if (in_array($ap, ['p1', 'p2'], true) && playerUsesPhaseTimer($state, $ap)) {
+            if (($state['phase_timer']['paused_remaining'][$ap] ?? null) !== null) {
+                resumePhaseDeadline($state, $ap);
+            } elseif (empty($state['phase_timer']['deadlines'][$ap])) {
+                setPhaseDeadline($state, $ap);
+            }
         }
         return;
     }
@@ -5079,13 +5186,14 @@ function refreshPvpPhaseTimers(array &$state): void {
             refreshPromptPhaseTimer($state, $promptResponder);
             return;
         }
-        unset($state['phase_timer']['prompt_key'], $state['phase_timer']['main_key']);
+        unset($state['phase_timer']['prompt_key'], $state['phase_timer']['main_key'],
+            $state['phase_timer']['choice_prompt_key']);
         unset($state['phase_timer']['live_keys']);
         $turn = intval($state['turn'] ?? 0);
         $ap = currentLiveSetPlayer($state);
         foreach (['p1', 'p2'] as $pid) {
             if ($pid !== $ap) {
-                clearPhaseDeadline($state, $pid);
+                clearPhaseDeadline($state, $pid, true);
             }
         }
         if (!$ap || !playerUsesPhaseTimer($state, $ap)) {
@@ -5093,7 +5201,15 @@ function refreshPvpPhaseTimers(array &$state): void {
         }
         $liveKey = 'live_set|t' . $turn . '|' . $ap;
         $prevLiveKey = $state['phase_timer']['live_key'] ?? '';
-        if ($liveKey !== $prevLiveKey || empty($state['phase_timer']['deadlines'][$ap])) {
+        if ($liveKey !== $prevLiveKey) {
+            clearAllPhaseDeadlines($state);
+            $state['phase_timer']['live_key'] = $liveKey;
+            setPhaseDeadline($state, $ap);
+            return;
+        }
+        if (($state['phase_timer']['paused_remaining'][$ap] ?? null) !== null) {
+            resumePhaseDeadline($state, $ap);
+        } elseif (empty($state['phase_timer']['deadlines'][$ap])) {
             $state['phase_timer']['live_key'] = $liveKey;
             setPhaseDeadline($state, $ap);
         }
@@ -5102,7 +5218,7 @@ function refreshPvpPhaseTimers(array &$state): void {
     if ($ph === 'setup') {
         unset($state['phase_timer']['prompt_key'], $state['phase_timer']['main_key'],
             $state['phase_timer']['live_key'], $state['phase_timer']['live_keys'],
-            $state['phase_timer']['coin_key']);
+            $state['phase_timer']['coin_key'], $state['phase_timer']['choice_prompt_key']);
         $mullKey = 'setup|mulligan';
         $prevMullKey = $state['phase_timer']['mull_key'] ?? '';
         if ($mullKey !== $prevMullKey) {
@@ -5122,7 +5238,8 @@ function refreshPvpPhaseTimers(array &$state): void {
     }
     if ($ph === 'coin_flip') {
         unset($state['phase_timer']['prompt_key'], $state['phase_timer']['main_key'],
-            $state['phase_timer']['live_key'], $state['phase_timer']['live_keys']);
+            $state['phase_timer']['live_key'], $state['phase_timer']['live_keys'],
+            $state['phase_timer']['choice_prompt_key']);
         $flip = $state['coin_flip'] ?? null;
         if (!$flip || !coinFlipBothReady($state)) {
             clearAllPhaseDeadlines($state);
@@ -5150,7 +5267,8 @@ function refreshPvpPhaseTimers(array &$state): void {
         return;
     }
     unset($state['phase_timer']['prompt_key'], $state['phase_timer']['main_key'],
-        $state['phase_timer']['live_key'], $state['phase_timer']['live_keys']);
+        $state['phase_timer']['live_key'], $state['phase_timer']['live_keys'],
+        $state['phase_timer']['choice_prompt_key']);
     clearAllPhaseDeadlines($state);
 }
 
