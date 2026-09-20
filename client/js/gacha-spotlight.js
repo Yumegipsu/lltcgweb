@@ -226,7 +226,9 @@
       // Fill beam spacing (slight overlap on 10+1 so faces stay large).
       const maxW = n === 1 ? 240 : (n >= 10 ? 136 : n >= 6 ? 132 : 148);
       const fill = n >= 10 ? 1.12 : (n >= 6 ? 0.94 : 0.9);
-      const cw = Math.min(n === 1 ? 240 : span * fill, maxW);
+      // Size SR/UR in layout pixels (not CSS transform scale) so art stays sharp.
+      const boost = s.finalTier === 'rainbow' ? 1.48 : s.finalTier === 'gold' ? 1.28 : 1;
+      const cw = Math.min(n === 1 ? 240 : span * fill, maxW) * boost;
       s.el.style.left = s.bx + 'px';
       s.el.style.top = s.by + 'px';
       s.el.style.width = cw + 'px';

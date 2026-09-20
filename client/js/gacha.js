@@ -686,7 +686,7 @@
     ov.setAttribute('aria-hidden', 'false');
     document.body.classList.add('gacha-pull-open');
 
-    const results = global.GachaSpotlight.fromPulls(pulls, (p) => cardImg(p.card_no, 280));
+    const results = global.GachaSpotlight.fromPulls(pulls, (p) => cardImg(p.card_no, 0));
     await global.GachaSpotlight.play(results, {
       root: spot,
       sfx,
