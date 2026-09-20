@@ -96377,6 +96377,661 @@
       "text": "",
       "text_jp": "",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PYHN-PR-001-PR.png"
+    },
+    {
+      "card_no": "PL!-PR-023-PR",
+      "name": "絢瀬絵里",
+      "name_en": "Eli Ayase",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "μ's",
+      "booster_pack": "PRカード",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "pink",
+          "count": 1
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 2
+        }
+      ],
+      "blade_hearts": [
+        "purple"
+      ],
+      "rarity": "PR",
+      "text": "[Automatic] [3 times per Turn] Whenever a Member on your or your opponent's Stage becomes Wait, until this Live ends, you gain +1 Blade.\n[Activated] [Once per Turn] Put 1 Member into Wait and put 1 card from your hand into the Waiting Room: draw 1 card.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/jidou.png\" alt=\"自動\" />[ターン3回]自分か相手のステージにいるメンバーがウェイト状態になるたび、ライブ終了時まで、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" />を得る。\n<img class=\"\" src=\"/wordpress/wp-content/images/texticon/kidou.png\" alt=\"起動\" /><img class=\"\" src=\"/wordpress/wp-content/images/texticon/turn1.png\" alt=\"ターン1回\" />メンバー1人をウェイトにし、手札を1枚控え室に置く：カードを1枚引く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!-PR-023-PR.png",
+      "subunit": "BiBi",
+      "blade": 3,
+      "text_es": "[Automático] [3 times per Turn] Whenever a Miembro on your or de tu oponente Escenario becomes Wait, hasta que termine este Live, obtienes +1 Blade.\n[Activada] [Una vez por turno] Coloca 1 Miembro en Wait and coloca 1 carta de tu mano en la Sala de espera: roba 1 carta.",
+      "text_ko": "[자동] [3 times 당 턴] 때마다  멤버 에 자신의 또는 상대의 스테이지 becomes Wait, 이 Live가 끝날 때까지, 얻는다 +1 Blade.\n[기동] [턴당 1회] 놓는다 1 멤버 Wait에 그리고 자신의 손패에서 카드 1장을 대기실에 놓는다: 카드 1장을 드로우한다.",
+      "text_zh": "[自动] [3 times per Turn] Whenever a 成员 on your 或 对手的 舞台 becomes Wait, until 本次Live ends, you 获得 +1 Blade.\n[起动] [每回合1次] 放置 1 成员 into Wait 并 放置 1 卡 from 你的手牌 into the 等候室: 抽 1 卡.",
+      "text_th": "[อัตโนมัติ] [3 times per Turn] Whenever a สมาชิก on your หรือ ของฝ่ายตรงข้าม เวที becomes Wait, until Live นี้ ends, you ได้รับ +1 เบลด.\n[เปิดใช้] [เทิร์นละ 1 ครั้ง] วาง 1 สมาชิก into Wait และ วาง 1 การ์ด from มือของคุณ into the ห้องรอ: จั่ว 1 การ์ด."
+    },
+    {
+      "card_no": "PL!-PR-024-PR",
+      "name": "絢瀬絵里",
+      "name_en": "Eli Ayase",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "μ's",
+      "booster_pack": "PRカード",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "pink",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "pink"
+      ],
+      "rarity": "PR",
+      "text": "[Always] While the total score of all Live cards in your and your opponent's Success Live areas is 10 or more, you gain 1 Pink heart.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/jyouji.png\" alt=\"常時\" />自分と相手の成功ライブカード置き場にあるすべてのライブカードのスコアの合計が10以上であるかぎり、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/heart_01.png\" alt=\"heart01\" />を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!-PR-024-PR.png",
+      "subunit": "BiBi",
+      "blade": 1,
+      "text_es": "[Siempre] While the total score of all cartas Live in your and de tu oponente área de Live exitosos is 10 or more, obtienes 1 Pink heart.",
+      "text_ko": "[상시] 동안  총 스코어 의 모든 Live 카드 에 자신의 그리고 상대의 Success Live 영역 이다 10 이상, 얻는다 1 핑크 하트.",
+      "text_zh": "[永续] While the total 分数 of all Live 卡 in your 并 对手的 成功Live区s is 10 或 m或e, you 获得 1 Pink heart.",
+      "text_th": "[ต่อเนื่อง] While the total คะแนน of all Live การ์ด in your และ ของฝ่ายตรงข้าม พื้นที่ Live สำเร็จs is 10 หรือ mหรือe, you ได้รับ 1 Pink heart."
+    },
+    {
+      "card_no": "PL!-PR-025-PR",
+      "name": "南 ことり",
+      "name_en": "Kotori Minami",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "μ's",
+      "booster_pack": "PRカード",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "blue",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "PR",
+      "text": "[Automatic] When this Member is put from the Stage into the Waiting Room, if this Member Baton Touched with a Member with cost 9 or more, until this Live ends, the Member that entered via that Baton Touch gains +2 Blade.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/jidou.png\" alt=\"自動\" />このメンバーがステージから控え室に置かれたとき、このメンバーがコスト9以上のメンバーとバトンタッチしていた場合、ライブ終了時まで、そのバトンタッチで登場したメンバーは<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" /><img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" />を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!-PR-025-PR.png",
+      "subunit": "Printemps",
+      "blade": 1,
+      "text_es": "[Automático] When este Miembro is coloca del Escenario en la Sala de espera, if este Miembro Baton Touched with a Miembro with cost 9 or more, hasta que termine este Live, the Miembro that entered via that Baton Touch obtieness +2 Blade.",
+      "text_ko": "[자동] 때 이 멤버 이다 놓는다 스테이지에서 대기실에, 만약 이 멤버 바톤 터치했다 와 함께  멤버 와 함께 코스트 9 이상, 이 Live가 끝날 때까지,  멤버 그 등장했다 를 통해 그 바톤 터치 얻는다 +2 Blade.",
+      "text_zh": "[自动] When this 成员 is 放置 from the 舞台 into the 等候室, if this 成员 Baton Touched with a 成员 with 费用 9 或 m或e, until 本次Live ends, the 成员 that entered via that Baton Touch 获得s +2 Blade.",
+      "text_th": "[อัตโนมัติ] When this สมาชิก is วาง from the เวที into the ห้องรอ, if this สมาชิก บาตองทัชed with a สมาชิก with คอสต์ 9 หรือ mหรือe, until Live นี้ ends, the สมาชิก that entered via that บาตองทัช ได้รับs +2 เบลด."
+    },
+    {
+      "card_no": "PL!-PR-026-PR＋",
+      "name": "高坂穂乃果",
+      "name_en": "Honoka Kosaka",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "μ's",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!-PR-026-PR2.png",
+      "subunit": "Printemps"
+    },
+    {
+      "card_no": "PL!-PR-026-PR",
+      "name": "高坂穂乃果",
+      "name_en": "Honoka Kosaka",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "μ's",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!-PR-026-PR.png",
+      "subunit": "Printemps"
+    },
+    {
+      "card_no": "PL!S-PR-046-PR",
+      "name": "渡辺 曜",
+      "name_en": "You Watanabe",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "PRカード",
+      "cost": 5,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "green",
+          "count": 1
+        },
+        {
+          "color": "blue",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "PR",
+      "text": "[Live Success] If there is a Live card among your opponent's cards revealed by Yell, draw 1 card.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_success.png\" alt=\"ライブ成功時\" />エールにより公開された相手のカードの中にライブカードがある場合、カードを1枚引く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!S-PR-046-PR.png",
+      "subunit": "CYaRon!",
+      "blade": 0,
+      "text_es": "[Éxito de Live] If there is a carta Live among de tu oponente cards revelada por Yell, roba 1 carta.",
+      "text_ko": "[라이브 성공] 만약 there 이다  Live 카드 중에서 상대의 카드 Yell로 공개된, 카드 1장을 드로우한다.",
+      "text_zh": "[Live成功] If there is a Live 卡 among 对手的 卡 因Yell翻开的, 抽 1 卡.",
+      "text_th": "[Live สำเร็จ] If there is a Live การ์ด among ของฝ่ายตรงข้าม การ์ด ที่เปิดโดย Yell, จั่ว 1 การ์ด."
+    },
+    {
+      "card_no": "PL!S-PR-047-PR",
+      "name": "桜内梨子",
+      "name_en": "Riko Sakurauchi",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "PRカード",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "blue",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "PR",
+      "text": "[Automatic] When this Member is put from the Stage into the Waiting Room, if this Member Baton Touched with a Member with cost 9 or more, until this Live ends, the Member that entered via that Baton Touch gains +2 Blade.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/jidou.png\" alt=\"自動\" />このメンバーがステージから控え室に置かれたとき、このメンバーがコスト9以上のメンバーとバトンタッチしていた場合、ライブ終了時まで、そのバトンタッチで登場したメンバーは<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" /><img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" />を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!S-PR-047-PR.png",
+      "subunit": "Guilty Kiss",
+      "blade": 1,
+      "text_es": "[Automático] When este Miembro is coloca del Escenario en la Sala de espera, if este Miembro Baton Touched with a Miembro with cost 9 or more, hasta que termine este Live, the Miembro that entered via that Baton Touch obtieness +2 Blade.",
+      "text_ko": "[자동] 때 이 멤버 이다 놓는다 스테이지에서 대기실에, 만약 이 멤버 바톤 터치했다 와 함께  멤버 와 함께 코스트 9 이상, 이 Live가 끝날 때까지,  멤버 그 등장했다 를 통해 그 바톤 터치 얻는다 +2 Blade.",
+      "text_zh": "[自动] When this 成员 is 放置 from the 舞台 into the 等候室, if this 成员 Baton Touched with a 成员 with 费用 9 或 m或e, until 本次Live ends, the 成员 that entered via that Baton Touch 获得s +2 Blade.",
+      "text_th": "[อัตโนมัติ] When this สมาชิก is วาง from the เวที into the ห้องรอ, if this สมาชิก บาตองทัชed with a สมาชิก with คอสต์ 9 หรือ mหรือe, until Live นี้ ends, the สมาชิก that entered via that บาตองทัช ได้รับs +2 เบลด."
+    },
+    {
+      "card_no": "PL!S-PR-048-PR",
+      "name": "黒澤ルビィ",
+      "name_en": "Ruby Kurosawa",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "PRカード",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "blue",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "PR",
+      "text": "[Live Start] If you have 9 or fewer cards in your Waiting Room, choose up to 3 Live cards from your Waiting Room and put them on top of your deck in any order.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />自分の控え室にあるカードが9枚以下の場合、自分の控え室にあるライブカードを3枚まで選び、自分のデッキの上に好きな順番で置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!S-PR-048-PR.png",
+      "subunit": "CYaRon!",
+      "blade": 5,
+      "text_es": "[Inicio de Live] Si tienes 9 or fewer cards in your Sala de espera, choose up to 3 cartas Live de tu Sala de espera and coloca them en la parte superior de tu mazo in any order.",
+      "text_ko": "[라이브 개시] 만약 자신에게 9 이하 카드 에 자신의 대기실, 고른다 최대 3 Live 카드 자신의 대기실에서 그리고 놓는다 그것들 자신의 덱 맨 위에 에 임의의 순서.",
+      "text_zh": "[Live开始] If you have 9 或 fewer 卡 in 你的等候室, 选择 up to 3 Live 卡 从你的等候室 并 放置 them 放到你的牌组顶 in any 或der.",
+      "text_th": "[เริ่ม Live] If you have 9 หรือ fewer การ์ด in ห้องรอของคุณ, เลือก up to 3 Live การ์ด จากห้องรอของคุณ และ วาง them ไว้บนสุดของเด็คของคุณ in any หรือder."
+    },
+    {
+      "card_no": "PL!S-PR-049-PR＋",
+      "name": "高海千歌",
+      "name_en": "Chika Takami",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Sunshine",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!S-PR-049-PR2.png",
+      "subunit": "CYaRon!"
+    },
+    {
+      "card_no": "PL!S-PR-049-PR",
+      "name": "高海千歌",
+      "name_en": "Chika Takami",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Sunshine",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!S-PR-049-PR.png",
+      "subunit": "CYaRon!"
+    },
+    {
+      "card_no": "PL!N-PR-033-PR",
+      "name": "中須かすみ",
+      "name_en": "Kasumi Nakasu",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Nijigasaki",
+      "booster_pack": "PRカード",
+      "cost": 9,
+      "hearts": [
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "green",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "PR",
+      "text": "[Automatic] [Once per Turn] When a Member enters from your Waiting Room, draw 1 card.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/jidou.png\" alt=\"自動\" /><img class=\"\" src=\"/wordpress/wp-content/images/texticon/turn1.png\" alt=\"ターン1回\" />自分の控え室からメンバーが登場したとき、カードを1枚引く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-PR-033-PR.png",
+      "subunit": "QU4RTZ",
+      "blade": 4,
+      "text_es": "[Automático] [Una vez por turno] When a Miembro enters de tu Sala de espera, roba 1 carta.",
+      "text_ko": "[자동] [턴당 1회] 때  멤버 등장한다 자신의 대기실에서, 카드 1장을 드로우한다.",
+      "text_zh": "[自动] [每回合1次] When a 成员 enters 从你的等候室, 抽 1 卡.",
+      "text_th": "[อัตโนมัติ] [เทิร์นละ 1 ครั้ง] When a สมาชิก enters จากห้องรอของคุณ, จั่ว 1 การ์ด."
+    },
+    {
+      "card_no": "PL!N-PR-034-PR",
+      "name": "三船栞子",
+      "name_en": "Shioriko Mifune",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Nijigasaki",
+      "booster_pack": "PRカード",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "pink",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "pink"
+      ],
+      "rarity": "PR",
+      "text": "[Always] While the total score of all Live cards in your and your opponent's Success Live areas is 10 or more, you gain 1 Pink heart.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/jyouji.png\" alt=\"常時\" />自分と相手の成功ライブカード置き場にあるすべてのライブカードのスコアの合計が10以上であるかぎり、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/heart_01.png\" alt=\"heart01\" />を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-PR-034-PR.png",
+      "subunit": "R3BIRTH",
+      "blade": 1,
+      "text_es": "[Siempre] While the total score of all cartas Live in your and de tu oponente área de Live exitosos is 10 or more, obtienes 1 Pink heart.",
+      "text_ko": "[상시] 동안  총 스코어 의 모든 Live 카드 에 자신의 그리고 상대의 Success Live 영역 이다 10 이상, 얻는다 1 핑크 하트.",
+      "text_zh": "[永续] While the total 分数 of all Live 卡 in your 并 对手的 成功Live区s is 10 或 m或e, you 获得 1 Pink heart.",
+      "text_th": "[ต่อเนื่อง] While the total คะแนน of all Live การ์ด in your และ ของฝ่ายตรงข้าม พื้นที่ Live สำเร็จs is 10 หรือ mหรือe, you ได้รับ 1 Pink heart."
+    },
+    {
+      "card_no": "PL!N-PR-035-PR",
+      "name": "上原歩夢",
+      "name_en": "Ayumu Uehara",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Nijigasaki",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-PR-035-PR.png",
+      "subunit": "A・ZU・NA"
+    },
+    {
+      "card_no": "PL!N-PR-035-PR＋",
+      "name": "上原歩夢",
+      "name_en": "Ayumu Uehara",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Nijigasaki",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-PR-035-PR2.png",
+      "subunit": "A・ZU・NA"
+    },
+    {
+      "card_no": "PL!SP-PR-023-PR＋",
+      "name": "唐 可可",
+      "name_en": "Keke Tang",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "PRカード",
+      "rarity": "PR＋",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!SP-PR-023-PR2.png",
+      "subunit": "KALEIDOSCORE"
+    },
+    {
+      "card_no": "PL!SP-PR-027-PR",
+      "name": "平安名すみれ",
+      "name_en": "Sumire Heanna",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "PRカード",
+      "cost": 13,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "yellow",
+          "count": 1
+        },
+        {
+          "color": "blue",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "PR",
+      "text": "[Live Start] If you have 9 or fewer cards in your Waiting Room, choose up to 3 Live cards from your Waiting Room and put them on top of your deck in any order.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />自分の控え室にあるカードが9枚以下の場合、自分の控え室にあるライブカードを3枚まで選び、自分のデッキの上に好きな順番で置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!SP-PR-027-PR.png",
+      "subunit": "CatChu!",
+      "blade": 5,
+      "text_es": "[Inicio de Live] Si tienes 9 or fewer cards in your Sala de espera, choose up to 3 cartas Live de tu Sala de espera and coloca them en la parte superior de tu mazo in any order.",
+      "text_ko": "[라이브 개시] 만약 자신에게 9 이하 카드 에 자신의 대기실, 고른다 최대 3 Live 카드 자신의 대기실에서 그리고 놓는다 그것들 자신의 덱 맨 위에 에 임의의 순서.",
+      "text_zh": "[Live开始] If you have 9 或 fewer 卡 in 你的等候室, 选择 up to 3 Live 卡 从你的等候室 并 放置 them 放到你的牌组顶 in any 或der.",
+      "text_th": "[เริ่ม Live] If you have 9 หรือ fewer การ์ด in ห้องรอของคุณ, เลือก up to 3 Live การ์ด จากห้องรอของคุณ และ วาง them ไว้บนสุดของเด็คของคุณ in any หรือder."
+    },
+    {
+      "card_no": "PL!SP-PR-028-PR",
+      "name": "米女メイ",
+      "name_en": "Mei Yoneme",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Superstar",
+      "booster_pack": "PRカード",
+      "cost": 15,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "green",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "PR",
+      "text": "[On Enter] Look at the top cards of your deck equal to 10 minus the number of cards in your hand. Add up to 2 of them to your hand. Put the rest into the Waiting Room.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/toujyou.png\" alt=\"登場\" />自分のデッキの上から、10から自分の手札の枚数を引いた数に等しい枚数のカードを見る。その中から2枚まで手札に加える。残りを控え室に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!SP-PR-028-PR.png",
+      "subunit": "CatChu!",
+      "blade": 5,
+      "text_es": "[Al entrar] Mira the top cards de tu mazo equal to 10 minus the number of cards in your mano. Añade up to 2 of them a tu mano. Coloca el resto en la Sala de espera.",
+      "text_ko": "[등장 시] 확인한다  위 카드 자신의 덱의 와 같은 10 만큼 뺀  수의 카드 에 자신의 손패. 더한다 최대 2 의 그것들 손패에. 나머지는 대기실에 놓는다.",
+      "text_zh": "[入场时] 查看 the top 卡 of 你的牌组 equal to 10 minus the number of 卡 in 你的手牌. 加入 up to 2 of them to 你的手牌. 放置 the rest into the 等候室.",
+      "text_th": "[เมื่อเข้าสนาม] ดู the top การ์ด of เด็คของคุณ equal to 10 minus the number of การ์ด in มือของคุณ. เพิ่ม up to 2 of them to มือของคุณ. วาง the rest into the ห้องรอ."
+    },
+    {
+      "card_no": "PL!SP-PR-029-PR",
+      "name": "澁谷かのん",
+      "name_en": "Kanon Shibuya",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!SP-PR-029-PR.png",
+      "subunit": "CatChu!"
+    },
+    {
+      "card_no": "PL!SP-PR-029-PR＋",
+      "name": "澁谷かのん",
+      "name_en": "Kanon Shibuya",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!SP-PR-029-PR2.png",
+      "subunit": "CatChu!"
+    },
+    {
+      "card_no": "PL!HS-PR-038-PR",
+      "name": "セラス 柳田 リリエンフェルト",
+      "name_en": "Ceras Yanagida Lilienfeld",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Hasunosora",
+      "booster_pack": "PRカード",
+      "cost": 4,
+      "hearts": [],
+      "blade_hearts": [
+        "green"
+      ],
+      "rarity": "PR",
+      "text": "[On Enter] If this Member entered from somewhere other than your hand, until this Live ends, you gain 1 Purple heart.\n[Live Success] Put 1 opponent Stage Member with cost 4 or less into Wait. That Member does not become Active during the next Active Phase.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/toujyou.png\" alt=\"登場\" />手札以外から登場したとき、ライブ終了時まで、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/heart_06.png\" alt=\"heart06\" />を得る。\n<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_success.png\" alt=\"ライブ成功時\" />相手のステージにいるコスト4以下のメンバー1人をウェイトにする。それは次のターンのアクティブフェイズにアクティブにならない。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!HS-PR-038-PR.png",
+      "subunit": "Edel Note",
+      "blade": 3,
+      "text_es": "[Al entrar] If este Miembro entered from somewhere other than your mano, hasta que termine este Live, obtienes 1 Purple heart.\n[Éxito de Live] Coloca 1 opponent Escenario Miembro with costo 4 o menos en Wait. That Miembro does not become Active during the next Active Phase.",
+      "text_ko": "[등장 시] 만약 이 멤버 등장했다 에서 somewhere 다른 보다 자신의 손패, 이 Live가 끝날 때까지, 얻는다 1 보라 하트.\n[라이브 성공] 놓는다 1 상대 스테이지 멤버 와 함께 코스트 4 이하 Wait에. 그 멤버 하지 않는다 활성 상태가 된다 동안  next 액티브 페이즈.",
+      "text_zh": "[入场时] If this 成员 entered from somewhere other than 你的手牌, until 本次Live ends, you 获得 1 Purple heart.\n[Live成功] 放置 1 opponent 舞台 成员 with 费用 4 或 less into Wait. That 成员 does not become Active during the next Active Phase.",
+      "text_th": "[เมื่อเข้าสนาม] If this สมาชิก entered from somewhere other than มือของคุณ, until Live นี้ ends, you ได้รับ 1 Purple heart.\n[Live สำเร็จ] วาง 1 opponent เวที สมาชิก with คอสต์ 4 หรือ less into Wait. That สมาชิก does not become Active during the next Active Phase."
+    },
+    {
+      "card_no": "PL!HS-PR-039-PR",
+      "name": "百生吟子",
+      "name_en": "Ginko Momose",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Hasunosora",
+      "booster_pack": "PRカード",
+      "cost": 15,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 3
+        },
+        {
+          "color": "green",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [
+        "green"
+      ],
+      "rarity": "PR",
+      "text": "[On Enter] Look at the top cards of your deck equal to 10 minus the number of cards in your hand. Add up to 2 of them to your hand. Put the rest into the Waiting Room.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/toujyou.png\" alt=\"登場\" />自分のデッキの上から、10から自分の手札の枚数を引いた数に等しい枚数のカードを見る。その中から2枚まで手札に加える。残りを控え室に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!HS-PR-039-PR.png",
+      "subunit": "スリーズブーケ",
+      "blade": 5,
+      "text_es": "[Al entrar] Mira the top cards de tu mazo equal to 10 minus the number of cards in your mano. Añade up to 2 of them a tu mano. Coloca el resto en la Sala de espera.",
+      "text_ko": "[등장 시] 확인한다  위 카드 자신의 덱의 와 같은 10 만큼 뺀  수의 카드 에 자신의 손패. 더한다 최대 2 의 그것들 손패에. 나머지는 대기실에 놓는다.",
+      "text_zh": "[入场时] 查看 the top 卡 of 你的牌组 equal to 10 minus the number of 卡 in 你的手牌. 加入 up to 2 of them to 你的手牌. 放置 the rest into the 等候室.",
+      "text_th": "[เมื่อเข้าสนาม] ดู the top การ์ด of เด็คของคุณ equal to 10 minus the number of การ์ด in มือของคุณ. เพิ่ม up to 2 of them to มือของคุณ. วาง the rest into the ห้องรอ."
+    },
+    {
+      "card_no": "PL!HS-PR-040-PR",
+      "name": "安養寺姫芽",
+      "name_en": "Hime Anyoji",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Hasunosora",
+      "booster_pack": "PRカード",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "blue",
+          "count": 1
+        },
+        {
+          "color": "purple",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "PR",
+      "text": "[Automatic] When this Member is put from the Stage into the Waiting Room, if this Member Baton Touched with a Member with cost 9 or more, until this Live ends, the Member that entered via that Baton Touch gains +2 Blade.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/jidou.png\" alt=\"自動\" />このメンバーがステージから控え室に置かれたとき、このメンバーがコスト9以上のメンバーとバトンタッチしていた場合、ライブ終了時まで、そのバトンタッチで登場したメンバーは<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" /><img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" />を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!HS-PR-040-PR.png",
+      "subunit": "みらくらぱーく!",
+      "blade": 1,
+      "text_es": "[Automático] When este Miembro is coloca del Escenario en la Sala de espera, if este Miembro Baton Touched with a Miembro with cost 9 or more, hasta que termine este Live, the Miembro that entered via that Baton Touch obtieness +2 Blade.",
+      "text_ko": "[자동] 때 이 멤버 이다 놓는다 스테이지에서 대기실에, 만약 이 멤버 바톤 터치했다 와 함께  멤버 와 함께 코스트 9 이상, 이 Live가 끝날 때까지,  멤버 그 등장했다 를 통해 그 바톤 터치 얻는다 +2 Blade.",
+      "text_zh": "[自动] When this 成员 is 放置 from the 舞台 into the 等候室, if this 成员 Baton Touched with a 成员 with 费用 9 或 m或e, until 本次Live ends, the 成员 that entered via that Baton Touch 获得s +2 Blade.",
+      "text_th": "[อัตโนมัติ] When this สมาชิก is วาง from the เวที into the ห้องรอ, if this สมาชิก บาตองทัชed with a สมาชิก with คอสต์ 9 หรือ mหรือe, until Live นี้ ends, the สมาชิก that entered via that บาตองทัช ได้รับs +2 เบลด."
+    },
+    {
+      "card_no": "PL!HS-PR-041-PR＋",
+      "name": "百生吟子",
+      "name_en": "Ginko Momose",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Hasunosora",
+      "booster_pack": "PRカード",
+      "rarity": "PR＋",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!HS-PR-041-PR2.png",
+      "subunit": "スリーズブーケ"
+    },
+    {
+      "card_no": "PL!HS-PR-042-PR＋",
+      "name": "日野下花帆",
+      "name_en": "Kaho Hinoshita",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Hasunosora",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!HS-PR-042-PR2.png",
+      "subunit": "スリーズブーケ"
+    },
+    {
+      "card_no": "PL!HS-PR-042-PR",
+      "name": "日野下花帆",
+      "name_en": "Kaho Hinoshita",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Hasunosora",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!HS-PR-042-PR.png",
+      "subunit": "スリーズブーケ"
+    },
+    {
+      "card_no": "IKZL-PR-001-PR",
+      "name": "いきづらい部!",
+      "name_en": "Ikizurai-Bu!",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Ikizurai",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/IKZL-PR-001-PR.png"
+    },
+    {
+      "card_no": "IKZL-PR-002-PR",
+      "name": "高橋ポルカ&佐々木翔音",
+      "name_en": "Polka Takahashi & Shion Sasaki",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Ikizurai",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/IKZL-PR-002-PR.png"
+    },
+    {
+      "card_no": "PL!SP-PR-030-PR",
+      "name": "ゆいがおー",
+      "name_en": "Yuigaoh!",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!SP-PR-030-PR.png"
+    },
+    {
+      "card_no": "PL!SP-PR-031-PR＋",
+      "name": "ゆいがおー",
+      "name_en": "Yuigaoh!",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!SP-PR-031-PR2.png"
+    },
+    {
+      "card_no": "PL!SP-PR-032-PR＋",
+      "name": "ゆいがおー",
+      "name_en": "Yuigaoh!",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Superstar",
+      "booster_pack": "PRカード",
+      "rarity": "PR",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!SP-PR-032-PR2.png"
     }
   ],
   "starter_decks": {
