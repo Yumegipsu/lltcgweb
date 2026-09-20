@@ -718,6 +718,54 @@
     }));
   }
 
+  function gemBalance() {
+    if (Number.isFinite(Number(global.A?.starGems))) {
+      return Math.max(0, Number(global.A.starGems));
+    }
+    return Math.max(0, Number((_info && _info.star_gems) || 0));
+  }
+
+  function gachaAgainCost() {
+    const cur = (global.A && global.A._gachaLastCurrency) || 'star_gems';
+    const mode = (global.A && global.A._gachaLastMode) || _lastMode || 'single';
+    if (cur === 'tickets') {
+      const n = Math.max(1, Number((global.A && global.A._gachaLastTicketCount) || _lastTicketCount || 1));
+      return { kind: 'tickets', amount: n, canAfford: ticketBalance() >= n };
+    }
+    const amount = mode === 'multi'
+      ? Number((_info && _info.multi_cost) || 200)
+      : Number((_info && _info.single_cost) || 20);
+    return { kind: 'gems', amount, canAfford: gemBalance() >= amount };
+  }
+
+  function updateGachaAgainButton(opts) {
+    const again = el('btn-pack-again');
+    if (!again) return;
+    const simulated = !!(opts && opts.simulated);
+    if (simulated || !(global.A && global.A._fromGacha)) {
+      if (simulated) {
+        again.hidden = true;
+        again.disabled = true;
+      }
+      return;
+    }
+    const cost = gachaAgainCost();
+    again.hidden = false;
+    again.disabled = !cost.canAfford;
+    const label = tt('gacha.scoutAgain', 'Scout again');
+    if (cost.kind === 'tickets') {
+      again.textContent = tt(
+        'gacha.scoutAgainTickets',
+        'Scout again · {n} ticket(s)',
+        { n: cost.amount }
+      );
+    } else if (typeof global.starGemCostHtml === 'function') {
+      again.innerHTML = label + ' · ' + global.starGemCostHtml(cost.amount);
+    } else {
+      again.textContent = tt('gacha.scoutAgainGems', 'Scout again · {n}', { n: cost.amount });
+    }
+  }
+
   async function showGachaResults(res, opts) {
     const pulls = res.pulls || [];
     const cards = toResultCards(pulls);
@@ -726,6 +774,11 @@
     global.A._fromGacha = true;
     global.A._gachaLastMode = res.mode || _lastMode;
     global.A._gachaLastCurrency = res.currency === 'scouting_tickets' ? 'tickets' : 'star_gems';
+    if (res.currency === 'scouting_tickets' && Number(res.count) > 0) {
+      global.A._gachaLastTicketCount = Number(res.count);
+      _lastTicketCount = Number(res.count);
+    }
+    if (res.cost != null) global.A._gachaLastCost = Number(res.cost);
     syncGems(res.star_gems);
     syncTickets(res.scouting_tickets);
     if (typeof global.showPackResults !== 'function') {
@@ -756,14 +809,8 @@
     }
     await flySpotlightCardsToResults();
     closeGachaOverlay();
-    const again = el('btn-pack-again');
     const another = el('btn-pack-another');
-    if (again) {
-      again.hidden = !!simulated;
-      if (!simulated) {
-        again.textContent = tt('gacha.scoutAgain', 'Scout again');
-      }
-    }
+    updateGachaAgainButton({ simulated });
     if (another) {
       another.textContent = tt('gacha.backToGacha', 'Back to Gacha');
     }
@@ -785,6 +832,7 @@
       if (ticketBalance() < n) {
         _pullBusy = false;
         toast(tt('gacha.noTickets', 'No Scouting Tickets'), 2200);
+        if (global.A && global.A._fromGacha) updateGachaAgainButton();
         return;
       }
       body.count = n;
@@ -821,6 +869,7 @@
       toast(e.message || tt('gacha.pullError', 'Could not scout'), 2800);
     } finally {
       _pullBusy = false;
+      if (global.A && global.A._fromGacha) updateGachaAgainButton();
     }
   }
 
@@ -832,13 +881,29 @@
       again.dataset.gachaBound = '1';
       again.addEventListener('click', (ev) => {
         if (!(global.A && global.A._fromGacha)) return;
+        ev.preventDefault();
         ev.stopImmediatePropagation();
-        global.A._fromGacha = false;
+        if (again.disabled || _pullBusy) return;
+        const cost = gachaAgainCost();
+        if (!cost.canAfford) {
+          toast(
+            cost.kind === 'tickets'
+              ? tt('gacha.noTickets', 'No Scouting Tickets')
+              : tt('gacha.notEnoughGems', 'Not enough Star Gems'),
+            2200
+          );
+          updateGachaAgainButton();
+          return;
+        }
+        again.disabled = true;
         const cur = global.A._gachaLastCurrency || 'star_gems';
+        const mode = global.A._gachaLastMode || 'single';
+        const ticketN = global.A._gachaLastTicketCount || 1;
+        // Keep _fromGacha set until the next results screen rewrites it.
         if (cur === 'tickets') {
-          void openGacha('single', 'tickets', global.A._gachaLastTicketCount || 1);
+          void openGacha('single', 'tickets', ticketN);
         } else {
-          void openGacha(global.A._gachaLastMode || 'single', 'star_gems');
+          void openGacha(mode, 'star_gems');
         }
       }, true);
     }
