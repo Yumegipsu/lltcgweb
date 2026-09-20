@@ -2085,7 +2085,11 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
         }
         $p['stage'][$srcSlot]['stacked_members'] = $rest;
         clearMemberWait($played);
-        $played['entered_turn'] = intval($state['turn'] ?? 1);
+        // Already on Stage under the host (Live Start stack). Moving to an empty
+        // area is still 登場 (On Enter), but it is not a non-stage→Stage enter for
+        // rule 9.6.2.1.2.1 — do not lock the slot against overplay/baton (#195).
+        unset($played['entered_turn'], $played['entered_this_turn'], $played['entered_from_hand']);
+        $played['entered_from_under'] = true;
         $p['stage'][$targetSlot] = $played;
         unset($state['pending_prompt']);
         $state['seq']++;
