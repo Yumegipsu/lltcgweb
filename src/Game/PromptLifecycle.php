@@ -388,6 +388,32 @@ function finishAfterBranchChoicePrompt(array $state, array $prompt): array {
             return $state;
         }
     }
+    // Multi-Ceras Auto waits (bp6-007) are queued on _resume_hs_auto_on_other_enter.
+    // Main-phase Wait resolution goes through finishPromptEffects (which drains that
+    // resume). Live Start used resumeLiveStartEffectPhase instead and skipped the
+    // second copy after Retrofuture WR plays (#196 / #78).
+    if (empty($state['pending_prompt']) && !empty($state['_resume_hs_auto_on_other_enter'])
+        && function_exists('hsResolveAutoOnOtherMemberEnter')) {
+        $r = $state['_resume_hs_auto_on_other_enter'];
+        unset($state['_resume_hs_auto_on_other_enter']);
+        $pid = (string)($r['pid'] ?? '');
+        $enteredId = (string)($r['entered_id'] ?? '');
+        $entered = null;
+        if ($pid !== '' && $enteredId !== '') {
+            foreach (($state['players'][$pid]['stage'] ?? []) as $mbr) {
+                if ($mbr && ($mbr['instance_id'] ?? '') === $enteredId) {
+                    $entered = $mbr;
+                    break;
+                }
+            }
+        }
+        if ($entered !== null) {
+            $state = hsResolveAutoOnOtherMemberEnter($state, $pid, $entered);
+            if (!empty($state['pending_prompt'])) {
+                return $state;
+            }
+        }
+    }
     if (($state['phase'] ?? '') === 'live_start_effects' || !empty($prompt['live_start'])) {
         return resumeLiveStartEffectPhase($state);
     }
