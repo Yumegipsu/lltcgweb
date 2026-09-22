@@ -308,11 +308,22 @@ function applyNamedMemberBladeBonus(array &$state, string $pid, array $grants): 
         $names = $grant['names'] ?? [];
         $amount = intval($grant['amount'] ?? 1);
         $max = intval($grant['max'] ?? 1);
+        $hearts = $grant['hearts'] ?? [];
         $count = 0;
         foreach ($state['players'][$pid]['stage'] as &$mbr) {
-            if (!$mbr || $count >= $max) continue;
-            if (!memberMatchesNames($mbr, $names)) continue;
-            $mbr['live_blade_bonus'] = intval($mbr['live_blade_bonus'] ?? 0) + $amount;
+            if (!$mbr || $count >= $max) {
+                continue;
+            }
+            if (!memberMatchesNames($mbr, $names)) {
+                continue;
+            }
+            if ($amount > 0) {
+                $mbr['live_blade_bonus'] = intval($mbr['live_blade_bonus'] ?? 0) + $amount;
+            }
+            // Tiny Stars (PL!SP-bp1-024): same grant also adds until-Live hearts (#200).
+            if (!empty($hearts) && is_array($hearts)) {
+                addBonusHeartsToMember($mbr, $hearts);
+            }
             $count++;
             $applied++;
         }

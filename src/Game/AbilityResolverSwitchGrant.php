@@ -55,8 +55,17 @@ function tryResolveAbilityEffectSwitchGrant(
         case 'grant_named_members_blade':
             $n = applyNamedMemberBladeBonus($state, $pid, $ab['grants'] ?? []);
             if ($n > 0) {
+                $alsoHearts = false;
+                foreach ($ab['grants'] ?? [] as $g) {
+                    if (!empty($g['hearts'])) {
+                        $alsoHearts = true;
+                        break;
+                    }
+                }
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] $n named Member(s) gained Blade until Live ends.");
+                    " — [$name] $n named Member(s) gained Blade"
+                    . ($alsoHearts ? ' and hearts' : '')
+                    . ' until Live ends.');
             }
             break;
 
