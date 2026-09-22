@@ -454,7 +454,8 @@ global.openStageMemberPickById = function openStageMemberPickById(pr){
     }));
   });
   // "Up to N" activate picks (Honoka Live Start) — allow decline.
-  if(pr.type==='activate_members_pick' || pr.optional || (Array.isArray(pr.choices)&&pr.choices.includes('skip'))){
+  if(pr.type==='activate_members_pick' || pr.optional || pr.allow_skip
+    || (Array.isArray(pr.choices)&&pr.choices.includes('skip'))){
     const skipBtn=document.createElement('button');
     skipBtn.className='btn-ghost';
     skipBtn.style.width='100%';
@@ -2595,6 +2596,21 @@ global.renderPrompt = function renderPrompt(s, myId){
     return;
   }
   if (pr?.type === 'auto_on_ally_wait_activate_blade' && pr.responder === myId) {
+    if (pr.step === 'pick_waited') {
+      ovl.classList.remove('open');
+      const cands = pr.candidates || pr.waited_candidates || [];
+      if (!cands.length) {
+        sendAct('resolve_prompt', { choice: 'skip' });
+        return;
+      }
+      openStageMemberPickById({
+        ...pr,
+        candidates: cands,
+        allow_skip: true,
+        prompt: promptDisplayText(pr, pr.prompt || 'Choose which Waited Member to activate, or skip.', s),
+      });
+      return;
+    }
     if (pr.step === 'discard') {
       ovl.classList.remove('open');
       const me = s.players?.[myId];

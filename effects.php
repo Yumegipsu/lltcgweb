@@ -707,6 +707,30 @@ function resolveAutoOnWaitAbilities(array $state, string $pid, array $member): a
 }
 
 /**
+ * Collect Stage Members that just entered Wait this flush (still flagged), in
+ * stable left→center→right order. Used so simultaneous Waits can offer a pick (#197).
+ *
+ * @return list<array{slot:string,member:array}>
+ */
+function listNewlyWaitedStageMembers(array $p, string $group = ''): array {
+    $out = [];
+    foreach (['left', 'center', 'right'] as $slot) {
+        $mbr = $p['stage'][$slot] ?? null;
+        if (!$mbr || empty($mbr['_was_active_before_wait'])) {
+            continue;
+        }
+        if ($mbr['active'] ?? true) {
+            continue;
+        }
+        if ($group !== '' && (string)($mbr['group'] ?? '') !== $group) {
+            continue;
+        }
+        $out[] = ['slot' => $slot, 'member' => $mbr];
+    }
+    return $out;
+}
+
+/**
  * NSD02 Shioriko-style: when an ally Wait happens, other Stage Members may optionally
  * discard to Activate that Waited Member and grant Blade until Live ends.
  */
@@ -720,7 +744,8 @@ function resolveAutoOnAllyWaitAbilities(array $state, string $pid, array $waited
         return $state;
     }
     $p = &$state['players'][$pid];
-    foreach ($p['stage'] as $slot => $ally) {
+    foreach (['left', 'center', 'right'] as $slot) {
+        $ally = $p['stage'][$slot] ?? null;
         if (!$ally) {
             continue;
         }
@@ -743,10 +768,36 @@ function resolveAutoOnAllyWaitAbilities(array $state, string $pid, array $waited
             }
             $name = $ally['name_en'] ?? $ally['name'] ?? 'Member';
             $discardNeed = intval($ab['optional_discard'] ?? 0);
+            // Simultaneous Waits: other newly Waited allies still carry the flush flag.
+            $simultaneous = listNewlyWaitedStageMembers($p, $needGroup);
+            $waitedChoices = [];
+            $seenIds = [$waitedId => true];
+            $waitedChoices[] = [
+                'instance_id' => $waitedId,
+                'slot' => findMemberSlot($p, $waitedId) ?: '',
+                'name' => $waitedMember['name_en'] ?? $waitedMember['name'] ?? 'Member',
+                'name_en' => $waitedMember['name_en'] ?? $waitedMember['name'] ?? 'Member',
+            ];
+            foreach ($simultaneous as $row) {
+                $m = $row['member'];
+                $iid = (string)($m['instance_id'] ?? '');
+                if ($iid === '' || isset($seenIds[$iid])) {
+                    continue;
+                }
+                $seenIds[$iid] = true;
+                $waitedChoices[] = [
+                    'instance_id' => $iid,
+                    'slot' => $row['slot'],
+                    'name' => $m['name_en'] ?? $m['name'] ?? 'Member',
+                    'name_en' => $m['name_en'] ?? $m['name'] ?? 'Member',
+                ];
+            }
             if ($discardNeed > 0) {
                 if (empty($p['hand'])) {
                     continue;
                 }
+                $amt = intval($ab['amount'] ?? 2);
+                $multi = count($waitedChoices) > 1;
                 $state['pending_prompt'] = [
                     'type'              => 'auto_on_ally_wait_activate_blade',
                     'owner'             => $pid,
@@ -754,38 +805,74 @@ function resolveAutoOnAllyWaitAbilities(array $state, string $pid, array $waited
                     'source_id'         => $ally['instance_id'] ?? '',
                     'source_slot'       => $slot,
                     'source_name'       => $name,
-                    'waited_id'         => $waitedId,
+                    'waited_id'         => $multi ? '' : $waitedId,
+                    'waited_candidates' => $waitedChoices,
+                    'ability_index'     => $idx,
+                    'amount'            => $amt,
+                    'discard_count'     => $discardNeed,
+                    'step'              => $multi ? 'pick_waited' : '',
+                    'prompt'            => $multi
+                        ? "Choose which Waited Member to activate (+$amt Blade until this Live ends), or skip."
+                        : ("Put $discardNeed card(s) from your hand into the Waiting Room: activate "
+                            . ($waitedChoices[0]['name_en'] ?? 'the Waited Member')
+                            . " and grant +$amt Blade until this Live ends?"),
+                    'choices'           => $multi ? [] : ['yes', 'no'],
+                    'choice_labels'     => $multi ? [] : ['Yes — Discard', 'No — Skip'],
+                    'ability'           => $ab,
+                ];
+                if ($multi) {
+                    $state['pending_prompt']['candidates'] = $waitedChoices;
+                }
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] optional Auto (ally Wait).");
+                return $state;
+            }
+            // No discard cost — apply immediately (single or first of simultaneous).
+            $targetId = $waitedId;
+            if (count($waitedChoices) > 1) {
+                // Still need a pick even without discard — open a minimal choose prompt.
+                $state['pending_prompt'] = [
+                    'type'              => 'auto_on_ally_wait_activate_blade',
+                    'owner'             => $pid,
+                    'responder'         => $pid,
+                    'source_id'         => $ally['instance_id'] ?? '',
+                    'source_slot'       => $slot,
+                    'source_name'       => $name,
+                    'waited_id'         => '',
+                    'waited_candidates' => $waitedChoices,
+                    'candidates'        => $waitedChoices,
                     'ability_index'     => $idx,
                     'amount'            => intval($ab['amount'] ?? 2),
-                    'discard_count'     => $discardNeed,
-                    'prompt'            => "Put $discardNeed card(s) from your hand into the Waiting Room: activate the Waited Member and grant +"
-                        . intval($ab['amount'] ?? 2) . ' Blade until this Live ends?',
-                    'choices'           => ['yes', 'no'],
-                    'choice_labels'     => ['Yes — Discard', 'No — Skip'],
+                    'discard_count'     => 0,
+                    'step'              => 'pick_waited',
+                    'prompt'            => 'Choose which Waited Member to activate (+'
+                        . intval($ab['amount'] ?? 2) . ' Blade until this Live ends), or skip.',
                     'ability'           => $ab,
                 ];
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] optional Auto (ally Wait).");
                 return $state;
             }
-            // No discard cost — apply immediately.
             markAbilityUsed($p['stage'][$slot], $idx);
             $amt = intval($ab['amount'] ?? 2);
-            foreach ($p['stage'] as $wSlot => &$wMbr) {
-                if ($wMbr && ($wMbr['instance_id'] ?? '') === $waitedId) {
-                    clearMemberWait($wMbr);
-                    $wMbr['live_blade_bonus'] = intval($wMbr['live_blade_bonus'] ?? 0) + $amt;
-                    if (($ally['group'] ?? '') === 'Nijigasaki' || ($ab['group'] ?? '') === 'Nijigasaki') {
-                        $p['_niji_turn_flags']['activated_wait_member'] = true;
-                    }
-                    $state = addLog($state, $state['players'][$pid]['name'] .
-                        ' — [' . $name . '] activated ' .
-                        ($wMbr['name_en'] ?? $wMbr['name'] ?? 'Member') .
-                        " and granted +$amt Blade (ally Wait Auto).");
-                    break;
+            foreach (['left', 'center', 'right'] as $wSlot) {
+                if (empty($p['stage'][$wSlot])
+                    || ($p['stage'][$wSlot]['instance_id'] ?? '') !== $targetId) {
+                    continue;
                 }
+                $wMbr = &$p['stage'][$wSlot];
+                clearMemberWait($wMbr);
+                $wMbr['live_blade_bonus'] = intval($wMbr['live_blade_bonus'] ?? 0) + $amt;
+                if (($ally['group'] ?? '') === 'Nijigasaki' || ($ab['group'] ?? '') === 'Nijigasaki') {
+                    $p['_niji_turn_flags']['activated_wait_member'] = true;
+                }
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    ' — [' . $name . '] activated ' .
+                    ($wMbr['name_en'] ?? $wMbr['name'] ?? 'Member') .
+                    " and granted +$amt Blade (ally Wait Auto).");
+                unset($wMbr);
+                break;
             }
-            unset($wMbr);
             return $state;
         }
     }
@@ -806,12 +893,17 @@ function flushAutoOnWaitAbilities(array $state): array {
     }
     foreach (['p1', 'p2'] as $pid) {
         $p = &$state['players'][$pid];
-        foreach ($p['stage'] as $slot => &$mbr) {
+        // Stable slot order — JSON key order can put `right` first and silently
+        // prefer that Waited Member for once-per-turn Autos (#197).
+        foreach (['left', 'center', 'right'] as $slot) {
+            $mbr = &$p['stage'][$slot];
             if (!$mbr || empty($mbr['_was_active_before_wait'])) {
+                unset($mbr);
                 continue;
             }
             unset($mbr['_was_active_before_wait']);
             if ($mbr['active'] ?? true) {
+                unset($mbr);
                 continue;
             }
             $state = resolveAutoOnWaitAbilities($state, $pid, $mbr);
@@ -819,12 +911,12 @@ function flushAutoOnWaitAbilities(array $state): array {
                 $state = prVol9ResolveAutoOnEitherStageWaitBlade($state, $pid, $mbr);
             }
             $p['stage'][$slot] = $mbr;
+            unset($mbr);
             if (!empty($state['pending_prompt'])) {
                 unset($p);
                 return $state;
             }
         }
-        unset($mbr);
         unset($p);
     }
     return $state;

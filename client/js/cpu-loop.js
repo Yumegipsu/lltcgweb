@@ -4311,6 +4311,21 @@ function cpuResolveStepPrompt(pr, cpu, tier, winPressure, read) {
     return true;
   }
   if (pr.type === 'auto_on_ally_wait_activate_blade') {
+    if (pr.step === 'pick_waited') {
+      const cands = pr.candidates || pr.waited_candidates || [];
+      if (!cands.length || tier === 'easy') {
+        cpuAct('resolve_prompt', { choice: 'skip' });
+        return true;
+      }
+      const best = [...cands].sort((a, b) => (b.blade || 0) - (a.blade || 0))[0] || cands[0];
+      const id = best?.instance_id;
+      if (id) {
+        cpuAct('resolve_prompt', { member_id: id, slot: best?.slot });
+        return true;
+      }
+      cpuAct('resolve_prompt', { choice: 'skip' });
+      return true;
+    }
     if (pr.step === 'discard') {
       const need = pr.discard_count || 1;
       const ids = cpuPickDiscardIds(cpu.hand || [], need, tier, winPressure, read);

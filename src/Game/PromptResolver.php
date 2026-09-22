@@ -1291,11 +1291,68 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
 
     if ($promptType === 'auto_on_ally_wait_activate_blade') {
         $step = $prompt['step'] ?? '';
+        if ($step === 'pick_waited') {
+            if ($choice === 'no' || $choice === 'skip' || $choice === 'cancel') {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped ally Wait Auto.');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishPromptEffects($state);
+            }
+            $pickedId = (string)($data['member_id'] ?? $data['card_id'] ?? $choice);
+            $slotPick = (string)($data['slot'] ?? '');
+            $cands = $prompt['waited_candidates'] ?? $prompt['candidates'] ?? [];
+            $matched = null;
+            foreach ($cands as $c) {
+                if (!is_array($c)) {
+                    continue;
+                }
+                if ($pickedId !== '' && ($c['instance_id'] ?? '') === $pickedId) {
+                    $matched = $c;
+                    break;
+                }
+                if ($slotPick !== '' && ($c['slot'] ?? '') === $slotPick) {
+                    $matched = $c;
+                    break;
+                }
+            }
+            if ($matched === null) {
+                throw new Exception('Choose a Waited Member to activate');
+            }
+            $waitedId = (string)($matched['instance_id'] ?? '');
+            $need = intval($prompt['discard_count'] ?? 0);
+            if ($need < 1) {
+                $prompt['waited_id'] = $waitedId;
+                $state = applyAutoOnAllyWaitActivateBlade($state, $owner, $prompt);
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishPromptEffects($state);
+            }
+            if (count($ownerP['hand'] ?? []) < $need) {
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishPromptEffects($state);
+            }
+            $amt = intval($prompt['amount'] ?? 2);
+            $wName = $matched['name_en'] ?? $matched['name'] ?? 'Member';
+            $state['pending_prompt'] = array_merge($prompt, [
+                'step'      => 'discard',
+                'waited_id' => $waitedId,
+                'prompt'    => $need === 1
+                    ? "Choose 1 card to put into the Waiting Room: activate $wName (+$amt Blade)."
+                    : "Choose $need cards to put into the Waiting Room: activate $wName (+$amt Blade).",
+            ]);
+            $state['seq']++;
+            return $state;
+        }
         if ($step === 'discard' || !empty($data['discard_ids'])) {
             $need = intval($prompt['discard_count'] ?? 1);
             $ids = $data['discard_ids'] ?? [];
             if (count($ids) !== $need) {
                 throw new Exception("Must select exactly $need card(s) to discard");
+            }
+            if (($prompt['waited_id'] ?? '') === '') {
+                throw new Exception('Choose a Waited Member to activate');
             }
             discardHandCardsByIds($ownerP, $ids, $state, $owner);
             $state = applyAutoOnAllyWaitActivateBlade($state, $owner, $prompt);
@@ -1318,6 +1375,17 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             unset($state['pending_prompt']);
             $state['seq']++;
             return finishPromptEffects($state);
+        }
+        $cands = $prompt['waited_candidates'] ?? [];
+        if (count($cands) > 1 && ($prompt['waited_id'] ?? '') === '') {
+            $state['pending_prompt'] = array_merge($prompt, [
+                'step'       => 'pick_waited',
+                'candidates' => $cands,
+                'prompt'     => 'Choose which Waited Member to activate (+'
+                    . intval($prompt['amount'] ?? 2) . ' Blade until this Live ends), or skip.',
+            ]);
+            $state['seq']++;
+            return $state;
         }
         $state['pending_prompt'] = array_merge($prompt, [
             'step'   => 'discard',
