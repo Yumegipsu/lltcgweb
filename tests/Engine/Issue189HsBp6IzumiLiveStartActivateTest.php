@@ -90,8 +90,9 @@ final class Issue189HsBp6IzumiLiveStartActivateTest extends TestCase
     public function testLiveStartDoesNotActivateWhenOnlyHighScoreLive(): void
     {
         $izumi = $this->cardByNo('PL!HS-bp6-008-R', 'izumi');
-        $highLive = $this->cardByNo('PL!S-bp5-020-L', 'high_live');
-        $highLive['score'] = 3;
+        // Printed score 3 — must not qualify for max_live_score 2 (#198 uses printed).
+        $highLive = $this->cardByNo('LL-PR-004-PR', 'high_live');
+        $this->assertGreaterThan(2, intval($highLive['score'] ?? 0));
 
         $p1 = $this->emptyPlayer('p1', 'P1');
         $p2 = $this->emptyPlayer('p2', 'P2');

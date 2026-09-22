@@ -262,18 +262,29 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
 
         case 'auto_activate_if_live_zone_score_max':
             // "Activate this Member" must clear Wait (in_wait), not only set active=true.
+            // Card text checks printed score (スコア２以下), same as WR max_live_score
+            // filters — not runtime score after earlier Live Start bumps (#198).
+            $maxScore = intval($ab['max_live_score'] ?? 2);
+            $qualified = false;
             foreach ($p['live_zone'] ?? [] as $lc) {
-                if (!$lc || !isLiveTypeCard($lc)) {
+                if (!$lc || !is_array($lc)) {
                     continue;
                 }
-                if (intval($lc['score'] ?? 99) <= intval($ab['max_live_score'] ?? 2)) {
-                    $slot = findMemberSlot($p, $source['instance_id'] ?? '');
-                    if ($slot !== null && $slot !== '' && !empty($p['stage'][$slot])) {
-                        activateMemberFully($p['stage'][$slot]);
-                        $state = addLog($state, $state['players'][$pid]['name'] .
-                            " — [$name] activated (low-score Live in zone).");
-                    }
+                mergeCardCatalogFields($lc);
+                if (!isLiveTypeCard($lc)) {
+                    continue;
+                }
+                if (liveCardPrintedScore($lc) <= $maxScore) {
+                    $qualified = true;
                     break;
+                }
+            }
+            if ($qualified) {
+                $slot = findMemberSlot($p, $source['instance_id'] ?? '');
+                if ($slot !== null && $slot !== '' && !empty($p['stage'][$slot])) {
+                    activateMemberFully($p['stage'][$slot]);
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] activated (low-score Live in zone).");
                 }
             }
             break;
