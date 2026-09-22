@@ -373,6 +373,9 @@ function tcgMissionListForUser(string $discordId): array {
     tcgMissionCheckPlayStatThresholds($discordId);
     $totalCards = tcgCollectionTotalCards($discordId);
     $stickerExchanges = tcgGetStickerExchanges($discordId);
+    require_once __DIR__ . '/matchmaking.php';
+    $rankedGames = intval((tcgRankRow($discordId)['games'] ?? 0));
+    $unrankedGames = tcgGetUnrankedGames($discordId);
     $starterOptions = null;
     $missions = [];
     foreach (tcgMissionAllDefinitions() as $def) {
@@ -427,6 +430,12 @@ function tcgMissionListForUser(string $discordId): array {
             $entry['progress'] = min($totalCards, intval($def['threshold']));
         } elseif (str_starts_with($def['id'], 'ms_sticker_') && isset($def['threshold'])) {
             $entry['progress'] = min($stickerExchanges, intval($def['threshold']));
+        } elseif (str_starts_with($def['id'], 'ms_ranked_') && isset($def['threshold'])) {
+            $entry['progress'] = min($rankedGames, intval($def['threshold']));
+            $entry['ranked_games'] = $rankedGames;
+        } elseif (str_starts_with($def['id'], 'ms_unranked_') && isset($def['threshold'])) {
+            $entry['progress'] = min($unrankedGames, intval($def['threshold']));
+            $entry['unranked_games'] = $unrankedGames;
         } elseif (str_starts_with($def['id'], 'ms_friend_') && isset($def['threshold'])) {
             if (!function_exists('tcgSocialFriendCount')) {
                 require_once __DIR__ . '/social.php';

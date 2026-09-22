@@ -44,6 +44,79 @@ final class MissionProgressTest extends TestCase
         $this->assertFalse(tcgMissionIsCompleted($this->discordId, 'ms_ranked_50', $period));
     }
 
+    public function testRankedAndUnrankedProgressShownInMissionList(): void
+    {
+        $db = tcgDb();
+        $db->prepare('UPDATE tcg_rank SET games = 7, wins = 4, losses = 3, updated_at = ? WHERE discord_id = ?')
+            ->execute([time(), $this->discordId]);
+        $db->prepare('UPDATE tcg_users SET unranked_games = 1, updated_at = ? WHERE discord_id = ?')
+            ->execute([time(), $this->discordId]);
+
+        $list = tcgMissionListForUser($this->discordId);
+        $byId = [];
+        foreach ($list as $m) {
+            $byId[$m['id']] = $m;
+        }
+
+        $this->assertSame(1, $byId['ms_ranked_1']['progress'] ?? null);
+        $this->assertSame(5, $byId['ms_ranked_5']['progress'] ?? null);
+        $this->assertSame(7, $byId['ms_ranked_10']['progress'] ?? null);
+        $this->assertSame(7, $byId['ms_ranked_50']['progress'] ?? null);
+        $this->assertSame(50, $byId['ms_ranked_50']['threshold'] ?? null);
+        $this->assertSame(7, $byId['ms_ranked_50']['ranked_games'] ?? null);
+        $this->assertSame(1, $byId['ms_unranked_1']['progress'] ?? null);
+        $this->assertSame(1, $byId['ms_unranked_1']['unranked_games'] ?? null);
+    }
+
+    public function testRankedFinishCreditsDailyAndThresholds(): void
+    {
+        require_once dirname(__DIR__, 2) . '/matchmaking.php';
+
+        $oppId = 'test_ranked_opp_' . bin2hex(random_bytes(3));
+        tcgEnsureUser($oppId, ['username' => 'Ranked Opp']);
+
+        $state = [
+            'status' => 'finished',
+            'mode' => 'ranked',
+            'winner' => 'p1',
+            'turn' => 6,
+            'ranked' => [
+                'p1_discord_id' => $this->discordId,
+                'p2_discord_id' => $oppId,
+            ],
+            'players' => [
+                'p1' => [
+                    'id' => 'p1',
+                    'name' => 'Human',
+                    'discord_id' => $this->discordId,
+                ],
+                'p2' => [
+                    'id' => 'p2',
+                    'name' => 'Opponent',
+                    'discord_id' => $oppId,
+                ],
+            ],
+        ];
+        tcgApplyRankResult($this->discordId, $oppId, false);
+
+        $completions = tcgMissionOnGameFinished($state);
+        $ids = array_column($completions, 'id');
+        $this->assertContains('daily_ranked_match', $ids);
+        $this->assertContains('ms_ranked_1', $ids);
+        $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'daily_ranked_match', tcgTodayJst()));
+        $this->assertTrue(tcgMissionIsCompleted($this->discordId, 'ms_ranked_1', ''));
+
+        $list = tcgMissionListForUser($this->discordId);
+        $byId = [];
+        foreach ($list as $m) {
+            $byId[$m['id']] = $m;
+        }
+        $this->assertSame(1, $byId['ms_ranked_1']['progress'] ?? null);
+        $this->assertSame(1, $byId['ms_ranked_5']['progress'] ?? null);
+        $this->assertSame('completed', $byId['ms_ranked_1']['status'] ?? null);
+        $this->assertSame('active', $byId['ms_ranked_5']['status'] ?? null);
+    }
+
     public function testGroupDeckValidationMainOnlyAndMixedFails(): void
     {
         $cardMap = [
