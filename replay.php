@@ -964,17 +964,54 @@ function replayPlaceMemberOnExactSlot(array &$state, string $pid, string $cardId
     $p['stage'][$slot] = $card;
 }
 
-/** Best-effort: put a recorded card back in hand when replay state drifted (legacy exports). */
-function replayEnsureCardInHand(array &$state, string $pid, string $cardId): void {
+/**
+ * Pending prompts whose card_id / card_ids must stay in (or be restored to) the Waiting Room.
+ * Yanking those into hand for "Card not in hand" repair breaks Retrofuture WR play (#199).
+ */
+function replayPromptTargetsWaitingRoom(?array $prompt): bool {
+    if (!is_array($prompt)) {
+        return false;
+    }
+    $type = (string)($prompt['type'] ?? '');
+    if ($type === '') {
+        return false;
+    }
+    if (!empty($prompt['wr_pick_cfg']) && is_array($prompt['wr_pick_cfg'])) {
+        return true;
+    }
+    $step = (string)($prompt['step'] ?? '');
+    if (in_array($step, ['pick_wr', 'pick_wr_live', 'pick_wr_member'], true)) {
+        return true;
+    }
+    if (str_starts_with($type, 'pick_wr')
+        || str_contains($type, '_play_wr')
+        || str_contains($type, '_from_wr')
+        || str_ends_with($type, '_wr')
+        || str_contains($type, 'wr_member')
+        || str_contains($type, 'wr_live')) {
+        return true;
+    }
+    return in_array($type, [
+        'live_start_edel_play_wr',
+        'pick_wr_to_hand',
+        'pick_wr_leave_stage_add',
+        'pick_wr_members_deck_top',
+        'optional_pay_energy_add_from_wr',
+    ], true);
+}
+
+/** Best-effort: put a recorded card back in the Waiting Room when replay state drifted. */
+function replayEnsureCardInWaitingRoom(array &$state, string $pid, string $cardId): void {
     if ($cardId === '' || ($pid !== 'p1' && $pid !== 'p2')) {
         return;
     }
     $p = &$state['players'][$pid];
-    if (findInHand($p['hand'], $cardId) !== false) {
-        return;
+    foreach ($p['waiting_room'] ?? [] as $c) {
+        if (($c['instance_id'] ?? '') === $cardId) {
+            return;
+        }
     }
-    // Do not yank cards that are already correctly on Stage or in Live storage —
-    // live_start_order_sources (and similar) list those instance ids in card_ids (#111).
+    // Already on Stage / Live — leave it (play may have already resolved).
     foreach ($p['stage'] ?? [] as $mbr) {
         if ($mbr && ($mbr['instance_id'] ?? '') === $cardId) {
             return;
@@ -985,7 +1022,80 @@ function replayEnsureCardInHand(array &$state, string $pid, string $cardId): voi
             return;
         }
     }
-    foreach (['main_deck', 'waiting_room', 'success_lives', 'energy_deck'] as $zone) {
+    $card = replayExtractCardFromPlayer($p, $cardId);
+    if ($card) {
+        $p['waiting_room'][] = $card;
+    }
+}
+
+/**
+ * Place recorded resolve_prompt card ids where the current prompt expects them.
+ * WR picks must not run through ensureCardInHand (that stole Retrofuture targets — #199).
+ */
+function replayPrepareResolvePromptCards(array &$state, string $pid, array $data): void {
+    $pr = $state['pending_prompt'] ?? null;
+    $owner = $pid;
+    if (is_array($pr) && (($pr['owner'] ?? '') === 'p1' || ($pr['owner'] ?? '') === 'p2')) {
+        $owner = (string)$pr['owner'];
+    }
+    $ids = replayPromptCardIdsFromData($data);
+    if ($ids === []) {
+        return;
+    }
+    // discard_ids are always hand picks — never treat them as WR targets.
+    $discardIds = [];
+    foreach ($data['discard_ids'] ?? [] as $cid) {
+        if (is_string($cid) && $cid !== '') {
+            $discardIds[$cid] = true;
+        }
+    }
+    $wrMode = replayPromptTargetsWaitingRoom(is_array($pr) ? $pr : null);
+    foreach ($ids as $cid) {
+        if (isset($discardIds[$cid])) {
+            replayEnsureCardInHand($state, $owner, $cid);
+            if ($owner !== $pid) {
+                replayEnsureCardInHand($state, $pid, $cid);
+            }
+            continue;
+        }
+        if ($wrMode) {
+            replayEnsureCardInWaitingRoom($state, $owner, $cid);
+            continue;
+        }
+        replayEnsureCardInHand($state, $owner, $cid);
+        if ($owner !== $pid) {
+            replayEnsureCardInHand($state, $pid, $cid);
+        }
+    }
+}
+
+/** Best-effort: put a recorded card back in hand when replay state drifted (legacy exports). */
+function replayEnsureCardInHand(array &$state, string $pid, string $cardId): void {
+    if ($cardId === '' || ($pid !== 'p1' && $pid !== 'p2')) {
+        return;
+    }
+    $p = &$state['players'][$pid];
+    if (findInHand($p['hand'], $cardId) !== false) {
+        return;
+    }
+    // Do not yank cards that are already correctly on Stage, Live storage, or Waiting Room —
+    // live_start_order_sources list Stage/Live ids (#111); WR picks need the card in WR (#199).
+    foreach ($p['stage'] ?? [] as $mbr) {
+        if ($mbr && ($mbr['instance_id'] ?? '') === $cardId) {
+            return;
+        }
+    }
+    foreach ($p['live_zone'] ?? [] as $c) {
+        if (($c['instance_id'] ?? '') === $cardId) {
+            return;
+        }
+    }
+    foreach ($p['waiting_room'] ?? [] as $c) {
+        if (($c['instance_id'] ?? '') === $cardId) {
+            return;
+        }
+    }
+    foreach (['main_deck', 'success_lives', 'energy_deck'] as $zone) {
         foreach ($p[$zone] ?? [] as $i => $c) {
             if (($c['instance_id'] ?? '') === $cardId) {
                 $p['hand'][] = $c;
@@ -1116,17 +1226,7 @@ function replayPrepareRecordedPlayAction(array $state, string $pid, string $type
             );
         }
     } elseif ($type === 'resolve_prompt' || $type === 'anti_softlock_skip') {
-        $owner = $pid;
-        $pr = $state['pending_prompt'] ?? null;
-        if (is_array($pr) && (($pr['owner'] ?? '') === 'p1' || ($pr['owner'] ?? '') === 'p2')) {
-            $owner = (string)$pr['owner'];
-        }
-        foreach (replayPromptCardIdsFromData($data) as $cid) {
-            replayEnsureCardInHand($state, $owner, $cid);
-            if ($owner !== $pid) {
-                replayEnsureCardInHand($state, $pid, $cid);
-            }
-        }
+        replayPrepareResolvePromptCards($state, $pid, $data);
     }
     return $state;
 }
@@ -1482,17 +1582,8 @@ function replayApplyFixForRetry(array $state, string $pid, string $type, array $
         replayEnsureActiveEnergy($state, $pid, $energyNeed);
     }
     if ($type === 'resolve_prompt' || $type === 'anti_softlock_skip') {
-        $owner = $pid;
         $pr = $state['pending_prompt'] ?? null;
-        if (is_array($pr) && (($pr['owner'] ?? '') === 'p1' || ($pr['owner'] ?? '') === 'p2')) {
-            $owner = (string)$pr['owner'];
-        }
-        foreach (replayPromptCardIdsFromData($data) as $cid) {
-            replayEnsureCardInHand($state, $owner, $cid);
-            if ($owner !== $pid) {
-                replayEnsureCardInHand($state, $pid, $cid);
-            }
-        }
+        replayPrepareResolvePromptCards($state, $pid, $data);
         if (str_contains($msg, 'Not your turn')) {
             if (is_array($pr) && !empty($pr['responder'])) {
                 $state['active_player'] = (string)$pr['responder'];

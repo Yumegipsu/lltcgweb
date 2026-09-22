@@ -5321,7 +5321,7 @@
     ],
     "expected": {
         "final_phase": "main_first",
-        "status": "setup",
+        "status": "playing",
         "winner": null,
         "pending_prompt": null,
         "hand_contains": "wr-fixture-member-1"
