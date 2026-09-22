@@ -1263,27 +1263,38 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         if (!$ok) {
             throw new Exception('Invalid Member');
         }
+        // Re-check Stage — stale candidate snapshots must not clear the prompt
+        // without activating (chained Honoka Live Starts, #201).
+        $target = null;
         $wasWait = false;
         foreach ($ownerP['stage'] as $mbr) {
-            if ($mbr && ($mbr['instance_id'] ?? '') === $memberId && memberIsInWait($mbr)) {
-                $wasWait = true;
+            if ($mbr && ($mbr['instance_id'] ?? '') === $memberId) {
+                $target = $mbr;
+                $wasWait = memberIsInWait($mbr);
                 break;
             }
         }
-        $activated = activateStageMemberByInstanceId($ownerP, $memberId);
-        if ($activated > 0) {
-            if ($wasWait) {
-                $src = findSourceCard($state, $owner, (string)($prompt['source_id'] ?? ''));
-                if (!empty($ownerP['_effect_source_is_niji'])
-                    || !empty($prompt['from_niji_effect'])
-                    || ($src['group'] ?? '') === 'Nijigasaki'
-                    || (($prompt['ability']['group'] ?? '') === 'Nijigasaki')) {
-                    $ownerP['_niji_turn_flags']['activated_wait_member'] = true;
-                }
-            }
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Card') . '] activated 1 Member.');
+        if ($target === null) {
+            throw new Exception('That Member is no longer on Stage');
         }
+        if (!memberIsInWait($target) && memberIsActiveForGame($target)) {
+            throw new Exception('That Member is already active');
+        }
+        $activated = activateStageMemberByInstanceId($ownerP, $memberId);
+        if ($activated < 1) {
+            throw new Exception('Could not activate that Member');
+        }
+        if ($wasWait) {
+            $src = findSourceCard($state, $owner, (string)($prompt['source_id'] ?? ''));
+            if (!empty($ownerP['_effect_source_is_niji'])
+                || !empty($prompt['from_niji_effect'])
+                || ($src['group'] ?? '') === 'Nijigasaki'
+                || (($prompt['ability']['group'] ?? '') === 'Nijigasaki')) {
+                $ownerP['_niji_turn_flags']['activated_wait_member'] = true;
+            }
+        }
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Card') . '] activated 1 Member.');
         unset($state['pending_prompt']);
         $state['seq']++;
         return finishAfterBranchChoicePrompt($state, $prompt);

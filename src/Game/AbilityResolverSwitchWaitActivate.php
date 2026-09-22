@@ -141,6 +141,22 @@ function tryResolveAbilityEffectSwitchWaitActivate(
             }
             break;
 
+        case 'activate_energy_from_deck_if_success':
+            if (sumSuccessLiveScores($p) >= intval($ab['min_success_score_sum'] ?? 6)) {
+                $n = max(1, intval($ab['count'] ?? 1));
+                $placed = 0;
+                for ($i = 0; $i < $n; $i++) {
+                    if (putEnergyFromDeckInActive($p, $state, $pid)) {
+                        $placed++;
+                    }
+                }
+                if ($placed > 0) {
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] placed $placed Active Energy from Energy deck (Success Live score threshold met).");
+                }
+            }
+            break;
+
         case 'activate_all_members':
             $activated = activateMembersByEffect($state, $p, 99);
             $state = addLog($state, $state['players'][$pid]['name'] .
@@ -163,7 +179,10 @@ function tryResolveAbilityEffectSwitchWaitActivate(
                 break;
             }
             if ($max <= 1 && count($candidates) > 1) {
+                // Nested open would overwrite an in-flight prompt and silently
+                // consume a Live Start that was already markResolved (#201).
                 if (!empty($state['pending_prompt'])) {
+                    $state['_activate_members_deferred'] = true;
                     break;
                 }
                 $state['pending_prompt'] = [
@@ -172,6 +191,8 @@ function tryResolveAbilityEffectSwitchWaitActivate(
                     'responder'     => $pid,
                     'source_id'     => $source['instance_id'] ?? '',
                     'source_name'   => $name,
+                    // Distinct latch key for chained copies (two Honoka Live Starts).
+                    'ability_index' => intval($ctx['ability_index'] ?? -1),
                     'candidates'    => $candidates,
                     'max'           => $max,
                     'group'         => $group,

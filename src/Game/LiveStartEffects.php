@@ -280,12 +280,20 @@ function resolveLiveStartAbilities(array $state, string $pid): array {
                 $state['_live_start_resume_from'] = $pid;
                 return $state;
             }
-            // Mark before resolve so a prompt-backed ability is not re-opened on resume.
-            $state = markLiveStartMandatoryResolved($state, $pid, $instanceId, $abIdx);
+            // Resolve first. If activate_members (etc.) cannot open because another
+            // prompt is already pending, do not mark resolved — resume retries (#201).
             $state = resolveAbilityEffect($state, $pid, $source, $ab, [
                 'phase' => 'live_start',
                 'ability_index' => $abIdx,
             ]);
+            if (!empty($state['_activate_members_deferred'])) {
+                unset($state['_activate_members_deferred']);
+                $state['_live_start_resume_from'] = $pid;
+                return $state;
+            }
+            // Mark after a successful attempt so a prompt-backed ability is not
+            // re-opened on resume, while skipped/deferred opens stay retryable.
+            $state = markLiveStartMandatoryResolved($state, $pid, $instanceId, $abIdx);
             if (isMemberCard($source)) {
                 $state = nBp5NotifyMemberAbilityResolved($state, $pid, $source, 'live_start');
             }

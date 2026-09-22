@@ -56,8 +56,11 @@
     const turn = s.turn ?? '';
     // Order prompts have empty source_id — include candidate ids so a real server
     // reopen after dismiss/default-order is not treated as "already answered" (#165).
+    // activate_members_pick: two stage copies (Honoka #201) share type/step; latch
+    // must include source + candidate set so the second Live Start stays answerable.
     let orderIds = '';
-    if (pr.type === 'live_success_order_sources' || pr.type === 'live_start_order_sources') {
+    if (pr.type === 'live_success_order_sources' || pr.type === 'live_start_order_sources'
+        || pr.type === 'activate_members_pick') {
       orderIds = (pr.candidates || []).map((c) => c?.instance_id).filter(Boolean).slice().sort().join(',');
     }
     return `${turn}:${pr.type}:${pr.step ?? ''}:${pr.responder ?? ''}:${src}:${abIdx}:${orderIds}`;
@@ -433,6 +436,14 @@ global.openStageMemberPickById = function openStageMemberPickById(pr){
   // UI does not send empty / wrong payloads (#Honoka PL!-bp3-001 activate_members_pick).
   G.pickCtx=null;
   if(G.pickMarked&&typeof G.pickMarked.clear==='function') G.pickMarked.clear();
+  // Chained activate_members_pick (two Honoka Live Starts, #201): drop prior submit
+  // latch so the second picker is not treated as a duplicate of the first.
+  if (pr.type === 'activate_members_pick') {
+    G._resolvePromptSentKey = null;
+    if (typeof syncPromptSubmitState === 'function' && G.gameState) {
+      syncPromptSubmitState(G.gameState);
+    }
+  }
   const btnOk=el('btn-pick-ok');
   const btnCancel=el('btn-pick-cancel');
   if(btnOk) btnOk.style.display='none';
