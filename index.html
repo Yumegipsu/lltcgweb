@@ -12841,6 +12841,7 @@ function resetMatchTransientState() {
   G.tutorialLive = false;
   G.tutorialHoldCpu = false;
   G.tutorialAdvancing = false;
+  if (typeof closeTutorialChrome === 'function') closeTutorialChrome();
   closeM('overlay-mull');
   closeM('overlay-coin');
   closeM('overlay-prompt');
@@ -20758,6 +20759,12 @@ function updateWaitingTimerInfo(cfg) {
 }
 
 async function doCreate() {
+  if (G.isTutorial || G.tutorialLive || el('overlay-tutorial')?.classList.contains('open')) {
+    closeTutorialChrome();
+    G.isTutorial = false;
+    G.tutorialLive = false;
+    G._gameSessionEpoch = (G._gameSessionEpoch || 0) + 1;
+  }
   const name=el('inp-name').value.trim()||defaultPlayerName(1);
   const timerOpts = lobbyPhaseTimerOpts();
   setErr('');
@@ -20779,6 +20786,12 @@ async function doCreate() {
 }
 
 async function doJoin() {
+  if (G.isTutorial || G.tutorialLive || el('overlay-tutorial')?.classList.contains('open')) {
+    closeTutorialChrome();
+    G.isTutorial = false;
+    G.tutorialLive = false;
+    G._gameSessionEpoch = (G._gameSessionEpoch || 0) + 1;
+  }
   if (tcgIsSmallPhone()) tcgRequestFullscreen();
   const code=el('inp-code').value.trim().toUpperCase();
   if(!code){ setErr('Enter a room code!'); return; }
@@ -20796,6 +20809,12 @@ async function doJoin() {
 }
 
 async function doSolo() {
+  if (G.isTutorial || G.tutorialLive || el('overlay-tutorial')?.classList.contains('open')) {
+    closeTutorialChrome();
+    G.isTutorial = false;
+    G.tutorialLive = false;
+    G._gameSessionEpoch = (G._gameSessionEpoch || 0) + 1;
+  }
   const soloBtn = el('btn-solo');
   if (soloBtn?.dataset.busy === '1') return;
   if (soloBtn) {
@@ -32404,6 +32423,10 @@ function prepareTutorialPortraitChrome(highlights) {
 }
 
 function paintTutorialSpotlightAndBubble(highlights) {
+  if (!G.isTutorial) {
+    closeTutorialChrome();
+    return;
+  }
   prepareTutorialPortraitChrome(highlights);
   renderTutorialSpotlight(highlights);
   positionTutorialBubble(highlights);
@@ -33733,8 +33756,11 @@ function renderTutorialStep(idx, opts = {}) {
   applyTutorialStepUi(step);
   if (G.gameState) renderStageBoardPanel(G.gameState, G.playerId || 'p1');
   paintTutorialSpotlightAndBubble(hl);
+  const paintGen = G._tutorialPaintGen || 0;
   requestAnimationFrame(() => {
-    if (G.isTutorial && G.gameState && !G.tutorialLive) {
+    // Finish / a new match can land before this frame. Do not repaint Kanon onto it.
+    if (!G.isTutorial || (G._tutorialPaintGen || 0) !== paintGen) return;
+    if (G.gameState && !G.tutorialLive) {
       if (step.id === 'setup_coin_p1') G.coinFlipSeq = null;
       maybeShowTutorialFlowScreens(G.gameState, G.playerId || 'p1');
     }
@@ -34017,16 +34043,38 @@ async function startTutorial() {
   }
 }
 
+/** Hide Kanon's bubble and spotlight. Safe to call when a real match starts. */
+function closeTutorialChrome() {
+  G._tutorialPaintGen = (G._tutorialPaintGen || 0) + 1;
+  G.isTutorial = false;
+  G.tutorialLive = false;
+  G.tutorialHoldCpu = false;
+  const overlay = el('overlay-tutorial');
+  if (overlay) {
+    overlay.classList.remove('open');
+    overlay.style.pointerEvents = '';
+    overlay.querySelectorAll('.tut-exit, .tut-nav, .tut-nav *').forEach((n) => {
+      n.style.pointerEvents = '';
+    });
+  }
+  const spot = el('tutorial-spotlight');
+  if (spot) spot.classList.remove('show', 'light', 'no-dim');
+  document.body.classList.remove(
+    'tutorial-mode',
+    'tutorial-live-mode',
+    'tutorial-live-action',
+    'tutorial-live-coin',
+    'tutorial-live-choose-first',
+    'tutorial-live-mulligan',
+    'tutorial-spotlight-light',
+  );
+}
+
 function exitTutorial() {
   const wasLive = !!G.tutorialLive;
   G.tutorialLive = false;
-  document.body.classList.remove('tutorial-live-mode', 'tutorial-live-action', 'tutorial-live-coin', 'tutorial-live-choose-first', 'tutorial-live-mulligan');
+  closeTutorialChrome();
   perfCloseSpectacle();
-  el('overlay-tutorial').classList.remove('open');
-  el('tutorial-spotlight').classList.remove('show');
-  el('tutorial-spotlight')?.classList.remove('light', 'no-dim');
-  document.body.classList.remove('tutorial-mode');
-  document.body.classList.remove('tutorial-spotlight-light');
   if (typeof tcgPortraitCloseDeckDrawers === 'function') tcgPortraitCloseDeckDrawers();
   clearTutorialCardPreview();
   G.isTutorial = false;
@@ -34139,9 +34187,7 @@ function endGameSession() {
   G._presentationAborted = true;
   abortGameplayPresentation({ skipAbortFlag: true });
   el('overlay-win')?.classList.remove('open');
-  el('overlay-tutorial')?.classList.remove('open');
-  el('tutorial-spotlight')?.classList.remove('show');
-  document.body.classList.remove('tutorial-mode', 'tutorial-live-mode', 'tutorial-live-coin', 'tutorial-live-choose-first', 'tutorial-live-mulligan');
+  if (typeof closeTutorialChrome === 'function') closeTutorialChrome();
   clearActiveGameSession();
   if (typeof closeApiErrorPopup === 'function') closeApiErrorPopup();
   stopPoll();
@@ -35139,6 +35185,8 @@ function showScr(n){
     try { window.LLTCG_SLEEVES?.closePickerOverlay?.(); } catch (e) { /* ignore */ }
     try { window.tcgPortraitUnmountDeckChrome?.(); } catch (e) { /* ignore */ }
   }
+  // Kanon's last line is position:fixed and survives screen changes unless closed.
+  if (!(n === 'game' && G.isTutorial)) closeTutorialChrome();
   if (n !== 'lobby') stopCasualLobbyStatsPoll();
   if (n !== 'ranked') stopRankedLobbyStatsPoll();
   if (n !== 'tournament' && window.TCGTournamentUI?.closeQuiet) {

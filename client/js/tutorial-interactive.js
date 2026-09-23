@@ -210,6 +210,7 @@
   function renderCurrentStep(opts = {}) {
     const st = step();
     if (!st || typeof global.renderTutorialStep !== 'function') return;
+    if (!isLive() && !G()?.isTutorial) return;
     // While board presentation is playing, refresh dialogue immediately but defer
     // spotlight/board chrome until animations finish (onStateApplied).
     const textOnly = opts.textOnly != null ? !!opts.textOnly : !!G()?.animating;
@@ -320,8 +321,10 @@
       // players can read the next tip while board animations are still playing.
       if (st.kind === 'watch') {
         await sleep(1200);
+        if (!isLive()) return;
         if (!goalMet(st.goal, G().gameState || s, myId, prev)) return;
       }
+      if (!isLive()) return;
       await advanceStep(1);
     } finally {
       G()._tutGoalPending = false;
@@ -451,6 +454,7 @@
         ...deckPayload('p1_main_order', 'p1_deck'),
       };
       const r1 = await global.apiPost('create_room', p1Payload);
+      if (bootEpoch !== G()._gameSessionEpoch || !G().isTutorial) return;
       G().roomId = r1.room_id;
       G().token = r1.player_token;
       if (typeof global.captureSyncMeta === 'function') global.captureSyncMeta(r1);
@@ -471,13 +475,13 @@
       }
       p2Payload.tutorial_guide = true;
       const r2 = await global.apiPost('join_room', p2Payload);
+      if (bootEpoch !== G()._gameSessionEpoch || !G().isTutorial) return;
       G().cpuToken = r2.player_token;
       G().cpuPlayerId = 'p2';
       if (typeof global.captureSyncMeta === 'function') global.captureSyncMeta(r2);
 
-      if (bootEpoch !== G()._gameSessionEpoch) return;
-
       global.showScr('game');
+      if (bootEpoch !== G()._gameSessionEpoch || !G().isTutorial) return;
       global.el('overlay-tutorial')?.classList.add('open');
 
       if (!G()._tutResizeBound) {
