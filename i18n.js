@@ -31,6 +31,12 @@
     "auth": {
       "checking": "Checking Discord sign-in…",
       "signingIn": "Signing in…",
+      "reconnecting": "Reconnecting to match…",
+      "reconnectingTry": "Reconnecting to match… (try {n})",
+      "reconnectingWaiting": "Still waiting on server… (try {n})",
+      "leavingMatch": "Leaving match…",
+      "serverBusy": "Server is busy — your sign-in is saved. Refresh in a moment, or play unranked.",
+      "skipReconnect": "Leave match & continue",
       "signInDiscord": "Sign in with Discord",
       "guestPrompt": "Sign in with Discord to save your collection and play ranked.",
       "guestPlayHint": "Play unranked without an account, or sign in for ranked.",
@@ -16150,6 +16156,11 @@
     loc.options.stuck.lead = loc.options.stuckLead;
     loc.options.leaveActive = loc.options.leaveActive || 'Leave active match';
     loc.auth = loc.auth || {};
+    loc.auth.reconnecting = loc.auth.reconnecting || 'Reconnecting to match…';
+    loc.auth.reconnectingTry = loc.auth.reconnectingTry || 'Reconnecting to match… (try {n})';
+    loc.auth.reconnectingWaiting = loc.auth.reconnectingWaiting || 'Still waiting on server… (try {n})';
+    loc.auth.leavingMatch = loc.auth.leavingMatch || 'Leaving match…';
+    loc.auth.serverBusy = loc.auth.serverBusy || 'Server is busy — your sign-in is saved. Refresh in a moment, or play unranked.';
     loc.auth.skipReconnect = loc.auth.skipReconnect || 'Leave match & continue';
     loc.options.reset = loc.options.reset || {};
     loc.options.reset.title = loc.options.resetTitle;

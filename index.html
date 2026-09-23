@@ -3249,7 +3249,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=205"></script>
+<script src="i18n.js?v=206"></script>
 <script src="log_i18n.js?v=20"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=43"></script>
@@ -6399,7 +6399,8 @@ function updateReconnectBanner(attempt) {
     ? `Still waiting on server… (try ${n})`
     : `Reconnecting to match… (try ${n})`;
   try {
-    authEl.textContent = (typeof t === 'function' ? t(key, { n }) : null) || fallback;
+    const msg = (typeof tt === 'function') ? tt(key, fallback, { n }) : fallback;
+    authEl.textContent = (msg && msg !== key) ? msg : fallback;
   } catch (e) {
     authEl.textContent = fallback;
   }
@@ -6663,7 +6664,9 @@ async function initAccountFlow() {
     authEl.setAttribute('data-auth-boot', 'booting');
     if (resignEscape) {
       authEl.removeAttribute('data-i18n');
-      authEl.textContent = t('auth.leavingMatch') || 'Leaving match…';
+      authEl.textContent = (typeof tt === 'function')
+        ? tt('auth.leavingMatch', 'Leaving match…')
+        : 'Leaving match…';
     } else if (getAuthToken() || readActiveGameSession()) {
       // Never flash "Reconnecting…" before we know a room still exists — stale
       // tcg_active_game keys are common after finished/abandoned matches.
