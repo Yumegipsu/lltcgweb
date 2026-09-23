@@ -5072,6 +5072,36 @@ function countDistinctNamedSubunit(array $p, string $subunit): int {
     return count($names);
 }
 
+/**
+ * Other Stage members of $subunit whose name differs from $source.
+ * This member and same-name copies do not count. Each other body counts.
+ */
+function countOtherDifferentNameSubunitMembers(array $p, string $subunit, array $source): int {
+    if ($subunit === '') {
+        return 0;
+    }
+    $selfId = (string)($source['instance_id'] ?? '');
+    $selfName = cardNameKey($source);
+    $n = 0;
+    foreach ($p['stage'] as $mbr) {
+        if (!$mbr || !is_array($mbr)) {
+            continue;
+        }
+        if ($selfId !== '' && (string)($mbr['instance_id'] ?? '') === $selfId) {
+            continue;
+        }
+        if (!cardMatchesSubunit($mbr, $subunit)) {
+            continue;
+        }
+        $name = cardNameKey($mbr);
+        if ($selfName !== '' && $name === $selfName) {
+            continue;
+        }
+        $n++;
+    }
+    return $n;
+}
+
 /** Count Stage Members matching a subunit (not distinct names). */
 function countSubunitMembersOnStage(array $p, string $subunit): int {
     $n = 0;

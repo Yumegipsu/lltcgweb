@@ -304,6 +304,19 @@ function tryResolveAbilityEffectSwitchWaitActivate(
                 ' — [' . $name . '] activate Energy (choose amount).');
             break;
 
+        case 'activate_energy_per_other_named_subunit':
+            $subunit = (string)($ab['subunit'] ?? '');
+            $others = countOtherDifferentNameSubunitMembers($p, $subunit, $source);
+            $per = max(1, intval($ab['per'] ?? 1));
+            $want = $others * $per;
+            if ($want < 1) {
+                break;
+            }
+            $activated = activateEnergyForPlayer($p, $want);
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] activated $activated Energy ($others other $subunit Member(s)).");
+            break;
+
     }
     return $state;
 }

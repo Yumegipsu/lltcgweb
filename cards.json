@@ -91257,10 +91257,9 @@
       "abilities": [
         {
           "trigger": "live_start",
-          "type": "activate_energy_up_to_if_distinct_subunit",
+          "type": "activate_energy_per_other_named_subunit",
           "subunit": "CatChu!",
-          "min_distinct": 1,
-          "max": 5
+          "per": 1
         }
       ],
       "text_es": "[Inicio de Live] Activa 1 Energía por cada Miembro CatChu! con nombre distinto en tu Escenario además de este Miembro.",
@@ -91297,10 +91296,9 @@
       "abilities": [
         {
           "trigger": "live_start",
-          "type": "activate_energy_up_to_if_distinct_subunit",
+          "type": "activate_energy_per_other_named_subunit",
           "subunit": "CatChu!",
-          "min_distinct": 1,
-          "max": 5
+          "per": 1
         }
       ],
       "text_es": "[Inicio de Live] Activa 1 Energía por cada Miembro CatChu! con nombre distinto en tu Escenario además de este Miembro.",
