@@ -1630,6 +1630,8 @@
     "toast": {
       "reconnected": "Reconnected to your game",
       "leftActiveMatch": "Left active match",
+      "resignFailed": "Resign did not land — the match is still live. Use Resign in the match, or try ?resign again.",
+      "serverBusyMatch": "Server busy — the match is still going.",
       "noActiveMatch": "No active match found",
       "noCardId": "No card ID to copy",
       "cardIdCopied": "Card ID copied",

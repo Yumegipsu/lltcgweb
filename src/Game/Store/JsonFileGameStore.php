@@ -9,6 +9,9 @@ namespace LLTCG\Game\Store;
  */
 final class JsonFileGameStore implements GameStoreInterface
 {
+    /** @var array<string,int> */
+    private static array $lockDepth = [];
+
     public function __construct(
         private readonly string $gamesDir,
         private readonly float $defaultLockTimeoutSec = 5.0,
@@ -41,8 +44,19 @@ final class JsonFileGameStore implements GameStoreInterface
 
     public function save(string $roomId, array $state): void
     {
+        $safe = $this->normalizeRoomId($roomId);
+        if ((self::$lockDepth[$safe] ?? 0) < 1) {
+            $existing = $this->load($roomId);
+            if (is_array($existing) && SaveGuard::isStaleOverwrite($existing, $state)) {
+                return;
+            }
+        }
+        $json = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+        if ($json === false || $json === '') {
+            throw new \RuntimeException('Failed to encode room state');
+        }
         $file = $this->gamePath($roomId);
-        file_put_contents($file, json_encode($state), LOCK_EX);
+        file_put_contents($file, $json, LOCK_EX);
         if ($this->afterSave) {
             ($this->afterSave)($roomId, $state);
         }
@@ -72,9 +86,14 @@ final class JsonFileGameStore implements GameStoreInterface
             }
             usleep(50000);
         }
+        self::$lockDepth[$safe] = (self::$lockDepth[$safe] ?? 0) + 1;
         try {
             return $fn();
         } finally {
+            self::$lockDepth[$safe] = max(0, (self::$lockDepth[$safe] ?? 1) - 1);
+            if (self::$lockDepth[$safe] === 0) {
+                unset(self::$lockDepth[$safe]);
+            }
             flock($lock, LOCK_UN);
             fclose($lock);
         }

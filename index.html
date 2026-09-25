@@ -3249,7 +3249,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=206"></script>
+<script src="i18n.js?v=207"></script>
 <script src="log_i18n.js?v=20"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=43"></script>
@@ -3257,7 +3257,7 @@ try {
 <script src="client/js/titles.js?v=5"></script>
 <script src="client/js/friend-push.js?v=12"></script>
 <script src="client/js/runtime-flags.js?v=5"></script>
-<script src="client/js/api-client.js?v=40"></script>
+<script src="client/js/api-client.js?v=41"></script>
 <script>
 /* Local Docker fake Discord only — skipped on production (no 404 for missing file). */
 (function () {
@@ -5593,19 +5593,17 @@ function clearResignEscape() {
   try { sessionStorage.removeItem(RESIGN_ESCAPE_KEY); } catch (e) { /* ignore */ }
 }
 
-/** Best-effort resign with a hard client timeout (softlocked rooms often 504). */
-async function resignActiveRoomBestEffort(timeoutMs = 8000) {
+/** Best-effort resign. Waits out a busy room lock; does not open the error modal. */
+async function resignActiveRoomBestEffort() {
   const saved = (typeof readActiveGameSession === 'function') ? readActiveGameSession() : null;
   const roomId = G.roomId || saved?.roomId || null;
   const token = G.token || saved?.token || null;
   if (!roomId || !token) return false;
   try {
-    await Promise.race([
-      apiPost('action', { room_id: roomId, token, type: 'resign', data: {} }),
-      new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('resign timeout')), Math.max(1000, timeoutMs));
-      }),
-    ]);
+    await apiPost('action', { room_id: roomId, token, type: 'resign', data: {} }, {
+      silent: true,
+      maxAttempts: 3,
+    });
     return true;
   } catch (e) {
     return false;
@@ -5622,11 +5620,27 @@ async function consumeResignEscape() {
   cancelReconnectQueue();
   setAuthSkipReconnectVisible(false);
   try { if (typeof closeApiErrorPopup === 'function') closeApiErrorPopup(); } catch (e) { /* ignore */ }
-  // Direct room resign first (casual/CPU + overflow). Ranked DB clear follows via forceResign.
-  await resignActiveRoomBestEffort(8000);
-  await abandonDeadMatchSession({ silent: true, forceResign: true });
-  toast(t('toast.leftActiveMatch') || 'Left active match', 3200);
-  return true;
+  const leftMsg = (typeof tt === 'function')
+    ? tt('toast.leftActiveMatch', 'Left active match')
+    : 'Left active match';
+  const failMsg = (typeof tt === 'function')
+    ? tt('toast.resignFailed', 'Resign did not land — the match is still live. Use Resign in the match, or try ?resign again.')
+    : 'Resign did not land — the match is still live. Use Resign in the match, or try ?resign again.';
+  const resigned = await resignActiveRoomBestEffort();
+  if (resigned) {
+    await abandonDeadMatchSession({ silent: true, forceResign: true });
+    toast(leftMsg, 3200);
+    return 'left';
+  }
+  // Ranked seats are cleared on Hostinger only after the match host confirms the concede.
+  const left = await dropRankedActiveGameBestEffort({ confirmResign: true });
+  if (left && left.left) {
+    await abandonDeadMatchSession({ silent: true, forceResign: true });
+    toast(leftMsg, 3200);
+    return 'left';
+  }
+  toast(failMsg, 5600);
+  return 'stay';
 }
 window.consumeResignEscape = consumeResignEscape;
 
@@ -6416,12 +6430,16 @@ function reconnectBackoffMs(attempt) {
 }
 
 async function dropRankedActiveGameBestEffort(opts = {}) {
-  if (!getAuthToken()) return;
+  if (!getAuthToken()) return null;
   const body = {};
   // Explicit Options leave / confirmed-dead rooms may concede. Auto-abandon must not
   // pass confirm_resign — server refuses to free-win a live opponent.
   if (opts.confirmResign) body.confirm_resign = 1;
-  try { await accountPost('leave_active_game', body); } catch (e) { /* best effort */ }
+  try {
+    return await accountPost('leave_active_game', body);
+  } catch (e) {
+    return null;
+  }
 }
 
 /**
@@ -6721,9 +6739,10 @@ async function initAccountFlow() {
     })();
   }, AUTH_BOOT_WATCHDOG_MS);
   // Softlock escape must finish before any reconnect attempt.
+  let resignResult = false;
   if (resignEscape) {
     try {
-      await consumeResignEscape();
+      resignResult = await consumeResignEscape();
     } catch (e) { /* still continue into hub/auth below */ }
   }
   // Local Docker fake Discord login before reconnect, so stale sessions can be cleared.
@@ -6735,7 +6754,7 @@ async function initAccountFlow() {
     }
   }
   // Reconnect in parallel with /me — never block rejoin on a slow Discord profile fetch.
-  const resumePromise = resignEscape ? Promise.resolve(false) : resumeActiveGameIfAny();
+  const resumePromise = (resignEscape && resignResult !== 'stay') ? Promise.resolve(false) : resumeActiveGameIfAny();
   try {
     const params = new URLSearchParams(location.search);
     const oauthCode = params.get('code');

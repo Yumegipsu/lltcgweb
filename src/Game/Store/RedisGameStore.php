@@ -16,6 +16,9 @@ final class RedisGameStore implements GameStoreInterface
 {
     private const DEFAULT_TTL_SEC = 172800; // 48h
 
+    /** @var array<string,string> room id => lock token held by this process */
+    private static array $heldTokens = [];
+
     public function __construct(
         private readonly RedisClient $redis,
         private readonly string $prefix = 'lltcg:room:',
@@ -85,8 +88,11 @@ final class RedisGameStore implements GameStoreInterface
 
     public function save(string $roomId, array $state): void
     {
-        $json = json_encode($state);
-        if ($json === false) {
+        if ($this->saveWouldClobber($roomId, $state)) {
+            return;
+        }
+        $json = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+        if ($json === false || $json === '') {
             throw new \RuntimeException('Failed to encode room state');
         }
         $this->redis->set($this->stateKey($roomId), $json, $this->ttlSec);
@@ -145,6 +151,7 @@ final class RedisGameStore implements GameStoreInterface
     {
         $lockKey = $this->lockKey($roomId);
         $token = bin2hex(random_bytes(8));
+        $norm = $this->normalizeRoomId($roomId);
         $deadline = microtime(true) + ($timeoutSec ?? $this->defaultLockTimeoutSec);
         $ttlMs = (int)max(1000, (int)(($timeoutSec ?? $this->defaultLockTimeoutSec) * 1000) + 2000);
         $acquired = false;
@@ -158,11 +165,37 @@ final class RedisGameStore implements GameStoreInterface
         if (!$acquired) {
             throw new \Exception('Lock timeout');
         }
+        self::$heldTokens[$norm] = $token;
         try {
             return $fn();
         } finally {
-            // Best-effort unlock (token check omitted for minimal client).
-            $this->redis->del($lockKey);
+            unset(self::$heldTokens[$norm]);
+            try {
+                $this->redis->compareAndDel($lockKey, $token);
+            } catch (\Throwable $e) {
+                // TTL releases the key if compare-delete fails.
+            }
         }
+    }
+
+    /**
+     * A holder whose lock TTL expired must not write. Unlocked polls must not
+     * resurrect a finished room or roll seq backward. Rematch still runs inside the lock.
+     */
+    private function saveWouldClobber(string $roomId, array $state): bool
+    {
+        $norm = $this->normalizeRoomId($roomId);
+        $held = self::$heldTokens[$norm] ?? null;
+        if (is_string($held) && $held !== '') {
+            try {
+                $current = $this->redis->get($this->lockKey($roomId));
+            } catch (\Throwable $e) {
+                return false;
+            }
+            // Lost the lock to a newer writer (often a resign). Drop this snapshot.
+            return $current !== $held;
+        }
+        $existing = $this->load($roomId);
+        return is_array($existing) && SaveGuard::isStaleOverwrite($existing, $state);
     }
 }

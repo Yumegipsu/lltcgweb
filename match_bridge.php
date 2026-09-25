@@ -861,6 +861,33 @@ function tcgNotifyOverflowDeleteGameSnapshot(string $roomId): void {
     }
 }
 
+function tcgMatchBridgeDecodeJsonBody(string $raw): ?array
+{
+    $trim = ltrim($raw);
+    if ($trim === '') {
+        return null;
+    }
+    $decoded = json_decode($trim, true);
+    if (is_array($decoded)) {
+        return $decoded;
+    }
+    $start = strpos($trim, '{');
+    $end = strrpos($trim, '}');
+    if ($start === false || $end === false || $end <= $start) {
+        return null;
+    }
+    $decoded = json_decode(substr($trim, $start, $end - $start + 1), true);
+    return is_array($decoded) ? $decoded : null;
+}
+
+function tcgResignBodySucceeded(?array $decoded): bool
+{
+    if (!is_array($decoded) || !empty($decoded['error'])) {
+        return false;
+    }
+    return isset($decoded['ok']) || isset($decoded['seq']) || !empty($decoded['finished']);
+}
+
 function tcgResignRankedRoomOnVps(string $roomId, string $token): bool {
     $url = tcgOverflowMatchApiBase() . '/api.php?action=action';
     $payload = json_encode([
@@ -869,10 +896,10 @@ function tcgResignRankedRoomOnVps(string $roomId, string $token): bool {
         'type' => 'resign',
         'data' => [],
     ], JSON_UNESCAPED_UNICODE);
-    if ($payload === false) {
+    if ($payload === false || !function_exists('curl_init')) {
         return false;
     }
-    if (function_exists('curl_init')) {
+    for ($attempt = 0; $attempt < 2; $attempt++) {
         $ch = curl_init($url);
         if ($ch === false) {
             return false;
@@ -883,16 +910,60 @@ function tcgResignRankedRoomOnVps(string $roomId, string $token): bool {
             CURLOPT_POSTFIELDS => $payload,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_CONNECTTIMEOUT => 5,
-            CURLOPT_TIMEOUT => 15,
+            CURLOPT_TIMEOUT => 22,
         ]);
         $raw = curl_exec($ch);
         $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $errno = (int)curl_errno($ch);
         curl_close($ch);
-        if (!is_string($raw) || $code < 200 || $code >= 300) {
-            return false;
+        if (is_string($raw)) {
+            $decoded = tcgMatchBridgeDecodeJsonBody($raw);
+            if (tcgResignBodySucceeded($decoded)) {
+                return true;
+            }
+            $retryable = $code === 503 || (is_array($decoded) && !empty($decoded['retryable']));
+            if (!$retryable) {
+                break;
+            }
+        } elseif ($errno === 28) {
+            // Curl gave up while the match host may still be finishing the resign.
+            break;
         }
-        $decoded = json_decode($raw, true);
-        return is_array($decoded) && (isset($decoded['ok']) || isset($decoded['seq']) || empty($decoded['error']));
+        usleep(200000);
     }
-    return false;
+    return tcgResignRankedRoomLooksFinished($roomId, $token);
+}
+
+/** Fresh get_state — do not use the memoized probe, which may still say "live". */
+function tcgResignRankedRoomLooksFinished(string $roomId, string $token): bool
+{
+    $roomId = strtoupper(preg_replace('/[^A-Z0-9]/', '', $roomId) ?? '');
+    $token = trim($token);
+    if ($roomId === '' || $token === '' || !function_exists('curl_init')) {
+        return false;
+    }
+    $url = tcgOverflowMatchApiBase() . '/api.php?action=get_state'
+        . '&room_id=' . rawurlencode($roomId)
+        . '&token=' . rawurlencode($token)
+        . '&seq=0&poll=0&resume=1';
+    $ch = curl_init($url);
+    if ($ch === false) {
+        return false;
+    }
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_CONNECTTIMEOUT => 3,
+        CURLOPT_TIMEOUT => 8,
+    ]);
+    $raw = curl_exec($ch);
+    curl_close($ch);
+    if (!is_string($raw)) {
+        return false;
+    }
+    $decoded = tcgMatchBridgeDecodeJsonBody($raw);
+    if (!is_array($decoded)) {
+        return false;
+    }
+    $status = (string)($decoded['status'] ?? ($decoded['state']['status'] ?? ''));
+    return $status === 'finished';
 }

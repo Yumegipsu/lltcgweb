@@ -1,4 +1,6 @@
 <?php
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
 /**
  * Love Live! Official Card Game (Loveca) — game server API.
  *
@@ -100,6 +102,101 @@ if (!is_dir(GAMES_DIR)) {
 // CLI tools (build_tutorial.php) include this file for game logic only.
 if (defined('TCG_API_LIB_ONLY')) {
     return;
+}
+
+/**
+ * Pull a JSON object/array out of a body that a PHP warning was prepended to.
+ */
+function tcgApiExtractJsonValue(string $raw): ?string
+{
+    $trim = ltrim($raw);
+    if ($trim === '') {
+        return null;
+    }
+    $decoded = json_decode($trim, true);
+    $decodedNull = ($decoded === null && json_last_error() === JSON_ERROR_NONE);
+    if (is_array($decoded) || $decodedNull) {
+        return $trim;
+    }
+    $objAt = strpos($trim, '{');
+    $arrAt = strpos($trim, '[');
+    $start = $objAt;
+    if ($arrAt !== false && ($start === false || $arrAt < $start)) {
+        $start = $arrAt;
+    }
+    if ($start === false) {
+        return null;
+    }
+    $open = $trim[$start];
+    $close = $open === '{' ? '}' : ']';
+    $depth = 0;
+    $inStr = false;
+    $esc = false;
+    $len = strlen($trim);
+    for ($i = $start; $i < $len; $i++) {
+        $c = $trim[$i];
+        if ($inStr) {
+            if ($esc) {
+                $esc = false;
+                continue;
+            }
+            if ($c === '\\') {
+                $esc = true;
+                continue;
+            }
+            if ($c === '"') {
+                $inStr = false;
+            }
+            continue;
+        }
+        if ($c === '"') {
+            $inStr = true;
+            continue;
+        }
+        if ($c === $open) {
+            $depth++;
+            continue;
+        }
+        if ($c === $close) {
+            $depth--;
+            if ($depth === 0) {
+                $slice = substr($trim, $start, $i - $start + 1);
+                json_decode($slice, true);
+                return json_last_error() === JSON_ERROR_NONE ? $slice : null;
+            }
+        }
+    }
+    return null;
+}
+
+if (ob_get_level() === 0) {
+    ob_start();
+    $GLOBALS['__tcg_api_ob'] = true;
+    register_shutdown_function(static function (): void {
+        if (empty($GLOBALS['__tcg_api_ob'])) {
+            return;
+        }
+        $GLOBALS['__tcg_api_ob'] = false;
+        $buf = '';
+        while (ob_get_level() > 0) {
+            $chunk = ob_get_clean();
+            $buf = (is_string($chunk) ? $chunk : '') . $buf;
+        }
+        $json = tcgApiExtractJsonValue($buf);
+        if ($json !== null) {
+            echo $json;
+            return;
+        }
+        if (!headers_sent()) {
+            http_response_code($buf === '' ? 500 : 503);
+            header('Content-Type: application/json; charset=utf-8');
+        }
+        echo json_encode([
+            'error' => 'Server error',
+            'retryable' => true,
+            'code' => $buf === '' ? 'empty_response' : 'bad_json',
+        ]);
+    });
 }
 
 // ─────────────────────────────────────────────
@@ -968,8 +1065,11 @@ function handleAction(array $body): array {
         throw new Exception('Spectators cannot perform actions');
     }
 
-    // Live presentation / prompt resolves can hold the lock longer; give the waiter more time.
-    $lockSec = in_array($type, ['live_show_ack', 'resolve_prompt'], true) ? 12.0 : null;
+    // Resign must outlast a previous holder's lock TTL (timeout + 2s, up to ~14s).
+    // Live presentation / prompt resolves can also hold the lock longer.
+    $lockSec = $type === 'resign'
+        ? 20.0
+        : (in_array($type, ['live_show_ack', 'resolve_prompt'], true) ? 12.0 : null);
 
     return withLock($roomId, function() use ($roomId, $token, $type, $data, $body) {
         $state = loadGame($roomId);

@@ -730,7 +730,15 @@ function tcgAbandonActiveRankedGame(string $discordId, array $opts = []): array 
                     ];
                 }
             } catch (Throwable $e) {
-                // Game file missing or lock failed — still clear the ranked row below.
+                // Lock timed out on an explicit resign — keep the pending row so the
+                // seat is not dropped while the room is still playing.
+                if ($confirmResign) {
+                    return [
+                        'left' => false,
+                        'code' => 'resign_failed',
+                        'room_id' => $roomId,
+                    ];
+                }
             }
         } else {
             // VPS Redis room (no Hostinger games/*.json).
@@ -743,7 +751,13 @@ function tcgAbandonActiveRankedGame(string $discordId, array $opts = []): array 
                         'room_id' => $roomId,
                     ];
                 }
-                tcgResignRankedRoomOnVps($roomId, $token);
+                if (!tcgResignRankedRoomOnVps($roomId, $token)) {
+                    return [
+                        'left' => false,
+                        'code' => 'resign_failed',
+                        'room_id' => $roomId,
+                    ];
+                }
             } elseif ($probe === 'finished') {
                 // Webhook may have failed earlier — apply Elo before clearing pending (#181).
                 tcgTryApplyRankedEloFromOverflowFinishedRow($row);

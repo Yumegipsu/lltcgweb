@@ -594,23 +594,68 @@
     return /Server busy|Lock timeout|Cannot acquire lock|database is locked|SQLITE_BUSY/i.test(msg);
   };
 
+  function tryParseJsonLoose(text) {
+    const raw = String(text || '').replace(/^\uFEFF/, '').trim();
+    if (!raw) return { ok: false };
+    try {
+      return { ok: true, value: JSON.parse(raw) };
+    } catch (e) { /* warning prefix or trailing noise */ }
+    const objAt = raw.indexOf('{');
+    const arrAt = raw.indexOf('[');
+    let start = objAt;
+    if (arrAt >= 0 && (start < 0 || arrAt < start)) start = arrAt;
+    if (start < 0) return { ok: false };
+    const open = raw[start];
+    const close = open === '{' ? '}' : ']';
+    let depth = 0;
+    let inStr = false;
+    let esc = false;
+    for (let i = start; i < raw.length; i++) {
+      const c = raw[i];
+      if (inStr) {
+        if (esc) { esc = false; continue; }
+        if (c === '\\') { esc = true; continue; }
+        if (c === '"') inStr = false;
+        continue;
+      }
+      if (c === '"') { inStr = true; continue; }
+      if (c === open) { depth++; continue; }
+      if (c === close) {
+        depth--;
+        if (depth === 0) {
+          try {
+            return { ok: true, value: JSON.parse(raw.slice(start, i + 1)) };
+          } catch (e2) {
+            return { ok: false };
+          }
+        }
+      }
+    }
+    return { ok: false };
+  }
+
   global.parseGameApiResponse = async function parseGameApiResponse(r) {
     const status = r.status || 0;
-    let d;
-    try {
-      d = await r.json();
-    } catch (e) {
+    const text = await r.text();
+    const parsed = tryParseJsonLoose(text);
+    if (!parsed.ok || !parsed.value || typeof parsed.value !== 'object') {
       const msg = status >= 500 ? 'Server error' : (status >= 400 ? `Request failed (${status})` : 'Invalid server response');
-      throw global.createApiError(msg, status >= 400 ? status : 500);
+      throw global.createApiError(msg, status >= 400 ? status : 503, {
+        retryable: true,
+        code: 'bad_json',
+      });
     }
-    if (d && d.error) {
+    const d = parsed.value;
+    if (d.error) {
       throw global.createApiError(d.error, status >= 400 ? status : 400, {
         retryable: !!d.retryable,
         code: d.code || '',
       });
     }
     if (!r.ok) {
-      throw global.createApiError(`Request failed (${status})`, status || 500);
+      throw global.createApiError(`Request failed (${status})`, status || 500, {
+        retryable: status >= 500 || status === 429,
+      });
     }
     // get_state / action polls — pick up ranked PR + mission toasts even when not via apiPost.
     global.handleMissionCompletions(d);
@@ -650,6 +695,19 @@
     if (typeof global.sfxPlay === 'function') global.sfxPlay('error', { volume: 0.8 });
   };
 
+  global.reportTransientMatchError = function reportTransientMatchError(err) {
+    if (!err || !global.isRetryableApiError(err)) return false;
+    const now = Date.now();
+    if (!global._matchSoftToastAt || now - global._matchSoftToastAt > 20000) {
+      global._matchSoftToastAt = now;
+      const fallback = 'Server busy — the match is still going.';
+      const ttFn = global.LLTCG_I18N && global.LLTCG_I18N.tt;
+      const msg = typeof ttFn === 'function' ? ttFn('toast.serverBusyMatch', fallback) : fallback;
+      if (typeof global.toast === 'function') global.toast(msg, 3200);
+    }
+    return true;
+  };
+
   global.reportApiError = function reportApiError(err, opts = {}) {
     if (!err || opts.silent) return;
     const status = err.httpStatus || opts.status || 0;
@@ -660,7 +718,9 @@
     if (global.TCG_DEBUG && typeof global.TCG_DEBUG.warn === 'function') {
       global.TCG_DEBUG.warn('api', opts.source || 'error', msg, status);
     }
-    if (!opts.force && status < 400) return;
+    if (!opts.force && status < 400 && !err.retryable && err.code !== 'bad_json') return;
+    // A modal covers Resign. While a match is on screen, busy/bad JSON stays a toast.
+    if (!opts.forceModal && global.G && global.G.roomId && global.reportTransientMatchError(err)) return;
     global.showApiErrorPopup(msg, { status });
   };
 
@@ -697,7 +757,9 @@
     const ctx = MATCHMAKE_GAME[action] ? 'matchmake' : (INGAME_GAME[action] ? 'ingame' : 'hub');
     const primary = global.tcgResolveApiUrls(ctx, action);
     // In-match actions (and busy account writes) auto-retry lock/503 before surfacing.
-    const maxAttempts = (action === 'action' || opts.retryBusy) ? 4 : 1;
+    const maxAttempts = Number(opts.maxAttempts) > 0
+      ? Number(opts.maxAttempts)
+      : ((action === 'action' || opts.retryBusy) ? 4 : 1);
     let lastErr = null;
     try {
       for (let attempt = 0; attempt < maxAttempts; attempt++) {

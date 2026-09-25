@@ -55,4 +55,44 @@ final class JsonFileGameStoreTest extends TestCase
         $store->delete('DEL1');
         $this->assertNull($store->load('DEL1'));
     }
+
+    public function testUnlockedSaveDoesNotResurrectFinishedRoom(): void
+    {
+        $store = new JsonFileGameStore($this->dir . '/');
+        $store->save('FIN1', ['room_id' => 'FIN1', 'status' => 'playing', 'seq' => 4]);
+        $store->withLock('FIN1', function () use ($store) {
+            $s = $store->load('FIN1');
+            $s['status'] = 'finished';
+            $s['seq'] = 5;
+            $s['end_reason'] = 'resign';
+            $store->save('FIN1', $s);
+        });
+        $store->save('FIN1', ['room_id' => 'FIN1', 'status' => 'playing', 'seq' => 6, 'phase' => 'main']);
+        $loaded = $store->load('FIN1');
+        $this->assertSame('finished', $loaded['status'] ?? null);
+        $this->assertSame(5, $loaded['seq'] ?? null);
+    }
+
+    public function testLockedRematchCanReplaceFinishedRoom(): void
+    {
+        $store = new JsonFileGameStore($this->dir . '/');
+        $store->save('REM1', ['status' => 'finished', 'seq' => 9]);
+        $store->withLock('REM1', function () use ($store) {
+            $store->save('REM1', ['status' => 'playing', 'seq' => 1, 'phase' => 'setup']);
+        });
+        $loaded = $store->load('REM1');
+        $this->assertSame('playing', $loaded['status'] ?? null);
+        $this->assertSame(1, $loaded['seq'] ?? null);
+    }
+
+    public function testUnlockedSaveDoesNotRollSeqBackward(): void
+    {
+        $store = new JsonFileGameStore($this->dir . '/');
+        $store->save('SEQ1', ['status' => 'playing', 'seq' => 8]);
+        $store->save('SEQ1', ['status' => 'playing', 'seq' => 7, 'phase' => 'main']);
+        $this->assertSame(8, $store->load('SEQ1')['seq'] ?? null);
+        $store->save('SEQ1', ['status' => 'playing', 'seq' => 9, 'phase' => 'live']);
+        $this->assertSame(9, $store->load('SEQ1')['seq'] ?? null);
+        $this->assertSame('live', $store->load('SEQ1')['phase'] ?? null);
+    }
 }

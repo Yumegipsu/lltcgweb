@@ -74,6 +74,17 @@ final class RedisClient
     }
 
     /**
+     * Delete $key only when its value is still $token.
+     * A lock whose TTL already expired must not be removed out from under a newer holder.
+     */
+    public function compareAndDel(string $key, string $token): bool
+    {
+        $script = 'if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end';
+        $r = $this->command(['EVAL', $script, '1', $key, $token]);
+        return intval($r) === 1;
+    }
+
+    /**
      * KEYS pattern (small private Redis only — spectate listing).
      *
      * @return list<string>
