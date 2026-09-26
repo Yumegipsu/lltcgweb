@@ -1015,6 +1015,24 @@ function tryResolveAbilityEffectSwitchOptional(
                 ' — [' . $name . '] optional formation change (choose).');
             break;
 
+        case 'optional_formation_change_own_stage':
+            if (!stageAllMembersInSubunit($p, $ab['requires_subunit_only'] ?? '')) break;
+            if (!empty($state['pending_prompt'])) break;
+            $state['pending_prompt'] = [
+                'type'          => 'optional_formation_change_group',
+                'owner'         => $pid,
+                'responder'     => $pid,
+                'source_id'     => $source['instance_id'] ?? '',
+                'source_name'   => $name,
+                'prompt'        => 'Formation-change your Stage Members (one per area)?',
+                'choices'       => ['yes', 'no'],
+                'choice_labels' => ['Yes', 'No — Skip'],
+                'ability'       => $ab,
+            ];
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                ' — [' . $name . '] optional formation change (your Stage only).');
+            break;
+
         case 'optional_pay_energy_up_to':
             if (!empty($state['pending_prompt'])) break;
             $max = intval($ab['max_cost'] ?? 2);

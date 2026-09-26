@@ -182,6 +182,29 @@ function applyOptionalFormationChangeGroup(
     $state = addLog($state, $state['players'][$owner]['name'] .
         ' — [' . ($prompt['source_name'] ?? 'Live') . '] formation-changed Stage Members.');
 
+    // Stamp every Member who changed areas before autos run. The first auto
+    // clears _effect_area_move_group, which used to leave later Members
+    // (PL!SP-pb2-003 Live Success +1) unmarked.
+    foreach (['left', 'center', 'right'] as $slot) {
+        $mbr = $state['players'][$owner]['stage'][$slot] ?? null;
+        if (!$mbr) {
+            continue;
+        }
+        $iid = (string)($mbr['instance_id'] ?? '');
+        if ($iid === '') {
+            continue;
+        }
+        $from = $before[$iid] ?? $slot;
+        if ($from === $slot) {
+            continue;
+        }
+        $mbr['moved_this_turn'] = true;
+        if (function_exists('spBp2ApplyMovedByGroupEffect')) {
+            spBp2ApplyMovedByGroupEffect($mbr, $state);
+        }
+        $state['players'][$owner]['stage'][$slot] = $mbr;
+    }
+
     foreach (['left', 'center', 'right'] as $slot) {
         $mbr = $state['players'][$owner]['stage'][$slot] ?? null;
         if (!$mbr) {
@@ -201,6 +224,29 @@ function applyOptionalFormationChangeGroup(
         spBp2ClearEffectAreaMove($state);
     }
     return $state;
+}
+
+/**
+ * Formation-change prompts are used at Live Start and at On Enter.
+ * Only a Live Start / Live Success phase should resume that pipeline.
+ */
+function finishOptionalFormationChange(array $state): array {
+    $phase = (string)($state['phase'] ?? '');
+    if (!empty($state['pending_prompt'])) {
+        if ($phase === 'live_success_effects') {
+            return finishLiveSuccessEffects($state);
+        }
+        return finishPromptEffects($state);
+    }
+    if ($phase === 'live_success_effects') {
+        return finishLiveSuccessEffects($state);
+    }
+    if ($phase === 'live_start_effects'
+        || !empty($state['_live_start_resume_from'])
+        || array_key_exists('live_start_optional_queue', $state)) {
+        return finishLiveStartEffects($state);
+    }
+    return finishPromptEffects($state);
 }
 
 // actionResolvePrompt — completes pending_prompt from client resolve_prompt actions
@@ -3647,26 +3693,14 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 ' — [' . $srcName . '] skipped formation change.');
             unset($state['pending_prompt']);
             $state['seq']++;
-            if (($state['phase'] ?? '') === 'live_success_effects') {
-                return finishLiveSuccessEffects($state);
-            }
-            return finishLiveStartEffects($state);
+            return finishOptionalFormationChange($state);
         }
 
         // One-shot API / tests may send full slot→id map with yes.
         if ($step === '' && $choice === 'yes' && is_array($data['assignments'] ?? null)) {
             $state = applyOptionalFormationChangeGroup($state, $owner, $prompt, $data['assignments']);
             $state['seq'] = intval($state['seq'] ?? 0) + 1;
-            if (!empty($state['pending_prompt'])) {
-                if (($state['phase'] ?? '') === 'live_success_effects') {
-                    return finishLiveSuccessEffects($state);
-                }
-                return finishPromptEffects($state);
-            }
-            if (($state['phase'] ?? '') === 'live_success_effects') {
-                return finishLiveSuccessEffects($state);
-            }
-            return finishLiveStartEffects($state);
+            return finishOptionalFormationChange($state);
         }
 
         // Yes without assignments → interactive per-Member area picks (issue #108).
@@ -3687,10 +3721,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                     ' — [' . $srcName . '] no Stage Members to formation-change.');
                 unset($state['pending_prompt']);
                 $state['seq']++;
-                if (($state['phase'] ?? '') === 'live_success_effects') {
-                    return finishLiveSuccessEffects($state);
-                }
-                return finishLiveStartEffects($state);
+                return finishOptionalFormationChange($state);
             }
             $first = $queue[0];
             $state['pending_prompt'] = array_merge($prompt, [
@@ -3747,16 +3778,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             if ($idx >= count($queue)) {
                 $state = applyOptionalFormationChangeGroup($state, $owner, $prompt, $assignments);
                 $state['seq'] = intval($state['seq'] ?? 0) + 1;
-                if (!empty($state['pending_prompt'])) {
-                    if (($state['phase'] ?? '') === 'live_success_effects') {
-                        return finishLiveSuccessEffects($state);
-                    }
-                    return finishPromptEffects($state);
-                }
-                if (($state['phase'] ?? '') === 'live_success_effects') {
-                    return finishLiveSuccessEffects($state);
-                }
-                return finishLiveStartEffects($state);
+                return finishOptionalFormationChange($state);
             }
 
             $next = $queue[$idx];

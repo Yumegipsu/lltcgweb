@@ -17,6 +17,7 @@ function tryResolveAbilityEffectSwitchFormationDiscarded(
         case 'formation_rotate_all':
             if (!stageAllMembersInSubunit($p, $ab['requires_subunit_only'] ?? '')) break;
             spBp2MarkEffectAreaMove($state, $source);
+            $moved = [];
             foreach (['p1', 'p2'] as $id) {
                 $before = [];
                 foreach (['center', 'left', 'right'] as $s) {
@@ -31,17 +32,25 @@ function tryResolveAbilityEffectSwitchFormationDiscarded(
                     if (!$mbr) {
                         continue;
                     }
-                    $from = $before[$mbr['instance_id'] ?? ''] ?? $s;
+                    $iid = (string)($mbr['instance_id'] ?? '');
+                    $from = $before[$iid] ?? $s;
+                    if ($from === $s) {
+                        continue;
+                    }
+                    // Stamp every mover before area-move autos. The first auto
+                    // clears the Liella mark, so a later Member (13-cost Chisato)
+                    // would otherwise miss Live Success +1.
                     spBp2ApplyMovedByGroupEffect($mbr, $state);
                     $state['players'][$id]['stage'][$s] = $mbr;
-                    if ($from !== $s) {
-                        $state = resolveAutoAreaMoveAbilities($state, $id, $mbr['instance_id'] ?? '', $from);
-                        if (!empty($state['pending_prompt'])) {
-                            spBp2ClearEffectAreaMove($state);
-                            return $state;
-                        }
-                    }
+                    $moved[] = ['id' => $id, 'iid' => $iid, 'from' => $from];
                 }
+            }
+            foreach ($moved as $mv) {
+                if (!empty($state['pending_prompt'])) {
+                    spBp2ClearEffectAreaMove($state);
+                    return $state;
+                }
+                $state = resolveAutoAreaMoveAbilities($state, $mv['id'], $mv['iid'], $mv['from']);
             }
             spBp2ClearEffectAreaMove($state);
             $state = addLog($state, $state['players'][$pid]['name'] .

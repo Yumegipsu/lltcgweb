@@ -90885,8 +90885,9 @@
       "abilities": [
         {
           "trigger": "on_enter",
-          "type": "formation_rotate_all",
-          "requires_subunit_only": "5yncri5e!"
+          "type": "optional_formation_change_own_stage",
+          "requires_subunit_only": "5yncri5e!",
+          "group": "Superstar"
         }
       ],
       "text_es": "[Al entrar] Si todos los Miembros en tu Escenario son 5yncri5e!, puedes cambiar la formación de tus Miembros del Escenario.",
@@ -90931,8 +90932,9 @@
       "abilities": [
         {
           "trigger": "on_enter",
-          "type": "formation_rotate_all",
-          "requires_subunit_only": "5yncri5e!"
+          "type": "optional_formation_change_own_stage",
+          "requires_subunit_only": "5yncri5e!",
+          "group": "Superstar"
         }
       ],
       "text_es": "[Al entrar] Si todos los Miembros en tu Escenario son 5yncri5e!, puedes cambiar la formación de tus Miembros del Escenario.",
