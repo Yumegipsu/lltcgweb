@@ -45,12 +45,12 @@ final class JsonFileGameStore implements GameStoreInterface
     public function save(string $roomId, array $state): void
     {
         $safe = $this->normalizeRoomId($roomId);
-        if ((self::$lockDepth[$safe] ?? 0) < 1) {
-            $existing = $this->load($roomId);
-            if (is_array($existing) && SaveGuard::isStaleOverwrite($existing, $state)) {
-                return;
-            }
+        $holds = (self::$lockDepth[$safe] ?? 0) >= 1;
+        $existing = $this->load($roomId);
+        if (is_array($existing) && SaveGuard::isStaleOverwrite($existing, $state, $holds)) {
+            return;
         }
+        unset($state['_rematch_generation']);
         $json = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
         if ($json === false || $json === '') {
             throw new \RuntimeException('Failed to encode room state');

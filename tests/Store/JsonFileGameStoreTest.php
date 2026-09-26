@@ -78,11 +78,29 @@ final class JsonFileGameStoreTest extends TestCase
         $store = new JsonFileGameStore($this->dir . '/');
         $store->save('REM1', ['status' => 'finished', 'seq' => 9]);
         $store->withLock('REM1', function () use ($store) {
-            $store->save('REM1', ['status' => 'playing', 'seq' => 1, 'phase' => 'setup']);
+            $store->save('REM1', [
+                'status' => 'playing',
+                'seq' => 1,
+                'phase' => 'setup',
+                '_rematch_generation' => 1,
+            ]);
         });
         $loaded = $store->load('REM1');
         $this->assertSame('playing', $loaded['status'] ?? null);
         $this->assertSame(1, $loaded['seq'] ?? null);
+        $this->assertArrayNotHasKey('_rematch_generation', $loaded);
+    }
+
+    public function testLockedSaveDoesNotResurrectFinishedRoom(): void
+    {
+        $store = new JsonFileGameStore($this->dir . '/');
+        $store->save('LOCKFIN', ['status' => 'finished', 'seq' => 4, 'end_reason' => 'resign']);
+        $store->withLock('LOCKFIN', function () use ($store) {
+            $store->save('LOCKFIN', ['status' => 'playing', 'seq' => 5, 'phase' => 'main']);
+        });
+        $loaded = $store->load('LOCKFIN');
+        $this->assertSame('finished', $loaded['status'] ?? null);
+        $this->assertSame(4, $loaded['seq'] ?? null);
     }
 
     public function testUnlockedSaveDoesNotRollSeqBackward(): void

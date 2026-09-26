@@ -3257,7 +3257,7 @@ try {
 <script src="client/js/titles.js?v=5"></script>
 <script src="client/js/friend-push.js?v=12"></script>
 <script src="client/js/runtime-flags.js?v=5"></script>
-<script src="client/js/api-client.js?v=41"></script>
+<script src="client/js/api-client.js?v=42"></script>
 <script>
 /* Local Docker fake Discord only — skipped on production (no 404 for missing file). */
 (function () {
@@ -3442,6 +3442,8 @@ const RANKED_SEARCH_ACTIVE_KEY = 'tcg_ranked_search_active';
 const CASUAL_QUEUE_ID_KEY = 'tcg_casual_queue_id';
 const CASUAL_SEARCH_ACTIVE_KEY = 'tcg_casual_search_active';
 const ACTIVE_GAME_KEY = 'tcg_active_game';
+const RESIGNED_ROOMS_KEY = 'tcg_resigned_rooms';
+const RESIGNED_ROOM_TTL_MS = 6 * 60 * 60 * 1000;
 const ACTIVE_SPECTATOR_KEY = 'tcg_active_spectator';
 const SPECTATE_HIDDEN_HANDS_KEY = 'tcg_spectate_hidden_hands';
 const PERF_SPECTACLE_DONE_STORAGE_KEY = 'tcg_perf_spectacle_done';
@@ -5594,17 +5596,28 @@ function clearResignEscape() {
 }
 
 /** Best-effort resign. Waits out a busy room lock; does not open the error modal. */
-async function resignActiveRoomBestEffort() {
-  const saved = (typeof readActiveGameSession === 'function') ? readActiveGameSession() : null;
+async function resignActiveRoomBestEffort(preset) {
+  const saved = preset && preset.roomId ? preset : null;
   const roomId = G.roomId || saved?.roomId || null;
   const token = G.token || saved?.token || null;
   if (!roomId || !token) return false;
+  rememberResignedRoom(roomId);
   try {
-    await apiPost('action', { room_id: roomId, token, type: 'resign', data: {} }, {
+    const d = await apiPost('action', { room_id: roomId, token, type: 'resign', data: {} }, {
       silent: true,
       maxAttempts: 3,
     });
-    return true;
+    if (!(d && (d.finished === true || d.status === 'finished'))) return false;
+    const urls = (typeof tcgResolveApiUrls === 'function')
+      ? tcgResolveApiUrls('ingame', 'action')
+      : null;
+    if (!urls?.API) return true;
+    const r = await fetch(
+      `${urls.API}?action=get_state&room_id=${encodeURIComponent(roomId)}&token=${encodeURIComponent(token)}&seq=0&poll=0`,
+      { cache: 'no-store' },
+    );
+    const snap = await parseGameApiResponse(r);
+    return !!(snap && snap.status === 'finished');
   } catch (e) {
     return false;
   }
@@ -5617,6 +5630,8 @@ async function resignActiveRoomBestEffort() {
 async function consumeResignEscape() {
   if (!peekResignEscape()) return false;
   clearResignEscape();
+  const savedEarly = (typeof readActiveGameSession === 'function') ? readActiveGameSession() : null;
+  rememberResignedRoom(G.roomId || savedEarly?.roomId || null);
   cancelReconnectQueue();
   setAuthSkipReconnectVisible(false);
   try { if (typeof closeApiErrorPopup === 'function') closeApiErrorPopup(); } catch (e) { /* ignore */ }
@@ -5626,7 +5641,7 @@ async function consumeResignEscape() {
   const failMsg = (typeof tt === 'function')
     ? tt('toast.resignFailed', 'Resign did not land — the match is still live. Use Resign in the match, or try ?resign again.')
     : 'Resign did not land — the match is still live. Use Resign in the match, or try ?resign again.';
-  const resigned = await resignActiveRoomBestEffort();
+  const resigned = await resignActiveRoomBestEffort(savedEarly);
   if (resigned) {
     await abandonDeadMatchSession({ silent: true, forceResign: true });
     toast(leftMsg, 3200);
@@ -5634,6 +5649,7 @@ async function consumeResignEscape() {
   }
   // Ranked seats are cleared on Hostinger only after the match host confirms the concede.
   const left = await dropRankedActiveGameBestEffort({ confirmResign: true });
+  if (left?.room_id) rememberResignedRoom(left.room_id);
   if (left && left.left) {
     await abandonDeadMatchSession({ silent: true, forceResign: true });
     toast(leftMsg, 3200);
@@ -5689,7 +5705,7 @@ async function consumeLovecaSpectateInvite() {
   if (!roomId) return;
   clearLovecaSpectate();
   try {
-    const res = await apiPost('spectate_join', { room_id: roomId });
+    const res = await apiPost('spectate_join', spectateJoinBody(roomId));
     if (typeof captureSyncMeta === 'function') captureSyncMeta(res);
     applySpectateJoinFog(res);
     await bootSpectatorSession({
@@ -5827,8 +5843,44 @@ function discordAuthUrl() {
 /** Keep a localStorage mirror so a new tab / session wipe can still resume casual matches. */
 const ACTIVE_GAME_MAX_AGE_MS = 6 * 60 * 60 * 1000;
 
+function resignedRoomId(roomId) {
+  return String(roomId || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+function readResignedRooms() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(RESIGNED_ROOMS_KEY) || '{}');
+    const now = Date.now();
+    const next = {};
+    if (raw && typeof raw === 'object') {
+      Object.keys(raw).forEach((k) => {
+        const at = Number(raw[k]) || 0;
+        if (k && at && (now - at) < RESIGNED_ROOM_TTL_MS) next[k] = at;
+      });
+    }
+    return next;
+  } catch (e) {
+    return {};
+  }
+}
+
+function rememberResignedRoom(roomId) {
+  const id = resignedRoomId(roomId);
+  if (!id) return;
+  const next = readResignedRooms();
+  next[id] = Date.now();
+  try { localStorage.setItem(RESIGNED_ROOMS_KEY, JSON.stringify(next)); } catch (e) { /* ignore */ }
+}
+
+function isResignedRoom(roomId) {
+  const id = resignedRoomId(roomId);
+  if (!id) return false;
+  return !!readResignedRooms()[id];
+}
+
 function saveActiveGameSession() {
   if (G.isTutorial || G.isSpectator || !G.roomId || !G.token) return;
+  if (isResignedRoom(G.roomId)) return;
   let screen = 'game';
   if (el('screen-waiting')?.classList.contains('active')) screen = 'waiting';
   // Keep credentials through the win/loss overlay so refresh restores that screen
@@ -5889,9 +5941,16 @@ function parseActiveGameSessionRaw(raw) {
 }
 
 function readActiveGameSession() {
+  const dropIfResigned = (saved) => {
+    if (saved && isResignedRoom(saved.roomId)) {
+      clearActiveGameSession();
+      return null;
+    }
+    return saved;
+  };
   try {
     const rawSession = sessionStorage.getItem(ACTIVE_GAME_KEY);
-    const fromSession = parseActiveGameSessionRaw(rawSession);
+    const fromSession = dropIfResigned(parseActiveGameSessionRaw(rawSession));
     if (fromSession) return fromSession;
     // Drop expired / corrupt sessionStorage so boot does not treat it as in-match.
     if (rawSession) {
@@ -5900,7 +5959,7 @@ function readActiveGameSession() {
   } catch (e) { /* fall through */ }
   try {
     const rawLocal = localStorage.getItem(ACTIVE_GAME_KEY);
-    const fromLocal = parseActiveGameSessionRaw(rawLocal);
+    const fromLocal = dropIfResigned(parseActiveGameSessionRaw(rawLocal));
     if (fromLocal) {
       // Promote into sessionStorage for this tab.
       try { sessionStorage.setItem(ACTIVE_GAME_KEY, JSON.stringify(fromLocal)); } catch (e) {}
@@ -5978,7 +6037,7 @@ async function fetchGameStateForReconnect(roomId, token, apiOrigin, opts = {}) {
   const base = reconnectApiBaseForOrigin(apiOrigin);
   const resume = opts.resume !== false;
   const resumeQ = resume ? '&resume=1' : '';
-  const fetchOpts = opts.signal ? { signal: opts.signal } : {};
+  const fetchOpts = { cache: 'no-store', ...(opts.signal ? { signal: opts.signal } : {}) };
   const r = await fetchWithTimeout(
     `${base}?action=get_state&room_id=${encodeURIComponent(roomId)}&token=${encodeURIComponent(token)}&seq=0&poll=0${resumeQ}`,
     fetchOpts,
@@ -6554,6 +6613,13 @@ async function runReconnectQueue() {
             return false;
           }
           const active = res?.active;
+          if (active?.room_id && isResignedRoom(active.room_id)) {
+            await dropRankedActiveGameBestEffort({ confirmResign: true });
+            clearActiveGameSession();
+            rankedEmptyConfirmed = true;
+            setAuthSkipReconnectVisible(false);
+            return false;
+          }
           if (active?.room_id && active?.player_token) {
             rankedEmptyConfirmed = false;
             // Real server match found — show reconnect UI before joining.
@@ -15219,7 +15285,7 @@ async function spectateTournamentRoom(roomId) {
   try {
     if (typeof tcgLockApiOrigin === 'function') tcgLockApiOrigin('overflow');
     G._spectateReturnScreen = 'tournament';
-    const r = await apiPost('spectate_join', { room_id: id });
+    const r = await apiPost('spectate_join', spectateJoinBody(id));
     // Tournament fog is host-locked; open_hands rooms send spectate_hidden_hands:false.
     applySpectateJoinFog(Object.assign({}, r, { mode: 'tournament', category: 'tournament' }));
     await bootSpectatorSession({
@@ -34685,7 +34751,10 @@ async function openSpectateList(category) {
     if (cat === 'tournament' && typeof tcgLockApiOrigin === 'function') {
       tcgLockApiOrigin('overflow');
     }
-    const res = await apiPost('spectate_list', { category: cat });
+    const res = await apiPost('spectate_list', {
+      category: cat,
+      viewer_discord_id: (A?.profile?.user?.id || ''),
+    });
     renderSpectateMatchList(res.matches || []);
   } catch (e) {
     if (errEl) errEl.textContent = e.message || String(e);
@@ -34694,6 +34763,13 @@ async function openSpectateList(category) {
 }
 window.openSpectateList = openSpectateList;
 
+function spectateJoinBody(roomId) {
+  return {
+    room_id: roomId,
+    viewer_discord_id: (A?.profile?.user?.id || ''),
+  };
+}
+
 async function joinSpectateMatch(roomId) {
   const errEl = el('spectate-list-err');
   if (errEl) errEl.textContent = '';
@@ -34701,7 +34777,7 @@ async function joinSpectateMatch(roomId) {
     if (G._spectateReturnScreen === 'tournament' && typeof tcgLockApiOrigin === 'function') {
       tcgLockApiOrigin('overflow');
     }
-    const res = await apiPost('spectate_join', { room_id: roomId });
+    const res = await apiPost('spectate_join', spectateJoinBody(roomId));
     captureSyncMeta(res);
     applySpectateJoinFog(res);
     await bootSpectatorSession({

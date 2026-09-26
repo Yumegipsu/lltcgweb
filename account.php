@@ -28,6 +28,7 @@ require_once __DIR__ . '/cards_data.php';
 tcgDefinePathConstants();
 
 header('Content-Type: application/json');
+header('Cache-Control: no-store');
 tcgSendCorsHeaders();
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Auth-Token, Authorization, X-TCG-Internal-Secret');

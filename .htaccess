@@ -13,6 +13,10 @@
   <If "%{HTTP_HOST} == 'stream.loveliveradio.ca'">
     Header always set X-Robots-Tag "noindex, nofollow, noarchive"
   </If>
+  # The player shell and a normal refresh must not reuse a pre-resign page.
+  <Files "index.html">
+    Header set Cache-Control "no-store"
+  </Files>
 </IfModule>
 
 <IfModule mod_rewrite.c>

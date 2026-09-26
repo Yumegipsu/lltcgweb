@@ -47,6 +47,7 @@ if (is_file(__DIR__ . '/vendor/autoload.php')) {
 tcgDefinePathConstants();
 
 header('Content-Type: application/json');
+header('Cache-Control: no-store');
 tcgSendCorsHeaders();
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Player-Token, X-Auth-Token, Authorization');
@@ -1278,6 +1279,12 @@ function handleAction(array $body): array {
         }
 
         $out = ['ok' => true, 'seq' => $state['seq']];
+        if (($state['status'] ?? '') === 'finished') {
+            $out['finished'] = true;
+            if (!empty($state['end_reason'])) {
+                $out['end_reason'] = $state['end_reason'];
+            }
+        }
         if (!empty($missionCompletions)) {
             $out['mission_completions'] = $missionCompletions;
         }
@@ -1686,7 +1693,12 @@ function applyAction(array $state, string $playerId, string $type, array $data):
 
         // ── MISC ────────────────────────────
         case 'resign':
-            unset($state['pending_prompt'], $state['surveil_stash'], $state['_surveil_chain']);
+            unset(
+                $state['pending_prompt'],
+                $state['surveil_stash'],
+                $state['_surveil_chain'],
+                $state['live_show']
+            );
             $state['status'] = 'finished';
             $winner = ($playerId === 'p1') ? 'p2' : 'p1';
             $state['end_reason'] = 'resign';
@@ -2937,6 +2949,9 @@ function possessiveName(string $name): string {
 }
 
 function startTurn(array $state): array {
+    if (($state['status'] ?? '') === 'finished') {
+        return $state;
+    }
     unset($state['block_effect_member_activate'], $state['skill_reveals']);
     // Mulligan / coin-flip leave status=setup; softlock skip + Shift+T require playing.
     $state['status'] = 'playing';
@@ -4901,6 +4916,7 @@ function startRematchGame(array $state): array {
     }
     $newState = addSecondPlayer($newState, $p2Data);
     $newState = addLog($newState, 'Rematch started!', 'info');
+    $newState['_rematch_generation'] = time();
     return $newState;
 }
 
@@ -5760,6 +5776,9 @@ function applyCpuStuckPromptTimeout(array &$state): bool {
 
 /** Auto end main / live when PvP phase timers expire. Returns true if state changed. */
 function applyPhaseTimeouts(array &$state): bool {
+    if (($state['status'] ?? '') === 'finished') {
+        return false;
+    }
     $cpuLiveSetChanged = applyCpuStuckLiveSetTimeout($state);
     $cpuPromptChanged = applyCpuStuckPromptTimeout($state);
     if (!empty($state['live_show'])

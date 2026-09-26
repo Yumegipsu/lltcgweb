@@ -10,10 +10,18 @@ namespace LLTCG\Game\Store;
  */
 final class SaveGuard
 {
-    public static function isStaleOverwrite(array $existing, array $incoming): bool
+    public static function isStaleOverwrite(array $existing, array $incoming, bool $holdsLock = false): bool
     {
-        if (($existing['status'] ?? '') === 'finished' && ($incoming['status'] ?? '') !== 'finished') {
+        // A lock holder may replace a finished casual room only for an explicit rematch.
+        // Phase-timer / live-show heals must not turn a concede back into a live match.
+        $replacingFinished = ($existing['status'] ?? '') === 'finished'
+            && ($incoming['status'] ?? '') !== 'finished'
+            && empty($incoming['_rematch_generation']);
+        if ($replacingFinished) {
             return true;
+        }
+        if ($holdsLock) {
+            return false;
         }
         return intval($existing['seq'] ?? 0) > intval($incoming['seq'] ?? 0);
     }

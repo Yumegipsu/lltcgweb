@@ -277,7 +277,7 @@ function tcgDedupSpectatableMatchesByPlayers(array $matches): array {
         foreach ($ids as $id) {
             $used[$id] = true;
         }
-        unset($row['seq'], $row['p1_discord'], $row['p2_discord']);
+        unset($row['seq']);
         $out[] = $row;
     }
     return $out;
@@ -498,7 +498,22 @@ function tcgListSpectatableMatches(string $category): array {
     return $matches;
 }
 
-function tcgJoinSpectator(string $roomId): array {
+function tcgStateSeatsDiscord(array $state, string $discordId): bool
+{
+    $discordId = trim($discordId);
+    if ($discordId === '') {
+        return false;
+    }
+    $p1 = trim((string)($state['players']['p1']['discord_id']
+        ?? $state['ranked']['p1_discord_id']
+        ?? ''));
+    $p2 = trim((string)($state['players']['p2']['discord_id']
+        ?? $state['ranked']['p2_discord_id']
+        ?? ''));
+    return $discordId === $p1 || $discordId === $p2;
+}
+
+function tcgJoinSpectator(string $roomId, string $viewerId = ''): array {
     $roomId = strtoupper(preg_replace('/[^A-Z0-9]/', '', $roomId));
     if ($roomId === '') {
         throw new Exception('room_id required');
@@ -509,6 +524,9 @@ function tcgJoinSpectator(string $roomId): array {
     }
     if (!tcgIsSpectatableHumanGame($state, $roomId)) {
         throw new Exception('This match is not available to spectate');
+    }
+    if (tcgStateSeatsDiscord($state, $viewerId)) {
+        throw new Exception('You are still seated in this match');
     }
     $category = (($state['mode'] ?? '') === 'ranked') ? 'ranked'
         : ((($state['mode'] ?? '') === 'tournament') ? 'tournament' : 'casual');
@@ -759,16 +777,42 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
     return enrichReplayFieldsForClient($filtered, $state);
 }
 
+function tcgSpectateViewerId(array $body): string
+{
+    if (function_exists('tcgOptionalAuthUserId')) {
+        $uid = trim((string)(tcgOptionalAuthUserId($body) ?? ''));
+        if ($uid !== '') {
+            return $uid;
+        }
+    }
+    return trim((string)($body['viewer_discord_id'] ?? ''));
+}
+
 function apiSpectateList(array $body): array {
     $category = (string)($body['category'] ?? $_GET['category'] ?? 'casual');
+    $viewerId = tcgSpectateViewerId($body);
+    $matches = tcgListSpectatableMatches($category);
+    $out = [];
+    foreach ($matches as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $p1 = trim((string)($row['p1_discord'] ?? ''));
+        $p2 = trim((string)($row['p2_discord'] ?? ''));
+        if ($viewerId !== '' && ($viewerId === $p1 || $viewerId === $p2)) {
+            continue;
+        }
+        unset($row['p1_discord'], $row['p2_discord']);
+        $out[] = $row;
+    }
     return [
-        'matches' => tcgListSpectatableMatches($category),
+        'matches' => $out,
     ];
 }
 
 function apiSpectateJoin(array $body): array {
     $roomId = (string)($body['room_id'] ?? '');
-    $out = tcgJoinSpectator($roomId);
+    $out = tcgJoinSpectator($roomId, tcgSpectateViewerId($body));
     return tcgSyncAttachMeta($out, (string)($out['room_id'] ?? ''), (string)($out['spectator_token'] ?? ''));
 }
 

@@ -458,7 +458,7 @@
     const q = new URLSearchParams({ action, token, ...extra });
     let r;
     try {
-      r = await global.fetchWithTimeout(urls.ACCOUNT_API + '?' + q);
+      r = await global.fetchWithTimeout(urls.ACCOUNT_API + '?' + q, { cache: 'no-store' });
     } catch (e) {
       if (e && typeof e === 'object' && !e.httpStatus) e.httpStatus = 0;
       throw tagAccountError(e, urls);
@@ -738,6 +738,7 @@
     }
     const r = await fetch(`${urls.API}?action=${action}`, {
       method: 'POST',
+      cache: 'no-store',
       headers,
       body: JSON.stringify(payload),
     });

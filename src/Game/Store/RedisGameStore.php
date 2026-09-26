@@ -91,6 +91,7 @@ final class RedisGameStore implements GameStoreInterface
         if ($this->saveWouldClobber($roomId, $state)) {
             return;
         }
+        unset($state['_rematch_generation']);
         $json = json_encode($state, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
         if ($json === false || $json === '') {
             throw new \RuntimeException('Failed to encode room state');
@@ -186,16 +187,20 @@ final class RedisGameStore implements GameStoreInterface
     {
         $norm = $this->normalizeRoomId($roomId);
         $held = self::$heldTokens[$norm] ?? null;
+        $holds = false;
         if (is_string($held) && $held !== '') {
             try {
                 $current = $this->redis->get($this->lockKey($roomId));
             } catch (\Throwable $e) {
-                return false;
+                $current = $held;
             }
             // Lost the lock to a newer writer (often a resign). Drop this snapshot.
-            return $current !== $held;
+            if ($current !== $held) {
+                return true;
+            }
+            $holds = true;
         }
         $existing = $this->load($roomId);
-        return is_array($existing) && SaveGuard::isStaleOverwrite($existing, $state);
+        return is_array($existing) && SaveGuard::isStaleOverwrite($existing, $state, $holds);
     }
 }
