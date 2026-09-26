@@ -29,6 +29,13 @@ function markLiveStartMandatoryResolved(array $state, string $pid, string $insta
  * mandatory Live Start abilities for the current performer only.
  */
 function resumeLiveStartEffectPhase(array $state): array {
+    // Auto-resolved Live Start skills (a single legal Wait target, etc.) call
+    // finish/resume from inside resolveLiveStartAbilities, before that ability
+    // is marked done. Re-entering here resolves the same skill forever and the
+    // request dies on the memory limit, so the reveal ack never sticks.
+    if (!empty($GLOBALS['_lltcg_in_live_start_resolve'])) {
+        return $state;
+    }
     if (($state['phase'] ?? '') !== 'live_start_effects') {
         return finishPromptEffects($state);
     }
@@ -157,6 +164,20 @@ function collectLiveStartOrderSources(array $state, string $pid): array {
 // ─────────────────────────────────────────────
 
 function resolveLiveStartAbilities(array $state, string $pid): array {
+    $prevGuard = !empty($GLOBALS['_lltcg_in_live_start_resolve']);
+    $GLOBALS['_lltcg_in_live_start_resolve'] = true;
+    try {
+        return resolveLiveStartAbilitiesBody($state, $pid);
+    } finally {
+        if ($prevGuard) {
+            $GLOBALS['_lltcg_in_live_start_resolve'] = true;
+        } else {
+            unset($GLOBALS['_lltcg_in_live_start_resolve']);
+        }
+    }
+}
+
+function resolveLiveStartAbilitiesBody(array $state, string $pid): array {
     $attempting = $state['live_attempt'] ?? ['p1', 'p2'];
     if (!in_array($pid, $attempting, true)) {
         return $state;
@@ -204,7 +225,16 @@ function resolveLiveStartAbilities(array $state, string $pid): array {
         // Order was already offered (or mandatories started) but choice was lost —
         // do not reopen Order of Activation (#165). Fall through to default order.
         $orderAsked = !empty(($state['_live_start_order_asked'] ?? [])[$pid]);
-        $alreadyStarted = !empty($state['live_start_mandatory_resolved']);
+        // Resolved keys are "{pid}:{instance}:{index}". Another performer's
+        // finished skills must not skip this player's order prompt.
+        $alreadyStarted = false;
+        $pidPrefix = $pid . ':';
+        foreach ($state['live_start_mandatory_resolved'] ?? [] as $resolvedKey => $resolved) {
+            if ($resolved && str_starts_with((string)$resolvedKey, $pidPrefix)) {
+                $alreadyStarted = true;
+                break;
+            }
+        }
         if (count($orderSources) > 1 && !$orderAsked && !$alreadyStarted) {
             $asked = is_array($state['_live_start_order_asked'] ?? null)
                 ? $state['_live_start_order_asked']
