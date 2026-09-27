@@ -1,6 +1,6 @@
 <?php
 /**
- * Composite a seasonal title PNG: pill template, rank icon, "Season N".
+ * Composite a seasonal title PNG: pill template, rank icon, "2026 Season 1".
  *
  *   php scripts/generate_season_titles.php 2026-10
  *
@@ -38,13 +38,21 @@ function tcgSeasonGenerateTitlePng(string $seasonId, int $step, string $dest): b
         imagedestroy($scaled);
     }
     imagedestroy($icon);
-    $number = tcgSeasonNumberFromId($seasonId);
-    $text = 'Season ' . max(1, $number);
-    $size = max(14, (int)round($bh * 0.34));
+    $text = tcgSeasonLabel($seasonId);
     $color = imagecolorallocate($base, 74, 44, 78);
-    $box = imagettfbbox($size, 0, $font, $text);
-    $textW = $box ? abs($box[2] - $box[0]) : 80;
-    $x = (int)min($bw - $textW - 16, $target + (int)round($bh * 0.45));
+    $left = (int)round($bh * 0.18) + $target + (int)round($bh * 0.16);
+    $maxW = max(40, $bw - $left - 16);
+    $size = max(11, (int)round($bh * 0.34));
+    $textW = $maxW;
+    while ($size > 11) {
+        $box = imagettfbbox($size, 0, $font, $text);
+        $textW = $box ? abs($box[2] - $box[0]) : $maxW;
+        if ($textW <= $maxW) {
+            break;
+        }
+        $size--;
+    }
+    $x = $left;
     $y = (int)round($bh * 0.64);
     imagettftext($base, $size, 0, max(8, $x), $y, $color, $font, $text);
     $dir = dirname($dest);

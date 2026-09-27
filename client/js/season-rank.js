@@ -43,6 +43,14 @@
     return !!(season && season.icon);
   }
 
+  function seasonLabel(season) {
+    if (season && season.label) return String(season.label);
+    const id = season && season.season_id ? String(season.season_id) : '';
+    const year = /^\d{4}/.test(id) ? id.slice(0, 4) : '2026';
+    const n = season && season.season_number ? season.season_number : 1;
+    return tt('season.label', '{year} Season {n}', { year: year, n: n });
+  }
+
   function rankName(step) {
     const key = step && step.key ? step.key : '';
     return tt('season.rank.' + key, RANK_FALLBACK[key] || step.letter || '');
@@ -113,7 +121,7 @@
     root.setAttribute('aria-labelledby', 'season-ladder-title');
     close.textContent = tt('news.close', 'Close');
     if (started) {
-      const label = season.label || tt('season.label', 'Season {n}', { n: season.season_number || 1 });
+      const label = seasonLabel(season);
       lead.textContent = label;
     } else {
       lead.textContent = tt('season.notStarted', 'The seasonal ladder starts in October 2026.');
@@ -167,7 +175,7 @@
     wrap.className = 'season-badge' + (size ? ' season-badge--' + size : '');
     const pct = Math.max(0, Math.min(100, Number(season.progress != null ? season.progress : season.points) || 0));
     wrap.style.setProperty('--pct', String(pct));
-    const label = season.label || tt('season.label', 'Season {n}', { n: season.season_number || 1 });
+    const label = seasonLabel(season);
     const named = rankName(season);
     wrap.title = label + (named ? (' · ' + named) : '');
     wrap.setAttribute('aria-label', wrap.title);

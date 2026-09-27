@@ -710,7 +710,7 @@
       "readySearch": "Ready to search"
     },
     "season": {
-      "label": "Season {n}",
+      "label": "{year} Season {n}",
       "history": "Season ranks",
       "current": "This season",
       "peak": "Peak {letter}",

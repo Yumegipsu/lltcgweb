@@ -85,12 +85,40 @@ function tcgSeasonEnsureSchema(PDO $db): void {
     tcgDbEnsureColumn($db, 'tcg_match_queue', 'season_step', 'INTEGER NOT NULL DEFAULT -1');
 }
 
-function tcgSeasonNumberFromId(string $seasonId): int {
+/**
+ * Year and within-year season number for a YYYY-MM id.
+ * October 2026 is 2026 Season 1. January 2027 is 2027 Season 1.
+ * A full calendar year is seasons 1 through 12.
+ *
+ * @return array{year:int,number:int}|null
+ */
+function tcgSeasonLabelParts(string $seasonId): ?array {
     if (!preg_match('/^(\d{4})-(\d{2})$/', $seasonId, $m)) {
-        return 0;
+        return null;
     }
-    $months = ((int)$m[1] - 2026) * 12 + ((int)$m[2] - 10);
-    return $months + 1;
+    $year = (int)$m[1];
+    $month = (int)$m[2];
+    if ($month < 1 || $month > 12 || $year < 2026) {
+        return null;
+    }
+    if ($year === 2026 && $month < 10) {
+        return null;
+    }
+    $number = ($year === 2026) ? ($month - 9) : $month;
+    return ['year' => $year, 'number' => $number];
+}
+
+function tcgSeasonNumberFromId(string $seasonId): int {
+    $parts = tcgSeasonLabelParts($seasonId);
+    return $parts['number'] ?? 0;
+}
+
+function tcgSeasonLabel(string $seasonId): string {
+    $parts = tcgSeasonLabelParts($seasonId);
+    if ($parts === null) {
+        return 'Season';
+    }
+    return $parts['year'] . ' Season ' . $parts['number'];
 }
 
 /**
@@ -109,7 +137,7 @@ function tcgSeasonClockInfo(): array {
         'active' => true,
         'id' => $id,
         'number' => $number,
-        'label' => 'Season ' . $number,
+        'label' => tcgSeasonLabel($id),
         'starts_at' => gmmktime(0, 0, 0, $month, 1, $year),
         'ends_at' => gmmktime(0, 0, 0, $month + 1, 1, $year),
         'now' => $now,
@@ -281,7 +309,7 @@ function tcgSeasonPreviewPublic(): array {
         'has_row' => false,
         'season_id' => '2026-10',
         'season_number' => 1,
-        'label' => 'Season 1',
+        'label' => tcgSeasonLabel('2026-10'),
         'step' => 0,
         'points' => 0,
         'progress' => 0,
@@ -332,7 +360,7 @@ function tcgSeasonTitleDefFromId(string $id): ?array {
         'id' => $id,
         'tier' => 'season',
         'style' => 'wide',
-        'name' => 'Season ' . $number,
+        'name' => tcgSeasonLabel($seasonId),
         'idol' => '',
         'idol_short' => '',
         'unit' => '',
@@ -545,7 +573,7 @@ function tcgSeasonCloseRow(string $discordId, string $gameMode, array $row, arra
         'game_mode' => $gameMode,
         'season_id' => $oldId,
         'season_number' => $number,
-        'label' => 'Season ' . $number,
+        'label' => tcgSeasonLabel($oldId),
         'peak_step' => $peak,
         'coins' => $reward['coins'],
         'gems' => $reward['gems'],
@@ -758,7 +786,7 @@ function tcgSeasonHistoryForUser(string $discordId): array {
         $out[] = [
             'season_id' => (string)$row['season_id'],
             'season_number' => $number,
-            'label' => 'Season ' . $number,
+            'label' => tcgSeasonLabel((string)$row['season_id']),
             'game_mode' => (string)$row['game_mode'],
             'step' => $final,
             'points' => (int)$row['points'],

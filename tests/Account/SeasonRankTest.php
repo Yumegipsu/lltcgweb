@@ -98,6 +98,7 @@ final class SeasonRankTest extends TestCase
         $this->assertFalse($public['started']);
         $this->assertSame(0, $public['step']);
         $this->assertSame('c-green', $public['key']);
+        $this->assertSame('2026 Season 1', $public['label']);
         $this->assertCount(8, $public['steps']);
     }
 
@@ -158,6 +159,8 @@ final class SeasonRankTest extends TestCase
         $this->assertSame('season-2026-10-s-pink', $row['title_id']);
         $def = tcgTitleDefById('season-2026-10-s-pink');
         $this->assertNotNull($def);
+        $this->assertSame('2026 Season 1', $def['name']);
+        $this->assertSame('2026 Season 1', $grant['label']);
         $this->assertTrue(tcgTitleIsUnlocked($id, $def));
         $this->assertFalse(tcgTitleIsUnlocked($id, tcgTitleDefById('title_m_0001_01001_0001')));
         $again = tcgSeasonSettle($id, TCG_GAME_MODE_STANDARD);
@@ -261,5 +264,24 @@ final class SeasonRankTest extends TestCase
         $near = tcgFindQueueOpponent($searcher, 1000, TCG_GAME_MODE_STANDARD);
         $this->assertNotNull($near);
         $this->assertSame($down, $near['discord_id']);
+    }
+
+    public function testSeasonLabelResetsEachCalendarYear(): void
+    {
+        $this->assertSame('2026 Season 1', tcgSeasonLabel('2026-10'));
+        $this->assertSame('2026 Season 2', tcgSeasonLabel('2026-11'));
+        $this->assertSame('2026 Season 3', tcgSeasonLabel('2026-12'));
+        $this->assertSame('2027 Season 1', tcgSeasonLabel('2027-01'));
+        $this->assertSame('2027 Season 12', tcgSeasonLabel('2027-12'));
+        $this->assertSame('2028 Season 1', tcgSeasonLabel('2028-01'));
+        $this->at('2027-01-15 12:00:00');
+        $clock = tcgSeasonClockInfo();
+        $this->assertSame('2027-01', $clock['id']);
+        $this->assertSame(1, $clock['number']);
+        $this->assertSame('2027 Season 1', $clock['label']);
+        $this->at('2027-12-15 12:00:00');
+        $dec = tcgSeasonClockInfo();
+        $this->assertSame(12, $dec['number']);
+        $this->assertSame('2027 Season 12', $dec['label']);
     }
 }
