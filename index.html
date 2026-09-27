@@ -1785,8 +1785,8 @@ try {
         <p class="game-mode-desc" id="leaderboard-game-mode-desc"></p>
       </div>
       <div class="leaderboard-boards" role="tablist">
-        <button class="btn-out is-on" id="btn-leaderboard-board-elo" type="button" data-board="elo" data-i18n="leaderboard.boardAllTime">All-time</button>
-        <button class="btn-ghost" id="btn-leaderboard-board-season" type="button" data-board="season" data-i18n="leaderboard.boardSeason">This season</button>
+        <button class="btn-out is-on" id="btn-leaderboard-board-season" type="button" data-board="season" data-i18n="leaderboard.boardSeason">This season</button>
+        <button class="btn-ghost" id="btn-leaderboard-board-elo" type="button" data-board="elo" data-i18n="leaderboard.boardAllTime">All-time</button>
       </div>
       <div class="leaderboard-actions">
         <button class="btn-out" id="btn-leaderboard-banner" type="button" data-i18n="leaderboard.editBanner">Edit profile</button>
@@ -14240,7 +14240,14 @@ function renderLeaderboardRows(data) {
   const list = el('leaderboard-list');
   list.replaceChildren();
   const rows = data?.leaderboard || [];
-  renderLeaderboardYourRank(data);
+  if (data?.board === 'season' && data.season_active === false) {
+    const wrap = el('leaderboard-your-rank');
+    const jumpBtn = el('btn-leaderboard-jump-you');
+    if (wrap) wrap.hidden = true;
+    if (jumpBtn) jumpBtn.hidden = true;
+  } else {
+    renderLeaderboardYourRank(data);
+  }
   if (!rows.length) {
     const empty = document.createElement('div');
     empty.className = 'leaderboard-empty';
@@ -15451,7 +15458,7 @@ function leaderboardViewMode() {
 }
 
 function leaderboardBoard() {
-  return A.leaderboardBoard === 'season' ? 'season' : 'elo';
+  return A.leaderboardBoard === 'elo' ? 'elo' : 'season';
 }
 
 function leaderboardStatsQuery() {

@@ -2365,7 +2365,9 @@ function tcgApiRankStats(array $body): array {
         ? tcgSeasonMapForMode($gameMode, (string)$clock['id'])
         : [];
     $leaderboard = [];
-    if ($board === 'season' && !empty($clock['active'])) {
+    if ($board === 'season' && empty($clock['active'])) {
+        // Season has not opened yet — do not fall back to the all-time list.
+    } elseif ($board === 'season') {
         $banExclude = function_exists('tcgBanLeaderboardExcludeSql') ? tcgBanLeaderboardExcludeSql('s.discord_id') : '';
         $stmt = $db->prepare('SELECT s.discord_id, s.wins, s.losses, s.step, s.points, s.season_id,
                 u.username, u.avatar_url, u.banner_card_no, u.banner_crop, u.equipped_flag, u.title_id
