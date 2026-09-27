@@ -672,8 +672,8 @@
     const tick = () => { if (count && bio) count.textContent = `${bio.value.length}/${bioMax}`; };
     if (bio) { bio.addEventListener('input', tick); tick(); }
     const seasonSlot = document.getElementById('profile-season-slot');
-    if (seasonSlot && window.TCGSeason && TCGSeason.active(p.season)) {
-      seasonSlot.appendChild(TCGSeason.createBadge(p.season, { size: 'sm' }));
+    if (seasonSlot && window.TCGSeason && TCGSeason.visible(p.season)) {
+      seasonSlot.appendChild(TCGSeason.createBadge(p.season, { size: 'sm', mine: self }));
     }
     const titleSlot = document.getElementById('profile-title-slot');
     if (titleSlot && typeof window.TCGTitles?.mountTitleEl === 'function') {

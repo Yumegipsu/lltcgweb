@@ -717,7 +717,19 @@
       "record": "{wins}W-{losses}L",
       "rewardToast": "Season reward: {coins} Coins, {gems} Star Gems",
       "rewardToastPacks": "Season reward: {coins} Coins, {gems} Star Gems, a {cards}-card PR pack",
-      "notStarted": "The seasonal ladder starts in October 2026."
+      "notStarted": "The seasonal ladder starts in October 2026.",
+      "ladderTitle": "Season ranks",
+      "you": "You",
+      "rank": {
+        "c-green": "Green C",
+        "c-pink": "Pink C",
+        "b-green": "Green B",
+        "b-pink": "Pink B",
+        "a-green": "Green A",
+        "a-pink": "Pink A",
+        "s-green": "Green S",
+        "s-pink": "Pink S"
+      }
     },
     "leaderboard": {
       "title": "Ranked Leaderboard",

@@ -254,6 +254,51 @@ function tcgSeasonIconUrl(int $step): string {
     return 'client/img/ranks/' . tcgSeasonStepDef($step)['key'] . '.png';
 }
 
+function tcgSeasonLadderSteps(): array {
+    $out = [];
+    foreach (TCG_SEASON_STEPS as $i => $def) {
+        $out[] = [
+            'step' => $i,
+            'letter' => $def['letter'],
+            'tone' => $def['tone'],
+            'key' => $def['key'],
+            'icon' => tcgSeasonIconUrl($i),
+        ];
+    }
+    return $out;
+}
+
+/**
+ * Before the first season, everyone sits on the lowest rank so the icon can still show.
+ *
+ * @return array<string,mixed>
+ */
+function tcgSeasonPreviewPublic(): array {
+    $def = tcgSeasonStepDef(0);
+    return [
+        'active' => false,
+        'started' => false,
+        'has_row' => false,
+        'season_id' => '2026-10',
+        'season_number' => 1,
+        'label' => 'Season 1',
+        'step' => 0,
+        'points' => 0,
+        'progress' => 0,
+        'peak_step' => 0,
+        'wins' => 0,
+        'losses' => 0,
+        'letter' => $def['letter'],
+        'tone' => $def['tone'],
+        'key' => $def['key'],
+        'icon' => tcgSeasonIconUrl(0),
+        'peak_letter' => $def['letter'],
+        'peak_tone' => $def['tone'],
+        'peak_icon' => tcgSeasonIconUrl(0),
+        'steps' => tcgSeasonLadderSteps(),
+    ];
+}
+
 function tcgSeasonTitleId(string $seasonId, int $step): string {
     return 'season-' . $seasonId . '-' . tcgSeasonStepDef($step)['key'];
 }
@@ -662,12 +707,14 @@ function tcgSeasonQueueAcceptSteps(int $step, int $points): array {
 /** @return array<string,mixed> */
 function tcgSeasonPublic(string $discordId, string $gameMode): array {
     $clock = tcgSeasonClockInfo();
-    if (empty($clock['active'])) {
-        return ['active' => false];
-    }
     $mode = tcgSeasonRankedMode($gameMode);
     if ($mode === null) {
         return ['active' => false];
+    }
+    if (empty($clock['active'])) {
+        $preview = tcgSeasonPreviewPublic();
+        $preview['game_mode'] = $mode;
+        return $preview;
     }
     $row = tcgSeasonLoadRow($discordId, $mode);
     if ($row && (string)$row['season_id'] !== (string)$clock['id']) {
@@ -675,6 +722,8 @@ function tcgSeasonPublic(string $discordId, string $gameMode): array {
     }
     $public = tcgSeasonFormatPublic($row, $clock);
     $public['game_mode'] = $mode;
+    $public['started'] = true;
+    $public['steps'] = tcgSeasonLadderSteps();
     return $public;
 }
 

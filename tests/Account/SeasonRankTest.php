@@ -95,6 +95,10 @@ final class SeasonRankTest extends TestCase
         $this->assertNull(tcgSeasonLoadRow($winner, TCG_GAME_MODE_STANDARD));
         $public = tcgSeasonPublic($winner, TCG_GAME_MODE_STANDARD);
         $this->assertFalse($public['active']);
+        $this->assertFalse($public['started']);
+        $this->assertSame(0, $public['step']);
+        $this->assertSame('c-green', $public['key']);
+        $this->assertCount(8, $public['steps']);
     }
 
     public function testWinMovesSeasonAndLossOnCDoesNot(): void
