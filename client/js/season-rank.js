@@ -192,8 +192,15 @@
   function attachHub(host, season) {
     if (!host) return;
     host.querySelectorAll('.season-badge').forEach((node) => node.remove());
+    let label = host.querySelector('.hub-user-label');
+    if (!label) {
+      label = document.createElement('span');
+      label.className = 'hub-user-label';
+      while (host.firstChild) label.appendChild(host.firstChild);
+      host.appendChild(label);
+    }
     if (!seasonVisible(season)) return;
-    host.insertBefore(createBadge(season, { mine: true }), host.firstChild);
+    host.insertBefore(createBadge(season, { mine: true }), label);
   }
 
   function paintUserLine(host, season, username) {

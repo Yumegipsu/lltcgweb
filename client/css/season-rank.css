@@ -2,8 +2,25 @@
 .llc-menu-screen .hub-user {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 10px;
+  flex-wrap: nowrap;
+  overflow: visible;
+  font-size: 18px;
+  line-height: 1.2;
+  padding: 2px 0;
+}
+
+.llc-menu-screen .hub-user-label {
+  min-width: 0;
+}
+
+.llc-menu-screen .hub-user b {
+  font-size: 1.2em;
+  font-weight: 800;
+}
+
+.llc-menu-screen .hub-top {
+  overflow: visible;
 }
 
 .season-badge {
@@ -27,6 +44,18 @@
   mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2.5px));
 }
 
+.hub-user .season-badge,
+.season-userline .season-badge {
+  width: 54px;
+  height: 54px;
+}
+
+.hub-user .season-badge img,
+.season-userline .season-badge img {
+  width: 42px;
+  height: 42px;
+}
+
 .season-badge img {
   position: relative;
   z-index: 1;
@@ -34,8 +63,8 @@
   height: 28px;
   object-fit: contain;
   border-radius: 50%;
+  transition: transform 0.15s ease;
 }
-
 .season-badge--sm {
   width: 30px;
   height: 30px;
@@ -49,9 +78,13 @@
 .season-userline {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin: 0 0 8px;
-  font-size: 15px;
+  padding: 2px 0;
+  overflow: visible;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .season-userline[hidden] {
@@ -111,13 +144,16 @@ button.season-badge {
   appearance: none;
 }
 
-button.season-badge:hover,
+button.season-badge:hover:not(:disabled),
 button.season-badge:focus-visible {
-  filter: none;
-  transform: none;
-  outline: 2px solid rgba(255, 224, 138, 0.9);
-  outline-offset: 2px;
-  border-radius: 50%;
+  transform: none !important;
+  filter: none !important;
+  outline: none;
+}
+
+button.season-badge:hover img,
+button.season-badge:focus-visible img {
+  transform: scale(1.06);
 }
 
 body.season-ladder-open {
