@@ -631,7 +631,7 @@ try {
     </div>
     <div class="panel account-panel">
       <div class="hub-top">
-        <div class="hub-user" id="hub-user" data-i18n="hub.signedIn">Signed in</div>
+        <div class="hub-user" id="hub-user">Signed in</div>
         <div class="hub-top-actions">
           <div class="locale-wrap">
             <label for="sel-locale-hub" data-i18n="lang.label">Language</label>
@@ -4662,8 +4662,12 @@ function refreshDynamicI18n() {
   clearLogNameCache();
   if (A.profile) {
     const userName = A.profile?.user?.username || A.user?.username || 'Player';
-    el('hub-user').innerHTML = t('hub.signedInAsHtml', { name: escapeHtmlText(userName) });
-    if (window.TCGSeason) TCGSeason.attachHub(el('hub-user'), A.profile.season);
+    const hubUser = el('hub-user');
+    if (hubUser) {
+      hubUser.removeAttribute('data-i18n');
+      hubUser.innerHTML = t('hub.signedInAsHtml', { name: escapeHtmlText(userName) });
+      if (window.TCGSeason) TCGSeason.attachHub(hubUser, A.profile.season);
+    }
     if (el('screen-hub')?.classList.contains('active')) updateHubDynamicStats(A.profile);
     if (el('screen-ranked')?.classList.contains('active')) updateRankedScreenDynamic(A.profile);
   }
@@ -7147,9 +7151,11 @@ function enterHub(me) {
   syncStarGemsFromProfile(A.profile);
   syncRankedPrFromProfile(A.profile);
   const userName = A.profile?.user?.username || A.user?.username || 'Player';
-  el('hub-user').innerHTML = t('hub.signedInAsHtml', { name: escapeHtmlText(userName) });
+  const hubUser = el('hub-user');
+  if (hubUser) hubUser.removeAttribute('data-i18n');
+  hubUser.innerHTML = t('hub.signedInAsHtml', { name: escapeHtmlText(userName) });
   if (window.TCGSeason) {
-    TCGSeason.attachHub(el('hub-user'), A.profile.season);
+    TCGSeason.attachHub(hubUser, A.profile.season);
     TCGSeason.showRewardToasts(A.profile);
   }
   const d = A.profile?.daily || {};
