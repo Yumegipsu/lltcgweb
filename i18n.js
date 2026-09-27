@@ -14397,7 +14397,7 @@
       "batchNotConvertible": "Convertissez cette carte",
       "batchOk": "Fait",
       "batchSelected": "Sélectionné",
-      "batchSelectedCount": "{count}sélectionné",
+      "batchSelectedCount": "{count} sélectionné",
       "upgradeTitle": "Mise à niveau des joints",
       "upgradeAria": "Mises à niveau des scellés",
       "upgradeBtn": "{cost}{from}→ 1{to}",
