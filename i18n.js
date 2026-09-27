@@ -716,7 +716,7 @@
       "peak": "Peak {letter}",
       "record": "{wins}W-{losses}L",
       "rewardToast": "Season reward: {coins} Coins, {gems} Star Gems",
-      "rewardToastPacks": "Season reward: {coins} Coins, {gems} Star Gems, {packs} PR packs",
+      "rewardToastPacks": "Season reward: {coins} Coins, {gems} Star Gems, a {cards}-card PR pack",
       "notStarted": "The seasonal ladder starts in October 2026."
     },
     "leaderboard": {

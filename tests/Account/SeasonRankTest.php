@@ -140,6 +140,9 @@ final class SeasonRankTest extends TestCase
         $this->assertSame(7, (int)$row['peak_step']);
         $this->assertSame(5, (int)$row['pr_packs']);
         $this->assertSame(1, (int)$row['packs_granted']);
+        $owned = tcgDb()->prepare('SELECT COALESCE(SUM(qty), 0) FROM tcg_collection WHERE discord_id = ?');
+        $owned->execute([$id]);
+        $this->assertSame(5, (int)$owned->fetchColumn());
         $this->assertSame('season-2026-10-s-pink', $row['title_id']);
         $def = tcgTitleDefById('season-2026-10-s-pink');
         $this->assertNotNull($def);

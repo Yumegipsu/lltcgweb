@@ -458,7 +458,8 @@ function tcgSeasonFinishPendingPacks(string $discordId, string $gameMode): void 
         if ($packs <= 0) {
             continue;
         }
-        $cards = min(15, $packs * 3);
+        // One PR pack whose size is this number (2, 3, 4, or 5 cards).
+        $cards = max(1, min(15, $packs));
         try {
             tcgGrantPrPackCards($discordId, $cards);
             tcgDb()->prepare('UPDATE tcg_season_history SET packs_granted = 1

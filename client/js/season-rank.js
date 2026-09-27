@@ -65,10 +65,10 @@
       if (!reward) return;
       const packs = Number(reward.pr_packs || 0);
       const msg = packs > 0
-        ? tt('season.rewardToastPacks', 'Season reward: {coins} Coins, {gems} Star Gems, {packs} PR packs', {
+        ? tt('season.rewardToastPacks', 'Season reward: {coins} Coins, {gems} Star Gems, a {cards}-card PR pack', {
           coins: reward.coins,
           gems: reward.gems,
-          packs: packs,
+          cards: packs,
         })
         : tt('season.rewardToast', 'Season reward: {coins} Coins, {gems} Star Gems', {
           coins: reward.coins,
