@@ -1072,6 +1072,11 @@ function tcgApiSocialGetProfile(array $body): array {
     } catch (Throwable $e) {
         $tournamentSummary = null;
     }
+    if (!function_exists('tcgSeasonBundleForUser')) {
+        require_once __DIR__ . '/season.php';
+    }
+    $seasonBundle = tcgSeasonBundleForUser($target);
+    $seasonHistory = tcgSeasonHistoryForUser($target);
     return [
         'success' => true,
         'is_self' => $isSelf,
@@ -1092,6 +1097,9 @@ function tcgApiSocialGetProfile(array $body): array {
             'profile_warnings' => tcgSocialIsOwner($viewer) ? intval($user['profile_warnings'] ?? 0) : null,
             'ranked' => tcgSocialRankedWl($target, $body['game_mode'] ?? null),
             'unranked_games' => intval($user['unranked_games'] ?? 0),
+            'season' => $seasonBundle['season'],
+            'seasons' => $seasonBundle['seasons'],
+            'season_history' => $seasonHistory,
             'showcase' => tcgSocialShowcase($target),
             'featured_deck' => tcgSocialFeaturedDeckPayload($user, $viewer, $friends),
             'tournament' => $tournamentSummary,

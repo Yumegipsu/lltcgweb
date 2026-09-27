@@ -246,6 +246,7 @@ function tcgApiMe(array $body): array {
     if ($equipped) {
         $equippedLoadout = (($equipped['source'] ?? '') === 'starter') ? 'starter' : 'preset';
     }
+    $seasonBundle = tcgSeasonBundleForUser($uid);
     return [
         'success' => true,
         'user' => [
@@ -300,6 +301,9 @@ function tcgApiMe(array $body): array {
         'missions' => tcgMissionSummaryForUser($uid),
         'tournament_enabled' => tcgUserMayUseTournaments($uid),
         'notices' => function_exists('tcgBanPendingNotices') ? tcgBanPendingNotices($uid) : [],
+        'season' => $seasonBundle['season'],
+        'seasons' => $seasonBundle['seasons'],
+        'season_rewards' => $seasonBundle['season_rewards'],
     ];
 }
 
@@ -2344,43 +2348,90 @@ function tcgApiRankStats(array $body): array {
     $uid = tcgRequireAuthUser($body);
     $profile = tcgAuthUserProfile($uid);
     $user = tcgEnsureUser($uid, $profile);
-    $gameMode = tcgNormalizeGameMode($body['game_mode'] ?? $_GET['game_mode'] ?? TCG_GAME_MODE_STANDARD);
+    $gameMode = tcgNormalizeRankedGameMode($body['game_mode'] ?? $_GET['game_mode'] ?? TCG_GAME_MODE_STANDARD);
+    $board = strtolower(trim((string)($body['board'] ?? $_GET['board'] ?? 'elo')));
+    if ($board !== 'season') {
+        $board = 'elo';
+    }
+    tcgSeasonSettle($uid, $gameMode);
     $rank = tcgRankRow($uid, $gameMode);
     $cards = tcgLoadCardsData();
     $db = tcgDb();
     if (function_exists('tcgBanEnsureSchema')) {
         tcgBanEnsureSchema();
     }
-    $banExclude = function_exists('tcgBanLeaderboardExcludeSql') ? tcgBanLeaderboardExcludeSql('r.discord_id') : '';
-    $stmt = $db->prepare('SELECT r.discord_id, r.rating, r.wins, r.losses, r.draws, r.games, r.game_mode,
-            u.username, u.avatar_url, u.banner_card_no, u.banner_crop, u.equipped_flag, u.title_id, u.stamp_favorites
-        FROM tcg_rank r
-        JOIN tcg_users u ON u.discord_id = r.discord_id
-        WHERE r.games > 0 AND r.game_mode = ?' . $banExclude . '
-        ORDER BY r.rating DESC, r.wins DESC');
-    $stmt->execute([$gameMode]);
+    $clock = tcgSeasonClockInfo();
+    $seasonMap = (!empty($clock['active']))
+        ? tcgSeasonMapForMode($gameMode, (string)$clock['id'])
+        : [];
     $leaderboard = [];
-    $rankNum = 0;
-    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $rankNum++;
-        $summary = tcgFormatRankSummary($row);
-        $leaderboard[] = [
-            'rank' => $rankNum,
-            'user_id' => $row['discord_id'],
-            'username' => $row['username'] ?: 'Player',
-            'avatar_url' => $row['avatar_url'] ?? null,
-            'elo' => $summary['elo'],
-            'wins' => $summary['wins'],
-            'losses' => $summary['losses'],
-            'draws' => $summary['draws'],
-            'games' => $summary['games'],
-            'win_rate' => $summary['win_rate'],
-            'loss_rate' => $summary['loss_rate'],
-            'banner' => tcgFormatUserBanner($row, $cards),
-            'equipped_flag' => tcgFormatEquippedFlag($row['equipped_flag'] ?? null),
-            'title' => tcgFormatEquippedTitle($row['title_id'] ?? null),
-            'is_you' => $row['discord_id'] === $uid,
-        ];
+    if ($board === 'season' && !empty($clock['active'])) {
+        $banExclude = function_exists('tcgBanLeaderboardExcludeSql') ? tcgBanLeaderboardExcludeSql('s.discord_id') : '';
+        $stmt = $db->prepare('SELECT s.discord_id, s.wins, s.losses, s.step, s.points, s.season_id,
+                u.username, u.avatar_url, u.banner_card_no, u.banner_crop, u.equipped_flag, u.title_id
+            FROM tcg_season_rank s
+            JOIN tcg_users u ON u.discord_id = s.discord_id
+            WHERE s.game_mode = ? AND s.season_id = ? AND (s.wins + s.losses) > 0' . $banExclude . '
+            ORDER BY s.step DESC, s.points DESC, s.wins DESC');
+        $stmt->execute([$gameMode, $clock['id']]);
+        $rankNum = 0;
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $rankNum++;
+            $wins = (int)$row['wins'];
+            $losses = (int)$row['losses'];
+            $decided = max(1, $wins + $losses);
+            $season = $seasonMap[(string)$row['discord_id']] ?? null;
+            $leaderboard[] = [
+                'rank' => $rankNum,
+                'user_id' => $row['discord_id'],
+                'username' => $row['username'] ?: 'Player',
+                'avatar_url' => $row['avatar_url'] ?? null,
+                'wins' => $wins,
+                'losses' => $losses,
+                'draws' => 0,
+                'games' => $wins + $losses,
+                'win_rate' => round(($wins / $decided) * 100, 1),
+                'loss_rate' => round(($losses / $decided) * 100, 1),
+                'points' => (int)$row['points'],
+                'banner' => tcgFormatUserBanner($row, $cards),
+                'equipped_flag' => tcgFormatEquippedFlag($row['equipped_flag'] ?? null),
+                'title' => tcgFormatEquippedTitle($row['title_id'] ?? null),
+                'season' => $season,
+                'is_you' => $row['discord_id'] === $uid,
+            ];
+        }
+    } else {
+        $banExclude = function_exists('tcgBanLeaderboardExcludeSql') ? tcgBanLeaderboardExcludeSql('r.discord_id') : '';
+        $stmt = $db->prepare('SELECT r.discord_id, r.rating, r.wins, r.losses, r.draws, r.games, r.game_mode,
+                u.username, u.avatar_url, u.banner_card_no, u.banner_crop, u.equipped_flag, u.title_id, u.stamp_favorites
+            FROM tcg_rank r
+            JOIN tcg_users u ON u.discord_id = r.discord_id
+            WHERE r.games > 0 AND r.game_mode = ?' . $banExclude . '
+            ORDER BY r.rating DESC, r.wins DESC');
+        $stmt->execute([$gameMode]);
+        $rankNum = 0;
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $rankNum++;
+            $summary = tcgFormatRankSummary($row);
+            $leaderboard[] = [
+                'rank' => $rankNum,
+                'user_id' => $row['discord_id'],
+                'username' => $row['username'] ?: 'Player',
+                'avatar_url' => $row['avatar_url'] ?? null,
+                'elo' => $summary['elo'],
+                'wins' => $summary['wins'],
+                'losses' => $summary['losses'],
+                'draws' => $summary['draws'],
+                'games' => $summary['games'],
+                'win_rate' => $summary['win_rate'],
+                'loss_rate' => $summary['loss_rate'],
+                'banner' => tcgFormatUserBanner($row, $cards),
+                'equipped_flag' => tcgFormatEquippedFlag($row['equipped_flag'] ?? null),
+                'title' => tcgFormatEquippedTitle($row['title_id'] ?? null),
+                'season' => $seasonMap[(string)$row['discord_id']] ?? null,
+                'is_you' => $row['discord_id'] === $uid,
+            ];
+        }
     }
     $yourRank = null;
     foreach ($leaderboard as $entry) {
@@ -2392,6 +2443,8 @@ function tcgApiRankStats(array $body): array {
     return [
         'success' => true,
         'game_mode' => $gameMode,
+        'board' => $board,
+        'season_active' => !empty($clock['active']),
         'you' => array_merge(
             tcgFormatRankSummary($rank),
             [
@@ -2401,6 +2454,7 @@ function tcgApiRankStats(array $body): array {
                 'banner' => tcgFormatUserBanner($user, $cards),
                 'equipped_flag' => tcgFormatEquippedFlag($user['equipped_flag'] ?? null),
                 'title' => tcgFormatEquippedTitle($user['title_id'] ?? null),
+                'season' => tcgSeasonPublic($uid, $gameMode),
             ]
         ),
         'leaderboard' => $leaderboard,
@@ -2514,6 +2568,10 @@ function tcgApiPublicLeaderboard(array $params): array {
     }
     $stmt = $db->prepare($sql);
     $stmt->execute([$gameMode]);
+    $clock = tcgSeasonClockInfo();
+    $seasonMap = !empty($clock['active'])
+        ? tcgSeasonMapForMode($gameMode, (string)$clock['id'])
+        : [];
     $leaderboard = [];
     $rankNum = 0;
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -2528,6 +2586,7 @@ function tcgApiPublicLeaderboard(array $params): array {
             'losses' => $summary['losses'],
             'loss_rate' => $summary['loss_rate'],
             'games' => $summary['games'],
+            'season' => $seasonMap[(string)$row['discord_id']] ?? null,
         ];
     }
     return [

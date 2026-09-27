@@ -431,6 +431,11 @@ function tcgDbMigrate(PDO $db): void {
         tcgDbEnsureColumn($db, 'tcg_users', 'scouting_tickets', 'INTEGER NOT NULL DEFAULT 0');
     });
 
+    tcgDbRunMigrationOnce($db, 'season_rank_20261001', function (PDO $db): void {
+        require_once __DIR__ . '/season.php';
+        tcgSeasonEnsureSchema($db);
+    });
+
     $done = true;
 }
 

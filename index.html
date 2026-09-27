@@ -112,6 +112,7 @@ try {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="client/css/shell-all.css?v=159">
+<link rel="stylesheet" href="client/css/season-rank.css?v=2">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
 <link rel="stylesheet" href="client/css/playmats.css?v=6">
@@ -1719,6 +1720,7 @@ try {
         <button class="btn-ghost" id="btn-ranked-back" type="button" data-i18n="ranked.backHub">← Hub</button>
         <h2 data-i18n="ranked.title">Ranked PvP</h2>
       </div>
+      <p id="ranked-season-user" class="season-userline" hidden></p>
       <p id="ranked-info" class="hub-stat"></p>
       <p id="ranked-pr-remaining" class="hub-stat"></p>
       <p class="hub-stat" data-i18n="ranked.timerNote">Main &amp; LIVE phases use a 120s timer.</p>
@@ -1781,6 +1783,10 @@ try {
           </select>
         </div>
         <p class="game-mode-desc" id="leaderboard-game-mode-desc"></p>
+      </div>
+      <div class="leaderboard-boards" role="tablist">
+        <button class="btn-out is-on" id="btn-leaderboard-board-elo" type="button" data-board="elo" data-i18n="leaderboard.boardAllTime">All-time</button>
+        <button class="btn-ghost" id="btn-leaderboard-board-season" type="button" data-board="season" data-i18n="leaderboard.boardSeason">This season</button>
       </div>
       <div class="leaderboard-actions">
         <button class="btn-out" id="btn-leaderboard-banner" type="button" data-i18n="leaderboard.editBanner">Edit profile</button>
@@ -3249,12 +3255,13 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=207"></script>
+<script src="i18n.js?v=208"></script>
 <script src="log_i18n.js?v=20"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=43"></script>
-<script src="client/js/social.js?v=34"></script>
+<script src="client/js/social.js?v=35"></script>
 <script src="client/js/titles.js?v=5"></script>
+<script src="client/js/season-rank.js?v=1"></script>
 <script src="client/js/friend-push.js?v=12"></script>
 <script src="client/js/runtime-flags.js?v=5"></script>
 <script src="client/js/api-client.js?v=42"></script>
@@ -4656,6 +4663,7 @@ function refreshDynamicI18n() {
   if (A.profile) {
     const userName = A.profile?.user?.username || A.user?.username || 'Player';
     el('hub-user').innerHTML = t('hub.signedInAsHtml', { name: escapeHtmlText(userName) });
+    if (window.TCGSeason) TCGSeason.attachHub(el('hub-user'), A.profile.season);
     if (el('screen-hub')?.classList.contains('active')) updateHubDynamicStats(A.profile);
     if (el('screen-ranked')?.classList.contains('active')) updateRankedScreenDynamic(A.profile);
   }
@@ -7140,6 +7148,10 @@ function enterHub(me) {
   syncRankedPrFromProfile(A.profile);
   const userName = A.profile?.user?.username || A.user?.username || 'Player';
   el('hub-user').innerHTML = t('hub.signedInAsHtml', { name: escapeHtmlText(userName) });
+  if (window.TCGSeason) {
+    TCGSeason.attachHub(el('hub-user'), A.profile.season);
+    TCGSeason.showRewardToasts(A.profile);
+  }
   const d = A.profile?.daily || {};
   el('hub-daily').textContent = t('hub.dailyBoosters', { remaining: d.remaining ?? 0, limit: d.limit ?? 5 })
     + (d.first_day_bonus ? t('hub.dailyWelcomeBonus') : '');
@@ -14232,7 +14244,9 @@ function renderLeaderboardRows(data) {
   if (!rows.length) {
     const empty = document.createElement('div');
     empty.className = 'leaderboard-empty';
-    empty.textContent = t('leaderboard.empty');
+    empty.textContent = data?.board === 'season'
+      ? (data.season_active ? t('leaderboard.seasonEmpty') : t('season.notStarted'))
+      : t('leaderboard.empty');
     list.appendChild(empty);
     return;
   }
@@ -14316,6 +14330,9 @@ function renderLeaderboardRows(data) {
         if (typeof window.openSocialProfile === 'function') window.openSocialProfile(profileId);
       });
     }
+    if (row.season && window.TCGSeason && TCGSeason.active(row.season)) {
+      nameRow.appendChild(TCGSeason.createBadge(row.season, { size: 'sm' }));
+    }
     nameRow.appendChild(name);
     nameWrap.appendChild(nameRow);
     line.appendChild(pos);
@@ -14324,7 +14341,11 @@ function renderLeaderboardRows(data) {
 
     const elo = document.createElement('div');
     elo.className = 'rank-elo';
-    elo.textContent = (row.elo ?? row.rating ?? 1000) + t('leaderboard.eloSuffix');
+    if (data?.board === 'season') {
+      elo.textContent = (row.points ?? row.season?.points ?? 0) + ' pts';
+    } else {
+      elo.textContent = (row.elo ?? row.rating ?? 1000) + t('leaderboard.eloSuffix');
+    }
     meta.appendChild(elo);
 
     const rec = document.createElement('div');
@@ -14350,8 +14371,9 @@ async function openLeaderboardScreen() {
   el('leaderboard-err').textContent = '';
   if (!A.leaderboardViewMode) A.leaderboardViewMode = rankedGameMode();
   syncLeaderboardModeChrome();
+  syncLeaderboardBoardChrome();
   try {
-    const res = await accountGet('rank_stats', { game_mode: leaderboardViewMode() });
+    const res = await accountGet('rank_stats', leaderboardStatsQuery());
     A.leaderboard = res;
     A.lastLeaderboardData = res;
     renderLeaderboardRows(res);
@@ -14693,7 +14715,7 @@ async function saveBannerCrop() {
     }
     try {
       if (el('screen-leaderboard').classList.contains('active')) {
-        const stats = await accountGet('rank_stats', { game_mode: leaderboardViewMode() });
+        const stats = await accountGet('rank_stats', leaderboardStatsQuery());
         A.leaderboard = stats;
         A.lastLeaderboardData = stats;
         renderLeaderboardRows(stats);
@@ -14855,7 +14877,7 @@ async function saveProfileFlag() {
     syncProfileFlagStatus();
     renderProfileFlagGrid();
     if (el('screen-leaderboard').classList.contains('active')) {
-      const stats = await accountGet('rank_stats', { game_mode: leaderboardViewMode() });
+      const stats = await accountGet('rank_stats', leaderboardStatsQuery());
       A.leaderboard = stats;
       A.lastLeaderboardData = stats;
       renderLeaderboardRows(stats);
@@ -15428,6 +15450,24 @@ function leaderboardViewMode() {
   return rankedGameMode();
 }
 
+function leaderboardBoard() {
+  return A.leaderboardBoard === 'season' ? 'season' : 'elo';
+}
+
+function leaderboardStatsQuery() {
+  return { game_mode: leaderboardViewMode(), board: leaderboardBoard() };
+}
+
+function syncLeaderboardBoardChrome() {
+  const board = leaderboardBoard();
+  document.querySelectorAll('#leaderboard-boards button, .leaderboard-boards button').forEach((btn) => {
+    const on = btn.getAttribute('data-board') === board;
+    btn.classList.toggle('is-on', on);
+    btn.classList.toggle('btn-out', on);
+    btn.classList.toggle('btn-ghost', !on);
+  });
+}
+
 function syncLeaderboardModeChrome() {
   const m = leaderboardViewMode();
   const sel = el('sel-leaderboard-game-mode');
@@ -15626,6 +15666,10 @@ async function refreshRankedScreenModeStats(opts = {}) {
   try {
     const stats = await accountGet('rank_stats', { game_mode: mode });
     const you = stats?.you || {};
+    if (window.TCGSeason) {
+      const name = A.profile?.user?.username || you.username || '';
+      TCGSeason.paintUserLine(el('ranked-season-user'), you.season, name);
+    }
     el('ranked-info').textContent = t('ranked.infoLine', {
       elo: you.elo ?? you.rating ?? 1000,
       record: t('ranked.record', {
@@ -15652,7 +15696,7 @@ async function refreshRankedScreenModeStats(opts = {}) {
 async function refreshLeaderboardForMode() {
   el('leaderboard-err').textContent = '';
   try {
-    const res = await accountGet('rank_stats', { game_mode: leaderboardViewMode() });
+    const res = await accountGet('rank_stats', leaderboardStatsQuery());
     A.leaderboard = res;
     A.lastLeaderboardData = res;
     renderLeaderboardRows(res);
@@ -17968,6 +18012,13 @@ async function bootApp() {
   on('btn-leaderboard-back', 'click', () => enterHub(A.profile));
   on('btn-leaderboard-banner', 'click', openBannerCropModal);
   on('btn-leaderboard-jump-you', 'click', jumpToYourLeaderboardEntry);
+  document.querySelectorAll('.leaderboard-boards button').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      A.leaderboardBoard = btn.getAttribute('data-board') === 'season' ? 'season' : 'elo';
+      syncLeaderboardBoardChrome();
+      void refreshLeaderboardForMode();
+    });
+  });
   on('btn-banner-save', 'click', saveBannerCrop);
   on('btn-profile-flag-equip', 'click', saveProfileFlag);
   on('btn-banner-cancel', 'click', () => closeM('modal-banner-crop'));

@@ -521,6 +521,45 @@
     `;
   }
 
+  function seasonModeLabel(mode) {
+    if (mode === 'starters') return tt('gameMode.starters', 'Starter decks only');
+    if (mode === 'randomized') return tt('gameMode.randomized', 'Randomized Decks');
+    return tt('gameMode.standard', 'Standard');
+  }
+
+  function seasonHistoryHtml(p) {
+    const seasons = p.seasons && typeof p.seasons === 'object' ? p.seasons : {};
+    const current = Object.keys(seasons)
+      .map((mode) => ({ mode, row: seasons[mode] }))
+      .filter((item) => item.row && item.row.active && item.row.has_row);
+    const history = Array.isArray(p.season_history) ? p.season_history : [];
+    if (!current.length && !history.length) return '';
+    const line = (icon, text) => {
+      const img = icon
+        ? `<img src="${esc(icon)}" alt="" width="22" height="22" style="width:22px;height:22px;object-fit:contain">`
+        : '';
+      return `<li>${img}<span>${esc(text)}</span></li>`;
+    };
+    const currentHtml = current.map((item) => {
+      const row = item.row;
+      const text = tt('season.current', 'This season')
+        + ' · ' + (row.label || '')
+        + ' · ' + seasonModeLabel(item.mode)
+        + ' · ' + (row.letter || '')
+        + ' · ' + tt('season.record', '{wins}W-{losses}L', { wins: row.wins || 0, losses: row.losses || 0 });
+      return line(row.icon, text);
+    }).join('');
+    const historyHtml = history.map((row) => {
+      const text = (row.label || '')
+        + ' · ' + seasonModeLabel(row.game_mode)
+        + ' · ' + (row.letter || '')
+        + ' · ' + tt('season.peak', 'Peak {letter}', { letter: row.peak_letter || row.letter || '' })
+        + ' · ' + tt('season.record', '{wins}W-{losses}L', { wins: row.wins || 0, losses: row.losses || 0 });
+      return line(row.peak_icon || row.icon, text);
+    }).join('');
+    return `<h4>${esc(tt('season.history', 'Season ranks'))}</h4><ul class="season-history">${currentHtml}${historyHtml}</ul>`;
+  }
+
   function renderProfile(data) {
     const p = data.profile || {};
     const self = !!data.is_self;
@@ -556,7 +595,7 @@
       <div class="social-head">
         <img class="social-avatar" alt="" src="${esc(p.avatar_url || '')}">
         <div>
-          <h3>${esc(p.username || 'Player')}</h3>
+          <h3><span id="profile-season-slot"></span>${esc(p.username || 'Player')}</h3>
           ${friendIdBtn(p.friend_code)}
           ${titleHtml}
           ${titleAction}
@@ -585,6 +624,7 @@
         </div>` : ''}
       <p>${tt('profile.rankedWl', 'Ranked')}: ${ranked.wins || 0}–${ranked.losses || 0}
          · ${tt('profile.unranked', 'Unranked games')}: ${p.unranked_games || 0}</p>
+      ${seasonHistoryHtml(p)}
       ${tournamentSectionHtml(p)}
       <button type="button" class="btn-ghost" id="btn-profile-stats">${tt('profile.gameStats', 'Game stats')}</button>
       <h4>${tt('profile.featuredDeck', 'Featured deck')}</h4>
@@ -638,6 +678,10 @@
     const count = document.getElementById('profile-bio-count');
     const tick = () => { if (count && bio) count.textContent = `${bio.value.length}/${bioMax}`; };
     if (bio) { bio.addEventListener('input', tick); tick(); }
+    const seasonSlot = document.getElementById('profile-season-slot');
+    if (seasonSlot && window.TCGSeason && TCGSeason.active(p.season)) {
+      seasonSlot.appendChild(TCGSeason.createBadge(p.season, { size: 'sm' }));
+    }
     const titleSlot = document.getElementById('profile-title-slot');
     if (titleSlot && typeof window.TCGTitles?.mountTitleEl === 'function') {
       window.TCGTitles.mountTitleEl(titleSlot, p.title || null, {

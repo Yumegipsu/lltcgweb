@@ -7,6 +7,7 @@
  */
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/game_mode.php';
+require_once __DIR__ . '/season.php';
 
 const TCG_QUEUE_MAX_WAIT = 300;
 const TCG_RATING_BAND = 150;
@@ -41,11 +42,13 @@ function tcgQueueJoin(string $discordId, string $gameMode = TCG_GAME_MODE_STANDA
         $rank = tcgRankRow($discordId, $gameMode);
         $db = tcgDb();
         $now = time();
+        $seasonStep = tcgSeasonQueueProfile($discordId, $gameMode)['step'];
         // One active ranked search at a time across modes.
         $db->prepare('DELETE FROM tcg_match_queue WHERE discord_id = ?')->execute([$discordId]);
-        $db->prepare('INSERT INTO tcg_match_queue (discord_id, game_mode, rating, joined_at) VALUES (?, ?, ?, ?)
-            ON CONFLICT(discord_id, game_mode) DO UPDATE SET rating = excluded.rating, joined_at = excluded.joined_at')
-            ->execute([$discordId, $gameMode, intval($rank['rating']), $now]);
+        $db->prepare('INSERT INTO tcg_match_queue (discord_id, game_mode, rating, joined_at, season_step) VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(discord_id, game_mode) DO UPDATE SET
+                rating = excluded.rating, joined_at = excluded.joined_at, season_step = excluded.season_step')
+            ->execute([$discordId, $gameMode, intval($rank['rating']), $now, $seasonStep]);
         return [
             'queued' => true,
             'rating' => intval($rank['rating']),
@@ -179,16 +182,18 @@ function tcgFindQueueOpponent(string $discordId, int $rating, string $gameMode =
     $gameMode = tcgNormalizeGameMode($gameMode);
     tcgPurgeQueuedPlayersWithPendingMatches();
     $db = tcgDb();
-    $stmt = $db->prepare('SELECT discord_id, rating, joined_at, game_mode FROM tcg_match_queue
+    $stmt = $db->prepare('SELECT discord_id, rating, joined_at, game_mode, season_step FROM tcg_match_queue
         WHERE discord_id != ? AND game_mode = ?
         ORDER BY ABS(rating - ?) ASC, joined_at ASC
-        LIMIT 10');
+        LIMIT 40');
     $stmt->execute([$discordId, $gameMode, $rating]);
     $candidates = $stmt->fetchAll(PDO::FETCH_ASSOC);
     if (empty($candidates)) {
         return null;
     }
-    $bandHit = null;
+    $profile = tcgSeasonQueueProfile($discordId, $gameMode);
+    $accept = tcgSeasonQueueAcceptSteps((int)$profile['step'], (int)$profile['points']);
+    $band = [];
     $fallback = null;
     foreach ($candidates as $c) {
         $oppId = (string)($c['discord_id'] ?? '');
@@ -204,11 +209,32 @@ function tcgFindQueueOpponent(string $discordId, int $rating, string $gameMode =
             $fallback = $c;
         }
         if (abs(intval($c['rating']) - $rating) <= TCG_RATING_BAND) {
-            $bandHit = $c;
-            break;
+            $band[] = $c;
         }
     }
-    return $bandHit ?? $fallback;
+    if ($band === []) {
+        return $fallback;
+    }
+    if ($accept === []) {
+        return $band[0];
+    }
+    $best = null;
+    $bestPri = 99;
+    $bestElo = PHP_INT_MAX;
+    foreach ($band as $c) {
+        $oppStep = (int)($c['season_step'] ?? -1);
+        $pri = array_search($oppStep, $accept, true);
+        if ($pri === false) {
+            continue;
+        }
+        $elo = abs(intval($c['rating']) - $rating);
+        if ($pri < $bestPri || ($pri === $bestPri && $elo < $bestElo)) {
+            $best = $c;
+            $bestPri = $pri;
+            $bestElo = $elo;
+        }
+    }
+    return $best ?? $band[0];
 }
 
 function tcgCreateRankedMatchRecord(
@@ -262,6 +288,14 @@ function tcgApplyRankResult(
     $db->prepare('UPDATE tcg_rank SET rating = MAX(100, rating - ?), losses = losses + 1, games = games + 1, updated_at = ?
         WHERE discord_id = ? AND game_mode = ?')
         ->execute([$delta, $now, $loserId, $gameMode]);
+    try {
+        tcgSeasonApplyResult($winnerId, $loserId, false, $gameMode, $delta);
+    } catch (Throwable $e) {
+        error_log('tcgSeasonApplyResult: ' . $e->getMessage());
+        if (getenv('TCG_DEBUG') === '1') {
+            throw $e;
+        }
+    }
 }
 
 function tcgCompleteRankedMatch(string $roomId, ?string $winnerPid = null, ?bool $prRewarded = null): void {

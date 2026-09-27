@@ -71,7 +71,10 @@ function tcgTitleDefById(string $id): ?array {
             return $row;
         }
     }
-    return null;
+    if (!function_exists('tcgSeasonTitleDefFromId')) {
+        require_once __DIR__ . '/season.php';
+    }
+    return tcgSeasonTitleDefFromId($id);
 }
 
 function tcgTitleImageUrl(array $def): string {
@@ -100,6 +103,12 @@ function tcgTitleIdolPlayCount(string $discordId, array $def): int {
 }
 
 function tcgTitleIsUnlocked(string $discordId, array $def): bool {
+    if (($def['unlock'] ?? '') === 'season') {
+        if (!function_exists('tcgSeasonTitleOwned')) {
+            require_once __DIR__ . '/season.php';
+        }
+        return tcgSeasonTitleOwned($discordId, (string)($def['id'] ?? ''));
+    }
     return tcgTitleIdolPlayCount($discordId, $def) >= tcgTitleUnlockPlays($def);
 }
 
@@ -136,6 +145,19 @@ function tcgFormatTitle(?array $def, ?string $discordId = null, array $opts = []
         'url' => tcgTitleImageUrl($def),
         'unlock_plays' => $need,
     ];
+    if (($def['unlock'] ?? '') === 'season') {
+        $payload['unlock_plays'] = 0;
+        if (!function_exists('tcgSeasonTitleOwned')) {
+            require_once __DIR__ . '/season.php';
+        }
+        $owned = $discordId ? tcgSeasonTitleOwned($discordId, $id) : false;
+        $payload['unlocked'] = $owned;
+        $label = trim((string)($def['name'] ?? 'this season'));
+        $payload['unlock_hint'] = $owned
+            ? ('Earned in ' . $label . '.')
+            : ('Reach this rank during ' . $label . '.');
+        return $payload;
+    }
     if (!empty($opts['include_progress']) && $discordId) {
         $have = tcgTitleIdolPlayCount($discordId, $def);
         $unlocked = $have >= $need;
@@ -169,6 +191,15 @@ function tcgFormatEquippedTitle(?string $titleId): ?array {
  */
 function tcgTitlesListForUser(string $discordId): array {
     $out = [];
+    if (!function_exists('tcgSeasonTitleDefsForUser')) {
+        require_once __DIR__ . '/season.php';
+    }
+    foreach (tcgSeasonTitleDefsForUser($discordId) as $def) {
+        $row = tcgFormatTitle($def, $discordId, ['include_progress' => true]);
+        if ($row) {
+            $out[] = $row;
+        }
+    }
     foreach (tcgTitlesCatalog() as $def) {
         $row = tcgFormatTitle($def, $discordId, ['include_progress' => true]);
         if ($row) {

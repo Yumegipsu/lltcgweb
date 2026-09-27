@@ -1,0 +1,101 @@
+/* Seasonal rank badge: icon with a radial progress ring. */
+.llc-menu-screen .hub-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.season-badge {
+  --pct: 0;
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.season-badge-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(#ffe08a calc(var(--pct) * 1%), rgba(255, 255, 255, 0.22) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 2.5px));
+}
+
+.season-badge img {
+  position: relative;
+  z-index: 1;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.season-badge--sm {
+  width: 30px;
+  height: 30px;
+}
+
+.season-badge--sm img {
+  width: 22px;
+  height: 22px;
+}
+
+.season-userline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.season-userline[hidden] {
+  display: none;
+}
+
+.leaderboard-boards {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.leaderboard-boards button {
+  width: auto;
+  flex: 1 1 0;
+}
+
+.leaderboard-boards button.is-on {
+  box-shadow: inset 0 0 0 2px rgba(255, 224, 138, 0.85);
+}
+
+.rank-name-row .season-badge {
+  margin-right: 2px;
+}
+
+.season-history {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.season-history li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.social-head h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}

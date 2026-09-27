@@ -1,0 +1,674 @@
+<?php
+/**
+ * Monthly seasonal ladder beside lifetime Elo.
+ *
+ * Season 1 starts 2026-10-01 00:00 UTC. Each ranked mode has its own bar.
+ * Rollover is lazy (next account or ranked request). Rewards use the peak step.
+ */
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/game_mode.php';
+
+const TCG_SEASON_EPOCH = 1790812800; // 2026-10-01 00:00:00 UTC
+const TCG_SEASON_POINTS = 100;
+
+/** @var list<array{key:string,letter:string,tone:string}> */
+const TCG_SEASON_STEPS = [
+    ['key' => 'c-green', 'letter' => 'C', 'tone' => 'green'],
+    ['key' => 'c-pink', 'letter' => 'C', 'tone' => 'pink'],
+    ['key' => 'b-green', 'letter' => 'B', 'tone' => 'green'],
+    ['key' => 'b-pink', 'letter' => 'B', 'tone' => 'pink'],
+    ['key' => 'a-green', 'letter' => 'A', 'tone' => 'green'],
+    ['key' => 'a-pink', 'letter' => 'A', 'tone' => 'pink'],
+    ['key' => 's-green', 'letter' => 'S', 'tone' => 'green'],
+    ['key' => 's-pink', 'letter' => 'S', 'tone' => 'pink'],
+];
+
+/** @var array<int,array{coins:int,gems:int,packs:int}> */
+const TCG_SEASON_REWARDS = [
+    0 => ['coins' => 400, 'gems' => 150, 'packs' => 0],
+    1 => ['coins' => 600, 'gems' => 200, 'packs' => 0],
+    2 => ['coins' => 1200, 'gems' => 400, 'packs' => 0],
+    3 => ['coins' => 1800, 'gems' => 600, 'packs' => 0],
+    4 => ['coins' => 2500, 'gems' => 800, 'packs' => 2],
+    5 => ['coins' => 3500, 'gems' => 1000, 'packs' => 3],
+    6 => ['coins' => 4500, 'gems' => 1300, 'packs' => 4],
+    7 => ['coins' => 6000, 'gems' => 2000, 'packs' => 5],
+];
+
+function tcgSeasonNow(): int {
+    if (isset($GLOBALS['TCG_SEASON_NOW']) && is_numeric($GLOBALS['TCG_SEASON_NOW'])) {
+        return (int)$GLOBALS['TCG_SEASON_NOW'];
+    }
+    return time();
+}
+
+function tcgSeasonEnsureSchema(PDO $db): void {
+    $db->exec('CREATE TABLE IF NOT EXISTS tcg_season_rank (
+        discord_id TEXT NOT NULL,
+        game_mode TEXT NOT NULL,
+        season_id TEXT NOT NULL,
+        step INTEGER NOT NULL DEFAULT 0,
+        points INTEGER NOT NULL DEFAULT 0,
+        peak_step INTEGER NOT NULL DEFAULT 0,
+        wins INTEGER NOT NULL DEFAULT 0,
+        losses INTEGER NOT NULL DEFAULT 0,
+        updated_at INTEGER NOT NULL,
+        PRIMARY KEY (discord_id, game_mode),
+        FOREIGN KEY (discord_id) REFERENCES tcg_users(discord_id) ON DELETE CASCADE
+    )');
+    $db->exec('CREATE TABLE IF NOT EXISTS tcg_season_history (
+        discord_id TEXT NOT NULL,
+        game_mode TEXT NOT NULL,
+        season_id TEXT NOT NULL,
+        season_number INTEGER NOT NULL,
+        step INTEGER NOT NULL,
+        points INTEGER NOT NULL,
+        peak_step INTEGER NOT NULL,
+        wins INTEGER NOT NULL DEFAULT 0,
+        losses INTEGER NOT NULL DEFAULT 0,
+        coins INTEGER NOT NULL DEFAULT 0,
+        star_gems INTEGER NOT NULL DEFAULT 0,
+        pr_packs INTEGER NOT NULL DEFAULT 0,
+        packs_granted INTEGER NOT NULL DEFAULT 0,
+        title_id TEXT,
+        closed_at INTEGER NOT NULL,
+        PRIMARY KEY (discord_id, game_mode, season_id),
+        FOREIGN KEY (discord_id) REFERENCES tcg_users(discord_id) ON DELETE CASCADE
+    )');
+    $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_season_rank_board
+        ON tcg_season_rank(game_mode, season_id, step, points)');
+    tcgDbEnsureColumn($db, 'tcg_match_queue', 'season_step', 'INTEGER NOT NULL DEFAULT -1');
+}
+
+function tcgSeasonNumberFromId(string $seasonId): int {
+    if (!preg_match('/^(\d{4})-(\d{2})$/', $seasonId, $m)) {
+        return 0;
+    }
+    $months = ((int)$m[1] - 2026) * 12 + ((int)$m[2] - 10);
+    return $months + 1;
+}
+
+/**
+ * @return array{active:bool,id?:string,number?:int,label?:string,starts_at?:int,ends_at?:int,now:int}
+ */
+function tcgSeasonClockInfo(): array {
+    $now = tcgSeasonNow();
+    if ($now < TCG_SEASON_EPOCH) {
+        return ['active' => false, 'now' => $now];
+    }
+    $year = (int)gmdate('Y', $now);
+    $month = (int)gmdate('n', $now);
+    $id = sprintf('%04d-%02d', $year, $month);
+    $number = tcgSeasonNumberFromId($id);
+    return [
+        'active' => true,
+        'id' => $id,
+        'number' => $number,
+        'label' => 'Season ' . $number,
+        'starts_at' => gmmktime(0, 0, 0, $month, 1, $year),
+        'ends_at' => gmmktime(0, 0, 0, $month + 1, 1, $year),
+        'now' => $now,
+    ];
+}
+
+function tcgSeasonClampDelta(int $delta): int {
+    $n = abs($delta);
+    if ($n < 8) {
+        $n = 8;
+    }
+    if ($n > 32) {
+        $n = 32;
+    }
+    return $n;
+}
+
+function tcgSeasonClampStep(int $step): int {
+    if ($step < 0) {
+        return 0;
+    }
+    if ($step > 7) {
+        return 7;
+    }
+    return $step;
+}
+
+/**
+ * Win adds points (and promotes). A loss on C does nothing.
+ * B cannot fall below Green B. A and S cannot fall below Green A.
+ *
+ * @return array{step:int,points:int}
+ */
+function tcgSeasonMovePoints(int $step, int $points, int $delta, bool $win): array {
+    $step = tcgSeasonClampStep($step);
+    $points = max(0, $points);
+    $delta = tcgSeasonClampDelta($delta);
+    if (!$win) {
+        if ($step <= 1) {
+            return ['step' => $step, 'points' => $points];
+        }
+        $floor = $step <= 3 ? 2 : 4;
+        $points -= $delta;
+        while ($points < 0 && $step > $floor) {
+            $step--;
+            $points += TCG_SEASON_POINTS;
+        }
+        if ($points < 0) {
+            $points = 0;
+        }
+        return ['step' => $step, 'points' => $points];
+    }
+    $points += $delta;
+    while ($points >= TCG_SEASON_POINTS && $step < 7) {
+        $points -= TCG_SEASON_POINTS;
+        $step++;
+    }
+    if ($step >= 7 && $points > TCG_SEASON_POINTS) {
+        $points = TCG_SEASON_POINTS;
+    }
+    return ['step' => $step, 'points' => $points];
+}
+
+function tcgSeasonSoftResetStep(int $finalStep): int {
+    return max(0, tcgSeasonClampStep($finalStep) - 3);
+}
+
+/** @return array{coins:int,gems:int,packs:int} */
+function tcgSeasonRewardForStep(int $step): array {
+    $step = tcgSeasonClampStep($step);
+    return TCG_SEASON_REWARDS[$step];
+}
+
+/** @return array{key:string,letter:string,tone:string} */
+function tcgSeasonStepDef(int $step): array {
+    return TCG_SEASON_STEPS[tcgSeasonClampStep($step)];
+}
+
+function tcgSeasonIconUrl(int $step): string {
+    return 'client/img/ranks/' . tcgSeasonStepDef($step)['key'] . '.png';
+}
+
+function tcgSeasonTitleId(string $seasonId, int $step): string {
+    return 'season-' . $seasonId . '-' . tcgSeasonStepDef($step)['key'];
+}
+
+function tcgSeasonTitleImageUrl(string $titleId): string {
+    return 'client/img/titles/' . $titleId . '.png';
+}
+
+function tcgSeasonTitleDefFromId(string $id): ?array {
+    if (!preg_match('/^season-(\d{4}-\d{2})-([cbas])-(green|pink)$/', $id, $m)) {
+        return null;
+    }
+    $seasonId = $m[1];
+    $number = tcgSeasonNumberFromId($seasonId);
+    if ($number < 1) {
+        return null;
+    }
+    $key = $m[2] . '-' . $m[3];
+    $step = null;
+    foreach (TCG_SEASON_STEPS as $i => $def) {
+        if ($def['key'] === $key) {
+            $step = $i;
+            break;
+        }
+    }
+    if ($step === null) {
+        return null;
+    }
+    $def = tcgSeasonStepDef($step);
+    return [
+        'id' => $id,
+        'tier' => 'season',
+        'style' => 'wide',
+        'name' => 'Season ' . $number,
+        'idol' => '',
+        'idol_short' => '',
+        'unit' => '',
+        'image' => tcgSeasonTitleImageUrl($id),
+        'unlock' => 'season',
+        'unlock_plays' => 0,
+        'letter' => $def['letter'],
+        'tone' => $def['tone'],
+        'season_id' => $seasonId,
+        'season_number' => $number,
+        'step' => $step,
+        'sort' => 1,
+    ];
+}
+
+function tcgSeasonTitleOwned(string $discordId, string $titleId): bool {
+    if ($discordId === '' || $titleId === '') {
+        return false;
+    }
+    $stmt = tcgDb()->prepare(
+        'SELECT 1 FROM tcg_season_history WHERE discord_id = ? AND title_id = ? LIMIT 1'
+    );
+    $stmt->execute([$discordId, $titleId]);
+    return (bool)$stmt->fetchColumn();
+}
+
+/**
+ * Season titles this player has earned (one row per title id).
+ *
+ * @return list<array<string,mixed>>
+ */
+function tcgSeasonTitleDefsForUser(string $discordId): array {
+    $stmt = tcgDb()->prepare(
+        'SELECT title_id FROM tcg_season_history
+         WHERE discord_id = ? AND title_id IS NOT NULL AND title_id != ""
+         GROUP BY title_id
+         ORDER BY season_id DESC, title_id ASC'
+    );
+    $stmt->execute([$discordId]);
+    $out = [];
+    while ($id = $stmt->fetchColumn()) {
+        $def = tcgSeasonTitleDefFromId((string)$id);
+        if ($def) {
+            $out[] = $def;
+        }
+    }
+    return $out;
+}
+
+/**
+ * @param array<string,mixed>|null $row
+ * @param array<string,mixed> $clock
+ * @return array<string,mixed>
+ */
+function tcgSeasonFormatPublic(?array $row, array $clock): array {
+    if (empty($clock['active'])) {
+        return ['active' => false];
+    }
+    $step = $row ? tcgSeasonClampStep((int)$row['step']) : 0;
+    $points = $row ? max(0, (int)$row['points']) : 0;
+    $peak = $row ? tcgSeasonClampStep((int)$row['peak_step']) : $step;
+    $def = tcgSeasonStepDef($step);
+    $peakDef = tcgSeasonStepDef($peak);
+    $progress = (int)max(0, min(100, $points));
+    return [
+        'active' => true,
+        'has_row' => $row !== null,
+        'season_id' => (string)$clock['id'],
+        'season_number' => (int)$clock['number'],
+        'label' => (string)$clock['label'],
+        'step' => $step,
+        'points' => $points,
+        'progress' => $progress,
+        'peak_step' => $peak,
+        'wins' => $row ? (int)$row['wins'] : 0,
+        'losses' => $row ? (int)$row['losses'] : 0,
+        'letter' => $def['letter'],
+        'tone' => $def['tone'],
+        'key' => $def['key'],
+        'icon' => tcgSeasonIconUrl($step),
+        'peak_letter' => $peakDef['letter'],
+        'peak_tone' => $peakDef['tone'],
+        'peak_icon' => tcgSeasonIconUrl($peak),
+    ];
+}
+
+function tcgSeasonRankedMode(string $gameMode): ?string {
+    $mode = tcgNormalizeGameMode($gameMode);
+    if (!in_array($mode, tcgRankedGameModeIds(), true)) {
+        return null;
+    }
+    return $mode;
+}
+
+/** @return array<string,mixed>|null */
+function tcgSeasonLoadRow(string $discordId, string $gameMode): ?array {
+    $stmt = tcgDb()->prepare('SELECT * FROM tcg_season_rank WHERE discord_id = ? AND game_mode = ?');
+    $stmt->execute([$discordId, $gameMode]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row ?: null;
+}
+
+/**
+ * Close a finished season once, pay the peak, and soft-reset into the current month.
+ *
+ * @return array<string,mixed>|null reward payload when this call paid coins/gems
+ */
+function tcgSeasonSettle(string $discordId, string $gameMode): ?array {
+    $mode = tcgSeasonRankedMode($gameMode);
+    if ($mode === null || $discordId === '') {
+        return null;
+    }
+    $clock = tcgSeasonClockInfo();
+    if (empty($clock['active'])) {
+        return null;
+    }
+    $row = tcgSeasonLoadRow($discordId, $mode);
+    $granted = null;
+    if ($row && (string)$row['season_id'] !== (string)$clock['id']) {
+        $granted = tcgSeasonCloseRow($discordId, $mode, $row, $clock);
+    }
+    tcgSeasonFinishPendingPacks($discordId, $mode);
+    return $granted;
+}
+
+/**
+ * @param array<string,mixed> $row
+ * @param array<string,mixed> $clock
+ * @return array<string,mixed>|null
+ */
+function tcgSeasonCloseRow(string $discordId, string $gameMode, array $row, array $clock): ?array {
+    $oldId = (string)$row['season_id'];
+    $finalStep = tcgSeasonClampStep((int)$row['step']);
+    $peak = tcgSeasonClampStep(max($finalStep, (int)$row['peak_step']));
+    $reward = tcgSeasonRewardForStep($peak);
+    $titleId = tcgSeasonTitleId($oldId, $peak);
+    $number = tcgSeasonNumberFromId($oldId);
+    tcgSeasonEnsureTitleFile($oldId, $peak);
+    $resetStep = tcgSeasonSoftResetStep($finalStep);
+    $now = tcgSeasonNow();
+    $db = tcgDb();
+    $paid = false;
+    $db->beginTransaction();
+    try {
+        $have = $db->prepare('SELECT 1 FROM tcg_season_history WHERE discord_id = ? AND game_mode = ? AND season_id = ?');
+        $have->execute([$discordId, $gameMode, $oldId]);
+        if ($have->fetchColumn()) {
+            $db->prepare('UPDATE tcg_season_rank
+                SET season_id = ?, step = ?, points = 0, peak_step = ?, wins = 0, losses = 0, updated_at = ?
+                WHERE discord_id = ? AND game_mode = ? AND season_id = ?')
+                ->execute([$clock['id'], $resetStep, $resetStep, $now, $discordId, $gameMode, $oldId]);
+            $db->commit();
+            return null;
+        }
+        $ins = $db->prepare('INSERT INTO tcg_season_history (
+            discord_id, game_mode, season_id, season_number, step, points, peak_step,
+            wins, losses, coins, star_gems, pr_packs, packs_granted, title_id, closed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $ins->execute([
+            $discordId,
+            $gameMode,
+            $oldId,
+            $number,
+            $finalStep,
+            max(0, (int)$row['points']),
+            $peak,
+            (int)$row['wins'],
+            (int)$row['losses'],
+            $reward['coins'],
+            $reward['gems'],
+            $reward['packs'],
+            $reward['packs'] > 0 ? 0 : 1,
+            $titleId,
+            $now,
+        ]);
+        $paid = $ins->rowCount() > 0;
+        if ($paid) {
+            if (!function_exists('tcgAddCoins')) {
+                require_once __DIR__ . '/coins.php';
+            }
+            if ($reward['coins'] > 0) {
+                tcgAddCoins($discordId, $reward['coins']);
+            }
+            if ($reward['gems'] > 0) {
+                tcgAddStarGems($discordId, $reward['gems']);
+            }
+        }
+        $db->prepare('UPDATE tcg_season_rank
+            SET season_id = ?, step = ?, points = 0, peak_step = ?, wins = 0, losses = 0, updated_at = ?
+            WHERE discord_id = ? AND game_mode = ? AND season_id = ?')
+            ->execute([$clock['id'], $resetStep, $resetStep, $now, $discordId, $gameMode, $oldId]);
+        $db->commit();
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        if (str_contains($e->getMessage(), 'UNIQUE') || str_contains($e->getMessage(), 'constraint')) {
+            $db->prepare('UPDATE tcg_season_rank
+                SET season_id = ?, step = ?, points = 0, peak_step = ?, wins = 0, losses = 0, updated_at = ?
+                WHERE discord_id = ? AND game_mode = ? AND season_id = ?')
+                ->execute([$clock['id'], $resetStep, $resetStep, $now, $discordId, $gameMode, $oldId]);
+            return null;
+        }
+        throw $e;
+    }
+    if (!$paid) {
+        return null;
+    }
+    return [
+        'game_mode' => $gameMode,
+        'season_id' => $oldId,
+        'season_number' => $number,
+        'label' => 'Season ' . $number,
+        'peak_step' => $peak,
+        'coins' => $reward['coins'],
+        'gems' => $reward['gems'],
+        'pr_packs' => $reward['packs'],
+        'title_id' => $titleId,
+    ];
+}
+
+function tcgSeasonFinishPendingPacks(string $discordId, string $gameMode): void {
+    $stmt = tcgDb()->prepare('SELECT season_id, pr_packs FROM tcg_season_history
+        WHERE discord_id = ? AND game_mode = ? AND pr_packs > 0 AND packs_granted = 0');
+    $stmt->execute([$discordId, $gameMode]);
+    $pending = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (!$pending) {
+        return;
+    }
+    if (!function_exists('tcgGrantPrPackCards')) {
+        require_once __DIR__ . '/ranked_pr_rewards.php';
+    }
+    foreach ($pending as $hist) {
+        $packs = max(0, (int)$hist['pr_packs']);
+        if ($packs <= 0) {
+            continue;
+        }
+        $cards = min(15, $packs * 3);
+        try {
+            tcgGrantPrPackCards($discordId, $cards);
+            tcgDb()->prepare('UPDATE tcg_season_history SET packs_granted = 1
+                WHERE discord_id = ? AND game_mode = ? AND season_id = ?')
+                ->execute([$discordId, $gameMode, $hist['season_id']]);
+        } catch (Throwable $e) {
+            error_log('tcgSeasonFinishPendingPacks: ' . $e->getMessage());
+        }
+    }
+}
+
+function tcgSeasonEnsureTitleFile(string $seasonId, int $step): void {
+    $titleId = tcgSeasonTitleId($seasonId, $step);
+    $path = __DIR__ . '/' . tcgSeasonTitleImageUrl($titleId);
+    if (is_file($path)) {
+        return;
+    }
+    $gen = __DIR__ . '/scripts/generate_season_titles.php';
+    if (!is_file($gen)) {
+        return;
+    }
+    require_once $gen;
+    if (function_exists('tcgSeasonGenerateTitlePng')) {
+        tcgSeasonGenerateTitlePng($seasonId, $step, $path);
+    }
+}
+
+function tcgSeasonBump(string $discordId, string $gameMode, int $eloDelta, bool $win): void {
+    $clock = tcgSeasonClockInfo();
+    if (empty($clock['active'])) {
+        return;
+    }
+    $row = tcgSeasonLoadRow($discordId, $gameMode);
+    $now = tcgSeasonNow();
+    if (!$row || (string)$row['season_id'] !== (string)$clock['id']) {
+        tcgSeasonSettle($discordId, $gameMode);
+        $row = tcgSeasonLoadRow($discordId, $gameMode);
+    }
+    $step = $row ? (int)$row['step'] : 0;
+    $points = $row ? (int)$row['points'] : 0;
+    $peak = $row ? (int)$row['peak_step'] : 0;
+    $wins = $row ? (int)$row['wins'] : 0;
+    $losses = $row ? (int)$row['losses'] : 0;
+    $moved = tcgSeasonMovePoints($step, $points, $eloDelta, $win);
+    if ($win) {
+        $wins++;
+    } else {
+        $losses++;
+    }
+    $peak = max($peak, $moved['step']);
+    $db = tcgDb();
+    $db->prepare('INSERT INTO tcg_season_rank
+        (discord_id, game_mode, season_id, step, points, peak_step, wins, losses, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(discord_id, game_mode) DO UPDATE SET
+            season_id = excluded.season_id,
+            step = excluded.step,
+            points = excluded.points,
+            peak_step = excluded.peak_step,
+            wins = excluded.wins,
+            losses = excluded.losses,
+            updated_at = excluded.updated_at')
+        ->execute([
+            $discordId,
+            $gameMode,
+            $clock['id'],
+            $moved['step'],
+            $moved['points'],
+            $peak,
+            $wins,
+            $losses,
+            $now,
+        ]);
+}
+
+function tcgSeasonApplyResult(string $winnerId, string $loserId, bool $isDraw, string $gameMode, int $eloDelta): void {
+    if ($isDraw) {
+        return;
+    }
+    $mode = tcgSeasonRankedMode($gameMode);
+    if ($mode === null || empty(tcgSeasonClockInfo()['active'])) {
+        return;
+    }
+    tcgSeasonBump($winnerId, $mode, $eloDelta, true);
+    tcgSeasonBump($loserId, $mode, $eloDelta, false);
+}
+
+/** @return array{step:int,points:int} */
+function tcgSeasonQueueProfile(string $discordId, string $gameMode): array {
+    $clock = tcgSeasonClockInfo();
+    if (empty($clock['active'])) {
+        return ['step' => -1, 'points' => 0];
+    }
+    $mode = tcgSeasonRankedMode($gameMode);
+    if ($mode === null) {
+        return ['step' => -1, 'points' => 0];
+    }
+    tcgSeasonSettle($discordId, $mode);
+    $row = tcgSeasonLoadRow($discordId, $mode);
+    if (!$row || (string)$row['season_id'] !== (string)$clock['id']) {
+        return ['step' => 0, 'points' => 0];
+    }
+    return [
+        'step' => tcgSeasonClampStep((int)$row['step']),
+        'points' => max(0, min(TCG_SEASON_POINTS, (int)$row['points'])),
+    ];
+}
+
+/**
+ * Steps the searcher will prefer, best first. Empty when the season is off.
+ *
+ * @return list<int>
+ */
+function tcgSeasonQueueAcceptSteps(int $step, int $points): array {
+    if ($step < 0) {
+        return [];
+    }
+    $step = tcgSeasonClampStep($step);
+    $out = [$step];
+    if ($points >= 75 && $step < 7) {
+        $out[] = $step + 1;
+    }
+    if ($points <= 25 && $step > 0) {
+        $out[] = $step - 1;
+    }
+    return $out;
+}
+
+/** @return array<string,mixed> */
+function tcgSeasonPublic(string $discordId, string $gameMode): array {
+    $clock = tcgSeasonClockInfo();
+    if (empty($clock['active'])) {
+        return ['active' => false];
+    }
+    $mode = tcgSeasonRankedMode($gameMode) ?? TCG_GAME_MODE_STANDARD;
+    $row = tcgSeasonLoadRow($discordId, $mode);
+    if ($row && (string)$row['season_id'] !== (string)$clock['id']) {
+        $row = null;
+    }
+    $public = tcgSeasonFormatPublic($row, $clock);
+    $public['game_mode'] = $mode;
+    return $public;
+}
+
+/**
+ * @return array{season:array<string,mixed>,seasons:array<string,array<string,mixed>>,season_rewards:list<array<string,mixed>>}
+ */
+function tcgSeasonBundleForUser(string $discordId): array {
+    $rewards = [];
+    $seasons = [];
+    foreach (tcgRankedGameModeIds() as $mode) {
+        $grant = tcgSeasonSettle($discordId, $mode);
+        if ($grant) {
+            $rewards[] = $grant;
+        }
+        $seasons[$mode] = tcgSeasonPublic($discordId, $mode);
+    }
+    return [
+        'season' => $seasons[TCG_GAME_MODE_STANDARD] ?? ['active' => false],
+        'seasons' => $seasons,
+        'season_rewards' => $rewards,
+    ];
+}
+
+/**
+ * @return list<array<string,mixed>>
+ */
+function tcgSeasonHistoryForUser(string $discordId): array {
+    $stmt = tcgDb()->prepare('SELECT * FROM tcg_season_history
+        WHERE discord_id = ? ORDER BY season_id DESC, game_mode ASC');
+    $stmt->execute([$discordId]);
+    $out = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $final = tcgSeasonClampStep((int)$row['step']);
+        $peak = tcgSeasonClampStep((int)$row['peak_step']);
+        $finalDef = tcgSeasonStepDef($final);
+        $peakDef = tcgSeasonStepDef($peak);
+        $number = (int)$row['season_number'];
+        $out[] = [
+            'season_id' => (string)$row['season_id'],
+            'season_number' => $number,
+            'label' => 'Season ' . $number,
+            'game_mode' => (string)$row['game_mode'],
+            'step' => $final,
+            'points' => (int)$row['points'],
+            'letter' => $finalDef['letter'],
+            'tone' => $finalDef['tone'],
+            'icon' => tcgSeasonIconUrl($final),
+            'peak_step' => $peak,
+            'peak_letter' => $peakDef['letter'],
+            'peak_tone' => $peakDef['tone'],
+            'peak_icon' => tcgSeasonIconUrl($peak),
+            'wins' => (int)$row['wins'],
+            'losses' => (int)$row['losses'],
+            'title_id' => $row['title_id'] ?? null,
+        ];
+    }
+    return $out;
+}
+
+/**
+ * @return array<string,array<string,mixed>>
+ */
+function tcgSeasonMapForMode(string $gameMode, string $seasonId): array {
+    $stmt = tcgDb()->prepare('SELECT * FROM tcg_season_rank WHERE game_mode = ? AND season_id = ?');
+    $stmt->execute([$gameMode, $seasonId]);
+    $clock = tcgSeasonClockInfo();
+    $map = [];
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $map[(string)$row['discord_id']] = tcgSeasonFormatPublic($row, $clock);
+    }
+    return $map;
+}

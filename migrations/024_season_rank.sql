@@ -1,0 +1,7 @@
+-- Monthly seasonal ladder (October 2026).
+-- Applied via tcgDbRunMigrationOnce('season_rank_20261001') in db.php,
+-- which calls tcgSeasonEnsureSchema(). This file bumps the migrator fingerprint.
+--
+-- tcg_season_rank: one live row per discord id + ranked game mode
+-- tcg_season_history: frozen season, rewards, and title id
+-- tcg_match_queue.season_step: current step for close-rank pairing

@@ -709,10 +709,23 @@
       "searching": "Searching… ({seconds}s)",
       "readySearch": "Ready to search"
     },
+    "season": {
+      "label": "Season {n}",
+      "history": "Season ranks",
+      "current": "This season",
+      "peak": "Peak {letter}",
+      "record": "{wins}W-{losses}L",
+      "rewardToast": "Season reward: {coins} Coins, {gems} Star Gems",
+      "rewardToastPacks": "Season reward: {coins} Coins, {gems} Star Gems, {packs} PR packs",
+      "notStarted": "The seasonal ladder starts in October 2026."
+    },
     "leaderboard": {
       "title": "Ranked Leaderboard",
       "lead": "Highest ELO from ranked PvP. Set a card banner and flag for your profile row.",
       "empty": "No ranked games yet — play ranked PvP to appear here.",
+      "boardAllTime": "All-time",
+      "boardSeason": "This season",
+      "seasonEmpty": "No seasonal games yet this month.",
       "editBanner": "Edit profile",
       "eloSuffix": " ELO",
       "eloLabel": "{elo} ELO",
