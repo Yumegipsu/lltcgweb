@@ -1773,7 +1773,7 @@ try {
         <h2 data-i18n="leaderboard.title">Ranked Leaderboard</h2>
       </div>
       <p class="account-lead" data-i18n="leaderboard.lead">Highest ELO from ranked PvP. Set a card banner for your profile row.</p>
-      <div class="field ranked-deck-field leaderboard-mode-field">
+      <div class="field ranked-deck-field leaderboard-mode-field" hidden>
         <label for="sel-leaderboard-game-mode" data-i18n="gameMode.label">Game mode</label>
         <div class="llc-select-wrap">
           <select id="sel-leaderboard-game-mode">
@@ -3259,7 +3259,7 @@ try {
 <script src="log_i18n.js?v=20"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=43"></script>
-<script src="client/js/social.js?v=35"></script>
+<script src="client/js/social.js?v=36"></script>
 <script src="client/js/titles.js?v=5"></script>
 <script src="client/js/season-rank.js?v=2"></script>
 <script src="client/js/friend-push.js?v=12"></script>
@@ -15462,7 +15462,11 @@ function leaderboardBoard() {
 }
 
 function leaderboardStatsQuery() {
-  return { game_mode: leaderboardViewMode(), board: leaderboardBoard() };
+  const board = leaderboardBoard();
+  return {
+    game_mode: board === 'season' ? 'standard' : leaderboardViewMode(),
+    board: board,
+  };
 }
 
 function syncLeaderboardBoardChrome() {
@@ -15473,6 +15477,8 @@ function syncLeaderboardBoardChrome() {
     btn.classList.toggle('btn-out', on);
     btn.classList.toggle('btn-ghost', !on);
   });
+  const modeField = document.querySelector('#screen-leaderboard .leaderboard-mode-field');
+  if (modeField) modeField.hidden = board === 'season';
 }
 
 function syncLeaderboardModeChrome() {

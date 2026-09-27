@@ -2,7 +2,7 @@
 /**
  * Monthly seasonal ladder beside lifetime Elo.
  *
- * Season 1 starts 2026-10-01 00:00 UTC. Each ranked mode has its own bar.
+ * Season 1 starts 2026-10-01 00:00 UTC. One ladder for standard ranked only.
  * Rollover is lazy (next account or ranked request). Rewards use the peak step.
  * Pink S is the live top 10 who have filled Green S, not a permanent promotion.
  */
@@ -376,7 +376,7 @@ function tcgSeasonFormatPublic(?array $row, array $clock): array {
 
 function tcgSeasonRankedMode(string $gameMode): ?string {
     $mode = tcgNormalizeGameMode($gameMode);
-    if (!in_array($mode, tcgRankedGameModeIds(), true)) {
+    if ($mode !== TCG_GAME_MODE_STANDARD) {
         return null;
     }
     return $mode;
@@ -665,7 +665,10 @@ function tcgSeasonPublic(string $discordId, string $gameMode): array {
     if (empty($clock['active'])) {
         return ['active' => false];
     }
-    $mode = tcgSeasonRankedMode($gameMode) ?? TCG_GAME_MODE_STANDARD;
+    $mode = tcgSeasonRankedMode($gameMode);
+    if ($mode === null) {
+        return ['active' => false];
+    }
     $row = tcgSeasonLoadRow($discordId, $mode);
     if ($row && (string)$row['season_id'] !== (string)$clock['id']) {
         $row = null;
@@ -679,19 +682,13 @@ function tcgSeasonPublic(string $discordId, string $gameMode): array {
  * @return array{season:array<string,mixed>,seasons:array<string,array<string,mixed>>,season_rewards:list<array<string,mixed>>}
  */
 function tcgSeasonBundleForUser(string $discordId): array {
-    $rewards = [];
-    $seasons = [];
-    foreach (tcgRankedGameModeIds() as $mode) {
-        $grant = tcgSeasonSettle($discordId, $mode);
-        if ($grant) {
-            $rewards[] = $grant;
-        }
-        $seasons[$mode] = tcgSeasonPublic($discordId, $mode);
-    }
+    $mode = TCG_GAME_MODE_STANDARD;
+    $grant = tcgSeasonSettle($discordId, $mode);
+    $season = tcgSeasonPublic($discordId, $mode);
     return [
-        'season' => $seasons[TCG_GAME_MODE_STANDARD] ?? ['active' => false],
-        'seasons' => $seasons,
-        'season_rewards' => $rewards,
+        'season' => $season,
+        'seasons' => [$mode => $season],
+        'season_rewards' => $grant ? [$grant] : [],
     ];
 }
 
@@ -700,8 +697,8 @@ function tcgSeasonBundleForUser(string $discordId): array {
  */
 function tcgSeasonHistoryForUser(string $discordId): array {
     $stmt = tcgDb()->prepare('SELECT * FROM tcg_season_history
-        WHERE discord_id = ? ORDER BY season_id DESC, game_mode ASC');
-    $stmt->execute([$discordId]);
+        WHERE discord_id = ? AND game_mode = ? ORDER BY season_id DESC');
+    $stmt->execute([$discordId, TCG_GAME_MODE_STANDARD]);
     $out = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $final = tcgSeasonClampStep((int)$row['step']);

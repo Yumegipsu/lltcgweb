@@ -521,18 +521,13 @@
     `;
   }
 
-  function seasonModeLabel(mode) {
-    if (mode === 'starters') return tt('gameMode.starters', 'Starter decks only');
-    if (mode === 'randomized') return tt('gameMode.randomized', 'Randomized Decks');
-    return tt('gameMode.standard', 'Standard');
-  }
-
   function seasonHistoryHtml(p) {
     const seasons = p.seasons && typeof p.seasons === 'object' ? p.seasons : {};
     const current = Object.keys(seasons)
       .map((mode) => ({ mode, row: seasons[mode] }))
-      .filter((item) => item.row && item.row.active && item.row.has_row);
-    const history = Array.isArray(p.season_history) ? p.season_history : [];
+      .filter((item) => item.row && item.row.active && item.row.has_row && item.mode === 'standard');
+    const history = (Array.isArray(p.season_history) ? p.season_history : [])
+      .filter((row) => !row.game_mode || row.game_mode === 'standard');
     if (!current.length && !history.length) return '';
     const line = (icon, text) => {
       const img = icon
@@ -544,14 +539,12 @@
       const row = item.row;
       const text = tt('season.current', 'This season')
         + ' · ' + (row.label || '')
-        + ' · ' + seasonModeLabel(item.mode)
         + ' · ' + (row.letter || '')
         + ' · ' + tt('season.record', '{wins}W-{losses}L', { wins: row.wins || 0, losses: row.losses || 0 });
       return line(row.icon, text);
     }).join('');
     const historyHtml = history.map((row) => {
       const text = (row.label || '')
-        + ' · ' + seasonModeLabel(row.game_mode)
         + ' · ' + (row.letter || '')
         + ' · ' + tt('season.peak', 'Peak {letter}', { letter: row.peak_letter || row.letter || '' })
         + ' · ' + tt('season.record', '{wins}W-{losses}L', { wins: row.wins || 0, losses: row.losses || 0 });

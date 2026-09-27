@@ -2353,6 +2353,9 @@ function tcgApiRankStats(array $body): array {
     if ($board !== 'season') {
         $board = 'elo';
     }
+    if ($board === 'season') {
+        $gameMode = TCG_GAME_MODE_STANDARD;
+    }
     tcgSeasonSettle($uid, $gameMode);
     $rank = tcgRankRow($uid, $gameMode);
     $cards = tcgLoadCardsData();
@@ -2361,7 +2364,7 @@ function tcgApiRankStats(array $body): array {
         tcgBanEnsureSchema();
     }
     $clock = tcgSeasonClockInfo();
-    $seasonMap = (!empty($clock['active']))
+    $seasonMap = (!empty($clock['active']) && $gameMode === TCG_GAME_MODE_STANDARD)
         ? tcgSeasonMapForMode($gameMode, (string)$clock['id'])
         : [];
     $leaderboard = [];
@@ -2571,7 +2574,7 @@ function tcgApiPublicLeaderboard(array $params): array {
     $stmt = $db->prepare($sql);
     $stmt->execute([$gameMode]);
     $clock = tcgSeasonClockInfo();
-    $seasonMap = !empty($clock['active'])
+    $seasonMap = (!empty($clock['active']) && $gameMode === TCG_GAME_MODE_STANDARD)
         ? tcgSeasonMapForMode($gameMode, (string)$clock['id'])
         : [];
     $leaderboard = [];

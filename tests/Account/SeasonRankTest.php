@@ -199,6 +199,27 @@ final class SeasonRankTest extends TestCase
         $this->assertSame(10, (int)$count->fetchColumn());
     }
 
+    public function testSeasonLadderIsStandardOnly(): void
+    {
+        $this->at('2026-10-15 12:00:00');
+        $winner = $this->user('modeW');
+        $loser = $this->user('modeL');
+        tcgApplyRankResult($winner, $loser, false, TCG_GAME_MODE_STARTERS);
+        tcgApplyRankResult($winner, $loser, false, TCG_GAME_MODE_RANDOMIZED);
+        $this->assertNull(tcgSeasonLoadRow($winner, TCG_GAME_MODE_STARTERS));
+        $this->assertNull(tcgSeasonLoadRow($winner, TCG_GAME_MODE_RANDOMIZED));
+        $this->assertNull(tcgSeasonLoadRow($winner, TCG_GAME_MODE_STANDARD));
+        $this->assertFalse(tcgSeasonPublic($winner, TCG_GAME_MODE_STARTERS)['active']);
+        $this->assertSame(-1, tcgSeasonQueueProfile($winner, TCG_GAME_MODE_STARTERS)['step']);
+
+        tcgApplyRankResult($winner, $loser, false, TCG_GAME_MODE_STANDARD);
+        $this->assertNotNull(tcgSeasonLoadRow($winner, TCG_GAME_MODE_STANDARD));
+        $this->assertNull(tcgSeasonLoadRow($winner, TCG_GAME_MODE_STARTERS));
+        $bundle = tcgSeasonBundleForUser($winner);
+        $this->assertSame([TCG_GAME_MODE_STANDARD], array_keys($bundle['seasons']));
+        $this->assertNull(tcgSeasonSettle($winner, TCG_GAME_MODE_STARTERS));
+    }
+
     public function testQueuePrefersSameStepInsideEloBand(): void
     {
         $this->at('2026-10-18 12:00:00');
