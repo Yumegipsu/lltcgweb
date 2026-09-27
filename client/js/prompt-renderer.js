@@ -508,6 +508,12 @@ global.openStageSlotPick = function openStageSlotPick(pr){
   }
   const maxPick = Number(pr.pick_count || 1);
   const upTo = !!pr.up_to || maxPick > 1;
+  if (!cards.length && upTo) {
+    closeM('overlay-pick');
+    G.pickCtx = null;
+    sendAct('resolve_prompt', { choice: 'skip', slots: [] });
+    return;
+  }
   if(upTo && maxPick > 1){
     // One legal target for an "up to N" wait — resolve immediately (Eli discard→wait chain).
     if (cards.length === 1) {
@@ -573,7 +579,7 @@ global.openStageSlotPick = function openStageSlotPick(pr){
     }));
   });
   // COMPASS / other optional stage picks — allow decline (card text is "you may").
-  if (pr.optional || pr.type === 'live_start_activate_stage_live_start_ability'
+  if (pr.optional || pr.up_to || pr.type === 'live_start_activate_stage_live_start_ability'
       || (Array.isArray(pr.choices) && pr.choices.includes('skip'))) {
     const skipBtn=document.createElement('button');
     skipBtn.className='btn-ghost';

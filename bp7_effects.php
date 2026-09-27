@@ -2118,7 +2118,11 @@ function bp7ResolveEffect(array $state, string $pid, array $source, array $ab, a
             if ($slot === '') break;
             $leaving = $state['players'][$pid]['stage'][$slot];
             $state['players'][$pid]['stage'][$slot] = null;
+            // 「その後」 still chooses from the Waiting Room. An empty deck must not
+            // refresh those cards (including this Member) away before the add.
+            $state['_suppress_deck_refresh'] = true;
             $state = appendCardsToWaitingRoom($state, $pid, [$leaving]);
+            unset($state['_suppress_deck_refresh']);
             $state = addLog($state, $state['players'][$pid]['name'] .
                 " — [$name] put from the Stage into the Waiting Room.");
             $state = resolveOnLeaveStageAbilities($state, $pid, $leaving, ['self_leave' => true]);
@@ -2147,6 +2151,10 @@ function bp7ResolveEffect(array $state, string $pid, array $source, array $ab, a
                     'filter'  => $ab['filter'] ?? '',
                     'count'   => intval($ab['count'] ?? 1),
                 ], $ctx);
+            }
+            // Refresh only after the Waiting Room choice is done (or there is nothing to choose).
+            if (empty($state['pending_prompt'])) {
+                $state = refreshEmptyMainDecks($state);
             }
             break;
         }

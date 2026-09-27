@@ -36,6 +36,25 @@ function resumeLiveStartEffectPhase(array $state): array {
     if (!empty($GLOBALS['_lltcg_in_live_start_resolve'])) {
         return $state;
     }
+    // Backstop if a caller resumes outside that guard (same request, same chain).
+    $resumeDepth = (int)($GLOBALS['_lltcg_ls_resume_depth'] ?? 0);
+    if ($resumeDepth >= 4) {
+        unset($state['_live_start_resume_from']);
+        return $state;
+    }
+    $GLOBALS['_lltcg_ls_resume_depth'] = $resumeDepth + 1;
+    try {
+        return resumeLiveStartEffectPhaseInner($state);
+    } finally {
+        if ($resumeDepth === 0) {
+            unset($GLOBALS['_lltcg_ls_resume_depth']);
+        } else {
+            $GLOBALS['_lltcg_ls_resume_depth'] = $resumeDepth;
+        }
+    }
+}
+
+function resumeLiveStartEffectPhaseInner(array $state): array {
     if (($state['phase'] ?? '') !== 'live_start_effects') {
         return finishPromptEffects($state);
     }
@@ -173,6 +192,7 @@ function resolveLiveStartAbilities(array $state, string $pid): array {
             $GLOBALS['_lltcg_in_live_start_resolve'] = true;
         } else {
             unset($GLOBALS['_lltcg_in_live_start_resolve']);
+            unset($GLOBALS['_lltcg_ls_attempts']);
         }
     }
 }
@@ -295,6 +315,18 @@ function resolveLiveStartAbilitiesBody(array $state, string $pid): array {
         }
         $state = logAbilityChain($state, $pid, $source, 'live_start');
         foreach ($pendingAbs as [$kind, $abIdx, $ab]) {
+            if ($kind === 'mandatory') {
+                $attemptKey = liveStartMandatoryResolvedKey($pid, $instanceId, $abIdx);
+                $attempts = $GLOBALS['_lltcg_ls_attempts'] ?? [];
+                $attempts[$attemptKey] = (int)($attempts[$attemptKey] ?? 0) + 1;
+                $GLOBALS['_lltcg_ls_attempts'] = $attempts;
+                // Same mandatory skill re-entered before it was marked (Karin Wait).
+                // Skip the repeat so the request cannot recurse until the memory limit.
+                if ($attempts[$attemptKey] > 1) {
+                    $state = markLiveStartMandatoryResolved($state, $pid, $instanceId, $abIdx);
+                    continue;
+                }
+            }
             if ($kind === 'optional') {
                 $item = [
                     'owner'         => $pid,

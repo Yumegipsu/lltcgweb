@@ -105,6 +105,9 @@ function appendDeckCardsToWaitingRoom(array &$state, string $pid, array $cards):
 /** Shuffle all Waiting Room cards into main deck when the deck is empty (deck refresh). */
 function refreshMainDeckFromWaitingRoom(array &$state, string $pid): int {
     $p = &$state['players'][$pid];
+    if (!empty($state['_suppress_deck_refresh'])) {
+        return 0;
+    }
     if (!empty($p['main_deck'])) {
         return 0;
     }

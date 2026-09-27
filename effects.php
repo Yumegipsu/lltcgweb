@@ -7036,9 +7036,16 @@ function beginWaitOpponentStagePick(
         $prompt .= ' to put into Wait.';
         $responder = $owner;
     } else {
-        $prompt = $activeOnly
-            ? "Choose 1 active opponent Stage Member"
-            : 'Choose 1 opponent Stage Member';
+        $upToOne = !empty($effect['up_to']);
+        if ($activeOnly) {
+            $prompt = $upToOne
+                ? 'Choose up to 1 active opponent Stage Member'
+                : 'Choose 1 active opponent Stage Member';
+        } else {
+            $prompt = $upToOne
+                ? 'Choose up to 1 opponent Stage Member'
+                : 'Choose 1 opponent Stage Member';
+        }
         if ($showThreshold) {
             $prompt .= " ($thresholdLabel)";
         }
@@ -7061,7 +7068,7 @@ function beginWaitOpponentStagePick(
         'max_original_blade' => $byBlade ? $maxBlade : null,
         'max_original_hearts' => $byHearts ? $maxHearts : null,
         'pick_count'    => $pickCount,
-        'up_to'         => $pickCount > 1,
+        'up_to'         => $pickCount > 1 || !empty($effect['up_to']),
         'ability'       => $effect,
     ];
     $state['seq']++;

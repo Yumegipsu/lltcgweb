@@ -38347,7 +38347,9 @@
           "trigger": "live_start",
           "type": "wait_opponent_stage_max_cost",
           "max_cost": 9,
-          "pick_count": 1
+          "pick_count": 1,
+          "up_to": true,
+          "active_only": true
         },
         {
           "trigger": "live_start",
@@ -38405,7 +38407,9 @@
           "trigger": "live_start",
           "type": "wait_opponent_stage_max_cost",
           "max_cost": 9,
-          "pick_count": 1
+          "pick_count": 1,
+          "up_to": true,
+          "active_only": true
         },
         {
           "trigger": "live_start",
@@ -38463,7 +38467,9 @@
           "trigger": "live_start",
           "type": "wait_opponent_stage_max_cost",
           "max_cost": 9,
-          "pick_count": 1
+          "pick_count": 1,
+          "up_to": true,
+          "active_only": true
         },
         {
           "trigger": "live_start",
@@ -38521,7 +38527,9 @@
           "trigger": "live_start",
           "type": "wait_opponent_stage_max_cost",
           "max_cost": 9,
-          "pick_count": 1
+          "pick_count": 1,
+          "up_to": true,
+          "active_only": true
         },
         {
           "trigger": "live_start",
