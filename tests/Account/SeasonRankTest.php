@@ -76,6 +76,14 @@ final class SeasonRankTest extends TestCase
         $this->assertSame(8, tcgSeasonClampDelta(1));
         $this->assertSame(32, tcgSeasonClampDelta(40));
         $this->assertSame(4, tcgSeasonSoftResetStep(7));
+
+        $filled = tcgSeasonMovePoints(6, 90, 32, true);
+        $this->assertSame(6, $filled['step']);
+        $this->assertSame(122, $filled['points']);
+
+        $stillPinkScore = tcgSeasonMovePoints(7, 140, 32, false);
+        $this->assertSame(6, $stillPinkScore['step']);
+        $this->assertSame(108, $stillPinkScore['points']);
     }
 
     public function testBeforeOctoberDoesNotWriteSeason(): void
@@ -151,6 +159,44 @@ final class SeasonRankTest extends TestCase
         $again = tcgSeasonSettle($id, TCG_GAME_MODE_STANDARD);
         $this->assertNull($again);
         $this->assertSame(6000, tcgGetCoins($id));
+    }
+
+    public function testPinkSIsTopTenAndCanBeDisplaced(): void
+    {
+        $this->at('2026-10-20 12:00:00');
+        $now = tcgSeasonNow();
+        $ids = [];
+        $ins = tcgDb()->prepare('INSERT INTO tcg_season_rank
+            (discord_id, game_mode, season_id, step, points, peak_step, wins, losses, updated_at)
+            VALUES (?, ?, ?, 6, ?, 6, ?, 0, ?)');
+        for ($i = 0; $i < 11; $i++) {
+            $id = $this->user('pink' . $i);
+            $ids[] = $id;
+            $ins->execute([$id, TCG_GAME_MODE_STANDARD, '2026-10', 200 - ($i * 10), 30 - $i, $now + $i]);
+        }
+        tcgSeasonAssignPinkSlots(TCG_GAME_MODE_STANDARD, '2026-10');
+        for ($i = 0; $i < 10; $i++) {
+            $row = tcgSeasonLoadRow($ids[$i], TCG_GAME_MODE_STANDARD);
+            $this->assertSame(7, (int)$row['step']);
+            $this->assertSame(7, (int)$row['peak_step']);
+        }
+        $eleventh = tcgSeasonLoadRow($ids[10], TCG_GAME_MODE_STANDARD);
+        $this->assertSame(6, (int)$eleventh['step']);
+        $this->assertSame(6, (int)$eleventh['peak_step']);
+
+        tcgDb()->prepare('UPDATE tcg_season_rank SET points = 115, updated_at = ? WHERE discord_id = ?')
+            ->execute([$now + 50, $ids[10]]);
+        tcgSeasonAssignPinkSlots(TCG_GAME_MODE_STANDARD, '2026-10');
+        $entered = tcgSeasonLoadRow($ids[10], TCG_GAME_MODE_STANDARD);
+        $this->assertSame(7, (int)$entered['step']);
+        $this->assertSame(7, (int)$entered['peak_step']);
+        $pushed = tcgSeasonLoadRow($ids[9], TCG_GAME_MODE_STANDARD);
+        $this->assertSame(6, (int)$pushed['step']);
+        $this->assertSame(6, (int)$pushed['peak_step']);
+        $this->assertSame(110, (int)$pushed['points']);
+        $count = tcgDb()->prepare('SELECT COUNT(*) FROM tcg_season_rank WHERE game_mode = ? AND season_id = ? AND step = 7');
+        $count->execute([TCG_GAME_MODE_STANDARD, '2026-10']);
+        $this->assertSame(10, (int)$count->fetchColumn());
     }
 
     public function testQueuePrefersSameStepInsideEloBand(): void

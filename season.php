@@ -4,12 +4,17 @@
  *
  * Season 1 starts 2026-10-01 00:00 UTC. Each ranked mode has its own bar.
  * Rollover is lazy (next account or ranked request). Rewards use the peak step.
+ * Pink S is the live top 10 who have filled Green S, not a permanent promotion.
  */
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/game_mode.php';
 
 const TCG_SEASON_EPOCH = 1790812800; // 2026-10-01 00:00:00 UTC
 const TCG_SEASON_POINTS = 100;
+const TCG_SEASON_GREEN_S_STEP = 6;
+const TCG_SEASON_PINK_S_STEP = 7;
+/** Players who have filled Green S. Only this many hold Pink S at once. */
+const TCG_SEASON_PINK_S_SLOTS = 10;
 
 /** @var list<array{key:string,letter:string,tone:string}> */
 const TCG_SEASON_STEPS = [
@@ -133,13 +138,18 @@ function tcgSeasonClampStep(int $step): int {
 }
 
 /**
- * Win adds points (and promotes). A loss on C does nothing.
+ * Win adds points (and promotes through Green S). A loss on C does nothing.
  * B cannot fall below Green B. A and S cannot fall below Green A.
+ * Pink S is not earned by filling the bar. Points on Green S keep climbing
+ * and the top 10 qualified players are assigned Pink S separately.
  *
  * @return array{step:int,points:int}
  */
 function tcgSeasonMovePoints(int $step, int $points, int $delta, bool $win): array {
     $step = tcgSeasonClampStep($step);
+    if ($step >= TCG_SEASON_PINK_S_STEP) {
+        $step = TCG_SEASON_GREEN_S_STEP;
+    }
     $points = max(0, $points);
     $delta = tcgSeasonClampDelta($delta);
     if (!$win) {
@@ -158,14 +168,71 @@ function tcgSeasonMovePoints(int $step, int $points, int $delta, bool $win): arr
         return ['step' => $step, 'points' => $points];
     }
     $points += $delta;
-    while ($points >= TCG_SEASON_POINTS && $step < 7) {
+    while ($points >= TCG_SEASON_POINTS && $step < TCG_SEASON_GREEN_S_STEP) {
         $points -= TCG_SEASON_POINTS;
         $step++;
     }
-    if ($step >= 7 && $points > TCG_SEASON_POINTS) {
-        $points = TCG_SEASON_POINTS;
-    }
     return ['step' => $step, 'points' => $points];
+}
+
+/**
+ * Pink S is the current top 10 players in this mode who have filled Green S
+ * (100 points on that step). A higher score takes the slot and the previous
+ * 10th returns to Green S. The Pink S peak is live: only the current holders
+ * keep it for the end-of-season reward.
+ */
+function tcgSeasonAssignPinkSlots(string $gameMode, string $seasonId): void {
+    if ($gameMode === '' || $seasonId === '') {
+        return;
+    }
+    $db = tcgDb();
+    $banExclude = '';
+    if (function_exists('tcgBanEnsureSchema') && function_exists('tcgBanLeaderboardExcludeSql')) {
+        tcgBanEnsureSchema();
+        $banExclude = tcgBanLeaderboardExcludeSql('discord_id');
+    }
+    $stmt = $db->prepare('SELECT discord_id FROM tcg_season_rank
+        WHERE game_mode = ? AND season_id = ? AND step >= ? AND points >= ?' . $banExclude . '
+        ORDER BY points DESC, wins DESC, updated_at ASC, discord_id ASC');
+    $stmt->execute([$gameMode, $seasonId, TCG_SEASON_GREEN_S_STEP, TCG_SEASON_POINTS]);
+    $keep = [];
+    while ($id = $stmt->fetchColumn()) {
+        $keep[] = (string)$id;
+        if (count($keep) >= TCG_SEASON_PINK_S_SLOTS) {
+            break;
+        }
+    }
+    $db->beginTransaction();
+    try {
+        $db->prepare('UPDATE tcg_season_rank
+            SET step = ?,
+                peak_step = CASE WHEN peak_step > ? THEN ? ELSE peak_step END
+            WHERE game_mode = ? AND season_id = ? AND step >= ?')
+            ->execute([
+                TCG_SEASON_GREEN_S_STEP,
+                TCG_SEASON_GREEN_S_STEP,
+                TCG_SEASON_GREEN_S_STEP,
+                $gameMode,
+                $seasonId,
+                TCG_SEASON_PINK_S_STEP,
+            ]);
+        if ($keep !== []) {
+            $placeholders = implode(',', array_fill(0, count($keep), '?'));
+            $promote = $db->prepare('UPDATE tcg_season_rank
+                SET step = ?, peak_step = ?
+                WHERE game_mode = ? AND season_id = ? AND discord_id IN (' . $placeholders . ')');
+            $promote->execute(array_merge(
+                [TCG_SEASON_PINK_S_STEP, TCG_SEASON_PINK_S_STEP, $gameMode, $seasonId],
+                $keep
+            ));
+        }
+        $db->commit();
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) {
+            $db->rollBack();
+        }
+        throw $e;
+    }
 }
 
 function tcgSeasonSoftResetStep(int $finalStep): int {
@@ -510,6 +577,9 @@ function tcgSeasonBump(string $discordId, string $gameMode, int $eloDelta, bool 
         $losses++;
     }
     $peak = max($peak, $moved['step']);
+    if ($peak > TCG_SEASON_GREEN_S_STEP) {
+        $peak = TCG_SEASON_GREEN_S_STEP;
+    }
     $db = tcgDb();
     $db->prepare('INSERT INTO tcg_season_rank
         (discord_id, game_mode, season_id, step, points, peak_step, wins, losses, updated_at)
@@ -533,6 +603,7 @@ function tcgSeasonBump(string $discordId, string $gameMode, int $eloDelta, bool 
             $losses,
             $now,
         ]);
+    tcgSeasonAssignPinkSlots($gameMode, (string)$clock['id']);
 }
 
 function tcgSeasonApplyResult(string $winnerId, string $loserId, bool $isDraw, string $gameMode, int $eloDelta): void {
