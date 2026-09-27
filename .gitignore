@@ -89,6 +89,7 @@ sfx_manifest.json
 /*.py
 /scripts/*.py
 !/scripts/gen_booster_box_thumbs.py
+!/scripts/slice_rank_icons.py
 !/scripts/gen_launcher_icons.py
 !/scripts/audit_cpu_prompts.py
 !/scripts/download_bushiroad_playmats.py
