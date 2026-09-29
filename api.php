@@ -3615,7 +3615,9 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     $yellScoreIcons = countYellScoreIcons($yellCards);
     $state['_last_yell_score_icons'] = $yellScoreIcons;
     $state['_last_yell_score_icons_' . $pid] = $yellScoreIcons;
-    missionNotePeakScore($state, $pid, 'yell', $yellScoreIcons);
+    // Mission ms_yell_score_20: peak Yell cards revealed in one Live performance (#209).
+    $yellCardCount = count($yellCards);
+    missionNotePeakScore($state, $pid, 'yell', $yellCardCount);
     if ($yellWildcard) {
         $yellHearts = resolveSmartYellWildcardHeartColors(
             $yellHearts,

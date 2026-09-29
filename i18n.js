@@ -240,7 +240,7 @@
         "cards2000": "Own 2,000 cards",
         "cards2400": "Own 2,400 cards",
         "winTurn3": "Win a game on your 3rd turn",
-        "yellScore20": "Achieve a Yell score of 20 or more",
+        "yellScore20": "Reveal 20 or more Yell cards in a single Live performance",
         "liveScore15": "Achieve a Live score of 15 or more points in a single round"
       },
       "rewardStarter": "Choose a starter deck",
@@ -2348,7 +2348,7 @@
         "winHasunosora": "蓮ノ空のみのメインデッキで勝利",
         "winNijigasaki": "虹ヶ咲のみのメインデッキで勝利",
         "winTurn3": "3ターン目で勝利する",
-        "yellScore20": "エールスコアを20以上にする",
+        "yellScore20": "1回のライブパフォーマンスでエールを20枚以上公開する",
         "liveScore15": "1ラウンドでライブスコアを15以上にする",
         "loginDays10": "異なる10日ログインする（JST）",
         "cards400": "カードを400枚所持する",
@@ -14028,7 +14028,7 @@
         "cards2000": "Posséder 2 000 cartes",
         "cards2400": "Posséder 2 400 cartes",
         "winTurn3": "Gagnez une partie à votre 3e tour",
-        "yellScore20": "Atteignez un score Yell de 20 ou plus",
+        "yellScore20": "Révéler 20 cartes Yell ou plus lors d'une même performance Live",
         "liveScore15": "Atteignez un score Live de 15 ou plus en une seule manche"
       },
       "rewardStarter": "Choisissez un deck initial",

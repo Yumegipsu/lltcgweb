@@ -219,7 +219,7 @@ final class MissionProgressTest extends TestCase
             'winner' => 'p2',
             'turn' => 8,
             '_mission_peaks' => [
-                'p1' => ['yell' => 20, 'live' => 15],
+                'p1' => ['yell' => 20, 'live' => 15], // yell = Yell cards in one Live performance
             ],
             'players' => [
                 'p1' => [

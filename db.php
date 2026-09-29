@@ -436,6 +436,18 @@ function tcgDbMigrate(PDO $db): void {
         tcgSeasonEnsureSchema($db);
     });
 
+    tcgDbRunMigrationOnce($db, 'grant_ms_yell_20_issue209_kyra_20260929', function (PDO $db): void {
+        $kyraDiscordId = '940179345845145660';
+        $check = $db->prepare('SELECT 1 FROM tcg_users WHERE discord_id = ? LIMIT 1');
+        $check->execute([$kyraDiscordId]);
+        if (!$check->fetchColumn()) {
+            return;
+        }
+        require_once __DIR__ . '/missions.php';
+        // Issue #209 — Kyra (squeakychair_.): mission tracked score icons, not Yell cards.
+        tcgMissionMarkCompletedSilent($kyraDiscordId, 'ms_yell_score_20');
+    });
+
     $done = true;
 }
 

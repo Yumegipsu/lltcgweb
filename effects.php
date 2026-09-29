@@ -533,7 +533,7 @@ function yellScoreIconsForPlayer(array $state, string $pid): int {
     return intval($state['_last_yell_score_icons'] ?? 0);
 }
 
-/** Track peak yell / live scores for mission milestones (persisted on room state). */
+/** Track peak Yell-card count / Live score for mission milestones (persisted on room state). */
 function missionNotePeakScore(array &$state, string $pid, string $metric, int $value): void {
     if ($pid !== 'p1' && $pid !== 'p2') {
         return;

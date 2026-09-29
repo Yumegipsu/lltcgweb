@@ -1008,7 +1008,8 @@ function tcgMissionCheckTurnWin(string $discordId, array $state): array {
 }
 
 /**
- * Yell / Live score peak milestones from room `_mission_peaks` (or nested mission_peaks).
+ * Yell-card / Live-score peak milestones from room `_mission_peaks` (or nested mission_peaks).
+ * `yell` is the most Yell cards revealed in a single Live performance; `live` is peak Live score.
  *
  * @return list<array{id: string, i18n_key: string, reward: int}>
  */
