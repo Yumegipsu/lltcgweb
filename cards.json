@@ -90057,7 +90057,8 @@
         {
           "trigger": "continuous",
           "type": "inherit_stacked_group_abilities",
-          "group": "Superstar"
+          "group": "Superstar",
+          "ability_trigger": "activated"
         }
       ],
       "text_es": "[Al entrar] Si entraste mediante Baton Touch, coloca 1 Miembro de Liella! colocado en la Sala de espera por ese Baton Touch bajo este Miembro.\n[Siempre] Este Miembro obtiene todas las habilidades Activated de las cartas de Miembro de Liella! apiladas bajo él.",
@@ -90108,7 +90109,8 @@
         {
           "trigger": "continuous",
           "type": "inherit_stacked_group_abilities",
-          "group": "Superstar"
+          "group": "Superstar",
+          "ability_trigger": "activated"
         }
       ],
       "text_es": "[Al entrar] Si entraste mediante Baton Touch, coloca 1 Miembro de Liella! colocado en la Sala de espera por ese Baton Touch bajo este Miembro.\n[Siempre] Este Miembro obtiene todas las habilidades Activated de las cartas de Miembro de Liella! apiladas bajo él.",

@@ -147,14 +147,21 @@ function spBp2ApplyContinuousOppLiveGrayHeart(array $state, string $pid): array 
 
 function spBp2InheritedAbilitiesForTrigger(array $member, string $trigger): array {
     $group = '';
+    // Card text (PL!SP-pb2-005): gains all [Activated] abilities of stacked Liella Members.
+    $allowedTriggers = ['activated'];
     foreach ($member['abilities'] ?? [] as $ab) {
         if (($ab['trigger'] ?? '') === 'continuous'
             && ($ab['type'] ?? '') === 'inherit_stacked_group_abilities') {
             $group = $ab['group'] ?? 'Superstar';
+            if (isset($ab['ability_trigger']) && is_string($ab['ability_trigger']) && $ab['ability_trigger'] !== '') {
+                $allowedTriggers = [$ab['ability_trigger']];
+            } elseif (isset($ab['ability_triggers']) && is_array($ab['ability_triggers']) && $ab['ability_triggers'] !== []) {
+                $allowedTriggers = array_values(array_filter(array_map('strval', $ab['ability_triggers'])));
+            }
             break;
         }
     }
-    if ($group === '') {
+    if ($group === '' || !in_array($trigger, $allowedTriggers, true)) {
         return [];
     }
     $out = [];
@@ -163,8 +170,12 @@ function spBp2InheritedAbilitiesForTrigger(array $member, string $trigger): arra
             continue;
         }
         mergeCardCatalogFields($stacked);
-        foreach (getAbilitiesByTrigger($stacked, $trigger) as $sab) {
-            $out[] = $sab;
+        // Read the stacked card's own printed abilities only — do not recurse inherit.
+        foreach ($stacked['abilities'] ?? [] as $sab) {
+            $t = $sab['trigger'] ?? '';
+            if ($t === $trigger) {
+                $out[] = $sab;
+            }
         }
     }
     return $out;

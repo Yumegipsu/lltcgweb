@@ -78,18 +78,30 @@ function batch99CountYellGroupMembers(array $yellCards, bool $sameGroup): int {
 
 function batch99MemberLiveSuccessAbilities(array $member): array {
     $out = getAbilitiesByTrigger($member, 'live_success');
-    foreach ($member['stacked_members'] ?? [] as $stacked) {
-        if (!$stacked) continue;
-        $maxCost = 99;
-        foreach ($member['abilities'] ?? [] as $ab) {
-            if (($ab['type'] ?? '') === 'inherit_stacked_live_success') {
-                $maxCost = intval($ab['max_cost'] ?? 9);
-                break;
-            }
+    $maxCost = null;
+    foreach ($member['abilities'] ?? [] as $ab) {
+        if (($ab['type'] ?? '') === 'inherit_stacked_live_success') {
+            $maxCost = intval($ab['max_cost'] ?? 9);
+            break;
         }
-        if (intval($stacked['cost'] ?? 0) > $maxCost) continue;
-        foreach (getAbilitiesByTrigger($stacked, 'live_success') as $ab) {
-            $out[] = $ab;
+    }
+    // Only hosts with inherit_stacked_live_success (e.g. PL!N-PR-026) copy stacked
+    // [Live Success]. Ren's inherit_stacked_group_abilities is Activated-only (#210).
+    if ($maxCost === null) {
+        return $out;
+    }
+    foreach ($member['stacked_members'] ?? [] as $stacked) {
+        if (!$stacked) {
+            continue;
+        }
+        if (intval($stacked['cost'] ?? 0) > $maxCost) {
+            continue;
+        }
+        mergeCardCatalogFields($stacked);
+        foreach ($stacked['abilities'] ?? [] as $ab) {
+            if (($ab['trigger'] ?? '') === 'live_success') {
+                $out[] = $ab;
+            }
         }
     }
     return $out;
