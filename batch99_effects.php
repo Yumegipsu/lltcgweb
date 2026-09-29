@@ -121,29 +121,103 @@ function batch99ApplyContinuousHearts(array $state, string $pid, array $member, 
     return $hearts;
 }
 
-function batch99OnMemberEntered(array $state, string $pid, array $entered): array {
-    $p = &$state['players'][$pid];
-    foreach ($p['stage'] as $slot => &$member) {
-        if (!$member) continue;
-        foreach ($member['abilities'] ?? [] as $idx => $ab) {
-            if (($ab['trigger'] ?? '') !== 'auto') continue;
-            if (($ab['type'] ?? '') !== 'draw_on_self_or_baton_enter') continue;
-            $isSelf = ($member['instance_id'] ?? '') === ($entered['instance_id'] ?? '');
-            $isBaton = !empty($entered['entered_via_baton']);
-            if (!$isSelf && !$isBaton) continue;
-            $max = intval($ab['max_per_turn'] ?? 2);
-            $key = '_batch99_draw_baton_' . ($member['instance_id'] ?? $slot);
-            $used = intval($p[$key] ?? 0);
-            if ($used >= $max) continue;
-            $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
-            $p[$key] = $used + 1;
-            $p['stage'][$slot] = $member;
-            $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$mName] drew $drawn (Member entered" . ($isBaton ? ' via Baton' : '') . ').');
+function batch99MemberHasBatonEnterDraw(array $member): bool {
+    foreach ($member['abilities'] ?? [] as $ab) {
+        if (($ab['trigger'] ?? '') !== 'auto') {
+            continue;
+        }
+        if (($ab['type'] ?? '') === 'draw_on_self_or_baton_enter') {
+            return true;
         }
     }
+    return false;
+}
+
+function batch99ApplyDrawOnBatonEnterForMember(
+    array $state,
+    string $pid,
+    array $entered,
+    array $member,
+    ?string $stageSlot = null
+): array {
+    if (empty($entered['entered_via_baton'])) {
+        return $state;
+    }
+    $p = &$state['players'][$pid];
+    foreach ($member['abilities'] ?? [] as $ab) {
+        if (($ab['trigger'] ?? '') !== 'auto') {
+            continue;
+        }
+        if (($ab['type'] ?? '') !== 'draw_on_self_or_baton_enter') {
+            continue;
+        }
+        $max = intval($ab['max_per_turn'] ?? 2);
+        $listenerId = (string)($member['instance_id'] ?? $stageSlot ?? '');
+        $key = '_batch99_draw_baton_' . $listenerId;
+        $used = intval($p[$key] ?? 0);
+        if ($used >= $max) {
+            continue;
+        }
+        $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
+        $p[$key] = $used + 1;
+        if ($stageSlot !== null && !empty($p['stage'][$stageSlot])) {
+            $p['stage'][$stageSlot] = $member;
+        }
+        $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — [$mName] drew $drawn (Member entered via Baton).");
+    }
+    return $state;
+}
+
+/** Stage listeners still on Stage when the entering Member is placed. */
+function batch99OnMemberEntered(array $state, string $pid, array $entered): array {
+    if (empty($entered['entered_via_baton'])) {
+        return $state;
+    }
+    $p = &$state['players'][$pid];
+    foreach ($p['stage'] as $slot => &$member) {
+        if (!$member) {
+            continue;
+        }
+        $state = batch99ApplyDrawOnBatonEnterForMember($state, $pid, $entered, $member, (string)$slot);
+        $p = &$state['players'][$pid];
+    }
     unset($member);
+    return $state;
+}
+
+/**
+ * Baton Touch sends the replaced Member to the WR before enter hooks run — snapshot
+ * those listeners (e.g. Setsuna #208) and resolve after the incoming Member is placed.
+ *
+ * @param list<array> $replacedMembers
+ */
+function batch99OnMemberEnteredBatonReplaced(
+    array $state,
+    string $pid,
+    array $entered,
+    array $replacedMembers
+): array {
+    if (empty($entered['entered_via_baton']) || empty($replacedMembers)) {
+        return $state;
+    }
+    $onStageIds = [];
+    foreach ($state['players'][$pid]['stage'] ?? [] as $mbr) {
+        if ($mbr) {
+            $onStageIds[(string)($mbr['instance_id'] ?? '')] = true;
+        }
+    }
+    foreach ($replacedMembers as $member) {
+        if (!$member) {
+            continue;
+        }
+        $iid = (string)($member['instance_id'] ?? '');
+        if ($iid !== '' && !empty($onStageIds[$iid])) {
+            continue;
+        }
+        $state = batch99ApplyDrawOnBatonEnterForMember($state, $pid, $entered, $member, null);
+    }
     return $state;
 }
 

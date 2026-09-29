@@ -1933,6 +1933,7 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     $batonGroups = [];
     $batonWrMembers = [];
     $batonTransferredEnergyCards = [];
+    $batonReplacedDrawListeners = [];
     // Defer on_leave until after the incoming Member is placed so Position Change
     // (and similar) can see the post-replace Stage, then resume On Enter (#104).
     $onLeavePending = [];
@@ -1956,6 +1957,10 @@ function actionPlayMember(array $state, string $pid, array $data): array {
             ' overplayed onto ' . ($existing['name_en'] ?? $existing['name'] ?? 'Member') . '.');
     } elseif ($batonCardId && $occupant && ($occupant['instance_id'] ?? '') === $batonCardId) {
         $existing = $occupant;
+        mergeCardCatalogFields($existing);
+        if (batch99MemberHasBatonEnterDraw($existing)) {
+            $batonReplacedDrawListeners[] = $existing;
+        }
         $stackedUnder = count(getMemberStackedEnergyCards($p, $existing));
         if (memberBlocksBaton($existing)) {
             throw new Exception('This Member cannot be sent to the Waiting Room via Baton Touch');
@@ -2002,6 +2007,10 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     if ($allowsDoubleBaton && $batonCardId2) {
         foreach ($p['stage'] as $slot => $existing2) {
             if (!$existing2 || ($existing2['instance_id'] ?? '') !== $batonCardId2) continue;
+            mergeCardCatalogFields($existing2);
+            if (batch99MemberHasBatonEnterDraw($existing2)) {
+                $batonReplacedDrawListeners[] = $existing2;
+            }
             if (memberBlocksBaton($existing2)) {
                 throw new Exception('This Member cannot be sent to the Waiting Room via Baton Touch');
             }
@@ -2124,6 +2133,9 @@ function actionPlayMember(array $state, string $pid, array $data): array {
         $state = resolveOnEnterAbilities($state, $pid, $card, $targetSlot);
     }
     $state = nijiOnMemberEntered($state, $pid, $card);
+    if (!empty($batonReplacedDrawListeners)) {
+        $state = batch99OnMemberEnteredBatonReplaced($state, $pid, $card, $batonReplacedDrawListeners);
+    }
     $state['seq']++;
     return $state;
 }
