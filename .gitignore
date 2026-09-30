@@ -37,6 +37,8 @@ exports/*
 # Coins + sleeve shop UI / built sleeve thumbs
 !/assets/ui/
 !/assets/ui/**
+!/assets/news/
+!/assets/news/**
 !/assets/sleeves/
 !/assets/sleeves/**
 !/assets/playmats/
