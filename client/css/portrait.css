@@ -106,7 +106,8 @@ html.tcg-portrait-play .llc-menu-row > .llc-menu-item{
   min-width:0;
 }
 html.tcg-portrait-play .llc-menu-row--deck > .llc-menu-item--tiny .llc-menu-item-sub,
-html.tcg-portrait-play .llc-menu-row--deck > .llc-menu-item--narrow .llc-menu-item-sub{
+html.tcg-portrait-play .llc-menu-row--deck > .llc-menu-item--narrow .llc-menu-item-sub,
+html.tcg-portrait-play .llc-menu-row--ranked > .llc-menu-item--narrow .llc-menu-item-sub{
   display:block;
 }
 html.tcg-portrait-play .lobby-cols{

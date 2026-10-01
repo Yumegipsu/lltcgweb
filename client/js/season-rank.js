@@ -51,6 +51,76 @@
     return tt('season.label', '{year} Season {n}', { year: year, n: n });
   }
 
+  function seasonNowSec(season) {
+    const n = Number(season && season.now);
+    if (Number.isFinite(n) && n > 0) return n;
+    return Math.floor(Date.now() / 1000);
+  }
+
+  /** Whole days remaining until ends_at; null if unknown. */
+  function daysRemaining(season) {
+    const ends = Number(season && season.ends_at);
+    if (!Number.isFinite(ends) || ends <= 0) return null;
+    const left = ends - seasonNowSec(season);
+    if (left <= 0) return 0;
+    if (left < 86400) return 0;
+    return Math.ceil(left / 86400);
+  }
+
+  function remainText(season) {
+    const days = daysRemaining(season);
+    if (days == null) return '';
+    if (days <= 0) return tt('season.endsToday', 'Ends today');
+    if (days === 1) return tt('season.dayLeft', '1 day left');
+    return tt('season.daysLeft', '{n} days left', { n: days });
+  }
+
+  function countdownLine(season) {
+    if (!season) return '';
+    const label = seasonLabel(season);
+    const remain = remainText(season);
+    if (!label) return remain;
+    if (!remain) return label;
+    return tt('season.metaLine', '{label} · {remain}', { label: label, remain: remain });
+  }
+
+  function paintCountdown(host, season, opts) {
+    if (!host) return;
+    const requireActive = !opts || opts.requireActive !== false;
+    const active = season && (season.active || season.started);
+    if (!season || (requireActive && !active && !season.ends_at)) {
+      host.textContent = '';
+      host.hidden = true;
+      return;
+    }
+    if (requireActive && !active) {
+      host.textContent = '';
+      host.hidden = true;
+      return;
+    }
+    const line = countdownLine(season);
+    if (!line) {
+      host.textContent = '';
+      host.hidden = true;
+      return;
+    }
+    host.hidden = false;
+    host.textContent = line;
+  }
+
+  function updateHubRankedSub(host, season) {
+    if (!host) return;
+    const fallback = tt('hub.ranked.sub', 'Climb ELO in matchmade games');
+    if (season && (season.active || season.started) && season.ends_at) {
+      const line = countdownLine(season);
+      host.textContent = line || fallback;
+      host.removeAttribute('data-i18n');
+      return;
+    }
+    host.setAttribute('data-i18n', 'hub.ranked.sub');
+    host.textContent = fallback;
+  }
+
   function rankName(step) {
     const key = step && step.key ? step.key : '';
     return tt('season.rank.' + key, RANK_FALLBACK[key] || step.letter || '');
@@ -249,6 +319,10 @@
     createBadge: createBadge,
     attachHub: attachHub,
     paintUserLine: paintUserLine,
+    paintCountdown: paintCountdown,
+    updateHubRankedSub: updateHubRankedSub,
+    countdownLine: countdownLine,
+    daysRemaining: daysRemaining,
     showRewardToasts: showRewardToasts,
     openLadder: openLadder,
     closeLadder: closeLadder,

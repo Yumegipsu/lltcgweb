@@ -720,6 +720,10 @@
       "notStarted": "The seasonal ladder starts in October 2026.",
       "ladderTitle": "Season ranks",
       "you": "You",
+      "daysLeft": "{n} days left",
+      "dayLeft": "1 day left",
+      "endsToday": "Ends today",
+      "metaLine": "{label} · {remain}",
       "rank": {
         "c-green": "Green C",
         "c-pink": "Pink C",
@@ -2230,7 +2234,33 @@
       "deckBuilderSub": "プリセットとランク用デッキを編集",
       "rankedPvp": "ランクPvP",
       "rankedPvpSub": "マッチメイクでELOを競う",
-      "leaderboard": {
+      "season": {
+      "label": "{year} シーズン{n}",
+      "history": "シーズンランク",
+      "current": "今シーズン",
+      "peak": "最高 {letter}",
+      "record": "{wins}勝-{losses}敗",
+      "rewardToast": "シーズン報酬：Coins {coins}、Star Gems {gems}",
+      "rewardToastPacks": "シーズン報酬：Coins {coins}、Star Gems {gems}、PRパック {cards}枚",
+      "notStarted": "シーズンラダーは2026年10月に開始します。",
+      "ladderTitle": "シーズンランク",
+      "you": "あなた",
+      "daysLeft": "残り {n} 日",
+      "dayLeft": "残り 1 日",
+      "endsToday": "本日終了",
+      "metaLine": "{label} · {remain}",
+      "rank": {
+        "c-green": "緑C",
+        "c-pink": "ピンクC",
+        "b-green": "緑B",
+        "b-pink": "ピンクB",
+        "a-green": "緑A",
+        "a-pink": "ピンクA",
+        "s-green": "緑S",
+        "s-pink": "ピンクS"
+      }
+    },
+    "leaderboard": {
         "sub": "See ranked standings",
         "title": "Leaderboard"
       },
@@ -4172,7 +4202,33 @@
       "deckBuilderSub": "Edita preajustes y mazo clasificatorio",
       "rankedPvp": "PvP clasificatorio",
       "rankedPvpSub": "Sube tu ELO en partidas emparejadas",
-      "leaderboard": {
+      "season": {
+      "label": "{year} Temporada {n}",
+      "history": "Rangos de temporada",
+      "current": "Esta temporada",
+      "peak": "Pico {letter}",
+      "record": "{wins}V-{losses}D",
+      "rewardToast": "Recompensa de temporada: {coins} Coins, {gems} Star Gems",
+      "rewardToastPacks": "Recompensa de temporada: {coins} Coins, {gems} Star Gems, pack PR de {cards} cartas",
+      "notStarted": "La escala de temporada empieza en octubre de 2026.",
+      "ladderTitle": "Rangos de temporada",
+      "you": "Tú",
+      "daysLeft": "Quedan {n} días",
+      "dayLeft": "Queda 1 día",
+      "endsToday": "Termina hoy",
+      "metaLine": "{label} · {remain}",
+      "rank": {
+        "c-green": "C verde",
+        "c-pink": "C rosa",
+        "b-green": "B verde",
+        "b-pink": "B rosa",
+        "a-green": "A verde",
+        "a-pink": "A rosa",
+        "s-green": "S verde",
+        "s-pink": "S rosa"
+      }
+    },
+    "leaderboard": {
         "sub": "See ranked standings",
         "title": "Leaderboard"
       },
@@ -6093,7 +6149,33 @@
       "deckBuilderSub": "프리셋 편집 및 랭크전 덱 설정",
       "rankedPvp": "랭크 PvP",
       "rankedPvpSub": "매칭 대전으로 ELO 올리기",
-      "leaderboard": {
+      "season": {
+      "label": "{year} 시즌 {n}",
+      "history": "시즌 랭크",
+      "current": "이번 시즌",
+      "peak": "최고 {letter}",
+      "record": "{wins}승-{losses}패",
+      "rewardToast": "시즌 보상: Coins {coins}, Star Gems {gems}",
+      "rewardToastPacks": "시즌 보상: Coins {coins}, Star Gems {gems}, PR 팩 {cards}장",
+      "notStarted": "시즌 래더는 2026년 10월에 시작됩니다.",
+      "ladderTitle": "시즌 랭크",
+      "you": "나",
+      "daysLeft": "{n}일 남음",
+      "dayLeft": "1일 남음",
+      "endsToday": "오늘 종료",
+      "metaLine": "{label} · {remain}",
+      "rank": {
+        "c-green": "그린 C",
+        "c-pink": "핑크 C",
+        "b-green": "그린 B",
+        "b-pink": "핑크 B",
+        "a-green": "그린 A",
+        "a-pink": "핑크 A",
+        "s-green": "그린 S",
+        "s-pink": "핑크 S"
+      }
+    },
+    "leaderboard": {
         "sub": "See ranked standings",
         "title": "Leaderboard"
       },
@@ -8038,7 +8120,33 @@
       "deckBuilderSub": "编辑预设并设置排名牌组",
       "rankedPvp": "排名对战",
       "rankedPvpSub": "匹配对战并提升 ELO",
-      "leaderboard": {
+      "season": {
+      "label": "{year} 第 {n} 赛季",
+      "history": "赛季段位",
+      "current": "本赛季",
+      "peak": "最高 {letter}",
+      "record": "{wins}胜-{losses}负",
+      "rewardToast": "赛季奖励：{coins} Coins、{gems} Star Gems",
+      "rewardToastPacks": "赛季奖励：{coins} Coins、{gems} Star Gems、{cards} 张 PR 包",
+      "notStarted": "赛季天梯将于 2026 年 10 月开启。",
+      "ladderTitle": "赛季段位",
+      "you": "你",
+      "daysLeft": "剩余 {n} 天",
+      "dayLeft": "剩余 1 天",
+      "endsToday": "今日结束",
+      "metaLine": "{label} · {remain}",
+      "rank": {
+        "c-green": "绿 C",
+        "c-pink": "粉 C",
+        "b-green": "绿 B",
+        "b-pink": "粉 B",
+        "a-green": "绿 A",
+        "a-pink": "粉 A",
+        "s-green": "绿 S",
+        "s-pink": "粉 S"
+      }
+    },
+    "leaderboard": {
         "sub": "See ranked standings",
         "title": "Leaderboard"
       },
@@ -9983,7 +10091,33 @@
       "deckBuilderSub": "แก้ไขพรีเซ็ตและเด็คแรงก์",
       "rankedPvp": "แรงก์ PvP",
       "rankedPvpSub": "ไต่ ELO ด้วยแมตช์เมด",
-      "leaderboard": {
+      "season": {
+      "label": "{year} Season {n}",
+      "history": "แรงก์ซีซัน",
+      "current": "ซีซันนี้",
+      "peak": "สูงสุด {letter}",
+      "record": "{wins}W-{losses}L",
+      "rewardToast": "รางวัลซีซัน: Coins {coins}, Star Gems {gems}",
+      "rewardToastPacks": "รางวัลซีซัน: Coins {coins}, Star Gems {gems}, แพ็ก PR {cards} ใบ",
+      "notStarted": "บันไดซีซันเริ่มในตุลาคม 2026",
+      "ladderTitle": "แรงก์ซีซัน",
+      "you": "คุณ",
+      "daysLeft": "เหลือ {n} วัน",
+      "dayLeft": "เหลือ 1 วัน",
+      "endsToday": "สิ้นสุดวันนี้",
+      "metaLine": "{label} · {remain}",
+      "rank": {
+        "c-green": "เขียว C",
+        "c-pink": "ชมพู C",
+        "b-green": "เขียว B",
+        "b-pink": "ชมพู B",
+        "a-green": "เขียว A",
+        "a-pink": "ชมพู A",
+        "s-green": "เขียว S",
+        "s-pink": "ชมพู S"
+      }
+    },
+    "leaderboard": {
         "sub": "See ranked standings",
         "title": "Leaderboard"
       },
@@ -11908,7 +12042,33 @@
       "deckBuilderSub": "Edite predefinições e seu deck ranqueado",
       "rankedPvp": "PvP Ranqueado",
       "rankedPvpSub": "Suba seu ELO em partidas pareadas",
-      "leaderboard": {
+      "season": {
+      "label": "{year} Season {n}",
+      "history": "Ranks de temporada",
+      "current": "Esta temporada",
+      "peak": "Pico {letter}",
+      "record": "{wins}V-{losses}D",
+      "rewardToast": "Recompensa da temporada: {coins} Coins, {gems} Star Gems",
+      "rewardToastPacks": "Recompensa da temporada: {coins} Coins, {gems} Star Gems, pack PR de {cards} cartas",
+      "notStarted": "A ladder de temporada começa em outubro de 2026.",
+      "ladderTitle": "Ranks de temporada",
+      "you": "Você",
+      "daysLeft": "{n} dias restantes",
+      "dayLeft": "1 dia restante",
+      "endsToday": "Termina hoje",
+      "metaLine": "{label} · {remain}",
+      "rank": {
+        "c-green": "C verde",
+        "c-pink": "C rosa",
+        "b-green": "B verde",
+        "b-pink": "B rosa",
+        "a-green": "A verde",
+        "a-pink": "A rosa",
+        "s-green": "S verde",
+        "s-pink": "S rosa"
+      }
+    },
+    "leaderboard": {
         "sub": "Veja a classificação ranqueada",
         "title": "Placar de Líderes"
       },
@@ -13900,7 +14060,33 @@
       "deckBuilderSub": "Modifiez les prédéfinitions et votre deck classé",
       "rankedPvp": "PvP classé",
       "rankedPvpSub": "Montez votre ELO en parties matchmakées",
-      "leaderboard": {
+      "season": {
+      "label": "{year} Saison {n}",
+      "history": "Rangs de saison",
+      "current": "Cette saison",
+      "peak": "Pic {letter}",
+      "record": "{wins}V-{losses}D",
+      "rewardToast": "Récompense de saison : {coins} Coins, {gems} Star Gems",
+      "rewardToastPacks": "Récompense de saison : {coins} Coins, {gems} Star Gems, pack PR de {cards} cartes",
+      "notStarted": "L'échelle de saison commence en octobre 2026.",
+      "ladderTitle": "Rangs de saison",
+      "you": "Vous",
+      "daysLeft": "{n} jours restants",
+      "dayLeft": "1 jour restant",
+      "endsToday": "Se termine aujourd'hui",
+      "metaLine": "{label} · {remain}",
+      "rank": {
+        "c-green": "C vert",
+        "c-pink": "C rose",
+        "b-green": "B vert",
+        "b-pink": "B rose",
+        "a-green": "A vert",
+        "a-pink": "A rose",
+        "s-green": "S vert",
+        "s-pink": "S rose"
+      }
+    },
+    "leaderboard": {
         "sub": "Voir le classement classé",
         "title": "Classement"
       },

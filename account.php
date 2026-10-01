@@ -2345,6 +2345,7 @@ function tcgApiRankFlagSet(array $body): array {
 
 function tcgApiRankStats(array $body): array {
     require_once __DIR__ . '/game_mode.php';
+    require_once __DIR__ . '/season.php';
     $uid = tcgRequireAuthUser($body);
     $profile = tcgAuthUserProfile($uid);
     $user = tcgEnsureUser($uid, $profile);
@@ -2450,6 +2451,25 @@ function tcgApiRankStats(array $body): array {
         'game_mode' => $gameMode,
         'board' => $board,
         'season_active' => !empty($clock['active']),
+        'season' => !empty($clock['active'])
+            ? [
+                'active' => true,
+                'season_id' => (string)$clock['id'],
+                'season_number' => (int)$clock['number'],
+                'label' => (string)$clock['label'],
+                'starts_at' => (int)($clock['starts_at'] ?? 0),
+                'ends_at' => (int)($clock['ends_at'] ?? 0),
+                'now' => (int)($clock['now'] ?? time()),
+            ]
+            : [
+                'active' => false,
+                'label' => tcgSeasonLabel('2026-10'),
+                'season_id' => '2026-10',
+                'season_number' => 1,
+                'starts_at' => TCG_SEASON_EPOCH,
+                'ends_at' => gmmktime(0, 0, 0, 11, 1, 2026),
+                'now' => (int)($clock['now'] ?? time()),
+            ],
         'you' => array_merge(
             tcgFormatRankSummary($rank),
             [

@@ -303,6 +303,9 @@ function tcgSeasonLadderSteps(): array {
  */
 function tcgSeasonPreviewPublic(): array {
     $def = tcgSeasonStepDef(0);
+    $clock = tcgSeasonClockInfo();
+    $firstStarts = TCG_SEASON_EPOCH;
+    $firstEnds = gmmktime(0, 0, 0, 11, 1, 2026);
     return [
         'active' => false,
         'started' => false,
@@ -310,6 +313,9 @@ function tcgSeasonPreviewPublic(): array {
         'season_id' => '2026-10',
         'season_number' => 1,
         'label' => tcgSeasonLabel('2026-10'),
+        'starts_at' => $firstStarts,
+        'ends_at' => $firstEnds,
+        'now' => (int)($clock['now'] ?? tcgSeasonNow()),
         'step' => 0,
         'points' => 0,
         'progress' => 0,
@@ -431,6 +437,9 @@ function tcgSeasonFormatPublic(?array $row, array $clock): array {
         'season_id' => (string)$clock['id'],
         'season_number' => (int)$clock['number'],
         'label' => (string)$clock['label'],
+        'starts_at' => (int)($clock['starts_at'] ?? 0),
+        'ends_at' => (int)($clock['ends_at'] ?? 0),
+        'now' => (int)($clock['now'] ?? tcgSeasonNow()),
         'step' => $step,
         'points' => $points,
         'progress' => $progress,

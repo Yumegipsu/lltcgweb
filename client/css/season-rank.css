@@ -91,10 +91,32 @@
   display: none;
 }
 
+.season-countdown {
+  margin: 2px 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: rgba(255, 236, 210, .95);
+  text-shadow: 0 1px 0 rgba(40, 12, 28, .35);
+}
+
+.season-countdown[hidden] {
+  display: none;
+}
+
+#hub-ranked-sub {
+  white-space: normal;
+}
+
 .leaderboard-boards {
   display: flex;
   gap: 8px;
-  margin: 4px 0 12px;
+  margin: 4px 0 8px;
+}
+
+#leaderboard-season-meta {
+  margin-top: 0;
+  margin-bottom: 12px;
 }
 
 .leaderboard-boards button {

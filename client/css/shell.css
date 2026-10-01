@@ -1864,6 +1864,9 @@ body.locale-th .llc-menu-item-title{font-family:'Noto Sans Thai','Nunito',sans-s
 .llc-menu-row--deck > .llc-menu-item--tiny .llc-menu-item-sub{display:none}
 .llc-menu-row--deck > .llc-menu-item--tiny .llc-menu-item-title{font-size:12px;letter-spacing:.02em;padding-left:14px}
 .llc-menu-row--deck > .llc-menu-item--tiny .llc-menu-item-title::before{width:8px;height:14px;top:.5em}
+.llc-menu-row--ranked > .llc-menu-item--wide{flex:3 1 0}
+.llc-menu-row--ranked > .llc-menu-item--narrow{flex:1 1 0}
+.llc-menu-row--ranked > .llc-menu-item--narrow .llc-menu-item-sub{display:none}
 .llc-menu-row--collect > .llc-menu-item--wide{flex:4 1 0}
 .llc-menu-row--collect > .llc-menu-item--narrow{flex:1 1 0}
 .llc-menu-row--collect > .llc-menu-item--narrow .llc-menu-item-sub{display:none}
