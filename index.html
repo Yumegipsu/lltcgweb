@@ -3257,7 +3257,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=214"></script>
+<script src="i18n.js?v=215"></script>
 <script src="log_i18n.js?v=20"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=44"></script>
@@ -14187,7 +14187,12 @@ function formatRankRecord(entry) {
   const losses = entry.losses ?? 0;
   const winRate = entry.win_rate ?? (wins + losses > 0 ? Math.round((wins / (wins + losses)) * 1000) / 10 : 0);
   const lossRate = entry.loss_rate ?? (wins + losses > 0 ? Math.round((losses / (wins + losses)) * 1000) / 10 : 0);
-  return wins + 'W-' + losses + 'L · ' + winRate + '% win · ' + lossRate + '% loss';
+  return t('ranked.recordFull', {
+    wins,
+    losses,
+    winPct: winRate,
+    lossPct: lossRate,
+  });
 }
 
 function applyRankBannerStyles(img, crop) {
