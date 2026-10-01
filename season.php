@@ -5,6 +5,9 @@
  * Season 1 starts 2026-10-01 00:00 UTC. One ladder for standard ranked only.
  * Rollover is lazy (next account or ranked request). Rewards use the peak step.
  * Pink S is the live top 10 who have filled Green S, not a permanent promotion.
+ *
+ * Ladder points are independent of all-time Elo. Match deltas use each player's
+ * current seasonal step only (same-step ≈ 16; upsets vs higher steps pay more).
  */
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/game_mode.php';
@@ -153,6 +156,41 @@ function tcgSeasonClampDelta(int $delta): int {
         $n = 32;
     }
     return $n;
+}
+
+/**
+ * Points exchanged for a ranked seasonal result from seasonal steps only.
+ * Pink S scores as Green S. Same-step matches yield 16; beating a higher
+ * seasonal rank yields more (up to 32), beating a lower one less (floor 8).
+ */
+function tcgSeasonPointDelta(int $winnerStep, int $loserStep): int {
+    $w = tcgSeasonClampStep($winnerStep);
+    $l = tcgSeasonClampStep($loserStep);
+    if ($w >= TCG_SEASON_PINK_S_STEP) {
+        $w = TCG_SEASON_GREEN_S_STEP;
+    }
+    if ($l >= TCG_SEASON_PINK_S_STEP) {
+        $l = TCG_SEASON_GREEN_S_STEP;
+    }
+    $k = 32;
+    // Scale 2 across 0–6 steps: ±2 ranks ≈ underdog ~29 / favorite floor 8.
+    $expectedW = 1 / (1 + pow(10, ($l - $w) / 2));
+    return tcgSeasonClampDelta((int)round($k * (1 - $expectedW)));
+}
+
+/**
+ * Resolve a player's seasonal step for delta math (0 if no row yet).
+ */
+function tcgSeasonStepForDelta(string $discordId, string $gameMode): int {
+    $row = tcgSeasonLoadRow($discordId, $gameMode);
+    if (!$row) {
+        return 0;
+    }
+    $clock = tcgSeasonClockInfo();
+    if (!empty($clock['active']) && (string)$row['season_id'] !== (string)$clock['id']) {
+        return 0;
+    }
+    return tcgSeasonClampStep((int)$row['step']);
 }
 
 function tcgSeasonClampStep(int $step): int {
@@ -636,7 +674,7 @@ function tcgSeasonEnsureTitleFile(string $seasonId, int $step): void {
     }
 }
 
-function tcgSeasonBump(string $discordId, string $gameMode, int $eloDelta, bool $win): void {
+function tcgSeasonBump(string $discordId, string $gameMode, int $delta, bool $win): void {
     $clock = tcgSeasonClockInfo();
     if (empty($clock['active'])) {
         return;
@@ -652,7 +690,7 @@ function tcgSeasonBump(string $discordId, string $gameMode, int $eloDelta, bool 
     $peak = $row ? (int)$row['peak_step'] : 0;
     $wins = $row ? (int)$row['wins'] : 0;
     $losses = $row ? (int)$row['losses'] : 0;
-    $moved = tcgSeasonMovePoints($step, $points, $eloDelta, $win);
+    $moved = tcgSeasonMovePoints($step, $points, $delta, $win);
     if ($win) {
         $wins++;
     } else {
@@ -688,7 +726,7 @@ function tcgSeasonBump(string $discordId, string $gameMode, int $eloDelta, bool 
     tcgSeasonAssignPinkSlots($gameMode, (string)$clock['id']);
 }
 
-function tcgSeasonApplyResult(string $winnerId, string $loserId, bool $isDraw, string $gameMode, int $eloDelta): void {
+function tcgSeasonApplyResult(string $winnerId, string $loserId, bool $isDraw, string $gameMode): void {
     if ($isDraw) {
         return;
     }
@@ -696,8 +734,13 @@ function tcgSeasonApplyResult(string $winnerId, string $loserId, bool $isDraw, s
     if ($mode === null || empty(tcgSeasonClockInfo()['active'])) {
         return;
     }
-    tcgSeasonBump($winnerId, $mode, $eloDelta, true);
-    tcgSeasonBump($loserId, $mode, $eloDelta, false);
+    tcgSeasonSettle($winnerId, $mode);
+    tcgSeasonSettle($loserId, $mode);
+    $winnerStep = tcgSeasonStepForDelta($winnerId, $mode);
+    $loserStep = tcgSeasonStepForDelta($loserId, $mode);
+    $delta = tcgSeasonPointDelta($winnerStep, $loserStep);
+    tcgSeasonBump($winnerId, $mode, $delta, true);
+    tcgSeasonBump($loserId, $mode, $delta, false);
 }
 
 /** @return array{step:int,points:int} */

@@ -289,7 +289,7 @@ function tcgApplyRankResult(
         WHERE discord_id = ? AND game_mode = ?')
         ->execute([$delta, $now, $loserId, $gameMode]);
     try {
-        tcgSeasonApplyResult($winnerId, $loserId, false, $gameMode, $delta);
+        tcgSeasonApplyResult($winnerId, $loserId, false, $gameMode);
     } catch (Throwable $e) {
         error_log('tcgSeasonApplyResult: ' . $e->getMessage());
         if (getenv('TCG_DEBUG') === '1') {

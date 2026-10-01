@@ -77,6 +77,15 @@ final class SeasonRankTest extends TestCase
         $this->assertSame(32, tcgSeasonClampDelta(40));
         $this->assertSame(4, tcgSeasonSoftResetStep(7));
 
+        $this->assertSame(16, tcgSeasonPointDelta(0, 0));
+        $this->assertSame(16, tcgSeasonPointDelta(4, 4));
+        $this->assertSame(16, tcgSeasonPointDelta(6, 7)); // Pink S scores as Green S
+        $upset = tcgSeasonPointDelta(0, 4);
+        $favorite = tcgSeasonPointDelta(4, 0);
+        $this->assertGreaterThan($favorite, $upset);
+        $this->assertSame(8, $favorite);
+        $this->assertGreaterThanOrEqual(24, $upset);
+
         $filled = tcgSeasonMovePoints(6, 90, 32, true);
         $this->assertSame(6, $filled['step']);
         $this->assertSame(122, $filled['points']);
@@ -114,14 +123,51 @@ final class SeasonRankTest extends TestCase
         $this->assertNotNull($l);
         $this->assertSame('2026-10', $w['season_id']);
         $this->assertSame(0, (int)$w['step']);
-        $this->assertGreaterThanOrEqual(8, (int)$w['points']);
-        $this->assertLessThanOrEqual(32, (int)$w['points']);
+        $this->assertSame(16, (int)$w['points']);
         $this->assertSame(1, (int)$w['wins']);
         $this->assertSame(0, (int)$l['step']);
         $this->assertSame(0, (int)$l['points']);
         $this->assertSame(1, (int)$l['losses']);
         $this->assertGreaterThan(1000, (int)tcgRankRow($winner, TCG_GAME_MODE_STANDARD)['rating']);
         $this->assertSame(1000, (int)tcgRankRow($winner, TCG_GAME_MODE_STARTERS)['rating']);
+    }
+
+    public function testSeasonPointsIgnoreEloUseSeasonStep(): void
+    {
+        $this->at('2026-10-15 12:00:00');
+        $favorite = $this->user('eloFav');
+        $underdog = $this->user('eloDog');
+        tcgRankRow($favorite, TCG_GAME_MODE_STANDARD);
+        tcgRankRow($underdog, TCG_GAME_MODE_STANDARD);
+        tcgDb()->prepare('UPDATE tcg_rank SET rating = 1900 WHERE discord_id = ? AND game_mode = ?')
+            ->execute([$favorite, TCG_GAME_MODE_STANDARD]);
+        tcgDb()->prepare('UPDATE tcg_rank SET rating = 700 WHERE discord_id = ? AND game_mode = ?')
+            ->execute([$underdog, TCG_GAME_MODE_STANDARD]);
+
+        // Same seasonal step (0): Elo gap must not change season points.
+        tcgApplyRankResult($favorite, $underdog, false, TCG_GAME_MODE_STANDARD);
+        $w = tcgSeasonLoadRow($favorite, TCG_GAME_MODE_STANDARD);
+        $this->assertSame(16, (int)$w['points']);
+        $eloDelta = (int)tcgRankRow($favorite, TCG_GAME_MODE_STANDARD)['rating'] - 1900;
+        $this->assertLessThan(16, $eloDelta); // Elo gain is tiny for a huge favorite
+        $this->assertNotSame($eloDelta, (int)$w['points']);
+
+        $high = $this->user('stepHigh');
+        $low = $this->user('stepLow');
+        $now = tcgSeasonNow();
+        tcgDb()->prepare('INSERT INTO tcg_season_rank
+            (discord_id, game_mode, season_id, step, points, peak_step, wins, losses, updated_at)
+            VALUES (?, ?, ?, 4, 50, 4, 3, 1, ?)')
+            ->execute([$high, TCG_GAME_MODE_STANDARD, '2026-10', $now]);
+        tcgDb()->prepare('INSERT INTO tcg_season_rank
+            (discord_id, game_mode, season_id, step, points, peak_step, wins, losses, updated_at)
+            VALUES (?, ?, ?, 0, 20, 0, 1, 0, ?)')
+            ->execute([$low, TCG_GAME_MODE_STANDARD, '2026-10', $now]);
+
+        // Lower seasonal rank beats higher: more than a same-step win.
+        tcgApplyRankResult($low, $high, false, TCG_GAME_MODE_STANDARD);
+        $upset = tcgSeasonLoadRow($low, TCG_GAME_MODE_STANDARD);
+        $this->assertGreaterThan(16, (int)$upset['points'] - 20);
     }
 
     public function testSoftResetPaysPeakOnce(): void
