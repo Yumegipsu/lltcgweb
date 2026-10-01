@@ -535,16 +535,22 @@
         : '';
       return `<li>${img}<span>${esc(text)}</span></li>`;
     };
+    const labelOf = (row) => {
+      if (global.TCGSeason && typeof global.TCGSeason.seasonLabel === 'function') {
+        return global.TCGSeason.seasonLabel(row);
+      }
+      return row && row.label ? String(row.label) : '';
+    };
     const currentHtml = current.map((item) => {
       const row = item.row;
       const text = tt('season.current', 'This season')
-        + ' · ' + (row.label || '')
+        + ' · ' + labelOf(row)
         + ' · ' + (row.letter || '')
         + ' · ' + tt('season.record', '{wins}W-{losses}L', { wins: row.wins || 0, losses: row.losses || 0 });
       return line(row.icon, text);
     }).join('');
     const historyHtml = history.map((row) => {
-      const text = (row.label || '')
+      const text = labelOf(row)
         + ' · ' + (row.letter || '')
         + ' · ' + tt('season.peak', 'Peak {letter}', { letter: row.peak_letter || row.letter || '' })
         + ' · ' + tt('season.record', '{wins}W-{losses}L', { wins: row.wins || 0, losses: row.losses || 0 });

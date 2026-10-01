@@ -44,7 +44,7 @@
   }
 
   function seasonLabel(season) {
-    if (season && season.label) return String(season.label);
+    // Always localize — server `label` is English-only (e.g. "2026 Season 1").
     const id = season && season.season_id ? String(season.season_id) : '';
     const year = /^\d{4}/.test(id) ? id.slice(0, 4) : '2026';
     const n = season && season.season_number ? season.season_number : 1;
@@ -321,6 +321,7 @@
     paintUserLine: paintUserLine,
     paintCountdown: paintCountdown,
     updateHubRankedSub: updateHubRankedSub,
+    seasonLabel: seasonLabel,
     countdownLine: countdownLine,
     daysRemaining: daysRemaining,
     showRewardToasts: showRewardToasts,
