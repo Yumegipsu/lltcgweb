@@ -206,6 +206,8 @@ function tcgSeasonClampStep(int $step): int {
 /**
  * Win adds points (and promotes through Green S). A loss on C does nothing.
  * B cannot fall below Green B. A and S cannot fall below Green A.
+ * At those floor ranks (Green B / Green A), losses also leave the point bar
+ * unchanged — same protection as C — so a single loss cannot wipe progress.
  * Pink S is not earned by filling the bar. Points on Green S keep climbing
  * and the top 10 qualified players are assigned Pink S separately.
  *
@@ -219,10 +221,15 @@ function tcgSeasonMovePoints(int $step, int $points, int $delta, bool $win): arr
     $points = max(0, $points);
     $delta = tcgSeasonClampDelta($delta);
     if (!$win) {
+        // C (0–1): fully protected. Green B (2) / Green A (4): floor ranks —
+        // cannot demote further and do not lose bar progress on a loss.
         if ($step <= 1) {
             return ['step' => $step, 'points' => $points];
         }
         $floor = $step <= 3 ? 2 : 4;
+        if ($step === $floor) {
+            return ['step' => $step, 'points' => $points];
+        }
         $points -= $delta;
         while ($points < 0 && $step > $floor) {
             $step--;
