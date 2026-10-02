@@ -106,6 +106,22 @@ function tcgBuildCardMap(array $cardsData): array {
     return $map;
 }
 
+/** Owned copies for a card_no, summing ASCII + and fullwidth ＋ collection keys. */
+function tcgOwnedQtyForCardNo(array $owned, string $cardNo): int {
+    $n = 0;
+    $keys = function_exists('tcgCardNoLookupKeys')
+        ? tcgCardNoLookupKeys($cardNo)
+        : array_values(array_unique([
+            $cardNo,
+            str_replace('＋', '+', $cardNo),
+            str_replace('+', '＋', str_replace('＋', '+', $cardNo)),
+        ]));
+    foreach ($keys as $key) {
+        $n += (int)($owned[$key] ?? 0);
+    }
+    return $n;
+}
+
 function tcgValidateDeckLists(array $mainDeck, array $energyDeck, array $cardMap, ?array $owned = null, bool $allowIncomplete = false): array {
     $errors = [];
     $mainN = count($mainDeck);
@@ -149,7 +165,7 @@ function tcgValidateDeckLists(array $mainDeck, array $energyDeck, array $cardMap
         } else {
             $errors[] = "Invalid main-deck card type for $no";
         }
-        if ($owned !== null && ($owned[$no] ?? 0) < $qty) {
+        if ($owned !== null && tcgOwnedQtyForCardNo($owned, (string)$no) < $qty) {
             $errors[] = "Not enough copies of $no in collection";
         }
     }
@@ -181,7 +197,7 @@ function tcgValidateDeckLists(array $mainDeck, array $energyDeck, array $cardMap
             continue;
         }
         $energyTypes[$no] = true;
-        if ($owned !== null && ($owned[$no] ?? 0) < $qty) {
+        if ($owned !== null && tcgOwnedQtyForCardNo($owned, (string)$no) < $qty) {
             $errors[] = "Not enough energy copies of $no in collection";
         }
     }

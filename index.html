@@ -9556,8 +9556,13 @@ function deckListsAreLegal(main, energy) {
 
 function savedDeckIsPlayable(d) {
   if (!d) return false;
+  // Re-check against the live catalog when loaded so +/＋ alias repairs apply
+  // even if a prior deck_list response marked legal:false.
+  if (G.allCards && Object.keys(G.allCards).length) {
+    return deckListsAreLegal(d.main_deck || [], d.energy_deck || []);
+  }
   if (typeof d.legal === 'boolean') return d.legal;
-  return deckListsAreLegal(d.main_deck || [], d.energy_deck || []);
+  return false;
 }
 
 function layoutDeckBuilderActions(experiment) {

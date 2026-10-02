@@ -204,4 +204,21 @@ final class DeckValidateTest extends TestCase
         $this->assertTrue($result['valid'], implode('; ', $result['errors']));
         $this->assertSame([], array_filter($result['errors'], fn($e) => str_contains($e, 'Unknown card')));
     }
+
+    public function testSignedEnergyPlusOwnedAcrossAsciiFullwidth(): void
+    {
+        $fw = 'PL!-bp4-029-PE＋';
+        $ascii = 'PL!-bp4-029-PE+';
+        $this->assertArrayHasKey($fw, $this->cardMap);
+        $this->assertArrayHasKey($ascii, $this->cardMap);
+        $this->assertSame('エネルギー', $this->cardMap[$ascii]['card_type'] ?? '');
+        $ownedFw = [$fw => 12];
+        $energyAscii = array_fill(0, 12, $ascii);
+        $r = tcgValidateDeckLists([], $energyAscii, $this->cardMap, $ownedFw, true);
+        $this->assertTrue($r['valid'], implode('; ', $r['errors']));
+        $ownedAscii = [$ascii => 12];
+        $energyFw = array_fill(0, 12, $fw);
+        $r2 = tcgValidateDeckLists([], $energyFw, $this->cardMap, $ownedAscii, true);
+        $this->assertTrue($r2['valid'], implode('; ', $r2['errors']));
+    }
 }
