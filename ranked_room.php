@@ -245,12 +245,23 @@ function tcgOnGameFinished(array &$state): void {
 
     require_once __DIR__ . '/game_mode.php';
     $gameMode = tcgNormalizeGameMode($ranked['game_mode'] ?? TCG_GAME_MODE_STANDARD);
+    $seasonChanges = null;
     if ($winnerPid === 'p1') {
-        tcgApplyRankResult($p1Id, $p2Id, false, $gameMode);
+        $seasonChanges = tcgApplyRankResult($p1Id, $p2Id, false, $gameMode);
     } elseif ($winnerPid === 'p2') {
-        tcgApplyRankResult($p2Id, $p1Id, false, $gameMode);
+        $seasonChanges = tcgApplyRankResult($p2Id, $p1Id, false, $gameMode);
     } else {
         tcgApplyRankResult($p1Id, $p2Id, true, $gameMode);
+    }
+    if (is_array($seasonChanges) && $seasonChanges !== []) {
+        $bySeat = [];
+        if (isset($seasonChanges[$p1Id])) {
+            $bySeat['p1'] = $seasonChanges[$p1Id];
+        }
+        if (isset($seasonChanges[$p2Id])) {
+            $bySeat['p2'] = $seasonChanges[$p2Id];
+        }
+        $state['ranked']['season_changes'] = $bySeat;
     }
     // Mark applied immediately after ELO so PR reward failures cannot leave rating unapplied.
     $state['ranked']['applied'] = true;

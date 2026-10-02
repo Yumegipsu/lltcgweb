@@ -205,9 +205,10 @@ function tcgSeasonClampStep(int $step): int {
 
 /**
  * Win adds points (and promotes through Green S). A loss on C does nothing.
- * B cannot fall below Green B. A and S cannot fall below Green A.
- * At those floor ranks (Green B / Green A), losses also leave the point bar
- * unchanged — same protection as C — so a single loss cannot wipe progress.
+ * Everywhere else, losses drain the bar and demote into lower ranks when the
+ * bar goes negative (remainder carries into the new tier — never clamp a
+ * mid-bar loss to 0 while staying on the same tier). Demotion stops at Pink C;
+ * once on C, further losses stay protected.
  * Pink S is not earned by filling the bar. Points on Green S keep climbing
  * and the top 10 qualified players are assigned Pink S separately.
  *
@@ -221,17 +222,14 @@ function tcgSeasonMovePoints(int $step, int $points, int $delta, bool $win): arr
     $points = max(0, $points);
     $delta = tcgSeasonClampDelta($delta);
     if (!$win) {
-        // C (0–1): fully protected. Green B (2) / Green A (4): floor ranks —
-        // cannot demote further and do not lose bar progress on a loss.
+        // C (0–1): fully protected — no point loss, no demotion.
         if ($step <= 1) {
             return ['step' => $step, 'points' => $points];
         }
-        $floor = $step <= 3 ? 2 : 4;
-        if ($step === $floor) {
-            return ['step' => $step, 'points' => $points];
-        }
         $points -= $delta;
-        while ($points < 0 && $step > $floor) {
+        // Demote while the bar is overdrawn. Land on the lower tier with the
+        // remainder (e.g. 10 − 32 → Pink C at 78), never wipe to 0 in place.
+        while ($points < 0 && $step > 1) {
             $step--;
             $points += TCG_SEASON_POINTS;
         }
@@ -681,10 +679,33 @@ function tcgSeasonEnsureTitleFile(string $seasonId, int $step): void {
     }
 }
 
-function tcgSeasonBump(string $discordId, string $gameMode, int $delta, bool $win): void {
+/**
+ * Slim season snapshot for match-end UI (radial bar + promo/demo text).
+ *
+ * @return array{step:int,points:int,progress:int,key:string,letter:string,tone:string,icon:string}
+ */
+function tcgSeasonChangeSide(int $step, int $points): array {
+    $step = tcgSeasonClampStep($step);
+    $points = max(0, $points);
+    $def = tcgSeasonStepDef($step);
+    return [
+        'step' => $step,
+        'points' => $points,
+        'progress' => (int)max(0, min(100, $points)),
+        'key' => $def['key'],
+        'letter' => $def['letter'],
+        'tone' => $def['tone'],
+        'icon' => tcgSeasonIconUrl($step),
+    ];
+}
+
+/**
+ * @return array<string,mixed>|null change payload for the match-end radial UI
+ */
+function tcgSeasonBump(string $discordId, string $gameMode, int $delta, bool $win): ?array {
     $clock = tcgSeasonClockInfo();
     if (empty($clock['active'])) {
-        return;
+        return null;
     }
     $row = tcgSeasonLoadRow($discordId, $gameMode);
     $now = tcgSeasonNow();
@@ -697,6 +718,7 @@ function tcgSeasonBump(string $discordId, string $gameMode, int $delta, bool $wi
     $peak = $row ? (int)$row['peak_step'] : 0;
     $wins = $row ? (int)$row['wins'] : 0;
     $losses = $row ? (int)$row['losses'] : 0;
+    $before = tcgSeasonChangeSide($step, $points);
     $moved = tcgSeasonMovePoints($step, $points, $delta, $win);
     if ($win) {
         $wins++;
@@ -731,23 +753,46 @@ function tcgSeasonBump(string $discordId, string $gameMode, int $delta, bool $wi
             $now,
         ]);
     tcgSeasonAssignPinkSlots($gameMode, (string)$clock['id']);
+    $afterRow = tcgSeasonLoadRow($discordId, $gameMode);
+    $afterStep = $afterRow ? (int)$afterRow['step'] : $moved['step'];
+    $afterPoints = $afterRow ? (int)$afterRow['points'] : $moved['points'];
+    $after = tcgSeasonChangeSide($afterStep, $afterPoints);
+    return [
+        'before' => $before,
+        'after' => $after,
+        'delta' => tcgSeasonClampDelta($delta),
+        'win' => $win,
+        'promoted' => $after['step'] > $before['step'],
+        'demoted' => $after['step'] < $before['step'],
+    ];
 }
 
-function tcgSeasonApplyResult(string $winnerId, string $loserId, bool $isDraw, string $gameMode): void {
+/**
+ * @return array<string,array<string,mixed>>|null discord_id => change
+ */
+function tcgSeasonApplyResult(string $winnerId, string $loserId, bool $isDraw, string $gameMode): ?array {
     if ($isDraw) {
-        return;
+        return null;
     }
     $mode = tcgSeasonRankedMode($gameMode);
     if ($mode === null || empty(tcgSeasonClockInfo()['active'])) {
-        return;
+        return null;
     }
     tcgSeasonSettle($winnerId, $mode);
     tcgSeasonSettle($loserId, $mode);
     $winnerStep = tcgSeasonStepForDelta($winnerId, $mode);
     $loserStep = tcgSeasonStepForDelta($loserId, $mode);
     $delta = tcgSeasonPointDelta($winnerStep, $loserStep);
-    tcgSeasonBump($winnerId, $mode, $delta, true);
-    tcgSeasonBump($loserId, $mode, $delta, false);
+    $out = [];
+    $wChange = tcgSeasonBump($winnerId, $mode, $delta, true);
+    $lChange = tcgSeasonBump($loserId, $mode, $delta, false);
+    if (is_array($wChange)) {
+        $out[$winnerId] = $wChange;
+    }
+    if (is_array($lChange)) {
+        $out[$loserId] = $lChange;
+    }
+    return $out === [] ? null : $out;
 }
 
 /** @return array{step:int,points:int} */

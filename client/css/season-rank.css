@@ -349,3 +349,70 @@ body.season-ladder-open {
     font-size: 14px;
   }
 }
+
+/* Match-end season radial */
+#overlay-win .win-season {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 4px;
+  min-height: 0;
+}
+
+#overlay-win .win-season[hidden] {
+  display: none;
+}
+
+.season-badge--win {
+  width: 96px;
+  height: 96px;
+}
+
+.season-badge--win img {
+  width: 72px;
+  height: 72px;
+}
+
+.season-badge--win .season-badge-ring {
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 3.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 5px), #000 calc(100% - 3.5px));
+}
+
+.season-badge--win.is-rank-up img {
+  animation: season-rank-pop 0.55s ease;
+}
+
+.season-badge--win.is-rank-down img {
+  animation: season-rank-drop 0.55s ease;
+}
+
+.win-season-msg {
+  margin: 0;
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(18px, 4.2vw, 26px);
+  letter-spacing: 0.02em;
+  color: #ffe08a;
+  text-align: center;
+  text-shadow: 0 2px 0 rgba(40, 12, 28, 0.35);
+}
+
+.win-season-pts {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255, 236, 210, 0.9);
+  text-align: center;
+}
+
+@keyframes season-rank-pop {
+  0% { transform: scale(0.82); opacity: 0.55; }
+  55% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes season-rank-drop {
+  0% { transform: scale(1.08); opacity: 0.7; }
+  45% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}

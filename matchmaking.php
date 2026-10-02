@@ -257,12 +257,15 @@ function tcgCreateRankedMatchRecord(
     return $matchId;
 }
 
+/**
+ * @return array<string,array<string,mixed>>|null season change by discord_id
+ */
 function tcgApplyRankResult(
     string $winnerId,
     string $loserId,
     bool $isDraw = false,
     string $gameMode = TCG_GAME_MODE_STANDARD
-): void {
+): ?array {
     $gameMode = tcgNormalizeGameMode($gameMode);
     $db = tcgDb();
     $now = time();
@@ -273,7 +276,7 @@ function tcgApplyRankResult(
                 WHERE discord_id = ? AND game_mode = ?')
                 ->execute([$now, $uid, $gameMode]);
         }
-        return;
+        return null;
     }
     $w = tcgRankRow($winnerId, $gameMode);
     $l = tcgRankRow($loserId, $gameMode);
@@ -289,12 +292,13 @@ function tcgApplyRankResult(
         WHERE discord_id = ? AND game_mode = ?')
         ->execute([$delta, $now, $loserId, $gameMode]);
     try {
-        tcgSeasonApplyResult($winnerId, $loserId, false, $gameMode);
+        return tcgSeasonApplyResult($winnerId, $loserId, false, $gameMode);
     } catch (Throwable $e) {
         error_log('tcgSeasonApplyResult: ' . $e->getMessage());
         if (getenv('TCG_DEBUG') === '1') {
             throw $e;
         }
+        return null;
     }
 }
 
@@ -453,11 +457,12 @@ function tcgApplyRankedResultFromWebhook(array $body): array {
         return $out;
     }
 
+    $seasonChanges = null;
     if (!$alreadyDone) {
         if ($winnerPid === 'p1') {
-            tcgApplyRankResult($p1Id, $p2Id, false, $gameMode);
+            $seasonChanges = tcgApplyRankResult($p1Id, $p2Id, false, $gameMode);
         } elseif ($winnerPid === 'p2') {
-            tcgApplyRankResult($p2Id, $p1Id, false, $gameMode);
+            $seasonChanges = tcgApplyRankResult($p2Id, $p1Id, false, $gameMode);
         } else {
             tcgApplyRankResult($p1Id, $p2Id, true, $gameMode);
         }
@@ -524,6 +529,18 @@ function tcgApplyRankedResultFromWebhook(array $body): array {
         if (!empty($fakeState['ranked']['pr_reward_applied'])) {
             $out['pr_reward_applied'] = true;
         }
+    }
+    if (is_array($seasonChanges) && $seasonChanges !== []) {
+        // Key by seat so clients do not need discord ids on the finish payload.
+        $bySeat = [];
+        if (isset($seasonChanges[$p1Id])) {
+            $bySeat['p1'] = $seasonChanges[$p1Id];
+        }
+        if (isset($seasonChanges[$p2Id])) {
+            $bySeat['p2'] = $seasonChanges[$p2Id];
+        }
+        $out['season_changes'] = $bySeat;
+        $out['season_changes_by_id'] = $seasonChanges;
     }
     if ($missionCompletions !== []) {
         $out['mission_completions'] = $missionCompletions;

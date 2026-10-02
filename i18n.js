@@ -733,7 +733,12 @@
         "a-pink": "Pink A",
         "s-green": "Green S",
         "s-pink": "Pink S"
-      }
+      },
+      "promoted": "Promoted to {rank}",
+      "demoted": "Demoted to {rank}",
+      "pointsGain": "+{n} season pts",
+      "pointsLoss": "−{n} season pts",
+      "pointsProtected": "C rank — points protected"
     },
     "leaderboard": {
       "title": "Ranked Leaderboard",
@@ -2929,7 +2934,12 @@
         "a-pink": "ピンクA",
         "s-green": "緑S",
         "s-pink": "ピンクS"
-      }
+      },
+      "promoted": "{rank}に昇格",
+      "demoted": "{rank}に降格",
+      "pointsGain": "シーズンポイント +{n}",
+      "pointsLoss": "シーズンポイント −{n}",
+      "pointsProtected": "Cランク — ポイント保護"
     },
         "leaderboard": {
       "title": "ランクリーダーボード",
@@ -4710,7 +4720,12 @@
         "a-pink": "A rosa",
         "s-green": "S verde",
         "s-pink": "S rosa"
-      }
+      },
+      "promoted": "Ascendido a {rank}",
+      "demoted": "Descendido a {rank}",
+      "pointsGain": "+{n} pts de temporada",
+      "pointsLoss": "−{n} pts de temporada",
+      "pointsProtected": "Rango C — puntos protegidos"
     },
         "leaderboard": {
       "title": "Clasificación de clasificatoria",
@@ -6670,7 +6685,12 @@
         "a-pink": "핑크 A",
         "s-green": "그린 S",
         "s-pink": "핑크 S"
-      }
+      },
+      "promoted": "{rank}(으)로 승급",
+      "demoted": "{rank}(으)로 강등",
+      "pointsGain": "시즌 포인트 +{n}",
+      "pointsLoss": "시즌 포인트 −{n}",
+      "pointsProtected": "C 랭크 — 포인트 보호"
     },
         "leaderboard": {
       "title": "랭크 리더보드",
@@ -8644,7 +8664,12 @@
         "a-pink": "粉 A",
         "s-green": "绿 S",
         "s-pink": "粉 S"
-      }
+      },
+      "promoted": "晋级至{rank}",
+      "demoted": "降级至{rank}",
+      "pointsGain": "赛季积分 +{n}",
+      "pointsLoss": "赛季积分 −{n}",
+      "pointsProtected": "C段 — 积分保护"
     },
         "leaderboard": {
       "title": "排行榜",
@@ -10608,7 +10633,12 @@
         "a-pink": "ชมพู A",
         "s-green": "เขียว S",
         "s-pink": "ชมพู S"
-      }
+      },
+      "promoted": "เลื่อนขั้นเป็น {rank}",
+      "demoted": "ลดขั้นเป็น {rank}",
+      "pointsGain": "แต้มซีซัน +{n}",
+      "pointsLoss": "แต้มซีซัน −{n}",
+      "pointsProtected": "แรงก์ C — แต้มถูกป้องกัน"
     },
         "leaderboard": {
       "title": "กระดานจัดอันดับแรงก์",
@@ -12660,7 +12690,12 @@
         "a-pink": "A rosa",
         "s-green": "S verde",
         "s-pink": "S rosa"
-      }
+      },
+      "promoted": "Promovido a {rank}",
+      "demoted": "Rebaixado a {rank}",
+      "pointsGain": "+{n} pts da temporada",
+      "pointsLoss": "−{n} pts da temporada",
+      "pointsProtected": "Rank C — pontos protegidos"
     },
         "leaderboard": {
       "title": "Placar de Líderes Ranqueado",
@@ -14629,7 +14664,12 @@
         "a-pink": "A rose",
         "s-green": "S vert",
         "s-pink": "S rose"
-      }
+      },
+      "promoted": "Promotion à {rank}",
+      "demoted": "Rétrogradé à {rank}",
+      "pointsGain": "+{n} pts de saison",
+      "pointsLoss": "−{n} pts de saison",
+      "pointsProtected": "Rang C — points protégés"
     },
         "leaderboard": {
       "title": "Classement classé",

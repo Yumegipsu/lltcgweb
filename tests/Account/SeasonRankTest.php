@@ -61,21 +61,24 @@ final class SeasonRankTest extends TestCase
         $this->assertSame(1, $cLoss['step']);
         $this->assertSame(40, $cLoss['points']);
 
+        // Green B can lose bar progress and demote into C with remainder —
+        // never wipe to 0 while staying on Green B (#212).
         $bLoss = tcgSeasonMovePoints(2, 10, 32, false);
-        $this->assertSame(2, $bLoss['step']);
-        $this->assertSame(10, $bLoss['points']); // Green B floor keeps bar
+        $this->assertSame(1, $bLoss['step']);
+        $this->assertSame(78, $bLoss['points']);
 
         $bLossHigh = tcgSeasonMovePoints(2, 70, 16, false);
         $this->assertSame(2, $bLossHigh['step']);
-        $this->assertSame(70, $bLossHigh['points']);
+        $this->assertSame(54, $bLossHigh['points']);
 
         $bDrop = tcgSeasonMovePoints(3, 5, 20, false);
         $this->assertSame(2, $bDrop['step']);
         $this->assertSame(85, $bDrop['points']);
 
+        // Green A can demote when the bar empties.
         $aLoss = tcgSeasonMovePoints(4, 10, 32, false);
-        $this->assertSame(4, $aLoss['step']);
-        $this->assertSame(10, $aLoss['points']); // Green A floor keeps bar
+        $this->assertSame(3, $aLoss['step']);
+        $this->assertSame(78, $aLoss['points']);
 
         $this->assertSame(8, tcgSeasonClampDelta(1));
         $this->assertSame(32, tcgSeasonClampDelta(40));

@@ -315,6 +315,115 @@
     });
   }
 
+  function sideProgress(side) {
+    if (!side) return 0;
+    if (side.progress != null) return Math.max(0, Math.min(100, Number(side.progress) || 0));
+    return Math.max(0, Math.min(100, Number(side.points) || 0));
+  }
+
+  function animatePct(el, from, to, ms) {
+    return new Promise((resolve) => {
+      if (!el) {
+        resolve();
+        return;
+      }
+      const start = performance.now();
+      const a = Math.max(0, Math.min(100, Number(from) || 0));
+      const b = Math.max(0, Math.min(100, Number(to) || 0));
+      const dur = Math.max(200, Number(ms) || 700);
+      function frame(now) {
+        const t = Math.min(1, (now - start) / dur);
+        const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        el.style.setProperty('--pct', String(a + (b - a) * eased));
+        if (t < 1) requestAnimationFrame(frame);
+        else resolve();
+      }
+      requestAnimationFrame(frame);
+    });
+  }
+
+  /**
+   * Match-end radial: drain/fill the ring, swap icon on promo/demo, announce.
+   * @param {HTMLElement|null} host
+   * @param {object|null} change
+   */
+  async function playMatchChange(host, change) {
+    if (!host || !change || !change.before || !change.after) {
+      if (host) {
+        host.hidden = true;
+        host.replaceChildren();
+      }
+      return;
+    }
+    host.hidden = false;
+    host.replaceChildren();
+    host.className = 'win-season';
+
+    const badge = document.createElement('div');
+    badge.className = 'season-badge season-badge--win';
+    const beforePct = sideProgress(change.before);
+    badge.style.setProperty('--pct', String(beforePct));
+    const ring = document.createElement('span');
+    ring.className = 'season-badge-ring';
+    ring.setAttribute('aria-hidden', 'true');
+    const img = document.createElement('img');
+    img.src = change.before.icon || '';
+    img.alt = '';
+    img.decoding = 'async';
+    badge.appendChild(ring);
+    badge.appendChild(img);
+
+    const msg = document.createElement('p');
+    msg.className = 'win-season-msg';
+    msg.setAttribute('aria-live', 'polite');
+
+    const pts = document.createElement('p');
+    pts.className = 'win-season-pts';
+    const delta = Number(change.delta) || 0;
+    if (change.win) {
+      pts.textContent = tt('season.pointsGain', '+{n} season pts', { n: delta });
+    } else if (delta > 0 && (change.demoted || beforePct !== sideProgress(change.after) || change.before.step !== change.after.step)) {
+      pts.textContent = tt('season.pointsLoss', '−{n} season pts', { n: delta });
+    } else if (!change.win && change.before.step <= 1) {
+      pts.textContent = tt('season.pointsProtected', 'C rank — points protected');
+    } else {
+      pts.textContent = tt('season.pointsLoss', '−{n} season pts', { n: delta });
+    }
+
+    host.appendChild(badge);
+    host.appendChild(msg);
+    host.appendChild(pts);
+
+    const afterPct = sideProgress(change.after);
+    const promoted = !!change.promoted || Number(change.after.step) > Number(change.before.step);
+    const demoted = !!change.demoted || Number(change.after.step) < Number(change.before.step);
+
+    if (promoted) {
+      await animatePct(badge, beforePct, 100, 750);
+      img.src = change.after.icon || img.src;
+      badge.classList.add('is-rank-up');
+      msg.textContent = tt('season.promoted', 'Promoted to {rank}', { rank: rankName(change.after) });
+      await animatePct(badge, 0, afterPct, 700);
+    } else if (demoted) {
+      await animatePct(badge, beforePct, 0, 700);
+      img.src = change.after.icon || img.src;
+      badge.classList.add('is-rank-down');
+      msg.textContent = tt('season.demoted', 'Demoted to {rank}', { rank: rankName(change.after) });
+      await animatePct(badge, 0, afterPct, 750);
+    } else {
+      await animatePct(badge, beforePct, afterPct, 800);
+      msg.textContent = rankName(change.after);
+    }
+  }
+
+  function resolveMatchChange(state, playerId) {
+    const map = state && state.ranked && state.ranked.season_changes;
+    if (!map || typeof map !== 'object') return null;
+    const seat = playerId === 'p1' || playerId === 'p2' ? playerId : null;
+    if (seat && map[seat]) return map[seat];
+    return null;
+  }
+
   global.TCGSeason = {
     createBadge: createBadge,
     attachHub: attachHub,
@@ -325,6 +434,9 @@
     countdownLine: countdownLine,
     daysRemaining: daysRemaining,
     showRewardToasts: showRewardToasts,
+    playMatchChange: playMatchChange,
+    resolveMatchChange: resolveMatchChange,
+    rankName: rankName,
     openLadder: openLadder,
     closeLadder: closeLadder,
     active: seasonActive,

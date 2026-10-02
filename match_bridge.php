@@ -459,6 +459,7 @@ function tcgPostRankedApplyResultToHostinger(array &$state): bool {
     }
     // Hostinger grants the pack; stash on VPS room so the winner's client can show it.
     $mergedPr = false;
+    $mergedSeason = false;
     if (is_array($res['pr_reward'] ?? null)) {
         if (!isset($state['ranked']) || !is_array($state['ranked'])) {
             $state['ranked'] = [];
@@ -473,9 +474,17 @@ function tcgPostRankedApplyResultToHostinger(array &$state): bool {
         $state['ranked']['pr_reward_applied'] = $applied;
         $mergedPr = !$hadGrant && tcgRankedPrRewardIsGranted($newReward);
     }
-    // Late PR merge must bump seq or get_state clients stay on unchanged:true and never
-    // see ranked_pr_reward — cards land in collection with no hub popup.
-    if ($mergedPr) {
+    if (is_array($res['season_changes'] ?? null) && $res['season_changes'] !== []) {
+        if (!isset($state['ranked']) || !is_array($state['ranked'])) {
+            $state['ranked'] = [];
+        }
+        if (empty($state['ranked']['season_changes'])) {
+            $state['ranked']['season_changes'] = $res['season_changes'];
+            $mergedSeason = true;
+        }
+    }
+    // Late PR / season merge must bump seq or get_state clients stay on unchanged:true.
+    if ($mergedPr || $mergedSeason) {
         $state['seq'] = intval($state['seq'] ?? 0) + 1;
     }
     if (!empty($res['mission_completions']) && is_array($res['mission_completions'])) {
