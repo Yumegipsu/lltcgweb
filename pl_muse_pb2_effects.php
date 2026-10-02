@@ -981,7 +981,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'auto_yell_extra_per_score_icon_group': {
-            // Handled in yell pipeline (effects.php auto yell branch) — no-op here
+            // Handled in resolveAutoYellAbilities (effects.php) — Umi PL!-pb2-004 (#219).
             break;
         }
 

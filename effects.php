@@ -1055,6 +1055,38 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                 if (isset($state['players'][$pid]['stage'][$slot])) {
                     markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
                 }
+            } elseif ($type === 'auto_yell_extra_per_score_icon_group') {
+                // Umi PL!-pb2-004: +1 Yell per μ's Score-icon card in this Yell reveal (#219).
+                $group = $ab['group'] ?? "μ's";
+                $extra = 0;
+                foreach ($yellCards as $yc) {
+                    if (!is_array($yc)) {
+                        continue;
+                    }
+                    mergeYellCardCatalogFields($yc);
+                    if ($group !== '' && !cardMatchesGroup($yc, $group, '')) {
+                        continue;
+                    }
+                    $hasIcon = function_exists('plMusePb2CardHasScoreIcon')
+                        ? plMusePb2CardHasScoreIcon($yc)
+                        : (!empty($yc['yell_score_icon'])
+                            || ($yc['special_heart'] ?? '') === 'icon_score.png');
+                    if (!$hasIcon && cardYellScoreIconCount($yc) < 1) {
+                        continue;
+                    }
+                    $extra++;
+                }
+                if ($extra > 0 && function_exists('executeExtraYellDraws')) {
+                    if (isset($state['players'][$pid]['stage'][$slot])) {
+                        markAbilityUsed($state['players'][$pid]['stage'][$slot], $idx);
+                    }
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$mName] +$extra Yell for Score-icon $group card(s) revealed.");
+                    $state = executeExtraYellDraws($state, $pid, $extra, $mName);
+                    if (!empty($state['pending_prompt'])) {
+                        return $state;
+                    }
+                }
             } elseif ($type === 'auto_yell_distinct_blade_heart_milestones') {
                 $state = nBp5ResolveEffect($state, $pid, $member, $ab, ['yell_cards' => $yellCards]);
                 if (isset($state['players'][$pid]['stage'][$slot])) {

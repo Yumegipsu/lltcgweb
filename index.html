@@ -29969,6 +29969,18 @@ function clientMemberContinuousBladeBonus(member, state, pid, slot) {
     if (type === 'blade_bonus_per_success_lives') {
       bonus += (p.success_lives || []).length * Number(ab.amount ?? 1);
     }
+    if (type === 'blade_per_success_score_icon_group') {
+      // Umi PL!-pb2-004 Always: +1 Blade per μ's Score-icon Success Live (#219).
+      const group = ab.group || "μ's";
+      let n = 0;
+      (p.success_lives || []).forEach((c) => {
+        if (!c) return;
+        const g = String(c.group || '');
+        if (group && !(g === group || (group.includes('μ') && g.includes('μ')))) return;
+        if (c.yell_score_icon || c.special_heart === 'icon_score.png') n++;
+      });
+      bonus += n * Number(ab.amount ?? 1);
+    }
     if (type === 'blade_if_success_score_higher') {
       // PL!-bp4-018 Nico — Always: +blade while your Success Live score total beats opponent.
       const opp = pid === 'p1' ? 'p2' : 'p1';
