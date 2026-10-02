@@ -9461,7 +9461,7 @@ function appendDeckTileFace(tile, card, { lazy } = {}) {
   appendCardFace(tile, card, { sideways: false, lazy: lazyImg, thumbWidth: 180 });
 }
 
-function appendDeckCardTile(parent, card, qty, onTap, { inDeck = false, sealBatchQty = 0, sealBatchDim = false } = {}) {
+function appendDeckCardTile(parent, card, qty, onTap, { inDeck = false, sealBatchQty = 0, sealBatchDim = false, poolCapped = false } = {}) {
   const c = enrichCard(card);
   if (!c) return;
   const selected = sealBatchQty > 0;
@@ -9470,8 +9470,13 @@ function appendDeckCardTile(parent, card, qty, onTap, { inDeck = false, sealBatc
     + (inDeck ? ' in-deck' : '')
     + (isLiveCard(c) ? ' deck-live-tile' : '')
     + (selected ? ' seal-batch-sel' : '')
-    + (sealBatchDim ? ' seal-batch-dim' : '');
-  tile.title = (cardLocaleName(c) || c.card_no) + (qty > 1 ? ' ×' + qty : '');
+    + (sealBatchDim || poolCapped ? ' seal-batch-dim' : '')
+    + (poolCapped ? ' deck-pool-capped' : '');
+  tile.title = (cardLocaleName(c) || c.card_no)
+    + (qty > 1 ? ' ×' + qty : '')
+    + (poolCapped
+      ? (' · ' + (t('deck.identityCopyCapShort') || '4-copy limit (other printings in deck)'))
+      : '');
   appendDeckTileFace(tile, c, { lazy: !inDeck });
   if (c.rarity) {
     const r = document.createElement('span');
@@ -11284,11 +11289,22 @@ function renderDeckBuilder(opts = {}) {
     A.collection.forEach(row => {
       const c0 = enrichCard(row.card || G.allCards[row.card_no]);
       if (!c0 || poolSeen.has(row.card_no)) return;
+      // Avoid dual +/＋ collection rows doubling the same printing in the pool.
+      if (typeof cardNoLookupKeys === 'function'
+          && cardNoLookupKeys(row.card_no).some((k) => k !== row.card_no && poolSeen.has(k))) {
+        return;
+      }
       if (!cardMatchesDeckPoolFilters(c0, filters, searchQ)) return;
       poolSeen.add(row.card_no);
+      if (typeof cardNoLookupKeys === 'function') {
+        cardNoLookupKeys(row.card_no).forEach((k) => poolSeen.add(k));
+      }
       matchCount++;
       const type = c0.card_type;
       if (type !== 'メンバー' && type !== 'ライブ' && type !== 'エネルギー') return;
+      const ownedQty = typeof ownedQtyForCardNo === 'function'
+        ? ownedQtyForCardNo(row.card_no)
+        : Number(row.qty || 0);
       const inDeck = countInDeck(row.card_no);
       const ident = countInDeckIdentity(row.card_no);
       const maxCopies = type === 'エネルギー' ? DECK_MAX_ENERGY_COPIES : DECK_MAX_COPIES;
@@ -11298,18 +11314,25 @@ function renderDeckBuilder(opts = {}) {
       const draftOf = A.decklogSubPickFor
         ? (A.decklogSubPickDraft || []).filter(n => n === row.card_no).length
         : 0;
+      // Addability under deck-identity merge (SD/SRL share a 4-copy slot).
       const available = A.decklogSubPickFor
-        ? Math.max(0, row.qty - committed)
-        : Math.min(row.qty - inDeck, maxCopies - ident);
-      const showQty = A.decklogSubPickFor ? Math.max(0, available - draftOf) : available;
-      if (available <= 0 && draftOf <= 0) return;
+        ? Math.max(0, ownedQty - committed)
+        : Math.min(ownedQty - inDeck, maxCopies - ident);
+      // Badge shows true ownership for this card_no — not remaining addable (#215 Kyra).
+      const badgeQty = A.decklogSubPickFor ? Math.max(0, available - draftOf) : ownedQty;
+      if (available <= 0 && draftOf <= 0) {
+        // Still list owned printings that identity-merge blocks so ×owned stays visible.
+        if (A.decklogSubPickFor || A.deckSealBatchMode || ownedQty <= 0) return;
+      }
       if (A.decklogSubPickFor && row.card_no === A.decklogSubPickFor) return;
       poolEntries.push({
         row,
         c0,
         type,
-        available: showQty,
+        available,
+        badgeQty,
         draftOf,
+        ownedQty,
         acquired_at: row.acquired_at || 0,
         _idx: poolIdx++,
       });
@@ -11322,14 +11345,22 @@ function renderDeckBuilder(opts = {}) {
         : (A.deckSealBatchMode ? Number(A.deckSealBatch?.[cardNo] || 0) : 0);
       const convertible = A.deckSealBatchMode && clientCardConvertibleToSeal(entry.c0)
         && spareConvertibleCopies(cardNo) > 0;
+      const capped = !A.decklogSubPickFor && !A.deckSealBatchMode && entry.available <= 0;
       const onTap = A.decklogSubPickFor
         ? () => addDecklogSubPickCopy(cardNo)
         : (A.deckSealBatchMode
           ? () => toggleDeckSealBatchCard(cardNo)
-          : () => addCardToDeck(cardNo, entry.type));
-      appendDeckCardTile(pool, entry.c0, entry.available, onTap, {
+          : (capped
+            ? () => toast(
+              t('deck.identityCopyCap')
+                || 'You already have 4 copies of this card in the deck (including other printings like SD).',
+              3200
+            )
+            : () => addCardToDeck(cardNo, entry.type)));
+      appendDeckCardTile(pool, entry.c0, entry.badgeQty, onTap, {
         sealBatchQty: batchQty,
         sealBatchDim: !!(A.deckSealBatchMode && !convertible && !batchQty),
+        poolCapped: capped,
       });
     });
     if (searchQ || filtered) {
