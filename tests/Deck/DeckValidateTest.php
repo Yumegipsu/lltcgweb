@@ -221,4 +221,17 @@ final class DeckValidateTest extends TestCase
         $r2 = tcgValidateDeckLists([], $energyFw, $this->cardMap, $ownedAscii, true);
         $this->assertTrue($r2['valid'], implode('; ', $r2['errors']));
     }
+
+    /** Card List / collection: catalog fullwidth ＋ must see ASCII-owned copies (#216). */
+    public function testOwnedQtySumsAsciiAndFullwidthPlusKeys(): void
+    {
+        $fw = 'PL!-bp4-029-PE＋';
+        $ascii = 'PL!-bp4-029-PE+';
+        $this->assertSame(0, tcgOwnedQtyForCardNo([], $fw));
+        $this->assertSame(8, tcgOwnedQtyForCardNo([$ascii => 8], $fw));
+        $this->assertSame(3, tcgOwnedQtyForCardNo([$fw => 3], $ascii));
+        // Split rows (legacy dual keys) sum once each — Card List must not miss either.
+        $this->assertSame(5, tcgOwnedQtyForCardNo([$ascii => 2, $fw => 3], $fw));
+        $this->assertSame(5, tcgOwnedQtyForCardNo([$ascii => 2, $fw => 3], $ascii));
+    }
 }

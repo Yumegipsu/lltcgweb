@@ -8961,6 +8961,7 @@ function cardNoLookupKeys(cardNo) {
 
 /**
  * Owned copies for a card_no, summing ASCII + and fullwidth ＋ collection keys.
+ * Card List uses this so + rarity tiles (R+/PE+/…) match Deck Builder ownership (#216).
  * Matches PHP tcgOwnedQtyForCardNo — do not dual-write aliases into collectionMap
  * then sum (that would double-count).
  */
