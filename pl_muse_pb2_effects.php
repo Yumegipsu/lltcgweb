@@ -633,6 +633,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'candidates' => $cands,
                 'min' => $need,
                 'max' => $need,
+                'prompt' => "Choose $need $subunit Members from your Waiting Room to put under this Member.",
             ]);
             break;
         }
@@ -1012,10 +1013,12 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'player_id' => $pid,
                 'source_instance_id' => $source['instance_id'] ?? '',
                 'source_name' => $name,
+                'subunit' => $subunit,
                 'count' => 1,
                 'candidates' => $cands,
                 'min' => 1,
                 'max' => 1,
+                'prompt' => "Choose 1 $subunit Member from your Waiting Room to put under this Member.",
             ]);
             break;
         }

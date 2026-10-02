@@ -1217,6 +1217,7 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'optional_discard_prompt', 'pick_looked_deck_hand',
   'spbp2_stack_wr_member', 'spbp2_wait_self_opp_heart_gap',
   'spbp2_center_move_choose', 'spbp2_center_move_position',
+  'stack_wr_under',
   'activated_discard_trigger_on_enter',
   'stack_energy_zone_pick',
   'both_shuffle_wr_members_deck_bottom_threshold',
@@ -5091,6 +5092,14 @@ function cpuResolvePromptBody(s, cpu, pr) {
   if(pr.type==='spbp2_stack_wr_member'){
     const id=pr.candidates?.[0]?.instance_id;
     if(id) cpuAct('resolve_prompt',{pick_id:id});
+    else cpuAct('resolve_prompt',{choice:'skip'});
+    return;
+  }
+  if(pr.type==='stack_wr_under'){
+    const need=Math.max(1, Number(pr.count ?? pr.max ?? pr.min ?? 1) || 1);
+    const ids=(pr.candidates||[]).slice(0, need).map(c=>c.instance_id).filter(Boolean);
+    if(ids.length>=need) cpuAct('resolve_prompt',{instance_ids:ids});
+    else if(ids.length) cpuAct('resolve_prompt',{instance_ids:ids});
     else cpuAct('resolve_prompt',{choice:'skip'});
     return;
   }

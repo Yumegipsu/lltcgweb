@@ -933,6 +933,29 @@ global.openBatch99StackWrPick = function openBatch99StackWrPick(pr){
 }
 
 
+/** Hanayo PB2 / BiBi stack: multi-pick exactly N WR Members under source (#213). */
+global.openStackWrUnderPick = function openStackWrUnderPick(pr, s){
+  const cards = (pr.candidates || []).filter(c => c && c.instance_id);
+  const need = Math.max(1, Number(pr.count ?? pr.max ?? pr.min ?? 1) || 1);
+  const min = Math.max(1, Number(pr.min ?? need) || need);
+  const max = Math.max(min, Number(pr.max ?? need) || need);
+  const subunit = pr.subunit || '';
+  const fallback = subunit
+    ? `Choose ${need} ${subunit} Member(s) from your Waiting Room to put under this Member.`
+    : `Choose ${need} Member(s) from your Waiting Room to put under this Member.`;
+  openHandPick({
+    hand: cards,
+    count: max,
+    min,
+    title: promptDisplayTitle(pr, pr.source_name || 'Stack under Member', s),
+    msg: promptDisplayText(pr, fallback, s),
+    allowCancel: false,
+    forceConfirm: need > 1,
+    onConfirm: (picked) => sendAct('resolve_prompt', { instance_ids: picked }),
+  });
+}
+
+
 global.openMemberWaitPick = function openMemberWaitPick(pr, myId){
   const max=pr.max_members||3;
   const min=pr.min_members??0;
@@ -3682,6 +3705,12 @@ global.renderPrompt = function renderPrompt(s, myId){
   if(pr?.type==='spbp2_stack_wr_member'&&pr.responder===myId){
     ovl.classList.remove('open');
     openBatch99StackWrPick(pr);
+    return;
+  }
+  // PL!-pb2-017 Hanayo On Enter / BiBi Auto: stack N WR subunit Members under self.
+  if(pr?.type==='stack_wr_under'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openStackWrUnderPick(pr, s);
     return;
   }
   if(pr?.type==='spbp2_wait_self_opp_heart_gap'&&pr.responder===myId){
