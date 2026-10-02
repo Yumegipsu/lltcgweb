@@ -59,7 +59,7 @@ Legend: `[S]` scraped `[E]` EN text `[L]` locales es/ko/zh/th/pt/fr `[A]` abilit
 - [x] Multi-step prompt stubs deepened in `plMusePb2ResolvePrompt` (wait+discard→opp Wait, hand↔success swap, activate opp Wait+draw, distinct discard→opp Wait, center Blade, unstack+toggle, per-success choose, BiBi auto choose, Printemps activated cost modes). `optional_wait_self_discard_look_reveal` remapped to shared `optional_wait_self_look_reveal`
 - [x] Client: discard counts + branch choice types for new DUO prompts (`prompt-renderer.js`)
 - [x] Focused PHPUnit: `MusePb2PromptResolverTest`, `MusePb2000DoubleBatonTest`
-- [ ] Hostinger deploy + VPS pull (this follow-up)
+- [x] Hostinger deploy + VPS pull — follow-up `49e537d` (prompts/locales); VPS ping OK
 
 ## Novel effect types (pl_muse_pb2_effects.php)
 
