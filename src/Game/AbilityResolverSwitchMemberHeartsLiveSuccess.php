@@ -46,7 +46,7 @@ function tryResolveAbilityEffectSwitchMemberHeartsLiveSuccess(
 
         case 'negate_self_live_success_if_group_hearts':
             $heartColor = (string)($ab['heart_color'] ?? '');
-            if (sumGroupStageHearts($p, $ab['group'] ?? 'Sunshine', $heartColor)
+            if (sumGroupStageHearts($p, $ab['group'] ?? 'Sunshine', $heartColor, $state, $pid)
                 >= intval($ab['min_hearts'] ?? 6)) {
                 foreach ($p['live_zone'] as &$lc) {
                     if ($lc && ($lc['instance_id'] ?? '') === ($source['instance_id'] ?? '')) {

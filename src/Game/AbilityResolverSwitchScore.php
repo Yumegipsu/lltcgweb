@@ -271,7 +271,7 @@ function tryResolveAbilityEffectSwitchScore(
 
         case 'score_if_group_stage_hearts':
             $heartColor = (string)($ab['heart_color'] ?? '');
-            if (sumGroupStageHearts($p, $ab['group'] ?? 'Sunshine', $heartColor)
+            if (sumGroupStageHearts($p, $ab['group'] ?? 'Sunshine', $heartColor, $state, $pid)
                 >= intval($ab['min_hearts'] ?? 10)) {
                 bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['amount'] ?? 2));
                 $state = addLog($state, $state['players'][$pid]['name'] .
@@ -282,7 +282,7 @@ function tryResolveAbilityEffectSwitchScore(
         case 'score_if_group_stage_hearts_opp_no_excess':
             $opp = ($pid === 'p1') ? 'p2' : 'p1';
             $heartColor = (string)($ab['heart_color'] ?? '');
-            if (sumGroupStageHearts($p, $ab['group'] ?? 'Sunshine', $heartColor)
+            if (sumGroupStageHearts($p, $ab['group'] ?? 'Sunshine', $heartColor, $state, $pid)
                     >= intval($ab['min_hearts'] ?? 4)
                 && !empty($state['_live_success_no_excess'][$opp])) {
                 bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['amount'] ?? 2));

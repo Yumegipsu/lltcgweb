@@ -2212,13 +2212,38 @@ function liveRequiredHeartCount(array $live): int {
     return $n;
 }
 
-function sumGroupStageHearts(array $p, string $group, string $color = ''): int {
+/**
+ * Sum hearts on Stage Members of a group.
+ * Color checks use performance hearts (treat_as / replaced / bonus / bp7 override)
+ * so Live Start order like Tokimeki → Torikoriko sees effective greens (#214).
+ * When $state + $pid are provided, [Always] continuous hearts are included too.
+ */
+function sumGroupStageHearts(
+    array $p,
+    string $group,
+    string $color = '',
+    ?array $state = null,
+    ?string $pid = null
+): int {
     $n = 0;
-    foreach ($p['stage'] as $m) {
+    $want = $color === '' ? '' : normalizeHeartColor($color);
+    foreach ($p['stage'] as $slot => $m) {
         if (!$m || ($m['group'] ?? '') !== $group) {
             continue;
         }
-        $n += $color === '' ? memberHeartCount($m) : memberHeartColorCount($m, $color);
+        if ($want === '') {
+            $n += count(memberPerformanceHeartsFlat($m));
+            continue;
+        }
+        if ($state !== null && $pid !== null) {
+            $n += stageMemberHeartColorCount($state, $pid, $m, (string)$slot, $want);
+            continue;
+        }
+        foreach (memberPerformanceHeartsFlat($m) as $c) {
+            if (normalizeHeartColor((string)$c) === $want) {
+                $n++;
+            }
+        }
     }
     return $n;
 }
