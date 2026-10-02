@@ -4516,6 +4516,18 @@ function getMemberBlade(array $member, array $state, string $pid, string $slot =
     $blade = hsApplySoloStageBlade($member, $state, $pid, $blade);
     $blade = hsPb1ApplyContinuousBlade($member, $state, $pid, $slot, $blade);
     $blade += intval($member['live_blade_bonus'] ?? 0);
+    // Until-Live stage group blade auras (Rin PL!-pb2-005 grant_stage_group_blade_if_success_score_icon).
+    foreach ($lm['stage_group_blade'] ?? [] as $aura) {
+        if (!is_array($aura)) {
+            continue;
+        }
+        $grp = (string)($aura['group'] ?? '');
+        if ($grp !== '' && function_exists('cardMatchesGroup')
+            && !cardMatchesGroup($member, $grp, 'member')) {
+            continue;
+        }
+        $blade += intval($aura['blade'] ?? 1);
+    }
     return $blade;
 }
 

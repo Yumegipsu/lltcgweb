@@ -29746,10 +29746,26 @@ function clientMemberContinuousHeartColors(member, state, pid, slot) {
   return out;
 }
 
+function memberMatchesStageGroupAura(member, group) {
+  const grp = String(group || '');
+  if (!grp) return true;
+  const mg = String(member?.group || '');
+  if (mg === grp) return true;
+  // μ's apostrophe / encoding variants
+  if (grp.includes('μ') && mg.includes('μ')) return true;
+  return false;
+}
+
 function memberModifierBladeBonus(member, state, pid, slot) {
   if (!member) return 0;
   let bonus = Number(member.live_blade_bonus || 0);
   bonus += clientMemberContinuousBladeBonus(member, state, pid, slot);
+  // Until-Live stage group blade auras (Rin PL!-pb2-005, #218).
+  (state?.live_modifiers?.[pid]?.stage_group_blade || []).forEach((aura) => {
+    if (!aura || typeof aura !== 'object') return;
+    if (!memberMatchesStageGroupAura(member, aura.group)) return;
+    bonus += Number(aura.blade || 1);
+  });
   return bonus;
 }
 
@@ -30054,6 +30070,12 @@ function estimateYellBlade(s, pid) {
     if (!m || !memberContributesBladeToYell(m)) return;
     total += (m.blade || 0) + (m.live_blade_bonus || 0);
     total += clientMemberContinuousBladeBonus(m, s, pid, slot);
+    // Until-Live stage group blade auras (#218).
+    (s?.live_modifiers?.[pid]?.stage_group_blade || []).forEach((aura) => {
+      if (!aura || typeof aura !== 'object') return;
+      if (!memberMatchesStageGroupAura(m, aura.group)) return;
+      total += Number(aura.blade || 1);
+    });
     if (m.hearts_as_blade_color) {
       (m.hearts || []).forEach(h => { total += h.count || 1; });
     }

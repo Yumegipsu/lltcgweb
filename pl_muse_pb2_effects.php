@@ -426,18 +426,17 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 }
             }
             if ($ok) {
-                $state = applyModifierEffect($state, $pid, [
-                    'type' => 'grant_named_members_blade',
-                    'group' => $group,
-                    'blade' => intval($ab['blade'] ?? 1),
-                    'all_group_stage' => true,
-                    'source' => $name,
-                ]);
-                // Fallback: stage-wide blade aura
-                $state['_live_modifiers'][$pid]['stage_group_blade'][] = [
+                // Until-Live Always: μ's Stage Members gain +Blade (Rin PL!-pb2-005, #218).
+                $state = initLiveModifiers($state);
+                if (!isset($state['live_modifiers'][$pid]['stage_group_blade'])
+                    || !is_array($state['live_modifiers'][$pid]['stage_group_blade'])) {
+                    $state['live_modifiers'][$pid]['stage_group_blade'] = [];
+                }
+                $state['live_modifiers'][$pid]['stage_group_blade'][] = [
                     'group' => $group,
                     'blade' => intval($ab['blade'] ?? 1),
                     'source' => $name,
+                    'source_instance_id' => $source['instance_id'] ?? '',
                 ];
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] μ's Stage Members gain +1 Blade until Live ends.");

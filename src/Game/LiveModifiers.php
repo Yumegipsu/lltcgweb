@@ -25,6 +25,8 @@ function liveModifierDefaults(): array {
         'blade_per_hand_divisor'   => 0,
         'blade_per_hand_amount'    => 0,
         'cannot_live'              => false,
+        // Until-Live Always auras: [{group, blade, source…}] — Rin PL!-pb2-005 (#218).
+        'stage_group_blade'        => [],
     ];
 }
 
