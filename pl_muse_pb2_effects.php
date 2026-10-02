@@ -473,37 +473,23 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'leave_stage_add_live_activate_per_success_group': {
-            // Leave stage → add live from WR, then activate energy per success group card
+            // Prefer ActivateAbility's leave-stage WR pick path. Keep this for
+            // resolveAbilityEffect callers so the effect still opens the same prompt.
             $group = $ab['group'] ?? "μ's";
-            $slot = $ctx['slot'] ?? findMemberSlot($p, (string)($source['instance_id'] ?? ''));
-            if ($slot === '') {
+            $slot = (string)($ctx['slot'] ?? findMemberSlot($p, (string)($source['instance_id'] ?? '')));
+            if ($slot === '' || empty($p['stage'][$slot])) {
                 break;
             }
-            $leaving = $p['stage'][$slot];
-            $p['stage'][$slot] = null;
-            $p['waiting_room'][] = $leaving;
-            $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$name] left Stage to Waiting Room.");
-            $cands = array_values(array_filter(
-                $p['waiting_room'] ?? [],
-                fn($c) => cardMatchesWrPick($c, ['group' => $group, 'filter' => 'live'])
-                    && ($c['instance_id'] ?? '') !== ($leaving['instance_id'] ?? '')
-            ));
-            $energyCount = count(plMusePb2SuccessGroupCards($p, $group));
-            $state = plMusePb2SetPendingPrompt($state, [
-                'type' => 'add_from_wr',
-                'owner' => $pid,
-                'player_id' => $pid,
-                'source_instance_id' => $source['instance_id'] ?? '',
-                'source_name' => $name,
+            $cfg = [
                 'group' => $group,
-                'filter' => 'live',
-                'count' => 1,
-                'candidates' => $cands,
-                'min' => $cands ? 1 : 0,
-                'max' => 1,
-                'then_activate_energy' => $energyCount,
-            ]);
+                'filter' => $ab['filter'] ?? 'live',
+            ];
+            $ab['then_activate_energy'] = count(plMusePb2SuccessGroupCards($p, $group));
+            $abilityIdx = intval($ctx['ability_index'] ?? $ctx['ability_idx'] ?? 0);
+            $member = $p['stage'][$slot];
+            startPickWrToHandPrompt($state, $pid, $member, $slot, $abilityIdx, $ab, $cfg, true);
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] choose a card from Waiting Room.");
             break;
         }
 

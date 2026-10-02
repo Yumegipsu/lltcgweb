@@ -17388,14 +17388,17 @@ function abilityWrBlockReason(cpu, ab) {
       return wrPickMatchCountClient(cpu, { group: ab.group || '', filter: ab.filter || '' }, ab.count || 1) >= (ab.count || 1)
         ? null : 'No matching card in Waiting Room.';
     case 'leave_stage_add_from_wr':
+    case 'leave_stage_add_live_activate_per_success_group':
     case 'pay_energy_add_from_wr':
       return wrPickMatchCountClient(cpu, {
         group: ab.group || '',
-        filter: ab.filter || (t === 'leave_stage_add_from_wr' ? 'live' : 'member'),
+        filter: ab.filter || (t === 'pay_energy_add_from_wr' ? 'member' : 'live'),
         max_cost: ab.max_cost,
         max_live_score: ab.max_live_score,
       }, ab.count || 1) >= (ab.count || 1)
-        ? null : 'No matching card in Waiting Room.';
+        ? null : (t === 'leave_stage_add_live_activate_per_success_group'
+          ? 'No matching Live card in Waiting Room.'
+          : 'No matching card in Waiting Room.');
     case 'pay_energy_add_live_zone_from_wr':
       if ((cpu.live_zone || []).length >= 3) return 'Live storage is full.';
       return wrPickMatchCountClient(cpu, {
@@ -30606,6 +30609,7 @@ function abilityLabel(ab){
     activated_pay_discard_add_wr_live:'Pay Energy · discard · add Live from WR',
     discard_cost_add_live_subunit:'Discard · add Live from WR',
     leave_stage_add_from_wr:'Leave Stage · add from WR',
+    leave_stage_add_live_activate_per_success_group:'Leave Stage · add Live · activate Energy',
     pay_energy_add_from_wr:'Pay Energy · add from WR',
     pay_energy_draw:'Pay Energy · draw',
     pay_leave_stage_play_wr_member:'Pay · leave Stage · play Member',
@@ -30912,7 +30916,8 @@ function wrPickCfgFromPrompt(pr) {
   } else if (hasAbilityFilter) {
     // Explicit "" means any card type (subunit-only picks like Sayaka CL).
     filter = pr.ability.filter ?? '';
-  } else if ((pr?.ability?.type ?? '') === 'leave_stage_add_from_wr') {
+  } else if ((pr?.ability?.type ?? '') === 'leave_stage_add_from_wr'
+    || (pr?.ability?.type ?? '') === 'leave_stage_add_live_activate_per_success_group') {
     filter = 'live';
   } else if (memberPromptTypes.has(pr?.type)
     || (pr?.type === 'ssd1_play_wr_empty' && pr?.step === 'pick_wr')

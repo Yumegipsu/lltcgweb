@@ -251,6 +251,19 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
         $state = addLog($state, $state['players'][$pid]['name'] .
             ' — [' . $mName . '] choose a card from Waiting Room.');
+    } elseif (($ab['type'] ?? '') === 'leave_stage_add_live_activate_per_success_group') {
+        // PL!-pb2-007 Nozomi: leave Stage → add μ's Live from WR → activate 1 Energy
+        // per μ's card in Success Live. Refs #223.
+        $group = $ab['group'] ?? "μ's";
+        $cfg = [
+            'group' => $group,
+            'filter' => $ab['filter'] ?? 'live',
+        ];
+        $ab['then_activate_energy'] = count(plMusePb2SuccessGroupCards($p, $group));
+        startPickWrToHandPrompt($state, $pid, $member, $slot, $abilityIdx, $ab, $cfg, true);
+        $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            ' — [' . $mName . '] choose a card from Waiting Room.');
     } elseif (($ab['type'] ?? '') === 'reveal_live_opp_discard_or_blade') {
         // reveal_card_id / _reveal_live_id = Live in hand; card_id must stay the Stage Member.
         $revealId = (string)($data['reveal_card_id'] ?? $data['_reveal_live_id'] ?? '');

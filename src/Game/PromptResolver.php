@@ -2227,6 +2227,20 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             $state = addLog($state, $state['players'][$owner]['name'] .
                 " — activated $activated Energy (high-score Aqours Live).");
         }
+        // PL!-pb2-007 Nozomi: activate Energy per μ's card in Success Live (#223).
+        $thenEnergy = intval($ability['then_activate_energy'] ?? $prompt['then_activate_energy'] ?? 0);
+        if ($thenEnergy <= 0
+            && ($ability['type'] ?? '') === 'leave_stage_add_live_activate_per_success_group') {
+            $thenEnergy = count(plMusePb2SuccessGroupCards(
+                $ownerP,
+                $ability['group'] ?? "μ's"
+            ));
+        }
+        if ($thenEnergy > 0) {
+            $activated = activateEnergyForPlayer($ownerP, $thenEnergy);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — activated $activated Energy (Success Live μ's).");
+        }
         unset($state['pending_prompt']);
         $state['seq']++;
         if ($pickId !== 'NO_CARD_NEEDED' && is_array($picked)

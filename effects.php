@@ -6435,6 +6435,16 @@ function activatedAbilityWrBlockReason(array $p, array $ab): ?string {
             }
             return 'no matching card in Waiting Room.';
 
+        case 'leave_stage_add_live_activate_per_success_group':
+            $cfg = [
+                'group' => $ab['group'] ?? "μ's",
+                'filter' => $ab['filter'] ?? 'live',
+            ];
+            if (wrPickMatchCount($p, $cfg, 1) >= 1) {
+                return null;
+            }
+            return 'no matching Live card in Waiting Room.';
+
         case 'pay_energy_add_from_wr':
             $need = max(1, intval($ab['count'] ?? 1));
             $cfg = ['group' => $ab['group'] ?? '', 'filter' => $ab['filter'] ?? 'member'];
