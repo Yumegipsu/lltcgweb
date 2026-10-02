@@ -45,6 +45,11 @@ function plMusePb2EffectTypes(): array {
         'success_count_as_two_for_subunit_effects',
         'score_if_success_subunit_min',
         'auto_yell_wait_opp_if_named_members_and_center',
+        // Continuations after effect_discard_hand / multi-step prompts
+        'pb2_apply_center_group_blade',
+        'pb2_begin_wait_opp_printed_hearts',
+        'pb2_add_subunit_live_from_wr',
+        'pb2_resume_per_success_choose',
     ];
 }
 
@@ -53,8 +58,49 @@ function plMusePb2IsEffectType(string $type): bool {
 }
 
 function plMusePb2SetPendingPrompt(array $state, array $prompt): array {
+    $owner = (string)($prompt['owner'] ?? $prompt['player_id'] ?? '');
+    if ($owner !== '') {
+        $prompt['owner'] = $owner;
+        $prompt['player_id'] = $owner;
+        $prompt['responder'] = $prompt['responder'] ?? $owner;
+    }
     $state['pending_prompt'] = $prompt;
     return $state;
+}
+
+function plMusePb2WaitSelfByInstance(array &$state, string $pid, string $instanceId): bool {
+    $p = &$state['players'][$pid];
+    foreach ($p['stage'] as &$mbr) {
+        if ($mbr && ($mbr['instance_id'] ?? '') === $instanceId) {
+            waitMember($mbr, $state);
+            return true;
+        }
+    }
+    unset($mbr);
+    return false;
+}
+
+function plMusePb2FinishPrompt(array $state, array $prompt): array {
+    unset($state['pending_prompt']);
+    $state['seq'] = intval($state['seq'] ?? 0) + 1;
+    if (function_exists('finishAfterBranchChoicePrompt')) {
+        return finishAfterBranchChoicePrompt($state, $prompt);
+    }
+    if (($state['phase'] ?? '') === 'live_start_effects' || !empty($prompt['live_start'])) {
+        return finishLiveStartEffects($state);
+    }
+    return finishPromptEffects($state);
+}
+
+function plMusePb2DiscardIds(array &$state, string $pid, array $ids, string $srcName): void {
+    $p = &$state['players'][$pid];
+    if (function_exists('discardFromHandByIds')) {
+        discardFromHandByIds($p, $ids, $state, $pid);
+        return;
+    }
+    if (function_exists('discardHandCardsByIds')) {
+        discardHandCardsByIds($p, $ids, $state, $pid);
+    }
 }
 
 function plMusePb2ActivateEnergy(array $state, string $pid, int $count): array {
@@ -414,11 +460,13 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'type' => 'optional_wait_self_discard_wait_opp',
                 'owner' => $pid,
                 'player_id' => $pid,
+                'source_id' => $source['instance_id'] ?? '',
                 'source_instance_id' => $source['instance_id'] ?? '',
                 'source_name' => $name,
                 'discard' => intval($ab['discard'] ?? 1),
                 'max_printed_hearts' => $maxH,
                 'candidates' => $oppCands,
+                'choices' => ['yes', 'no'],
                 'optional' => (($ab['trigger'] ?? '') === 'live_start'),
                 'prompt' => 'Put this Member into Wait and discard 1: Wait an opponent Member with ≤' . $maxH . ' printed hearts?',
             ]);
@@ -549,11 +597,13 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'type' => 'optional_reveal_hand_live_swap_success',
                 'owner' => $pid,
                 'player_id' => $pid,
+                'source_id' => $source['instance_id'] ?? '',
                 'source_instance_id' => $source['instance_id'] ?? '',
                 'source_name' => $name,
                 'subunit' => $subunit,
                 'hand_candidates' => $handLives,
                 'success_candidates' => $p['success_lives'],
+                'choices' => ['yes', 'no'],
                 'optional' => true,
                 'prompt' => "Reveal 1 $subunit Live from hand: swap with a Success Live card?",
             ]);
@@ -596,12 +646,15 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'type' => 'optional_unstack_toggle_subunit',
                 'owner' => $pid,
                 'player_id' => $pid,
+                'source_id' => $source['instance_id'] ?? '',
                 'source_instance_id' => $source['instance_id'] ?? '',
                 'source_name' => $name,
                 'subunit' => $ab['subunit'] ?? 'Printemps',
                 'max' => intval($ab['max'] ?? 3),
                 'stacked' => $under,
+                'choices' => ['yes', 'no'],
                 'optional' => true,
+                'prompt' => 'Put up to 3 cards from under this Member into the Waiting Room to toggle Printemps Members?',
             ]);
             break;
         }
@@ -621,11 +674,14 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'type' => 'optional_activate_opp_wait_draw_each',
                 'owner' => $pid,
                 'player_id' => $pid,
+                'source_id' => $source['instance_id'] ?? '',
                 'source_instance_id' => $source['instance_id'] ?? '',
                 'source_name' => $name,
                 'candidates' => $cands,
                 'max' => $max,
+                'choices' => ['yes', 'no'],
                 'optional' => true,
+                'prompt' => "Active up to $max opponent Wait Members and draw 1 each?",
             ]);
             break;
         }
@@ -651,11 +707,14 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'type' => 'optional_discard_distinct_subunit_wait_opp',
                 'owner' => $pid,
                 'player_id' => $pid,
+                'source_id' => $source['instance_id'] ?? '',
                 'source_instance_id' => $source['instance_id'] ?? '',
                 'source_name' => $name,
                 'subunit' => $subunit,
                 'discard' => $need,
+                'choices' => ['yes', 'no'],
                 'optional' => true,
+                'prompt' => "Discard $need differently named $subunit Members to Wait 1 opponent Member?",
             ]);
             break;
         }
@@ -665,12 +724,16 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'type' => 'optional_wait_self_discard_center_blade',
                 'owner' => $pid,
                 'player_id' => $pid,
+                'source_id' => $source['instance_id'] ?? '',
                 'source_instance_id' => $source['instance_id'] ?? '',
                 'source_name' => $name,
                 'discard' => intval($ab['discard'] ?? 1),
                 'group' => $ab['group'] ?? "μ's",
                 'blade' => intval($ab['blade'] ?? 2),
+                'choices' => ['yes', 'no'],
                 'optional' => true,
+                'live_start' => true,
+                'prompt' => 'Wait this Member and discard 1: Center μ\'s Member gains +2 Blade?',
             ]);
             break;
         }
@@ -858,6 +921,18 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             if ($n <= 0) {
                 break;
             }
+            $defs = $ab['choices'] ?? [];
+            $keys = [];
+            $labels = [];
+            foreach ($defs as $i => $def) {
+                $keys[] = (string)$i;
+                $labels[] = match ($def['type'] ?? '') {
+                    'center_blade_bonus' => 'Center +' . intval($def['amount'] ?? 1) . ' Blade',
+                    'activate_stage_member' => 'Activate 1 Stage Member',
+                    'draw_and_discard' => 'Draw 1, discard 1',
+                    default => $def['type'] ?? "choice $i",
+                };
+            }
             $state = plMusePb2SetPendingPrompt($state, [
                 'type' => 'per_success_subunit_choose',
                 'owner' => $pid,
@@ -865,7 +940,12 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'source_instance_id' => $source['instance_id'] ?? '',
                 'source_name' => $name,
                 'remaining' => $n,
-                'choices' => $ab['choices'] ?? [],
+                'choices' => $keys,
+                'choice_labels' => $labels,
+                'choice_defs' => $defs,
+                'prompt' => "Choose an effect ($n remaining).",
+                'step' => 'choose',
+                'live_start' => true,
             ]);
             break;
         }
@@ -874,13 +954,28 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             if (empty($ctx['opp_wait_by_subunit']) || ($ctx['subunit'] ?? '') !== ($ab['subunit'] ?? '')) {
                 break;
             }
+            $defs = $ab['choices'] ?? [];
+            $keys = [];
+            $labels = [];
+            foreach ($defs as $i => $ch) {
+                $keys[] = (string)$i;
+                $labels[] = match ($ch['type'] ?? '') {
+                    'activate_stage_subunit_member' => 'Activate 1 ' . ($ch['subunit'] ?? 'BiBi') . ' Member',
+                    'activate_energy' => 'Activate ' . intval($ch['count'] ?? 2) . ' Energy',
+                    default => $ch['type'] ?? "choice $i",
+                };
+            }
             $state = plMusePb2SetPendingPrompt($state, [
                 'type' => 'auto_on_opp_wait_by_subunit_choose',
                 'owner' => $pid,
                 'player_id' => $pid,
                 'source_instance_id' => $source['instance_id'] ?? '',
                 'source_name' => $name,
-                'choices' => $ab['choices'] ?? [],
+                'choices' => $keys,
+                'choice_labels' => $labels,
+                'choice_defs' => $defs,
+                'prompt' => 'Choose 1 effect.',
+                'step' => 'choose',
             ]);
             break;
         }
@@ -938,17 +1033,21 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'optional_wait_self_discard_look_reveal': {
+            // Reuse the shared optional_wait_self_look_reveal prompt (UI + PromptResolver).
+            $discardNeed = intval($ab['discard'] ?? 1);
+            $look = intval($ab['look'] ?? 3);
             $state = plMusePb2SetPendingPrompt($state, [
-                'type' => 'optional_wait_self_discard_look_reveal',
+                'type' => 'optional_wait_self_look_reveal',
                 'owner' => $pid,
                 'player_id' => $pid,
+                'source_id' => $source['instance_id'] ?? '',
                 'source_instance_id' => $source['instance_id'] ?? '',
                 'source_name' => $name,
-                'discard' => intval($ab['discard'] ?? 1),
-                'look' => intval($ab['look'] ?? 3),
-                'subunit' => $ab['subunit'] ?? '',
-                'filter' => $ab['filter'] ?? 'member',
-                'optional' => false,
+                'prompt' => "Put this Member into Wait and discard $discardNeed: look at the top $look cards?",
+                'choices' => ['yes', 'no'],
+                'ability' => $ab,
+                'discard_count' => $discardNeed,
+                'optional' => empty($ab['once_per_turn']) ? true : false,
             ]);
             break;
         }
@@ -964,6 +1063,93 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         case 'success_count_as_two_for_subunit_effects':
             // Continuous / reactive — applied via hooks
             break;
+
+        case 'pb2_apply_center_group_blade': {
+            $group = $ab['group'] ?? "μ's";
+            $blade = intval($ab['blade'] ?? $ab['amount'] ?? 2);
+            if (function_exists('applyCenterGroupBladeBonus')) {
+                applyCenterGroupBladeBonus($state, $pid, $group, $blade);
+            }
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] Center $group Member gained +$blade Blade.");
+            break;
+        }
+
+        case 'pb2_begin_wait_opp_printed_hearts': {
+            unset($state['pending_prompt']);
+            return beginWaitOpponentStagePick(
+                $state,
+                $pid,
+                $name,
+                [
+                    'max_original_hearts' => intval($ab['max_printed_hearts'] ?? 1),
+                    'pick_count' => intval($ab['pick_count'] ?? 1),
+                ],
+                (string)($source['instance_id'] ?? ''),
+                ($state['phase'] ?? '') === 'live_start_effects'
+            );
+        }
+
+        case 'pb2_add_subunit_live_from_wr': {
+            $subunit = $ab['subunit'] ?? 'Printemps';
+            $cands = array_values(array_filter(
+                $p['waiting_room'] ?? [],
+                fn($c) => isLiveTypeCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+            ));
+            if (!$cands) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] no $subunit Live in Waiting Room.");
+                break;
+            }
+            $state = plMusePb2SetPendingPrompt($state, [
+                'type' => 'add_from_wr',
+                'owner' => $pid,
+                'player_id' => $pid,
+                'source_instance_id' => $source['instance_id'] ?? '',
+                'source_name' => $name,
+                'candidates' => $cands,
+                'filter' => 'live',
+                'subunit' => $subunit,
+                'count' => 1,
+                'min' => 1,
+                'max' => 1,
+            ]);
+            break;
+        }
+
+        case 'pb2_resume_per_success_choose': {
+            $remaining = intval($ab['remaining'] ?? 0);
+            if ($remaining <= 0) {
+                break;
+            }
+            $defs = $ab['choice_defs'] ?? $ab['choices'] ?? [];
+            $keys = [];
+            $labels = [];
+            foreach ($defs as $i => $def) {
+                $keys[] = (string)$i;
+                $labels[] = match ($def['type'] ?? '') {
+                    'center_blade_bonus' => 'Center +' . intval($def['amount'] ?? 1) . ' Blade',
+                    'activate_stage_member' => 'Activate 1 Stage Member',
+                    'draw_and_discard' => 'Draw 1, discard 1',
+                    default => $def['type'] ?? "choice $i",
+                };
+            }
+            $state = plMusePb2SetPendingPrompt($state, [
+                'type' => 'per_success_subunit_choose',
+                'owner' => $pid,
+                'player_id' => $pid,
+                'source_instance_id' => $source['instance_id'] ?? '',
+                'source_name' => $name,
+                'remaining' => $remaining,
+                'choices' => $keys,
+                'choice_labels' => $labels,
+                'choice_defs' => $defs,
+                'prompt' => "Choose an effect ($remaining remaining).",
+                'step' => 'choose',
+                'live_start' => true,
+            ]);
+            break;
+        }
 
         default:
             $state = addLog($state, "Unhandled μ's DUO effect type: $type");
@@ -989,8 +1175,15 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
         'per_success_subunit_choose',
         'auto_on_opp_wait_by_subunit_choose',
         'activated_wait_printemps_live_from_wr',
-        'optional_wait_self_discard_look_reveal',
         'stack_wr_under',
+        'pb2_pick_opp_wait_activate',
+        'pb2_pick_hand_success_swap',
+        'pb2_pick_distinct_discard_wait_opp',
+        'pb2_pick_unstack_toggle',
+        'pb2_pick_toggle_printemps',
+        'pb2_per_success_pick_member',
+        'pb2_printemps_cost_mode',
+        'pb2_printemps_wait_members',
     ], true)) {
         return null;
     }
@@ -999,17 +1192,22 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
     $p = &$state['players'][$pid];
     $opp = ($pid === 'p1') ? 'p2' : 'p1';
     $name = $prompt['source_name'] ?? 'Card';
+    $srcId = (string)($prompt['source_instance_id'] ?? $prompt['source_id'] ?? '');
+    $step = (string)($prompt['step'] ?? '');
 
-    if ($choice === 'skip' || $choice === 'cancel') {
-        unset($state['pending_prompt']);
-        return $state;
+    if (in_array($choice, ['skip', 'cancel', 'no'], true)
+        && !in_array($type, ['per_success_subunit_choose', 'pb2_per_success_pick_member'], true)
+        && $step === '') {
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — [$name] skipped optional DUO effect.");
+        return plMusePb2FinishPrompt($state, $prompt);
     }
 
     if ($type === 'negate_opp_member_live_success') {
-        $slot = $data['slot'] ?? $choice;
+        $slot = (string)($data['slot'] ?? $choice);
         $m = $state['players'][$opp]['stage'][$slot] ?? null;
         if (!$m) {
-            return $state;
+            throw new Exception('Choose an opponent Stage Member');
         }
         $state['players'][$opp]['stage'][$slot]['_negate_live_success_until_live_end'] = true;
         $heart = $prompt['then_heart'] ?? ['color' => 'yellow', 'count' => 1];
@@ -1018,10 +1216,9 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             'hearts' => [$heart],
             'source' => $name,
         ]);
-        unset($state['pending_prompt']);
         $state = addLog($state, $state['players'][$pid]['name'] .
             " — [$name] negated [Live Success] on " . cardDisplayName($m) . '.');
-        return $state;
+        return plMusePb2FinishPrompt($state, $prompt);
     }
 
     if ($type === 'stack_wr_under') {
@@ -1029,11 +1226,12 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
         if (!$ids && !empty($data['instance_id'])) {
             $ids = [$data['instance_id']];
         }
-        $srcId = $prompt['source_instance_id'] ?? '';
-        $slot = findMemberSlot($p, (string)$srcId);
+        if (!$ids && $choice !== '' && $choice !== 'yes') {
+            $ids = [$choice];
+        }
+        $slot = findMemberSlot($p, $srcId);
         if ($slot === '') {
-            unset($state['pending_prompt']);
-            return $state;
+            return plMusePb2FinishPrompt($state, $prompt);
         }
         $need = intval($prompt['count'] ?? 1);
         $moved = 0;
@@ -1045,36 +1243,809 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                 if (($c['instance_id'] ?? '') === $iid) {
                     $card = $c;
                     array_splice($p['waiting_room'], $i, 1);
+                    if (!isset($p['stage'][$slot]['stacked_members']) || !is_array($p['stage'][$slot]['stacked_members'])) {
+                        $p['stage'][$slot]['stacked_members'] = [];
+                    }
                     $p['stage'][$slot]['stacked_members'][] = $card;
                     $moved++;
                     break;
                 }
             }
         }
-        unset($state['pending_prompt']);
         $state = addLog($state, $state['players'][$pid]['name'] .
             " — [$name] stacked $moved card(s) underneath.");
+        return plMusePb2FinishPrompt($state, $prompt);
+    }
+
+    // —— Wait self + discard → Wait opp (≤N printed hearts) ——
+    if ($type === 'optional_wait_self_discard_wait_opp') {
+        if ($choice !== 'yes' && $step === '') {
+            return plMusePb2FinishPrompt($state, $prompt);
+        }
+        $need = intval($prompt['discard'] ?? 1);
+        $ids = $data['discard_ids'] ?? [];
+        if ($srcId !== '') {
+            plMusePb2WaitSelfByInstance($state, $pid, $srcId);
+        }
+        if ($need > 0 && count($ids) !== $need) {
+            unset($state['pending_prompt']);
+            return startEffectDiscardHandPrompt(
+                $state,
+                $pid,
+                $name,
+                $need,
+                "Discard $need card(s) from your hand.",
+                [
+                    'source_id' => $srcId,
+                    'source_instance_id' => $srcId,
+                    'then' => [
+                        'type' => 'pb2_begin_wait_opp_printed_hearts',
+                        'max_printed_hearts' => intval($prompt['max_printed_hearts'] ?? 1),
+                        'pick_count' => 1,
+                    ],
+                ]
+            );
+        }
+        if ($need > 0) {
+            plMusePb2DiscardIds($state, $pid, $ids, $name);
+        }
+        unset($state['pending_prompt']);
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — [$name] Waited self; discarded $need; choose opponent Member to Wait.");
+        return beginWaitOpponentStagePick(
+            $state,
+            $pid,
+            $name,
+            [
+                'max_original_hearts' => intval($prompt['max_printed_hearts'] ?? 1),
+                'pick_count' => 1,
+            ],
+            $srcId,
+            ($state['phase'] ?? '') === 'live_start_effects'
+        );
+    }
+
+    // —— Reveal hand Live ↔ Success Live swap ——
+    if ($type === 'optional_reveal_hand_live_swap_success' || $type === 'pb2_pick_hand_success_swap') {
+        if ($type === 'optional_reveal_hand_live_swap_success' && $choice === 'yes' && $step === '') {
+            $handLives = $prompt['hand_candidates'] ?? [];
+            if (!$handLives) {
+                return plMusePb2FinishPrompt($state, $prompt);
+            }
+            $state['pending_prompt'] = [
+                'type' => 'pb2_pick_hand_success_swap',
+                'owner' => $pid,
+                'responder' => $pid,
+                'source_name' => $name,
+                'source_instance_id' => $srcId,
+                'step' => 'pick_hand',
+                'subunit' => $prompt['subunit'] ?? 'lily white',
+                'candidates' => array_map('cardPromptSummary', $handLives),
+                'success_candidates' => array_map('cardPromptSummary', $prompt['success_candidates'] ?? $p['success_lives'] ?? []),
+                'prompt' => 'Choose 1 Live from your hand to reveal.',
+                'min' => 1,
+                'max' => 1,
+            ];
+            $state['seq']++;
+            return $state;
+        }
+        if ($step === 'pick_hand') {
+            $handId = (string)($data['instance_id'] ?? $choice);
+            $handCard = null;
+            foreach ($p['hand'] as $i => $c) {
+                if (($c['instance_id'] ?? '') === $handId) {
+                    $handCard = $c;
+                    break;
+                }
+            }
+            if (!$handCard) {
+                throw new Exception('Choose a Live card from your hand');
+            }
+            $state['pending_prompt'] = [
+                'type' => 'pb2_pick_hand_success_swap',
+                'owner' => $pid,
+                'responder' => $pid,
+                'source_name' => $name,
+                'source_instance_id' => $srcId,
+                'step' => 'pick_success',
+                'hand_instance_id' => $handId,
+                'candidates' => array_map('cardPromptSummary', $p['success_lives'] ?? []),
+                'prompt' => 'Choose 1 Success Live card to add to your hand.',
+                'min' => 1,
+                'max' => 1,
+            ];
+            $state['seq']++;
+            return $state;
+        }
+        if ($step === 'pick_success') {
+            $handId = (string)($prompt['hand_instance_id'] ?? '');
+            $succId = (string)($data['instance_id'] ?? $choice);
+            $handCard = null;
+            $handIdx = -1;
+            foreach ($p['hand'] as $i => $c) {
+                if (($c['instance_id'] ?? '') === $handId) {
+                    $handCard = $c;
+                    $handIdx = $i;
+                    break;
+                }
+            }
+            $succCard = null;
+            $succIdx = -1;
+            foreach ($p['success_lives'] as $i => $c) {
+                if (($c['instance_id'] ?? '') === $succId) {
+                    $succCard = $c;
+                    $succIdx = $i;
+                    break;
+                }
+            }
+            if (!$handCard || !$succCard) {
+                throw new Exception('Invalid swap targets');
+            }
+            array_splice($p['hand'], $handIdx, 1);
+            array_splice($p['success_lives'], $succIdx, 1);
+            $p['hand'][] = $succCard;
+            $p['success_lives'][] = $handCard;
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] swapped " . cardDisplayName($handCard) . ' with Success Live ' .
+                cardDisplayName($succCard) . '.');
+            return plMusePb2FinishPrompt($state, $prompt);
+        }
+        return plMusePb2FinishPrompt($state, $prompt);
+    }
+
+    // —— Activate up to N opp Wait Members; draw 1 each ——
+    if ($type === 'optional_activate_opp_wait_draw_each' || $type === 'pb2_pick_opp_wait_activate') {
+        if ($type === 'optional_activate_opp_wait_draw_each' && $choice === 'yes' && $step === '') {
+            $cands = $prompt['candidates'] ?? [];
+            if (!$cands) {
+                return plMusePb2FinishPrompt($state, $prompt);
+            }
+            $state['pending_prompt'] = [
+                'type' => 'pb2_pick_opp_wait_activate',
+                'owner' => $pid,
+                'responder' => $pid,
+                'source_name' => $name,
+                'source_instance_id' => $srcId,
+                'candidates' => $cands,
+                'max' => intval($prompt['max'] ?? 3),
+                'min' => 1,
+                'up_to' => true,
+                'optional' => true,
+                'prompt' => 'Choose up to ' . intval($prompt['max'] ?? 3) . ' opponent Wait Member(s) to Activate.',
+                'step' => 'pick',
+            ];
+            $state['seq']++;
+            return $state;
+        }
+        $slots = $data['slots'] ?? $data['slot_ids'] ?? [];
+        if (!$slots && !empty($data['slot'])) {
+            $slots = [$data['slot']];
+        }
+        if (!$slots && $choice !== '' && $choice !== 'yes') {
+            $slots = [$choice];
+        }
+        $max = intval($prompt['max'] ?? 3);
+        $slots = array_slice(array_values(array_unique(array_map('strval', $slots))), 0, $max);
+        $activated = 0;
+        foreach ($slots as $slot) {
+            $m = &$state['players'][$opp]['stage'][$slot];
+            if ($m && memberIsInWait($m)) {
+                clearMemberWait($m);
+                $activated++;
+            }
+            unset($m);
+        }
+        if ($activated > 0) {
+            $drawn = drawCardInstances($p, $activated);
+            foreach ($drawn as $c) {
+                $state = logEffectDraw($state, $pid, $name, $c,
+                    [animSpec($c['instance_id'], 'main_deck', 'hand', $pid)]);
+            }
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] Activated $activated opponent Wait Member(s); drew $activated.");
+        }
+        return plMusePb2FinishPrompt($state, $prompt);
+    }
+
+    // —— Discard 3 differently named subunit Members → Wait opp ——
+    if ($type === 'optional_discard_distinct_subunit_wait_opp' || $type === 'pb2_pick_distinct_discard_wait_opp') {
+        if ($type === 'optional_discard_distinct_subunit_wait_opp' && $choice === 'yes' && $step === '') {
+            $subunit = $prompt['subunit'] ?? 'BiBi';
+            $need = intval($prompt['discard'] ?? 3);
+            $hand = array_values(array_filter(
+                $p['hand'] ?? [],
+                fn($c) => isMemberCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+            ));
+            $state['pending_prompt'] = [
+                'type' => 'pb2_pick_distinct_discard_wait_opp',
+                'owner' => $pid,
+                'responder' => $pid,
+                'source_name' => $name,
+                'source_instance_id' => $srcId,
+                'subunit' => $subunit,
+                'discard' => $need,
+                'candidates' => array_map('cardPromptSummary', $hand),
+                'prompt' => "Choose $need differently named $subunit Member cards from your hand to discard.",
+                'min' => $need,
+                'max' => $need,
+                'step' => 'discard',
+                'pick_mode' => 'hand_discard',
+                'count' => $need,
+            ];
+            $state['seq']++;
+            return $state;
+        }
+        $ids = $data['discard_ids'] ?? $data['instance_ids'] ?? [];
+        if (!$ids && !empty($data['instance_id'])) {
+            $ids = [$data['instance_id']];
+        }
+        $need = intval($prompt['discard'] ?? 3);
+        if (count($ids) !== $need) {
+            throw new Exception("Must discard exactly $need differently named Members");
+        }
+        $names = [];
+        foreach ($ids as $iid) {
+            foreach ($p['hand'] as $c) {
+                if (($c['instance_id'] ?? '') === $iid) {
+                    $nm = cardDisplayName($c);
+                    if (isset($names[$nm])) {
+                        throw new Exception('Chosen Members must have different names');
+                    }
+                    $names[$nm] = true;
+                    break;
+                }
+            }
+        }
+        if (count($names) !== $need) {
+            throw new Exception('Chosen Members must have different names');
+        }
+        plMusePb2DiscardIds($state, $pid, $ids, $name);
+        unset($state['pending_prompt']);
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — [$name] discarded $need distinct Members; choose opponent Member to Wait.");
+        return beginWaitOpponentStagePick(
+            $state,
+            $pid,
+            $name,
+            ['pick_count' => 1, 'max_cost' => 99],
+            $srcId,
+            ($state['phase'] ?? '') === 'live_start_effects'
+        );
+    }
+
+    // —— Wait self + discard → Center group Blade ——
+    if ($type === 'optional_wait_self_discard_center_blade') {
+        if ($choice !== 'yes') {
+            return plMusePb2FinishPrompt($state, $prompt);
+        }
+        $need = intval($prompt['discard'] ?? 1);
+        $ids = $data['discard_ids'] ?? [];
+        $group = $prompt['group'] ?? "μ's";
+        $blade = intval($prompt['blade'] ?? 2);
+        plMusePb2WaitSelfByInstance($state, $pid, $srcId);
+        if ($need > 0 && count($ids) !== $need) {
+            unset($state['pending_prompt']);
+            return startEffectDiscardHandPrompt(
+                $state,
+                $pid,
+                $name,
+                $need,
+                "Discard $need card(s) from your hand.",
+                [
+                    'source_id' => $srcId,
+                    'then' => [
+                        'type' => 'pb2_apply_center_group_blade',
+                        'group' => $group,
+                        'blade' => $blade,
+                    ],
+                ]
+            );
+        }
+        if ($need > 0) {
+            plMusePb2DiscardIds($state, $pid, $ids, $name);
+        }
+        if (function_exists('applyCenterGroupBladeBonus')) {
+            applyCenterGroupBladeBonus($state, $pid, $group, $blade);
+        }
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — [$name] Waited self; Center $group Member gained +$blade Blade.");
+        return plMusePb2FinishPrompt($state, $prompt);
+    }
+
+    // —— Unstack under → toggle Printemps Wait/Active ——
+    if ($type === 'optional_unstack_toggle_subunit' || $type === 'pb2_pick_unstack_toggle'
+        || $type === 'pb2_pick_toggle_printemps') {
+        if ($type === 'optional_unstack_toggle_subunit' && $choice === 'yes' && $step === '') {
+            $stacked = $prompt['stacked'] ?? [];
+            $max = intval($prompt['max'] ?? 3);
+            $state['pending_prompt'] = [
+                'type' => 'pb2_pick_unstack_toggle',
+                'owner' => $pid,
+                'responder' => $pid,
+                'source_name' => $name,
+                'source_instance_id' => $srcId,
+                'subunit' => $prompt['subunit'] ?? 'Printemps',
+                'candidates' => array_map('cardPromptSummary', $stacked),
+                'max' => $max,
+                'min' => 1,
+                'up_to' => true,
+                'prompt' => "Choose up to $max card(s) under this Member to put into the Waiting Room.",
+                'step' => 'unstack',
+            ];
+            $state['seq']++;
+            return $state;
+        }
+        if ($step === 'unstack' || $type === 'pb2_pick_unstack_toggle') {
+            $ids = $data['instance_ids'] ?? $data['ids'] ?? [];
+            if (!$ids && !empty($data['instance_id'])) {
+                $ids = [$data['instance_id']];
+            }
+            $max = intval($prompt['max'] ?? 3);
+            $ids = array_slice(array_values($ids), 0, $max);
+            $slot = findMemberSlot($p, $srcId);
+            $moved = [];
+            if ($slot !== '' && !empty($p['stage'][$slot]['stacked_members'])) {
+                $keep = [];
+                foreach ($p['stage'][$slot]['stacked_members'] as $c) {
+                    if (in_array($c['instance_id'] ?? '', $ids, true)) {
+                        $moved[] = $c;
+                        $p['waiting_room'][] = $c;
+                    } else {
+                        $keep[] = $c;
+                    }
+                }
+                $p['stage'][$slot]['stacked_members'] = $keep;
+            }
+            $n = count($moved);
+            if ($n < 1) {
+                return plMusePb2FinishPrompt($state, $prompt);
+            }
+            $subunit = $prompt['subunit'] ?? 'Printemps';
+            $stageCands = [];
+            foreach ($p['stage'] as $s => $m) {
+                if ($m && strcasecmp((string)($m['subunit'] ?? ''), $subunit) === 0) {
+                    $stageCands[] = ['slot' => $s, 'card' => $m];
+                }
+            }
+            $state['pending_prompt'] = [
+                'type' => 'pb2_pick_toggle_printemps',
+                'owner' => $pid,
+                'responder' => $pid,
+                'source_name' => $name,
+                'source_instance_id' => $srcId,
+                'subunit' => $subunit,
+                'remaining' => $n,
+                'candidates' => $stageCands,
+                'prompt' => "Choose a $subunit Member to toggle Active/Wait ($n remaining).",
+                'step' => 'toggle',
+                'min' => 1,
+                'max' => 1,
+            ];
+            $state['seq']++;
+            return $state;
+        }
+        if ($step === 'toggle' || $type === 'pb2_pick_toggle_printemps') {
+            $slot = (string)($data['slot'] ?? $choice);
+            $m = &$p['stage'][$slot];
+            if (!$m) {
+                throw new Exception('Choose a Stage Member to toggle');
+            }
+            if (memberIsInWait($m)) {
+                clearMemberWait($m);
+            } else {
+                waitMember($m, $state);
+            }
+            unset($m);
+            $remaining = intval($prompt['remaining'] ?? 1) - 1;
+            if ($remaining > 0) {
+                $subunit = $prompt['subunit'] ?? 'Printemps';
+                $stageCands = [];
+                foreach ($p['stage'] as $s => $m) {
+                    if ($m && strcasecmp((string)($m['subunit'] ?? ''), $subunit) === 0) {
+                        $stageCands[] = ['slot' => $s, 'card' => $m];
+                    }
+                }
+                $state['pending_prompt'] = array_merge($prompt, [
+                    'remaining' => $remaining,
+                    'candidates' => $stageCands,
+                    'prompt' => "Choose a $subunit Member to toggle Active/Wait ($remaining remaining).",
+                ]);
+                $state['seq']++;
+                return $state;
+            }
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] unstacked and toggled Printemps Members.");
+            return plMusePb2FinishPrompt($state, $prompt);
+        }
+        return plMusePb2FinishPrompt($state, $prompt);
+    }
+
+    // —— Per Success subunit: choose effect N times ——
+    if ($type === 'per_success_subunit_choose' || $type === 'pb2_per_success_pick_member') {
+        $remaining = intval($prompt['remaining'] ?? 0);
+        $choices = $prompt['choices'] ?? [];
+        if ($type === 'pb2_per_success_pick_member') {
+            $slot = (string)($data['slot'] ?? $choice);
+            if ($slot === '' || empty($p['stage'][$slot])) {
+                throw new Exception('Choose a Stage Member to Activate');
+            }
+            clearMemberWait($p['stage'][$slot]);
+            $remaining = intval($prompt['remaining'] ?? 1) - 1;
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] Activated " . cardDisplayName($p['stage'][$slot]) . '.');
+            if ($remaining <= 0) {
+                return plMusePb2FinishPrompt($state, $prompt);
+            }
+            $labels = [];
+            $keys = [];
+            foreach ($choices as $i => $ch) {
+                $keys[] = (string)$i;
+                $labels[] = match ($ch['type'] ?? '') {
+                    'center_blade_bonus' => 'Center +' . intval($ch['amount'] ?? 1) . ' Blade',
+                    'activate_stage_member' => 'Activate 1 Stage Member',
+                    'draw_and_discard' => 'Draw 1, discard 1',
+                    default => $ch['type'] ?? "choice $i",
+                };
+            }
+            $state['pending_prompt'] = [
+                'type' => 'per_success_subunit_choose',
+                'owner' => $pid,
+                'responder' => $pid,
+                'source_name' => $name,
+                'source_instance_id' => $srcId,
+                'remaining' => $remaining,
+                'choices' => $choices,
+                'choice_keys' => $keys,
+                'choice_labels' => $labels,
+                'prompt' => "Choose an effect ($remaining remaining).",
+            ];
+            $state['pending_prompt']['choices'] = $keys;
+            $state['seq']++;
+            return $state;
+        }
+        if ($remaining <= 0) {
+            return plMusePb2FinishPrompt($state, $prompt);
+        }
+        // First entry: ensure choice UI keys
+        if ($step === '' && ($choice === '' || $choice === 'yes') && !isset($data['choice_index'])
+            && !ctype_digit((string)$choice)) {
+            $keys = [];
+            $labels = [];
+            foreach ($choices as $i => $ch) {
+                $keys[] = (string)$i;
+                $labels[] = match ($ch['type'] ?? '') {
+                    'center_blade_bonus' => 'Center +' . intval($ch['amount'] ?? 1) . ' Blade',
+                    'activate_stage_member' => 'Activate 1 Stage Member',
+                    'draw_and_discard' => 'Draw 1, discard 1',
+                    default => $ch['type'] ?? "choice $i",
+                };
+            }
+            $state['pending_prompt'] = array_merge($prompt, [
+                'choices' => $keys,
+                'choice_labels' => $labels,
+                'choice_defs' => $choices,
+                'prompt' => $prompt['prompt'] ?? "Choose an effect ($remaining remaining).",
+                'step' => 'choose',
+            ]);
+            $state['seq']++;
+            return $state;
+        }
+        $idx = intval($data['choice_index'] ?? (ctype_digit((string)$choice) ? $choice : -1));
+        $defs = $prompt['choice_defs'] ?? $choices;
+        $ch = $defs[$idx] ?? null;
+        if (!$ch) {
+            throw new Exception('Invalid effect choice');
+        }
+        $ct = $ch['type'] ?? '';
+        if ($ct === 'center_blade_bonus') {
+            $amt = intval($ch['amount'] ?? 1);
+            if (function_exists('applyCenterGroupBladeBonus')) {
+                applyCenterGroupBladeBonus($state, $pid, "μ's", $amt);
+            } else {
+                $center = $p['stage']['center'] ?? null;
+                if ($center) {
+                    $p['stage']['center']['live_blade_bonus'] =
+                        intval($p['stage']['center']['live_blade_bonus'] ?? 0) + $amt;
+                }
+            }
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                " — [$name] Center gained +$amt Blade.");
+            $remaining--;
+        } elseif ($ct === 'activate_stage_member') {
+            $cands = [];
+            foreach ($p['stage'] as $s => $m) {
+                if ($m && memberIsInWait($m)) {
+                    $cands[] = ['slot' => $s, 'card' => $m];
+                }
+            }
+            if (!$cands) {
+                $remaining--;
+            } else {
+                $state['pending_prompt'] = [
+                    'type' => 'pb2_per_success_pick_member',
+                    'owner' => $pid,
+                    'responder' => $pid,
+                    'source_name' => $name,
+                    'source_instance_id' => $srcId,
+                    'remaining' => $remaining,
+                    'choices' => $defs,
+                    'candidates' => $cands,
+                    'prompt' => 'Choose 1 Stage Member to Activate.',
+                    'min' => 1,
+                    'max' => 1,
+                ];
+                $state['seq']++;
+                return $state;
+            }
+        } elseif ($ct === 'draw_and_discard') {
+            $drawn = drawCardInstances($p, intval($ch['draw'] ?? 1));
+            foreach ($drawn as $c) {
+                $state = logEffectDraw($state, $pid, $name, $c,
+                    [animSpec($c['instance_id'], 'main_deck', 'hand', $pid)]);
+            }
+            $remaining--;
+            unset($state['pending_prompt']);
+            if (!empty($p['hand'])) {
+                return startEffectDiscardHandPrompt(
+                    $state,
+                    $pid,
+                    $name,
+                    intval($ch['discard'] ?? 1),
+                    'Choose a card to discard.',
+                    [
+                        'source_id' => $srcId,
+                        'then' => [
+                            'type' => 'pb2_resume_per_success_choose',
+                            'remaining' => $remaining,
+                            'choice_defs' => $defs,
+                            'choices' => $defs,
+                        ],
+                    ]
+                );
+            }
+        } else {
+            $remaining--;
+        }
+        if ($remaining <= 0) {
+            return plMusePb2FinishPrompt($state, $prompt);
+        }
+        $keys = [];
+        $labels = [];
+        foreach ($defs as $i => $def) {
+            $keys[] = (string)$i;
+            $labels[] = match ($def['type'] ?? '') {
+                'center_blade_bonus' => 'Center +' . intval($def['amount'] ?? 1) . ' Blade',
+                'activate_stage_member' => 'Activate 1 Stage Member',
+                'draw_and_discard' => 'Draw 1, discard 1',
+                default => $def['type'] ?? "choice $i",
+            };
+        }
+        $state['pending_prompt'] = [
+            'type' => 'per_success_subunit_choose',
+            'owner' => $pid,
+            'responder' => $pid,
+            'source_name' => $name,
+            'source_instance_id' => $srcId,
+            'remaining' => $remaining,
+            'choices' => $keys,
+            'choice_labels' => $labels,
+            'choice_defs' => $defs,
+            'prompt' => "Choose an effect ($remaining remaining).",
+            'step' => 'choose',
+            'live_start' => true,
+        ];
+        $state['seq']++;
         return $state;
     }
 
-    // Generic optional skip-capable prompts: mark handled with log for now when choice=confirm paths incomplete
-    if (in_array($type, [
-        'optional_wait_self_discard_wait_opp',
-        'optional_reveal_hand_live_swap_success',
-        'optional_activate_opp_wait_draw_each',
-        'optional_discard_distinct_subunit_wait_opp',
-        'optional_wait_self_discard_center_blade',
-        'optional_unstack_toggle_subunit',
-        'per_success_subunit_choose',
-        'auto_on_opp_wait_by_subunit_choose',
-        'activated_wait_printemps_live_from_wr',
-        'optional_wait_self_discard_look_reveal',
-    ], true)) {
-        // Delegate detailed multi-step to existing helper patterns where possible
-        unset($state['pending_prompt']);
-        $state = addLog($state, $state['players'][$pid]['name'] .
-            " — [$name] resolved DUO prompt ($type).");
-        return $state;
+    // —— Auto: on opp Wait by BiBi → choose Activate BiBi or Energy ——
+    if ($type === 'auto_on_opp_wait_by_subunit_choose') {
+        $defs = $prompt['choices'] ?? [];
+        if ($step === '' && !ctype_digit((string)$choice) && !isset($data['choice_index'])) {
+            $keys = [];
+            $labels = [];
+            foreach ($defs as $i => $ch) {
+                $keys[] = (string)$i;
+                $labels[] = match ($ch['type'] ?? '') {
+                    'activate_stage_subunit_member' => 'Activate 1 ' . ($ch['subunit'] ?? 'BiBi') . ' Member',
+                    'activate_energy' => 'Activate ' . intval($ch['count'] ?? 2) . ' Energy',
+                    default => $ch['type'] ?? "choice $i",
+                };
+            }
+            $state['pending_prompt'] = array_merge($prompt, [
+                'choices' => $keys,
+                'choice_labels' => $labels,
+                'choice_defs' => $defs,
+                'step' => 'choose',
+                'prompt' => 'Choose 1 effect.',
+            ]);
+            $state['seq']++;
+            return $state;
+        }
+        $idx = intval($data['choice_index'] ?? (ctype_digit((string)$choice) ? $choice : -1));
+        $ch = ($prompt['choice_defs'] ?? $defs)[$idx] ?? null;
+        if (!$ch) {
+            throw new Exception('Invalid choice');
+        }
+        if (($ch['type'] ?? '') === 'activate_energy') {
+            $state = plMusePb2ActivateEnergy($state, $pid, intval($ch['count'] ?? 2));
+            return plMusePb2FinishPrompt($state, $prompt);
+        }
+        if (($ch['type'] ?? '') === 'activate_stage_subunit_member') {
+            $subunit = $ch['subunit'] ?? 'BiBi';
+            $cands = [];
+            foreach ($p['stage'] as $s => $m) {
+                if ($m && memberIsInWait($m) && strcasecmp((string)($m['subunit'] ?? ''), $subunit) === 0) {
+                    $cands[] = ['slot' => $s, 'card' => $m];
+                }
+            }
+            if (count($cands) === 1) {
+                clearMemberWait($p['stage'][$cands[0]['slot']]);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] Activated " . cardDisplayName($p['stage'][$cands[0]['slot']]) . '.');
+                return plMusePb2FinishPrompt($state, $prompt);
+            }
+            if (!$cands) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] no Wait $subunit Members to Activate.");
+                return plMusePb2FinishPrompt($state, $prompt);
+            }
+            $state['pending_prompt'] = [
+                'type' => 'pb2_per_success_pick_member',
+                'owner' => $pid,
+                'responder' => $pid,
+                'source_name' => $name,
+                'source_instance_id' => $srcId,
+                'remaining' => 1,
+                'choices' => [],
+                'candidates' => $cands,
+                'prompt' => "Choose 1 $subunit Member to Activate.",
+                'min' => 1,
+                'max' => 1,
+            ];
+            $state['seq']++;
+            return $state;
+        }
+        return plMusePb2FinishPrompt($state, $prompt);
+    }
+
+    // —— Kotori: Wait self + (discard 2 OR Wait 2 Printemps) → add Printemps Live from WR ——
+    if ($type === 'activated_wait_printemps_live_from_wr' || $type === 'pb2_printemps_cost_mode'
+        || $type === 'pb2_printemps_wait_members') {
+        if ($type === 'activated_wait_printemps_live_from_wr') {
+            plMusePb2WaitSelfByInstance($state, $pid, $srcId);
+            $state['pending_prompt'] = [
+                'type' => 'pb2_printemps_cost_mode',
+                'owner' => $pid,
+                'responder' => $pid,
+                'source_name' => $name,
+                'source_instance_id' => $srcId,
+                'subunit' => $prompt['subunit'] ?? 'Printemps',
+                'choices' => ['discard2', 'wait2'],
+                'choice_labels' => ['Discard 2 from hand', 'Wait 2 Printemps Members'],
+                'prompt' => 'Pay the additional cost.',
+            ];
+            $state['seq']++;
+            return $state;
+        }
+        if ($type === 'pb2_printemps_cost_mode') {
+            if ($choice === 'discard2') {
+                $ids = $data['discard_ids'] ?? [];
+                if (count($ids) !== 2) {
+                    unset($state['pending_prompt']);
+                    return startEffectDiscardHandPrompt(
+                        $state,
+                        $pid,
+                        $name,
+                        2,
+                        'Discard 2 cards from your hand.',
+                        [
+                            'source_id' => $srcId,
+                            'then' => [
+                                'type' => 'pb2_add_subunit_live_from_wr',
+                                'subunit' => $prompt['subunit'] ?? 'Printemps',
+                            ],
+                        ]
+                    );
+                }
+                plMusePb2DiscardIds($state, $pid, $ids, $name);
+            } elseif ($choice === 'wait2') {
+                $cands = [];
+                foreach ($p['stage'] as $s => $m) {
+                    if ($m && ($m['instance_id'] ?? '') !== $srcId
+                        && strcasecmp((string)($m['subunit'] ?? ''), $prompt['subunit'] ?? 'Printemps') === 0
+                        && !memberIsInWait($m)) {
+                        $cands[] = ['slot' => $s, 'card' => $m];
+                    }
+                }
+                if (count($cands) < 2) {
+                    throw new Exception('Need 2 Active Printemps Members to Wait');
+                }
+                $state['pending_prompt'] = [
+                    'type' => 'pb2_printemps_wait_members',
+                    'owner' => $pid,
+                    'responder' => $pid,
+                    'source_name' => $name,
+                    'source_instance_id' => $srcId,
+                    'subunit' => $prompt['subunit'] ?? 'Printemps',
+                    'candidates' => $cands,
+                    'min' => 2,
+                    'max' => 2,
+                    'prompt' => 'Choose 2 Printemps Members to put into Wait.',
+                ];
+                $state['seq']++;
+                return $state;
+            } else {
+                throw new Exception('Choose an additional cost');
+            }
+            // After discard2 with ids present → add from WR
+            $subunit = $prompt['subunit'] ?? 'Printemps';
+            $cands = array_values(array_filter(
+                $p['waiting_room'] ?? [],
+                fn($c) => isLiveTypeCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+            ));
+            unset($state['pending_prompt']);
+            if (!$cands) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] no $subunit Live in Waiting Room.");
+                return plMusePb2FinishPrompt($state, $prompt);
+            }
+            $state['pending_prompt'] = [
+                'type' => 'add_from_wr',
+                'owner' => $pid,
+                'responder' => $pid,
+                'source_name' => $name,
+                'source_instance_id' => $srcId,
+                'candidates' => $cands,
+                'filter' => 'live',
+                'subunit' => $subunit,
+                'count' => 1,
+                'min' => 1,
+                'max' => 1,
+            ];
+            $state['seq']++;
+            return $state;
+        }
+        if ($type === 'pb2_printemps_wait_members') {
+            $slots = $data['slots'] ?? [];
+            if (!$slots && !empty($data['slot'])) {
+                $slots = [$data['slot']];
+            }
+            if (count($slots) !== 2) {
+                throw new Exception('Choose exactly 2 Printemps Members');
+            }
+            foreach ($slots as $slot) {
+                if (!empty($p['stage'][$slot])) {
+                    waitMember($p['stage'][$slot], $state);
+                }
+            }
+            $subunit = $prompt['subunit'] ?? 'Printemps';
+            $cands = array_values(array_filter(
+                $p['waiting_room'] ?? [],
+                fn($c) => isLiveTypeCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+            ));
+            unset($state['pending_prompt']);
+            if (!$cands) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] no $subunit Live in Waiting Room.");
+                return plMusePb2FinishPrompt($state, $prompt);
+            }
+            $state['pending_prompt'] = [
+                'type' => 'add_from_wr',
+                'owner' => $pid,
+                'responder' => $pid,
+                'source_name' => $name,
+                'source_instance_id' => $srcId,
+                'candidates' => $cands,
+                'filter' => 'live',
+                'subunit' => $subunit,
+                'count' => 1,
+                'min' => 1,
+                'max' => 1,
+            ];
+            $state['seq']++;
+            return $state;
+        }
     }
 
     return null;

@@ -1397,7 +1397,10 @@ global.isBranchChoicePrompt = function isBranchChoicePrompt(pr){
     'live_start_edel_choice',
     'sbp5_aqours_blade_or_position','sbp6_live_wr_deck_position','sbp6_hand_deck_position',
     'ssd1_reveal_group_deck','opp_pick_wr_live_offer','spbp5_wr_pay_add_hand',
-    'spbp2_discard_liella_choice'
+    'spbp2_discard_liella_choice',
+    'per_success_subunit_choose',
+    'auto_on_opp_wait_by_subunit_choose',
+    'pb2_printemps_cost_mode',
   ]);
   if(branchTypes.has(pr.type)){
     if(pr.type==='live_start_center_cost_choice'&&pr.step&&pr.step!=='pick_mode') return false;
@@ -1839,6 +1842,10 @@ function promptDiscardCount(pr, choice){
   if(pr.type==='optional_discard_mill_add_wr_subunit_live') return pr.ability?.discard||1;
   if(pr.type==='optional_discard_add_cb_member_hs_live') return pr.discard||2;
   if(pr.type==='optional_wait_self_look_reveal') return pr.discard_count||pr.ability?.discard||0;
+  if(pr.type==='optional_wait_self_discard_wait_opp') return pr.discard||pr.ability?.discard||1;
+  if(pr.type==='optional_wait_self_discard_center_blade') return pr.discard||pr.ability?.discard||1;
+  if(pr.type==='pb2_printemps_cost_mode'&&choice==='discard2') return 2;
+  if(pr.type==='pb2_pick_distinct_discard_wait_opp') return pr.discard||pr.count||3;
   if(pr.type==='mandatory_discard_after_draw') return pr.discard_count||1;
   if(pr.type==='opp_may_discard_or_modifier') return 1;
   if(pr.type==='reveal_live_opp_discard_or_blade') return 1;

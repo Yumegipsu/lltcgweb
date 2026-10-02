@@ -6861,12 +6861,12 @@
           "count": 9
         }
       ],
-      "text_es": "[Inicio de Live] If a μ's Member in your Center area has 9 or more Blade, this card's score +2.",
-      "text_ko": "[라이브 개시] If a μ's Member in your Center area has 9 or more Blade, this card's score +2.",
+      "text_es": "[Inicio de Live] If a μ's Miembro in your área Centro has 9 or more Blade, la puntuación de esta carta +2.",
+      "text_ko": "[라이브 개시] 만약 μ의 멤버 에 자신의 센터 영역 가지고 있다 9 이상 Blade, 이 카드의 스코어 +2.",
       "text_zh": "[Live开始] If a μ's Member in your Center area has 9 or more Blade, this card's score +2.",
       "text_th": "[เริ่ม Live] If a μ's Member in your Center area has 9 or more Blade, this card's score +2.",
-      "text_pt": "[Início de Live] If a μ's Member in your Center area has 9 or more Blade, this card's score +2.",
-      "text_fr": "[Début de Live] If a μ's Member in your Center area has 9 or more Blade, this card's score +2."
+      "text_pt": "[Início de Live] If a μ's Membro in your área Centro has 9 or more Blade, la pontuação de esta carta +2.",
+      "text_fr": "[Début de Live] If a Membre μ's in your zone Centre has 9 ou plus Blade, le score de cette carte +2."
     },
     {
       "card_no": "PL!-bp4-023-L",
@@ -9499,12 +9499,12 @@
           "count": 7
         }
       ],
-      "text_es": "[Inicio de Live] If you have a μ's Member in your Center area, reduce this card's required Gray Hearts by 1 for each pair of Yellow Hearts that Member has (max 3 Gray Hearts reduced this way).",
-      "text_ko": "[라이브 개시] If you have a μ's Member in your Center area, reduce this card's required Gray Hearts by 1 for each pair of Yellow Hearts that Member has (max 3 Gray Hearts reduced this way).",
+      "text_es": "[Inicio de Live] Si tienes a μ's Miembro in your área Centro, reduce this card's Corazones grises requeridos by 1 por cada pair of Yellow Corazones that Miembro has (max 3 Gray Corazones reduced this way).",
+      "text_ko": "[라이브 개시] 만약 자신에게 μ의 멤버 에 자신의 센터 영역, 줄인다 이 카드의 필요 회색 하트 만큼 1 마다 pair 의 노란 하트 그 멤버 가지고 있다 (max 3 회색 하트 감소한 이 방법).",
       "text_zh": "[Live开始] If you have a μ's Member in your Center area, reduce this card's required Gray Hearts by 1 for each pair of Yellow Hearts that Member has (max 3 Gray Hearts reduced this way).",
       "text_th": "[เริ่ม Live] If you have a μ's Member in your Center area, reduce this card's required Gray Hearts by 1 for each pair of Yellow Hearts that Member has (max 3 Gray Hearts reduced this way).",
-      "text_pt": "[Início de Live] If you have a μ's Member in your Center area, reduce this card's required Gray Hearts by 1 for each pair of Yellow Hearts that Member has (max 3 Gray Hearts reduced this way).",
-      "text_fr": "[Début de Live] If you have a μ's Member in your Center area, reduce this card's required Gray Hearts by 1 for each pair of Yellow Hearts that Member has (max 3 Gray Hearts reduced this way)."
+      "text_pt": "[Início de Live] Se tienes a μ's Membro in your área Centro, reduce this card's Corações cinza requeridos by 1 por cada pair of Yellow Corazones that Membro has (max 3 Gray Corazones reduced this way).",
+      "text_fr": "[Début de Live] Si vous avez a Membre μ's in your zone Centre, reduce cette carte's Cœurs gris requis by 1 pour chaque pair of Yellow Cœurs ce Membre has (max 3 Gray Cœurs reduced this way)."
     },
     {
       "card_no": "PL!-bp5-021-L",
@@ -9636,12 +9636,12 @@
           "count": 2
         }
       ],
-      "text_es": "[Inicio de Live] If you have 1 or more Members on your Stage, each player draws 1 card and puts 1 card from their hand into the Waiting Room. If you have 2 or more, 1 μ's Member on your Stage gains 1 Yellow heart until this Live ends. If you have 3 or more differently named Members, this card's score +1.",
-      "text_ko": "[라이브 개시] If you have 1 or more Members on your Stage, each player draws 1 card and puts 1 card from their hand into the Waiting Room. If you have 2 or more, 1 μ's Member on your Stage gains 1 Yellow heart until this Live ends. If you have 3 or more differently named Members, this card's score +1.",
+      "text_es": "[Inicio de Live] Si tienes 1 or more Miembros en tu Escenario, each player robas 1 card and colocas 1 card from their mano en la Sala de espera. Si tienes 2 or more, 1 μ's Miembro en tu Escenario obtieness 1 Yellow heart hasta que termine este Live. Si tienes 3 or more con nombres distintos Miembros, la puntuación de esta carta +1.",
+      "text_ko": "[라이브 개시] 만약 자신에게 1 이상 멤버 자신의 스테이지에, 각각 플레이어 드로우한다 1 카드 그리고 puts 1 카드 에서 그들의 손패 대기실에. 만약 자신에게 2 이상, 1 μ의 멤버 자신의 스테이지에 얻는다 1 노란 하트 이 Live가 끝날 때까지. 만약 자신에게 3 이상 이름이 서로 다른 멤버, 이 카드의 스코어 +1.",
       "text_zh": "[Live开始] If you have 1 or more Members on your Stage, each player draws 1 card and puts 1 card from their hand into the Waiting Room. If you have 2 or more, 1 μ's Member on your Stage gains 1 Yellow heart until this Live ends. If you have 3 or more differently named Members, this card's score +1.",
       "text_th": "[เริ่ม Live] If you have 1 or more Members on your Stage, each player draws 1 card and puts 1 card from their hand into the Waiting Room. If you have 2 or more, 1 μ's Member on your Stage gains 1 Yellow heart until this Live ends. If you have 3 or more differently named Members, this card's score +1.",
-      "text_pt": "[Início de Live] If you have 1 or more Members on your Stage, each player draws 1 card and puts 1 card from their hand into the Waiting Room. If you have 2 or more, 1 μ's Member on your Stage gains 1 Yellow heart until this Live ends. If you have 3 or more differently named Members, this card's score +1.",
-      "text_fr": "[Début de Live] If you have 1 or more Members on your Stage, each player draws 1 card and puts 1 card from their hand into the Waiting Room. If you have 2 or more, 1 μ's Member on your Stage gains 1 Yellow heart until this Live ends. If you have 3 or more differently named Members, this card's score +1."
+      "text_pt": "[Início de Live] Se tienes 1 or more Membros en tu Palco, each player compras 1 card and colocas 1 card from their mano en la Sala de espera. Se tienes 2 or more, 1 μ's Membro en tu Palco você ganhas 1 Yellow heart até que este Live termine. Se tienes 3 or more con nombres distintos Membros, la pontuação de esta carta +1.",
+      "text_fr": "[Début de Live] Si vous avez 1 ou plus Membres sur votre Scène, chaque joueur pioche 1 carte and place 1 carte de leur main dans la Salle d'attente. Si vous avez 2 ou plus, 1 Membre μ's sur votre Scène gagne 1 Yellow heart jusqu'à la fin de ce Live. Si vous avez 3 ou plus aux noms distincts Membres, le score de cette carte +1."
     },
     {
       "card_no": "PL!-bp5-022-L",
@@ -9785,12 +9785,12 @@
           "count": 6
         }
       ],
-      "text_es": "[Inicio de Live] For each card in your Success Live area, this card's score +2 and its required hearts +1 Pink Heart, +1 Yellow Heart, +1 Purple Heart, and +1 Gray Heart.",
-      "text_ko": "[라이브 개시] For each card in your Success Live area, this card's score +2 and its required hearts +1 Pink Heart, +1 Yellow Heart, +1 Purple Heart, and +1 Gray Heart.",
+      "text_es": "[Inicio de Live] For each card in your área de Live exitoso, la puntuación de esta carta +2 and its corazones requeridos +1 Pink Corazón, +1 Yellow Corazón, +1 Purple Corazón, and +1 Gray Corazón.",
+      "text_ko": "[라이브 개시] 마다 카드 에 자신의 성공 Live 더미, 이 카드의 스코어 +2 그리고 그것의 필요 하트 +1 핑크 하트, +1 노란 하트, +1 보라 하트, 그리고 +1 회색 하트.",
       "text_zh": "[Live开始] For each card in your Success Live area, this card's score +2 and its required hearts +1 Pink Heart, +1 Yellow Heart, +1 Purple Heart, and +1 Gray Heart.",
       "text_th": "[เริ่ม Live] For each card in your Success Live area, this card's score +2 and its required hearts +1 Pink Heart, +1 Yellow Heart, +1 Purple Heart, and +1 Gray Heart.",
-      "text_pt": "[Início de Live] For each card in your Success Live area, this card's score +2 and its required hearts +1 Pink Heart, +1 Yellow Heart, +1 Purple Heart, and +1 Gray Heart.",
-      "text_fr": "[Début de Live] For each card in your Success Live area, this card's score +2 and its required hearts +1 Pink Heart, +1 Yellow Heart, +1 Purple Heart, and +1 Gray Heart."
+      "text_pt": "[Início de Live] For each card in your área de Live bem-sucedido, la pontuação de esta carta +2 and its corazones requeridos +1 Pink Corazón, +1 Yellow Corazón, +1 Purple Corazón, and +1 Gray Corazón.",
+      "text_fr": "[Début de Live] For each carte in your zone de Live réussi, le score de cette carte +2 and its cœurs requis +1 Pink Cœur, +1 Yellow Cœur, +1 Purple Cœur, and +1 Gray Cœur."
     },
     {
       "card_no": "PL!-bp5-023-L",
@@ -9913,12 +9913,12 @@
           "count": 3
         }
       ],
-      "text_es": "[Inicio de Live] Reduce this card's required Gray Hearts by 1 for each Member on your Stage with a heart color other than Pink or Purple.",
-      "text_ko": "[라이브 개시] Reduce this card's required Gray Hearts by 1 for each Member on your Stage with a heart color other than Pink or Purple.",
+      "text_es": "[Inicio de Live] Reduce this card's Corazones grises requeridos by 1 por cada Miembro en tu Escenario with a color de corazón other than Pink or Purple.",
+      "text_ko": "[라이브 개시] 줄인다 이 카드의 필요 회색 하트 만큼 1 마다 멤버 자신의 스테이지에 와 함께 하트 색 다른 보다 핑크 또는 보라.",
       "text_zh": "[Live开始] Reduce this card's required Gray Hearts by 1 for each Member on your Stage with a heart color other than Pink or Purple.",
       "text_th": "[เริ่ม Live] Reduce this card's required Gray Hearts by 1 for each Member on your Stage with a heart color other than Pink or Purple.",
-      "text_pt": "[Início de Live] Reduce this card's required Gray Hearts by 1 for each Member on your Stage with a heart color other than Pink or Purple.",
-      "text_fr": "[Début de Live] Reduce this card's required Gray Hearts by 1 for each Member on your Stage with a heart color other than Pink or Purple."
+      "text_pt": "[Início de Live] Reduce this card's Corações cinza requeridos by 1 por cada Membro en tu Palco with a color de corazón other than Pink or Purple.",
+      "text_fr": "[Début de Live] Reduce cette carte's Cœurs gris requis by 1 pour chaque Membre sur votre Scène with a couleur de cœur autre que Pink or Purple."
     },
     {
       "card_no": "PL!-bp5-024-L",
@@ -14725,11 +14725,11 @@
         }
       ],
       "text_es": "[Inicio de Live] Activa Miembros Printemps en tu Escenario. Si 3 o más Miembros en Wait pasan a Activo de esta forma, la puntuación de esta carta +1.",
-      "text_ko": "[라이브 개시] Activate Printemps Members on your Stage. If 3 or more Members in Wait become Active this way, this card's score +1.",
+      "text_ko": "[라이브 개시] 활성화한다 Printemps 멤버 자신의 스테이지에. 만약 3 이상 멤버 Wait에 활성 상태가 된다 이 방법, 이 카드의 스코어 +1.",
       "text_zh": "[Live开始] Activate Printemps Members on your Stage. If 3 or more Members in Wait become Active this way, this card's score +1.",
       "text_th": "[เริ่ม Live] Activate Printemps Members on your Stage. If 3 or more Members in Wait become Active this way, this card's score +1.",
-      "text_pt": "[Início de Live] Activate Printemps Members on your Stage. If 3 or more Members in Wait become Active this way, this card's score +1.",
-      "text_fr": "[Début de Live] Activate Printemps Members on your Stage. If 3 or more Members in Wait become Active this way, this card's score +1."
+      "text_pt": "[Início de Live] Ativa Membros Printemps en tu Palco. Se 3 o más Membros en Wait pasan a Activo de esta forma, la pontuação de esta carta +1.",
+      "text_fr": "[Début de Live] Activez Printemps Membres sur votre Scène. If 3 ou plus Membres en Wait become Active this way, le score de cette carte +1."
     },
     {
       "card_no": "PL!-pb1-029-L",
@@ -14829,11 +14829,11 @@
         }
       ],
       "text_es": "[Inicio de Live] Si tienes 0 cartas en tu área de Live exitoso y todos los Miembros en tu Escenario pertenecen a lily white, la puntuación de esta carta +1.",
-      "text_ko": "[라이브 개시] If you have 0 cards in your Success Live area and every Member on your Stage belongs to lily white, this card's score +1.",
+      "text_ko": "[라이브 개시] 만약 자신에게 0 카드 에 자신의 성공 Live 더미 그리고 모든 멤버 자신의 스테이지에 belongs 에 lily white, 이 카드의 스코어 +1.",
       "text_zh": "[Live开始] If you have 0 cards in your Success Live area and every Member on your Stage belongs to lily white, this card's score +1.",
       "text_th": "[เริ่ม Live] If you have 0 cards in your Success Live area and every Member on your Stage belongs to lily white, this card's score +1.",
-      "text_pt": "[Início de Live] If you have 0 cards in your Success Live area and every Member on your Stage belongs to lily white, this card's score +1.",
-      "text_fr": "[Début de Live] If you have 0 cards in your Success Live area and every Member on your Stage belongs to lily white, this card's score +1."
+      "text_pt": "[Início de Live] Se tienes 0 cartas en tu área de Live bem-sucedido y todos los Membros en tu Palco pertenecen a lily white, la pontuação de esta carta +1.",
+      "text_fr": "[Début de Live] Si vous avez 0 cartes in your zone de Live réussi and chaque Membre sur votre Scène appartient à lily white, le score de cette carte +1."
     },
     {
       "card_no": "PL!-pb1-030-L",
@@ -14969,11 +14969,11 @@
         }
       ],
       "text_es": "[Inicio de Live] Si tu oponente tiene un Miembro en Wait en su Escenario, reduce los corazones requeridos de esta carta en 2 Corazones grises.\n[Éxito de Live] Si tu Escenario tiene 2 o más Miembros BiBi con nombres distintos, añade 1 carta de Miembro BiBi de tu Sala de espera a tu mano.",
-      "text_ko": "[라이브 개시] If your opponent has a Member in Wait on their Stage, reduce this card's required hearts by 2 Gray Hearts.\n[라이브 성공] If your Stage has 2 or more differently named BiBi Members, add 1 BiBi Member card from your Waiting Room to your hand.",
+      "text_ko": "[라이브 개시] 만약 상대 가지고 있다 멤버 Wait에 에 그들의 스테이지, 줄인다 이 카드의 필요 하트 만큼 2 회색 하트.\n[라이브 성공] 만약 자신의 스테이지 가지고 있다 2 이상 이름이 서로 다른 BiBi 멤버, 더한다 1 BiBi 멤버 카드 자신의 대기실에서 손패에.",
       "text_zh": "[Live开始] If your opponent has a Member in Wait on their Stage, reduce this card's required hearts by 2 Gray Hearts.\n[Live成功] If your Stage has 2 or more differently named BiBi Members, add 1 BiBi Member card from your Waiting Room to your hand.",
       "text_th": "[เริ่ม Live] If your opponent has a Member in Wait on their Stage, reduce this card's required hearts by 2 Gray Hearts.\n[Live สำเร็จ] If your Stage has 2 or more differently named BiBi Members, add 1 BiBi Member card from your Waiting Room to your hand.",
-      "text_pt": "[Início de Live] If your opponent has a Member in Wait on their Stage, reduce this card's required hearts by 2 Gray Hearts.\n[Sucesso de Live] If your Stage has 2 or more differently named BiBi Members, add 1 BiBi Member card from your Waiting Room to your hand.",
-      "text_fr": "[Début de Live] If your opponent has a Member in Wait on their Stage, reduce this card's required hearts by 2 Gray Hearts.\n[Live réussi] If your Stage has 2 or more differently named BiBi Members, add 1 BiBi Member card from your Waiting Room to your hand."
+      "text_pt": "[Início de Live] Se tu oponente tiene un Membro en Wait en su Palco, reduce los corazones requeridos de esta carta en 2 Corações cinza.\n[Sucesso de Live] Se tu Palco tiene 2 o más Membros BiBi con nombres distintos, adiciona 1 carta de Membro BiBi de tu Sala de espera a tu mano.",
+      "text_fr": "[Début de Live] Si votre opponent has un Membre en Wait on their Scène, reduce cette carte's cœurs requis by 2 Gray Cœurs.\n[Live réussi] If votre Scène has 2 ou plus aux noms distincts BiBi Membres, ajoutez 1 BiBi carte de Membre de votre Salle d'attente à votre main."
     },
     {
       "card_no": "PL!-pb1-031-L",
@@ -15088,11 +15088,11 @@
         }
       ],
       "text_es": "[Éxito de Live] Puedes colocar 1 carta de tu mano en la Sala de espera: añade 1 carta de Miembro de μ's revelada por Yell a tu mano.",
-      "text_ko": "[라이브 성공] You may put 1 card from your hand into the Waiting Room: add 1 μ's Member card revealed by Yell to your hand.",
+      "text_ko": "[라이브 성공] 자신의 손패에서 카드 1장을 대기실에 놓아도 좋다: 더한다 1 μ의 멤버 카드 Yell로 공개된 손패에.",
       "text_zh": "[Live成功] You may put 1 card from your hand into the Waiting Room: add 1 μ's Member card revealed by Yell to your hand.",
       "text_th": "[Live สำเร็จ] You may put 1 card from your hand into the Waiting Room: add 1 μ's Member card revealed by Yell to your hand.",
-      "text_pt": "[Sucesso de Live] You may put 1 card from your hand into the Waiting Room: add 1 μ's Member card revealed by Yell to your hand.",
-      "text_fr": "[Live réussi] You may put 1 card from your hand into the Waiting Room: add 1 μ's Member card revealed by Yell to your hand."
+      "text_pt": "[Sucesso de Live] Pode colocar 1 carta de tu mano en la Sala de espera: adiciona 1 carta de Membro de μ's revelada por Yell a tu mano.",
+      "text_fr": "[Live réussi] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: ajoutez 1 μ's carte de Membre révélée par Yell à votre main."
     },
     {
       "card_no": "PL!-pb1-031-SRL",
@@ -15148,11 +15148,11 @@
         }
       ],
       "text_es": "[Éxito de Live] Puedes colocar 1 carta de tu mano en la Sala de espera: añade 1 carta de Miembro de μ's revelada por Yell a tu mano.",
-      "text_ko": "[라이브 성공] You may put 1 card from your hand into the Waiting Room: add 1 μ's Member card revealed by Yell to your hand.",
+      "text_ko": "[라이브 성공] 자신의 손패에서 카드 1장을 대기실에 놓아도 좋다: 더한다 1 μ의 멤버 카드 Yell로 공개된 손패에.",
       "text_zh": "[Live成功] You may put 1 card from your hand into the Waiting Room: add 1 μ's Member card revealed by Yell to your hand.",
       "text_th": "[Live สำเร็จ] You may put 1 card from your hand into the Waiting Room: add 1 μ's Member card revealed by Yell to your hand.",
-      "text_pt": "[Sucesso de Live] You may put 1 card from your hand into the Waiting Room: add 1 μ's Member card revealed by Yell to your hand.",
-      "text_fr": "[Live réussi] You may put 1 card from your hand into the Waiting Room: add 1 μ's Member card revealed by Yell to your hand."
+      "text_pt": "[Sucesso de Live] Pode colocar 1 carta de tu mano en la Sala de espera: adiciona 1 carta de Membro de μ's revelada por Yell a tu mano.",
+      "text_fr": "[Live réussi] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: ajoutez 1 μ's carte de Membre révélée par Yell à votre main."
     },
     {
       "card_no": "PL!-pb1-032-L",
@@ -15283,11 +15283,11 @@
         }
       ],
       "text_es": "[Éxito de Live] Si tienes cartas de μ's en tu área de Live exitoso, roba 1 carta.",
-      "text_ko": "[라이브 성공] If you have any μ's cards in your Success Live area, draw 1 card.",
+      "text_ko": "[라이브 성공] 만약 자신에게 임의의 μ의 카드 에 자신의 성공 Live 더미, 카드 1장을 드로우한다.",
       "text_zh": "[Live成功] If you have any μ's cards in your Success Live area, draw 1 card.",
       "text_th": "[Live สำเร็จ] If you have any μ's cards in your Success Live area, draw 1 card.",
-      "text_pt": "[Sucesso de Live] If you have any μ's cards in your Success Live area, draw 1 card.",
-      "text_fr": "[Live réussi] If you have any μ's cards in your Success Live area, draw 1 card."
+      "text_pt": "[Sucesso de Live] Se tienes cartas de μ's en tu área de Live bem-sucedido, compra 1 carta.",
+      "text_fr": "[Live réussi] Si vous avez any carte μ'ss in your zone de Live réussi, piochez 1 carte."
     },
     {
       "card_no": "PL!-pb1-033-L",
@@ -16056,11 +16056,11 @@
       "subunit": "-",
       "blade": 7,
       "text_es": "[Siempre] Puedes Baton Touch with 2 Miembros when playing this card.\n[Al entrar] If this card entered via Baton Touch from 2 μ's Miembros, añade 1 μ's carta Live de tu Sala de espera a tu mano. If those 2 Miembros' total cost is 15, hasta que termine este Live, obtienes \"[Siempre] +1 total Live score.\"",
-      "text_ko": "[상시] You may Baton Touch with 2 Members when playing this card.\n[등장 시] If this card entered via Baton Touch from 2 μ's Members, add 1 μ's Live card from your Waiting Room to your hand. If those 2 Members' total cost is 15, until this Live ends, you gain \"[상시] +1 total Live score.\"",
+      "text_ko": "[상시] 해도 좋다 바톤 터치 와 함께 2 멤버 때 플레이하는 이 카드.\n[등장 시] 만약 이 카드 등장했다 를 통해 바톤 터치 에서 2 μ의 멤버, 더한다 1 μ의 Live 카드 자신의 대기실에서 손패에. 만약 그 2 멤버' 총 코스트 이다 15, 이 Live가 끝날 때까지, 얻는다 \"[상시] +1 총 Live 스코어.\"",
       "text_zh": "[永续] You may Baton Touch with 2 Members when playing this card.\n[入场时] If this card entered via Baton Touch from 2 μ's Members, add 1 μ's Live card from your Waiting Room to your hand. If those 2 Members' total cost is 15, until this Live ends, you gain \"[永续] +1 total Live score.\"",
       "text_th": "[ต่อเนื่อง] You may Baton Touch with 2 Members when playing this card.\n[เมื่อเข้าสนาม] If this card entered via Baton Touch from 2 μ's Members, add 1 μ's Live card from your Waiting Room to your hand. If those 2 Members' total cost is 15, until this Live ends, you gain \"[ต่อเนื่อง] +1 total Live score.\"",
-      "text_pt": "[Sempre] You may Baton Touch with 2 Members when playing this card.\n[Ao Entrar] If this card entered via Baton Touch from 2 μ's Members, add 1 μ's Live card from your Waiting Room to your hand. If those 2 Members' total cost is 15, until this Live ends, you gain \"[Sempre] +1 total Live score.\"",
-      "text_fr": "[Permanent] You may Baton Touch with 2 Members when playing this card.\n[À l'entrée] If this card entered via Baton Touch from 2 μ's Members, add 1 μ's Live card from your Waiting Room to your hand. If those 2 Members' total cost is 15, until this Live ends, you gain \"[Permanent] +1 total Live score.\""
+      "text_pt": "[Sempre] Pode Baton Touch with 2 Membros when playing this card.\n[Ao Entrar] If this card entered via Baton Touch from 2 μ's Membros, adiciona 1 μ's carta Live de tu Sala de espera a tu mano. If those 2 Membros' total cost is 15, até que este Live termine, você ganha \"[Sempre] +1 total Live score.\"",
+      "text_fr": "[Permanent] Vous pouvez Baton Touch with 2 Membres when playing cette carte.\n[À l'entrée] If cette carte entered via Baton Touch from 2 Membre μ'ss, ajoutez 1 carte Live μ's de votre Salle d'attente à votre main. If those 2 Membres' total cost is 15, jusqu'à la fin de ce Live, vous gagnez \"[Permanent] +1 total Live score.\""
     },
     {
       "card_no": "PL!-pb2-000-R",
@@ -16111,11 +16111,11 @@
       "subunit": "-",
       "blade": 7,
       "text_es": "[Siempre] Puedes Baton Touch with 2 Miembros when playing this card.\n[Al entrar] If this card entered via Baton Touch from 2 μ's Miembros, añade 1 μ's carta Live de tu Sala de espera a tu mano. If those 2 Miembros' total cost is 15, hasta que termine este Live, obtienes \"[Siempre] +1 total Live score.\"",
-      "text_ko": "[상시] You may Baton Touch with 2 Members when playing this card.\n[등장 시] If this card entered via Baton Touch from 2 μ's Members, add 1 μ's Live card from your Waiting Room to your hand. If those 2 Members' total cost is 15, until this Live ends, you gain \"[상시] +1 total Live score.\"",
+      "text_ko": "[상시] 해도 좋다 바톤 터치 와 함께 2 멤버 때 플레이하는 이 카드.\n[등장 시] 만약 이 카드 등장했다 를 통해 바톤 터치 에서 2 μ의 멤버, 더한다 1 μ의 Live 카드 자신의 대기실에서 손패에. 만약 그 2 멤버' 총 코스트 이다 15, 이 Live가 끝날 때까지, 얻는다 \"[상시] +1 총 Live 스코어.\"",
       "text_zh": "[永续] You may Baton Touch with 2 Members when playing this card.\n[入场时] If this card entered via Baton Touch from 2 μ's Members, add 1 μ's Live card from your Waiting Room to your hand. If those 2 Members' total cost is 15, until this Live ends, you gain \"[永续] +1 total Live score.\"",
       "text_th": "[ต่อเนื่อง] You may Baton Touch with 2 Members when playing this card.\n[เมื่อเข้าสนาม] If this card entered via Baton Touch from 2 μ's Members, add 1 μ's Live card from your Waiting Room to your hand. If those 2 Members' total cost is 15, until this Live ends, you gain \"[ต่อเนื่อง] +1 total Live score.\"",
-      "text_pt": "[Sempre] You may Baton Touch with 2 Members when playing this card.\n[Ao Entrar] If this card entered via Baton Touch from 2 μ's Members, add 1 μ's Live card from your Waiting Room to your hand. If those 2 Members' total cost is 15, until this Live ends, you gain \"[Sempre] +1 total Live score.\"",
-      "text_fr": "[Permanent] You may Baton Touch with 2 Members when playing this card.\n[À l'entrée] If this card entered via Baton Touch from 2 μ's Members, add 1 μ's Live card from your Waiting Room to your hand. If those 2 Members' total cost is 15, until this Live ends, you gain \"[Permanent] +1 total Live score.\""
+      "text_pt": "[Sempre] Pode Baton Touch with 2 Membros when playing this card.\n[Ao Entrar] If this card entered via Baton Touch from 2 μ's Membros, adiciona 1 μ's carta Live de tu Sala de espera a tu mano. If those 2 Membros' total cost is 15, até que este Live termine, você ganha \"[Sempre] +1 total Live score.\"",
+      "text_fr": "[Permanent] Vous pouvez Baton Touch with 2 Membres when playing cette carte.\n[À l'entrée] If cette carte entered via Baton Touch from 2 Membre μ'ss, ajoutez 1 carte Live μ's de votre Salle d'attente à votre main. If those 2 Membres' total cost is 15, jusqu'à la fin de ce Live, vous gagnez \"[Permanent] +1 total Live score.\""
     },
     {
       "card_no": "PL!-pb2-001-PP",
@@ -16162,12 +16162,12 @@
       ],
       "subunit": "Printemps",
       "blade": 9,
-      "text_es": "[Inicio de Live] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[Siempre] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand.",
-      "text_ko": "[라이브 개시] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[상시] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand.",
+      "text_es": "[Inicio de Live] Among μ's cards in your área de Live exitoso: if any have a Score icon, hasta que termine este Live obtienes \"[Siempre] +1 total Live score.\"; if any have an ALL Blade icon, hasta que termine este Live obtienes 1 Wild heart; if any have a Roba icon, añade 1 μ's card de tu Sala de espera a tu mano.",
+      "text_ko": "[라이브 개시] 중에서 μ의 카드 에 자신의 성공 Live 더미: 만약 임의의 가지고 있다 스코어 icon, 이 Live가 끝날 때까지 얻는다 \"[상시] +1 총 Live 스코어.\"; 만약 임의의 가지고 있다 모든 Blade icon, 이 Live가 끝날 때까지 얻는다 1 아무 색 하트; 만약 임의의 가지고 있다 드로우한다 icon, 더한다 1 μ의 카드 자신의 대기실에서 손패에.",
       "text_zh": "[Live开始] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[永续] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand.",
       "text_th": "[เริ่ม Live] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[ต่อเนื่อง] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand.",
-      "text_pt": "[Início de Live] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[Sempre] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand.",
-      "text_fr": "[Début de Live] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[Permanent] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand."
+      "text_pt": "[Início de Live] Among μ's cards in your área de Live bem-sucedido: if any have a Score icon, até que este Live termine você ganha \"[Sempre] +1 total Live score.\"; if any have an ALL Blade icon, até que este Live termine você ganha 1 Wild heart; if any have a Compra icon, adiciona 1 μ's card de tu Sala de espera a tu mano.",
+      "text_fr": "[Début de Live] Among carte μ'ss in your zone de Live réussi: if any have a Score icon, jusqu'à la fin de ce Live vous gagnez \"[Permanent] +1 total Live score.\"; if any have an ALL Blade icon, jusqu'à la fin de ce Live vous gagnez 1 Wild heart; if any have a Piochez icon, ajoutez 1 carte μ's de votre Salle d'attente à votre main."
     },
     {
       "card_no": "PL!-pb2-001-R",
@@ -16214,12 +16214,12 @@
       ],
       "subunit": "Printemps",
       "blade": 9,
-      "text_es": "[Inicio de Live] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[Siempre] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand.",
-      "text_ko": "[라이브 개시] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[상시] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand.",
+      "text_es": "[Inicio de Live] Among μ's cards in your área de Live exitoso: if any have a Score icon, hasta que termine este Live obtienes \"[Siempre] +1 total Live score.\"; if any have an ALL Blade icon, hasta que termine este Live obtienes 1 Wild heart; if any have a Roba icon, añade 1 μ's card de tu Sala de espera a tu mano.",
+      "text_ko": "[라이브 개시] 중에서 μ의 카드 에 자신의 성공 Live 더미: 만약 임의의 가지고 있다 스코어 icon, 이 Live가 끝날 때까지 얻는다 \"[상시] +1 총 Live 스코어.\"; 만약 임의의 가지고 있다 모든 Blade icon, 이 Live가 끝날 때까지 얻는다 1 아무 색 하트; 만약 임의의 가지고 있다 드로우한다 icon, 더한다 1 μ의 카드 자신의 대기실에서 손패에.",
       "text_zh": "[Live开始] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[永续] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand.",
       "text_th": "[เริ่ม Live] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[ต่อเนื่อง] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand.",
-      "text_pt": "[Início de Live] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[Sempre] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand.",
-      "text_fr": "[Début de Live] Among μ's cards in your Success Live area: if any have a Score icon, until this Live ends you gain \"[Permanent] +1 total Live score.\"; if any have an ALL Blade icon, until this Live ends you gain 1 Wild heart; if any have a Draw icon, add 1 μ's card from your Waiting Room to your hand."
+      "text_pt": "[Início de Live] Among μ's cards in your área de Live bem-sucedido: if any have a Score icon, até que este Live termine você ganha \"[Sempre] +1 total Live score.\"; if any have an ALL Blade icon, até que este Live termine você ganha 1 Wild heart; if any have a Compra icon, adiciona 1 μ's card de tu Sala de espera a tu mano.",
+      "text_fr": "[Début de Live] Among carte μ'ss in your zone de Live réussi: if any have a Score icon, jusqu'à la fin de ce Live vous gagnez \"[Permanent] +1 total Live score.\"; if any have an ALL Blade icon, jusqu'à la fin de ce Live vous gagnez 1 Wild heart; if any have a Piochez icon, ajoutez 1 carte μ's de votre Salle d'attente à votre main."
     },
     {
       "card_no": "PL!-pb2-002-PP",
@@ -16251,11 +16251,11 @@
       "subunit": "BiBi",
       "blade": 2,
       "text_es": "[Siempre] Miembros with 4 or fewer printed hearts that enter the Miembro area opposite este Miembro enter en Wait.",
-      "text_ko": "[상시] Members with 4 or fewer printed hearts that enter the Member area opposite this Member enter in Wait.",
+      "text_ko": "[상시] 멤버 와 함께 4 이하 표기된 하트 그 등장한다 멤버 영역 opposite 이 멤버 등장한다 Wait에.",
       "text_zh": "[永续] Members with 4 or fewer printed hearts that enter the Member area opposite this Member enter in Wait.",
       "text_th": "[ต่อเนื่อง] Members with 4 or fewer printed hearts that enter the Member area opposite this Member enter in Wait.",
-      "text_pt": "[Sempre] Members with 4 or fewer printed hearts that enter the Member area opposite this Member enter in Wait.",
-      "text_fr": "[Permanent] Members with 4 or fewer printed hearts that enter the Member area opposite this Member enter in Wait."
+      "text_pt": "[Sempre] Membros with 4 or fewer printed hearts that enter the Membro area opposite este Membro enter en Wait.",
+      "text_fr": "[Permanent] Membres with 4 or fewer printed hearts that enter the Membre area opposite ce Membre enter en Wait."
     },
     {
       "card_no": "PL!-pb2-002-R",
@@ -16287,11 +16287,11 @@
       "subunit": "BiBi",
       "blade": 2,
       "text_es": "[Siempre] Miembros with 4 or fewer printed hearts that enter the Miembro area opposite este Miembro enter en Wait.",
-      "text_ko": "[상시] Members with 4 or fewer printed hearts that enter the Member area opposite this Member enter in Wait.",
+      "text_ko": "[상시] 멤버 와 함께 4 이하 표기된 하트 그 등장한다 멤버 영역 opposite 이 멤버 등장한다 Wait에.",
       "text_zh": "[永续] Members with 4 or fewer printed hearts that enter the Member area opposite this Member enter in Wait.",
       "text_th": "[ต่อเนื่อง] Members with 4 or fewer printed hearts that enter the Member area opposite this Member enter in Wait.",
-      "text_pt": "[Sempre] Members with 4 or fewer printed hearts that enter the Member area opposite this Member enter in Wait.",
-      "text_fr": "[Permanent] Members with 4 or fewer printed hearts that enter the Member area opposite this Member enter in Wait."
+      "text_pt": "[Sempre] Membros with 4 or fewer printed hearts that enter the Membro area opposite este Membro enter en Wait.",
+      "text_fr": "[Permanent] Membres with 4 or fewer printed hearts that enter the Membre area opposite ce Membre enter en Wait."
     },
     {
       "card_no": "PL!-pb2-003-PP",
@@ -16334,11 +16334,11 @@
       "subunit": "Printemps",
       "blade": 4,
       "text_es": "[Inicio de Live] Negate all [Éxito de Live] abilities of 1 opponent Escenario Miembro hasta que termine este Live. If you do, hasta que termine este Live obtienes 1 Yellow heart.",
-      "text_ko": "[라이브 개시] Negate all [라이브 성공] abilities of 1 opponent Stage Member until this Live ends. If you do, until this Live ends you gain 1 Yellow heart.",
+      "text_ko": "[라이브 개시] 무효화한다 모든 [라이브 성공] 능력 의 1 상대 스테이지 멤버 이 Live가 끝날 때까지. 그렇게 한다면, 이 Live가 끝날 때까지 얻는다 1 노란 하트.",
       "text_zh": "[Live开始] Negate all [Live成功] abilities of 1 opponent Stage Member until this Live ends. If you do, until this Live ends you gain 1 Yellow heart.",
       "text_th": "[เริ่ม Live] Negate all [Live สำเร็จ] abilities of 1 opponent Stage Member until this Live ends. If you do, until this Live ends you gain 1 Yellow heart.",
-      "text_pt": "[Início de Live] Negate all [Sucesso de Live] abilities of 1 opponent Stage Member until this Live ends. If you do, until this Live ends you gain 1 Yellow heart.",
-      "text_fr": "[Début de Live] Negate all [Live réussi] abilities of 1 opponent Stage Member until this Live ends. If you do, until this Live ends you gain 1 Yellow heart."
+      "text_pt": "[Início de Live] Negate all [Sucesso de Live] abilities of 1 opponent Palco Membro até que este Live termine. If you do, até que este Live termine você ganha 1 Yellow heart.",
+      "text_fr": "[Début de Live] Negate all [Live réussi] abilities of 1 Membre adverse sur Scène jusqu'à la fin de ce Live. If you do, jusqu'à la fin de ce Live vous gagnez 1 Yellow heart."
     },
     {
       "card_no": "PL!-pb2-003-R",
@@ -16381,11 +16381,11 @@
       "subunit": "Printemps",
       "blade": 4,
       "text_es": "[Inicio de Live] Negate all [Éxito de Live] abilities of 1 opponent Escenario Miembro hasta que termine este Live. If you do, hasta que termine este Live obtienes 1 Yellow heart.",
-      "text_ko": "[라이브 개시] Negate all [라이브 성공] abilities of 1 opponent Stage Member until this Live ends. If you do, until this Live ends you gain 1 Yellow heart.",
+      "text_ko": "[라이브 개시] 무효화한다 모든 [라이브 성공] 능력 의 1 상대 스테이지 멤버 이 Live가 끝날 때까지. 그렇게 한다면, 이 Live가 끝날 때까지 얻는다 1 노란 하트.",
       "text_zh": "[Live开始] Negate all [Live成功] abilities of 1 opponent Stage Member until this Live ends. If you do, until this Live ends you gain 1 Yellow heart.",
       "text_th": "[เริ่ม Live] Negate all [Live สำเร็จ] abilities of 1 opponent Stage Member until this Live ends. If you do, until this Live ends you gain 1 Yellow heart.",
-      "text_pt": "[Início de Live] Negate all [Sucesso de Live] abilities of 1 opponent Stage Member until this Live ends. If you do, until this Live ends you gain 1 Yellow heart.",
-      "text_fr": "[Début de Live] Negate all [Live réussi] abilities of 1 opponent Stage Member until this Live ends. If you do, until this Live ends you gain 1 Yellow heart."
+      "text_pt": "[Início de Live] Negate all [Sucesso de Live] abilities of 1 opponent Palco Membro até que este Live termine. If you do, até que este Live termine você ganha 1 Yellow heart.",
+      "text_fr": "[Début de Live] Negate all [Live réussi] abilities of 1 Membre adverse sur Scène jusqu'à la fin de ce Live. If you do, jusqu'à la fin de ce Live vous gagnez 1 Yellow heart."
     },
     {
       "card_no": "PL!-pb2-004-PP",
@@ -16427,12 +16427,12 @@
       ],
       "subunit": "lily white",
       "blade": 7,
-      "text_es": "[Siempre] Obtienes +1 Blade por cada μ's card with a Score icon in your área de Live exitoso.\n[Automático] [Una vez por turno] When you Yell, perform 1 añadeitional Yell por cada μ's card with a Score icon among cards revelaed for that Yell.",
-      "text_ko": "[상시] You gain +1 Blade for each μ's card with a Score icon in your Success Live area.\n[자동] [턴당 1회] When you Yell, perform 1 additional Yell for each μ's card with a Score icon among cards revealed for that Yell.",
+      "text_es": "[Siempre] Obtienes +1 Blade por cada carta de μ's con icono de Score en tu área de Live exitoso.\n[Automático] [Una vez por turno] Cuando haces Yell, realiza 1 Yell adicional por cada carta de μ's con icono de Score entre las cartas reveladas por ese Yell.",
+      "text_ko": "[상시] 성공 라이브 영역에 있는 스코어 아이콘이 있는 μ's 카드 1장마다 Blade를 +1 얻습니다.\n[자동] [턴당 1회] Yell할 때, 그 Yell로 공개한 카드 중 스코어 아이콘이 있는 μ's 카드 1장마다 Yell을 1회 추가로 합니다.",
       "text_zh": "[永续] You gain +1 Blade for each μ's card with a Score icon in your Success Live area.\n[自动] [每回合1次] When you Yell, perform 1 additional Yell for each μ's card with a Score icon among cards revealed for that Yell.",
       "text_th": "[ต่อเนื่อง] You gain +1 Blade for each μ's card with a Score icon in your Success Live area.\n[อัตโนมัติ] [เทิร์นละ 1 ครั้ง] When you Yell, perform 1 additional Yell for each μ's card with a Score icon among cards revealed for that Yell.",
-      "text_pt": "[Sempre] You gain +1 Blade for each μ's card with a Score icon in your Success Live area.\n[Automático] [Uma vez por turno] When you Yell, perform 1 additional Yell for each μ's card with a Score icon among cards revealed for that Yell.",
-      "text_fr": "[Permanent] You gain +1 Blade for each μ's card with a Score icon in your Success Live area.\n[Automatique] [Une fois par tour] When you Yell, perform 1 additional Yell for each μ's card with a Score icon among cards revealed for that Yell."
+      "text_pt": "[Sempre] Você ganha +1 Blade por cada carta μ's com ícone de Score na sua área de Live bem-sucedido.\n[Automático] [Uma vez por turno] Quando você der Yell, realize 1 Yell adicional por cada carta μ's com ícone de Score entre as cartas reveladas nesse Yell.",
+      "text_fr": "[Permanent] Vous gagnez +1 Blade pour chaque carte μ's avec une icône Score dans votre zone de Live réussi.\n[Automatique] [Une fois par tour] Lorsque vous Yell, effectuez 1 Yell supplémentaire pour chaque carte μ's avec une icône Score parmi les cartes révélées pour ce Yell."
     },
     {
       "card_no": "PL!-pb2-004-R",
@@ -16474,12 +16474,12 @@
       ],
       "subunit": "lily white",
       "blade": 7,
-      "text_es": "[Siempre] Obtienes +1 Blade por cada μ's card with a Score icon in your área de Live exitoso.\n[Automático] [Una vez por turno] When you Yell, perform 1 añadeitional Yell por cada μ's card with a Score icon among cards revelaed for that Yell.",
-      "text_ko": "[상시] You gain +1 Blade for each μ's card with a Score icon in your Success Live area.\n[자동] [턴당 1회] When you Yell, perform 1 additional Yell for each μ's card with a Score icon among cards revealed for that Yell.",
+      "text_es": "[Siempre] Obtienes +1 Blade por cada carta de μ's con icono de Score en tu área de Live exitoso.\n[Automático] [Una vez por turno] Cuando haces Yell, realiza 1 Yell adicional por cada carta de μ's con icono de Score entre las cartas reveladas por ese Yell.",
+      "text_ko": "[상시] 성공 라이브 영역에 있는 스코어 아이콘이 있는 μ's 카드 1장마다 Blade를 +1 얻습니다.\n[자동] [턴당 1회] Yell할 때, 그 Yell로 공개한 카드 중 스코어 아이콘이 있는 μ's 카드 1장마다 Yell을 1회 추가로 합니다.",
       "text_zh": "[永续] You gain +1 Blade for each μ's card with a Score icon in your Success Live area.\n[自动] [每回合1次] When you Yell, perform 1 additional Yell for each μ's card with a Score icon among cards revealed for that Yell.",
       "text_th": "[ต่อเนื่อง] You gain +1 Blade for each μ's card with a Score icon in your Success Live area.\n[อัตโนมัติ] [เทิร์นละ 1 ครั้ง] When you Yell, perform 1 additional Yell for each μ's card with a Score icon among cards revealed for that Yell.",
-      "text_pt": "[Sempre] You gain +1 Blade for each μ's card with a Score icon in your Success Live area.\n[Automático] [Uma vez por turno] When you Yell, perform 1 additional Yell for each μ's card with a Score icon among cards revealed for that Yell.",
-      "text_fr": "[Permanent] You gain +1 Blade for each μ's card with a Score icon in your Success Live area.\n[Automatique] [Une fois par tour] When you Yell, perform 1 additional Yell for each μ's card with a Score icon among cards revealed for that Yell."
+      "text_pt": "[Sempre] Você ganha +1 Blade por cada carta μ's com ícone de Score na sua área de Live bem-sucedido.\n[Automático] [Uma vez por turno] Quando você der Yell, realize 1 Yell adicional por cada carta μ's com ícone de Score entre as cartas reveladas nesse Yell.",
+      "text_fr": "[Permanent] Vous gagnez +1 Blade pour chaque carte μ's avec une icône Score dans votre zone de Live réussi.\n[Automatique] [Une fois par tour] Lorsque vous Yell, effectuez 1 Yell supplémentaire pour chaque carte μ's avec une icône Score parmi les cartes révélées pour ce Yell."
     },
     {
       "card_no": "PL!-pb2-005-PP",
@@ -16520,11 +16520,11 @@
       "subunit": "lily white",
       "blade": 0,
       "text_es": "[Al entrar] Si tienes a μ's card with a Score icon in your área de Live exitoso, hasta que termine este Live obtienes \"[Siempre] μ's Miembros en tu Escenario obtienes +1 Blade.\"",
-      "text_ko": "[등장 시] If you have a μ's card with a Score icon in your Success Live area, until this Live ends you gain \"[상시] μ's Members on your Stage gain +1 Blade.\"",
+      "text_ko": "[등장 시] 만약 자신에게 μ의 카드 와 함께 스코어 icon 에 자신의 성공 Live 더미, 이 Live가 끝날 때까지 얻는다 \"[상시] μ의 멤버 자신의 스테이지에 얻는다 +1 Blade.\"",
       "text_zh": "[入场时] If you have a μ's card with a Score icon in your Success Live area, until this Live ends you gain \"[永续] μ's Members on your Stage gain +1 Blade.\"",
       "text_th": "[เมื่อเข้าสนาม] If you have a μ's card with a Score icon in your Success Live area, until this Live ends you gain \"[ต่อเนื่อง] μ's Members on your Stage gain +1 Blade.\"",
-      "text_pt": "[Ao Entrar] If you have a μ's card with a Score icon in your Success Live area, until this Live ends you gain \"[Sempre] μ's Members on your Stage gain +1 Blade.\"",
-      "text_fr": "[À l'entrée] If you have a μ's card with a Score icon in your Success Live area, until this Live ends you gain \"[Permanent] μ's Members on your Stage gain +1 Blade.\""
+      "text_pt": "[Ao Entrar] Se tienes a μ's card with a Score icon in your área de Live bem-sucedido, até que este Live termine você ganha \"[Sempre] μ's Membros en tu Palco você ganha +1 Blade.\"",
+      "text_fr": "[À l'entrée] Si vous avez a carte μ's with a Score icon in your zone de Live réussi, jusqu'à la fin de ce Live vous gagnez \"[Permanent] μ's Members on your Stage gain +1 Blade.\""
     },
     {
       "card_no": "PL!-pb2-005-R",
@@ -16565,11 +16565,11 @@
       "subunit": "lily white",
       "blade": 0,
       "text_es": "[Al entrar] Si tienes a μ's card with a Score icon in your área de Live exitoso, hasta que termine este Live obtienes \"[Siempre] μ's Miembros en tu Escenario obtienes +1 Blade.\"",
-      "text_ko": "[등장 시] If you have a μ's card with a Score icon in your Success Live area, until this Live ends you gain \"[상시] μ's Members on your Stage gain +1 Blade.\"",
+      "text_ko": "[등장 시] 만약 자신에게 μ의 카드 와 함께 스코어 icon 에 자신의 성공 Live 더미, 이 Live가 끝날 때까지 얻는다 \"[상시] μ의 멤버 자신의 스테이지에 얻는다 +1 Blade.\"",
       "text_zh": "[入场时] If you have a μ's card with a Score icon in your Success Live area, until this Live ends you gain \"[永续] μ's Members on your Stage gain +1 Blade.\"",
       "text_th": "[เมื่อเข้าสนาม] If you have a μ's card with a Score icon in your Success Live area, until this Live ends you gain \"[ต่อเนื่อง] μ's Members on your Stage gain +1 Blade.\"",
-      "text_pt": "[Ao Entrar] If you have a μ's card with a Score icon in your Success Live area, until this Live ends you gain \"[Sempre] μ's Members on your Stage gain +1 Blade.\"",
-      "text_fr": "[À l'entrée] If you have a μ's card with a Score icon in your Success Live area, until this Live ends you gain \"[Permanent] μ's Members on your Stage gain +1 Blade.\""
+      "text_pt": "[Ao Entrar] Se tienes a μ's card with a Score icon in your área de Live bem-sucedido, até que este Live termine você ganha \"[Sempre] μ's Membros en tu Palco você ganha +1 Blade.\"",
+      "text_fr": "[À l'entrée] Si vous avez a carte μ's with a Score icon in your zone de Live réussi, jusqu'à la fin de ce Live vous gagnez \"[Permanent] μ's Members on your Stage gain +1 Blade.\""
     },
     {
       "card_no": "PL!-pb2-006-PP",
@@ -16611,11 +16611,11 @@
       "subunit": "BiBi",
       "blade": 1,
       "text_es": "[Activada] [Una vez por turno] Coloca este Miembro en Wait and coloca 1 carta de tu mano en la Sala de espera: coloca 1 opponent Escenario Miembro with 1 or fewer printed hearts en Wait.\n[Inicio de Live] Puedes coloca este Miembro en Wait and coloca 1 carta de tu mano en la Sala de espera: coloca 1 opponent Escenario Miembro with 1 or fewer printed hearts en Wait.",
-      "text_ko": "[기동] [턴당 1회] Put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.\n[라이브 개시] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.",
+      "text_ko": "[기동] [턴당 1회] 이 멤버를 Wait에 놓는다 그리고 자신의 손패에서 카드 1장을 대기실에 놓는다: 놓는다 1 상대 스테이지 멤버 와 함께 1 이하 표기된 하트 Wait에.\n[라이브 개시] 해도 좋다 이 멤버를 Wait에 놓는다 그리고 자신의 손패에서 카드 1장을 대기실에 놓는다: 놓는다 1 상대 스테이지 멤버 와 함께 1 이하 표기된 하트 Wait에.",
       "text_zh": "[起动] [每回合1次] Put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.\n[Live开始] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.",
       "text_th": "[เปิดใช้] [เทิร์นละ 1 ครั้ง] Put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.\n[เริ่ม Live] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.",
-      "text_pt": "[Ativado] [Uma vez por turno] Put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.\n[Início de Live] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.",
-      "text_fr": "[Activé] [Une fois par tour] Put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.\n[Début de Live] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait."
+      "text_pt": "[Ativado] [Uma vez por turno] Coloca este Membro en Wait and coloca 1 carta de tu mano en la Sala de espera: coloca 1 opponent Palco Membro with 1 or fewer printed hearts en Wait.\n[Início de Live] Pode coloca este Membro en Wait and coloca 1 carta de tu mano en la Sala de espera: coloca 1 opponent Palco Membro with 1 or fewer printed hearts en Wait.",
+      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait and placez 1 carte de votre main dans la Salle d'attente: placez 1 Membre adverse sur Scène with 1 or fewer printed hearts en Wait.\n[Début de Live] Vous pouvez placer ce Membre en Wait and placez 1 carte de votre main dans la Salle d'attente: placez 1 Membre adverse sur Scène with 1 or fewer printed hearts en Wait."
     },
     {
       "card_no": "PL!-pb2-006-R",
@@ -16657,11 +16657,11 @@
       "subunit": "BiBi",
       "blade": 1,
       "text_es": "[Activada] [Una vez por turno] Coloca este Miembro en Wait and coloca 1 carta de tu mano en la Sala de espera: coloca 1 opponent Escenario Miembro with 1 or fewer printed hearts en Wait.\n[Inicio de Live] Puedes coloca este Miembro en Wait and coloca 1 carta de tu mano en la Sala de espera: coloca 1 opponent Escenario Miembro with 1 or fewer printed hearts en Wait.",
-      "text_ko": "[기동] [턴당 1회] Put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.\n[라이브 개시] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.",
+      "text_ko": "[기동] [턴당 1회] 이 멤버를 Wait에 놓는다 그리고 자신의 손패에서 카드 1장을 대기실에 놓는다: 놓는다 1 상대 스테이지 멤버 와 함께 1 이하 표기된 하트 Wait에.\n[라이브 개시] 해도 좋다 이 멤버를 Wait에 놓는다 그리고 자신의 손패에서 카드 1장을 대기실에 놓는다: 놓는다 1 상대 스테이지 멤버 와 함께 1 이하 표기된 하트 Wait에.",
       "text_zh": "[起动] [每回合1次] Put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.\n[Live开始] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.",
       "text_th": "[เปิดใช้] [เทิร์นละ 1 ครั้ง] Put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.\n[เริ่ม Live] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.",
-      "text_pt": "[Ativado] [Uma vez por turno] Put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.\n[Início de Live] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.",
-      "text_fr": "[Activé] [Une fois par tour] Put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait.\n[Début de Live] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: put 1 opponent Stage Member with 1 or fewer printed hearts into Wait."
+      "text_pt": "[Ativado] [Uma vez por turno] Coloca este Membro en Wait and coloca 1 carta de tu mano en la Sala de espera: coloca 1 opponent Palco Membro with 1 or fewer printed hearts en Wait.\n[Início de Live] Pode coloca este Membro en Wait and coloca 1 carta de tu mano en la Sala de espera: coloca 1 opponent Palco Membro with 1 or fewer printed hearts en Wait.",
+      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait and placez 1 carte de votre main dans la Salle d'attente: placez 1 Membre adverse sur Scène with 1 or fewer printed hearts en Wait.\n[Début de Live] Vous pouvez placer ce Membre en Wait and placez 1 carte de votre main dans la Salle d'attente: placez 1 Membre adverse sur Scène with 1 or fewer printed hearts en Wait."
     },
     {
       "card_no": "PL!-pb2-007-PP",
@@ -16696,11 +16696,11 @@
       "subunit": "lily white",
       "blade": 2,
       "text_es": "[Activada] Coloca este Miembro del Escenario en la Sala de espera: añade 1 μ's carta Live de tu Sala de espera a tu mano. Then activa 1 Energía por cada μ's card in your área de Live exitoso.",
-      "text_ko": "[기동] Put this Member from the Stage into the Waiting Room: add 1 μ's Live card from your Waiting Room to your hand. Then activate 1 Energy for each μ's card in your Success Live area.",
+      "text_ko": "[기동] 놓는다 이 멤버 스테이지에서 대기실에: 더한다 1 μ의 Live 카드 자신의 대기실에서 손패에. 그 후 에너지 1개를 활성화한다 마다 μ의 카드 에 자신의 성공 Live 더미.",
       "text_zh": "[起动] Put this Member from the Stage into the Waiting Room: add 1 μ's Live card from your Waiting Room to your hand. Then activate 1 Energy for each μ's card in your Success Live area.",
       "text_th": "[เปิดใช้] Put this Member from the Stage into the Waiting Room: add 1 μ's Live card from your Waiting Room to your hand. Then activate 1 Energy for each μ's card in your Success Live area.",
-      "text_pt": "[Ativado] Put this Member from the Stage into the Waiting Room: add 1 μ's Live card from your Waiting Room to your hand. Then activate 1 Energy for each μ's card in your Success Live area.",
-      "text_fr": "[Activé] Put this Member from the Stage into the Waiting Room: add 1 μ's Live card from your Waiting Room to your hand. Then activate 1 Energy for each μ's card in your Success Live area."
+      "text_pt": "[Ativado] Coloca este Membro del Palco en la Sala de espera: adiciona 1 μ's carta Live de tu Sala de espera a tu mano. Then ativa 1 Energía por cada μ's card in your área de Live bem-sucedido.",
+      "text_fr": "[Activé] Placez ce Membre de la Scène dans la Salle d'attente: ajoutez 1 carte Live μ's de votre Salle d'attente à votre main. Puis activez 1 Énergie pour chaque carte μ's in your zone de Live réussi."
     },
     {
       "card_no": "PL!-pb2-007-R",
@@ -16735,11 +16735,11 @@
       "subunit": "lily white",
       "blade": 2,
       "text_es": "[Activada] Coloca este Miembro del Escenario en la Sala de espera: añade 1 μ's carta Live de tu Sala de espera a tu mano. Then activa 1 Energía por cada μ's card in your área de Live exitoso.",
-      "text_ko": "[기동] Put this Member from the Stage into the Waiting Room: add 1 μ's Live card from your Waiting Room to your hand. Then activate 1 Energy for each μ's card in your Success Live area.",
+      "text_ko": "[기동] 놓는다 이 멤버 스테이지에서 대기실에: 더한다 1 μ의 Live 카드 자신의 대기실에서 손패에. 그 후 에너지 1개를 활성화한다 마다 μ의 카드 에 자신의 성공 Live 더미.",
       "text_zh": "[起动] Put this Member from the Stage into the Waiting Room: add 1 μ's Live card from your Waiting Room to your hand. Then activate 1 Energy for each μ's card in your Success Live area.",
       "text_th": "[เปิดใช้] Put this Member from the Stage into the Waiting Room: add 1 μ's Live card from your Waiting Room to your hand. Then activate 1 Energy for each μ's card in your Success Live area.",
-      "text_pt": "[Ativado] Put this Member from the Stage into the Waiting Room: add 1 μ's Live card from your Waiting Room to your hand. Then activate 1 Energy for each μ's card in your Success Live area.",
-      "text_fr": "[Activé] Put this Member from the Stage into the Waiting Room: add 1 μ's Live card from your Waiting Room to your hand. Then activate 1 Energy for each μ's card in your Success Live area."
+      "text_pt": "[Ativado] Coloca este Membro del Palco en la Sala de espera: adiciona 1 μ's carta Live de tu Sala de espera a tu mano. Then ativa 1 Energía por cada μ's card in your área de Live bem-sucedido.",
+      "text_fr": "[Activé] Placez ce Membre de la Scène dans la Salle d'attente: ajoutez 1 carte Live μ's de votre Salle d'attente à votre main. Puis activez 1 Énergie pour chaque carte μ's in your zone de Live réussi."
     },
     {
       "card_no": "PL!-pb2-008-PP",
@@ -16777,11 +16777,11 @@
       "subunit": "Printemps",
       "blade": 1,
       "text_es": "[Al entrar] Puedes coloca este Miembro en Wait: mira the top 4 cards de tu mazo. Puedes revela 1 μ's carta Live among them whose total corazones requeridos is 8 or more y añadirla a tu mano. Coloca el resto en la Sala de espera.",
-      "text_ko": "[등장 시] You may put this Member into Wait: look at the top 4 cards of your deck. You may reveal 1 μ's Live card among them whose total required hearts is 8 or more and add it to your hand. Put the rest into the Waiting Room.",
+      "text_ko": "[등장 시] 해도 좋다 이 멤버를 Wait에 놓는다: 확인한다 위 4 카드 자신의 덱의. 해도 좋다 공개한다 1 μ의 Live 카드 중에서 그것들 그 총 필요 하트 이다 8 이상 그리고 손패에 더한다. 나머지는 대기실에 놓는다.",
       "text_zh": "[入场时] You may put this Member into Wait: look at the top 4 cards of your deck. You may reveal 1 μ's Live card among them whose total required hearts is 8 or more and add it to your hand. Put the rest into the Waiting Room.",
       "text_th": "[เมื่อเข้าสนาม] You may put this Member into Wait: look at the top 4 cards of your deck. You may reveal 1 μ's Live card among them whose total required hearts is 8 or more and add it to your hand. Put the rest into the Waiting Room.",
-      "text_pt": "[Ao Entrar] You may put this Member into Wait: look at the top 4 cards of your deck. You may reveal 1 μ's Live card among them whose total required hearts is 8 or more and add it to your hand. Put the rest into the Waiting Room.",
-      "text_fr": "[À l'entrée] You may put this Member into Wait: look at the top 4 cards of your deck. You may reveal 1 μ's Live card among them whose total required hearts is 8 or more and add it to your hand. Put the rest into the Waiting Room."
+      "text_pt": "[Ao Entrar] Pode coloca este Membro en Wait: mira the top 4 cards de tu mazo. Pode revela 1 μ's carta Live among them whose total corazones requeridos is 8 or more y añadirla a tu mano. Coloca el resto en la Sala de espera.",
+      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: regardez the top 4 cartes de votre deck. Vous pouvez révéler 1 carte Live μ's among them whose total cœurs requis is 8 ou plus et l'ajouter à votre main. Placez le reste dans la Salle d'attente."
     },
     {
       "card_no": "PL!-pb2-008-R",
@@ -16819,11 +16819,11 @@
       "subunit": "Printemps",
       "blade": 1,
       "text_es": "[Al entrar] Puedes coloca este Miembro en Wait: mira the top 4 cards de tu mazo. Puedes revela 1 μ's carta Live among them whose total corazones requeridos is 8 or more y añadirla a tu mano. Coloca el resto en la Sala de espera.",
-      "text_ko": "[등장 시] You may put this Member into Wait: look at the top 4 cards of your deck. You may reveal 1 μ's Live card among them whose total required hearts is 8 or more and add it to your hand. Put the rest into the Waiting Room.",
+      "text_ko": "[등장 시] 해도 좋다 이 멤버를 Wait에 놓는다: 확인한다 위 4 카드 자신의 덱의. 해도 좋다 공개한다 1 μ의 Live 카드 중에서 그것들 그 총 필요 하트 이다 8 이상 그리고 손패에 더한다. 나머지는 대기실에 놓는다.",
       "text_zh": "[入场时] You may put this Member into Wait: look at the top 4 cards of your deck. You may reveal 1 μ's Live card among them whose total required hearts is 8 or more and add it to your hand. Put the rest into the Waiting Room.",
       "text_th": "[เมื่อเข้าสนาม] You may put this Member into Wait: look at the top 4 cards of your deck. You may reveal 1 μ's Live card among them whose total required hearts is 8 or more and add it to your hand. Put the rest into the Waiting Room.",
-      "text_pt": "[Ao Entrar] You may put this Member into Wait: look at the top 4 cards of your deck. You may reveal 1 μ's Live card among them whose total required hearts is 8 or more and add it to your hand. Put the rest into the Waiting Room.",
-      "text_fr": "[À l'entrée] You may put this Member into Wait: look at the top 4 cards of your deck. You may reveal 1 μ's Live card among them whose total required hearts is 8 or more and add it to your hand. Put the rest into the Waiting Room."
+      "text_pt": "[Ao Entrar] Pode coloca este Membro en Wait: mira the top 4 cards de tu mazo. Pode revela 1 μ's carta Live among them whose total corazones requeridos is 8 or more y añadirla a tu mano. Coloca el resto en la Sala de espera.",
+      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: regardez the top 4 cartes de votre deck. Vous pouvez révéler 1 carte Live μ's among them whose total cœurs requis is 8 ou plus et l'ajouter à votre main. Placez le reste dans la Salle d'attente."
     },
     {
       "card_no": "PL!-pb2-009-PP",
@@ -16865,11 +16865,11 @@
       "subunit": "BiBi",
       "blade": 3,
       "text_es": "[Automático] When este Miembro is coloca del Escenario en la Sala de espera, if it Baton Touched with a μ's Miembro of cost 15 or more, activa 2 Energía.",
-      "text_ko": "[자동] When this Member is put from the Stage into the Waiting Room, if it Baton Touched with a μ's Member of cost 15 or more, activate 2 Energy.",
+      "text_ko": "[자동] 때 이 멤버 이다 놓는다 스테이지에서 대기실에, 만약 그것 바톤 터치했다 와 함께 μ의 멤버 의 코스트 15 이상, 에너지 2개를 활성화한다.",
       "text_zh": "[自动] When this Member is put from the Stage into the Waiting Room, if it Baton Touched with a μ's Member of cost 15 or more, activate 2 Energy.",
       "text_th": "[อัตโนมัติ] When this Member is put from the Stage into the Waiting Room, if it Baton Touched with a μ's Member of cost 15 or more, activate 2 Energy.",
-      "text_pt": "[Automático] When this Member is put from the Stage into the Waiting Room, if it Baton Touched with a μ's Member of cost 15 or more, activate 2 Energy.",
-      "text_fr": "[Automatique] When this Member is put from the Stage into the Waiting Room, if it Baton Touched with a μ's Member of cost 15 or more, activate 2 Energy."
+      "text_pt": "[Automático] When este Membro is coloca del Palco en la Sala de espera, if it Baton Touched with a μ's Membro of cost 15 or more, ativa 2 Energía.",
+      "text_fr": "[Automatique] When ce Membre is placez de la Scène dans la Salle d'attente, if it Baton Touched with a Membre μ's of cost 15 ou plus, activez 2 Énergie."
     },
     {
       "card_no": "PL!-pb2-009-R",
@@ -16911,11 +16911,11 @@
       "subunit": "BiBi",
       "blade": 3,
       "text_es": "[Automático] When este Miembro is coloca del Escenario en la Sala de espera, if it Baton Touched with a μ's Miembro of cost 15 or more, activa 2 Energía.",
-      "text_ko": "[자동] When this Member is put from the Stage into the Waiting Room, if it Baton Touched with a μ's Member of cost 15 or more, activate 2 Energy.",
+      "text_ko": "[자동] 때 이 멤버 이다 놓는다 스테이지에서 대기실에, 만약 그것 바톤 터치했다 와 함께 μ의 멤버 의 코스트 15 이상, 에너지 2개를 활성화한다.",
       "text_zh": "[自动] When this Member is put from the Stage into the Waiting Room, if it Baton Touched with a μ's Member of cost 15 or more, activate 2 Energy.",
       "text_th": "[อัตโนมัติ] When this Member is put from the Stage into the Waiting Room, if it Baton Touched with a μ's Member of cost 15 or more, activate 2 Energy.",
-      "text_pt": "[Automático] When this Member is put from the Stage into the Waiting Room, if it Baton Touched with a μ's Member of cost 15 or more, activate 2 Energy.",
-      "text_fr": "[Automatique] When this Member is put from the Stage into the Waiting Room, if it Baton Touched with a μ's Member of cost 15 or more, activate 2 Energy."
+      "text_pt": "[Automático] When este Membro is coloca del Palco en la Sala de espera, if it Baton Touched with a μ's Membro of cost 15 or more, ativa 2 Energía.",
+      "text_fr": "[Automatique] When ce Membre is placez de la Scène dans la Salle d'attente, if it Baton Touched with a Membre μ's of cost 15 ou plus, activez 2 Énergie."
     },
     {
       "card_no": "PL!-pb2-010-P+",
@@ -16955,12 +16955,12 @@
       ],
       "subunit": "Printemps",
       "blade": 1,
-      "text_es": "[Inicio de Live] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects.",
-      "text_ko": "[라이브 개시] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects.",
+      "text_es": "[Inicio de Live] Hasta que termine este Live, obtienes +1 Blade por cada Miembro en tu Escenario that was coloca from Wait to Active este turno by one of your Printemps card effects.",
+      "text_ko": "[라이브 개시] 이 Live가 끝날 때까지, 얻는다 +1 Blade 마다 멤버 자신의 스테이지에 그 였다 놓는다 에서 Wait 에 활성 이번 턴에 만큼 하나 의 자신의 Printemps 카드 effects.",
       "text_zh": "[Live开始] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects.",
       "text_th": "[เริ่ม Live] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects.",
-      "text_pt": "[Início de Live] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects.",
-      "text_fr": "[Début de Live] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects."
+      "text_pt": "[Início de Live] Hasta que termine este Live, você ganha +1 Blade por cada Membro en tu Palco that was coloca from Wait to Active este turno by one of your Printemps card effects.",
+      "text_fr": "[Début de Live] Jusqu'à la fin de ce Live, vous gagnez +1 Blade pour chaque Membre sur votre Scène that was placez from Wait to Active ce tour by one of your Printemps carte effects."
     },
     {
       "card_no": "PL!-pb2-010-R",
@@ -17000,12 +17000,12 @@
       ],
       "subunit": "Printemps",
       "blade": 1,
-      "text_es": "[Inicio de Live] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects.",
-      "text_ko": "[라이브 개시] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects.",
+      "text_es": "[Inicio de Live] Hasta que termine este Live, obtienes +1 Blade por cada Miembro en tu Escenario that was coloca from Wait to Active este turno by one of your Printemps card effects.",
+      "text_ko": "[라이브 개시] 이 Live가 끝날 때까지, 얻는다 +1 Blade 마다 멤버 자신의 스테이지에 그 였다 놓는다 에서 Wait 에 활성 이번 턴에 만큼 하나 의 자신의 Printemps 카드 effects.",
       "text_zh": "[Live开始] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects.",
       "text_th": "[เริ่ม Live] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects.",
-      "text_pt": "[Início de Live] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects.",
-      "text_fr": "[Début de Live] Until this Live ends, you gain +1 Blade for each Member on your Stage that was put from Wait to Active this turn by one of your Printemps card effects."
+      "text_pt": "[Início de Live] Hasta que termine este Live, você ganha +1 Blade por cada Membro en tu Palco that was coloca from Wait to Active este turno by one of your Printemps card effects.",
+      "text_fr": "[Début de Live] Jusqu'à la fin de ce Live, vous gagnez +1 Blade pour chaque Membre sur votre Scène that was placez from Wait to Active ce tour by one of your Printemps carte effects."
     },
     {
       "card_no": "PL!-pb2-011-P+",
@@ -17046,11 +17046,11 @@
       "subunit": "BiBi",
       "blade": 1,
       "text_es": "[Siempre] Obtienes +1 Blade por cada BiBi carta de Miembro stacked under este Miembro.\n[Automático] Whenever an opponent Escenario Miembro is coloca en Wait by one of your card effects, if este Miembro has 2 or fewer cards under it, coloca 1 BiBi carta de Miembro de tu Sala de espera under este Miembro.",
-      "text_ko": "[상시] You gain +1 Blade for each BiBi Member card stacked under this Member.\n[자동] Whenever an opponent Stage Member is put into Wait by one of your card effects, if this Member has 2 or fewer cards under it, put 1 BiBi Member card from your Waiting Room under this Member.",
+      "text_ko": "[상시] 얻는다 +1 Blade 마다 BiBi 멤버 카드 stacked 아래에 이 멤버.\n[자동] 때마다 상대 스테이지 멤버 이다 놓는다 Wait에 만큼 하나 의 자신의 카드 effects, 만약 이 멤버 가지고 있다 2 이하 카드 아래에 그것, 놓는다 1 BiBi 멤버 카드 자신의 대기실에서 아래에 이 멤버.",
       "text_zh": "[永续] You gain +1 Blade for each BiBi Member card stacked under this Member.\n[自动] Whenever an opponent Stage Member is put into Wait by one of your card effects, if this Member has 2 or fewer cards under it, put 1 BiBi Member card from your Waiting Room under this Member.",
       "text_th": "[ต่อเนื่อง] You gain +1 Blade for each BiBi Member card stacked under this Member.\n[อัตโนมัติ] Whenever an opponent Stage Member is put into Wait by one of your card effects, if this Member has 2 or fewer cards under it, put 1 BiBi Member card from your Waiting Room under this Member.",
-      "text_pt": "[Sempre] You gain +1 Blade for each BiBi Member card stacked under this Member.\n[Automático] Whenever an opponent Stage Member is put into Wait by one of your card effects, if this Member has 2 or fewer cards under it, put 1 BiBi Member card from your Waiting Room under this Member.",
-      "text_fr": "[Permanent] You gain +1 Blade for each BiBi Member card stacked under this Member.\n[Automatique] Whenever an opponent Stage Member is put into Wait by one of your card effects, if this Member has 2 or fewer cards under it, put 1 BiBi Member card from your Waiting Room under this Member."
+      "text_pt": "[Sempre] Você ganha +1 Blade por cada BiBi carta de Membro stacked under este Membro.\n[Automático] Whenever an opponent Palco Membro is coloca en Wait by one of your card effects, if este Membro has 2 or fewer cards under it, coloca 1 BiBi carta de Membro de tu Sala de espera under este Membro.",
+      "text_fr": "[Permanent] Vous gagnez +1 Blade pour chaque BiBi carte de Membre stacked sous ce Membre.\n[Automatique] Whenever an Membre adverse sur Scène is placez en Wait by one of your carte effects, if ce Membre has 2 or fewer cartes under it, placez 1 BiBi carte de Membre de votre Salle d'attente sous ce Membre."
     },
     {
       "card_no": "PL!-pb2-011-R",
@@ -17091,11 +17091,11 @@
       "subunit": "BiBi",
       "blade": 1,
       "text_es": "[Siempre] Obtienes +1 Blade por cada BiBi carta de Miembro stacked under este Miembro.\n[Automático] Whenever an opponent Escenario Miembro is coloca en Wait by one of your card effects, if este Miembro has 2 or fewer cards under it, coloca 1 BiBi carta de Miembro de tu Sala de espera under este Miembro.",
-      "text_ko": "[상시] You gain +1 Blade for each BiBi Member card stacked under this Member.\n[자동] Whenever an opponent Stage Member is put into Wait by one of your card effects, if this Member has 2 or fewer cards under it, put 1 BiBi Member card from your Waiting Room under this Member.",
+      "text_ko": "[상시] 얻는다 +1 Blade 마다 BiBi 멤버 카드 stacked 아래에 이 멤버.\n[자동] 때마다 상대 스테이지 멤버 이다 놓는다 Wait에 만큼 하나 의 자신의 카드 effects, 만약 이 멤버 가지고 있다 2 이하 카드 아래에 그것, 놓는다 1 BiBi 멤버 카드 자신의 대기실에서 아래에 이 멤버.",
       "text_zh": "[永续] You gain +1 Blade for each BiBi Member card stacked under this Member.\n[自动] Whenever an opponent Stage Member is put into Wait by one of your card effects, if this Member has 2 or fewer cards under it, put 1 BiBi Member card from your Waiting Room under this Member.",
       "text_th": "[ต่อเนื่อง] You gain +1 Blade for each BiBi Member card stacked under this Member.\n[อัตโนมัติ] Whenever an opponent Stage Member is put into Wait by one of your card effects, if this Member has 2 or fewer cards under it, put 1 BiBi Member card from your Waiting Room under this Member.",
-      "text_pt": "[Sempre] You gain +1 Blade for each BiBi Member card stacked under this Member.\n[Automático] Whenever an opponent Stage Member is put into Wait by one of your card effects, if this Member has 2 or fewer cards under it, put 1 BiBi Member card from your Waiting Room under this Member.",
-      "text_fr": "[Permanent] You gain +1 Blade for each BiBi Member card stacked under this Member.\n[Automatique] Whenever an opponent Stage Member is put into Wait by one of your card effects, if this Member has 2 or fewer cards under it, put 1 BiBi Member card from your Waiting Room under this Member."
+      "text_pt": "[Sempre] Você ganha +1 Blade por cada BiBi carta de Membro stacked under este Membro.\n[Automático] Whenever an opponent Palco Membro is coloca en Wait by one of your card effects, if este Membro has 2 or fewer cards under it, coloca 1 BiBi carta de Membro de tu Sala de espera under este Membro.",
+      "text_fr": "[Permanent] Vous gagnez +1 Blade pour chaque BiBi carte de Membre stacked sous ce Membre.\n[Automatique] Whenever an Membre adverse sur Scène is placez en Wait by one of your carte effects, if ce Membre has 2 or fewer cartes under it, placez 1 BiBi carte de Membre de votre Salle d'attente sous ce Membre."
     },
     {
       "card_no": "PL!-pb2-012-P+",
@@ -17143,11 +17143,11 @@
       "subunit": "Printemps",
       "blade": 4,
       "text_es": "[Siempre] When you play this card, puedes coloca 2 Printemps Miembros with different names en tu Escenario en Wait. If you do, this card costs 2 less.\n[Activada] [Una vez por turno] Coloca este Miembro en Wait: as an añadeitional cost, coloca 2 cards de tu mano en la Sala de espera OR coloca 2 Printemps Miembros en Wait. Añade 1 Printemps carta Live de tu Sala de espera a tu mano.",
-      "text_ko": "[상시] When you play this card, you may put 2 Printemps Members with different names on your Stage into Wait. If you do, this card costs 2 less.\n[기동] [턴당 1회] Put this Member into Wait: as an additional cost, put 2 cards from your hand into the Waiting Room OR put 2 Printemps Members into Wait. Add 1 Printemps Live card from your Waiting Room to your hand.",
+      "text_ko": "[상시] 때 자신이 플레이한다 이 카드, 해도 좋다 놓는다 2 Printemps 멤버 와 함께 다른 이름 자신의 스테이지에 Wait에. 그렇게 한다면, 이 카드 costs 2 이하.\n[기동] [턴당 1회] 이 멤버를 Wait에 놓는다: 로 추가 코스트, 놓는다 2 카드 손패에서 대기실로 또는 놓는다 2 Printemps 멤버 Wait에. 더한다 1 Printemps Live 카드 자신의 대기실에서 손패에.",
       "text_zh": "[永续] When you play this card, you may put 2 Printemps Members with different names on your Stage into Wait. If you do, this card costs 2 less.\n[起动] [每回合1次] Put this Member into Wait: as an additional cost, put 2 cards from your hand into the Waiting Room OR put 2 Printemps Members into Wait. Add 1 Printemps Live card from your Waiting Room to your hand.",
       "text_th": "[ต่อเนื่อง] When you play this card, you may put 2 Printemps Members with different names on your Stage into Wait. If you do, this card costs 2 less.\n[เปิดใช้] [เทิร์นละ 1 ครั้ง] Put this Member into Wait: as an additional cost, put 2 cards from your hand into the Waiting Room OR put 2 Printemps Members into Wait. Add 1 Printemps Live card from your Waiting Room to your hand.",
-      "text_pt": "[Sempre] When you play this card, you may put 2 Printemps Members with different names on your Stage into Wait. If you do, this card costs 2 less.\n[Ativado] [Uma vez por turno] Put this Member into Wait: as an additional cost, put 2 cards from your hand into the Waiting Room OR put 2 Printemps Members into Wait. Add 1 Printemps Live card from your Waiting Room to your hand.",
-      "text_fr": "[Permanent] When you play this card, you may put 2 Printemps Members with different names on your Stage into Wait. If you do, this card costs 2 less.\n[Activé] [Une fois par tour] Put this Member into Wait: as an additional cost, put 2 cards from your hand into the Waiting Room OR put 2 Printemps Members into Wait. Add 1 Printemps Live card from your Waiting Room to your hand."
+      "text_pt": "[Sempre] When you play this card, pode coloca 2 Printemps Membros with different names en tu Palco en Wait. If you do, this card costs 2 less.\n[Ativado] [Uma vez por turno] Coloca este Membro en Wait: as an adicionaitional cost, coloca 2 cards de tu mano en la Sala de espera OR coloca 2 Printemps Membros en Wait. Adiciona 1 Printemps carta Live de tu Sala de espera a tu mano.",
+      "text_fr": "[Permanent] When you play cette carte, vous pouvez placer 2 Printemps Membres with different names sur votre Scène en Wait. If you do, cette carte costs 2 less.\n[Activé] [Une fois par tour] Placez ce Membre en Wait: as an ajoutezitional cost, placez 2 cartes de votre main dans la Salle d'attente OR placez 2 Printemps Membres en Wait. Ajoutez 1 Printemps carte Live de votre Salle d'attente à votre main."
     },
     {
       "card_no": "PL!-pb2-012-R",
@@ -17195,11 +17195,11 @@
       "subunit": "Printemps",
       "blade": 4,
       "text_es": "[Siempre] When you play this card, puedes coloca 2 Printemps Miembros with different names en tu Escenario en Wait. If you do, this card costs 2 less.\n[Activada] [Una vez por turno] Coloca este Miembro en Wait: as an añadeitional cost, coloca 2 cards de tu mano en la Sala de espera OR coloca 2 Printemps Miembros en Wait. Añade 1 Printemps carta Live de tu Sala de espera a tu mano.",
-      "text_ko": "[상시] When you play this card, you may put 2 Printemps Members with different names on your Stage into Wait. If you do, this card costs 2 less.\n[기동] [턴당 1회] Put this Member into Wait: as an additional cost, put 2 cards from your hand into the Waiting Room OR put 2 Printemps Members into Wait. Add 1 Printemps Live card from your Waiting Room to your hand.",
+      "text_ko": "[상시] 때 자신이 플레이한다 이 카드, 해도 좋다 놓는다 2 Printemps 멤버 와 함께 다른 이름 자신의 스테이지에 Wait에. 그렇게 한다면, 이 카드 costs 2 이하.\n[기동] [턴당 1회] 이 멤버를 Wait에 놓는다: 로 추가 코스트, 놓는다 2 카드 손패에서 대기실로 또는 놓는다 2 Printemps 멤버 Wait에. 더한다 1 Printemps Live 카드 자신의 대기실에서 손패에.",
       "text_zh": "[永续] When you play this card, you may put 2 Printemps Members with different names on your Stage into Wait. If you do, this card costs 2 less.\n[起动] [每回合1次] Put this Member into Wait: as an additional cost, put 2 cards from your hand into the Waiting Room OR put 2 Printemps Members into Wait. Add 1 Printemps Live card from your Waiting Room to your hand.",
       "text_th": "[ต่อเนื่อง] When you play this card, you may put 2 Printemps Members with different names on your Stage into Wait. If you do, this card costs 2 less.\n[เปิดใช้] [เทิร์นละ 1 ครั้ง] Put this Member into Wait: as an additional cost, put 2 cards from your hand into the Waiting Room OR put 2 Printemps Members into Wait. Add 1 Printemps Live card from your Waiting Room to your hand.",
-      "text_pt": "[Sempre] When you play this card, you may put 2 Printemps Members with different names on your Stage into Wait. If you do, this card costs 2 less.\n[Ativado] [Uma vez por turno] Put this Member into Wait: as an additional cost, put 2 cards from your hand into the Waiting Room OR put 2 Printemps Members into Wait. Add 1 Printemps Live card from your Waiting Room to your hand.",
-      "text_fr": "[Permanent] When you play this card, you may put 2 Printemps Members with different names on your Stage into Wait. If you do, this card costs 2 less.\n[Activé] [Une fois par tour] Put this Member into Wait: as an additional cost, put 2 cards from your hand into the Waiting Room OR put 2 Printemps Members into Wait. Add 1 Printemps Live card from your Waiting Room to your hand."
+      "text_pt": "[Sempre] When you play this card, pode coloca 2 Printemps Membros with different names en tu Palco en Wait. If you do, this card costs 2 less.\n[Ativado] [Uma vez por turno] Coloca este Membro en Wait: as an adicionaitional cost, coloca 2 cards de tu mano en la Sala de espera OR coloca 2 Printemps Membros en Wait. Adiciona 1 Printemps carta Live de tu Sala de espera a tu mano.",
+      "text_fr": "[Permanent] When you play cette carte, vous pouvez placer 2 Printemps Membres with different names sur votre Scène en Wait. If you do, cette carte costs 2 less.\n[Activé] [Une fois par tour] Placez ce Membre en Wait: as an ajoutezitional cost, placez 2 cartes de votre main dans la Salle d'attente OR placez 2 Printemps Membres en Wait. Ajoutez 1 Printemps carte Live de votre Salle d'attente à votre main."
     },
     {
       "card_no": "PL!-pb2-013-P+",
@@ -17234,11 +17234,11 @@
       "subunit": "lily white",
       "blade": 1,
       "text_es": "[Al entrar] Revela the top 4 cards de tu mazo. If they are all lily white cards, añade 1 lily white carta Live from among them a tu mano and coloca the rest en la Sala de espera.",
-      "text_ko": "[등장 시] Reveal the top 4 cards of your deck. If they are all lily white cards, add 1 lily white Live card from among them to your hand and put the rest into the Waiting Room.",
+      "text_ko": "[등장 시] 공개한다 위 4 카드 자신의 덱의. 만약 그들 이다 모든 lily white 카드, 더한다 1 lily white Live 카드 에서 중에서 그것들 손패에 그리고 나머지는 대기실에 놓는다.",
       "text_zh": "[入场时] Reveal the top 4 cards of your deck. If they are all lily white cards, add 1 lily white Live card from among them to your hand and put the rest into the Waiting Room.",
       "text_th": "[เมื่อเข้าสนาม] Reveal the top 4 cards of your deck. If they are all lily white cards, add 1 lily white Live card from among them to your hand and put the rest into the Waiting Room.",
-      "text_pt": "[Ao Entrar] Reveal the top 4 cards of your deck. If they are all lily white cards, add 1 lily white Live card from among them to your hand and put the rest into the Waiting Room.",
-      "text_fr": "[À l'entrée] Reveal the top 4 cards of your deck. If they are all lily white cards, add 1 lily white Live card from among them to your hand and put the rest into the Waiting Room."
+      "text_pt": "[Ao Entrar] Revela the top 4 cards de tu mazo. If they are all lily white cards, adiciona 1 lily white carta Live from among them a tu mano and coloca the rest en la Sala de espera.",
+      "text_fr": "[À l'entrée] Révélez the top 4 cartes de votre deck. If they are all lily white cartes, ajoutez 1 lily white carte Live from among them à votre main et placez le reste dans la Salle d'attente."
     },
     {
       "card_no": "PL!-pb2-013-R",
@@ -17273,11 +17273,11 @@
       "subunit": "lily white",
       "blade": 1,
       "text_es": "[Al entrar] Revela the top 4 cards de tu mazo. If they are all lily white cards, añade 1 lily white carta Live from among them a tu mano and coloca the rest en la Sala de espera.",
-      "text_ko": "[등장 시] Reveal the top 4 cards of your deck. If they are all lily white cards, add 1 lily white Live card from among them to your hand and put the rest into the Waiting Room.",
+      "text_ko": "[등장 시] 공개한다 위 4 카드 자신의 덱의. 만약 그들 이다 모든 lily white 카드, 더한다 1 lily white Live 카드 에서 중에서 그것들 손패에 그리고 나머지는 대기실에 놓는다.",
       "text_zh": "[入场时] Reveal the top 4 cards of your deck. If they are all lily white cards, add 1 lily white Live card from among them to your hand and put the rest into the Waiting Room.",
       "text_th": "[เมื่อเข้าสนาม] Reveal the top 4 cards of your deck. If they are all lily white cards, add 1 lily white Live card from among them to your hand and put the rest into the Waiting Room.",
-      "text_pt": "[Ao Entrar] Reveal the top 4 cards of your deck. If they are all lily white cards, add 1 lily white Live card from among them to your hand and put the rest into the Waiting Room.",
-      "text_fr": "[À l'entrée] Reveal the top 4 cards of your deck. If they are all lily white cards, add 1 lily white Live card from among them to your hand and put the rest into the Waiting Room."
+      "text_pt": "[Ao Entrar] Revela the top 4 cards de tu mazo. If they are all lily white cards, adiciona 1 lily white carta Live from among them a tu mano and coloca the rest en la Sala de espera.",
+      "text_fr": "[À l'entrée] Révélez the top 4 cartes de votre deck. If they are all lily white cartes, ajoutez 1 lily white carte Live from among them à votre main et placez le reste dans la Salle d'attente."
     },
     {
       "card_no": "PL!-pb2-014-P+",
@@ -17319,11 +17319,11 @@
       "subunit": "lily white",
       "blade": 2,
       "text_es": "[Al entrar] Puedes revela 1 lily white Live carta de tu mano: añade 1 carta de tu área de Live exitoso a tu mano. If you do, coloca the revelaed card into your área de Live exitoso.",
-      "text_ko": "[등장 시] You may reveal 1 lily white Live card from your hand: add 1 card from your Success Live area to your hand. If you do, put the revealed card into your Success Live area.",
+      "text_ko": "[등장 시] 해도 좋다 공개한다 1 lily white Live 자신의 손패: 더한다 1 자신의 성공 Live 더미 손패에. 그렇게 한다면, 놓는다 공개된 카드 에 자신의 성공 Live 더미.",
       "text_zh": "[入场时] You may reveal 1 lily white Live card from your hand: add 1 card from your Success Live area to your hand. If you do, put the revealed card into your Success Live area.",
       "text_th": "[เมื่อเข้าสนาม] You may reveal 1 lily white Live card from your hand: add 1 card from your Success Live area to your hand. If you do, put the revealed card into your Success Live area.",
-      "text_pt": "[Ao Entrar] You may reveal 1 lily white Live card from your hand: add 1 card from your Success Live area to your hand. If you do, put the revealed card into your Success Live area.",
-      "text_fr": "[À l'entrée] You may reveal 1 lily white Live card from your hand: add 1 card from your Success Live area to your hand. If you do, put the revealed card into your Success Live area."
+      "text_pt": "[Ao Entrar] Pode revela 1 lily white Live carta de tu mano: adiciona 1 carta de tu área de Live bem-sucedido a tu mano. If you do, coloca the revelaed card into your área de Live bem-sucedido.",
+      "text_fr": "[À l'entrée] Vous pouvez révéler 1 lily white Live carte de votre main: ajoutez 1 carte de votre zone de Live réussi à votre main. If you do, placez la carte révélée into your zone de Live réussi."
     },
     {
       "card_no": "PL!-pb2-014-R",
@@ -17365,11 +17365,11 @@
       "subunit": "lily white",
       "blade": 2,
       "text_es": "[Al entrar] Puedes revela 1 lily white Live carta de tu mano: añade 1 carta de tu área de Live exitoso a tu mano. If you do, coloca the revelaed card into your área de Live exitoso.",
-      "text_ko": "[등장 시] You may reveal 1 lily white Live card from your hand: add 1 card from your Success Live area to your hand. If you do, put the revealed card into your Success Live area.",
+      "text_ko": "[등장 시] 해도 좋다 공개한다 1 lily white Live 자신의 손패: 더한다 1 자신의 성공 Live 더미 손패에. 그렇게 한다면, 놓는다 공개된 카드 에 자신의 성공 Live 더미.",
       "text_zh": "[入场时] You may reveal 1 lily white Live card from your hand: add 1 card from your Success Live area to your hand. If you do, put the revealed card into your Success Live area.",
       "text_th": "[เมื่อเข้าสนาม] You may reveal 1 lily white Live card from your hand: add 1 card from your Success Live area to your hand. If you do, put the revealed card into your Success Live area.",
-      "text_pt": "[Ao Entrar] You may reveal 1 lily white Live card from your hand: add 1 card from your Success Live area to your hand. If you do, put the revealed card into your Success Live area.",
-      "text_fr": "[À l'entrée] You may reveal 1 lily white Live card from your hand: add 1 card from your Success Live area to your hand. If you do, put the revealed card into your Success Live area."
+      "text_pt": "[Ao Entrar] Pode revela 1 lily white Live carta de tu mano: adiciona 1 carta de tu área de Live bem-sucedido a tu mano. If you do, coloca the revelaed card into your área de Live bem-sucedido.",
+      "text_fr": "[À l'entrée] Vous pouvez révéler 1 lily white Live carte de votre main: ajoutez 1 carte de votre zone de Live réussi à votre main. If you do, placez la carte révélée into your zone de Live réussi."
     },
     {
       "card_no": "PL!-pb2-015-P+",
@@ -17421,11 +17421,11 @@
       "subunit": "BiBi",
       "blade": 1,
       "text_es": "[Automático] [Una vez por turno] When an opponent Escenario Miembro is coloca en Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Miembro en tu Escenario; OR activa 2 Energía.",
-      "text_ko": "[자동] [턴당 1회] When an opponent Stage Member is put into Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Member on your Stage; OR activate 2 Energy.",
+      "text_ko": "[자동] [턴당 1회] 때 상대 스테이지 멤버 이다 놓는다 Wait에 만큼 하나 의 자신의 BiBi 카드 effects, 고른다 1: 활성 1 BiBi 멤버 자신의 스테이지에; 또는 에너지 2개를 활성화한다.",
       "text_zh": "[自动] [每回合1次] When an opponent Stage Member is put into Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Member on your Stage; OR activate 2 Energy.",
       "text_th": "[อัตโนมัติ] [เทิร์นละ 1 ครั้ง] When an opponent Stage Member is put into Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Member on your Stage; OR activate 2 Energy.",
-      "text_pt": "[Automático] [Uma vez por turno] When an opponent Stage Member is put into Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Member on your Stage; OR activate 2 Energy.",
-      "text_fr": "[Automatique] [Une fois par tour] When an opponent Stage Member is put into Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Member on your Stage; OR activate 2 Energy."
+      "text_pt": "[Automático] [Uma vez por turno] When an opponent Palco Membro is coloca en Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Membro en tu Palco; OR ativa 2 Energía.",
+      "text_fr": "[Automatique] [Une fois par tour] When an Membre adverse sur Scène is placez en Wait by one of your BiBi carte effects, choisissez 1: Active 1 BiBi Membre sur votre Scène; OR activez 2 Énergie."
     },
     {
       "card_no": "PL!-pb2-015-R",
@@ -17477,11 +17477,11 @@
       "subunit": "BiBi",
       "blade": 1,
       "text_es": "[Automático] [Una vez por turno] When an opponent Escenario Miembro is coloca en Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Miembro en tu Escenario; OR activa 2 Energía.",
-      "text_ko": "[자동] [턴당 1회] When an opponent Stage Member is put into Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Member on your Stage; OR activate 2 Energy.",
+      "text_ko": "[자동] [턴당 1회] 때 상대 스테이지 멤버 이다 놓는다 Wait에 만큼 하나 의 자신의 BiBi 카드 effects, 고른다 1: 활성 1 BiBi 멤버 자신의 스테이지에; 또는 에너지 2개를 활성화한다.",
       "text_zh": "[自动] [每回合1次] When an opponent Stage Member is put into Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Member on your Stage; OR activate 2 Energy.",
       "text_th": "[อัตโนมัติ] [เทิร์นละ 1 ครั้ง] When an opponent Stage Member is put into Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Member on your Stage; OR activate 2 Energy.",
-      "text_pt": "[Automático] [Uma vez por turno] When an opponent Stage Member is put into Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Member on your Stage; OR activate 2 Energy.",
-      "text_fr": "[Automatique] [Une fois par tour] When an opponent Stage Member is put into Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Member on your Stage; OR activate 2 Energy."
+      "text_pt": "[Automático] [Uma vez por turno] When an opponent Palco Membro is coloca en Wait by one of your BiBi card effects, choose 1: Active 1 BiBi Membro en tu Palco; OR ativa 2 Energía.",
+      "text_fr": "[Automatique] [Une fois par tour] When an Membre adverse sur Scène is placez en Wait by one of your BiBi carte effects, choisissez 1: Active 1 BiBi Membre sur votre Scène; OR activez 2 Énergie."
     },
     {
       "card_no": "PL!-pb2-016-P+",
@@ -17538,11 +17538,11 @@
       "subunit": "lily white",
       "blade": 6,
       "text_es": "[Inicio de Live] For each lily white card in your área de Live exitoso, choose 1 (puedes choose the same option more than once): hasta que termine este Live your Center Miembro obtieness +1 Blade; OR Active 1 Miembro en tu Escenario; OR roba 1 carta and coloca 1 carta de tu mano en la Sala de espera.",
-      "text_ko": "[라이브 개시] For each lily white card in your Success Live area, choose 1 (you may choose the same option more than once): until this Live ends your Center Member gains +1 Blade; OR Active 1 Member on your Stage; OR draw 1 card and put 1 card from your hand into the Waiting Room.",
+      "text_ko": "[라이브 개시] 마다 lily white 카드 에 자신의 성공 Live 더미, 고른다 1 (해도 좋다 고른다 같은 option 초과 once): 이 Live가 끝날 때까지 자신의 Center 멤버 얻는다 +1 Blade; 또는 활성 1 멤버 자신의 스테이지에; 또는 카드 1장을 드로우하고 자신의 손패에서 카드 1장을 대기실에 놓는다.",
       "text_zh": "[Live开始] For each lily white card in your Success Live area, choose 1 (you may choose the same option more than once): until this Live ends your Center Member gains +1 Blade; OR Active 1 Member on your Stage; OR draw 1 card and put 1 card from your hand into the Waiting Room.",
       "text_th": "[เริ่ม Live] For each lily white card in your Success Live area, choose 1 (you may choose the same option more than once): until this Live ends your Center Member gains +1 Blade; OR Active 1 Member on your Stage; OR draw 1 card and put 1 card from your hand into the Waiting Room.",
-      "text_pt": "[Início de Live] For each lily white card in your Success Live area, choose 1 (you may choose the same option more than once): until this Live ends your Center Member gains +1 Blade; OR Active 1 Member on your Stage; OR draw 1 card and put 1 card from your hand into the Waiting Room.",
-      "text_fr": "[Début de Live] For each lily white card in your Success Live area, choose 1 (you may choose the same option more than once): until this Live ends your Center Member gains +1 Blade; OR Active 1 Member on your Stage; OR draw 1 card and put 1 card from your hand into the Waiting Room."
+      "text_pt": "[Início de Live] For each lily white card in your área de Live bem-sucedido, choose 1 (pode choose the same option more than once): até que este Live termine your Center Membro você ganhas +1 Blade; OR Active 1 Membro en tu Palco; OR compra 1 carta and coloca 1 carta de tu mano en la Sala de espera.",
+      "text_fr": "[Début de Live] For each lily white carte in your zone de Live réussi, choisissez 1 (vous pouvez choisissez the same option more than once): jusqu'à la fin de ce Live your Membre Centre gagne +1 Blade; OR Active 1 Membre sur votre Scène; OR piochez 1 carte and placez 1 carte de votre main dans la Salle d'attente."
     },
     {
       "card_no": "PL!-pb2-016-R",
@@ -17599,11 +17599,11 @@
       "subunit": "lily white",
       "blade": 6,
       "text_es": "[Inicio de Live] For each lily white card in your área de Live exitoso, choose 1 (puedes choose the same option more than once): hasta que termine este Live your Center Miembro obtieness +1 Blade; OR Active 1 Miembro en tu Escenario; OR roba 1 carta and coloca 1 carta de tu mano en la Sala de espera.",
-      "text_ko": "[라이브 개시] For each lily white card in your Success Live area, choose 1 (you may choose the same option more than once): until this Live ends your Center Member gains +1 Blade; OR Active 1 Member on your Stage; OR draw 1 card and put 1 card from your hand into the Waiting Room.",
+      "text_ko": "[라이브 개시] 마다 lily white 카드 에 자신의 성공 Live 더미, 고른다 1 (해도 좋다 고른다 같은 option 초과 once): 이 Live가 끝날 때까지 자신의 Center 멤버 얻는다 +1 Blade; 또는 활성 1 멤버 자신의 스테이지에; 또는 카드 1장을 드로우하고 자신의 손패에서 카드 1장을 대기실에 놓는다.",
       "text_zh": "[Live开始] For each lily white card in your Success Live area, choose 1 (you may choose the same option more than once): until this Live ends your Center Member gains +1 Blade; OR Active 1 Member on your Stage; OR draw 1 card and put 1 card from your hand into the Waiting Room.",
       "text_th": "[เริ่ม Live] For each lily white card in your Success Live area, choose 1 (you may choose the same option more than once): until this Live ends your Center Member gains +1 Blade; OR Active 1 Member on your Stage; OR draw 1 card and put 1 card from your hand into the Waiting Room.",
-      "text_pt": "[Início de Live] For each lily white card in your Success Live area, choose 1 (you may choose the same option more than once): until this Live ends your Center Member gains +1 Blade; OR Active 1 Member on your Stage; OR draw 1 card and put 1 card from your hand into the Waiting Room.",
-      "text_fr": "[Début de Live] For each lily white card in your Success Live area, choose 1 (you may choose the same option more than once): until this Live ends your Center Member gains +1 Blade; OR Active 1 Member on your Stage; OR draw 1 card and put 1 card from your hand into the Waiting Room."
+      "text_pt": "[Início de Live] For each lily white card in your área de Live bem-sucedido, choose 1 (pode choose the same option more than once): até que este Live termine your Center Membro você ganhas +1 Blade; OR Active 1 Membro en tu Palco; OR compra 1 carta and coloca 1 carta de tu mano en la Sala de espera.",
+      "text_fr": "[Début de Live] For each lily white carte in your zone de Live réussi, choisissez 1 (vous pouvez choisissez the same option more than once): jusqu'à la fin de ce Live your Membre Centre gagne +1 Blade; OR Active 1 Membre sur votre Scène; OR piochez 1 carte and placez 1 carte de votre main dans la Salle d'attente."
     },
     {
       "card_no": "PL!-pb2-017-P+",
@@ -17652,11 +17652,11 @@
       "subunit": "Printemps",
       "blade": 6,
       "text_es": "[Al entrar] Coloca 4 Printemps cartas de Miembro de tu Sala de espera under este Miembro.\n[Inicio de Live] Puedes coloca up to 3 cards from under este Miembro en la Sala de espera: por cada card coloca this way, Active or Wait 1 Printemps Miembro en tu Escenario.",
-      "text_ko": "[등장 시] Put 4 Printemps Member cards from your Waiting Room under this Member.\n[라이브 개시] You may put up to 3 cards from under this Member into the Waiting Room: for each card put this way, Active or Wait 1 Printemps Member on your Stage.",
+      "text_ko": "[등장 시] 놓는다 4 Printemps 멤버 카드 자신의 대기실에서 아래에 이 멤버.\n[라이브 개시] 해도 좋다 놓는다 최대 3 카드 에서 아래에 이 멤버 대기실에: 마다 카드 놓는다 이 방법, 활성 또는 Wait 1 Printemps 멤버 자신의 스테이지에.",
       "text_zh": "[入场时] Put 4 Printemps Member cards from your Waiting Room under this Member.\n[Live开始] You may put up to 3 cards from under this Member into the Waiting Room: for each card put this way, Active or Wait 1 Printemps Member on your Stage.",
       "text_th": "[เมื่อเข้าสนาม] Put 4 Printemps Member cards from your Waiting Room under this Member.\n[เริ่ม Live] You may put up to 3 cards from under this Member into the Waiting Room: for each card put this way, Active or Wait 1 Printemps Member on your Stage.",
-      "text_pt": "[Ao Entrar] Put 4 Printemps Member cards from your Waiting Room under this Member.\n[Início de Live] You may put up to 3 cards from under this Member into the Waiting Room: for each card put this way, Active or Wait 1 Printemps Member on your Stage.",
-      "text_fr": "[À l'entrée] Put 4 Printemps Member cards from your Waiting Room under this Member.\n[Début de Live] You may put up to 3 cards from under this Member into the Waiting Room: for each card put this way, Active or Wait 1 Printemps Member on your Stage."
+      "text_pt": "[Ao Entrar] Coloca 4 Printemps cartas de Membro de tu Sala de espera under este Membro.\n[Início de Live] Pode coloca up to 3 cards from under este Membro en la Sala de espera: por cada card coloca this way, Active or Wait 1 Printemps Membro en tu Palco.",
+      "text_fr": "[À l'entrée] Placez 4 Printemps cartes de Membre de votre Salle d'attente sous ce Membre.\n[Début de Live] Vous pouvez placer jusqu'à 3 cartes from sous ce Membre dans la Salle d'attente: pour chaque carte placez this way, Active or Wait 1 Printemps Membre sur votre Scène."
     },
     {
       "card_no": "PL!-pb2-017-R",
@@ -17705,11 +17705,11 @@
       "subunit": "Printemps",
       "blade": 6,
       "text_es": "[Al entrar] Coloca 4 Printemps cartas de Miembro de tu Sala de espera under este Miembro.\n[Inicio de Live] Puedes coloca up to 3 cards from under este Miembro en la Sala de espera: por cada card coloca this way, Active or Wait 1 Printemps Miembro en tu Escenario.",
-      "text_ko": "[등장 시] Put 4 Printemps Member cards from your Waiting Room under this Member.\n[라이브 개시] You may put up to 3 cards from under this Member into the Waiting Room: for each card put this way, Active or Wait 1 Printemps Member on your Stage.",
+      "text_ko": "[등장 시] 놓는다 4 Printemps 멤버 카드 자신의 대기실에서 아래에 이 멤버.\n[라이브 개시] 해도 좋다 놓는다 최대 3 카드 에서 아래에 이 멤버 대기실에: 마다 카드 놓는다 이 방법, 활성 또는 Wait 1 Printemps 멤버 자신의 스테이지에.",
       "text_zh": "[入场时] Put 4 Printemps Member cards from your Waiting Room under this Member.\n[Live开始] You may put up to 3 cards from under this Member into the Waiting Room: for each card put this way, Active or Wait 1 Printemps Member on your Stage.",
       "text_th": "[เมื่อเข้าสนาม] Put 4 Printemps Member cards from your Waiting Room under this Member.\n[เริ่ม Live] You may put up to 3 cards from under this Member into the Waiting Room: for each card put this way, Active or Wait 1 Printemps Member on your Stage.",
-      "text_pt": "[Ao Entrar] Put 4 Printemps Member cards from your Waiting Room under this Member.\n[Início de Live] You may put up to 3 cards from under this Member into the Waiting Room: for each card put this way, Active or Wait 1 Printemps Member on your Stage.",
-      "text_fr": "[À l'entrée] Put 4 Printemps Member cards from your Waiting Room under this Member.\n[Début de Live] You may put up to 3 cards from under this Member into the Waiting Room: for each card put this way, Active or Wait 1 Printemps Member on your Stage."
+      "text_pt": "[Ao Entrar] Coloca 4 Printemps cartas de Membro de tu Sala de espera under este Membro.\n[Início de Live] Pode coloca up to 3 cards from under este Membro en la Sala de espera: por cada card coloca this way, Active or Wait 1 Printemps Membro en tu Palco.",
+      "text_fr": "[À l'entrée] Placez 4 Printemps cartes de Membre de votre Salle d'attente sous ce Membre.\n[Début de Live] Vous pouvez placer jusqu'à 3 cartes from sous ce Membre dans la Salle d'attente: pour chaque carte placez this way, Active or Wait 1 Printemps Membre sur votre Scène."
     },
     {
       "card_no": "PL!-pb2-018-P+",
@@ -17756,11 +17756,11 @@
       "subunit": "BiBi",
       "blade": 8,
       "text_es": "[Al entrar] Puedes Active up to 3 opponent Escenario Miembros en Wait. If you do, roba 1 carta por cada Miembro Activad this way.\n[Al entrar] / [Inicio de Live] Puedes coloca 3 BiBi cartas de Miembro with different names de tu mano en la Sala de espera: if every Miembro en tu Escenario is BiBi, coloca 1 opponent Escenario Miembro en Wait.",
-      "text_ko": "[등장 시] You may Active up to 3 opponent Stage Members in Wait. If you do, draw 1 card for each Member Activated this way.\n[등장 시] / [라이브 개시] You may put 3 BiBi Member cards with different names from your hand into the Waiting Room: if every Member on your Stage is BiBi, put 1 opponent Stage Member into Wait.",
+      "text_ko": "[등장 시] 해도 좋다 활성 최대 3 상대 스테이지 멤버 Wait에. 그렇게 한다면, 카드 1장을 드로우한다 마다 멤버 Activated 이 방법.\n[등장 시] / [라이브 개시] 해도 좋다 놓는다 3 BiBi 멤버 카드 와 함께 다른 이름 손패에서 대기실로: 만약 모든 멤버 자신의 스테이지에 이다 BiBi, 놓는다 1 상대 스테이지 멤버 Wait에.",
       "text_zh": "[入场时] You may Active up to 3 opponent Stage Members in Wait. If you do, draw 1 card for each Member Activated this way.\n[入场时] / [Live开始] You may put 3 BiBi Member cards with different names from your hand into the Waiting Room: if every Member on your Stage is BiBi, put 1 opponent Stage Member into Wait.",
       "text_th": "[เมื่อเข้าสนาม] You may Active up to 3 opponent Stage Members in Wait. If you do, draw 1 card for each Member Activated this way.\n[เมื่อเข้าสนาม] / [เริ่ม Live] You may put 3 BiBi Member cards with different names from your hand into the Waiting Room: if every Member on your Stage is BiBi, put 1 opponent Stage Member into Wait.",
-      "text_pt": "[Ao Entrar] You may Active up to 3 opponent Stage Members in Wait. If you do, draw 1 card for each Member Activated this way.\n[Ao Entrar] / [Início de Live] You may put 3 BiBi Member cards with different names from your hand into the Waiting Room: if every Member on your Stage is BiBi, put 1 opponent Stage Member into Wait.",
-      "text_fr": "[À l'entrée] You may Active up to 3 opponent Stage Members in Wait. If you do, draw 1 card for each Member Activated this way.\n[À l'entrée] / [Début de Live] You may put 3 BiBi Member cards with different names from your hand into the Waiting Room: if every Member on your Stage is BiBi, put 1 opponent Stage Member into Wait."
+      "text_pt": "[Ao Entrar] Pode Active up to 3 opponent Palco Membros en Wait. If you do, compra 1 carta por cada Membro Ativad this way.\n[Ao Entrar] / [Início de Live] Pode coloca 3 BiBi cartas de Membro with different names de tu mano en la Sala de espera: if every Membro en tu Palco is BiBi, coloca 1 opponent Palco Membro en Wait.",
+      "text_fr": "[À l'entrée] Vous pouvez Active jusqu'à 3 Membres adverses sur Scène en Wait. If you do, piochez 1 carte pour chaque Membre Activezd this way.\n[À l'entrée] / [Début de Live] Vous pouvez placer 3 BiBi cartes de Membre with different names de votre main dans la Salle d'attente: if chaque Membre sur votre Scène is BiBi, placez 1 Membre adverse sur Scène en Wait."
     },
     {
       "card_no": "PL!-pb2-018-R",
@@ -17807,11 +17807,11 @@
       "subunit": "BiBi",
       "blade": 8,
       "text_es": "[Al entrar] Puedes Active up to 3 opponent Escenario Miembros en Wait. If you do, roba 1 carta por cada Miembro Activad this way.\n[Al entrar] / [Inicio de Live] Puedes coloca 3 BiBi cartas de Miembro with different names de tu mano en la Sala de espera: if every Miembro en tu Escenario is BiBi, coloca 1 opponent Escenario Miembro en Wait.",
-      "text_ko": "[등장 시] You may Active up to 3 opponent Stage Members in Wait. If you do, draw 1 card for each Member Activated this way.\n[등장 시] / [라이브 개시] You may put 3 BiBi Member cards with different names from your hand into the Waiting Room: if every Member on your Stage is BiBi, put 1 opponent Stage Member into Wait.",
+      "text_ko": "[등장 시] 해도 좋다 활성 최대 3 상대 스테이지 멤버 Wait에. 그렇게 한다면, 카드 1장을 드로우한다 마다 멤버 Activated 이 방법.\n[등장 시] / [라이브 개시] 해도 좋다 놓는다 3 BiBi 멤버 카드 와 함께 다른 이름 손패에서 대기실로: 만약 모든 멤버 자신의 스테이지에 이다 BiBi, 놓는다 1 상대 스테이지 멤버 Wait에.",
       "text_zh": "[入场时] You may Active up to 3 opponent Stage Members in Wait. If you do, draw 1 card for each Member Activated this way.\n[入场时] / [Live开始] You may put 3 BiBi Member cards with different names from your hand into the Waiting Room: if every Member on your Stage is BiBi, put 1 opponent Stage Member into Wait.",
       "text_th": "[เมื่อเข้าสนาม] You may Active up to 3 opponent Stage Members in Wait. If you do, draw 1 card for each Member Activated this way.\n[เมื่อเข้าสนาม] / [เริ่ม Live] You may put 3 BiBi Member cards with different names from your hand into the Waiting Room: if every Member on your Stage is BiBi, put 1 opponent Stage Member into Wait.",
-      "text_pt": "[Ao Entrar] You may Active up to 3 opponent Stage Members in Wait. If you do, draw 1 card for each Member Activated this way.\n[Ao Entrar] / [Início de Live] You may put 3 BiBi Member cards with different names from your hand into the Waiting Room: if every Member on your Stage is BiBi, put 1 opponent Stage Member into Wait.",
-      "text_fr": "[À l'entrée] You may Active up to 3 opponent Stage Members in Wait. If you do, draw 1 card for each Member Activated this way.\n[À l'entrée] / [Début de Live] You may put 3 BiBi Member cards with different names from your hand into the Waiting Room: if every Member on your Stage is BiBi, put 1 opponent Stage Member into Wait."
+      "text_pt": "[Ao Entrar] Pode Active up to 3 opponent Palco Membros en Wait. If you do, compra 1 carta por cada Membro Ativad this way.\n[Ao Entrar] / [Início de Live] Pode coloca 3 BiBi cartas de Membro with different names de tu mano en la Sala de espera: if every Membro en tu Palco is BiBi, coloca 1 opponent Palco Membro en Wait.",
+      "text_fr": "[À l'entrée] Vous pouvez Active jusqu'à 3 Membres adverses sur Scène en Wait. If you do, piochez 1 carte pour chaque Membre Activezd this way.\n[À l'entrée] / [Début de Live] Vous pouvez placer 3 BiBi cartes de Membre with different names de votre main dans la Salle d'attente: if chaque Membre sur votre Scène is BiBi, placez 1 Membre adverse sur Scène en Wait."
     },
     {
       "card_no": "PL!-pb2-019-N",
@@ -17847,11 +17847,11 @@
       "subunit": "Printemps",
       "blade": 2,
       "text_es": "[Inicio de Live] Puedes coloca este Miembro en Wait and coloca 1 carta de tu mano en la Sala de espera: hasta que termine este Live, the μ's Miembro in your área Centro obtieness +2 Blade.\n(Blade on Miembros en Wait does not increase cards revelada para Yell.)",
-      "text_ko": "[라이브 개시] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: until this Live ends, the μ's Member in your Center area gains +2 Blade.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
+      "text_ko": "[라이브 개시] 해도 좋다 이 멤버를 Wait에 놓는다 그리고 자신의 손패에서 카드 1장을 대기실에 놓는다: 이 Live가 끝날 때까지, μ의 멤버 에 자신의 센터 영역 얻는다 +2 Blade.\n(Blade 에 멤버 Wait에 하지 않는다 증가한다 카드 Yell을 위해 공개된.)",
       "text_zh": "[Live开始] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: until this Live ends, the μ's Member in your Center area gains +2 Blade.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
       "text_th": "[เริ่ม Live] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: until this Live ends, the μ's Member in your Center area gains +2 Blade.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
-      "text_pt": "[Início de Live] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: until this Live ends, the μ's Member in your Center area gains +2 Blade.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
-      "text_fr": "[Début de Live] You may put this Member into Wait and put 1 card from your hand into the Waiting Room: until this Live ends, the μ's Member in your Center area gains +2 Blade.\n(Blade on Members in Wait does not increase cards revealed for Yell.)"
+      "text_pt": "[Início de Live] Pode coloca este Membro en Wait and coloca 1 carta de tu mano en la Sala de espera: até que este Live termine, the μ's Membro in your área Centro você ganhas +2 Blade.\n(Blade on Membros en Wait does not increase cards revelada para Yell.)",
+      "text_fr": "[Début de Live] Vous pouvez placer ce Membre en Wait and placez 1 carte de votre main dans la Salle d'attente: jusqu'à la fin de ce Live, the Membre μ's in your zone Centre gagne +2 Blade.\n(Blade on Membres en Wait does not increase cartes révélée pour Yell.)"
     },
     {
       "card_no": "PL!-pb2-020-N",
@@ -17903,11 +17903,11 @@
       "subunit": "BiBi",
       "blade": 7,
       "text_es": "[Siempre] While the total score of cards in your área de Live exitoso is 9 or more, obtienes 1 Pink heart and 1 Yellow heart.",
-      "text_ko": "[상시] While the total score of cards in your Success Live area is 9 or more, you gain 1 Pink heart and 1 Yellow heart.",
+      "text_ko": "[상시] 동안 총 스코어 의 카드 에 자신의 성공 Live 더미 이다 9 이상, 얻는다 1 핑크 하트 그리고 1 노란 하트.",
       "text_zh": "[永续] While the total score of cards in your Success Live area is 9 or more, you gain 1 Pink heart and 1 Yellow heart.",
       "text_th": "[ต่อเนื่อง] While the total score of cards in your Success Live area is 9 or more, you gain 1 Pink heart and 1 Yellow heart.",
-      "text_pt": "[Sempre] While the total score of cards in your Success Live area is 9 or more, you gain 1 Pink heart and 1 Yellow heart.",
-      "text_fr": "[Permanent] While the total score of cards in your Success Live area is 9 or more, you gain 1 Pink heart and 1 Yellow heart."
+      "text_pt": "[Sempre] While the total score of cards in your área de Live bem-sucedido is 9 or more, você ganha 1 Pink heart and 1 Yellow heart.",
+      "text_fr": "[Permanent] While the total score of cartes in your zone de Live réussi is 9 ou plus, vous gagnez 1 Pink heart and 1 Yellow heart."
     },
     {
       "card_no": "PL!-pb2-021-N",
@@ -17942,11 +17942,11 @@
       "subunit": "Printemps",
       "blade": 2,
       "text_es": "[Automático] [Una vez por turno] When este Miembro is coloca en Wait to paga a cost of one of your card abilities or by one of your card effects, Active este Miembro and hasta que termine este Live it obtieness +1 Blade.",
-      "text_ko": "[자동] [턴당 1회] When this Member is put into Wait to pay a cost of one of your card abilities or by one of your card effects, Active this Member and until this Live ends it gains +1 Blade.",
+      "text_ko": "[자동] [턴당 1회] 때 이 멤버 이다 놓는다 Wait에 에 지불한다 코스트 의 하나 의 자신의 카드 능력 또는 만큼 하나 의 자신의 카드 effects, 활성 이 멤버 그리고 이 Live가 끝날 때까지 그것 얻는다 +1 Blade.",
       "text_zh": "[自动] [每回合1次] When this Member is put into Wait to pay a cost of one of your card abilities or by one of your card effects, Active this Member and until this Live ends it gains +1 Blade.",
       "text_th": "[อัตโนมัติ] [เทิร์นละ 1 ครั้ง] When this Member is put into Wait to pay a cost of one of your card abilities or by one of your card effects, Active this Member and until this Live ends it gains +1 Blade.",
-      "text_pt": "[Automático] [Uma vez por turno] When this Member is put into Wait to pay a cost of one of your card abilities or by one of your card effects, Active this Member and until this Live ends it gains +1 Blade.",
-      "text_fr": "[Automatique] [Une fois par tour] When this Member is put into Wait to pay a cost of one of your card abilities or by one of your card effects, Active this Member and until this Live ends it gains +1 Blade."
+      "text_pt": "[Automático] [Uma vez por turno] When este Membro is coloca en Wait to paga a cost of one of your card abilities or by one of your card effects, Active este Membro and até que este Live termine it você ganhas +1 Blade.",
+      "text_fr": "[Automatique] [Une fois par tour] When ce Membre is placez en Wait to payez a cost of one of your carte abilities or by one of your carte effects, Active ce Membre and jusqu'à la fin de ce Live it gagne +1 Blade."
     },
     {
       "card_no": "PL!-pb2-022-N",
@@ -17981,11 +17981,11 @@
       "subunit": "lily white",
       "blade": 1,
       "text_es": "[Activada] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta de Miembro de tu Sala de espera a tu mano.",
-      "text_ko": "[기동] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
+      "text_ko": "[기동] 놓는다 이 멤버 스테이지에서 대기실에: 더한다 1 멤버 카드 자신의 대기실에서 손패에.",
       "text_zh": "[起动] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
       "text_th": "[เปิดใช้] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
-      "text_pt": "[Ativado] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
-      "text_fr": "[Activé] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand."
+      "text_pt": "[Ativado] Coloca este Membro del Palco en la Sala de espera: adiciona 1 carta de Membro de tu Sala de espera a tu mano.",
+      "text_fr": "[Activé] Placez ce Membre de la Scène dans la Salle d'attente: ajoutez 1 carte de Membre de votre Salle d'attente à votre main."
     },
     {
       "card_no": "PL!-pb2-023-N",
@@ -18020,12 +18020,12 @@
       ],
       "subunit": "lily white",
       "blade": 3,
-      "text_es": "[Siempre] While you have no cards in your área de Live exitoso, obtienes +1 Blade.",
-      "text_ko": "[상시] While you have no cards in your Success Live area, you gain +1 Blade.",
+      "text_es": "[Siempre] Mientras no tengas cartas en tu área de Live exitoso, obtienes +1 Blade.",
+      "text_ko": "[상시] 성공 라이브 영역에 카드가 없는 한, Blade를 +1 얻습니다.",
       "text_zh": "[永续] While you have no cards in your Success Live area, you gain +1 Blade.",
       "text_th": "[ต่อเนื่อง] While you have no cards in your Success Live area, you gain +1 Blade.",
-      "text_pt": "[Sempre] While you have no cards in your Success Live area, you gain +1 Blade.",
-      "text_fr": "[Permanent] While you have no cards in your Success Live area, you gain +1 Blade."
+      "text_pt": "[Sempre] Enquanto você não tiver cartas na sua área de Live bem-sucedido, você ganha +1 Blade.",
+      "text_fr": "[Permanent] Tant que vous n'avez aucune carte dans votre zone de Live réussi, vous gagnez +1 Blade."
     },
     {
       "card_no": "PL!-pb2-024-N",
@@ -18061,11 +18061,11 @@
       "subunit": "BiBi",
       "blade": 2,
       "text_es": "[Inicio de Live] If every Miembro en tu Escenario is BiBi, coloca 1 opponent Escenario Miembro of costo 2 o menos en Wait.",
-      "text_ko": "[라이브 개시] If every Member on your Stage is BiBi, put 1 opponent Stage Member of cost 2 or less into Wait.",
+      "text_ko": "[라이브 개시] 만약 모든 멤버 자신의 스테이지에 이다 BiBi, 놓는다 1 상대 스테이지 멤버 의 코스트 2 이하 Wait에.",
       "text_zh": "[Live开始] If every Member on your Stage is BiBi, put 1 opponent Stage Member of cost 2 or less into Wait.",
       "text_th": "[เริ่ม Live] If every Member on your Stage is BiBi, put 1 opponent Stage Member of cost 2 or less into Wait.",
-      "text_pt": "[Início de Live] If every Member on your Stage is BiBi, put 1 opponent Stage Member of cost 2 or less into Wait.",
-      "text_fr": "[Début de Live] If every Member on your Stage is BiBi, put 1 opponent Stage Member of cost 2 or less into Wait."
+      "text_pt": "[Início de Live] If every Membro en tu Palco is BiBi, coloca 1 opponent Palco Membro of costo 2 o menos en Wait.",
+      "text_fr": "[Début de Live] If chaque Membre sur votre Scène is BiBi, placez 1 Membre adverse sur Scène of coût 2 ou moins en Wait."
     },
     {
       "card_no": "PL!-pb2-025-N",
@@ -18099,12 +18099,12 @@
       ],
       "subunit": "lily white",
       "blade": 1,
-      "text_es": "[Siempre] Obtienes +1 Blade por cada lily white card in your área de Live exitoso.",
-      "text_ko": "[상시] You gain +1 Blade for each lily white card in your Success Live area.",
+      "text_es": "[Siempre] Obtienes +1 Blade por cada carta lily white en tu área de Live exitoso.",
+      "text_ko": "[상시] 성공 라이브 영역에 있는 lily white 카드 1장마다 Blade를 +1 얻습니다.",
       "text_zh": "[永续] You gain +1 Blade for each lily white card in your Success Live area.",
       "text_th": "[ต่อเนื่อง] You gain +1 Blade for each lily white card in your Success Live area.",
-      "text_pt": "[Sempre] You gain +1 Blade for each lily white card in your Success Live area.",
-      "text_fr": "[Permanent] You gain +1 Blade for each lily white card in your Success Live area."
+      "text_pt": "[Sempre] Você ganha +1 Blade por cada carta lily white na sua área de Live bem-sucedido.",
+      "text_fr": "[Permanent] Vous gagnez +1 Blade pour chaque carte lily white dans votre zone de Live réussi."
     },
     {
       "card_no": "PL!-pb2-026-N",
@@ -18140,11 +18140,11 @@
       "subunit": "Printemps",
       "blade": 3,
       "text_es": "[Activada] [Una vez por turno] Coloca este Miembro en Wait and coloca 1 carta de tu mano en la Sala de espera: mira the 3 cartas superiores de tu mazo. Puedes revela 1 Printemps Miembro among them y añadirla a tu mano. Coloca el resto en la Sala de espera.\n(Blade on Miembros en Wait does not increase cards revelada para Yell.)",
-      "text_ko": "[기동] [턴당 1회] Put this Member into Wait and put 1 card from your hand into the Waiting Room: look at the top 3 cards of your deck. You may reveal 1 Printemps Member among them and add it to your hand. Put the rest into the Waiting Room.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
+      "text_ko": "[기동] [턴당 1회] 이 멤버를 Wait에 놓는다 그리고 자신의 손패에서 카드 1장을 대기실에 놓는다: 확인한다 자신의 덱 위에서 3장. 해도 좋다 공개한다 1 Printemps 멤버 중에서 그것들 그리고 손패에 더한다. 나머지는 대기실에 놓는다.\n(Blade 에 멤버 Wait에 하지 않는다 증가한다 카드 Yell을 위해 공개된.)",
       "text_zh": "[起动] [每回合1次] Put this Member into Wait and put 1 card from your hand into the Waiting Room: look at the top 3 cards of your deck. You may reveal 1 Printemps Member among them and add it to your hand. Put the rest into the Waiting Room.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
       "text_th": "[เปิดใช้] [เทิร์นละ 1 ครั้ง] Put this Member into Wait and put 1 card from your hand into the Waiting Room: look at the top 3 cards of your deck. You may reveal 1 Printemps Member among them and add it to your hand. Put the rest into the Waiting Room.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
-      "text_pt": "[Ativado] [Uma vez por turno] Put this Member into Wait and put 1 card from your hand into the Waiting Room: look at the top 3 cards of your deck. You may reveal 1 Printemps Member among them and add it to your hand. Put the rest into the Waiting Room.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
-      "text_fr": "[Activé] [Une fois par tour] Put this Member into Wait and put 1 card from your hand into the Waiting Room: look at the top 3 cards of your deck. You may reveal 1 Printemps Member among them and add it to your hand. Put the rest into the Waiting Room.\n(Blade on Members in Wait does not increase cards revealed for Yell.)"
+      "text_pt": "[Ativado] [Uma vez por turno] Coloca este Membro en Wait and coloca 1 carta de tu mano en la Sala de espera: mira the 3 cartas superiores de tu mazo. Pode revela 1 Printemps Membro among them y añadirla a tu mano. Coloca el resto en la Sala de espera.\n(Blade on Membros en Wait does not increase cards revelada para Yell.)",
+      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait and placez 1 carte de votre main dans la Salle d'attente: regardez the 3 cartes du dessus de votre deck. Vous pouvez révéler 1 Printemps Membre among them et l'ajouter à votre main. Placez le reste dans la Salle d'attente.\n(Blade on Membres en Wait does not increase cartes révélée pour Yell.)"
     },
     {
       "card_no": "PL!-pb2-027-N",
@@ -18179,11 +18179,11 @@
       "subunit": "BiBi",
       "blade": 1,
       "text_es": "[Activada] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta de Miembro de tu Sala de espera a tu mano.",
-      "text_ko": "[기동] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
+      "text_ko": "[기동] 놓는다 이 멤버 스테이지에서 대기실에: 더한다 1 멤버 카드 자신의 대기실에서 손패에.",
       "text_zh": "[起动] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
       "text_th": "[เปิดใช้] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
-      "text_pt": "[Ativado] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
-      "text_fr": "[Activé] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand."
+      "text_pt": "[Ativado] Coloca este Membro del Palco en la Sala de espera: adiciona 1 carta de Membro de tu Sala de espera a tu mano.",
+      "text_fr": "[Activé] Placez ce Membre de la Scène dans la Salle d'attente: ajoutez 1 carte de Membre de votre Salle d'attente à votre main."
     },
     {
       "card_no": "PL!-pb2-028-N",
@@ -18225,11 +18225,11 @@
       "subunit": "Printemps",
       "blade": 1,
       "text_es": "[Inicio de Live] Puedes coloca este Miembro en Wait: hasta que termine este Live, obtienes 1 Yellow heart.\n(Blade on Miembros en Wait does not increase cards revelada para Yell.)",
-      "text_ko": "[라이브 개시] You may put this Member into Wait: until this Live ends, you gain 1 Yellow heart.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
+      "text_ko": "[라이브 개시] 해도 좋다 이 멤버를 Wait에 놓는다: 이 Live가 끝날 때까지, 얻는다 1 노란 하트.\n(Blade 에 멤버 Wait에 하지 않는다 증가한다 카드 Yell을 위해 공개된.)",
       "text_zh": "[Live开始] You may put this Member into Wait: until this Live ends, you gain 1 Yellow heart.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
       "text_th": "[เริ่ม Live] You may put this Member into Wait: until this Live ends, you gain 1 Yellow heart.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
-      "text_pt": "[Início de Live] You may put this Member into Wait: until this Live ends, you gain 1 Yellow heart.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
-      "text_fr": "[Début de Live] You may put this Member into Wait: until this Live ends, you gain 1 Yellow heart.\n(Blade on Members in Wait does not increase cards revealed for Yell.)"
+      "text_pt": "[Início de Live] Pode coloca este Membro en Wait: até que este Live termine, você ganha 1 Yellow heart.\n(Blade on Membros en Wait does not increase cards revelada para Yell.)",
+      "text_fr": "[Début de Live] Vous pouvez placer ce Membre en Wait: jusqu'à la fin de ce Live, vous gagnez 1 Yellow heart.\n(Blade on Membres en Wait does not increase cartes révélée pour Yell.)"
     },
     {
       "card_no": "PL!-pb2-029-N",
@@ -18271,11 +18271,11 @@
       "subunit": "BiBi",
       "blade": 3,
       "text_es": "[Al entrar] / [Inicio de Live] If every Miembro en tu Escenario is μ's, coloca 1 opponent Escenario Miembro with 2 or fewer printed Blade en Wait.\n(Blade on Miembros en Wait does not increase cards revelada para Yell.)",
-      "text_ko": "[등장 시] / [라이브 개시] If every Member on your Stage is μ's, put 1 opponent Stage Member with 2 or fewer printed Blade into Wait.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
+      "text_ko": "[등장 시] / [라이브 개시] 만약 모든 멤버 자신의 스테이지에 이다 μ의, 놓는다 1 상대 스테이지 멤버 와 함께 2 이하 표기된 Blade Wait에.\n(Blade 에 멤버 Wait에 하지 않는다 증가한다 카드 Yell을 위해 공개된.)",
       "text_zh": "[入场时] / [Live开始] If every Member on your Stage is μ's, put 1 opponent Stage Member with 2 or fewer printed Blade into Wait.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
       "text_th": "[เมื่อเข้าสนาม] / [เริ่ม Live] If every Member on your Stage is μ's, put 1 opponent Stage Member with 2 or fewer printed Blade into Wait.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
-      "text_pt": "[Ao Entrar] / [Início de Live] If every Member on your Stage is μ's, put 1 opponent Stage Member with 2 or fewer printed Blade into Wait.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
-      "text_fr": "[À l'entrée] / [Début de Live] If every Member on your Stage is μ's, put 1 opponent Stage Member with 2 or fewer printed Blade into Wait.\n(Blade on Members in Wait does not increase cards revealed for Yell.)"
+      "text_pt": "[Ao Entrar] / [Início de Live] If every Membro en tu Palco is μ's, coloca 1 opponent Palco Membro with 2 or fewer printed Blade en Wait.\n(Blade on Membros en Wait does not increase cards revelada para Yell.)",
+      "text_fr": "[À l'entrée] / [Début de Live] If chaque Membre sur votre Scène is μ's, placez 1 Membre adverse sur Scène with 2 or fewer printed Blade en Wait.\n(Blade on Membres en Wait does not increase cartes révélée pour Yell.)"
     },
     {
       "card_no": "PL!-pb2-030-N",
@@ -18315,12 +18315,12 @@
       ],
       "subunit": "Printemps",
       "blade": 0,
-      "text_es": "[Siempre] Obtienes +1 Blade for every 5 total score among cards in your área de Live exitoso.",
-      "text_ko": "[상시] You gain +1 Blade for every 5 total score among cards in your Success Live area.",
-      "text_zh": "[永续] You gain +1 Blade for every 5 total score among cards in your Success Live area.",
-      "text_th": "[ต่อเนื่อง] You gain +1 Blade for every 5 total score among cards in your Success Live area.",
-      "text_pt": "[Sempre] You gain +1 Blade for every 5 total score among cards in your Success Live area.",
-      "text_fr": "[Permanent] You gain +1 Blade for every 5 total score among cards in your Success Live area."
+      "text_es": "[Siempre] Obtienes +1 Blade por cada 5 de puntuación total entre las cartas de tu área de Live exitoso.",
+      "text_ko": "[상시] 성공 라이브 영역에 있는 카드의 스코어 합계 5마다 Blade를 +1 얻습니다.",
+      "text_zh": "[永续] 你的成功Live区卡牌总分每有5点，你获得+1 Blade。",
+      "text_th": "[ต่อเนื่อง] คุณได้รับ +1 Blade ต่อทุก 5 คะแนนรวมของการ์ดในพื้นที่ Live สำเร็จ",
+      "text_pt": "[Sempre] Você ganha +1 Blade a cada 5 de pontuação total entre as cartas da sua área de Live bem-sucedido.",
+      "text_fr": "[Permanent] Vous gagnez +1 Blade pour chaque 5 de score total parmi les cartes de votre zone de Live réussi."
     },
     {
       "card_no": "PL!-pb2-031-N",
@@ -18365,11 +18365,11 @@
       "subunit": "lily white",
       "blade": 2,
       "text_es": "[Inicio de Live] Puedes coloca 1 μ's card de tu mano en la Sala de espera: hasta que termine este Live, obtienes 1 Purple heart.",
-      "text_ko": "[라이브 개시] You may put 1 μ's card from your hand into the Waiting Room: until this Live ends, you gain 1 Purple heart.",
+      "text_ko": "[라이브 개시] 해도 좋다 놓는다 1 μ의 카드 손패에서 대기실로: 이 Live가 끝날 때까지, 얻는다 1 보라 하트.",
       "text_zh": "[Live开始] You may put 1 μ's card from your hand into the Waiting Room: until this Live ends, you gain 1 Purple heart.",
       "text_th": "[เริ่ม Live] You may put 1 μ's card from your hand into the Waiting Room: until this Live ends, you gain 1 Purple heart.",
-      "text_pt": "[Início de Live] You may put 1 μ's card from your hand into the Waiting Room: until this Live ends, you gain 1 Purple heart.",
-      "text_fr": "[Début de Live] You may put 1 μ's card from your hand into the Waiting Room: until this Live ends, you gain 1 Purple heart."
+      "text_pt": "[Início de Live] Pode coloca 1 μ's card de tu mano en la Sala de espera: até que este Live termine, você ganha 1 Purple heart.",
+      "text_fr": "[Début de Live] Vous pouvez placer 1 carte μ's de votre main dans la Salle d'attente: jusqu'à la fin de ce Live, vous gagnez 1 Purple heart."
     },
     {
       "card_no": "PL!-pb2-032-N",
@@ -18408,11 +18408,11 @@
       "subunit": "lily white",
       "blade": 2,
       "text_es": "[Al entrar] Coloca 1 carta de tu mano en la Sala de espera: mira the 5 cartas superiores de tu mazo. Puedes revela 1 μ's Miembro among them that has no Blade heart y añadirla a tu mano. Coloca el resto en la Sala de espera.",
-      "text_ko": "[등장 시] Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 μ's Member among them that has no Blade heart and add it to your hand. Put the rest into the Waiting Room.",
+      "text_ko": "[등장 시] 자신의 손패에서 카드 1장을 대기실에 놓는다: 확인한다 자신의 덱 위에서 5장. 해도 좋다 공개한다 1 μ의 멤버 중에서 그것들 그 가지고 있다 no Blade 하트 그리고 손패에 더한다. 나머지는 대기실에 놓는다.",
       "text_zh": "[入场时] Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 μ's Member among them that has no Blade heart and add it to your hand. Put the rest into the Waiting Room.",
       "text_th": "[เมื่อเข้าสนาม] Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 μ's Member among them that has no Blade heart and add it to your hand. Put the rest into the Waiting Room.",
-      "text_pt": "[Ao Entrar] Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 μ's Member among them that has no Blade heart and add it to your hand. Put the rest into the Waiting Room.",
-      "text_fr": "[À l'entrée] Put 1 card from your hand into the Waiting Room: look at the top 5 cards of your deck. You may reveal 1 μ's Member among them that has no Blade heart and add it to your hand. Put the rest into the Waiting Room."
+      "text_pt": "[Ao Entrar] Coloca 1 carta de tu mano en la Sala de espera: mira the 5 cartas superiores de tu mazo. Pode revela 1 μ's Membro among them that has no Blade heart y añadirla a tu mano. Coloca el resto en la Sala de espera.",
+      "text_fr": "[À l'entrée] Placez 1 carte de votre main dans la Salle d'attente: regardez the 5 cartes du dessus de votre deck. Vous pouvez révéler 1 Membre μ's among them that has no Blade heart et l'ajouter à votre main. Placez le reste dans la Salle d'attente."
     },
     {
       "card_no": "PL!-pb2-033-N",
@@ -18455,11 +18455,11 @@
       "subunit": "BiBi",
       "blade": 2,
       "text_es": "[Al entrar] / [Inicio de Live] Coloca 1 opponent Escenario Miembro with 3 or fewer printed hearts en Wait.\n(Blade on Miembros en Wait does not increase cards revelada para Yell.)",
-      "text_ko": "[등장 시] / [라이브 개시] Put 1 opponent Stage Member with 3 or fewer printed hearts into Wait.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
+      "text_ko": "[등장 시] / [라이브 개시] 놓는다 1 상대 스테이지 멤버 와 함께 3 이하 표기된 하트 Wait에.\n(Blade 에 멤버 Wait에 하지 않는다 증가한다 카드 Yell을 위해 공개된.)",
       "text_zh": "[入场时] / [Live开始] Put 1 opponent Stage Member with 3 or fewer printed hearts into Wait.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
       "text_th": "[เมื่อเข้าสนาม] / [เริ่ม Live] Put 1 opponent Stage Member with 3 or fewer printed hearts into Wait.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
-      "text_pt": "[Ao Entrar] / [Início de Live] Put 1 opponent Stage Member with 3 or fewer printed hearts into Wait.\n(Blade on Members in Wait does not increase cards revealed for Yell.)",
-      "text_fr": "[À l'entrée] / [Début de Live] Put 1 opponent Stage Member with 3 or fewer printed hearts into Wait.\n(Blade on Members in Wait does not increase cards revealed for Yell.)"
+      "text_pt": "[Ao Entrar] / [Início de Live] Coloca 1 opponent Palco Membro with 3 or fewer printed hearts en Wait.\n(Blade on Membros en Wait does not increase cards revelada para Yell.)",
+      "text_fr": "[À l'entrée] / [Début de Live] Placez 1 Membre adverse sur Scène with 3 or fewer printed hearts en Wait.\n(Blade on Membres en Wait does not increase cartes révélée pour Yell.)"
     },
     {
       "card_no": "PL!-pb2-034-N",
@@ -18525,11 +18525,11 @@
       "subunit": "Printemps",
       "blade": 1,
       "text_es": "[Activada] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta Live de tu Sala de espera a tu mano.",
-      "text_ko": "[기동] Put this Member from the Stage into the Waiting Room: add 1 Live card from your Waiting Room to your hand.",
+      "text_ko": "[기동] 놓는다 이 멤버 스테이지에서 대기실에: 더한다 1 Live 카드 자신의 대기실에서 손패에.",
       "text_zh": "[起动] Put this Member from the Stage into the Waiting Room: add 1 Live card from your Waiting Room to your hand.",
       "text_th": "[เปิดใช้] Put this Member from the Stage into the Waiting Room: add 1 Live card from your Waiting Room to your hand.",
-      "text_pt": "[Ativado] Put this Member from the Stage into the Waiting Room: add 1 Live card from your Waiting Room to your hand.",
-      "text_fr": "[Activé] Put this Member from the Stage into the Waiting Room: add 1 Live card from your Waiting Room to your hand."
+      "text_pt": "[Ativado] Coloca este Membro del Palco en la Sala de espera: adiciona 1 carta Live de tu Sala de espera a tu mano.",
+      "text_fr": "[Activé] Placez ce Membre de la Scène dans la Salle d'attente: ajoutez 1 carte Live de votre Salle d'attente à votre main."
     },
     {
       "card_no": "PL!-pb2-036-N",
@@ -18604,12 +18604,12 @@
           "count": 8
         }
       ],
-      "text_es": "[Éxito de Live] If every Member card revealed for your Yell is all Printemps, all lily white, or all BiBi, add 1 Member card from among cards revealed for that Yell to your hand.",
-      "text_ko": "[라이브 성공] If every Member card revealed for your Yell is all Printemps, all lily white, or all BiBi, add 1 Member card from among cards revealed for that Yell to your hand.",
+      "text_es": "[Éxito de Live] If every carta de Miembro revelaed for your Yell is all Printemps, all lily white, or all BiBi, añade 1 carta de Miembro from among cards revelaed for that Yell a tu mano.",
+      "text_ko": "[라이브 성공] 만약 모든 멤버 카드 공개된 에 대해 자신의 Yell 이다 모든 Printemps, 모든 lily white, 또는 모든 BiBi, 더한다 1 멤버 카드 에서 중에서 카드 공개된 에 대해 그 Yell 손패에.",
       "text_zh": "[Live成功] If every Member card revealed for your Yell is all Printemps, all lily white, or all BiBi, add 1 Member card from among cards revealed for that Yell to your hand.",
       "text_th": "[Live สำเร็จ] If every Member card revealed for your Yell is all Printemps, all lily white, or all BiBi, add 1 Member card from among cards revealed for that Yell to your hand.",
-      "text_pt": "[Sucesso de Live] If every Member card revealed for your Yell is all Printemps, all lily white, or all BiBi, add 1 Member card from among cards revealed for that Yell to your hand.",
-      "text_fr": "[Live réussi] If every Member card revealed for your Yell is all Printemps, all lily white, or all BiBi, add 1 Member card from among cards revealed for that Yell to your hand."
+      "text_pt": "[Sucesso de Live] If every carta de Membro revelaed for your Yell is all Printemps, all lily white, or all BiBi, adiciona 1 carta de Membro from among cards revelaed for that Yell a tu mano.",
+      "text_fr": "[Live réussi] If chaque Membre carte révélezed for your Yell is all Printemps, all lily white, or all BiBi, ajoutez 1 carte de Membre from among cartes révélezed for that Yell à votre main."
     },
     {
       "card_no": "PL!-pb2-038-L",
@@ -18681,11 +18681,11 @@
         }
       ],
       "text_es": "[Siempre] While this card is in your Live area or área de Live exitoso and you have exactly 2 μ's Miembros en tu Escenario (and no other Miembros), +1 total Live score. This effect does not stack.",
-      "text_ko": "[상시] While this card is in your Live area or Success Live area and you have exactly 2 μ's Members on your Stage (and no other Members), +1 total Live score. This effect does not stack.",
+      "text_ko": "[상시] 동안 이 카드 이다 에 자신의 Live 영역 또는 성공 Live 더미 그리고 자신이 가지고 있다 exactly 2 μ의 멤버 자신의 스테이지에 (그리고 no 다른 멤버), +1 총 Live 스코어. 이 effect 하지 않는다 stack.",
       "text_zh": "[永续] While this card is in your Live area or Success Live area and you have exactly 2 μ's Members on your Stage (and no other Members), +1 total Live score. This effect does not stack.",
       "text_th": "[ต่อเนื่อง] While this card is in your Live area or Success Live area and you have exactly 2 μ's Members on your Stage (and no other Members), +1 total Live score. This effect does not stack.",
-      "text_pt": "[Sempre] While this card is in your Live area or Success Live area and you have exactly 2 μ's Members on your Stage (and no other Members), +1 total Live score. This effect does not stack.",
-      "text_fr": "[Permanent] While this card is in your Live area or Success Live area and you have exactly 2 μ's Members on your Stage (and no other Members), +1 total Live score. This effect does not stack."
+      "text_pt": "[Sempre] While this card is in your Live area or área de Live bem-sucedido and you have exactly 2 μ's Membros en tu Palco (and no other Membros), +1 total Live score. This effect does not stack.",
+      "text_fr": "[Permanent] While cette carte is in your Live area or zone de Live réussi and you have exactly 2 Membre μ'ss sur votre Scène (and no other Membres), +1 total Live score. This effect does not stack."
     },
     {
       "card_no": "PL!-pb2-039-L",
@@ -18756,11 +18756,11 @@
         }
       ],
       "text_es": "[Inicio de Live] Si tienes 2 or more μ's cards in your área de Live exitoso, hasta que termine este Live the number of your cards revelada para Yell increases by 10.\n[Éxito de Live] This card's puntuación +1 por cada μ's Miembro with a different name among Miembros en tu Escenario and cartas de Miembro revelaed for your Yell.",
-      "text_ko": "[라이브 개시] If you have 2 or more μ's cards in your Success Live area, until this Live ends the number of your cards revealed for Yell increases by 10.\n[라이브 성공] This card's score +1 for each μ's Member with a different name among Members on your Stage and Member cards revealed for your Yell.",
+      "text_ko": "[라이브 개시] 만약 자신에게 2 이상 μ의 카드 에 자신의 성공 Live 더미, 이 Live가 끝날 때까지 수의 자신의 카드 Yell을 위해 공개된 increases 만큼 10.\n[라이브 성공] 이 카드의 스코어 +1 마다 μ의 멤버 와 함께 다른 이름 중에서 멤버 자신의 스테이지에 그리고 멤버 카드 공개된 에 대해 자신의 Yell.",
       "text_zh": "[Live开始] If you have 2 or more μ's cards in your Success Live area, until this Live ends the number of your cards revealed for Yell increases by 10.\n[Live成功] This card's score +1 for each μ's Member with a different name among Members on your Stage and Member cards revealed for your Yell.",
       "text_th": "[เริ่ม Live] If you have 2 or more μ's cards in your Success Live area, until this Live ends the number of your cards revealed for Yell increases by 10.\n[Live สำเร็จ] This card's score +1 for each μ's Member with a different name among Members on your Stage and Member cards revealed for your Yell.",
-      "text_pt": "[Início de Live] If you have 2 or more μ's cards in your Success Live area, until this Live ends the number of your cards revealed for Yell increases by 10.\n[Sucesso de Live] This card's score +1 for each μ's Member with a different name among Members on your Stage and Member cards revealed for your Yell.",
-      "text_fr": "[Début de Live] If you have 2 or more μ's cards in your Success Live area, until this Live ends the number of your cards revealed for Yell increases by 10.\n[Live réussi] This card's score +1 for each μ's Member with a different name among Members on your Stage and Member cards revealed for your Yell."
+      "text_pt": "[Início de Live] Se tienes 2 or more μ's cards in your área de Live bem-sucedido, até que este Live termine the number of your cards revelada para Yell increases by 10.\n[Sucesso de Live] This card's pontuação +1 por cada μ's Membro with a different name among Membros en tu Palco and cartas de Membro revelaed for your Yell.",
+      "text_fr": "[Début de Live] Si vous avez 2 ou plus carte μ'ss in your zone de Live réussi, jusqu'à la fin de ce Live le nombre de your cartes révélée pour Yell increases by 10.\n[Live réussi] This card's score +1 pour chaque Membre μ's with a different name among Membres sur votre Scène and cartes de Membre révélezed for your Yell."
     },
     {
       "card_no": "PL!-pb2-040-L",
@@ -18831,12 +18831,12 @@
           "count": 10
         }
       ],
-      "text_es": "[Inicio de Live] If 1 or more Members on your Stage were put from Wait to Active this turn by one of your Printemps card effects, this card's required Wild hearts −3. If 2 or more, −2 more. If 3 or more, −1 more.",
-      "text_ko": "[라이브 개시] If 1 or more Members on your Stage were put from Wait to Active this turn by one of your Printemps card effects, this card's required Wild hearts −3. If 2 or more, −2 more. If 3 or more, −1 more.",
+      "text_es": "[Inicio de Live] If 1 or more Miembros en tu Escenario were coloca from Wait to Active este turno by one of your Printemps card effects, this card's required Wild hearts −3. If 2 or more, −2 more. If 3 or more, −1 more.",
+      "text_ko": "[라이브 개시] 만약 1 이상 멤버 자신의 스테이지에 였다 놓는다 에서 Wait 에 활성 이번 턴에 만큼 하나 의 자신의 Printemps 카드 effects, 이 카드의 required 아무 색 하트 −3. 만약 2 이상, −2 이상. 만약 3 이상, −1 이상.",
       "text_zh": "[Live开始] If 1 or more Members on your Stage were put from Wait to Active this turn by one of your Printemps card effects, this card's required Wild hearts −3. If 2 or more, −2 more. If 3 or more, −1 more.",
       "text_th": "[เริ่ม Live] If 1 or more Members on your Stage were put from Wait to Active this turn by one of your Printemps card effects, this card's required Wild hearts −3. If 2 or more, −2 more. If 3 or more, −1 more.",
-      "text_pt": "[Início de Live] If 1 or more Members on your Stage were put from Wait to Active this turn by one of your Printemps card effects, this card's required Wild hearts −3. If 2 or more, −2 more. If 3 or more, −1 more.",
-      "text_fr": "[Début de Live] If 1 or more Members on your Stage were put from Wait to Active this turn by one of your Printemps card effects, this card's required Wild hearts −3. If 2 or more, −2 more. If 3 or more, −1 more."
+      "text_pt": "[Início de Live] If 1 or more Membros en tu Palco were coloca from Wait to Active este turno by one of your Printemps card effects, this card's required Wild hearts −3. If 2 or more, −2 more. If 3 or more, −1 more.",
+      "text_fr": "[Début de Live] If 1 ou plus Membres sur votre Scène were placez from Wait to Active ce tour by one of your Printemps carte effects, cette carte's required Wild hearts −3. If 2 ou plus, −2 more. If 3 ou plus, −1 more."
     },
     {
       "card_no": "PL!-pb2-041-L",
@@ -18898,11 +18898,11 @@
         }
       ],
       "text_es": "[Siempre] While this card is in your área de Live exitoso, when a lily white card effect counts cards in your área de Live exitoso, count this card as 2.\n[Inicio de Live] Si tienes 2 or more lily white cards in your área de Live exitoso, la puntuación de esta carta +1.",
-      "text_ko": "[상시] While this card is in your Success Live area, when a lily white card effect counts cards in your Success Live area, count this card as 2.\n[라이브 개시] If you have 2 or more lily white cards in your Success Live area, this card's score +1.",
+      "text_ko": "[상시] 동안 이 카드 이다 에 자신의 성공 Live 더미, 때 lily white 카드 effect counts 카드 에 자신의 성공 Live 더미, 수 이 카드 로 2.\n[라이브 개시] 만약 자신에게 2 이상 lily white 카드 에 자신의 성공 Live 더미, 이 카드의 스코어 +1.",
       "text_zh": "[永续] While this card is in your Success Live area, when a lily white card effect counts cards in your Success Live area, count this card as 2.\n[Live开始] If you have 2 or more lily white cards in your Success Live area, this card's score +1.",
       "text_th": "[ต่อเนื่อง] While this card is in your Success Live area, when a lily white card effect counts cards in your Success Live area, count this card as 2.\n[เริ่ม Live] If you have 2 or more lily white cards in your Success Live area, this card's score +1.",
-      "text_pt": "[Sempre] While this card is in your Success Live area, when a lily white card effect counts cards in your Success Live area, count this card as 2.\n[Início de Live] If you have 2 or more lily white cards in your Success Live area, this card's score +1.",
-      "text_fr": "[Permanent] While this card is in your Success Live area, when a lily white card effect counts cards in your Success Live area, count this card as 2.\n[Début de Live] If you have 2 or more lily white cards in your Success Live area, this card's score +1."
+      "text_pt": "[Sempre] While this card is in your área de Live bem-sucedido, when a lily white card effect counts cards in your área de Live bem-sucedido, count this card as 2.\n[Início de Live] Se tienes 2 or more lily white cards in your área de Live bem-sucedido, la pontuação de esta carta +1.",
+      "text_fr": "[Permanent] While cette carte is in your zone de Live réussi, when a lily white carte effect counts cartes in your zone de Live réussi, count cette carte as 2.\n[Début de Live] Si vous avez 2 ou plus lily white cartes in your zone de Live réussi, le score de cette carte +1."
     },
     {
       "card_no": "PL!-pb2-042-L",
@@ -18965,11 +18965,11 @@
         }
       ],
       "text_es": "[Automático] [Una vez por turno] When you Yell, if cards revelaed for that Yell include cartas de Miembro named \"Nico Yazawa\", \"Maki Nishikino\", and \"Eli Ayase\", and a BiBi Miembro of cost 11 or more is in your área Centro, coloca 1 opponent Escenario Miembro with 4 or fewer printed hearts en Wait.",
-      "text_ko": "[자동] [턴당 1회] When you Yell, if cards revealed for that Yell include Member cards named \"Nico Yazawa\", \"Maki Nishikino\", and \"Eli Ayase\", and a BiBi Member of cost 11 or more is in your Center area, put 1 opponent Stage Member with 4 or fewer printed hearts into Wait.",
+      "text_ko": "[자동] [턴당 1회] 때 자신이 Yell, 만약 카드 공개된 에 대해 그 Yell 포함한다 멤버 카드 이름을 가진 \"야자와 니코\", \"니시키노 마키\", 그리고 \"아야세 에리\", 그리고 BiBi 멤버 의 코스트 11 이상 이다 에 자신의 센터 영역, 놓는다 1 상대 스테이지 멤버 와 함께 4 이하 표기된 하트 Wait에.",
       "text_zh": "[自动] [每回合1次] When you Yell, if cards revealed for that Yell include Member cards named \"Nico Yazawa\", \"Maki Nishikino\", and \"Eli Ayase\", and a BiBi Member of cost 11 or more is in your Center area, put 1 opponent Stage Member with 4 or fewer printed hearts into Wait.",
       "text_th": "[อัตโนมัติ] [เทิร์นละ 1 ครั้ง] When you Yell, if cards revealed for that Yell include Member cards named \"Nico Yazawa\", \"Maki Nishikino\", and \"Eli Ayase\", and a BiBi Member of cost 11 or more is in your Center area, put 1 opponent Stage Member with 4 or fewer printed hearts into Wait.",
-      "text_pt": "[Automático] [Uma vez por turno] When you Yell, if cards revealed for that Yell include Member cards named \"Nico Yazawa\", \"Maki Nishikino\", and \"Eli Ayase\", and a BiBi Member of cost 11 or more is in your Center area, put 1 opponent Stage Member with 4 or fewer printed hearts into Wait.",
-      "text_fr": "[Automatique] [Une fois par tour] When you Yell, if cards revealed for that Yell include Member cards named \"Nico Yazawa\", \"Maki Nishikino\", and \"Eli Ayase\", and a BiBi Member of cost 11 or more is in your Center area, put 1 opponent Stage Member with 4 or fewer printed hearts into Wait."
+      "text_pt": "[Automático] [Uma vez por turno] When you Yell, if cards revelaed for that Yell include cartas de Membro named \"Nico Yazawa\", \"Maki Nishikino\", and \"Eli Ayase\", and a BiBi Membro of cost 11 or more is in your área Centro, coloca 1 opponent Palco Membro with 4 or fewer printed hearts en Wait.",
+      "text_fr": "[Automatique] [Une fois par tour] When you Yell, if cartes révélezed for that Yell inclure cartes de Membre nommé \"Nico Yazawa\", \"Maki Nishikino\", and \"Eli Ayase\", and a BiBi Membre of cost 11 ou plus is in your zone Centre, placez 1 Membre adverse sur Scène with 4 or fewer printed hearts en Wait."
     },
     {
       "card_no": "PL!-pb2-E00-SECE",
@@ -20211,12 +20211,12 @@
           "count": 1
         }
       ],
-      "text_es": "[Éxito de Live] Look at the top 3 cards of your deck. You may put any number of them on top of your deck in any order. Put the rest into the Waiting Room.",
-      "text_ko": "[라이브 성공] Look at the top 3 cards of your deck. You may put any number of them on top of your deck in any order. Put the rest into the Waiting Room.",
+      "text_es": "[Éxito de Live] Mira las 3 cartas superiores de tu mazo. Puedes colocar cualquier cantidad de ellas en la parte superior de tu mazo en cualquier orden. Coloca el resto en la Sala de espera.",
+      "text_ko": "[라이브 성공] 확인한다 자신의 덱 위에서 3장. 해도 좋다 놓는다 원하는 수의 그것들 자신의 덱 맨 위에 에 임의의 순서. 나머지는 대기실에 놓는다.",
       "text_zh": "[Live成功] Look at the top 3 cards of your deck. You may put any number of them on top of your deck in any order. Put the rest into the Waiting Room.",
       "text_th": "[Live สำเร็จ] Look at the top 3 cards of your deck. You may put any number of them on top of your deck in any order. Put the rest into the Waiting Room.",
-      "text_pt": "[Sucesso de Live] Look at the top 3 cards of your deck. You may put any number of them on top of your deck in any order. Put the rest into the Waiting Room.",
-      "text_fr": "[Live réussi] Look at the top 3 cards of your deck. You may put any number of them on top of your deck in any order. Put the rest into the Waiting Room."
+      "text_pt": "[Sucesso de Live] Mira las 3 cartas superiores de tu mazo. Pode colocar cualquier cantidad de ellas en la parte superior de tu mazo en cualquier orden. Coloca el resto en la Sala de espera.",
+      "text_fr": "[Live réussi] Regardez les 3 cartes du dessus de votre deck. Vous pouvez placer n'importe quel nombre de them au-dessus de votre deck dans n'importe quel ordre. Placez le reste dans la Salle d'attente."
     },
     {
       "card_no": "PL!-sd1-020-SD",
@@ -20594,12 +20594,12 @@
           "count": 6
         }
       ],
-      "text_es": "[Inicio de Live] For each card in your Success Live area, reduce this card's required Gray Hearts by 2.",
-      "text_ko": "[라이브 개시] For each card in your Success Live area, reduce this card's required Gray Hearts by 2.",
+      "text_es": "[Inicio de Live] Por cada carta en tu área de Live exitoso, reduce los Corazones grises requeridos de esta carta en 2.",
+      "text_ko": "[라이브 개시] 마다 카드 에 자신의 성공 Live 더미, 줄인다 이 카드의 필요 회색 하트 만큼 2.",
       "text_zh": "[Live开始] For each card in your Success Live area, reduce this card's required Gray Hearts by 2.",
       "text_th": "[เริ่ม Live] For each card in your Success Live area, reduce this card's required Gray Hearts by 2.",
-      "text_pt": "[Início de Live] For each card in your Success Live area, reduce this card's required Gray Hearts by 2.",
-      "text_fr": "[Début de Live] For each card in your Success Live area, reduce this card's required Gray Hearts by 2."
+      "text_pt": "[Início de Live] Por cada carta en tu área de Live bem-sucedido, reduce los Corações cinza requeridos de esta carta en 2.",
+      "text_fr": "[Début de Live] For each carte in your zone de Live réussi, reduce cette carte's Cœurs gris requis by 2."
     },
     {
       "card_no": "PL!-sd1-023-P",

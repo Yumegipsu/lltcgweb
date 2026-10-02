@@ -14,6 +14,7 @@ Scrape API: `manage/card-list-user/list?expansion=PBLL02` (113 cards)
 - `tools/scrape_expansion_v2.py PBLL02` → Chiichan `all_cards_pbll02_*.json`
 - `tools/import_pbll02_from_scrape.py` → `cards.json` (bypasses SQLCipher DB)
 - Abilities: `pl_muse_pb2_abilities.py` + handlers `pl_muse_pb2_effects.php`
+- Locale helpers: `tools/fill_pbll02_locale_texts.py`, `tools/apply_pbll02_exact_overrides.py`, `tools/audit_pbll02_locales.py`
 - Skills JP dump: `docs/PBLL02_SKILLS_JP.md`
 
 ## Totals
@@ -47,15 +48,22 @@ Legend: `[S]` scraped `[E]` EN text `[L]` locales es/ko/zh/th/pt/fr `[A]` abilit
 - [x] PL!-pb2-037 … 042 (L) — S E A B
 - [x] PL!-pb2-E00 … E15 (energy) — S E (no skill) B
 
-### Locales / tests / deploy
+### Locales / tests / deploy / prompts
 
-- [x] Locale fields present for all 85 ability cards (es/ko/zh/th/pt/fr) — **brackets localized**; full body MT blocked by Google rate limits (EN leftovers remain in bodies — retry `tools/fill_pbll02_locale_texts.py` later)
-- [x] Focused PHPUnit: `MusePb2000DoubleBatonTest`, `BoosterSmokeTest` (incl. muse duo), `GachaPoolTest`
-- [x] Hostinger deploy + VPS pull — `ac882ef` (pack/engine) + `931c2e5` (abilities module/tools); VPS ping OK
+- [x] Locale fields present for ability cards (es/ko/zh/th/pt/fr)
+- [~] Full non-EN bodies — **partial**:
+  - **ko: clean** (0 EN leftovers via glossary + exact)
+  - **es/fr/pt: improved** but still mixed EN on ~20–40 ability cards (glossary partial)
+  - **zh/th: brackets localized**; bodies still largely EN (MT APIs rate-limited/echo; short-word glossaries mangled — avoided)
+  - Continue via expanding `tools/apply_pbll02_exact_overrides.py` EXACT map; audit with `tools/audit_pbll02_locales.py`
+- [x] Multi-step prompt stubs deepened in `plMusePb2ResolvePrompt` (wait+discard→opp Wait, hand↔success swap, activate opp Wait+draw, distinct discard→opp Wait, center Blade, unstack+toggle, per-success choose, BiBi auto choose, Printemps activated cost modes). `optional_wait_self_discard_look_reveal` remapped to shared `optional_wait_self_look_reveal`
+- [x] Client: discard counts + branch choice types for new DUO prompts (`prompt-renderer.js`)
+- [x] Focused PHPUnit: `MusePb2PromptResolverTest`, `MusePb2000DoubleBatonTest`
+- [ ] Hostinger deploy + VPS pull (this follow-up)
 
 ## Novel effect types (pl_muse_pb2_effects.php)
 
-See `tools/_classify_pbll02_types.py` — ~35 novel types registered; continuous blade hooks wired; multi-step prompt resolvers partially stubbed (log + clear) — deepen as playtests find gaps.
+~35 novel types + continuation types (`pb2_apply_center_group_blade`, `pb2_begin_wait_opp_printed_hearts`, `pb2_add_subunit_live_from_wr`, `pb2_resume_per_success_choose`). Continuous blade hooks wired.
 
 ## Booster
 
