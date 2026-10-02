@@ -51,7 +51,7 @@ Legend: `[S]` scraped `[E]` EN text `[L]` locales es/ko/zh/th/pt/fr `[A]` abilit
 
 - [x] Locale fields present for all 85 ability cards (es/ko/zh/th/pt/fr) — **brackets localized**; full body MT blocked by Google rate limits (EN leftovers remain in bodies — retry `tools/fill_pbll02_locale_texts.py` later)
 - [x] Focused PHPUnit: `MusePb2000DoubleBatonTest`, `BoosterSmokeTest` (incl. muse duo), `GachaPoolTest`
-- [ ] Hostinger deploy + VPS pull
+- [x] Hostinger deploy + VPS pull — `ac882ef` (pack/engine) + `931c2e5` (abilities module/tools); VPS ping OK
 
 ## Novel effect types (pl_muse_pb2_effects.php)
 
