@@ -4754,14 +4754,27 @@ function getHeartIconsFromBladeHeart(
 function buildDeck(array $allCards, array $cardNos): array {
     $cardMap = [];
     foreach ($allCards as $c) {
-        $cardMap[$c['card_no']] = $c;
+        $no = $c['card_no'] ?? '';
+        if ($no === '') {
+            continue;
+        }
+        foreach (tcgCardNoLookupKeys($no) as $key) {
+            $cardMap[$key] = $c;
+        }
     }
     $deck = [];
     foreach ($cardNos as $no) {
-        if (isset($cardMap[$no])) {
-            $card = $cardMap[$no];
-            $card['instance_id'] = uniqid('card_', true);
-            $deck[] = $card;
+        $card = null;
+        foreach (tcgCardNoLookupKeys((string)$no) as $key) {
+            if (isset($cardMap[$key])) {
+                $card = $cardMap[$key];
+                break;
+            }
+        }
+        if ($card) {
+            $copy = $card;
+            $copy['instance_id'] = uniqid('card_', true);
+            $deck[] = $copy;
         }
     }
     return $deck;

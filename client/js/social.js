@@ -95,8 +95,11 @@
   function lookupCard(no) {
     const G = global.G || {};
     const A = global.A || {};
-    return (G.allCards && G.allCards[no])
-      || (A.collection || []).find((r) => r && r.card_no === no)?.card
+    const key = String(no || '');
+    const ascii = key.replace(/＋/g, '+');
+    const fullwidth = ascii.replace(/\+/g, '＋');
+    return (G.allCards && (G.allCards[key] || G.allCards[ascii] || G.allCards[fullwidth]))
+      || (A.collection || []).find((r) => r && (r.card_no === key || r.card_no === ascii || r.card_no === fullwidth))?.card
       || { card_no: no, name: no };
   }
   function isLiveCardMeta(cardOrNo) {

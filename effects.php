@@ -47,14 +47,16 @@ function cardHasAbilities(array $card): bool {
 }
 
 /** ASCII / fullwidth ＋ variants for rarity suffixes (P+ vs P＋, R+ vs R＋). */
-function tcgCardNoLookupKeys(string $cardNo): array {
-    $cardNo = trim($cardNo);
-    if ($cardNo === '') {
-        return [];
+if (!function_exists('tcgCardNoLookupKeys')) {
+    function tcgCardNoLookupKeys(string $cardNo): array {
+        $cardNo = trim($cardNo);
+        if ($cardNo === '') {
+            return [];
+        }
+        $ascii = str_replace('＋', '+', $cardNo);
+        $fullwidth = str_replace('+', '＋', $ascii);
+        return array_values(array_unique([$cardNo, $ascii, $fullwidth]));
     }
-    $ascii = str_replace('＋', '+', $cardNo);
-    $fullwidth = str_replace('+', '＋', $ascii);
-    return array_values(array_unique([$cardNo, $ascii, $fullwidth]));
 }
 
 /** Lazy card catalog for hydrating runtime copies missing abilities / group / cost. */

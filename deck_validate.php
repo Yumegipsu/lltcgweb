@@ -88,8 +88,19 @@ function tcgBuildCardMap(array $cardsData): array {
     $map = [];
     foreach ($cardsData['cards'] ?? [] as $c) {
         $no = $c['card_no'] ?? '';
-        if ($no !== '') {
+        if ($no === '') {
+            continue;
+        }
+        // Index + and ＋ so decks/collections using either form still resolve.
+        if (function_exists('tcgCardNoLookupKeys')) {
+            foreach (tcgCardNoLookupKeys($no) as $key) {
+                $map[$key] = $c;
+            }
+        } else {
             $map[$no] = $c;
+            $ascii = str_replace('＋', '+', $no);
+            $map[$ascii] = $c;
+            $map[str_replace('+', '＋', $ascii)] = $c;
         }
     }
     return $map;

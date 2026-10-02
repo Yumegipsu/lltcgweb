@@ -3261,7 +3261,7 @@ try {
 <script src="log_i18n.js?v=20"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=44"></script>
-<script src="client/js/social.js?v=38"></script>
+<script src="client/js/social.js?v=39"></script>
 <script src="client/js/titles.js?v=5"></script>
 <script src="client/js/season-rank.js?v=7"></script>
 <script src="client/js/friend-push.js?v=12"></script>
@@ -16901,7 +16901,10 @@ function enrichCard(card) {
   if (!card) return card;
   const no = card.card_no;
   if (!no || no === '?') return card;
-  const base = G.allCards?.[no];
+  const lookupNo = String(no);
+  const ascii = lookupNo.replace(/＋/g, '+');
+  const fullwidth = ascii.replace(/\+/g, '＋');
+  const base = G.allCards?.[lookupNo] || G.allCards?.[ascii] || G.allCards?.[fullwidth];
   const merged = base ? { ...base, ...card } : { ...card };
   if (base && !(card.blade_hearts?.length) && base.blade_hearts?.length) {
     merged.blade_hearts = base.blade_hearts;
@@ -20005,9 +20008,17 @@ async function loadCards() {
     const d = await r.json();
     G.starterDecks = d.starter_decks || {};
     const next = {};
-    (d.cards || []).forEach(c => {
-      if (c && c.card_no) next[c.card_no] = c;
-    });
+    const indexCard = (c) => {
+      if (!c || !c.card_no) return;
+      const no = String(c.card_no);
+      next[no] = c;
+      // Decks/collections may store ASCII + or fullwidth ＋ rarity suffixes.
+      const ascii = no.replace(/＋/g, '+');
+      const fullwidth = ascii.replace(/\+/g, '＋');
+      next[ascii] = c;
+      next[fullwidth] = c;
+    };
+    (d.cards || []).forEach(indexCard);
     // Replace map so a partial/failed prior load cannot leave a half-empty catalog.
     G.allCards = next;
     clearLogNameCache();

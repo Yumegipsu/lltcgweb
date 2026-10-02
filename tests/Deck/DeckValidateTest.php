@@ -185,4 +185,23 @@ final class DeckValidateTest extends TestCase
         $result = tcgValidateDeckLists($main, [], $this->cardMap, null, true);
         $this->assertFalse($result['valid']);
     }
+
+    public function testFullwidthAndAsciiPlusCardNosBothResolve(): void
+    {
+        $fw = null;
+        foreach ($this->cardMap as $no => $card) {
+            if (is_string($no) && str_contains($no, '＋')) {
+                $fw = $no;
+                break;
+            }
+        }
+        $this->assertNotNull($fw, 'catalog should keep fullwidth ＋ card_nos');
+        $ascii = str_replace('＋', '+', $fw);
+        $this->assertArrayHasKey($fw, $this->cardMap);
+        $this->assertArrayHasKey($ascii, $this->cardMap);
+        $this->assertSame($this->cardMap[$fw]['card_no'], $this->cardMap[$ascii]['card_no']);
+        $result = tcgValidateDeckLists([$ascii, $fw], [], $this->cardMap, null, true);
+        $this->assertTrue($result['valid'], implode('; ', $result['errors']));
+        $this->assertSame([], array_filter($result['errors'], fn($e) => str_contains($e, 'Unknown card')));
+    }
 }

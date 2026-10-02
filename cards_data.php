@@ -15,6 +15,22 @@ function tcgCardsPlayCachePath(): string {
 }
 
 /**
+ * ASCII / fullwidth ＋ variants for rarity suffixes (P+ vs P＋, R+ vs R＋).
+ * Decks and collections may store either form; catalog lookups must accept both.
+ *
+ * @return list<string>
+ */
+function tcgCardNoLookupKeys(string $cardNo): array {
+    $cardNo = trim($cardNo);
+    if ($cardNo === '') {
+        return [];
+    }
+    $ascii = str_replace('＋', '+', $cardNo);
+    $fullwidth = str_replace('+', '＋', $ascii);
+    return array_values(array_unique([$cardNo, $ascii, $fullwidth]));
+}
+
+/**
  * @return array{cards?: list<array>, starter_decks?: array}
  */
 function tcgLoadCardsData(bool $includeOracleText = false): array {
