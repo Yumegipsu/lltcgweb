@@ -373,6 +373,8 @@
       "deckStats": "Total {total}/72 · Members {members}/48 · Lives {lives}/12 · Energy {energy}/12 · Points {lovecaPoints}/{lovecaLimit}",
       "lovecaPointLabel": "Points",
       "lovecaPointBadge": "{n}pt",
+      "identityCopyCap": "You already have 4 copies of this card in the deck (including other printings like SD).",
+      "identityCopyCapShort": "4-copy limit (other printings in deck)",
       "lovecaOverLimit": "Point total would be {total} (max {limit}).",
       "lovecaDeckIllegal": "Point total is {total} — deck must be {limit} or below.",
       "deckIllegalSize": "Deck must be legal: 60 main (48 Members, 12 Lives) and 12 Energy.",
