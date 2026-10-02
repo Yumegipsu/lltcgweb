@@ -153,24 +153,34 @@ function countActivatableEnergyInZone(array $p, int $max): int {
     return $n;
 }
 
-/** Energy from activate_if_baton_to_wr on the Member being replaced (e.g. Kaho SD). */
+/** Energy from leave-stage baton skills on the Member being replaced (Kaho SD / pb2-009 Nico). */
 function estimateBatonWrEnergyActivation(array $leaving, array $incoming, array $p): int {
     mergeCardCatalogFields($leaving);
     mergeCardCatalogFields($incoming);
     foreach (getAbilitiesByTrigger($leaving, 'on_leave_stage') as $ab) {
-        if (($ab['type'] ?? '') !== 'activate_if_baton_to_wr') {
+        $type = $ab['type'] ?? '';
+        if ($type !== 'activate_if_baton_to_wr'
+            && $type !== 'auto_on_leave_stage_if_baton_min_cost_energy') {
             continue;
         }
         if (!isMemberCard($incoming)) {
             continue;
         }
-        if (($ab['group'] ?? '') !== '' && ($incoming['group'] ?? '') !== ($ab['group'] ?? '')) {
+        $group = $ab['group'] ?? '';
+        if ($group !== '') {
+            if ($type === 'auto_on_leave_stage_if_baton_min_cost_energy') {
+                if (!cardMatchesGroup($incoming, $group, 'member')) {
+                    continue;
+                }
+            } elseif (($incoming['group'] ?? '') !== $group) {
+                continue;
+            }
+        }
+        $defaultMin = $type === 'auto_on_leave_stage_if_baton_min_cost_energy' ? 15 : 10;
+        if (intval($incoming['cost'] ?? 0) < intval($ab['min_baton_cost'] ?? $defaultMin)) {
             continue;
         }
-        if (intval($incoming['cost'] ?? 0) < intval($ab['min_baton_cost'] ?? 10)) {
-            continue;
-        }
-        $want = intval($ab['count'] ?? 2);
+        $want = intval($ab['count'] ?? $ab['energy'] ?? 2);
         return min($want, countActivatableEnergyInZone($p, $want));
     }
     return 0;

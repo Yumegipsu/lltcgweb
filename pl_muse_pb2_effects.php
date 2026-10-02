@@ -508,26 +508,36 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'auto_on_leave_stage_if_baton_min_cost_energy': {
+            // Leaving Member (e.g. PL!-pb2-009): check the Member that Baton Touched
+            // over this one via ctx, not this card's own baton_member_costs (those are
+            // set on the incoming card). Refs #221.
             $minCost = intval($ab['min_baton_cost'] ?? 15);
-            $batonCosts = $source['baton_member_costs'] ?? [];
+            $group = $ab['group'] ?? "μ's";
             $ok = false;
-            foreach ($batonCosts as $c) {
-                if (intval($c) >= $minCost) {
+            $incoming = $ctx['baton_incoming'] ?? null;
+            if (is_array($incoming)) {
+                mergeCardCatalogFields($incoming);
+                if (isMemberCard($incoming)
+                    && intval($incoming['cost'] ?? 0) >= $minCost
+                    && ($group === '' || cardMatchesGroup($incoming, $group, 'member'))) {
                     $ok = true;
-                    break;
                 }
             }
             if (!$ok) {
                 foreach ($source['baton_sources'] ?? [] as $bs) {
+                    if (!is_array($bs)) {
+                        continue;
+                    }
                     if (intval($bs['cost'] ?? 0) >= $minCost
-                        && cardMatchesGroup($bs, $ab['group'] ?? "μ's", 'member')) {
+                        && ($group === '' || cardMatchesGroup($bs, $group, 'member'))) {
                         $ok = true;
                         break;
                     }
                 }
             }
             if ($ok) {
-                $state = plMusePb2ActivateEnergy($state, $pid, intval($ab['energy'] ?? 2));
+                $want = intval($ab['energy'] ?? 2);
+                $state = plMusePb2ActivateEnergy($state, $pid, $want);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] activated Energy (Baton with high-cost μ's).");
             }

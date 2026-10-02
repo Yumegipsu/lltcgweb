@@ -16855,7 +16855,7 @@
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBLL02/PL!-pb2-009-PP.png",
       "abilities": [
         {
-          "trigger": "auto",
+          "trigger": "on_leave_stage",
           "type": "auto_on_leave_stage_if_baton_min_cost_energy",
           "group": "μ's",
           "min_baton_cost": 15,
@@ -16901,7 +16901,7 @@
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBLL02/PL!-pb2-009-R.png",
       "abilities": [
         {
-          "trigger": "auto",
+          "trigger": "on_leave_stage",
           "type": "auto_on_leave_stage_if_baton_min_cost_energy",
           "group": "μ's",
           "min_baton_cost": 15,

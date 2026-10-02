@@ -10011,12 +10011,22 @@ function estimateBatonWrEnergyActivation(me, occupant, incomingCard) {
   const occ = enrichCard(occupant);
   const inc = enrichCard(incomingCard);
   for (const ab of occ.abilities || []) {
-    if (ab.trigger !== 'on_leave_stage' || ab.type !== 'activate_if_baton_to_wr') continue;
+    if (ab.trigger !== 'on_leave_stage') continue;
+    const type = ab.type || '';
+    if (type !== 'activate_if_baton_to_wr'
+        && type !== 'auto_on_leave_stage_if_baton_min_cost_energy') continue;
     const isMember = inc.card_type === 'メンバー' || inc.card_type_en === 'Member';
     if (!isMember) continue;
-    if (ab.group && (inc.group || '') !== ab.group) continue;
-    if ((inc.cost || 0) < (ab.min_baton_cost || 10)) continue;
-    const want = ab.count || 2;
+    if (ab.group) {
+      if (type === 'auto_on_leave_stage_if_baton_min_cost_energy') {
+        if ((inc.group || '') !== ab.group) continue;
+      } else if ((inc.group || '') !== ab.group) {
+        continue;
+      }
+    }
+    const defaultMin = type === 'auto_on_leave_stage_if_baton_min_cost_energy' ? 15 : 10;
+    if ((inc.cost || 0) < (ab.min_baton_cost || defaultMin)) continue;
+    const want = ab.count || ab.energy || 2;
     const inactive = (me.energy_zone || []).filter(e => !energyChipActive(e)).length;
     return Math.min(want, inactive);
   }
