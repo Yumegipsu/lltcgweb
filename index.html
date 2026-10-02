@@ -3910,7 +3910,7 @@ function maxReservedCopiesClient(cardNo) {
 }
 
 function spareConvertibleCopies(cardNo) {
-  const owned = Number(A.collectionMap?.[cardNo] || 0);
+  const owned = ownedQtyForCardNo(cardNo);
   return Math.max(0, owned - maxReservedCopiesClient(cardNo));
 }
 
@@ -8431,7 +8431,7 @@ function isCatalogCardType(card) {
 
 function uniqueCatalogCardCount() {
   let n = 0;
-  Object.values(G.allCards || {}).forEach(c => {
+  forEachUniqueCatalogCard((c) => {
     if (isCatalogCardType(c)) n++;
   });
   return n;
@@ -8439,9 +8439,9 @@ function uniqueCatalogCardCount() {
 
 function uniqueOwnedCatalogCount() {
   let n = 0;
-  Object.values(G.allCards || {}).forEach(c => {
+  forEachUniqueCatalogCard((c) => {
     if (!isCatalogCardType(c)) return;
-    if ((A.collectionMap?.[c.card_no] || 0) > 0) n++;
+    if (ownedQtyForCardNo(c.card_no) > 0) n++;
   });
   return n;
 }
@@ -8475,7 +8475,7 @@ function cardListPackSortKey(pack) {
 
 function groupCatalogCardsByPack() {
   const groups = new Map();
-  Object.values(G.allCards || {}).forEach(raw => {
+  forEachUniqueCatalogCard((raw) => {
     const c = enrichCard(raw);
     if (!c || !isCatalogCardType(c)) return;
     const pack = c.booster_pack || '';
@@ -8496,7 +8496,7 @@ function groupCatalogCardsByPack() {
 function appendCardListTile(parent, card) {
   const c = enrichCard(card);
   if (!c) return;
-  const ownedQty = Number(A.collectionMap?.[c.card_no] || 0);
+  const ownedQty = ownedQtyForCardNo(c.card_no);
   const owned = ownedQty > 0;
   const tile = document.createElement('button');
   tile.type = 'button';
@@ -8547,7 +8547,7 @@ function renderCardList() {
     const title = document.createElement('h3');
     title.textContent = cardListPackDisplayName(pack);
     head.appendChild(title);
-    const ownedInPack = cards.filter(c => (A.collectionMap?.[c.card_no] || 0) > 0).length;
+    const ownedInPack = cards.filter(c => ownedQtyForCardNo(c.card_no) > 0).length;
     const chip = document.createElement('span');
     chip.className = 'card-list-section-chip';
     chip.textContent = ownedInPack + '/' + cards.length;
@@ -8948,6 +8948,40 @@ async function refreshCollection() {
   A.collectionMap = {};
   A.collection.forEach(row => { A.collectionMap[row.card_no] = row.qty; });
   if (res.seals) syncSealsFromPayload(res);
+}
+
+/** ASCII + and fullwidth ＋ card_no forms that may appear in collection / catalog. */
+function cardNoLookupKeys(cardNo) {
+  const no = String(cardNo || '');
+  if (!no) return [];
+  const ascii = no.replace(/＋/g, '+');
+  const fullwidth = ascii.replace(/\+/g, '＋');
+  return [...new Set([no, ascii, fullwidth])];
+}
+
+/**
+ * Owned copies for a card_no, summing ASCII + and fullwidth ＋ collection keys.
+ * Matches PHP tcgOwnedQtyForCardNo — do not dual-write aliases into collectionMap
+ * then sum (that would double-count).
+ */
+function ownedQtyForCardNo(cardNo, map) {
+  const m = map || A.collectionMap || {};
+  let n = 0;
+  cardNoLookupKeys(cardNo).forEach((key) => {
+    n += Number(m[key] || 0);
+  });
+  return n;
+}
+
+/** Iterate catalog printings once (G.allCards dual-indexes +/＋ onto the same object). */
+function forEachUniqueCatalogCard(fn) {
+  const seen = new Set();
+  Object.values(G.allCards || {}).forEach((c) => {
+    const no = c && c.card_no;
+    if (!no || seen.has(no)) return;
+    seen.add(no);
+    fn(c);
+  });
 }
 
 const DECK_LIST_CACHE_TTL_MS = 45000;
@@ -11356,7 +11390,7 @@ function addCardToDeck(cardNo, type) {
   const experiment = A.deckBuilderMode === 'experiment';
   const maxOwn = experiment
     ? experimentMaxOwned(cardNo, type)
-    : (A.collectionMap[cardNo] || 0);
+    : ownedQtyForCardNo(cardNo);
   if (type === 'エネルギー') {
     if (haveEnergy >= maxOwn || haveIdent >= DECK_MAX_ENERGY_COPIES || haveEnergy >= 12) return;
   } else {
@@ -13381,7 +13415,7 @@ function decklogSubPickCanAdd(cardNo) {
   const need = Number(A.decklogSubPickNeed || 0);
   const draft = A.decklogSubPickDraft || [];
   if (draft.length >= need) return false;
-  const owned = Number(A.collectionMap?.[cardNo] || 0);
+  const owned = ownedQtyForCardNo(cardNo);
   const committed = decklogSubPickCommittedCount(cardNo, A.decklogSubPickFor);
   const inDraft = draft.filter(n => n === cardNo).length;
   return inDraft < Math.max(0, owned - committed);
