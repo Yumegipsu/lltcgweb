@@ -71,6 +71,11 @@ final class SeasonRankTest extends TestCase
         $this->assertSame(2, $bLossHigh['step']);
         $this->assertSame(54, $bLossHigh['points']);
 
+        // Soft early-rank losses stay below the win floor of 8.
+        $bSoft = tcgSeasonMovePoints(2, 70, 4, false);
+        $this->assertSame(2, $bSoft['step']);
+        $this->assertSame(66, $bSoft['points']);
+
         $bDrop = tcgSeasonMovePoints(3, 5, 20, false);
         $this->assertSame(2, $bDrop['step']);
         $this->assertSame(85, $bDrop['points']);
@@ -93,6 +98,19 @@ final class SeasonRankTest extends TestCase
         $this->assertSame(8, $favorite);
         $this->assertGreaterThanOrEqual(24, $upset);
 
+        // Soft-loss curve: lower ranks bleed much less than the win delta;
+        // S is 1:1 with the win-side base.
+        $this->assertSame(0, tcgSeasonLossDelta(16, 0));
+        $this->assertSame(0, tcgSeasonLossDelta(16, 1));
+        $this->assertSame(4, tcgSeasonLossDelta(16, 2));  // Green B 25%
+        $this->assertSame(6, tcgSeasonLossDelta(16, 3));  // Pink B 40%
+        $this->assertSame(10, tcgSeasonLossDelta(16, 4)); // Green A 60%
+        $this->assertSame(13, tcgSeasonLossDelta(16, 5)); // Pink A 80%
+        $this->assertSame(16, tcgSeasonLossDelta(16, 6)); // Green S 100%
+        $this->assertSame(16, tcgSeasonLossDelta(16, 7)); // Pink S as Green S
+        $this->assertSame(8, tcgSeasonLossDelta(32, 2));  // Green B of a max upset
+        $this->assertSame(32, tcgSeasonLossDelta(32, 6));
+
         $filled = tcgSeasonMovePoints(6, 90, 32, true);
         $this->assertSame(6, $filled['step']);
         $this->assertSame(122, $filled['points']);
@@ -100,6 +118,37 @@ final class SeasonRankTest extends TestCase
         $stillPinkScore = tcgSeasonMovePoints(7, 140, 32, false);
         $this->assertSame(6, $stillPinkScore['step']);
         $this->assertSame(108, $stillPinkScore['points']);
+    }
+
+    public function testSoftLossAtGreenBVersusParityAtS(): void
+    {
+        $this->at('2026-10-15 12:00:00');
+        $bWinner = $this->user('bWin');
+        $bLoser = $this->user('bLose');
+        $sWinner = $this->user('sWin');
+        $sLoser = $this->user('sLose');
+        $now = tcgSeasonNow();
+        $ins = tcgDb()->prepare('INSERT INTO tcg_season_rank
+            (discord_id, game_mode, season_id, step, points, peak_step, wins, losses, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, 0, 0, ?)');
+        $ins->execute([$bWinner, TCG_GAME_MODE_STANDARD, '2026-10', 2, 50, 2, $now]);
+        $ins->execute([$bLoser, TCG_GAME_MODE_STANDARD, '2026-10', 2, 50, 2, $now]);
+        $ins->execute([$sWinner, TCG_GAME_MODE_STANDARD, '2026-10', 6, 50, 6, $now]);
+        $ins->execute([$sLoser, TCG_GAME_MODE_STANDARD, '2026-10', 6, 50, 6, $now]);
+
+        $bChanges = tcgApplyRankResult($bWinner, $bLoser, false, TCG_GAME_MODE_STANDARD);
+        $this->assertIsArray($bChanges);
+        $this->assertSame(16, (int)$bChanges[$bWinner]['delta']);
+        $this->assertSame(4, (int)$bChanges[$bLoser]['delta']);
+        $this->assertSame(66, (int)tcgSeasonLoadRow($bWinner, TCG_GAME_MODE_STANDARD)['points']);
+        $this->assertSame(46, (int)tcgSeasonLoadRow($bLoser, TCG_GAME_MODE_STANDARD)['points']);
+
+        $sChanges = tcgApplyRankResult($sWinner, $sLoser, false, TCG_GAME_MODE_STANDARD);
+        $this->assertIsArray($sChanges);
+        $this->assertSame(16, (int)$sChanges[$sWinner]['delta']);
+        $this->assertSame(16, (int)$sChanges[$sLoser]['delta']);
+        $this->assertSame(66, (int)tcgSeasonLoadRow($sWinner, TCG_GAME_MODE_STANDARD)['points']);
+        $this->assertSame(34, (int)tcgSeasonLoadRow($sLoser, TCG_GAME_MODE_STANDARD)['points']);
     }
 
     public function testBeforeOctoberDoesNotWriteSeason(): void
