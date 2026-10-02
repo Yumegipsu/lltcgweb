@@ -92,6 +92,8 @@ function resolveAbilityEffect(array $state, string $pid, array $source, array $a
         $state = batch99ResolveEffect($state, $pid, $source, $ab, $ctx);
     } elseif (spBp2IsHandlerType($type)) {
         $state = spBp2ResolveEffect($state, $pid, $source, $ab, $ctx);
+    } elseif (function_exists('plMusePb2IsEffectType') && plMusePb2IsEffectType($type)) {
+        $state = plMusePb2ResolveEffect($state, $pid, $source, $ab, $ctx);
     }
 
     unset($p);

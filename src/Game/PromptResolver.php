@@ -391,6 +391,13 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         return $spBp2Prompt;
     }
 
+    if (function_exists('plMusePb2ResolvePrompt')) {
+        $musePb2Prompt = plMusePb2ResolvePrompt($state, $owner, $prompt, $choice, $data);
+        if ($musePb2Prompt !== null) {
+            return $musePb2Prompt;
+        }
+    }
+
     if ($promptType === 'live_success_order_sources') {
         $cands = is_array($prompt['candidates'] ?? null) ? $prompt['candidates'] : [];
         $expected = [];

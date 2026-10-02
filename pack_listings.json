@@ -147,6 +147,17 @@
         }
       ]
     },
+    "pb_muse_duo": {
+      "note": "Premium Booster Love Live! DUO (PBLL02) — official product slide art as pack/box faces.",
+      "pack_style": "photo",
+      "packs": [
+        {
+          "output": "pb_muse_duo-a.jpg",
+          "source_url": "https://llofficial-cardgame.com/wordpress/wp-content/uploads/2026/08/06193054/11_PB%CE%BCsDUO_5.png",
+          "crop": "auto"
+        }
+      ]
+    },
     "pb_hasunosora": {
       "asin": "B0DNB2QRQK",
       "amazon_url": "https://www.amazon.co.jp/dp/B0DNB2QRQK",

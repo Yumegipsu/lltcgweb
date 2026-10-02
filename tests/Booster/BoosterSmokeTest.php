@@ -42,6 +42,12 @@ final class BoosterSmokeTest extends TestCase
         $this->assertSame(20, $byId['pb_superstar_duo']['packs_per_box']);
         $this->assertSame(60, $byId['pb_superstar_duo']['star_gems_pack_cost']);
         $this->assertSame(1200, $byId['pb_superstar_duo']['star_gems_box_cost']);
+
+        $this->assertSame(3, $byId['pb_muse_duo']['pack_size']);
+        $this->assertSame(20, $byId['pb_muse_duo']['packs_per_box']);
+        $this->assertSame(60, $byId['pb_muse_duo']['star_gems_pack_cost']);
+        $this->assertSame(1200, $byId['pb_muse_duo']['star_gems_box_cost']);
+        $this->assertSame('pb_duo', $byId['pb_muse_duo']['kind']);
     }
 
     public function testPbSuperstarDuoPackHasThreeCards(): void
@@ -59,6 +65,34 @@ final class BoosterSmokeTest extends TestCase
         $this->assertSame('pb_superstar_duo', $out['box']['id'] ?? '');
         $this->assertCount(3, $out['card_nos'] ?? []);
         $this->assertSame(60, $out['star_gems_spent'] ?? 0);
+    }
+
+    public function testPbMuseDuoPackHasThreeCards(): void
+    {
+        $this->loadBooster();
+        $cardsData = json_decode((string)file_get_contents(CARDS_FILE), true);
+        $discordId = 'test_booster_muse_duo_' . bin2hex(random_bytes(4));
+        tcgEnsureUser($discordId, ['username' => 'Booster Muse Duo']);
+        $db = tcgDb();
+        $db->prepare('UPDATE tcg_users SET star_gems = 5000, updated_at = ? WHERE discord_id = ?')
+            ->execute([time(), $discordId]);
+
+        $out = tcgOpenBoosterPack($discordId, 'pb_muse_duo', $cardsData, 'gems');
+        $this->assertSame('pack', $out['mode'] ?? '');
+        $this->assertSame('pb_muse_duo', $out['box']['id'] ?? '');
+        $this->assertCount(3, $out['card_nos'] ?? []);
+        $this->assertSame(60, $out['star_gems_spent'] ?? 0);
+        foreach ($out['card_nos'] ?? [] as $no) {
+            $card = null;
+            foreach ($cardsData['cards'] ?? [] as $c) {
+                if (($c['card_no'] ?? '') === $no) {
+                    $card = $c;
+                    break;
+                }
+            }
+            $this->assertNotNull($card, $no);
+            $this->assertSame('プレミアムブースター ラブライブ！DUO', $card['booster_pack'] ?? '');
+        }
     }
 
     public function testPremiumBoosterNijiPackHasThreeCardsAndCostsSixty(): void

@@ -28,6 +28,7 @@ require_once __DIR__ . '/s_bp6_effects.php';
 require_once __DIR__ . '/s_sd1_effects.php';
 require_once __DIR__ . '/sp_bp2_effects.php';
 require_once __DIR__ . '/sp_bp5_effects.php';
+require_once __DIR__ . '/pl_muse_pb2_effects.php';
 require_once __DIR__ . '/play_stats.php';
 require_once __DIR__ . '/pl_muse_gap_effects.php';
 require_once __DIR__ . '/pl_sp_sd2_effects.php';
@@ -4357,6 +4358,9 @@ function getMemberBlade(array $member, array $state, string $pid, string $slot =
             }
             if (plMuseGapIsEffectType($ab['type'] ?? '')) {
                 $blade = plMuseGapApplyContinuousBlade($blade, $member, $state, $pid, $ab);
+            }
+            if (function_exists('plMusePb2IsEffectType') && plMusePb2IsEffectType($ab['type'] ?? '')) {
+                $blade = plMusePb2ApplyContinuousBlade($blade, $member, $state, $pid, $ab);
             }
             if (plSpSd2IsEffectType($ab['type'] ?? '')) {
                 $blade = plSpSd2ApplyContinuousBlade($blade, $member, $state, $pid, $ab);
