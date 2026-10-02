@@ -58,8 +58,8 @@
   var SKILL_BRACKETS_ZH = {
     'On Enter': '入场时',
     'On Leave': '离场时',
-    'Live Start': 'Live开始',
-    'Live Success': 'Live成功',
+    'Live Start': '现场开始',
+    'Live Success': '现场成功',
     'Activated': '起动',
     'Always': '永续',
     'Automatic': '自动',

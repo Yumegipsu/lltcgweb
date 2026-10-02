@@ -8384,7 +8384,7 @@
         },
         "type": {
           "member": "成员",
-          "live": "LIVE",
+          "live": "现场",
           "energy": "能量"
         },
         "searchMode": {
@@ -8811,7 +8811,7 @@
       "waitingSkill": "等待技能",
       "yourHand": "你的手",
       "mainDeck": "主甲板",
-      "waitingRoom": "候诊室",
+      "waitingRoom": "等候室",
       "oppWaitingRoom": "对手等候室",
       "deckHidden": "对手的牌组是隐藏的。",
       "energyDeck": "能量牌组",
@@ -8951,22 +8951,22 @@
       "deckRefresh": "套牌刷新",
       "deckRefreshOpp": "{name} — 牌组刷新",
       "deckRefreshSub": "从等候室洗出 {n} 张卡",
-      "youAttemptLive": "你尝试直播！",
-      "theyAttemptLive": "{name} 尝试现场直播",
-      "attemptSub": "画画喊·检查心",
-      "youWait": "你等等",
-      "theyWait": "{name} 等待",
-      "youWaitSub": "活卡保留在存储中",
-      "theyWaitSub": "活卡保留在其存储中",
-      "perfRoundFailed": "{ok}通过心形·回合失败（所有生命必须成功）",
-      "perfCleared": "{ok} 活牌已清除该轮",
-      "perfMixed": "{ok}成功·{fail}失败的心→等候室",
+      "youAttemptLive": "你发起现场！",
+      "theyAttemptLive": "{name} 发起现场",
+      "attemptSub": "翻开 Yell・检查心形",
+      "youWait": "待机中",
+      "theyWait": "{name} 待机中",
+      "youWaitSub": "现场卡仍留在存储区",
+      "theyWaitSub": "现场卡仍留在其存储区",
+      "perfRoundFailed": "{ok} 心形通过・本轮失败（所有现场都必须成功）",
+      "perfCleared": "{ok} 本轮现场卡已清除",
+      "perfMixed": "{ok} 成功・{fail} 失败的心形→等候室",
       "yourLivePerformance": "你的现场表演",
-      "theirLive": "{name} 直播",
-      "perfSubYell": "大喊{blades}·{sub}",
-      "successLiveYou": "直播成功！",
-      "successLiveThey": "{name} — 成功直播！",
-      "successLiveSubYou": "一张 Live 卡将助您取得成功",
+      "theirLive": "{name} 的现场",
+      "perfSubYell": "Yell {blades}・{sub}",
+      "successLiveYou": "现场成功！",
+      "successLiveThey": "{name} — 现场成功！",
+      "successLiveSubYou": "一张现场卡将助你取得成功",
       "successLiveSubThey": "Live 卡与他们的成功相结合",
       "bothWait": "双方玩家都在等待",
       "bothWaitSub": "活卡仍保留在存储中",
@@ -9115,12 +9115,12 @@
         "body": "当该成员离开您的舞台时触发（被发送到等候室、接棒通行证等）。"
       },
       "liveStart": {
-        "title": "Live开始",
-        "body": "在尝试 Live 之后的 Live开始步骤中结算。许多效果是可选的——留意“你可以”。"
+        "title": "现场开始",
+        "body": "在发起现场之后的现场开始步骤中结算。许多效果是可选的——留意“你可以”。"
       },
       "liveSuccess": {
-        "title": "Live成功",
-        "body": "当你的 Live 表演成功时结算——所尝试的 Live 卡所需心形已满足。"
+        "title": "现场成功",
+        "body": "当你的现场表演成功时结算——所尝试的现场卡所需心形已满足。"
       },
       "activated": {
         "title": "起动",
@@ -9144,11 +9144,11 @@
       },
       "yell": {
         "title": "Yell",
-        "body": "在 Live 表演中，从牌组翻开张数等于你活跃舞台成员 Blade 合计的卡牌。翻开卡上的心形用于满足 Live 卡的所需心形。Yell 翻开的卡随后进入等候室。"
+        "body": "在现场表演中，从牌组翻开张数等于你活跃舞台成员 Blade 合计的卡牌。翻开卡上的心形用于满足现场卡的所需心形。Yell 翻开的卡随后进入等候室。"
       },
       "wait": {
-        "body": "处于 Wait（待机）的成员本回合不贡献 Blade——不会增加 Live 表演中为 Yell 翻开的牌的 Blade。这与等候室不同。",
-        "title": "Wait（待机）"
+        "body": "处于待机的成员本回合不贡献 Blade——不会增加现场表演中为 Yell 翻开的牌数。这与等候室不同。",
+        "title": "待机"
       },
       "twicePerTurn": {
         "title": "每回合2次",
@@ -9648,7 +9648,7 @@
     },
     "cardType": {
       "member": "成员",
-      "live": "Live",
+      "live": "现场",
       "energy": "能量"
     },
     "sticker": {
@@ -18380,12 +18380,12 @@
   };
   var ZH_CARD_TYPE_MAP = {
     'メンバー': '成员',
-    'ライブ': 'Live',
+    'ライブ': '现场',
     'エネルギー': '能量',
   };
   var ZH_CARD_TYPE_EN_MAP = {
     'Member': '成员',
-    'Live': 'Live',
+    'Live': '现场',
     'Energy': '能量',
   };
 

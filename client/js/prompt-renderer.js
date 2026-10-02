@@ -1157,8 +1157,13 @@ function localizedAbilityLineForPrompt(text, pr, s) {
     || ruleTextComparable(raw) === ruleTextComparable(`${abPrompt}?`)
     || promptTextMatchesCardLine(raw, abPrompt)
   );
-  if (!raw || ruleTextComparable(raw) === ruleTextComparable(effectEn) || promptMatch || enLine) {
-    if (raw.endsWith('?') && !/[?？]$/.test(fromAbility)) {
+  const choices = Array.isArray(pr?.choices) ? pr.choices : [];
+  const optionalChoose = choices.includes('yes') || choices.includes('no')
+    || choices.includes('Yes') || choices.includes('No');
+  // Server optional prompts are often shortened English; once the ability is
+  // identified, prefer the printed locale line (Hanayo On Enter, etc.).
+  if (!raw || ruleTextComparable(raw) === ruleTextComparable(effectEn) || promptMatch || enLine || optionalChoose) {
+    if ((raw.endsWith('?') || optionalChoose) && !/[?？]$/.test(fromAbility)) {
       return fromAbility.replace(/[。．.]$/, '') + (getLocale() === 'zh' || getLocale() === 'ja' ? '？' : '?');
     }
     return fromAbility;

@@ -3258,8 +3258,8 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=216"></script>
-<script src="log_i18n.js?v=20"></script>
+<script src="i18n.js?v=217"></script>
+<script src="log_i18n.js?v=21"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=44"></script>
 <script src="client/js/social.js?v=39"></script>
@@ -3298,7 +3298,7 @@ try {
 <script src="client/js/stamps.js?v=21"></script>
 <script src="client/js/replay-debug.js?v=15"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
-<script src="client/js/prompt-renderer.js?v=109"></script>
+<script src="client/js/prompt-renderer.js?v=110"></script>
 <script src="client/js/tutorial-interactive.js?v=26"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -27032,7 +27032,7 @@ const RULE_KW_BRACKET_LABELS_EN = 'On Enter|On Leave|Live Start|Live Success|Act
 const RULE_KW_BRACKET_LABELS_JA = '登場時|退場時|ライブ開始時|ライブ開始|ライブ成功時|ライブ成功|起動|常時|ターン1回|ターン2回|自動|センター|左サイド|右サイド|エール';
 const RULE_KW_BRACKET_LABELS_ES = 'Al entrar|Al salir|Inicio de Live|Éxito de Live|Activada|Siempre|Una vez por turno|Dos veces por turno|Automático|Centro|Lado izquierdo|Lado derecho|Yell';
 const RULE_KW_BRACKET_LABELS_KO = '등장 시|퇴장 시|라이브 개시|라이브 성공|기동|상시|턴에 1회|턴당 2회|자동|센터|왼쪽|오른쪽|Yell';
-const RULE_KW_BRACKET_LABELS_ZH = '入场时|离场时|Live开始|Live成功|起动|永续|每回合1次|每回合2次|自动|中央|左侧|右侧|Yell';
+const RULE_KW_BRACKET_LABELS_ZH = '入场时|登场|进入时|输入时|离场时|现场开始|Live开始|实时开始|直播开始|现场成功|Live成功|直播成功|生存成功|起动|启动|永续|始终|常|总是|每回合1次|每回合2次|自动|中央|左侧|右侧|Yell';
 const RULE_KW_BRACKET_LABELS_TH = 'เมื่อเข้าสนาม|เมื่อออกจากสนาม|เริ่ม Live|Live สำเร็จ|เปิดใช้|ต่อเนื่อง|เทิร์นละ 1 ครั้ง|เทิร์นละ 2 ครั้ง|อัตโนมัติ|เซ็นเตอร์|Yell|ฝั่งซ้าย|ฝั่งขวา';
 const RULE_KW_BRACKET_LABELS_PT = 'Ao Entrar|Ao Sair|Início de Live|Live Bem-Sucedida|Ativado|Sempre|Uma vez por turno|Duas vezes por turno|Automático|Centro|Lado Esquerdo|Lado Direito|Yell';
 const RULE_KW_BRACKET_LABELS_FR = "À l'entrée|À la sortie|Début de Live|Live réussi|Activé|Permanent|Une fois par tour|Deux fois par tour|Automatique|Centre|Côté gauche|Côté droit|Yell";
@@ -27089,11 +27089,24 @@ const RULE_KW_KO_TO_EN = {
 
 const RULE_KW_ZH_TO_EN = {
   '入场时': 'On Enter',
+  '登场': 'On Enter',
+  '进入时': 'On Enter',
+  '输入时': 'On Enter',
   '离场时': 'On Leave',
+  '现场开始': 'Live Start',
   'Live开始': 'Live Start',
+  '实时开始': 'Live Start',
+  '直播开始': 'Live Start',
+  '现场成功': 'Live Success',
   'Live成功': 'Live Success',
+  '直播成功': 'Live Success',
+  '生存成功': 'Live Success',
   '起动': 'Activated',
+  '启动': 'Activated',
   '永续': 'Always',
+  '始终': 'Always',
+  '常': 'Always',
+  '总是': 'Always',
   '每回合1次': 'Once per turn',
   '每回合2次': 'Twice per turn',
   '自动': 'Automatic',
