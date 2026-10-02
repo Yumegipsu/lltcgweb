@@ -1333,7 +1333,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             return $state;
         }
         if ($step === 'pick_hand') {
-            $handId = (string)($data['instance_id'] ?? $choice);
+            $handId = (string)($data['instance_id'] ?? $data['card_id'] ?? $choice);
             $handCard = null;
             foreach ($p['hand'] as $i => $c) {
                 if (($c['instance_id'] ?? '') === $handId) {
@@ -1362,7 +1362,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
         }
         if ($step === 'pick_success') {
             $handId = (string)($prompt['hand_instance_id'] ?? '');
-            $succId = (string)($data['instance_id'] ?? $choice);
+            $succId = (string)($data['instance_id'] ?? $data['card_id'] ?? $choice);
             $handCard = null;
             $handIdx = -1;
             foreach ($p['hand'] as $i => $c) {

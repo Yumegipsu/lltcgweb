@@ -1218,6 +1218,7 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'spbp2_stack_wr_member', 'spbp2_wait_self_opp_heart_gap',
   'spbp2_center_move_choose', 'spbp2_center_move_position',
   'stack_wr_under',
+  'optional_reveal_hand_live_swap_success', 'pb2_pick_hand_success_swap',
   'activated_discard_trigger_on_enter',
   'stack_energy_zone_pick',
   'both_shuffle_wr_members_deck_bottom_threshold',
@@ -5102,6 +5103,38 @@ function cpuResolvePromptBody(s, cpu, pr) {
     else if(ids.length) cpuAct('resolve_prompt',{instance_ids:ids});
     else cpuAct('resolve_prompt',{choice:'skip'});
     return;
+  }
+  // Rin PL!-pb2-014: reveal lily white Live ↔ Success Live swap (#217).
+  if(pr.type==='optional_reveal_hand_live_swap_success'){
+    const handCands=pr.hand_candidates||[];
+    const succCands=pr.success_candidates||cpu.success_lives||[];
+    const take=tier!=='easy' && handCands.length && succCands.length;
+    cpuAct('resolve_prompt',{choice: take ? 'yes' : 'no'});
+    return;
+  }
+  if(pr.type==='pb2_pick_hand_success_swap'){
+    if(pr.step==='pick_hand'){
+      const cands=(pr.candidates||[]).filter(c=>c&&c.instance_id);
+      const pick=cands.sort((a,b)=>(b.score||0)-(a.score||0))[0]
+        || hand.filter(c=>c.card_type==='ライブ').sort((a,b)=>(b.score||0)-(a.score||0))[0];
+      if(pick?.instance_id){
+        cpuAct('resolve_prompt',{instance_id:pick.instance_id, card_id:pick.instance_id});
+      } else {
+        cpuAct('resolve_prompt',{choice:'no'});
+      }
+      return;
+    }
+    if(pr.step==='pick_success'){
+      const cands=(pr.candidates||[]).filter(c=>c&&c.instance_id);
+      const pool=cands.length ? cands : (cpu.success_lives||[]);
+      const pick=[...pool].sort((a,b)=>(a.score||0)-(b.score||0))[0];
+      if(pick?.instance_id){
+        cpuAct('resolve_prompt',{instance_id:pick.instance_id, card_id:pick.instance_id});
+      } else {
+        cpuAct('resolve_prompt',{choice:'no'});
+      }
+      return;
+    }
   }
   if(pr.type==='spbp2_wait_self_opp_heart_gap'){
     if(pr.step==='confirm'){

@@ -3626,6 +3626,42 @@ global.renderPrompt = function renderPrompt(s, myId){
       }
     }
   }
+  // Rin PL!-pb2-014: optional yes/no falls through; pick steps need UI (#217).
+  if(pr?.type==='pb2_pick_hand_success_swap'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    if(pr.step==='pick_hand'){
+      const ids=new Set((pr.candidates||[]).map(c=>c&&c.instance_id).filter(Boolean));
+      const hand=(pr.candidates||[]).length
+        ? (me?.hand||[]).filter(c=>ids.has(c.instance_id))
+        : (me?.hand||[]).filter(c=>c.card_type==='ライブ');
+      if(!hand.length){
+        sendAct('resolve_prompt',{choice:'no'});
+        return;
+      }
+      openHandPick({
+        hand,
+        count: 1,
+        title: promptDisplayTitle(pr, pr.source_name||'Reveal Live', s),
+        msg: promptDisplayText(pr, 'Choose 1 Live from your hand to reveal.', s),
+        allowCancel: false,
+        onConfirm: (picked)=> sendAct('resolve_prompt',{
+          instance_id: picked[0],
+          card_id: picked[0],
+        }),
+      });
+      return;
+    }
+    if(pr.step==='pick_success'){
+      const cands=(pr.candidates||[]).filter(c=>c&&c.instance_id);
+      if(!cands.length){
+        sendAct('resolve_prompt',{choice:'no'});
+        return;
+      }
+      openSuccessLiveAreaPick({...pr, candidates:cands}, { state:s, myId });
+      return;
+    }
+  }
   if(pr?.type==='mandatory_discard_after_draw'&&pr.responder===myId){
     ovl.classList.remove('open');
     const me=s.players?.[myId];
