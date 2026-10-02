@@ -297,7 +297,8 @@
   };
 
   function pollDelayAfterError(errorMsg) {
-    if (typeof errorMsg === 'string' && /rate limit/i.test(errorMsg)) {
+    if (typeof errorMsg === 'string'
+        && (/rate limit/i.test(errorMsg) || /request blocked|request failed \(403\)|forbidden/i.test(errorMsg))) {
       G._pollRateLimitBackoff = Math.min((G._pollRateLimitBackoff || 0) + 1, 6);
       return Math.min(8000, 800 * (2 ** G._pollRateLimitBackoff));
     }

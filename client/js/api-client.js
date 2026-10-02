@@ -121,7 +121,9 @@
   };
 
   global.tcgNoteHostingerFailure = function tcgNoteHostingerFailure(err) {
-    if (!global.isTransientAccountError(err) && !(err && (err.httpStatus >= 500 || err.httpStatus === 429 || err.httpStatus === 408))) {
+    // Include WAF/Imunify 403 — those are temporary Hostinger blocks, not permanent rejects.
+    if (!global.isTransientAccountError(err)
+        && !(err && (err.httpStatus >= 500 || err.httpStatus === 429 || err.httpStatus === 408 || err.httpStatus === 403))) {
       return;
     }
     const s = global._tcgOverflow;
@@ -317,14 +319,27 @@
     return global.isAuthRejectedError(err);
   };
 
+  /** Hostinger/Imunify (or edge) HTML 403 — temporary block, not a real game/auth reject. */
+  global.isBlockedOrWaf403 = function isBlockedOrWaf403(err) {
+    if (!err) return false;
+    const status = Number(err.httpStatus) || 0;
+    if (status !== 403) return false;
+    if (global.isAuthRejectedError(err)) return false;
+    if (err.code === 'bad_json' || err.code === 'http_403') return true;
+    const msg = String(err.message || '').trim().toLowerCase();
+    if (!msg) return true;
+    return /request blocked|request failed \(403\)|account error \(403\)|^forbidden$/.test(msg);
+  };
+
   global.isTransientAccountError = function isTransientAccountError(err) {
     if (!err) return true;
     if (global.isAuthRejectedError(err)) return false;
     if (err.transient) return true;
+    if (global.isBlockedOrWaf403(err)) return true;
     const status = Number(err.httpStatus) || 0;
     if (status === 0 || status === 408 || status === 429 || status >= 500) return true;
     const msg = String(err.message || '').toLowerCase();
-    return /timed out|timeout|network|failed to fetch|server (error|busy)|account error \(5|could not reach/.test(msg);
+    return /timed out|timeout|network|failed to fetch|server (error|busy)|account error \(5|request blocked|could not reach/.test(msg);
   };
 
     global.handleMissionCompletions = function handleMissionCompletions(res) {
@@ -441,6 +456,10 @@
       }
       const err = new Error(msg);
       err.httpStatus = status || (r.ok ? 500 : status);
+      if (status === 403 || status === 408 || status === 429 || status >= 500) {
+        err.retryable = true;
+        err.transient = true;
+      }
       throw err;
     }
     return d;
@@ -473,6 +492,10 @@
     if (!r.ok) {
       const err = new Error('Account error (' + r.status + ')');
       err.httpStatus = r.status || 500;
+      if (r.status === 403 || r.status === 408 || r.status === 429 || r.status >= 500) {
+        err.retryable = true;
+        err.transient = true;
+      }
       throw tagAccountError(err, urls);
     }
     global.handleMissionCompletions(d);
@@ -482,15 +505,24 @@
   global.accountGet = async function accountGet(action, extra = {}) {
     void global.tcgMaybeRecoverHostinger();
     const primary = global.tcgResolveApiUrls('hub', action);
-    try {
-      const d = await accountGetOnce(primary, action, extra);
-      if (primary.origin === 'hostinger') global.tcgNoteHostingerSuccess();
-      return d;
-    } catch (e) {
-      if (primary.origin === 'hostinger') global.tcgNoteHostingerFailure(e);
-      // Never fail over Discord account reads to VPS — stale replica + 401 wiped sessions.
-      throw e;
+    // Brief Hostinger/Imunify 403s are common — retry before failing auth/reconnect.
+    const maxAttempts = 3;
+    let lastErr = null;
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const d = await accountGetOnce(primary, action, extra);
+        if (primary.origin === 'hostinger') global.tcgNoteHostingerSuccess();
+        return d;
+      } catch (e) {
+        lastErr = e;
+        if (global.isAuthRejectedError(e)) throw e;
+        if (!global.isRetryableApiError(e) || attempt >= maxAttempts - 1) break;
+        await sleepMs(200 * (2 ** attempt));
+      }
     }
+    if (primary.origin === 'hostinger') global.tcgNoteHostingerFailure(lastErr);
+    // Never fail over Discord account reads to VPS — stale replica + 401 wiped sessions.
+    throw lastErr;
   };
 
   global.accountGetMeWithRetry = async function accountGetMeWithRetry(retries) {
@@ -547,6 +579,10 @@
     if (!r.ok) {
       const err = new Error('Account error (' + r.status + ')');
       err.httpStatus = r.status || 500;
+      if (r.status === 403 || r.status === 408 || r.status === 429 || r.status >= 500) {
+        err.retryable = true;
+        err.transient = true;
+      }
       throw tagAccountError(err, urls);
     }
     global.handleMissionCompletions(d);
@@ -588,10 +624,12 @@
   global.isRetryableApiError = function isRetryableApiError(err) {
     if (!err) return false;
     if (err.retryable) return true;
+    if (err.transient) return true;
+    if (global.isBlockedOrWaf403(err)) return true;
     const status = Number(err.httpStatus) || 0;
-    if (status === 503) return true;
+    if (status === 0 || status === 408 || status === 429 || status >= 500) return true;
     const msg = String(err.message || '');
-    return /Server busy|Lock timeout|Cannot acquire lock|database is locked|SQLITE_BUSY/i.test(msg);
+    return /Server busy|Lock timeout|Cannot acquire lock|database is locked|SQLITE_BUSY|Request blocked/i.test(msg);
   };
 
   function tryParseJsonLoose(text) {
@@ -653,8 +691,10 @@
       });
     }
     if (!r.ok) {
+      // Edge/WAF often returns HTML 403; treat game-API 403 as retryable so polls recover.
       throw global.createApiError(`Request failed (${status})`, status || 500, {
-        retryable: status >= 500 || status === 429,
+        retryable: status >= 500 || status === 429 || status === 408 || status === 403,
+        code: status === 403 ? 'http_403' : '',
       });
     }
     // get_state / action polls — pick up ranked PR + mission toasts even when not via apiPost.
@@ -696,13 +736,18 @@
   };
 
   global.reportTransientMatchError = function reportTransientMatchError(err) {
-    if (!err || !global.isRetryableApiError(err)) return false;
+    if (!err) return false;
+    const waf403 = typeof global.isBlockedOrWaf403 === 'function' && global.isBlockedOrWaf403(err);
+    if (!global.isRetryableApiError(err) && !waf403) return false;
     const now = Date.now();
     if (!global._matchSoftToastAt || now - global._matchSoftToastAt > 20000) {
       global._matchSoftToastAt = now;
-      const fallback = 'Server busy — the match is still going.';
       const ttFn = global.LLTCG_I18N && global.LLTCG_I18N.tt;
-      const msg = typeof ttFn === 'function' ? ttFn('toast.serverBusyMatch', fallback) : fallback;
+      const fallback = waf403
+        ? 'Request briefly blocked — reconnecting. The match is still going.'
+        : 'Server busy — the match is still going.';
+      const key = waf403 ? 'toast.requestBlockedMatch' : 'toast.serverBusyMatch';
+      const msg = typeof ttFn === 'function' ? ttFn(key, fallback) : fallback;
       if (typeof global.toast === 'function') global.toast(msg, 3200);
     }
     return true;

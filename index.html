@@ -3258,7 +3258,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=217"></script>
+<script src="i18n.js?v=218"></script>
 <script src="log_i18n.js?v=21"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=44"></script>
@@ -3267,7 +3267,7 @@ try {
 <script src="client/js/season-rank.js?v=8"></script>
 <script src="client/js/friend-push.js?v=12"></script>
 <script src="client/js/runtime-flags.js?v=5"></script>
-<script src="client/js/api-client.js?v=42"></script>
+<script src="client/js/api-client.js?v=43"></script>
 <script>
 /* Local Docker fake Discord only — skipped on production (no 404 for missing file). */
 (function () {
@@ -3293,7 +3293,7 @@ try {
 <script src="client/js/presentation-guards.js?v=11"></script>
 <script src="client/js/spectate-pip.js?v=3"></script>
 <script src="client/js/resign-escape.js?v=1"></script>
-<script src="client/js/game-sync.js?v=70"></script>
+<script src="client/js/game-sync.js?v=71"></script>
 <script src="client/js/state-apply.js?v=82"></script>
 <script src="client/js/stamps.js?v=21"></script>
 <script src="client/js/replay-debug.js?v=15"></script>
@@ -6067,7 +6067,8 @@ async function fetchGameStateForReconnect(roomId, token, apiOrigin, opts = {}) {
   if (!r.ok) {
     const err = new Error('Reconnect HTTP ' + r.status);
     err.httpStatus = r.status;
-    err.transient = r.status >= 500 || r.status === 429 || r.status === 408;
+    // 403 = Imunify/WAF blip — keep tcg_active_game and retry; never treat as room-gone.
+    err.transient = r.status >= 500 || r.status === 429 || r.status === 408 || r.status === 403;
     throw err;
   }
   return r.json();
@@ -6397,10 +6398,16 @@ async function reconnectToGame(saved, opts = {}) {
     if (appliedCredentials || (G.roomId && !hasRestoredMatchUi())) {
       rollbackFailedReconnect();
     }
-    G._reconnectLastFail = (e && (e.transient || (typeof isTransientAccountError === 'function' && isTransientAccountError(e))))
-      ? 'transient'
-      : 'transient';
-    // Timeouts / network blips — keep tcg_active_game for the next reload.
+    const waf403 = !!(e && (e.httpStatus === 403
+      || (typeof isBlockedOrWaf403 === 'function' && isBlockedOrWaf403(e))));
+    const transient = !!(e && (e.transient || waf403
+      || (typeof isTransientAccountError === 'function' && isTransientAccountError(e))));
+    G._reconnectLastFail = 'transient';
+    // Timeouts / network / WAF blips — keep tcg_active_game for the next reload.
+    if (e && typeof e === 'object') {
+      e.transient = transient || true;
+      if (waf403) e.httpStatus = e.httpStatus || 403;
+    }
     return false;
   }
 }
@@ -6525,15 +6532,18 @@ async function dropRankedActiveGameBestEffort(opts = {}) {
 /**
  * Resume local/ranked match sessions with a hard attempt cap.
  * Match-primary: never spin forever on Hostinger-only drain rooms / VPS blips.
+ * Transient/WAF 403 failures must NOT clear tcg_active_game or drop ranked
+ * active_game — that left players unable to rejoin unless they used ?resign.
  */
 async function runReconnectQueue() {
   const epoch = _reconnectQueueEpoch;
   let attempt = 0;
   let rankedEmptyConfirmed = false;
   let rankedFailStreak = 0;
+  let rankedTransientStreak = 0;
   const matchPrimary = typeof TCG_MATCH_API_PRIMARY !== 'undefined' && TCG_MATCH_API_PRIMARY;
   // Title-screen reconnect must not block hub forever.
-  const maxAttempts = matchPrimary ? 4 : 10;
+  const maxAttempts = matchPrimary ? 6 : 10;
 
   while (true) {
     if (epoch !== _reconnectQueueEpoch) {
@@ -6561,10 +6571,15 @@ async function runReconnectQueue() {
 
     attempt += 1;
     if (attempt > maxAttempts) {
-      clearActiveGameSession();
-      clearSpectatorSession();
-      await dropRankedActiveGameBestEffort();
-      G._reconnectLastFail = 'gone';
+      // Cap reached: leave credentials when the last fail was a blip so refresh can retry.
+      // Only abandon when the room is confirmed gone / auth soft-fail.
+      const keepForRetry = G._reconnectLastFail === 'transient' || G._reconnectLastFail === 'ui';
+      if (!keepForRetry) {
+        clearActiveGameSession();
+        clearSpectatorSession();
+        await dropRankedActiveGameBestEffort();
+        G._reconnectLastFail = 'gone';
+      }
       setAuthSkipReconnectVisible(false);
       return false;
     }
@@ -6600,14 +6615,14 @@ async function runReconnectQueue() {
           clearActiveGameSession();
           setAuthSkipReconnectVisible(false);
           return false;
-        } else if (matchPrimary && (G._reconnectLastFail === 'soft' || G._reconnectLastFail === 'auth'
-            || (G._reconnectLastFail === 'transient' && attempt >= 2))) {
-          // Dead / unreachable match-primary rooms must not pin the title screen.
+        } else if (matchPrimary && (G._reconnectLastFail === 'soft' || G._reconnectLastFail === 'auth')) {
+          // Soft/auth: local token rejected — clear and try ranked active_game.
+          // Do NOT clear on transient (403/5xx) — that orphaned live matches.
           clearActiveGameSession();
-          await dropRankedActiveGameBestEffort();
           if (!readSpectatorSession() && (!canRanked || attempt >= 2)) {
-            rankedEmptyConfirmed = true;
+            // ranked lookup below may still recover via active_game.
             if (!canRanked) {
+              rankedEmptyConfirmed = true;
               setAuthSkipReconnectVisible(false);
               return false;
             }
@@ -6664,14 +6679,20 @@ async function runReconnectQueue() {
               setAuthSkipReconnectVisible(false);
               return true;
             }
-            rankedFailStreak += 1;
+            if (G._reconnectLastFail === 'transient') {
+              rankedTransientStreak += 1;
+              rankedFailStreak = 0;
+            } else {
+              rankedFailStreak += 1;
+              rankedTransientStreak = 0;
+            }
+            // Never drop a live ranked row for WAF/network blips — only gone/soft/auth
+            // or a long hard-fail streak (not transient).
             const dropRanked = G._reconnectLastFail === 'gone'
               || G._reconnectLastFail === 'soft'
               || G._reconnectLastFail === 'auth'
-              || (matchPrimary && rankedFailStreak >= 2)
-              || (!matchPrimary && rankedFailStreak >= 5)
-              || attempt >= maxAttempts;
-            // Dead Hostinger drain room / unreachable VPS copy still listed as active_game.
+              || (matchPrimary && rankedFailStreak >= 3)
+              || (!matchPrimary && rankedFailStreak >= 5);
             if (dropRanked) {
               await dropRankedActiveGameBestEffort();
               clearActiveGameSession();
@@ -6681,9 +6702,14 @@ async function runReconnectQueue() {
                 return false;
               }
             }
+            // rankedTransientStreak keeps the skip-reconnect button useful while we wait out WAF.
+            if (rankedTransientStreak >= 2) {
+              setAuthSkipReconnectVisible(true);
+            }
           } else {
             rankedEmptyConfirmed = true;
             rankedFailStreak = 0;
+            rankedTransientStreak = 0;
             if (!readActiveGameSession() && !readSpectatorSession()) {
               setAuthSkipReconnectVisible(false);
               return false;
@@ -6700,10 +6726,11 @@ async function runReconnectQueue() {
           if (!readActiveGameSession() && !readSpectatorSession()) {
             if (typeof isTransientAccountError === 'function' && isTransientAccountError(e)
                 && attempt < maxAttempts) {
-              // Keep retrying ranked lookup under overload (until cap).
+              // Keep retrying ranked lookup under overload / WAF (until cap).
+              G._reconnectLastFail = 'transient';
             } else {
               // Give up — including match-primary when account API itself is wedged.
-              await dropRankedActiveGameBestEffort();
+              // Keep local session if present; do not drop ranked on account WAF alone.
               setAuthSkipReconnectVisible(false);
               return false;
             }
@@ -6723,7 +6750,7 @@ async function runReconnectQueue() {
       return true;
     }
 
-    const stillSession = !!(readActiveGameSession() || readSpectatorSession());
+    const stillSession = !!(readActiveGameSession() || readSpectatorSession() || (canRanked && !rankedEmptyConfirmed));
     if (!stillSession && rankedEmptyConfirmed) {
       setAuthSkipReconnectVisible(false);
       return false;
