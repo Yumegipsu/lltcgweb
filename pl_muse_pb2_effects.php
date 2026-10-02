@@ -986,7 +986,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'auto_yell_wait_opp_if_named_members_and_center': {
-            // Handled in yell pipeline
+            // Handled in resolveAutoYellAbilities → resolvePsychicFireAutoYellWait (#220).
             break;
         }
 

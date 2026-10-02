@@ -1138,24 +1138,116 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                 continue;
             }
             $type = $ab['type'] ?? '';
-            if ($type !== 'auto_yell_mill_extra_yell') {
+            if ($type === 'auto_yell_mill_extra_yell') {
+                $state = hsResolveHasunosoraEffect($state, $pid, $live, $ab, [
+                    'yell_cards'      => $yellCards,
+                    'live_zone_index' => $li,
+                    'ability_index'   => $idx,
+                ]);
+                if (!empty($state['pending_prompt'])) {
+                    if (isset($state['players'][$pid]['live_zone'][$li])) {
+                        markAbilityUsed($state['players'][$pid]['live_zone'][$li], $idx);
+                    }
+                    return $state;
+                }
                 continue;
             }
-            $state = hsResolveHasunosoraEffect($state, $pid, $live, $ab, [
-                'yell_cards'      => $yellCards,
-                'live_zone_index' => $li,
-                'ability_index'   => $idx,
-            ]);
-            if (!empty($state['pending_prompt'])) {
-                if (isset($state['players'][$pid]['live_zone'][$li])) {
-                    markAbilityUsed($state['players'][$pid]['live_zone'][$li], $idx);
+            if ($type === 'auto_yell_wait_opp_if_named_members_and_center') {
+                // PSYCHIC FIRE PL!-pb2-042 (#220): after this player's Yell only
+                // (per-performer Live Start → Yell), Wait an opp Member if names + Center BiBi.
+                $state = resolvePsychicFireAutoYellWait(
+                    $state,
+                    $pid,
+                    $live,
+                    $li,
+                    $idx,
+                    $ab,
+                    $yellCards
+                );
+                if (!empty($state['pending_prompt'])) {
+                    return $state;
                 }
-                return $state;
             }
         }
     }
 
     return $state;
+}
+
+/**
+ * PSYCHIC FIRE (PL!-pb2-042): Yell revealed Nico+Maki+Eli Members and Center BiBi ≥11
+ * → pick opp Stage Member with ≤N printed hearts into Wait.
+ */
+function resolvePsychicFireAutoYellWait(
+    array $state,
+    string $pid,
+    array $live,
+    int|string $liveZoneIndex,
+    int $abilityIndex,
+    array $ab,
+    array $yellCards
+): array {
+    $names = $ab['names'] ?? ['Nico Yazawa', 'Maki Nishikino', 'Eli Ayase'];
+    if (!yellRevealHasAllNamedMembers($yellCards, $names)) {
+        return $state;
+    }
+    $center = $state['players'][$pid]['stage']['center'] ?? null;
+    if (!$center || !isMemberCard($center)) {
+        return $state;
+    }
+    $needSub = (string)($ab['center_subunit'] ?? 'BiBi');
+    if ($needSub !== ''
+        && strcasecmp((string)($center['subunit'] ?? ''), $needSub) !== 0) {
+        return $state;
+    }
+    if (intval($center['cost'] ?? 0) < intval($ab['center_min_cost'] ?? 11)) {
+        return $state;
+    }
+    $srcName = $live['name_en'] ?? $live['name'] ?? 'PSYCHIC FIRE';
+    $srcId = (string)($live['instance_id'] ?? '');
+    if (isset($state['players'][$pid]['live_zone'][$liveZoneIndex])) {
+        markAbilityUsed($state['players'][$pid]['live_zone'][$liveZoneIndex], $abilityIndex);
+    }
+    $state = addLog($state, $state['players'][$pid]['name'] .
+        " — [$srcName] Yell revealed Nico/Maki/Eli with Center BiBi — Wait an opponent Member.");
+    return beginWaitOpponentStagePick(
+        $state,
+        $pid,
+        $srcName,
+        [
+            'max_original_hearts' => intval($ab['max_printed_hearts'] ?? 4),
+            'pick_count' => 1,
+        ],
+        $srcId,
+        false
+    );
+}
+
+/** True when yell reveal includes a Member matching each required name (EN/JP). */
+function yellRevealHasAllNamedMembers(array $yellCards, array $names): bool {
+    if ($names === []) {
+        return false;
+    }
+    $found = [];
+    foreach ($names as $n) {
+        $found[(string)$n] = false;
+    }
+    foreach ($yellCards as $yc) {
+        if (!is_array($yc) || !isMemberCard($yc)) {
+            continue;
+        }
+        mergeYellCardCatalogFields($yc);
+        foreach ($names as $n) {
+            $key = (string)$n;
+            if (!empty($found[$key])) {
+                continue;
+            }
+            if (cardMatchesNames($yc, [$key])) {
+                $found[$key] = true;
+            }
+        }
+    }
+    return !in_array(false, $found, true);
 }
 
 function allStackedEnergyIdsOnStage(array $p): array {
@@ -4156,12 +4248,28 @@ function finishLiveSuccessEffects(array $state): array {
 }
 
 function cardMatchesNames(array $card, array $names): bool {
-    $label = $card['name_en'] ?? $card['name'] ?? '';
+    $labels = array_values(array_unique(array_filter([
+        (string)($card['name_en'] ?? ''),
+        (string)($card['name'] ?? ''),
+    ], static fn($s) => $s !== '')));
+    if ($labels === []) {
+        return false;
+    }
     foreach ($names as $n) {
-        if ($label === $n || str_contains($label, $n)) return true;
-        if (str_contains($label, '&') || str_contains($label, '＆')) {
-            foreach (preg_split('/[&＆]/u', $label) as $part) {
-                if (trim($part) === $n) return true;
+        $n = (string)$n;
+        if ($n === '') {
+            continue;
+        }
+        foreach ($labels as $label) {
+            if ($label === $n || str_contains($label, $n)) {
+                return true;
+            }
+            if (str_contains($label, '&') || str_contains($label, '＆')) {
+                foreach (preg_split('/[&＆]/u', $label) as $part) {
+                    if (trim($part) === $n) {
+                        return true;
+                    }
+                }
             }
         }
     }
