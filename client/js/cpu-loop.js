@@ -4323,6 +4323,27 @@ function cpuResolveStepPrompt(pr, cpu, tier, winPressure, read) {
     cpuAct('resolve_prompt', { choice: hasGroup ? 'yes' : 'no' });
     return true;
   }
+  if (pr.type === 'optional_wait_mus_hearts') {
+    if (pr.step === 'pick_member') {
+      const id = pr.stage_members?.[0]?.instance_id;
+      if (id) {
+        cpuAct('resolve_prompt', { member_id: id });
+        return true;
+      }
+      cpuAct('resolve_prompt', { choice: 'no' });
+      return true;
+    }
+    if (tier === 'easy') {
+      cpuAct('resolve_prompt', { choice: 'no' });
+      return true;
+    }
+    const group = pr.group || pr.ability?.group || "μ's";
+    const hasGroup = Object.values(cpu.stage || {}).some(
+      m => m && (m.group || '') === group && !m.in_wait
+    );
+    cpuAct('resolve_prompt', { choice: hasGroup ? 'yes' : 'no' });
+    return true;
+  }
   if (pr.type === 'optional_wait_up_to_group_live_score') {
     if (pr.step === 'pick_members') {
       const max = pr.max_wait || pr.ability?.max_wait || 3;

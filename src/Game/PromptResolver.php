@@ -87,6 +87,41 @@ function applyOptionalWaitGroupMemberBlade(
     return finishLiveStartEffects($state);
 }
 
+/** PL!-bp3-008 Hanayo Live Start: Wait chosen μ's Member → bonus hearts (#235). */
+function applyOptionalWaitMusHearts(
+    array $state,
+    string $owner,
+    array $prompt,
+    string $memberId
+): array {
+    $ability = $prompt['ability'] ?? [];
+    $group = $ability['group'] ?? $prompt['group'] ?? "μ's";
+    $ownerP = &$state['players'][$owner];
+    $found = false;
+    $waitedName = 'Member';
+    foreach ($ownerP['stage'] as &$mbr) {
+        if ($mbr && ($mbr['instance_id'] ?? '') === $memberId
+            && ($mbr['group'] ?? '') === $group
+            && !memberIsInWait($mbr)) {
+            $waitedName = $mbr['name_en'] ?? $mbr['name'] ?? 'Member';
+            waitMember($mbr, $state);
+            $found = true;
+            break;
+        }
+    }
+    unset($mbr);
+    if (!$found) {
+        throw new Exception('Choose a ' . $group . ' Member on Stage');
+    }
+    addBonusHeartsToModifier($state, $owner, $ability['hearts'] ?? []);
+    $state = addLog($state, $state['players'][$owner]['name'] .
+        ' — [' . ($prompt['source_name'] ?? 'Member') . '] Waited ' .
+        $waitedName . ' for bonus hearts.');
+    unset($state['pending_prompt']);
+    $state['seq']++;
+    return finishLiveStartEffects($state);
+}
+
 function applyAutoOnAllyWaitActivateBlade(array $state, string $owner, array $prompt): array {
     $ownerP = &$state['players'][$owner];
     $waitedId = (string)($prompt['waited_id'] ?? '');
@@ -3445,23 +3480,58 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
     }
 
     if ($promptType === 'optional_wait_mus_hearts') {
+        $step = $prompt['step'] ?? '';
+        if ($step === 'pick_member') {
+            $mid = $data['member_id'] ?? '';
+            if ($mid === '' && !empty($data['slot'])) {
+                $mid = trim((string)($ownerP['stage'][$data['slot']]['instance_id'] ?? ''));
+            }
+            if ($mid === '') {
+                throw new Exception('Choose a Member on Stage');
+            }
+            return applyOptionalWaitMusHearts($state, $owner, $prompt, $mid);
+        }
         if (!isset(['yes' => true, 'no' => true][$choice])) {
             throw new Exception('Invalid choice');
         }
         if ($choice === 'yes') {
-            if (waitFirstGroupMember($ownerP, $ability['group'] ?? 'μ\'s', $state)) {
-                addBonusHeartsToModifier($state, $owner, $ability['hearts'] ?? []);
+            $group = $ability['group'] ?? $prompt['group'] ?? "μ's";
+            $members = listGroupStageMembersNotWaiting($ownerP, $group);
+            if (empty($members)) {
                 $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] Waited a μ\'s Member for bonus hearts.');
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] no $group Members on Stage.");
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishLiveStartEffects($state);
             }
-        } else {
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional Live Start effect.');
+            if (count($members) === 1) {
+                return applyOptionalWaitMusHearts(
+                    $state,
+                    $owner,
+                    $prompt,
+                    (string)($members[0]['instance_id'] ?? '')
+                );
+            }
+            $state['pending_prompt'] = [
+                'type'          => 'optional_wait_mus_hearts',
+                'step'          => 'pick_member',
+                'owner'         => $owner,
+                'responder'     => $owner,
+                'source_id'     => $prompt['source_id'] ?? '',
+                'source_name'   => $prompt['source_name'] ?? 'Member',
+                'group'         => $group,
+                'stage_members' => $members,
+                'prompt'        => 'Choose 1 ' . $group . ' Member to put into Wait.',
+                'ability'       => $ability,
+            ];
+            $state['seq']++;
+            return $state;
         }
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional Live Start effect.');
         unset($state['pending_prompt']);
         $state['seq']++;
-        $state = finishLiveStartEffects($state);
-        return $state;
+        return finishLiveStartEffects($state);
     }
 
     if ($promptType === 'optional_wait_self_surveil') {

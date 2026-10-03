@@ -599,7 +599,9 @@ function tryResolveAbilityEffectSwitchOptional(
                     'type'          => 'optional_wait_mus_hearts',
                     'owner'         => $pid,
                     'responder'     => $pid,
+                    'source_id'     => $source['instance_id'] ?? '',
                     'source_name'   => $name,
+                    'group'         => $ab['group'] ?? "μ's",
                     'prompt'        => 'Put 1 μ\'s Member on your Stage into Wait to gain bonus hearts until this Live ends?',
                     'choices'       => ['yes', 'no'],
                     'choice_labels' => ['Yes', 'No — Skip'],
@@ -609,10 +611,26 @@ function tryResolveAbilityEffectSwitchOptional(
                     ' — [' . $name . '] optional Live Start effect (choose).');
                 break;
             }
-            if (waitFirstGroupMember($p, $ab['group'] ?? 'μ\'s', $state)) {
-                addBonusHeartsToModifier($state, $pid, $ab['hearts'] ?? []);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] Waited a μ\'s Member for bonus hearts.');
+            // Direct confirm (tests / auto): Wait chosen member_id or sole Active μ's Member.
+            $group = $ab['group'] ?? "μ's";
+            $mid = (string)($ctx['member_id'] ?? '');
+            $members = listGroupStageMembersNotWaiting($p, $group);
+            if ($mid === '' && count($members) === 1) {
+                $mid = (string)($members[0]['instance_id'] ?? '');
+            }
+            if ($mid !== '') {
+                foreach ($p['stage'] as &$mbr) {
+                    if ($mbr && ($mbr['instance_id'] ?? '') === $mid
+                        && ($mbr['group'] ?? '') === $group
+                        && !memberIsInWait($mbr)) {
+                        waitMember($mbr, $state);
+                        addBonusHeartsToModifier($state, $pid, $ab['hearts'] ?? []);
+                        $state = addLog($state, $state['players'][$pid]['name'] .
+                            ' — [' . $name . '] Waited a μ\'s Member for bonus hearts.');
+                        break;
+                    }
+                }
+                unset($mbr);
             }
             break;
 

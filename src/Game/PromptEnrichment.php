@@ -163,6 +163,7 @@ function isSelfActivationPromptType(string $type): bool {
         'optional_wait_subunit_opp_pick_active',
         'optional_wait_group_member_draw_discard',
         'optional_wait_group_member_blade',
+        'optional_wait_mus_hearts',
         'optional_wait_up_to_group_live_score',
         'wait_other_group_draw',
         'auto_on_ally_wait_activate_blade',

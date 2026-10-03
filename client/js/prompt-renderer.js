@@ -2632,6 +2632,20 @@ global.renderPrompt = function renderPrompt(s, myId){
       return;
     }
   }
+  if (pr?.type === 'optional_wait_mus_hearts' && pr.step === 'pick_member' && pr.responder === myId) {
+    ovl.classList.remove('open');
+    const members = pr.stage_members || [];
+    if (!members.length) {
+      sendAct('resolve_prompt', { choice: 'no' });
+      return;
+    }
+    openOppActiveMemberPick({
+      ...pr,
+      stage_members: members,
+      prompt: promptDisplayText(pr, `Choose 1 ${pr.group || "μ's"} Member to put into Wait.`, s),
+    });
+    return;
+  }
   if (pr?.type === 'optional_wait_up_to_group_live_score' && pr.step === 'pick_members' && pr.responder === myId) {
     ovl.classList.remove('open');
     openMemberWaitPick({
