@@ -4002,19 +4002,20 @@ global.renderPrompt = function renderPrompt(s, myId){
     openStageMemberPickById({...pr, candidates:cands, optional:false, choices:[]});
     return;
   }
-  if((pr?.type==='bp5_wr_live_deck_position'||pr?.type==='bp5_pick_kasumi_reveal'||pr?.type==='bp5_discard_pay_wr_live_score'&&pr.step==='pick_live'||pr?.type==='sbp5_pick_revealed_member'||pr?.type==='sbp5_pick_yell_members'||pr?.type==='sbp5_wr_lives_deck_top'||pr?.type==='sbp6_pick_revealed_member'||pr?.type==='sbp6_swap_pick_wr_member'||pr?.type==='sbp6_live_zone_deck_top_hearts'||pr?.type==='ssd1_play_wr_empty'&&pr.step==='pick_wr'||pr?.type==='both_wr_member_to_empty_stage'&&pr.step==='pick_wr'||pr?.type==='ssd1_reveal_group_deck'&&pr.step==='pick_hand'||pr?.type==='spbp5_distinct_groups'||pr?.type==='spbp5_subunit_blade_pick'||pr?.type==='spbp5_pick_wr_live'||pr?.type==='spbp5_wait_discard_surveil'&&pr.step==='pick')&&(pr.responder||pr.owner)===myId){
+  if((pr?.type==='bp5_wr_live_deck_position'||pr?.type==='bp5_pick_kasumi_reveal'||pr?.type==='bp5_discard_pay_wr_live_score'&&pr.step==='pick_live'||pr?.type==='sbp5_pick_revealed_member'||pr?.type==='sbp5_pick_yell_members'||pr?.type==='sbp5_wr_lives_deck_top'||pr?.type==='sbp6_pick_revealed_member'||pr?.type==='sbp6_swap_pick_wr_member'||pr?.type==='sbp6_live_zone_deck_top_hearts'||pr?.type==='ssd1_play_wr_empty'&&pr.step==='pick_wr'||pr?.type==='both_wr_member_to_empty_stage'&&pr.step==='pick_wr'||pr?.type==='ssd1_reveal_group_deck'&&pr.step==='pick_hand'||pr?.type==='spbp5_distinct_groups'||pr?.type==='spbp5_subunit_blade_pick'||pr?.type==='spbp5_pick_wr_live'||pr?.type==='spbp5_wait_discard_surveil'&&pr.step==='pick'||pr?.type==='pb2_pick_revealed_subunit_live')&&(pr.responder||pr.owner)===myId){
     ovl.classList.remove('open');
     const mandatoryBothWr = pr.type === 'both_wr_member_to_empty_stage';
+    const mandatoryUmiReveal = pr.type === 'pb2_pick_revealed_subunit_live';
     openHandPick({
       hand: pr.candidates||[],
       count: 1,
       min: 1,
       title: pr.source_name||'Choose card',
       msg: promptDisplayText(pr, 'Choose a card.', s),
-      allowCancel: !mandatoryBothWr,
+      allowCancel: !mandatoryBothWr && !mandatoryUmiReveal,
       onConfirm: (picked)=> sendAct('resolve_prompt',{card_id:picked[0]}),
       onCancel: ()=> {
-        if (mandatoryBothWr) return;
+        if (mandatoryBothWr || mandatoryUmiReveal) return;
         sendAct('resolve_prompt',{choice:'no'});
       }
     });

@@ -545,33 +545,80 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'reveal_top_all_subunit_add_live': {
-            $look = intval($ab['look'] ?? 4);
+            // Umi PL!-pb2-013 — reveal top N; if all match subunit, add 1 Live to hand (#226).
+            $look = max(1, intval($ab['look'] ?? 4));
             $subunit = $ab['subunit'] ?? 'lily white';
             $drawn = [];
             for ($i = 0; $i < $look; $i++) {
-                if (empty($p['deck'])) {
-                    refreshEmptyMainDecks($state, $pid);
+                if (empty($p['main_deck'])) {
+                    refreshMainDeckFromWaitingRoom($state, $pid);
                 }
-                if (empty($p['deck'])) {
+                if (empty($p['main_deck'])) {
                     break;
                 }
-                $drawn[] = array_shift($p['deck']);
+                $card = array_shift($p['main_deck']);
+                if (!is_array($card)) {
+                    continue;
+                }
+                mergeCardCatalogFields($card);
+                $drawn[] = $card;
             }
-            $all = $drawn && array_reduce($drawn, function ($ok, $c) use ($subunit) {
-                return $ok && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0;
-            }, true);
-            if ($all) {
-                $lives = array_values(array_filter($drawn, fn($c) => isLiveTypeCard($c)));
+            if ($drawn === []) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] On Enter: deck is empty.");
+                break;
+            }
+            $state = queuePublicSkillReveal($state, $pid, $drawn, $name, 'deck_to_wr');
+            $p = &$state['players'][$pid];
+
+            $allMatch = true;
+            foreach ($drawn as $c) {
+                if (!cardMatchesSubunit($c, $subunit)) {
+                    $allMatch = false;
+                    break;
+                }
+            }
+            if ($allMatch) {
+                $lives = array_values(array_filter(
+                    $drawn,
+                    static fn($c) => isLiveTypeCard($c) && cardMatchesSubunit($c, $subunit)
+                ));
                 if ($lives) {
+                    if (count($lives) > 1 && empty($state['pending_prompt'])) {
+                        // Hold the whole reveal pile until the player picks a Live.
+                        $state = plMusePb2SetPendingPrompt($state, [
+                            'type' => 'pb2_pick_revealed_subunit_live',
+                            'owner' => $pid,
+                            'player_id' => $pid,
+                            'responder' => $pid,
+                            'source_instance_id' => $source['instance_id'] ?? '',
+                            'source_name' => $name,
+                            'subunit' => $subunit,
+                            'revealed' => $drawn,
+                            'candidates' => array_map('cardPromptSummary', $lives),
+                            'min' => 1,
+                            'max' => 1,
+                            'prompt' => "Choose 1 $subunit Live card to add to your hand. The rest go to the Waiting Room.",
+                        ]);
+                        break;
+                    }
                     $pick = $lives[0];
                     $p['hand'][] = $pick;
                     $drawn = array_values(array_filter(
                         $drawn,
-                        fn($c) => ($c['instance_id'] ?? '') !== ($pick['instance_id'] ?? '')
+                        static fn($c) => ($c['instance_id'] ?? '') !== ($pick['instance_id'] ?? '')
                     ));
                     $state = addLog($state, $state['players'][$pid]['name'] .
                         " — [$name] added " . cardDisplayName($pick) . " to hand.");
+                    $p = &$state['players'][$pid];
+                } else {
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] all $subunit, but no Live among them.");
                 }
+            } else {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] revealed cards are not all $subunit.");
+                $p = &$state['players'][$pid];
             }
             foreach ($drawn as $c) {
                 $p['waiting_room'][] = $c;
@@ -1176,6 +1223,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
         'stack_wr_under',
         'pb2_pick_opp_wait_activate',
         'pb2_pick_hand_success_swap',
+        'pb2_pick_revealed_subunit_live',
         'pb2_pick_distinct_discard_wait_opp',
         'pb2_pick_unstack_toggle',
         'pb2_pick_toggle_printemps',
@@ -1194,7 +1242,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
     $step = (string)($prompt['step'] ?? '');
 
     if (in_array($choice, ['skip', 'cancel', 'no'], true)
-        && !in_array($type, ['per_success_subunit_choose', 'pb2_per_success_pick_member'], true)
+        && !in_array($type, ['per_success_subunit_choose', 'pb2_per_success_pick_member', 'pb2_pick_revealed_subunit_live'], true)
         && $step === '') {
         $state = addLog($state, $state['players'][$pid]['name'] .
             " — [$name] skipped optional DUO effect.");
@@ -1301,6 +1349,32 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             $srcId,
             ($state['phase'] ?? '') === 'live_start_effects'
         );
+    }
+
+    // —— Reveal top-all-subunit: pick 1 Live from the revealed pile ——
+    if ($type === 'pb2_pick_revealed_subunit_live') {
+        $pickId = (string)($data['instance_id'] ?? $data['card_id'] ?? $choice);
+        $revealed = $prompt['revealed'] ?? [];
+        $pick = null;
+        foreach ($revealed as $c) {
+            if (($c['instance_id'] ?? '') === $pickId && isLiveTypeCard($c)) {
+                $pick = $c;
+                break;
+            }
+        }
+        if (!$pick) {
+            throw new Exception('Choose 1 Live card from the revealed cards');
+        }
+        $p['hand'][] = $pick;
+        foreach ($revealed as $c) {
+            if (($c['instance_id'] ?? '') === ($pick['instance_id'] ?? '')) {
+                continue;
+            }
+            $p['waiting_room'][] = $c;
+        }
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — [$name] added " . cardDisplayName($pick) . " to hand.");
+        return plMusePb2FinishPrompt($state, $prompt);
     }
 
     // —— Reveal hand Live ↔ Success Live swap ——

@@ -1219,6 +1219,7 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'spbp2_center_move_choose', 'spbp2_center_move_position',
   'stack_wr_under',
   'optional_reveal_hand_live_swap_success', 'pb2_pick_hand_success_swap',
+  'pb2_pick_revealed_subunit_live',
   'activated_discard_trigger_on_enter',
   'stack_energy_zone_pick',
   'both_shuffle_wr_members_deck_bottom_threshold',
@@ -5135,6 +5136,17 @@ function cpuResolvePromptBody(s, cpu, pr) {
       }
       return;
     }
+  }
+  // Umi PL!-pb2-013 — pick 1 lily white Live from the revealed top 4 (#226).
+  if(pr.type==='pb2_pick_revealed_subunit_live'){
+    const cands=(pr.candidates||[]).filter(c=>c&&c.instance_id);
+    const pick=cands.sort((a,b)=>(b.score||0)-(a.score||0))[0];
+    if(pick?.instance_id){
+      cpuAct('resolve_prompt',{instance_id:pick.instance_id, card_id:pick.instance_id});
+    } else {
+      cpuAct('resolve_prompt',{choice:'no'});
+    }
+    return;
   }
   if(pr.type==='spbp2_wait_self_opp_heart_gap'){
     if(pr.step==='confirm'){
