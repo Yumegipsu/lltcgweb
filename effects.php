@@ -6473,6 +6473,16 @@ function activatedAbilityWrBlockReason(array $p, array $ab): ?string {
             return 'no matching Live card in Waiting Room.';
 
         case 'pay_energy_play_wr_empty':
+            $hasEmpty = false;
+            foreach (['left', 'center', 'right'] as $targetSlot) {
+                if (empty($p['stage'][$targetSlot])) {
+                    $hasEmpty = true;
+                    break;
+                }
+            }
+            if (!$hasEmpty) {
+                return 'no empty Stage area.';
+            }
             foreach (['left', 'center', 'right'] as $targetSlot) {
                 if (!empty($p['stage'][$targetSlot])) {
                     continue;

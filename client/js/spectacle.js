@@ -5457,6 +5457,17 @@ function computeContinuousHeartGrantsClient(state, pid) {
           appendClientContinuousHeartsFromSpec(memberHearts, ab.hearts);
         }
       }
+      // PL!HS-bp5-002 Sayaka — Always blue heart when Stage has ≥3 distinct costs (#224).
+      if (type === 'wild_heart_blade_if_distinct_costs' && (ab.hearts || []).length) {
+        const costs = new Set();
+        Object.values(p.stage || {}).forEach((mbr) => {
+          if (!mbr) return;
+          costs.add(Number(mbr.cost || 0));
+        });
+        if (costs.size >= Number(ab.min_count ?? 3)) {
+          appendClientContinuousHeartsFromSpec(memberHearts, ab.hearts);
+        }
+      }
     }
     if (!memberHearts.length) return;
     grants.push({

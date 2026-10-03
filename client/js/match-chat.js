@@ -13,7 +13,7 @@
   /** @type {Record<string, object[]>} */
   let buffers = { public: [], friends: [], spectate: [] };
 
-  let eventSource = null;
+  let streamAbort = null;
   let streamRoomId = null;
   let boundRoomId = null;
   let activeTab = 'log';
@@ -23,6 +23,8 @@
   let autocompleteIndex = -1;
   let uiBound = false;
   let reconnectTimer = null;
+  let reconnectAttempt = 0;
+  let streamAuthFailed = false;
 
   function tt(key, fallback, vars) {
     const fn = global.LLTCG_I18N && global.LLTCG_I18N.tt;
@@ -399,13 +401,39 @@
       clearTimeout(reconnectTimer);
       reconnectTimer = null;
     }
-    if (eventSource) {
+    if (streamAbort) {
       try {
-        eventSource.close();
+        streamAbort.abort();
       } catch (e) { /* ignore */ }
-      eventSource = null;
+      streamAbort = null;
     }
     streamRoomId = null;
+  }
+
+  /**
+   * Parse SSE frames from a chunk buffer. Returns remaining incomplete tail.
+   * @param {string} buf
+   * @param {(event: string, data: string) => void} onFrame
+   */
+  function consumeSseBuffer(buf, onFrame) {
+    let start = 0;
+    while (true) {
+      const sep = buf.indexOf('\n\n', start);
+      if (sep < 0) break;
+      const block = buf.slice(start, sep);
+      start = sep + 2;
+      let eventName = 'message';
+      const dataLines = [];
+      block.split('\n').forEach((line) => {
+        if (line.startsWith('event:')) {
+          eventName = line.slice(6).trim() || 'message';
+        } else if (line.startsWith('data:')) {
+          dataLines.push(line.slice(5).replace(/^ /, ''));
+        }
+      });
+      if (dataLines.length) onFrame(eventName, dataLines.join('\n'));
+    }
+    return buf.slice(start);
   }
 
   function ensureStream() {
@@ -413,6 +441,7 @@
       disconnectStream();
       return;
     }
+    if (streamAuthFailed) return;
     const rid = adoptActiveRoom();
     if (!rid) {
       disconnectStream();
@@ -424,48 +453,85 @@
       setComposerEnabled(false);
       return;
     }
-    if (eventSource && streamRoomId === rid) return;
+    if (streamAbort && streamRoomId === rid) return;
     disconnectStream();
 
     const role = G().isSpectator ? 'spectator' : 'player';
+    // Never put the session token in the query string — Hostinger Imunify/WAF
+    // 403s those EventSource URLs and the reconnect loop then poisons other APIs.
     const url =
       wrappedApi() +
       '?action=tcg_match_chat_stream&role=' +
       encodeURIComponent(role) +
       '&room_id=' +
-      encodeURIComponent(rid) +
-      '&token=' +
-      encodeURIComponent(token);
-    try {
-      eventSource = new EventSource(url);
-      streamRoomId = rid;
-    } catch (e) {
-      eventSource = null;
-      streamRoomId = null;
-      scheduleReconnect();
-      return;
-    }
-    eventSource.addEventListener('message', (ev) => {
+      encodeURIComponent(rid);
+    const ac = new AbortController();
+    streamAbort = ac;
+    streamRoomId = rid;
+
+    (async () => {
       try {
-        const msg = JSON.parse(ev.data);
-        appendLine(msg);
-      } catch (e) { /* ignore */ }
-    });
-    eventSource.addEventListener('ready', () => {
-      setStatus('');
-    });
-    eventSource.onerror = () => {
-      disconnectStream();
-      scheduleReconnect();
-    };
+        const r = await fetch(url, {
+          method: 'GET',
+          headers: {
+            Accept: 'text/event-stream',
+            Authorization: 'Bearer ' + token,
+            'X-Auth-Token': token,
+          },
+          signal: ac.signal,
+          cache: 'no-store',
+        });
+        if (r.status === 401 || r.status === 403) {
+          // Auth/WAF: do not hammer reconnect — that worsens Imunify blocks.
+          streamAuthFailed = r.status === 401;
+          disconnectStream();
+          if (r.status === 403) scheduleReconnect(true);
+          return;
+        }
+        if (!r.ok || !r.body) {
+          disconnectStream();
+          scheduleReconnect(true);
+          return;
+        }
+        reconnectAttempt = 0;
+        const reader = r.body.getReader();
+        const decoder = new TextDecoder();
+        let pending = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          pending += decoder.decode(value, { stream: true });
+          pending = consumeSseBuffer(pending, (eventName, data) => {
+            if (eventName === 'ready' || eventName === 'ping') {
+              if (eventName === 'ready') setStatus('');
+              return;
+            }
+            try {
+              appendLine(JSON.parse(data));
+            } catch (e) { /* ignore */ }
+          });
+        }
+        if (streamAbort === ac) {
+          disconnectStream();
+          scheduleReconnect(false);
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;
+        disconnectStream();
+        scheduleReconnect(true);
+      }
+    })();
   }
 
-  function scheduleReconnect() {
-    if (reconnectTimer || !matchChatEligible()) return;
+  function scheduleReconnect(fromError) {
+    if (reconnectTimer || !matchChatEligible() || streamAuthFailed) return;
+    if (fromError) reconnectAttempt = Math.min(reconnectAttempt + 1, 8);
+    else reconnectAttempt = Math.min(reconnectAttempt + 1, 4);
+    const delay = Math.min(30000, 2000 * Math.pow(2, Math.max(0, reconnectAttempt - 1)));
     reconnectTimer = setTimeout(() => {
       reconnectTimer = null;
       ensureStream();
-    }, 2500);
+    }, delay);
   }
 
   async function loadEmotesOnce() {
@@ -778,6 +844,7 @@
   }
 
   function syncMatchChat() {
+    streamAuthFailed = false;
     bindUi();
     syncTabUi();
     if (matchChatEligible()) ensureStream();
@@ -811,8 +878,8 @@
     hookLifecycle();
     syncMatchChat();
     setInterval(() => {
-      if (matchChatEligible() && (!eventSource || streamRoomId !== currentRoomId())) ensureStream();
-      else if (!matchChatEligible() && eventSource) disconnectStream();
+      if (matchChatEligible() && (!streamAbort || streamRoomId !== currentRoomId())) ensureStream();
+      else if (!matchChatEligible() && streamAbort) disconnectStream();
     }, 4000);
   }
 

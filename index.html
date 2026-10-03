@@ -29591,6 +29591,16 @@ function tcgClientCountStageMembers(p) {
   return Object.values(p?.stage || {}).filter(Boolean).length;
 }
 
+/** Distinct printed costs among Stage Members (Sayaka PL!HS-bp5-002 Always). */
+function tcgClientCountDistinctCostsOnStage(p) {
+  const costs = new Set();
+  Object.values(p?.stage || {}).forEach((mbr) => {
+    if (!mbr) return;
+    costs.add(Number(mbr.cost || 0));
+  });
+  return costs.size;
+}
+
 function tcgClientCountOtherSubunitOnStage(p, subunit, excludeId = '', standingOnly = false) {
   if (!subunit) return 0;
   return Object.values(p?.stage || {}).filter((mbr) => {
@@ -29742,6 +29752,12 @@ function clientMemberContinuousHeartColors(member, state, pid, slot) {
       const oppId = pid === 'p1' ? 'p2' : 'p1';
       const oppM = state?.players?.[oppId]?.stage?.[clientFacingStageSlot(slot)];
       if (oppM && clientStageMemberCost(oppM) > clientStageMemberCost(member)) {
+        appendClientHeartSpecColors(out, ab.hearts);
+      }
+    }
+    // PL!HS-bp5-002 Sayaka — Always: +blue heart while Stage has ≥3 distinct costs (#224).
+    if (type === 'wild_heart_blade_if_distinct_costs' && (ab.hearts || []).length) {
+      if (tcgClientCountDistinctCostsOnStage(p) >= Number(ab.min_count ?? 3)) {
         appendClientHeartSpecColors(out, ab.hearts);
       }
     }
@@ -30048,6 +30064,12 @@ function clientMemberContinuousBladeBonus(member, state, pid, slot) {
         if (memberSlot !== 'center') continue;
       }
       bonus += Number(ab.amount ?? 1);
+    }
+    // PL!HS-bp5-002 Sayaka — Always: +blade while Stage has ≥3 distinct costs (#224).
+    if (type === 'wild_heart_blade_if_distinct_costs') {
+      if (tcgClientCountDistinctCostsOnStage(p) >= Number(ab.min_count ?? 3)) {
+        bonus += Number(ab.blade ?? 1);
+      }
     }
   }
   return bonus;
@@ -36035,7 +36057,7 @@ function mkNoImg(card){
 <script src="client/js/cpu-loop.js?v=47"></script>
 <script src="client/js/cpu-ai.js?v=13"></script>
 <script src="client/js/portrait-bridge.js?v=31"></script>
-<script src="client/js/match-chat.js?v=5"></script>
+<script src="client/js/match-chat.js?v=6"></script>
 <script src="client/js/portrait-deck.js?v=5"></script>
 <script src="client/js/portrait-board.js?v=23"></script>
 <script>void bootApp();</script>
