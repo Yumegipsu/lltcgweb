@@ -259,7 +259,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             'group' => $group,
             'filter' => $ab['filter'] ?? 'live',
         ];
-        $ab['then_activate_energy'] = count(plMusePb2SuccessGroupCards($p, $group));
+        $ab['then_activate_energy'] = plMusePb2CountSuccessGroup($p, $group, $member);
         startPickWrToHandPrompt($state, $pid, $member, $slot, $abilityIdx, $ab, $cfg, true);
         $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
         $state = addLog($state, $state['players'][$pid]['name'] .

@@ -130,6 +130,43 @@ function plMusePb2SuccessGroupCards(array $p, string $group): array {
     return $out;
 }
 
+/** True when a card is lily white (subunit field). */
+function plMusePb2IsLilyWhiteCard(array $card): bool {
+    return strcasecmp((string)($card['subunit'] ?? ''), 'lily white') === 0;
+}
+
+/**
+ * PL!-pb2-041 Shunjou Romantic [Always]: while in Success Live, lily white card effects
+ * that count cards in Success Live treat this card as 2. Refs #227.
+ */
+function plMusePb2SuccessCardCountWeight(array $card, ?array $effectSource = null): int {
+    if ($effectSource !== null && !plMusePb2IsLilyWhiteCard($effectSource)) {
+        return 1;
+    }
+    foreach ($card['abilities'] ?? [] as $ab) {
+        if (($ab['type'] ?? '') !== 'success_count_as_two_for_subunit_effects') {
+            continue;
+        }
+        $need = (string)($ab['subunit'] ?? 'lily white');
+        if ($need === '' || strcasecmp($need, 'lily white') === 0) {
+            // When effectSource is omitted, only weight for lily-white-scoped Always.
+            if ($effectSource === null || plMusePb2IsLilyWhiteCard($effectSource)) {
+                return 2;
+            }
+        }
+    }
+    return 1;
+}
+
+/** Count Success Live cards matching group, applying lily white count-as-two weights. */
+function plMusePb2CountSuccessGroup(array $p, string $group, ?array $effectSource = null): int {
+    $n = 0;
+    foreach (plMusePb2SuccessGroupCards($p, $group) as $c) {
+        $n += plMusePb2SuccessCardCountWeight($c, $effectSource);
+    }
+    return $n;
+}
+
 function plMusePb2CardHasScoreIcon(array $c): bool {
     return !empty($c['yell_score_icon']) || ($c['special_heart'] ?? '') === 'icon_score.png';
 }
@@ -158,25 +195,11 @@ function plMusePb2SumSuccessScores(array $p): int {
     return $sum;
 }
 
-function plMusePb2CountSuccessSubunit(array $p, string $subunit): int {
-    $n = 0;
-    foreach ($p['success_lives'] ?? [] as $c) {
-        if (!$c) {
-            continue;
-        }
-        $su = (string)($c['subunit'] ?? '');
-        if ($su !== '' && strcasecmp($su, $subunit) === 0) {
-            $n++;
-        } elseif (cardMatchesGroup($c, $subunit, '')) {
-            // some cards use group for subunit names incorrectly — also check name tags
-            $n++;
-        }
-    }
-    // Prefer subunit field only
+function plMusePb2CountSuccessSubunit(array $p, string $subunit, ?array $effectSource = null): int {
     $n = 0;
     foreach ($p['success_lives'] ?? [] as $c) {
         if ($c && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0) {
-            $n++;
+            $n += plMusePb2SuccessCardCountWeight($c, $effectSource);
         }
     }
     return $n;
@@ -219,7 +242,7 @@ function plMusePb2ApplyContinuousBlade(int $blade, array $member, array $state, 
         $n = 0;
         foreach (plMusePb2SuccessGroupCards($p, $group) as $c) {
             if (plMusePb2CardHasScoreIcon($c)) {
-                $n++;
+                $n += plMusePb2SuccessCardCountWeight($c, $member);
             }
         }
         return $blade + $n * intval($ab['amount'] ?? 1);
@@ -242,7 +265,7 @@ function plMusePb2ApplyContinuousBlade(int $blade, array $member, array $state, 
         return $blade;
     }
     if ($type === 'blade_per_success_subunit') {
-        return $blade + plMusePb2CountSuccessSubunit($p, $ab['subunit'] ?? '')
+        return $blade + plMusePb2CountSuccessSubunit($p, $ab['subunit'] ?? '', $member)
             * intval($ab['amount'] ?? 1);
     }
     if ($type === 'blade_per_success_score_chunk') {
@@ -484,9 +507,9 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'group' => $group,
                 'filter' => $ab['filter'] ?? 'live',
             ];
-            $ab['then_activate_energy'] = count(plMusePb2SuccessGroupCards($p, $group));
             $abilityIdx = intval($ctx['ability_index'] ?? $ctx['ability_idx'] ?? 0);
             $member = $p['stage'][$slot];
+            $ab['then_activate_energy'] = plMusePb2CountSuccessGroup($p, $group, $source);
             startPickWrToHandPrompt($state, $pid, $member, $slot, $abilityIdx, $ab, $cfg, true);
             $state = addLog($state, $state['players'][$pid]['name'] .
                 " — [$name] choose a card from Waiting Room.");
@@ -888,7 +911,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         case 'increase_yell_reveal_if_success_group': {
             $group = $ab['group'] ?? "μ's";
             $min = intval($ab['min_success'] ?? 2);
-            if (count(plMusePb2SuccessGroupCards($p, $group)) >= $min) {
+            if (plMusePb2CountSuccessGroup($p, $group, $source) >= $min) {
                 $extra = intval($ab['extra_yell'] ?? 10);
                 $state['live_modifiers'][$pid]['extra_yell_reveal'] =
                     intval($state['live_modifiers'][$pid]['extra_yell_reveal'] ?? 0) + $extra;
@@ -947,7 +970,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'score_if_success_subunit_min': {
-            $n = plMusePb2CountSuccessSubunit($p, $ab['subunit'] ?? '');
+            $n = plMusePb2CountSuccessSubunit($p, $ab['subunit'] ?? '', $source);
             if ($n >= intval($ab['min_count'] ?? 2)) {
                 $state = applyModifierEffect($state, $pid, [
                     'type' => 'live_score_bonus',
@@ -960,7 +983,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'per_success_subunit_choose': {
-            $n = plMusePb2CountSuccessSubunit($p, $ab['subunit'] ?? '');
+            $n = plMusePb2CountSuccessSubunit($p, $ab['subunit'] ?? '', $source);
             if ($n <= 0) {
                 break;
             }

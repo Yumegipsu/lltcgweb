@@ -2228,13 +2228,39 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 " — activated $activated Energy (high-score Aqours Live).");
         }
         // PL!-pb2-007 Nozomi: activate Energy per μ's card in Success Live (#223).
+        // Shunjou Romantic counts as 2 for lily white effects (#227).
         $thenEnergy = intval($ability['then_activate_energy'] ?? $prompt['then_activate_energy'] ?? 0);
         if ($thenEnergy <= 0
             && ($ability['type'] ?? '') === 'leave_stage_add_live_activate_per_success_group') {
-            $thenEnergy = count(plMusePb2SuccessGroupCards(
+            $effectSource = $prompt['source_card'] ?? null;
+            if (!is_array($effectSource)) {
+                $sid = (string)($prompt['source_instance_id'] ?? $prompt['source_id'] ?? '');
+                if ($sid !== '') {
+                    foreach ($ownerP['stage'] ?? [] as $m) {
+                        if ($m && ($m['instance_id'] ?? '') === $sid) {
+                            $effectSource = $m;
+                            break;
+                        }
+                    }
+                    if (!is_array($effectSource)) {
+                        foreach ($ownerP['waiting_room'] ?? [] as $m) {
+                            if ($m && ($m['instance_id'] ?? '') === $sid) {
+                                $effectSource = $m;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            // Fallback: Nozomi is lily white — weight still applies with a lily white stub.
+            if (!is_array($effectSource)) {
+                $effectSource = ['subunit' => 'lily white'];
+            }
+            $thenEnergy = plMusePb2CountSuccessGroup(
                 $ownerP,
-                $ability['group'] ?? "μ's"
-            ));
+                $ability['group'] ?? "μ's",
+                $effectSource
+            );
         }
         if ($thenEnergy > 0) {
             $activated = activateEnergyForPlayer($ownerP, $thenEnergy);
