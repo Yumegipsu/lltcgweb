@@ -141,7 +141,7 @@ final class Issue232KotoriActivatedTest extends TestCase
         ]);
         $pr = $state['pending_prompt'] ?? null;
         $this->assertIsArray($pr);
-        $this->assertSame('add_from_wr', $pr['type'] ?? null);
+        $this->assertSame('pick_wr_to_hand', $pr['type'] ?? null);
         $this->assertCount(1, $pr['candidates'] ?? []);
         $this->assertSame('plive', $pr['candidates'][0]['instance_id'] ?? null);
         $handIds = array_column($state['players']['p1']['hand'], 'instance_id');

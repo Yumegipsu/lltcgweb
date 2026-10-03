@@ -68,6 +68,62 @@ function plMusePb2SetPendingPrompt(array $state, array $prompt): array {
     return $state;
 }
 
+/**
+ * Open pick_wr_to_hand for matching WR cards. Never emit bare add_from_wr —
+ * that type has no client UI / PromptResolver path and softlocks (#238).
+ *
+ * @return int|null Cards added immediately, 0 if none matched, null if a pick opened.
+ */
+function plMusePb2OpenWrToHand(
+    array &$state,
+    string $pid,
+    array $source,
+    array $cfg,
+    int $count = 1,
+    ?array $ab = null,
+    array $ctx = []
+): ?int {
+    $ab = $ab ?? [
+        'type' => 'add_from_wr',
+        'group' => $cfg['group'] ?? '',
+        'filter' => $cfg['filter'] ?? '',
+        'subunit' => $cfg['subunit'] ?? '',
+        'count' => $count,
+    ];
+    return addFromWaitingRoomWithChoice($state, $pid, $source, $ab, $ctx, $cfg, $count);
+}
+
+/** After Kotori's extra cost: open Printemps Live WR pick via pick_wr_to_hand (#238). */
+function plMusePb2ResolveAddSubunitLiveFromWr(
+    array $state,
+    string $pid,
+    string $srcId,
+    string $name,
+    string $subunit,
+    array $prompt
+): array {
+    unset($state['pending_prompt']);
+    $source = findSourceCard($state, $pid, $srcId) ?? [
+        'instance_id' => $srcId,
+        'name_en' => $name,
+        'name' => $name,
+    ];
+    $cfg = ['filter' => 'live', 'subunit' => $subunit];
+    $ab = ['type' => 'add_from_wr', 'filter' => 'live', 'subunit' => $subunit, 'count' => 1];
+    $added = plMusePb2OpenWrToHand($state, $pid, $source, $cfg, 1, $ab);
+    if ($added === null) {
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — [$name] choose a $subunit Live from Waiting Room.");
+        $state['seq'] = intval($state['seq'] ?? 0) + 1;
+        return $state;
+    }
+    if ($added === 0) {
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — [$name] no $subunit Live in Waiting Room.");
+    }
+    return plMusePb2FinishPrompt($state, $prompt);
+}
+
 function plMusePb2WaitSelfByInstance(array &$state, string $pid, string $instanceId): bool {
     $p = &$state['players'][$pid];
     foreach ($p['stage'] as &$mbr) {
@@ -634,28 +690,22 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             if ($groupCount < intval($ab['min_baton'] ?? 2)) {
                 break;
             }
-            $cands = array_values(array_filter(
-                $p['waiting_room'] ?? [],
-                fn($c) => cardMatchesWrPick($c, [
-                    'group' => $group,
-                    'filter' => $ab['filter'] ?? 'live',
-                ])
-            ));
-            if ($cands) {
-                $state = plMusePb2SetPendingPrompt($state, [
-                    'type' => 'add_from_wr',
-                    'owner' => $pid,
-                    'player_id' => $pid,
-                    'source_instance_id' => $source['instance_id'] ?? '',
-                    'source_name' => $name,
-                    'filter' => $ab['filter'] ?? 'live',
-                    'group' => $group,
-                    'count' => intval($ab['count'] ?? 1),
-                    'candidates' => $cands,
-                    'min' => 1,
-                    'max' => 1,
-                    'prompt' => "Add 1 $group Live from Waiting Room to hand?",
-                ]);
+            $cfg = [
+                'group' => $group,
+                'filter' => $ab['filter'] ?? 'live',
+            ];
+            $added = plMusePb2OpenWrToHand(
+                $state,
+                $pid,
+                $source,
+                $cfg,
+                intval($ab['count'] ?? 1),
+                $ab,
+                $ctx
+            );
+            if ($added === null) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] choose a $group Live from Waiting Room.");
             }
             $costSum = 0;
             foreach ($source['baton_member_costs'] ?? [] as $c) {
@@ -710,24 +760,24 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 ]);
             }
             if ($hasDraw) {
+                // Any μ's card (filter ""), not member-only — card text says "μ's card".
                 $add = $ab['draw_icon_add_from_wr'] ?? ['group' => $group, 'count' => 1];
-                $cands = array_values(array_filter(
-                    $p['waiting_room'] ?? [],
-                    fn($c) => cardMatchesWrPick($c, ['group' => $add['group'] ?? $group])
-                ));
-                if ($cands) {
-                    $state = plMusePb2SetPendingPrompt($state, [
-                        'type' => 'add_from_wr',
-                        'owner' => $pid,
-                        'player_id' => $pid,
-                        'source_instance_id' => $source['instance_id'] ?? '',
-                        'source_name' => $name,
-                        'group' => $add['group'] ?? $group,
-                        'count' => intval($add['count'] ?? 1),
-                        'candidates' => $cands,
-                        'min' => 1,
-                        'max' => 1,
-                    ]);
+                $cfg = [
+                    'group' => $add['group'] ?? $group,
+                    'filter' => '',
+                ];
+                $added = plMusePb2OpenWrToHand(
+                    $state,
+                    $pid,
+                    $source,
+                    $cfg,
+                    intval($add['count'] ?? 1),
+                    array_merge($ab, ['filter' => '']),
+                    $ctx
+                );
+                if ($added === null) {
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] choose a μ's card from Waiting Room.");
                 }
             }
             break;
@@ -1505,28 +1555,23 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
 
         case 'pb2_add_subunit_live_from_wr': {
             $subunit = $ab['subunit'] ?? 'Printemps';
-            $cands = array_values(array_filter(
-                $p['waiting_room'] ?? [],
-                fn($c) => isLiveTypeCard($c) && cardMatchesSubunit($c, $subunit)
-            ));
-            if (!$cands) {
+            $cfg = ['filter' => 'live', 'subunit' => $subunit];
+            $added = plMusePb2OpenWrToHand(
+                $state,
+                $pid,
+                $source,
+                $cfg,
+                1,
+                array_merge($ab, ['filter' => 'live', 'subunit' => $subunit, 'count' => 1]),
+                $ctx
+            );
+            if ($added === null) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] choose a $subunit Live from Waiting Room.");
+            } elseif ($added === 0) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] no $subunit Live in Waiting Room.");
-                break;
             }
-            $state = plMusePb2SetPendingPrompt($state, [
-                'type' => 'add_from_wr',
-                'owner' => $pid,
-                'player_id' => $pid,
-                'source_instance_id' => $source['instance_id'] ?? '',
-                'source_name' => $name,
-                'candidates' => $cands,
-                'filter' => 'live',
-                'subunit' => $subunit,
-                'count' => 1,
-                'min' => 1,
-                'max' => 1,
-            ]);
             break;
         }
 
@@ -2461,31 +2506,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             }
             // After discard2 with ids present → add from WR
             $subunit = $prompt['subunit'] ?? 'Printemps';
-            $cands = array_values(array_filter(
-                $p['waiting_room'] ?? [],
-                fn($c) => isLiveTypeCard($c) && cardMatchesSubunit($c, $subunit)
-            ));
-            unset($state['pending_prompt']);
-            if (!$cands) {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] no $subunit Live in Waiting Room.");
-                return plMusePb2FinishPrompt($state, $prompt);
-            }
-            $state['pending_prompt'] = [
-                'type' => 'add_from_wr',
-                'owner' => $pid,
-                'responder' => $pid,
-                'source_name' => $name,
-                'source_instance_id' => $srcId,
-                'candidates' => $cands,
-                'filter' => 'live',
-                'subunit' => $subunit,
-                'count' => 1,
-                'min' => 1,
-                'max' => 1,
-            ];
-            $state['seq']++;
-            return $state;
+            return plMusePb2ResolveAddSubunitLiveFromWr($state, $pid, $srcId, $name, $subunit, $prompt);
         }
         if ($type === 'pb2_printemps_wait_members') {
             $slots = $data['slots'] ?? [];
@@ -2501,31 +2522,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                 }
             }
             $subunit = $prompt['subunit'] ?? 'Printemps';
-            $cands = array_values(array_filter(
-                $p['waiting_room'] ?? [],
-                fn($c) => isLiveTypeCard($c) && cardMatchesSubunit($c, $subunit)
-            ));
-            unset($state['pending_prompt']);
-            if (!$cands) {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] no $subunit Live in Waiting Room.");
-                return plMusePb2FinishPrompt($state, $prompt);
-            }
-            $state['pending_prompt'] = [
-                'type' => 'add_from_wr',
-                'owner' => $pid,
-                'responder' => $pid,
-                'source_name' => $name,
-                'source_instance_id' => $srcId,
-                'candidates' => $cands,
-                'filter' => 'live',
-                'subunit' => $subunit,
-                'count' => 1,
-                'min' => 1,
-                'max' => 1,
-            ];
-            $state['seq']++;
-            return $state;
+            return plMusePb2ResolveAddSubunitLiveFromWr($state, $pid, $srcId, $name, $subunit, $prompt);
         }
     }
 
