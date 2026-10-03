@@ -1556,6 +1556,32 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 }
             }
             unset($mbr);
+
+            // PL!-pb2-028 Honoka etc.: Wait self → then modifier (not Wait opp). Refs #229.
+            if (($ability['type'] ?? '') === 'optional_wait_self' && !empty($ability['then'])) {
+                $src = findSourceCard($state, $owner, $sourceId)
+                    ?: ['instance_id' => $sourceId, 'name_en' => $srcName, 'name' => $srcName];
+                $then = $ability['then'];
+                if (function_exists('isLiveModifierEffectType')
+                    && isLiveModifierEffectType($then['type'] ?? '')) {
+                    $state = applyModifierEffect($state, $owner, $then, $src);
+                } else {
+                    unset($state['pending_prompt']);
+                    $state = resolveAbilityEffect($state, $owner, $src, $then, [
+                        'phase' => $liveStart ? 'live_start' : '',
+                    ]);
+                    if (!empty($state['pending_prompt'])) {
+                        $state['seq']++;
+                        return $state;
+                    }
+                }
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . $srcName . '] Waited self; applied Live Start bonus.');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishAfterBranchChoicePrompt($state, $prompt);
+            }
+
             $opp = ($owner === 'p1') ? 'p2' : 'p1';
             $subunitOnly = $ability['require_stage_subunit_only'] ?? '';
             if ($subunitOnly !== '' && !stageAllMembersInSubunit($ownerP, $subunitOnly)) {

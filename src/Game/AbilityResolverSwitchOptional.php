@@ -226,6 +226,36 @@ function tryResolveAbilityEffectSwitchOptional(
                 ' — [' . $name . '] optional Wait effect (choose).');
             break;
 
+        case 'optional_wait_self':
+            // PL!-pb2-028 Honoka: Wait self → then (e.g. grant_bonus_hearts). Refs #229.
+            if (!empty($state['pending_prompt'])) break;
+            if (function_exists('memberIsInWait') && memberIsInWait($source)) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    ' — [' . $name . '] optional Wait skipped (already in Wait).');
+                break;
+            }
+            $then = $ab['then'] ?? [];
+            $thenLabel = match ($then['type'] ?? '') {
+                'grant_bonus_hearts' => 'gain bonus heart(s) until this Live ends',
+                'blade_bonus', 'blade_bonus_per_paid' => 'gain Blade until this Live ends',
+                default => 'resolve the effect',
+            };
+            $state['pending_prompt'] = [
+                'type'          => 'optional_wait_self',
+                'owner'         => $pid,
+                'responder'     => $pid,
+                'source_id'     => $source['instance_id'] ?? '',
+                'source_name'   => $name,
+                'prompt'        => "Put this Member into Wait: $thenLabel?",
+                'choices'       => ['yes', 'no'],
+                'choice_labels' => ['Yes — Wait self', 'No — Skip'],
+                'ability'       => $ab,
+                'live_start'    => (($ctx['phase'] ?? '') === 'live_start'),
+            ];
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                ' — [' . $name . '] optional Wait effect (choose).');
+            break;
+
         case 'optional_wait_self_add_wr':
             if (!empty($state['pending_prompt'])) break;
             $state['pending_prompt'] = [
