@@ -754,8 +754,10 @@ function finishLiveStartEffects(array $state, bool $advancePerformance = true): 
         $state['phase'] = 'live_start_effects';
         return $state;
     }
-    // Honoka pb2-010: Blade from Wait→Active after all Live Starts this window (#236).
-    if (function_exists('plMusePb2FlushDeferredActivatedFromWaitBlade')) {
+    // Honoka / Love Marginal: Wait→Active grants after all Live Starts this window (#236/#237).
+    if (function_exists('plMusePb2FlushDeferredActivatedFromWaitEffects')) {
+        $state = plMusePb2FlushDeferredActivatedFromWaitEffects($state);
+    } elseif (function_exists('plMusePb2FlushDeferredActivatedFromWaitBlade')) {
         $state = plMusePb2FlushDeferredActivatedFromWaitBlade($state);
     }
 

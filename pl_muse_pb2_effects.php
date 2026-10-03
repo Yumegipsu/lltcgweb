@@ -202,6 +202,7 @@ function plMusePb2ClearActivatedFromWaitCounters(array &$p): void {
         }
     }
     unset($p['_pb2_defer_blade_from_wait']);
+    unset($p['_pb2_defer_hearts_from_wait']);
     foreach ($p['stage'] ?? [] as &$m) {
         if ($m) {
             unset($m['_pb2_from_wait_turn'], $m['_pb2_from_wait_by']);
@@ -275,9 +276,16 @@ function plMusePb2ApplyActivatedFromWaitBladeEntry(array $state, string $pid, ar
 }
 
 /**
- * Honoka pb2-010: apply deferred Live Start blades after all Live Starts
- * (so WAO-WAO etc. can Activate first). Refs #236.
+ * Honoka / Love Marginal: apply deferred Wait→Active Live Start grants after all
+ * Live Starts (so WAO-WAO etc. can Activate first). Refs #236 / #237.
  */
+function plMusePb2FlushDeferredActivatedFromWaitEffects(array $state): array {
+    $state = plMusePb2FlushDeferredActivatedFromWaitBlade($state);
+    $state = plMusePb2FlushDeferredActivatedFromWaitHearts($state);
+    return $state;
+}
+
+/** @deprecated Use plMusePb2FlushDeferredActivatedFromWaitEffects */
 function plMusePb2FlushDeferredActivatedFromWaitBlade(array $state): array {
     foreach (['p1', 'p2'] as $pid) {
         $list = $state['players'][$pid]['_pb2_defer_blade_from_wait'] ?? null;
@@ -290,6 +298,64 @@ function plMusePb2FlushDeferredActivatedFromWaitBlade(array $state): array {
                 continue;
             }
             $state = plMusePb2ApplyActivatedFromWaitBladeEntry($state, $pid, $entry);
+        }
+    }
+    return $state;
+}
+
+/** Apply Love Marginal-style deferred heart reductions (#237). */
+function plMusePb2ApplyActivatedFromWaitHeartsEntry(array $state, string $pid, array $entry): array {
+    $subunit = (string)($entry['subunit'] ?? 'Printemps');
+    $tiers = $entry['tiers'] ?? [];
+    if (!is_array($tiers)) {
+        $tiers = [];
+    }
+    $turn = intval($state['turn'] ?? 1);
+    $n = plMusePb2CountStageActivatedFromWait($state['players'][$pid] ?? [], $subunit, $turn);
+    if ($n < 1) {
+        $n = intval($state['players'][$pid][plMusePb2ActivatedFromWaitKey($subunit)] ?? 0);
+    }
+    if ($n < 1 || $tiers === []) {
+        return $state;
+    }
+    $reduce = 0;
+    $color = 'any';
+    foreach ($tiers as $tier) {
+        if (!is_array($tier)) {
+            continue;
+        }
+        if ($n >= intval($tier['min'] ?? 0)) {
+            $reduce += intval($tier['reduce'] ?? 0);
+            if (!empty($tier['color'])) {
+                $color = (string)$tier['color'];
+            }
+        }
+    }
+    if ($reduce < 1) {
+        return $state;
+    }
+    $srcId = (string)($entry['source_id'] ?? '');
+    $srcName = (string)($entry['source_name'] ?? 'Live');
+    if ($srcId !== '') {
+        bumpLiveCardColorReduction($state, $pid, $srcId, $color, $reduce);
+    }
+    $state = addLog($state, $state['players'][$pid]['name'] .
+        " — [$srcName] required $color hearts −$reduce ($n Wait→Active via $subunit this turn).");
+    return $state;
+}
+
+function plMusePb2FlushDeferredActivatedFromWaitHearts(array $state): array {
+    foreach (['p1', 'p2'] as $pid) {
+        $list = $state['players'][$pid]['_pb2_defer_hearts_from_wait'] ?? null;
+        if (!is_array($list) || $list === []) {
+            continue;
+        }
+        unset($state['players'][$pid]['_pb2_defer_hearts_from_wait']);
+        foreach ($list as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            $state = plMusePb2ApplyActivatedFromWaitHeartsEntry($state, $pid, $entry);
         }
     }
     return $state;
@@ -1216,25 +1282,28 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'reduce_hearts_per_activated_from_wait_by_subunit': {
-            $subunit = $ab['subunit'] ?? 'Printemps';
-            $key = plMusePb2ActivatedFromWaitKey($subunit);
-            $n = intval($state['players'][$pid][$key] ?? 0);
-            $reduce = 0;
-            $color = 'any';
-            foreach ($ab['tiers'] ?? [] as $tier) {
-                if ($n >= intval($tier['min'] ?? 0)) {
-                    $reduce += intval($tier['reduce'] ?? 0);
-                    if (!empty($tier['color'])) {
-                        $color = (string)$tier['color'];
-                    }
+            // Defer during Live Start so Love Marginal can see WAO-WAO Activates (#237).
+            $entry = [
+                'source_id' => (string)($source['instance_id'] ?? ''),
+                'source_name' => $name,
+                'subunit' => (string)($ab['subunit'] ?? 'Printemps'),
+                'tiers' => $ab['tiers'] ?? [],
+            ];
+            $phase = (string)($state['phase'] ?? '');
+            $defer = str_contains($phase, 'live_start')
+                || !empty($GLOBALS['_lltcg_in_live_start_resolve']);
+            if ($defer) {
+                $list = $p['_pb2_defer_hearts_from_wait'] ?? [];
+                if (!is_array($list)) {
+                    $list = [];
                 }
-            }
-            if ($reduce > 0) {
-                $srcId = (string)($source['instance_id'] ?? '');
-                bumpLiveCardColorReduction($state, $pid, $srcId, $color, $reduce);
+                $list[] = $entry;
+                $p['_pb2_defer_hearts_from_wait'] = $list;
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] required $color hearts −$reduce ($n Wait→Active via $subunit this turn).");
+                    " — [$name] Live Start heart reduce (after Wait→Active counts this turn).");
+                break;
             }
+            $state = plMusePb2ApplyActivatedFromWaitHeartsEntry($state, $pid, $entry);
             break;
         }
 

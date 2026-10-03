@@ -107,9 +107,10 @@ final class Issue233LoveMarginalOtomeHeartTest extends TestCase
         $this->assertSame(3, intval($state['players']['p1']['_pb2_activated_from_wait_Printemps'] ?? 0));
         $this->assertFalse(memberIsInWait($state['players']['p1']['stage']['left']));
 
-        // Love Marginal: tiers 1+2+3 → −3−2−1 = −6 any.
+        // Love Marginal: tiers 1+2+3 → −3−2−1 = −6 any (deferred until flush #237).
         $margAb = $marginal['abilities'][0];
         $state = resolveAbilityEffect($state, 'p1', $marginal, $margAb, ['phase' => 'live_start']);
+        $state = plMusePb2FlushDeferredActivatedFromWaitEffects($state);
         $lc = null;
         foreach ($state['players']['p1']['live_zone'] as $c) {
             if (($c['instance_id'] ?? '') === 'marginal') {
