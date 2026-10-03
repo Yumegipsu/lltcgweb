@@ -1801,8 +1801,10 @@ function cardMatchesLookPick(array $card, array $cfg): bool {
             return false;
         }
     }
-    if (($cfg['filter'] ?? '') === 'live' && !empty($cfg['min_required_hearts'])) {
-        if (liveRequiredHeartCount($card) < intval($cfg['min_required_hearts'])) {
+    // Hanayo PL!-pb2-008 uses min_required_hearts_total; Superstar Keke uses min_required_hearts.
+    $minReqHearts = intval($cfg['min_required_hearts'] ?? $cfg['min_required_hearts_total'] ?? 0);
+    if (($cfg['filter'] ?? '') === 'live' && $minReqHearts > 0) {
+        if (liveRequiredHeartCount($card) < $minReqHearts) {
             return false;
         }
     }

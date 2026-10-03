@@ -16770,6 +16770,7 @@
           "look": 4,
           "group": "μ's",
           "filter": "live",
+          "min_required_hearts": 8,
           "min_required_hearts_total": 8,
           "pick": 1
         }
@@ -16812,6 +16813,7 @@
           "look": 4,
           "group": "μ's",
           "filter": "live",
+          "min_required_hearts": 8,
           "min_required_hearts_total": 8,
           "pick": 1
         }
