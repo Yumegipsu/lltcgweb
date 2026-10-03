@@ -709,6 +709,7 @@ function tcgDbMigrateBootstrap(PDO $db): void {
     )');
     tcgDbEnsureColumn($db, 'tcg_box_progress', 'rm_pity', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_box_progress', 'live_pity', 'INTEGER NOT NULL DEFAULT 0');
+    tcgDbEnsureColumn($db, 'tcg_box_progress', 'sre_pity', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_collection', 'acquired_at', 'INTEGER');
     tcgDbEnsureColumn($db, 'tcg_daily_state', 'ranked_pr_date', 'TEXT');
     tcgDbEnsureColumn($db, 'tcg_daily_state', 'ranked_pr_today', 'INTEGER NOT NULL DEFAULT 0');

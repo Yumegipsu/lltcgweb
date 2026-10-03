@@ -2,7 +2,7 @@
 /**
  * Booster box definitions and pack-opening simulation.
  * Standard BP: 5 cards × 10 packs/box (2×N, 1×R, 1× base, 1× foil).
- * Premium PB: 3 cards × 20 packs/box (1× common + 2× holo; 2 all-holo packs/box).
+ * Premium PB: 3 cards × 20 packs/box (N/R/L + member kira + one special insert; 2 all-holo packs/box).
  * God Pack: all 5× LLE (~1/160 packs ≈ 1/16 BP boxes). RM ~1/box via pity.
  */
 require_once __DIR__ . '/db.php';
@@ -323,33 +323,87 @@ function tcgNormalizePoolRarity(string $rarity, string $cardNo = ''): string {
     return $r;
 }
 
-/** DUO slot 1 — non-foil commons (official: 1 of 3 cards). */
-function tcgPbDuoCommonSlotRarityWeights(): array {
+/**
+ * Premium pack slot 1 — basic rarity (official: 1 of 3).
+ * R is the most common pull overall because the third slot often replaces an N.
+ */
+function tcgPbCommonSlotRarityWeights(): array {
     return [
-        ['r' => 'N', 'w' => 52],
-        ['r' => 'R', 'w' => 48],
+        ['r' => 'R', 'w' => 55],
+        ['r' => 'N', 'w' => 35],
+        ['r' => 'L', 'w' => 10],
+    ];
+}
+
+/** @deprecated Use tcgPbCommonSlotRarityWeights() */
+function tcgPbDuoCommonSlotRarityWeights(): array {
+    return tcgPbCommonSlotRarityWeights();
+}
+
+/**
+ * Premium pack slot 2 — member / frame-kira slot.
+ * Bulk is R (premium foil members); true parallels (P+/PP/…) stay scarce.
+ */
+function tcgPbMemberHoloSlotRarityWeights(): array {
+    return [
+        ['r' => 'SECE', 'w' => 2],
+        ['r' => 'SECS', 'w' => 1],
+        ['r' => 'DUO', 'w' => 3],
+        ['r' => 'SEC', 'w' => 3],
+        ['r' => 'SEC+', 'w' => 2],
+        ['r' => 'AR', 'w' => 6],
+        ['r' => 'RM', 'w' => 25],
+        ['r' => 'L+', 'w' => 35],
+        ['r' => 'PP', 'w' => 55],
+        ['r' => 'P+', 'w' => 70],
+        ['r' => 'P', 'w' => 400],
+        ['r' => 'L', 'w' => 250],
+        ['r' => 'N', 'w' => 800],
+        ['r' => 'R', 'w' => 6500],
     ];
 }
 
 /**
- * DUO holo slots (official: 2 of 3 cards are kira).
- * Weights mirror pb_superstar foil tiers but swap SRE→SRL and add DUO/PP/SECS.
- * PE+ stays scarce (same weight as standard PB) — dual holo slots must not inflate chase rates.
+ * Premium pack slot 3 — single special insert (Energy / SRE / SRL / chase).
+ * Usually an N (the "replaced N"); SRE/SRL land ~3+/box, PE ~1/box.
+ * Only one of these slots exists so triple Energy/SRL packs cannot occur.
+ */
+function tcgPbSpecialHoloSlotRarityWeights(bool $allowBasicFiller = true): array {
+    $weights = [
+        ['r' => 'SECS', 'w' => 2],
+        ['r' => 'SECE', 'w' => 4],
+        ['r' => 'SEC', 'w' => 3],
+        ['r' => 'SEC+', 'w' => 2],
+        ['r' => 'SECL', 'w' => 8],
+        ['r' => 'LLE', 'w' => 12],
+        ['r' => 'PE+', 'w' => 35],
+        ['r' => 'L+', 'w' => 45],
+        ['r' => 'RE', 'w' => 120],
+        ['r' => 'PE', 'w' => 260],
+        ['r' => 'SRE', 'w' => 900],
+        ['r' => 'SRL', 'w' => 900],
+    ];
+    if ($allowBasicFiller) {
+        // Common outcome: third card stays a basic N (sometimes R).
+        array_push($weights, ['r' => 'R', 'w' => 900], ['r' => 'N', 'w' => 5200]);
+    } else {
+        // All-holo packs: no basic filler — member parallels fill instead.
+        array_push(
+            $weights,
+            ['r' => 'PP', 'w' => 350],
+            ['r' => 'P+', 'w' => 400],
+            ['r' => 'P', 'w' => 1800],
+            ['r' => 'L', 'w' => 400]
+        );
+    }
+    return $weights;
+}
+
+/**
+ * @deprecated Dual identical holo slots inflated Energy/SRL. Use member + special slots.
  */
 function tcgPbDuoHoloSlotRarityWeights(): array {
-    return [
-        ['r' => 'SECE', 'w' => 3],
-        ['r' => 'SECS', 'w' => 2],
-        ['r' => 'DUO', 'w' => 4],
-        ['r' => 'SECL', 'w' => 6],
-        ['r' => 'LLE', 'w' => 8],
-        ['r' => 'L+', 'w' => 12],
-        ['r' => 'L', 'w' => 25],
-        ['r' => 'PE+', 'w' => 25],
-        ['r' => 'PP', 'w' => 400],
-        ['r' => 'P+', 'w' => 350],
-        ['r' => 'SRL', 'w' => 3500],
-    ];
+    return tcgPbSpecialHoloSlotRarityWeights(false);
 }
 
 /** Two pack indices per 20-pack DUO box where all three cards are holo. */
@@ -363,108 +417,38 @@ function tcgPbDuoAllHoloPackIndices(string $discordId, string $boxId, int $boxNu
 }
 
 /**
- * @param bool $advanceBoxPity Box guarantees (PE+/RM/…) count once per pack, not per holo slot.
- *        Dual-holo packs must not fire ~2 PE+ pity per box.
+ * @param bool $advanceBoxPity Box guarantees count once per pack (member+special share one advance).
+ * @param string $slot 'member' | 'special'
+ * @param bool $allowBasicFiller Special slot may roll N/R on normal packs.
  */
-function tcgPickPbDuoHolo(array $pools, array &$progress, int $packsPerBox, bool $advanceBoxPity = true): ?string {
+function tcgPickPbSlot(
+    array $pools,
+    array &$progress,
+    int $packsPerBox,
+    string $slot,
+    bool $advanceBoxPity = true,
+    bool $allowBasicFiller = true
+): ?string {
     if ($advanceBoxPity) {
         $progress['pplus_pity'] = intval($progress['pplus_pity']) + 1;
         $progress['pe_pity'] = intval($progress['pe_pity']) + 1;
         $progress['sec_pity'] = intval($progress['sec_pity']) + 1;
+        $progress['rm_pity'] = intval($progress['rm_pity'] ?? 0) + 1;
+        $progress['sre_pity'] = intval($progress['sre_pity'] ?? 0) + 1;
     }
 
-    if ($advanceBoxPity && $progress['sec_pity'] >= $packsPerBox * 10) {
-        $secPool = array_merge(
-            $pools['SECE'] ?? [],
-            $pools['SECS'] ?? [],
-            $pools['DUO'] ?? [],
-            $pools['SECL'] ?? []
-        );
-        if (!empty($secPool)) {
-            $progress['sec_pity'] = 0;
-            $picked = tcgPickFromPool($secPool);
+    // Official: >=3 SRE (or DUO SRL) per box -> soft pity every ~1/3 box.
+    $sreInterval = max(1, intdiv($packsPerBox, 3));
+    if ($advanceBoxPity && $slot === 'special' && $progress['sre_pity'] >= $sreInterval) {
+        $srePool = array_merge($pools['SRE'] ?? [], $pools['SRL'] ?? []);
+        if (!empty($srePool)) {
+            $progress['sre_pity'] = 0;
+            $picked = tcgPickFromPool($srePool);
             if ($picked) {
-                tcgApplyFoilPityReset(tcgRarityForCardNo($picked, $pools) ?? 'SECL', $progress);
+                tcgApplyFoilPityReset(tcgRarityForCardNo($picked, $pools) ?? 'SRE', $progress);
             }
             return $picked;
         }
-    }
-    if ($advanceBoxPity && $progress['pe_pity'] >= $packsPerBox && !empty($pools['PE+'])) {
-        $progress['pe_pity'] = 0;
-        return tcgPickFromPool($pools['PE+']);
-    }
-    if ($advanceBoxPity && $progress['pplus_pity'] >= $packsPerBox * 4 && !empty($pools['P+'])) {
-        $progress['pplus_pity'] = 0;
-        return tcgPickFromPool($pools['P+']);
-    }
-
-    $picked = tcgPickWeightedRarity($pools, tcgPbDuoHoloSlotRarityWeights());
-    if (!$picked) {
-        foreach (['SRL', 'PP', 'P+', 'PE+', 'L', 'LLE', 'SECL'] as $r) {
-            if (!empty($pools[$r])) {
-                return tcgPickFromPool($pools[$r]);
-            }
-        }
-        return null;
-    }
-
-    $rarity = tcgRarityForCardNo($picked, $pools);
-    if ($rarity) {
-        tcgApplyFoilPityReset($rarity, $progress);
-    }
-    return $picked;
-}
-
-function tcgRollPbDuoPack(array $pools, array &$progress, int $packsPerBox, bool $allHoloPack): array {
-    $slots = [];
-    $holoCount = $allHoloPack ? TCG_PB_PACK_SIZE : 2;
-    if (!$allHoloPack) {
-        $slots[] = tcgPickWeightedRarity($pools, tcgPbDuoCommonSlotRarityWeights())
-            ?: tcgPickFromPool($pools['N']) ?: tcgPickFromPool($pools['R']);
-    }
-    for ($i = 0; $i < $holoCount; $i++) {
-        // Only the first holo advances pack-level box pity.
-        $slots[] = tcgPickPbDuoHolo($pools, $progress, $packsPerBox, $i === 0);
-    }
-    return array_values(array_filter($slots));
-}
-
-/**
- * Standard Premium Booster holo slots (2 of 3 cards are kira).
- * Uses the same rarity curve as BP’s guaranteed foil slot: P/PE/RE are common,
- * SRE stays scarce (not the bulk of every holo pull).
- * Extra holo slots add more foils — they do not accelerate box pity or chase weights.
- */
-function tcgPbHoloSlotRarityWeights(): array {
-    return [
-        ['r' => 'SECE', 'w' => 3],
-        ['r' => 'SEC', 'w' => 4],
-        ['r' => 'SECL', 'w' => 4],
-        ['r' => 'SEC+', 'w' => 2],
-        ['r' => 'LLE', 'w' => 2],
-        ['r' => 'AR', 'w' => 8],
-        ['r' => 'PE+', 'w' => 25],
-        ['r' => 'P+', 'w' => 80],
-        ['r' => 'SRE', 'w' => 40],
-        ['r' => 'RM', 'w' => 33],
-        ['r' => 'P', 'w' => 5000],
-        ['r' => 'PE', 'w' => 2000],
-        ['r' => 'RE', 'w' => 1500],
-        ['r' => 'L+', 'w' => 70],
-        ['r' => 'L', 'w' => 40],
-    ];
-}
-
-/**
- * @param bool $advanceBoxPity Count this pull toward box guarantees (~1 PE+/RM per box).
- *        Only the first holo of each pack should pass true.
- */
-function tcgPickPbHolo(array $pools, array &$progress, int $packsPerBox, bool $advanceBoxPity = true): ?string {
-    if ($advanceBoxPity) {
-        $progress['pplus_pity'] = intval($progress['pplus_pity']) + 1;
-        $progress['pe_pity'] = intval($progress['pe_pity']) + 1;
-        $progress['sec_pity'] = intval($progress['sec_pity']) + 1;
-        $progress['rm_pity'] = intval($progress['rm_pity']) + 1;
     }
 
     if ($advanceBoxPity && $progress['rm_pity'] >= $packsPerBox && !empty($pools['RM'])) {
@@ -476,7 +460,9 @@ function tcgPickPbHolo(array $pools, array &$progress, int $packsPerBox, bool $a
             $pools['SECE'] ?? [],
             $pools['SEC'] ?? [],
             $pools['SECL'] ?? [],
-            $pools['SEC+'] ?? []
+            $pools['SEC+'] ?? [],
+            $pools['SECS'] ?? [],
+            $pools['DUO'] ?? []
         );
         if (!empty($secPool)) {
             $progress['sec_pity'] = 0;
@@ -487,18 +473,31 @@ function tcgPickPbHolo(array $pools, array &$progress, int $packsPerBox, bool $a
             return $picked;
         }
     }
-    if ($advanceBoxPity && $progress['pe_pity'] >= $packsPerBox && !empty($pools['PE+'])) {
-        $progress['pe_pity'] = 0;
-        return tcgPickFromPool($pools['PE+']);
+    // Official: >=1 PE per box (fallback PE+ on DUO sets that lack PE).
+    if ($advanceBoxPity && $slot === 'special' && $progress['pe_pity'] >= $packsPerBox) {
+        if (!empty($pools['PE'])) {
+            $progress['pe_pity'] = 0;
+            return tcgPickFromPool($pools['PE']);
+        }
+        if (!empty($pools['PE+'])) {
+            $progress['pe_pity'] = 0;
+            return tcgPickFromPool($pools['PE+']);
+        }
     }
     if ($advanceBoxPity && $progress['pplus_pity'] >= $packsPerBox * 4 && !empty($pools['P+'])) {
         $progress['pplus_pity'] = 0;
         return tcgPickFromPool($pools['P+']);
     }
 
-    $picked = tcgPickWeightedRarity($pools, tcgPbHoloSlotRarityWeights());
+    $weights = $slot === 'member'
+        ? tcgPbMemberHoloSlotRarityWeights()
+        : tcgPbSpecialHoloSlotRarityWeights($allowBasicFiller);
+    $picked = tcgPickWeightedRarity($pools, $weights);
     if (!$picked) {
-        foreach (['SRE', 'P+', 'PE+', 'P', 'PE', 'L', 'LLE', 'SECL'] as $r) {
+        $fallback = $slot === 'member'
+            ? ['R', 'N', 'P+', 'PP', 'P', 'L']
+            : ['N', 'R', 'SRE', 'SRL', 'PE', 'PE+', 'L'];
+        foreach ($fallback as $r) {
             if (!empty($pools[$r])) {
                 return tcgPickFromPool($pools[$r]);
             }
@@ -513,16 +512,42 @@ function tcgPickPbHolo(array $pools, array &$progress, int $packsPerBox, bool $a
     return $picked;
 }
 
-/** Standard Premium Booster: 3 cards (1 common + 2 holo), matching official PB products. */
+/** @deprecated */
+function tcgPickPbDuoHolo(array $pools, array &$progress, int $packsPerBox, bool $advanceBoxPity = true): ?string {
+    return tcgPickPbSlot($pools, $progress, $packsPerBox, 'special', $advanceBoxPity, false);
+}
+
+/**
+ * @deprecated Dual holo weights — kept for callers that still name it.
+ */
+function tcgPbHoloSlotRarityWeights(): array {
+    return tcgPbSpecialHoloSlotRarityWeights(false);
+}
+
+/** @deprecated */
+function tcgPickPbHolo(array $pools, array &$progress, int $packsPerBox, bool $advanceBoxPity = true): ?string {
+    return tcgPickPbSlot($pools, $progress, $packsPerBox, 'special', $advanceBoxPity, false);
+}
+
+function tcgRollPbDuoPack(array $pools, array &$progress, int $packsPerBox, bool $allHoloPack): array {
+    return tcgRollPbPack($pools, $progress, $packsPerBox, $allHoloPack);
+}
+
+/**
+ * Premium pack: common + member kira + one special insert.
+ * Energy / SRE / SRL only appear in the special slot (never triple).
+ */
 function tcgRollPbPack(array $pools, array &$progress, int $packsPerBox, bool $allHoloPack): array {
     $slots = [];
-    $holoCount = $allHoloPack ? TCG_PB_PACK_SIZE : 2;
-    if (!$allHoloPack) {
-        $slots[] = tcgPickWeightedRarity($pools, tcgPbDuoCommonSlotRarityWeights())
-            ?: tcgPickFromPool($pools['N']) ?: tcgPickFromPool($pools['R']);
-    }
-    for ($i = 0; $i < $holoCount; $i++) {
-        $slots[] = tcgPickPbHolo($pools, $progress, $packsPerBox, $i === 0);
+    if ($allHoloPack) {
+        $slots[] = tcgPickPbSlot($pools, $progress, $packsPerBox, 'member', true, false);
+        $slots[] = tcgPickPbSlot($pools, $progress, $packsPerBox, 'member', false, false);
+        $slots[] = tcgPickPbSlot($pools, $progress, $packsPerBox, 'special', false, false);
+    } else {
+        $slots[] = tcgPickWeightedRarity($pools, tcgPbCommonSlotRarityWeights())
+            ?: tcgPickFromPool($pools['R']) ?: tcgPickFromPool($pools['N']);
+        $slots[] = tcgPickPbSlot($pools, $progress, $packsPerBox, 'member', true, true);
+        $slots[] = tcgPickPbSlot($pools, $progress, $packsPerBox, 'special', false, true);
     }
     return array_values(array_filter($slots));
 }
@@ -662,12 +687,13 @@ function tcgComputeBoosterPackRates(array $box, array $cardsData): array {
             $notes[] = 'Starter-deck basic energy cards (LL-E-*-SD) and plain PR energies (LL-E-002-PR, LL-E-004-PR) are excluded from this pool.';
         }
     } elseif (($box['kind'] ?? '') === 'pb_duo') {
-        $commonWeights = tcgPbDuoCommonSlotRarityWeights();
-        $holoWeights = tcgPbDuoHoloSlotRarityWeights();
+        $commonWeights = tcgPbCommonSlotRarityWeights();
+        $memberWeights = tcgPbMemberHoloSlotRarityWeights();
+        $specialWeights = tcgPbSpecialHoloSlotRarityWeights(true);
         $slotDefs = [
             ['weights' => $commonWeights],
-            ['weights' => $holoWeights],
-            ['weights' => $holoWeights],
+            ['weights' => $memberWeights],
+            ['weights' => $specialWeights],
         ];
         foreach ($slotDefs as $i => $def) {
             $slotCardProbs[$i] = [];
@@ -685,20 +711,21 @@ function tcgComputeBoosterPackRates(array $box, array $cardsData): array {
                 }
             }
         }
-        $notes[] = 'DUO premium pack: 3 cards. Slot 1 is N/R; slots 2–3 are guaranteed holo (PP, P+, SRL, SECL, …).';
+        $notes[] = 'DUO premium pack: 3 cards. Slot 1 N/R/L; slot 2 member kira (mostly R); slot 3 one special insert (N, or SRL/Energy/chase).';
         $notes[] = sprintf(
             'Each %d-pack box also contains 2 all-holo packs (not reflected in per-pack percentages).',
             tcgBoxPacksPerBox($box)
         );
         $notes[] = 'Approximate rates without box pity counters.';
-        $notes[] = 'Box pity advances once per pack (not per holo slot): ~1 PE+ / box when available.';
+        $notes[] = 'Box pity advances once per pack: ~3 SRL/box, ~1 PE+/box when no PE pool, scarce P+.';
     } elseif (($box['kind'] ?? '') === 'pb') {
-        $commonWeights = tcgPbDuoCommonSlotRarityWeights();
-        $holoWeights = tcgPbHoloSlotRarityWeights();
+        $commonWeights = tcgPbCommonSlotRarityWeights();
+        $memberWeights = tcgPbMemberHoloSlotRarityWeights();
+        $specialWeights = tcgPbSpecialHoloSlotRarityWeights(true);
         $slotDefs = [
             ['weights' => $commonWeights],
-            ['weights' => $holoWeights],
-            ['weights' => $holoWeights],
+            ['weights' => $memberWeights],
+            ['weights' => $specialWeights],
         ];
         foreach ($slotDefs as $i => $def) {
             $slotCardProbs[$i] = [];
@@ -716,13 +743,13 @@ function tcgComputeBoosterPackRates(array $box, array $cardsData): array {
                 }
             }
         }
-        $notes[] = 'Premium pack: 3 cards. Slot 1 is N/R; slots 2–3 are guaranteed holo (mostly P/PE/RE; SRE and higher are scarce).';
+        $notes[] = 'Premium pack: 3 cards. Slot 1 N/R/L; slot 2 member kira (mostly R); slot 3 one special insert (N, or SRE/PE/chase).';
         $notes[] = sprintf(
             'Each %d-pack box also contains 2 all-holo packs (not reflected in per-pack percentages).',
             tcgBoxPacksPerBox($box)
         );
         $notes[] = 'Approximate rates without box pity counters.';
-        $notes[] = 'Box pity advances once per pack (not per holo slot): ~1 RM / box, ~1 PE+ / box when available — dual foils do not double chase guarantees.';
+        $notes[] = 'Box pity advances once per pack: ~3 SRE/box, ~1 PE/box, scarce P+ — Energy/SRL cannot appear in every slot.';
     } else {
         $nPool = $pools['N'] ?? [];
         $rPool = $pools['R'] ?? [];
@@ -946,8 +973,11 @@ function tcgApplyFoilPityReset(string $rarity, array &$progress): void {
     if ($rarity === 'P+') {
         $progress['pplus_pity'] = 0;
     }
-    if ($rarity === 'PE+') {
+    if ($rarity === 'PE' || $rarity === 'PE+') {
         $progress['pe_pity'] = 0;
+    }
+    if ($rarity === 'SRE' || $rarity === 'SRL') {
+        $progress['sre_pity'] = 0;
     }
     if (in_array($rarity, ['SEC', 'SECL', 'SECE', 'SEC+', 'SECS', 'DUO'], true)) {
         $progress['sec_pity'] = 0;
@@ -1088,6 +1118,7 @@ function tcgGetBoxProgress(string $discordId, string $boxId): array {
     if ($row) {
         $row['rm_pity'] = intval($row['rm_pity'] ?? 0);
         $row['live_pity'] = intval($row['live_pity'] ?? 0);
+        $row['sre_pity'] = intval($row['sre_pity'] ?? 0);
         return $row;
     }
     $db->prepare('INSERT INTO tcg_box_progress (discord_id, box_id) VALUES (?, ?)')
@@ -1102,14 +1133,15 @@ function tcgGetBoxProgress(string $discordId, string $boxId): array {
         'sec_pity' => 0,
         'rm_pity' => 0,
         'live_pity' => 0,
+        'sre_pity' => 0,
     ];
 }
 
 function tcgSaveBoxProgress(array $progress): void {
     $db = tcgDb();
     $db->prepare('INSERT INTO tcg_box_progress
-        (discord_id, box_id, packs_in_box, boxes_opened, pe_pity, pplus_pity, sec_pity, rm_pity, live_pity)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        (discord_id, box_id, packs_in_box, boxes_opened, pe_pity, pplus_pity, sec_pity, rm_pity, live_pity, sre_pity)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(discord_id, box_id) DO UPDATE SET
             packs_in_box = excluded.packs_in_box,
             boxes_opened = excluded.boxes_opened,
@@ -1117,7 +1149,8 @@ function tcgSaveBoxProgress(array $progress): void {
             pplus_pity = excluded.pplus_pity,
             sec_pity = excluded.sec_pity,
             rm_pity = excluded.rm_pity,
-            live_pity = excluded.live_pity')
+            live_pity = excluded.live_pity,
+            sre_pity = excluded.sre_pity')
         ->execute([
             $progress['discord_id'],
             $progress['box_id'],
@@ -1128,6 +1161,7 @@ function tcgSaveBoxProgress(array $progress): void {
             intval($progress['sec_pity']),
             intval($progress['rm_pity'] ?? 0),
             intval($progress['live_pity'] ?? 0),
+            intval($progress['sre_pity'] ?? 0),
         ]);
 }
 

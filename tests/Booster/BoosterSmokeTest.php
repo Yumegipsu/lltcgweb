@@ -166,20 +166,20 @@ final class BoosterSmokeTest extends TestCase
     {
         $this->loadBooster();
         $duo = null;
-        foreach (tcgPbDuoHoloSlotRarityWeights() as $row) {
+        foreach (tcgPbSpecialHoloSlotRarityWeights(true) as $row) {
             if (($row['r'] ?? '') === 'PE+') {
                 $duo = intval($row['w']);
                 break;
             }
         }
         $pb = null;
-        foreach (tcgPbHoloSlotRarityWeights() as $row) {
+        foreach (tcgPbSpecialHoloSlotRarityWeights(true) as $row) {
             if (($row['r'] ?? '') === 'PE+') {
                 $pb = intval($row['w']);
                 break;
             }
         }
-        $this->assertSame(25, $duo);
-        $this->assertSame(25, $pb);
+        $this->assertSame($pb, $duo);
+        $this->assertSame(35, $duo);
     }
 }
