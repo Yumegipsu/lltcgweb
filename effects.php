@@ -4398,8 +4398,14 @@ function subunitNamesMatch(string $a, string $b): bool {
 }
 
 function memberBatonFromLowerCostSubunit(array $member, string $subunit): bool {
-    $fromSub = $member['baton_from_subunit'] ?? '';
-    if (!subunitNamesMatch($fromSub, $subunit)) return false;
+    // Empty subunit = any lower-cost Baton source (Nozomi bp5-007). Non-empty still
+    // requires the replaced Member's subunit to match (Cerise / Dollchestra / etc.).
+    if ($subunit !== '') {
+        $fromSub = $member['baton_from_subunit'] ?? '';
+        if (!subunitNamesMatch($fromSub, $subunit)) {
+            return false;
+        }
+    }
     $fromCost = intval($member['baton_from_cost'] ?? -1);
     $selfCost = intval($member['cost'] ?? 0);
     return $fromCost >= 0 && $fromCost < $selfCost;
