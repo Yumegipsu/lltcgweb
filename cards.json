@@ -936,7 +936,8 @@
       "text_zh": "[自动] 当该成员从舞台进入等候室时，您可以激活 1 名成员。",
       "text_th": "[อัตโนมัติ] เมื่อสมาชิกรายนี้ถูกส่งจากเวทีไปยังห้องรอ คุณสามารถเปิดใช้งานสมาชิกได้ 1 คน",
       "text_pt": "[Automático] Quando este Membro for colocado do Palco para a Sala de Espera, você pode ativar 1 Membro.",
-      "text_fr": "[Automatique] Lorsque ce Membre se placez del Scène dans la Salle d'attente, vous pouvez activar 1 Membre."
+      "text_fr": "[Automatique] Lorsque ce Membre se placez del Scène dans la Salle d'attente, vous pouvez activar 1 Membre.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-PR-002-PR",
@@ -970,7 +971,8 @@
       "text_zh": "[自动] 当该成员从舞台进入等候室时，您可以激活 1 名成员。",
       "text_th": "[อัตโนมัติ] เมื่อสมาชิกรายนี้ถูกส่งจากเวทีไปยังห้องรอ คุณสามารถเปิดใช้งานสมาชิกได้ 1 คน",
       "text_pt": "[Automático] Quando este Membro for colocado do Palco para a Sala de Espera, você pode ativar 1 Membro.",
-      "text_fr": "[Automatique] Lorsque ce Membre se placez del Scène dans la Salle d'attente, vous pouvez activar 1 Membre."
+      "text_fr": "[Automatique] Lorsque ce Membre se placez del Scène dans la Salle d'attente, vous pouvez activar 1 Membre.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-PR-003-PR",
@@ -1018,7 +1020,8 @@
       "text_zh": "[起动] [每回合1次] 将 2 张手牌放入等候室：将 1 张在等候室中需要的心形数量为 3 颗或以上的活卡加入你的手牌。",
       "text_th": "[เปิดใช้] [เทิร์นละ 1 ครั้ง] นำไพ่ 2 ใบจากมือของคุณไปที่ห้องรอ: เพิ่มการ์ดสด 1 ใบจากห้องรอของคุณที่มีหัวใจสีเหลือง 3 ดวงขึ้นไปในหัวใจที่ต้องการในมือของคุณ",
       "text_pt": "[Ativado] [Uma vez por turno] Coloque 2 cartas da sua mão na Sala de Espera: adicione 1 carta Live da sua Sala de Espera com 3 ou mais <yellowH> em seu Requisito de Corações à sua mão.",
-      "text_fr": "[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de votre Salle d'attente con 3 ou plus Cœurs amarillos en sus cœurs requeridos à votre main."
+      "text_fr": "[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de votre Salle d'attente con 3 ou plus Cœurs amarillos en sus cœurs requeridos à votre main.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-PR-004-PR",
@@ -1066,7 +1069,8 @@
       "text_zh": "[起动] [每回合1次] 将 2 张手牌放入等候室：将 1 张等候室中所需心形数量为 3 个或以上的活体牌加入你的手牌。",
       "text_th": "[เปิดใช้] [เทิร์นละ 1 ครั้ง] นำการ์ด 2 ใบจากมือของคุณไปที่ห้องรอ: เพิ่มการ์ดสด 1 ใบจากห้องรอของคุณที่มีหัวใจสีชมพู 3 ใบขึ้นไปในหัวใจที่ต้องการในมือของคุณ",
       "text_pt": "[Ativado] [Uma vez por turno] Coloque 2 cartas da sua mão na Sala de Espera: adicione 1 carta Live da sua Sala de Espera com 3 ou mais <pinkH> em seu Requisito de Corações à sua mão.",
-      "text_fr": "[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de votre Salle d'attente con 3 ou plus Cœurs rosas en sus cœurs requeridos à votre main."
+      "text_fr": "[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de votre Salle d'attente con 3 ou plus Cœurs rosas en sus cœurs requeridos à votre main.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-PR-005-PR",
@@ -1126,7 +1130,8 @@
       "text_zh": "[入场时] 选择一项：\n• 抽1张卡并将1张手牌放入等候室。\n• 将所有成本为 2 或以下的对手舞台成员置于等待状态。",
       "text_th": "[เมื่อเข้าสนาม] เลือกหนึ่งรายการ:\n• จั่วการ์ด 1 ใบและนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ\n• นำสมาชิกสเตจของฝ่ายตรงข้ามทั้งหมดที่มีค่าร่าย 2 หรือน้อยกว่านั้นไปรอ",
       "text_pt": "[Ao Entrar] Escolha um:\n• Compre 1 carta e coloque 1 carta da sua mão na Sala de Espera.\n• Coloque todos os Membros no Palco do adversário de custo 2 ou menos em Repouso.",
-      "text_fr": "[À l'entrée] Choisissez une:\n• Piochez 1 carte et placez 1 carte de votre main dans la Salle d'attente.\n• Placez todos los Membres adverses sur Scène con coût 2 ou moins en Wait."
+      "text_fr": "[À l'entrée] Choisissez une:\n• Piochez 1 carte et placez 1 carte de votre main dans la Salle d'attente.\n• Placez todos los Membres adverses sur Scène con coût 2 ou moins en Wait.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-PR-006-PR",
@@ -1186,7 +1191,8 @@
       "text_zh": "[入场时] 选择一项：\n• 抽1张卡并将1张手牌放入等候室。\n• 将所有成本为 2 或以下的对手舞台成员置于等待状态。",
       "text_th": "[เมื่อเข้าสนาม] เลือกหนึ่งรายการ:\n• จั่วการ์ด 1 ใบและนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ\n• นำสมาชิกสเตจของฝ่ายตรงข้ามทั้งหมดที่มีค่าร่าย 2 หรือน้อยกว่านั้นไปรอ",
       "text_pt": "[Ao Entrar] Escolha um:\n• Compre 1 carta e coloque 1 carta da sua mão na Sala de Espera.\n• Coloque todos os Membros no Palco do adversário de custo 2 ou menos em Repouso.",
-      "text_fr": "[À l'entrée] Choisissez une:\n• Piochez 1 carte et placez 1 carte de votre main dans la Salle d'attente.\n• Placez todos los Membres adverses sur Scène con coût 2 ou moins en Wait."
+      "text_fr": "[À l'entrée] Choisissez une:\n• Piochez 1 carte et placez 1 carte de votre main dans la Salle d'attente.\n• Placez todos los Membres adverses sur Scène con coût 2 ou moins en Wait.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-PR-007-PR",
@@ -1222,7 +1228,8 @@
       "text_zh": "[入场时] / [现场开始] 你可以将该成员置于等待状态：将 1 名对手成本 4 或以下的阶段成员置于等待状态。",
       "text_th": "[เมื่อเข้าสนาม] / [เริ่ม Live] คุณสามารถกำหนดให้สมาชิกรายนี้เข้าสู่การรอ: นำสมาชิกสเตจคู่ต่อสู้ 1 รายที่มีค่าร่าย 4 หรือน้อยกว่าเข้าสู่การรอ",
       "text_pt": "[Ao Entrar] /\n[Início de Live] Você pode colocar este Membro em Repouso: coloque 1 Membro no Palco do adversário de custo 4 ou menos em Repouso.",
-      "text_fr": "[À l'entrée] / [Début de Live] Vous pouvez placer ce Membre en Wait: placez 1 Membre adverse sur Scène con coût 4 ou moins en Wait."
+      "text_fr": "[À l'entrée] / [Début de Live] Vous pouvez placer ce Membre en Wait: placez 1 Membre adverse sur Scène con coût 4 ou moins en Wait.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-PR-008-PR",
@@ -1282,7 +1289,8 @@
       "text_zh": "[入场时] 选择一项：\n• 抽1张卡并将1张手牌放入等候室。\n• 将所有成本为 2 或以下的对手舞台成员置于等待状态。",
       "text_th": "[เมื่อเข้าสนาม] เลือกหนึ่งรายการ:\n• จั่วการ์ด 1 ใบและนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ\n• นำสมาชิกสเตจของฝ่ายตรงข้ามทั้งหมดที่มีค่าร่าย 2 หรือน้อยกว่านั้นไปรอ",
       "text_pt": "[Ao Entrar] Escolha um:\n• Compre 1 carta e coloque 1 carta da sua mão na Sala de Espera.\n• Coloque todos os Membros no Palco do adversário de custo 2 ou menos em Repouso.",
-      "text_fr": "[À l'entrée] Choisissez une:\n• Piochez 1 carte et placez 1 carte de votre main dans la Salle d'attente.\n• Placez todos los Membres adverses sur Scène con coût 2 ou moins en Wait."
+      "text_fr": "[À l'entrée] Choisissez une:\n• Piochez 1 carte et placez 1 carte de votre main dans la Salle d'attente.\n• Placez todos los Membres adverses sur Scène con coût 2 ou moins en Wait.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-PR-009-PR",
@@ -1318,7 +1326,8 @@
       "text_zh": "[入场时] / [现场开始] 你可以将该成员置于等待状态：将 1 名对手成本 4 或以下的阶段成员置于等待状态。",
       "text_th": "[เมื่อเข้าสนาม] / [เริ่ม Live] คุณสามารถกำหนดให้สมาชิกรายนี้เข้าสู่การรอ: นำสมาชิกสเตจคู่ต่อสู้ 1 รายที่มีค่าร่าย 4 หรือน้อยกว่าเข้าสู่การรอ",
       "text_pt": "[Ao Entrar] /\n[Início de Live] Você pode colocar este Membro em Repouso: coloque 1 Membro no Palco do adversário de custo 4 ou menos em Repouso.",
-      "text_fr": "[À l'entrée] / [Début de Live] Vous pouvez placer ce Membre en Wait: placez 1 Membre adverse sur Scène con coût 4 ou moins en Wait."
+      "text_fr": "[À l'entrée] / [Début de Live] Vous pouvez placer ce Membre en Wait: placez 1 Membre adverse sur Scène con coût 4 ou moins en Wait.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-PR-010-PR＋",
@@ -1382,7 +1391,8 @@
       "text_zh": "[起动] 将该成员置于等待状态，并将自己手牌中的1张卡放入等候室：抽1张卡。",
       "text_th": "[เปิดใช้] นำสมาชิกคนนี้ไปรอ และนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ: จั่วการ์ด 1 ใบ",
       "text_pt": "[Ativado] Coloque este Membro em Repouso e coloque 1 carta da sua mão na Sala de Espera: compre 1 carta.",
-      "text_fr": "[Activé] Placez ce Membre en Wait et placez 1 carte de votre main dans la Salle d'attente: piochez 1 carte."
+      "text_fr": "[Activé] Placez ce Membre en Wait et placez 1 carte de votre main dans la Salle d'attente: piochez 1 carte.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-PR-013-PR＋",
@@ -1966,7 +1976,8 @@
       "text_zh": "[起动] 将该成员置于等候室：抽1张卡并将1张手牌放入等候室。\n（等待成员身上的刀锋之心不会增加Yell所揭示的牌数。）\n[现场开始] 在您的舞台上激活最多 1 名成员。",
       "text_th": "[เปิดใช้] วางสมาชิกคนนี้ไว้รอ: จั่วการ์ด 1 ใบ และนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ\n(ใบมีดหัวใจของสมาชิกที่รออยู่จะไม่เพิ่มการ์ดที่เปิดเผยสำหรับตะโกน)\n[เริ่ม Live] เปิดใช้งานสมาชิกได้สูงสุด 1 คนบนเวทีของคุณ",
       "text_pt": "[Ativado] Coloque este Membro em Repouso: compre 1 carta e coloque 1 carta da sua mão na Sala de Espera.\n[Início de Live] Ative até 1 Membro no seu Palco.",
-      "text_fr": "[Activé] Placez ce Membre en Wait: piochez 1 carte and placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Activez jusqu'à 1 Membre sur votre Scène."
+      "text_fr": "[Activé] Placez ce Membre en Wait: piochez 1 carte and placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Activez jusqu'à 1 Membre sur votre Scène.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-001-R",
@@ -2018,7 +2029,8 @@
       "text_zh": "[起动] [每回合1次] 将该成员置于等候室：抽1张卡并将1张手牌放入等候室。\n（等待成员身上的刀锋之心不会增加Yell所揭示的牌数。）\n[现场开始] 在您的舞台上激活最多 1 名成员。",
       "text_th": "[เปิดใช้] [เทิร์นละ 1 ครั้ง] วางสมาชิกคนนี้ไว้รอ: จั่วการ์ด 1 ใบและนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ\n(ใบมีดหัวใจของสมาชิกที่รออยู่จะไม่เพิ่มการ์ดที่เปิดเผยสำหรับตะโกน)\n[เริ่ม Live] เปิดใช้งานสมาชิกได้สูงสุด 1 คนบนเวทีของคุณ",
       "text_pt": "[Ativado] [Uma vez por turno] Coloque este Membro em Repouso: compre 1 carta e coloque 1 carta da sua mão na Sala de Espera.\n[Início de Live] Ative até 1 Membro no seu Palco.",
-      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait: piochez 1 carte and placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Activez jusqu'à 1 Membre sur votre Scène."
+      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait: piochez 1 carte and placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Activez jusqu'à 1 Membre sur votre Scène.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-002-P",
@@ -2072,7 +2084,8 @@
       "text_zh": "[入场时] 可以将1张手牌放置到等候室：将对方最多2名费用为4以下的舞台成员放置到等候室。\n（等待成员身上的刀锋之心不会增加Yell所揭示的牌数。）\n[永续] 每有一名等待的对手阶段成员，该成员就获得 +1 Blade。",
       "text_th": "[เมื่อเข้าสนาม] คุณสามารถนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ: นำสมาชิกสเตจคู่ต่อสู้ได้สูงสุด 2 คนโดยมีค่าร่าย 4 หรือน้อยกว่าเพื่อรอ\n(ใบมีดหัวใจของสมาชิกที่รออยู่จะไม่เพิ่มการ์ดที่เปิดเผยสำหรับตะโกน)\n[ต่อเนื่อง] สมาชิกนี้จะได้รับ +1 เบลด สำหรับสมาชิก เวที ของคู่ต่อสู้แต่ละคนที่กำลังรออยู่",
       "text_pt": "[Ao Entrar] Você pode colocar 1 carta da sua mão na Sala de Espera: coloque até 2 Membros no Palco do adversário de custo 4 ou menos em Repouso.\n[Sempre] Esta carta ganha 1<blade> para cada Membro no Palco do adversário em Repouso.",
-      "text_fr": "[À l'entrée] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: placez jusqu'à 2 Membres adverses sur Scène with coût 4 ou moins en Wait.\n[Permanent] Cette carte gagne 1<blade> pour chaque Membre adverse sur Scène en Wait."
+      "text_fr": "[À l'entrée] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: placez jusqu'à 2 Membres adverses sur Scène with coût 4 ou moins en Wait.\n[Permanent] Cette carte gagne 1<blade> pour chaque Membre adverse sur Scène en Wait.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp3-002-R",
@@ -2126,7 +2139,8 @@
       "text_zh": "[入场时] 可以将1张手牌放置到等候室：将对方最多2名费用为4以下的舞台成员放置到等候室。\n（等待成员身上的刀锋之心不会增加Yell所揭示的牌数。）\n[永续] 每有一名等待的对手阶段成员，该成员就获得 +1 Blade。",
       "text_th": "[เมื่อเข้าสนาม] คุณสามารถนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ: นำสมาชิกสเตจคู่ต่อสู้ได้สูงสุด 2 คนโดยมีค่าร่าย 4 หรือน้อยกว่าเพื่อรอ\n(ใบมีดหัวใจของสมาชิกที่รออยู่จะไม่เพิ่มการ์ดที่เปิดเผยสำหรับตะโกน)\n[ต่อเนื่อง] สมาชิกนี้จะได้รับ +1 เบลด สำหรับสมาชิก เวที ของคู่ต่อสู้แต่ละคนที่กำลังรออยู่",
       "text_pt": "[Ao Entrar] Você pode colocar 1 carta da sua mão na Sala de Espera: coloque até 2 Membros no Palco do adversário de custo 4 ou menos em Repouso.\n[Sempre] Esta carta ganha 1<blade> para cada Membro no Palco do adversário em Repouso.",
-      "text_fr": "[À l'entrée] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: placez jusqu'à 2 Membres adverses sur Scène with coût 4 ou moins en Wait.\n[Permanent] Cette carte gagne 1<blade> pour chaque Membre adverse sur Scène en Wait."
+      "text_fr": "[À l'entrée] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: placez jusqu'à 2 Membres adverses sur Scène with coût 4 ou moins en Wait.\n[Permanent] Cette carte gagne 1<blade> pour chaque Membre adverse sur Scène en Wait.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp3-003-P",
@@ -2173,7 +2187,8 @@
       "text_zh": "[入场时] 你可以将该成员置于等待状态：将你的等候室中的1μ成员卡加入你的手牌。\n（等待成员身上的刀锋之心不会增加Yell所揭示的牌数。）",
       "text_th": "[เมื่อเข้าสนาม] คุณสามารถให้สมาชิกคนนี้รอได้: เพิ่มบัตรสมาชิก 1 μ จากห้องรอของคุณถึงมือคุณ\n(ใบมีดหัวใจของสมาชิกที่รออยู่จะไม่เพิ่มการ์ดที่เปิดเผยสำหรับตะโกน)",
       "text_pt": "[Ao Entrar] Você pode colocar este Membro em Repouso: adicione 1 carta Membro μ's da sua Sala de Espera à sua mão.",
-      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: ajoutez 1 carte de Membre de μ's de votre Salle d'attente à votre main.\n(Los cœurs de Blade en Membres en Wait no aumentan las cartes révélées para Yell.)"
+      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: ajoutez 1 carte de Membre de μ's de votre Salle d'attente à votre main.\n(Los cœurs de Blade en Membres en Wait no aumentan las cartes révélées para Yell.)",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-003-R",
@@ -2220,7 +2235,8 @@
       "text_zh": "[入场时] 你可以将该成员置于等待状态：将你的等候室中的1μ成员卡加入你的手牌。\n（等待成员身上的刀锋之心不会增加Yell所揭示的牌数。）",
       "text_th": "[เมื่อเข้าสนาม] คุณสามารถให้สมาชิกคนนี้รอได้: เพิ่มบัตรสมาชิก 1 μ จากห้องรอของคุณถึงมือคุณ\n(ใบมีดหัวใจของสมาชิกที่รออยู่จะไม่เพิ่มการ์ดที่เปิดเผยสำหรับตะโกน)",
       "text_pt": "[Ao Entrar] Você pode colocar este Membro em Repouso: adicione 1 carta Membro μ's da sua Sala de Espera à sua mão.",
-      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: ajoutez 1 carte de Membre de μ's de votre Salle d'attente à votre main.\n(Los cœurs de Blade en Membres en Wait no aumentan las cartes révélées para Yell.)"
+      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: ajoutez 1 carte de Membre de μ's de votre Salle d'attente à votre main.\n(Los cœurs de Blade en Membres en Wait no aumentan las cartes révélées para Yell.)",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-004-P",
@@ -2272,7 +2288,8 @@
       "text_zh": "[入场时] 为舞台上的每个成员抽一张卡，然后将一张手牌放入等候室。\n[现场开始] 如果你有成功现场卡，你可以从你的手牌中将1张卡放入等候室：将你的等候室中的1μ's现场卡添加到你的手牌中。",
       "text_th": "[เมื่อเข้าสนาม] จั่วการ์ด 1 ใบสำหรับสมาชิกแต่ละคนบนเวทีของคุณ จากนั้นนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ\n[เริ่ม Live] หากคุณมีการ์ด สำเร็จ Live คุณสามารถนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ: เพิ่มการ์ด Live 1 μ จากห้องรอของคุณไปยังมือของคุณ",
       "text_pt": "[Ao Entrar] Compre 1 carta para cada Membro no seu Palco, depois coloque 1 carta da sua mão na Sala de Espera.\n[Início de Live] Se você tiver alguma carta Live Bem-Sucedida, você pode colocar 1 carta da sua mão na Sala de Espera: adicione 1 carta Live μ's da sua Sala de Espera à sua mão.",
-      "text_fr": "[À l'entrée] Piochez 1 carte por cada Membre sur votre Scène et puis placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Si vous avez cartes de Live réussi, vous pouvez colocar 1 carte de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main."
+      "text_fr": "[À l'entrée] Piochez 1 carte por cada Membre sur votre Scène et puis placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Si vous avez cartes de Live réussi, vous pouvez colocar 1 carte de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp3-004-P＋",
@@ -2324,7 +2341,8 @@
       "text_zh": "[入场时] 为舞台上的每个成员抽一张卡，然后将一张手牌放入等候室。\n[现场开始] 如果你有成功现场卡，你可以从你的手牌中将1张卡放入等候室：将你的等候室中的1μ's现场卡添加到你的手牌中。",
       "text_th": "[เมื่อเข้าสนาม] จั่วการ์ด 1 ใบสำหรับสมาชิกแต่ละคนบนเวทีของคุณ จากนั้นนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ\n[เริ่ม Live] หากคุณมีการ์ด สำเร็จ Live คุณสามารถนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ: เพิ่มการ์ด Live 1 μ จากห้องรอของคุณไปยังมือของคุณ",
       "text_pt": "[Ao Entrar] Compre 1 carta para cada Membro no seu Palco, depois coloque 1 carta da sua mão na Sala de Espera.\n[Início de Live] Se você tiver alguma carta Live Bem-Sucedida, você pode colocar 1 carta da sua mão na Sala de Espera: adicione 1 carta Live μ's da sua Sala de Espera à sua mão.",
-      "text_fr": "[À l'entrée] Piochez 1 carte por cada Membre sur votre Scène et puis placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Si vous avez cartes de Live réussi, vous pouvez colocar 1 carte de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main."
+      "text_fr": "[À l'entrée] Piochez 1 carte por cada Membre sur votre Scène et puis placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Si vous avez cartes de Live réussi, vous pouvez colocar 1 carte de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp3-004-R＋",
@@ -2376,7 +2394,8 @@
       "text_zh": "[入场时] 为舞台上的每个成员抽一张卡，然后将一张手牌放入等候室。\n[现场开始] 如果你有成功现场卡，你可以从你的手牌中将1张卡放入等候室：将你的等候室中的1μ's现场卡添加到你的手牌中。",
       "text_th": "[เมื่อเข้าสนาม] จั่วการ์ด 1 ใบสำหรับสมาชิกแต่ละคนบนเวทีของคุณ จากนั้นนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ\n[เริ่ม Live] หากคุณมีการ์ด สำเร็จ Live คุณสามารถนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ: เพิ่มการ์ด Live 1 μ จากห้องรอของคุณไปยังมือของคุณ",
       "text_pt": "[Ao Entrar] Compre 1 carta para cada Membro no seu Palco, depois coloque 1 carta da sua mão na Sala de Espera.\n[Início de Live] Se você tiver alguma carta Live Bem-Sucedida, você pode colocar 1 carta da sua mão na Sala de Espera: adicione 1 carta Live μ's da sua Sala de Espera à sua mão.",
-      "text_fr": "[À l'entrée] Piochez 1 carte por cada Membre sur votre Scène et puis placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Si vous avez cartes de Live réussi, vous pouvez colocar 1 carte de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main."
+      "text_fr": "[À l'entrée] Piochez 1 carte por cada Membre sur votre Scène et puis placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Si vous avez cartes de Live réussi, vous pouvez colocar 1 carte de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp3-004-SEC",
@@ -2428,7 +2447,8 @@
       "text_zh": "[入场时] 为舞台上的每个成员抽一张卡，然后将一张手牌放入等候室。\n[现场开始] 如果你有成功现场卡，你可以从你的手牌中将1张卡放入等候室：将你的等候室中的1μ's现场卡添加到你的手牌中。",
       "text_th": "[เมื่อเข้าสนาม] จั่วการ์ด 1 ใบสำหรับสมาชิกแต่ละคนบนเวทีของคุณ จากนั้นนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ\n[เริ่ม Live] หากคุณมีการ์ด สำเร็จ Live คุณสามารถนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ: เพิ่มการ์ด Live 1 μ จากห้องรอของคุณไปยังมือของคุณ",
       "text_pt": "[Ao Entrar] Compre 1 carta para cada Membro no seu Palco, depois coloque 1 carta da sua mão na Sala de Espera.\n[Início de Live] Se você tiver alguma carta Live Bem-Sucedida, você pode colocar 1 carta da sua mão na Sala de Espera: adicione 1 carta Live μ's da sua Sala de Espera à sua mão.",
-      "text_fr": "[À l'entrée] Piochez 1 carte por cada Membre sur votre Scène et puis placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Si vous avez cartes de Live réussi, vous pouvez colocar 1 carte de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main."
+      "text_fr": "[À l'entrée] Piochez 1 carte por cada Membre sur votre Scène et puis placez 1 carte de votre main dans la Salle d'attente.\n[Début de Live] Si vous avez cartes de Live réussi, vous pouvez colocar 1 carte de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp3-005-P",
@@ -2464,7 +2484,8 @@
       "text_zh": "[入场时] 激活舞台上的所有成员。",
       "text_th": "[เมื่อเข้าสนาม] เปิดใช้งานสมาชิกทั้งหมดบนเวทีของคุณ",
       "text_pt": "[Ao Entrar] Ative todos os Membros no seu Palco.",
-      "text_fr": "[À l'entrée] Activez todos los Membres sur votre Scène."
+      "text_fr": "[À l'entrée] Activez todos los Membres sur votre Scène.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp3-005-R",
@@ -2500,7 +2521,8 @@
       "text_zh": "[入场时] 激活舞台上的所有成员。",
       "text_th": "[เมื่อเข้าสนาม] เปิดใช้งานสมาชิกทั้งหมดบนเวทีของคุณ",
       "text_pt": "[Ao Entrar] Ative todos os Membros no seu Palco.",
-      "text_fr": "[À l'entrée] Activez todos los Membres sur votre Scène."
+      "text_fr": "[À l'entrée] Activez todos los Membres sur votre Scène.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp3-006-P",
@@ -2547,7 +2569,8 @@
       "text_zh": "[现场开始] 你可以将 1 张手牌放入等候室：直到本场结束，你的成功场中每有一张牌，你获得 +2 Blade。",
       "text_th": "[เริ่ม Live] คุณสามารถใส่การ์ด 1 ใบจากมือของคุณเข้าไปในห้องรอ: จนกว่า Live นี้จบลง คุณจะได้รับ +2 เบลด สำหรับการ์ดแต่ละใบในพื้นที่ สำเร็จ Live ของคุณ",
       "text_pt": "[Início de Live] Você pode colocar 1 carta da sua mão na Sala de Espera: até o fim desta Live, este Membro ganha 2<blade> para cada carta na sua zona de Lives Bem-Sucedidas.",
-      "text_fr": "[Début de Live] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: jusqu'à la fin de ce Live, vous gagnez +2 Blade por cada carte en tu área de Live réussi."
+      "text_fr": "[Début de Live] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: jusqu'à la fin de ce Live, vous gagnez +2 Blade por cada carte en tu área de Live réussi.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp3-006-R",
@@ -2594,7 +2617,8 @@
       "text_zh": "[现场开始] 你可以将 1 张手牌放入等候室：直到本场结束，你的成功场中每有一张牌，你获得 +2 Blade。",
       "text_th": "[เริ่ม Live] คุณสามารถใส่การ์ด 1 ใบจากมือของคุณเข้าไปในห้องรอ: จนกว่า Live นี้จบลง คุณจะได้รับ +2 เบลด สำหรับการ์ดแต่ละใบในพื้นที่ สำเร็จ Live ของคุณ",
       "text_pt": "[Início de Live] Você pode colocar 1 carta da sua mão na Sala de Espera: até o fim desta Live, este Membro ganha 2<blade> para cada carta na sua zona de Lives Bem-Sucedidas.",
-      "text_fr": "[Début de Live] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: jusqu'à la fin de ce Live, vous gagnez +2 Blade por cada carte en tu área de Live réussi."
+      "text_fr": "[Début de Live] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: jusqu'à la fin de ce Live, vous gagnez +2 Blade por cada carte en tu área de Live réussi.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp3-007-P",
@@ -2638,7 +2662,8 @@
       "text_zh": "[现场开始] 你可以将2张手牌放入等候室：查看你牌库顶的3张牌，将1张加入手牌，将1张置于你的牌库顶，然后将1张放入等候室。",
       "text_th": "[เริ่ม Live] คุณสามารถใส่การ์ด 2 ใบจากมือของคุณลงห้องรอ: ดูการ์ด 3 ใบบนสุดของเด็คของคุณ, เพิ่ม 1 ใบในมือของคุณ, วาง 1 ใบไว้บนสุดของเด็คของคุณ และนำ 1 ใบไปไว้ในห้องรอ",
       "text_pt": "[Início de Live] Você pode colocar 2 cartas da sua mão na Sala de Espera: olhe as 3 cartas do topo do seu deck, adicione 1 à sua mão, coloque 1 no topo do seu deck e coloque 1 na Sala de Espera.",
-      "text_fr": "[Début de Live] Vous pouvez placer 2 cartes de votre main dans la Salle d'attente: regardez les 3 cartes du dessus de votre deck, ajoutez 1 à votre main, placez 1 en la parte superior de votre deck et placez 1 dans la Salle d'attente."
+      "text_fr": "[Début de Live] Vous pouvez placer 2 cartes de votre main dans la Salle d'attente: regardez les 3 cartes du dessus de votre deck, ajoutez 1 à votre main, placez 1 en la parte superior de votre deck et placez 1 dans la Salle d'attente.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp3-007-R",
@@ -2682,7 +2707,8 @@
       "text_zh": "[现场开始] 你可以将2张手牌放入等候室：查看你牌库顶的3张牌，将1张加入手牌，将1张置于你的牌库顶，然后将1张放入等候室。",
       "text_th": "[เริ่ม Live] คุณสามารถใส่การ์ด 2 ใบจากมือของคุณลงห้องรอ: ดูการ์ด 3 ใบบนสุดของเด็คของคุณ, เพิ่ม 1 ใบในมือของคุณ, วาง 1 ใบไว้บนสุดของเด็คของคุณ และนำ 1 ใบไปไว้ในห้องรอ",
       "text_pt": "[Início de Live] Você pode colocar 2 cartas da sua mão na Sala de Espera: olhe as 3 cartas do topo do seu deck, adicione 1 à sua mão, coloque 1 no topo do seu deck e coloque 1 na Sala de Espera.",
-      "text_fr": "[Début de Live] Vous pouvez placer 2 cartes de votre main dans la Salle d'attente: regardez les 3 cartes du dessus de votre deck, ajoutez 1 à votre main, placez 1 en la parte superior de votre deck et placez 1 dans la Salle d'attente."
+      "text_fr": "[Début de Live] Vous pouvez placer 2 cartes de votre main dans la Salle d'attente: regardez les 3 cartes du dessus de votre deck, ajoutez 1 à votre main, placez 1 en la parte superior de votre deck et placez 1 dans la Salle d'attente.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp3-008-P",
@@ -2741,7 +2767,8 @@
       "text_zh": "[起动] [每回合1次] 将该成员置于等待状态：从等候室将1μ的现场卡加入手牌。\n[现场开始] 你可以将舞台上的1个μ成员置于等待状态：直到本次现场结束，你获得2颗黄心。",
       "text_th": "[เปิดใช้] [เทิร์นละ 1 ครั้ง] ให้สมาชิกคนนี้รอ: เพิ่มการ์ดสด 1 μ's จากห้องรอของคุณถึงมือคุณ\n[เริ่ม Live] คุณอาจให้สมาชิกของ 1 μ อยู่บนเวทีของคุณเพื่อรอ: จนกว่า Live นี้จะจบลง คุณจะได้รับหัวใจสีเหลือง 2 ดวง",
       "text_pt": "[Ativado] [Uma vez por turno] Coloque este Membro em Repouso: adicione 1 carta Live μ's da sua Sala de Espera à sua mão.\n[Início de Live] Você pode colocar 1 Membro μ's no seu Palco em Repouso: até o fim desta Live, esta carta ganha 2<yellowH>.",
-      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.\n[Début de Live] Vous pouvez placer 1 Membre de μ's sur votre Scène en Wait: jusqu'à la fin de ce Live, vous gagnez 2 cœurs amarillos."
+      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.\n[Début de Live] Vous pouvez placer 1 Membre de μ's sur votre Scène en Wait: jusqu'à la fin de ce Live, vous gagnez 2 cœurs amarillos.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-008-P＋",
@@ -2800,7 +2827,8 @@
       "text_zh": "[起动] [每回合1次] 将该成员置于等待状态：从等候室将1μ的现场卡加入手牌。\n[现场开始] 你可以将舞台上的1个μ成员置于等待状态：直到本次现场结束，你获得2颗黄心。",
       "text_th": "[เปิดใช้] [เทิร์นละ 1 ครั้ง] ให้สมาชิกคนนี้รอ: เพิ่มการ์ดสด 1 μ's จากห้องรอของคุณถึงมือคุณ\n[เริ่ม Live] คุณอาจให้สมาชิกของ 1 μ อยู่บนเวทีของคุณเพื่อรอ: จนกว่า Live นี้จะจบลง คุณจะได้รับหัวใจสีเหลือง 2 ดวง",
       "text_pt": "[Ativado] [Uma vez por turno] Coloque este Membro em Repouso: adicione 1 carta Live μ's da sua Sala de Espera à sua mão.\n[Início de Live] Você pode colocar 1 Membro μ's no seu Palco em Repouso: até o fim desta Live, esta carta ganha 2<yellowH>.",
-      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.\n[Début de Live] Vous pouvez placer 1 Membre de μ's sur votre Scène en Wait: jusqu'à la fin de ce Live, vous gagnez 2 cœurs amarillos."
+      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.\n[Début de Live] Vous pouvez placer 1 Membre de μ's sur votre Scène en Wait: jusqu'à la fin de ce Live, vous gagnez 2 cœurs amarillos.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-008-R＋",
@@ -2859,7 +2887,8 @@
       "text_zh": "[起动] [每回合1次] 将该成员置于等待状态：从等候室将1μ的现场卡加入手牌。\n[现场开始] 你可以将舞台上的1个μ成员置于等待状态：直到本次现场结束，你获得2颗黄心。",
       "text_th": "[เปิดใช้] [เทิร์นละ 1 ครั้ง] ให้สมาชิกคนนี้รอ: เพิ่มการ์ดสด 1 μ's จากห้องรอของคุณถึงมือคุณ\n[เริ่ม Live] คุณอาจให้สมาชิกของ 1 μ อยู่บนเวทีของคุณเพื่อรอ: จนกว่า Live นี้จะจบลง คุณจะได้รับหัวใจสีเหลือง 2 ดวง",
       "text_pt": "[Ativado] [Uma vez por turno] Coloque este Membro em Repouso: adicione 1 carta Live μ's da sua Sala de Espera à sua mão.\n[Início de Live] Você pode colocar 1 Membro μ's no seu Palco em Repouso: até o fim desta Live, esta carta ganha 2<yellowH>.",
-      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.\n[Début de Live] Vous pouvez placer 1 Membre de μ's sur votre Scène en Wait: jusqu'à la fin de ce Live, vous gagnez 2 cœurs amarillos."
+      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.\n[Début de Live] Vous pouvez placer 1 Membre de μ's sur votre Scène en Wait: jusqu'à la fin de ce Live, vous gagnez 2 cœurs amarillos.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-008-SEC",
@@ -2918,7 +2947,8 @@
       "text_zh": "[起动] [每回合1次] 将该成员置于等待状态：从等候室将1μ的现场卡加入手牌。\n[现场开始] 你可以将舞台上的1个μ成员置于等待状态：直到本次现场结束，你获得2颗黄心。",
       "text_th": "[เปิดใช้] [เทิร์นละ 1 ครั้ง] ให้สมาชิกคนนี้รอ: เพิ่มการ์ดสด 1 μ's จากห้องรอของคุณถึงมือคุณ\n[เริ่ม Live] คุณอาจให้สมาชิกของ 1 μ อยู่บนเวทีของคุณเพื่อรอ: จนกว่า Live นี้จะจบลง คุณจะได้รับหัวใจสีเหลือง 2 ดวง",
       "text_pt": "[Ativado] [Uma vez por turno] Coloque este Membro em Repouso: adicione 1 carta Live μ's da sua Sala de Espera à sua mão.\n[Início de Live] Você pode colocar 1 Membro μ's no seu Palco em Repouso: até o fim desta Live, esta carta ganha 2<yellowH>.",
-      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.\n[Début de Live] Vous pouvez placer 1 Membre de μ's sur votre Scène en Wait: jusqu'à la fin de ce Live, vous gagnez 2 cœurs amarillos."
+      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main.\n[Début de Live] Vous pouvez placer 1 Membre de μ's sur votre Scène en Wait: jusqu'à la fin de ce Live, vous gagnez 2 cœurs amarillos.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-009-P",
@@ -2964,7 +2994,8 @@
       "text_zh": "[入场时] 舞台成员的费用为13以上的话，抽1张卡。\n[起动] [每回合1次] 将此成员置于等待状态：选择粉红色、黄色或紫色 — 直到本次直播结束，你获得 1 颗心。",
       "text_th": "[เมื่อเข้าสนาม] หากคุณมีสมาชิกสเตจที่มีค่าร่าย 13 ขึ้นไป จั่วการ์ด 1 ใบ\n[เปิดใช้] [เทิร์นละ 1 ครั้ง] ให้สมาชิกคนนี้รอ: เลือกสีชมพู เหลือง หรือม่วง — คุณจะได้รับหัวใจ 1 ดวงจนกว่าไลฟ์นี้จะจบลง",
       "text_pt": "[Ao Entrar] Se você tiver um Membro no Palco de custo 13 ou mais, compre 1 carta.\n[Ativado] [Uma vez por turno] Coloque este Membro em Repouso: escolha entre <pinkH>, <yellowH>, ou <purpleH> — até o fim desta Live, esta carta ganha 1 desse Coração.",
-      "text_fr": "[À l'entrée] Si vous avez un Membre en el Scène con coût 13 ou plus, piochez 1 carte.\n[Activé] [Une fois par tour] Placez ce Membre en Wait: choisissez rosa, amarillo ou morado — jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur."
+      "text_fr": "[À l'entrée] Si vous avez un Membre en el Scène con coût 13 ou plus, piochez 1 carte.\n[Activé] [Une fois par tour] Placez ce Membre en Wait: choisissez rosa, amarillo ou morado — jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp3-009-P＋",
@@ -3010,7 +3041,8 @@
       "text_zh": "[入场时] 舞台成员的费用为13以上的话，抽1张卡。\n[起动] [每回合1次] 将此成员置于等待状态：选择粉红色、黄色或紫色 — 直到本次直播结束，你获得 1 颗心。",
       "text_th": "[เมื่อเข้าสนาม] หากคุณมีสมาชิกสเตจที่มีค่าร่าย 13 ขึ้นไป จั่วการ์ด 1 ใบ\n[เปิดใช้] [เทิร์นละ 1 ครั้ง] ให้สมาชิกคนนี้รอ: เลือกสีชมพู เหลือง หรือม่วง — คุณจะได้รับหัวใจ 1 ดวงจนกว่าไลฟ์นี้จะจบลง",
       "text_pt": "[Ao Entrar] Se você tiver um Membro no Palco de custo 13 ou mais, compre 1 carta.\n[Ativado] [Uma vez por turno] Coloque este Membro em Repouso: escolha entre <pinkH>, <yellowH>, ou <purpleH> — até o fim desta Live, esta carta ganha 1 desse Coração.",
-      "text_fr": "[À l'entrée] Si vous avez un Membre en el Scène con coût 13 ou plus, piochez 1 carte.\n[Activé] [Une fois par tour] Placez ce Membre en Wait: choisissez rosa, amarillo ou morado — jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur."
+      "text_fr": "[À l'entrée] Si vous avez un Membre en el Scène con coût 13 ou plus, piochez 1 carte.\n[Activé] [Une fois par tour] Placez ce Membre en Wait: choisissez rosa, amarillo ou morado — jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp3-009-R＋",
@@ -3056,7 +3088,8 @@
       "text_zh": "[入场时] 舞台成员的费用为13以上的话，抽1张卡。\n[起动] [每回合1次] 将此成员置于等待状态：选择粉红色、黄色或紫色 — 直到本次直播结束，你获得 1 颗心。",
       "text_th": "[เมื่อเข้าสนาม] หากคุณมีสมาชิกสเตจที่มีค่าร่าย 13 ขึ้นไป จั่วการ์ด 1 ใบ\n[เปิดใช้] [เทิร์นละ 1 ครั้ง] ให้สมาชิกคนนี้รอ: เลือกสีชมพู เหลือง หรือม่วง — คุณจะได้รับหัวใจ 1 ดวงจนกว่าไลฟ์นี้จะจบลง",
       "text_pt": "[Ao Entrar] Se você tiver um Membro no Palco de custo 13 ou mais, compre 1 carta.\n[Ativado] [Uma vez por turno] Coloque este Membro em Repouso: escolha entre <pinkH>, <yellowH>, ou <purpleH> — até o fim desta Live, esta carta ganha 1 desse Coração.",
-      "text_fr": "[À l'entrée] Si vous avez un Membre en el Scène con coût 13 ou plus, piochez 1 carte.\n[Activé] [Une fois par tour] Placez ce Membre en Wait: choisissez rosa, amarillo ou morado — jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur."
+      "text_fr": "[À l'entrée] Si vous avez un Membre en el Scène con coût 13 ou plus, piochez 1 carte.\n[Activé] [Une fois par tour] Placez ce Membre en Wait: choisissez rosa, amarillo ou morado — jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp3-009-SEC",
@@ -3102,7 +3135,8 @@
       "text_zh": "[入场时] 舞台成员的费用为13以上的话，抽1张卡。\n[起动] [每回合1次] 将此成员置于等待状态：选择粉红色、黄色或紫色 — 直到本次直播结束，你获得 1 颗心。",
       "text_th": "[เมื่อเข้าสนาม] หากคุณมีสมาชิกสเตจที่มีค่าร่าย 13 ขึ้นไป จั่วการ์ด 1 ใบ\n[เปิดใช้] [เทิร์นละ 1 ครั้ง] ให้สมาชิกคนนี้รอ: เลือกสีชมพู เหลือง หรือม่วง — คุณจะได้รับหัวใจ 1 ดวงจนกว่าไลฟ์นี้จะจบลง",
       "text_pt": "[Ao Entrar] Se você tiver um Membro no Palco de custo 13 ou mais, compre 1 carta.\n[Ativado] [Uma vez por turno] Coloque este Membro em Repouso: escolha entre <pinkH>, <yellowH>, ou <purpleH> — até o fim desta Live, esta carta ganha 1 desse Coração.",
-      "text_fr": "[À l'entrée] Si vous avez un Membre en el Scène con coût 13 ou plus, piochez 1 carte.\n[Activé] [Une fois par tour] Placez ce Membre en Wait: choisissez rosa, amarillo ou morado — jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur."
+      "text_fr": "[À l'entrée] Si vous avez un Membre en el Scène con coût 13 ou plus, piochez 1 carte.\n[Activé] [Une fois par tour] Placez ce Membre en Wait: choisissez rosa, amarillo ou morado — jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp3-010-N",
@@ -3148,7 +3182,8 @@
       "text_zh": "[入场时] 你可以将 1 张手牌放入等候室：查看你牌组顶的 5 张牌。你可以展示 1 张活体牌并将其加入你的手牌。将其余的放入等候室。",
       "text_th": "[เมื่อเข้าสนาม] คุณสามารถนำการ์ด 1 ใบจากมือของคุณเข้าห้องรอ: ดูไพ่ 5 ใบบนสุดของเด็คของคุณ คุณสามารถแสดงไลฟ์การ์ด 1 ใบและเพิ่มขึ้นมือได้ ที่เหลือเอาไปไว้ในห้องรอ",
       "text_pt": "[Ao Entrar] Você pode colocar 1 carta da sua mão na Sala de Espera: olhe as 5 cartas do topo do seu deck. Você pode revelar 1 carta Live e adicioná-la à sua mão. Coloque o restante na Sala de Espera.",
-      "text_fr": "[On Enter] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: regardez les 5 cartes du dessus de votre deck. Vous pouvez révéler 1 carte Live et l'ajouter à votre main. Placez le reste dans la Salle d'attente."
+      "text_fr": "[On Enter] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: regardez les 5 cartes du dessus de votre deck. Vous pouvez révéler 1 carte Live et l'ajouter à votre main. Placez le reste dans la Salle d'attente.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-011-N",
@@ -3192,7 +3227,8 @@
       "text_zh": "[现场开始] 选择粉红色、黄色或紫色：直到本场结束为止，成功场中每有一张卡牌，你就获得 1 颗心形。",
       "text_th": "[เริ่ม Live] เลือกสีชมพู เหลือง หรือม่วง: จนกว่า Live นี้จบลง คุณจะได้รับ 1 หัวใจจากการ์ดแต่ละใบในพื้นที่ สำเร็จ Live ของคุณ",
       "text_pt": "[Início de Live] Escolha entre <pinkH>, <yellowH>, ou <purpleH>: até o fim desta Live, esta carta ganha 1 desse Coração para cada carta na sua zona de Lives Bem-Sucedidas.",
-      "text_fr": "[Début de Live] Choisissez rosa, amarillo ou morado: jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur por cada carte en tu área de Live réussi."
+      "text_fr": "[Début de Live] Choisissez rosa, amarillo ou morado: jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur por cada carte en tu área de Live réussi.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp3-012-N",
@@ -3229,7 +3265,8 @@
       "text_zh": "[现场开始] 选择粉红色、黄色或紫色：直到本场结束为止，成功场中每有一张卡牌，你就获得 1 颗心形。",
       "text_th": "[เริ่ม Live] เลือกสีชมพู เหลือง หรือม่วง: จนกว่า Live นี้จบลง คุณจะได้รับ 1 หัวใจจากการ์ดแต่ละใบในพื้นที่ สำเร็จ Live ของคุณ",
       "text_pt": "[Início de Live] Escolha entre <pinkH>, <yellowH>, ou <purpleH>: até o fim desta Live, esta carta ganha 1 desse Coração para cada carta na sua zona de Lives Bem-Sucedidas.",
-      "text_fr": "[Début de Live] Choisissez rosa, amarillo ou morado: jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur por cada carte en tu área de Live réussi."
+      "text_fr": "[Début de Live] Choisissez rosa, amarillo ou morado: jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur por cada carte en tu área de Live réussi.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-012-PR",
@@ -3266,7 +3303,8 @@
       "text_zh": "[现场开始] 选择粉红色、黄色或紫色：直到本场结束为止，成功场中每有一张卡牌，你就获得 1 颗心形。",
       "text_th": "[เริ่ม Live] เลือกสีชมพู เหลือง หรือม่วง: จนกว่า Live นี้จบลง คุณจะได้รับ 1 หัวใจจากการ์ดแต่ละใบในพื้นที่ สำเร็จ Live ของคุณ",
       "text_pt": "[Início de Live] Escolha entre <pinkH>, <yellowH>, ou <purpleH>: até o fim desta Live, esta carta ganha 1 desse Coração para cada carta na sua zona de Lives Bem-Sucedidas.",
-      "text_fr": "[Début de Live] Choisissez rosa, amarillo ou morado: jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur por cada carte en tu área de Live réussi."
+      "text_fr": "[Début de Live] Choisissez rosa, amarillo ou morado: jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur por cada carte en tu área de Live réussi.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-012-RM",
@@ -3354,7 +3392,8 @@
       "text_zh": "[现场开始] 选择粉红色、黄色或紫色：直到本场结束为止，成功场中每有一张卡牌，你就获得 1 颗心形。",
       "text_th": "[เริ่ม Live] เลือกสีชมพู เหลือง หรือม่วง: จนกว่า Live นี้จบลง คุณจะได้รับ 1 หัวใจจากการ์ดแต่ละใบในพื้นที่ สำเร็จ Live ของคุณ",
       "text_pt": "[Início de Live] Escolha entre <pinkH>, <yellowH>, ou <purpleH>: até o fim desta Live, esta carta ganha 1 desse Coração para cada carta na sua zona de Lives Bem-Sucedidas.",
-      "text_fr": "[Début de Live] Choisissez rosa, amarillo ou morado: jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur por cada carte en tu área de Live réussi."
+      "text_fr": "[Début de Live] Choisissez rosa, amarillo ou morado: jusqu'à la fin de ce Live, vous gagnez 1 de ese cœur por cada carte en tu área de Live réussi.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp3-014-N",
@@ -3391,7 +3430,8 @@
       "text_zh": "[入场时] 你可以将该成员置于等待状态：查看你牌组最上面的 2 张牌，然后以任意顺序将它们放回最上面。将未归还的物品放在上面放入等候室。\n（等待成员身上的刀锋之心不会增加Yell所揭示的牌数。）",
       "text_th": "[เมื่อเข้าสนาม] คุณสามารถนำสมาชิกคนนี้ไปรอได้: ดูไพ่ 2 ใบบนสุดของเด็คของคุณแล้ววางกลับด้านบนตามลำดับใดก็ได้ ใส่สิ่งที่ไม่ได้คืนไว้ด้านบนเข้าไปในห้องรอ\n(ใบมีดหัวใจของสมาชิกที่รออยู่จะไม่เพิ่มการ์ดที่เปิดเผยสำหรับตะโกน)",
       "text_pt": "[Ao Entrar] Você pode colocar este Membro em Repouso: olhe as 2 cartas do topo do seu deck e coloque-as de volta no topo em qualquer ordem. Coloque as que não forem devolvidas ao topo na Sala de Espera.",
-      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: regardez les 2 cartes du dessus de votre deck et devuélvelas a la parte superior en n'importe quel orden. Placez las que no devolviste a la parte superior dans la Salle d'attente.\n(Los cœurs de Blade en Membres en Wait no aumentan las cartes révélées para Yell.)"
+      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: regardez les 2 cartes du dessus de votre deck et devuélvelas a la parte superior en n'importe quel orden. Placez las que no devolviste a la parte superior dans la Salle d'attente.\n(Los cœurs de Blade en Membres en Wait no aumentan las cartes révélées para Yell.)",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp3-014-PR",
@@ -3457,7 +3497,8 @@
       "rarity": "N",
       "text": "",
       "text_jp": "",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP03/PL!-bp3-N-015-N.png"
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP03/PL!-bp3-N-015-N.png",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp3-016-N",
@@ -3483,7 +3524,8 @@
       "rarity": "N",
       "text": "",
       "text_jp": "",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP03/PL!-bp3-N-016-N.png"
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP03/PL!-bp3-N-016-N.png",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp3-017-N",
@@ -3520,7 +3562,8 @@
       "text_zh": "[入场时] 你可以将该成员置于等待状态：查看你牌组最上面的 2 张牌，然后以任意顺序将它们放回最上面。将未归还的物品放在上面放入等候室。\n（等待成员身上的刀锋之心不会增加Yell所揭示的牌数。）",
       "text_th": "[เมื่อเข้าสนาม] คุณสามารถนำสมาชิกคนนี้ไปรอได้: ดูไพ่ 2 ใบบนสุดของเด็คของคุณแล้ววางกลับด้านบนตามลำดับใดก็ได้ ใส่สิ่งที่ไม่ได้คืนไว้ด้านบนเข้าไปในห้องรอ\n(ใบมีดหัวใจของสมาชิกที่รออยู่จะไม่เพิ่มการ์ดที่เปิดเผยสำหรับตะโกน)",
       "text_pt": "[Ao Entrar] Você pode colocar este Membro em Repouso: olhe as 2 cartas do topo do seu deck e coloque-as de volta no topo em qualquer ordem. Coloque as que não forem devolvidas ao topo na Sala de Espera.",
-      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: regardez les 2 cartes du dessus de votre deck et devuélvelas a la parte superior en n'importe quel orden. Placez las que no devolviste a la parte superior dans la Salle d'attente.\n(Los cœurs de Blade en Membres en Wait no aumentan las cartes révélées para Yell.)"
+      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: regardez les 2 cartes du dessus de votre deck et devuélvelas a la parte superior en n'importe quel orden. Placez las que no devolviste a la parte superior dans la Salle d'attente.\n(Los cœurs de Blade en Membres en Wait no aumentan las cartes révélées para Yell.)",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp3-018-N",
@@ -3557,7 +3600,8 @@
       "text_zh": "[入场时] 你可以将该成员置于等待状态：查看你牌组最上面的 2 张牌，然后以任意顺序将它们放回最上面。将未归还的物品放在上面放入等候室。\n（等待成员身上的刀锋之心不会增加Yell所揭示的牌数。）",
       "text_th": "[เมื่อเข้าสนาม] คุณสามารถนำสมาชิกคนนี้ไปรอได้: ดูไพ่ 2 ใบบนสุดของเด็คของคุณแล้ววางกลับด้านบนตามลำดับใดก็ได้ ใส่สิ่งที่ไม่ได้คืนไว้ด้านบนเข้าไปในห้องรอ\n(ใบมีดหัวใจของสมาชิกที่รออยู่จะไม่เพิ่มการ์ดที่เปิดเผยสำหรับตะโกน)",
       "text_pt": "[Ao Entrar] Você pode colocar este Membro em Repouso: olhe as 2 cartas do topo do seu deck e coloque-as de volta no topo em qualquer ordem. Coloque as que não forem devolvidas ao topo na Sala de Espera.",
-      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: regardez les 2 cartes du dessus de votre deck et devuélvelas a la parte superior en n'importe quel orden. Placez las que no devolviste a la parte superior dans la Salle d'attente.\n(Los cœurs de Blade en Membres en Wait no aumentan las cartes révélées para Yell.)"
+      "text_fr": "[À l'entrée] Vous pouvez placer ce Membre en Wait: regardez les 2 cartes du dessus de votre deck et devuélvelas a la parte superior en n'importe quel orden. Placez las que no devolviste a la parte superior dans la Salle d'attente.\n(Los cœurs de Blade en Membres en Wait no aumentan las cartes révélées para Yell.)",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp3-019-L",
@@ -4892,7 +4936,8 @@
       "text_zh": "[现场开始] 自己舞台上的成员费用合计比对手低的话，抽1张卡。",
       "text_th": "[เริ่ม Live] หากราคารวมของสมาชิกบนเวทีของคุณต่ำกว่าของคู่ต่อสู้ จั่วการ์ด 1 ใบ",
       "text_pt": "[Início de Live] Se o custo total dos Membros no seu Palco for menor do que o do adversário, compre 1 carta.",
-      "text_fr": "[Début de Live] Si el coût total de los Membres sur votre Scène es menor que el de tu adversaire, piochez 1 carte."
+      "text_fr": "[Début de Live] Si el coût total de los Membres sur votre Scène es menor que el de tu adversaire, piochez 1 carte.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp4-001-R",
@@ -4935,7 +4980,8 @@
       "text_zh": "[现场开始] 自己舞台上的成员费用合计比对手低的话，抽1张卡。",
       "text_th": "[เริ่ม Live] หากราคารวมของสมาชิกบนเวทีของคุณต่ำกว่าของคู่ต่อสู้ จั่วการ์ด 1 ใบ",
       "text_pt": "[Início de Live] Se o custo total dos Membros no seu Palco for menor do que o do adversário, compre 1 carta.",
-      "text_fr": "[Début de Live] Si el coût total de los Membres sur votre Scène es menor que el de tu adversaire, piochez 1 carte."
+      "text_fr": "[Début de Live] Si el coût total de los Membres sur votre Scène es menor que el de tu adversaire, piochez 1 carte.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp4-002-P",
@@ -4995,7 +5041,8 @@
       "text_zh": "[永续] 当您的直播中有一张既没有现场开始也没有现场成功能力的现场卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's 现场卡加入手牌。仅当您的 成功现场卡总分为 6 分或以上时才可用。",
       "text_th": "[ต่อเนื่อง] ขณะที่คุณมีการ์ด Live ใน Live ของคุณโดยไม่มีความสามารถ Live Start หรือ Live สำเร็จ คุณจะได้รับหัวใจสีม่วง 2 ดวง\n[เปิดใช้] [เทิร์นละ 1 ครั้ง] นำไพ่ 2 ใบจากมือของคุณไปที่ห้องรอ: เพิ่มการ์ดสด 1 μ's จากห้องรอของคุณไปยังมือของคุณ ใช้ได้เฉพาะในกรณีที่คะแนนรวมของการ์ด สำเร็จ Live ของคุณคือ 6 หรือมากกว่า",
       "text_pt": "[Sempre] Enquanto você tiver uma carta Live na sua zona de Lives sem habilidades de [Início de Live] nem de [Live Bem-Sucedida], esta carta ganha 2<purpleH>.\n[Ativado] [Uma vez por turno] Coloque 2 cartas da sua mão na Sala de Espera: adicione 1 carta Live μ's da sua Sala de Espera à sua mão. Usável apenas se a pontuação total das suas cartas Live Bem-Sucedidas for 6 ou mais.",
-      "text_fr": "[Permanent] Tant que tengas una carte Live en tu Live sin habilidades Live Start ni Live Success, vous gagnez 2 cœurs morados.\n[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main. Solo usable si la score total de tus cartes de Live réussi es 6 ou plus."
+      "text_fr": "[Permanent] Tant que tengas una carte Live en tu Live sin habilidades Live Start ni Live Success, vous gagnez 2 cœurs morados.\n[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main. Solo usable si la score total de tus cartes de Live réussi es 6 ou plus.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp4-002-P＋",
@@ -5055,7 +5102,8 @@
       "text_zh": "[永续] 当您的直播中有一张既没有现场开始也没有现场成功能力的现场卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's 现场卡加入手牌。仅当您的 成功现场卡总分为 6 分或以上时才可用。",
       "text_th": "[ต่อเนื่อง] ขณะที่คุณมีการ์ด Live ใน Live ของคุณโดยไม่มีความสามารถ Live Start หรือ Live สำเร็จ คุณจะได้รับหัวใจสีม่วง 2 ดวง\n[เปิดใช้] [เทิร์นละ 1 ครั้ง] นำไพ่ 2 ใบจากมือของคุณไปที่ห้องรอ: เพิ่มการ์ดสด 1 μ's จากห้องรอของคุณไปยังมือของคุณ ใช้ได้เฉพาะในกรณีที่คะแนนรวมของการ์ด สำเร็จ Live ของคุณคือ 6 หรือมากกว่า",
       "text_pt": "[Sempre] Enquanto você tiver uma carta Live na sua zona de Lives sem habilidades de [Início de Live] nem de [Live Bem-Sucedida], esta carta ganha 2<purpleH>.\n[Ativado] [Uma vez por turno] Coloque 2 cartas da sua mão na Sala de Espera: adicione 1 carta Live μ's da sua Sala de Espera à sua mão. Usável apenas se a pontuação total das suas cartas Live Bem-Sucedidas for 6 ou mais.",
-      "text_fr": "[Permanent] Tant que tengas una carte Live en tu Live sin habilidades Live Start ni Live Success, vous gagnez 2 cœurs morados.\n[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main. Solo usable si la score total de tus cartes de Live réussi es 6 ou plus."
+      "text_fr": "[Permanent] Tant que tengas una carte Live en tu Live sin habilidades Live Start ni Live Success, vous gagnez 2 cœurs morados.\n[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main. Solo usable si la score total de tus cartes de Live réussi es 6 ou plus.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp4-002-R＋",
@@ -5115,7 +5163,8 @@
       "text_zh": "[永续] 当您的直播中有一张既没有现场开始也没有现场成功能力的现场卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's 现场卡加入手牌。仅当您的 成功现场卡总分为 6 分或以上时才可用。",
       "text_th": "[ต่อเนื่อง] ขณะที่คุณมีการ์ด Live ใน Live ของคุณโดยไม่มีความสามารถ Live Start หรือ Live สำเร็จ คุณจะได้รับหัวใจสีม่วง 2 ดวง\n[เปิดใช้] [เทิร์นละ 1 ครั้ง] นำไพ่ 2 ใบจากมือของคุณไปที่ห้องรอ: เพิ่มการ์ดสด 1 μ's จากห้องรอของคุณไปยังมือของคุณ ใช้ได้เฉพาะในกรณีที่คะแนนรวมของการ์ด สำเร็จ Live ของคุณคือ 6 หรือมากกว่า",
       "text_pt": "[Sempre] Enquanto você tiver uma carta Live na sua zona de Lives sem habilidades de [Início de Live] nem de [Live Bem-Sucedida], esta carta ganha 2<purpleH>.\n[Ativado] [Uma vez por turno] Coloque 2 cartas da sua mão na Sala de Espera: adicione 1 carta Live μ's da sua Sala de Espera à sua mão. Usável apenas se a pontuação total das suas cartas Live Bem-Sucedidas for 6 ou mais.",
-      "text_fr": "[Permanent] Tant que tengas una carte Live en tu Live sin habilidades Live Start ni Live Success, vous gagnez 2 cœurs morados.\n[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main. Solo usable si la score total de tus cartes de Live réussi es 6 ou plus."
+      "text_fr": "[Permanent] Tant que tengas una carte Live en tu Live sin habilidades Live Start ni Live Success, vous gagnez 2 cœurs morados.\n[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main. Solo usable si la score total de tus cartes de Live réussi es 6 ou plus.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp4-002-SEC",
@@ -5175,7 +5224,8 @@
       "text_zh": "[永续] 当您的直播中有一张既没有现场开始也没有现场成功能力的现场卡时，您将获得 2 颗紫心形。\n[起动][每回合1次]将2张手牌放入等候室：将等候室中的1μ's 现场卡加入手牌。仅当您的 成功现场卡总分为 6 分或以上时才可用。",
       "text_th": "[ต่อเนื่อง] ขณะที่คุณมีการ์ด Live ใน Live ของคุณโดยไม่มีความสามารถ Live Start หรือ Live สำเร็จ คุณจะได้รับหัวใจสีม่วง 2 ดวง\n[เปิดใช้] [เทิร์นละ 1 ครั้ง] นำไพ่ 2 ใบจากมือของคุณไปที่ห้องรอ: เพิ่มการ์ดสด 1 μ's จากห้องรอของคุณไปยังมือของคุณ ใช้ได้เฉพาะในกรณีที่คะแนนรวมของการ์ด สำเร็จ Live ของคุณคือ 6 หรือมากกว่า",
       "text_pt": "[Sempre] Enquanto você tiver uma carta Live na sua zona de Lives sem habilidades de [Início de Live] nem de [Live Bem-Sucedida], esta carta ganha 2<purpleH>.\n[Ativado] [Uma vez por turno] Coloque 2 cartas da sua mão na Sala de Espera: adicione 1 carta Live μ's da sua Sala de Espera à sua mão. Usável apenas se a pontuação total das suas cartas Live Bem-Sucedidas for 6 ou mais.",
-      "text_fr": "[Permanent] Tant que tengas una carte Live en tu Live sin habilidades Live Start ni Live Success, vous gagnez 2 cœurs morados.\n[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main. Solo usable si la score total de tus cartes de Live réussi es 6 ou plus."
+      "text_fr": "[Permanent] Tant que tengas una carte Live en tu Live sin habilidades Live Start ni Live Success, vous gagnez 2 cœurs morados.\n[Activé] [Une fois par tour] Placez 2 cartes de votre main dans la Salle d'attente: ajoutez 1 carte Live de μ's de votre Salle d'attente à votre main. Solo usable si la score total de tus cartes de Live réussi es 6 ou plus.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp4-003-P",
@@ -5213,7 +5263,8 @@
       "text_zh": "[起动] 将舞台上的该成员放入等候室：从等候室将1张现场卡加入手牌。",
       "text_th": "[เปิดใช้] นำสมาชิกคนนี้จากเวทีไปที่ห้องรอ: เพิ่มการ์ดสด 1 ใบจากห้องรอของคุณขึ้นมือ",
       "text_pt": "[Ativado] Coloque este Membro do Palco para a Sala de Espera: adicione 1 carta Live da sua Sala de Espera à sua mão.",
-      "text_fr": "[Activated] Placez ce Membre de la Scène dans la Salle d'attente: ajoutez 1 carte Live de votre Salle d'attente à votre main."
+      "text_fr": "[Activated] Placez ce Membre de la Scène dans la Salle d'attente: ajoutez 1 carte Live de votre Salle d'attente à votre main.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp4-003-R",
@@ -5251,7 +5302,8 @@
       "text_zh": "[起动] 将舞台上的该成员放入等候室：从等候室将1张现场卡加入手牌。",
       "text_th": "[เปิดใช้] นำสมาชิกคนนี้จากเวทีไปที่ห้องรอ: เพิ่มการ์ดสด 1 ใบจากห้องรอของคุณขึ้นมือ",
       "text_pt": "[Ativado] Coloque este Membro do Palco para a Sala de Espera: adicione 1 carta Live da sua Sala de Espera à sua mão.",
-      "text_fr": "[Activated] Placez ce Membre de la Scène dans la Salle d'attente: ajoutez 1 carte Live de votre Salle d'attente à votre main."
+      "text_fr": "[Activated] Placez ce Membre de la Scène dans la Salle d'attente: ajoutez 1 carte Live de votre Salle d'attente à votre main.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp4-004-P",
@@ -5289,7 +5341,8 @@
       "text_zh": "[入场时] 如果您的成功现场卡总分为 6 或以上，则激活 2 点能量。",
       "text_th": "[เมื่อเข้าสนาม] หากคะแนนรวมของการ์ด สำเร็จ Live ของคุณคือ 6 ขึ้นไป ให้เปิดใช้งาน 2 พลังงาน",
       "text_pt": "[Ao Entrar] Se a pontuação total das suas cartas Live Bem-Sucedidas for 6 ou mais, ative 2<energy>.",
-      "text_fr": "[À l'entrée] Si la score total de tus cartes de Live réussi es 6 ou plus, activez 2 Énergie."
+      "text_fr": "[À l'entrée] Si la score total de tus cartes de Live réussi es 6 ou plus, activez 2 Énergie.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp4-004-R",
@@ -5327,7 +5380,8 @@
       "text_zh": "[入场时] 如果您的成功现场卡总分为 6 或以上，则激活 2 点能量。",
       "text_th": "[เมื่อเข้าสนาม] หากคะแนนรวมของการ์ด สำเร็จ Live ของคุณคือ 6 ขึ้นไป ให้เปิดใช้งาน 2 พลังงาน",
       "text_pt": "[Ao Entrar] Se a pontuação total das suas cartas Live Bem-Sucedidas for 6 ou mais, ative 2<energy>.",
-      "text_fr": "[À l'entrée] Si la score total de tus cartes de Live réussi es 6 ou plus, activez 2 Énergie."
+      "text_fr": "[À l'entrée] Si la score total de tus cartes de Live réussi es 6 ou plus, activez 2 Énergie.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp4-005-P",
@@ -5386,7 +5440,8 @@
       "text_zh": "[入场时] 将自己的等候室中的1张费用2以下的成员卡加入手牌。\n[永续] [中央] 您的实时总分+1。\n[现场开始] 如果您的舞台上没有 μ's 成员且拥有 5 个或更多Blade图标，则该成员位置将更改为非中心区域（与已存在的任何成员交换）。",
       "text_th": "[เมื่อเข้าสนาม] เพิ่มบัตรสมาชิก 1 ใบที่มีค่าใช้จ่าย 2 หรือน้อยกว่าจากห้องรอของคุณถึงมือคุณ\n[ต่อเนื่อง] [เซ็นเตอร์] คะแนนรวมสดของคุณ +1\n[เริ่ม Live] หากคุณไม่มีสมาชิกของ μ บนเวทีของคุณที่มีไอคอนเบลด 5 อันขึ้นไป ตำแหน่งสมาชิกนี้จะเปลี่ยนเป็นพื้นที่ที่ไม่ใช่ศูนย์กลาง (สลับกับสมาชิกคนใดก็ได้ที่มีอยู่แล้ว)",
       "text_pt": "[Ao Entrar] Adicione 1 carta Membro de custo 2 ou menos da sua Sala de Espera à sua mão.\n[Sempre] [Centro] A pontuação total da sua Live aumenta em 1.\n[Início de Live] Se você não tiver nenhum Membro μ's no seu Palco com 5 ou mais <blade> impressos, este Membro muda de posição para uma área fora do Centro (trocar com o Membro na área de destino, se houver).",
-      "text_fr": "[À l'entrée] Ajoutez 1 carte de Membre con coût 2 ou moins de votre Salle d'attente à votre main.\n[Permanent] [Centre] Tu score total de Live +1.\n[Début de Live] Si no vous avez un Membre de μ's sur votre Scène con 5 ou plus iconos de Blade, ce Membre cambia de posición a un área que no soit Centro (intercámbialo con n'importe quel Membre que ya esté allí)."
+      "text_fr": "[À l'entrée] Ajoutez 1 carte de Membre con coût 2 ou moins de votre Salle d'attente à votre main.\n[Permanent] [Centre] Tu score total de Live +1.\n[Début de Live] Si no vous avez un Membre de μ's sur votre Scène con 5 ou plus iconos de Blade, ce Membre cambia de posición a un área que no soit Centro (intercámbialo con n'importe quel Membre que ya esté allí).",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp4-005-P＋",
@@ -5445,7 +5500,8 @@
       "text_zh": "[入场时] 将自己的等候室中的1张费用2以下的成员卡加入手牌。\n[永续] [中央] 您的实时总分+1。\n[现场开始] 如果您的舞台上没有 μ's 成员且拥有 5 个或更多Blade图标，则该成员位置将更改为非中心区域（与已存在的任何成员交换）。",
       "text_th": "[เมื่อเข้าสนาม] เพิ่มบัตรสมาชิก 1 ใบที่มีค่าใช้จ่าย 2 หรือน้อยกว่าจากห้องรอของคุณถึงมือคุณ\n[ต่อเนื่อง] [เซ็นเตอร์] คะแนนรวมสดของคุณ +1\n[เริ่ม Live] หากคุณไม่มีสมาชิกของ μ บนเวทีของคุณที่มีไอคอนเบลด 5 อันขึ้นไป ตำแหน่งสมาชิกนี้จะเปลี่ยนเป็นพื้นที่ที่ไม่ใช่ศูนย์กลาง (สลับกับสมาชิกคนใดก็ได้ที่มีอยู่แล้ว)",
       "text_pt": "[Ao Entrar] Adicione 1 carta Membro de custo 2 ou menos da sua Sala de Espera à sua mão.\n[Sempre] [Centro] A pontuação total da sua Live aumenta em 1.\n[Início de Live] Se você não tiver nenhum Membro μ's no seu Palco com 5 ou mais <blade> impressos, este Membro muda de posição para uma área fora do Centro (trocar com o Membro na área de destino, se houver).",
-      "text_fr": "[À l'entrée] Ajoutez 1 carte de Membre con coût 2 ou moins de votre Salle d'attente à votre main.\n[Permanent] [Centre] Tu score total de Live +1.\n[Début de Live] Si no vous avez un Membre de μ's sur votre Scène con 5 ou plus iconos de Blade, ce Membre cambia de posición a un área que no soit Centro (intercámbialo con n'importe quel Membre que ya esté allí)."
+      "text_fr": "[À l'entrée] Ajoutez 1 carte de Membre con coût 2 ou moins de votre Salle d'attente à votre main.\n[Permanent] [Centre] Tu score total de Live +1.\n[Début de Live] Si no vous avez un Membre de μ's sur votre Scène con 5 ou plus iconos de Blade, ce Membre cambia de posición a un área que no soit Centro (intercámbialo con n'importe quel Membre que ya esté allí).",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp4-005-R＋",
@@ -5504,7 +5560,8 @@
       "text_zh": "[入场时] 将自己的等候室中的1张费用2以下的成员卡加入手牌。\n[永续] [中央] 您的实时总分+1。\n[现场开始] 如果您的舞台上没有 μ's 成员且拥有 5 个或更多Blade图标，则该成员位置将更改为非中心区域（与已存在的任何成员交换）。",
       "text_th": "[เมื่อเข้าสนาม] เพิ่มบัตรสมาชิก 1 ใบที่มีค่าใช้จ่าย 2 หรือน้อยกว่าจากห้องรอของคุณถึงมือคุณ\n[ต่อเนื่อง] [เซ็นเตอร์] คะแนนรวมสดของคุณ +1\n[เริ่ม Live] หากคุณไม่มีสมาชิกของ μ บนเวทีของคุณที่มีไอคอนเบลด 5 อันขึ้นไป ตำแหน่งสมาชิกนี้จะเปลี่ยนเป็นพื้นที่ที่ไม่ใช่ศูนย์กลาง (สลับกับสมาชิกคนใดก็ได้ที่มีอยู่แล้ว)",
       "text_pt": "[Ao Entrar] Adicione 1 carta Membro de custo 2 ou menos da sua Sala de Espera à sua mão.\n[Sempre] [Centro] A pontuação total da sua Live aumenta em 1.\n[Início de Live] Se você não tiver nenhum Membro μ's no seu Palco com 5 ou mais <blade> impressos, este Membro muda de posição para uma área fora do Centro (trocar com o Membro na área de destino, se houver).",
-      "text_fr": "[À l'entrée] Ajoutez 1 carte de Membre con coût 2 ou moins de votre Salle d'attente à votre main.\n[Permanent] [Centre] Tu score total de Live +1.\n[Début de Live] Si no vous avez un Membre de μ's sur votre Scène con 5 ou plus iconos de Blade, ce Membre cambia de posición a un área que no soit Centro (intercámbialo con n'importe quel Membre que ya esté allí)."
+      "text_fr": "[À l'entrée] Ajoutez 1 carte de Membre con coût 2 ou moins de votre Salle d'attente à votre main.\n[Permanent] [Centre] Tu score total de Live +1.\n[Début de Live] Si no vous avez un Membre de μ's sur votre Scène con 5 ou plus iconos de Blade, ce Membre cambia de posición a un área que no soit Centro (intercámbialo con n'importe quel Membre que ya esté allí).",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp4-005-SEC",
@@ -5563,7 +5620,8 @@
       "text_zh": "[入场时] 将自己的等候室中的1张费用2以下的成员卡加入手牌。\n[永续] [中央] 您的实时总分+1。\n[现场开始] 如果您的舞台上没有 μ's 成员且拥有 5 个或更多Blade图标，则该成员位置将更改为非中心区域（与已存在的任何成员交换）。",
       "text_th": "[เมื่อเข้าสนาม] เพิ่มบัตรสมาชิก 1 ใบที่มีค่าใช้จ่าย 2 หรือน้อยกว่าจากห้องรอของคุณถึงมือคุณ\n[ต่อเนื่อง] [เซ็นเตอร์] คะแนนรวมสดของคุณ +1\n[เริ่ม Live] หากคุณไม่มีสมาชิกของ μ บนเวทีของคุณที่มีไอคอนเบลด 5 อันขึ้นไป ตำแหน่งสมาชิกนี้จะเปลี่ยนเป็นพื้นที่ที่ไม่ใช่ศูนย์กลาง (สลับกับสมาชิกคนใดก็ได้ที่มีอยู่แล้ว)",
       "text_pt": "[Ao Entrar] Adicione 1 carta Membro de custo 2 ou menos da sua Sala de Espera à sua mão.\n[Sempre] [Centro] A pontuação total da sua Live aumenta em 1.\n[Início de Live] Se você não tiver nenhum Membro μ's no seu Palco com 5 ou mais <blade> impressos, este Membro muda de posição para uma área fora do Centro (trocar com o Membro na área de destino, se houver).",
-      "text_fr": "[À l'entrée] Ajoutez 1 carte de Membre con coût 2 ou moins de votre Salle d'attente à votre main.\n[Permanent] [Centre] Tu score total de Live +1.\n[Début de Live] Si no vous avez un Membre de μ's sur votre Scène con 5 ou plus iconos de Blade, ce Membre cambia de posición a un área que no soit Centro (intercámbialo con n'importe quel Membre que ya esté allí)."
+      "text_fr": "[À l'entrée] Ajoutez 1 carte de Membre con coût 2 ou moins de votre Salle d'attente à votre main.\n[Permanent] [Centre] Tu score total de Live +1.\n[Début de Live] Si no vous avez un Membre de μ's sur votre Scène con 5 ou plus iconos de Blade, ce Membre cambia de posición a un área que no soit Centro (intercámbialo con n'importe quel Membre que ya esté allí).",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp4-006-P",
@@ -5604,7 +5662,8 @@
       "text_zh": "[入场时] 如果您的成功现场卡总分为 3 或以上，则查看您牌组顶部的 5 张卡。你可以从其中展示1个μ的成员并将其加入你的手牌。将其余的放入等候室。",
       "text_th": "[เมื่อเข้าสนาม] หากคะแนนรวมของการ์ด สำเร็จ Live ของคุณคือ 3 หรือมากกว่า ให้ดูไพ่ 5 อันดับแรกของเด็คของคุณ คุณสามารถเปิดเผยสมาชิกของ 1 μ จากพวกนั้นและเพิ่มลงในมือของคุณได้ นำส่วนที่เหลือไปไว้ในห้องรอของคุณ",
       "text_pt": "[Ao Entrar] Se a pontuação total das suas cartas Live Bem-Sucedidas for 3 ou mais, olhe as 5 cartas do topo do seu deck. Você pode revelar 1 Membro μ's entre elas e adicioná-lo à sua mão. Coloque o restante na sua Sala de Espera.",
-      "text_fr": "[À l'entrée] Si la score total de tus cartes de Live réussi es 3 ou plus, regardez les 5 cartes du dessus de votre deck. Vous pouvez révéler 1 Membre de μ's entre ellas et l'ajouter à votre main. Placez le reste dans tu Salle d'attente."
+      "text_fr": "[À l'entrée] Si la score total de tus cartes de Live réussi es 3 ou plus, regardez les 5 cartes du dessus de votre deck. Vous pouvez révéler 1 Membre de μ's entre ellas et l'ajouter à votre main. Placez le reste dans tu Salle d'attente.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp4-006-R",
@@ -5645,7 +5704,8 @@
       "text_zh": "[入场时] 如果您的成功现场卡总分为 3 或以上，则查看您牌组顶部的 5 张卡。你可以从其中展示1个μ的成员并将其加入你的手牌。将其余的放入等候室。",
       "text_th": "[เมื่อเข้าสนาม] หากคะแนนรวมของการ์ด สำเร็จ Live ของคุณคือ 3 หรือมากกว่า ให้ดูไพ่ 5 อันดับแรกของเด็คของคุณ คุณสามารถเปิดเผยสมาชิกของ 1 μ จากพวกนั้นและเพิ่มลงในมือของคุณได้ นำส่วนที่เหลือไปไว้ในห้องรอของคุณ",
       "text_pt": "[Ao Entrar] Se a pontuação total das suas cartas Live Bem-Sucedidas for 3 ou mais, olhe as 5 cartas do topo do seu deck. Você pode revelar 1 Membro μ's entre elas e adicioná-lo à sua mão. Coloque o restante na sua Sala de Espera.",
-      "text_fr": "[À l'entrée] Si la score total de tus cartes de Live réussi es 3 ou plus, regardez les 5 cartes du dessus de votre deck. Vous pouvez révéler 1 Membre de μ's entre ellas et l'ajouter à votre main. Placez le reste dans tu Salle d'attente."
+      "text_fr": "[À l'entrée] Si la score total de tus cartes de Live réussi es 3 ou plus, regardez les 5 cartes du dessus de votre deck. Vous pouvez révéler 1 Membre de μ's entre ellas et l'ajouter à votre main. Placez le reste dans tu Salle d'attente.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp4-007-P",
@@ -5692,7 +5752,8 @@
       "text_zh": "[入场时] 如果你的成功现场区域中有 1 张或以上卡牌且其总得分为 1 或更少，则直到本次现场结束，你获得“[永续] +1 总直播得分”。",
       "text_th": "[เมื่อเข้าสนาม] หากคุณมีไพ่ 1 ใบขึ้นไปในพื้นที่ สำเร็จ Live ของคุณและคะแนนรวมคือ 1 หรือน้อยกว่า จนกว่า Live นี้จบลง คุณจะได้รับ \"[ต่อเนื่อง] +1 คะแนน Live ทั้งหมด\"",
       "text_pt": "[Ao Entrar] Se você tiver 1 ou mais cartas na sua zona de Lives Bem-Sucedidas e a pontuação total delas for 1 ou menos, esta carta ganha \"[Sempre] A pontuação total da sua Live aumenta em 1.\"",
-      "text_fr": "[À l'entrée] Si vous avez 1 ou plus cartes en tu área de Live réussi et su score total es 1 ou moins, jusqu'à la fin de ce Live, vous gagnez \"[Permanent] +1 score total de Live.\""
+      "text_fr": "[À l'entrée] Si vous avez 1 ou plus cartes en tu área de Live réussi et su score total es 1 ou moins, jusqu'à la fin de ce Live, vous gagnez \"[Permanent] +1 score total de Live.\"",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp4-007-R",
@@ -5739,7 +5800,8 @@
       "text_zh": "[入场时] 如果你的成功现场区域中有 1 张或以上卡牌且其总得分为 1 或更少，则直到本次现场结束，你获得“[永续] +1 总直播得分”。",
       "text_th": "[เมื่อเข้าสนาม] หากคุณมีไพ่ 1 ใบขึ้นไปในพื้นที่ สำเร็จ Live ของคุณและคะแนนรวมคือ 1 หรือน้อยกว่า จนกว่า Live นี้จบลง คุณจะได้รับ \"[ต่อเนื่อง] +1 คะแนน Live ทั้งหมด\"",
       "text_pt": "[Ao Entrar] Se você tiver 1 ou mais cartas na sua zona de Lives Bem-Sucedidas e a pontuação total delas for 1 ou menos, esta carta ganha \"[Sempre] A pontuação total da sua Live aumenta em 1.\"",
-      "text_fr": "[À l'entrée] Si vous avez 1 ou plus cartes en tu área de Live réussi et su score total es 1 ou moins, jusqu'à la fin de ce Live, vous gagnez \"[Permanent] +1 score total de Live.\""
+      "text_fr": "[À l'entrée] Si vous avez 1 ou plus cartes en tu área de Live réussi et su score total es 1 ou moins, jusqu'à la fin de ce Live, vous gagnez \"[Permanent] +1 score total de Live.\"",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp4-008-P",
@@ -5775,7 +5837,8 @@
       "text_zh": "[永续] 当您的成功现场卡总分为 6 或以上时，该成员的舞台费用为 +3。",
       "text_th": "[ต่อเนื่อง] แม้ว่าคะแนนรวมของการ์ด สำเร็จ Live ของคุณคือ 6 หรือมากกว่า ค่าใช้จ่ายบนเวทีของสมาชิกคนนี้คือ +3",
       "text_pt": "[Sempre] Enquanto a pontuação total das suas cartas Live Bem-Sucedidas for 6 ou mais, o custo deste Membro no Palco aumenta em 3.",
-      "text_fr": "[Permanent] Tant que la score total de tus cartes de Live réussi soit 6 ou plus, el coût de ce Membre en el Scène es +3."
+      "text_fr": "[Permanent] Tant que la score total de tus cartes de Live réussi soit 6 ou plus, el coût de ce Membre en el Scène es +3.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp4-008-R",
@@ -5811,7 +5874,8 @@
       "text_zh": "[永续] 当您的成功现场卡总分为 6 或以上时，该成员的舞台费用为 +3。",
       "text_th": "[ต่อเนื่อง] แม้ว่าคะแนนรวมของการ์ด สำเร็จ Live ของคุณคือ 6 หรือมากกว่า ค่าใช้จ่ายบนเวทีของสมาชิกคนนี้คือ +3",
       "text_pt": "[Sempre] Enquanto a pontuação total das suas cartas Live Bem-Sucedidas for 6 ou mais, o custo deste Membro no Palco aumenta em 3.",
-      "text_fr": "[Permanent] Tant que la score total de tus cartes de Live réussi soit 6 ou plus, el coût de ce Membre en el Scène es +3."
+      "text_fr": "[Permanent] Tant que la score total de tus cartes de Live réussi soit 6 ou plus, el coût de ce Membre en el Scène es +3.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp4-009-P",
@@ -5857,7 +5921,8 @@
       "text_zh": "[入场时] 对手将舞台上的 1 名活跃成员置于等待状态。",
       "text_th": "[เมื่อเข้าสนาม] ฝ่ายตรงข้ามทำให้สมาชิกที่แอคทีฟ 1 คนอยู่บนเวทีเพื่อรอ",
       "text_pt": "[Ao Entrar] O seu adversário coloca 1 Membro ativo no Palco dele em Repouso.",
-      "text_fr": "[À l'entrée] Tu adversaire placez 1 Membre activo en su Scène en Wait."
+      "text_fr": "[À l'entrée] Tu adversaire placez 1 Membre activo en su Scène en Wait.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp4-009-R",
@@ -5903,7 +5968,8 @@
       "text_zh": "[入场时] 对手将舞台上的 1 名活跃成员置于等待状态。",
       "text_th": "[เมื่อเข้าสนาม] ฝ่ายตรงข้ามทำให้สมาชิกที่แอคทีฟ 1 คนอยู่บนเวทีเพื่อรอ",
       "text_pt": "[Ao Entrar] O seu adversário coloca 1 Membro ativo no Palco dele em Repouso.",
-      "text_fr": "[À l'entrée] Tu adversaire placez 1 Membre activo en su Scène en Wait."
+      "text_fr": "[À l'entrée] Tu adversaire placez 1 Membre activo en su Scène en Wait.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp4-010-N",
@@ -5952,7 +6018,8 @@
       "text_zh": "[现场开始] 你可以支付 1 点能量：直到本场比赛结束，你获得 +2 Blade。",
       "text_th": "[เริ่ม Live] คุณอาจจ่าย 1 พลังงาน: จนกว่า Live นี้จบลง คุณจะได้รับ +2 เบลด",
       "text_pt": "[Início de Live] Você pode pagar 1<energy>: até o fim desta Live, esta carta ganha 2<blade>.",
-      "text_fr": "[Début de Live] Vous pouvez payer 1 Énergie: jusqu'à la fin de ce Live, vous gagnez +2 Blade."
+      "text_fr": "[Début de Live] Vous pouvez payer 1 Énergie: jusqu'à la fin de ce Live, vous gagnez +2 Blade.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp4-011-N",
@@ -5992,7 +6059,8 @@
       "text_zh": "[现场开始] 你可以将该成员置于等待状态：直到本场比赛结束，你中心区域的μ成员获得+2刀锋。",
       "text_th": "[เริ่ม Live] คุณสามารถให้สมาชิกรายนี้รอได้: จนกว่า Live นี้สิ้นสุดลง สมาชิกของ μ ในพื้นที่ศูนย์กลางของคุณจะได้รับ +2 เบลด",
       "text_pt": "[Início de Live] Você pode colocar este Membro em Repouso: até o fim desta Live, o Membro μ's no Centro do seu Palco ganha 2<blade>.",
-      "text_fr": "[Début de Live] Vous pouvez placer ce Membre en Wait: jusqu'à la fin de ce Live, el Membre de μ's en tu área Centro obtiene +2 Blade."
+      "text_fr": "[Début de Live] Vous pouvez placer ce Membre en Wait: jusqu'à la fin de ce Live, el Membre de μ's en tu área Centro obtiene +2 Blade.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp4-012-N",
@@ -6018,7 +6086,8 @@
       "rarity": "N",
       "text": "",
       "text_jp": "",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP04/PL!-bp4-012-N.png"
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP04/PL!-bp4-012-N.png",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp4-013-N",
@@ -6063,7 +6132,8 @@
       "text_zh": "[现场开始] 你可以将1张手牌放入等候室：直到本次现场结束，你舞台上的其他1名成员获得1颗粉红之心。",
       "text_th": "[เริ่ม Live] คุณสามารถนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ: จนกว่าการถ่ายทอดสดจะจบลง สมาชิกอีก 1 คนบนเวทีของคุณจะได้รับหัวใจสีชมพู 1 อัน",
       "text_pt": "[Início de Live] Você pode colocar 1 carta da sua mão na Sala de Espera: até o fim desta Live, 1 outro Membro no seu Palco ganha 1<pinkH>.",
-      "text_fr": "[Début de Live] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: jusqu'à la fin de ce Live, 1 otro Membre sur votre Scène obtiene 1 cœur rosa."
+      "text_fr": "[Début de Live] Vous pouvez placer 1 carte de votre main dans la Salle d'attente: jusqu'à la fin de ce Live, 1 otro Membre sur votre Scène obtiene 1 cœur rosa.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp4-014-N",
@@ -6107,7 +6177,8 @@
       "text_zh": "[现场开始] 如果你的现场中的一张现场卡既没有现场 Start也没有现场 Success能力，直到本现场结束，你舞台上的其他1名成员获得+2 Blade。",
       "text_th": "[เริ่ม Live] หากการ์ด Live ใน Live ของคุณไม่มีทั้งความสามารถ Live Start และ Live สำเร็จ จนกว่า Live นี้สิ้นสุดลง สมาชิกอีก 1 คนบนเวทีของคุณจะได้รับ +2 เบลด",
       "text_pt": "[Início de Live] Se uma carta Live na sua zona de Lives não tiver habilidades de [Início de Live] nem de [Live Bem-Sucedida], até o fim desta Live, 1 outro Membro no seu Palco ganha 2<blade>.",
-      "text_fr": "[Début de Live] Si una carte Live en tu Live no a habilidades Live Start ni Live Success, jusqu'à la fin de ce Live, 1 otro Membre sur votre Scène obtiene +2 Blade."
+      "text_fr": "[Début de Live] Si una carte Live en tu Live no a habilidades Live Start ni Live Success, jusqu'à la fin de ce Live, 1 otro Membre sur votre Scène obtiene +2 Blade.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp4-015-N",
@@ -6133,7 +6204,8 @@
       "rarity": "N",
       "text": "",
       "text_jp": "",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP04/PL!-bp4-015-N.png"
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP04/PL!-bp4-015-N.png",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp4-016-N",
@@ -6171,7 +6243,8 @@
       "text_zh": "[入场时] 如果您的成功现场卡总分为 3 或以上，则抽 1 张卡。",
       "text_th": "[เมื่อเข้าสนาม] หากคะแนนรวมของการ์ด สำเร็จ Live ของคุณคือ 3 หรือมากกว่า ให้จั่วการ์ด 1 ใบ",
       "text_pt": "[Ao Entrar] Se a pontuação total das suas cartas de Live Bem-Sucedidas for 3 ou mais, compre 1 carta.",
-      "text_fr": "[À l'entrée] Si la score total de tus cartes de Live réussi es 3 ou plus, piochez 1 carte."
+      "text_fr": "[À l'entrée] Si la score total de tus cartes de Live réussi es 3 ou plus, piochez 1 carte.",
+      "subunit": "lily white"
     },
     {
       "card_no": "PL!-bp4-017-N",
@@ -6209,7 +6282,8 @@
       "text_zh": "[现场开始] 你可以将该成员置于等待状态：直到本场比赛结束，你中心区域的μ成员获得+1刀锋。",
       "text_th": "[เริ่ม Live] คุณสามารถให้สมาชิกรายนี้รอได้: จนกว่า Live นี้สิ้นสุดลง สมาชิกของ μ ในพื้นที่ศูนย์กลางของคุณจะได้รับ +1 เบลด",
       "text_pt": "[Início de Live] Você pode colocar este Membro em Repouso: até o fim desta Live, o Membro μ's no Centro do seu Palco ganha 1<blade>.",
-      "text_fr": "[Début de Live] Vous pouvez placer ce Membre en Wait: jusqu'à la fin de ce Live, el Membre de μ's en tu área Centro obtiene +1 Blade."
+      "text_fr": "[Début de Live] Vous pouvez placer ce Membre en Wait: jusqu'à la fin de ce Live, el Membre de μ's en tu área Centro obtiene +1 Blade.",
+      "subunit": "Printemps"
     },
     {
       "card_no": "PL!-bp4-018-N",
@@ -6254,7 +6328,8 @@
       "text_zh": "[永续] 当你的成功现场卡总分高于对手时，你获得 +2 Blade。",
       "text_th": "[ต่อเนื่อง] ในขณะที่คะแนนรวมของการ์ด สำเร็จ Live ของคุณสูงกว่าของคู่ต่อสู้ คุณจะได้รับ +2 เบลด",
       "text_pt": "[Sempre] Enquanto a pontuação total das suas cartas Live Bem-Sucedidas for maior do que a do adversário, esta carta ganha 2<blade>.",
-      "text_fr": "[Permanent] Tant que la score total de tus cartes de Live réussi soit mayor que la de tu adversaire, vous gagnez +2 Blade."
+      "text_fr": "[Permanent] Tant que la score total de tus cartes de Live réussi soit mayor que la de tu adversaire, vous gagnez +2 Blade.",
+      "subunit": "BiBi"
     },
     {
       "card_no": "PL!-bp4-019-L",

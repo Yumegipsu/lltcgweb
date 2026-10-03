@@ -130,9 +130,9 @@ function plMusePb2SuccessGroupCards(array $p, string $group): array {
     return $out;
 }
 
-/** True when a card is lily white (subunit field). */
+/** True when a card is lily white (subunit field or inferred). */
 function plMusePb2IsLilyWhiteCard(array $card): bool {
-    return strcasecmp((string)($card['subunit'] ?? ''), 'lily white') === 0;
+    return cardMatchesSubunit($card, 'lily white');
 }
 
 /**
@@ -198,7 +198,7 @@ function plMusePb2SumSuccessScores(array $p): int {
 function plMusePb2CountSuccessSubunit(array $p, string $subunit, ?array $effectSource = null): int {
     $n = 0;
     foreach ($p['success_lives'] ?? [] as $c) {
-        if ($c && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0) {
+        if ($c && cardMatchesSubunit($c, $subunit)) {
             $n += plMusePb2SuccessCardCountWeight($c, $effectSource);
         }
     }
@@ -212,7 +212,7 @@ function plMusePb2StageOnlySubunit(array $p, string $subunit): bool {
             continue;
         }
         $any = true;
-        if (strcasecmp((string)($m['subunit'] ?? ''), $subunit) !== 0) {
+        if (!cardMatchesSubunit($m, $subunit)) {
             return false;
         }
     }
@@ -251,7 +251,7 @@ function plMusePb2ApplyContinuousBlade(int $blade, array $member, array $state, 
         $subunit = $ab['subunit'] ?? '';
         $n = 0;
         foreach ($member['stacked_members'] ?? [] as $s) {
-            if ($s && strcasecmp((string)($s['subunit'] ?? ''), $subunit) === 0
+            if ($s && cardMatchesSubunit($s, $subunit)
                 && isMemberCard($s)) {
                 $n++;
             }
@@ -653,7 +653,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             $subunit = $ab['subunit'] ?? 'lily white';
             $handLives = array_values(array_filter(
                 $p['hand'] ?? [],
-                fn($c) => isLiveTypeCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+                fn($c) => isLiveTypeCard($c) && cardMatchesSubunit($c, $subunit)
             ));
             if (!$handLives || empty($p['success_lives'])) {
                 break;
@@ -680,7 +680,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             $need = intval($ab['count'] ?? 4);
             $cands = array_values(array_filter(
                 $p['waiting_room'] ?? [],
-                fn($c) => isMemberCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+                fn($c) => isMemberCard($c) && cardMatchesSubunit($c, $subunit)
             ));
             if (count($cands) < $need) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
@@ -760,7 +760,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             $need = intval($ab['discard'] ?? 3);
             $hand = array_values(array_filter(
                 $p['hand'] ?? [],
-                fn($c) => isMemberCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+                fn($c) => isMemberCard($c) && cardMatchesSubunit($c, $subunit)
             ));
             $names = [];
             foreach ($hand as $c) {
@@ -886,7 +886,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             $su = (string)($members[0]['subunit'] ?? '');
             $ok = in_array($su, $subunits, true);
             foreach ($members as $m) {
-                if (strcasecmp((string)($m['subunit'] ?? ''), $su) !== 0) {
+                if (!cardMatchesSubunit($m, $su)) {
                     $ok = false;
                     break;
                 }
@@ -1067,7 +1067,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             $subunit = $ab['subunit'] ?? 'BiBi';
             $cands = array_values(array_filter(
                 $p['waiting_room'] ?? [],
-                fn($c) => isMemberCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+                fn($c) => isMemberCard($c) && cardMatchesSubunit($c, $subunit)
             ));
             if (!$cands) {
                 break;
@@ -1162,7 +1162,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             $subunit = $ab['subunit'] ?? 'Printemps';
             $cands = array_values(array_filter(
                 $p['waiting_room'] ?? [],
-                fn($c) => isLiveTypeCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+                fn($c) => isLiveTypeCard($c) && cardMatchesSubunit($c, $subunit)
             ));
             if (!$cands) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
@@ -1549,7 +1549,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             $need = intval($prompt['discard'] ?? 3);
             $hand = array_values(array_filter(
                 $p['hand'] ?? [],
-                fn($c) => isMemberCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+                fn($c) => isMemberCard($c) && cardMatchesSubunit($c, $subunit)
             ));
             $state['pending_prompt'] = [
                 'type' => 'pb2_pick_distinct_discard_wait_opp',
@@ -1698,7 +1698,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             $subunit = $prompt['subunit'] ?? 'Printemps';
             $stageCands = [];
             foreach ($p['stage'] as $s => $m) {
-                if ($m && strcasecmp((string)($m['subunit'] ?? ''), $subunit) === 0) {
+                if ($m && cardMatchesSubunit($m, $subunit)) {
                     $stageCands[] = ['slot' => $s, 'card' => $m];
                 }
             }
@@ -1736,7 +1736,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                 $subunit = $prompt['subunit'] ?? 'Printemps';
                 $stageCands = [];
                 foreach ($p['stage'] as $s => $m) {
-                    if ($m && strcasecmp((string)($m['subunit'] ?? ''), $subunit) === 0) {
+                    if ($m && cardMatchesSubunit($m, $subunit)) {
                         $stageCands[] = ['slot' => $s, 'card' => $m];
                     }
                 }
@@ -1970,7 +1970,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             $subunit = $ch['subunit'] ?? 'BiBi';
             $cands = [];
             foreach ($p['stage'] as $s => $m) {
-                if ($m && memberIsInWait($m) && strcasecmp((string)($m['subunit'] ?? ''), $subunit) === 0) {
+                if ($m && memberIsInWait($m) && cardMatchesSubunit($m, $subunit)) {
                     $cands[] = ['slot' => $s, 'card' => $m];
                 }
             }
@@ -2048,7 +2048,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                 $cands = [];
                 foreach ($p['stage'] as $s => $m) {
                     if ($m && ($m['instance_id'] ?? '') !== $srcId
-                        && strcasecmp((string)($m['subunit'] ?? ''), $prompt['subunit'] ?? 'Printemps') === 0
+                        && cardMatchesSubunit($m, (string)($prompt['subunit'] ?? 'Printemps'))
                         && !memberIsInWait($m)) {
                         $cands[] = ['slot' => $s, 'card' => $m];
                     }
@@ -2077,7 +2077,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             $subunit = $prompt['subunit'] ?? 'Printemps';
             $cands = array_values(array_filter(
                 $p['waiting_room'] ?? [],
-                fn($c) => isLiveTypeCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+                fn($c) => isLiveTypeCard($c) && cardMatchesSubunit($c, $subunit)
             ));
             unset($state['pending_prompt']);
             if (!$cands) {
@@ -2117,7 +2117,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             $subunit = $prompt['subunit'] ?? 'Printemps';
             $cands = array_values(array_filter(
                 $p['waiting_room'] ?? [],
-                fn($c) => isLiveTypeCard($c) && strcasecmp((string)($c['subunit'] ?? ''), $subunit) === 0
+                fn($c) => isLiveTypeCard($c) && cardMatchesSubunit($c, $subunit)
             ));
             unset($state['pending_prompt']);
             if (!$cands) {

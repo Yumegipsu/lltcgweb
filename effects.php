@@ -114,6 +114,13 @@ function mergeCardCatalogFields(array &$card): void {
             $card[$key] = $base[$key];
         }
     }
+    // Catalog may still omit subunit on older μ's prints — infer from character name (#230).
+    if (empty($card['subunit']) && function_exists('inferMemberSubunitFromName')) {
+        $inferred = inferMemberSubunitFromName($card);
+        if ($inferred !== '') {
+            $card['subunit'] = $inferred;
+        }
+    }
     if (empty($card['blade_hearts']) && !empty($base['blade_hearts'])) {
         $card['blade_hearts'] = $base['blade_hearts'];
     }
@@ -2655,6 +2662,13 @@ function cardEffectiveSubunits(array $card): array {
             if ($s !== '') $subs[] = $s;
         }
     }
+    // Older μ's prints often omit subunit in cards.json (#230).
+    if ($subs === [] && function_exists('inferMemberSubunitFromName')) {
+        $inferred = inferMemberSubunitFromName($card);
+        if ($inferred !== '') {
+            $subs[] = $inferred;
+        }
+    }
     return array_values(array_unique($subs));
 }
 
@@ -2792,8 +2806,11 @@ function countDistinctSubunitsOnStage(array $p, string $requireGroup = ''): int 
         if ($requireGroup !== '' && ($mbr['group'] ?? '') === $requireGroup) {
             $hasRequiredGroup = true;
         }
-        $su = $mbr['subunit'] ?? '';
-        if ($su !== '') $subs[$su] = true;
+        foreach (cardEffectiveSubunits($mbr) as $su) {
+            if ($su !== '') {
+                $subs[$su] = true;
+            }
+        }
     }
     if ($requireGroup !== '' && !$hasRequiredGroup) return 0;
     return count($subs);
@@ -3434,7 +3451,7 @@ function stageAllMembersInSubunit(array $p, string $subunit): bool {
     foreach ($p['stage'] as $m) {
         if (!$m) continue;
         $found = true;
-        if (($m['subunit'] ?? '') !== $subunit) return false;
+        if (!cardMatchesSubunit($m, $subunit)) return false;
     }
     return $found;
 }
@@ -4843,7 +4860,7 @@ function waitOpponentMemberAtSlot(
 function listSubunitStageMembers(array $p, string $subunit): array {
     $out = [];
     foreach ($p['stage'] as $slot => $mbr) {
-        if ($mbr && ($mbr['subunit'] ?? '') === $subunit) {
+        if ($mbr && cardMatchesSubunit($mbr, $subunit)) {
             $out[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
         }
     }
@@ -5792,7 +5809,7 @@ function countYellDrawIcons(array $yellCards): int {
 
 function successZoneHasSubunit(array $p, string $subunit): bool {
     foreach ($p['success_lives'] ?? [] as $c) {
-        if (($c['subunit'] ?? '') === $subunit) return true;
+        if (cardMatchesSubunit($c, $subunit)) return true;
     }
     return false;
 }
@@ -5801,7 +5818,7 @@ function lookRevealSubunit(array &$p, int $look, string $subunit): int {
     $top = array_splice($p['main_deck'], 0, min($look, count($p['main_deck'])));
     $picked = 0;
     foreach ($top as $c) {
-        if ($picked < 1 && ($c['subunit'] ?? '') === $subunit) {
+        if ($picked < 1 && cardMatchesSubunit($c, $subunit)) {
             $p['hand'][] = $c;
             $picked++;
         } else {
@@ -5815,7 +5832,7 @@ function activateSubunitMembers(array &$p, string $subunit, int $max): int {
     $n = 0;
     foreach ($p['stage'] as &$mbr) {
         if ($n >= $max) break;
-        if (!$mbr || ($mbr['subunit'] ?? '') !== $subunit) continue;
+        if (!$mbr || !cardMatchesSubunit($mbr, $subunit)) continue;
         if (memberIsInWait($mbr)) {
             clearMemberWait($mbr);
             $n++;
@@ -6235,7 +6252,7 @@ function putWrMemberToEmptyStageWait(array &$p, int $maxCost, ?array $state = nu
 function activateSubunitFromWait(array &$p, string $subunit): int {
     $n = 0;
     foreach ($p['stage'] as &$mbr) {
-        if (!$mbr || ($mbr['subunit'] ?? '') !== $subunit) continue;
+        if (!$mbr || !cardMatchesSubunit($mbr, $subunit)) continue;
         if (!memberIsInWait($mbr)) continue;
         clearMemberWait($mbr);
         $n++;
