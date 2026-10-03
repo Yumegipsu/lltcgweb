@@ -157,6 +157,27 @@ function plMusePb2NoteActivatedFromWait(array &$state, string $pid, ?array $effe
     }
 }
 
+/** Mark a Stage Member as Wait→Active this turn via a subunit card effect (#236). */
+function plMusePb2MarkMemberActivatedFromWait(array &$member, ?array $effectSource, int $turn): void {
+    if (!is_array($effectSource)) {
+        return;
+    }
+    $bys = is_array($member['_pb2_from_wait_by'] ?? null) ? $member['_pb2_from_wait_by'] : [];
+    foreach (['Printemps', 'lily white', 'BiBi'] as $sub) {
+        if (!cardMatchesSubunit($effectSource, $sub)) {
+            continue;
+        }
+        if (!in_array($sub, $bys, true)) {
+            $bys[] = $sub;
+        }
+    }
+    if ($bys === []) {
+        return;
+    }
+    $member['_pb2_from_wait_turn'] = $turn;
+    $member['_pb2_from_wait_by'] = $bys;
+}
+
 /** Clear Wait and, if the member was Waiting, attribute the Activate to $effectSource. */
 function plMusePb2ActivateFromWait(
     array &$state,
@@ -167,13 +188,10 @@ function plMusePb2ActivateFromWait(
     if (!memberIsInWait($member)) {
         return false;
     }
+    $src = $effectSource ?? ($state['_mod_source'] ?? null);
     clearMemberWait($member);
-    plMusePb2NoteActivatedFromWait(
-        $state,
-        $pid,
-        $effectSource ?? ($state['_mod_source'] ?? null),
-        1
-    );
+    plMusePb2MarkMemberActivatedFromWait($member, is_array($src) ? $src : null, intval($state['turn'] ?? 1));
+    plMusePb2NoteActivatedFromWait($state, $pid, is_array($src) ? $src : null, 1);
     return true;
 }
 
@@ -183,6 +201,98 @@ function plMusePb2ClearActivatedFromWaitCounters(array &$p): void {
             unset($p[$k]);
         }
     }
+    unset($p['_pb2_defer_blade_from_wait']);
+    foreach ($p['stage'] ?? [] as &$m) {
+        if ($m) {
+            unset($m['_pb2_from_wait_turn'], $m['_pb2_from_wait_by']);
+        }
+    }
+    unset($m);
+}
+
+/** Members on Stage put Wait→Active this turn by a $subunit card effect (#236 Honoka). */
+function plMusePb2CountStageActivatedFromWait(array $p, string $subunit, int $turn): int {
+    $n = 0;
+    foreach ($p['stage'] ?? [] as $m) {
+        if (!$m) {
+            continue;
+        }
+        if (intval($m['_pb2_from_wait_turn'] ?? 0) !== $turn) {
+            continue;
+        }
+        $bys = $m['_pb2_from_wait_by'] ?? [];
+        if (!is_array($bys)) {
+            continue;
+        }
+        if (in_array($subunit, $bys, true)) {
+            $n++;
+        }
+    }
+    return $n;
+}
+
+/** Apply one deferred Honoka-style Live Start blade grant. */
+function plMusePb2ApplyActivatedFromWaitBladeEntry(array $state, string $pid, array $entry): array {
+    $subunit = (string)($entry['subunit'] ?? 'Printemps');
+    $amt = max(1, intval($entry['amount'] ?? 1));
+    $turn = intval($state['turn'] ?? 1);
+    $n = plMusePb2CountStageActivatedFromWait($state['players'][$pid] ?? [], $subunit, $turn);
+    if ($n < 1) {
+        // Fallback: turn counter (Love Marginal path) when marks are missing.
+        $n = intval($state['players'][$pid][plMusePb2ActivatedFromWaitKey($subunit)] ?? 0);
+    }
+    if ($n < 1) {
+        return $state;
+    }
+    $blade = $n * $amt;
+    $srcId = (string)($entry['source_id'] ?? '');
+    $srcName = (string)($entry['source_name'] ?? 'Member');
+    $src = [];
+    if ($srcId !== '' && function_exists('findSourceCard')) {
+        $found = findSourceCard($state, $pid, $srcId);
+        if (is_array($found)) {
+            $src = $found;
+        } else {
+            $src = ['instance_id' => $srcId];
+        }
+    }
+    $prev = $state['_mod_source'] ?? null;
+    if ($src !== []) {
+        $state['_mod_source'] = $src;
+    }
+    $state = applyModifierEffect($state, $pid, [
+        'type' => 'blade_bonus',
+        'amount' => $blade,
+    ], $src);
+    if ($prev === null) {
+        unset($state['_mod_source']);
+    } else {
+        $state['_mod_source'] = $prev;
+    }
+    $state = addLog($state, $state['players'][$pid]['name'] .
+        " — [$srcName] +$blade Blade (Wait→Active via $subunit effects this turn).");
+    return $state;
+}
+
+/**
+ * Honoka pb2-010: apply deferred Live Start blades after all Live Starts
+ * (so WAO-WAO etc. can Activate first). Refs #236.
+ */
+function plMusePb2FlushDeferredActivatedFromWaitBlade(array $state): array {
+    foreach (['p1', 'p2'] as $pid) {
+        $list = $state['players'][$pid]['_pb2_defer_blade_from_wait'] ?? null;
+        if (!is_array($list) || $list === []) {
+            continue;
+        }
+        unset($state['players'][$pid]['_pb2_defer_blade_from_wait']);
+        foreach ($list as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+            $state = plMusePb2ApplyActivatedFromWaitBladeEntry($state, $pid, $entry);
+        }
+    }
+    return $state;
 }
 
 /**
@@ -697,18 +807,29 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'blade_per_activated_from_wait_by_subunit_effect': {
-            $subunit = $ab['subunit'] ?? 'Printemps';
-            $key = plMusePb2ActivatedFromWaitKey($subunit);
-            $n = intval($state['players'][$pid][$key] ?? 0);
-            if ($n > 0) {
-                $state = applyModifierEffect($state, $pid, [
-                    'type' => 'blade_bonus',
-                    'amount' => $n * intval($ab['amount'] ?? 1),
-                    'source' => $name,
-                ]);
+            // Defer during Live Start so Stage Members (Honoka) don't resolve before
+            // Live-zone Activators (WAO-WAO) under default L→R then Lives order (#236).
+            $entry = [
+                'source_id' => (string)($source['instance_id'] ?? ''),
+                'source_name' => $name,
+                'subunit' => (string)($ab['subunit'] ?? 'Printemps'),
+                'amount' => intval($ab['amount'] ?? 1),
+            ];
+            $phase = (string)($state['phase'] ?? '');
+            $defer = str_contains($phase, 'live_start')
+                || !empty($GLOBALS['_lltcg_in_live_start_resolve']);
+            if ($defer) {
+                $list = $p['_pb2_defer_blade_from_wait'] ?? [];
+                if (!is_array($list)) {
+                    $list = [];
+                }
+                $list[] = $entry;
+                $p['_pb2_defer_blade_from_wait'] = $list;
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] +$n Blade (Wait→Active via $subunit effects this turn).");
+                    " — [$name] Live Start Blade (after Wait→Active counts this turn).");
+                break;
             }
+            $state = plMusePb2ApplyActivatedFromWaitBladeEntry($state, $pid, $entry);
             break;
         }
 
