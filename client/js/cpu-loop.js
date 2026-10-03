@@ -1219,6 +1219,7 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'spbp2_center_move_choose', 'spbp2_center_move_position',
   'stack_wr_under',
   'optional_unstack_toggle_subunit', 'pb2_pick_unstack_toggle', 'pb2_pick_toggle_printemps',
+  'activated_wait_printemps_live_from_wr', 'pb2_printemps_cost_mode', 'pb2_printemps_wait_members',
   'optional_reveal_hand_live_swap_success', 'pb2_pick_hand_success_swap',
   'pb2_pick_revealed_subunit_live',
   'activated_discard_trigger_on_enter',
@@ -5123,6 +5124,23 @@ function cpuResolvePromptBody(s, cpu, pr) {
     const slot=pr.candidates?.[0]?.slot;
     if(slot) cpuAct('resolve_prompt',{slot});
     else cpuAct('resolve_prompt',{choice:'skip'});
+    return;
+  }
+  // Kotori PL!-pb2-012 Activated: discard 2 or Wait 2 Printemps (#232).
+  if(pr.type==='pb2_printemps_cost_mode'){
+    const handN=(hand||[]).length;
+    if(handN>=2) cpuAct('resolve_prompt',{choice:'discard2', discard_ids:(hand||[]).slice(0,2).map(c=>c.instance_id).filter(Boolean)});
+    else if((pr.candidates||[]).length>=2 || (pr.choices||[]).includes('wait2')){
+      cpuAct('resolve_prompt',{choice:'wait2'});
+    } else {
+      cpuAct('resolve_prompt',{choice:'discard2', discard_ids:(hand||[]).slice(0,2).map(c=>c.instance_id).filter(Boolean)});
+    }
+    return;
+  }
+  if(pr.type==='pb2_printemps_wait_members'){
+    const slots=(pr.candidates||[]).slice(0,2).map(c=>c.slot).filter(Boolean);
+    if(slots.length>=2) cpuAct('resolve_prompt',{slots});
+    else cpuAct('resolve_prompt',{choice:'skip', slots:[]});
     return;
   }
   // Rin PL!-pb2-014: reveal lily white Live ↔ Success Live swap (#217).

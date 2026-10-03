@@ -528,7 +528,11 @@ global.openStageSlotPick = function openStageSlotPick(pr){
     const slotById = new Map(cards.map(c=>[c.instance_id, c.slot]));
     const isOppWaitPick = pr.type === 'wait_opponent_stage_pick';
     // When targets exist, Confirm must pick ≥1; use Cancel for "wait none" (min 0 alone allowed empty Confirm).
-    const minSel = isOppWaitPick ? 1 : 0;
+    // Kotori pb2 Wait-2 cost requires exactly pick_count (#232).
+    const exactNeed = pr.type === 'pb2_printemps_wait_members'
+      ? Math.max(1, maxPick)
+      : 0;
+    const minSel = exactNeed || (isOppWaitPick ? 1 : 0);
     G.pickCtx={
       count: maxPick,
       min: minSel,
@@ -3785,6 +3789,24 @@ global.renderPrompt = function renderPrompt(s, myId){
       pick_count: 1,
       optional: false,
       up_to: false,
+    });
+    return;
+  }
+  // PL!-pb2-012 Kotori Activated: Wait 2 Printemps additional cost (#232).
+  if(pr?.type==='pb2_printemps_wait_members'&&(pr.responder||pr.owner)===myId){
+    ovl.classList.remove('open');
+    const cands=(pr.candidates||[]).filter(c=>c&&c.slot);
+    const need=Math.max(2, Number(pr.max||pr.min||pr.pick_count||2)||2);
+    if(cands.length < need){
+      sendAct('resolve_prompt',{choice:'skip', slots:[]});
+      return;
+    }
+    openStageSlotPick({
+      ...pr,
+      candidates: cands,
+      pick_count: need,
+      up_to: false,
+      optional: false,
     });
     return;
   }

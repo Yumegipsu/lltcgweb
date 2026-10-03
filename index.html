@@ -29420,7 +29420,7 @@ function sendPlayMemberMaybeShuffleOpt(card, payload, me, ec, payCost = null) {
   const n = waitingRoomMemberCount(me);
   const basePay = payCost != null ? Number(payCost) : Number(ec || 0);
   if (!ab || n < 1) {
-    sendAct('play_member', payload);
+    sendPlayMemberMaybePb2WaitOpt(card, payload, me, ec, payCost);
     return;
   }
   const amt = Number(ab.amount || 2);
@@ -29448,11 +29448,145 @@ function sendPlayMemberMaybeShuffleOpt(card, payload, me, ec, payCost = null) {
   } else {
     no.onclick = () => {
       closeM('overlay-prompt');
+      sendPlayMemberMaybePb2WaitOpt(card, payload, me, ec, payCost);
+    };
+  }
+  box.appendChild(no);
+  ovl.classList.add('open');
+}
+/** PL!-pb2-012 Kotori Always: optional Wait 2 distinct-named Printemps for −2 play cost (#232). */
+function cardPb2WaitDistinctPlayOpt(card) {
+  return (card?.abilities || []).find(a =>
+    a && a.trigger === 'continuous' && a.type === 'play_cost_reduce_if_wait_distinct_subunit');
+}
+function pb2DistinctSubunitWaitCandidates(me, ab) {
+  const subunit = ab?.subunit || 'Printemps';
+  const out = [];
+  const seenNames = new Set();
+  for (const [slot, m] of Object.entries(me?.stage || {})) {
+    if (!m) continue;
+    const waiting = typeof memberInWait === 'function'
+      ? memberInWait(m)
+      : !!(m.in_wait || m.active === false);
+    if (waiting) continue;
+    if (typeof cardMatchesSubunit === 'function' && !cardMatchesSubunit(m, subunit)) continue;
+    const nm = String(m.name_en || m.name || '').toLowerCase().trim();
+    if (!nm || seenNames.has(nm)) continue;
+    seenNames.add(nm);
+    out.push(Object.assign({}, m, { slot }));
+  }
+  return out;
+}
+function sendPlayMemberMaybePb2WaitOpt(card, payload, me, ec, payCost = null) {
+  const ab = cardPb2WaitDistinctPlayOpt(card);
+  const cands = ab ? pb2DistinctSubunitWaitCandidates(me, ab) : [];
+  const need = Math.max(2, Number(ab?.wait_count || 2) || 2);
+  const basePay = payCost != null ? Number(payCost) : Number(ec || 0);
+  if (!ab || cands.length < need) {
+    sendAct('play_member', payload);
+    return;
+  }
+  const amt = Number(ab.reduce || 2);
+  const reduced = Math.max(0, basePay - amt);
+  const ae = (me?.energy_zone || []).filter(energyChipActive).length;
+  const ovl = el('overlay-prompt');
+  el('prompt-ttl').textContent = card.name_en || card.name || 'Play';
+  el('prompt-msg').textContent =
+    `Put ${need} Printemps Members with different names into Wait to reduce this card's cost by ${amt}?`;
+  const box = el('prompt-btns');
+  box.innerHTML = '';
+  const yes = document.createElement('button');
+  yes.className = 'btn-grad';
+  yes.textContent = `Yes — choose ${need} (pay ${reduced})`;
+  yes.onclick = () => {
+    closeM('overlay-prompt');
+    openPb2PlayWaitPrintempsPick(card, payload, me, cands, need, reduced, basePay, ae);
+  };
+  box.appendChild(yes);
+  const no = document.createElement('button');
+  no.className = 'btn-grad';
+  no.textContent = `No — full cost ${basePay}`;
+  if (ae < basePay) {
+    no.disabled = true;
+    no.title = 'Not enough Energy without the reduction';
+  } else {
+    no.onclick = () => {
+      closeM('overlay-prompt');
       sendAct('play_member', payload);
     };
   }
   box.appendChild(no);
   ovl.classList.add('open');
+}
+function openPb2PlayWaitPrintempsPick(card, payload, me, cands, need, reduced, basePay, ae) {
+  G.pickMarked.clear();
+  const slotById = new Map(cands.map(c => [c.instance_id, c.slot]));
+  const nameById = new Map(cands.map(c => [c.instance_id, String(c.name_en || c.name || '').toLowerCase().trim()]));
+  G.pickCtx = {
+    count: need,
+    min: need,
+    onConfirm: (ids) => {
+      const slots = ids.map(id => slotById.get(id)).filter(Boolean);
+      const names = ids.map(id => nameById.get(id)).filter(Boolean);
+      if (slots.length !== need || new Set(names).size !== need) {
+        toast(`Choose ${need} Members with different names.`);
+        return;
+      }
+      sendAct('play_member', Object.assign({}, payload, { pb2_wait_slots: slots }));
+    },
+    onCancel: () => {
+      if (ae < basePay) {
+        toast('Not enough Energy without the reduction');
+        return;
+      }
+      sendAct('play_member', payload);
+    },
+  };
+  el('pick-ttl').textContent = card.name_en || card.name || 'Play';
+  el('pick-msg').textContent = `Choose ${need} Printemps Members with different names to Wait (pay ${reduced}).`;
+  const g = el('pick-grid');
+  g.innerHTML = '';
+  const btnOk = el('btn-pick-ok');
+  const btnCancel = el('btn-pick-cancel');
+  if (btnOk) btnOk.style.display = '';
+  if (btnCancel) btnCancel.style.display = '';
+  cands.forEach(cardEl => {
+    g.appendChild(mkPickCardEl(cardEl, 'pickcard', () => {
+      if (G.pickMarked.has(cardEl.instance_id)) G.pickMarked.delete(cardEl.instance_id);
+      else {
+        if (G.pickMarked.size >= need) { toast(`Select at most ${need}`); return; }
+        const nm = nameById.get(cardEl.instance_id);
+        for (const id of G.pickMarked) {
+          if (nameById.get(id) === nm) { toast('Names must be different'); return; }
+        }
+        G.pickMarked.add(cardEl.instance_id);
+        if (typeof sfxCardPick === 'function') sfxCardPick();
+      }
+      [...g.children].forEach(c => c.classList.toggle('sel', G.pickMarked.has(c.dataset.id)));
+      el('pick-count').textContent = typeof formatSelectedCount === 'function'
+        ? formatSelectedCount(G.pickMarked.size, need)
+        : `${G.pickMarked.size}/${need}`;
+    }));
+  });
+  el('pick-count').textContent = typeof formatSelectedCount === 'function'
+    ? formatSelectedCount(0, need)
+    : `0/${need}`;
+  if (typeof syncPickOverlayButtons === 'function') syncPickOverlayButtons();
+  const btn = el('pick-confirm') || el('btn-pick-ok');
+  if (btn) {
+    btn.onclick = () => {
+      if (G.pickMarked.size < need) { toast(`Select at least ${need}`); return; }
+      closeM('overlay-pick');
+      G.pickCtx.onConfirm([...G.pickMarked]);
+    };
+  }
+  if (btnCancel) {
+    btnCancel.onclick = () => {
+      closeM('overlay-pick');
+      if (G.pickCtx?.onCancel) G.pickCtx.onCancel();
+    };
+  }
+  openM('overlay-pick');
 }
 function sendBatonMemberPlay(card, slot, batonId, batonId2, me, ec) {
   const payload = { card_id: card.instance_id, slot, baton_id: batonId };

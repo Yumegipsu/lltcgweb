@@ -4371,6 +4371,9 @@ function getEffectiveHandCost(array $state, string $pid, array $card): int {
     }
     $base = sBp5ApplyHandCostReduction($state, $pid, $card, $base);
     $base = plMuseGapApplyHandCostReduction($state, $pid, $card, $base);
+    if (function_exists('plMusePb2ApplyHandCostReduction')) {
+        $base = plMusePb2ApplyHandCostReduction($state, $pid, $card, $base);
+    }
     return spBp5ApplyHandCostReduction($state, $pid, $card, $base);
 }
 
@@ -6446,6 +6449,16 @@ function activatedAbilityWrBlockReason(array $p, array $ab): ?string {
                 return null;
             }
             return 'no matching card in Waiting Room.';
+
+        case 'activated_wait_printemps_live_from_wr': {
+            $subunit = (string)($ab['subunit'] ?? 'Printemps');
+            foreach ($p['waiting_room'] ?? [] as $c) {
+                if ($c && isLiveTypeCard($c) && cardMatchesSubunit($c, $subunit)) {
+                    return null;
+                }
+            }
+            return 'no Printemps Live card in Waiting Room.';
+        }
 
         case 'leave_stage_add_from_wr':
             $cfg = wrPickCfgForLeaveStageAbility($ab);

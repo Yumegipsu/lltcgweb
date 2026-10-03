@@ -298,6 +298,99 @@ function plMusePb2ApplyHandCostReduction(array $state, string $pid, array $card,
     return $base;
 }
 
+/**
+ * Optional play-cost: Wait N distinct-named subunit Members on Stage for −reduce.
+ * Client opts in with pb2_wait_slots (Refs #232 Kotori).
+ *
+ * @return array{0:int,1:?array} [adjusted cost, ability or null]
+ */
+function plMusePb2AdjustHandPlayCost(array $state, string $pid, array $card, int $cost, array $opts = []): array {
+    $slots = $opts['wait_slots'] ?? [];
+    if (!is_array($slots) || $slots === []) {
+        return [$cost, null];
+    }
+    foreach ($card['abilities'] ?? [] as $ab) {
+        if (($ab['trigger'] ?? '') !== 'continuous') {
+            continue;
+        }
+        if (($ab['type'] ?? '') !== 'play_cost_reduce_if_wait_distinct_subunit') {
+            continue;
+        }
+        $need = max(1, intval($ab['wait_count'] ?? 2));
+        if (count($slots) < $need) {
+            continue;
+        }
+        if (!plMusePb2ValidateDistinctSubunitWaitSlots($state, $pid, array_slice($slots, 0, $need), $ab)) {
+            continue;
+        }
+        return [max(0, $cost - intval($ab['reduce'] ?? 2)), $ab];
+    }
+    return [$cost, null];
+}
+
+/** @param list<string> $slots */
+function plMusePb2ValidateDistinctSubunitWaitSlots(array $state, string $pid, array $slots, array $ab): bool {
+    $p = $state['players'][$pid] ?? [];
+    $subunit = (string)($ab['subunit'] ?? 'Printemps');
+    $need = count($slots);
+    if ($need < 1) {
+        return false;
+    }
+    $names = [];
+    foreach ($slots as $slot) {
+        $m = $p['stage'][$slot] ?? null;
+        if (!$m || memberIsInWait($m) || !cardMatchesSubunit($m, $subunit)) {
+            return false;
+        }
+        $nm = strtolower(trim((string)($m['name_en'] ?? $m['name'] ?? '')));
+        if ($nm === '' || isset($names[$nm])) {
+            return false;
+        }
+        $names[$nm] = true;
+    }
+    return count($names) === $need;
+}
+
+function plMusePb2ApplyHandPlayCostOption(array $state, string $pid, array $card, array $ab, array $opts): array {
+    $slots = $opts['wait_slots'] ?? [];
+    if (!is_array($slots)) {
+        $slots = [];
+    }
+    $need = max(1, intval($ab['wait_count'] ?? 2));
+    $slots = array_slice(array_values($slots), 0, $need);
+    if (!plMusePb2ValidateDistinctSubunitWaitSlots($state, $pid, $slots, $ab)) {
+        throw new Exception('Choose ' . $need . ' Active Printemps Members with different names to Wait');
+    }
+    $p = &$state['players'][$pid];
+    foreach ($slots as $slot) {
+        if (!empty($p['stage'][$slot])) {
+            waitMember($p['stage'][$slot], $state);
+        }
+    }
+    $name = $card['name_en'] ?? $card['name'] ?? 'Card';
+    $state = addLog($state, $state['players'][$pid]['name'] .
+        ' — [' . $name . '] Waited ' . $need . ' Printemps Members; play cost reduced by ' .
+        intval($ab['reduce'] ?? 2) . '.');
+    return $state;
+}
+
+/** True if Kotori activated extra cost can be paid (hand discard 2 OR Wait 2 other Printemps). */
+function plMusePb2KotoriCanPayExtraCost(array $p, array $ab, string $srcId): bool {
+    if (count($p['hand'] ?? []) >= 2) {
+        return true;
+    }
+    $subunit = (string)($ab['subunit'] ?? 'Printemps');
+    $n = 0;
+    foreach ($p['stage'] ?? [] as $m) {
+        if ($m && ($m['instance_id'] ?? '') !== $srcId
+            && cardMatchesSubunit($m, $subunit)
+            && !memberIsInWait($m)) {
+            $n++;
+        }
+    }
+    return $n >= 2;
+}
+
 function plMusePb2ResolveEffect(array $state, string $pid, array $source, array $ab, array $ctx = []): array {
     $type = $ab['type'] ?? '';
     $name = $source['name_en'] ?? $source['name'] ?? 'Card';
@@ -1091,13 +1184,20 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'activated_wait_printemps_live_from_wr': {
+            // Wait self immediately, then choose additional cost (Refs #232).
+            $srcId = (string)($source['instance_id'] ?? '');
+            plMusePb2WaitSelfByInstance($state, $pid, $srcId);
             $state = plMusePb2SetPendingPrompt($state, [
-                'type' => 'activated_wait_printemps_live_from_wr',
+                'type' => 'pb2_printemps_cost_mode',
                 'owner' => $pid,
                 'player_id' => $pid,
-                'source_instance_id' => $source['instance_id'] ?? '',
+                'source_instance_id' => $srcId,
+                'source_id' => $srcId,
                 'source_name' => $name,
                 'subunit' => $ab['subunit'] ?? 'Printemps',
+                'choices' => ['discard2', 'wait2'],
+                'choice_labels' => ['Discard 2 from hand', 'Wait 2 Printemps Members'],
+                'prompt' => 'Pay the additional cost.',
             ]);
             break;
         }
@@ -1267,7 +1367,14 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
     $step = (string)($prompt['step'] ?? '');
 
     if (in_array($choice, ['skip', 'cancel', 'no'], true)
-        && !in_array($type, ['per_success_subunit_choose', 'pb2_per_success_pick_member', 'pb2_pick_revealed_subunit_live'], true)
+        && !in_array($type, [
+            'per_success_subunit_choose',
+            'pb2_per_success_pick_member',
+            'pb2_pick_revealed_subunit_live',
+            'pb2_printemps_cost_mode',
+            'pb2_printemps_wait_members',
+            'activated_wait_printemps_live_from_wr',
+        ], true)
         && $step === '') {
         $state = addLog($state, $state['players'][$pid]['name'] .
             " — [$name] skipped optional DUO effect.");
@@ -2071,7 +2178,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                     if ($m && ($m['instance_id'] ?? '') !== $srcId
                         && cardMatchesSubunit($m, (string)($prompt['subunit'] ?? 'Printemps'))
                         && !memberIsInWait($m)) {
-                        $cands[] = ['slot' => $s, 'card' => $m];
+                        $cands[] = array_merge(cardPromptSummary($m), ['slot' => $s]);
                     }
                 }
                 if (count($cands) < 2) {
@@ -2087,6 +2194,8 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                     'candidates' => $cands,
                     'min' => 2,
                     'max' => 2,
+                    'pick_count' => 2,
+                    'up_to' => false,
                     'prompt' => 'Choose 2 Printemps Members to put into Wait.',
                 ];
                 $state['seq']++;

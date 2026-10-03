@@ -1945,6 +1945,14 @@ function actionPlayMember(array $state, string $pid, array $data): array {
             ? $data['bp7_discard_named_ids']
             : [],
     ]);
+    $pb2CostOption = null;
+    if (function_exists('plMusePb2AdjustHandPlayCost')) {
+        [$cost, $pb2CostOption] = plMusePb2AdjustHandPlayCost($state, $pid, $card, $cost, [
+            'wait_slots' => is_array($data['pb2_wait_slots'] ?? null)
+                ? $data['pb2_wait_slots']
+                : [],
+        ]);
+    }
     if ($isBaton && $allowsDoubleBaton && $batonCardId2) {
         foreach ($p['stage'] as $existing2) {
             if (!$existing2 || ($existing2['instance_id'] ?? '') !== $batonCardId2) {
@@ -2112,6 +2120,14 @@ function actionPlayMember(array $state, string $pid, array $data): array {
         $p = &$state['players'][$pid];
         $reIdx = findInHand($p['hand'], $instanceId);
         $cardIdx = ($reIdx === false) ? $cardIdx : $reIdx;
+    }
+    if ($pb2CostOption !== null && function_exists('plMusePb2ApplyHandPlayCostOption')) {
+        $state = plMusePb2ApplyHandPlayCostOption($state, $pid, $card, $pb2CostOption, [
+            'wait_slots' => is_array($data['pb2_wait_slots'] ?? null)
+                ? $data['pb2_wait_slots']
+                : [],
+        ]);
+        $p = &$state['players'][$pid];
     }
     if (isset($p['hand'][$cardIdx])) {
         array_splice($p['hand'], $cardIdx, 1);
