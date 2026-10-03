@@ -1139,6 +1139,10 @@ function tcgGetBoxProgress(string $discordId, string $boxId): array {
 
 function tcgSaveBoxProgress(array $progress): void {
     $db = tcgDb();
+    // Belt-and-suspenders: new pity columns must exist before INSERT lists them.
+    tcgDbEnsureColumn($db, 'tcg_box_progress', 'rm_pity', 'INTEGER NOT NULL DEFAULT 0');
+    tcgDbEnsureColumn($db, 'tcg_box_progress', 'live_pity', 'INTEGER NOT NULL DEFAULT 0');
+    tcgDbEnsureColumn($db, 'tcg_box_progress', 'sre_pity', 'INTEGER NOT NULL DEFAULT 0');
     $db->prepare('INSERT INTO tcg_box_progress
         (discord_id, box_id, packs_in_box, boxes_opened, pe_pity, pplus_pity, sec_pity, rm_pity, live_pity, sre_pity)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -1242,6 +1246,21 @@ function tcgRecordDailyOpen(string $discordId): void {
     }
 }
 
+/** Undo one daily open charge for the current JST day (failed open after charge). */
+function tcgRefundDailyOpen(string $discordId): void {
+    $db = tcgDb();
+    $today = tcgTodayJst();
+    $stmt = $db->prepare('SELECT last_open_date, packs_opened_today FROM tcg_daily_state WHERE discord_id = ?');
+    $stmt->execute([$discordId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row || ($row['last_open_date'] ?? null) !== $today) {
+        return;
+    }
+    $opened = max(0, intval($row['packs_opened_today'] ?? 0) - 1);
+    $db->prepare('UPDATE tcg_daily_state SET packs_opened_today = ? WHERE discord_id = ?')
+        ->execute([$opened, $discordId]);
+}
+
 /** Roll one booster pack (pity/box progress persisted; no collection or daily charge). */
 function tcgRollBoosterPack(string $discordId, string $boxId, array $cardsData): array {
     $box = tcgBoosterBoxById($boxId);
@@ -1339,21 +1358,44 @@ function tcgOpenBoosterPack(string $discordId, string $boxId, array $cardsData, 
         return tcgOpenBoosterBoxWithGems($discordId, $boxId, $cardsData);
     }
 
+    // Pre-check payment before rolling so a roll/schema failure cannot burn a daily.
     $gemsSpent = 0;
+    $packCost = 0;
     if ($payment === 'daily') {
-        tcgRecordDailyOpen($discordId);
+        $allow = tcgDailyOpenAllowance($discordId);
+        if ($allow['remaining'] <= 0) {
+            throw new Exception('No booster packs remaining today', 400);
+        }
     } elseif ($payment === 'gems') {
         $packCost = tcgStarGemsPackCost($box);
-        tcgDeductStarGems($discordId, $packCost);
-        $gemsSpent = $packCost;
+        if (tcgGetStarGems($discordId) < $packCost) {
+            throw new Exception('Not enough Star Gems', 400);
+        }
     } else {
         throw new Exception('Invalid booster payment mode', 400);
     }
 
     $roll = tcgRollBoosterPack($discordId, $boxId, $cardsData);
-    $gemResult = tcgDbRetry(function () use ($discordId, $roll, $cardMap) {
-        return tcgApplyBoosterPullWithGems($discordId, $roll['card_nos'], $cardMap);
-    });
+
+    if ($payment === 'daily') {
+        tcgRecordDailyOpen($discordId);
+    } else {
+        tcgDeductStarGems($discordId, $packCost);
+        $gemsSpent = $packCost;
+    }
+
+    try {
+        $gemResult = tcgDbRetry(function () use ($discordId, $roll, $cardMap) {
+            return tcgApplyBoosterPullWithGems($discordId, $roll['card_nos'], $cardMap);
+        });
+    } catch (Throwable $e) {
+        if ($payment === 'daily') {
+            tcgRefundDailyOpen($discordId);
+        } elseif ($gemsSpent > 0) {
+            tcgAddStarGems($discordId, $gemsSpent);
+        }
+        throw $e;
+    }
 
     return [
         'box' => $roll['box'],
