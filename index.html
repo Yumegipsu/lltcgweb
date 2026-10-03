@@ -27985,7 +27985,7 @@ function fillCardDetailPanel(prefix, card, s, myId) {
 function memberPlayCostForSlot(card, slot, s, myId) {
   const me = s?.players?.[myId];
   const base = effectiveCost(card, me?.hand || []);
-  const ec = playCostWithOptionalOpts(card, me, base);
+  const ec = playCostWithOptionalOpts(card, me, base, slot || null);
   if (!slot) return ec;
   const mode = memberPlayModeForSlot(card, slot, s, myId);
   if (mode === 'baton') {
@@ -28433,9 +28433,10 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
       ? affordableEnergyForBatonPlay(me, exist, card)
       : (me?.energy_zone || []).filter(energyChipActive).length;
     const bc = mode === 'baton' ? batonPlayCostWithBestDouble(me, card, slot, exist, ec) : null;
-    const slotCost = mode === 'baton' ? bc : minEc;
+    const slotMinEc = playCostWithOptionalOpts(card, me, ec, slot);
+    const slotCost = mode === 'baton' ? bc : slotMinEc;
     const canDo = (mode === 'empty'
-      ? slotAe >= minEc
+      ? slotAe >= slotMinEc
       : (mode === 'baton'
         ? canAffordBatonWithOptionalDouble(me, card, slot, exist, slotAe, ec)
         : !!mode && slotAe >= slotCost))
@@ -28445,8 +28446,8 @@ function fillMemberPlayActions(container, card, s, myId, { interactive = false, 
     b.className = 'btn-smol';
     b.appendChild(document.createTextNode(slotLabel(slot, false)));
     if (mode === 'baton') appendEnergyCost(b, bc, { prefix: ' BT' });
-    else if (mode === 'overplay') appendEnergyCost(b, minEc, { prefix: ' OP' });
-    else appendEnergyCost(b, minEc, { prefix: ' ' });
+    else if (mode === 'overplay') appendEnergyCost(b, slotMinEc, { prefix: ' OP' });
+    else appendEnergyCost(b, slotMinEc, { prefix: ' ' });
     b.disabled = !interactive || !canDo;
     if (interactive && canDo) {
       b.onclick = () => {
@@ -28627,7 +28628,7 @@ function canPlayMemberToSlot(card, slot, s, myId) {
   if (hasOpenSkillPrompt(s)) return false;
   const me = s?.players?.[myId];
   const ec = effectiveCost(card, me?.hand || []);
-  const minEc = playCostWithOptionalOpts(card, me, ec);
+  const minEc = playCostWithOptionalOpts(card, me, ec, slot);
   const exist = me?.stage?.[slot];
   if (!exist) {
     return (me?.energy_zone || []).filter(energyChipActive).length >= minEc;
@@ -29385,15 +29386,32 @@ function playCostAfterShuffleWrOpt(card, me, baseEc) {
   if (!ab || waitingRoomMemberCount(me) < 1) return baseEc;
   return Math.max(0, baseEc - Number(ab.amount || 2));
 }
-/** Best legal play cost for affordability UI (includes optional WR-shuffle −2). */
-function playCostWithOptionalOpts(card, me, baseEc) {
-  return playCostAfterShuffleWrOpt(card, me, baseEc);
+/** Kotori pb2-012 Always: −2 if 2 distinct-named Active Printemps can Wait (#234). */
+function playCostAfterPb2WaitOpt(card, me, baseEc, excludeSlot = null) {
+  const ab = cardPb2WaitDistinctPlayOpt(card);
+  if (!ab) return baseEc;
+  const need = Math.max(1, Number(ab.wait_count || 2) || 2);
+  let cands = pb2DistinctSubunitWaitCandidates(me, ab);
+  if (excludeSlot) cands = cands.filter(c => c.slot !== excludeSlot);
+  if (cands.length < need) return baseEc;
+  return Math.max(0, baseEc - Number(ab.reduce || 2));
+}
+/** Best legal play cost for affordability UI (optional WR-shuffle / Wait-Printemps). */
+function playCostWithOptionalOpts(card, me, baseEc, excludeSlot = null) {
+  const costs = [Number(baseEc) || 0];
+  const shuf = playCostAfterShuffleWrOpt(card, me, baseEc);
+  if (shuf < costs[0]) costs.push(shuf);
+  const wait = playCostAfterPb2WaitOpt(card, me, baseEc, excludeSlot);
+  if (wait < costs[0]) costs.push(wait);
+  return Math.min(...costs);
 }
 function canAffordBatonWithOptionalDouble(me, card, primarySlot, primaryMember, ae, ec) {
-  // Try full cost and shuffle-reduced cost (#163 Mia Always −2 before pay).
+  // Try full cost and optional reductions (shuffle WR / Wait Printemps) before pay.
   const costs = [ec];
-  const reduced = playCostAfterShuffleWrOpt(card, me, ec);
-  if (reduced < ec) costs.push(reduced);
+  const shuf = playCostAfterShuffleWrOpt(card, me, ec);
+  if (shuf < ec) costs.push(shuf);
+  const wait = playCostAfterPb2WaitOpt(card, me, ec, primarySlot);
+  if (wait < ec) costs.push(wait);
   for (const c of costs) {
     const primaryRem = Math.max(0, c - stageMemberEffectiveCost(primaryMember, me));
     if (ae >= primaryRem) return true;
@@ -29402,10 +29420,12 @@ function canAffordBatonWithOptionalDouble(me, card, primarySlot, primaryMember, 
   return false;
 }
 function batonPlayCostWithBestDouble(me, card, primarySlot, primaryMember, ec) {
-  // Display the lowest reachable remainder (shuffle opt + optional double baton).
+  // Display the lowest reachable remainder (optional play-cost opts + double baton).
   const costs = [ec];
-  const reduced = playCostAfterShuffleWrOpt(card, me, ec);
-  if (reduced < ec) costs.push(reduced);
+  const shuf = playCostAfterShuffleWrOpt(card, me, ec);
+  if (shuf < ec) costs.push(shuf);
+  const wait = playCostAfterPb2WaitOpt(card, me, ec, primarySlot);
+  if (wait < ec) costs.push(wait);
   let bestRem = Infinity;
   for (const c of costs) {
     const primaryRem = Math.max(0, c - stageMemberEffectiveCost(primaryMember, me));
@@ -29454,10 +29474,24 @@ function sendPlayMemberMaybeShuffleOpt(card, payload, me, ec, payCost = null) {
   box.appendChild(no);
   ovl.classList.add('open');
 }
-/** PL!-pb2-012 Kotori Always: optional Wait 2 distinct-named Printemps for −2 play cost (#232). */
+/** PL!-pb2-012 Kotori Always: optional Wait 2 distinct-named Printemps for −2 play cost (#232/#234). */
 function cardPb2WaitDistinctPlayOpt(card) {
-  return (card?.abilities || []).find(a =>
-    a && a.trigger === 'continuous' && a.type === 'play_cost_reduce_if_wait_distinct_subunit');
+  const abs = (typeof clientCatalogAbilities === 'function')
+    ? clientCatalogAbilities(card)
+    : (card?.abilities || []);
+  return (abs || []).find(a =>
+    a && a.trigger === 'continuous' && a.type === 'play_cost_reduce_if_wait_distinct_subunit') || null;
+}
+/** Resolve subunit for Stage copies that omit catalog fields (#230/#234). */
+function pb2CardMatchesSubunit(card, subunit) {
+  if (!card || !subunit) return false;
+  if (typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(card, subunit)) return true;
+  const no = card.card_no;
+  const cat = (typeof G !== 'undefined' && no) ? G.allCards?.[no] : null;
+  if (cat && cat !== card && typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(cat, subunit)) {
+    return true;
+  }
+  return false;
 }
 function pb2DistinctSubunitWaitCandidates(me, ab) {
   const subunit = ab?.subunit || 'Printemps';
@@ -29469,7 +29503,7 @@ function pb2DistinctSubunitWaitCandidates(me, ab) {
       ? memberInWait(m)
       : !!(m.in_wait || m.active === false);
     if (waiting) continue;
-    if (typeof cardMatchesSubunit === 'function' && !cardMatchesSubunit(m, subunit)) continue;
+    if (!pb2CardMatchesSubunit(m, subunit)) continue;
     const nm = String(m.name_en || m.name || '').toLowerCase().trim();
     if (!nm || seenNames.has(nm)) continue;
     seenNames.add(nm);
@@ -29479,8 +29513,12 @@ function pb2DistinctSubunitWaitCandidates(me, ab) {
 }
 function sendPlayMemberMaybePb2WaitOpt(card, payload, me, ec, payCost = null) {
   const ab = cardPb2WaitDistinctPlayOpt(card);
-  const cands = ab ? pb2DistinctSubunitWaitCandidates(me, ab) : [];
-  const need = Math.max(2, Number(ab?.wait_count || 2) || 2);
+  let cands = ab ? pb2DistinctSubunitWaitCandidates(me, ab) : [];
+  // Exclude the Stage area being entered (Baton / overplay target).
+  if (payload?.slot) {
+    cands = cands.filter(c => c.slot !== payload.slot);
+  }
+  const need = Math.max(1, Number(ab?.wait_count || 2) || 2);
   const basePay = payCost != null ? Number(payCost) : Number(ec || 0);
   if (!ab || cands.length < need) {
     sendAct('play_member', payload);
@@ -29665,7 +29703,7 @@ function playToSlot(card, slot, s, myId, existing) {
       const bc=Math.max(0,ec-stageMemberEffectiveCost(exist2,me));
       const ae=affordableEnergyForBatonPlay(me, exist2, card);
       const bestSecond = bestDoubleBatonSecond(me, card, slot, exist2, ae, ec);
-      const minBc=Math.max(0, playCostAfterShuffleWrOpt(card, me, ec)-stageMemberEffectiveCost(exist2,me));
+      const minBc=Math.max(0, playCostWithOptionalOpts(card, me, ec, slot)-stageMemberEffectiveCost(exist2,me));
       if(ae<bc && !bestSecond && ae<minBc){
         toast(`Need ${energyCostHtml(Math.min(bc, minBc))} active Energy for Baton pass`, 2500, true);
         return;
@@ -29684,7 +29722,7 @@ function playToSlot(card, slot, s, myId, existing) {
     }
     if (mode === 'overplay') {
       const ae=(me.energy_zone||[]).filter(energyChipActive).length;
-      const minEc=playCostAfterShuffleWrOpt(card, me, ec);
+      const minEc=playCostWithOptionalOpts(card, me, ec, slot);
       if(ae<minEc){ toast(`Need ${energyCostHtml(minEc)} to overplay`, 2500, true); return; }
       sendPlayMemberMaybeShuffleOpt(card,{card_id:card.instance_id,slot},me,ec);
       return;
@@ -29693,7 +29731,7 @@ function playToSlot(card, slot, s, myId, existing) {
     return;
   } else {
     const ae=(me.energy_zone||[]).filter(energyChipActive).length;
-    const minEc=playCostAfterShuffleWrOpt(card, me, ec);
+    const minEc=playCostWithOptionalOpts(card, me, ec, slot);
     if(ae<minEc){ toast(`Need ${energyCostHtml(minEc)}`, 2500, true); return; }
     sendPlayMemberMaybeShuffleOpt(card,{card_id:card.instance_id,slot},me,ec);
   }
@@ -36188,7 +36226,7 @@ function mkNoImg(card){
 <script src="client/js/cpu-meta-weights.js?v=7"></script>
 <script src="client/js/cpu-eval.js?v=7"></script>
 <script src="client/js/cpu-expert.js?v=6"></script>
-<script src="client/js/cpu-loop.js?v=47"></script>
+<script src="client/js/cpu-loop.js?v=48"></script>
 <script src="client/js/cpu-ai.js?v=13"></script>
 <script src="client/js/portrait-bridge.js?v=31"></script>
 <script src="client/js/match-chat.js?v=6"></script>

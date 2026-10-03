@@ -2419,14 +2419,16 @@ function cpuListActivateCandidates(s, cpu, ctx) {
 
 function cpuMemberMainAffordable(cpu, hand, c, ae, s) {
   const ec = effectiveCost(c, hand);
-  if (ec <= ae) return true;
+  const minEc = (typeof playCostWithOptionalOpts === 'function')
+    ? playCostWithOptionalOpts(c, cpu, ec)
+    : ec;
+  if (minEc <= ae) return true;
   const turn = s?.turn;
   for (const slot of ['center', 'left', 'right']) {
     const existing = cpu.stage?.[slot];
     if (!existing || (turn != null && stageMemberEnteredThisTurn(existing, turn))) continue;
     if (memberBlocksBaton(existing) || memberBatonRestricted(existing, c)) continue;
     if (ec < 1) continue;
-    const batonCost = Math.max(0, ec - stageMemberEffectiveCost(existing, cpu));
     if (canAffordBatonWithOptionalDouble(cpu, c, slot, existing, affordableEnergyForBatonPlay(cpu, existing, c), ec)) return true;
   }
   return false;
@@ -2455,11 +2457,14 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
     ? aff.slice(0, Math.min(3, aff.length))
     : aff.slice(0, Math.min(cpuTierHardPlus(tier) ? 8 : 6, aff.length));
 
-  const buildBatonPayload = (c, slot, existing, ec) => {
+  const buildBatonPayload = (c, slot, existing, ec, costOpts = {}) => {
     const batonCost = Math.max(0, ec - stageMemberEffectiveCost(existing, cpu));
     const aeBaton = affordableEnergyForBatonPlay(cpu, existing, c);
     if (!canAffordBatonWithOptionalDouble(cpu, c, slot, existing, aeBaton, ec)) return null;
-    const payload = { card_id: c.instance_id, slot, baton_id: existing.instance_id };
+    const payload = Object.assign(
+      { card_id: c.instance_id, slot, baton_id: existing.instance_id },
+      costOpts || {}
+    );
     if (aeBaton < batonCost) {
       const second = bestDoubleBatonSecond(cpu, c, slot, existing, aeBaton, ec);
       if (!second) return null;
@@ -2476,23 +2481,55 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
       ? cpuMemberNovelty(c, stageColors) + (c.blade || 0) * 0.15 + cpuMemberHeartCount(c) * 0.2
       : cpuScoreMember(c, cpu, hand, stageColors, tier, read, s);
     const label = `member c${c.cost || 0}/b${c.blade || 0}`;
-    const shuffleAb = (c.abilities || []).find(a => a.type === 'play_cost_reduction_if_shuffle_wr_members');
+    const shuffleAb = (typeof clientCatalogAbilities === 'function'
+      ? clientCatalogAbilities(c) : (c.abilities || [])
+    ).find(a => a && a.trigger === 'continuous' && a.type === 'play_cost_reduction_if_shuffle_wr_members');
     const wrMembers = (cpu.waiting_room || []).filter(x => x && (x.card_type === 'メンバー' || x.card_type_en === 'Member')).length;
     const shuffleOpts = (shuffleAb && wrMembers > 0)
       ? { bp7_shuffle_wr_members: true }
       : {};
-    const playEc = shuffleOpts.bp7_shuffle_wr_members
-      ? Math.max(0, ec - Number(shuffleAb.amount || 2))
-      : ec;
+    const waitAb = (typeof cardPb2WaitDistinctPlayOpt === 'function')
+      ? cardPb2WaitDistinctPlayOpt(c)
+      : null;
+    const waitNeed = Math.max(1, Number(waitAb?.wait_count || 2) || 2);
+    const waitCands = (waitAb && typeof pb2DistinctSubunitWaitCandidates === 'function')
+      ? pb2DistinctSubunitWaitCandidates(cpu, waitAb)
+      : [];
+    const waitOpts = (waitAb && waitCands.length >= waitNeed)
+      ? {
+          pb2_wait_slots: waitCands.slice(0, waitNeed).map(x => x.slot).filter(Boolean),
+        }
+      : {};
+    let playEc = ec;
+    if (shuffleOpts.bp7_shuffle_wr_members) {
+      playEc = Math.max(0, playEc - Number(shuffleAb.amount || 2));
+    } else if (waitOpts.pb2_wait_slots) {
+      // Prefer Wait discount when shuffle is unavailable (#234 Kotori).
+      playEc = Math.max(0, playEc - Number(waitAb.reduce || 2));
+    }
+    const playCostOptsFor = (slot) => {
+      const opts = Object.assign({}, shuffleOpts);
+      if (!waitAb || shuffleOpts.bp7_shuffle_wr_members) return opts;
+      const usable = waitCands.filter(x => x.slot && x.slot !== slot);
+      if (usable.length < waitNeed) return opts;
+      opts.pb2_wait_slots = usable.slice(0, waitNeed).map(x => x.slot);
+      return opts;
+    };
     const preferCenter = read && tier !== 'easy' && (c.blade || 0) >= (read.strongestActive?.blade || 0);
     let slotOrder = preferCenter ? ['center', 'left', 'right'] : ['center', 'left', 'right'];
     if (tier !== 'easy') slotOrder = cpuPreferredBatonSlotOrder(cpu, c, tier, hand);
 
     for (const slot of slotOrder) {
       const existing = cpu.stage?.[slot];
+      const playCostOpts = playCostOptsFor(slot);
+      const slotPlayEc = playCostOpts.bp7_shuffle_wr_members
+        ? Math.max(0, ec - Number(shuffleAb.amount || 2))
+        : (playCostOpts.pb2_wait_slots
+          ? Math.max(0, ec - Number(waitAb.reduce || 2))
+          : ec);
       if (!existing) {
-        if (ae < playEc) continue;
-        const payload = Object.assign({ card_id: c.instance_id, slot }, shuffleOpts);
+        if (ae < slotPlayEc) continue;
+        const payload = Object.assign({ card_id: c.instance_id, slot }, playCostOpts);
         if (cpuMemberPlayBlacklisted(payload.card_id, payload.slot)) continue;
         const unlock = tier === 'easy' ? 0 : cpuLiveUnlockAtSlot(c, cpu, tier, hand, slot);
         const emptyBonus = (preferCenter && slot === 'center' ? 0.35 : 0)
@@ -2510,7 +2547,7 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
 
       // Baton path — score heart/blade/Live-color delta; skip clear downgrades.
       if (!memberBlocksBaton(existing) && !memberBatonRestricted(existing, c) && ec >= 1) {
-        const payload = buildBatonPayload(c, slot, existing, ec);
+        const payload = buildBatonPayload(c, slot, existing, ec, playCostOpts);
         if (payload) {
           const boardDelta = cpuScoreBatonBoardDelta(c, existing, slot, cpu, hand, tier);
           const minDelta = tier === 'easy' ? -1.8 : cpuTierHardPlus(tier) ? -0.35 : -0.85;
@@ -2526,7 +2563,7 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
       }
 
       // Full-cost replace (no baton) only when clearly better.
-      if (ae >= playEc) {
+      if (ae >= slotPlayEc) {
         const boardDelta = cpuScoreBatonBoardDelta(c, existing, slot, cpu, hand, tier);
         const isUpgrade = tier === 'easy'
           ? (cpuMemberNovelty(c, stageColors) > cpuMemberNovelty(existing, stageColors)
@@ -2535,7 +2572,7 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
                 || ((c.blade || 0) > (existing.blade || 0)))))
           : boardDelta >= (cpuTierHardPlus(tier) ? 0.9 : 0.55);
         if (isUpgrade) {
-          const payload = Object.assign({ card_id: c.instance_id, slot }, shuffleOpts);
+          const payload = Object.assign({ card_id: c.instance_id, slot }, playCostOpts);
           if (!cpuMemberPlayBlacklisted(payload.card_id, payload.slot)) {
             placements.push({
               kind: 'play_member',
