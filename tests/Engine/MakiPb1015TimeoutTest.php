@@ -100,7 +100,7 @@ final class MakiPb1015TimeoutTest extends TestCase
     {
         $state = $this->opponentPickState();
         \refreshPvpPhaseTimers($state);
-        $state['phase_timer']['deadlines']['p2'] = time() - 1;
+        $state['phase_timer']['deadlines']['p2'] = time() - 5;
 
         $this->assertTrue(\applyPhaseTimeouts($state));
         $this->assertNull($state['pending_prompt'] ?? null);

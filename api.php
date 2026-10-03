@@ -95,6 +95,8 @@ define('PRESENCE_NO_SHOW_SEC', 300);    // Ranked: forfeit if opponent never con
 define('PHASE_TIMER_SEC', 60);  // default when room host enables phase timer
 define('PHASE_TIMER_MIN', 10);
 define('PHASE_TIMER_MAX', 120);
+/** Extra seconds after the deadline before auto-skip (poll + network slack). */
+define('PHASE_TIMER_EXPIRE_GRACE_SEC', 2);
 
 if (!is_dir(GAMES_DIR)) {
     mkdir(GAMES_DIR, 0755, true);
@@ -786,7 +788,38 @@ function filterStateForClient(array $state, string $roomId, string $token): arra
     if (!isset($filtered['log_mode'])) {
         $filtered['log_mode'] = 'full';
     }
+    enrichPhaseTimerClientFields($filtered);
     return $filtered;
+}
+
+/**
+ * Stamp server_now + per-seat remaining seconds so clients can countdown without
+ * trusting their local wall clock against absolute Unix deadlines (clock skew
+ * made the pie still show time after the server had already auto-ended the phase).
+ */
+function enrichPhaseTimerClientFields(array &$state): void {
+    $now = time();
+    $state['server_now'] = $now;
+    if (empty($state['phase_timer']) || !is_array($state['phase_timer'])) {
+        return;
+    }
+    $remaining = ['p1' => null, 'p2' => null];
+    foreach (['p1', 'p2'] as $pid) {
+        $dl = $state['phase_timer']['deadlines'][$pid] ?? null;
+        if ($dl !== null && $dl !== '' && intval($dl) > 0) {
+            $remaining[$pid] = max(0, intval($dl) - $now);
+        }
+    }
+    $state['phase_timer']['remaining'] = $remaining;
+}
+
+/** True when a running deadline has passed (with a short grace for poll lag). */
+function phaseTimerDeadlineExpired($deadline, ?int $now = null): bool {
+    if ($deadline === null || $deadline === '' || intval($deadline) <= 0) {
+        return false;
+    }
+    $now = $now ?? time();
+    return $now >= (intval($deadline) + PHASE_TIMER_EXPIRE_GRACE_SEC);
 }
 
 function liveShowStageIndex(array $state): int {
@@ -5848,7 +5881,7 @@ function applyPhaseTimeouts(array &$state): bool {
             $responder = $prompt['responder'] ?? '';
             if (in_array($responder, ['p1', 'p2'], true) && playerUsesPhaseTimer($state, $responder)) {
                 $dl = $state['phase_timer']['deadlines'][$responder] ?? null;
-                if ($dl && $now >= $dl) {
+                if (phaseTimerDeadlineExpired($dl, $now)) {
                     if (registerRankedInactivityTimeout($state, $responder)) {
                         return true;
                     }
@@ -5870,7 +5903,7 @@ function applyPhaseTimeouts(array &$state): bool {
                 break;
             }
             $dl = $state['phase_timer']['deadlines'][$ap] ?? null;
-            if (!$ap || !$dl || $now < $dl) {
+            if (!$ap || !phaseTimerDeadlineExpired($dl, $now)) {
                 break;
             }
             if (registerRankedInactivityTimeout($state, $ap)) {
@@ -5887,7 +5920,7 @@ function applyPhaseTimeouts(array &$state): bool {
                 break;
             }
             $dl = $state['phase_timer']['deadlines'][$pid] ?? null;
-            if (!$dl || $now < $dl) {
+            if (!phaseTimerDeadlineExpired($dl, $now)) {
                 break;
             }
             if (registerRankedInactivityTimeout($state, $pid)) {
@@ -5908,7 +5941,7 @@ function applyPhaseTimeouts(array &$state): bool {
                 break;
             }
             $dl = $state['phase_timer']['deadlines'][$winner] ?? null;
-            if (!$dl || $now < $dl) {
+            if (!phaseTimerDeadlineExpired($dl, $now)) {
                 break;
             }
             if (registerRankedInactivityTimeout($state, $winner)) {
@@ -5933,7 +5966,7 @@ function applyPhaseTimeouts(array &$state): bool {
                     continue;
                 }
                 $dl = $state['phase_timer']['deadlines'][$pid] ?? null;
-                if (!$dl || $now < $dl) {
+                if (!phaseTimerDeadlineExpired($dl, $now)) {
                     continue;
                 }
                 if (registerRankedInactivityTimeout($state, $pid)) {

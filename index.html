@@ -32050,6 +32050,45 @@ function statePhaseTimerDuration(s, subjectId = null) {
   return Number.isFinite(d) && d > 0 ? d : PHASE_TIMER_SEC;
 }
 
+/** Anchor countdown to server remaining / server_now so local clock skew cannot lie. */
+function notePhaseTimerServerClock(s) {
+  if (!s) return;
+  const clientNow = Date.now() / 1000;
+  if (typeof s.server_now === 'number' && Number.isFinite(s.server_now)) {
+    const sample = s.server_now - clientNow;
+    if (!Number.isFinite(G._serverClockOffset)) G._serverClockOffset = sample;
+    else G._serverClockOffset = G._serverClockOffset * 0.75 + sample * 0.25;
+  }
+  const rem = s.phase_timer?.remaining;
+  const dls = s.phase_timer?.deadlines || {};
+  const wins = s.phase_timer?.window_ids || {};
+  const dlKey = `${dls.p1 ?? ''}|${dls.p2 ?? ''}|${wins.p1 ?? ''}|${wins.p2 ?? ''}`;
+  if (rem && typeof rem === 'object') {
+    G._phaseTimerRemAt = {
+      p1: rem.p1 == null ? null : Number(rem.p1),
+      p2: rem.p2 == null ? null : Number(rem.p2),
+      receiptMs: Date.now(),
+      dlKey,
+    };
+  }
+}
+
+function phaseTimerSecondsLeft(s, subjectId) {
+  if (!s?.phase_timer || !subjectId) return 0;
+  const at = G._phaseTimerRemAt;
+  const dls = s.phase_timer.deadlines || {};
+  const wins = s.phase_timer.window_ids || {};
+  const dlKey = `${dls.p1 ?? ''}|${dls.p2 ?? ''}|${wins.p1 ?? ''}|${wins.p2 ?? ''}`;
+  if (at && at.dlKey === dlKey && at[subjectId] != null && Number.isFinite(at[subjectId])) {
+    const elapsed = (Date.now() - at.receiptMs) / 1000;
+    return Math.max(0, at[subjectId] - elapsed);
+  }
+  const deadline = Number(dls[subjectId]);
+  if (!Number.isFinite(deadline) || deadline <= 0) return 0;
+  const offset = Number.isFinite(G._serverClockOffset) ? G._serverClockOffset : 0;
+  return Math.max(0, deadline - (Date.now() / 1000 + offset));
+}
+
 function promptUsesPhaseTimerClient(pr) {
   return !!(pr && pr.responder);
 }
@@ -32122,9 +32161,8 @@ function paintPhaseTimer(s, myId) {
     pie.classList.remove('phase-timer-pie--opp');
     return;
   }
-  const deadline = Number(s.phase_timer.deadlines[subjectId]);
   const duration = statePhaseTimerDuration(s, subjectId);
-  const left = Math.max(0, deadline - Date.now() / 1000);
+  const left = phaseTimerSecondsLeft(s, subjectId);
   const ratio = Math.max(0, Math.min(1, left / duration));
   const sec = Math.ceil(left);
   pie.style.setProperty('--time-ratio', String(ratio));
@@ -32148,6 +32186,7 @@ function phaseTimerTick() {
 
 function updatePhaseTimerUI(s) {
   const myId = G.playerId;
+  notePhaseTimerServerClock(s);
   const sig = phaseTimerSignature(s, myId);
   if (sig !== G._phaseTimerSig) {
     G._phaseTimerSig = sig;

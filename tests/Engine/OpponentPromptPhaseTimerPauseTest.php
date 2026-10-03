@@ -134,7 +134,7 @@ final class OpponentPromptPhaseTimerPauseTest extends TestCase
         $pausedBefore = intval($state['phase_timer']['paused_remaining']['p1'] ?? 0);
         $this->assertGreaterThan(0, $pausedBefore);
 
-        $state['phase_timer']['deadlines']['p2'] = time() - 1;
+        $state['phase_timer']['deadlines']['p2'] = time() - 5;
         $this->assertTrue(\applyPhaseTimeouts($state));
         $this->assertNull($state['pending_prompt'] ?? null);
 

@@ -101,7 +101,7 @@ final class RankedInactivityTimeoutTest extends TestCase
             'choices' => ['yes', 'no'],
         ];
         \setPhaseDeadline($state, 'p1');
-        $state['phase_timer']['deadlines']['p1'] = time() - 1;
+        $state['phase_timer']['deadlines']['p1'] = time() - 5;
 
         $this->assertTrue(\applyPhaseTimeouts($state));
         $this->assertSame('finished', $state['status']);
