@@ -717,9 +717,11 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'source_name' => $name,
                 'subunit' => $ab['subunit'] ?? 'Printemps',
                 'max' => intval($ab['max'] ?? 3),
-                'stacked' => $under,
+                'stacked' => array_map('cardPromptSummary', $under),
                 'choices' => ['yes', 'no'],
+                'choice_labels' => ['Yes', 'No — Skip'],
                 'optional' => true,
+                'live_start' => true,
                 'prompt' => 'Put up to 3 cards from under this Member into the Waiting Room to toggle Printemps Members?',
             ]);
             break;
@@ -1660,12 +1662,14 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                 'source_name' => $name,
                 'source_instance_id' => $srcId,
                 'subunit' => $prompt['subunit'] ?? 'Printemps',
-                'candidates' => array_map('cardPromptSummary', $stacked),
+                // stacked is already cardPromptSummary()'d when the optional was created.
+                'candidates' => array_values(array_filter($stacked, static fn($c) => is_array($c) && ($c['instance_id'] ?? '') !== '')),
                 'max' => $max,
                 'min' => 1,
                 'up_to' => true,
                 'prompt' => "Choose up to $max card(s) under this Member to put into the Waiting Room.",
                 'step' => 'unstack',
+                'live_start' => true,
             ];
             $state['seq']++;
             return $state;
@@ -1699,8 +1703,13 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             $stageCands = [];
             foreach ($p['stage'] as $s => $m) {
                 if ($m && cardMatchesSubunit($m, $subunit)) {
-                    $stageCands[] = ['slot' => $s, 'card' => $m];
+                    $stageCands[] = array_merge(cardPromptSummary($m), ['slot' => $s]);
                 }
+            }
+            if ($stageCands === []) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] unstacked cards; no $subunit Members on Stage to toggle.");
+                return plMusePb2FinishPrompt($state, $prompt);
             }
             $state['pending_prompt'] = [
                 'type' => 'pb2_pick_toggle_printemps',
@@ -1715,11 +1724,17 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                 'step' => 'toggle',
                 'min' => 1,
                 'max' => 1,
+                'live_start' => true,
             ];
             $state['seq']++;
             return $state;
         }
         if ($step === 'toggle' || $type === 'pb2_pick_toggle_printemps') {
+            if (in_array($choice, ['skip', 'cancel', 'no'], true) && ($data['slot'] ?? '') === '') {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] unstacked and toggled Printemps Members.");
+                return plMusePb2FinishPrompt($state, $prompt);
+            }
             $slot = (string)($data['slot'] ?? $choice);
             $m = &$p['stage'][$slot];
             if (!$m) {
@@ -1737,13 +1752,19 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                 $stageCands = [];
                 foreach ($p['stage'] as $s => $m) {
                     if ($m && cardMatchesSubunit($m, $subunit)) {
-                        $stageCands[] = ['slot' => $s, 'card' => $m];
+                        $stageCands[] = array_merge(cardPromptSummary($m), ['slot' => $s]);
                     }
+                }
+                if ($stageCands === []) {
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] unstacked and toggled Printemps Members.");
+                    return plMusePb2FinishPrompt($state, $prompt);
                 }
                 $state['pending_prompt'] = array_merge($prompt, [
                     'remaining' => $remaining,
                     'candidates' => $stageCands,
                     'prompt' => "Choose a $subunit Member to toggle Active/Wait ($remaining remaining).",
+                    'live_start' => true,
                 ]);
                 $state['seq']++;
                 return $state;

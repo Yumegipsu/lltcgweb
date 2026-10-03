@@ -1386,7 +1386,8 @@ global.ensurePromptChoices = function ensurePromptChoices(pr){
   // (that softlocks Ginko / PB1 multi-step WR picks behind an empty choice dialog).
   if(/^pick_wr/.test(step) || step==='pick_live' || step==='pick_member'
       || step==='pick_hand' || step==='pick_slot' || step==='pick'
-      || step==='pick_wait' || step==='pick_wait_member' || step==='pick_dest' || step==='assign'){
+      || step==='pick_wait' || step==='pick_wait_member' || step==='pick_dest' || step==='assign'
+      || step==='unstack' || step==='toggle'){
     return pr;
   }
   const optionalType=isSelfActivationPrompt(pr)
@@ -3747,6 +3748,44 @@ global.renderPrompt = function renderPrompt(s, myId){
   if(pr?.type==='stack_wr_under'&&pr.responder===myId){
     ovl.classList.remove('open');
     openStackWrUnderPick(pr, s);
+    return;
+  }
+  // PL!-pb2-017 Hanayo Live Start: put up to 3 under → WR, then toggle Printemps Active/Wait (#231).
+  if(pr?.type==='pb2_pick_unstack_toggle'&&(pr.responder||pr.owner)===myId){
+    ovl.classList.remove('open');
+    const cards=(pr.candidates||[]).filter(c=>c&&c.instance_id);
+    const max=Math.max(1, Number(pr.max||3)||3);
+    const min=Math.max(1, Number(pr.min||1)||1);
+    if(!cards.length){
+      sendAct('resolve_prompt',{instance_ids:[]});
+      return;
+    }
+    openHandPick({
+      hand: cards,
+      count: max,
+      min,
+      title: promptDisplayTitle(pr, pr.source_name||'Unstack', s),
+      msg: promptDisplayText(pr, `Choose up to ${max} card(s) under this Member to put into the Waiting Room.`, s),
+      allowCancel: true,
+      onConfirm: (picked)=> sendAct('resolve_prompt',{instance_ids:picked}),
+      onCancel: ()=> sendAct('resolve_prompt',{instance_ids:[]}),
+    });
+    return;
+  }
+  if(pr?.type==='pb2_pick_toggle_printemps'&&(pr.responder||pr.owner)===myId){
+    ovl.classList.remove('open');
+    const cands=(pr.candidates||[]).filter(c=>c&&c.slot);
+    if(!cands.length){
+      sendAct('resolve_prompt',{choice:'skip'});
+      return;
+    }
+    openStageSlotPick({
+      ...pr,
+      candidates: cands,
+      pick_count: 1,
+      optional: false,
+      up_to: false,
+    });
     return;
   }
   if(pr?.type==='spbp2_wait_self_opp_heart_gap'&&pr.responder===myId){

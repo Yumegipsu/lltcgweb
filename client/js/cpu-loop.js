@@ -1218,6 +1218,7 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'spbp2_stack_wr_member', 'spbp2_wait_self_opp_heart_gap',
   'spbp2_center_move_choose', 'spbp2_center_move_position',
   'stack_wr_under',
+  'optional_unstack_toggle_subunit', 'pb2_pick_unstack_toggle', 'pb2_pick_toggle_printemps',
   'optional_reveal_hand_live_swap_success', 'pb2_pick_hand_success_swap',
   'pb2_pick_revealed_subunit_live',
   'activated_discard_trigger_on_enter',
@@ -5102,6 +5103,25 @@ function cpuResolvePromptBody(s, cpu, pr) {
     const ids=(pr.candidates||[]).slice(0, need).map(c=>c.instance_id).filter(Boolean);
     if(ids.length>=need) cpuAct('resolve_prompt',{instance_ids:ids});
     else if(ids.length) cpuAct('resolve_prompt',{instance_ids:ids});
+    else cpuAct('resolve_prompt',{choice:'skip'});
+    return;
+  }
+  // Hanayo PL!-pb2-017 Live Start: unstack under → toggle Printemps (#231).
+  if(pr.type==='optional_unstack_toggle_subunit'){
+    const stacked=pr.stacked||pr.candidates||[];
+    cpuAct('resolve_prompt',{choice: stacked.length ? 'yes' : 'no'});
+    return;
+  }
+  if(pr.type==='pb2_pick_unstack_toggle'){
+    const max=Math.max(1, Number(pr.max||3)||3);
+    const ids=(pr.candidates||[]).slice(0, max).map(c=>c.instance_id).filter(Boolean);
+    if(ids.length) cpuAct('resolve_prompt',{instance_ids:ids});
+    else cpuAct('resolve_prompt',{instance_ids:[]});
+    return;
+  }
+  if(pr.type==='pb2_pick_toggle_printemps'){
+    const slot=pr.candidates?.[0]?.slot;
+    if(slot) cpuAct('resolve_prompt',{slot});
     else cpuAct('resolve_prompt',{choice:'skip'});
     return;
   }
