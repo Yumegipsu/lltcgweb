@@ -6252,13 +6252,29 @@ function putWrMemberToEmptyStageWait(array &$p, int $maxCost, ?array $state = nu
     );
 }
 
-function activateSubunitFromWait(array &$p, string $subunit): int {
+function activateSubunitFromWait(
+    array &$p,
+    string $subunit,
+    ?array &$state = null,
+    ?string $pid = null,
+    ?array $effectSource = null
+): int {
     $n = 0;
     foreach ($p['stage'] as &$mbr) {
-        if (!$mbr || !cardMatchesSubunit($mbr, $subunit)) continue;
-        if (!memberIsInWait($mbr)) continue;
-        clearMemberWait($mbr);
-        $n++;
+        if (!$mbr || !cardMatchesSubunit($mbr, $subunit)) {
+            continue;
+        }
+        if (!memberIsInWait($mbr)) {
+            continue;
+        }
+        if ($state !== null && $pid !== null && function_exists('plMusePb2ActivateFromWait')) {
+            if (plMusePb2ActivateFromWait($state, $pid, $mbr, $effectSource)) {
+                $n++;
+            }
+        } else {
+            clearMemberWait($mbr);
+            $n++;
+        }
     }
     unset($mbr);
     return $n;

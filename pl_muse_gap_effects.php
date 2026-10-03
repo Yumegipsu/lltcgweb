@@ -719,42 +719,43 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
             $reduce = 0;
             $exclude = $ab['exclude_colors'] ?? null;
             foreach ($p['stage'] as $mbr) {
-                if (!$mbr) continue;
+                if (!$mbr) {
+                    continue;
+                }
+                // Catalog hearts may be missing on in-match copies (#233 Otome Heart).
+                mergeCardCatalogFields($mbr);
                 if (is_array($exclude)) {
                     $qualifies = false;
                     foreach ($mbr['hearts'] ?? [] as $h) {
-                        $c = $h['color'] ?? '';
+                        $c = is_array($h) ? (string)($h['color'] ?? '') : (string)$h;
                         if ($c !== '' && !in_array($c, $exclude, true)) {
                             $qualifies = true;
                             break;
                         }
                     }
-                    if (!$qualifies) continue;
+                    if (!$qualifies) {
+                        continue;
+                    }
                 } else {
                     $hasNonYellow = false;
                     foreach ($mbr['hearts'] ?? [] as $h) {
-                        if (($h['color'] ?? '') !== 'yellow') $hasNonYellow = true;
+                        $c = is_array($h) ? (string)($h['color'] ?? '') : (string)$h;
+                        if ($c !== '' && $c !== 'yellow') {
+                            $hasNonYellow = true;
+                        }
                     }
-                    if (!$hasNonYellow) continue;
+                    if (!$hasNonYellow) {
+                        continue;
+                    }
                 }
                 $reduce += intval($ab['per_member'] ?? 1);
             }
             if ($reduce > 0) {
-                foreach ($p['live_zone'] as &$lc) {
-                    if ($lc && ($lc['instance_id'] ?? '') === ($source['instance_id'] ?? '')) {
-                        if (($ab['reduce_heart_color'] ?? '') === 'gray') {
-                            if (!isset($lc['hearts_color_reduction']) || !is_array($lc['hearts_color_reduction'])) {
-                                $lc['hearts_color_reduction'] = [];
-                            }
-                            $lc['hearts_color_reduction']['any'] =
-                                intval($lc['hearts_color_reduction']['any'] ?? 0) + $reduce;
-                        } else {
-                            $lc['hearts_reduction'] = intval($lc['hearts_reduction'] ?? 0) + $reduce;
-                        }
-                        break;
-                    }
-                }
-                unset($lc);
+                $srcId = (string)($source['instance_id'] ?? '');
+                $color = (($ab['reduce_heart_color'] ?? '') === 'gray') ? 'any' : (string)($ab['reduce_heart_color'] ?? 'any');
+                bumpLiveCardColorReduction($state, $pid, $srcId, $color, $reduce);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] required $color hearts −$reduce ($reduce qualifying Stage Member(s)).");
             }
             break;
 

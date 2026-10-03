@@ -3041,6 +3041,9 @@ function doActivePhase(array $state, string $pid): array {
     // Per-turn Nijigasaki activation tracking (Cara Tesoro Live Start, etc.).
     unset($p['_niji_turn_flags'], $p['_effect_source_is_niji']);
     unset($p['succeeded_live_this_turn']);
+    if (function_exists('plMusePb2ClearActivatedFromWaitCounters')) {
+        plMusePb2ClearActivatedFromWaitCounters($p);
+    }
     // Active Phase: stand all Energy in storage (spent last turn becomes usable again).
     foreach ($p['energy_zone'] as &$e) {
         // PL!SP-bp7-005 puts Energy into Wait "locked": it skips exactly one Active Phase.

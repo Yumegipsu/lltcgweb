@@ -252,7 +252,7 @@ function tryResolveAbilityEffectSwitchWaitActivate(
 
         case 'activate_subunit_from_wait_score':
             $subunit = $ab['subunit'] ?? '';
-            $activated = activateSubunitFromWait($p, $subunit);
+            $activated = activateSubunitFromWait($p, $subunit, $state, $pid, $source);
             if ($activated > 0) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] activated $activated $subunit Member(s) from Wait.");

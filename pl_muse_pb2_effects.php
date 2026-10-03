@@ -136,6 +136,56 @@ function plMusePb2IsLilyWhiteCard(array $card): bool {
 }
 
 /**
+ * Love Marginal / Honoka pb2-010: count Members put Wait→Active this turn by a
+ * Printemps (etc.) card effect. Refs #233.
+ */
+function plMusePb2ActivatedFromWaitKey(string $subunit): string {
+    return '_pb2_activated_from_wait_' . $subunit;
+}
+
+function plMusePb2NoteActivatedFromWait(array &$state, string $pid, ?array $effectSource, int $count = 1): void {
+    if ($count < 1 || !is_array($effectSource)) {
+        return;
+    }
+    $p = &$state['players'][$pid];
+    foreach (['Printemps', 'lily white', 'BiBi'] as $sub) {
+        if (!cardMatchesSubunit($effectSource, $sub)) {
+            continue;
+        }
+        $key = plMusePb2ActivatedFromWaitKey($sub);
+        $p[$key] = intval($p[$key] ?? 0) + $count;
+    }
+}
+
+/** Clear Wait and, if the member was Waiting, attribute the Activate to $effectSource. */
+function plMusePb2ActivateFromWait(
+    array &$state,
+    string $pid,
+    array &$member,
+    ?array $effectSource = null
+): bool {
+    if (!memberIsInWait($member)) {
+        return false;
+    }
+    clearMemberWait($member);
+    plMusePb2NoteActivatedFromWait(
+        $state,
+        $pid,
+        $effectSource ?? ($state['_mod_source'] ?? null),
+        1
+    );
+    return true;
+}
+
+function plMusePb2ClearActivatedFromWaitCounters(array &$p): void {
+    foreach (array_keys($p) as $k) {
+        if (is_string($k) && str_starts_with($k, '_pb2_activated_from_wait_')) {
+            unset($p[$k]);
+        }
+    }
+}
+
+/**
  * PL!-pb2-041 Shunjou Romantic [Always]: while in Success Live, lily white card effects
  * that count cards in Success Live treat this card as 2. Refs #227.
  */
@@ -648,7 +698,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
 
         case 'blade_per_activated_from_wait_by_subunit_effect': {
             $subunit = $ab['subunit'] ?? 'Printemps';
-            $key = '_pb2_activated_from_wait_' . $subunit;
+            $key = plMusePb2ActivatedFromWaitKey($subunit);
             $n = intval($state['players'][$pid][$key] ?? 0);
             if ($n > 0) {
                 $state = applyModifierEffect($state, $pid, [
@@ -656,6 +706,8 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                     'amount' => $n * intval($ab['amount'] ?? 1),
                     'source' => $name,
                 ]);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] +$n Blade (Wait→Active via $subunit effects this turn).");
             }
             break;
         }
@@ -1044,22 +1096,23 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
 
         case 'reduce_hearts_per_activated_from_wait_by_subunit': {
             $subunit = $ab['subunit'] ?? 'Printemps';
-            $key = '_pb2_activated_from_wait_' . $subunit;
+            $key = plMusePb2ActivatedFromWaitKey($subunit);
             $n = intval($state['players'][$pid][$key] ?? 0);
             $reduce = 0;
+            $color = 'any';
             foreach ($ab['tiers'] ?? [] as $tier) {
                 if ($n >= intval($tier['min'] ?? 0)) {
                     $reduce += intval($tier['reduce'] ?? 0);
+                    if (!empty($tier['color'])) {
+                        $color = (string)$tier['color'];
+                    }
                 }
             }
             if ($reduce > 0) {
-                $state = applyModifierEffect($state, $pid, [
-                    'type' => 'reduce_hearts_by_color',
-                    'color' => 'any',
-                    'amount' => $reduce,
-                    'source' => $name,
-                    'target_instance_id' => $source['instance_id'] ?? '',
-                ]);
+                $srcId = (string)($source['instance_id'] ?? '');
+                bumpLiveCardColorReduction($state, $pid, $srcId, $color, $reduce);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] required $color hearts −$reduce ($n Wait→Active via $subunit this turn).");
             }
             break;
         }
@@ -1848,7 +1901,11 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                 throw new Exception('Choose a Stage Member to toggle');
             }
             if (memberIsInWait($m)) {
-                clearMemberWait($m);
+                // Hanayo unstack toggle — Printemps card effect Wait→Active (#233).
+                plMusePb2ActivateFromWait($state, $pid, $m, [
+                    'subunit' => $prompt['subunit'] ?? 'Printemps',
+                    'name_en' => $name,
+                ]);
             } else {
                 waitMember($m, $state);
             }
@@ -1892,7 +1949,16 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             if ($slot === '' || empty($p['stage'][$slot])) {
                 throw new Exception('Choose a Stage Member to Activate');
             }
-            clearMemberWait($p['stage'][$slot]);
+            // Source ability is on a lily white / subunit Member — track Wait→Active (#233).
+            $srcCard = ['name_en' => $name, 'subunit' => ''];
+            // Prefer catalog subunit from the effect source instance if still on Stage.
+            foreach ($p['stage'] as $sm) {
+                if ($sm && ($sm['instance_id'] ?? '') === $srcId) {
+                    $srcCard = $sm;
+                    break;
+                }
+            }
+            plMusePb2ActivateFromWait($state, $pid, $p['stage'][$slot], $srcCard);
             $remaining = intval($prompt['remaining'] ?? 1) - 1;
             $state = addLog($state, $state['players'][$pid]['name'] .
                 " — [$name] Activated " . cardDisplayName($p['stage'][$slot]) . '.');
