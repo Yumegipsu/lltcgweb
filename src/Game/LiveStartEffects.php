@@ -347,6 +347,10 @@ function resolveLiveStartAbilitiesBody(array $state, string $pid): array {
             $state = resolveAbilityEffect($state, $pid, $source, $ab, [
                 'phase' => 'live_start',
                 'ability_index' => $abIdx,
+                'member_id' => $instanceId,
+                'slot' => isMemberCard($source)
+                    ? findMemberSlot($state['players'][$pid] ?? [], $instanceId)
+                    : '',
             ]);
             if (!empty($state['_activate_members_deferred'])) {
                 unset($state['_activate_members_deferred']);

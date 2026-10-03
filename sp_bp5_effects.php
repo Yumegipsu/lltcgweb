@@ -303,6 +303,12 @@ function spBp5ResolveEffect(array $state, string $pid, array $source, array $ab,
 
         case 'live_start_repeat_mill_top_blade':
             if (!empty($state['pending_prompt'])) break;
+            // Live Start resolveAbilityEffect often omits ctx.slot — resolve from stage.
+            $memberId = (string)($ctx['member_id'] ?? $source['instance_id'] ?? '');
+            $memberSlot = (string)($ctx['slot'] ?? '');
+            if ($memberSlot === '' && $memberId !== '') {
+                $memberSlot = findMemberSlot($p, $memberId);
+            }
             $state['pending_prompt'] = [
                 'type'        => 'spbp5_repeat_mill_blade',
                 'owner'       => $pid,
@@ -312,8 +318,8 @@ function spBp5ResolveEffect(array $state, string $pid, array $source, array $ab,
                 'repeat'      => 0,
                 'max_repeats' => intval($ab['max_repeats'] ?? 5),
                 'blade_per'   => intval($ab['blade_per'] ?? 1),
-                'member_id'   => $ctx['member_id'] ?? '',
-                'member_slot' => $ctx['slot'] ?? '',
+                'member_id'   => $memberId,
+                'member_slot' => $memberSlot,
                 'prompt'      => 'Put the top card of your deck into the Waiting Room for +1 Blade until this Live ends? (Up to 5 times)',
                 'choices'     => ['yes', 'no'],
                 'choice_labels' => ['Yes — Mill top', 'No — Stop'],
@@ -795,18 +801,34 @@ function spBp5ResolvePrompt(array $state, string $owner, array $prompt, string $
             return finishLiveStartEffects($state);
         }
         $card = array_shift($ownerP['main_deck']);
-        $milled = [$card];
         $ownerP['waiting_room'][] = $card;
+        // Reassignments below break $ownerP's reference — always write Wait via $state after.
         $state = applyModifierEffect($state, $owner, [
             'type'   => 'blade_bonus',
             'amount' => intval($prompt['blade_per'] ?? 1),
         ]);
-        if (($card['card_type'] ?? '') === 'ライブ') {
-            $mSlot = $prompt['member_slot'] ?? '';
-            if ($mSlot !== '' && !empty($ownerP['stage'][$mSlot])) {
-                waitMember($ownerP['stage'][$mSlot], $state);
+        $milledName = cardDisplayName($card);
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Member') . "] milled $milledName (+Blade).");
+        // PL!SP-bp5-009: if the milled card is a Live, put this Member into Wait.
+        // Prefer member_slot; fall back to source_id (Live Start often omits slot in ctx).
+        if (isLiveTypeCard($card)) {
+            $mSlot = (string)($prompt['member_slot'] ?? '');
+            $mId = (string)($prompt['member_id'] ?? '');
+            if ($mId === '') {
+                $mId = (string)($prompt['source_id'] ?? '');
+            }
+            if ($mSlot === '' && $mId !== '') {
+                $mSlot = findMemberSlot($state['players'][$owner], $mId);
+            }
+            if ($mSlot !== '' && !empty($state['players'][$owner]['stage'][$mSlot])) {
+                waitMember($state['players'][$owner]['stage'][$mSlot], $state);
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] put into Wait (milled Live).');
             }
         }
+        // Refresh local alias after Wait / log reassignments for the repeat check.
+        $ownerP = &$state['players'][$owner];
         $repeat = intval($prompt['repeat'] ?? 0) + 1;
         if ($repeat >= intval($prompt['max_repeats'] ?? 5) || empty($ownerP['main_deck'])) {
             unset($state['pending_prompt']);
