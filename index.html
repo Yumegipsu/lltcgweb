@@ -30157,6 +30157,23 @@ function mergeHeartStatRows(...rows) {
   return sortHeartsByDisplayOrder(Object.keys(map).map(color => ({ color, count: map[color] })));
 }
 
+/** Mirror PHP plMusePb2SuccessCardCountWeight — Shunjou Romantic counts as 2 for lily white (#227/#244). */
+function tcgClientIsLilyWhiteCard(card) {
+  return typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(card, 'lily white');
+}
+
+function tcgClientSuccessCardCountWeight(card, effectSource) {
+  if (effectSource && !tcgClientIsLilyWhiteCard(effectSource)) return 1;
+  for (const ab of (card?.abilities || [])) {
+    if ((ab.type || '') !== 'success_count_as_two_for_subunit_effects') continue;
+    const need = String(ab.subunit || 'lily white');
+    if (!need || need.toLowerCase() === 'lily white') {
+      if (!effectSource || tcgClientIsLilyWhiteCard(effectSource)) return 2;
+    }
+  }
+  return 1;
+}
+
 function clientMemberContinuousBladeBonus(member, state, pid, slot) {
   const p = state?.players?.[pid];
   if (!p || !member) return 0;
@@ -30196,13 +30213,29 @@ function clientMemberContinuousBladeBonus(member, state, pid, slot) {
     }
     if (type === 'blade_per_success_score_icon_group') {
       // Umi PL!-pb2-004 Always: +1 Blade per μ's Score-icon Success Live (#219).
+      // Shunjou Romantic (#244): lily white effects count that Success card as 2.
       const group = ab.group || "μ's";
       let n = 0;
       (p.success_lives || []).forEach((c) => {
         if (!c) return;
         const g = String(c.group || '');
         if (group && !(g === group || (group.includes('μ') && g.includes('μ')))) return;
-        if (c.yell_score_icon || c.special_heart === 'icon_score.png') n++;
+        if (c.yell_score_icon || c.special_heart === 'icon_score.png') {
+          n += tcgClientSuccessCardCountWeight(c, member);
+        }
+      });
+      bonus += n * Number(ab.amount ?? 1);
+    }
+    if (type === 'blade_per_success_subunit') {
+      // Nozomi PL!-pb2-025 Always: +1 Blade per lily white Success Live (#227/#244).
+      const subunit = ab.subunit || '';
+      let n = 0;
+      (p.success_lives || []).forEach((c) => {
+        if (!c) return;
+        const match = (typeof cardMatchesSubunit === 'function')
+          ? cardMatchesSubunit(c, subunit)
+          : String(c.subunit || '').toLowerCase() === String(subunit).toLowerCase();
+        if (match) n += tcgClientSuccessCardCountWeight(c, member);
       });
       bonus += n * Number(ab.amount ?? 1);
     }
