@@ -507,11 +507,65 @@ global.openStageSlotPick = function openStageSlotPick(pr){
     return;
   }
   const maxPick = Number(pr.pick_count || 1);
-  const upTo = !!pr.up_to || maxPick > 1;
+  // Exact-N costs (Kotori Wait 2) must not inherit "up to" auto-resolve / empty cancel (#242).
+  const exactNeed = pr.type === 'pb2_printemps_wait_members'
+    ? Math.max(1, maxPick)
+    : 0;
+  const upTo = exactNeed > 0 ? false : (!!pr.up_to || maxPick > 1);
   if (!cards.length && upTo) {
     closeM('overlay-pick');
     G.pickCtx = null;
     sendAct('resolve_prompt', { choice: 'skip', slots: [] });
+    return;
+  }
+  if (exactNeed > 0) {
+    if (cards.length < exactNeed) {
+      closeM('overlay-pick');
+      G.pickCtx = null;
+      sendAct('resolve_prompt', { choice: 'skip', slots: [] });
+      return;
+    }
+    G.pickMarked.clear();
+    const slotById = new Map(cards.map(c=>[c.instance_id, c.slot]));
+    G.pickCtx={
+      count: exactNeed,
+      min: exactNeed,
+      onConfirm: (ids)=>{
+        const slots = ids.map(id=>slotById.get(id)).filter(Boolean);
+        sendAct('resolve_prompt',{slots});
+      },
+      onCancel: null,
+    };
+    el('pick-ttl').textContent=promptDisplayTitle(pr, pt('prompt.chooseMemberTitle'));
+    el('pick-msg').textContent=promptDisplayText(pr, `Choose exactly ${exactNeed} Member(s).`);
+    const g=el('pick-grid'); g.innerHTML='';
+    const btnOk=el('btn-pick-ok');
+    const btnCancel=el('btn-pick-cancel');
+    if(btnOk) btnOk.style.display='';
+    if(btnCancel) btnCancel.style.display='none';
+    cards.forEach(card=>{
+      g.appendChild(mkPickCardEl(card,'pickcard',()=>{
+        if(G.pickMarked.has(card.instance_id)) G.pickMarked.delete(card.instance_id);
+        else {
+          if(G.pickMarked.size>=exactNeed){ toast(t('prompt.selectAtMost', { n: exactNeed })); return; }
+          G.pickMarked.add(card.instance_id);
+          sfxCardPick();
+        }
+        [...g.children].forEach(c=>c.classList.toggle('sel',G.pickMarked.has(c.dataset.id)));
+        el('pick-count').textContent=formatSelectedCount(G.pickMarked.size, exactNeed);
+      }));
+    });
+    el('pick-count').textContent=formatSelectedCount(0, exactNeed);
+    syncPickOverlayButtons();
+    const btn = el('pick-confirm') || el('btn-pick-ok');
+    if (btn) {
+      btn.onclick = () => {
+        if (G.pickMarked.size < exactNeed) { toast(t('prompt.selectAtLeast', { n: exactNeed }) || `Select at least ${exactNeed}`); return; }
+        closeM('overlay-pick');
+        G.pickCtx.onConfirm([...G.pickMarked]);
+      };
+    }
+    openM('overlay-pick');
     return;
   }
   if(upTo && maxPick > 1){
@@ -528,11 +582,7 @@ global.openStageSlotPick = function openStageSlotPick(pr){
     const slotById = new Map(cards.map(c=>[c.instance_id, c.slot]));
     const isOppWaitPick = pr.type === 'wait_opponent_stage_pick';
     // When targets exist, Confirm must pick ≥1; use Cancel for "wait none" (min 0 alone allowed empty Confirm).
-    // Kotori pb2 Wait-other cost requires exactly pick_count (#232/#240).
-    const exactNeed = pr.type === 'pb2_printemps_wait_members'
-      ? Math.max(1, maxPick)
-      : 0;
-    const minSel = exactNeed || (isOppWaitPick ? 1 : 0);
+    const minSel = isOppWaitPick ? 1 : 0;
     G.pickCtx={
       count: maxPick,
       min: minSel,
@@ -3806,11 +3856,11 @@ global.renderPrompt = function renderPrompt(s, myId){
     });
     return;
   }
-  // PL!-pb2-012 Kotori Activated: Wait 1 other Printemps (self already Waited) (#240).
+  // PL!-pb2-012 Kotori Activated: Wait 2 other Printemps (self already Waited) (#232/#242).
   if(pr?.type==='pb2_printemps_wait_members'&&(pr.responder||pr.owner)===myId){
     ovl.classList.remove('open');
     const cands=(pr.candidates||[]).filter(c=>c&&c.slot);
-    const need=Math.max(1, Number(pr.max||pr.min||pr.pick_count||1)||1);
+    const need=Math.max(2, Number(pr.max||pr.min||pr.pick_count||2)||2);
     if(cands.length < need){
       sendAct('resolve_prompt',{choice:'skip', slots:[]});
       return;

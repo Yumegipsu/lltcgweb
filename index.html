@@ -17335,7 +17335,7 @@ function namedHandMatches(c, names, includeSelf, sourceId) {
   return !!(includeSelf && sourceId && c?.instance_id === sourceId);
 }
 
-function abilityWrBlockReason(cpu, ab) {
+function abilityWrBlockReason(cpu, ab, sourceCard = null) {
   if (!cpu || !ab) return null;
   const wr = cpu.waiting_room || [];
   const t = ab.type || '';
@@ -17442,11 +17442,27 @@ function abilityWrBlockReason(cpu, ab) {
       const hasLive = (cpu.waiting_room || []).some(c => {
         if (!c || (c.card_type !== 'ライブ' && c.card_type_en !== 'Live')) return false;
         if (typeof cardMatchesSubunit === 'function') return cardMatchesSubunit(c, subunit);
+        if (typeof pb2CardMatchesSubunit === 'function') return pb2CardMatchesSubunit(c, subunit);
         const sub = String(c.subunit || c.subunit_en || '').toLowerCase();
         return sub === String(subunit).toLowerCase();
       });
       if (!hasLive) return 'No Printemps Live card in Waiting Room.';
-      return null;
+      // Extra cost: discard 2 OR Wait 2 *other* Active Printemps (self already Waited) (#242).
+      const srcId = sourceCard?.instance_id || '';
+      const handN = (cpu.hand || []).length;
+      if (handN >= 2) return null;
+      let others = 0;
+      for (const m of Object.values(cpu.stage || {})) {
+        if (!m || (m.instance_id || '') === srcId) continue;
+        const waiting = typeof memberInWait === 'function' ? memberInWait(m) : !!m.in_wait;
+        if (waiting) continue;
+        const match = (typeof pb2CardMatchesSubunit === 'function')
+          ? pb2CardMatchesSubunit(m, subunit)
+          : (typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(m, subunit));
+        if (match) others++;
+      }
+      if (others >= 2) return null;
+      return 'Need 2 cards in hand or 2 other Active Printemps Members to Wait.';
     }
     default:
       return null;
@@ -29493,14 +29509,21 @@ function cardPb2WaitDistinctPlayOpt(card) {
   return (abs || []).find(a =>
     a && a.trigger === 'continuous' && a.type === 'play_cost_reduce_if_wait_distinct_subunit') || null;
 }
-/** Resolve subunit for Stage copies that omit catalog fields (#230/#234). */
+/** Resolve subunit for Stage copies that omit catalog fields (#230/#234/#242). */
 function pb2CardMatchesSubunit(card, subunit) {
   if (!card || !subunit) return false;
   if (typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(card, subunit)) return true;
   const no = card.card_no;
   const cat = (typeof G !== 'undefined' && no) ? G.allCards?.[no] : null;
-  if (cat && cat !== card && typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(cat, subunit)) {
-    return true;
+  if (cat && cat !== card) {
+    if (typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(cat, subunit)) return true;
+    const want = typeof canonicalSubunitKey === 'function'
+      ? canonicalSubunitKey(subunit)
+      : String(subunit).toLowerCase();
+    const got = typeof canonicalSubunitKey === 'function'
+      ? canonicalSubunitKey(cat.subunit || '')
+      : String(cat.subunit || '').toLowerCase();
+    if (want && got && want === got) return true;
   }
   return false;
 }
@@ -30606,7 +30629,7 @@ function collectActivatableAbilities(s, myId) {
     const used = card.abilities_used?.[`${card.instance_id}:${idx}`];
     const payCost = ability.cost ?? (ability.type === 'pay_energy_opp_pick_hand_reveal' ? 2 : 0);
     const needEnergy = payCost && ae < payCost;
-    const wrBlock = abilityWrBlockReason(me, ability);
+    const wrBlock = abilityWrBlockReason(me, ability, card);
     let who = card.name_en || card.name || 'Member';
     if (onStage && stageSlot) who = `${stageSlot.charAt(0).toUpperCase() + stageSlot.slice(1)} · ${who}`;
     else if (inWr) who = `WR · ${who}`;

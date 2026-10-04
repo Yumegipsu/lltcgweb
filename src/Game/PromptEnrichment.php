@@ -512,6 +512,24 @@ function buildTimeoutPromptResolution(array $state, string $pid, array $prompt):
             $slot = $cands[0]['slot'] ?? '';
             return $slot !== '' ? ['slot' => $slot] : ['choice' => 'skip'];
 
+        case 'pb2_printemps_wait_members': {
+            // Kotori additional Wait cost — exactly N other Printemps (#242).
+            $need = max(2, intval($prompt['pick_count'] ?? $prompt['min'] ?? 2));
+            $slots = [];
+            foreach ($prompt['candidates'] ?? [] as $cand) {
+                if (count($slots) >= $need) {
+                    break;
+                }
+                if (!empty($cand['slot'])) {
+                    $slots[] = $cand['slot'];
+                }
+            }
+            if (count($slots) >= $need) {
+                return ['slots' => array_slice($slots, 0, $need)];
+            }
+            return ['choice' => 'skip', 'slots' => []];
+        }
+
         case 'pick_wr_members_deck_top':
             $need = intval($prompt['pick_count'] ?? 2);
             $ids = [];
@@ -740,6 +758,27 @@ function enumerateSoftlockPromptPayloads(array $state, string $pid, array $promp
     foreach ($prompt['target_slots'] ?? $prompt['slots'] ?? [] as $slot) {
         if ($slot !== '' && $slot !== null) {
             $push(['slot' => (string)$slot]);
+        }
+    }
+
+    // Exact multi-slot picks (Kotori Wait 2) — single-slot tries softlock as leftmost-only (#242).
+    $needSlots = intval($prompt['pick_count'] ?? $prompt['min'] ?? 0);
+    if ($needSlots > 1 || ($prompt['type'] ?? '') === 'pb2_printemps_wait_members') {
+        if ($needSlots < 2 && ($prompt['type'] ?? '') === 'pb2_printemps_wait_members') {
+            $needSlots = 2;
+        }
+        $multi = [];
+        foreach ($prompt['candidates'] ?? [] as $cand) {
+            if (!is_array($cand) || empty($cand['slot'])) {
+                continue;
+            }
+            $multi[] = (string)$cand['slot'];
+            if (count($multi) >= $needSlots) {
+                break;
+            }
+        }
+        if (count($multi) >= $needSlots) {
+            $push(['slots' => array_slice($multi, 0, $needSlots)]);
         }
     }
 

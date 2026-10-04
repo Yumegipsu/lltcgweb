@@ -1372,11 +1372,11 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
         }
     } elseif (($ab['type'] ?? '') === 'activated_wait_printemps_live_from_wr') {
-        // PL!-pb2-012 Kotori: Wait self + (discard 2 OR Wait 1 other Printemps) → Printemps Live from WR.
-        // Refs #232 — previously fell through to "Ability type not implemented".
+        // PL!-pb2-012 Kotori: Wait self + (discard 2 OR Wait 2 other Printemps) → Printemps Live from WR.
+        // Refs #232/#242 — additional Wait cost is 2 other Active Printemps (self already Waited).
         $srcId = (string)($member['instance_id'] ?? '');
         if (!plMusePb2KotoriCanPayExtraCost($p, $ab, $srcId)) {
-            throw new Exception('Need 2 cards in hand or 1 other Active Printemps Member to Wait');
+            throw new Exception('Need 2 cards in hand or 2 other Active Printemps Members to Wait');
         }
         if (memberIsInWait($member)) {
             throw new Exception('Member is already in Wait');

@@ -656,13 +656,16 @@ function plMusePb2ApplyHandPlayCostOption(array $state, string $pid, array $card
     return $state;
 }
 
-/** True if Kotori activated extra cost can be paid (hand discard 2 OR Wait 2 other Printemps). */
+/**
+ * True if Kotori activated extra cost can be paid.
+ * Card text: Wait self (colon), then discard 2 OR Wait 2 Printemps Members.
+ * Self is already Waited by the colon cost, so the Wait path needs 2 *other*
+ * Active Printemps (#232/#242). Each Stage copy still has its own once_per_turn.
+ */
 function plMusePb2KotoriCanPayExtraCost(array $p, array $ab, string $srcId): bool {
     if (count($p['hand'] ?? []) >= 2) {
         return true;
     }
-    // Wait-2 path: this Member is already Waited as the colon cost and counts as
-    // 1 of the 2 Printemps — need only 1 other Active Printemps (#240).
     $subunit = (string)($ab['subunit'] ?? 'Printemps');
     $n = 0;
     foreach ($p['stage'] ?? [] as $m) {
@@ -672,7 +675,7 @@ function plMusePb2KotoriCanPayExtraCost(array $p, array $ab, string $srcId): boo
             $n++;
         }
     }
-    return $n >= 1;
+    return $n >= 2;
 }
 
 function plMusePb2ResolveEffect(array $state, string $pid, array $source, array $ab, array $ctx = []): array {
@@ -1491,7 +1494,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 'source_name' => $name,
                 'subunit' => $ab['subunit'] ?? 'Printemps',
                 'choices' => ['discard2', 'wait2'],
-                'choice_labels' => ['Discard 2 from hand', 'Wait 1 other Printemps Member'],
+                'choice_labels' => ['Discard 2 from hand', 'Wait 2 other Printemps Members'],
                 'prompt' => 'Pay the additional cost.',
             ]);
             break;
@@ -2435,7 +2438,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
         return plMusePb2FinishPrompt($state, $prompt);
     }
 
-    // —— Kotori: Wait self + (discard 2 OR Wait 1 other Printemps) → add Printemps Live from WR ——
+    // —— Kotori: Wait self + (discard 2 OR Wait 2 other Printemps) → add Printemps Live from WR ——
     if ($type === 'activated_wait_printemps_live_from_wr' || $type === 'pb2_printemps_cost_mode'
         || $type === 'pb2_printemps_wait_members') {
         if ($type === 'activated_wait_printemps_live_from_wr') {
@@ -2448,7 +2451,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                 'source_instance_id' => $srcId,
                 'subunit' => $prompt['subunit'] ?? 'Printemps',
                 'choices' => ['discard2', 'wait2'],
-                'choice_labels' => ['Discard 2 from hand', 'Wait 1 other Printemps Member'],
+                'choice_labels' => ['Discard 2 from hand', 'Wait 2 other Printemps Members'],
                 'prompt' => 'Pay the additional cost.',
             ];
             $state['seq']++;
@@ -2476,7 +2479,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                 }
                 plMusePb2DiscardIds($state, $pid, $ids, $name);
             } elseif ($choice === 'wait2') {
-                // Self already Waited (colon cost) counts as 1 of 2 Printemps — pick 1 other (#240).
+                // Self already Waited (colon cost) — additional cost is 2 *other* Active Printemps (#242).
                 $cands = [];
                 foreach ($p['stage'] as $s => $m) {
                     if ($m && ($m['instance_id'] ?? '') !== $srcId
@@ -2485,13 +2488,15 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                         $cands[] = array_merge(cardPromptSummary($m), ['slot' => $s]);
                     }
                 }
-                if (count($cands) < 1) {
-                    throw new Exception('Need 1 other Active Printemps Member to Wait');
+                if (count($cands) < 2) {
+                    throw new Exception('Need 2 other Active Printemps Members to Wait');
                 }
-                if (count($cands) === 1) {
-                    $slot = (string)($cands[0]['slot'] ?? '');
-                    if ($slot !== '' && !empty($p['stage'][$slot])) {
-                        waitMember($p['stage'][$slot], $state);
+                if (count($cands) === 2) {
+                    foreach ($cands as $cand) {
+                        $slot = (string)($cand['slot'] ?? '');
+                        if ($slot !== '' && !empty($p['stage'][$slot])) {
+                            waitMember($p['stage'][$slot], $state);
+                        }
                     }
                     $subunit = $prompt['subunit'] ?? 'Printemps';
                     return plMusePb2ResolveAddSubunitLiveFromWr($state, $pid, $srcId, $name, $subunit, $prompt);
@@ -2504,11 +2509,11 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                     'source_instance_id' => $srcId,
                     'subunit' => $prompt['subunit'] ?? 'Printemps',
                     'candidates' => $cands,
-                    'min' => 1,
-                    'max' => 1,
-                    'pick_count' => 1,
+                    'min' => 2,
+                    'max' => 2,
+                    'pick_count' => 2,
                     'up_to' => false,
-                    'prompt' => 'Choose 1 other Printemps Member to put into Wait (with this Member).',
+                    'prompt' => 'Choose 2 other Printemps Members to put into Wait.',
                 ];
                 $state['seq']++;
                 return $state;
@@ -2524,11 +2529,9 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             if (!$slots && !empty($data['slot'])) {
                 $slots = [$data['slot']];
             }
-            $need = max(1, intval($prompt['pick_count'] ?? $prompt['min'] ?? 1));
+            $need = max(2, intval($prompt['pick_count'] ?? $prompt['min'] ?? 2));
             if (count($slots) !== $need) {
-                throw new Exception($need === 1
-                    ? 'Choose 1 other Printemps Member'
-                    : "Choose exactly $need Printemps Members");
+                throw new Exception("Choose exactly $need other Printemps Members");
             }
             foreach ($slots as $slot) {
                 if (!empty($p['stage'][$slot])) {
