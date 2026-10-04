@@ -321,9 +321,15 @@ function tryResolveAbilityEffectSwitchLive(
                 break;
             }
             $subunit = trim($ab['subunit'] ?? '');
-            $pickLabel = $subunit !== ''
-                ? 'Choose 1 ' . $subunit . ' Member card revealed by Yell to add to your hand.'
-                : 'Choose 1 card revealed by Yell to add to your hand.';
+            $maxMemberCost = isset($ab['max_member_cost']) ? intval($ab['max_member_cost'])
+                : (isset($ab['max_cost']) ? intval($ab['max_cost']) : null);
+            if ($subunit !== '') {
+                $pickLabel = 'Choose 1 ' . $subunit . ' Member card revealed by Yell to add to your hand.';
+            } elseif ($maxMemberCost !== null && ($ab['filter'] ?? 'member') === 'member') {
+                $pickLabel = "Choose 1 Member card with cost $maxMemberCost or less revealed by Yell to add to your hand.";
+            } else {
+                $pickLabel = 'Choose 1 card revealed by Yell to add to your hand.';
+            }
             $state['pending_prompt'] = [
                 'type'        => 'pick_yell_member',
                 'owner'       => $pid,

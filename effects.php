@@ -6072,13 +6072,20 @@ function cardMatchesYellPick(array $card, array $cfg): bool {
         return false;
     }
     if (!cardMatchesGroup($card, $cfg['group'] ?? '', $filter)) return false;
-    if (($filter === 'member' || ($card['card_type'] ?? '') === 'メンバー')
-        && isset($cfg['max_cost'])) {
-        return intval($card['cost'] ?? 0) <= intval($cfg['max_cost']);
-    }
-    if (($filter === 'member' || ($card['card_type'] ?? '') === 'メンバー')
-        && isset($cfg['min_cost'])) {
-        return intval($card['cost'] ?? 0) >= intval($cfg['min_cost']);
+    if ($filter === 'member' || ($card['card_type'] ?? '') === 'メンバー') {
+        // Fusion Crust etc. encode the cap as max_member_cost; also honor max_cost (#241).
+        $maxCost = null;
+        if (isset($cfg['max_member_cost'])) {
+            $maxCost = intval($cfg['max_member_cost']);
+        } elseif (isset($cfg['max_cost'])) {
+            $maxCost = intval($cfg['max_cost']);
+        }
+        if ($maxCost !== null && intval($card['cost'] ?? 0) > $maxCost) {
+            return false;
+        }
+        if (isset($cfg['min_cost']) && intval($card['cost'] ?? 0) < intval($cfg['min_cost'])) {
+            return false;
+        }
     }
     return true;
 }
