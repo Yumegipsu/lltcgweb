@@ -10,10 +10,10 @@ use PHPUnit\Framework\TestCase;
  * PL!-pb1-029 Shiranai Love — Live Start +1 iff Success is empty and Stage is
  * lily white only. Each Live-zone copy gets its own +1 when eligible (#243).
  *
- * Investigation (Kyra BBA826 2026-10-04): the reported “mystery +1” matched a
- * legal Shiranai Live Start (empty Success, all-lily-white Stage). Only one copy
- * was in Live storage that round, so +1 (not +2) is correct. Yell score icons are
- * separate (Shiranai also has yell_score_icon when revealed as Yell).
+ * Correction (Kyra 0511FD): “2 copies → score 3” was a sticky Live Start bonus.
+ * Rin swapped a bumped Shiranai out of Success into hand without stripping
+ * `_effect_score_bonus`, so one copy entered Live at score 2. See
+ * Issue243ShiranaiStickySuccessSwapTest.
  */
 final class Issue243ShiranaiScoreIfSubunitOnlyTest extends TestCase
 {

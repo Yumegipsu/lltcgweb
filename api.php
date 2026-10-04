@@ -2408,6 +2408,10 @@ function actionSetLiveCards(array $state, string $pid, array $data): array {
         if (!isLiveStorageEligible($c)) continue;
         $slot = liveZoneFirstEmptySlot($p['live_zone']);
         if ($slot < 0) break;
+        // Belt-and-suspenders vs sticky Live Start bumps from Success/hand reuse (#243).
+        if (isLiveTypeCard($c)) {
+            $c = liveCardRestorePrintedScore($c);
+        }
         $c['revealed'] = false;
         $c['live_slot'] = $slot;
         $p['live_zone'][] = $c;

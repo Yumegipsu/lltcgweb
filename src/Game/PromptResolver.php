@@ -3314,7 +3314,8 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             if ($successCard === null) {
                 throw new Exception('Choose a Success Live card');
             }
-            $ownerP['waiting_room'][] = $successCard;
+            // Strip Live Start score bumps before WR reuse (#155 / #243).
+            $ownerP['waiting_room'][] = liveCardRestorePrintedScore($successCard);
             $wrLives = array_values(array_filter(
                 $ownerP['waiting_room'],
                 fn($c) => cardMatchesGroup($c, $group, $filter)
@@ -3461,8 +3462,10 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             if ($handLive === null) throw new Exception('Revealed Live card no longer in hand');
             array_splice($ownerP['success_lives'], $successIdx, 1);
             array_splice($ownerP['hand'], $handIdx, 1);
-            $ownerP['hand'][] = $successCard;
+            // Success Lives keep Live Start bumps for display; strip before hand reuse (#243).
+            $ownerP['hand'][] = liveCardRestorePrintedScore($successCard);
             $ownerP['success_lives'][] = $handLive;
+            $state['players'][$owner] = $ownerP;
             $srcName = $prompt['source_name'] ?? 'Member';
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . $srcName . '] swapped ' .

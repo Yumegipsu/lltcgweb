@@ -1098,6 +1098,10 @@ function replayEnsureCardInHand(array &$state, string $pid, string $cardId): voi
     foreach (['main_deck', 'success_lives', 'energy_deck'] as $zone) {
         foreach ($p[$zone] ?? [] as $i => $c) {
             if (($c['instance_id'] ?? '') === $cardId) {
+                // Success Lives keep Live Start bumps for display — strip on hand reuse (#243).
+                if ($zone === 'success_lives' && function_exists('liveCardRestorePrintedScore')) {
+                    $c = liveCardRestorePrintedScore($c);
+                }
                 $p['hand'][] = $c;
                 array_splice($p[$zone], $i, 1);
                 return;

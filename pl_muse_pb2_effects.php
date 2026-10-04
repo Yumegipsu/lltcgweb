@@ -1880,8 +1880,11 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             }
             array_splice($p['hand'], $handIdx, 1);
             array_splice($p['success_lives'], $succIdx, 1);
-            $p['hand'][] = $succCard;
+            // Success Lives keep Live Start bumps for display; strip before hand reuse (#243).
+            $p['hand'][] = liveCardRestorePrintedScore($succCard);
             $p['success_lives'][] = $handCard;
+            // Re-bind in case addLog / finish copy-on-write broke &$p.
+            $state['players'][$pid] = $p;
             $state = addLog($state, $state['players'][$pid]['name'] .
                 " — [$name] swapped " . cardDisplayName($handCard) . ' with Success Live ' .
                 cardDisplayName($succCard) . '.');
