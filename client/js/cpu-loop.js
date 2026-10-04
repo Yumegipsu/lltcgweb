@@ -5184,11 +5184,11 @@ function cpuResolvePromptBody(s, cpu, pr) {
     else cpuAct('resolve_prompt',{choice:'skip'});
     return;
   }
-  // Kotori PL!-pb2-012 Activated: discard 2 or Wait 2 Printemps (#232).
+  // Kotori PL!-pb2-012 Activated: discard 2 or Wait 1 other Printemps (#232/#240).
   if(pr.type==='pb2_printemps_cost_mode'){
     const handN=(hand||[]).length;
     if(handN>=2) cpuAct('resolve_prompt',{choice:'discard2', discard_ids:(hand||[]).slice(0,2).map(c=>c.instance_id).filter(Boolean)});
-    else if((pr.candidates||[]).length>=2 || (pr.choices||[]).includes('wait2')){
+    else if((pr.choices||[]).includes('wait2')){
       cpuAct('resolve_prompt',{choice:'wait2'});
     } else {
       cpuAct('resolve_prompt',{choice:'discard2', discard_ids:(hand||[]).slice(0,2).map(c=>c.instance_id).filter(Boolean)});
@@ -5196,8 +5196,9 @@ function cpuResolvePromptBody(s, cpu, pr) {
     return;
   }
   if(pr.type==='pb2_printemps_wait_members'){
-    const slots=(pr.candidates||[]).slice(0,2).map(c=>c.slot).filter(Boolean);
-    if(slots.length>=2) cpuAct('resolve_prompt',{slots});
+    const need=Math.max(1, Number(pr.pick_count||pr.min||pr.max||1)||1);
+    const slots=(pr.candidates||[]).slice(0,need).map(c=>c.slot).filter(Boolean);
+    if(slots.length>=need) cpuAct('resolve_prompt',{slots});
     else cpuAct('resolve_prompt',{choice:'skip', slots:[]});
     return;
   }

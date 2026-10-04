@@ -17437,6 +17437,17 @@ function abilityWrBlockReason(cpu, ab) {
       });
       return victims.length ? null : 'No Aqours Member with cost +2 in Waiting Room or hand.';
     }
+    case 'activated_wait_printemps_live_from_wr': {
+      const subunit = ab.subunit || 'Printemps';
+      const hasLive = (cpu.waiting_room || []).some(c => {
+        if (!c || (c.card_type !== 'ライブ' && c.card_type_en !== 'Live')) return false;
+        if (typeof cardMatchesSubunit === 'function') return cardMatchesSubunit(c, subunit);
+        const sub = String(c.subunit || c.subunit_en || '').toLowerCase();
+        return sub === String(subunit).toLowerCase();
+      });
+      if (!hasLive) return 'No Printemps Live card in Waiting Room.';
+      return null;
+    }
     default:
       return null;
   }
