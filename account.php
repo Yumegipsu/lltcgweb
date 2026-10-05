@@ -2737,6 +2737,10 @@ function tcgApiPublicProfile(array $params): array {
             . rawurlencode($discordId) . '&v=' . rawurlencode($v);
     }
 
+    require_once __DIR__ . '/game_mode.php';
+    require_once __DIR__ . '/season.php';
+    $season = tcgSeasonPublic($discordId, TCG_GAME_MODE_STANDARD);
+
     return [
         'success' => true,
         'profile' => [
@@ -2753,6 +2757,7 @@ function tcgApiPublicProfile(array $params): array {
             'equipped_flag' => tcgFormatEquippedFlag($user['equipped_flag'] ?? null),
             'title' => tcgFormatEquippedTitle($user['title_id'] ?? null),
             'queue' => tcgPublicQueueStatus($discordId),
+            'season' => $season,
         ],
     ];
 }

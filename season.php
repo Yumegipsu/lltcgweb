@@ -898,6 +898,63 @@ function tcgSeasonQueueAcceptSteps(int $step, int $points): array {
 }
 
 /** @return array<string,mixed> */
+/**
+ * English display name for a seasonal step (e.g. "Pink S").
+ *
+ * @param array<string,mixed> $season
+ */
+function tcgSeasonRankDisplayName(array $season): string {
+    $tone = trim((string)($season['tone'] ?? ''));
+    $letter = trim((string)($season['letter'] ?? ''));
+    if ($tone === '' || $letter === '') {
+        return '';
+    }
+    return ucfirst(strtolower($tone)) . ' ' . $letter;
+}
+
+/**
+ * 1-based overall placement on the current seasonal ladder (same order as rank_stats board=season).
+ * Null when the season is inactive or the player has no seasonal games yet.
+ */
+function tcgSeasonOverallPlacement(string $discordId, string $gameMode): ?int {
+    $mode = tcgSeasonRankedMode($gameMode);
+    if ($mode === null || $discordId === '') {
+        return null;
+    }
+    $clock = tcgSeasonClockInfo();
+    if (empty($clock['active'])) {
+        return null;
+    }
+    $row = tcgSeasonLoadRow($discordId, $mode);
+    if (!$row || (string)$row['season_id'] !== (string)$clock['id']) {
+        return null;
+    }
+    if (((int)$row['wins'] + (int)$row['losses']) <= 0) {
+        return null;
+    }
+    $db = tcgDb();
+    if (function_exists('tcgBanEnsureSchema')) {
+        tcgBanEnsureSchema();
+    }
+    $banExclude = function_exists('tcgBanLeaderboardExcludeSql')
+        ? tcgBanLeaderboardExcludeSql('s.discord_id')
+        : '';
+    $step = (int)$row['step'];
+    $points = (int)$row['points'];
+    $wins = (int)$row['wins'];
+    $stmt = $db->prepare(
+        'SELECT COUNT(*) FROM tcg_season_rank s
+         WHERE s.game_mode = ? AND s.season_id = ? AND (s.wins + s.losses) > 0' . $banExclude . '
+         AND (
+            s.step > ?
+            OR (s.step = ? AND s.points > ?)
+            OR (s.step = ? AND s.points = ? AND s.wins > ?)
+         )'
+    );
+    $stmt->execute([$mode, $clock['id'], $step, $step, $points, $step, $points, $wins]);
+    return (int)$stmt->fetchColumn() + 1;
+}
+
 function tcgSeasonPublic(string $discordId, string $gameMode): array {
     $clock = tcgSeasonClockInfo();
     $mode = tcgSeasonRankedMode($gameMode);
@@ -917,6 +974,8 @@ function tcgSeasonPublic(string $discordId, string $gameMode): array {
     $public['game_mode'] = $mode;
     $public['started'] = true;
     $public['steps'] = tcgSeasonLadderSteps();
+    $public['rank_name'] = tcgSeasonRankDisplayName($public);
+    $public['overall_rank'] = tcgSeasonOverallPlacement($discordId, $mode);
     return $public;
 }
 

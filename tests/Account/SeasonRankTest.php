@@ -386,4 +386,42 @@ final class SeasonRankTest extends TestCase
         $this->assertSame(12, $dec['number']);
         $this->assertSame('2027 Season 12', $dec['label']);
     }
+
+    public function testSeasonRankDisplayNameAndOverallPlacement(): void
+    {
+        $this->at('2026-10-15 12:00:00');
+        $this->assertSame('Pink S', tcgSeasonRankDisplayName([
+            'tone' => 'pink',
+            'letter' => 'S',
+        ]));
+        $this->assertSame('Green C', tcgSeasonRankDisplayName([
+            'tone' => 'green',
+            'letter' => 'C',
+        ]));
+
+        $top = $this->user('place_top');
+        $mid = $this->user('place_mid');
+        $low = $this->user('place_low');
+        $idle = $this->user('place_idle');
+        $now = time();
+        $db = tcgDb();
+        $ins = $db->prepare('INSERT INTO tcg_season_rank
+            (discord_id, game_mode, season_id, step, points, peak_step, wins, losses, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $ins->execute([$top, TCG_GAME_MODE_STANDARD, '2026-10', 7, 50, 7, 5, 1, $now]);
+        $ins->execute([$mid, TCG_GAME_MODE_STANDARD, '2026-10', 5, 20, 5, 3, 2, $now]);
+        $ins->execute([$low, TCG_GAME_MODE_STANDARD, '2026-10', 2, 10, 2, 1, 4, $now]);
+        $ins->execute([$idle, TCG_GAME_MODE_STANDARD, '2026-10', 0, 0, 0, 0, 0, $now]);
+
+        $this->assertSame(1, tcgSeasonOverallPlacement($top, TCG_GAME_MODE_STANDARD));
+        $this->assertSame(2, tcgSeasonOverallPlacement($mid, TCG_GAME_MODE_STANDARD));
+        $this->assertSame(3, tcgSeasonOverallPlacement($low, TCG_GAME_MODE_STANDARD));
+        $this->assertNull(tcgSeasonOverallPlacement($idle, TCG_GAME_MODE_STANDARD));
+
+        $public = tcgSeasonPublic($top, TCG_GAME_MODE_STANDARD);
+        $this->assertTrue(!empty($public['active']));
+        $this->assertSame('Pink S', $public['rank_name']);
+        $this->assertSame(1, $public['overall_rank']);
+        $this->assertSame('2026 Season 1', $public['label']);
+    }
 }
