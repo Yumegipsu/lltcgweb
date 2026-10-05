@@ -14,13 +14,12 @@ function tcgClientIsLilyWhiteCard(card) {
 }
 
 function tcgClientSuccessCardCountWeight(card, effectSource) {
-  if (effectSource && !tcgClientIsLilyWhiteCard(effectSource)) return 1;
+  // Null/omitted source must not double-count — only lily white effect sources (#252).
+  if (!effectSource || !tcgClientIsLilyWhiteCard(effectSource)) return 1;
   for (const ab of (card?.abilities || [])) {
     if ((ab.type || '') !== 'success_count_as_two_for_subunit_effects') continue;
     const need = String(ab.subunit || 'lily white');
-    if (!need || need.toLowerCase() === 'lily white') {
-      if (!effectSource || tcgClientIsLilyWhiteCard(effectSource)) return 2;
-    }
+    if (!need || need.toLowerCase() === 'lily white') return 2;
   }
   return 1;
 }

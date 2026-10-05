@@ -547,10 +547,12 @@ function plMusePb2FlushDeferredActivatedFromWaitHearts(array $state): array {
 
 /**
  * PL!-pb2-041 Shunjou Romantic [Always]: while in Success Live, lily white card effects
- * that count cards in Success Live treat this card as 2. Refs #227.
+ * that count cards in Success Live treat this card as 2. Refs #227 / #252.
+ * Requires a lily white effect source — omitted/null source must not double-count
+ * (non-lily Lives like Bokura must never see weight 2).
  */
 function plMusePb2SuccessCardCountWeight(array $card, ?array $effectSource = null): int {
-    if ($effectSource !== null && !plMusePb2IsLilyWhiteCard($effectSource)) {
+    if ($effectSource === null || !plMusePb2IsLilyWhiteCard($effectSource)) {
         return 1;
     }
     foreach ($card['abilities'] ?? [] as $ab) {
@@ -559,10 +561,7 @@ function plMusePb2SuccessCardCountWeight(array $card, ?array $effectSource = nul
         }
         $need = (string)($ab['subunit'] ?? 'lily white');
         if ($need === '' || strcasecmp($need, 'lily white') === 0) {
-            // When effectSource is omitted, only weight for lily-white-scoped Always.
-            if ($effectSource === null || plMusePb2IsLilyWhiteCard($effectSource)) {
-                return 2;
-            }
+            return 2;
         }
     }
     return 1;
@@ -1493,14 +1492,14 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'score_if_success_subunit_min': {
+            // "This card's score +1" — bump the Live card, not total Live Score (#252).
             $n = plMusePb2CountSuccessSubunit($p, $ab['subunit'] ?? '', $source);
-            if ($n >= intval($ab['min_count'] ?? 2)) {
-                $state = applyModifierEffect($state, $pid, [
-                    'type' => 'live_score_bonus',
-                    'amount' => intval($ab['amount'] ?? 1),
-                    'source' => $name,
-                    'target_instance_id' => $source['instance_id'] ?? '',
-                ]);
+            $amt = intval($ab['amount'] ?? 1);
+            if ($n >= intval($ab['min_count'] ?? 2) && $amt > 0) {
+                bumpLiveCardScore($state, $pid, (string)($source['instance_id'] ?? ''), $amt);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] score +$amt ($n " . ($ab['subunit'] ?? 'lily white') .
+                    ' in Success).');
             }
             break;
         }

@@ -30178,19 +30178,18 @@ function mergeHeartStatRows(...rows) {
   return sortHeartsByDisplayOrder(Object.keys(map).map(color => ({ color, count: map[color] })));
 }
 
-/** Mirror PHP plMusePb2SuccessCardCountWeight — Shunjou Romantic counts as 2 for lily white (#227/#244). */
+/** Mirror PHP plMusePb2SuccessCardCountWeight — Shunjou Romantic counts as 2 for lily white (#227/#244/#252). */
 function tcgClientIsLilyWhiteCard(card) {
   return typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(card, 'lily white');
 }
 
 function tcgClientSuccessCardCountWeight(card, effectSource) {
-  if (effectSource && !tcgClientIsLilyWhiteCard(effectSource)) return 1;
+  // Null/omitted source must not double-count — only lily white effect sources (#252).
+  if (!effectSource || !tcgClientIsLilyWhiteCard(effectSource)) return 1;
   for (const ab of (card?.abilities || [])) {
     if ((ab.type || '') !== 'success_count_as_two_for_subunit_effects') continue;
     const need = String(ab.subunit || 'lily white');
-    if (!need || need.toLowerCase() === 'lily white') {
-      if (!effectSource || tcgClientIsLilyWhiteCard(effectSource)) return 2;
-    }
+    if (!need || need.toLowerCase() === 'lily white') return 2;
   }
   return 1;
 }
