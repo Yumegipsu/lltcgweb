@@ -4829,7 +4829,12 @@ function grantMemberLiveScoreBonus(array &$state, string $pid, string $memberIns
     unset($mbr);
 }
 
-function resolveAutomaticOpponentWaitEffects(array $state, string $sourcePid, array $waitedMember): array {
+function resolveAutomaticOpponentWaitEffects(
+    array $state,
+    string $sourcePid,
+    array $waitedMember,
+    ?array $effectSourceCard = null
+): array {
     if (!($waitedMember['active'] ?? true)) {
         return $state;
     }
@@ -4838,7 +4843,9 @@ function resolveAutomaticOpponentWaitEffects(array $state, string $sourcePid, ar
     foreach ($p['stage'] as $slot => &$member) {
         if (!$member) continue;
         foreach ($member['abilities'] ?? [] as $idx => $ab) {
-            if (($ab['trigger'] ?? '') !== 'automatic') continue;
+            $trigger = (string)($ab['trigger'] ?? '');
+            // Catalog uses "auto"; some older rows used "automatic".
+            if ($trigger !== 'automatic' && $trigger !== 'auto') continue;
             if (($ab['type'] ?? '') !== 'draw_on_opp_wait_by_effect') continue;
             if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) continue;
             if ($cost > intval($ab['max_opp_cost'] ?? 4)) continue;
@@ -4847,10 +4854,37 @@ function resolveAutomaticOpponentWaitEffects(array $state, string $sourcePid, ar
             $drawn = drawCardsForPlayer($state, $sourcePid, intval($ab['draw'] ?? 1));
             $state = addLog($state, $state['players'][$sourcePid]['name'] .
                 ' — [' . ($member['name_en'] ?? $member['name']) . "] drew $drawn (opponent active Member put into Wait by your effect).");
-            return $state;
+            break;
         }
     }
     unset($member);
+
+    // PL!-pb2-015 Angelic Angel Maki etc. — queue while Wait pick prompt may still be open (#251).
+    if (function_exists('plMusePb2QueueOppWaitAuto')) {
+        $srcCard = $effectSourceCard;
+        if (!$srcCard) {
+            $pr = $state['pending_prompt'] ?? [];
+            $iid = is_array($pr)
+                ? (string)($pr['source_instance_id'] ?? $pr['source_id'] ?? '')
+                : '';
+            if ($iid !== '' && function_exists('findSourceCard')) {
+                $found = findSourceCard($state, $sourcePid, $iid);
+                if (is_array($found)) {
+                    $srcCard = $found;
+                }
+            }
+            if (!$srcCard && !empty($state['_wait_effect_source']) && is_array($state['_wait_effect_source'])) {
+                $srcCard = $state['_wait_effect_source'];
+            }
+            if (!$srcCard && !empty($state['_mod_source']) && is_array($state['_mod_source'])) {
+                $srcCard = $state['_mod_source'];
+            }
+        }
+        plMusePb2QueueOppWaitAuto($state, $sourcePid, $srcCard);
+        if (empty($state['pending_prompt']) && function_exists('plMusePb2FlushPendingOppWaitAutos')) {
+            $state = plMusePb2FlushPendingOppWaitAutos($state);
+        }
+    }
     return $state;
 }
 
@@ -7212,6 +7246,14 @@ function beginWaitOpponentStagePick(
     bool $liveStart = false
 ): array {
     $opp = ($owner === 'p1') ? 'p2' : 'p1';
+    // Remember the effect source Member/Live so opp-Wait autos (AA Maki) can
+    // verify subunit after the pick prompt clears (#251).
+    if ($sourceId !== '' && function_exists('findSourceCard')) {
+        $srcCard = findSourceCard($state, $owner, $sourceId);
+        if (is_array($srcCard)) {
+            $state['_wait_effect_source'] = $srcCard;
+        }
+    }
     $byBlade = array_key_exists('max_original_blade', $effect)
         || array_key_exists('max_original_blades', $effect);
     $byHearts = array_key_exists('max_original_hearts', $effect);
@@ -7353,6 +7395,7 @@ function beginWaitOpponentStagePick(
         'opp'           => $opp,
         'opp_chooses'   => $oppChooses,
         'source_id'     => $sourceId,
+        'source_instance_id' => $sourceId,
         'source_name'   => $srcName,
         'live_start'    => $liveStart,
         'prompt'        => $prompt,

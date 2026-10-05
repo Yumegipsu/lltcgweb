@@ -63,6 +63,12 @@ function finishPromptEffects(array $state): array {
             return $state;
         }
     }
+    if (empty($state['pending_prompt']) && function_exists('plMusePb2FlushPendingOppWaitAutos')) {
+        $state = plMusePb2FlushPendingOppWaitAutos($state);
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
     // Resume PL!-pb1-018 (etc.) after a summoned Member's [On Enter] prompt chain (#70).
     if (empty($state['pending_prompt']) && !empty($state['_resume_both_wr_member_to_empty_stage'])) {
         $r = $state['_resume_both_wr_member_to_empty_stage'];
@@ -388,6 +394,19 @@ function finishAfterBranchChoicePrompt(array $state, array $prompt): array {
             return $state;
         }
     }
+    // Angelic Angel Maki etc. — BiBi Wait autos queued during wait pick (#251).
+    if (empty($state['pending_prompt']) && function_exists('plMusePb2FlushPendingOppWaitAutos')) {
+        $state = plMusePb2FlushPendingOppWaitAutos($state);
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
+    if (empty($state['pending_prompt']) && function_exists('bp7FlushPendingAllyWaits')) {
+        $state = bp7FlushPendingAllyWaits($state);
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
     // Multi-Ceras Auto waits (bp6-007) are queued on _resume_hs_auto_on_other_enter.
     // Main-phase Wait resolution goes through finishPromptEffects (which drains that
     // resume). Live Start used resumeLiveStartEffectPhase instead and skipped the
@@ -413,6 +432,10 @@ function finishAfterBranchChoicePrompt(array $state, array $prompt): array {
                 return $state;
             }
         }
+    }
+    if (!empty($state['pending_prompt'])) {
+        // e.g. Angelic Angel Maki choice opened during Wait resolution (#251).
+        return $state;
     }
     if (($state['phase'] ?? '') === 'live_start_effects' || !empty($prompt['live_start'])) {
         return resumeLiveStartEffectPhase($state);

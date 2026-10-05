@@ -69,6 +69,134 @@ function plMusePb2SetPendingPrompt(array $state, array $prompt): array {
 }
 
 /**
+ * Queue Angelic Angel Maki (etc.) autos that fire when an opponent Member is
+ * put into Wait by your subunit card effect. Must not open a prompt while a
+ * wait_opponent_stage_pick is still being resolved (#251).
+ */
+function plMusePb2QueueOppWaitAuto(array &$state, string $sourcePid, ?array $effectSourceCard): void {
+    if (!isset($state['_pb2_pending_opp_wait_autos']) || !is_array($state['_pb2_pending_opp_wait_autos'])) {
+        $state['_pb2_pending_opp_wait_autos'] = [];
+    }
+    $state['_pb2_pending_opp_wait_autos'][] = [
+        'source_pid' => $sourcePid,
+        'effect_source' => is_array($effectSourceCard) ? $effectSourceCard : null,
+    ];
+}
+
+/** Resolve queued BiBi/subunit-on-opp-Wait autos after the Wait pick prompt clears. */
+function plMusePb2FlushPendingOppWaitAutos(array $state): array {
+    if (!empty($state['pending_prompt'])) {
+        return $state;
+    }
+    $queue = $state['_pb2_pending_opp_wait_autos'] ?? [];
+    if (!is_array($queue) || $queue === []) {
+        return $state;
+    }
+    unset($state['_pb2_pending_opp_wait_autos']);
+    foreach ($queue as $i => $entry) {
+        if (!is_array($entry)) {
+            continue;
+        }
+        $pid = (string)($entry['source_pid'] ?? '');
+        if ($pid === '') {
+            continue;
+        }
+        $state = plMusePb2FireAutoOnOppWait($state, $pid, $entry['effect_source'] ?? null);
+        if (!empty($state['pending_prompt'])) {
+            $rest = array_values(array_slice($queue, $i + 1));
+            if ($rest !== []) {
+                $state['_pb2_pending_opp_wait_autos'] = $rest;
+            }
+            return $state;
+        }
+    }
+    return $state;
+}
+
+/**
+ * Fire [Auto] skills that watch "opp Stage Member Waited by your subunit effect"
+ * (PL!-pb2-015 Angelic Angel Maki) and stack-under-on-opp-wait variants.
+ */
+function plMusePb2FireAutoOnOppWait(array $state, string $sourcePid, ?array $effectSourceCard): array {
+    $srcCard = is_array($effectSourceCard) ? $effectSourceCard : null;
+    if (!$srcCard) {
+        $pr = $state['pending_prompt'] ?? [];
+        $iid = is_array($pr)
+            ? (string)($pr['source_instance_id'] ?? $pr['source_id'] ?? '')
+            : '';
+        if ($iid !== '' && function_exists('findSourceCard')) {
+            $found = findSourceCard($state, $sourcePid, $iid);
+            if (is_array($found)) {
+                $srcCard = $found;
+            }
+        }
+        if (!$srcCard && !empty($state['_wait_effect_source']) && is_array($state['_wait_effect_source'])) {
+            $srcCard = $state['_wait_effect_source'];
+        }
+        if (!$srcCard && !empty($state['_mod_source']) && is_array($state['_mod_source'])) {
+            $srcCard = $state['_mod_source'];
+        }
+    }
+    if (!$srcCard) {
+        return $state;
+    }
+    mergeCardCatalogFields($srcCard);
+
+    $p = &$state['players'][$sourcePid];
+    foreach ($p['stage'] as $slot => &$member) {
+        if (!$member) {
+            continue;
+        }
+        mergeCardCatalogFields($member);
+        foreach ($member['abilities'] ?? [] as $idx => $ab) {
+            $trigger = (string)($ab['trigger'] ?? '');
+            if ($trigger !== 'auto' && $trigger !== 'automatic') {
+                continue;
+            }
+            if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) {
+                continue;
+            }
+            $type = (string)($ab['type'] ?? '');
+            if ($type === 'auto_on_opp_wait_by_subunit_choose') {
+                $needSub = (string)($ab['subunit'] ?? 'BiBi');
+                if ($needSub !== '' && !cardMatchesSubunit($srcCard, $needSub)) {
+                    continue;
+                }
+                if (!empty($ab['once_per_turn'])) {
+                    markAbilityUsed($member, $idx);
+                    $p['stage'][$slot] = $member;
+                }
+                $state = resolveAbilityEffect($state, $sourcePid, $member, $ab, [
+                    'phase' => 'auto',
+                    'opp_wait_by_subunit' => true,
+                    'subunit' => $needSub,
+                    'slot' => $slot,
+                    'ability_index' => $idx,
+                ]);
+                unset($member);
+                return $state;
+            }
+            if ($type === 'auto_stack_wr_subunit_under_on_opp_wait') {
+                if (!empty($ab['once_per_turn'])) {
+                    markAbilityUsed($member, $idx);
+                    $p['stage'][$slot] = $member;
+                }
+                $state = resolveAbilityEffect($state, $sourcePid, $member, $ab, [
+                    'phase' => 'auto',
+                    'opp_wait_by_effect' => true,
+                    'slot' => $slot,
+                    'ability_index' => $idx,
+                ]);
+                unset($member);
+                return $state;
+            }
+        }
+    }
+    unset($member);
+    return $state;
+}
+
+/**
  * Open pick_wr_to_hand for matching WR cards. Never emit bare add_from_wr —
  * that type has no client UI / PromptResolver path and softlocks (#238).
  *
