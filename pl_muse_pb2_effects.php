@@ -69,9 +69,9 @@ function plMusePb2SetPendingPrompt(array $state, array $prompt): array {
 }
 
 /**
- * Queue Angelic Angel Maki (etc.) autos that fire when an opponent Member is
- * put into Wait by your subunit card effect. Must not open a prompt while a
- * wait_opponent_stage_pick is still being resolved (#251).
+ * Queue Angelic Angel Maki / Eli (etc.) autos that fire when an opponent Member
+ * is put into Wait by your card effect. Must not open a prompt while a
+ * wait_opponent_stage_pick is still being resolved (#251 / #253).
  */
 function plMusePb2QueueOppWaitAuto(array &$state, string $sourcePid, ?array $effectSourceCard): void {
     if (!isset($state['_pb2_pending_opp_wait_autos']) || !is_array($state['_pb2_pending_opp_wait_autos'])) {
@@ -80,10 +80,11 @@ function plMusePb2QueueOppWaitAuto(array &$state, string $sourcePid, ?array $eff
     $state['_pb2_pending_opp_wait_autos'][] = [
         'source_pid' => $sourcePid,
         'effect_source' => is_array($effectSourceCard) ? $effectSourceCard : null,
+        'skip_ids' => [],
     ];
 }
 
-/** Resolve queued BiBi/subunit-on-opp-Wait autos after the Wait pick prompt clears. */
+/** Resolve queued opp-Wait autos after the Wait pick (or prior auto prompt) clears. */
 function plMusePb2FlushPendingOppWaitAutos(array $state): array {
     if (!empty($state['pending_prompt'])) {
         return $state;
@@ -101,11 +102,28 @@ function plMusePb2FlushPendingOppWaitAutos(array $state): array {
         if ($pid === '') {
             continue;
         }
-        $state = plMusePb2FireAutoOnOppWait($state, $pid, $entry['effect_source'] ?? null);
+        $skip = $entry['skip_ids'] ?? [];
+        if (!is_array($skip)) {
+            $skip = [];
+        }
+        $state = plMusePb2FireAutoOnOppWait(
+            $state,
+            $pid,
+            $entry['effect_source'] ?? null,
+            $skip
+        );
         if (!empty($state['pending_prompt'])) {
+            // Fire may have queued remaining Stage autos for this Wait — keep them.
+            $fromFire = $state['_pb2_pending_opp_wait_autos'] ?? [];
+            if (!is_array($fromFire)) {
+                $fromFire = [];
+            }
             $rest = array_values(array_slice($queue, $i + 1));
-            if ($rest !== []) {
-                $state['_pb2_pending_opp_wait_autos'] = $rest;
+            $merged = array_merge($fromFire, $rest);
+            if ($merged !== []) {
+                $state['_pb2_pending_opp_wait_autos'] = $merged;
+            } else {
+                unset($state['_pb2_pending_opp_wait_autos']);
             }
             return $state;
         }
@@ -114,10 +132,85 @@ function plMusePb2FlushPendingOppWaitAutos(array $state): array {
 }
 
 /**
- * Fire [Auto] skills that watch "opp Stage Member Waited by your subunit effect"
- * (PL!-pb2-015 Angelic Angel Maki) and stack-under-on-opp-wait variants.
+ * Collect Stage [Auto] skills that watch opp Wait (#251 Maki choose, #253 Eli stack).
+ *
+ * @param list<string> $skipIds Instance ids already resolved for this Wait.
+ * @return list<array{slot:string,member:array,idx:int,ab:array,type:string}>
  */
-function plMusePb2FireAutoOnOppWait(array $state, string $sourcePid, ?array $effectSourceCard): array {
+function plMusePb2CollectOppWaitAutos(
+    array $state,
+    string $sourcePid,
+    ?array $srcCard,
+    array $skipIds = []
+): array {
+    $skip = array_fill_keys(array_map('strval', $skipIds), true);
+    $out = [];
+    $p = $state['players'][$sourcePid] ?? [];
+    foreach (['left', 'center', 'right'] as $slot) {
+        $member = $p['stage'][$slot] ?? null;
+        if (!$member) {
+            continue;
+        }
+        $iid = (string)($member['instance_id'] ?? '');
+        if ($iid !== '' && isset($skip[$iid])) {
+            continue;
+        }
+        mergeCardCatalogFields($member);
+        foreach ($member['abilities'] ?? [] as $idx => $ab) {
+            $trigger = (string)($ab['trigger'] ?? '');
+            if ($trigger !== 'auto' && $trigger !== 'automatic') {
+                continue;
+            }
+            if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) {
+                continue;
+            }
+            $type = (string)($ab['type'] ?? '');
+            if ($type === 'auto_on_opp_wait_by_subunit_choose') {
+                // Needs a lily/BiBi (subunit) effect source card.
+                if (!$srcCard) {
+                    continue;
+                }
+                $needSub = (string)($ab['subunit'] ?? 'BiBi');
+                if ($needSub !== '' && !cardMatchesSubunit($srcCard, $needSub)) {
+                    continue;
+                }
+                $out[] = [
+                    'slot' => (string)$slot,
+                    'member' => $member,
+                    'idx' => (int)$idx,
+                    'ab' => $ab,
+                    'type' => $type,
+                ];
+                break; // one auto per Member per Wait
+            }
+            if ($type === 'auto_stack_wr_subunit_under_on_opp_wait') {
+                // Any of your card effects — source identity optional (#253).
+                $out[] = [
+                    'slot' => (string)$slot,
+                    'member' => $member,
+                    'idx' => (int)$idx,
+                    'ab' => $ab,
+                    'type' => $type,
+                ];
+                break;
+            }
+        }
+    }
+    return $out;
+}
+
+/**
+ * Fire [Auto] skills that watch "opp Stage Member Waited by your effect"
+ * (PL!-pb2-015 Angelic Angel Maki, PL!-pb2-011 Angelic Angel Eli).
+ *
+ * @param list<string> $skipIds
+ */
+function plMusePb2FireAutoOnOppWait(
+    array $state,
+    string $sourcePid,
+    ?array $effectSourceCard,
+    array $skipIds = []
+): array {
     $srcCard = is_array($effectSourceCard) ? $effectSourceCard : null;
     if (!$srcCard) {
         $pr = $state['pending_prompt'] ?? [];
@@ -137,62 +230,75 @@ function plMusePb2FireAutoOnOppWait(array $state, string $sourcePid, ?array $eff
             $srcCard = $state['_mod_source'];
         }
     }
-    if (!$srcCard) {
+    if ($srcCard) {
+        mergeCardCatalogFields($srcCard);
+    }
+
+    $matches = plMusePb2CollectOppWaitAutos($state, $sourcePid, $srcCard, $skipIds);
+    if ($matches === []) {
         return $state;
     }
-    mergeCardCatalogFields($srcCard);
+
+    $fired = $matches[0];
+    $member = $fired['member'];
+    $slot = $fired['slot'];
+    $idx = $fired['idx'];
+    $ab = $fired['ab'];
+    $type = $fired['type'];
+    $firedId = (string)($member['instance_id'] ?? '');
 
     $p = &$state['players'][$sourcePid];
-    foreach ($p['stage'] as $slot => &$member) {
-        if (!$member) {
-            continue;
-        }
+    // Re-read Stage copy so once_per_turn marks stick.
+    if ($slot !== '' && !empty($p['stage'][$slot])) {
+        $member = $p['stage'][$slot];
         mergeCardCatalogFields($member);
-        foreach ($member['abilities'] ?? [] as $idx => $ab) {
-            $trigger = (string)($ab['trigger'] ?? '');
-            if ($trigger !== 'auto' && $trigger !== 'automatic') {
-                continue;
-            }
-            if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) {
-                continue;
-            }
-            $type = (string)($ab['type'] ?? '');
-            if ($type === 'auto_on_opp_wait_by_subunit_choose') {
-                $needSub = (string)($ab['subunit'] ?? 'BiBi');
-                if ($needSub !== '' && !cardMatchesSubunit($srcCard, $needSub)) {
-                    continue;
-                }
-                if (!empty($ab['once_per_turn'])) {
-                    markAbilityUsed($member, $idx);
-                    $p['stage'][$slot] = $member;
-                }
-                $state = resolveAbilityEffect($state, $sourcePid, $member, $ab, [
-                    'phase' => 'auto',
-                    'opp_wait_by_subunit' => true,
-                    'subunit' => $needSub,
-                    'slot' => $slot,
-                    'ability_index' => $idx,
-                ]);
-                unset($member);
-                return $state;
-            }
-            if ($type === 'auto_stack_wr_subunit_under_on_opp_wait') {
-                if (!empty($ab['once_per_turn'])) {
-                    markAbilityUsed($member, $idx);
-                    $p['stage'][$slot] = $member;
-                }
-                $state = resolveAbilityEffect($state, $sourcePid, $member, $ab, [
-                    'phase' => 'auto',
-                    'opp_wait_by_effect' => true,
-                    'slot' => $slot,
-                    'ability_index' => $idx,
-                ]);
-                unset($member);
-                return $state;
-            }
-        }
     }
-    unset($member);
+    if (!empty($ab['once_per_turn'])) {
+        markAbilityUsed($member, $idx);
+        $p['stage'][$slot] = $member;
+    }
+
+    if ($type === 'auto_on_opp_wait_by_subunit_choose') {
+        $needSub = (string)($ab['subunit'] ?? 'BiBi');
+        $state = resolveAbilityEffect($state, $sourcePid, $member, $ab, [
+            'phase' => 'auto',
+            'opp_wait_by_subunit' => true,
+            'subunit' => $needSub,
+            'slot' => $slot,
+            'ability_index' => $idx,
+        ]);
+    } else {
+        $state = resolveAbilityEffect($state, $sourcePid, $member, $ab, [
+            'phase' => 'auto',
+            'opp_wait_by_effect' => true,
+            'slot' => $slot,
+            'ability_index' => $idx,
+        ]);
+    }
+
+    $newSkip = $skipIds;
+    if ($firedId !== '') {
+        $newSkip[] = $firedId;
+    }
+    $remaining = array_slice($matches, 1);
+    if ($remaining === []) {
+        return $state;
+    }
+
+    // More Stage autos for this Wait (e.g. Maki choose then Eli stack) (#253).
+    if (!isset($state['_pb2_pending_opp_wait_autos']) || !is_array($state['_pb2_pending_opp_wait_autos'])) {
+        $state['_pb2_pending_opp_wait_autos'] = [];
+    }
+    array_unshift($state['_pb2_pending_opp_wait_autos'], [
+        'source_pid' => $sourcePid,
+        'effect_source' => $srcCard,
+        'skip_ids' => $newSkip,
+    ]);
+
+    if (empty($state['pending_prompt'])) {
+        // No prompt — keep flushing the rest immediately.
+        return plMusePb2FlushPendingOppWaitAutos($state);
+    }
     return $state;
 }
 
