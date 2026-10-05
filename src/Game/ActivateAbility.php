@@ -1397,6 +1397,51 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             $state['pending_prompt']['source_slot'] = $slot ?? '';
             $state['pending_prompt']['source_id'] = $srcId;
         }
+    } elseif (($ab['type'] ?? '') === 'optional_wait_self_discard_wait_opp_max_printed_hearts') {
+        // PL!-pb2-006 Maki: Wait self + discard 1 → Wait opp Member with ≤N printed hearts.
+        // Was listed in collectActivatableAbilities but ActivateAbility threw
+        // "Ability type not implemented" — button looked like a no-op (#250).
+        if (memberIsInWait($member)) {
+            throw new Exception('Member is already in Wait');
+        }
+        $need = intval($ab['discard'] ?? 1);
+        if ($need > 0 && count($p['hand'] ?? []) < $need) {
+            throw new Exception("Need $need card(s) in hand");
+        }
+        $maxH = intval($ab['max_printed_hearts'] ?? 1);
+        $oppId = ($pid === 'p1') ? 'p2' : 'p1';
+        $hasOpp = false;
+        foreach ($state['players'][$oppId]['stage'] ?? [] as $om) {
+            if ($om && !memberIsInWait($om) && plMusePb2PrintedHeartCount($om) <= $maxH) {
+                $hasOpp = true;
+                break;
+            }
+        }
+        if (!$hasOpp) {
+            throw new Exception(
+                'No opponent Stage Member with ' . $maxH . ' or fewer printed hearts'
+            );
+        }
+        $srcId = (string)($member['instance_id'] ?? '');
+        if (!empty($ab['once_per_turn'])) {
+            markAbilityUsed($member, $abilityIdx);
+        }
+        if ($slot !== null && $zone === 'stage') {
+            $p['stage'][$slot] = $member;
+        }
+        $state = resolveAbilityEffect($state, $pid, $member, $ab, [
+            'slot'          => $slot ?? '',
+            'phase'         => 'activated',
+            'ability_index' => $abilityIdx,
+        ]);
+        if (empty($state['pending_prompt'])) {
+            throw new Exception('Could not start Wait ability');
+        }
+        $state['pending_prompt']['ability_index'] = $abilityIdx;
+        $state['pending_prompt']['source_slot'] = $slot ?? '';
+        $state['pending_prompt']['source_id'] = $srcId;
+        // Activation is the opt-in (Live Start still shows yes/no). Skip to discard.
+        $state = actionResolvePrompt($state, $pid, ['choice' => 'yes']);
     } elseif (($ab['type'] ?? '') === 'optional_pay_energy') {
         // As an [Activated] ability the opt-in is the activation itself, so the
         // Energy is paid up front rather than behind a yes/no prompt.
