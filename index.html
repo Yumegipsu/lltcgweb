@@ -30386,7 +30386,10 @@ function estimateYellBlade(s, pid) {
     s?.live_modifiers?.p2?.both_stages_blade || 0
   );
   total += bothStages;
-  return total;
+  // Yell reveal count = Blade − reductions + extras (Bokutachi #248).
+  total -= Number(lm.yell_reveal_reduction || 0);
+  total += Number(lm.extra_yell_reveal || 0);
+  return Math.max(0, total);
 }
 
 function yellBladeHasModifier(s, pid) {

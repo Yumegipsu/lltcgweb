@@ -22,6 +22,8 @@ function liveModifierDefaults(): array {
         'bonus_hearts'             => [],
         'blade_per_live_zone'      => 0,
         'yell_reveal_reduction'    => 0,
+        // Extra cards revealed for Yell (Bokutachi PL!-pb2-039 Live Start, #248).
+        'extra_yell_reveal'        => 0,
         'blade_per_hand_divisor'   => 0,
         'blade_per_hand_amount'    => 0,
         'cannot_live'              => false,

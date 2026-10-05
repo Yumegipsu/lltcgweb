@@ -3215,7 +3215,7 @@ function drawYellCardsForPlayer(array $state, string $pid): array {
     $totalBlade = computeYellBladeTotal($state, $pid);
     $state = initLiveModifiers($state);
     $yellReduction = intval($state['live_modifiers'][$pid]['yell_reveal_reduction'] ?? 0);
-    $drawBlade = max(0, $totalBlade - $yellReduction);
+    $drawBlade = computeYellRevealCount($state, $pid);
     $yellCards = [];
     if ($drawBlade > 0) {
         // PL!S-bp7-022 flips this seat's Yell to come off the bottom of the deck.
@@ -3226,7 +3226,8 @@ function drawYellCardsForPlayer(array $state, string $pid): array {
     }
     unset($yc);
     $state = recordYellRevealSnapshot($state, $pid, $yellCards, true);
-    $state = recordYellBladeDrawn($state, $pid, $totalBlade);
+    // Snapshot actual reveal count so HUD matches cards drawn (#248).
+    $state = recordYellBladeDrawn($state, $pid, $drawBlade);
     return [$state, $yellCards, $totalBlade, $drawBlade, $yellReduction];
 }
 
@@ -6159,8 +6160,8 @@ function filterStateForPlayer(array $state, string $token): array {
             ? collectContinuousPerformanceHeartGrants($state, $oppId) : [];
         $mineContinuousHearts = aggregateFlatHeartColors(getContinuousPerformanceHearts($state, $myId));
         $oppContinuousHearts = aggregateFlatHeartColors(getContinuousPerformanceHearts($state, $oppId));
-        $yellBladeMine = computeYellBladeTotal($state, $myId);
-        $yellBladeOpp = computeYellBladeTotal($state, $oppId);
+        $yellBladeMine = computeYellRevealCount($state, $myId);
+        $yellBladeOpp = computeYellRevealCount($state, $oppId);
         $drawnMine = yellBladeDrawnTotal($state, $myId);
         $drawnOpp = yellBladeDrawnTotal($state, $oppId);
         if ($drawnMine !== null) {

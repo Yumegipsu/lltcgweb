@@ -2347,6 +2347,18 @@ function computeYellBladeTotal(array $state, string $pid): int {
     return $total;
 }
 
+/**
+ * Cards revealed for Yell: Blade − reveal reductions + extra reveal modifiers
+ * (e.g. Bokutachi PL!-pb2-039 Live Start +10, #248).
+ */
+function computeYellRevealCount(array $state, string $pid): int {
+    $totalBlade = computeYellBladeTotal($state, $pid);
+    $state = initLiveModifiers($state);
+    $yellReduction = intval($state['live_modifiers'][$pid]['yell_reveal_reduction'] ?? 0);
+    $extraYell = intval($state['live_modifiers'][$pid]['extra_yell_reveal'] ?? 0);
+    return max(0, $totalBlade - $yellReduction + $extraYell);
+}
+
 function liveRequiredHeartCount(array $live): int {
     $n = 0;
     foreach ($live['required_hearts'] ?? $live['hearts'] ?? [] as $hg) {

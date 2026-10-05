@@ -1311,6 +1311,7 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'score_per_distinct_group_name_stage_and_yell': {
+            // Bokutachi: “this card's score +1” per distinct μ's name on Stage + Yell (#248).
             $group = $ab['group'] ?? "μ's";
             $names = [];
             foreach ($p['stage'] ?? [] as $m) {
@@ -1318,7 +1319,11 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                     $names[cardDisplayName($m)] = true;
                 }
             }
-            $yell = $state['_last_yell_cards_' . $pid] ?? $state['_last_yell_cards'] ?? [];
+            $yell = $state['players'][$pid]['yell_cards']
+                ?? $state['yell_reveal'][$pid]
+                ?? $state['_last_yell_cards_' . $pid]
+                ?? $state['_last_yell_cards']
+                ?? [];
             foreach ($yell as $c) {
                 if ($c && isMemberCard($c) && cardMatchesGroup($c, $group, 'member')) {
                     $names[cardDisplayName($c)] = true;
@@ -1326,12 +1331,9 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             }
             $amt = count($names) * intval($ab['amount'] ?? 1);
             if ($amt > 0) {
-                $state = applyModifierEffect($state, $pid, [
-                    'type' => 'live_score_bonus',
-                    'amount' => $amt,
-                    'source' => $name,
-                    'target_instance_id' => $source['instance_id'] ?? '',
-                ]);
+                bumpLiveCardScore($state, $pid, (string)($source['instance_id'] ?? ''), $amt);
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] +" . $amt . " score (" . count($names) . " distinct).");
             }
             break;
         }
