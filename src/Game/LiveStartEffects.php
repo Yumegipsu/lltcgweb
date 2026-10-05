@@ -304,11 +304,18 @@ function resolveLiveStartAbilitiesBody(array $state, string $pid): array {
         $ordered[] = $source;
     }
 
-    foreach ($ordered as $source) {
-        $instanceId = (string)($source['instance_id'] ?? '');
+    foreach ($ordered as $sourceSnap) {
+        $instanceId = (string)($sourceSnap['instance_id'] ?? '');
         if ($instanceId === '') {
             continue;
         }
+        // Re-read Stage/Live after earlier skills (WAO-WAO Activate) so Wait flags
+        // and modifiers match the board — stale snapshots skipped Honoka Wait (#247).
+        $source = findSourceCard($state, $pid, $instanceId);
+        if (!$source) {
+            continue;
+        }
+        mergeCardCatalogFields($source);
         $pendingAbs = pendingLiveStartAbilitiesForSource($state, $pid, $source);
         if ($pendingAbs === []) {
             continue;
@@ -326,6 +333,13 @@ function resolveLiveStartAbilitiesBody(array $state, string $pid): array {
                     $state = markLiveStartMandatoryResolved($state, $pid, $instanceId, $abIdx);
                     continue;
                 }
+            }
+            // Refresh again before each ability — prior prompt resolutions may
+            // have Waited/Activated this same Member in the same Live Start pass.
+            $fresh = findSourceCard($state, $pid, $instanceId);
+            if ($fresh) {
+                mergeCardCatalogFields($fresh);
+                $source = $fresh;
             }
             if ($kind === 'optional') {
                 $item = [
