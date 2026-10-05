@@ -5395,12 +5395,19 @@ function yellCardsHaveBladeHeart(array $yellCards): bool {
 }
 
 function countDistinctNamedOnStage(array $p, array $names): int {
+    // Match via cardMatchesNames so JP ability names (Bubble Rise #245) hit
+    // name_en Stage Members and vice versa — not name_en-only string compare.
     $found = [];
     foreach ($p['stage'] as $mbr) {
-        if (!$mbr) continue;
-        $label = $mbr['name_en'] ?? $mbr['name'] ?? '';
+        if (!$mbr) {
+            continue;
+        }
         foreach ($names as $n) {
-            if ($label === $n || str_contains($label, $n)) {
+            $n = (string)$n;
+            if ($n === '') {
+                continue;
+            }
+            if (cardMatchesNames($mbr, [$n])) {
                 $found[$n] = true;
             }
         }
