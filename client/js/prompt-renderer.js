@@ -2054,6 +2054,25 @@ global.hideTextAnswerPrompt = function hideTextAnswerPrompt(){
 global.renderBranchChoiceButtons = function renderBranchChoiceButtons(pr, s, myId, box){
   box.innerHTML='';
   const heartPick = isHeartColorChoicePrompt(pr);
+  const me = s?.players?.[myId];
+  // Kotori #249: after play-cost discount the other Printemps are already Wait —
+  // disable Wait-2 so players use discard-2 instead of hitting a soft error.
+  let wait2Blocked = false;
+  if (pr?.type === 'pb2_printemps_cost_mode' && me) {
+    const srcId = pr.source_instance_id || pr.source_id || '';
+    const subunit = pr.subunit || 'Printemps';
+    let others = 0;
+    for (const m of Object.values(me.stage || {})) {
+      if (!m || (m.instance_id || '') === srcId) continue;
+      const waiting = typeof memberInWait === 'function' ? memberInWait(m) : !!m.in_wait;
+      if (waiting) continue;
+      const match = (typeof pb2CardMatchesSubunit === 'function')
+        ? pb2CardMatchesSubunit(m, subunit)
+        : (typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(m, subunit));
+      if (match) others++;
+    }
+    wait2Blocked = others < 2;
+  }
   (pr.choices||[]).forEach((key,i)=>{
     const label=promptChoiceLabel(key, i, pr);
     const b=document.createElement('button');
@@ -2069,7 +2088,12 @@ global.renderBranchChoiceButtons = function renderBranchChoiceButtons(pr, s, myI
     }
     b.appendChild(num);
     b.appendChild(text);
-    b.onclick=()=> handlePromptChoice(pr,key,s,myId);
+    if (key === 'wait2' && wait2Blocked) {
+      b.disabled = true;
+      b.title = 'Need 2 other Active Printemps Members (use Discard 2 instead)';
+    } else {
+      b.onclick=()=> handlePromptChoice(pr,key,s,myId);
+    }
     box.appendChild(b);
   });
 }

@@ -3298,7 +3298,7 @@ try {
 <script src="client/js/stamps.js?v=21"></script>
 <script src="client/js/replay-debug.js?v=15"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
-<script src="client/js/prompt-renderer.js?v=113"></script>
+<script src="client/js/prompt-renderer.js?v=114"></script>
 <script src="client/js/tutorial-interactive.js?v=26"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -17441,8 +17441,10 @@ function abilityWrBlockReason(cpu, ab, sourceCard = null) {
       const subunit = ab.subunit || 'Printemps';
       const hasLive = (cpu.waiting_room || []).some(c => {
         if (!c || (c.card_type !== 'ライブ' && c.card_type_en !== 'Live')) return false;
-        if (typeof cardMatchesSubunit === 'function') return cardMatchesSubunit(c, subunit);
+        // Prefer pb2 helper (catalog + inference) — plain cardMatchesSubunit used to
+        // miss Lives/Members that omit subunit on the room copy (#246/#249).
         if (typeof pb2CardMatchesSubunit === 'function') return pb2CardMatchesSubunit(c, subunit);
+        if (typeof cardMatchesSubunit === 'function') return cardMatchesSubunit(c, subunit);
         const sub = String(c.subunit || c.subunit_en || '').toLowerCase();
         return sub === String(subunit).toLowerCase();
       });
@@ -29509,12 +29511,15 @@ function cardPb2WaitDistinctPlayOpt(card) {
   return (abs || []).find(a =>
     a && a.trigger === 'continuous' && a.type === 'play_cost_reduce_if_wait_distinct_subunit') || null;
 }
-/** Resolve subunit for Stage copies that omit catalog fields (#230/#234/#242). */
+/** Resolve subunit for Stage copies that omit catalog fields (#230/#234/#242/#246/#249). */
 function pb2CardMatchesSubunit(card, subunit) {
   if (!card || !subunit) return false;
   if (typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(card, subunit)) return true;
+  // Fallbacks when spectacle.js is older than this page.
   const no = card.card_no;
-  const cat = (typeof G !== 'undefined' && no) ? G.allCards?.[no] : null;
+  const cat = (typeof clientCatalogCardByNo === 'function')
+    ? clientCatalogCardByNo(no)
+    : ((typeof G !== 'undefined' && no) ? G.allCards?.[no] : null);
   if (cat && cat !== card) {
     if (typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(cat, subunit)) return true;
     const want = typeof canonicalSubunitKey === 'function'
@@ -29523,6 +29528,18 @@ function pb2CardMatchesSubunit(card, subunit) {
     const got = typeof canonicalSubunitKey === 'function'
       ? canonicalSubunitKey(cat.subunit || '')
       : String(cat.subunit || '').toLowerCase();
+    if (want && got && want === got) return true;
+  }
+  const inferred = typeof inferMemberSubunitFromNameClient === 'function'
+    ? inferMemberSubunitFromNameClient(card)
+    : '';
+  if (inferred) {
+    const want = typeof canonicalSubunitKey === 'function'
+      ? canonicalSubunitKey(subunit)
+      : String(subunit).toLowerCase();
+    const got = typeof canonicalSubunitKey === 'function'
+      ? canonicalSubunitKey(inferred)
+      : String(inferred).toLowerCase();
     if (want && got && want === got) return true;
   }
   return false;
@@ -29546,7 +29563,10 @@ function pb2DistinctSubunitWaitCandidates(me, ab) {
   return out;
 }
 function sendPlayMemberMaybePb2WaitOpt(card, payload, me, ec, payCost = null) {
-  const ab = cardPb2WaitDistinctPlayOpt(card);
+  // Prefer catalog abilities so Kotori Always discount is visible even if the
+  // room copy was dealt before the oracle fix (#246).
+  const playCard = (typeof enrichCard === 'function') ? enrichCard(card) : card;
+  const ab = cardPb2WaitDistinctPlayOpt(playCard);
   let cands = ab ? pb2DistinctSubunitWaitCandidates(me, ab) : [];
   // Exclude the Stage area being entered (Baton / overplay target).
   if (payload?.slot) {
@@ -29562,7 +29582,7 @@ function sendPlayMemberMaybePb2WaitOpt(card, payload, me, ec, payCost = null) {
   const reduced = Math.max(0, basePay - amt);
   const ae = (me?.energy_zone || []).filter(energyChipActive).length;
   const ovl = el('overlay-prompt');
-  el('prompt-ttl').textContent = card.name_en || card.name || 'Play';
+  el('prompt-ttl').textContent = playCard.name_en || playCard.name || 'Play';
   el('prompt-msg').textContent =
     `Put ${need} Printemps Members with different names into Wait to reduce this card's cost by ${amt}?`;
   const box = el('prompt-btns');
@@ -29572,7 +29592,7 @@ function sendPlayMemberMaybePb2WaitOpt(card, payload, me, ec, payCost = null) {
   yes.textContent = `Yes — choose ${need} (pay ${reduced})`;
   yes.onclick = () => {
     closeM('overlay-prompt');
-    openPb2PlayWaitPrintempsPick(card, payload, me, cands, need, reduced, basePay, ae);
+    openPb2PlayWaitPrintempsPick(playCard, payload, me, cands, need, reduced, basePay, ae);
   };
   box.appendChild(yes);
   const no = document.createElement('button');
@@ -29588,7 +29608,8 @@ function sendPlayMemberMaybePb2WaitOpt(card, payload, me, ec, payCost = null) {
     };
   }
   box.appendChild(no);
-  ovl.classList.add('open');
+  if (typeof openM === 'function') openM('overlay-prompt');
+  else ovl.classList.add('open');
 }
 function openPb2PlayWaitPrintempsPick(card, payload, me, cands, need, reduced, basePay, ae) {
   G.pickMarked.clear();
@@ -30671,10 +30692,13 @@ function collectActivatableAbilities(s, myId) {
   };
   const consider = (card, location, stageSlot) => {
     if (!card || card.card_type !== 'メンバー') return;
-    (card.abilities || []).forEach((ability, idx) => pushAbility(card, location, stageSlot, ability, idx));
+    const abs = (typeof clientCatalogAbilities === 'function')
+      ? clientCatalogAbilities(card)
+      : (card.abilities || []);
+    abs.forEach((ability, idx) => pushAbility(card, location, stageSlot, ability, idx));
     // Ren-style inherit: Activated abilities from matching Members stacked under this card.
     let inheritGroup = '';
-    (card.abilities || []).forEach(ab => {
+    abs.forEach(ab => {
       if (ab?.trigger === 'continuous' && ab?.type === 'inherit_stacked_group_abilities') {
         inheritGroup = ab.group || 'Superstar';
       }
@@ -30682,7 +30706,10 @@ function collectActivatableAbilities(s, myId) {
     if (!inheritGroup || location !== 'stage') return;
     (card.stacked_members || []).forEach(stacked => {
       if (!stacked || (stacked.group || '') !== inheritGroup) return;
-      (stacked.abilities || []).forEach((ability, sIdx) => {
+      const stackedAbs = (typeof clientCatalogAbilities === 'function')
+        ? clientCatalogAbilities(stacked)
+        : (stacked.abilities || []);
+      stackedAbs.forEach((ability, sIdx) => {
         if (ability?.trigger !== 'activated') return;
         const iid = stacked.instance_id || '';
         if (!iid) return;
@@ -36283,7 +36310,7 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/live-round-director.js?v=3"></script>
-<script src="client/js/spectacle.js?v=118"></script>
+<script src="client/js/spectacle.js?v=119"></script>
 <script src="client/js/board-render.js?v=49"></script>
 <script src="client/js/components/board-zones.js?v=2"></script>
 <script src="client/js/cpu-policy-data.js?v=1"></script>

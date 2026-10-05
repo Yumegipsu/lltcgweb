@@ -9727,11 +9727,58 @@ function announceLogEntry(entry, s, myId) {
     queueCenterBanner(banner);
   }
 }
+/** Resolve catalog card by no, accepting ASCII + and fullwidth ＋ (#246/#249). */
+function clientCatalogCardByNo(cardNo) {
+  const no = String(cardNo || '');
+  if (!no || typeof G === 'undefined' || !G.allCards) return null;
+  if (G.allCards[no]) return G.allCards[no];
+  const ascii = no.replace(/＋/g, '+');
+  const fullwidth = ascii.replace(/\+/g, '＋');
+  return G.allCards[ascii] || G.allCards[fullwidth] || null;
+}
+
+/**
+ * Prefer live catalog abilities over stale room copies so Always/Activated
+ * oracle updates (Kotori play-cost Wait discount) show without a new match (#246).
+ */
 function clientCatalogAbilities(card) {
-  if (card?.abilities?.length) return card.abilities;
-  const no = card?.card_no;
-  const cat = (typeof G !== 'undefined' && no) ? G.allCards?.[no] : null;
-  return cat?.abilities || [];
+  const cat = clientCatalogCardByNo(card?.card_no);
+  if (cat?.abilities?.length) return cat.abilities;
+  return card?.abilities || [];
+}
+
+/** Mirror subunits.php inferMemberSubunitFromName for client Stage/WR checks (#230/#246/#249). */
+function inferMemberSubunitFromNameClient(card) {
+  if (!card) return '';
+  const typeEn = card.card_type_en || '';
+  const typeJp = card.card_type || '';
+  if (typeEn !== 'Member' && typeJp !== 'メンバー') return '';
+  const nameEn = String(card.name_en || '').trim();
+  const nameJp = String(card.name || '').trim();
+  if (!nameEn && !nameJp) return '';
+  for (const label of [nameEn, nameJp]) {
+    if (label && (/[&＆／]/.test(label) || label.includes(' & '))) return '';
+  }
+  const map = {
+    'Honoka Kosaka': 'Printemps', 'Kotori Minami': 'Printemps', 'Hanayo Koizumi': 'Printemps',
+    '高坂穂乃果': 'Printemps', '南ことり': 'Printemps', '小泉花陽': 'Printemps',
+    'Umi Sonoda': 'lily white', 'Rin Hoshizora': 'lily white', 'Nozomi Tojo': 'lily white',
+    '園田海未': 'lily white', '星空凛': 'lily white', '星空 凛': 'lily white',
+    '東條希': 'lily white', '東條 希': 'lily white',
+    'Eli Ayase': 'BiBi', 'Maki Nishikino': 'BiBi', 'Nico Yazawa': 'BiBi',
+    '絢瀬絵里': 'BiBi', '西木野真姫': 'BiBi', '矢澤にこ': 'BiBi',
+    'Chika Takami': 'CYaRon!', 'You Watanabe': 'CYaRon!', 'Ruby Kurosawa': 'CYaRon!',
+    '高海千歌': 'CYaRon!', '渡辺曜': 'CYaRon!', '黒澤ルビィ': 'CYaRon!',
+    'Kanan Matsuura': 'AZALEA', 'Dia Kurosawa': 'AZALEA', 'Hanamaru Kunikida': 'AZALEA',
+    '松浦果南': 'AZALEA', '黒澤ダイヤ': 'AZALEA', '国木田花丸': 'AZALEA',
+    'Riko Sakurauchi': 'Guilty Kiss', 'Yoshiko Tsushima': 'Guilty Kiss', 'Mari Ohara': 'Guilty Kiss',
+    '桜内梨子': 'Guilty Kiss', '津島善子': 'Guilty Kiss', '小原鞠莉': 'Guilty Kiss',
+  };
+  if (nameEn && map[nameEn]) return map[nameEn];
+  if (nameJp && map[nameJp]) return map[nameJp];
+  const compact = nameJp.replace(/\s+/g, '');
+  if (compact && map[compact]) return map[compact];
+  return '';
 }
 function effectiveCost(card, hand){
   let base=card.cost||0;
@@ -9808,8 +9855,28 @@ function memberBlocksBaton(card){
 function cardMatchesSubunit(card, subunit) {
   if (!card || !subunit) return false;
   const want = canonicalSubunitKey(subunit);
+  if (!want) return false;
   if (canonicalSubunitKey(card.subunit || '') === want) return true;
-  return (card.subunits || []).some(s => canonicalSubunitKey(s) === want);
+  if ((card.subunits || []).some(s => canonicalSubunitKey(s) === want)) return true;
+  // Catalog / name inference — Stage/WR copies often omit subunit (#230/#246/#249).
+  const cat = typeof clientCatalogCardByNo === 'function'
+    ? clientCatalogCardByNo(card.card_no)
+    : null;
+  if (cat && cat !== card) {
+    if (canonicalSubunitKey(cat.subunit || '') === want) return true;
+    if ((cat.subunits || []).some(s => canonicalSubunitKey(s) === want)) return true;
+  }
+  const inferred = typeof inferMemberSubunitFromNameClient === 'function'
+    ? inferMemberSubunitFromNameClient(card)
+    : '';
+  if (inferred && canonicalSubunitKey(inferred) === want) return true;
+  if (cat && cat !== card) {
+    const inferredCat = typeof inferMemberSubunitFromNameClient === 'function'
+      ? inferMemberSubunitFromNameClient(cat)
+      : '';
+    if (inferredCat && canonicalSubunitKey(inferredCat) === want) return true;
+  }
+  return false;
 }
 function memberBatonRestricted(member, batonFrom) {
   for (const ab of member?.abilities || []) {
