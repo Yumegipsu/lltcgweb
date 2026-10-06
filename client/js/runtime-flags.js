@@ -18,11 +18,11 @@
   var DEFAULT_MATCH_API_PRIMARY = true;
   var DEFAULT_TOURNAMENTS_ENABLED = true;
   /**
-   * Card thumbs as static cardimg/thumbs/<w>/<name>.webp (no PHP). Keep false until every file
+   * Card thumbs as static cardimg/thumbs/<w>/<name>.webp (no PHP). Needs every file
    * under cardimg/thumbs/ on Hostinger is world-readable (older thumbs were written 0600 and
    * the web server answers 403). Override: ?static_thumbs=0|1 or localStorage.tcg_static_thumbs.
    */
-  var DEFAULT_STATIC_CARD_THUMBS = false;
+  var DEFAULT_STATIC_CARD_THUMBS = true;
 
   function parseBool(raw, fallback) {
     if (raw == null || raw === '') return fallback;
