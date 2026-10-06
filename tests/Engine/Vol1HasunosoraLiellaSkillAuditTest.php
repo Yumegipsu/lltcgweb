@@ -510,6 +510,7 @@ final class Vol1HasunosoraLiellaSkillAuditTest extends TestCase
             $this->stubMember('vol1_sp009_d1', 'Superstar'),
             $this->stubMember('vol1_sp009_d2', 'Superstar'),
         ];
+        $state['players']['p1']['energy_zone'] = $this->activeEnergy(2);
         $state = \actionActivateAbility($state, 'p1', [
             'card_id' => 'vol1_sp009',
             'ability_index' => 0,
@@ -517,6 +518,8 @@ final class Vol1HasunosoraLiellaSkillAuditTest extends TestCase
         $this->assertTrue(
             !empty($state['pending_prompt']) || count($state['players']['p1']['hand']) >= 1
         );
+        // Issue #254: the 1-Energy activation cost must actually be paid.
+        $this->assertSame(1, $this->countActiveEnergy($state));
     }
 
     public function testSp010ActivatedMandatoryDiscardLookReveal(): void

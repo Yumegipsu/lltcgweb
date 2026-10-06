@@ -1072,6 +1072,10 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         $state = addLog($state, $state['players'][$pid]['name'] .
             " — [$mName] put self into Wait; discard 1 from hand.");
     } elseif (($ab['type'] ?? '') === 'draw_and_discard') {
+        $energyCost = intval($ab['energy_cost'] ?? 0);
+        if ($energyCost > 0 && !payEnergyCost($p, $energyCost)) {
+            throw new Exception("Need $energyCost active Energy");
+        }
         $state = applyDrawThenDiscard(
             $state,
             $pid,
