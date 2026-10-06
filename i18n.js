@@ -2267,7 +2267,7 @@
       "deckBuilderSub": "プリセットとランク用デッキを編集",
       "rankedPvp": "ランクPvP",
       "rankedPvpSub": "マッチメイクでELOを競う",
-    "leaderboard": {
+      "leaderboard": {
         "sub": "See ranked standings",
         "title": "Leaderboard"
       },
@@ -2938,7 +2938,7 @@
       "searching": "検索中…（{seconds}秒）",
       "readySearch": "検索可能"
     },
-"season": {
+    "season": {
       "label": "{year} シーズン{n}",
       "history": "シーズンランク",
       "current": "今シーズン",
@@ -2991,7 +2991,7 @@
       "pointsLoss": "シーズンポイント −{n}",
       "pointsProtected": "Cランク — ポイント保護"
     },
-        "leaderboard": {
+    "leaderboard": {
       "title": "ランクリーダーボード",
       "lead": "ランクPvPの最高ELO。プロフィール行にカードバナーと国旗を設定できます。",
       "empty": "ランク対戦の記録がまだありません——ランクPvPでプレイして掲載しましょう。",
@@ -4213,6 +4213,9 @@
     },
     "lang": {
       "label": "Language"
+    },
+    "admin": {
+      "seasonFeedback": "シーズンフィードバック受信箱"
     }
   },
   "es": {
@@ -4265,7 +4268,7 @@
       "deckBuilderSub": "Edita preajustes y mazo clasificatorio",
       "rankedPvp": "PvP clasificatorio",
       "rankedPvpSub": "Sube tu ELO en partidas emparejadas",
-    "leaderboard": {
+      "leaderboard": {
         "sub": "See ranked standings",
         "title": "Leaderboard"
       },
@@ -4746,7 +4749,7 @@
       "readySearch": "Listo para buscar",
       "prRemaining": "Recompensas PR hoy: quedan {remaining} / {limit} (JST)"
     },
-"season": {
+    "season": {
       "label": "{year} Temporada {n}",
       "history": "Rangos de temporada",
       "current": "Esta temporada",
@@ -4775,9 +4778,31 @@
       "demoted": "Descendido a {rank}",
       "pointsGain": "+{n} pts de temporada",
       "pointsLoss": "−{n} pts de temporada",
-      "pointsProtected": "Rango C — puntos protegidos"
+      "pointsProtected": "Rango C — puntos protegidos",
+      "statsOpen": "Uso de cartas",
+      "statsTitle": "Uso de cartas",
+      "statsDecks": "{n} mazos",
+      "statsMatches": "{n} partidas Ranked",
+      "statsEmpty": "Aún no hay partidas Ranked registradas esta temporada.",
+      "statsCard": "Carta",
+      "statsUsage": "Uso",
+      "statsCopies": "Copias prom.",
+      "statsWin": "% de victorias",
+      "statsMembers": "Cartas de Miembro",
+      "statsLives": "Cartas Live",
+      "statsRowSub": "Victorias {win}% · {copies} copias de media",
+      "feedbackTitle": "Opiniones de la temporada",
+      "feedbackLead": "¿Qué deberíamos mejorar para la próxima temporada? Disponible hasta que termine la temporada.",
+      "feedbackPlaceholder": "Tus sugerencias…",
+      "feedbackSend": "Enviar opinión",
+      "feedbackUpdate": "Actualizar opinión",
+      "feedbackThanks": "¡Gracias! Tu opinión se ha enviado.",
+      "feedbackSent": "Ya enviaste tu opinión esta temporada. Si envías otra, reemplazará la anterior.",
+      "feedbackError": "No se pudo enviar la opinión",
+      "feedbackInbox": "Buzón de opiniones de temporada",
+      "feedbackNone": "Aún no hay opiniones."
     },
-        "leaderboard": {
+    "leaderboard": {
       "title": "Clasificación de clasificatoria",
       "lead": "El ELO más alto de PvP clasificatorio. Configura un banner y una bandera para tu fila de perfil.",
       "empty": "Aún no hay partidas clasificatorias: juega PvP clasificatorio para aparecer aquí.",
@@ -6168,6 +6193,9 @@
     },
     "lang": {
       "label": "Language"
+    },
+    "admin": {
+      "seasonFeedback": "Buzón de opiniones de temporada"
     }
   },
   "ko": {
@@ -6220,7 +6248,7 @@
       "deckBuilderSub": "프리셋 편집 및 랭크전 덱 설정",
       "rankedPvp": "랭크 PvP",
       "rankedPvpSub": "매칭 대전으로 ELO 올리기",
-    "leaderboard": {
+      "leaderboard": {
         "sub": "See ranked standings",
         "title": "Leaderboard"
       },
@@ -6711,7 +6739,7 @@
       "readySearch": "검색 준비 완료",
       "prRemaining": "오늘 PR 보상: {remaining} / {limit} 남음 (JST)"
     },
-"season": {
+    "season": {
       "label": "{year} 시즌 {n}",
       "history": "시즌 랭크",
       "current": "이번 시즌",
@@ -6740,9 +6768,31 @@
       "demoted": "{rank}(으)로 강등",
       "pointsGain": "시즌 포인트 +{n}",
       "pointsLoss": "시즌 포인트 −{n}",
-      "pointsProtected": "C 랭크 — 포인트 보호"
+      "pointsProtected": "C 랭크 — 포인트 보호",
+      "statsOpen": "카드 사용률",
+      "statsTitle": "카드 사용률",
+      "statsDecks": "{n}개 덱",
+      "statsMatches": "Ranked {n}경기",
+      "statsEmpty": "이번 시즌에 기록된 Ranked 경기가 아직 없습니다.",
+      "statsCard": "카드",
+      "statsUsage": "사용률",
+      "statsCopies": "평균 매수",
+      "statsWin": "승률",
+      "statsMembers": "멤버 카드",
+      "statsLives": "라이브 카드",
+      "statsRowSub": "승률 {win}% · 평균 {copies}장",
+      "feedbackTitle": "시즌 피드백",
+      "feedbackLead": "다음 시즌에 개선했으면 하는 점을 알려주세요. 시즌이 끝날 때까지 받습니다.",
+      "feedbackPlaceholder": "의견을 적어 주세요…",
+      "feedbackSend": "피드백 보내기",
+      "feedbackUpdate": "피드백 수정",
+      "feedbackThanks": "감사합니다! 피드백이 전송되었습니다.",
+      "feedbackSent": "이번 시즌에 이미 피드백을 보냈습니다. 다시 보내면 기존 내용이 대체됩니다.",
+      "feedbackError": "피드백을 보내지 못했습니다",
+      "feedbackInbox": "시즌 피드백 수신함",
+      "feedbackNone": "아직 피드백이 없습니다."
     },
-        "leaderboard": {
+    "leaderboard": {
       "title": "랭크 리더보드",
       "lead": "랭크 PvP에서 달성한 최고 ELO입니다. 프로필 행에 표시할 카드 배너와 국기를 설정하세요.",
       "empty": "아직 랭크전 기록이 없습니다 — 랭크 PvP를 플레이하면 여기에 표시됩니다.",
@@ -8147,6 +8197,9 @@
     },
     "lang": {
       "label": "Language"
+    },
+    "admin": {
+      "seasonFeedback": "시즌 피드백 수신함"
     }
   },
   "zh": {
@@ -8199,7 +8252,7 @@
       "deckBuilderSub": "编辑预设并设置排名牌组",
       "rankedPvp": "排名对战",
       "rankedPvpSub": "匹配对战并提升 ELO",
-    "leaderboard": {
+      "leaderboard": {
         "sub": "See ranked standings",
         "title": "Leaderboard"
       },
@@ -8690,7 +8743,7 @@
       "readySearch": "准备搜索",
       "prRemaining": "今日 PR 奖励：剩余 {remaining} / {limit}（JST）"
     },
-"season": {
+    "season": {
       "label": "{year} 第 {n} 赛季",
       "history": "赛季段位",
       "current": "本赛季",
@@ -8719,9 +8772,31 @@
       "demoted": "降级至{rank}",
       "pointsGain": "赛季积分 +{n}",
       "pointsLoss": "赛季积分 −{n}",
-      "pointsProtected": "C段 — 积分保护"
+      "pointsProtected": "C段 — 积分保护",
+      "statsOpen": "卡牌使用率",
+      "statsTitle": "卡牌使用率",
+      "statsDecks": "{n} 套牌组",
+      "statsMatches": "{n} 场 Ranked 对战",
+      "statsEmpty": "本赛季尚无 Ranked 对战记录。",
+      "statsCard": "卡牌",
+      "statsUsage": "使用率",
+      "statsCopies": "平均张数",
+      "statsWin": "胜率",
+      "statsMembers": "成员卡",
+      "statsLives": "Live 卡",
+      "statsRowSub": "胜率 {win}% · 平均 {copies} 张",
+      "feedbackTitle": "赛季反馈",
+      "feedbackLead": "你希望下个赛季改进什么？反馈在赛季结束前开放。",
+      "feedbackPlaceholder": "你的建议…",
+      "feedbackSend": "发送反馈",
+      "feedbackUpdate": "更新反馈",
+      "feedbackThanks": "谢谢！你的反馈已发送。",
+      "feedbackSent": "你本赛季已发送过反馈，再次发送将覆盖之前的内容。",
+      "feedbackError": "无法发送反馈",
+      "feedbackInbox": "赛季反馈收件箱",
+      "feedbackNone": "暂无反馈。"
     },
-        "leaderboard": {
+    "leaderboard": {
       "title": "排行榜",
       "lead": "排名对战的最高 ELO。可为个人资料行设置卡牌横幅与旗帜。",
       "empty": "尚无排名对战记录 — 参加排名对战后会出现在这里。",
@@ -10126,6 +10201,9 @@
     },
     "lang": {
       "label": "Language"
+    },
+    "admin": {
+      "seasonFeedback": "赛季反馈收件箱"
     }
   },
   "th": {
@@ -10178,7 +10256,7 @@
       "deckBuilderSub": "แก้ไขพรีเซ็ตและเด็คแรงก์",
       "rankedPvp": "แรงก์ PvP",
       "rankedPvpSub": "ไต่ ELO ด้วยแมตช์เมด",
-    "leaderboard": {
+      "leaderboard": {
         "sub": "See ranked standings",
         "title": "Leaderboard"
       },
@@ -10659,7 +10737,7 @@
       "readySearch": "พร้อมค้นหา",
       "prRemaining": "รางวัล PR วันนี้: เหลือ {remaining} / {limit} (JST)"
     },
-"season": {
+    "season": {
       "label": "{year} ซีซัน {n}",
       "history": "แรงก์ซีซัน",
       "current": "ซีซันนี้",
@@ -10688,9 +10766,31 @@
       "demoted": "ลดขั้นเป็น {rank}",
       "pointsGain": "แต้มซีซัน +{n}",
       "pointsLoss": "แต้มซีซัน −{n}",
-      "pointsProtected": "แรงก์ C — แต้มถูกป้องกัน"
+      "pointsProtected": "แรงก์ C — แต้มถูกป้องกัน",
+      "statsOpen": "การใช้การ์ด",
+      "statsTitle": "การใช้การ์ด",
+      "statsDecks": "{n} เด็ค",
+      "statsMatches": "{n} แมตช์ Ranked",
+      "statsEmpty": "ซีซันนี้ยังไม่มีการบันทึกแมตช์ Ranked",
+      "statsCard": "การ์ด",
+      "statsUsage": "อัตราการใช้",
+      "statsCopies": "จำนวนเฉลี่ย",
+      "statsWin": "อัตราชนะ",
+      "statsMembers": "การ์ดสมาชิก",
+      "statsLives": "การ์ด Live",
+      "statsRowSub": "ชนะ {win}% · เฉลี่ย {copies} ใบ",
+      "feedbackTitle": "ความคิดเห็นประจำซีซัน",
+      "feedbackLead": "อยากให้ปรับปรุงอะไรในซีซันหน้า? เปิดรับจนกว่าซีซันจะจบ",
+      "feedbackPlaceholder": "ข้อเสนอแนะของคุณ…",
+      "feedbackSend": "ส่งความคิดเห็น",
+      "feedbackUpdate": "อัปเดตความคิดเห็น",
+      "feedbackThanks": "ขอบคุณ! ส่งความคิดเห็นของคุณแล้ว",
+      "feedbackSent": "คุณส่งความคิดเห็นของซีซันนี้ไปแล้ว การส่งใหม่จะแทนที่อันเดิม",
+      "feedbackError": "ส่งความคิดเห็นไม่สำเร็จ",
+      "feedbackInbox": "กล่องความคิดเห็นประจำซีซัน",
+      "feedbackNone": "ยังไม่มีความคิดเห็น"
     },
-        "leaderboard": {
+    "leaderboard": {
       "title": "กระดานจัดอันดับแรงก์",
       "lead": "ELO สูงสุดจากแรงก์ PvP ตั้งแบนเนอร์การ์ดสำหรับแถวโปรไฟล์ของคุณ",
       "empty": "ยังไม่มีเกมแรงก์ — เล่นแรงก์ PvP เพื่อปรากฏที่นี่",
@@ -12081,6 +12181,9 @@
     },
     "lang": {
       "label": "Language"
+    },
+    "admin": {
+      "seasonFeedback": "กล่องความคิดเห็นประจำซีซัน"
     }
   },
   "pt": {
@@ -12137,7 +12240,7 @@
       "deckBuilderSub": "Edite predefinições e seu deck ranqueado",
       "rankedPvp": "PvP Ranqueado",
       "rankedPvpSub": "Suba seu ELO em partidas pareadas",
-    "leaderboard": {
+      "leaderboard": {
         "sub": "Veja a classificação ranqueada",
         "title": "Placar de Líderes"
       },
@@ -12716,7 +12819,7 @@
       "searching": "Procurando… ({seconds}s)",
       "readySearch": "Pronto para buscar"
     },
-"season": {
+    "season": {
       "label": "{year} Temporada {n}",
       "history": "Ranks de temporada",
       "current": "Esta temporada",
@@ -12745,9 +12848,31 @@
       "demoted": "Rebaixado a {rank}",
       "pointsGain": "+{n} pts da temporada",
       "pointsLoss": "−{n} pts da temporada",
-      "pointsProtected": "Rank C — pontos protegidos"
+      "pointsProtected": "Rank C — pontos protegidos",
+      "statsOpen": "Uso de cartas",
+      "statsTitle": "Uso de cartas",
+      "statsDecks": "{n} decks",
+      "statsMatches": "{n} partidas ranqueadas",
+      "statsEmpty": "Nenhuma partida ranqueada registrada nesta temporada ainda.",
+      "statsCard": "Carta",
+      "statsUsage": "Uso",
+      "statsCopies": "Média de cópias",
+      "statsWin": "% de vitórias",
+      "statsMembers": "Cartas de Membro",
+      "statsLives": "Cartas Live",
+      "statsRowSub": "Vitórias {win}% · média de {copies} cópias",
+      "feedbackTitle": "Feedback da temporada",
+      "feedbackLead": "O que devemos melhorar na próxima temporada? Aberto até o fim da temporada.",
+      "feedbackPlaceholder": "Suas sugestões…",
+      "feedbackSend": "Enviar feedback",
+      "feedbackUpdate": "Atualizar feedback",
+      "feedbackThanks": "Obrigado! Seu feedback foi enviado.",
+      "feedbackSent": "Você já enviou feedback nesta temporada. Enviar de novo substitui o anterior.",
+      "feedbackError": "Não foi possível enviar o feedback",
+      "feedbackInbox": "Caixa de feedback da temporada",
+      "feedbackNone": "Nenhum feedback ainda."
     },
-        "leaderboard": {
+    "leaderboard": {
       "title": "Placar de Líderes Ranqueado",
       "lead": "Maior ELO do PvP ranqueado. Defina um banner de carta e bandeira para a linha do seu perfil.",
       "empty": "Nenhuma partida ranqueada ainda — jogue o PvP ranqueado para aparecer aqui.",
@@ -14107,6 +14232,9 @@
       "declineInvite": "Recusar",
       "inviteSent": "Convite enviado para {name}",
       "noFriends": "Adicione amigos primeiro na aba Amigos."
+    },
+    "admin": {
+      "seasonFeedback": "Caixa de feedback da temporada"
     }
   },
   "fr": {
@@ -14163,7 +14291,7 @@
       "deckBuilderSub": "Modifiez les prédéfinitions et votre deck classé",
       "rankedPvp": "PvP classé",
       "rankedPvpSub": "Montez votre ELO en parties matchmakées",
-    "leaderboard": {
+      "leaderboard": {
         "sub": "Voir le classement classé",
         "title": "Classement"
       },
@@ -14690,7 +14818,7 @@
       "searching": "Recherche... ({seconds}s)",
       "readySearch": "Prêt à rechercher"
     },
-"season": {
+    "season": {
       "label": "{year} Saison {n}",
       "history": "Rangs de saison",
       "current": "Cette saison",
@@ -14719,9 +14847,31 @@
       "demoted": "Rétrogradé à {rank}",
       "pointsGain": "+{n} pts de saison",
       "pointsLoss": "−{n} pts de saison",
-      "pointsProtected": "Rang C — points protégés"
+      "pointsProtected": "Rang C — points protégés",
+      "statsOpen": "Utilisation des cartes",
+      "statsTitle": "Utilisation des cartes",
+      "statsDecks": "{n} decks",
+      "statsMatches": "{n} parties classées",
+      "statsEmpty": "Aucune partie classée enregistrée pour le moment cette saison.",
+      "statsCard": "Carte",
+      "statsUsage": "Utilisation",
+      "statsCopies": "Exemplaires moy.",
+      "statsWin": "% de victoires",
+      "statsMembers": "Cartes Membre",
+      "statsLives": "Cartes Live",
+      "statsRowSub": "Victoires {win}% · {copies} exemplaires en moyenne",
+      "feedbackTitle": "Retours sur la saison",
+      "feedbackLead": "Que devrions-nous améliorer pour la prochaine saison ? Ouvert jusqu'à la fin de la saison.",
+      "feedbackPlaceholder": "Vos suggestions…",
+      "feedbackSend": "Envoyer le retour",
+      "feedbackUpdate": "Mettre à jour le retour",
+      "feedbackThanks": "Merci ! Votre retour a été envoyé.",
+      "feedbackSent": "Vous avez déjà envoyé un retour cette saison. En envoyer un autre remplace le précédent.",
+      "feedbackError": "Impossible d'envoyer le retour",
+      "feedbackInbox": "Boîte de retours de saison",
+      "feedbackNone": "Aucun retour pour le moment."
     },
-        "leaderboard": {
+    "leaderboard": {
       "title": "Classement classé",
       "lead": "Meilleur ELO du PvP classé. Définissez une bannière de carte et un drapeau pour votre ligne de profil.",
       "empty": "Aucune partie classée pour le moment — jouez en PvP classé pour apparaître ici.",
@@ -16279,6 +16429,9 @@
       "unlockDone": "Unlocked by playing {idol} as a Scène Membre {n} times.",
       "loadError": "Impossible de charger les titres",
       "equipError": "Impossible d'équiper le titre"
+    },
+    "admin": {
+      "seasonFeedback": "Boîte de retours de saison"
     }
   }
 };

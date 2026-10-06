@@ -230,7 +230,7 @@
         ta.value = '';
         btn.textContent = tt('season.feedbackUpdate', 'Update feedback');
       } catch (e) {
-        msg.textContent = (e && e.message) || tt('season.feedbackError', 'Could not send feedback');
+        msg.textContent = tt('season.feedbackError', 'Could not send feedback');
       }
       btn.disabled = false;
     });
@@ -275,6 +275,26 @@
   document.addEventListener('click', (event) => {
     if (event.target.closest && event.target.closest('#btn-admin-feedback')) openFeedbackInbox();
   });
+
+  /** Localized "2026 Season 1" from a YYYY-MM id (server label is English-only). */
+  function seasonLabelFromId(id) {
+    const m = /^(\d{4})-(\d{2})$/.exec(String(id || ''));
+    if (!m) return '';
+    const year = Number(m[1]);
+    const month = Number(m[2]);
+    const n = year === 2026 ? month - 9 : month;
+    return seasonLabel({ season_id: String(id), season_number: n });
+  }
+
+  /** Card name as printed for the player's language (JA kanji, KO/ZH/TH maps, else English). */
+  function statCardName(c) {
+    const all = (global.G && global.G.allCards) || {};
+    const no = String(c.card_no || '');
+    const card = all[no] || all[no.replace(/＋/g, '+')] || all[no.replace(/\+/g, '＋')];
+    const fn = global.LLTCG_I18N && global.LLTCG_I18N.cardLocaleName;
+    const localized = card && typeof fn === 'function' ? fn(card) : '';
+    return localized || c.name_en || no;
+  }
 
   function inspectStatCard(no) {
     if (typeof global.showCard !== 'function') return;
@@ -334,7 +354,7 @@
     select.replaceChildren();
     const seasons = data.seasons || [];
     seasons.forEach((s) => {
-      const o = el('option', '', s.label);
+      const o = el('option', '', seasonLabelFromId(s.season_id));
       o.value = s.season_id;
       if (s.season_id === data.season_id) o.selected = true;
       select.appendChild(o);
@@ -343,7 +363,7 @@
     select.onchange = () => openStats(select.value);
     scroll.replaceChildren();
     if (data.season_id) {
-      lead.textContent = data.label
+      lead.textContent = seasonLabelFromId(data.season_id)
         + ' · ' + tt('season.statsDecks', '{n} decks', { n: data.decks })
         + ' · ' + tt('season.statsMatches', '{n} ranked matches', { n: data.matches });
     } else {
@@ -365,7 +385,8 @@
         const row = el('div', 'social-bar season-stats-row');
         const art = el('button', 'social-bar-art season-stats-art');
         art.type = 'button';
-        art.setAttribute('aria-label', c.name_en);
+        const cardName = statCardName(c);
+        art.setAttribute('aria-label', cardName);
         const img = el('img', 'season-stats-face' + (String(c.card_type_en).toLowerCase() === 'live' ? ' is-live' : ''));
         img.alt = '';
         img.loading = 'lazy';
@@ -376,7 +397,7 @@
         art.appendChild(img);
         art.addEventListener('click', () => inspectStatCard(c.card_no));
         const name = el('span', 'season-stats-name');
-        name.appendChild(el('span', '', c.name_en));
+        name.appendChild(el('span', '', cardName));
         name.appendChild(el('small', '', tt('season.statsRowSub', 'Win {win}% · {copies} avg copies',
           { win: c.win_pct.toFixed(1), copies: c.avg_copies.toFixed(1) })));
         const track = el('div', 'social-bar-track');
