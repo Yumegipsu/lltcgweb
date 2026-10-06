@@ -10071,10 +10071,8 @@ function appendMemberStackedMembersBadge(slotEl, member) {
     if (typeof appendLiveStorageMemberFace === 'function') appendLiveStorageMemberFace(chip, c);
     else if (typeof appendCardFace === 'function') appendCardFace(chip, c, { sideways: true });
     else if (typeof appendCardFaceFill === 'function') appendCardFaceFill(chip, c);
-    chip.onclick = (ev) => {
-      ev.stopPropagation();
-      if (!G.isSpectator) showCard(c, c.instance_id, G.gameState, G.playerId);
-    };
+    // Visual-only: inspect goes through the main stage Member (hover / tap / long-press),
+    // then stack arrows in the card modal. Under-chips must not steal pointer events.
     wrap.appendChild(chip);
   });
   const badge = document.createElement('span');

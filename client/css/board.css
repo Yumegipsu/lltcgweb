@@ -2216,7 +2216,7 @@ html.tcg-desktop-scaled:not(.tcg-mobile-viewport).tcg-compact-desktop #screen-ga
   position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible
 }
 .under-chip{
-  position:absolute;overflow:hidden;border-radius:3px;pointer-events:auto;
+  position:absolute;overflow:hidden;border-radius:3px;pointer-events:none;
   box-shadow:0 1px 4px rgba(0,0,0,.45);background:rgba(0,0,0,.2)
 }
 .under-chip .card-portrait-in-landscape{
@@ -2239,7 +2239,7 @@ html.tcg-desktop-scaled:not(.tcg-mobile-viewport).tcg-compact-desktop #screen-ga
 .perf-card.member > .noimg,
 .perf-card.member > .card-art,
 .perf-card.member > .card-face-fill{
-  position:relative;z-index:1
+  position:relative;z-index:2
 }
 .perf-card.member > .member-under-stack{z-index:0}
 .field-badge .badge-val{
@@ -2255,7 +2255,7 @@ html.tcg-desktop-scaled:not(.tcg-mobile-viewport).tcg-compact-desktop #screen-ga
   cursor:pointer;transition:filter .15s;position:relative;overflow:visible;z-index:1}
 .mslot:hover,.mslot.foil-tilt-hover{z-index:12}
 .mslot:hover{filter:brightness(1.08)}
-.mslot > img,.mslot > .noimg,.mslot > .live-flip-inner{position:relative;z-index:1}
+.mslot > img,.mslot > .noimg,.mslot > .live-flip-inner{position:relative;z-index:2}
 .mslot.drop{outline:2px solid var(--pink);outline-offset:-2px;animation:dpulse .6s ease-in-out infinite alternate}
 .mslot img{width:100%;height:100%;object-fit:contain;object-position:center bottom;border-radius:3px;display:block}
 .mslot.stage-flip{perspective:720px;overflow:visible;position:relative;min-height:0;transform-style:preserve-3d;
@@ -2964,6 +2964,21 @@ body.deck-card-preview #modal-card{z-index:970}
 
 /* Card detail */
 #modal-card .mbox{max-width:420px;width:100%}
+#modal-card .cd-stack-nav{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin:6px 0 2px;min-height:28px
+}
+#modal-card .cd-stack-nav[hidden]{display:none!important}
+#modal-card .cd-stack-btn{
+  width:32px;height:28px;border-radius:8px;border:1px solid rgba(255,255,255,.22);
+  background:rgba(255,255,255,.08);color:#fff;font-size:20px;line-height:1;
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  padding:0
+}
+#modal-card .cd-stack-btn:disabled{opacity:.35;cursor:default}
+#modal-card .cd-stack-label{
+  font-size:12px;font-weight:700;color:rgba(255,255,255,.78);min-width:7.5em;text-align:center
+}
 .cdimg{width:min(168px,48vw);aspect-ratio:63/88;border-radius:7px;margin:0 auto 12px;
   display:block;object-fit:cover;box-shadow:0 4px 18px rgba(0,0,0,.5)}
 .cdimg.landscape{width:min(280px,88vw);aspect-ratio:88/63;height:auto;object-fit:contain}

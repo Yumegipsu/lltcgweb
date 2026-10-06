@@ -1333,7 +1333,8 @@ function renderStageSlots(prefix, stage, isMe, s, myId) {
       const ownerPid = isMe ? myId : oppPid;
       appendMemberStackedEnergyBadge(d, mbr, s?.players?.[ownerPid]);
       appendMemberStackedMembersBadge(d, mbr);
-      if (isMe) bindMyStageCardInspect(d, mbr, s, myId);
+      // Hover always previews the top Stage Member (stacked under-chips are visual-only).
+      bindMyStageCardInspect(d, mbr, s, myId);
       if (!G.isSpectator && typeof bindBoardCardLongPressInspect === 'function') {
         bindBoardCardLongPressInspect(d, mbr, s, myId);
       }

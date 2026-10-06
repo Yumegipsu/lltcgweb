@@ -1406,7 +1406,9 @@
       "playToSlot": "Play to slot:",
       "needEnergy": "Need",
       "haveEnergy": "have",
-      "allBladeHeartsTip": "When checking required hearts, ALL blades from Yell count as any heart color."
+      "allBladeHeartsTip": "When checking required hearts, ALL blades from Yell count as any heart color.",
+      "stackMain": "Stage · {n}/{total}",
+      "stackUnder": "Under · {n}/{total}"
     },
     "pack": {
       "opened": "Pack Opened",
