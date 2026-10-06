@@ -932,6 +932,14 @@ function tcgMissionOnGameFinished(array $state): array {
     $isRanked = ($state['mode'] ?? '') === 'ranked';
     $winner = $state['winner'] ?? null;
     $completions = [];
+    if ($isRanked) {
+        try {
+            require_once __DIR__ . '/season_stats.php';
+            tcgSeasonStatsRecordMatch($state);
+        } catch (Throwable $e) {
+            // Usage sheet is best-effort; never block mission credit.
+        }
+    }
     foreach (['p1', 'p2'] as $pid) {
         $player = $state['players'][$pid] ?? null;
         if (tcgMissionSeatIsCpu(is_array($player) ? $player : null)) {

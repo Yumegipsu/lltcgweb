@@ -75,6 +75,7 @@
     daily_status: 1, open_booster: 1, open_gacha: 1, gacha_info: 1, gacha_rates: 1, pick_starter: 1,
     missions_list: 1, missions_claim: 1,
     rank_stats: 1, rank_banner_set: 1, rank_flag_set: 1,
+    season_stats: 1, season_feedback_submit: 1, season_feedback_list: 1,
     stamp_favorites_set: 1, public_profile: 1, public_leaderboard: 1,
     sticker_shop_catalog: 1, sticker_shop_cards: 1,
     convert_to_seal: 1, convert_to_seals_batch: 1, sticker_buy: 1,

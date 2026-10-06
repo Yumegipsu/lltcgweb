@@ -149,14 +149,184 @@
       + '    </div>'
       + '    <p class="account-lead season-ladder-lead"></p>'
       + '    <div class="season-ladder-scroll"><ol class="season-ladder-list"></ol></div>'
+      + '    <button type="button" class="btn-ghost season-ladder-stats"></button>'
       + '  </div>'
       + '</div>';
     document.body.appendChild(root);
     root.querySelector('.season-ladder-close').addEventListener('click', closeLadder);
+    root.querySelector('.season-ladder-stats').addEventListener('click', () => openStats());
     root.addEventListener('click', (event) => {
       if (event.target === root) closeLadder();
     });
     return root;
+  }
+
+  // Card usage sheet + end-of-season feedback (issue #225).
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function statsOverlay() {
+    let root = document.getElementById('overlay-season-stats');
+    if (root) return root;
+    root = el('div', 'season-ladder-overlay season-stats-overlay');
+    root.id = 'overlay-season-stats';
+    root.setAttribute('role', 'dialog');
+    root.setAttribute('aria-modal', 'true');
+    root.setAttribute('aria-hidden', 'true');
+    root.innerHTML = ''
+      + '<div class="season-ladder-shell season-stats-shell">'
+      + '  <div class="season-ladder-panel">'
+      + '    <div class="account-screen-head">'
+      + '      <button type="button" class="btn-ghost season-stats-close"></button>'
+      + '      <h2 class="season-ladder-title"></h2>'
+      + '    </div>'
+      + '    <div class="season-stats-bar"><select class="season-stats-select"></select></div>'
+      + '    <p class="account-lead season-stats-lead"></p>'
+      + '    <div class="season-ladder-scroll season-stats-scroll"></div>'
+      + '  </div>'
+      + '</div>';
+    document.body.appendChild(root);
+    const close = () => {
+      root.classList.remove('open');
+      root.setAttribute('aria-hidden', 'true');
+    };
+    root.querySelector('.season-stats-close').addEventListener('click', close);
+    root.addEventListener('click', (e) => { if (e.target === root) close(); });
+    return root;
+  }
+
+  function fmtDate(sec) {
+    try { return new Date(sec * 1000).toLocaleString(); } catch (e) { return String(sec); }
+  }
+
+  function renderFeedbackForm(host, data) {
+    const fb = data.feedback || {};
+    if (!fb.open) return;
+    const box = el('div', 'season-stats-feedback');
+    box.appendChild(el('h3', '', tt('season.feedbackTitle', 'Season feedback')));
+    box.appendChild(el('p', 'account-lead', tt('season.feedbackLead',
+      'What should we improve for the next season? Open until the season ends.')));
+    const ta = el('textarea', 'season-stats-textarea');
+    ta.maxLength = 2000;
+    ta.rows = 5;
+    ta.placeholder = tt('season.feedbackPlaceholder', 'Your suggestions…');
+    const msg = el('p', 'season-stats-msg');
+    const btn = el('button', 'btn-primary', fb.submitted
+      ? tt('season.feedbackUpdate', 'Update feedback')
+      : tt('season.feedbackSend', 'Send feedback'));
+    btn.type = 'button';
+    btn.addEventListener('click', async () => {
+      const text = ta.value.trim();
+      if (!text) return;
+      btn.disabled = true;
+      try {
+        await global.accountPost('season_feedback_submit', { body: text });
+        msg.textContent = tt('season.feedbackThanks', 'Thanks! Your feedback was sent.');
+        ta.value = '';
+        btn.textContent = tt('season.feedbackUpdate', 'Update feedback');
+      } catch (e) {
+        msg.textContent = (e && e.message) || tt('season.feedbackError', 'Could not send feedback');
+      }
+      btn.disabled = false;
+    });
+    if (fb.submitted) {
+      msg.textContent = tt('season.feedbackSent', 'You already sent feedback this season. Sending again replaces it.');
+    }
+    box.appendChild(ta);
+    box.appendChild(btn);
+    box.appendChild(msg);
+    host.appendChild(box);
+  }
+
+  async function renderFeedbackInbox(host) {
+    const box = el('div', 'season-stats-inbox');
+    box.appendChild(el('h3', '', tt('season.feedbackInbox', 'Season feedback inbox')));
+    host.appendChild(box);
+    try {
+      const res = await global.accountPost('season_feedback_list', {});
+      const rows = res.feedback || [];
+      if (!rows.length) {
+        box.appendChild(el('p', 'account-lead', tt('season.feedbackNone', 'No feedback yet.')));
+        return;
+      }
+      rows.forEach((r) => {
+        const item = el('div', 'season-stats-inbox-item' + (r.read_at ? '' : ' is-new'));
+        item.appendChild(el('div', 'season-stats-inbox-meta',
+          r.label + ' · ' + (r.username || r.discord_id) + ' · ' + fmtDate(r.updated_at)));
+        item.appendChild(el('div', 'season-stats-inbox-body', r.body));
+        box.appendChild(item);
+      });
+      if (res.unread) global.accountPost('season_feedback_list', { mark_read: true }).catch(() => {});
+    } catch (e) {
+      box.appendChild(el('p', 'account-lead', (e && e.message) || ''));
+    }
+  }
+
+  async function openStats(seasonId) {
+    const root = statsOverlay();
+    root.querySelector('.season-ladder-title').textContent = tt('season.statsTitle', 'Card usage');
+    root.querySelector('.season-stats-close').textContent = tt('news.close', 'Close');
+    const lead = root.querySelector('.season-stats-lead');
+    const scroll = root.querySelector('.season-stats-scroll');
+    const select = root.querySelector('.season-stats-select');
+    root.classList.add('open');
+    root.setAttribute('aria-hidden', 'false');
+    scroll.replaceChildren(el('p', 'account-lead', '…'));
+    let data;
+    try {
+      data = await global.accountPost('season_stats', seasonId ? { season_id: seasonId } : {});
+    } catch (e) {
+      scroll.replaceChildren(el('p', 'account-lead', (e && e.message) || ''));
+      return;
+    }
+    select.replaceChildren();
+    const seasons = data.seasons || [];
+    seasons.forEach((s) => {
+      const o = el('option', '', s.label);
+      o.value = s.season_id;
+      if (s.season_id === data.season_id) o.selected = true;
+      select.appendChild(o);
+    });
+    select.hidden = seasons.length < 2;
+    select.onchange = () => openStats(select.value);
+    scroll.replaceChildren();
+    if (data.season_id) {
+      lead.textContent = data.label
+        + ' · ' + tt('season.statsDecks', '{n} decks', { n: data.decks })
+        + ' · ' + tt('season.statsMatches', '{n} ranked matches', { n: data.matches });
+    } else {
+      lead.textContent = tt('season.notStarted', 'The seasonal ladder starts in October 2026.');
+    }
+    const cards = data.cards || [];
+    if (!cards.length) {
+      scroll.appendChild(el('p', 'account-lead', tt('season.statsEmpty', 'No ranked matches recorded yet this season.')));
+    } else {
+      const table = el('table', 'season-stats-table');
+      const head = el('tr');
+      ['#', tt('season.statsCard', 'Card'), tt('season.statsUsage', 'Usage'),
+        tt('season.statsCopies', 'Avg copies'), tt('season.statsWin', 'Win %')]
+        .forEach((h) => head.appendChild(el('th', '', h)));
+      table.appendChild(head);
+      cards.forEach((c) => {
+        const tr = el('tr');
+        tr.appendChild(el('td', '', String(c.rank)));
+        const name = el('td', 'season-stats-name');
+        name.appendChild(el('span', '', c.name_en));
+        name.appendChild(el('small', '', c.card_no));
+        tr.appendChild(name);
+        tr.appendChild(el('td', '', c.usage_pct.toFixed(1) + '%'));
+        tr.appendChild(el('td', '', c.avg_copies.toFixed(1)));
+        tr.appendChild(el('td', '', c.win_pct.toFixed(1) + '%'));
+        table.appendChild(tr);
+      });
+      scroll.appendChild(table);
+    }
+    renderFeedbackForm(scroll, data);
+    if (data.is_owner) renderFeedbackInbox(scroll);
   }
 
   function closeLadder() {
@@ -190,6 +360,7 @@
     title.id = 'season-ladder-title';
     root.setAttribute('aria-labelledby', 'season-ladder-title');
     close.textContent = tt('news.close', 'Close');
+    root.querySelector('.season-ladder-stats').textContent = tt('season.statsOpen', 'Card usage & feedback');
     if (started) {
       const label = seasonLabel(season);
       lead.textContent = label;
@@ -438,6 +609,7 @@
     resolveMatchChange: resolveMatchChange,
     rankName: rankName,
     openLadder: openLadder,
+    openStats: openStats,
     closeLadder: closeLadder,
     active: seasonActive,
     visible: seasonVisible,

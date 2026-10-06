@@ -416,3 +416,21 @@ body.season-ladder-open {
   45% { transform: scale(0.9); }
   100% { transform: scale(1); opacity: 1; }
 }
+
+.season-ladder-stats { margin-top: 10px; align-self: stretch; }
+.season-stats-overlay { z-index: 8810; }
+.season-stats-shell { width: min(560px, 100%); }
+.season-stats-bar { margin: 6px 0; }
+.season-stats-select { width: 100%; padding: 6px; border-radius: 8px; }
+.season-stats-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.season-stats-table th, .season-stats-table td { padding: 5px 6px; text-align: right; border-bottom: 1px solid rgba(255, 255, 255, 0.18); }
+.season-stats-table th:nth-child(2), .season-stats-table td:nth-child(2) { text-align: left; }
+.season-stats-name span { display: block; }
+.season-stats-name small { opacity: 0.7; }
+.season-stats-feedback, .season-stats-inbox { margin-top: 16px; }
+.season-stats-textarea { width: 100%; box-sizing: border-box; border-radius: 8px; padding: 8px; font: inherit; resize: vertical; }
+.season-stats-msg { min-height: 1.2em; font-size: 0.85rem; }
+.season-stats-inbox-item { padding: 8px; margin-bottom: 8px; border-radius: 8px; background: rgba(0, 0, 0, 0.22); }
+.season-stats-inbox-item.is-new { outline: 1px solid #ffd54a; }
+.season-stats-inbox-meta { font-size: 0.75rem; opacity: 0.75; }
+.season-stats-inbox-body { white-space: pre-wrap; word-break: break-word; margin-top: 4px; }

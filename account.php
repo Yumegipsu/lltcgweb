@@ -50,6 +50,7 @@ require_once __DIR__ . '/gacha.php';
 require_once __DIR__ . '/seals.php';
 require_once __DIR__ . '/coins.php';
 require_once __DIR__ . '/events.php';
+require_once __DIR__ . '/season_stats.php';
 require_once __DIR__ . '/sleeve_shop.php';
 require_once __DIR__ . '/playmat_shop.php';
 require_once __DIR__ . '/stamps.php';
@@ -118,6 +119,9 @@ try {
         case 'events_leaderboard':    echo json_encode(tcgApiEventsLeaderboard($body)); break;
         case 'events_my_progress':    echo json_encode(tcgApiEventsMyProgress($body)); break;
         case 'rank_stats':         echo json_encode(tcgApiRankStats($body)); break;
+        case 'season_stats':       echo json_encode(tcgApiSeasonStats($body)); break;
+        case 'season_feedback_submit': echo json_encode(tcgApiSeasonFeedbackSubmit($body)); break;
+        case 'season_feedback_list':   echo json_encode(tcgApiSeasonFeedbackList($body)); break;
         case 'rank_banner_set':    echo json_encode(tcgApiRankBannerSet($body)); break;
         case 'rank_flag_set':      echo json_encode(tcgApiRankFlagSet($body)); break;
         case 'titles_list':        echo json_encode(tcgApiTitlesList($body)); break;
