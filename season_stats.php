@@ -244,12 +244,6 @@ function tcgApiSeasonStats(array $body): array {
         $uid = '';
     }
     $sheet['feedback'] = tcgSeasonFeedbackWindow($uid);
-    if ($uid !== '') {
-        if (!function_exists('tcgSocialIsOwner')) {
-            require_once __DIR__ . '/social.php';
-        }
-        $sheet['is_owner'] = tcgSocialIsOwner($uid);
-    }
     return $sheet;
 }
 

@@ -193,6 +193,7 @@
     const close = () => {
       root.classList.remove('open');
       root.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('season-stats-open');
     };
     root.querySelector('.season-stats-close').addEventListener('click', close);
     root.addEventListener('click', (e) => { if (e.target === root) close(); });
@@ -242,13 +243,59 @@
     host.appendChild(box);
   }
 
-  async function renderFeedbackInbox(host) {
-    const box = el('div', 'season-stats-inbox');
-    box.appendChild(el('h3', '', tt('season.feedbackInbox', 'Season feedback inbox')));
-    host.appendChild(box);
+  // Owner-only inbox: its own overlay, opened from the Admin screen.
+  function inboxOverlay() {
+    let root = document.getElementById('overlay-season-feedback-inbox');
+    if (root) return root;
+    root = el('div', 'season-ladder-overlay season-stats-overlay');
+    root.id = 'overlay-season-feedback-inbox';
+    root.setAttribute('role', 'dialog');
+    root.setAttribute('aria-modal', 'true');
+    root.setAttribute('aria-hidden', 'true');
+    root.innerHTML = ''
+      + '<div class="season-ladder-shell season-stats-shell">'
+      + '  <div class="season-ladder-panel">'
+      + '    <div class="account-screen-head">'
+      + '      <button type="button" class="btn-ghost season-inbox-close"></button>'
+      + '      <h2 class="season-ladder-title"></h2>'
+      + '    </div>'
+      + '    <div class="season-ladder-scroll season-inbox-body"></div>'
+      + '  </div>'
+      + '</div>';
+    document.body.appendChild(root);
+    const close = () => {
+      root.classList.remove('open');
+      root.setAttribute('aria-hidden', 'true');
+    };
+    root.querySelector('.season-inbox-close').addEventListener('click', close);
+    root.addEventListener('click', (e) => { if (e.target === root) close(); });
+    return root;
+  }
+
+  document.addEventListener('click', (event) => {
+    if (event.target.closest && event.target.closest('#btn-admin-feedback')) openFeedbackInbox();
+  });
+
+  function inspectStatCard(no) {
+    if (typeof global.showCard !== 'function') return;
+    const all = (global.G && global.G.allCards) || {};
+    const card = all[no] || all[String(no).replace(/＋/g, '+')] || all[String(no).replace(/\+/g, '＋')]
+      || { card_no: no, name: no };
+    global.showCard(card, null, global.G && global.G.gameState, global.G && global.G.playerId);
+  }
+
+  async function openFeedbackInbox() {
+    const root = inboxOverlay();
+    root.querySelector('.season-ladder-title').textContent = tt('season.feedbackInbox', 'Season feedback inbox');
+    root.querySelector('.season-inbox-close').textContent = tt('news.close', 'Close');
+    const box = root.querySelector('.season-inbox-body');
+    root.classList.add('open');
+    root.setAttribute('aria-hidden', 'false');
+    box.replaceChildren(el('p', 'account-lead', '…'));
     try {
       const res = await global.accountPost('season_feedback_list', {});
       const rows = res.feedback || [];
+      box.replaceChildren();
       if (!rows.length) {
         box.appendChild(el('p', 'account-lead', tt('season.feedbackNone', 'No feedback yet.')));
         return;
@@ -262,7 +309,7 @@
       });
       if (res.unread) global.accountPost('season_feedback_list', { mark_read: true }).catch(() => {});
     } catch (e) {
-      box.appendChild(el('p', 'account-lead', (e && e.message) || ''));
+      box.replaceChildren(el('p', 'account-lead', (e && e.message) || ''));
     }
   }
 
@@ -275,6 +322,7 @@
     const select = root.querySelector('.season-stats-select');
     root.classList.add('open');
     root.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('season-stats-open');
     scroll.replaceChildren(el('p', 'account-lead', '…'));
     let data;
     try {
@@ -305,28 +353,39 @@
     if (!cards.length) {
       scroll.appendChild(el('p', 'account-lead', tt('season.statsEmpty', 'No ranked matches recorded yet this season.')));
     } else {
-      const table = el('table', 'season-stats-table');
-      const head = el('tr');
-      ['#', tt('season.statsCard', 'Card'), tt('season.statsUsage', 'Usage'),
-        tt('season.statsCopies', 'Avg copies'), tt('season.statsWin', 'Win %')]
-        .forEach((h) => head.appendChild(el('th', '', h)));
-      table.appendChild(head);
+      const max = Math.max(1, ...cards.map((c) => Number(c.usage_pct) || 0));
+      const bars = el('div', 'social-bars season-stats-bars');
       cards.forEach((c) => {
-        const tr = el('tr');
-        tr.appendChild(el('td', '', String(c.rank)));
-        const name = el('td', 'season-stats-name');
+        const row = el('div', 'social-bar season-stats-row');
+        const art = el('button', 'social-bar-art season-stats-art');
+        art.type = 'button';
+        art.setAttribute('aria-label', c.name_en);
+        const img = el('img', 'season-stats-face' + (String(c.card_type_en).toLowerCase() === 'live' ? ' is-live' : ''));
+        img.alt = '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.src = typeof global.cachedCardImgUrl === 'function'
+          ? global.cachedCardImgUrl(c.card_no, 96)
+          : (global.CARDIMG || './cardimg.php') + '?card_no=' + encodeURIComponent(c.card_no) + '&w=96';
+        art.appendChild(img);
+        art.addEventListener('click', () => inspectStatCard(c.card_no));
+        const name = el('span', 'season-stats-name');
         name.appendChild(el('span', '', c.name_en));
-        name.appendChild(el('small', '', c.card_no));
-        tr.appendChild(name);
-        tr.appendChild(el('td', '', c.usage_pct.toFixed(1) + '%'));
-        tr.appendChild(el('td', '', c.avg_copies.toFixed(1)));
-        tr.appendChild(el('td', '', c.win_pct.toFixed(1) + '%'));
-        table.appendChild(tr);
+        name.appendChild(el('small', '', tt('season.statsRowSub', 'Win {win}% · {copies} avg copies',
+          { win: c.win_pct.toFixed(1), copies: c.avg_copies.toFixed(1) })));
+        const track = el('div', 'social-bar-track');
+        const fill = el('div', 'social-bar-fill');
+        fill.style.width = Math.round(100 * (Number(c.usage_pct) || 0) / max) + '%';
+        track.appendChild(fill);
+        row.appendChild(art);
+        row.appendChild(name);
+        row.appendChild(track);
+        row.appendChild(el('span', 'social-bar-n', c.usage_pct.toFixed(1) + '%'));
+        bars.appendChild(row);
       });
-      scroll.appendChild(table);
+      scroll.appendChild(bars);
     }
     renderFeedbackForm(scroll, data);
-    if (data.is_owner) renderFeedbackInbox(scroll);
   }
 
   function closeLadder() {
@@ -610,6 +669,7 @@
     rankName: rankName,
     openLadder: openLadder,
     openStats: openStats,
+    openFeedbackInbox: openFeedbackInbox,
     closeLadder: closeLadder,
     active: seasonActive,
     visible: seasonVisible,
