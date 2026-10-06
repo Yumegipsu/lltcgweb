@@ -149,7 +149,7 @@
       + '    </div>'
       + '    <p class="account-lead season-ladder-lead"></p>'
       + '    <div class="season-ladder-scroll"><ol class="season-ladder-list"></ol></div>'
-      + '    <button type="button" class="btn-ghost season-ladder-stats"></button>'
+      + '    <button type="button" class="btn-grad season-ladder-stats"></button>'
       + '  </div>'
       + '</div>';
     document.body.appendChild(root);
@@ -419,7 +419,7 @@
     title.id = 'season-ladder-title';
     root.setAttribute('aria-labelledby', 'season-ladder-title');
     close.textContent = tt('news.close', 'Close');
-    root.querySelector('.season-ladder-stats').textContent = tt('season.statsOpen', 'Card usage & feedback');
+    root.querySelector('.season-ladder-stats').textContent = tt('season.statsOpen', 'Card usage');
     if (started) {
       const label = seasonLabel(season);
       lead.textContent = label;
