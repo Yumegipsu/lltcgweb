@@ -53,6 +53,17 @@ function tcgSeasonStatsEnsureSchema(PDO $db): void {
     $done = true;
 }
 
+/** @return array<string,array<string,mixed>> card catalog keyed by every card_no spelling */
+function tcgSeasonStatsCardMap(): array {
+    static $map = null;
+    if ($map === null) {
+        $map = function_exists('tcgBuildCardMap') && function_exists('tcgLoadCardsData')
+            ? tcgBuildCardMap(tcgLoadCardsData())
+            : [];
+    }
+    return $map;
+}
+
 /**
  * Record both decks of a finished ranked match. Idempotent per room id.
  *
@@ -97,13 +108,17 @@ function tcgSeasonStatsRecordMatch(array $state): bool {
             VALUES (?, ?, ?, 1, ?, ?)
             ON CONFLICT(season_id, game_mode, card_no) DO UPDATE SET
                 decks = decks + 1, copies = copies + excluded.copies, wins = wins + excluded.wins');
+        $cardMap = tcgSeasonStatsCardMap();
         foreach ($decks as $pid => $main) {
             $counts = [];
             foreach ($main as $no) {
                 $no = trim((string)$no);
-                if ($no !== '') {
-                    $counts[$no] = ($counts[$no] ?? 0) + 1;
+                if ($no === '') {
+                    continue;
                 }
+                // One key per card whether the deck stored "+" or the fullwidth "＋".
+                $no = (string)($cardMap[$no]['card_no'] ?? $no);
+                $counts[$no] = ($counts[$no] ?? 0) + 1;
             }
             $won = $winner === $pid ? 1 : 0;
             foreach ($counts as $no => $n) {
