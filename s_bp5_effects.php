@@ -51,6 +51,20 @@ function sBp5CountStageHeartColor(array $p, string $color): int {
     return $total;
 }
 
+/**
+ * "This card gains N hearts" — put the hearts on the source Member itself so stage
+ * heart counts (e.g. Torikoriko PLEASE!! ≥10 green) see them. Falls back to the
+ * player-wide Live modifier when the source is no longer on the Stage.
+ */
+function sBp5GrantHeartsToSourceMember(array &$state, string $pid, array $source, array $hearts): void {
+    $slot = findMemberSlot($state['players'][$pid], (string)($source['instance_id'] ?? ''));
+    if ($slot !== '' && !empty($state['players'][$pid]['stage'][$slot])) {
+        addBonusHeartsToMember($state['players'][$pid]['stage'][$slot], $hearts);
+        return;
+    }
+    addBonusHeartsToModifier($state, $pid, $hearts);
+}
+
 function sBp5CountLiveZoneHeartColor(array $p, string $color): int {
     $total = 0;
     foreach ($p['live_zone'] ?? [] as $c) {
@@ -449,7 +463,7 @@ function sBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $color = $ab['color'] ?? 'green';
             if (sBp5CountLiveZoneHeartColor($p, $color) < intval($ab['min_total'] ?? 4)) break;
             if (!empty($ab['hearts'])) {
-                addBonusHeartsToModifier($state, $pid, $ab['hearts']);
+                sBp5GrantHeartsToSourceMember($state, $pid, $source, $ab['hearts']);
             }
             $state = addLog($state, $state['players'][$pid]['name'] .
                 " — [$name] gained bonus heart (Live Card Zone $color hearts).");
@@ -459,7 +473,7 @@ function sBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $color = $ab['color'] ?? 'green';
             if (sBp5CountSuccessZoneHeartColor($p, $color) < intval($ab['min_total'] ?? 4)) break;
             if (!empty($ab['hearts'])) {
-                addBonusHeartsToModifier($state, $pid, $ab['hearts']);
+                sBp5GrantHeartsToSourceMember($state, $pid, $source, $ab['hearts']);
             }
             $state = addLog($state, $state['players'][$pid]['name'] .
                 " — [$name] gained bonus heart (Success Live $color hearts).");
