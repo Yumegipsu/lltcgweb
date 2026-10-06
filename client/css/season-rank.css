@@ -426,6 +426,8 @@ body.season-ladder-open {
 .season-stats-art { width: 44px; height: 60px; overflow: hidden; }
 .season-stats-face { width: 44px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.28); background: rgba(0, 0, 0, 0.25); display: block; }
 .season-stats-face.is-live { width: 44px; height: 32px; }
+.season-stats-heading { margin: 14px 0 6px; font-size: 0.95rem; letter-spacing: 0.03em; }
+.season-stats-heading:first-child { margin-top: 4px; }
 .season-stats-name { overflow: hidden; }
 .season-stats-name > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .season-stats-name small { display: block; opacity: 0.75; font-size: 0.75rem; }

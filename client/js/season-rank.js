@@ -349,10 +349,16 @@
     } else {
       lead.textContent = tt('season.notStarted', 'The seasonal ladder starts in October 2026.');
     }
-    const cards = data.cards || [];
-    if (!cards.length) {
+    const sections = [
+      [tt('season.statsMembers', 'Member cards'), data.members || []],
+      [tt('season.statsLives', 'Live cards'), data.lives || []],
+    ].filter((s) => s[1].length);
+    if (!sections.length) {
       scroll.appendChild(el('p', 'account-lead', tt('season.statsEmpty', 'No ranked matches recorded yet this season.')));
-    } else {
+    }
+    sections.forEach(([heading, cards]) => {
+      scroll.appendChild(el('h3', 'season-stats-heading', heading));
+      // Bars compare cards within their own section (Members vs Members, Lives vs Lives).
       const max = Math.max(1, ...cards.map((c) => Number(c.usage_pct) || 0));
       const bars = el('div', 'social-bars season-stats-bars');
       cards.forEach((c) => {
@@ -384,7 +390,7 @@
         bars.appendChild(row);
       });
       scroll.appendChild(bars);
-    }
+    });
     renderFeedbackForm(scroll, data);
   }
 

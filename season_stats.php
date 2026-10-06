@@ -145,7 +145,7 @@ function tcgSeasonStatsSeasonList(PDO $db): array {
  *
  * @return array<string,mixed>
  */
-function tcgSeasonStatsSheet(?string $seasonId, string $gameMode = 'standard', int $limit = 100): array {
+function tcgSeasonStatsSheet(?string $seasonId, string $gameMode = 'standard', int $limit = 50): array {
     $db = tcgDb();
     tcgSeasonStatsEnsureSchema($db);
     $clock = tcgSeasonClockInfo();
@@ -162,7 +162,8 @@ function tcgSeasonStatsSheet(?string $seasonId, string $gameMode = 'standard', i
         'seasons' => $seasons,
         'decks' => 0,
         'matches' => 0,
-        'cards' => [],
+        'members' => [],
+        'lives' => [],
     ];
     if ($seasonId === '') {
         return $out;
@@ -176,21 +177,27 @@ function tcgSeasonStatsSheet(?string $seasonId, string $gameMode = 'standard', i
     $totalDecks = (int)$tot['decks'];
     $out['decks'] = $totalDecks;
     $out['matches'] = (int)$tot['matches'];
-    $limit = max(1, min(300, $limit));
+    $limit = max(1, min(150, $limit));
     $stmt = $db->prepare('SELECT card_no, decks, copies, wins FROM tcg_season_card_usage
         WHERE season_id = ? AND game_mode = ?
-        ORDER BY decks DESC, wins DESC, card_no ASC LIMIT ' . $limit);
+        ORDER BY decks DESC, wins DESC, card_no ASC');
     $stmt->execute([$seasonId, $gameMode]);
     $cardMap = function_exists('tcgBuildCardMap') && function_exists('tcgLoadCardsData')
         ? tcgBuildCardMap(tcgLoadCardsData())
         : [];
-    $rank = 0;
+    // Members and Lives are ranked separately so each is compared within its own type.
+    $ranks = ['members' => 0, 'lives' => 0];
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $no = (string)$r['card_no'];
         $c = $cardMap[$no] ?? [];
+        $type = strtolower((string)($c['card_type_en'] ?? ''));
+        $section = $type === 'live' ? 'lives' : 'members';
+        if ($ranks[$section] >= $limit) {
+            continue;
+        }
         $decks = (int)$r['decks'];
-        $out['cards'][] = [
-            'rank' => ++$rank,
+        $out[$section][] = [
+            'rank' => ++$ranks[$section],
             'card_no' => $no,
             'name_en' => (string)($c['name_en'] ?? $no),
             'name' => (string)($c['name'] ?? ''),
@@ -236,7 +243,7 @@ function tcgApiSeasonStats(array $body): array {
         ? tcgNormalizeRankedGameMode($body['game_mode'] ?? $_GET['game_mode'] ?? 'standard')
         : 'standard';
     $sid = (string)($body['season_id'] ?? $_GET['season_id'] ?? '');
-    $sheet = tcgSeasonStatsSheet($sid, $mode, (int)($body['limit'] ?? $_GET['limit'] ?? 100));
+    $sheet = tcgSeasonStatsSheet($sid, $mode, (int)($body['limit'] ?? $_GET['limit'] ?? 50));
     $uid = '';
     try {
         $uid = tcgRequireAuthUser($body);
