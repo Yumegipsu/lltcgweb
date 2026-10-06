@@ -3271,7 +3271,7 @@ try {
 <script src="client/js/titles.js?v=5"></script>
 <script src="client/js/season-rank.js?v=8"></script>
 <script src="client/js/friend-push.js?v=12"></script>
-<script src="client/js/runtime-flags.js?v=5"></script>
+<script src="client/js/runtime-flags.js?v=6"></script>
 <script src="client/js/api-client.js?v=44"></script>
 <script>
 /* Local Docker fake Discord only — skipped on production (no 404 for missing file). */
@@ -16895,6 +16895,7 @@ function cachedCardImgUrl(cardNo, width = 0) {
 }
 
 function tcgCardImgUsesPhpUrls() {
+  if (window.TCG_STATIC_CARD_THUMBS !== true) return true;
   try {
     return !!(window.LLTCG_APK_ASSETS && window.LLTCG_APK_ASSETS.isNativeApk && window.LLTCG_APK_ASSETS.isNativeApk());
   } catch (_) { return false; }

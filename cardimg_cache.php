@@ -114,6 +114,8 @@ function ensureCardImageVariant(string $cardNo, string $source, int $width): str
         }
         return $source;
     }
+    // tempnam() creates 0600; the web server must be able to read thumbs served as static files.
+    @chmod($tmp, 0644);
     if (!@rename($tmp, $dest)) {
         @unlink($tmp);
         return $source;

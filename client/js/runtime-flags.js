@@ -17,6 +17,12 @@
   /** Production: VPS match-primary cutover (operator-approved). */
   var DEFAULT_MATCH_API_PRIMARY = true;
   var DEFAULT_TOURNAMENTS_ENABLED = true;
+  /**
+   * Card thumbs as static cardimg/thumbs/<w>/<name>.webp (no PHP). Keep false until every file
+   * under cardimg/thumbs/ on Hostinger is world-readable (older thumbs were written 0600 and
+   * the web server answers 403). Override: ?static_thumbs=0|1 or localStorage.tcg_static_thumbs.
+   */
+  var DEFAULT_STATIC_CARD_THUMBS = false;
 
   function parseBool(raw, fallback) {
     if (raw == null || raw === '') return fallback;
@@ -53,6 +59,21 @@
   } else if (typeof global.TCG_MATCH_API_PRIMARY === 'undefined') {
     global.TCG_MATCH_API_PRIMARY = DEFAULT_MATCH_API_PRIMARY;
   }
+
+  var sFromQuery = null;
+  try {
+    if (q && q.has('static_thumbs')) sFromQuery = parseBool(q.get('static_thumbs'), null);
+  } catch (e) { /* ignore */ }
+  var sFromStorage = null;
+  try {
+    if (global.localStorage) {
+      var sls = global.localStorage.getItem('tcg_static_thumbs');
+      if (sls != null && sls !== '') sFromStorage = parseBool(sls, null);
+    }
+  } catch (e) { /* ignore */ }
+  if (sFromQuery !== null) global.TCG_STATIC_CARD_THUMBS = sFromQuery;
+  else if (sFromStorage !== null) global.TCG_STATIC_CARD_THUMBS = sFromStorage;
+  else if (typeof global.TCG_STATIC_CARD_THUMBS === 'undefined') global.TCG_STATIC_CARD_THUMBS = DEFAULT_STATIC_CARD_THUMBS;
 
   var tFromQuery = null;
   try {
