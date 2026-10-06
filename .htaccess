@@ -17,6 +17,10 @@
   <Files "index.html">
     Header set Cache-Control "no-store"
   </Files>
+  # Static card thumbs never change in place; let the edge and browsers keep them.
+  <If "%{REQUEST_URI} =~ m#^/tcg/cardimg/thumbs/#">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </If>
 </IfModule>
 
 <IfModule mod_rewrite.c>
@@ -41,6 +45,12 @@
   RewriteCond %{REQUEST_URI} !^/match_host_robots\.txt$ [NC]
   RewriteCond %{REQUEST_URI} !^/robots\.txt$ [NC]
   RewriteRule ^ - [R=404,L]
+
+  # Card thumbs are static files under cardimg/thumbs/<w>/ (stored on Hostinger only), so
+  # hcdn/Apache serve them with no PHP worker. A thumb that does not exist yet falls through
+  # to cardimg.php, which reads the original path from REQUEST_URI and builds it.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^cardimg/thumbs/(96|180|256)/[^/]+\.webp$ cardimg.php?thumb_path=1 [L,QSA]
 
   # Optional: Apache proxy to VPS SSE (often unavailable on shared Hostinger — clients prefer stream.loveliveradio.ca)
   # RewriteRule ^sync-stream$ https://stream.loveliveradio.ca/tcg/sync/stream [P,QSA,L]

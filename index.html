@@ -3272,7 +3272,7 @@ try {
 <script src="client/js/season-rank.js?v=8"></script>
 <script src="client/js/friend-push.js?v=12"></script>
 <script src="client/js/runtime-flags.js?v=5"></script>
-<script src="client/js/api-client.js?v=43"></script>
+<script src="client/js/api-client.js?v=44"></script>
 <script>
 /* Local Docker fake Discord only — skipped on production (no 404 for missing file). */
 (function () {
@@ -16884,7 +16884,20 @@ const _imgPersistQueued = new Set();
 function cachedCardImgUrl(cardNo, width = 0) {
   if (!cardNo) return '';
   const w = [96, 180, 256].includes(Number(width)) ? Number(width) : 0;
+  // Thumbs: static WebP path served by Apache/hcdn with no PHP worker. A missing file is
+  // rewritten to cardimg.php server-side (.htaccess), which builds it for the next load.
+  // The native app precaches the cardimg.php URLs, so it keeps those.
+  if (w && !tcgCardImgUsesPhpUrls()) {
+    const safe = String(cardNo).trim().replace(/[^\p{L}\p{N}_\-+.]/gu, '_') || 'unknown';
+    return `cardimg/thumbs/${w}/${encodeURIComponent(safe)}.webp`;
+  }
   return `${CARDIMG}?card_no=${encodeURIComponent(cardNo)}${w ? `&w=${w}` : ''}`;
+}
+
+function tcgCardImgUsesPhpUrls() {
+  try {
+    return !!(window.LLTCG_APK_ASSETS && window.LLTCG_APK_ASSETS.isNativeApk && window.LLTCG_APK_ASSETS.isNativeApk());
+  } catch (_) { return false; }
 }
 
 /**
@@ -36494,7 +36507,7 @@ function mkNoImg(card){
 <script src="client/js/cpu-loop.js?v=49"></script>
 <script src="client/js/cpu-ai.js?v=13"></script>
 <script src="client/js/portrait-bridge.js?v=31"></script>
-<script src="client/js/match-chat.js?v=6"></script>
+<script src="client/js/match-chat.js?v=7"></script>
 <script src="client/js/portrait-deck.js?v=5"></script>
 <script src="client/js/portrait-board.js?v=23"></script>
 <script>void bootApp();</script>

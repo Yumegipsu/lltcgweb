@@ -325,6 +325,7 @@ try {
         case 'spectate_join': echo json_encode(apiSpectateJoin($body)); break;
         case 'spectate_leave': echo json_encode(apiSpectateLeave($body)); break;
         case 'ping':         echo json_encode(ping($body));            break;
+        case 'client_diag':  echo json_encode(apiClientDiag($body));    break;
         case 'sync_ticket':  echo json_encode(apiSyncTicket($body));    break;
         case 'seed_ranked_room': echo json_encode(apiSeedRankedRoom($body)); break;
         case 'cleanup':      echo json_encode(cleanupOldGames());      break;
@@ -1561,6 +1562,36 @@ function apiSeedRankedRoom(array $body): array {
     }
     saveGame($roomId, $state);
     return ['ok' => true, 'room_id' => $roomId, 'seq' => $incomingSeq];
+}
+
+/**
+ * Browser-reported 403s (edge/WAF blocks never reach PHP, so the client has to tell us).
+ * One JSON line per report in the PHP error log, tagged tcg_client_diag. No tokens: the
+ * client sends only the path, action name, response headers and a body snippet.
+ */
+function apiClientDiag(array $body): array {
+    tcgRateLimitCheck('client_diag', tcgRateLimitClientKey(), 30, TCG_RATE_WINDOW_SEC);
+    $clip = static fn($v, int $n) => is_string($v) ? substr($v, 0, $n) : '';
+    $headers = [];
+    foreach ((array)($body['headers'] ?? []) as $k => $v) {
+        if (is_string($k) && is_string($v) && count($headers) < 12) {
+            $headers[substr($k, 0, 40)] = substr($v, 0, 200);
+        }
+    }
+    error_log('tcg_client_diag ' . json_encode([
+        'kind' => $clip($body['kind'] ?? '', 32),
+        'status' => (int)($body['status'] ?? 0),
+        'host' => $clip($body['host'] ?? '', 80),
+        'path' => $clip($body['path'] ?? '', 160),
+        'action' => $clip($body['action'] ?? '', 64),
+        'headers' => $headers,
+        'body' => $clip($body['body'] ?? '', 400),
+        'in_match' => !empty($body['in_match']),
+        'ua' => $clip($body['ua'] ?? '', 160),
+        'ip' => tcgRateLimitClientKey(),
+        'ts' => date('c'),
+    ], JSON_UNESCAPED_SLASHES));
+    return ['ok' => true];
 }
 
 function ping(array $body): array {

@@ -15,6 +15,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $cardNo = (string)($_GET['card_no'] ?? '');
 $variantWidth = tcgCardImageVariantWidth($_GET['w'] ?? 0);
+// Apache rewrites a missing static thumb (cardimg/thumbs/<w>/<name>.webp) here.
+if (isset($_GET['thumb_path'])) {
+    $reqPath = rawurldecode((string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH));
+    if (preg_match('#/cardimg/thumbs/(96|180|256)/([^/]+)\.webp$#', $reqPath, $m)) {
+        $variantWidth = (int)$m[1];
+        $cardNo = $m[2];
+    }
+}
 $file = localCardImageFile($cardNo);
 
 if (!$file && $cardNo !== '') {

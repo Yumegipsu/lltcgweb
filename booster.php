@@ -1424,9 +1424,17 @@ function tcgOpenBoosterBoxWithGems(string $discordId, string $boxId, array $card
         throw new Exception('PR Card Pack cannot be opened as a full booster box');
     }
     $boxCost = tcgStarGemsBoxCost($box);
-    tcgDeductStarGems($discordId, $boxCost);
+    if (tcgGetStarGems($discordId) < $boxCost) {
+        throw new Exception('Not enough Star Gems', 400);
+    }
     $cardMap = tcgBuildCardMap($cardsData);
     $packsPerBox = tcgBoxPacksPerBox($box);
+
+    // Roll + apply every pack before charging so a schema/roll/apply failure cannot burn gems.
+    $rolls = [];
+    for ($p = 0; $p < $packsPerBox; $p++) {
+        $rolls[] = tcgRollBoosterPack($discordId, $boxId, $cardsData);
+    }
 
     $packsOut = [];
     $allCardNos = [];
@@ -1434,12 +1442,13 @@ function tcgOpenBoosterBoxWithGems(string $discordId, string $boxId, array $card
     $totalGemsEarned = 0;
     $godPackCount = 0;
 
-    for ($p = 0; $p < $packsPerBox; $p++) {
-        $roll = tcgRollBoosterPack($discordId, $boxId, $cardsData);
+    foreach ($rolls as $p => $roll) {
         if (!empty($roll['god_pack'])) {
             $godPackCount++;
         }
-        $gemResult = tcgApplyBoosterPullWithGems($discordId, $roll['card_nos'], $cardMap);
+        $gemResult = tcgDbRetry(function () use ($discordId, $roll, $cardMap) {
+            return tcgApplyBoosterPullWithGems($discordId, $roll['card_nos'], $cardMap);
+        });
         $totalGemsEarned += $gemResult['star_gems_earned'];
         $packCards = tcgFormatBoosterOpenCards($roll['card_nos'], $gemResult['pulls'], $cardMap);
         $packsOut[] = [
@@ -1456,6 +1465,8 @@ function tcgOpenBoosterBoxWithGems(string $discordId, string $boxId, array $card
             $allPullMeta[] = $gemResult['pulls'][$i] ?? ['converted' => false, 'star_gems' => 0];
         }
     }
+
+    tcgDeductStarGems($discordId, $boxCost);
 
     $progress = tcgGetBoxProgress($discordId, $boxId);
 

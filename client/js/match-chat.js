@@ -106,6 +106,34 @@
     return global.WRAPPED_API || '/wrapped/api.php';
   }
 
+  // VPS-first: chat hits the VPS routes directly so a Hostinger edge/WAF 403 cannot cut
+  // chat mid-match. Set TCG_CHAT_ORIGIN = '' to force the Hostinger wrapped proxy.
+  let vpsChatDownUntil = 0;
+  function vpsChatBase() {
+    const o = global.TCG_CHAT_ORIGIN;
+    if (o === '' || o === false) return '';
+    return String(o || 'https://stream.loveliveradio.ca/tcg/match_chat').replace(/\/$/, '');
+  }
+  function vpsChatUsable() {
+    return !!vpsChatBase() && Date.now() >= vpsChatDownUntil;
+  }
+  function markVpsChatDown() {
+    vpsChatDownUntil = Date.now() + 5 * 60 * 1000;
+  }
+  /** Try the VPS URL first; on network failure or a gateway error use the Hostinger URL. */
+  async function fetchVpsFirst(vpsUrl, hostingerUrl, init) {
+    if (vpsChatUsable()) {
+      try {
+        const r = await fetch(vpsUrl, init);
+        if (r.status !== 404 && r.status < 502) return r;
+      } catch (e) {
+        if (e && e.name === 'AbortError') throw e;
+      }
+      markVpsChatDown();
+    }
+    return fetch(hostingerUrl, init);
+  }
+
   function authToken() {
     if (typeof global.getAuthToken === 'function') return global.getAuthToken() || '';
     try {
@@ -465,13 +493,19 @@
       encodeURIComponent(role) +
       '&room_id=' +
       encodeURIComponent(rid);
+    const vpsUrl =
+      vpsChatBase() +
+      '/stream?role=' +
+      encodeURIComponent(role) +
+      '&room_id=' +
+      encodeURIComponent(rid);
     const ac = new AbortController();
     streamAbort = ac;
     streamRoomId = rid;
 
     (async () => {
       try {
-        const r = await fetch(url, {
+        const r = await fetchVpsFirst(vpsUrl, url, {
           method: 'GET',
           headers: {
             Accept: 'text/event-stream',
@@ -484,6 +518,9 @@
         if (r.status === 401 || r.status === 403) {
           // Auth/WAF: do not hammer reconnect — that worsens Imunify blocks.
           streamAuthFailed = r.status === 401;
+          if (r.status === 403 && typeof global.tcgReport403 === 'function') {
+            r.clone().text().then((t) => global.tcgReport403(r, t, 'chat_403')).catch(() => {});
+          }
           disconnectStream();
           if (r.status === 403) scheduleReconnect(true);
           return;
@@ -639,7 +676,7 @@
       avatar_hash: profile.avatar_hash,
     };
     try {
-      const r = await fetch(wrappedApi() + '?action=tcg_match_chat_send', {
+      const r = await fetchVpsFirst(vpsChatBase() + '/send', wrappedApi() + '?action=tcg_match_chat_send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

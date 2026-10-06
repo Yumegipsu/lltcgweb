@@ -262,6 +262,46 @@
     } catch (e) { /* keep prior state */ }
   };
 
+  /**
+   * Report a non-JSON 403 (edge/WAF block page — PHP never saw it) to the VPS log so the
+   * blocking layer can be identified. Sends path + action only: never query values or tokens.
+   * Capped per page load and per URL so a block cannot turn into a report storm.
+   */
+  const diag403 = { sent: 0, lastByKey: Object.create(null) };
+  global.tcgReport403 = function tcgReport403(resp, bodyText, kind) {
+    try {
+      if (!resp || resp.status !== 403 || diag403.sent >= 8) return;
+      const u = new URL(resp.url || '', global.location.href);
+      const action = u.searchParams.get('action') || '';
+      const key = u.host + u.pathname + '|' + action;
+      const now = Date.now();
+      if (diag403.lastByKey[key] && now - diag403.lastByKey[key] < 30000) return;
+      diag403.lastByKey[key] = now;
+      diag403.sent += 1;
+      const headers = {};
+      ['server', 'content-type', 'x-hcdn-request-id', 'x-hcdn-cache-status', 'cf-ray', 'via', 'x-sucuri-id', 'x-imunify-blocked']
+        .forEach((h) => { const v = resp.headers && resp.headers.get(h); if (v) headers[h] = v; });
+      const payload = {
+        kind: kind || 'http_403',
+        status: 403,
+        host: u.host,
+        path: u.pathname,
+        action,
+        headers,
+        body: String(bodyText || '').replace(/\s+/g, ' ').slice(0, 400),
+        in_match: !!(global.G && global.G.roomId),
+        ua: global.navigator ? global.navigator.userAgent : '',
+      };
+      // text/plain keeps this a simple CORS request (no preflight) — the PHP side json_decodes the raw body.
+      void fetch(overflowUrls().API + '?action=client_diag', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload),
+        keepalive: true,
+      }).catch(() => {});
+    } catch (e) { /* diagnostics must never break the request path */ }
+  };
+
   global.fetchWithTimeout = async function fetchWithTimeout(url, options = {}, ms = global.AUTH_FETCH_TIMEOUT_MS) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), ms);
@@ -443,10 +483,14 @@
 
   global.parseAccountJson = async function parseAccountJson(r) {
     let d;
+    const diagClone = r.status === 403 ? r.clone() : null;
     try {
       d = await r.json();
     } catch (e) {
       const status = r.status || 0;
+      if (diagClone) {
+        diagClone.text().then((t) => global.tcgReport403(r, t, 'account_403')).catch(() => global.tcgReport403(r, '', 'account_403'));
+      }
       let msg = r.ok ? 'Invalid account response' : ('Account error (' + status + ')');
       // Non-JSON 403 is almost always Hostinger/Imunify HTML, not our PHP JSON errors.
       if (status === 403) {
@@ -677,6 +721,7 @@
     const text = await r.text();
     const parsed = tryParseJsonLoose(text);
     if (!parsed.ok || !parsed.value || typeof parsed.value !== 'object') {
+      if (status === 403) global.tcgReport403(r, text, 'game_403');
       const msg = status >= 500 ? 'Server error' : (status >= 400 ? `Request failed (${status})` : 'Invalid server response');
       throw global.createApiError(msg, status >= 400 ? status : 503, {
         retryable: true,
