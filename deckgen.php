@@ -27,7 +27,7 @@ function tcgDeckCopyIdentity(string $cardNo): string {
     // Parallel suffixes encoded in card_no (not just trailing +).
     $no = preg_replace('/-(DUO|PP|SRL|SECS|SECL|SECE|PE2|P2|LLE)$/', '', $no) ?? $no;
     // Alternate rarity printings of the same collector number share one copy bucket.
-    $stripped = preg_replace('/-(SD2|SD|N|R|L|P|SEC|PR|CL|PE|RM|RE|AR|SRE)$/', '', $no);
+    $stripped = preg_replace('/-(SD2|SD|N|R|L|P|SEC|PR|PR2|PRproteinbar|CL|PE|RM|RE|AR|SRE)$/', '', $no);
     return ($stripped !== null && $stripped !== '') ? $stripped : $no;
 }
 

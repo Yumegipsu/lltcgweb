@@ -9096,7 +9096,7 @@ function deckCopyIdentity(cardNo) {
   no = no.replace(/\++$/, '') || no;
   if (!no) return String(cardNo || '').trim();
   no = no.replace(/-(DUO|PP|SRL|SECS|SECL|SECE|PE2|P2|LLE)$/, '');
-  const stripped = no.replace(/-(SD2|SD|N|R|L|P|SEC|PR|CL|PE|RM|RE|AR|SRE)$/, '');
+  const stripped = no.replace(/-(SD2|SD|N|R|L|P|SEC|PR|PR2|PRproteinbar|CL|PE|RM|RE|AR|SRE)$/, '');
   return stripped || no;
 }
 
