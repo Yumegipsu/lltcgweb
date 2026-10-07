@@ -2127,29 +2127,10 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             throw new Exception('Choose exactly ' . max(1, $pickCount) . ' card(s)');
         }
         $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgFromAbility($ability);
-        $picked = [];
-        $rest = [];
-        $seen = [];
-        foreach ($ownerP['waiting_room'] as $c) {
-            $cid = $c['instance_id'] ?? '';
-            if ($cid !== '' && in_array($cid, $ids, true)) {
-                if (isset($seen[$cid])) {
-                    throw new Exception('Duplicate Waiting Room card selected');
-                }
-                hydrateWrCardForPick($c);
-                if (!cardMatchesWrPick($c, $cfg)) {
-                    throw new Exception('Invalid Waiting Room card');
-                }
-                $picked[] = $c;
-                $seen[$cid] = true;
-            } else {
-                $rest[] = $c;
-            }
-        }
+        $picked = takeWaitingRoomPickCards($ownerP, $ids, $cfg);
         if (count($picked) !== count($ids)) {
             throw new Exception('Invalid Waiting Room card');
         }
-        $ownerP['waiting_room'] = $rest;
         $ownerP['hand'] = array_merge($ownerP['hand'], liveCardsRestorePrintedScores($picked));
         $names = array_map('cardDisplayName', $picked);
         $state = addLog($state, $state['players'][$owner]['name'] .
@@ -2227,23 +2208,29 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             throw new Exception('Choose a card');
         }
         $cfg = $prompt['wr_pick_cfg'] ?? wrPickCfgForLeaveStageAbility($ability);
-        $pickIndex = null;
         $picked = null;
-        foreach ($ownerP['waiting_room'] as $i => &$c) {
-            if (($c['instance_id'] ?? '') !== $pickId) {
-                continue;
+        $pickZone = '';
+        $pickIndex = null;
+        if ($pickId !== 'NO_CARD_NEEDED') {
+            foreach (waitingRoomPickZones() as $zone) {
+                foreach ($ownerP[$zone] ?? [] as $i => &$c) {
+                    if (!is_array($c) || ($c['instance_id'] ?? '') !== $pickId) {
+                        continue;
+                    }
+                    hydrateWrCardForPick($c);
+                    if (!cardMatchesWrPick($c, $cfg)) {
+                        throw new Exception('Invalid Waiting Room card');
+                    }
+                    $picked = $c;
+                    $pickZone = $zone;
+                    $pickIndex = $i;
+                    break 2;
+                }
+                unset($c);
             }
-            hydrateWrCardForPick($c);
-            if (!cardMatchesWrPick($c, $cfg)) {
+            if (!$picked || $pickIndex === null || $pickZone === '') {
                 throw new Exception('Invalid Waiting Room card');
             }
-            $picked = $c;
-            $pickIndex = $i;
-            break;
-        }
-        unset($c);
-        if ((!$picked || $pickIndex === null) && $pickId !== 'NO_CARD_NEEDED') {
-            throw new Exception('Invalid Waiting Room card');
         }
         $slot = $prompt['source_slot'] ?? '';
         if ($slot === '') {
@@ -2262,7 +2249,8 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             return $state;
         }
         if ($pickId !== 'NO_CARD_NEEDED') {
-            array_splice($ownerP['waiting_room'], $pickIndex, 1);
+            array_splice($ownerP[$pickZone], $pickIndex, 1);
+            $ownerP[$pickZone] = array_values($ownerP[$pickZone]);
         }
         $ownerP['waiting_room'][] = $leavingMember;
         if ($pickId !== 'NO_CARD_NEEDED') {

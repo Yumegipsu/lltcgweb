@@ -421,32 +421,93 @@ function payEnergyCostIds(array &$p, int $cost, array $preferIds = []): array {
     return $paidIds;
 }
 
+/**
+ * Zones that count as Waiting Room for picks during Live Success.
+ * Yell cards are already in the Waiting Room by the rules, but stay in
+ * _pending_yell_wr until Live Success finishes so Yell-specific effects
+ * can still find them (#260).
+ *
+ * @return list<string>
+ */
+function waitingRoomPickZones(): array {
+    return ['waiting_room', '_pending_yell_wr'];
+}
+
 function wrPickMatchCount(array $p, array $cfg, int $need = 1): int {
     $count = 0;
-    foreach ($p['waiting_room'] ?? [] as &$c) {
-        hydrateWrCardForPick($c);
-        if (cardMatchesWrPick($c, $cfg)) {
-            $count++;
-            if ($count >= $need) {
-                unset($c);
-                return $count;
+    foreach (waitingRoomPickZones() as $zone) {
+        foreach ($p[$zone] ?? [] as &$c) {
+            if (!is_array($c)) {
+                continue;
+            }
+            hydrateWrCardForPick($c);
+            if (cardMatchesWrPick($c, $cfg)) {
+                $count++;
+                if ($count >= $need) {
+                    unset($c);
+                    return $count;
+                }
             }
         }
+        unset($c);
     }
-    unset($c);
     return $count;
 }
 
 function wrCandidatesMatching(array $p, array $cfg): array {
     $out = [];
-    foreach ($p['waiting_room'] ?? [] as &$c) {
-        hydrateWrCardForPick($c);
-        if (cardMatchesWrPick($c, $cfg)) {
-            $out[] = $c;
+    foreach (waitingRoomPickZones() as $zone) {
+        foreach ($p[$zone] ?? [] as &$c) {
+            if (!is_array($c)) {
+                continue;
+            }
+            hydrateWrCardForPick($c);
+            if (cardMatchesWrPick($c, $cfg)) {
+                $out[] = $c;
+            }
         }
+        unset($c);
     }
-    unset($c);
     return $out;
+}
+
+/**
+ * Remove chosen cards from Waiting Room or the unflushed Yell pile (#260).
+ *
+ * @param list<string> $ids
+ * @return list<array>
+ */
+function takeWaitingRoomPickCards(array &$p, array $ids, array $cfg): array {
+    $picked = [];
+    $seen = [];
+    foreach (waitingRoomPickZones() as $zone) {
+        if (!isset($p[$zone]) || !is_array($p[$zone])) {
+            continue;
+        }
+        $rest = [];
+        foreach ($p[$zone] as $c) {
+            if (!is_array($c)) {
+                $rest[] = $c;
+                continue;
+            }
+            $cid = (string)($c['instance_id'] ?? '');
+            if ($cid !== '' && in_array($cid, $ids, true)) {
+                if (isset($seen[$cid])) {
+                    throw new Exception('Duplicate Waiting Room card selected');
+                }
+                hydrateWrCardForPick($c);
+                if (!cardMatchesWrPick($c, $cfg)) {
+                    throw new Exception('Invalid Waiting Room card');
+                }
+                $picked[] = $c;
+                $seen[$cid] = true;
+            } else {
+                $rest[] = $c;
+            }
+        }
+        $p[$zone] = array_values($rest);
+    }
+    return $picked;
 }
 
 function wrPickCfgFromAbility(array $ab): array {

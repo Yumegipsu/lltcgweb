@@ -103,4 +103,70 @@ final class WonderfulRushLiveSuccessTest extends TestCase
             unset($GLOBALS['TUT_PERF_MANUAL_PHASES']);
         }
     }
+
+    public function testYelledLiveIsAWaitingRoomChoice(): void
+    {
+        $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true;
+        try {
+            $rush = $this->cardByNo('PL!-bp6-021-L', 'rush_1');
+            $rush['face_up'] = true;
+            $stageMember = $this->cardByNo('PL!-PR-014-PR', 'stage_mus');
+            $yelled = $this->cardByNo('PL!-bp6-022-L', 'yelled_live');
+
+            $state = [
+                'status' => 'playing',
+                'phase' => 'live_success_effects',
+                'seq' => 1,
+                'turn' => 4,
+                'first_player' => 'p1',
+                'active_player' => 'p1',
+                'log' => [],
+                'players' => [
+                    'p1' => [
+                        'id' => 'p1',
+                        'name' => 'P1',
+                        'hand' => [],
+                        'waiting_room' => [],
+                        '_pending_yell_wr' => [$yelled],
+                        'stage' => [
+                            'left' => $stageMember,
+                            'center' => null,
+                            'right' => null,
+                        ],
+                        'energy_zone' => [],
+                        'main_deck' => [],
+                        'success_lives' => [],
+                        'live_zone' => [$rush],
+                    ],
+                    'p2' => [
+                        'id' => 'p2',
+                        'name' => 'P2',
+                        'hand' => [],
+                        'waiting_room' => [],
+                        'stage' => ['left' => null, 'center' => null, 'right' => null],
+                        'energy_zone' => [],
+                        'main_deck' => [],
+                        'success_lives' => [],
+                        'live_zone' => [],
+                    ],
+                ],
+            ];
+
+            $state = \resolveLiveSuccessAbilities($state, 'p1', [$rush], 0, [], [$yelled]);
+            $state = \actionResolvePrompt($state, 'p1', ['choice' => 'yes']);
+            $state = \actionResolvePrompt($state, 'p1', ['card_id' => 'stage_mus']);
+
+            $this->assertSame('pick_wr_to_hand', $state['pending_prompt']['type'] ?? null);
+            $ids = array_column($state['pending_prompt']['candidates'] ?? [], 'instance_id');
+            $this->assertContains('yelled_live', $ids);
+
+            $state = \actionResolvePrompt($state, 'p1', ['card_id' => 'yelled_live']);
+            $handIds = array_column($state['players']['p1']['hand'] ?? [], 'instance_id');
+            $this->assertContains('yelled_live', $handIds);
+            $pendingIds = array_column($state['players']['p1']['_pending_yell_wr'] ?? [], 'instance_id');
+            $this->assertNotContains('yelled_live', $pendingIds);
+        } finally {
+            unset($GLOBALS['TUT_PERF_MANUAL_PHASES']);
+        }
+    }
 }
