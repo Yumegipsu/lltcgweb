@@ -169,6 +169,17 @@ function finishPromptEffects(array $state): array {
         if (is_string($pid) && isset($state['players'][$pid])
             && function_exists('continuePerformanceAfterYellAbilities')) {
             unset($state['_performance_continue']);
+            // A Live card's auto Yell prompt (PSYCHIC FIRE Wait pick) ended the Yell
+            // pass early — resolve the Live cards after it (a 2nd copy) before moving on.
+            $resume = $state['_auto_yell_resume'] ?? null;
+            if (is_array($resume) && ($resume['pid'] ?? '') === $pid
+                && function_exists('resumeAutoYellLiveZoneAbilities')) {
+                $state = resumeAutoYellLiveZoneAbilities($state, $pid, $resume);
+                if (!empty($state['pending_prompt'])) {
+                    $state['_performance_continue'] = $pid;
+                    return $state;
+                }
+            }
             return continuePerformanceAfterYellAbilities($state, $pid);
         }
     }

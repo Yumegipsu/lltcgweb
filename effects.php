@@ -1137,8 +1137,31 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
         }
     }
 
+    unset($state['_auto_yell_resume']);
+    return resolveAutoYellLiveZoneAbilities($state, $pid, $yellCards);
+}
+
+/**
+ * Auto "When you Yell" abilities on Live cards in the Live zone, in zone order.
+ * A prompt (e.g. PSYCHIC FIRE's Wait pick) ends the pass; the position is stored so
+ * the remaining Live cards still resolve once that prompt chain finishes
+ * (resumeAutoYellLiveZoneAbilities) — two copies of a card each get their own trigger.
+ *
+ * @param int|string $afterLi  skip Live zone slots before this one (resume)
+ * @param int        $afterIdx skip abilities up to this index in $afterLi (resume)
+ */
+function resolveAutoYellLiveZoneAbilities(
+    array $state,
+    string $pid,
+    array $yellCards,
+    int|string $afterLi = -1,
+    int $afterIdx = -1
+): array {
     $liveZone = $state['players'][$pid]['live_zone'] ?? [];
     foreach (array_keys($liveZone) as $li) {
+        if ($afterLi !== -1 && $li < $afterLi) {
+            continue;
+        }
         $live = $state['players'][$pid]['live_zone'][$li] ?? null;
         if (!$live || !isLiveTypeCard($live)) {
             continue;
@@ -1146,6 +1169,9 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
         mergeCardCatalogFields($live);
         $state['players'][$pid]['live_zone'][$li] = $live;
         foreach ($live['abilities'] ?? [] as $idx => $ab) {
+            if ($afterLi !== -1 && $li === $afterLi && $idx <= $afterIdx) {
+                continue;
+            }
             $live = $state['players'][$pid]['live_zone'][$li] ?? null;
             if (!$live) break;
             if (($ab['trigger'] ?? '') !== 'auto') {
@@ -1165,6 +1191,7 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                     if (isset($state['players'][$pid]['live_zone'][$li])) {
                         markAbilityUsed($state['players'][$pid]['live_zone'][$li], $idx);
                     }
+                    $state['_auto_yell_resume'] = ['pid' => $pid, 'li' => $li, 'idx' => $idx];
                     return $state;
                 }
                 continue;
@@ -1182,6 +1209,7 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                     $yellCards
                 );
                 if (!empty($state['pending_prompt'])) {
+                    $state['_auto_yell_resume'] = ['pid' => $pid, 'li' => $li, 'idx' => $idx];
                     return $state;
                 }
             }
@@ -1189,6 +1217,29 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
     }
 
     return $state;
+}
+
+/**
+ * After the prompt chain from a Live-zone auto Yell ability finishes, resolve the
+ * Live cards that come after it (e.g. a second PSYCHIC FIRE).
+ *
+ * @param array{pid?:string,li?:int|string,idx?:int} $resume
+ */
+function resumeAutoYellLiveZoneAbilities(array $state, string $pid, array $resume): array {
+    unset($state['_auto_yell_resume']);
+    $yellCards = function_exists('currentPlayerYellCards')
+        ? currentPlayerYellCards($state, $pid)
+        : ($state['players'][$pid]['yell_cards'] ?? []);
+    if (empty($yellCards)) {
+        return $state;
+    }
+    return resolveAutoYellLiveZoneAbilities(
+        $state,
+        $pid,
+        $yellCards,
+        $resume['li'] ?? -1,
+        intval($resume['idx'] ?? -1)
+    );
 }
 
 /**
