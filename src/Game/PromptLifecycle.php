@@ -101,6 +101,14 @@ function finishPromptEffects(array $state): array {
             return $state;
         }
     }
+    // Resume remaining On Enter abilities interrupted by an earlier prompt (#256).
+    if (empty($state['pending_prompt']) && !empty($state['_resume_on_enter_abilities'])
+        && function_exists('resumeOnEnterAbilityList')) {
+        $state = resumeOnEnterAbilityList($state);
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
     // Resume deferred On Enter after an On Leave prompt (Position Change, etc.) (#104).
     if (empty($state['pending_prompt']) && !empty($state['_resume_on_enter'])) {
         $r = $state['_resume_on_enter'];
@@ -401,6 +409,14 @@ function finishAfterBranchChoicePrompt(array $state, array $prompt): array {
     // and drop deferred Center-leave chooses (Tomari pb2 after bp4 Wait) (#160).
     if (empty($state['pending_prompt']) && function_exists('flushDeferredAutoAreaMoves')) {
         $state = flushDeferredAutoAreaMoves($state);
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
+    // Remaining On Enter abilities after an earlier optional prompt (#256 / Yume no Tobira Nico).
+    if (empty($state['pending_prompt']) && !empty($state['_resume_on_enter_abilities'])
+        && function_exists('resumeOnEnterAbilityList')) {
+        $state = resumeOnEnterAbilityList($state);
         if (!empty($state['pending_prompt'])) {
             return $state;
         }

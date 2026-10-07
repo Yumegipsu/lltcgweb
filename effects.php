@@ -7517,23 +7517,86 @@ function resolveOnEnterAbilities(array $state, string $pid, array $member, strin
         }
     }
     $abilities = getAbilitiesByTrigger($member, 'on_enter');
-    if (!empty($abilities)) {
-        $state = logAbilityChain($state, $pid, $member, 'on_enter');
-        foreach ($abilities as $ab) {
-            $state = resolveAbilityEffect($state, $pid, $member, $ab, [
-                'slot'  => $slot,
-                'phase' => 'on_enter',
-            ]);
-            if (!empty($state['pending_prompt'])) {
-                break;
-            }
-        }
-    }
+    $state = continueOnEnterAbilityList($state, $pid, $member, $slot, $abilities, true);
     // Auto-on-other-enter must run for every Stage enter, even when the entering Member
     // has no On Enter abilities (e.g. SD Kaho with only Automatic/on-leave text).
     $state = hsResolveAutoOnOtherMemberEnter($state, $pid, $member);
     $state = hsPb1ExtendAutoOnOtherMemberEnter($state, $pid, $member);
     return bp7ResolveOnEnterAutos($state, $pid, $member);
+}
+
+/**
+ * Resolve a list of On Enter abilities in order. When one opens a prompt, stash the
+ * rest on _resume_on_enter_abilities so finishPromptEffects can continue (#256).
+ */
+function continueOnEnterAbilityList(
+    array $state,
+    string $pid,
+    array $member,
+    string $slot,
+    array $abilities,
+    bool $logChain = false
+): array {
+    if (empty($abilities)) {
+        return $state;
+    }
+    if ($logChain) {
+        $state = logAbilityChain($state, $pid, $member, 'on_enter');
+    }
+    $list = array_values($abilities);
+    for ($i = 0, $n = count($list); $i < $n; $i++) {
+        $state = resolveAbilityEffect($state, $pid, $member, $list[$i], [
+            'slot'  => $slot,
+            'phase' => 'on_enter',
+        ]);
+        if (!empty($state['pending_prompt'])) {
+            $left = array_slice($list, $i + 1);
+            if ($left !== []) {
+                $state['_resume_on_enter_abilities'] = [
+                    'pid' => $pid,
+                    'entered_id' => (string)($member['instance_id'] ?? ''),
+                    'slot' => $slot,
+                    'remaining' => $left,
+                ];
+            }
+            break;
+        }
+    }
+    return $state;
+}
+
+/** Drain remaining On Enter abilities interrupted by an earlier prompt (#256). */
+function resumeOnEnterAbilityList(array $state): array {
+    if (!empty($state['pending_prompt']) || empty($state['_resume_on_enter_abilities'])) {
+        return $state;
+    }
+    $r = $state['_resume_on_enter_abilities'];
+    unset($state['_resume_on_enter_abilities']);
+    $pid = (string)($r['pid'] ?? '');
+    $enteredId = (string)($r['entered_id'] ?? '');
+    $slot = (string)($r['slot'] ?? '');
+    $remaining = array_values($r['remaining'] ?? []);
+    if ($pid === '' || $enteredId === '' || $remaining === []) {
+        return $state;
+    }
+    $member = null;
+    if ($slot !== '' && isset($state['players'][$pid]['stage'][$slot])
+        && (($state['players'][$pid]['stage'][$slot]['instance_id'] ?? '') === $enteredId)) {
+        $member = $state['players'][$pid]['stage'][$slot];
+    } else {
+        foreach (['left', 'center', 'right'] as $s) {
+            $mbr = $state['players'][$pid]['stage'][$s] ?? null;
+            if ($mbr && ($mbr['instance_id'] ?? '') === $enteredId) {
+                $member = $mbr;
+                $slot = $s;
+                break;
+            }
+        }
+    }
+    if ($member === null) {
+        return $state;
+    }
+    return continueOnEnterAbilityList($state, $pid, $member, $slot, $remaining, false);
 }
 
 // resolveLiveStartAbilities, isQueuedOptionalLiveStart — see src/Game/LiveStartEffects.php
