@@ -2088,6 +2088,21 @@ function isDeferredLiveSuccessPrompt(next) {
   return false;
 }
 
+/**
+ * A Yell skill's prompt on the mat during Performance (e.g. PSYCHIC FIRE's Wait pick)
+ * that is not one of the mid-spectacle / deferred Live Success prompts. The server is
+ * parked on it, so performance chrome (Checking hearts…) must not be open over it —
+ * the player answers on the mat first, then the show continues.
+ */
+function isPerformanceSkillPromptOnMat(board) {
+  const pr = board?.pending_prompt;
+  if (!pr || board?.live_show?.stage !== 'performance') return false;
+  if (isDeferredLiveSuccessPrompt(board) || isMidSpectacleYellRetryPrompt(board)) return false;
+  if (typeof liveShowHeartsResolvedFromBoard === 'function'
+      && liveShowHeartsResolvedFromBoard(board)) return false;
+  return true;
+}
+
 function pendingPromptBlocksPerfSpectacle(next) {
   const pr = next?.pending_prompt;
   if (!pr) return false;
@@ -8488,6 +8503,16 @@ async function restoreLiveShowSpectacleAfterTabVisible(board, myId, opts = {}) {
     G._perfSpectacleAborted = false;
     return;
   }
+  // Server is parked on a Yell skill prompt (PSYCHIC FIRE Wait pick): do not rebuild
+  // the Checking hearts chrome over it after alt-tab — answer on the mat first.
+  if (isPerformanceSkillPromptOnMat(board)) {
+    if (G._perfSpectacleActive) {
+      perfClearHeartCheckHold();
+      perfCloseSpectacle();
+    }
+    G._perfSpectacleAborted = false;
+    return;
+  }
   // Invalidate any heart-fly promises from the aborted climb before reopening chrome.
   G._perfHeartFlyEpoch = (G._perfHeartFlyEpoch || 0) + 1;
   G._perfSpectacleAborted = false;
@@ -9005,6 +9030,10 @@ async function presentServerLiveShowStage(prev, next, myId) {
       if (board.pending_prompt) {
         if (G._perfSpectacleActive
             && (show.stage === 'reveal' || show.stage === 'live_start')) {
+          perfCloseSpectacle();
+        } else if (G._perfSpectacleActive && isPerformanceSkillPromptOnMat(board)) {
+          // Yell skill (PSYCHIC FIRE Wait pick…) must resolve on the mat before hearts.
+          perfClearHeartCheckHold();
           perfCloseSpectacle();
         } else if (
           G._perfSpectacleActive
