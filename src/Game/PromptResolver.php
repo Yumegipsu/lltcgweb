@@ -3758,6 +3758,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         $blade = intval($prompt['blade'] ?? 1);
         $step = $prompt['step'] ?? 'pick_named';
         $group = $ability['group'] ?? 'Superstar';
+        $namedOnly = intval($prompt['max_members'] ?? $ability['max_members'] ?? 0) === 1;
         if ($step === 'pick_named') {
             $mbr = $ownerP['stage'][$slot] ?? null;
             if (!$mbr) throw new Exception('Choose a Member');
@@ -3767,6 +3768,17 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 if ($label === $n || str_contains($label, $n)) { $namedOk = true; break; }
             }
             if (!$namedOk) throw new Exception('Choose a named Member');
+            // Memories etc.: grant only to the chosen named Member (#259).
+            if ($namedOnly) {
+                $mbr['live_blade_bonus'] = intval($mbr['live_blade_bonus'] ?? 0) + $blade;
+                $ownerP['stage'][$slot] = $mbr;
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Live') . "] granted +$blade Blade to " .
+                    cardDisplayName($mbr) . '.');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishLiveStartEffects($state);
+            }
             // Defer blade until both picks succeed (avoids partial grant + empty second UI #68).
             $otherCandidates = [];
             foreach ($ownerP['stage'] as $oslot => $ombr) {
