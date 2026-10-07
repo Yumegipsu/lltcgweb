@@ -3601,6 +3601,11 @@ function bp7ResolvePrompt(array $state, string $owner, array $prompt, string $ch
 
         case 'return_energy_to_deck_then': {
             if (!$yes) break;
+            // Clear this confirm before returning Energy. Leaving it set made the
+            // hook check below treat the same prompt as "already opened", so
+            // bp7QueueChain+Finish re-offered Yes forever and never applied `then`
+            // (17 Mei Live Start freeze — Refs #257).
+            unset($state['pending_prompt']);
             $moved = bp7ReturnEnergyToDeck($state, $owner, max(1, intval($ab['energy'] ?? 1)));
             if ($moved < max(1, intval($ab['energy'] ?? 1))) {
                 $state = addLog($state, $state['players'][$owner]['name'] .
