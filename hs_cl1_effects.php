@@ -123,13 +123,16 @@ function hsResolveHasunosoraCl1Effect(array $state, string $pid, array $source, 
             }
             $top = $p['main_deck'][0];
             $label = cardDisplayName($top);
+            $summary = cardPromptSummary($top);
             $state['pending_prompt'] = [
                 'type'          => 'look_top_optional_wr',
                 'owner'         => $pid,
                 'responder'     => $pid,
                 'target'        => $pid,
                 'source_name'   => $name,
-                'top_card'      => cardPromptSummary($top),
+                'top_card'      => $summary,
+                // prompt-look-cards UI reads looked_cards / look_cards (not top_card) (#258).
+                'looked_cards'  => [$summary],
                 'prompt'        => "Looked at $label on top of your deck. Put it into the Waiting Room?",
                 'choices'       => ['yes', 'no'],
                 'choice_labels' => ['Yes — Put in WR', 'No — Leave on top'],

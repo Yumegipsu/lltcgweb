@@ -1958,7 +1958,8 @@ function hidePromptLookCards(){
 function renderPromptLookCards(pr){
   const wrap=el('prompt-look-cards');
   if(!wrap) return;
-  const cards=pr?.looked_cards||pr?.look_cards||[];
+  // look_top_optional_wr historically only set top_card; show that face too (#258).
+  const cards=pr?.looked_cards||pr?.look_cards||(pr?.top_card?[pr.top_card]:[]);
   if(!cards.length){
     hidePromptLookCards();
     return;

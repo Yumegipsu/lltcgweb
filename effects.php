@@ -7131,13 +7131,16 @@ function applyChoiceEffect(array $state, string $owner, array &$ownerP, array $e
         }
         $top = $pl['main_deck'][0];
         $label = cardDisplayName($top);
+        $summary = cardPromptSummary($top);
         $state['pending_prompt'] = [
             'type'          => 'look_top_optional_wr',
             'owner'         => $owner,
             'responder'     => $owner,
             'target'        => $target,
             'source_name'   => $srcName,
-            'top_card'      => cardPromptSummary($top),
+            'top_card'      => $summary,
+            // prompt-look-cards UI reads looked_cards / look_cards (not top_card) (#258).
+            'looked_cards'  => [$summary],
             'prompt'        => "Looked at $label on top of " .
                 ($target === $owner ? 'your' : "opponent's") .
                 ' deck. Put it into the Waiting Room?',
