@@ -39822,7 +39822,7 @@
       "rarity": "PR",
       "text": "[On Enter] Draw 1 card and put 1 card from your hand into the Waiting Room.",
       "text_jp": "[登場時] カードを1枚引き、手札を1枚控え室に置く。",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP01/PL!N-bp1-014-N.png",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-sd1-014-PR.png",
       "subunit": "QU4RTZ",
       "abilities": [
         {
@@ -39896,7 +39896,7 @@
       "rarity": "PR",
       "text": "[On Enter] Draw 1 card and put 1 card from your hand into the Waiting Room.",
       "text_jp": "[登場時] カードを1枚引き、手札を1枚控え室に置く。",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP01/PL!N-bp1-015-N.png",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-sd1-015-PR.png",
       "subunit": "A・ZU・NA",
       "abilities": [
         {
@@ -40059,7 +40059,7 @@
       "rarity": "PR",
       "text": "",
       "text_jp": "",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP01/PL!N-bp1-018-N.png",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-sd1-018-PR.png",
       "subunit": "QU4RTZ"
     },
     {
@@ -40156,7 +40156,7 @@
       "rarity": "PR",
       "text": "[On Enter] Draw 1 card and put 1 card from your hand into the Waiting Room.",
       "text_jp": "[登場時] カードを1枚引き、手札を1枚控え室に置く。",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-bp1-019-PR.png",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-bp1-019-PRprotein.png",
       "subunit": "A・ZU・NA",
       "abilities": [
         {
@@ -40232,7 +40232,7 @@
       "rarity": "PR",
       "text": "",
       "text_jp": "",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP01/PL!N-bp1-020-N.png",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-sd1-020-PR.png",
       "subunit": "QU4RTZ"
     },
     {
@@ -40352,7 +40352,7 @@
       "rarity": "PR",
       "text": "",
       "text_jp": "",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP01/PL!N-bp1-023-N.png",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-sd1-023-PR.png",
       "subunit": "R3BIRTH"
     },
     {
@@ -57345,7 +57345,7 @@
       "rarity": "PR",
       "text": "[Activated] [Once per turn] Put 2 cards from your hand into the Waiting Room: add 1 Nijigasaki Member from your Waiting Room to your hand.",
       "text_jp": "[起動] [ターン1回] 手札を2枚控え室に置く：自分の控え室から『虹ヶ咲』のメンバーカードを1枚手札に加える。",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/NSD01/PL!N-sd1-005-SD.png",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-sd1-017-PR.png",
       "abilities": [
         {
           "trigger": "activated",
@@ -57901,7 +57901,7 @@
       "rarity": "PR",
       "text": "",
       "text_jp": "",
-      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/NSD01/PL!N-sd1-012-SD.png",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PR/PL!N-sd1-024-PR.png",
       "subunit": "R3BIRTH"
     },
     {

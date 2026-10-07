@@ -17,6 +17,10 @@ function ensureCardimgDir(): void {
 
 function safeCardImgBasename(string $cardNo): string {
     $s = preg_replace('/[^\w\-+.]/u', '_', trim($cardNo));
+    if (str_ends_with($s, '-PRproteinbar')) {
+        // v2: earlier cache files held the base print's art, not the promo face.
+        $s .= '_v2';
+    }
     return $s !== '' ? $s : 'unknown';
 }
 

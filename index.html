@@ -16889,10 +16889,13 @@ function cachedCardImgUrl(cardNo, width = 0) {
   // rewritten to cardimg.php server-side (.htaccess), which builds it for the next load.
   // The native app precaches the cardimg.php URLs, so it keeps those.
   if (w && !tcgCardImgUsesPhpUrls()) {
-    const safe = String(cardNo).trim().replace(/[^\p{L}\p{N}_\-+.]/gu, '_') || 'unknown';
+    let safe = String(cardNo).trim().replace(/[^\p{L}\p{N}_\-+.]/gu, '_') || 'unknown';
+    // v2: older protein-bar cache files held the base print's art (see safeCardImgBasename).
+    if (safe.endsWith('-PRproteinbar')) safe += '_v2';
     return `cardimg/thumbs/${w}/${encodeURIComponent(safe)}.webp`;
   }
-  return `${CARDIMG}?card_no=${encodeURIComponent(cardNo)}${w ? `&w=${w}` : ''}`;
+  const promoVer = String(cardNo).endsWith('-PRproteinbar') ? '&v=2' : '';
+  return `${CARDIMG}?card_no=${encodeURIComponent(cardNo)}${w ? `&w=${w}` : ''}${promoVer}`;
 }
 
 function tcgCardImgUsesPhpUrls() {

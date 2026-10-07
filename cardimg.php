@@ -20,7 +20,7 @@ if (isset($_GET['thumb_path'])) {
     $reqPath = rawurldecode((string)parse_url((string)($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH));
     if (preg_match('#/cardimg/thumbs/(96|180|256)/([^/]+)\.webp$#', $reqPath, $m)) {
         $variantWidth = (int)$m[1];
-        $cardNo = $m[2];
+        $cardNo = preg_replace('/(-PRproteinbar)_v2$/', '$1', $m[2]);
     }
 }
 $file = localCardImageFile($cardNo);
