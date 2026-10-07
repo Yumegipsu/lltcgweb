@@ -1431,7 +1431,10 @@
       "haveEnergy": "have",
       "allBladeHeartsTip": "When checking required hearts, ALL blades from Yell count as any heart color.",
       "stackMain": "Stage · {n}/{total}",
-      "stackUnder": "Under · {n}/{total}"
+      "stackUnder": "Under · {n}/{total}",
+      "stackPrev": "Previous stacked card",
+      "stackNext": "Next stacked card",
+      "stackedCards": "Stacked cards"
     },
     "pack": {
       "opened": "Pack Opened",
@@ -3522,7 +3525,12 @@
       "yellIcons": "エールアイコン",
       "playToSlot": "配置スロット：",
       "needEnergy": "必要",
-      "haveEnergy": "所持"
+      "haveEnergy": "所持",
+      "stackMain": "ステージ · {n}/{total}",
+      "stackUnder": "下 · {n}/{total}",
+      "stackPrev": "前の重なったカード",
+      "stackNext": "次の重なったカード",
+      "stackedCards": "重なったカード"
     },
     "pack": {
       "opened": "パック開封",
@@ -5319,7 +5327,12 @@
       "needEnergy": "Necesitas",
       "haveEnergy": "tienes",
       "bladeHearts": "Corazones de Blade",
-      "allBladeHeartsTip": "When checking required hearts, ALL blades from Yell count as any heart color."
+      "allBladeHeartsTip": "When checking required hearts, ALL blades from Yell count as any heart color.",
+      "stackMain": "Escenario · {n}/{total}",
+      "stackUnder": "Debajo · {n}/{total}",
+      "stackPrev": "Carta apilada anterior",
+      "stackNext": "Siguiente carta apilada",
+      "stackedCards": "Cartas apiladas"
     },
     "pack": {
       "opened": "Sobre abierto",
@@ -7309,7 +7322,12 @@
       "needEnergy": "필요",
       "haveEnergy": "보유",
       "bladeHearts": "Blade 하트",
-      "allBladeHeartsTip": "When checking required hearts, ALL blades from Yell count as any heart color."
+      "allBladeHeartsTip": "When checking required hearts, ALL blades from Yell count as any heart color.",
+      "stackMain": "스테이지 · {n}/{total}",
+      "stackUnder": "아래 · {n}/{total}",
+      "stackPrev": "이전 쌓인 카드",
+      "stackNext": "다음 쌓인 카드",
+      "stackedCards": "쌓인 카드"
     },
     "pack": {
       "opened": "팩 개봉 완료",
@@ -9313,7 +9331,12 @@
       "needEnergy": "需要",
       "haveEnergy": "有",
       "bladeHearts": "刀锋之心",
-      "allBladeHeartsTip": "When checking required hearts, ALL blades from Yell count as any heart color."
+      "allBladeHeartsTip": "When checking required hearts, ALL blades from Yell count as any heart color.",
+      "stackMain": "舞台 · {n}/{total}",
+      "stackUnder": "下方 · {n}/{total}",
+      "stackPrev": "上一张叠放卡牌",
+      "stackNext": "下一张叠放卡牌",
+      "stackedCards": "叠放卡牌"
     },
     "pack": {
       "opened": "包装已打开",
@@ -11307,7 +11330,12 @@
       "needEnergy": "ต้องการ",
       "haveEnergy": "มี",
       "bladeHearts": "หัวใจเบลด",
-      "allBladeHeartsTip": "When checking required hearts, ALL blades from Yell count as any heart color."
+      "allBladeHeartsTip": "When checking required hearts, ALL blades from Yell count as any heart color.",
+      "stackMain": "เวที · {n}/{total}",
+      "stackUnder": "ด้านล่าง · {n}/{total}",
+      "stackPrev": "การ์ดที่ซ้อนใบก่อนหน้า",
+      "stackNext": "การ์ดที่ซ้อนใบถัดไป",
+      "stackedCards": "การ์ดที่ซ้อนอยู่"
     },
     "pack": {
       "opened": "เปิดแพ็กแล้ว",
@@ -13409,7 +13437,12 @@
       "playToSlot": "Jogar no espaço do:",
       "needEnergy": "Precisa de",
       "haveEnergy": "tem",
-      "allBladeHeartsTip": "Ao verificar o Requisito de Corações, Corações de Blade \"ALL\" contam como qualquer cor necessária de coração."
+      "allBladeHeartsTip": "Ao verificar o Requisito de Corações, Corações de Blade \"ALL\" contam como qualquer cor necessária de coração.",
+      "stackMain": "Palco · {n}/{total}",
+      "stackUnder": "Embaixo · {n}/{total}",
+      "stackPrev": "Carta empilhada anterior",
+      "stackNext": "Próxima carta empilhada",
+      "stackedCards": "Cartas empilhadas"
     },
     "pack": {
       "opened": "Pacote Aberto",
@@ -15391,7 +15424,12 @@
       "playToSlot": "Jouer dans l'emplacement :",
       "needEnergy": "Requis",
       "haveEnergy": "possédée",
-      "allBladeHeartsTip": "Lors de la vérification des cœurs requis, TOUS les blades du Yell comptent comme n'importe quelle couleur de cœur."
+      "allBladeHeartsTip": "Lors de la vérification des cœurs requis, TOUS les blades du Yell comptent comme n'importe quelle couleur de cœur.",
+      "stackMain": "Scène · {n}/{total}",
+      "stackUnder": "Dessous · {n}/{total}",
+      "stackPrev": "Carte empilée précédente",
+      "stackNext": "Carte empilée suivante",
+      "stackedCards": "Cartes empilées"
     },
     "pack": {
       "opened": "Booster ouvert",

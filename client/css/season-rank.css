@@ -364,6 +364,56 @@ body.season-ladder-open {
   display: none;
 }
 
+/* Spectator end screen: winner and loser rank changes side by side. */
+#overlay-win .win-season.win-season--duo {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(20px, 6vw, 48px);
+}
+
+.win-season--duo .win-season-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 44%;
+}
+
+#overlay-win .win-season--duo .win-season {
+  margin: 0;
+}
+
+.win-season--duo .win-season-col > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+#overlay-win .win-season--duo .win-season-msg {
+  font-size: clamp(14px, 3.4vw, 20px);
+  line-height: 1.2;
+}
+
+#overlay-win .win-season--duo .win-season-pts {
+  font-size: 13px;
+}
+
+.win-season-name {
+  margin: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-align: center;
+}
+
 .season-badge--win {
   width: 96px;
   height: 96px;

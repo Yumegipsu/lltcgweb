@@ -673,6 +673,87 @@
     }
   }
 
+  /** Both seats' season changes for a finished ranked match, winner first. */
+  function resolveSpectatorChanges(state) {
+    if (!state || state.mode !== 'ranked') return [];
+    const out = [];
+    ['p1', 'p2'].forEach((seat) => {
+      const change = resolveMatchChange(state, seat);
+      if (!change || !change.before || !change.after) return;
+      const p = state.players && state.players[seat];
+      out.push({ seat: seat, change: change, name: (p && p.name) || seat });
+    });
+    // Winner on the left, loser on the right.
+    if (out.length === 2 && state.winner === out[1].seat) out.reverse();
+    return out;
+  }
+
+  /**
+   * Spectator end screen: both players' rank changes side by side. Returns true
+   * when something was shown. The ranked result is applied just after the match
+   * ends, so callers can retry (see syncSpectatorMatchChanges).
+   */
+  async function playSpectatorMatchChanges(host, state) {
+    if (!host) return false;
+    const entries = resolveSpectatorChanges(state);
+    if (!entries.length) {
+      host.hidden = true;
+      host.replaceChildren();
+      return false;
+    }
+    host.hidden = false;
+    host.replaceChildren();
+    host.className = 'win-season win-season--duo';
+    const runs = entries.map((entry) => {
+      const col = document.createElement('div');
+      col.className = 'win-season-col';
+      const name = document.createElement('p');
+      name.className = 'win-season-name';
+      name.textContent = entry.name;
+      const slot = document.createElement('div');
+      col.appendChild(name);
+      col.appendChild(slot);
+      host.appendChild(col);
+      return playMatchChange(slot, entry.change);
+    });
+    await Promise.all(runs);
+    return true;
+  }
+
+  /**
+   * Show the spectator rank animation, re-reading the room a few times if the
+   * ranked result has not landed yet (spectators can see the finish first).
+   */
+  async function syncSpectatorMatchChanges(host, state, opts) {
+    if (!host || !state || state.mode !== 'ranked') {
+      if (host) {
+        host.hidden = true;
+        host.replaceChildren();
+      }
+      return;
+    }
+    const roomId = state.room_id || (global.G && global.G.roomId) || '';
+    let cur = state;
+    const refetch = (opts && opts.refetch) || global.fetchLiveShowStateNow;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      if (resolveSpectatorChanges(cur).length) {
+        void playSpectatorMatchChanges(host, cur);
+        return;
+      }
+      if (typeof refetch !== 'function') break;
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      const overlay = document.getElementById('overlay-win');
+      if (!overlay || !overlay.classList.contains('open')) return;
+      if (roomId && global.G && global.G.roomId && global.G.roomId !== roomId) return;
+      try {
+        const next = await refetch({ allowHeal: false });
+        if (next && next.mode === 'ranked') cur = next;
+      } catch (e) { /* keep waiting */ }
+    }
+    host.hidden = true;
+    host.replaceChildren();
+  }
+
   function resolveMatchChange(state, playerId) {
     const map = state && state.ranked && state.ranked.season_changes;
     if (!map || typeof map !== 'object') return null;
@@ -693,6 +774,9 @@
     showRewardToasts: showRewardToasts,
     playMatchChange: playMatchChange,
     resolveMatchChange: resolveMatchChange,
+    playSpectatorMatchChanges: playSpectatorMatchChanges,
+    syncSpectatorMatchChanges: syncSpectatorMatchChanges,
+    resolveSpectatorChanges: resolveSpectatorChanges,
     rankName: rankName,
     openLadder: openLadder,
     openStats: openStats,
