@@ -1446,6 +1446,40 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         $state['pending_prompt']['source_id'] = $srcId;
         // Activation is the opt-in (Live Start still shows yes/no). Skip to discard.
         $state = actionResolvePrompt($state, $pid, ['choice' => 'yes']);
+    } elseif (($ab['type'] ?? '') === 'optional_wait_self_discard_look_reveal') {
+        // PL!-pb2-026 Hanayo: Wait self + discard 1 → look at top 3, may add 1 Printemps Member.
+        // Was in the pb2 effect table but not here, so the Activate button threw
+        // "Ability type not implemented" and looked like a no-op (#262).
+        if (memberIsInWait($member)) {
+            throw new Exception('Member is already in Wait');
+        }
+        $need = intval($ab['discard'] ?? 1);
+        if ($need > 0 && count($p['hand'] ?? []) < $need) {
+            throw new Exception("Need $need card(s) in hand");
+        }
+        if (count($p['main_deck'] ?? []) < 1 && count($p['waiting_room'] ?? []) < 1) {
+            throw new Exception('No cards to look at');
+        }
+        $srcId = (string)($member['instance_id'] ?? '');
+        if (!empty($ab['once_per_turn'])) {
+            markAbilityUsed($member, $abilityIdx);
+        }
+        if ($slot !== null && $zone === 'stage') {
+            $p['stage'][$slot] = $member;
+        }
+        $state = resolveAbilityEffect($state, $pid, $member, $ab, [
+            'slot'          => $slot ?? '',
+            'phase'         => 'activated',
+            'ability_index' => $abilityIdx,
+        ]);
+        if (empty($state['pending_prompt'])) {
+            throw new Exception('Could not start Wait ability');
+        }
+        $state['pending_prompt']['ability_index'] = $abilityIdx;
+        $state['pending_prompt']['source_slot'] = $slot ?? '';
+        $state['pending_prompt']['source_id'] = $srcId;
+        // Activation is the opt-in; go straight to the discard step.
+        $state = actionResolvePrompt($state, $pid, ['choice' => 'yes']);
     } elseif (($ab['type'] ?? '') === 'optional_pay_energy') {
         // As an [Activated] ability the opt-in is the activation itself, so the
         // Energy is paid up front rather than behind a yes/no prompt.

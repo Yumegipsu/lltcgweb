@@ -2411,21 +2411,43 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 }
             }
             unset($mbr);
-            $added = addFromWaitingRoomFiltered(
-                $ownerP,
-                $ability['group'] ?? '',
-                $ability['filter'] ?? '',
-                intval($ability['count'] ?? 1)
+            // The player chooses which card to add (never auto-first-match) (#263).
+            $srcName = $prompt['source_name'] ?? 'Member';
+            $wrCfg = array_merge(
+                ['group' => $ability['group'] ?? '', 'filter' => $ability['filter'] ?? ''],
+                wrPickExtraFiltersFromCfg($ability)
             );
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Member') . "] Waited self; added $added μ's Member(s) from Waiting Room.");
-        } else {
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional On Enter effect.');
+            unset($state['pending_prompt']);
+            $added = addFromWaitingRoomWithChoice(
+                $state,
+                $owner,
+                [
+                    'instance_id' => (string)$sourceId,
+                    'name_en'     => $srcName,
+                    'name'        => $srcName,
+                ],
+                $ability,
+                ['skip_stage_writeback' => true],
+                $wrCfg,
+                max(1, intval($ability['count'] ?? 1))
+            );
+            $prefix = $state['players'][$owner]['name'] . ' — [' . $srcName . '] ';
+            if ($added === null) {
+                $state = addLog($state, $prefix . 'Waited self; choose a card from Waiting Room.');
+                $state['seq']++;
+                return $state;
+            }
+            $state = addLog($state, $prefix . ($added > 0
+                ? 'Waited self; added ' . $added . ' card(s) from Waiting Room.'
+                : 'Waited self; no matching card in Waiting Room.'));
+            $state['seq']++;
+            return finishPromptEffects($state);
         }
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            ' — [' . ($prompt['source_name'] ?? 'Member') . '] skipped optional On Enter effect.');
         unset($state['pending_prompt']);
         $state['seq']++;
-        return $state;
+        return finishPromptEffects($state);
     }
 
     if ($promptType === 'optional_pay_energy_if_baton') {
