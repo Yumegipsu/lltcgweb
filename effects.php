@@ -3762,7 +3762,7 @@ function collectContinuousPerformanceHeartGrants(array $state, string $pid): arr
                 }
             }
             if (($ab['type'] ?? '') === 'hearts_if_center_highest_cost') {
-                if (centerMemberHasHighestCost($state['players'][$pid], $member, $slot)) {
+                if (centerMemberHasHighestCost($state['players'][$pid], $member, $slot, $state, $pid)) {
                     appendContinuousHeartsFromSpec($memberHearts, $ab['hearts'] ?? []);
                 }
             }
@@ -4652,7 +4652,9 @@ function getMemberBlade(array $member, array $state, string $pid, string $slot =
                 if (stageHasHigherCostMember(
                     $state['players'][$pid],
                     $member,
-                    $member['instance_id'] ?? ''
+                    $member['instance_id'] ?? '',
+                    $state,
+                    $pid
                 )) {
                     $blade += intval($ab['amount'] ?? 0);
                 }
@@ -5519,22 +5521,33 @@ function stageIsFull(array $p): bool {
     return true;
 }
 
-function stageHasHigherCostMember(array $p, array $self, string $excludeId = ''): bool {
-    $selfCost = intval($self['cost'] ?? 0);
+/**
+ * Stage Member cost for "higher cost" comparisons. With $state/$pid this is the effective
+ * cost (printed + Live-temp bonuses such as Kosuzu's +6, #264); without them, printed cost.
+ */
+function stageCostForComparison(array $member, ?array $state, ?string $pid): int {
+    if ($state !== null && $pid !== null) {
+        return getEffectiveStageMemberCost($state, $pid, $member);
+    }
+    return intval($member['cost'] ?? 0);
+}
+
+function stageHasHigherCostMember(array $p, array $self, string $excludeId = '', ?array $state = null, ?string $pid = null): bool {
+    $selfCost = stageCostForComparison($self, $state, $pid);
     foreach ($p['stage'] as $mbr) {
         if (!$mbr) continue;
         if ($excludeId !== '' && ($mbr['instance_id'] ?? '') === $excludeId) continue;
-        if (intval($mbr['cost'] ?? 0) > $selfCost) return true;
+        if (stageCostForComparison($mbr, $state, $pid) > $selfCost) return true;
     }
     return false;
 }
 
-function centerMemberHasHighestCost(array $p, array $member, string $slot): bool {
+function centerMemberHasHighestCost(array $p, array $member, string $slot, ?array $state = null, ?string $pid = null): bool {
     if ($slot !== 'center') return false;
-    $cost = intval($member['cost'] ?? 0);
+    $cost = stageCostForComparison($member, $state, $pid);
     foreach ($p['stage'] as $s => $mbr) {
         if (!$mbr || $s === $slot) continue;
-        if (intval($mbr['cost'] ?? 0) > $cost) return false;
+        if (stageCostForComparison($mbr, $state, $pid) > $cost) return false;
     }
     return true;
 }

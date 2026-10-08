@@ -30030,11 +30030,12 @@ function tcgClientCountOtherSubunitOnStage(p, subunit, excludeId = '', standingO
 }
 
 function tcgClientStageHasHigherCostMember(p, self, excludeId = '') {
-  const selfCost = Number(self?.cost || 0);
+  // Effective cost (printed + Live-temp bonus such as Kosuzu's +6), like PHP getEffectiveStageMemberCost (#264).
+  const selfCost = clientStageMemberCost(self);
   return Object.values(p?.stage || {}).some((mbr) => {
     if (!mbr) return false;
     if (excludeId && (mbr.instance_id || '') === excludeId) return false;
-    return Number(mbr.cost || 0) > selfCost;
+    return clientStageMemberCost(mbr) > selfCost;
   });
 }
 
