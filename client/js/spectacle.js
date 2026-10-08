@@ -9881,18 +9881,55 @@ function effectiveCost(card, hand){
 function memberBlocksBaton(card){
   return (card.abilities||[]).some(ab=>ab.trigger==='continuous'&&ab.type==='no_baton');
 }
+/** Live reprints sometimes omit subunit while another printing of the same song has it. */
+function catalogLiveSubunitFromSiblingPrints(card) {
+  const src = (typeof G !== 'undefined') ? G.allCards : null;
+  if (!card || !src) return '';
+  const isLive = (c) => c && (c.card_type === 'ライブ' || c.card_type_en === 'Live');
+  if (!isLive(card)) {
+    const cat0 = typeof clientCatalogCardByNo === 'function' ? clientCatalogCardByNo(card.card_no) : null;
+    if (!isLive(cat0)) return '';
+  }
+  if (catalogLiveSubunitFromSiblingPrints._src !== src) {
+    const map = {};
+    for (const c of Object.values(src)) {
+      if (!isLive(c)) continue;
+      const sub = String(c.subunit || '').trim();
+      if (!sub || sub === '-') continue;
+      for (const key of [c.name_en, c.name]) {
+        const n = String(key || '').trim();
+        if (!n) continue;
+        if (map[n] == null) map[n] = sub;
+        else if (map[n] !== sub) map[n] = '';
+      }
+    }
+    catalogLiveSubunitFromSiblingPrints._src = src;
+    catalogLiveSubunitFromSiblingPrints._map = map;
+  }
+  const map = catalogLiveSubunitFromSiblingPrints._map || {};
+  const names = [card.name_en, card.name];
+  const cat = typeof clientCatalogCardByNo === 'function' ? clientCatalogCardByNo(card.card_no) : null;
+  if (cat) names.push(cat.name_en, cat.name);
+  for (const n of names) {
+    const key = String(n || '').trim();
+    if (key && map[key]) return map[key];
+  }
+  return '';
+}
 function cardMatchesSubunit(card, subunit) {
   if (!card || !subunit) return false;
   const want = canonicalSubunitKey(subunit);
   if (!want) return false;
-  if (canonicalSubunitKey(card.subunit || '') === want) return true;
+  const sub = String(card.subunit || '').trim();
+  if (sub && sub !== '-' && canonicalSubunitKey(sub) === want) return true;
   if ((card.subunits || []).some(s => canonicalSubunitKey(s) === want)) return true;
   // Catalog / name inference — Stage/WR copies often omit subunit (#230/#246/#249).
   const cat = typeof clientCatalogCardByNo === 'function'
     ? clientCatalogCardByNo(card.card_no)
     : null;
   if (cat && cat !== card) {
-    if (canonicalSubunitKey(cat.subunit || '') === want) return true;
+    const catSub = String(cat.subunit || '').trim();
+    if (catSub && catSub !== '-' && canonicalSubunitKey(catSub) === want) return true;
     if ((cat.subunits || []).some(s => canonicalSubunitKey(s) === want)) return true;
   }
   const inferred = typeof inferMemberSubunitFromNameClient === 'function'
@@ -9905,6 +9942,8 @@ function cardMatchesSubunit(card, subunit) {
       : '';
     if (inferredCat && canonicalSubunitKey(inferredCat) === want) return true;
   }
+  const sibling = catalogLiveSubunitFromSiblingPrints(card);
+  if (sibling && canonicalSubunitKey(sibling) === want) return true;
   return false;
 }
 function memberBatonRestricted(member, batonFrom) {

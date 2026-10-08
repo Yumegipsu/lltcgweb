@@ -2712,10 +2712,62 @@ function bumpLiveCardColorReduction(array &$state, string $pid, string $instance
     unset($lc);
 }
 
+/**
+ * Live reprints sometimes omit subunit while another printing of the same song
+ * has it (Nightingale Love Song L vs SRL). "-" is an explicit non-subunit.
+ */
+function catalogLiveSubunitFromSiblingPrints(array $card): string {
+    if (!isLiveTypeCard($card)) {
+        return '';
+    }
+    static $byName = null;
+    if ($byName === null) {
+        $byName = [];
+        foreach (tcgCardsCatalogMap() as $c) {
+            if (!is_array($c) || !isLiveTypeCard($c)) {
+                continue;
+            }
+            $sub = trim((string)($c['subunit'] ?? ''));
+            if ($sub === '' || $sub === '-') {
+                continue;
+            }
+            foreach (['name_en', 'name'] as $key) {
+                $name = trim((string)($c[$key] ?? ''));
+                if ($name === '') {
+                    continue;
+                }
+                if (!isset($byName[$name])) {
+                    $byName[$name] = $sub;
+                } elseif ($byName[$name] !== $sub) {
+                    $byName[$name] = '';
+                }
+            }
+        }
+    }
+    $names = [
+        trim((string)($card['name_en'] ?? '')),
+        trim((string)($card['name'] ?? '')),
+    ];
+    $no = (string)($card['card_no'] ?? '');
+    if ($no !== '') {
+        $base = tcgCatalogCardByNo($no);
+        if (is_array($base)) {
+            $names[] = trim((string)($base['name_en'] ?? ''));
+            $names[] = trim((string)($base['name'] ?? ''));
+        }
+    }
+    foreach ($names as $name) {
+        if ($name !== '' && !empty($byName[$name])) {
+            return $byName[$name];
+        }
+    }
+    return '';
+}
+
 function cardEffectiveSubunits(array $card): array {
     mergeCardCatalogFields($card);
     $subs = [];
-    if (!empty($card['subunit'])) {
+    if (!empty($card['subunit']) && trim((string)$card['subunit']) !== '-') {
         $subs[] = $card['subunit'];
     }
     foreach ($card['abilities'] ?? [] as $ab) {
@@ -2730,6 +2782,13 @@ function cardEffectiveSubunits(array $card): array {
         $inferred = inferMemberSubunitFromName($card);
         if ($inferred !== '') {
             $subs[] = $inferred;
+        }
+    }
+    // Same Live, other printing already classified (PL!-bp4-024-L ← SRL).
+    if ($subs === [] && isLiveTypeCard($card)) {
+        $inherited = catalogLiveSubunitFromSiblingPrints($card);
+        if ($inherited !== '') {
+            $subs[] = $inherited;
         }
     }
     return array_values(array_unique($subs));
