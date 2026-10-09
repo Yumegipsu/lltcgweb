@@ -1733,7 +1733,8 @@
       "signInSleeveShop": "Sign in to use the sleeve shop.",
       "sleeveBought": "Sleeve unlocked!",
       "sleeveClaimedFree": "Free sleeve claimed!",
-      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop."
+      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop.",
+      "liveLockFailed": "Could not store your Live cards — please try locking in again."
     },
     "tutorialUi": {
       "exitTitle": "Exit to Title",
@@ -3828,7 +3829,8 @@
       "leftDeadMatch": "Left a finished/disconnected match.",
       "playmatBought": "Playmat unlocked!",
       "resolveSkillFirst": "Resolve the skill prompt first.",
-      "signInShop": "Sign in to use the shop."
+      "signInShop": "Sign in to use the shop.",
+      "liveLockFailed": "ライブカードを置けませんでした。もう一度ロックインしてください。"
     },
     "spectate": {
       "listTitle": "観戦",
@@ -5648,7 +5650,8 @@
       "signInSleeveShop": "Sign in to use the sleeve shop.",
       "sleeveBought": "Sleeve unlocked!",
       "sleeveClaimedFree": "Free sleeve claimed!",
-      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop."
+      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop.",
+      "liveLockFailed": "No se pudieron guardar tus cartas Live; vuelve a confirmar."
     },
     "tutorialUi": {
       "exitTitle": "Salir al título",
@@ -7657,7 +7660,8 @@
       "signInSleeveShop": "Sign in to use the sleeve shop.",
       "sleeveBought": "Sleeve unlocked!",
       "sleeveClaimedFree": "Free sleeve claimed!",
-      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop."
+      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop.",
+      "liveLockFailed": "라이브 카드를 보관하지 못했습니다. 다시 확정해 주세요."
     },
     "tutorialUi": {
       "exitTitle": "타이틀로 나가기",
@@ -9666,7 +9670,8 @@
       "signInSleeveShop": "Sign in to use the sleeve shop.",
       "sleeveBought": "Sleeve unlocked!",
       "sleeveClaimedFree": "Free sleeve claimed!",
-      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop."
+      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop.",
+      "liveLockFailed": "无法放置你的 Live 卡牌，请再次确认。"
     },
     "tutorialUi": {
       "exitTitle": "退出到标题",
@@ -11651,7 +11656,8 @@
       "signInSleeveShop": "Sign in to use the sleeve shop.",
       "sleeveBought": "Sleeve unlocked!",
       "sleeveClaimedFree": "Free sleeve claimed!",
-      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop."
+      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop.",
+      "liveLockFailed": "ไม่สามารถวางการ์ด Live ของคุณได้ โปรดล็อกอีกครั้ง"
     },
     "tutorialUi": {
       "exitTitle": "ออกไปหน้าชื่อเรื่อง",
@@ -13738,7 +13744,8 @@
       "signInSleeveShop": "Entre para usar a loja de sleeves.",
       "sleeveBought": "Sleeve desbloqueado!",
       "sleeveClaimedFree": "Sleeve grátis resgatado!",
-      "sleeveShopLoadFailed": "Não foi possível carregar a loja de sleeves."
+      "sleeveShopLoadFailed": "Não foi possível carregar a loja de sleeves.",
+      "liveLockFailed": "Não foi possível guardar suas cartas Live; confirme novamente."
     },
     "tutorialUi": {
       "exitTitle": "Sair para o Título",
@@ -15780,7 +15787,8 @@
       "signInSleeveShop": "Connectez-vous pour utiliser le magasin à manches.",
       "sleeveBought": "Manche déverrouillée !",
       "sleeveClaimedFree": "C'est ce qu'on a dit !",
-      "sleeveShopLoadFailed": "Je ne pouvais pas charger la boutique."
+      "sleeveShopLoadFailed": "Je ne pouvais pas charger la boutique.",
+      "liveLockFailed": "Impossible de ranger vos cartes Live ; veuillez confirmer à nouveau."
     },
     "tutorialUi": {
       "exitTitle": "Sortie vers le titre",

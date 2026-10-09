@@ -32869,7 +32869,17 @@ async function confirmLiveSetFromHand() {
   const s = G.gameState;
   const myId = G.playerId;
   if (!isLiveSetSelecting(s, myId)) return;
-  const ids = [...G.liveSel];
+  let ids = [...G.liveSel];
+  if (!G.isTutorial) {
+    // Raised hand cards are what the player believes they are locking in. If the selection
+    // array was reset while the cards still look selected, recover them rather than locking
+    // in 0 cards and passing the whole LIVE Phase (#266).
+    document.querySelectorAll('#hand-row .hcard.play-sel').forEach((d) => {
+      const iid = d.dataset.iid;
+      if (iid && !ids.includes(iid) && isLiveHandSelectable(findHand(iid, s, myId), s, myId)) ids.push(iid);
+    });
+    ids = ids.slice(0, Math.max(0, liveSlotsLeft(s, myId)));
+  }
   G.liveSel = [];
   setLiveSelMultiPreviewVisible(false);
   clearAndroidLivePlaceAction();
@@ -32912,7 +32922,36 @@ async function confirmLiveSetFromHand() {
   }
   try {
     if (ids.length) {
-      await sendAct('set_live_cards', { card_ids: ids });
+      const placed = await sendAct('set_live_cards', { card_ids: ids });
+      if (!G.isTutorial && !(placed && placed.ok)) {
+        // sendAct swallows server rejections (HTTP 4xx) and network blips. Sending
+        // end_live_set anyway locked in 0 cards: the cards dropped back to hand and the
+        // turn passed (#266). Restore the selection and let the player retry instead.
+        // Roll the optimistic placement back to the pre-lock snapshot. A same-seq poll keeps
+        // the local board, and maybeHealStuckLiveSetPlacement would then send end_live_set
+        // for the phantom cards.
+        G._liveSetLockPid = null;
+        G._liveSetHealEndSent = false;
+        const rolledBack = deepCloneState(before);
+        if (rolledBack?.phase === 'live_set') {
+          G.gameState = rolledBack;
+          G.liveSel = ids.filter((id) => (rolledBack.players?.[myId]?.hand || []).some((c) => c.instance_id === id));
+          renderGame(rolledBack, { skipLog: true });
+          syncHandSelectionClasses(rolledBack, myId);
+          updateLiveSetButton(rolledBack, myId);
+        }
+        try {
+          if (G.polling) {
+            G.lastSeq = 0;
+            await pullLatestState(true, { silent: true, actionEpoch: true });
+          }
+        } catch (_) {}
+        const cur = G.gameState;
+        if (cur?.phase === 'live_set' && !cur?.live_ready?.[myId]) {
+          toast(tt('toast.liveLockFailed', 'Could not store your Live cards — please try locking in again.'), 4200);
+        }
+        return;
+      }
       if (G.gameState?.phase === 'live_set') {
         // set_live_cards response is not locked yet — keep optimistic ready + lock.
         G._liveSetLockPid = myId;
@@ -36034,6 +36073,8 @@ async function sendAct(type,data){
       }
       updatePhaseActionButton(G.gameState, G.playerId);
     }
+    // Callers that chain actions (LIVE lock-in) need to know the server accepted this one.
+    return { ok: true, noop: !!(res && res.noop) };
   }
   catch(e){
     G._promptSubmitKey = null;
