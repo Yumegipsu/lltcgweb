@@ -30437,6 +30437,29 @@ function clientMemberContinuousBladeBonus(member, state, pid, slot) {
       });
       bonus += n * Number(ab.amount ?? 1);
     }
+    if (type === 'blade_per_stacked_subunit_member') {
+      // Eli PL!-pb2-011 Always: +1 Blade per BiBi Member stacked under this Member (#265).
+      const subunit = ab.subunit || '';
+      let n = 0;
+      (member.stacked_members || []).forEach((s) => {
+        if (!s || !isMemberCard(s)) return;
+        const match = (typeof cardMatchesSubunit === 'function')
+          ? cardMatchesSubunit(s, subunit)
+          : String(s.subunit || '').toLowerCase() === String(subunit).toLowerCase();
+        if (match) n += 1;
+      });
+      bonus += n * Number(ab.amount ?? 1);
+    }
+    if (type === 'blade_if_no_success_lives') {
+      // Mirror PHP plMusePb2ApplyContinuousBlade (PL!-pb2-023).
+      if (!(p.success_lives || []).length) bonus += Number(ab.amount ?? 1);
+    }
+    if (type === 'blade_per_success_score_chunk') {
+      // Mirror PHP plMusePb2SumSuccessScores (printed score sum) (PL!-pb2-030).
+      const chunk = Math.max(1, Number(ab.chunk ?? 5));
+      const sum = (p.success_lives || []).reduce((t, c) => t + (c ? Number(c.score || 0) : 0), 0);
+      bonus += Math.floor(sum / chunk) * Number(ab.amount ?? 1);
+    }
     if (type === 'blade_per_success_subunit') {
       // Nozomi PL!-pb2-025 Always: +1 Blade per lily white Success Live (#227/#244).
       const subunit = ab.subunit || '';
