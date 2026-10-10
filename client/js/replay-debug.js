@@ -48,6 +48,12 @@
       return { roomId: global.G.roomId, token: global.G.token };
     }
     if (fin?.roomId && fin?.token) return { roomId: fin.roomId, token: fin.token };
+    // Credentials lost from G while the match screen is still up: the saved session still
+    // holds them, so a stuck player can export the replay.
+    try {
+      const saved = typeof global.readActiveGameSession === 'function' ? global.readActiveGameSession() : null;
+      if (saved?.roomId && saved?.token) return { roomId: saved.roomId, token: saved.token };
+    } catch (_) { /* ignore */ }
     return null;
   };
 

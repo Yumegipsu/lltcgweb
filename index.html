@@ -5657,6 +5657,15 @@ async function resignActiveRoomBestEffort(preset) {
 async function consumeResignEscape() {
   if (!peekResignEscape()) return false;
   clearResignEscape();
+  return runResignEscape();
+}
+
+/**
+ * Leave a stuck match using saved session credentials. Also backs the in-game Resign button
+ * when G.roomId / G.token were lost while the board is still on screen (sendAct would
+ * silently do nothing, leaving the player trapped).
+ */
+async function runResignEscape() {
   const savedEarly = (typeof readActiveGameSession === 'function') ? readActiveGameSession() : null;
   rememberResignedRoom(G.roomId || savedEarly?.roomId || null);
   cancelReconnectQueue();
@@ -5668,6 +5677,13 @@ async function consumeResignEscape() {
   const failMsg = (typeof tt === 'function')
     ? tt('toast.resignFailed', 'Resign did not land — the match is still live. Use Resign in the match, or try ?resign again.')
     : 'Resign did not land — the match is still live. Use Resign in the match, or try ?resign again.';
+  const hasCreds = !!((G.roomId && G.token) || (savedEarly?.roomId && savedEarly?.token));
+  if (!hasCreds) {
+    // Nothing to concede and no way to reach a room: just leave the dead match screen.
+    await abandonDeadMatchSession({ silent: true, forceResign: false });
+    toast(leftMsg, 3200);
+    return 'left';
+  }
   const resigned = await resignActiveRoomBestEffort(savedEarly);
   if (resigned) {
     await abandonDeadMatchSession({ silent: true, forceResign: true });
@@ -18425,6 +18441,12 @@ async function bootApp() {
     if (G.isTutorial || G.isSpectator) return;
     if (isReplayViewing()) {
       exitReplayViewing();
+      return;
+    }
+    if (!G.roomId || !G.token) {
+      // Match credentials were lost while the board is still up: sendAct('resign') would
+      // return silently and trap the player. Use the saved-session escape (same as ?resign).
+      if (confirm(t('game.resignConfirm'))) runResignEscape();
       return;
     }
     const cpuWaitStuck = !!(G.isCPU && el('opp-skill-wait')?.classList.contains('show'));
