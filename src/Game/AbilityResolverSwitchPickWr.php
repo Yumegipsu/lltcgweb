@@ -75,7 +75,8 @@ function tryResolveAbilityEffectSwitchPickWr(
                 'owner'         => $pid,
                 'responder'     => $pid,
                 'source_name'   => $name,
-                'candidates'    => array_map('cardPromptSummary', $distinct),
+                // Every Live is listed (same-name variants differ in art); the resolver enforces distinct names.
+                'candidates'    => array_map('cardPromptSummary', $lives),
                 'pick_count'    => intval($ab['count'] ?? 2),
                 'prompt'        => 'Choose ' . intval($ab['count'] ?? 2) .
                     ' Live cards with different names from your Waiting Room.',

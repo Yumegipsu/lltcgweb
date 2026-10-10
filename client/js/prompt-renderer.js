@@ -3294,6 +3294,21 @@ global.renderPrompt = function renderPrompt(s, myId){
     ovl.classList.add('open');
     return;
   }
+  if(pr?.type==='opp_pick_wr_live_offer'&&pr.responder===myId&&(pr.candidates||[]).length){
+    // Show the offered Live cards (art + number) so same-name variants can be told apart.
+    ovl.classList.remove('open');
+    openHandPick({
+      hand: pr.candidates,
+      count: 1,
+      min: 1,
+      title: pr.source_name||'Waiting Room',
+      msg: promptDisplayText(pr, 'Choose 1 Live card for your opponent to add to their hand.', s),
+      onConfirm: (ids)=> sendAct('resolve_prompt',{choice:ids[0]}),
+      onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState,myId); },
+      allowCancel: false,
+    });
+    return;
+  }
   if(pr?.type==='pick_wr_distinct_lives_opp_choice'&&pr.responder===myId){
     ovl.classList.remove('open');
     const need=pr.pick_count||2;
@@ -3303,7 +3318,17 @@ global.renderPrompt = function renderPrompt(s, myId){
       min: need,
       title: pr.source_name||'Waiting Room',
       msg: promptDisplayText(pr, `Choose ${need} Live cards with different names from your Waiting Room.`, s),
-      onConfirm: (ids)=> sendAct('resolve_prompt',{card_ids:ids}),
+      onConfirm: (ids)=> {
+        const byId=new Map((pr.candidates||[]).map(c=>[c.instance_id,c]));
+        const names=ids.map(i=>byId.get(i)?.name_en||i);
+        if(new Set(names).size!==names.length){
+          toast('Choose Live cards with different names.');
+          G._promptSubmitKey=null;
+          if(G.gameState) renderPrompt(G.gameState,myId);
+          return;
+        }
+        sendAct('resolve_prompt',{card_ids:ids});
+      },
       onCancel: ()=> { if(G.gameState) renderPrompt(G.gameState,myId); },
       forceConfirm: true,
     });

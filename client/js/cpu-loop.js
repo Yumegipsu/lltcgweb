@@ -4883,7 +4883,9 @@ function cpuResolvePromptBody(s, cpu, pr) {
     return;
   }
   if(pr.type==='pick_wr_distinct_lives_opp_choice'){
-    const ids=(pr.candidates||[]).slice(0,pr.pick_count||2).map(c=>c.instance_id);
+    const seenNames=new Set();
+    const ids=(pr.candidates||[]).filter(c=>{ const n=c.name_en||c.card_no; if(seenNames.has(n)) return false; seenNames.add(n); return true; })
+      .slice(0,pr.pick_count||2).map(c=>c.instance_id);
     if(ids.length) cpuAct('resolve_prompt',{card_ids:ids});
     return;
   }
