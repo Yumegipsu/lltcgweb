@@ -579,7 +579,15 @@
       "duplicatesConvertedCount": "{n} duplicates converted to Star Gems (+{gems})",
       "godPackFlavor": "Five LLE energy cards — the ultimate collector pull!",
       "openSamePackAgain": "Open same pack again",
-      "openSameBoxAgain": "Open same box again"
+      "openSameBoxAgain": "Open same box again",
+      "dupeRewardLabel": "Duplicates give",
+      "dupeRewardAria": "Choose what extra copies convert into",
+      "dupeRewardGems": "Star Gems",
+      "dupeRewardSeals": "N seals",
+      "convertedToSeals": " · {n} converted to seals",
+      "sealsBonus": " (+{seals} seals)",
+      "duplicateSealsOne": "1 duplicate converted to seals (+{seals})",
+      "duplicateSealsCount": "{n} duplicates converted to seals (+{seals})"
     },
     "scout": {
       "title": "Scout",
@@ -2755,7 +2763,15 @@
       "duplicatesConvertedCount": "重複{n}枚をスタージェムに変換（+{gems}）",
       "godPackFlavor": "LLEエネルギー5枚 — コレクター究極の当たり！",
       "openSamePackAgain": "同じパックをもう一度",
-      "openSameBoxAgain": "同じボックスをもう一度"
+      "openSameBoxAgain": "同じボックスをもう一度",
+      "dupeRewardLabel": "重複カードの変換先",
+      "dupeRewardAria": "余ったカードの変換先を選ぶ",
+      "dupeRewardGems": "スタージェム",
+      "dupeRewardSeals": "Nシール",
+      "convertedToSeals": " · {n}枚をシールに変換",
+      "sealsBonus": "（+{seals}シール）",
+      "duplicateSealsOne": "重複1枚をシールに変換（+{seals}）",
+      "duplicateSealsCount": "重複{n}枚をシールに変換（+{seals}）"
     },
     "scout": {
       "title": "スカウト",
@@ -4681,7 +4697,15 @@
       "needMoreGems": "Necesitas {n} Star Gems para abrir una caja",
       "noPacksOrGems": "No quedan sobres diarios ni Star Gems suficientes.",
       "openBox": "Abrir caja ({n} sobres)",
-      "selectBoxFirst": "Elige un booster primero"
+      "selectBoxFirst": "Elige un booster primero",
+      "dupeRewardLabel": "Los duplicados dan",
+      "dupeRewardAria": "Elige en qué se convierten las copias extra",
+      "dupeRewardGems": "Gemas estelares",
+      "dupeRewardSeals": "Sellos N",
+      "convertedToSeals": " · {n} convertidas en sellos",
+      "sealsBonus": " (+{seals} sellos)",
+      "duplicateSealsOne": "1 duplicado convertido en sellos (+{seals})",
+      "duplicateSealsCount": "{n} duplicados convertidos en sellos (+{seals})"
     },
     "scout": {
       "title": "Scout",
@@ -6677,7 +6701,15 @@
       "needMoreGems": "박스를 열려면 Star Gem {n}개가 필요합니다",
       "noPacksOrGems": "일일 팩이 없고 Star Gem도 부족합니다.",
       "openBox": "박스 열기 (팩 {n}개)",
-      "selectBoxFirst": "먼저 부스터 세트를 선택하세요"
+      "selectBoxFirst": "먼저 부스터 세트를 선택하세요",
+      "dupeRewardLabel": "중복 카드 보상",
+      "dupeRewardAria": "남는 카드의 변환 대상을 선택",
+      "dupeRewardGems": "스타 젬",
+      "dupeRewardSeals": "N 실",
+      "convertedToSeals": " · {n}장이 실로 변환됨",
+      "sealsBonus": " (+{seals} 실)",
+      "duplicateSealsOne": "중복 1장이 실로 변환됨 (+{seals})",
+      "duplicateSealsCount": "중복 {n}장이 실로 변환됨 (+{seals})"
     },
     "scout": {
       "title": "스카우트",
@@ -8687,7 +8719,15 @@
       "needMoreGems": "还需要 {n} 星宝石才能开盒",
       "noPacksOrGems": "今日免费卡包已用完，星宝石也不够。",
       "openBox": "打开盒装（{n} 包）",
-      "selectBoxFirst": "请先选择补充包系列"
+      "selectBoxFirst": "请先选择补充包系列",
+      "dupeRewardLabel": "重复卡转换为",
+      "dupeRewardAria": "选择多余卡牌的转换奖励",
+      "dupeRewardGems": "星钻",
+      "dupeRewardSeals": "N 印章",
+      "convertedToSeals": " · {n} 张已转为印章",
+      "sealsBonus": "（+{seals} 印章）",
+      "duplicateSealsOne": "1 张重复卡已转为印章（+{seals}）",
+      "duplicateSealsCount": "{n} 张重复卡已转为印章（+{seals}）"
     },
     "scout": {
       "title": "招募",
@@ -10687,7 +10727,15 @@
       "needMoreGems": "ต้องการ {n} Star Gems เพื่อเปิดกล่อง",
       "noPacksOrGems": "ไม่มีแพ็กรายวันเหลือและ Star Gems ไม่พอ",
       "openBox": "เปิดกล่อง ({n} แพ็ก)",
-      "selectBoxFirst": "เลือกชุดบูสเตอร์ก่อน"
+      "selectBoxFirst": "เลือกชุดบูสเตอร์ก่อน",
+      "dupeRewardLabel": "การ์ดซ้ำให้",
+      "dupeRewardAria": "เลือกสิ่งที่การ์ดส่วนเกินจะแปลงเป็น",
+      "dupeRewardGems": "สตาร์เจม",
+      "dupeRewardSeals": "ซีล N",
+      "convertedToSeals": " · แปลง {n} ใบเป็นซีล",
+      "sealsBonus": " (+{seals} ซีล)",
+      "duplicateSealsOne": "แปลงการ์ดซ้ำ 1 ใบเป็นซีล (+{seals})",
+      "duplicateSealsCount": "แปลงการ์ดซ้ำ {n} ใบเป็นซีล (+{seals})"
     },
     "scout": {
       "title": "สเกาต์",
@@ -12735,7 +12783,15 @@
       "duplicatesConvertedCount": "{n} sobressalentes convertidas em Star Gems (+{gems})",
       "godPackFlavor": "Pacote dourado!",
       "openSamePackAgain": "Abrir outro pacote igual",
-      "openSameBoxAgain": "Abrir outra caixa igual"
+      "openSameBoxAgain": "Abrir outra caixa igual",
+      "dupeRewardLabel": "Duplicatas dão",
+      "dupeRewardAria": "Escolha em que as cópias extras se convertem",
+      "dupeRewardGems": "Gemas estelares",
+      "dupeRewardSeals": "Selos N",
+      "convertedToSeals": " · {n} convertidas em selos",
+      "sealsBonus": " (+{seals} selos)",
+      "duplicateSealsOne": "1 duplicata convertida em selos (+{seals})",
+      "duplicateSealsCount": "{n} duplicatas convertidas em selos (+{seals})"
     },
     "scout": {
       "title": "Scout",
@@ -14797,7 +14853,15 @@
       "godPackFlavor": "Cinq cartes Énergie LLE — la meilleure pioche de collectionneur !",
       "openSamePackAgain": "Ouvrir le même booster à nouveau",
       "openSameBoxAgain": "Ouvrir la même box à nouveau",
-      "backScout": "← Scout"
+      "backScout": "← Scout",
+      "dupeRewardLabel": "Les doublons donnent",
+      "dupeRewardAria": "Choisissez en quoi les copies en trop sont converties",
+      "dupeRewardGems": "Gemmes étoilées",
+      "dupeRewardSeals": "Sceaux N",
+      "convertedToSeals": " · {n} converties en sceaux",
+      "sealsBonus": " (+{seals} sceaux)",
+      "duplicateSealsOne": "1 doublon converti en sceaux (+{seals})",
+      "duplicateSealsCount": "{n} doublons convertis en sceaux (+{seals})"
     },
     "sticker": {
       "title": "Échange d'autocollants",

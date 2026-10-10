@@ -1377,19 +1377,30 @@ function tcgSoftClawbackStarGems(string $discordId, int $amount): int {
  *
  * @return array{pulls: list<array>, star_gems_earned: int, star_gems: int}
  */
-function tcgApplyBoosterPullWithGems(string $discordId, array $cardNos, array $cardMap): array {
+/** 'seals' (duplicates → N/PR seals) or 'gems' (default, Star Gems). */
+function tcgNormalizeDupeReward(mixed $value): string {
+    return strtolower(trim((string)$value)) === 'seals' ? 'seals' : 'gems';
+}
+
+function tcgApplyBoosterPullWithGems(string $discordId, array $cardNos, array $cardMap, string $dupeReward = 'gems'): array {
+    $dupeReward = tcgNormalizeDupeReward($dupeReward);
     if (empty($cardNos)) {
         return [
             'pulls' => [],
             'star_gems_earned' => 0,
             'star_gems' => tcgGetStarGems($discordId),
+            'seals_earned' => [],
         ];
+    }
+    if ($dupeReward === 'seals') {
+        require_once __DIR__ . '/seals.php';
     }
     $db = tcgDb();
     $owned = tcgGetCollectionMap($discordId);
     $addCounts = [];
     $pulls = [];
     $gemsEarned = 0;
+    $sealsEarned = [];
 
     foreach ($cardNos as $no) {
         $no = trim((string)$no);
@@ -1400,6 +1411,21 @@ function tcgApplyBoosterPullWithGems(string $discordId, array $cardNos, array $c
         $max = tcgGetDeckMaxCopies(is_array($card) ? $card : null, $no);
         $have = intval($owned[$no] ?? 0);
         if ($have >= $max) {
+            $sealReward = $dupeReward === 'seals'
+                ? tcgDupeSealReward(is_array($card) ? $card : null, $no)
+                : null;
+            if ($sealReward !== null) {
+                $sealsEarned[$sealReward['tier']] = ($sealsEarned[$sealReward['tier']] ?? 0) + $sealReward['amount'];
+                $pulls[] = [
+                    'card_no' => $no,
+                    'converted' => true,
+                    'star_gems' => 0,
+                    'seal_tier' => $sealReward['tier'],
+                    'seals' => $sealReward['amount'],
+                ];
+                continue;
+            }
+            // Gems mode, or a rarity with no seal tier: Star Gems as before.
             $dupeGems = tcgStarGemsForDupe(is_array($card) ? $card : null, $no);
             $gemsEarned += $dupeGems;
             $pulls[] = [
@@ -1427,17 +1453,27 @@ function tcgApplyBoosterPullWithGems(string $discordId, array $cardNos, array $c
             $db->prepare('UPDATE tcg_users SET star_gems = COALESCE(star_gems, 0) + ?, updated_at = ? WHERE discord_id = ?')
                 ->execute([$gemsEarned, time(), $discordId]);
         }
+        foreach ($sealsEarned as $sealTier => $sealAmount) {
+            $col = tcgSealColumnForTier((string)$sealTier);
+            $db->prepare("UPDATE tcg_users SET {$col} = COALESCE({$col}, 0) + ?, updated_at = ? WHERE discord_id = ?")
+                ->execute([$sealAmount, time(), $discordId]);
+        }
         $db->commit();
     } catch (Throwable $e) {
         $db->rollBack();
         throw $e;
     }
 
-    return [
+    $out = [
         'pulls' => $pulls,
         'star_gems_earned' => $gemsEarned,
         'star_gems' => tcgGetStarGems($discordId),
+        'seals_earned' => $sealsEarned,
     ];
+    if ($dupeReward === 'seals') {
+        $out['seals'] = tcgSealBalances($discordId);
+    }
+    return $out;
 }
 
 /**

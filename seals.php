@@ -217,6 +217,38 @@ function tcgSealBuyCostForTier(string $tier): int {
     return intval(TCG_SEAL_BUY_COST[strtoupper($tier)] ?? 0);
 }
 
+/** N seals granted for a maxed-out duplicate, by the card's seal tier (PR is handled separately). */
+const TCG_DUPE_SEAL_N_AMOUNT = [
+    'N' => 1,
+    'R' => 5,
+    'P' => 10,
+    'SEC' => 50,
+];
+
+/**
+ * Reward for a duplicate (over the deck copy limit) when the player prefers seals to Star Gems.
+ * N / R / P / SEC give N seals; a PR duplicate gives half the PR seals needed to buy another PR card.
+ *
+ * @return array{tier:string,amount:int}|null null when the card has no seal tier (falls back to gems)
+ */
+function tcgDupeSealReward(?array $card, string $cardNo = ''): ?array {
+    if (!is_array($card)) {
+        return null;
+    }
+    if (!isset($card['card_no']) || $card['card_no'] === '') {
+        $card['card_no'] = $cardNo;
+    }
+    $tier = tcgSealTierForCard($card);
+    if ($tier === null) {
+        return null;
+    }
+    if ($tier === 'PR') {
+        return ['tier' => 'PR', 'amount' => max(1, intdiv(tcgSealBuyCostForTier('PR'), 2))];
+    }
+    $amount = TCG_DUPE_SEAL_N_AMOUNT[$tier] ?? 0;
+    return $amount > 0 ? ['tier' => 'N', 'amount' => $amount] : null;
+}
+
 /** Card nos from starter decks this user owns (buy-back unlocked in sticker shop). */
 function tcgOwnedStarterCardNoSet(string $discordId, array $cardsData): array {
     $nos = [];

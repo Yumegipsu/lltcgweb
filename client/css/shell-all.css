@@ -9468,3 +9468,13 @@ body.gacha-pull-open{overflow:hidden}
   .gacha-spot-mini.is-holo .gacha-spot-face::after{animation:none!important}
   .gacha-fly-clone{transition-duration:.01ms}
 }
+
+/* ═══ Duplicate reward pill toggle (booster + gacha): Star Gems | N seals ═══ */
+.dupe-reward{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 4px;flex-wrap:wrap}
+.dupe-reward__label{font-size:13px;font-weight:700;color:rgba(255,255,255,.8)}
+.dupe-pill{display:inline-flex;padding:3px;border-radius:999px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.18)}
+.dupe-pill__opt{display:grid;place-items:center;width:48px;height:34px;padding:0;border:0;border-radius:999px;background:transparent;cursor:pointer;opacity:.72;transition:opacity .15s,background .15s,box-shadow .15s}
+.dupe-pill__opt:hover{opacity:.85}
+.dupe-pill__opt.is-on{opacity:1;background:linear-gradient(135deg,var(--pink),var(--pink-d));box-shadow:0 0 10px rgba(255,107,168,.45)}
+.dupe-pill__opt:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.dupe-pill__opt img{width:22px;height:22px;object-fit:contain;display:block;pointer-events:none}

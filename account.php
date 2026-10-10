@@ -531,7 +531,8 @@ function tcgApiOpenBooster(array $body): array {
     $boxId = trim((string)($body['box_id'] ?? ''));
     $payment = trim(strtolower((string)($body['payment'] ?? 'daily')));
     $cards = tcgLoadCardsData();
-    $result = tcgOpenBoosterPack($uid, $boxId, $cards, $payment);
+    $dupeReward = tcgNormalizeDupeReward($body['dupe_reward'] ?? 'gems');
+    $result = tcgOpenBoosterPack($uid, $boxId, $cards, $payment, $dupeReward);
     $completions = [];
     if ($payment === 'daily') {
         $completions = tcgMissionOnDailyBoostersExhausted($uid);

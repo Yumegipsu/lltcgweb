@@ -714,6 +714,8 @@
       rarity: p.rarity,
       converted: !!p.converted,
       star_gems: p.star_gems || 0,
+      seal_tier: p.seal_tier || null,
+      seals: p.seals || 0,
       name_en: p.name_en,
     }));
   }
@@ -826,7 +828,10 @@
     if (err) err.textContent = '';
     _pullBusy = true;
     const payWith = currency === 'tickets' ? 'tickets' : 'star_gems';
-    const body = { currency: payWith };
+    const body = {
+      currency: payWith,
+      dupe_reward: typeof global.getDupeRewardPref === 'function' ? global.getDupeRewardPref() : 'gems',
+    };
     if (payWith === 'tickets') {
       const n = clampTicketQty(count != null ? count : (_lastTicketCount || 1));
       if (ticketBalance() < n) {
@@ -852,6 +857,9 @@
       closeTicketPicker();
       sfx('screen_open');
       const res = await accountPost('open_gacha', body);
+      if (res.seals && typeof global.syncSealsFromPayload === 'function') {
+        global.syncSealsFromPayload({ seals: res.seals });
+      }
       await loadIdolMap();
       const pulls = res.pulls || [];
       await playSpectacle(pulls);

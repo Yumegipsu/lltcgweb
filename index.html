@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=162">
+<link rel="stylesheet" href="client/css/shell-all.css?v=164">
 <link rel="stylesheet" href="client/css/season-rank.css?v=11">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -1010,6 +1010,13 @@ try {
       </div>
       <p id="booster-daily-info" class="hub-stat"></p>
       <p id="booster-star-gems-info" class="hub-stat" hidden></p>
+      <div class="dupe-reward" data-dupe-reward>
+        <span class="dupe-reward__label" data-i18n="booster.dupeRewardLabel">Duplicates give</span>
+        <div class="dupe-pill" role="radiogroup" data-i18n-aria-label="booster.dupeRewardAria" aria-label="Choose what extra copies convert into">
+          <button type="button" class="dupe-pill__opt" role="radio" aria-checked="true" data-dupe-reward-opt="gems" data-i18n-aria-label="booster.dupeRewardGems" aria-label="Star Gems"><img src="assets/Star_Gem.png" alt="" width="22" height="22" aria-hidden="true"></button>
+          <button type="button" class="dupe-pill__opt" role="radio" aria-checked="false" data-dupe-reward-opt="seals" data-i18n-aria-label="booster.dupeRewardSeals" aria-label="N seals"><img src="assets/seals/N.png" alt="" width="22" height="22" aria-hidden="true"></button>
+        </div>
+      </div>
       <div class="box-grid" id="box-grid"></div>
       <div class="booster-open-actions">
         <button class="btn-grad" id="btn-open-pack" type="button" disabled>Open Pack</button>
@@ -1141,6 +1148,13 @@ try {
       </div>
       <p class="hub-stat" id="gacha-rates" data-i18n="gacha.ratesLead">Tap Info for rarity rates and card odds</p>
       <p class="hub-stat" id="gacha-pool-info"></p>
+      <div class="dupe-reward" data-dupe-reward>
+        <span class="dupe-reward__label" data-i18n="booster.dupeRewardLabel">Duplicates give</span>
+        <div class="dupe-pill" role="radiogroup" data-i18n-aria-label="booster.dupeRewardAria" aria-label="Choose what extra copies convert into">
+          <button type="button" class="dupe-pill__opt" role="radio" aria-checked="true" data-dupe-reward-opt="gems" data-i18n-aria-label="booster.dupeRewardGems" aria-label="Star Gems"><img src="assets/Star_Gem.png" alt="" width="22" height="22" aria-hidden="true"></button>
+          <button type="button" class="dupe-pill__opt" role="radio" aria-checked="false" data-dupe-reward-opt="seals" data-i18n-aria-label="booster.dupeRewardSeals" aria-label="N seals"><img src="assets/seals/N.png" alt="" width="22" height="22" aria-hidden="true"></button>
+        </div>
+      </div>
       <div class="gacha-actions">
         <button class="btn-grad" id="btn-gacha-single" type="button" data-i18n="gacha.single">Scout ×1 (20)</button>
         <button class="btn-out" id="btn-gacha-multi" type="button" data-i18n="gacha.multi">Scout 10+1 (200)</button>
@@ -3619,6 +3633,48 @@ function starGemIconHtml(sizePx = 18) {
   return '<img src="' + STAR_GEM_ICON + '" alt="" aria-hidden="true" style="width:' + sizePx + 'px;height:' + sizePx + 'px;object-fit:contain;display:block">';
 }
 
+// ── Duplicate reward preference: Star Gems (default) or N seals ──────────────
+const DUPE_REWARD_KEY = 'lltcg_dupe_reward';
+
+function getDupeRewardPref() {
+  try { return localStorage.getItem(DUPE_REWARD_KEY) === 'seals' ? 'seals' : 'gems'; } catch (e) { return 'gems'; }
+}
+
+function setDupeRewardPref(value) {
+  try { localStorage.setItem(DUPE_REWARD_KEY, value === 'seals' ? 'seals' : 'gems'); } catch (e) { /* ignore */ }
+  syncDupeRewardToggles();
+}
+
+/** Paint every booster/gacha pill toggle from the saved preference. */
+function syncDupeRewardToggles() {
+  const value = getDupeRewardPref();
+  document.querySelectorAll('[data-dupe-reward]').forEach((root) => {
+    root.dataset.value = value;
+    root.querySelectorAll('[data-dupe-reward-opt]').forEach((btn) => {
+      const on = btn.dataset.dupeRewardOpt === value;
+      btn.classList.toggle('is-on', on);
+      btn.setAttribute('aria-checked', on ? 'true' : 'false');
+      btn.tabIndex = on ? 0 : -1;
+      if (!btn.title && btn.getAttribute('aria-label')) btn.title = btn.getAttribute('aria-label');
+    });
+  });
+}
+
+document.addEventListener('click', (ev) => {
+  const btn = ev.target && ev.target.closest ? ev.target.closest('[data-dupe-reward-opt]') : null;
+  if (btn) setDupeRewardPref(btn.dataset.dupeRewardOpt);
+});
+document.addEventListener('keydown', (ev) => {
+  if (ev.key !== 'ArrowLeft' && ev.key !== 'ArrowRight') return;
+  const btn = ev.target && ev.target.closest ? ev.target.closest('[data-dupe-reward-opt]') : null;
+  if (!btn) return;
+  ev.preventDefault();
+  setDupeRewardPref(getDupeRewardPref() === 'seals' ? 'gems' : 'seals');
+  btn.closest('[data-dupe-reward]')?.querySelector('[data-dupe-reward-opt].is-on')?.focus?.();
+});
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', syncDupeRewardToggles);
+else syncDupeRewardToggles();
+
 function starGemCostHtml(amount, sizePx = 20) {
   return '<span class="star-gem-cost">' + starGemIconHtml(sizePx) + '<span>' + Number(amount || 0).toLocaleString() + '</span></span>';
 }
@@ -4250,10 +4306,18 @@ function closePaidBoosterConfirm(result) {
   }
 }
 
-function appendGemConvertOverlay(parent, amount) {
+/** Converted-duplicate badge: Star Gems, or seals when the pull was converted to seals. */
+function convertBadgeHtml(c) {
+  if (c && c.seal_tier) {
+    return sealIconHtml(c.seal_tier, 24) + '<span>' + Number(c.seals || 0) + '</span>';
+  }
+  return starGemIconHtml(24) + '<span>' + Number(c?.star_gems || STAR_GEMS_PER_DUPE) + '</span>';
+}
+
+function appendGemConvertOverlay(parent, c) {
   const overlay = document.createElement('div');
   overlay.className = 'pack-gem-convert-overlay';
-  overlay.innerHTML = starGemIconHtml(24) + '<span>' + Number(amount || STAR_GEMS_PER_DUPE) + '</span>';
+  overlay.innerHTML = convertBadgeHtml(c);
   parent.appendChild(overlay);
 }
 
@@ -4274,7 +4338,15 @@ function packResultsSubText(cards, opts = {}) {
   const list = cards || [];
   const converted = list.filter(c => c?.converted).length;
   const kept = list.length - converted;
-  const gemsEarned = Number(opts.starGemsEarned ?? list.reduce((sum, c) => sum + (c?.converted ? (c.star_gems || STAR_GEMS_PER_DUPE) : 0), 0));
+  // Duplicates converted to seals (player preference) are counted apart from Star Gem ones.
+  const sealConverted = list.filter(c => c?.converted && c?.seal_tier).length;
+  const gemConverted = converted - sealConverted;
+  const sealTotals = {};
+  list.forEach((c) => {
+    if (c?.converted && c?.seal_tier) sealTotals[c.seal_tier] = (sealTotals[c.seal_tier] || 0) + Number(c.seals || 0);
+  });
+  const sealsText = Object.keys(sealTotals).map(tier => sealTotals[tier] + ' ' + tier).join(', ');
+  const gemsEarned = Number(opts.starGemsEarned ?? list.reduce((sum, c) => sum + (c?.converted && !c.seal_tier ? (c.star_gems || STAR_GEMS_PER_DUPE) : 0), 0));
   const gems = formatStarGems(gemsEarned);
   if (opts.godPack) {
     return packI18n(
@@ -4285,28 +4357,45 @@ function packResultsSubText(cards, opts = {}) {
   const gemsBonus = gemsEarned > 0
     ? packI18n('booster.gemsBonus', ' (+{gems})', { gems })
     : '';
-  const convertedBit = converted
-    ? packI18n('booster.convertedToGems', ' · {n} converted to Star Gems', { n: converted })
+  const sealsBonus = sealConverted > 0
+    ? packI18n('booster.sealsBonus', ' (+{seals} seals)', { seals: sealsText })
     : '';
+  const convertedBitSealsOnly = sealConverted
+    ? packI18n('booster.convertedToSeals', ' · {n} converted to seals', { n: sealConverted })
+    : '';
+  const convertedBit = (gemConverted
+    ? packI18n('booster.convertedToGems', ' · {n} converted to Star Gems', { n: gemConverted })
+    : '') + (sealConverted
+    ? packI18n('booster.convertedToSeals', ' · {n} converted to seals', { n: sealConverted })
+    : '');
   if (opts.boxMode) {
     const packs = opts.packsPerBox ?? DEFAULT_PACKS_PER_BOX;
     return packI18n('booster.boxFromPacks', '{cards} cards from {packs} packs', {
       cards: list.length,
       packs,
-    }) + convertedBit + gemsBonus;
+    }) + convertedBit + gemsBonus + sealsBonus;
   }
   if (converted && kept) {
     return packI18n('booster.keptAdded', '{kept} added to collection', { kept })
       + convertedBit
-      + gemsBonus;
+      + gemsBonus
+      + sealsBonus;
+  }
+  if (converted && gemConverted === 0) {
+    return converted === 1
+      ? packI18n('booster.duplicateSealsOne', '1 duplicate converted to seals (+{seals})', { seals: sealsText })
+      : packI18n('booster.duplicateSealsCount', '{n} duplicates converted to seals (+{seals})', {
+        n: converted,
+        seals: sealsText,
+      });
   }
   if (converted) {
-    return converted === 1
+    return (gemConverted === 1
       ? packI18n('booster.duplicateConvertedOne', '1 duplicate converted to Star Gems (+{gems})', { gems })
       : packI18n('booster.duplicatesConvertedCount', '{n} duplicates converted to Star Gems (+{gems})', {
-        n: converted,
+        n: gemConverted,
         gems,
-      });
+      })) + convertedBitSealsOnly + sealsBonus;
   }
   const n = list.length || 0;
   return n === 1
@@ -5187,7 +5276,7 @@ function showPackResults(cards, boxName, { godPack = false, faceSrcByIndex = nul
       + (isLiveCard(enriched) ? ' card-live-hand' : '');
     card.title = cardLocaleName(enriched) || enriched.card_no || '';
     appendCardFace(card, enriched, { sideways: isLiveCard(enriched), preferSrc });
-    if (converted) appendGemConvertOverlay(card, c?.star_gems || STAR_GEMS_PER_DUPE);
+    if (converted) appendGemConvertOverlay(card, c);
     bindCatalogCardPress(card, enriched, null);
     item.appendChild(card);
 
@@ -5316,7 +5405,7 @@ function buildPackOpenCardEl(c, stackIndex, total, preferSrc = '') {
   if (converted) {
     const gemOverlay = document.createElement('div');
     gemOverlay.className = 'pack-open-gem-overlay';
-    gemOverlay.innerHTML = starGemIconHtml(24) + '<span>' + Number(c?.star_gems || STAR_GEMS_PER_DUPE) + '</span>';
+    gemOverlay.innerHTML = convertBadgeHtml(c);
     card.appendChild(gemOverlay);
   }
   const nameEl = document.createElement('div');
@@ -8638,9 +8727,10 @@ function syncBoosterOpenButton(remaining, hasBox) {
 
 async function runBoosterOpen(payment) {
   sfxPlay('pack_open');
-  const res = await accountPost('open_booster', { box_id: A.boxPick, payment });
+  const res = await accountPost('open_booster', { box_id: A.boxPick, payment, dupe_reward: getDupeRewardPref() });
   const open = res.open || {};
   syncStarGemsFromOpen(open);
+  if (open.seals) syncSealsFromPayload({ seals: open.seals });
   if (open.daily) {
     if (A.profile) A.profile.daily = open.daily;
   }

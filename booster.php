@@ -1337,12 +1337,14 @@ function tcgFormatBoosterOpenCards(array $cardNos, array $pullMeta, array $cardM
         $cardsOut[] = array_merge($base, [
             'converted' => !empty($meta['converted']),
             'star_gems' => intval($meta['star_gems'] ?? 0),
+            'seal_tier' => isset($meta['seal_tier']) ? (string)$meta['seal_tier'] : null,
+            'seals' => intval($meta['seals'] ?? 0),
         ]);
     }
     return $cardsOut;
 }
 
-function tcgOpenBoosterPack(string $discordId, string $boxId, array $cardsData, string $payment = 'daily'): array {
+function tcgOpenBoosterPack(string $discordId, string $boxId, array $cardsData, string $payment = 'daily', string $dupeReward = 'gems'): array {
     $box = tcgBoosterBoxById($boxId);
     if (!$box) {
         throw new Exception('Unknown booster box', 400);
@@ -1355,7 +1357,7 @@ function tcgOpenBoosterPack(string $discordId, string $boxId, array $cardsData, 
     }
 
     if ($payment === 'gems_box') {
-        return tcgOpenBoosterBoxWithGems($discordId, $boxId, $cardsData);
+        return tcgOpenBoosterBoxWithGems($discordId, $boxId, $cardsData, $dupeReward);
     }
 
     // Pre-check payment before rolling so a roll/schema failure cannot burn a daily.
@@ -1385,8 +1387,8 @@ function tcgOpenBoosterPack(string $discordId, string $boxId, array $cardsData, 
     }
 
     try {
-        $gemResult = tcgDbRetry(function () use ($discordId, $roll, $cardMap) {
-            return tcgApplyBoosterPullWithGems($discordId, $roll['card_nos'], $cardMap);
+        $gemResult = tcgDbRetry(function () use ($discordId, $roll, $cardMap, $dupeReward) {
+            return tcgApplyBoosterPullWithGems($discordId, $roll['card_nos'], $cardMap, $dupeReward);
         });
     } catch (Throwable $e) {
         if ($payment === 'daily') {
@@ -1409,13 +1411,16 @@ function tcgOpenBoosterPack(string $discordId, string $boxId, array $cardsData, 
         'star_gems_spent' => $gemsSpent,
         'star_gems_earned' => $gemResult['star_gems_earned'],
         'star_gems' => $gemResult['star_gems'],
+        'dupe_reward' => tcgNormalizeDupeReward($dupeReward),
+        'seals_earned' => $gemResult['seals_earned'] ?? [],
+        'seals' => $gemResult['seals'] ?? null,
         'daily' => tcgDailyOpenAllowance($discordId),
         'box_progress' => $roll['box_progress'],
         'mode' => 'pack',
     ];
 }
 
-function tcgOpenBoosterBoxWithGems(string $discordId, string $boxId, array $cardsData): array {
+function tcgOpenBoosterBoxWithGems(string $discordId, string $boxId, array $cardsData, string $dupeReward = 'gems'): array {
     $box = tcgBoosterBoxById($boxId);
     if (!$box) {
         throw new Exception('Unknown booster box', 400);
@@ -1440,16 +1445,22 @@ function tcgOpenBoosterBoxWithGems(string $discordId, string $boxId, array $card
     $allCardNos = [];
     $allPullMeta = [];
     $totalGemsEarned = 0;
+    $totalSealsEarned = [];
+    $lastSeals = null;
     $godPackCount = 0;
 
     foreach ($rolls as $p => $roll) {
         if (!empty($roll['god_pack'])) {
             $godPackCount++;
         }
-        $gemResult = tcgDbRetry(function () use ($discordId, $roll, $cardMap) {
-            return tcgApplyBoosterPullWithGems($discordId, $roll['card_nos'], $cardMap);
+        $gemResult = tcgDbRetry(function () use ($discordId, $roll, $cardMap, $dupeReward) {
+            return tcgApplyBoosterPullWithGems($discordId, $roll['card_nos'], $cardMap, $dupeReward);
         });
         $totalGemsEarned += $gemResult['star_gems_earned'];
+        foreach ($gemResult['seals_earned'] ?? [] as $sealTier => $sealAmount) {
+            $totalSealsEarned[$sealTier] = ($totalSealsEarned[$sealTier] ?? 0) + intval($sealAmount);
+        }
+        $lastSeals = $gemResult['seals'] ?? $lastSeals;
         $packCards = tcgFormatBoosterOpenCards($roll['card_nos'], $gemResult['pulls'], $cardMap);
         $packsOut[] = [
             'index' => $p + 1,
@@ -1483,6 +1494,9 @@ function tcgOpenBoosterBoxWithGems(string $discordId, string $boxId, array $card
         'star_gems_spent' => $boxCost,
         'star_gems_earned' => $totalGemsEarned,
         'star_gems' => tcgGetStarGems($discordId),
+        'dupe_reward' => tcgNormalizeDupeReward($dupeReward),
+        'seals_earned' => $totalSealsEarned,
+        'seals' => $lastSeals,
         'daily' => tcgDailyOpenAllowance($discordId),
         'box_progress' => [
             'packs_in_box' => intval($progress['packs_in_box']),

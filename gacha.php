@@ -712,7 +712,8 @@ function tcgApiOpenGacha(array $body): array {
     } else {
         tcgDeductStarGems($uid, $cost);
     }
-    $applied = tcgApplyBoosterPullWithGems($uid, $nos, $cardMap);
+    $dupeReward = tcgNormalizeDupeReward($body['dupe_reward'] ?? 'gems');
+    $applied = tcgApplyBoosterPullWithGems($uid, $nos, $cardMap, $dupeReward);
     $pulls = [];
     foreach ($rolled as $i => $row) {
         $app = $applied['pulls'][$i] ?? ['converted' => false, 'star_gems' => 0];
@@ -725,6 +726,8 @@ function tcgApiOpenGacha(array $body): array {
             'idol_key' => tcgGachaIdolKeyFromCard(is_array($card) ? $card : null),
             'converted' => !empty($app['converted']),
             'star_gems' => intval($app['star_gems'] ?? 0),
+            'seal_tier' => isset($app['seal_tier']) ? (string)$app['seal_tier'] : null,
+            'seals' => intval($app['seals'] ?? 0),
         ];
     }
     $completions = [];
@@ -741,6 +744,9 @@ function tcgApiOpenGacha(array $body): array {
         'pulls' => $pulls,
         'star_gems_earned' => intval($applied['star_gems_earned'] ?? 0),
         'star_gems' => intval($applied['star_gems'] ?? tcgGetStarGems($uid)),
+        'dupe_reward' => $dupeReward,
+        'seals_earned' => $applied['seals_earned'] ?? [],
+        'seals' => $applied['seals'] ?? null,
         'scouting_tickets' => tcgGetScoutingTickets($uid),
     ];
     if (function_exists('tcgMissionAttachCompletions')) {
