@@ -204,6 +204,19 @@ function tryResolveAbilityEffectSwitchOptional(
 
         case 'optional_wait_self_wait_opp':
             if (!empty($state['pending_prompt'])) break;
+            // Refs #272: the cost is putting this Member into Wait; if it already is, there is nothing to pay.
+            $liveSrc = $source;
+            foreach (($state['players'][$pid]['stage'] ?? []) as $stCard) {
+                if (is_array($stCard) && ($stCard['instance_id'] ?? null) === ($source['instance_id'] ?? '')) {
+                    $liveSrc = $stCard;
+                    break;
+                }
+            }
+            if (function_exists('memberIsInWait') && memberIsInWait($liveSrc)) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    ' — [' . $name . '] optional Wait skipped (already in Wait).');
+                break;
+            }
             if (!optionalCostAbilityShouldOpen($state, $pid, $ab)) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     ' — [' . $name . '] optional Wait skipped (no legal targets).');

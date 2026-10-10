@@ -31193,6 +31193,14 @@ function splitCardTextAbilityBlocks(text) {
     const end = i + 1 < starts.length ? starts[i + 1].index : text.length;
     blocks.push({ kw: starts[i].kw, text: text.slice(start, end).trim() });
   }
+  // "[On Enter] / [Live Start] body" is one ability: fold keyword-only blocks into the next one.
+  for (let i = blocks.length - 2; i >= 0; i--) {
+    const bare = blocks[i].text.replace(/[\[［][^\]］]*[\]］]/g, '').replace(/[\s\/／・&＆,、]+/g, '');
+    if (!bare) {
+      blocks[i + 1] = { kw: blocks[i].kw, text: blocks[i].text + ' ' + blocks[i + 1].text };
+      blocks.splice(i, 1);
+    }
+  }
   return blocks;
 }
 
