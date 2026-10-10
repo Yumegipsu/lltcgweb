@@ -713,12 +713,22 @@ function spBp2OnLiveSuccess(array $state, string $pid): array {
         if (!$member) {
             continue;
         }
-        foreach ($member['abilities'] ?? [] as $ab) {
+        foreach ($member['abilities'] ?? [] as $abIdx => $ab) {
             if (($ab['trigger'] ?? '') !== 'auto') {
                 continue;
             }
             if (($ab['type'] ?? '') !== 'auto_stack_wr_group_member_under') {
                 continue;
+            }
+            // "When your Live succeeds … put 1 card": once per Member per Live Success. The
+            // resume after the player's pick re-enters here, so mark it BEFORE prompting or it
+            // prompts again and stacks every Liella! Member in the Waiting Room (#268).
+            $iid = (string)($member['instance_id'] ?? '');
+            if ($iid !== '') {
+                if (isLiveSuccessAbilityResolved($state, 'spbp2_stack', $pid, $iid, intval($abIdx))) {
+                    continue;
+                }
+                $state = markLiveSuccessAbilityResolved($state, 'spbp2_stack', $pid, $iid, intval($abIdx));
             }
             $state = spBp2ResolveAutoStackUnder($state, $pid, $member, $slot, $ab);
             $p['stage'][$slot] = $member;
