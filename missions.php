@@ -924,7 +924,29 @@ function tcgMissionSeatIsCpu(?array $player): bool {
     return str_starts_with($name, 'COM') || str_starts_with($name, 'COM（');
 }
 
-/** @return list<array{id: string, i18n_key: string, reward: int}> */
+/** Best-effort diagnostics: the finish hook is best-effort, so failures used to vanish silently. */
+function tcgMissionLogFailure(string $where, Throwable $e): void {
+    $line = gmdate('c') . ' [missions] ' . $where . ': ' . get_class($e) . ': ' . $e->getMessage()
+        . ' @ ' . basename($e->getFile()) . ':' . $e->getLine() . PHP_EOL;
+    @error_log(trim($line));
+    if (defined('TCG_DATA_DIR')) {
+        $file = rtrim((string)TCG_DATA_DIR, '/\\') . '/mission_errors.log';
+        if (!is_file($file) || (int)@filesize($file) < 200000) {
+            @file_put_contents($file, $line, FILE_APPEND | LOCK_EX);
+        }
+    }
+}
+
+/**
+ * Credit finish missions for both seats.
+ *
+ * Each seat and each check is isolated: one failure (a locked database, a bad snapshot) used to
+ * abort the whole loop, so the second seat lost its "Play a ranked match" credit while rank
+ * points (applied earlier, elsewhere) still counted. The core ranked/unranked credit for both
+ * seats runs first, with a lock retry, before any milestone check.
+ *
+ * @return list<array{id: string, i18n_key: string, reward: int}>
+ */
 function tcgMissionOnGameFinished(array $state): array {
     if (($state['status'] ?? '') !== 'finished') {
         return [];
@@ -932,6 +954,13 @@ function tcgMissionOnGameFinished(array $state): array {
     $isRanked = ($state['mode'] ?? '') === 'ranked';
     $winner = $state['winner'] ?? null;
     $completions = [];
+    $safe = static function (string $where, callable $fn) use (&$completions): void {
+        try {
+            $completions = tcgMissionMergeCompletions($completions, $fn());
+        } catch (Throwable $e) {
+            tcgMissionLogFailure($where, $e);
+        }
+    };
     if ($isRanked) {
         try {
             require_once __DIR__ . '/season_stats.php';
@@ -940,28 +969,40 @@ function tcgMissionOnGameFinished(array $state): array {
             // Usage sheet is best-effort; never block mission credit.
         }
     }
+    $seats = [];
     foreach (['p1', 'p2'] as $pid) {
         $player = $state['players'][$pid] ?? null;
         if (tcgMissionSeatIsCpu(is_array($player) ? $player : null)) {
             continue;
         }
         $discordId = tcgPlayerDiscordId($state, $pid);
-        if (!$discordId) {
-            continue;
+        if ($discordId) {
+            $seats[$pid] = $discordId;
         }
-        if ($isRanked) {
-            $done = tcgMissionMarkCompleted($discordId, 'daily_ranked_match');
-            $completions = tcgMissionMergeCompletions($completions, $done);
-            $completions = tcgMissionMergeCompletions($completions, tcgMissionTryCompleteAllDaily($discordId));
-        } else {
-            tcgIncrementUnrankedGames($discordId);
-        }
-        $completions = tcgMissionMergeCompletions($completions, tcgMissionCheckRankedThresholds($discordId));
-        $completions = tcgMissionMergeCompletions($completions, tcgMissionCheckScorePeaks($discordId, $state, $pid));
-        $completions = tcgMissionMergeCompletions($completions, tcgMissionCheckPlayStatThresholds($discordId));
+    }
+    // Pass 1 — the credit every finished match owes each human seat.
+    foreach ($seats as $pid => $discordId) {
+        $safe("core $pid", static function () use ($isRanked, $discordId) {
+            return tcgDbRetry(static function () use ($isRanked, $discordId) {
+                if ($isRanked) {
+                    return tcgMissionMergeCompletions(
+                        tcgMissionMarkCompleted($discordId, 'daily_ranked_match'),
+                        tcgMissionTryCompleteAllDaily($discordId)
+                    );
+                }
+                tcgIncrementUnrankedGames($discordId);
+                return [];
+            });
+        });
+    }
+    // Pass 2 — milestones, each check on its own.
+    foreach ($seats as $pid => $discordId) {
+        $safe("ranked thresholds $pid", static fn() => tcgMissionCheckRankedThresholds($discordId));
+        $safe("score peaks $pid", static fn() => tcgMissionCheckScorePeaks($discordId, $state, $pid));
+        $safe("play stats $pid", static fn() => tcgMissionCheckPlayStatThresholds($discordId));
         if ($winner === $pid) {
-            $completions = tcgMissionMergeCompletions($completions, tcgMissionCheckGroupWin($discordId, $state, $pid));
-            $completions = tcgMissionMergeCompletions($completions, tcgMissionCheckTurnWin($discordId, $state));
+            $safe("group win $pid", static fn() => tcgMissionCheckGroupWin($discordId, $state, $pid));
+            $safe("turn win $pid", static fn() => tcgMissionCheckTurnWin($discordId, $state));
         }
     }
     return $completions;
