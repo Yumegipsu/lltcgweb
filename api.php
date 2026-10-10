@@ -1165,6 +1165,7 @@ function handleAction(array $body): array {
         $prevSeq = intval($state['seq'] ?? 0);
         $state = captureReplayBaselineIfNeeded($state);
         $state = applyAction($state, $playerId, $type, $data);
+        $state = tcgReindexPlayerZoneLists($state);
         // Stale/duplicate resolve_prompt / LIVE lock-in: leave game state untouched
         // (no replay record, no save) so the client just resyncs to the current seq.
         if (!empty($state['_resolve_prompt_noop']) || !empty($state['_live_set_noop'])) {
@@ -2361,6 +2362,26 @@ function liveSetPhaseLog(array $state, string $pid): string {
 // ─────────────────────────────────────────────
 // Each player, in turn order, places 0–3 Live or Member cards; draw 1 per card
 // placed. end_live_set advances to the next player, then Performance reveals once both are ready.
+
+/**
+ * Zones are JSON lists. An effect that unset()s an element without reindexing leaves a hole,
+ * json_encode then writes an object and the client crashes (`energy_zone.filter is not a
+ * function`, a match stuck on a half-drawn board). Reindex after every action as a safety net.
+ */
+function tcgReindexPlayerZoneLists(array $state): array {
+    foreach (['p1', 'p2'] as $pid) {
+        if (!isset($state['players'][$pid]) || !is_array($state['players'][$pid])) {
+            continue;
+        }
+        foreach (['hand', 'main_deck', 'energy_deck', 'energy_zone', 'waiting_room', 'success_lives', 'live_zone'] as $zone) {
+            $list = $state['players'][$pid][$zone] ?? null;
+            if (is_array($list) && $list !== [] && array_keys($list) !== range(0, count($list) - 1)) {
+                $state['players'][$pid][$zone] = array_values($list);
+            }
+        }
+    }
+    return $state;
+}
 
 function actionSetLiveCards(array $state, string $pid, array $data): array {
     if (($state['phase'] ?? '') !== 'live_set') {

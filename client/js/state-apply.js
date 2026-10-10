@@ -256,6 +256,10 @@
 
   global.onState = function onState(s) {
     if (G.isTutorial && !G.tutorialLive) return;
+    if (typeof global.tcgNormalizeZoneLists === 'function' && s?.players) {
+      global.tcgNormalizeZoneLists(s.players.p1);
+      global.tcgNormalizeZoneLists(s.players.p2);
+    }
     s = hydrateIncomingLog(s);
     // Keep reconnect credentials fresh while the match is live, and through the
     // finished win/loss overlay so refresh can restore that screen.

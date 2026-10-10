@@ -375,7 +375,10 @@ function bp7ReturnEnergyToDeck(
     $take = static function (bool $wantActive) use (&$p, &$moved, &$movedCards, $count): void {
         foreach ($p['energy_zone'] as $i => $e) {
             if ($moved >= $count) {
-                return;
+                // break (not return): the array_values() below must still reindex the zone,
+                // otherwise a hole turns energy_zone into a JSON object and the client
+                // crashes in renderGame (stuck match).
+                break;
             }
             if (!is_array($e)) {
                 continue;

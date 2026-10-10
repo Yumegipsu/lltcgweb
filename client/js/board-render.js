@@ -16,8 +16,25 @@ function stageMemberLiveCostInfo(member) {
   return { printed, effective, delta: bonus };
 }
 
+/**
+ * Zones are lists. A server-side hole serialises one as {"0":..,"2":..}; every `.filter` /
+ * `.length` on it then throws and renderGame dies half-drawn (match stuck on "Setup / Starting…").
+ */
+function tcgNormalizeZoneLists(p) {
+  if (!p) return;
+  for (const z of ['hand', 'main_deck', 'energy_deck', 'energy_zone', 'waiting_room', 'success_lives', 'live_zone']) {
+    const v = p[z];
+    if (v && !Array.isArray(v) && typeof v === 'object') {
+      p[z] = Object.keys(v).sort((a, b) => Number(a) - Number(b)).map((k) => v[k]);
+    }
+  }
+}
+window.tcgNormalizeZoneLists = tcgNormalizeZoneLists;
+
 function renderGame(s, opts = {}) {
   if(!s?.players) return;
+  tcgNormalizeZoneLists(s.players.p1);
+  tcgNormalizeZoneLists(s.players.p2);
   if (isReplayViewing()) opts = { ...opts, skipPrompt: true };
   maybePlayPhaseSfx(s);
   const myId=G.playerId, oppId=myId==='p1'?'p2':'p1';
