@@ -1017,7 +1017,10 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
         case 'live_start_wr_group_live_score':
             // PL!-sd1-009 Nico — WR μ's ≥25 → +Live Score until Live ends.
             // Must use score_bonus (via applyModifierEffect); live_score_bonus key is ignored (#157).
-            if (countWrGroup($p, $ab['group'] ?? "μ's") >= intval($ab['min_count'] ?? 25)) {
+            $wrGroup = (string)($ab['group'] ?? "μ's");
+            $wrNeed = intval($ab['min_count'] ?? 25);
+            $wrHave = countWrGroup($p, $wrGroup);
+            if ($wrHave >= $wrNeed) {
                 $amt = intval($ab['amount'] ?? 1);
                 $state = applyModifierEffect($state, $pid, [
                     'type'   => 'live_score_bonus',
@@ -1025,6 +1028,11 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
                 ]);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] gained +$amt total Live Score until Live ends.");
+            } else {
+                // Said nothing before, so a near miss looked like a bug (the whole Waiting
+                // Room can be 25+ while it holds fewer than 25 cards of this group).
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] condition not met: $wrHave/$wrNeed $wrGroup cards in Waiting Room.");
             }
             break;
 
