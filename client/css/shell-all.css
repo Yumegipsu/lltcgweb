@@ -9478,3 +9478,17 @@ body.gacha-pull-open{overflow:hidden}
 .dupe-pill__opt.is-on{opacity:1;background:linear-gradient(135deg,var(--pink),var(--pink-d));box-shadow:0 0 10px rgba(255,107,168,.45)}
 .dupe-pill__opt:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .dupe-pill__opt img{width:22px;height:22px;object-fit:contain;display:block;pointer-events:none}
+
+/* ═══ Gacha banner strip: Standard + limited Birthday banner(s) (selected = full colour) ═══ */
+.gacha-banners{display:flex;gap:12px;margin:12px 0 10px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.gacha-banners::-webkit-scrollbar{display:none}
+.gacha-banners .gacha-banner{flex:0 0 100%;width:auto;margin:0;scroll-snap-align:start;cursor:pointer;transition:filter .25s,opacity .25s}
+.gacha-banners--multi .gacha-banner{flex-basis:86%}
+.gacha-banners--multi .gacha-banner:not(.is-selected){filter:grayscale(.92) brightness(.78);opacity:.82}
+.gacha-banner--birthday{background:var(--bday-bg,#333)}
+.gacha-banner--birthday::after{display:none}
+.gacha-banner--birthday .gacha-banner__copy{text-shadow:none}
+.gacha-banner--birthday .gacha-banner__label,
+.gacha-banner--birthday .gacha-banner__sub{color:var(--bday-fg,#fff);text-shadow:none}
+.gacha-banner--birthday .gacha-banner__sub{font-size:14px;font-weight:700;opacity:.92}
+.gacha-banner--birthday .gacha-banner__render.is-card-art{width:auto;height:100%;max-width:100%;left:auto;right:8px;object-fit:contain;object-position:center}

@@ -42,7 +42,8 @@
   let _lastMode = 'single';
   let _lastTicketCount = 1;
   let _unlocked = false;
-  let _ratesCache = null;
+  let _ratesCache = {};
+  let _bannerId = 'standard';
   let _ticketQty = 1;
 
   function isUnlocked() {
@@ -221,10 +222,11 @@
     const pool = info.pool || {};
     const poolEl = el('gacha-pool-info');
     if (poolEl) {
+      const sel = bannerById(_bannerId);
       poolEl.textContent = tt(
         'gacha.poolInfo',
         '{total} cards in pool',
-        { total: pool.total || 0 }
+        { total: (sel && sel.pool_total != null ? sel.pool_total : pool.total) || 0 }
       );
     }
     const single = el('btn-gacha-single');
@@ -296,13 +298,20 @@
     return row.name_en || row.card_no || '?';
   }
 
-  function renderGachaRatesModal(rates) {
+  function ratesTitleFor(banner) {
+    if (banner && banner.type === 'birthday') {
+      return tt('gacha.birthdayRatesTitle', 'Birthday Gacha — {name}', { name: banner.name_en });
+    }
+    return tt('gacha.ratesTitle', 'Standard Gacha');
+  }
+
+  function renderGachaRatesModal(rates, banner) {
     const body = el('gacha-rates-body');
     if (!body) return;
     body.replaceChildren();
 
     const title = el('gacha-rates-title');
-    if (title) title.textContent = tt('gacha.ratesTitle', 'Standard Gacha');
+    if (title) title.textContent = ratesTitleFor(banner);
     const lead = el('gacha-rates-lead');
     if (lead) {
       lead.textContent = tt(
@@ -455,7 +464,9 @@
     body.appendChild(notesEl);
   }
 
-  async function openGachaRates() {
+  async function openGachaRates(bannerId) {
+    const id = bannerId || 'standard';
+    const banner = bannerById(id);
     const body = el('gacha-rates-body');
     if (body) {
       body.replaceChildren();
@@ -465,7 +476,7 @@
       body.appendChild(loading);
     }
     const title = el('gacha-rates-title');
-    if (title) title.textContent = tt('gacha.ratesTitle', 'Standard Gacha');
+    if (title) title.textContent = ratesTitleFor(banner);
     const lead = el('gacha-rates-lead');
     if (lead) lead.textContent = tt('gacha.ratesLoading', 'Loading rates…');
     if (typeof global.openM === 'function') global.openM('modal-gacha-rates');
@@ -474,11 +485,11 @@
       if (modal) modal.classList.add('open');
     }
     try {
-      if (!_ratesCache) {
-        const res = await accountPost('gacha_rates', {});
-        _ratesCache = res.rates || res;
+      if (!_ratesCache[id]) {
+        const res = await accountPost('gacha_rates', { banner: id });
+        _ratesCache[id] = res.rates || res;
       }
-      renderGachaRatesModal(_ratesCache);
+      renderGachaRatesModal(_ratesCache[id], banner);
     } catch (e) {
       if (body) {
         body.replaceChildren();
@@ -530,6 +541,117 @@
     render.src = String(url);
   }
 
+  // ── Banners: Standard + limited Birthday banner(s) ───────────────────────────
+  function bannerList() {
+    return (_info && Array.isArray(_info.banners) && _info.banners.length)
+      ? _info.banners
+      : [{ id: 'standard', type: 'standard' }];
+  }
+
+  function bannerById(id) {
+    return bannerList().find((b) => b.id === id) || null;
+  }
+
+  function birthdayArtUrl(b) {
+    return 'assets/gacha/renders/' + encodeURIComponent(b.idol_key) + '.png';
+  }
+
+  function buildBirthdayBanner(b) {
+    const root = document.createElement('div');
+    root.className = 'gacha-banner gacha-banner--birthday';
+    root.dataset.bannerId = b.id;
+    root.setAttribute('role', 'radio');
+    root.setAttribute('aria-checked', 'false');
+    root.tabIndex = -1;
+    root.style.setProperty('--bday-bg', b.bg || '#333');
+    root.style.setProperty('--bday-fg', b.fg || '#fff');
+    const title = tt('gacha.birthdayTitle', 'Birthday Gacha');
+    const dateLabel = b.date_label || (b.month + '.' + b.day);
+    root.setAttribute('aria-label', title + ' — ' + b.name_en + ' ' + dateLabel);
+
+    const info = document.createElement('button');
+    info.type = 'button';
+    info.className = 'box-info-btn gacha-banner-info-btn';
+    info.textContent = tt('gacha.infoBtn', 'Info');
+    info.setAttribute('aria-label', tt('gacha.infoAria', 'Gacha rates and pool'));
+    info.setAttribute('aria-haspopup', 'dialog');
+    info.setAttribute('aria-controls', 'modal-gacha-rates');
+    root.appendChild(info);
+
+    const copy = document.createElement('span');
+    copy.className = 'gacha-banner__copy';
+    const label = document.createElement('span');
+    label.className = 'gacha-banner__label';
+    label.textContent = title;
+    const sub = document.createElement('span');
+    sub.className = 'gacha-banner__sub';
+    sub.textContent = b.name_en + ' ' + dateLabel;
+    copy.appendChild(label);
+    copy.appendChild(sub);
+    root.appendChild(copy);
+
+    const visual = document.createElement('span');
+    visual.className = 'gacha-banner__visual';
+    visual.setAttribute('aria-hidden', 'true');
+    const img = document.createElement('img');
+    img.className = 'gacha-banner__render';
+    img.alt = '';
+    img.decoding = 'async';
+    img.src = birthdayArtUrl(b);
+    // No render in the art folder (e.g. Wien, Yu): fall back to one of the idol's card faces.
+    img.addEventListener('error', () => {
+      if (img.dataset.fallback || !b.art_card_no) {
+        img.hidden = true;
+        return;
+      }
+      img.dataset.fallback = '1';
+      img.classList.add('is-card-art');
+      img.src = typeof global.cachedCardImgUrl === 'function'
+        ? global.cachedCardImgUrl(b.art_card_no, 256)
+        : './cardimg.php?card_no=' + encodeURIComponent(b.art_card_no);
+    });
+    visual.appendChild(img);
+    root.appendChild(visual);
+    return root;
+  }
+
+  function renderBanners() {
+    const strip = el('gacha-banners');
+    if (!strip) return;
+    strip.querySelectorAll('.gacha-banner--birthday').forEach((n) => n.remove());
+    const birthdays = bannerList().filter((b) => b.type === 'birthday');
+    birthdays.forEach((b) => strip.appendChild(buildBirthdayBanner(b)));
+    strip.classList.toggle('gacha-banners--multi', birthdays.length > 0);
+    selectBanner(bannerById(_bannerId) ? _bannerId : 'standard', { scroll: false });
+  }
+
+  function selectBanner(id, opts) {
+    const strip = el('gacha-banners');
+    const target = bannerById(id) ? id : 'standard';
+    _bannerId = target;
+    if (global.A) global.A._gachaBanner = target;
+    if (strip) {
+      strip.querySelectorAll('.gacha-banner').forEach((n) => {
+        const on = n.dataset.bannerId === target;
+        n.classList.toggle('is-selected', on);
+        n.setAttribute('aria-checked', on ? 'true' : 'false');
+        n.tabIndex = on ? 0 : -1;
+        if (on && !(opts && opts.scroll === false) && typeof n.scrollIntoView === 'function') {
+          n.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+        }
+      });
+    }
+    if (_info) updateRateCopy(_info);
+  }
+
+  async function refreshGachaBanners() {
+    try {
+      _info = await accountPost('gacha_info', {});
+      _ratesCache = {};
+      renderBanners();
+    } catch (_) { /* keep the current strip */ }
+  }
+
   async function loadGachaScreen() {
     const err = el('gacha-err');
     if (err) err.textContent = '';
@@ -549,6 +671,8 @@
       showScr('gacha');
       syncGems(_info.star_gems);
       syncTickets(_info.scouting_tickets);
+      _ratesCache = {};
+      renderBanners();
       updateRateCopy(_info);
       syncSimPanel(_info);
     } catch (e) {
@@ -791,7 +915,9 @@
     const isMulti = (res.mode || _lastMode) === 'multi' || cards.length >= 10;
     const title = simulated
       ? tt('gacha.simResultsTitle', 'Gacha (simulation)')
-      : tt('gacha.title', 'Gacha');
+      : (String(res.banner || '').startsWith('birthday:')
+        ? tt('gacha.birthdayTitle', 'Birthday Gacha')
+        : tt('gacha.title', 'Gacha'));
     // Build results under the overlay, then fly spotlight cards into place.
     global.showPackResults(cards, title, {
       godPack: false,
@@ -830,6 +956,7 @@
     const payWith = currency === 'tickets' ? 'tickets' : 'star_gems';
     const body = {
       currency: payWith,
+      banner: _bannerId,
       dupe_reward: typeof global.getDupeRewardPref === 'function' ? global.getDupeRewardPref() : 'gems',
     };
     if (payWith === 'tickets') {
@@ -873,6 +1000,12 @@
       syncTickets(res.scouting_tickets);
     } catch (e) {
       closeGachaOverlay();
+      if (/no longer active/i.test(String(e && e.message))) {
+        _bannerId = 'standard';
+        void refreshGachaBanners();
+        toast(tt('gacha.bannerEnded', 'That birthday banner has ended.'), 3200);
+        return;
+      }
       if (err) err.textContent = e.message || tt('gacha.pullError', 'Could not scout');
       toast(e.message || tt('gacha.pullError', 'Could not scout'), 2800);
     } finally {
@@ -965,6 +1098,34 @@
       ev.preventDefault();
       ev.stopPropagation();
       void openGachaRates();
+    });
+    const strip = el('gacha-banners');
+    strip?.addEventListener('click', (ev) => {
+      const banner = ev.target.closest && ev.target.closest('.gacha-banner');
+      if (!banner) return;
+      if (ev.target.closest('.gacha-banner-info-btn')) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        void openGachaRates(banner.dataset.bannerId);
+        return;
+      }
+      selectBanner(banner.dataset.bannerId);
+    });
+    strip?.addEventListener('keydown', (ev) => {
+      const banner = ev.target.closest && ev.target.closest('.gacha-banner');
+      if (!banner || ev.target.closest('.gacha-banner-info-btn')) return;
+      const ids = [...strip.querySelectorAll('.gacha-banner')].map((n) => n.dataset.bannerId);
+      const i = ids.indexOf(banner.dataset.bannerId);
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        selectBanner(banner.dataset.bannerId);
+      } else if ((ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') && ids.length > 1) {
+        ev.preventDefault();
+        const next = ids[(i + (ev.key === 'ArrowRight' ? 1 : ids.length - 1)) % ids.length];
+        selectBanner(next);
+        const node = strip.querySelector('.gacha-banner[data-banner-id="' + next + '"]');
+        if (node) node.focus();
+      }
     });
     el('btn-gacha-rates-close')?.addEventListener('click', () => closeGachaRates());
     el('modal-gacha-rates')?.addEventListener('click', (e) => {

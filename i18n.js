@@ -659,7 +659,11 @@
       "noteNoPrDuo": "PR, DUO, and Premium Booster cards are not in this pool.",
       "noteNewSetEmbargo": "New standard booster packs join this pool one month after release.",
       "ratesLoading": "Loading rates…",
-      "ratesError": "Could not load gacha rates"
+      "ratesError": "Could not load gacha rates",
+      "bannersAria": "Gacha banners",
+      "birthdayTitle": "Birthday Gacha",
+      "birthdayRatesTitle": "Birthday Gacha — {name}",
+      "bannerEnded": "That birthday banner has ended."
     },
     "sticker": {
       "title": "Sticker Exchange",
@@ -2828,7 +2832,11 @@
       "noteNoPrDuo": "PR・DUO・プレミアムブースターのカードは含まれません。",
       "noteNewSetEmbargo": "新しい通常ブースターは発売から1か月後にこのプールへ入ります。",
       "ratesLoading": "排出率を読み込み中…",
-      "ratesError": "ガチャの排出率を読み込めませんでした"
+      "ratesError": "ガチャの排出率を読み込めませんでした",
+      "bannersAria": "ガチャバナー",
+      "birthdayTitle": "バースデーガチャ",
+      "birthdayRatesTitle": "バースデーガチャ — {name}",
+      "bannerEnded": "そのバースデーガチャは終了しました。"
     },
     "sticker": {
       "title": "シール交換",
@@ -4762,7 +4770,11 @@
       "noteNoPrDuo": "Las cartas PR, DUO y de Premium Booster no están en este pool.",
       "noteNewSetEmbargo": "Los boosters estándar nuevos entran en este pool un mes después del lanzamiento.",
       "ratesLoading": "Cargando probabilidades…",
-      "ratesError": "No se pudieron cargar las probabilidades del gacha"
+      "ratesError": "No se pudieron cargar las probabilidades del gacha",
+      "bannersAria": "Banners de gacha",
+      "birthdayTitle": "Gacha de cumpleaños",
+      "birthdayRatesTitle": "Gacha de cumpleaños — {name}",
+      "bannerEnded": "Ese banner de cumpleaños ha terminado."
     },
     "ranked": {
       "title": "PvP clasificatorio",
@@ -6766,7 +6778,11 @@
       "noteNoPrDuo": "PR, DUO, 프리미엄 부스터 카드는 이 풀에 없습니다.",
       "noteNewSetEmbargo": "새 일반 부스터는 발매 1개월 후에 이 풀에 들어갑니다.",
       "ratesLoading": "확률 불러오는 중…",
-      "ratesError": "가챠 확률을 불러올 수 없습니다"
+      "ratesError": "가챠 확률을 불러올 수 없습니다",
+      "bannersAria": "가챠 배너",
+      "birthdayTitle": "생일 가챠",
+      "birthdayRatesTitle": "생일 가챠 — {name}",
+      "bannerEnded": "해당 생일 배너는 종료되었습니다."
     },
     "ranked": {
       "title": "랭크 PvP",
@@ -8784,7 +8800,11 @@
       "noteNoPrDuo": "PR、DUO 与 Premium Booster 卡不在本卡池中。",
       "noteNewSetEmbargo": "新标准补充包于发售后一个月加入本卡池。",
       "ratesLoading": "正在加载概率…",
-      "ratesError": "无法加载扭蛋概率"
+      "ratesError": "无法加载扭蛋概率",
+      "bannersAria": "抽卡卡池",
+      "birthdayTitle": "生日抽卡",
+      "birthdayRatesTitle": "生日抽卡 — {name}",
+      "bannerEnded": "该生日卡池已结束。"
     },
     "ranked": {
       "title": "排名对战",
@@ -10792,7 +10812,11 @@
       "noteNoPrDuo": "การ์ด PR, DUO และ Premium Booster ไม่อยู่ในพูลนี้",
       "noteNewSetEmbargo": "บูสเตอร์มาตรฐานชุดใหม่จะเข้าพูลนี้หนึ่งเดือนหลังวางจำหน่าย",
       "ratesLoading": "กำลังโหลดอัตรา…",
-      "ratesError": "โหลดอัตรากาชาไม่ได้"
+      "ratesError": "โหลดอัตรากาชาไม่ได้",
+      "bannersAria": "แบนเนอร์กาชา",
+      "birthdayTitle": "กาชาวันเกิด",
+      "birthdayRatesTitle": "กาชาวันเกิด — {name}",
+      "bannerEnded": "แบนเนอร์วันเกิดนี้สิ้นสุดแล้ว"
     },
     "ranked": {
       "title": "แรงก์ PvP",
@@ -12848,7 +12872,11 @@
       "noteNoPrDuo": "Cartas PR, DUO e de Premium Booster não estão neste pool.",
       "noteNewSetEmbargo": "Boosters padrão novos entram neste pool um mês após o lançamento.",
       "ratesLoading": "Carregando taxas…",
-      "ratesError": "Não foi possível carregar as taxas do gacha"
+      "ratesError": "Não foi possível carregar as taxas do gacha",
+      "bannersAria": "Banners de gacha",
+      "birthdayTitle": "Gacha de aniversário",
+      "birthdayRatesTitle": "Gacha de aniversário — {name}",
+      "bannerEnded": "Esse banner de aniversário terminou."
     },
     "sticker": {
       "title": "Loja de Selos",
@@ -16505,7 +16533,11 @@
       "noteNoPrDuo": "Les cartes PR, DUO et Premium Booster ne sont pas dans ce pool.",
       "noteNewSetEmbargo": "Les boosters standards récents rejoignent ce pool un mois après leur sortie.",
       "ratesLoading": "Chargement rates…",
-      "ratesError": "Impossible de charger les taux du gacha"
+      "ratesError": "Impossible de charger les taux du gacha",
+      "bannersAria": "Bannières de gacha",
+      "birthdayTitle": "Gacha d'anniversaire",
+      "birthdayRatesTitle": "Gacha d'anniversaire — {name}",
+      "bannerEnded": "Cette bannière d'anniversaire est terminée."
     },
     "chat": {
       "roomPublic": "Public",

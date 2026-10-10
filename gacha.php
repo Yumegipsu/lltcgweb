@@ -5,6 +5,7 @@
 require_once __DIR__ . '/booster.php';
 require_once __DIR__ . '/deck_validate.php';
 require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/gacha_birthdays.php';
 
 const TCG_GACHA_SINGLE_COST = 20;
 const TCG_GACHA_MULTI_COST = 200;
@@ -241,6 +242,22 @@ function tcgGachaPickCardNo(array $pools, string $tier): string {
     if (!$list) {
         throw new Exception('Gacha pool is empty', 500);
     }
+    // Birthday banners boost one idol's cards (`_w`: card_no => relative weight).
+    $weights = $pools['_w'] ?? null;
+    if (is_array($weights) && $weights !== []) {
+        $total = 0.0;
+        foreach ($list as $no) {
+            $total += (float)($weights[$no] ?? 1.0);
+        }
+        $pick = random_int(1, 1000000) / 1000000 * $total;
+        foreach ($list as $no) {
+            $pick -= (float)($weights[$no] ?? 1.0);
+            if ($pick <= 0) {
+                return $no;
+            }
+        }
+        return $list[array_key_last($list)];
+    }
     return $list[array_rand($list)];
 }
 
@@ -311,8 +328,8 @@ function tcgGachaEnsureMultiSrPlus(array &$out, array $pools, array $cardMap): v
 /**
  * @return list<array{card_no:string,tier:string,rarity:string}>
  */
-function tcgGachaRollPulls(int $count, array $cardsData, array $cardMap): array {
-    $pools = tcgGachaBuildPools($cardsData);
+function tcgGachaRollPulls(int $count, array $cardsData, array $cardMap, ?array $pools = null): array {
+    $pools = $pools ?? tcgGachaBuildPools($cardsData);
     $count = max(1, min(20, $count));
     $out = [];
     for ($i = 0; $i < $count; $i++) {
@@ -486,8 +503,9 @@ function tcgGachaPackCatalog(?int $now = null): array {
  *   notes: list<string>
  * }
  */
-function tcgComputeGachaRates(array $cardsData): array {
-    $pools = tcgGachaBuildPools($cardsData);
+function tcgComputeGachaRates(array $cardsData, ?array $pools = null, ?array $banner = null): array {
+    $pools = $pools ?? tcgGachaBuildPools($cardsData);
+    $weights = is_array($pools['_w'] ?? null) ? $pools['_w'] : [];
     $cardMap = tcgBuildCardMap($cardsData);
     $tierWeights = [
         'n' => TCG_GACHA_WEIGHT_N,
@@ -510,8 +528,15 @@ function tcgComputeGachaRates(array $cardsData): array {
             continue;
         }
         $tierP = $tierWeights[$tier] / $totalW;
-        $perCard = $tierP / $n;
+        $sumW = 0.0;
         foreach ($list as $no) {
+            $sumW += (float)($weights[$no] ?? 1.0);
+        }
+        if ($sumW <= 0) {
+            $sumW = (float)$n;
+        }
+        foreach ($list as $no) {
+            $perCard = $tierP * (float)($weights[$no] ?? 1.0) / $sumW;
             $c = $cardMap[$no] ?? null;
             $r = is_array($c)
                 ? tcgNormalizePoolRarity((string)($c['rarity'] ?? 'N'), $no)
@@ -577,7 +602,31 @@ function tcgComputeGachaRates(array $cardsData): array {
     });
 
     $packs = tcgGachaPackCatalog();
+    $notes = [
+        'Each pull first rolls a scout band, then picks one card from that band.',
+        'Percents are chance per single Scout ×1 pull.',
+        'Scout 10+1 guarantees at least one SR+ (gold/rainbow); UR within that guarantee stays rare.',
+        'Grey (N): N, R, R+, L, L+, PE, and other non-listed rarities.',
+        'Gold (SR): P, P+, PP, SRE, SRL, RM, PE+, AR, RE.',
+        'Rainbow (UR): SEC / SECL / SECE / SECS / SEC+ / LLE.',
+        'PR, DUO, and Premium Booster cards are not in this pool.',
+        'New standard booster packs join this pool one month after release.',
+    ];
+    if ($banner !== null) {
+        $notes = [
+            'Birthday Gacha for ' . (string)($banner['name_en'] ?? '') . ' — limited to their birthday (JST).',
+            'Same pool as the standard Gacha, plus every non-PR card of ' . (string)($banner['name_en'] ?? 'this idol')
+                . ' from all packs (Premium, DUO, and the newest boosters included).',
+            'All of ' . (string)($banner['name_en'] ?? 'this idol') . "'s cards are " . rtrim(rtrim(number_format(TCG_GACHA_BDAY_BOOST, 2), '0'), '.')
+                . '× as likely as other cards in their rarity band.',
+            'Each pull first rolls a scout band, then picks one card from that band.',
+            'Percents are chance per single Scout ×1 pull.',
+            'Scout 10+1 guarantees at least one SR+ (gold/rainbow); UR within that guarantee stays rare.',
+            'PR cards are not in this pool.',
+        ];
+    }
     return [
+        'banner' => $banner === null ? 'standard' : (string)($banner['id'] ?? 'birthday'),
         'pool' => [
             'n' => count($pools['n']),
             'sr' => count($pools['sr']),
@@ -593,17 +642,29 @@ function tcgComputeGachaRates(array $cardsData): array {
         'cards' => $cardsOut,
         'packs_included' => $packs['included'],
         'packs_excluded' => $packs['excluded'],
-        'notes' => [
-            'Each pull first rolls a scout band, then picks one card uniformly from that band.',
-            'Percents are chance per single Scout ×1 pull.',
-            'Scout 10+1 guarantees at least one SR+ (gold/rainbow); UR within that guarantee stays rare.',
-            'Grey (N): N, R, R+, L, L+, PE, and other non-listed rarities.',
-            'Gold (SR): P, P+, PP, SRE, SRL, RM, PE+, AR, RE.',
-            'Rainbow (UR): SEC / SECL / SECE / SECS / SEC+ / LLE.',
-            'PR, DUO, and Premium Booster cards are not in this pool.',
-            'New standard booster packs join this pool one month after release.',
-        ],
+        'notes' => $notes,
     ];
+}
+
+/**
+ * Resolve the requested banner. Standard = no special pools.
+ *
+ * @return array{0:?array,1:?array} [pools|null, banner|null]
+ */
+function tcgGachaResolveBanner(array $cardsData, string $bannerId, ?int $now = null): array {
+    $bannerId = trim($bannerId);
+    if ($bannerId === '' || $bannerId === 'standard') {
+        return [null, null];
+    }
+    if (!str_starts_with($bannerId, 'birthday:')) {
+        throw new Exception('Unknown gacha banner', 400);
+    }
+    $key = strtolower(substr($bannerId, strlen('birthday:')));
+    $banner = tcgGachaActiveBirthdayBanner($cardsData, $key, $now);
+    if ($banner === null) {
+        throw new Exception('That birthday banner is no longer active', 400);
+    }
+    return [tcgGachaBuildBirthdayPools($cardsData, $key, $now), $banner];
 }
 
 function tcgApiGachaInfo(array $body): array {
@@ -617,6 +678,13 @@ function tcgApiGachaInfo(array $body): array {
     }
     return [
         'success' => true,
+        'banners' => array_merge(
+            [['id' => 'standard', 'type' => 'standard', 'pool_total' => count($pools['all'])]],
+            array_map(static function (array $b) use ($cards): array {
+                $b['pool_total'] = count(tcgGachaBuildBirthdayPools($cards, (string)$b['idol_key'])['all']);
+                return $b;
+            }, tcgGachaBirthdayBanners($cards))
+        ),
         'unlocked' => $unlocked,
         'locked' => !$unlocked,
         'star_gems' => tcgGetStarGems($uid),
@@ -646,9 +714,10 @@ function tcgApiGachaRates(array $body): array {
     $uid = tcgRequireAuthUser($body);
     tcgEnsureUser($uid, tcgAuthUserProfile($uid));
     $cards = tcgLoadCardsData();
+    [$pools, $banner] = tcgGachaResolveBanner($cards, (string)($body['banner'] ?? 'standard'));
     return [
         'success' => true,
-        'rates' => tcgComputeGachaRates($cards),
+        'rates' => tcgComputeGachaRates($cards, $pools, $banner),
     ];
 }
 
@@ -705,7 +774,9 @@ function tcgApiOpenGacha(array $body): array {
     }
     $cards = tcgLoadCardsData();
     $cardMap = tcgBuildCardMap($cards);
-    $rolled = tcgGachaRollPulls($count, $cards, $cardMap);
+    // Validate the banner BEFORE spending anything (an expired birthday banner must not charge).
+    [$bannerPools, $activeBanner] = tcgGachaResolveBanner($cards, (string)($body['banner'] ?? 'standard'));
+    $rolled = tcgGachaRollPulls($count, $cards, $cardMap, $bannerPools);
     $nos = array_map(static fn ($r) => $r['card_no'], $rolled);
     if ($useTickets) {
         tcgDeductScoutingTickets($uid, $cost);
@@ -744,6 +815,7 @@ function tcgApiOpenGacha(array $body): array {
         'pulls' => $pulls,
         'star_gems_earned' => intval($applied['star_gems_earned'] ?? 0),
         'star_gems' => intval($applied['star_gems'] ?? tcgGetStarGems($uid)),
+        'banner' => $activeBanner === null ? 'standard' : $activeBanner['id'],
         'dupe_reward' => $dupeReward,
         'seals_earned' => $applied['seals_earned'] ?? [],
         'seals' => $applied['seals'] ?? null,

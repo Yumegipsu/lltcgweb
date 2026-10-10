@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=164">
+<link rel="stylesheet" href="client/css/shell-all.css?v=165">
 <link rel="stylesheet" href="client/css/season-rank.css?v=11">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -1135,7 +1135,8 @@ try {
           <b id="gacha-tickets">0</b>
         </div>
       </div>
-      <div class="gacha-banner" id="gacha-banner" role="group" aria-label="Standard Gacha">
+      <div class="gacha-banners" id="gacha-banners" role="radiogroup" data-i18n-aria-label="gacha.bannersAria" aria-label="Gacha banners">
+      <div class="gacha-banner is-selected" id="gacha-banner" data-banner-id="standard" role="radio" aria-checked="true" tabindex="0" aria-label="Standard Gacha">
         <button type="button" class="box-info-btn gacha-banner-info-btn" id="btn-gacha-rates" data-i18n="gacha.infoBtn" data-i18n-aria-label="gacha.infoAria" aria-label="Gacha rates and pool" aria-haspopup="dialog" aria-controls="modal-gacha-rates">Info</button>
         <span class="gacha-banner__copy">
           <span class="gacha-banner__label" data-i18n="gacha.standardTitle">Standard Gacha</span>
@@ -1145,6 +1146,7 @@ try {
           <img class="gacha-banner__render" id="gacha-banner-render" src="assets/gacha/renders/honoka.png" alt="" decoding="async">
           <img class="gacha-banner__gem" src="assets/Star_Gem.png" alt="" width="56" height="56" decoding="async">
         </span>
+      </div>
       </div>
       <p class="hub-stat" id="gacha-rates" data-i18n="gacha.ratesLead">Tap Info for rarity rates and card odds</p>
       <p class="hub-stat" id="gacha-pool-info"></p>
@@ -3304,7 +3306,7 @@ try {
 <script src="client/js/apk-asset-cache.js?v=8"></script>
 <script src="client/js/shop-new.js?v=2"></script>
 <script src="client/js/gacha-spotlight.js?v=17"></script>
-<script src="client/js/gacha.js?v=22"></script>
+<script src="client/js/gacha.js?v=23"></script>
 <script src="client/js/ranked-pr-reward.js?v=6"></script>
 <script src="client/js/missions.js?v=14"></script>
 <script src="client/js/admin-events.js?v=2"></script>
