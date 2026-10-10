@@ -1962,7 +1962,14 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
 
         if ($step === 'pick_members') {
             $ids = $data['card_ids'] ?? [];
-            if (count($ids) < 1 || count($ids) > $maxPick) {
+            if (count($ids) === 0) {
+                // "You may": confirming with nothing selected declines the effect.
+                $state = addLog($state, $prefix . 'chose no Members for the deck bottom.');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishPromptEffects($state);
+            }
+            if (count($ids) > $maxPick) {
                 throw new Exception("Choose 1–$maxPick Member(s)");
             }
             $moved = [];

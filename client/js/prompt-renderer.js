@@ -3073,6 +3073,19 @@ global.renderPrompt = function renderPrompt(s, myId){
     });
     return;
   }
+  // Rina (PL!N-bp3-009): step 2 of "put up to 2 Waiting Room Members on the bottom of your deck".
+  // This step had no screen, so it fell through to a bare Yes/No and the skill never resolved (#270).
+  if(pr?.type==='optional_wr_members_deck_bottom_milestones'&&pr.step==='pick_members'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openWrMembersDeckTopPick({...pr, pick_count:Number(pr.max_pick||2)||2, up_to:true});
+    return;
+  }
+  // Same gap in PR vol.9: step 2 of "put N opponent Waiting Room Members on their deck bottom".
+  if(pr?.type==='optional_opp_wr_members_to_deck_bottom_then_wait'&&pr.step==='pick'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openWrMembersDeckTopPick({...pr, pick_count:Number(pr.need||3)||3, up_to:false});
+    return;
+  }
   if(pr?.type==='pick_wr_members_deck_top'&&pr.responder===myId){
     ovl.classList.remove('open');
     openWrMembersDeckTopPick(pr);
