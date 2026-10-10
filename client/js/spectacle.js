@@ -9876,6 +9876,44 @@ function effectiveCost(card, hand){
     }
   }
   if (bestLiveReduce > 0) base = Math.max(0, base - bestLiveReduce);
+  // Mirror the PHP hand-cost helpers the client was missing (#267). Without these the hand,
+  // play-slot buttons and affordability checks showed the unreduced cost.
+  if (me?.stage) {
+    for (const stageMbr of Object.values(me.stage)) {
+      if (!stageMbr) continue;
+      const stageAbs = stageMbr.abilities?.length ? stageMbr.abilities : clientCatalogAbilities(stageMbr);
+      for (const ab of stageAbs) {
+        if (ab.trigger !== 'continuous') continue;
+        // Chisato SP-bp5-003: −N for printed-cost-X Members of the group played from hand.
+        if (ab.type === 'hand_cost_reduction_group_target_cost') {
+          const isMember = card.card_type === 'メンバー' || card.card_type_en === 'Member';
+          if (Number(card.cost || 0) === Number(ab.target_cost ?? 10)
+              && (card.group || '') === (ab.group || 'Superstar') && isMember) {
+            base = Math.max(0, base - Number(ab.amount ?? 2));
+          }
+        }
+        // Sunshine bp5-001: −N for Members that have no abilities.
+        if (ab.type === 'aura_hand_cost_reduction_no_ability' && !card.abilities?.length) {
+          base = Math.max(0, base - Number(ab.amount ?? 1));
+        }
+      }
+    }
+  }
+  for (const ab of (card.abilities || [])) {
+    if (ab.trigger !== 'continuous') continue;
+    // SP-bp5-017: −N while a group Member on Stage moved this turn.
+    if (ab.type === 'hand_cost_reduction_if_group_moved') {
+      const group = ab.group || 'Superstar';
+      const moved = Object.values(me?.stage || {}).some(m => m && (m.group || '') === group && m.moved_this_turn);
+      if (moved) base = Math.max(0, base - Number(ab.amount ?? 2));
+    }
+    // PB1-014: −N while a Success Live has the subunit.
+    if (ab.type === 'hand_cost_reduction_if_success_subunit') {
+      const sub = ab.subunit || '';
+      const has = (me?.success_lives || []).some(c => c && typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(c, sub));
+      if (has) base = Math.max(0, base - Number(ab.amount ?? 0));
+    }
+  }
   return base;
 }
 function memberBlocksBaton(card){
