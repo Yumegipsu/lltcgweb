@@ -1451,55 +1451,42 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
                 break;
             }
             $maxB = intval($ab['max_printed_blade'] ?? 2);
-            $cands = [];
-            foreach ($state['players'][$opp]['stage'] ?? [] as $slot => $m) {
-                if ($m && !memberIsInWait($m)
-                    && intval($m['blade'] ?? 0) <= $maxB) {
-                    $cands[] = ['slot' => $slot, 'card' => $m];
-                }
-            }
-            if (!$cands) {
-                break;
-            }
-            $state = plMusePb2SetPendingPrompt($state, [
-                'type' => 'wait_opponent_stage',
-                'owner' => $pid,
-                'player_id' => $pid,
-                'source_instance_id' => $source['instance_id'] ?? '',
-                'source_name' => $name,
-                'candidates' => $cands,
-                'min' => 1,
-                'max' => intval($ab['pick_count'] ?? 1),
-            ]);
-            break;
+            // Shared Wait pick (wait_opponent_stage_pick): the old inline prompt used a type
+            // with no resolver or screen, so the player saw an empty "Tap an option" box (#271).
+            unset($state['pending_prompt']);
+            return beginWaitOpponentStagePick(
+                $state,
+                $pid,
+                $name,
+                [
+                    'max_original_blade' => $maxB,
+                    'pick_count' => intval($ab['pick_count'] ?? 1),
+                ],
+                (string)($source['instance_id'] ?? ''),
+                ($state['phase'] ?? '') === 'live_start_effects'
+            );
         }
 
         case 'wait_opponent_stage_max_printed_hearts': {
             $maxH = intval($ab['max_printed_hearts'] ?? 3);
-            $cands = [];
-            foreach ($state['players'][$opp]['stage'] ?? [] as $slot => $m) {
-                if ($m && !memberIsInWait($m) && plMusePb2PrintedHeartCount($m) <= $maxH) {
-                    $cands[] = ['slot' => $slot, 'card' => $m];
-                }
-            }
-            if (!$cands) {
-                break;
-            }
-            $state = plMusePb2SetPendingPrompt($state, [
-                'type' => 'wait_opponent_stage',
-                'owner' => $pid,
-                'player_id' => $pid,
-                'source_instance_id' => $source['instance_id'] ?? '',
-                'source_name' => $name,
-                'candidates' => $cands,
-                'min' => 1,
-                'max' => intval($ab['pick_count'] ?? 1),
-            ]);
-            break;
+            unset($state['pending_prompt']);
+            return beginWaitOpponentStagePick(
+                $state,
+                $pid,
+                $name,
+                [
+                    'max_original_hearts' => $maxH,
+                    'pick_count' => intval($ab['pick_count'] ?? 1),
+                ],
+                (string)($source['instance_id'] ?? ''),
+                ($state['phase'] ?? '') === 'live_start_effects'
+            );
         }
 
         case 'live_success_pick_yell_member_if_all_same_subunit': {
-            $yell = $state['_last_yell_cards_' . $pid] ?? $state['_last_yell_cards'] ?? [];
+            // The Live Success context carries the Yell cards (same pool as live_success_pick_yell_card).
+            $yell = $ctx['yell_cards'] ?? $p['_pending_yell_wr']
+                ?? $state['_last_yell_cards_' . $pid] ?? $state['_last_yell_cards'] ?? [];
             $members = array_values(array_filter($yell, 'isMemberCard'));
             if (!$members) {
                 break;
@@ -1516,17 +1503,22 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             if (!$ok) {
                 break;
             }
-            $state = plMusePb2SetPendingPrompt($state, [
-                'type' => 'pick_yell_card_to_hand',
-                'owner' => $pid,
-                'player_id' => $pid,
-                'source_instance_id' => $source['instance_id'] ?? '',
+            // pick_yell_member is the prompt type that has a resolver and a screen; the old
+            // pick_yell_card_to_hand had neither, so this skill never did anything.
+            if (!empty($state['pending_prompt'])) {
+                break;
+            }
+            $state['pending_prompt'] = [
+                'type'        => 'pick_yell_member',
+                'owner'       => $pid,
+                'responder'   => $pid,
                 'source_name' => $name,
-                'candidates' => $members,
-                'filter' => 'member',
-                'min' => 1,
-                'max' => 1,
-            ]);
+                'prompt'      => 'Choose 1 Member card revealed by Yell to add to your hand.',
+                'candidates'  => array_map('cardPromptSummary', $members),
+                'ability'     => $ab,
+            ];
+            $state = addLog($state, $state['players'][$pid]['name'] .
+                ' — [' . $name . '] choose a Yell Member.');
             break;
         }
 
