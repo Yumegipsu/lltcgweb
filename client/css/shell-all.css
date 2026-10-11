@@ -4814,6 +4814,8 @@ body.perf-spectacle-active:has(.overlay.skill-hand-preserve.open)::before{
   .my-hand-strip .hcard{width:auto;height:var(--my-hand-card-h)}
   .logo-img{max-width:300px}
   .logo-tagline,.logo-version{font-size:13px}
+  .logo-foot{grid-template-columns:36px minmax(0,1fr) 36px;gap:2px}
+  .logo-foot .logo-version{margin-left:-8px}
 }
 
 /* ── Official-site menu chrome (hub / account screens only; not gameplay) ── */
