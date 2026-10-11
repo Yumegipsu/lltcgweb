@@ -2777,6 +2777,26 @@ function bp7QueueChain(array $state): array {
     return $state;
 }
 
+/**
+ * PL!S-bp7-005 (#274): fire the partner Member's [On Enter] once the first one has fully resolved.
+ * Called from bp7FinishPrompt and finishPromptEffects (the first [On Enter] may be a non-bp7 prompt).
+ */
+function bp7RunDeferredOnEnter(array $state, string $owner = ''): array {
+    if (empty($state['_bp7_deferred_on_enter']) || !empty($state['pending_prompt'])) {
+        return $state;
+    }
+    $deferred = $state['_bp7_deferred_on_enter'];
+    unset($state['_bp7_deferred_on_enter']);
+    if ($owner === '') {
+        $owner = (string)($deferred['owner'] ?? '');
+    }
+    $slot = (string)($deferred['slot'] ?? '');
+    if ($owner !== '' && $slot !== '') {
+        $state = bp7TriggerFirstOnEnter($state, $owner, $slot, (string)($deferred['name'] ?? 'Member'));
+    }
+    return $state;
+}
+
 function bp7FinishPrompt(array $state, array $prompt): array {
     unset($state['pending_prompt']);
     $state['seq']++;
@@ -2786,17 +2806,9 @@ function bp7FinishPrompt(array $state, array $prompt): array {
         return $state;
     }
     // PL!S-bp7-005 triggers two [On Enter] abilities; the second waits for the first.
-    if (!empty($state['_bp7_deferred_on_enter'])) {
-        $deferred = $state['_bp7_deferred_on_enter'];
-        unset($state['_bp7_deferred_on_enter']);
-        $owner = (string)($prompt['owner'] ?? '');
-        $slot = (string)($deferred['slot'] ?? '');
-        if ($owner !== '' && $slot !== '') {
-            $state = bp7TriggerFirstOnEnter($state, $owner, $slot, (string)($deferred['name'] ?? 'Member'));
-            if (!empty($state['pending_prompt'])) {
-                return $state;
-            }
-        }
+    $state = bp7RunDeferredOnEnter($state, (string)($prompt['owner'] ?? ''));
+    if (!empty($state['pending_prompt'])) {
+        return $state;
     }
     if (!empty($state['_bp7_deferred_then'])) {
         $deferred = $state['_bp7_deferred_then'];
@@ -3325,13 +3337,16 @@ function bp7ResolvePrompt(array $state, string $owner, array $prompt, string $ch
         }
 
         case 'trigger_on_enter_other': {
+            // This pick is resolved. Leaving it in pending_prompt made the check below mistake it for a prompt
+            // opened by the first [On Enter]: it was parked and restored forever (#274).
+            unset($state['pending_prompt']);
             $srcSlot = bp7FindSlotByInstance($state['players'][$owner], (string)($prompt['source_id'] ?? ''));
             if ($srcSlot !== '') {
                 $state = bp7TriggerFirstOnEnter($state, $owner, $srcSlot, $name);
             }
             if (!empty($state['pending_prompt'])) {
                 // The first [On Enter] opened its own prompt; the partner fires after it.
-                $state['_bp7_deferred_on_enter'] = ['slot' => $slot, 'name' => $name];
+                $state['_bp7_deferred_on_enter'] = ['slot' => $slot, 'name' => $name, 'owner' => $owner];
                 $state = bp7QueueChain($state);
                 break;
             }

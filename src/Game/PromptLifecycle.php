@@ -51,6 +51,14 @@ function finishAfterDeckCardsToWaitingRoom(array $state): array {
 }
 
 function finishPromptEffects(array $state): array {
+    // PL!S-bp7-005 partner [On Enter] waits for a non-bp7 first [On Enter] prompt too (#274).
+    if (empty($state['pending_prompt']) && !empty($state['_bp7_deferred_on_enter'])
+        && function_exists('bp7RunDeferredOnEnter')) {
+        $state = bp7RunDeferredOnEnter($state);
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
     if (empty($state['pending_prompt']) && function_exists('flushDeferredAutoAreaMoves')) {
         $state = flushDeferredAutoAreaMoves($state);
         if (!empty($state['pending_prompt'])) {
