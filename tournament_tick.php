@@ -862,7 +862,58 @@ function tcgTournamentCreateRoomPair(
     return ['room_id' => $roomId, 'p1_token' => $p1Token, 'p2_token' => $p2Token];
 }
 
+/**
+ * Advance the bracket, then award any match that now seats a player who already forfeited
+ * (AFK auto-resign / DQ) to their opponent, and advance again until nothing is left to sweep.
+ */
 function tcgTournamentAdvanceCompletedRounds(string $tournamentId): void {
+    for ($i = 0; $i < 16; $i++) {
+        tcgTournamentAdvanceCompletedRoundsOnce($tournamentId);
+        if (!tcgTournamentSweepForfeitedEntrants($tournamentId)) {
+            return;
+        }
+    }
+}
+
+/** @return bool true when at least one match was awarded */
+function tcgTournamentSweepForfeitedEntrants(string $tournamentId): bool {
+    $out = [];
+    foreach (tcgTournamentFetchEntrants($tournamentId) as $e) {
+        if ((string)$e['status'] === 'dq'
+            || ((string)$e['status'] === 'eliminated' && (string)($e['elim_reason'] ?? '') === 'afk_forfeit')) {
+            $out[(string)$e['discord_id']] = true;
+        }
+    }
+    if (!$out) {
+        return false;
+    }
+    $did = false;
+    foreach (tcgTournamentFetchMatches($tournamentId) as $m) {
+        if (!in_array((string)$m['status'], ['pending', 'ready', 'live'], true)) {
+            continue;
+        }
+        $p1 = (string)($m['p1_discord_id'] ?? '');
+        $p2 = (string)($m['p2_discord_id'] ?? '');
+        if ($p1 === '' || $p2 === '') {
+            continue;
+        }
+        $p1Out = isset($out[$p1]);
+        $p2Out = isset($out[$p2]);
+        if ($p1Out === $p2Out) {
+            // Both forfeited: still need a result so the bracket does not stall.
+            if ($p1Out) {
+                tcgTournamentForfeitSeries((string)$m['id'], $p1, 'afk_forfeit');
+                $did = true;
+            }
+            continue;
+        }
+        tcgTournamentForfeitSeries((string)$m['id'], $p1Out ? $p2 : $p1, 'afk_forfeit');
+        $did = true;
+    }
+    return $did;
+}
+
+function tcgTournamentAdvanceCompletedRoundsOnce(string $tournamentId): void {
     $row = tcgTournamentFetch($tournamentId);
     if (!$row) {
         return;
@@ -1556,8 +1607,15 @@ function tcgTournamentTryFinish(string $tournamentId): bool {
         }
         $records = tcgTournamentRecordsFromMatches($matches);
         $alive = [];
+        $forfeited = [];
+        foreach (tcgTournamentFetchEntrants($tournamentId) as $e) {
+            if ((string)$e['status'] === 'dq'
+                || ((string)$e['status'] === 'eliminated' && (string)($e['elim_reason'] ?? '') === 'afk_forfeit')) {
+                $forfeited[(string)$e['discord_id']] = true;
+            }
+        }
         foreach ($records as $pid => $rec) {
-            if ((int)($rec['losses'] ?? 0) < 2) {
+            if ((int)($rec['losses'] ?? 0) < 2 && !isset($forfeited[(string)$pid])) {
                 $alive[] = $pid;
             }
         }
