@@ -239,12 +239,8 @@ function tryResolveAbilityEffectSwitchDeckLook(
                     $allMatch = false;
                     break;
                 }
-                if ($reqColor !== '') {
-                    if (!memberHasHeartColor($c, $reqColor)) {
-                        $allMatch = false;
-                        break;
-                    }
-                } elseif (!memberHasAnyHeart($c)) {
+                // Only SD1 Kosuzu prints a heart-colour condition; bp5-013 says "all Member cards" (#273).
+                if ($reqColor !== '' && !memberHasHeartColor($c, $reqColor)) {
                     $allMatch = false;
                     break;
                 }
@@ -252,7 +248,16 @@ function tryResolveAbilityEffectSwitchDeckLook(
             if (!empty($milled)) {
                 $p['waiting_room'] = array_merge($p['waiting_room'], $milled);
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] put " . count($milled) . ' card(s) from deck top into Waiting Room.');
+                    " — [$name] put " . count($milled) . ' card(s) from deck top into Waiting Room: ' .
+                    implode(', ', array_map('cardDisplayName', $milled)) . '.');
+            }
+            if (!$allMatch || count($milled) < $n) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] condition not met (" .
+                    (count($milled) < $n
+                        ? 'deck had only ' . count($milled) . ' card(s)'
+                        : ($reqColor !== '' ? "not all were Member cards with $reqColor hearts" : 'not all were Member cards')) .
+                    '); no bonus.');
             }
             if ($allMatch && count($milled) >= $n) {
                 if (!empty($ab['hearts'])) {
@@ -263,9 +268,9 @@ function tryResolveAbilityEffectSwitchDeckLook(
                     $state = applyModifierEffect($state, $pid, [
                         'type'   => 'blade_bonus',
                         'amount' => intval($ab['amount'] ?? 3),
-                    ]);
+                    ], $source);
                     $state = addLog($state, $state['players'][$pid]['name'] .
-                        ' — [' . $name . '] gained +' . intval($ab['amount'] ?? 3) . ' Blade (all milled Members had hearts).');
+                        ' — [' . $name . '] gained +' . intval($ab['amount'] ?? 3) . ' Blade (all milled cards were Members).');
                 }
             }
             break;
