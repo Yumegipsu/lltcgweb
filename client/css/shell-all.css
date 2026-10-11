@@ -5542,6 +5542,9 @@ body:has(#screen-game.active) #casual-search-float{top:68px}
   border:1px solid rgba(255,255,255,.55);box-shadow:0 2px 10px rgba(255,107,168,.55);
   pointer-events:none}
 .news-fab-badge[hidden]{display:none!important}
+.discord-fab{text-decoration:none}
+.discord-fab .news-fab-icon{background:url("../../bg/ptn.png") top center/200px 200px repeat,rgba(88,101,242,.94)}
+.discord-fab-img{width:26px;height:auto;display:block}
 .news-fab--new .news-fab-icon{
   background:url("../../bg/ptn.png") top center/200px 200px repeat,rgba(255,107,168,.94);
   border-color:rgba(255,179,209,.85);
