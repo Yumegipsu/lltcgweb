@@ -2,6 +2,33 @@
   "version": 1,
   "posts": [
     {
+      "id": "2026-10-community-beginners-guide",
+      "date": "2026-10-11",
+      "publishedAt": "2026-10-11T00:00:00Z",
+      "banner": "tcglogo.png",
+      "bannerStyle": "full",
+      "title": {
+        "en": "Community beginner's guide for Loveca",
+        "ja": "コミュニティ作成のラブカ入門ガイド",
+        "es": "Guía para principiantes de Loveca hecha por la comunidad",
+        "ko": "커뮤니티가 만든 러브카 입문 가이드",
+        "zh": "社区制作的 Loveca 新手指南",
+        "th": "คู่มือมือใหม่ Loveca โดยชุมชน",
+        "pt": "Guia para iniciantes de Loveca feito pela comunidade",
+        "fr": "Guide du débutant Loveca créé par la communauté"
+      },
+      "body": {
+        "en": "Members of the Loveca sim community have put together an **English beginner's guide** to help new players pick up the game!\n\nIt's still a work in progress, but the main section is complete. It covers how to read a card, the play area, the gameplay phases and how to play a full game.\n\n[Read the beginner's guide](https://docs.google.com/document/d/e/2PACX-1vT4MKN6CoRajPVqwPhn4py4UPLmSjiWRGNF4DekbkIc68f3Z0-RcsEFS4Zv6CaEmw4gfsdEObFr0Zr_/pub)\n\nNew players are welcome to ask for help in the **#loveca** channel of the Discord server.",
+        "ja": "Loveca シムのコミュニティの皆さんが、新しいプレイヤー向けの**英語の入門ガイド**を作成しました！\n\nまだ作成途中ですが、メインのセクションは完成しています。カードの読み方、プレイエリア、ゲームの各フェーズ、ゲームの進め方を解説しています。\n\n[入門ガイドを読む](https://docs.google.com/document/d/e/2PACX-1vT4MKN6CoRajPVqwPhn4py4UPLmSjiWRGNF4DekbkIc68f3Z0-RcsEFS4Zv6CaEmw4gfsdEObFr0Zr_/pub)\n\n新しいプレイヤーの方は、Discord サーバーの **#loveca** チャンネルで気軽に質問してください。",
+        "es": "¡Miembros de la comunidad del simulador de Loveca han creado una **guía para principiantes en inglés** para ayudar a los nuevos jugadores a empezar!\n\nTodavía está en desarrollo, pero la sección principal ya está completa. Explica cómo leer una carta, el área de juego, las fases de una partida y cómo jugar una partida completa.\n\n[Leer la guía para principiantes](https://docs.google.com/document/d/e/2PACX-1vT4MKN6CoRajPVqwPhn4py4UPLmSjiWRGNF4DekbkIc68f3Z0-RcsEFS4Zv6CaEmw4gfsdEObFr0Zr_/pub)\n\nLos jugadores nuevos pueden pedir ayuda en el canal **#loveca** del servidor de Discord.",
+        "ko": "Loveca 시뮬레이터 커뮤니티 멤버들이 새로운 플레이어가 게임을 시작할 수 있도록 **영어 입문 가이드**를 만들었습니다!\n\n아직 작업 중이지만 메인 섹션은 완성되었습니다. 카드 보는 법, 플레이 영역, 게임 진행 단계, 한 판을 진행하는 방법을 다룹니다.\n\n[입문 가이드 읽기](https://docs.google.com/document/d/e/2PACX-1vT4MKN6CoRajPVqwPhn4py4UPLmSjiWRGNF4DekbkIc68f3Z0-RcsEFS4Zv6CaEmw4gfsdEObFr0Zr_/pub)\n\n새로운 플레이어는 Discord 서버의 **#loveca** 채널에서 언제든 도움을 요청하세요.",
+        "zh": "Loveca 模拟器社区的成员制作了一份**英文新手指南**，帮助新玩家上手游戏！\n\n指南仍在完善中，但主要部分已经完成。内容包括如何阅读卡牌、游戏区域、游戏阶段以及如何进行一整局游戏。\n\n[阅读新手指南](https://docs.google.com/document/d/e/2PACX-1vT4MKN6CoRajPVqwPhn4py4UPLmSjiWRGNF4DekbkIc68f3Z0-RcsEFS4Zv6CaEmw4gfsdEObFr0Zr_/pub)\n\n欢迎新玩家在 Discord 服务器的 **#loveca** 频道寻求帮助。",
+        "th": "สมาชิกชุมชน Loveca sim ได้รวมกันจัดทำ**คู่มือมือใหม่ภาษาอังกฤษ** เพื่อช่วยให้ผู้เล่นใหม่เริ่มเล่นเกมได้ง่ายขึ้น!\n\nคู่มือยังอยู่ระหว่างปรับปรุง แต่ส่วนหลักเสร็จสมบูรณ์แล้ว ครอบคลุมวิธีอ่านการ์ด พื้นที่เล่น เฟสต่างๆ ของเกม และวิธีเล่นเกมตั้งแต่ต้นจนจบ\n\n[อ่านคู่มือมือใหม่](https://docs.google.com/document/d/e/2PACX-1vT4MKN6CoRajPVqwPhn4py4UPLmSjiWRGNF4DekbkIc68f3Z0-RcsEFS4Zv6CaEmw4gfsdEObFr0Zr_/pub)\n\nผู้เล่นใหม่สามารถขอความช่วยเหลือได้ที่ช่อง **#loveca** ในเซิร์ฟเวอร์ Discord",
+        "pt": "Membros da comunidade do simulador de Loveca criaram um **guia para iniciantes em inglês** para ajudar novos jogadores a aprender o jogo!\n\nAinda está em andamento, mas a seção principal já está completa. Ele explica como ler uma carta, a área de jogo, as fases da partida e como jogar uma partida completa.\n\n[Ler o guia para iniciantes](https://docs.google.com/document/d/e/2PACX-1vT4MKN6CoRajPVqwPhn4py4UPLmSjiWRGNF4DekbkIc68f3Z0-RcsEFS4Zv6CaEmw4gfsdEObFr0Zr_/pub)\n\nJogadores novos podem pedir ajuda no canal **#loveca** do servidor do Discord.",
+        "fr": "Des membres de la communauté du simulateur Loveca ont créé un **guide du débutant en anglais** pour aider les nouveaux joueurs à se lancer !\n\nIl est encore en cours de rédaction, mais la section principale est terminée. Il explique comment lire une carte, la zone de jeu, les phases de jeu et comment jouer une partie complète.\n\n[Lire le guide du débutant](https://docs.google.com/document/d/e/2PACX-1vT4MKN6CoRajPVqwPhn4py4UPLmSjiWRGNF4DekbkIc68f3Z0-RcsEFS4Zv6CaEmw4gfsdEObFr0Zr_/pub)\n\nLes nouveaux joueurs peuvent demander de l'aide dans le salon **#loveca** du serveur Discord."
+      }
+    },
+    {
       "id": "2026-10-season-1",
       "date": "2026-10-01",
       "publishedAt": "2026-09-30T18:00:00Z",
