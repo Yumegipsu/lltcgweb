@@ -127,6 +127,9 @@
       if (reason === 'swiss_cut') {
         return t('tournament.entrant.cutSwiss', 'Cut (Swiss)');
       }
+      if (reason === 'afk_forfeit') {
+        return t('tournament.entrant.afkForfeit', 'Forfeited (inactive)');
+      }
       return t('tournament.entrant.eliminated', 'Eliminated');
     }
     const map = {

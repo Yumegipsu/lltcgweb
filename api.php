@@ -5157,7 +5157,7 @@ function parsePhaseTimerConfigFromBody(array $body): array {
 }
 
 function getPhaseTimerCfg(array $state): array {
-    if (($state['mode'] ?? '') === 'ranked') {
+    if (in_array($state['mode'] ?? '', ['ranked', 'tournament'], true)) {
         return ['enabled' => true, 'duration' => PHASE_TIMER_MAX];
     }
     $cfg = $state['phase_timer_cfg'] ?? [];
@@ -5188,12 +5188,19 @@ function getPhaseTimerDuration(array $state): int {
     return getPhaseTimerCfg($state)['duration'];
 }
 
-/** Ranked inactivity clocks shorten only after consecutive timer expiries. */
+/** Rooms whose inactivity clocks shorten and auto-resign: ranked and tournament. Returns the state bucket name. */
+function inactivityStrikeScope(array $state): ?string {
+    $mode = (string)($state['mode'] ?? '');
+    return ($mode === 'ranked' || $mode === 'tournament') ? $mode : null;
+}
+
+/** Inactivity clocks shorten only after consecutive timer expiries (ranked and tournament). */
 function getPhaseTimerDurationForPlayer(array $state, string $pid): int {
-    if (($state['mode'] ?? '') !== 'ranked') {
+    $scope = inactivityStrikeScope($state);
+    if ($scope === null) {
         return getPhaseTimerDuration($state);
     }
-    $timeouts = intval($state['ranked']['inactivity_timeouts'][$pid] ?? 0);
+    $timeouts = intval($state[$scope]['inactivity_timeouts'][$pid] ?? 0);
     return match (true) {
         $timeouts >= 2 => 15,
         $timeouts === 1 => 60,
@@ -5530,11 +5537,12 @@ function rankedActionShowsPlayerActivity(string $type): bool {
 }
 
 function resetRankedInactivityTimeouts(array &$state, string $pid): void {
-    if (($state['mode'] ?? '') !== 'ranked' || !in_array($pid, ['p1', 'p2'], true)) {
+    $scope = inactivityStrikeScope($state);
+    if ($scope === null || !in_array($pid, ['p1', 'p2'], true)) {
         return;
     }
-    $state['ranked']['inactivity_timeouts'][$pid] = 0;
-    unset($state['ranked']['last_timeout_window'][$pid]);
+    $state[$scope]['inactivity_timeouts'][$pid] = 0;
+    unset($state[$scope]['last_timeout_window'][$pid]);
 }
 
 /**
@@ -5542,7 +5550,8 @@ function resetRankedInactivityTimeouts(array &$state, string $pid): void {
  * Returns true when the third consecutive strike has ended the game.
  */
 function registerRankedInactivityTimeout(array &$state, string $pid): bool {
-    if (($state['mode'] ?? '') !== 'ranked' || !in_array($pid, ['p1', 'p2'], true)) {
+    $scope = inactivityStrikeScope($state);
+    if ($scope === null || !in_array($pid, ['p1', 'p2'], true)) {
         return false;
     }
     initPhaseTimer($state);
@@ -5550,12 +5559,12 @@ function registerRankedInactivityTimeout(array &$state, string $pid): bool {
     if ($windowId === null) {
         $windowId = 'deadline:' . intval($state['phase_timer']['deadlines'][$pid] ?? 0);
     }
-    if (($state['ranked']['last_timeout_window'][$pid] ?? null) === $windowId) {
+    if (($state[$scope]['last_timeout_window'][$pid] ?? null) === $windowId) {
         return false;
     }
-    $state['ranked']['last_timeout_window'][$pid] = $windowId;
-    $count = intval($state['ranked']['inactivity_timeouts'][$pid] ?? 0) + 1;
-    $state['ranked']['inactivity_timeouts'][$pid] = $count;
+    $state[$scope]['last_timeout_window'][$pid] = $windowId;
+    $count = intval($state[$scope]['inactivity_timeouts'][$pid] ?? 0) + 1;
+    $state[$scope]['inactivity_timeouts'][$pid] = $count;
     $name = $state['players'][$pid]['name'] ?? $pid;
 
     if ($count < 3) {
@@ -5575,7 +5584,7 @@ function registerRankedInactivityTimeout(array &$state, string $pid): bool {
     $state['winner'] = $winner;
     $state['end_reason'] = 'resign';
     $state['resigned_by'] = $pid;
-    $state['ranked']['auto_resigned_for_inactivity'] = $pid;
+    $state[$scope]['auto_resigned_for_inactivity'] = $pid;
     applyNaturalWinLockOnEarlyExit($state, $pid);
     clearAllPhaseDeadlines($state);
     $winPid = $state['winner'] ?? $winner;
@@ -5583,6 +5592,7 @@ function registerRankedInactivityTimeout(array &$state, string $pid): bool {
     $state = addLog(
         $state,
         "$name was automatically resigned after three consecutive inactivity timeouts. $winnerName wins!"
+            . ($scope === 'tournament' ? " $name forfeits the tournament." : '')
     );
     $state['seq']++;
     return true;

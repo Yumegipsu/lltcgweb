@@ -629,7 +629,56 @@ function tcgTournamentApplyRoomResults(string $tournamentId): void {
         if ($winnerDid === '') {
             continue;
         }
+        $afkPid = (string)($state['tournament']['auto_resigned_for_inactivity'] ?? '');
+        if (in_array($afkPid, ['p1', 'p2'], true)) {
+            $afkDid = (string)($state['players'][$afkPid]['discord_id'] ?? '');
+            if ($afkDid !== '' && $afkDid !== $winnerDid) {
+                tcgTournamentForfeitAfkEntrant($tournamentId, (string)$m['id'], $afkDid, $winnerDid);
+                continue;
+            }
+        }
         tcgTournamentResolveMatch((string)$m['id'], $winnerDid, (string)($state['end_reason'] ?? 'game'));
+    }
+}
+
+/**
+ * Award a whole match (every remaining game of a Bo3) to $winnerDiscordId.
+ */
+function tcgTournamentForfeitSeries(string $matchId, string $winnerDiscordId, string $reason): void {
+    tcgTournamentResolveMatch($matchId, $winnerDiscordId, $reason);
+    $stmt = tcgDb()->prepare('SELECT * FROM tcg_tournament_matches WHERE id = ?');
+    $stmt->execute([$matchId]);
+    $m = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$m || (string)$m['status'] === 'done') {
+        return;
+    }
+    $meta = tcgTournamentDecodeMatchMeta($m['meta_json'] ?? '{}');
+    tcgTournamentFinalizeMatchSeries($m, $winnerDiscordId, $meta, $reason);
+}
+
+/**
+ * A player auto-resigned after three inactivity timeouts forfeits the whole tournament:
+ * the current series goes to the opponent, the player is eliminated, and their other
+ * unplayed matches are awarded to their opponents.
+ */
+function tcgTournamentForfeitAfkEntrant(string $tournamentId, string $matchId, string $afkDiscordId, string $winnerDiscordId): void {
+    tcgTournamentEnsureEntrantElimReasonColumn();
+    tcgTournamentForfeitSeries($matchId, $winnerDiscordId, 'afk_forfeit');
+    tcgDb()->prepare(
+        'UPDATE tcg_tournament_entrants SET status = "eliminated", elim_reason = "afk_forfeit"
+         WHERE tournament_id = ? AND discord_id = ? AND status NOT IN ("dq","winner")'
+    )->execute([$tournamentId, $afkDiscordId]);
+    foreach (tcgTournamentFetchMatches($tournamentId) as $other) {
+        if ((string)$other['id'] === $matchId
+            || !in_array((string)$other['status'], ['pending', 'ready', 'live'], true)) {
+            continue;
+        }
+        $p1 = (string)($other['p1_discord_id'] ?? '');
+        $p2 = (string)($other['p2_discord_id'] ?? '');
+        $opp = $p1 === $afkDiscordId ? $p2 : ($p2 === $afkDiscordId ? $p1 : '');
+        if ($opp !== '') {
+            tcgTournamentForfeitSeries((string)$other['id'], $opp, 'afk_forfeit');
+        }
     }
 }
 
