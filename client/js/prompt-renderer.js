@@ -3881,6 +3881,59 @@ global.renderPrompt = function renderPrompt(s, myId){
     openStackWrUnderPick(pr, s);
     return;
   }
+  // PL!-pb2-018 Nico On Enter: Activate up to N opponent Waiting Members, draw 1 each (#275).
+  if(pr?.type==='pb2_pick_opp_wait_activate'&&(pr.responder||pr.owner)===myId){
+    ovl.classList.remove('open');
+    const cards=(pr.candidates||[]).filter(c=>c&&c.instance_id&&c.slot);
+    const max=Math.max(1, Number(pr.max||3)||3);
+    if(!cards.length){
+      sendAct('resolve_prompt',{slots:[]});
+      return;
+    }
+    openHandPick({
+      hand: cards,
+      count: Math.min(max, cards.length),
+      min: 1,
+      title: promptDisplayTitle(pr, pr.source_name||'Activate', s),
+      msg: promptDisplayText(pr, `Choose up to ${max} opponent Waiting Member(s) to Activate. You draw 1 card for each.`, s),
+      allowCancel: true,
+      forceConfirm: true,
+      onConfirm: (ids)=>{
+        const slots=ids.map(i=>cards.find(c=>c.instance_id===i)?.slot).filter(Boolean);
+        sendAct('resolve_prompt',{slots});
+      },
+      onCancel: ()=> sendAct('resolve_prompt',{slots:[]}),
+    });
+    return;
+  }
+  // PL!-pb2-018 Nico On Enter / Live Start: discard N differently named BiBi Members (#275).
+  if(pr?.type==='pb2_pick_distinct_discard_wait_opp'&&(pr.responder||pr.owner)===myId){
+    ovl.classList.remove('open');
+    const cards=(pr.candidates||[]).filter(c=>c&&c.instance_id);
+    const need=Math.max(1, Number(pr.discard||pr.count||3)||3);
+    openHandPick({
+      hand: cards,
+      count: need,
+      min: need,
+      title: promptDisplayTitle(pr, pr.source_name||'Discard', s),
+      msg: promptDisplayText(pr, `Choose ${need} differently named ${pr.subunit||'BiBi'} Member cards from your hand to discard.`, s),
+      allowCancel: false,
+      forceConfirm: true,
+      onConfirm: (ids)=>{
+        const byId=new Map(cards.map(c=>[c.instance_id,c]));
+        const names=ids.map(i=>byId.get(i)?.name_en||i);
+        if(new Set(names).size!==names.length){
+          toast('Choose Members with different names.');
+          G._promptSubmitKey=null;
+          if(G.gameState) renderPrompt(G.gameState,myId);
+          return;
+        }
+        sendAct('resolve_prompt',{discard_ids:ids});
+      },
+      onCancel: ()=>{ if(G.gameState) renderPrompt(G.gameState,myId); },
+    });
+    return;
+  }
   // PL!-pb2-017 Hanayo Live Start: put up to 3 under → WR, then toggle Printemps Active/Wait (#231).
   if(pr?.type==='pb2_pick_unstack_toggle'&&(pr.responder||pr.owner)===myId){
     ovl.classList.remove('open');

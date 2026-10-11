@@ -1222,7 +1222,7 @@ const CPU_NO_GENERIC_YESNO = new Set([
   'activated_wait_printemps_live_from_wr', 'pb2_printemps_cost_mode', 'pb2_printemps_wait_members',
   'optional_reveal_hand_live_swap_success', 'pb2_pick_hand_success_swap',
   'pb2_pick_revealed_subunit_live',
-  'activated_discard_trigger_on_enter',
+  'activated_discard_trigger_on_enter', 'pb2_pick_distinct_discard_wait_opp', 'pb2_pick_opp_wait_activate',
   'stack_energy_zone_pick',
   'both_shuffle_wr_members_deck_bottom_threshold',
   'live_start_unless_discard_return_energy', 'live_success_choose_draw_or_energy_wait',
@@ -5023,6 +5023,26 @@ function cpuResolvePromptBody(s, cpu, pr) {
     const ordered=[...pool].sort((a,b)=>Number(!!(b.active))-Number(!!(a.active)));
     const ids=ordered.slice(0,need).map(c=>c.instance_id).filter(Boolean);
     if(ids.length>=need) cpuAct('resolve_prompt',{energy_ids:ids, card_ids:ids});
+    else cpuAct('anti_softlock_skip',{});
+    return;
+  }
+  if(pr.type==='pb2_pick_opp_wait_activate'){
+    const max=Number(pr.max||3)||3;
+    const slots=(pr.candidates||[]).map(c=>c.slot||c.card?.slot).filter(Boolean).slice(0,max);
+    cpuAct('resolve_prompt',{slots});
+    return;
+  }
+  if(pr.type==='pb2_pick_distinct_discard_wait_opp'){
+    const need=Number(pr.discard||pr.count||3)||3;
+    const seen=new Set();
+    const ids=[];
+    for(const c of (pr.candidates||[])){
+      const n=c.name_en||c.card_no;
+      if(!c.instance_id||seen.has(n)) continue;
+      seen.add(n); ids.push(c.instance_id);
+      if(ids.length>=need) break;
+    }
+    if(ids.length>=need) cpuAct('resolve_prompt',{discard_ids:ids});
     else cpuAct('anti_softlock_skip',{});
     return;
   }

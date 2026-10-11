@@ -2127,6 +2127,13 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
             if (!$cands) {
                 return plMusePb2FinishPrompt($state, $prompt);
             }
+            // Step 1 stores {slot, card}; the client draws flat card summaries that carry their slot (#275).
+            $cands = array_values(array_map(
+                static fn($c) => isset($c['card']) && is_array($c['card'])
+                    ? array_merge(cardPromptSummary($c['card']), ['slot' => (string)($c['slot'] ?? '')])
+                    : $c,
+                $cands
+            ));
             $state['pending_prompt'] = [
                 'type' => 'pb2_pick_opp_wait_activate',
                 'owner' => $pid,
