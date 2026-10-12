@@ -106,6 +106,8 @@
   /**
    * Numeric score from pid's perspective. Positive = good for pid.
    */
+  global.cpuEvalWeights = function cpuEvalWeights(tier) { return wFor(tier); };
+
   global.cpuEvaluateState = function cpuEvaluateState(s, pid, opts) {
     const tier = opts?.tier || (typeof global.cpuDiff === 'function' ? global.cpuDiff() : 'normal');
     const W = wFor(tier);

@@ -4,6 +4,7 @@
  * Targets 4 → 9 → 15 baton ramp, heart-heavy fillers, and color-aligned Lives.
  */
 require_once __DIR__ . '/loveca_points.php';
+require_once __DIR__ . '/src/Game/CpuDeckBuilder.php';
 if (is_file(__DIR__ . '/src/Game/CpuPolicy.php')) {
     require_once __DIR__ . '/src/Game/CpuPolicy.php';
 }
@@ -1553,6 +1554,60 @@ function generateEnhancedCpuDeckLists(array $allCards, string $tier, ?string $fo
     ];
 }
 
+/**
+ * Normal / Hard / Expert CPU deck: a starter deck's skeleton with strictly better cards swapped in (see
+ * CpuDeckBuilder). Share of distinct cards upgraded: Normal 25%, Hard 40%, Expert 50% (duels showed no gain from heavier swapping).
+ *
+ * @param array<int,array<string,mixed>> $allCards
+ * @param array<string,array<string,mixed>> $starterDecks
+ * @return array<string,mixed>|null null when no starter skeleton is available
+ */
+function generateStarterPlusCpuDeckLists(array $allCards, array $starterDecks, string $tier, ?string $hintKey = null): ?array
+{
+    $keys = array_keys($starterDecks);
+    if (!$keys) {
+        return null;
+    }
+    if ($hintKey !== null && $hintKey !== '' && count($keys) > 1) {
+        $others = array_values(array_filter($keys, static fn($k) => $k !== $hintKey));
+        if ($others) {
+            $keys = $others;
+        }
+    }
+    $key = $keys[array_rand($keys)];
+    $deck = $starterDecks[$key];
+    $map = [];
+    $members = [];
+    $lives = [];
+    foreach ($allCards as $c) {
+        $no = (string)($c['card_no'] ?? '');
+        if ($no === '') {
+            continue;
+        }
+        $map[$no] = $c;
+        if (($c['card_type'] ?? '') === 'メンバー') {
+            $members[] = $c;
+        } elseif (($c['card_type'] ?? '') === 'ライブ') {
+            $lives[] = $c;
+        }
+    }
+    $aggr = match ($tier) {
+        'expert' => 0.5,
+        'hard' => 0.4,
+        default => 0.25,
+    };
+    $main = CpuDeckBuilder::upgradeStarter(array_values($deck['main_deck'] ?? []), $map, $members, $lives, $aggr);
+    $label = $deck['name_en'] ?? $deck['name'] ?? $key;
+    $nameEn = 'CPU · ' . ucfirst($tier) . ' (' . $label . '+)';
+    return [
+        'group'       => $key,
+        'name_en'     => $nameEn,
+        'name'        => $nameEn,
+        'main_deck'   => $main,
+        'energy_deck' => array_values($deck['energy_deck'] ?? []),
+    ];
+}
+
 function generateCpuDeckLists(
     array $allCards,
     string $difficulty,
@@ -1563,12 +1618,18 @@ function generateCpuDeckLists(
     if ($difficulty === 'easy') {
         return generateCpuEasyDeckLists($starterDecks, $groupHint);
     }
-    // Expert uses the same enhanced pool as Hard; scores still use mined inclusion rates.
-    $genTier = $difficulty === 'expert' ? 'hard' : $difficulty;
     $forced = deckgenNormalizeForcedGroup($groupHint);
     if ($forced !== null && !deckgenIsSchoolGroup($forced) && !deckgenIsSubunitStyleGroup($forced)) {
         $forced = null;
     }
+    if (!defined('TCG_CPU_LEGACY_DECKS')) {
+        $starterPlus = generateStarterPlusCpuDeckLists($allCards, $starterDecks, $difficulty, $groupHint);
+        if ($starterPlus !== null) {
+            return $starterPlus;
+        }
+    }
+    // Fallback: the older randomized builder (also what TCG_CPU_LEGACY_DECKS selects for A/B tests).
+    $genTier = $difficulty === 'expert' ? 'hard' : $difficulty;
     return generateEnhancedCpuDeckLists($allCards, $genTier, $forced);
 }
 

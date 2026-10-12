@@ -93,7 +93,21 @@
     const base = typeof global.cpuEvaluateState === 'function'
       ? global.cpuEvaluateState(state, pid, { tier, read: typeof global.cpuReadOpponent === 'function' ? global.cpuReadOpponent(state, pid) : null })
       : 0;
-    return base - opponentTurnPenalty(state, pid);
+    let leaf = base - opponentTurnPenalty(state, pid);
+    // The evaluator values unspent Energy (a hoarding term). Every Energy refreshes at the start of our next turn, so
+    // at the end of Main it is worth nothing: cancel it, or the search never pays for a Member (it just ends the turn).
+    const me = state?.players?.[pid];
+    const W = typeof global.cpuEvalWeights === 'function' ? global.cpuEvalWeights(tier) : null;
+    if (me && W) {
+      leaf -= activeEnergy(me) * 6.5 * W.resources;
+      // Hearts on Stage are what clear Lives; reward developing them even before a Live is castable.
+      let hearts = 0;
+      for (const m of Object.values(me.stage || {})) {
+        if (m) hearts += (m.hearts || []).reduce((n, h) => n + (h.count || 0), 0);
+      }
+      leaf += hearts * 5 * W.board;
+    }
+    return leaf;
   }
 
   function policyPrior(action, ctx) {
