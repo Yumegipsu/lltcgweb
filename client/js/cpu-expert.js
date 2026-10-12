@@ -203,7 +203,10 @@
       token,
       sequences: payloadSeqs,
     }, { silent: true });
-    return { results: d.results || [], payloadSeqs };
+    if (!d || d.error || !Array.isArray(d.results) || !d.results.length) {
+      throw new Error((d && d.error) || 'dry-run returned no results');
+    }
+    return { results: d.results, payloadSeqs };
   }
 
   /**
@@ -290,8 +293,9 @@
     }
 
     if (bestIdx < 0 || !sequences[bestIdx]) {
+      // Every simulated line errored: the search learned nothing, so let the Hard ranking play instead of passing.
       clearExpertQueue();
-      return { kind: 'end_main', score: 0, label: 'end_main', payload: {} };
+      return null;
     }
 
     const bestSeq = sequences[bestIdx];

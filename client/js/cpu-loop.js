@@ -2387,6 +2387,11 @@ function cpuListActivateCandidates(s, cpu, ctx) {
     })
     .filter(a => {
       if (cpuAbilityBlacklisted(a.card?.instance_id, a.idx)) return false;
+      // Unaffordable Energy cost: the server rejects it ("Need N active Energy") and the retry logic would then
+      // blacklist the ability for the rest of the game, so never offer it until the Energy is there.
+      if (a.needEnergy) return false;
+      if (a.ability?.type === 'activated_pay_energy_mill' && a.ability.cost == null
+        && (cpu.energy_zone || []).filter(energyChipActive).length < 2) return false;
       if (cpuAbilityNeedsEmptyStage(a.ability) && !cpuStageHasEmptySlot(cpu)) return false;
       const wrReason = a.wrBlock || abilityWrBlockReason(cpu, a.ability, a.card);
       if (a.score <= minScore || wrReason || !cpuCanPayAbilityDiscard(cpu, a.ability)) return false;
@@ -4371,6 +4376,15 @@ function cpuResolveConformancePrompt(s, cpu, pr, tier, winPressure, read) {
       if (tier === 'easy' || !wr.length || !hand.length) return yesNo(false);
       const pick = cpuLeastValuableCard(hand, cpu, hand, tier, read);
       cpuAct('resolve_prompt', { choice: 'yes', discard_ids: [pick.instance_id] });
+      return true;
+    }
+    // Live Success: pay Energy for score (+amount per `per_energy`). Energy refreshes next turn, so spend every full set.
+    case 'spbp5_pay_energy_score': {
+      const per = Math.max(1, Number(pr.per_energy || 4) || 4);
+      const ae = (cpu.energy_zone || []).filter(energyChipActive).length;
+      const n = Math.floor(ae / per) * per;
+      if (tier === 'easy' || n < per) { cpuAct('resolve_prompt', { choice: 'skip' }); return true; }
+      cpuAct('resolve_prompt', { choice: 'pay', energy_count: n });
       return true;
     }
     // Wait 1 opponent Stage Member (original Blade limit): a slot pick, not Yes/No.
