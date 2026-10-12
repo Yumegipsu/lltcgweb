@@ -868,7 +868,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             $allowOverlap = !empty($ability['allow_overlap']);
             if ($allowOverlap && !empty($ownerP['stage'][$slot])) {
                 $replaced = $ownerP['stage'][$slot];
-                $ownerP['waiting_room'][] = $replaced;
+                $ownerP['waiting_room'][] = stripStageWaitState($replaced);
                 $state = resolveOnLeaveStageAbilities($state, $owner, $replaced);
             }
             clearMemberWait($played);
@@ -976,7 +976,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             ));
             if ($allowOverlap && !empty($ownerP['stage'][$slot])) {
                 $replaced = $ownerP['stage'][$slot];
-                $ownerP['waiting_room'][] = $replaced;
+                $ownerP['waiting_room'][] = stripStageWaitState($replaced);
                 $state = resolveOnLeaveStageAbilities($state, $owner, $replaced);
             }
             clearMemberWait($played);
@@ -2252,7 +2252,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             array_splice($ownerP[$pickZone], $pickIndex, 1);
             $ownerP[$pickZone] = array_values($ownerP[$pickZone]);
         }
-        $ownerP['waiting_room'][] = $leavingMember;
+        $ownerP['waiting_room'][] = stripStageWaitState($leavingMember);
         if ($pickId !== 'NO_CARD_NEEDED') {
             $ownerP['hand'][] = liveCardRestorePrintedScore($picked);
         }

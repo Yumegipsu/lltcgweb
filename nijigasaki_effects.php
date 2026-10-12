@@ -906,7 +906,7 @@ function nijiResolveActivatedEffectBody(
         // then append the cleaned card to WR — do not append first or WR keeps stale stacks.
         $state = resolveOnLeaveStageAbilities($state, $pid, $leavingMember);
         $p = &$state['players'][$pid];
-        $p['waiting_room'][] = $leavingMember;
+        $p['waiting_room'][] = stripStageWaitState($leavingMember);
         mergeCardCatalogFields($played);
         clearMemberWait($played);
         $played['entered_from_hand'] = true;

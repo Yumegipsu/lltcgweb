@@ -2376,7 +2376,7 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
             $p['stage'][$slot] = null;
             $state = resolveOnLeaveStageAbilities($state, $owner, $leaving);
             $p = &$state['players'][$owner];
-            $p['waiting_room'][] = $leaving;
+            $p['waiting_room'][] = stripStageWaitState($leaving);
             if ($sourceId !== '') {
                 bumpLiveCardScore($state, $owner, $sourceId, $scoreAmt);
             }

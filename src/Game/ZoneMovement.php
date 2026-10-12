@@ -44,6 +44,21 @@ function discardFromHandByIds(array &$p, array $ids, ?array &$notifyState = null
 }
 
 /** Append cards to WR and fire main-phase auto hooks (Ren Hazuki bp5-005, etc.). */
+/**
+ * Wait / rested state belongs to a Member on the Stage. A card that leaves the Stage must not carry it
+ * into the Waiting Room, hand or deck, or it would enter the Stage again already in Wait (#276).
+ */
+function stripStageWaitState(array $card): array {
+    if (($card['card_type'] ?? '') !== 'メンバー') {
+        return $card;
+    }
+    if (isset($card['in_wait']) || array_key_exists('active', $card)) {
+        unset($card['in_wait'], $card['waited_turn'], $card['waited_active_player'], $card['_was_active_before_wait'], $card['_ally_wait_pending']);
+        unset($card['active']);
+    }
+    return $card;
+}
+
 function appendCardsToWaitingRoom(array &$state, string $pid, array $cards): array {
     if (empty($cards)) {
         return $state;
@@ -58,12 +73,12 @@ function appendCardsToWaitingRoom(array &$state, string $pid, array $cards): arr
             ? bp7TakeStackedMembersFromHost($c)
             : [];
         unset($c['stacked_members']);
-        $p['waiting_room'][] = $c;
+        $p['waiting_room'][] = stripStageWaitState($c);
         foreach ($under as $sm) {
             if (!is_array($sm)) {
                 continue;
             }
-            $p['waiting_room'][] = $sm;
+            $p['waiting_room'][] = stripStageWaitState($sm);
             $dumped++;
         }
     }

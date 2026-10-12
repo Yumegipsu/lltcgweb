@@ -637,7 +637,7 @@ function spBp5ResolveActivatedAbility(
         if (countEnergyInZone($p) < intval($ab['min_energy'] ?? 6)) {
             throw new Exception('Need ' . intval($ab['min_energy'] ?? 6) . '+ Energy');
         }
-        $p['waiting_room'][] = $member;
+        $p['waiting_room'][] = stripStageWaitState($member);
         $p['stage'][$slot] = null;
         putEnergyFromDeckInWait($p, $state, $pid);
         $state = addLog($state, $state['players'][$pid]['name'] .

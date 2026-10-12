@@ -2141,6 +2141,8 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     // Baton does not change the origin: the card still entered from the hand (#69).
     $card['entered_turn'] = intval($state['turn'] ?? 1);
     $card['entered_from_hand'] = true;
+    // A Member always enters Active; clear Wait left on the card from an earlier time on the Stage (#276).
+    clearMemberWait($card);
     $p['stage'][$targetSlot] = $card;
     if ($bp7CostOption !== null) {
         // Paying the option can remove other hand cards, so re-find the played card.

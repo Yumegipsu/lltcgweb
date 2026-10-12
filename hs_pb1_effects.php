@@ -1092,7 +1092,7 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
             }
         }
         $ownerP['stage'][$slot] = null;
-        $ownerP['waiting_room'][] = $leaving;
+        $ownerP['waiting_room'][] = stripStageWaitState($leaving);
         $state = resolveOnLeaveStageAbilities($state, $owner, $leaving);
         // Rebind: $state reassignment detaches prior &$ownerP.
         $ownerP = &$state['players'][$owner];

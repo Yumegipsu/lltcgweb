@@ -800,7 +800,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         if (!$played) {
             throw new Exception('No matching Member in Waiting Room');
         }
-        $p['waiting_room'][] = $leavingMember;
+        $p['waiting_room'][] = stripStageWaitState($leavingMember);
         $state = resolveOnLeaveStageAbilities($state, $pid, $leavingMember);
         // Rebind: $state reassignment detaches prior &$p.
         $p = &$state['players'][$pid];
