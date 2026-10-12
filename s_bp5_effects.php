@@ -669,8 +669,16 @@ function sBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
         if ($step === 'discard') {
             $ids = $data['discard_ids'] ?? [];
             $max = intval($prompt['max_discard'] ?? 2);
-            if (count($ids) < 1 || count($ids) > $max) {
-                throw new Exception("Discard 1–$max bladeless Members");
+            // "Put up to N ..." — choosing none (or No / Skip) declines instead of erroring.
+            if (count($ids) === 0 || in_array($choice, ['no', 'skip'], true)) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] discarded no bladeless Members.');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishPromptEffects($state);
+            }
+            if (count($ids) > $max) {
+                throw new Exception("Discard up to $max bladeless Members");
             }
             foreach ($ids as $id) {
                 $idx = findInHand($ownerP['hand'], $id);

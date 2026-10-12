@@ -2925,6 +2925,11 @@ function bp7ResolvePrompt(array $state, string $owner, array $prompt, string $ch
     $turn = intval($state['turn'] ?? 1);
     $opp = ($owner === 'p1') ? 'p2' : 'p1';
 
+    // The prompt being answered is resolved. Leaving it in pending_prompt made every
+    // bp7QueueChain($state) that opened no new prompt park this same prompt and bp7FinishPrompt
+    // restore it: Yes re-asked the same question forever (Mari Ohara bp7-008, #274 pair pick).
+    unset($state['pending_prompt']);
+
     switch ($action) {
 
         case 'stack_wr_copy_hearts': {

@@ -1636,9 +1636,13 @@ function cpuOptionalYesThreshold(tier) {
   return 2.4;
 }
 
-function cpuBuildOptionalYesPayload(pr, cpu, tier, winPressure, discardFn) {
+function cpuBuildOptionalYesPayload(pr, cpu, tier, winPressure, discardFnArg) {
   const ab = pr.ability || {};
   const hand = cpu.hand || [];
+  // cpu-ai.js calls this without a picker; omitting it threw and left the CPU hung on every optional discard skill.
+  const discardFn = typeof discardFnArg === 'function'
+    ? discardFnArg
+    : (need, pool) => cpuPickDiscardIds(pool || hand, need, tier, winPressure, null);
   const needFixed = ab.exact_total || pr.discard_count || (ab.max_discard ? 0 : (ab.discard || 0));
   const maxDiscard = ab.max_discard || pr.max_discard || 0;
   const data = { choice: 'yes' };
@@ -4223,6 +4227,221 @@ function cpuResolveOptionalStageReposition(pr, cpu, tier, winPressure, read, ae)
 }
 
 /** Step-aware resolver for multi-part skill prompts (surveil chains, discard steps, etc.). */
+/**
+ * Prompts whose answer shape or legality the generic yes/no + "first candidate" paths got wrong
+ * (found by the CPU conformance harness: wrong payload, impossible Yes, no handler at all).
+ * Returns true when it answered; false lets the older handlers continue.
+ */
+function cpuStageOthersInWait(cpu, sourceId) {
+  return Object.values(cpu?.stage || {}).filter(m => m && m.instance_id !== sourceId && (m.in_wait || m.active === false));
+}
+
+function cpuSubunitCards(cards, subunit) {
+  if (!subunit) return [];
+  const match = typeof cardMatchesSubunit === 'function'
+    ? (c) => cardMatchesSubunit(c, subunit)
+    : (c) => c?.subunit === subunit;
+  return (cards || []).filter(match);
+}
+
+function cpuLeastValuableCard(cards, cpu, hand, tier, read) {
+  const sorted = [...(cards || [])].sort(
+    (a, b) => cpuScoreSurveilCandidate(a, cpu, hand, tier, read) - cpuScoreSurveilCandidate(b, cpu, hand, tier, read)
+  );
+  return sorted[0] || null;
+}
+
+function cpuResolveConformancePrompt(s, cpu, pr, tier, winPressure, read) {
+  const hand = cpu.hand || [];
+  const ab = pr.ability || {};
+  const step = pr.step || '';
+  const yesNo = (yes) => { cpuAct('resolve_prompt', { choice: yes ? 'yes' : 'no' }); return true; };
+  const isMember = (c) => c?.card_type === 'メンバー' || c?.card_type_en === 'Member';
+
+  switch (pr.type) {
+    // Rina Tennoji: choose which Waiting Room Live goes 4th from the top.
+    case 'bp5_wr_live_deck_position': {
+      const pool = (pr.candidates || []).filter(c => c?.instance_id);
+      if (!pool.length) { cpuAct('resolve_prompt', { choice: 'no' }); return true; }
+      const pick = tier === 'easy' ? pool[0] : (cpuPickBestCandidate(pool, cpu, hand, tier, read) || pool[0]);
+      cpuAct('resolve_prompt', { card_id: pick.instance_id });
+      return true;
+    }
+    // Wait one of your own Members: sacrifice the least useful one ({member_id}).
+    case 'wait_own_member_discard_draw': {
+      if (step !== 'pick_member') return false;
+      const members = (pr.stage_members || []).filter(m => m?.instance_id);
+      if (!members.length) { cpuAct('resolve_prompt', { choice: 'skip' }); return true; }
+      const value = (m) => (m.blade || 0) + 0.6 * (cpuMemberHeartCount(m) || 0) + 0.1 * (m.cost || 0);
+      const pick = [...members].sort((a, b) => value(a) - value(b))[0];
+      cpuAct('resolve_prompt', { member_id: pick.instance_id });
+      return true;
+    }
+    // Put 3 opponent Waiting Room Members on their deck bottom, then Wait 1.
+    case 'optional_opp_wr_members_to_deck_bottom_then_wait': {
+      const need = Number(pr.need || ab.need || 3) || 3;
+      const cands = (pr.candidates || []).filter(c => c?.instance_id);
+      if (step === 'pick') {
+        if (cands.length < need) { cpuAct('resolve_prompt', { choice: 'skip' }); return true; }
+        const best = [...cands].sort((a, b) => (b.cost || 0) - (a.cost || 0) || (b.blade || 0) - (a.blade || 0)).slice(0, need);
+        cpuAct('resolve_prompt', { card_ids: best.map(c => c.instance_id) });
+        return true;
+      }
+      if (!step && pr.choices?.includes('yes')) {
+        const oppId = typeof cpuOpponentId === 'function' && cpuOpponentId() === 'p1' ? 'p2' : 'p1';
+        const oppHasWaitTarget = Object.values(s?.players?.[oppId]?.stage || {}).some(m => m && (m.blade ?? 99) <= 3);
+        if (tier === 'easy' || cands.length < need || !oppHasWaitTarget) {
+          cpuAct('resolve_prompt', { choice: pr.choices.includes('skip') ? 'skip' : 'no' });
+          return true;
+        }
+        cpuAct('resolve_prompt', { choice: 'yes' });
+        return true;
+      }
+      return false;
+    }
+    // Needs a card of the printed subunit in hand to discard.
+    case 'optional_discard_subunit_draw_buff_cost': {
+      if (step) return false;
+      const matches = cpuSubunitCards(hand, ab.subunit);
+      if (tier === 'easy' || !matches.length) return yesNo(false);
+      const pick = cpuLeastValuableCard(matches, cpu, hand, tier, read);
+      cpuAct('resolve_prompt', { choice: 'yes', discard_ids: [pick.instance_id] });
+      return true;
+    }
+    case 'optional_discard_mill_add_wr_subunit_live': {
+      if (step !== 'pick_wr_live') return false;
+      const pool = (pr.candidates || pr.looked_cards || []).filter(c => c?.instance_id);
+      if (!pool.length) { cpuAct('resolve_prompt', { choice: 'no' }); return true; }
+      const pick = tier === 'easy' ? pool[0] : (cpuPickBestCandidate(pool, cpu, hand, tier, read) || pool[0]);
+      cpuAct('resolve_prompt', { card_id: pick.instance_id });
+      return true;
+    }
+    // Discard a Member, add a cheaper one from the Waiting Room.
+    case 'discard_member_add_lower_wr_member': {
+      if (step) return false;
+      if (tier === 'easy') return yesNo(false);
+      const wr = (cpu.waiting_room || []).filter(isMember);
+      const mine = hand.filter(isMember);
+      let best = null;
+      for (const m of mine) {
+        const lower = wr.filter(w => (w.cost || 0) < (m.cost || 0));
+        if (!lower.length) continue;
+        const target = cpuPickBestCandidate(lower, cpu, hand, tier, read);
+        const gain = cpuScoreSurveilCandidate(target, cpu, hand, tier, read) - cpuScoreSurveilCandidate(m, cpu, hand, tier, read);
+        if (!best || gain > best.gain) best = { m, target, gain };
+      }
+      if (!best || best.gain <= 0.4) return yesNo(false);
+      cpuAct('resolve_prompt', { choice: 'yes', discard_ids: [best.m.instance_id] });
+      return true;
+    }
+    // "Activate 1 other Wait Member": only sensible when one exists.
+    case 'optional_discard_activate_wait_hearts':
+    case 'optional_discard_activate_wait_blade': {
+      if (step) return false;
+      if (!cpuStageOthersInWait(cpu, pr.source_id).length) return yesNo(false);
+      return false;
+    }
+    // Swap a Stage Member for a Waiting Room Member that costs `cost_bonus` more.
+    case 'wait_swap_wr_member_center': {
+      if (step !== 'pick_stage_member') return false;
+      const bonus = Number(ab.cost_bonus ?? 2);
+      const wr = (cpu.waiting_room || []).filter(c => isMember(c) && (!ab.group || c.group === ab.group));
+      const valid = (pr.candidates || []).filter(c => c?.slot && wr.some(w => (w.cost || 0) === (c.cost || 0) + bonus));
+      if (!valid.length) return false;
+      const best = [...valid].sort((a, b) => {
+        const wa = Math.max(...wr.filter(w => (w.cost || 0) === (a.cost || 0) + bonus).map(w => w.blade || 0), 0);
+        const wb = Math.max(...wr.filter(w => (w.cost || 0) === (b.cost || 0) + bonus).map(w => w.blade || 0), 0);
+        return (wb - (b.blade || 0)) - (wa - (a.blade || 0));
+      })[0];
+      cpuAct('resolve_prompt', { slot: best.slot });
+      return true;
+    }
+    // Saint Snow: pay Energy, add a Saint Snow card from the Waiting Room.
+    case 'sbp5_pay_energy_wr_subunit_blade': {
+      if (step) return false;
+      const wrMatches = cpuSubunitCards(cpu.waiting_room || [], ab.subunit);
+      const ae = (cpu.energy_zone || []).filter(energyChipActive).length;
+      if (tier === 'easy' || !wrMatches.length || ae < 1) return yesNo(false);
+      return yesNo(true);
+    }
+    // Kanan: discard 1, swap another Stage Member for one from the Waiting Room.
+    case 'sbp6_swap_stage_wr_member': {
+      if (step !== 'confirm') return false;
+      const wr = (cpu.waiting_room || []).filter(c => isMember(c) && (!ab.group || c.group === ab.group));
+      if (tier === 'easy' || !wr.length || !hand.length) return yesNo(false);
+      const pick = cpuLeastValuableCard(hand, cpu, hand, tier, read);
+      cpuAct('resolve_prompt', { choice: 'yes', discard_ids: [pick.instance_id] });
+      return true;
+    }
+    // Wait 1 opponent Stage Member (original Blade limit): a slot pick, not Yes/No.
+    case 'pr_vol9_wait_opp_max_blade': {
+      const cands = (pr.candidates || pr.stage_members || []).filter(c => c?.slot);
+      if (!cands.length) { cpuAct('resolve_prompt', { choice: 'skip' }); return true; }
+      const slot = cpuPickOppStageTarget(cands, read, tier) || cands[0].slot;
+      cpuAct('resolve_prompt', { slot });
+      return true;
+    }
+    // Add to hand, or play to an empty Stage area (a free Member is worth a tempo).
+    case 'pick_looked_deck_hand': {
+      if (step !== 'pick_destination') return false;
+      const slots = (pr.slots || []).filter(Boolean);
+      if (slots.length && tier !== 'easy') {
+        cpuAct('resolve_prompt', { choice: slots[0], slot: slots[0] });
+      } else {
+        cpuAct('resolve_prompt', { choice: 'hand' });
+      }
+      return true;
+    }
+    // Discard N cards that share a group ("unit name"): the engine rejects any other pair.
+    case 'optional_live_start': {
+      if (ab.type !== 'optional_discard_same_group') return false;
+      const need = Number(pr.discard_count || ab.discard || 2) || 2;
+      const byGroup = {};
+      for (const c of hand) {
+        if (!c?.group) continue;
+        (byGroup[c.group] = byGroup[c.group] || []).push(c);
+      }
+      const groups = Object.values(byGroup).filter(g => g.length >= need);
+      if (tier === 'easy' || !groups.length) return yesNo(false);
+      const ae = (cpu.energy_zone || []).filter(energyChipActive).length;
+      const score = cpuScoreOptionalAbility(ab, cpu, tier, ae, hand, winPressure, read);
+      if (score < cpuOptionalYesThreshold(tier)) return yesNo(false);
+      // Cheapest group to give up: the least valuable `need` cards of any qualifying group.
+      let best = null;
+      for (const g of groups) {
+        const picked = [...g].sort((a, b) => cpuScoreSurveilCandidate(a, cpu, hand, tier, read) - cpuScoreSurveilCandidate(b, cpu, hand, tier, read)).slice(0, need);
+        const cost = picked.reduce((n, c) => n + cpuScoreSurveilCandidate(c, cpu, hand, tier, read), 0);
+        if (!best || cost < best.cost) best = { picked, cost };
+      }
+      cpuAct('resolve_prompt', { choice: 'yes', discard_ids: best.picked.map(c => c.instance_id) });
+      return true;
+    }
+    // Members with no Blade hearts only ("up to 2").
+    case 'sbp5_discard_bladeless_wr_live': {
+      if (step !== 'discard') return false;
+      const eligible = hand.filter(c => isMember(c) && !(c.blade_hearts && c.blade_hearts.length));
+      if (tier === 'easy' || !eligible.length) { cpuAct('resolve_prompt', { discard_ids: [] }); return true; }
+      const ids = [...eligible]
+        .sort((a, b) => cpuScoreSurveilCandidate(a, cpu, hand, tier, read) - cpuScoreSurveilCandidate(b, cpu, hand, tier, read))
+        .slice(0, 2).map(c => c.instance_id);
+      cpuAct('resolve_prompt', { discard_ids: ids });
+      return true;
+    }
+    // Draw 1, then put 1 card on the deck top or bottom ({choice, position, discard_ids}).
+    case 'sbp6_hand_deck_position': {
+      const need = Number(pr.count || 1) || 1;
+      if (hand.length < need) return false;
+      const ids = [...hand]
+        .sort((a, b) => cpuScoreSurveilCandidate(a, cpu, hand, tier, read) - cpuScoreSurveilCandidate(b, cpu, hand, tier, read))
+        .slice(0, need).map(c => c.instance_id);
+      cpuAct('resolve_prompt', { choice: 'bottom', position: 'bottom', discard_ids: ids });
+      return true;
+    }
+    default:
+      return false;
+  }
+}
+
 function cpuResolveStepPrompt(pr, cpu, tier, winPressure, read) {
   if (pr.type === 'optional_success_wr_live_swap') {
     return cpuResolveOptionalSuccessWrLiveSwap(pr, cpu, tier);
@@ -5453,14 +5672,16 @@ function cpuResolvePromptSmart(s, cpu, pr, tier) {
     return true;
   }
   if (pr.type === 'player_choice') {
-    const ctx = cpuAbilityCtx(cpu, tier, read, winPressure, ae,
+    // The outer `ctx` carries the situation read; the inner one used to shadow it and crash (TDZ).
+    const abilityCtx = cpuAbilityCtx(cpu, tier, read, winPressure, ae,
       read ? { mustCatchUp: ctx.sit?.mustCatchUp, behind: ctx.sit?.behind } : null);
-    if (cpuResolveScoredChoicePrompt(pr, cpu, tier, ctx)) return true;
+    if (cpuResolveScoredChoicePrompt(pr, cpu, tier, abilityCtx)) return true;
   }
   if (pr.type === 'opponent_choice') {
-    const ctx = cpuAbilityCtx(cpu, tier, read, winPressure, ae,
+    // The outer `ctx` carries the situation read; the inner one used to shadow it and crash (TDZ).
+    const abilityCtx = cpuAbilityCtx(cpu, tier, read, winPressure, ae,
       read ? { mustCatchUp: ctx.sit?.mustCatchUp, behind: ctx.sit?.behind } : null);
-    if (cpuResolveScoredChoicePrompt(pr, cpu, tier, ctx)) return true;
+    if (cpuResolveScoredChoicePrompt(pr, cpu, tier, abilityCtx)) return true;
   }
   if (pr.type === 'surveil_arrange') {
     cpuAct('resolve_prompt', cpuSurveilConfirmPayload(pr, cpu, tier));

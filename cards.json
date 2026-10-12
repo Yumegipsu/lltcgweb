@@ -41178,9 +41178,14 @@
       "abilities": [
         {
           "trigger": "live_start",
-          "type": "optional_discard_grant_heart_other_member",
+          "type": "optional_discard_prompt",
           "discard": 1,
-          "group": "Nijigasaki"
+          "prompt": "Put 1 card from your hand into the Waiting Room: choose a Heart color — 1 other Nijigasaki Member on your Stage gains 1 Heart of that color until this Live ends?",
+          "then": {
+            "type": "choose_heart_other_member",
+            "heart_count": 1,
+            "group": "Nijigasaki"
+          }
         }
       ],
       "text_es": "[Inicio de Live] Puedes colocar 1 carta de tu mano en la Sala de espera: elige un color de corazón. Hasta que termine este Live, 1 otro Miembro de Nijigasaki en tu Escenario obtiene 1 corazón de ese color.",
@@ -41215,9 +41220,14 @@
       "abilities": [
         {
           "trigger": "live_start",
-          "type": "optional_discard_grant_heart_other_member",
+          "type": "optional_discard_prompt",
           "discard": 1,
-          "group": "Nijigasaki"
+          "prompt": "Put 1 card from your hand into the Waiting Room: choose a Heart color — 1 other Nijigasaki Member on your Stage gains 1 Heart of that color until this Live ends?",
+          "then": {
+            "type": "choose_heart_other_member",
+            "heart_count": 1,
+            "group": "Nijigasaki"
+          }
         }
       ],
       "text_es": "[Inicio de Live] Puedes colocar 1 carta de tu mano en la Sala de espera: elige un color de corazón. Hasta que termine este Live, 1 otro Miembro de Nijigasaki en tu Escenario obtiene 1 corazón de ese color.",

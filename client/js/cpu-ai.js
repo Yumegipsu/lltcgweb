@@ -37,6 +37,8 @@
     const winPressure = global.cpuWinPressure(cpu);
     const read = tier === 'easy' ? null : global.cpuReadOpponent(s, typeof global.cpuOpponentId === 'function' ? global.cpuOpponentId() : 'p2');
     if (resolveYellDeckTopPrompt(pr, cpu, tier, read)) return;
+    if (typeof global.cpuResolveConformancePrompt === 'function'
+      && global.cpuResolveConformancePrompt(s, cpu, pr, tier, winPressure, read)) return;
     const policyYesNo = pr.type === 'optional_live_start'
       || pr.type === 'optional_discard_prompt'
       || pr.type === 'optional_pay_energy_on_enter'
