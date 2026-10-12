@@ -3288,7 +3288,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=222"></script>
+<script src="i18n.js?v=223"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=45"></script>
@@ -3315,7 +3315,7 @@ try {
 <script src="client/js/shop-new.js?v=2"></script>
 <script src="client/js/gacha-spotlight.js?v=17"></script>
 <script src="client/js/gacha.js?v=23"></script>
-<script src="client/js/ranked-pr-reward.js?v=6"></script>
+<script src="client/js/ranked-pr-reward.js?v=7"></script>
 <script src="client/js/missions.js?v=14"></script>
 <script src="client/js/admin-events.js?v=2"></script>
 <script src="client/js/login-bonus.js?v=3"></script>
@@ -3653,6 +3653,16 @@ function getDupeRewardPref() {
 function setDupeRewardPref(value) {
   try { localStorage.setItem(DUPE_REWARD_KEY, value === 'seals' ? 'seals' : 'gems'); } catch (e) { /* ignore */ }
   syncDupeRewardToggles();
+  pushDupeRewardPref();
+}
+
+/**
+ * Server-side PR pack grants (ranked wins, missions, login bonus, tournaments) cannot read this browser's
+ * setting, so keep a copy on the account (#277).
+ */
+function pushDupeRewardPref() {
+  if (!A || !A.profile || typeof accountPost !== 'function') return;
+  accountPost('set_dupe_reward', { dupe_reward: getDupeRewardPref() }).catch(() => { /* retried on next hub entry */ });
 }
 
 /** Paint every booster/gacha pill toggle from the saved preference. */
@@ -7307,6 +7317,7 @@ function enterHub(me) {
   A.profile = me || A.profile;
   syncStarGemsFromProfile(A.profile);
   syncRankedPrFromProfile(A.profile);
+  pushDupeRewardPref();
   const userName = A.profile?.user?.username || A.user?.username || 'Player';
   const hubUser = el('hub-user');
   if (hubUser) hubUser.removeAttribute('data-i18n');

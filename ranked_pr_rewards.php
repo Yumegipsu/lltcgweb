@@ -85,7 +85,9 @@ function tcgGrantPrPackCards(string $discordId, ?int $packSize = null): array {
     }
 
     $cardMap = tcgBuildCardMap($cardsData);
-    $gemResult = tcgApplyBoosterPullWithGems($discordId, $cardNos, $cardMap);
+    // Duplicates follow the player's saved Star Gems / seals preference (#277).
+    $dupeReward = tcgGetDupeRewardPref($discordId);
+    $gemResult = tcgApplyBoosterPullWithGems($discordId, $cardNos, $cardMap, $dupeReward);
     $cards = [];
     foreach ($gemResult['pulls'] ?? [] as $pull) {
         $no = (string)($pull['card_no'] ?? '');
@@ -96,6 +98,8 @@ function tcgGrantPrPackCards(string $discordId, ?int $packSize = null): array {
         $cards[] = array_merge($base, [
             'converted' => !empty($pull['converted']),
             'star_gems' => intval($pull['star_gems'] ?? 0),
+            'seal_tier' => (string)($pull['seal_tier'] ?? ''),
+            'seals' => intval($pull['seals'] ?? 0),
         ]);
     }
     if ($cards === []) {
@@ -114,6 +118,8 @@ function tcgGrantPrPackCards(string $discordId, ?int $packSize = null): array {
         'converted' => !empty($first['converted']),
         'star_gems_earned' => intval($gemResult['star_gems_earned'] ?? 0),
         'star_gems' => intval($gemResult['star_gems'] ?? 0),
+        'dupe_reward' => $dupeReward,
+        'seals_earned' => $gemResult['seals_earned'] ?? [],
     ];
 }
 

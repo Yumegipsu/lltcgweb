@@ -1512,7 +1512,8 @@
       "rankedPrPackWon": "Ranked win: PR Pack ×{count} — open it from the menu",
       "rankedPrPackPopupTitle": "Ranked PR Pack ×{count}!",
       "rankedPrPackSummary": "{count} card(s)",
-      "rankedPrPackDupes": "{count} duplicate(s) → {gems} Star Gems"
+      "rankedPrPackDupes": "{count} duplicate(s) → {gems} Star Gems",
+      "rankedPrPackDupeSeals": "{count} duplicate(s) → {seals}"
     },
     "replay": {
       "menuTitle": "Replay Viewer",

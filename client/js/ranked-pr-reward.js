@@ -37,6 +37,8 @@
         card_no: c.card_no || reward.card_no,
         converted: !!(c.converted || reward.converted),
         star_gems: c.star_gems || 0,
+        seal_tier: c.seal_tier || '',
+        seals: c.seals || 0,
       }));
     }
     if (reward.card_no || reward.card?.card_no) {
@@ -184,6 +186,19 @@
     const gems = Number(reward.star_gems_earned || 0)
       || cards.reduce((sum, c) => sum + (Number(c.star_gems) || 0), 0);
     const converted = cards.filter((c) => c.converted).length;
+    // Seals preference: PR duplicates paid PR seals instead of Star Gems (#277).
+    const prSeals = cards.reduce((sum, c) => sum + (c.seal_tier === 'PR' ? (Number(c.seals) || 0) : 0), 0);
+    const nSeals = cards.reduce((sum, c) => sum + (c.seal_tier === 'N' ? (Number(c.seals) || 0) : 0), 0);
+    if (prSeals > 0 || nSeals > 0) {
+      const parts = [];
+      if (prSeals > 0) parts.push(`${prSeals} PR seals`);
+      if (nSeals > 0) parts.push(`${nSeals} N seals`);
+      const text = parts.join(' + ');
+      return tt('win.rankedPrPackDupeSeals', `${converted} duplicate(s) → ${text}`, {
+        count: converted || cards.length,
+        seals: text,
+      });
+    }
     if (!converted && !gems) return '';
     if (gems > 0) {
       return tt('win.rankedPrPackDupes', `${converted} duplicate(s) → ${gems} Star Gems`, {

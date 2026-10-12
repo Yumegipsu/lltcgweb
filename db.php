@@ -671,6 +671,7 @@ function tcgDbMigrateBootstrap(PDO $db): void {
     tcgDbEnsureColumn($db, 'tcg_users', 'dupe_gem_migration_done', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'unranked_games', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'sticker_exchanges', 'INTEGER NOT NULL DEFAULT 0');
+    tcgDbEnsureColumn($db, 'tcg_users', 'dupe_reward', "TEXT NOT NULL DEFAULT 'gems'");
     tcgDbEnsureColumn($db, 'tcg_users', 'seal_n', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'seal_r', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'seal_p', 'INTEGER NOT NULL DEFAULT 0');
@@ -1380,6 +1381,31 @@ function tcgSoftClawbackStarGems(string $discordId, int $amount): int {
 /** 'seals' (duplicates → N/PR seals) or 'gems' (default, Star Gems). */
 function tcgNormalizeDupeReward(mixed $value): string {
     return strtolower(trim((string)$value)) === 'seals' ? 'seals' : 'gems';
+}
+
+/**
+ * The player's saved duplicate preference. Server-side grants (ranked / mission / login / season / tournament PR
+ * packs) have no request to read the toggle from, so it is stored on the account (#277).
+ */
+function tcgGetDupeRewardPref(string $discordId): string {
+    try {
+        $stmt = tcgDb()->prepare('SELECT dupe_reward FROM tcg_users WHERE discord_id = ?');
+        $stmt->execute([$discordId]);
+        return tcgNormalizeDupeReward($stmt->fetchColumn());
+    } catch (Throwable $e) {
+        return 'gems';
+    }
+}
+
+function tcgSetDupeRewardPref(string $discordId, mixed $value): string {
+    $value = tcgNormalizeDupeReward($value);
+    try {
+        tcgDb()->prepare("UPDATE tcg_users SET dupe_reward = ? WHERE discord_id = ? AND COALESCE(dupe_reward, 'gems') != ?")
+            ->execute([$value, $discordId, $value]);
+    } catch (Throwable $e) {
+        error_log('tcgSetDupeRewardPref: ' . $e->getMessage());
+    }
+    return $value;
 }
 
 function tcgApplyBoosterPullWithGems(string $discordId, array $cardNos, array $cardMap, string $dupeReward = 'gems'): array {

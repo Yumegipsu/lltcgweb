@@ -84,6 +84,7 @@ try {
         case 'booster_rates':      echo json_encode(tcgApiBoosterRates($_GET + $body)); break;
         case 'daily_status':       echo json_encode(tcgApiDailyStatus($body)); break;
         case 'open_booster':       echo json_encode(tcgApiOpenBooster($body)); break;
+        case 'set_dupe_reward':    echo json_encode(tcgApiSetDupeReward($body)); break;
         case 'gacha_info':         echo json_encode(tcgApiGachaInfo($body)); break;
         case 'gacha_rates':        echo json_encode(tcgApiGachaRates($body)); break;
         case 'open_gacha':         echo json_encode(tcgApiOpenGacha($body)); break;
@@ -521,6 +522,12 @@ function tcgApiDailyStatus(array $body): array {
     ];
 }
 
+function tcgApiSetDupeReward(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    tcgEnsureUser($uid, tcgAuthUserProfile($uid));
+    return ['success' => true, 'dupe_reward' => tcgSetDupeRewardPref($uid, $body['dupe_reward'] ?? 'gems')];
+}
+
 function tcgApiOpenBooster(array $body): array {
     tcgRateLimitForAction('open_booster', $body);
     $uid = tcgRequireAuthUser($body);
@@ -531,7 +538,7 @@ function tcgApiOpenBooster(array $body): array {
     $boxId = trim((string)($body['box_id'] ?? ''));
     $payment = trim(strtolower((string)($body['payment'] ?? 'daily')));
     $cards = tcgLoadCardsData();
-    $dupeReward = tcgNormalizeDupeReward($body['dupe_reward'] ?? 'gems');
+    $dupeReward = tcgSetDupeRewardPref($uid, $body['dupe_reward'] ?? 'gems');
     $result = tcgOpenBoosterPack($uid, $boxId, $cards, $payment, $dupeReward);
     $completions = [];
     if ($payment === 'daily') {
