@@ -144,7 +144,7 @@ function tcgBoosterBoxes(): array {
          'image' => 'assets/packs/boxes/pb_muse_duo.webp',
          'image_full' => 'https://llofficial-cardgame.com/wordpress/wp-content/uploads/2026/06/25175443/LLC_-PB07_box_image.png',
          'pack_style' => 'photo',
-         'pack_images' => ['assets/packs/pb_muse_duo-a.jpg']],
+         'pack_images' => ['assets/packs/pb_muse_duo-a2.jpg']],
         ['id' => 'pb_hasunosora', 'name_en' => 'Premium Booster Hasunosora', 'name_jp' => 'プレミアムブースター 蓮ノ空女学院スクールアイドルクラブ',
          'filter' => 'プレミアムブースター 蓮ノ空女学院スクールアイドルクラブ', 'kind' => 'pb',
          'pack_size' => TCG_PB_PACK_SIZE,

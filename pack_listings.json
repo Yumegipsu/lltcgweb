@@ -148,12 +148,12 @@
       ]
     },
     "pb_muse_duo": {
-      "note": "Premium Booster Love Live! DUO (PBLL02) — official product slide art as pack/box faces.",
+      "note": "Premium Booster Love Live! DUO (PBLL02) — retail pack wrapper (Hanayo & Rin DUO art), user-provided listing photo.",
       "pack_style": "photo",
       "packs": [
         {
-          "output": "pb_muse_duo-a.jpg",
-          "source_url": "https://llofficial-cardgame.com/wordpress/wp-content/uploads/2026/08/06193054/11_PB%CE%BCsDUO_5.png",
+          "output": "pb_muse_duo-a2.jpg",
+          "local": "assets/packs/sources/pb_muse_duo-source.jpg",
           "crop": "auto"
         }
       ]
