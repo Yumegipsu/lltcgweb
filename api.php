@@ -3875,8 +3875,10 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     $roundNote = (!$liveRoundSuccess && !empty($liveCards))
         ? ' | Round: failed (not all Lives succeeded)'
         : '';
+    // Report the Blade the Yell was actually drawn with: a later Wait (the other seat's Live Start) must not rewrite it.
+    $bladeDrawn = yellBladeDrawnTotal($state, $pid) ?? $totalBlade;
     $state = addLog($state, $state['players'][$pid]['name'] .
-        ' performed Live! Blades: ' . $totalBlade .
+        ' performed Live! Blades: ' . $bladeDrawn .
         ' | Hearts: [' . $heartStr . ']' .
         ' | Live success: ' . count($state['live_perf_success'][$pid]) .
         ' | Failed: ' . count($failCards) . $roundNote, 'action', $failAnims);

@@ -99,5 +99,19 @@ final class Issue173YellBladeStickyAfterWaitTest extends TestCase
         $this->assertSame(2, \computeYellBladeTotal($state, 'p1'), 'Live estimate drops after Wait');
         $this->assertSame(5, \yellBladeDrawnTotal($state, 'p1'), 'Drawn Yell Blade stays locked');
         $this->assertSame(5, intval($state['_yell_blade_snapshot']['p1'] ?? 0));
+
+        // #277: the "performed Live! Blades: N" line must report the Blade the Yell was drawn with, not the
+        // post-Wait estimate (zonicalt's 16-card Yell was logged as "Blades: 5").
+        $state['players']['p1']['yell_cards'] = $yellCards;
+        $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true;
+        try {
+            $state = \resolvePerformanceHeartCheck($state, 'p1', false);
+        } finally {
+            unset($GLOBALS['TUT_PERF_MANUAL_PHASES']);
+        }
+        $logs = array_map(static fn($l) => is_array($l) ? (string) ($l['msg'] ?? $l['text'] ?? '') : (string) $l, $state['log']);
+        $line = array_values(array_filter($logs, static fn($l) => str_contains($l, 'performed Live! Blades:')));
+        $this->assertNotEmpty($line);
+        $this->assertStringContainsString('Blades: 5 ', $line[0]);
     }
 }
