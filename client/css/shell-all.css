@@ -9559,3 +9559,7 @@ html.tcg-portrait-play #screen-deck .deck-pin-fab .news-fab-icon svg{width:16px;
   font-size:13px;font-weight:800;color:#ffb3d1;background:rgba(255,107,168,.18);border:1px solid rgba(255,179,209,.6)}
 .card-pin-note[hidden]{display:none}
 .card-pin-note-icon{display:inline-flex;color:#ff6ba8}
+.deck-filter-chip--pin{display:inline-flex;align-items:center;gap:4px}
+.deck-filter-chip--pin[hidden]{display:none}
+.deck-filter-chip--pin svg{color:#ff6ba8;flex:0 0 auto}
+.deck-filter-chip--pin.active svg{color:inherit}

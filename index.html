@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=176">
+<link rel="stylesheet" href="client/css/shell-all.css?v=177">
 <link rel="stylesheet" href="client/css/season-rank.css?v=11">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -3296,7 +3296,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=226"></script>
+<script src="i18n.js?v=227"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=45"></script>
@@ -9607,7 +9607,7 @@ function appendDeckTileFace(tile, card, { lazy } = {}) {
   appendCardFace(tile, card, { sideways: false, lazy: lazyImg, thumbWidth: 180 });
 }
 
-function appendDeckCardTile(parent, card, qty, onTap, { inDeck = false, sealBatchQty = 0, sealBatchDim = false, poolCapped = false } = {}) {
+function appendDeckCardTile(parent, card, qty, onTap, { inDeck = false, sealBatchQty = 0, sealBatchDim = false, poolCapped = false, unowned = false } = {}) {
   const c = enrichCard(card);
   if (!c) return;
   const selected = sealBatchQty > 0;
@@ -9620,9 +9620,11 @@ function appendDeckCardTile(parent, card, qty, onTap, { inDeck = false, sealBatc
     + (poolCapped ? ' deck-pool-capped' : '');
   tile.title = (cardLocaleName(c) || c.card_no)
     + (qty > 1 ? ' ×' + qty : '')
-    + (poolCapped
-      ? (' · ' + (t('deck.identityCopyCapShort') || '4-copy limit (other printings in deck)'))
-      : '');
+    + (unowned
+      ? (' · ' + (t('cardList.notOwned') || 'Not owned'))
+      : poolCapped
+        ? (' · ' + (t('deck.identityCopyCapShort') || '4-copy limit (other printings in deck)'))
+        : '');
   appendDeckTileFace(tile, c, { lazy: !inDeck });
   if (c.rarity) {
     const r = document.createElement('span');
@@ -10350,6 +10352,7 @@ function cardMatchesHeartGridFilters(c, filters) {
 
 function defaultDeckPoolFilters() {
   return {
+    pinned: '',
     type: '',
     group: '',
     rarity: '',
@@ -10636,6 +10639,7 @@ function cardMatchesDeckPoolFilters(card, filters, searchQ) {
   const c = enrichCard(card);
   if (!c) return false;
   if (!cardMatchesDeckSearch(c, searchQ, filters.searchMode)) return false;
+  if (filters.pinned === '1' && pinnedDeckNeedFor(c.card_no) <= 0) return false;
   if (filters.type) {
     if (filters.type === 'member' && !isMemberCard(c)) return false;
     if (filters.type === 'live' && !isLiveCard(c)) return false;
@@ -10678,7 +10682,7 @@ function cardMatchesDeckPoolFilters(card, filters, searchQ) {
 function deckPoolFiltersActive(filters, searchQ) {
   if ((searchQ || '').trim()) return true;
   const f = filters || {};
-  return !!(f.type || f.group || f.rarity || f.pack || f.productKind || f.subunit || f.parallel
+  return !!(f.pinned || f.type || f.group || f.rarity || f.pack || f.productKind || f.subunit || f.parallel
     || (f.searchMode && f.searchMode !== 'all')
     || heartFilterGridActive(f.printedHearts) || heartFilterGridActive(f.requiredHearts)
     || heartFilterGridActive(f.bladeHearts)
@@ -10753,6 +10757,13 @@ function syncDeckFilterUi() {
   const panel = el('deck-filter-panel');
   if (!panel || !panel.dataset.built) return;
   const f = deckPoolFilterState();
+  const pinChip = el('deck-filter-pinned');
+  if (pinChip) {
+    const havePin = !!getPinnedDeck() && A.deckBuilderMode !== 'experiment';
+    if (!havePin && f.pinned) f.pinned = '';
+    pinChip.hidden = !havePin;
+    pinChip.innerHTML = pushpinSvg(12) + '<span>' + (t('deck.filters.pinnedOnly') || 'Pinned deck') + '</span>';
+  }
   panel.querySelectorAll('[data-filter]').forEach(btn => {
     const key = btn.dataset.filter;
     const val = btn.dataset.value ?? '';
@@ -11018,6 +11029,21 @@ function ensureDeckFilterPanel() {
   const typeGroupPair = document.createElement('div');
   typeGroupPair.className = 'deck-filter-pair';
   addChipRow('type', 'type', DECK_FILTER_TYPES, { target: typeGroupPair });
+  // Pinned-deck filter: independent of the type chips (e.g. pinned Members only).
+  const pinChip = document.createElement('button');
+  pinChip.type = 'button';
+  pinChip.id = 'deck-filter-pinned';
+  pinChip.className = 'deck-filter-chip deck-filter-chip--pin';
+  pinChip.dataset.filter = 'pinned';
+  pinChip.dataset.value = '1';
+  pinChip.hidden = true;
+  pinChip.onclick = () => {
+    const f = deckPoolFilterState();
+    f.pinned = f.pinned === '1' ? '' : '1';
+    syncDeckFilterUi();
+    renderDeckBuilder();
+  };
+  typeGroupPair.querySelector('.deck-filter-row')?.appendChild(pinChip);
   addChipRow('group', 'group', [{ id: '' }].concat(
     DECK_FILTER_GROUPS.map(g => ({ id: g }))
   ), { target: typeGroupPair });
@@ -11497,6 +11523,21 @@ function renderDeckBuilder(opts = {}) {
         _idx: poolIdx++,
       });
     });
+    if (filters.pinned === '1' && !A.decklogSubPickFor && !A.deckSealBatchMode) {
+      // Pinned cards you do not own yet still belong in this view (0/N); they are listed dimmed and open the card.
+      const pin = getPinnedDeck();
+      const nos = new Set([...Object.keys(pin?.deck || {}), ...(pin?.rows || []).map(r => r.card_no)]);
+      nos.forEach(no => {
+        if (poolSeen.has(no)) return;
+        const c0 = enrichCard(G.allCards[no]);
+        if (!c0 || !cardMatchesDeckPoolFilters(c0, filters, searchQ)) return;
+        const type = c0.card_type;
+        if (type !== 'メンバー' && type !== 'ライブ' && type !== 'エネルギー') return;
+        poolSeen.add(no);
+        matchCount++;
+        poolEntries.push({ row: { card_no: no }, c0, type, available: 0, badgeQty: 0, draftOf: 0, ownedQty: 0, unowned: true, acquired_at: 0, _idx: poolIdx++ });
+      });
+    }
     sortDeckPoolEntries(poolEntries, sortMode).forEach(entry => {
       poolCount++;
       const cardNo = entry.row.card_no;
@@ -11506,7 +11547,9 @@ function renderDeckBuilder(opts = {}) {
       const convertible = A.deckSealBatchMode && clientCardConvertibleToSeal(entry.c0)
         && spareConvertibleCopies(cardNo) > 0;
       const capped = !A.decklogSubPickFor && !A.deckSealBatchMode && entry.available <= 0;
-      const onTap = A.decklogSubPickFor
+      const onTap = entry.unowned
+        ? () => showCatalogCard(entry.c0)
+        : A.decklogSubPickFor
         ? () => addDecklogSubPickCopy(cardNo)
         : (A.deckSealBatchMode
           ? () => toggleDeckSealBatchCard(cardNo)
@@ -11521,6 +11564,7 @@ function renderDeckBuilder(opts = {}) {
         sealBatchQty: batchQty,
         sealBatchDim: !!(A.deckSealBatchMode && !convertible && !batchQty),
         poolCapped: capped,
+        unowned: !!entry.unowned,
       });
     });
     if (searchQ || filtered) {
@@ -13701,6 +13745,7 @@ function refreshPinnedDeckUI() {
     if (lbl) lbl.textContent = on ? (t('deck.pinned') || 'Pinned') : (t('deck.pin') || 'Pin');
   }
   renderStickerPinnedSection();
+  if (typeof syncDeckFilterUi === 'function') syncDeckFilterUi();
 }
 
 async function openPinnedDeckFromBuilder() {
