@@ -9524,7 +9524,10 @@ body.gacha-pull-open{overflow:hidden}
 .sticker-pinned{margin:0 0 14px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.35);
   background:url("../../bg/ptn.png") top center/200px 200px repeat,rgba(255,107,168,.2)}
 .sticker-pinned[hidden]{display:none}
-.sticker-pinned-head{display:flex;align-items:center;gap:8px}
+.sticker-pinned-head{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;border-radius:8px}
+.sticker-pinned-head:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.sticker-pinned-count{flex:0 0 auto;font-size:12px;font-weight:800;color:var(--pink-l,#ffb3d1);white-space:nowrap}
+.sticker-pinned-chevron{flex:0 0 auto;font-size:14px;opacity:.9}
 .sticker-pinned-icon{display:inline-flex;color:var(--pink-l,#ffb3d1)}
 .sticker-pinned-title{margin:0;flex:1 1 auto;min-width:0;font-size:15px;font-weight:800;letter-spacing:.03em}
 .sticker-pinned-unpin{width:auto;flex:0 0 auto;padding:4px 10px;font-size:12px}
