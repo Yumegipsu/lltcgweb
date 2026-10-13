@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=173">
+<link rel="stylesheet" href="client/css/shell-all.css?v=174">
 <link rel="stylesheet" href="client/css/season-rank.css?v=11">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -1446,13 +1446,11 @@ try {
             <label data-i18n="deck.sleeve">Sleeve</label>
             <div class="deck-sleeve-picker" id="deck-sleeve-picker" data-i18n-aria-label="deck.sleeve"></div>
             <p class="deck-builder-hint deck-builder-hint--compact" id="deck-sleeve-empty-hint" data-i18n="deck.sleeveEmpty">No sleeves available yet.</p>
-            <p class="deck-builder-hint deck-builder-hint--compact" data-i18n="deck.sleeveHint">Equipped sleeve replaces your card back in matches. Default: none.</p>
           </div>
           <div class="field deck-builder-meta__playmat" id="deck-builder-playmat-wrap">
             <label data-i18n="deck.playmat">Playmat</label>
             <div class="deck-playmat-picker" id="deck-playmat-picker" data-i18n-aria-label="deck.playmat"></div>
             <p class="deck-builder-hint deck-builder-hint--compact" id="deck-playmat-empty-hint" data-i18n="deck.playmatEmpty">No playmats available yet.</p>
-            <p class="deck-builder-hint deck-builder-hint--compact" data-i18n="deck.playmatHint">Equipped playmat appears on your seat in matches. Default board if none.</p>
           </div>
           </div>
           <div class="deck-builder-meta__side-tools" id="deck-builder-side-tools">
@@ -1505,7 +1503,6 @@ try {
           </div>
         </div>
       </div>
-      <p class="deck-builder-hint" id="deck-starter-hint"></p>
       <p class="deck-builder-hint deck-builder-hint--compact" id="deck-builder-hint-compact" data-i18n="deck.hint">Auto-build optimizes from your collection · tap to add/remove · hover to preview</p>
       <div class="deck-builder-lists">
         <div class="deck-builder-section deck-builder-section--pool">
@@ -3299,7 +3296,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=225"></script>
+<script src="i18n.js?v=226"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=45"></script>
@@ -3320,8 +3317,8 @@ try {
 })();
 </script>
 <script src="client/js/tournament.js?v=29"></script>
-<script src="client/js/sleeves.js?v=15"></script>
-<script src="client/js/playmats.js?v=8"></script>
+<script src="client/js/sleeves.js?v=16"></script>
+<script src="client/js/playmats.js?v=9"></script>
 <script src="client/js/apk-asset-cache.js?v=8"></script>
 <script src="client/js/shop-new.js?v=2"></script>
 <script src="client/js/gacha-spotlight.js?v=17"></script>
@@ -9840,6 +9837,8 @@ function syncDeckBuilderChrome() {
   if (starterHint) starterHint.hidden = experiment;
   syncDeckStarterHint();
   if (hintCompact) {
+    // The tap/hover explainer is noise for account decks; keep it for the experiment builder only.
+    hintCompact.hidden = !experiment;
     hintCompact.textContent = experiment
       ? (signedExp ? (t('deck.experimentHintSignedIn') || t('deck.experimentHint')) : t('deck.experimentHint'))
       : t('deck.hint');
@@ -13748,14 +13747,41 @@ function renderStickerPinnedSection() {
     need.textContent = t('sticker.pinnedNeed', { n: row.shortfall }) || ('Need ' + row.shortfall + ' more');
     const costEl = document.createElement('div');
     costEl.innerHTML = sealCostHtml(tier, cost, 16);
+    const buyRow = document.createElement('div');
+    buyRow.className = 'sticker-pinned-buyrow';
     const buy = document.createElement('button');
     buy.type = 'button';
     const canAfford = cost > 0 && have >= cost;
     buy.className = canAfford ? 'btn-grad' : 'btn-out';
     buy.textContent = t('sticker.buy') || 'Exchange';
     buy.disabled = !canAfford;
+    // Two-step: a stray click only arms the button; the second click (or Confirm) spends the seals.
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'btn-ghost sticker-pinned-cancel';
+    cancel.textContent = '✕';
+    cancel.setAttribute('aria-label', t('common.cancel') || 'Cancel');
+    cancel.hidden = true;
+    let armTimer = null;
+    const disarm = () => {
+      clearTimeout(armTimer);
+      armTimer = null;
+      buy.dataset.armed = '';
+      buy.textContent = t('sticker.buy') || 'Exchange';
+      cancel.hidden = true;
+    };
+    cancel.onclick = disarm;
     buy.onclick = async () => {
+      if (buy.dataset.armed !== '1') {
+        buy.dataset.armed = '1';
+        buy.textContent = t('sticker.pinnedConfirm') || 'Confirm?';
+        cancel.hidden = false;
+        armTimer = setTimeout(disarm, 5000);
+        return;
+      }
+      clearTimeout(armTimer);
       buy.disabled = true;
+      cancel.hidden = true;
       try {
         const res = await accountPost('sticker_buy', { card_no: row.card_no });
         syncSealsFromPayload(res);
@@ -13765,9 +13791,11 @@ function renderStickerPinnedSection() {
       } catch (e) {
         toast(e.message || t('toast.stickerExchangeFailed') || 'Exchange failed', 3200);
         buy.disabled = false;
+        disarm();
       }
     };
-    tile.append(art, meta, from, need, costEl, buy);
+    buyRow.append(buy, cancel);
+    tile.append(art, meta, from, need, costEl, buyRow);
     grid.appendChild(tile);
   });
   host.appendChild(grid);

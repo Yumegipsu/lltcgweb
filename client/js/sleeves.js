@@ -540,10 +540,11 @@
 
     const hint = document.getElementById('deck-sleeve-empty-hint');
     if (hint) {
-      hint.hidden = false;
       const tFn = typeof global.t === 'function' ? global.t : null;
+      // Only the empty state needs words; the "owned from the shop" line was filler.
+      hint.hidden = visible.length > 0;
       hint.textContent = visible.length
-        ? ((tFn && tFn('deck.sleeveOwnedHint')) || 'Owned sleeves from the Sleeve Shop.')
+        ? ''
         : ((tFn && tFn('deck.sleeveEmptyHint')) || 'Buy sleeves in the Sleeve Shop.');
     }
 

@@ -408,10 +408,11 @@
 
     const hint = document.getElementById('deck-playmat-empty-hint');
     if (hint) {
-      hint.hidden = false;
       const tFn = typeof global.t === 'function' ? global.t : null;
+      // Only the empty state needs words; the "owned from the shop" line was filler.
+      hint.hidden = visible.length > 0;
       hint.textContent = visible.length
-        ? ((tFn && tFn('deck.playmatOwnedHint')) || 'Owned playmats from the Playmat Shop.')
+        ? ''
         : ((tFn && tFn('deck.playmatEmptyHint')) || 'Buy playmats in the Playmat Shop.');
     }
 
