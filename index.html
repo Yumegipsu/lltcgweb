@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=169">
+<link rel="stylesheet" href="client/css/shell-all.css?v=171">
 <link rel="stylesheet" href="client/css/season-rank.css?v=11">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -1406,9 +1406,6 @@ try {
       <div class="account-screen-head">
         <button class="btn-ghost" id="btn-deck-back" type="button" data-i18n="deck.backHub">← Hub</button>
         <h2 id="deck-screen-title" data-i18n="deck.title">Deck Builder</h2>
-        <button class="news-fab deck-pin-fab" id="btn-deck-pinned" type="button" hidden aria-haspopup="dialog">
-          <span class="news-fab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g transform="rotate(35 12 12)" fill="currentColor"><rect x="8" y="2" width="8" height="3.6" rx="1.3"/><rect x="10" y="5.4" width="4" height="2.2"/><path d="M6.6 9.2c0-.9.7-1.6 1.6-1.6h7.6c.9 0 1.6.7 1.6 1.6 0 .6-.3 1.1-.8 1.4l-.8 4.2H8.2L7.4 10.6c-.5-.3-.8-.8-.8-1.4z"/><rect x="11.35" y="14.6" width="1.3" height="7.4" rx=".65"/></g></svg><b class="deck-pin-fab-badge" id="deck-pin-fab-badge" hidden></b></span>
-        </button>
       </div>
       <div id="portrait-deck-chrome" class="portrait-deck-chrome" hidden>
         <div id="portrait-deck-batch-host" class="portrait-deck-batch-host" aria-live="polite"></div>
@@ -1465,6 +1462,11 @@ try {
           </div>
           <div class="deck-builder-meta__import-search" id="deck-builder-import-search">
             <div class="field deck-builder-meta__account-decklog" id="deck-account-decklog-wrap" hidden>
+              <div class="deck-pin-row" hidden>
+              <button class="news-fab deck-pin-fab" id="btn-deck-pinned" type="button" hidden aria-haspopup="dialog">
+            <span class="news-fab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g transform="rotate(35 12 12)" fill="currentColor"><rect x="8" y="2" width="8" height="3.6" rx="1.3"/><rect x="10" y="5.4" width="4" height="2.2"/><path d="M6.6 9.2c0-.9.7-1.6 1.6-1.6h7.6c.9 0 1.6.7 1.6 1.6 0 .6-.3 1.1-.8 1.4l-.8 4.2H8.2L7.4 10.6c-.5-.3-.8-.8-.8-1.4z"/><rect x="11.35" y="14.6" width="1.3" height="7.4" rx=".65"/></g></svg><b class="deck-pin-fab-badge" id="deck-pin-fab-badge" hidden></b></span>
+            </button>
+              </div>
               <label for="inp-account-decklog" data-i18n="deck.decklogCode">deck log code</label>
               <div class="experiment-pwd-row">
                 <input type="text" id="inp-account-decklog" placeholder="Code OR URL" maxlength="120" autocomplete="off" spellcheck="false" data-i18n-placeholder="deck.decklogCodePlaceholder">
@@ -13627,6 +13629,7 @@ function refreshPinnedDeckUI() {
   const fab = el('btn-deck-pinned');
   if (fab) {
     fab.hidden = !pin;
+    if (fab.parentElement && fab.parentElement.classList.contains('deck-pin-row')) fab.parentElement.hidden = !pin;
     if (pin) {
       const left = pinnedDeckMissingRows(pin).reduce((n, r) => n + r.shortfall, 0);
       const badge = el('deck-pin-fab-badge');
