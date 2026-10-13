@@ -36,6 +36,7 @@ function continuousEffectDescription(array $ab, ?int $stackedEnergyCount = null)
         'live_score_if_opp_success_total'     => "+{$amount} Live Score (opponent Success total)",
         'live_score_bonus_if_min_energy'      => "+{$amount} Live Score (Energy threshold)",
         'live_score_bonus_if_min_entered'     => "+{$amount} Live Score (Members entered this turn)",
+        'live_score_if_exactly_group_members_on_stage' => "+{$amount} Live Score (exactly " . intval($ab['exact_count'] ?? 2) . ' ' . ($ab['group'] ?? '') . ' Members on Stage)',
         'grant_live_success_yell_live_score_if_full_stage' => 'Bonus Live Score from Yell Lives (full stage)',
         'draw_per_yell_draw'                  => 'Draw 1 per Yell draw icon revealed',
         'draw_per_yell_card'                  => 'Draw 1 per Yell draw icon revealed',
@@ -152,6 +153,46 @@ function getLiveScoreBonusBreakdown(array $state, string $pid, bool $omitUnrevea
         }
     }
     unset($member);
+    // PL!-pb2-038 Arashi no Naka no Koi Dakara: +1 total Live score while it sits in the Live area or Success Live area
+    // and the Stage holds exactly N Members, all of the group. Members stacked under another Member are not on the
+    // Stage, and the bonus does not stack across copies.
+    $exactApplied = false;
+    foreach (['live_zone', 'success_lives'] as $zoneKey) {
+        foreach ($p[$zoneKey] ?? [] as $live) {
+            if ($exactApplied || !$live) {
+                continue;
+            }
+            if ($zoneKey === 'live_zone' && $omitUnrevealedLive && empty($live['revealed'])) {
+                continue;
+            }
+            mergeCardCatalogFields($live);
+            foreach ($live['abilities'] ?? [] as $ab) {
+                if (($ab['trigger'] ?? '') !== 'continuous'
+                    || ($ab['type'] ?? '') !== 'live_score_if_exactly_group_members_on_stage'
+                    || !in_array($zoneKey, $ab['while_in'] ?? ['live_zone', 'success_lives'], true)) {
+                    continue;
+                }
+                $onStage = array_values(array_filter($p['stage'] ?? [], static fn($m) => !empty($m)));
+                $group = (string)($ab['group'] ?? '');
+                $ok = count($onStage) === intval($ab['exact_count'] ?? 2);
+                foreach ($onStage as $m) {
+                    if (($m['group'] ?? '') !== $group) {
+                        $ok = false;
+                    }
+                }
+                if ($ok) {
+                    $exactApplied = true;
+                    pushLiveScoreBonusEntry(
+                        $entries,
+                        $bonus,
+                        $live['name_en'] ?? $live['name'] ?? 'Live',
+                        intval($ab['amount'] ?? 1),
+                        continuousEffectDescription($ab)
+                    );
+                }
+            }
+        }
+    }
     if (isLiveScoreYellContext($state)) {
         $yellScoreIcons = yellScoreIconsForPlayer($state, $pid);
         if ($yellScoreIcons > 0) {
