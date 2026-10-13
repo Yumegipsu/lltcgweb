@@ -3296,10 +3296,10 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=229"></script>
+<script src="i18n.js?v=230"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
-<script src="client/js/news.js?v=45"></script>
+<script src="client/js/news.js?v=46"></script>
 <script src="client/js/social.js?v=39"></script>
 <script src="client/js/titles.js?v=5"></script>
 <script src="client/js/season-rank.js?v=14"></script>
@@ -9638,7 +9638,7 @@ function appendDeckCardTile(parent, card, qty, onTap, { inDeck = false, sealBatc
     const pn = document.createElement('span');
     pn.className = 'deck-pin-mark';
     pn.innerHTML = pushpinSvg(10);
-    const own = ownedQtyForCardNo(c.card_no);
+    const own = Math.min(ownedQtyForCardNo(c.card_no), pinNeed);
     pn.appendChild(document.createTextNode(own + '/' + pinNeed));
     pn.title = (t('deck.pinnedFabTitle', { code: getPinnedDeck()?.code || '' }) || 'Pinned deck') + ': ' + own + '/' + pinNeed;
     tile.appendChild(pn);
@@ -13711,8 +13711,37 @@ function unpinAfterPresetSave() {
   }
 }
 
+const _pinnedDeckBackfillTried = {};
+
+/**
+ * Pins made before the full deck list was stored only know their missing cards, so owned/complete cards of that deck
+ * had no marker and never matched the Pinned filter. Re-read the deck once and keep its full card counts.
+ */
+async function backfillPinnedDeckCounts() {
+  const pin = getPinnedDeck();
+  if (!pin || pin.deck || !isSignedInAccount() || _pinnedDeckBackfillTried[pin.code]) return;
+  _pinnedDeckBackfillTried[pin.code] = true;
+  try {
+    const data = await accountPost('deck_import_decklog', { code: pin.code, auto_sub_energy: false });
+    const counts = pinnedDeckCountsFromPayload(data);
+    if (!Object.keys(counts).length) return;
+    const fresh = getPinnedDeck();
+    if (!fresh || fresh.code !== pin.code) return;
+    fresh.deck = counts;
+    try { localStorage.setItem(pinnedDeckStorageKey(), JSON.stringify(fresh)); } catch (e) { /* ignore */ }
+    invalidatePinnedDeckCache();
+    refreshPinnedDeckUI();
+    if (el('screen-deck')?.classList.contains('active')) {
+      renderDeckBuilder({ deferPool: false, preservePoolScroll: true });
+    }
+  } catch (e) {
+    // Leave it marked as tried for this session so a failing request is not repeated on every refresh.
+  }
+}
+
 function refreshPinnedDeckUI() {
   const pin = getPinnedDeck();
+  if (pin && !pin.deck) backfillPinnedDeckCounts();
   const fab = el('btn-deck-pinned');
   if (fab) {
     fab.hidden = !pin;
@@ -28466,7 +28495,7 @@ function fillCardDetailPanel(prefix, card, s, myId) {
       ic.className = 'card-pin-note-icon';
       ic.innerHTML = pushpinSvg(14);
       pinEl.append(ic, document.createTextNode(
-        (t('deck.pinned') || 'Pinned') + ' ' + ownedQtyForCardNo(card.card_no) + '/' + need
+        (t('deck.pinned') || 'Pinned') + ' ' + Math.min(ownedQtyForCardNo(card.card_no), need) + '/' + need
       ));
     }
   }
