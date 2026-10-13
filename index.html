@@ -13575,8 +13575,14 @@ function pinnedDeckMissingRows(pin = getPinnedDeck()) {
     .filter(r => r.shortfall > 0);
 }
 
-function pinnedRowsFromMissingPayload(missing) {
-  return (missing || []).map(m => ({
+function pinnedRowsFromMissingPayload(missing, pending) {
+  // With "Auto-replace missing Energy" on, Energy shortfalls that were covered by substitutes are not missing.
+  const subs = pending?.substitutions || {};
+  const autoEnergy = !!pending?.auto_sub_energy;
+  return (missing || []).filter(m => {
+    if (!autoEnergy || m.card_type !== 'エネルギー') return true;
+    return decklogSubList(subs[m.card_no]).length < Math.max(0, Number(m.shortfall || 0));
+  }).map(m => ({
     card_no: m.card_no,
     need: Number(m.need || 0),
     card_type: m.card_type,
@@ -13597,7 +13603,7 @@ function togglePinMissingDeck() {
   setPinnedDeck({
     code,
     name: pending.name || pending.deck_name || '',
-    rows: pinnedRowsFromMissingPayload(pending.missing),
+    rows: pinnedRowsFromMissingPayload(pending.missing, pending),
     pinned_at: Date.now(),
   });
 }
@@ -14099,10 +14105,7 @@ function renderDecklogMissingModal(payload) {
   const pinned = getPinnedDeck();
   if (pinned && pinned.code === normalizeDecklogCode(_decklogMissingPending.code) && (_decklogMissingPending.missing || []).length) {
     // Keep the pinned list in step with what the server says is still missing for this deck.
-    const byNo = {};
-    pinned.rows.forEach(r => { byNo[r.card_no] = r; });
-    pinnedRowsFromMissingPayload(_decklogMissingPending.missing).forEach(r => { byNo[r.card_no] = r; });
-    pinned.rows = Object.values(byNo);
+    pinned.rows = pinnedRowsFromMissingPayload(_decklogMissingPending.missing, _decklogMissingPending);
     try { localStorage.setItem(pinnedDeckStorageKey(), JSON.stringify(pinned)); } catch (e) { /* ignore */ }
   }
   const subs = _decklogMissingPending.substitutions || {};
