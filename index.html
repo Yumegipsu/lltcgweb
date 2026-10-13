@@ -1465,9 +1465,9 @@ try {
             <span class="news-fab-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><g transform="rotate(35 12 12)" fill="currentColor"><rect x="8" y="2" width="8" height="3.6" rx="1.3"/><rect x="10" y="5.4" width="4" height="2.2"/><path d="M6.6 9.2c0-.9.7-1.6 1.6-1.6h7.6c.9 0 1.6.7 1.6 1.6 0 .6-.3 1.1-.8 1.4l-.8 4.2H8.2L7.4 10.6c-.5-.3-.8-.8-.8-1.4z"/><rect x="11.35" y="14.6" width="1.3" height="7.4" rx=".65"/></g></svg><b class="deck-pin-fab-badge" id="deck-pin-fab-badge" hidden></b></span>
             </button>
               </div>
-              <label for="inp-account-decklog" data-i18n="deck.decklogCode">deck log code</label>
+              <label for="inp-account-decklog" data-i18n="deck.importCode">deck log code or password</label>
               <div class="experiment-pwd-row">
-                <input type="text" id="inp-account-decklog" placeholder="Code OR URL" maxlength="120" autocomplete="off" spellcheck="false" data-i18n-placeholder="deck.decklogCodePlaceholder">
+                <input type="text" id="inp-account-decklog" placeholder="Code, URL or password" maxlength="120" autocomplete="off" spellcheck="false" data-i18n-placeholder="deck.importCodePlaceholder">
                 <button class="btn-out" id="btn-account-decklog-import" type="button" data-i18n="deck.decklogImport">Import</button>
               </div>
               <label class="decklog-auto-energy-opt" for="chk-decklog-auto-energy">
@@ -3296,7 +3296,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=230"></script>
+<script src="i18n.js?v=231"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=46"></script>
@@ -13589,7 +13589,8 @@ function normalizeDecklogCode(raw) {
   if (!s) return '';
   s = s.split(/[?#]/)[0].replace(/\/+$/, '');
   const seg = s.split('/').pop() || s;
-  return seg.trim().toUpperCase();
+  // Codes and Deck Experiment passwords are plain letters/digits; drop separators like "ABCD-2345".
+  return seg.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
 function pinnedDeckStorageKey() {
@@ -14484,7 +14485,7 @@ function initDecklogAutoEnergyCheckbox() {
 async function importAccountDeckFromDecklog(raw) {
   const code = String(raw || '').trim();
   if (!code) {
-    el('deck-err').textContent = t('deck.decklogNeedCode') || 'Enter a deck log code or URL.';
+    el('deck-err').textContent = t('deck.importNeedCode') || 'Enter a deck log code, URL or Deck Experiment password.';
     return;
   }
   if (!isSignedInAccount()) {

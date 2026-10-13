@@ -1128,7 +1128,7 @@ function tcgApiDeckResetStarter(array $body): array {
  * Returns complete lists when the collection covers the recipe; otherwise
  * missing-card details with obtain hints and substitute suggestions.
  *
- * Body: code|url, optional substitutions: { missing_card_no: substitute_card_no|[card_no…] },
+ * Body: code|url (a deck log code/URL or a Deck Experiment password), optional substitutions: { missing_card_no: substitute_card_no|[card_no…] },
  * optional auto_sub_energy: bool (fill Energy shortfalls from other owned Energy).
  * List form = one substitute per missing copy; string form = reuse that card for every copy.
  */
@@ -1139,12 +1139,35 @@ function tcgApiDeckImportDecklog(array $body): array {
         tcgRateLimitForAction('deck_import_decklog', $body);
     }
     require_once __DIR__ . '/decklog_import.php';
+    require_once __DIR__ . '/experiment_decks.php';
     $raw = trim((string)($body['code'] ?? $body['url'] ?? ''));
-    // Pass raw input through so EN/JP view URLs keep preferred host (do not normalize first).
-    $payload = tcgFetchDecklogView($raw);
-    $code = tcgNormalizeDecklogCode($raw);
     $cards = tcgLoadCardsData();
-    $mapped = tcgMapDecklogPayloadToExperimentLists($payload, $cards);
+    // A Deck Experiment password (8 characters from its own alphabet) imports the same way as a deck log code:
+    // same ownership check, missing-card list and substitutes. Only a password that exists wins over a deck log code.
+    $expPw = normalizeExperimentPassword(strtoupper($raw));
+    $looksLikePassword = !str_contains($raw, '/') && preg_match('/^[A-HJ-NP-Z2-9]{' . EXPERIMENT_PASSWORD_LEN . '}$/', $expPw) === 1;
+    $stored = $looksLikePassword ? readExperimentDeckFile($expPw) : null;
+    if ($stored) {
+        $code = $expPw;
+        $mapped = [
+            'main_deck' => $stored['main_deck'],
+            'energy_deck' => $stored['energy_deck'],
+            'title' => $stored['name'],
+            'deck_id' => $expPw,
+        ];
+    } else {
+        // Pass raw input through so EN/JP view URLs keep preferred host (do not normalize first).
+        try {
+            $payload = tcgFetchDecklogView($raw);
+        } catch (Exception $e) {
+            if ($looksLikePassword) {
+                throw new Exception('No deck log or Deck Experiment deck was found for that code or password.', 404);
+            }
+            throw $e;
+        }
+        $code = tcgNormalizeDecklogCode($raw);
+        $mapped = tcgMapDecklogPayloadToExperimentLists($payload, $cards);
+    }
     $cardMap = tcgBuildCardMap($cards);
     $owned = tcgGetCollectionMap($uid);
     $main = $mapped['main_deck'];
