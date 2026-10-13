@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=175">
+<link rel="stylesheet" href="client/css/shell-all.css?v=176">
 <link rel="stylesheet" href="client/css/season-rank.css?v=11">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -9630,6 +9630,17 @@ function appendDeckCardTile(parent, card, qty, onTap, { inDeck = false, sealBatc
     r.textContent = c.rarity;
     tile.appendChild(r);
   }
+  const pinNeed = inDeck ? 0 : pinnedDeckNeedFor(c.card_no);
+  if (pinNeed > 0) {
+    tile.classList.add('has-pin');
+    const pn = document.createElement('span');
+    pn.className = 'deck-pin-mark';
+    pn.innerHTML = pushpinSvg(10);
+    const own = ownedQtyForCardNo(c.card_no);
+    pn.appendChild(document.createTextNode(own + '/' + pinNeed));
+    pn.title = (t('deck.pinnedFabTitle', { code: getPinnedDeck()?.code || '' }) || 'Pinned deck') + ': ' + own + '/' + pinNeed;
+    tile.appendChild(pn);
+  }
   const lovecaPt = deckLovecaPointForCard(c.card_no);
   if (lovecaPt > 0) {
     const lp = document.createElement('span');
@@ -13546,13 +13557,44 @@ function pinnedDeckStorageKey() {
   return PINNED_DECK_KEY + ':' + String(A.profile?.user?.id || '');
 }
 
+let _pinnedDeckCache = { key: '', val: null };
+
+function invalidatePinnedDeckCache() {
+  _pinnedDeckCache = { key: '', val: null };
+}
+
 function getPinnedDeck() {
   if (!A.profile?.user?.id) return null;
+  const key = pinnedDeckStorageKey();
+  if (_pinnedDeckCache.key === key) return _pinnedDeckCache.val;
+  let val = null;
   try {
-    const v = JSON.parse(localStorage.getItem(pinnedDeckStorageKey()) || 'null');
-    if (v && v.code && Array.isArray(v.rows)) return v;
+    const v = JSON.parse(localStorage.getItem(key) || 'null');
+    if (v && v.code && Array.isArray(v.rows)) val = v;
   } catch (e) { /* ignore */ }
-  return null;
+  _pinnedDeckCache = { key, val };
+  return val;
+}
+
+/** Copies the pinned deck wants of a card (0 when the card is not in it). */
+function pinnedDeckNeedFor(cardNo) {
+  const pin = getPinnedDeck();
+  if (!pin) return 0;
+  const map = pin.deck || {};
+  for (const k of cardNoLookupKeys(cardNo)) {
+    if (map[k]) return Number(map[k]);
+  }
+  // Older pins only stored the missing rows.
+  const row = (pin.rows || []).find(r => cardNoLookupKeys(cardNo).includes(r.card_no));
+  return row ? Number(row.need || 0) : 0;
+}
+
+function pinnedDeckCountsFromPayload(pending) {
+  const out = {};
+  [...(pending?.main_deck || []), ...(pending?.energy_deck || [])].forEach(no => {
+    if (no) out[no] = (out[no] || 0) + 1;
+  });
+  return out;
 }
 
 function setPinnedDeck(pin) {
@@ -13561,7 +13603,12 @@ function setPinnedDeck(pin) {
     if (pin) localStorage.setItem(pinnedDeckStorageKey(), JSON.stringify(pin));
     else localStorage.removeItem(pinnedDeckStorageKey());
   } catch (e) { /* ignore */ }
+  invalidatePinnedDeckCache();
   refreshPinnedDeckUI();
+  // Collection tiles carry the pin marker, so repaint them when the pin changes.
+  if (el('screen-deck')?.classList.contains('active') && typeof renderDeckBuilder === 'function') {
+    renderDeckBuilder({ deferPool: false, preservePoolScroll: true });
+  }
 }
 
 function isPinnedDeckCode(raw) {
@@ -13606,6 +13653,7 @@ function togglePinMissingDeck() {
     code,
     name: pending.name || pending.deck_name || '',
     rows: pinnedRowsFromMissingPayload(pending.missing, pending),
+    deck: pinnedDeckCountsFromPayload(pending),
     pinned_at: Date.now(),
   });
 }
@@ -14159,7 +14207,10 @@ function renderDecklogMissingModal(payload) {
   if (pinned && pinned.code === normalizeDecklogCode(_decklogMissingPending.code) && (_decklogMissingPending.missing || []).length) {
     // Keep the pinned list in step with what the server says is still missing for this deck.
     pinned.rows = pinnedRowsFromMissingPayload(_decklogMissingPending.missing, _decklogMissingPending);
+    const counts = pinnedDeckCountsFromPayload(_decklogMissingPending);
+    if (Object.keys(counts).length) pinned.deck = counts;
     try { localStorage.setItem(pinnedDeckStorageKey(), JSON.stringify(pinned)); } catch (e) { /* ignore */ }
+    invalidatePinnedDeckCache();
   }
   const subs = _decklogMissingPending.substitutions || {};
   (_decklogMissingPending.missing || []).forEach(row => {
@@ -28359,6 +28410,26 @@ function fillCardDetailPanel(prefix, card, s, myId) {
 
   nameEl.textContent = cardLocaleName(card) || '?';
   if (subEl) subEl.textContent = [cardLocaleType(card), card.rarity, card.card_no].filter(Boolean).join(' · ');
+  if (subEl && (prefix === 'cd' || prefix === 'dh')) {
+    let pinEl = el(`${prefix}-pin`);
+    if (!pinEl) {
+      pinEl = document.createElement('div');
+      pinEl.id = `${prefix}-pin`;
+      pinEl.className = 'card-pin-note';
+      subEl.insertAdjacentElement('afterend', pinEl);
+    }
+    const need = pinnedDeckNeedFor(card.card_no);
+    pinEl.hidden = need <= 0;
+    pinEl.replaceChildren();
+    if (need > 0) {
+      const ic = document.createElement('span');
+      ic.className = 'card-pin-note-icon';
+      ic.innerHTML = pushpinSvg(14);
+      pinEl.append(ic, document.createTextNode(
+        (t('deck.pinned') || 'Pinned') + ' ' + ownedQtyForCardNo(card.card_no) + '/' + need
+      ));
+    }
+  }
 
   sg.innerHTML = '';
   const stageCtx = findStageMemberContext(card, s);
