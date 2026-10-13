@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=177">
+<link rel="stylesheet" href="client/css/shell-all.css?v=178">
 <link rel="stylesheet" href="client/css/season-rank.css?v=11">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -3296,7 +3296,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=227"></script>
+<script src="i18n.js?v=229"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=45"></script>
@@ -10639,7 +10639,13 @@ function cardMatchesDeckPoolFilters(card, filters, searchQ) {
   const c = enrichCard(card);
   if (!c) return false;
   if (!cardMatchesDeckSearch(c, searchQ, filters.searchMode)) return false;
-  if (filters.pinned === '1' && pinnedDeckNeedFor(c.card_no) <= 0) return false;
+  if (filters.pinned) {
+    const need = pinnedDeckNeedFor(c.card_no);
+    if (need <= 0) return false;
+    const have = ownedQtyForCardNo(c.card_no);
+    if (filters.pinned === 'missing' && have >= need) return false;
+    if (filters.pinned === 'complete' && have < need) return false;
+  }
   if (filters.type) {
     if (filters.type === 'member' && !isMemberCard(c)) return false;
     if (filters.type === 'live' && !isLiveCard(c)) return false;
@@ -10757,12 +10763,11 @@ function syncDeckFilterUi() {
   const panel = el('deck-filter-panel');
   if (!panel || !panel.dataset.built) return;
   const f = deckPoolFilterState();
-  const pinChip = el('deck-filter-pinned');
-  if (pinChip) {
+  const pinRow = el('deck-filter-pinned-row');
+  if (pinRow) {
     const havePin = !!getPinnedDeck() && A.deckBuilderMode !== 'experiment';
     if (!havePin && f.pinned) f.pinned = '';
-    pinChip.hidden = !havePin;
-    pinChip.innerHTML = pushpinSvg(12) + '<span>' + (t('deck.filters.pinnedOnly') || 'Pinned deck') + '</span>';
+    pinRow.hidden = !havePin;
   }
   panel.querySelectorAll('[data-filter]').forEach(btn => {
     const key = btn.dataset.filter;
@@ -11029,21 +11034,11 @@ function ensureDeckFilterPanel() {
   const typeGroupPair = document.createElement('div');
   typeGroupPair.className = 'deck-filter-pair';
   addChipRow('type', 'type', DECK_FILTER_TYPES, { target: typeGroupPair });
-  // Pinned-deck filter: independent of the type chips (e.g. pinned Members only).
-  const pinChip = document.createElement('button');
-  pinChip.type = 'button';
-  pinChip.id = 'deck-filter-pinned';
-  pinChip.className = 'deck-filter-chip deck-filter-chip--pin';
-  pinChip.dataset.filter = 'pinned';
-  pinChip.dataset.value = '1';
-  pinChip.hidden = true;
-  pinChip.onclick = () => {
-    const f = deckPoolFilterState();
-    f.pinned = f.pinned === '1' ? '' : '1';
-    syncDeckFilterUi();
-    renderDeckBuilder();
-  };
-  typeGroupPair.querySelector('.deck-filter-row')?.appendChild(pinChip);
+  // Pinned deck: its own visible row (shown only while a deck is pinned).
+  // No separate "off" chip: All = every card of the pinned deck; clicking the active chip turns the filter off.
+  addChipRow('pinned', 'pinned', [{ id: 'all' }, { id: 'missing' }, { id: 'complete' }], { target: typeGroupPair });
+  typeGroupPair.lastElementChild.id = 'deck-filter-pinned-row';
+  typeGroupPair.lastElementChild.hidden = true;
   addChipRow('group', 'group', [{ id: '' }].concat(
     DECK_FILTER_GROUPS.map(g => ({ id: g }))
   ), { target: typeGroupPair });
@@ -11523,7 +11518,7 @@ function renderDeckBuilder(opts = {}) {
         _idx: poolIdx++,
       });
     });
-    if (filters.pinned === '1' && !A.decklogSubPickFor && !A.deckSealBatchMode) {
+    if (filters.pinned && filters.pinned !== 'complete' && !A.decklogSubPickFor && !A.deckSealBatchMode) {
       // Pinned cards you do not own yet still belong in this view (0/N); they are listed dimmed and open the card.
       const pin = getPinnedDeck();
       const nos = new Set([...Object.keys(pin?.deck || {}), ...(pin?.rows || []).map(r => r.card_no)]);
