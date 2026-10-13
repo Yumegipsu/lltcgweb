@@ -9497,3 +9497,44 @@ body.gacha-pull-open{overflow:hidden}
 .gacha-banner--birthday .gacha-banner__sub{color:var(--bday-fg,#fff);text-shadow:none}
 .gacha-banner--birthday .gacha-banner__sub{font-size:14px;font-weight:700;opacity:.92}
 .gacha-banner--birthday .gacha-banner__render.is-card-art{width:auto;height:100%;max-width:100%;left:auto;right:8px;object-fit:contain;object-position:center}
+
+/* ── Pinned deck (deck log import) ── */
+.deck-pin-fab{flex:0 0 auto}
+.deck-pin-fab[hidden]{display:none!important}
+.deck-pin-fab .news-fab-icon{width:38px;height:38px;position:relative;
+  background:url("../../bg/ptn.png") top center/200px 200px repeat,rgba(255,107,168,.94)}
+.deck-pin-fab:hover .news-fab-icon{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.34)}
+.deck-pin-fab-badge{position:absolute;top:-5px;right:-6px;min-width:18px;padding:1px 5px;border-radius:999px;
+  font:800 10px/1.3 inherit;text-align:center;color:#fff;background:var(--blue-d,#1b6fb0);
+  border:1px solid rgba(255,255,255,.7);box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none}
+.deck-pin-fab-badge.is-ready{background:#2fb36a}
+.deck-pin-fab-badge[hidden]{display:none!important}
+.decklog-pin-btn{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto;padding:6px 12px;cursor:pointer;
+  border-radius:999px;border:1px solid rgba(255,255,255,.5);color:#fff;font:800 12px/1 inherit;letter-spacing:.04em;
+  background:url("../../bg/ptn.png") top center/200px 200px repeat,rgba(52,163,243,.82);
+  transition:transform .15s ease,background .15s ease,box-shadow .15s ease}
+.decklog-pin-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.decklog-pin-btn.is-pinned{background:url("../../bg/ptn.png") top center/200px 200px repeat,rgba(255,107,168,.95);
+  border-color:#fff}
+.decklog-pin-btn-icon{display:inline-flex}
+.decklog-missing-code{margin:0 0 8px;font-size:13px;font-weight:800;letter-spacing:.06em;color:rgba(255,255,255,.92)}
+.decklog-missing-code[hidden]{display:none}
+.sticker-pinned{margin:0 0 14px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.35);
+  background:url("../../bg/ptn.png") top center/200px 200px repeat,rgba(255,107,168,.2)}
+.sticker-pinned[hidden]{display:none}
+.sticker-pinned-head{display:flex;align-items:center;gap:8px}
+.sticker-pinned-icon{display:inline-flex;color:var(--pink-l,#ffb3d1)}
+.sticker-pinned-title{margin:0;flex:1 1 auto;min-width:0;font-size:15px;font-weight:800;letter-spacing:.03em}
+.sticker-pinned-unpin{width:auto;flex:0 0 auto;padding:4px 10px;font-size:12px}
+.sticker-pinned-ready{margin:8px 0 0;font-size:13px;opacity:.92}
+.sticker-pinned-tile{position:relative}
+.sticker-pinned-mark{position:absolute;top:4px;left:4px;z-index:3;display:inline-flex;padding:3px;border-radius:50%;
+  color:#fff;background:rgba(255,107,168,.95);box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.sticker-pinned-from{font-size:11px;opacity:.85;line-height:1.25}
+.sticker-pinned-need{font-size:12px;font-weight:800;color:var(--pink-l,#ffb3d1)}
+@media (max-width:560px){
+  .decklog-pin-btn-label{display:none}
+  .decklog-pin-btn{padding:6px 8px}
+}
+html.tcg-portrait-play #screen-deck .deck-pin-fab .news-fab-icon{width:30px;height:30px}
+html.tcg-portrait-play #screen-deck .deck-pin-fab .news-fab-icon svg{width:16px;height:16px}
