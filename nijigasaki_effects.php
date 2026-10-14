@@ -334,6 +334,39 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
 
         case 'player_choice_wr_members_deck_bottom':
             if (!empty($state['pending_prompt'])) break;
+            $maxPick = intval($ab['max_pick'] ?? 2);
+            $group = trim((string)($ab['group'] ?? ''));
+            // Empty filter + a group is "your Waiting Room, any card of that group"
+            // (Nando Datte Yakusoku!). Member filter with no group is Shioriko's
+            // choose-yourself-or-opponent Live Start.
+            $filter = array_key_exists('filter', $ab) ? (string)$ab['filter'] : 'member';
+            if ($group !== '' && $filter !== 'member') {
+                $cards = nijiWrCardsForDeckBottom($p, $group, $filter);
+                if ($cards === []) {
+                    break;
+                }
+                $label = function_exists('groupPromptLabel') ? groupPromptLabel($group) : $group;
+                $state['pending_prompt'] = [
+                    'type'          => 'player_choice_wr_members_deck_bottom',
+                    'step'          => 'pick_members',
+                    'owner'         => $pid,
+                    'responder'     => $pid,
+                    'target'        => $pid,
+                    'source_name'   => $name,
+                    'candidates'    => array_map('cardPromptSummary', $cards),
+                    'max_pick'      => $maxPick,
+                    'up_to'         => true,
+                    'group'         => $group,
+                    'filter'        => $filter,
+                    'ability'       => $ab,
+                    'prompt'        => 'Choose up to ' . $maxPick . ' ' . $label .
+                        ' card(s) from your Waiting Room for the bottom of your deck. ' .
+                        'First selected sits higher; the last card is the bottom.',
+                ];
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] choose up to $maxPick $label card(s) for deck bottom.");
+                break;
+            }
             $state['pending_prompt'] = [
                 'type'          => 'player_choice_wr_members_deck_bottom',
                 'owner'         => $pid,
@@ -342,7 +375,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
                 'prompt'        => 'Choose yourself or opponent for WR Members to deck bottom.',
                 'choices'       => ['self', 'opp'],
                 'choice_labels' => ['Yourself', 'Opponent'],
-                'max_pick'      => intval($ab['max_pick'] ?? 2),
+                'max_pick'      => $maxPick,
                 'ability'       => $ab,
             ];
             $state = addLog($state, $state['players'][$pid]['name'] . " — [$name] choose player.");
@@ -1170,6 +1203,83 @@ function nijiWaitMemberPickCandidates(array $player, string $srcId): array {
         $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => (string) $slot]);
     }
     return $candidates;
+}
+
+/**
+ * Waiting Room cards that can go to deck bottom.
+ * Group set: any card of that group (Aqours lives and Members).
+ * Group empty: Members only (Shioriko). Includes cards yelled this Live (#260).
+ *
+ * @return list<array>
+ */
+function nijiWrCardsForDeckBottom(array $p, string $group, string $filter): array {
+    $out = [];
+    $zones = function_exists('waitingRoomPickZones')
+        ? waitingRoomPickZones()
+        : ['waiting_room', '_pending_yell_wr'];
+    foreach ($zones as $zone) {
+        foreach ($p[$zone] ?? [] as $c) {
+            if (!is_array($c)) {
+                continue;
+            }
+            if (function_exists('mergeCardCatalogFields')) {
+                mergeCardCatalogFields($c);
+            }
+            if ($group !== '') {
+                if (!cardMatchesGroup($c, $group, $filter)) {
+                    continue;
+                }
+            } elseif (!isMemberCard($c)) {
+                continue;
+            }
+            $out[] = $c;
+        }
+    }
+    return $out;
+}
+
+/**
+ * Remove chosen Waiting Room cards in selection order.
+ *
+ * @param list<string> $ids
+ * @return list<array>
+ */
+function nijiTakeWrCardsForDeckBottom(array &$p, array $ids, string $group, string $filter): array {
+    $moved = [];
+    $zones = function_exists('waitingRoomPickZones')
+        ? waitingRoomPickZones()
+        : ['waiting_room', '_pending_yell_wr'];
+    foreach ($ids as $id) {
+        $found = false;
+        foreach ($zones as $zone) {
+            if (!isset($p[$zone]) || !is_array($p[$zone])) {
+                continue;
+            }
+            foreach ($p[$zone] as $i => $c) {
+                if (!is_array($c) || (string)($c['instance_id'] ?? '') !== $id) {
+                    continue;
+                }
+                if (function_exists('mergeCardCatalogFields')) {
+                    mergeCardCatalogFields($c);
+                }
+                if ($group !== '') {
+                    if (!cardMatchesGroup($c, $group, $filter)) {
+                        throw new Exception('Selected cards must match');
+                    }
+                } elseif (!isMemberCard($c)) {
+                    throw new Exception('Selected cards must be Members');
+                }
+                $moved[] = $c;
+                array_splice($p[$zone], $i, 1);
+                $found = true;
+                break 2;
+            }
+        }
+        if (!$found) {
+            throw new Exception('Invalid card selection');
+        }
+    }
+    return $moved;
 }
 
 function nijiHandlePrompt(array $state, string $promptType, array $prompt, string $choice, array $data): ?array {
@@ -2077,9 +2187,13 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
                 'source_name' => $srcName,
                 'candidates'  => array_map('cardPromptSummary', $members),
                 'max_pick'    => $maxPick,
+                'up_to'       => true,
+                'group'       => '',
+                'filter'      => 'member',
                 'ability'     => $ability,
                 'prompt'      => 'Choose up to ' . $maxPick . ' Member(s) from ' .
-                    ($choice === 'self' ? 'your' : 'opponent\'s') . ' Waiting Room for deck bottom.',
+                    ($choice === 'self' ? 'your' : 'opponent\'s') . ' Waiting Room for deck bottom. ' .
+                    'First selected sits higher; the last card is the bottom.',
             ];
             $state['seq']++;
             return $state;
@@ -2087,30 +2201,35 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
 
         if ($step === 'pick_members') {
             $ids = $data['card_ids'] ?? [];
-            if (count($ids) < 1 || count($ids) > $maxPick) {
-                throw new Exception("Choose 1–$maxPick Member(s)");
+            if (!is_array($ids)) {
+                $ids = [];
+            }
+            $ids = array_values(array_filter(array_map('strval', $ids), static fn(string $id): bool => $id !== ''));
+            $upTo = !empty($prompt['up_to']);
+            if (count($ids) > $maxPick || (!$upTo && count($ids) < 1)) {
+                throw new Exception($upTo
+                    ? "Choose up to $maxPick card(s)"
+                    : "Choose 1–$maxPick Member(s)");
             }
             $targetPid = $prompt['target'] ?? $owner;
             $targetP = &$state['players'][$targetPid];
-            $moved = [];
-            foreach ($ids as $id) {
-                foreach ($targetP['waiting_room'] as $i => $c) {
-                    if (($c['instance_id'] ?? '') !== $id) continue;
-                    if (($c['card_type'] ?? '') !== 'メンバー') {
-                        throw new Exception('Selected cards must be Members');
-                    }
-                    $moved[] = $c;
-                    array_splice($targetP['waiting_room'], $i, 1);
-                    break;
-                }
+            $group = trim((string)($prompt['group'] ?? $ability['group'] ?? ''));
+            $filter = array_key_exists('filter', $prompt)
+                ? (string)$prompt['filter']
+                : (string)($ability['filter'] ?? 'member');
+            if ($ids === []) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . $srcName . '] put no cards on the bottom of the deck.');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishPromptEffects($state);
             }
-            if (count($moved) !== count($ids)) {
-                throw new Exception('Invalid Member selection');
-            }
-            $targetP['main_deck'] = array_merge($targetP['main_deck'], $moved);
+            $moved = nijiTakeWrCardsForDeckBottom($targetP, $ids, $group, $filter);
+            $targetP['main_deck'] = array_merge($targetP['main_deck'] ?? [], $moved);
+            $who = $state['players'][$targetPid]['name'] ?? 'that player';
             $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . $srcName . '] put ' . count($moved) . ' Member(s) on the bottom of ' .
-                $state['players'][$targetPid]['name'] . '\'s deck.');
+                ' — [' . $srcName . '] put ' . count($moved) . ' card(s) on the bottom of ' .
+                $who . '\'s deck.');
             unset($state['pending_prompt']);
             $state['seq']++;
             return finishPromptEffects($state);

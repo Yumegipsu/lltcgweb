@@ -3924,8 +3924,9 @@ function cpuResolveBranchPickPrompts(pr, cpu, tier, winPressure, read, s) {
 
   if (pr.type === 'player_choice_wr_members_deck_bottom') {
     if (pr.step === 'pick_members') {
+      const listed = (pr.candidates || []).filter(c => c?.instance_id);
       const target = s?.players?.[pr.target] || cpu;
-      const wr = (target.waiting_room || []).filter(c =>
+      const wr = listed.length ? listed : (target.waiting_room || []).filter(c =>
         c.card_type === 'メンバー' || c.card_type_en === 'Member'
       );
       const maxPick = pr.max_pick || 2;
@@ -3941,6 +3942,8 @@ function cpuResolveBranchPickPrompts(pr, cpu, tier, winPressure, read, s) {
       const pickIds = sorted.slice(0, n).map(c => c.instance_id).filter(Boolean);
       if (pickIds.length) {
         cpuAct('resolve_prompt', { card_ids: pickIds });
+      } else if (pr.up_to) {
+        cpuAct('resolve_prompt', { card_ids: [] });
       } else {
         cpuSchedulePromptRetryIfStuck(s, cpu);
       }

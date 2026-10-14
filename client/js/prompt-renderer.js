@@ -1438,7 +1438,7 @@ global.ensurePromptChoices = function ensurePromptChoices(pr){
   const step=pr.step||'';
   // Card-pick steps already cleared choices on the server — do not reinject Yes/No
   // (that softlocks Ginko / PB1 multi-step WR picks behind an empty choice dialog).
-  if(/^pick_wr/.test(step) || step==='pick_live' || step==='pick_member'
+  if(/^pick_wr/.test(step) || step==='pick_live' || step==='pick_member' || step==='pick_members'
       || step==='pick_hand' || step==='pick_slot' || step==='pick'
       || step==='pick_wait' || step==='pick_wait_member' || step==='pick_dest' || step==='assign'
       || step==='unstack' || step==='toggle'){
@@ -1488,6 +1488,7 @@ global.isBranchChoicePrompt = function isBranchChoicePrompt(pr){
   if(branchTypes.has(pr.type)){
     if(pr.type==='live_start_center_cost_choice'&&pr.step&&pr.step!=='pick_mode') return false;
     if(pr.type==='player_choice_wr_live_deck_bottom_draw'&&pr.step==='pick_wr_live') return false;
+    if(pr.type==='player_choice_wr_members_deck_bottom'&&pr.step==='pick_members') return false;
     // Do! Do! Do! CL: confirm is Yes/No pay; only step=pick is the mode branch.
     if(pr.type==='live_success_pay_choice_wr_add'&&pr.step!=='pick') return false;
     return true;
@@ -3071,6 +3072,13 @@ global.renderPrompt = function renderPrompt(s, myId){
       },
       forceConfirm: true,
     });
+    return;
+  }
+  // Shioriko / Nando Datte Yakusoku!: step 2 had no picker, so the prompt text
+  // showed with nothing to select (#279).
+  if(pr?.type==='player_choice_wr_members_deck_bottom'&&pr.step==='pick_members'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    openWrMembersDeckTopPick({...pr, pick_count:Number(pr.max_pick||2)||2, up_to: pr.up_to !== false});
     return;
   }
   // Rina (PL!N-bp3-009): step 2 of "put up to 2 Waiting Room Members on the bottom of your deck".
