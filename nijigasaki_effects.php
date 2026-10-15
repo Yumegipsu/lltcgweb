@@ -575,9 +575,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
                 foreach ($mbr['hearts'] ?? [] as $h) {
                     if (($h['color'] ?? '') === $memberColor) $cnt += intval($h['count'] ?? 1);
                 }
-                foreach ($mbr['bonus_hearts'] ?? [] as $c) {
-                    if ($c === $memberColor) $cnt++;
-                }
+                $cnt += memberBonusHeartCount($mbr, (string)$memberColor);
                 if ($cnt < $memberMin) continue;
                 $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
             }

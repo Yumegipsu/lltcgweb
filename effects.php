@@ -114,6 +114,11 @@ function mergeCardCatalogFields(array &$card): void {
             $card[$key] = $base[$key];
         }
     }
+    // Replay baselines store deck cards as id + card_no. Printed Blade is not a
+    // runtime bonus — fill it only when the copy never had the field (#280).
+    if (!array_key_exists('blade', $card) && array_key_exists('blade', $base)) {
+        $card['blade'] = $base['blade'];
+    }
     // Catalog may still omit subunit on older μ's prints — infer from character name (#230).
     if (empty($card['subunit']) && function_exists('inferMemberSubunitFromName')) {
         $inferred = inferMemberSubunitFromName($card);
@@ -2206,6 +2211,33 @@ function liveRequiredHeartColorCount(array $live, string $color): int {
     return $n;
 }
 
+/**
+ * `bonus_hearts` entries are either a color string ("purple") or {color, count} (Keke Tang PL!SP-bp7 grants 2 at once).
+ * Every reader must go through these so a {color,count} entry never reaches an array key or a string compare.
+ */
+function bonusHeartEntryColor(mixed $bh): string {
+    return is_array($bh) ? (string)($bh['color'] ?? '') : (string)$bh;
+}
+
+function bonusHeartEntryCount(mixed $bh): int {
+    return is_array($bh) ? max(1, intval($bh['count'] ?? 1)) : 1;
+}
+
+/** Number of bonus hearts of $color (any color when ''), counting {color,count} entries by their count. */
+function memberBonusHeartCount(array $member, string $color = ''): int {
+    $n = 0;
+    foreach ($member['bonus_hearts'] ?? [] as $bh) {
+        $c = bonusHeartEntryColor($bh);
+        if ($c === '' || $c === 'draw') {
+            continue;
+        }
+        if ($color === '' || $c === $color) {
+            $n += bonusHeartEntryCount($bh);
+        }
+    }
+    return $n;
+}
+
 function memberContinuousHeartCount(array $member, array $state, string $pid): int {
     $n = 0;
     foreach ($member['bonus_hearts'] ?? [] as $bh) {
@@ -3349,7 +3381,7 @@ function countStageHearts(array $p): int {
         foreach ($m['hearts'] ?? [] as $hg) {
             $n += intval($hg['count'] ?? 1);
         }
-        $n += count($m['bonus_hearts'] ?? []);
+        $n += memberBonusHeartCount($m);
     }
     return $n;
 }
@@ -6341,7 +6373,7 @@ function countPrintedMemberHearts(array $member): int {
 }
 
 function countTotalMemberHearts(array $member): int {
-    return countPrintedMemberHearts($member) + count($member['bonus_hearts'] ?? []);
+    return countPrintedMemberHearts($member) + memberBonusHeartCount($member);
 }
 
 function stageHasMemberWithExtraHearts(array $p): bool {

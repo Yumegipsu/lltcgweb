@@ -48,7 +48,8 @@ function batch99CountDistinctHeartColorsOnStage(array $p): int {
             $c = $h['color'] ?? '';
             if ($c !== '' && $c !== 'draw') $colors[$c] = true;
         }
-        foreach ($mbr['bonus_hearts'] ?? [] as $c) {
+        foreach ($mbr['bonus_hearts'] ?? [] as $bh) {
+            $c = bonusHeartEntryColor($bh);
             if ($c !== '' && $c !== 'draw') $colors[$c] = true;
         }
     }

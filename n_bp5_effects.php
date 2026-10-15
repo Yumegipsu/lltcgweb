@@ -171,7 +171,8 @@ function nBp5StageHasAllSixHeartColors(array $p): bool {
                 $found[$c] = true;
             }
         }
-        foreach ($mbr['bonus_hearts'] ?? [] as $c) {
+        foreach ($mbr['bonus_hearts'] ?? [] as $bh) {
+            $c = bonusHeartEntryColor($bh);
             if (in_array($c, $colors, true)) {
                 $found[$c] = true;
             }
@@ -882,7 +883,8 @@ function memberHasWildHeart(array $member): bool {
         $c = $h['color'] ?? '';
         if ($c === 'any' || $c === 'wild') return true;
     }
-    foreach ($member['bonus_hearts'] ?? [] as $c) {
+    foreach ($member['bonus_hearts'] ?? [] as $bh) {
+        $c = bonusHeartEntryColor($bh);
         if ($c === 'any' || $c === 'wild') return true;
     }
     return false;

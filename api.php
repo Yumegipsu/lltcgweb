@@ -5925,7 +5925,23 @@ function applyCpuStuckPromptTimeout(array &$state): bool {
 }
 
 /** Auto end main / live when PvP phase timers expire. Returns true if state changed. */
+/**
+ * Timeout resolution runs at the top of get_state and every action. A TypeError inside one skill's auto-resolve
+ * (room 97A834: Live with a smile! + Keke Tang hearts) made the whole room unreadable and even resign fail with
+ * HTTP 500, so a failure here is logged and the untouched state is served instead.
+ */
 function applyPhaseTimeouts(array &$state): bool {
+    $before = $state;
+    try {
+        return applyPhaseTimeoutsUnguarded($state);
+    } catch (Throwable $e) {
+        $state = $before;
+        error_log('applyPhaseTimeouts failed: ' . get_class($e) . ': ' . $e->getMessage() . ' @' . basename($e->getFile()) . ':' . $e->getLine());
+        return false;
+    }
+}
+
+function applyPhaseTimeoutsUnguarded(array &$state): bool {
     if (($state['status'] ?? '') === 'finished') {
         return false;
     }

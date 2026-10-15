@@ -57,9 +57,7 @@ function spBp5CountStageGroupHearts(array $p, string $group): int {
         foreach ($mbr['hearts'] ?? [] as $h) {
             $total += intval($h['count'] ?? 1);
         }
-        foreach ($mbr['bonus_hearts'] ?? [] as $c) {
-            if ($c !== '') $total++;
-        }
+        $total += memberBonusHeartCount($mbr);
     }
     return $total;
 }

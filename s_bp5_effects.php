@@ -44,9 +44,7 @@ function sBp5CountStageHeartColor(array $p, string $color): int {
                 $total += intval($h['count'] ?? 1);
             }
         }
-        foreach ($mbr['bonus_hearts'] ?? [] as $c) {
-            if ($c === $color) $total++;
-        }
+        $total += memberBonusHeartCount($mbr, (string)$color);
     }
     return $total;
 }

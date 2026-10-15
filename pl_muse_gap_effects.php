@@ -77,11 +77,7 @@ function plMuseGapMemberHeartsOfColor(array $member, string $color): int {
             $n += intval($hg['count'] ?? 1);
         }
     }
-    foreach ($member['bonus_hearts'] ?? [] as $c) {
-        if ($c === $color) {
-            $n++;
-        }
-    }
+    $n += memberBonusHeartCount($member, (string)$color);
     return $n;
 }
 
