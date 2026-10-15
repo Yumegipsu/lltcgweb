@@ -290,4 +290,101 @@ final class HonokaBp3001ActivateMembersPickTest extends TestCase
             unset($GLOBALS['TUT_PERF_MANUAL_PHASES']);
         }
     }
+
+    /**
+     * #282: one Member in Wait must still offer activate-or-skip.
+     * "Activate up to 1" is optional even when there is nothing to choose between.
+     */
+    public function testSingleWaitMemberStillOffersSkip(): void
+    {
+        $honoka = $this->cardByNo('PL!-bp3-001-R', 'honoka');
+        $eli = $this->waited($this->cardByNo('PL!-bp3-002-R', 'eli'));
+        $this->assertTrue(!empty($honoka['abilities'][1]['up_to']));
+
+        $p1 = $this->emptyPlayer('p1', 'P1');
+        $p1['stage'] = [
+            'left' => $honoka,
+            'center' => $eli,
+            'right' => null,
+        ];
+        $p1['live_zone'] = [
+            [
+                'instance_id' => 'live1',
+                'card_type' => 'ライブ',
+                'card_type_en' => 'Live',
+                'name_en' => 'Test Live',
+                'group' => "μ's",
+                'abilities' => [],
+            ],
+        ];
+
+        $state = $this->baseState($p1);
+        $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true;
+        try {
+            $state = \resolveLiveStartAbilities($state, 'p1');
+            if (($state['pending_prompt']['type'] ?? '') === 'live_start_order_sources') {
+                $ids = array_map(
+                    static fn($c) => (string)($c['instance_id'] ?? ''),
+                    $state['pending_prompt']['candidates'] ?? []
+                );
+                $state = applyAction($state, 'p1', 'resolve_prompt', ['card_ids' => $ids]);
+            }
+
+            $this->assertSame('activate_members_pick', $state['pending_prompt']['type'] ?? null);
+            $this->assertTrue(!empty($state['pending_prompt']['up_to']));
+            $ids = array_map(
+                static fn($c) => (string)($c['instance_id'] ?? ''),
+                $state['pending_prompt']['candidates'] ?? []
+            );
+            $this->assertSame(['eli'], $ids);
+
+            $state = applyAction($state, 'p1', 'resolve_prompt', ['choice' => 'skip']);
+            $this->assertTrue(memberIsInWait($state['players']['p1']['stage']['center']));
+        } finally {
+            unset($GLOBALS['TUT_PERF_MANUAL_PHASES']);
+        }
+    }
+
+    public function testSingleWaitMemberCanStillBeChosen(): void
+    {
+        $honoka = $this->cardByNo('PL!-bp3-001-R', 'honoka');
+        $eli = $this->waited($this->cardByNo('PL!-bp3-002-R', 'eli'));
+
+        $p1 = $this->emptyPlayer('p1', 'P1');
+        $p1['stage'] = [
+            'left' => $honoka,
+            'center' => $eli,
+            'right' => null,
+        ];
+        $p1['live_zone'] = [
+            [
+                'instance_id' => 'live1',
+                'card_type' => 'ライブ',
+                'card_type_en' => 'Live',
+                'name_en' => 'Test Live',
+                'group' => "μ's",
+                'abilities' => [],
+            ],
+        ];
+
+        $state = $this->baseState($p1);
+        $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true;
+        try {
+            $state = \resolveLiveStartAbilities($state, 'p1');
+            if (($state['pending_prompt']['type'] ?? '') === 'live_start_order_sources') {
+                $ids = array_map(
+                    static fn($c) => (string)($c['instance_id'] ?? ''),
+                    $state['pending_prompt']['candidates'] ?? []
+                );
+                $state = applyAction($state, 'p1', 'resolve_prompt', ['card_ids' => $ids]);
+            }
+            $this->assertSame('activate_members_pick', $state['pending_prompt']['type'] ?? null);
+
+            $state = applyAction($state, 'p1', 'resolve_prompt', ['member_id' => 'eli']);
+            $this->assertFalse(memberIsInWait($state['players']['p1']['stage']['center']));
+            $this->assertTrue(memberIsActiveForGame($state['players']['p1']['stage']['center']));
+        } finally {
+            unset($GLOBALS['TUT_PERF_MANUAL_PHASES']);
+        }
+    }
 }

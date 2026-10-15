@@ -166,11 +166,14 @@ function tryResolveAbilityEffectSwitchWaitActivate(
         case 'activate_members':
             $max = intval($ab['max'] ?? 1);
             $group = (string)($ab['group'] ?? '');
+            // "Up to N" (Honoka PL!-bp3-001 Live Start) may be declined. A single
+            // Member in Wait must still open the picker so Skip is available (#282).
+            $upTo = !empty($ab['up_to']);
             $candidates = listActivatableStageMembers($p, $group);
             if (empty($candidates)) {
                 break;
             }
-            if ($max <= 1 && count($candidates) === 1) {
+            if (!$upTo && $max <= 1 && count($candidates) === 1) {
                 $activated = activateStageMemberByInstanceId($p, (string)($candidates[0]['instance_id'] ?? ''));
                 if ($activated > 0) {
                     $state = addLog($state, $state['players'][$pid]['name'] .
@@ -178,7 +181,7 @@ function tryResolveAbilityEffectSwitchWaitActivate(
                 }
                 break;
             }
-            if ($max <= 1 && count($candidates) > 1) {
+            if ($max <= 1 && count($candidates) >= 1) {
                 // Nested open would overwrite an in-flight prompt and silently
                 // consume a Live Start that was already markResolved (#201).
                 if (!empty($state['pending_prompt'])) {
@@ -195,10 +198,15 @@ function tryResolveAbilityEffectSwitchWaitActivate(
                     'ability_index' => intval($ctx['ability_index'] ?? -1),
                     'candidates'    => $candidates,
                     'max'           => $max,
+                    'up_to'         => $upTo,
                     'group'         => $group,
-                    'prompt'        => $group !== ''
-                        ? "Choose 1 $group Member to activate."
-                        : 'Choose 1 Member to activate.',
+                    'prompt'        => $upTo
+                        ? ($group !== ''
+                            ? "Choose up to 1 $group Member to activate."
+                            : 'Choose up to 1 Member to activate.')
+                        : ($group !== ''
+                            ? "Choose 1 $group Member to activate."
+                            : 'Choose 1 Member to activate.'),
                     'ability'       => $ab,
                     'live_start'    => ($ctx['phase'] ?? '') === 'live_start'
                         || ($state['phase'] ?? '') === 'live_start_effects',
