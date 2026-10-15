@@ -3074,12 +3074,44 @@ global.renderPrompt = function renderPrompt(s, myId){
     });
     return;
   }
-  // Shioriko / Nando Datte Yakusoku!: step 2 had no picker, so the prompt text
-  // showed with nothing to select (#279).
-  if(pr?.type==='player_choice_wr_members_deck_bottom'&&pr.step==='pick_members'&&pr.responder===myId){
-    ovl.classList.remove('open');
-    openWrMembersDeckTopPick({...pr, pick_count:Number(pr.max_pick||2)||2, up_to: pr.up_to !== false});
-    return;
+  // Nando Datte Yakusoku! / Shioriko step 2. A text-only dialog has no cards
+  // to click (#279). Open the Waiting Room picker whenever this is the pick,
+  // including when step was dropped but the server still sent candidates.
+  if(pr?.type==='player_choice_wr_members_deck_bottom'&&pr.responder===myId
+      &&pr.step!=='pick_player'
+      &&!(Array.isArray(pr.choices)&&pr.choices.includes('self')&&pr.step!=='pick_members')){
+    const listed=(pr.candidates||[]).filter(c=>c&&c.instance_id);
+    const ownerId=(pr.target==='p1'||pr.target==='p2')?pr.target:myId;
+    const owner=s?.players?.[ownerId]||{};
+    const group=pr.group||pr.wr_pick_cfg?.group||pr.ability?.group||'';
+    const catalogGroup=(c)=>{
+      if(c?.group) return c.group;
+      const no=c?.card_no;
+      if(!no||typeof G==='undefined'||!G.allCards) return '';
+      const ascii=String(no).replace(/＋/g,'+');
+      const fullwidth=ascii.replace(/\+/g,'＋');
+      const base=G.allCards[no]||G.allCards[ascii]||G.allCards[fullwidth];
+      return base?.group||'';
+    };
+    const fromZones=listed.length?listed:[...(owner.waiting_room||[]),...(owner._pending_yell_wr||[])].filter(c=>{
+      if(!c?.instance_id) return false;
+      const g=catalogGroup(c);
+      if(!group) return c.card_type==='メンバー'||c.card_type_en==='Member';
+      return g===group||(group==='Sunshine'&&g==='Aqours')||(group==='Aqours'&&g==='Sunshine');
+    });
+    if(pr.step==='pick_members'||listed.length||fromZones.length){
+      ovl.classList.remove('open');
+      closeM('overlay-pick');
+      const grid=el('pick-grid');
+      if(grid) grid.classList.remove('pick-grid-order');
+      openWrToHandPick({
+        ...pr,
+        candidates: fromZones,
+        pick_count:Number(pr.max_pick||pr.pick_count||2)||2,
+        up_to: pr.up_to !== false,
+      }, { state:s, myId });
+      return;
+    }
   }
   // Rina (PL!N-bp3-009): step 2 of "put up to 2 Waiting Room Members on the bottom of your deck".
   // This step had no screen, so it fell through to a bare Yes/No and the skill never resolved (#270).

@@ -94,6 +94,9 @@ final class Issue279NandoDatteDeckBottomTest extends TestCase
         $this->assertArrayNotHasKey('choices', $pr);
         $ids = array_column($pr['candidates'] ?? [], 'instance_id');
         $this->assertSame(['ruby', 'train', 'yelled-ruby'], $ids);
+        $this->assertNotSame('', $pr['candidates'][0]['image'] ?? '');
+        $this->assertSame('Sunshine', $pr['wr_pick_cfg']['group'] ?? null);
+        $this->assertSame('', $pr['wr_pick_cfg']['filter'] ?? null);
 
         $state = nijiHandlePrompt($state, $pr['type'], $pr, '', ['card_ids' => ['train', 'ruby']]);
         $this->assertNull($state['pending_prompt'] ?? null);
@@ -103,6 +106,23 @@ final class Issue279NandoDatteDeckBottomTest extends TestCase
         $this->assertSame(['kotori'], $wrIds);
         $yellIds = array_column($state['players']['p1']['_pending_yell_wr'], 'instance_id');
         $this->assertSame(['yelled-ruby'], $yellIds);
+    }
+
+    public function testWaitingRoomStubStillMatchesAqours(): void
+    {
+        $live = $this->cardByNo('PL!S-bp7-019-L', 'nando');
+        $stub = [
+            'instance_id' => 'stub-ruby',
+            'card_no' => 'PL!S-bp7-018-N',
+        ];
+        $state = $this->state([$stub], [], []);
+        $state = nijiResolveNijigasakiEffect($state, 'p1', $live, $this->ability($live, 'player_choice_wr_members_deck_bottom'), []);
+        $pr = $state['pending_prompt'] ?? null;
+        $this->assertIsArray($pr);
+        $this->assertSame('pick_members', $pr['step'] ?? null);
+        $this->assertSame(['stub-ruby'], array_column($pr['candidates'] ?? [], 'instance_id'));
+        $this->assertSame('Sunshine', $pr['candidates'][0]['group'] ?? null);
+        $this->assertNotSame('', $pr['candidates'][0]['image'] ?? '');
     }
 
     public function testSkippingPutsNothingOnTheDeck(): void

@@ -352,12 +352,17 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
                     'owner'         => $pid,
                     'responder'     => $pid,
                     'target'        => $pid,
+                    'source_id'     => $source['instance_id'] ?? '',
                     'source_name'   => $name,
                     'candidates'    => array_map('cardPromptSummary', $cards),
                     'max_pick'      => $maxPick,
                     'up_to'         => true,
                     'group'         => $group,
                     'filter'        => $filter,
+                    'wr_pick_cfg'   => [
+                        'group'  => $group,
+                        'filter' => $filter,
+                    ],
                     'ability'       => $ab,
                     'prompt'        => 'Choose up to ' . $maxPick . ' ' . $label .
                         ' card(s) from your Waiting Room for the bottom of your deck. ' .

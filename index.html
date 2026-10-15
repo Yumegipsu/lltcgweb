@@ -3336,7 +3336,7 @@ try {
 <script src="client/js/stamps.js?v=21"></script>
 <script src="client/js/replay-debug.js?v=15"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
-<script src="client/js/prompt-renderer.js?v=117"></script>
+<script src="client/js/prompt-renderer.js?v=118"></script>
 <script src="client/js/tutorial-interactive.js?v=26"></script>
 <!-- Early auth guard: separate script so a main-bundle parse error cannot leave auth stuck forever. -->
 <script>
@@ -32057,7 +32057,10 @@ function wrPickOwnerId(pr, myId) {
 
 function wrToHandPickCards(pr, s, myId) {
   const wrOwner = wrPickOwnerId(pr, myId);
-  const wr = s?.players?.[wrOwner]?.waiting_room || [];
+  const owner = s?.players?.[wrOwner] || {};
+  // Yell cards sit in _pending_yell_wr until the Live ends. Nando Datte
+  // Yakusoku! can put those on the deck bottom too (#279).
+  const wr = [...(owner.waiting_room || []), ...(owner._pending_yell_wr || [])];
   const byId = new Map(wr.map(c => [c.instance_id, c]));
   const seed = (pr.candidates || []).length ? pr.candidates : wr;
   return seed.map(c => {

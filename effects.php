@@ -109,7 +109,7 @@ function mergeCardCatalogFields(array &$card): void {
         }
         $card[$oracleKey] = $base[$oracleKey];
     }
-    foreach (['group', 'cost', 'card_type', 'card_type_en', 'name', 'name_en', 'subunit'] as $key) {
+    foreach (['group', 'cost', 'card_type', 'card_type_en', 'name', 'name_en', 'subunit', 'image'] as $key) {
         if (empty($card[$key]) && !empty($base[$key])) {
             $card[$key] = $base[$key];
         }
