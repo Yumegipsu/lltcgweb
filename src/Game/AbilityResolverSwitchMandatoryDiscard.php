@@ -23,6 +23,13 @@ function tryResolveAbilityEffectSwitchMandatoryDiscard(
         case 'live_score_bonus_if_min_energy':
         case 'mandatory_discard_look_reveal':
             if (!empty($state['pending_prompt'])) break;
+            // The discard is the cost: with too few cards in hand it cannot be paid, so the effect simply does not happen
+            // (a required prompt with nothing to pick would freeze the match).
+            if (count($p['hand'] ?? []) < max(1, intval($ab['discard'] ?? 1))) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] no card in hand to put into the Waiting Room.");
+                break;
+            }
             $state['pending_prompt'] = [
                 'type'          => 'mandatory_discard_look_reveal',
                 'owner'         => $pid,

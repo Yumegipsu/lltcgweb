@@ -2677,7 +2677,8 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             $state = addLog($state, $state['players'][$owner]['name'] .
                 " — [" . ($prompt['source_name'] ?? 'Member') . "] paid $cost Energy (Live Start).");
         } elseif ($choice === 'discard') {
-            $need = intval($prompt['discard_count'] ?? 2);
+            // "Unless you pay, put N cards": with fewer than N cards in hand you put what you have (Kanon softlock #284).
+            $need = min(intval($prompt['discard_count'] ?? 2), count($ownerP['hand'] ?? []));
             $ids = $data['discard_ids'] ?? [];
             if (count($ids) !== $need) {
                 throw new Exception("Must select exactly $need card(s) to discard");

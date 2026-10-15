@@ -1906,7 +1906,8 @@ function promptDiscardCount(pr, choice){
   if(pr.type==='optional_discard_blade_per_card') {
     return pr.max_discard || pr.ability?.max_discard || 2;
   }
-  if(pr.type==='live_start_pay_or_discard'&&choice==='discard') return pr.discard_count||2;
+  // Fewer cards in hand than asked: put what you have (the effect cannot ask for more than exists).
+  if(pr.type==='live_start_pay_or_discard'&&choice==='discard') return Math.min(pr.discard_count||2, ((G.gameState?.players?.[G.playerId]?.hand)||[]).length);
   if(pr.type==='live_start_unless_discard_return_energy'&&choice==='discard') return pr.discard_count||1;
   if(pr.type==='mandatory_discard_group_branch') return pr.discard_count||pr.max_pick||1;
   if(pr.type==='optional_discard_prompt'){
