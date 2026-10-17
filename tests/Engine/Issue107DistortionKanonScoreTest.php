@@ -216,4 +216,58 @@ final class Issue107DistortionKanonScoreTest extends TestCase
         );
         $this->assertSame(1, intval($state['live_modifiers']['p1']['score_bonus'] ?? 0));
     }
+
+    /**
+     * Umi PL!-bp6-013-N sums Success Live scores. Arashi (score 5) is 6 while her
+     * Always +1 is active. Refs #287.
+     */
+    public function testUmiCountsArashiSuccessScoreAsSix(): void
+    {
+        $data = json_decode((string) file_get_contents((string) constant('CARDS_FILE')), true);
+        $byNo = [];
+        foreach ($data['cards'] as $c) {
+            $byNo[$c['card_no']] = $c;
+        }
+        $take = static function (array $byNo, string $no, string $id): array {
+            $c = $byNo[$no];
+            $c['instance_id'] = $id;
+            $c['active'] = true;
+            return $c;
+        };
+        $umi = $take($byNo, 'PL!-bp6-013-N', 'umi');
+        $arashi = $take($byNo, 'PL!-pb2-038-L', 'ar');
+        $wr = $take($byNo, 'PL!-pb2-038-L', 'wr');
+        $empty = ['left' => null, 'center' => null, 'right' => null];
+        $state = [
+            'status' => 'playing', 'phase' => 'main_first', 'turn' => 4,
+            'active_player' => 'p1', 'first_player' => 'p1', 'seq' => 1,
+            'log' => [], 'live_modifiers' => [],
+            'players' => [
+                'p1' => [
+                    'id' => 'p1', 'name' => 'A',
+                    'stage' => [
+                        'left' => null,
+                        'center' => $take($byNo, 'PL!-bp6-003-P', 'k'),
+                        'right' => $take($byNo, 'PL!-sd1-005-SD', 'o'),
+                    ],
+                    'hand' => [], 'waiting_room' => [$wr], 'main_deck' => [],
+                    'energy_zone' => [], 'live_zone' => [], 'success_lives' => [$arashi],
+                ],
+                'p2' => [
+                    'id' => 'p2', 'name' => 'B', 'stage' => $empty, 'hand' => [],
+                    'waiting_room' => [], 'main_deck' => [], 'energy_zone' => [],
+                    'live_zone' => [], 'success_lives' => [],
+                ],
+            ],
+        ];
+        $this->assertSame(6, \sumSuccessLiveScores($state['players']['p1'], $state, 'p1'));
+        $out = \plMuseGapResolveEffect($state, 'p1', $umi, $umi['abilities'][0], ['slot' => 'left']);
+        $this->assertSame('pick_wr_to_hand', $out['pending_prompt']['type'] ?? null);
+        $this->assertCount(1, $out['pending_prompt']['candidates'] ?? []);
+
+        $state['players']['p1']['stage']['left'] = $take($byNo, 'PL!-sd1-002-SD', 'u');
+        $this->assertSame(5, \sumSuccessLiveScores($state['players']['p1'], $state, 'p1'));
+        $blocked = \plMuseGapResolveEffect($state, 'p1', $umi, $umi['abilities'][0], ['slot' => 'center']);
+        $this->assertArrayNotHasKey('pending_prompt', $blocked);
+    }
 }

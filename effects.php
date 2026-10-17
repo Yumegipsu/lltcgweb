@@ -3726,9 +3726,51 @@ function sumStageMemberCost(array $p, ?array $state = null, ?string $pid = null)
     return $n;
 }
 
+/**
+ * Non-stacking +score from a Success Live whose Always text adds score while
+ * the Stage holds exactly N members of one group (Arashi no Naka no Koi Dakara).
+ * That +1 is part of the card's score in Success Live for "sum of scores" checks.
+ */
+function successZoneExactStageScoreBonus(array $p): int {
+    foreach ($p['success_lives'] ?? [] as $c) {
+        if (!$c || !is_array($c)) {
+            continue;
+        }
+        mergeCardCatalogFields($c);
+        foreach ($c['abilities'] ?? [] as $ab) {
+            if (($ab['trigger'] ?? '') !== 'continuous') {
+                continue;
+            }
+            if (($ab['type'] ?? '') !== 'live_score_if_exactly_group_members_on_stage') {
+                continue;
+            }
+            $whileIn = $ab['while_in'] ?? ['live_zone', 'success_lives'];
+            if (!in_array('success_lives', $whileIn, true)) {
+                continue;
+            }
+            $onStage = array_values(array_filter($p['stage'] ?? [], static fn($m) => !empty($m)));
+            $group = (string) ($ab['group'] ?? '');
+            $ok = count($onStage) === intval($ab['exact_count'] ?? 2);
+            foreach ($onStage as $m) {
+                if (($m['group'] ?? '') !== $group) {
+                    $ok = false;
+                }
+            }
+            if ($ok) {
+                return intval($ab['amount'] ?? 1);
+            }
+        }
+    }
+    return 0;
+}
+
 function sumSuccessLiveScores(array $p, ?array $state = null, ?string $pid = null): int {
     $sum = 0;
     foreach ($p['success_lives'] ?? [] as $c) {
+        if (!$c || !is_array($c)) {
+            continue;
+        }
+        mergeCardCatalogFields($c);
         $score = intval($c['score'] ?? 0);
         if ($state !== null && $pid !== null) {
             foreach ($c['abilities'] ?? [] as $ab) {
@@ -3747,7 +3789,7 @@ function sumSuccessLiveScores(array $p, ?array $state = null, ?string $pid = nul
         }
         $sum += $score;
     }
-    return $sum;
+    return $sum + successZoneExactStageScoreBonus($p);
 }
 
 function liveZoneHasPlainLive(array $liveZone): bool {

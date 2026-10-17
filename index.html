@@ -30710,13 +30710,35 @@ function tcgClientCountOppWait(state, pid) {
   return Object.values(state?.players?.[opp]?.stage || {}).filter(m => m && m.in_wait).length;
 }
 
+/** Non-stacking Success Live +score (Arashi) while the Stage is exactly N of one group. */
+function tcgClientSuccessExactStageScoreBonus(p) {
+  let bonus = 0;
+  for (const raw of p?.success_lives || []) {
+    if (!raw) continue;
+    const c = typeof enrichCard === 'function' ? enrichCard(raw) : raw;
+    for (const ab of c.abilities || []) {
+      if ((ab.trigger || '') !== 'continuous') continue;
+      if (ab.type !== 'live_score_if_exactly_group_members_on_stage') continue;
+      const zones = ab.while_in || ['live_zone', 'success_lives'];
+      if (!zones.includes('success_lives')) continue;
+      const onStage = Object.values(p.stage || {}).filter(Boolean);
+      const group = ab.group || '';
+      const ok = onStage.length === Number(ab.exact_count ?? 2)
+        && onStage.every(m => (m.group || '') === group);
+      if (ok) return Number(ab.amount ?? 1);
+    }
+  }
+  return bonus;
+}
+
 /** Mirror PHP sumSuccessLiveScores (incl. success_self_score_bonus Always on Lives). */
 function tcgClientSumSuccessLiveScores(state, pid) {
   const p = state?.players?.[pid];
   if (!p) return 0;
   let sum = 0;
-  (p.success_lives || []).forEach((c) => {
-    if (!c) return;
+  (p.success_lives || []).forEach((raw) => {
+    if (!raw) return;
+    const c = typeof enrichCard === 'function' ? enrichCard(raw) : raw;
     let score = Number(c.score || 0);
     (c.abilities || []).forEach((ab) => {
       if ((ab.trigger || '') !== 'continuous') return;
@@ -30727,7 +30749,7 @@ function tcgClientSumSuccessLiveScores(state, pid) {
     });
     sum += score;
   });
-  return sum;
+  return sum + tcgClientSuccessExactStageScoreBonus(p);
 }
 
 function appendClientHeartSpecColors(out, spec) {
