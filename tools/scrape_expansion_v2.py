@@ -115,11 +115,17 @@ def _parse_blade_hearts(blade_heart: str, attack: str, card_kind: str) -> tuple[
         return blade_hearts, blade_value
 
     # Lives / other: attack may be ALL1 / 黄1 / 無2 / -
+    # 無2 is the double-colorless blade icon (two wild Yell hearts). Matching it as
+    # 無 + a discarded count stored one gray heart (PL!-pb2-039-L, #288).
     atk = (attack or "").strip()
     if atk.upper().startswith("ALL") or "全" in atk:
         blade_hearts.append("all_blades")
     else:
-        for color_jp, _n in re.findall(r"([赤青黄緑桃紫無])(\d+)", atk):
+        atk_rest = atk
+        while "無2" in atk_rest:
+            blade_hearts.append("all2")
+            atk_rest = atk_rest.replace("無2", "", 1)
+        for color_jp, _n in re.findall(r"([赤青黄緑桃紫無])(\d+)", atk_rest):
             color = _COLOR_JP.get(color_jp)
             if color and color not in blade_hearts:
                 blade_hearts.append(color)
