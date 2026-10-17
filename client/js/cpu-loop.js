@@ -2504,10 +2504,11 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
     const waitCands = (waitAb && typeof pb2DistinctSubunitWaitCandidates === 'function')
       ? pb2DistinctSubunitWaitCandidates(cpu, waitAb)
       : [];
-    const waitOpts = (waitAb && waitCands.length >= waitNeed)
-      ? {
-          pb2_wait_slots: waitCands.slice(0, waitNeed).map(x => x.slot).filter(Boolean),
-        }
+    const waitSlots = (typeof pb2PickDistinctWaitSlots === 'function')
+      ? pb2PickDistinctWaitSlots(waitCands, waitNeed)
+      : [];
+    const waitOpts = (waitAb && waitSlots.length >= waitNeed)
+      ? { pb2_wait_slots: waitSlots }
       : {};
     let playEc = ec;
     if (shuffleOpts.bp7_shuffle_wr_members) {
@@ -2519,9 +2520,14 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
     const playCostOptsFor = (slot) => {
       const opts = Object.assign({}, shuffleOpts);
       if (!waitAb || shuffleOpts.bp7_shuffle_wr_members) return opts;
-      const usable = waitCands.filter(x => x.slot && x.slot !== slot);
-      if (usable.length < waitNeed) return opts;
-      opts.pb2_wait_slots = usable.slice(0, waitNeed).map(x => x.slot);
+      const usable = (typeof pb2ExcludeLeavingWaitCandidates === 'function')
+        ? pb2ExcludeLeavingWaitCandidates(waitCands, slot)
+        : waitCands.filter(x => x.slot && x.slot !== slot);
+      const slots = (typeof pb2PickDistinctWaitSlots === 'function')
+        ? pb2PickDistinctWaitSlots(usable, waitNeed)
+        : [];
+      if (slots.length < waitNeed) return opts;
+      opts.pb2_wait_slots = slots;
       return opts;
     };
     const preferCenter = read && tier !== 'easy' && (c.blade || 0) >= (read.strongestActive?.blade || 0);

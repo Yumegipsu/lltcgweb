@@ -164,4 +164,83 @@ final class Issue234KotoriPlayCostOptTest extends TestCase
             'slot' => 'center',
         ]);
     }
+
+    /**
+     * #286: two Stage copies share a name. Baton Touch removes one, and the
+     * other copy plus a differently named Printemps still pay the −2.
+     */
+    public function testBatonOverOneSameNameCopyStillDiscounts(): void
+    {
+        $kotori = $this->cardByNo('PL!-pb2-012-R', 'kotori_hand');
+        $leave = $this->cardByNo('PL!-bp3-003-P', 'kotori_leave');
+        $stay = $this->cardByNo('PL!-bp3-003-R', 'kotori_stay');
+        $hanayo = $this->cardByNo('PL!-bp3-008-P', 'hanayo');
+        $this->assertSame(
+            strtolower((string)$leave['name_en']),
+            strtolower((string)$stay['name_en'])
+        );
+
+        $state = [
+            'status' => 'playing',
+            'phase' => 'main_first',
+            'seq' => 1,
+            'turn' => 2,
+            'first_player' => 'p1',
+            'active_player' => 'p1',
+            'log' => [],
+            'players' => [
+                'p1' => [
+                    'id' => 'p1',
+                    'name' => 'P1',
+                    'hand' => [$kotori],
+                    'waiting_room' => [],
+                    'stage' => [
+                        'left' => $leave,
+                        'center' => $hanayo,
+                        'right' => $stay,
+                    ],
+                    // 13 − 11 Baton − 2 Wait discount = 0. No Active Energy.
+                    'energy_zone' => [],
+                    'main_deck' => [],
+                    'energy_deck' => [],
+                    'live_zone' => [],
+                    'success_lives' => [],
+                ],
+                'p2' => [
+                    'id' => 'p2',
+                    'name' => 'P2',
+                    'hand' => [],
+                    'waiting_room' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'energy_zone' => [],
+                    'main_deck' => [],
+                    'energy_deck' => [],
+                    'live_zone' => [],
+                    'success_lives' => [],
+                ],
+            ],
+        ];
+
+        $state = actionPlayMember($state, 'p1', [
+            'card_id' => 'kotori_hand',
+            'slot' => 'left',
+            'baton_id' => 'kotori_leave',
+            'pb2_wait_slots' => ['center', 'right'],
+        ]);
+
+        $stage = $state['players']['p1']['stage'];
+        $this->assertSame('kotori_hand', $stage['left']['instance_id'] ?? null);
+        $this->assertTrue(memberIsInWait($stage['center']));
+        $this->assertTrue(memberIsInWait($stage['right']));
+        $log = implode("\n", array_map(
+            static fn($row) => (string)($row['msg'] ?? ''),
+            $state['log'] ?? []
+        ));
+        $this->assertStringContainsString('Waited 2 Printemps Members; play cost reduced by 2', $log);
+        $deckIds = array_map(
+            static fn($c) => (string)($c['instance_id'] ?? ''),
+            $state['players']['p1']['main_deck'] ?? []
+        );
+        $this->assertContains('kotori_leave', $deckIds);
+    }
 }

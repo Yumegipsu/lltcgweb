@@ -30194,9 +30194,11 @@ function playCostAfterPb2WaitOpt(card, me, baseEc, excludeSlot = null) {
   const ab = cardPb2WaitDistinctPlayOpt(card);
   if (!ab) return baseEc;
   const need = Math.max(1, Number(ab.wait_count || 2) || 2);
-  let cands = pb2DistinctSubunitWaitCandidates(me, ab);
-  if (excludeSlot) cands = cands.filter(c => c.slot !== excludeSlot);
-  if (cands.length < need) return baseEc;
+  const cands = pb2ExcludeLeavingWaitCandidates(
+    pb2DistinctSubunitWaitCandidates(me, ab),
+    excludeSlot
+  );
+  if (pb2DistinctWaitNameCount(cands) < need) return baseEc;
   return Math.max(0, baseEc - Number(ab.reduce || 2));
 }
 /** Best legal play cost for affordability UI (optional WR-shuffle / Wait-Printemps). */
@@ -30318,10 +30320,22 @@ function pb2CardMatchesSubunit(card, subunit) {
   }
   return false;
 }
+function pb2MemberPrintedName(m) {
+  let nm = String(m?.name_en || m?.name || '').trim();
+  if (!nm) {
+    const no = m?.card_no;
+    const cat = (typeof clientCatalogCardByNo === 'function')
+      ? clientCatalogCardByNo(no)
+      : ((typeof G !== 'undefined' && no) ? G.allCards?.[no] : null);
+    nm = String(cat?.name_en || cat?.name || '').trim();
+  }
+  return nm.toLowerCase();
+}
 function pb2DistinctSubunitWaitCandidates(me, ab) {
+  // Keep every copy. Collapsing by name first drops the sibling when the kept
+  // copy is the one leaving via Baton Touch, so the discount prompt never opens (#286).
   const subunit = ab?.subunit || 'Printemps';
   const out = [];
-  const seenNames = new Set();
   for (const [slot, m] of Object.entries(me?.stage || {})) {
     if (!m) continue;
     const waiting = typeof memberInWait === 'function'
@@ -30329,26 +30343,59 @@ function pb2DistinctSubunitWaitCandidates(me, ab) {
       : !!(m.in_wait || m.active === false);
     if (waiting) continue;
     if (!pb2CardMatchesSubunit(m, subunit)) continue;
-    const nm = String(m.name_en || m.name || '').toLowerCase().trim();
-    if (!nm || seenNames.has(nm)) continue;
-    seenNames.add(nm);
-    out.push(Object.assign({}, m, { slot }));
+    const nm = pb2MemberPrintedName(m);
+    if (!nm) continue;
+    out.push(Object.assign({}, m, { slot, _pb2_wait_name: nm }));
   }
   return out;
+}
+function pb2ExcludeLeavingWaitCandidates(cands, exclude) {
+  if (!exclude) return cands || [];
+  const slot = typeof exclude === 'string' ? exclude : (exclude.slot || '');
+  const leave = new Set();
+  if (typeof exclude === 'object') {
+    if (exclude.baton_id) leave.add(String(exclude.baton_id));
+    if (exclude.baton_id2) leave.add(String(exclude.baton_id2));
+  }
+  return (cands || []).filter(c => {
+    if (slot && c.slot === slot) return false;
+    if (leave.size && leave.has(String(c.instance_id || ''))) return false;
+    return true;
+  });
+}
+function pb2DistinctWaitNameCount(cands) {
+  const names = new Set();
+  for (const c of cands || []) {
+    const nm = c?._pb2_wait_name || pb2MemberPrintedName(c);
+    if (nm) names.add(nm);
+  }
+  return names.size;
+}
+function pb2PickDistinctWaitSlots(cands, need) {
+  const picked = [];
+  const seen = new Set();
+  for (const c of cands || []) {
+    const nm = c?._pb2_wait_name || pb2MemberPrintedName(c);
+    if (!nm || seen.has(nm) || !c?.slot) continue;
+    seen.add(nm);
+    picked.push(c.slot);
+    if (picked.length >= need) return picked;
+  }
+  return [];
 }
 function sendPlayMemberMaybePb2WaitOpt(card, payload, me, ec, payCost = null) {
   // Prefer catalog abilities so Kotori Always discount is visible even if the
   // room copy was dealt before the oracle fix (#246).
   const playCard = (typeof enrichCard === 'function') ? enrichCard(card) : card;
   const ab = cardPb2WaitDistinctPlayOpt(playCard);
-  let cands = ab ? pb2DistinctSubunitWaitCandidates(me, ab) : [];
-  // Exclude the Stage area being entered (Baton / overplay target).
-  if (payload?.slot) {
-    cands = cands.filter(c => c.slot !== payload.slot);
-  }
+  // Drop whoever is leaving (Baton / overplay) before counting distinct names (#286).
+  const cands = pb2ExcludeLeavingWaitCandidates(
+    ab ? pb2DistinctSubunitWaitCandidates(me, ab) : [],
+    payload
+  );
   const need = Math.max(1, Number(ab?.wait_count || 2) || 2);
   const basePay = payCost != null ? Number(payCost) : Number(ec || 0);
-  if (!ab || cands.length < need) {
+  if (!ab || pb2DistinctWaitNameCount(cands) < need) {
     sendAct('play_member', payload);
     return;
   }
@@ -30388,7 +30435,7 @@ function sendPlayMemberMaybePb2WaitOpt(card, payload, me, ec, payCost = null) {
 function openPb2PlayWaitPrintempsPick(card, payload, me, cands, need, reduced, basePay, ae) {
   G.pickMarked.clear();
   const slotById = new Map(cands.map(c => [c.instance_id, c.slot]));
-  const nameById = new Map(cands.map(c => [c.instance_id, String(c.name_en || c.name || '').toLowerCase().trim()]));
+  const nameById = new Map(cands.map(c => [c.instance_id, c._pb2_wait_name || pb2MemberPrintedName(c)]));
   G.pickCtx = {
     count: need,
     min: need,
@@ -37178,7 +37225,7 @@ function mkNoImg(card){
 <script src="client/js/cpu-meta-weights.js?v=7"></script>
 <script src="client/js/cpu-eval.js?v=8"></script>
 <script src="client/js/cpu-expert.js?v=8"></script>
-<script src="client/js/cpu-loop.js?v=52"></script>
+<script src="client/js/cpu-loop.js?v=53"></script>
 <script src="client/js/cpu-ai.js?v=14"></script>
 <script src="client/js/portrait-bridge.js?v=31"></script>
 <script src="client/js/match-chat.js?v=7"></script>
