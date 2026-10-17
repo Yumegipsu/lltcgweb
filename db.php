@@ -222,6 +222,13 @@ function tcgDbMigrate(PDO $db): void {
         tcgDbEnsureColumn($db, 'tcg_users', 'seal_pr', 'INTEGER NOT NULL DEFAULT 0');
     });
 
+    // dupe_reward lives in tcgDbMigrateBootstrap, which production never re-runs once
+    // bootstrap_v2 is set. The seals toggle then fails its UPDATE, and ranked / login /
+    // mission / tournament PR duplicates keep paying Star Gems.
+    tcgDbRunMigrationOnce($db, 'dupe_reward_column_20261017', function (PDO $db): void {
+        tcgDbMigrateDupeRewardColumn($db);
+    });
+
     // Per-mode ranked ELO + same-mode queues (Standard / Starters).
     tcgDbRunMigrationOnce($db, 'game_mode_rank_20260731', function (PDO $db): void {
         tcgDbMigrateGameModeRank($db);
@@ -903,6 +910,11 @@ function tcgDbEnsureTournamentSchema(PDO $db): void {
         ON tcg_tournament_replays(tournament_id, saved_at DESC)');
 }
 
+/** Account setting for max-copy duplicates. Safe to call on a DB that skipped bootstrap. */
+function tcgDbMigrateDupeRewardColumn(PDO $db): void {
+    tcgDbEnsureColumn($db, 'tcg_users', 'dupe_reward', "TEXT NOT NULL DEFAULT 'gems'");
+}
+
 function tcgDbEnsureColumn(PDO $db, string $table, string $column, string $definition): void {
     $safeTable = preg_replace('/[^a-z_]/', '', $table);
     $safeCol = preg_replace('/[^a-z_]/', '', $column);
@@ -1389,7 +1401,9 @@ function tcgNormalizeDupeReward(mixed $value): string {
  */
 function tcgGetDupeRewardPref(string $discordId): string {
     try {
-        $stmt = tcgDb()->prepare('SELECT dupe_reward FROM tcg_users WHERE discord_id = ?');
+        $db = tcgDb();
+        tcgDbMigrateDupeRewardColumn($db);
+        $stmt = $db->prepare('SELECT dupe_reward FROM tcg_users WHERE discord_id = ?');
         $stmt->execute([$discordId]);
         return tcgNormalizeDupeReward($stmt->fetchColumn());
     } catch (Throwable $e) {
@@ -1400,12 +1414,25 @@ function tcgGetDupeRewardPref(string $discordId): string {
 function tcgSetDupeRewardPref(string $discordId, mixed $value): string {
     $value = tcgNormalizeDupeReward($value);
     try {
-        tcgDb()->prepare("UPDATE tcg_users SET dupe_reward = ? WHERE discord_id = ? AND COALESCE(dupe_reward, 'gems') != ?")
+        $db = tcgDb();
+        tcgDbMigrateDupeRewardColumn($db);
+        $db->prepare("UPDATE tcg_users SET dupe_reward = ? WHERE discord_id = ? AND COALESCE(dupe_reward, 'gems') != ?")
             ->execute([$value, $discordId, $value]);
     } catch (Throwable $e) {
         error_log('tcgSetDupeRewardPref: ' . $e->getMessage());
     }
     return $value;
+}
+
+/**
+ * Booster and gacha sends the toggle. A request that omits it must not reset the
+ * account back to Star Gems (that wiped PR-pack seals for later server grants).
+ */
+function tcgResolveDupeRewardFromRequest(string $discordId, array $body): string {
+    if (!array_key_exists('dupe_reward', $body)) {
+        return tcgGetDupeRewardPref($discordId);
+    }
+    return tcgSetDupeRewardPref($discordId, $body['dupe_reward']);
 }
 
 function tcgApplyBoosterPullWithGems(string $discordId, array $cardNos, array $cardMap, string $dupeReward = 'gems'): array {

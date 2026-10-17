@@ -20,6 +20,40 @@ final class RankedPrRewardTest extends TestCase
         tcgEnsureUser($this->discordId, ['username' => 'Ranked PR Test']);
     }
 
+    public function testSavedSealsPreferenceSurvivesADatabaseThatSkippedBootstrap(): void
+    {
+        $db = tcgDb();
+        $db->exec('ALTER TABLE tcg_users DROP COLUMN dupe_reward');
+        $db->exec("DELETE FROM tcg_schema_meta WHERE key = 'dupe_reward_column_20261017'");
+        tcgDbRunMigrationOnce($db, 'dupe_reward_column_20261017', static function ($pdo): void {
+            tcgDbMigrateDupeRewardColumn($pdo);
+        });
+
+        tcgSetDupeRewardPref($this->discordId, 'seals');
+        $this->assertSame('seals', tcgGetDupeRewardPref($this->discordId));
+
+        $data = json_decode((string) file_get_contents(CARDS_FILE), true) ?: [];
+        $map = tcgBuildCardMap($data);
+        $pools = tcgBuildBoxPools($data, tcgPrCardPoolBox());
+        $counts = [];
+        foreach ($pools['PR'] ?? [] as $entry) {
+            $no = is_array($entry) ? (string) ($entry['card_no'] ?? '') : (string) $entry;
+            if ($no !== '') {
+                $counts[$no] = tcgGetDeckMaxCopies($map[$no] ?? null, $no);
+            }
+        }
+        $this->assertNotEmpty($counts);
+        tcgUpsertCollectionCounts($this->discordId, $counts);
+
+        $pack = tcgGrantPrPackCards($this->discordId, 2);
+        $this->assertSame('seals', $pack['dupe_reward']);
+        $this->assertSame(0, $pack['star_gems_earned']);
+        foreach ($pack['cards'] as $card) {
+            $this->assertSame('PR', $card['seal_tier']);
+            $this->assertSame(10, $card['seals']);
+        }
+    }
+
     public function testPrCardsNotInBoosterBoxes(): void
     {
         $ids = array_column(tcgBoosterBoxes(), 'id');

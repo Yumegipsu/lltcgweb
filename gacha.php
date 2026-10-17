@@ -783,7 +783,7 @@ function tcgApiOpenGacha(array $body): array {
     } else {
         tcgDeductStarGems($uid, $cost);
     }
-    $dupeReward = tcgSetDupeRewardPref($uid, $body['dupe_reward'] ?? 'gems');
+    $dupeReward = tcgResolveDupeRewardFromRequest($uid, $body);
     $applied = tcgApplyBoosterPullWithGems($uid, $nos, $cardMap, $dupeReward);
     $pulls = [];
     foreach ($rolled as $i => $row) {

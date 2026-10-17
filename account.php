@@ -287,6 +287,7 @@ function tcgApiMe(array $body): array {
         'star_gems_pack_cost' => TCG_STAR_GEMS_PACK_COST,
         'star_gems_box_cost' => TCG_STAR_GEMS_BOX_COST,
         'star_gems_per_dupe' => TCG_STAR_GEMS_PER_DUPE,
+        'dupe_reward' => tcgGetDupeRewardPref($uid),
         'seals' => tcgSealBalances($uid),
         'seal_buy_costs' => TCG_SEAL_BUY_COST,
         'seal_upgrade_steps' => tcgSealUpgradeStepsPublic(),
@@ -538,7 +539,7 @@ function tcgApiOpenBooster(array $body): array {
     $boxId = trim((string)($body['box_id'] ?? ''));
     $payment = trim(strtolower((string)($body['payment'] ?? 'daily')));
     $cards = tcgLoadCardsData();
-    $dupeReward = tcgSetDupeRewardPref($uid, $body['dupe_reward'] ?? 'gems');
+    $dupeReward = tcgResolveDupeRewardFromRequest($uid, $body);
     $result = tcgOpenBoosterPack($uid, $boxId, $cards, $payment, $dupeReward);
     $completions = [];
     if ($payment === 'daily') {

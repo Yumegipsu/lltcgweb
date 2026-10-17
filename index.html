@@ -3665,6 +3665,26 @@ function setDupeRewardPref(value) {
 }
 
 /**
+ * Hub load must not overwrite a saved seals choice with this browser's default,
+ * and must not ignore a seals choice that failed to save before the column existed.
+ */
+function reconcileDupeRewardPref(serverValue) {
+  const local = getDupeRewardPref();
+  const server = serverValue === 'seals' || serverValue === 'gems' ? serverValue : '';
+  if (!server) {
+    pushDupeRewardPref();
+    return;
+  }
+  if (local === server) return;
+  if (local === 'seals' && server === 'gems') {
+    pushDupeRewardPref();
+    return;
+  }
+  try { localStorage.setItem(DUPE_REWARD_KEY, server); } catch (e) { /* ignore */ }
+  syncDupeRewardToggles();
+}
+
+/**
  * Server-side PR pack grants (ranked wins, missions, login bonus, tournaments) cannot read this browser's
  * setting, so keep a copy on the account (#277).
  */
@@ -7325,7 +7345,7 @@ function enterHub(me) {
   A.profile = me || A.profile;
   syncStarGemsFromProfile(A.profile);
   syncRankedPrFromProfile(A.profile);
-  pushDupeRewardPref();
+  reconcileDupeRewardPref(A.profile?.dupe_reward);
   const userName = A.profile?.user?.username || A.user?.username || 'Player';
   const hubUser = el('hub-user');
   if (hubUser) hubUser.removeAttribute('data-i18n');
