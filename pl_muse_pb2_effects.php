@@ -911,6 +911,78 @@ function plMusePb2KotoriCanPayExtraCost(array $p, array $ab, string $srcId): boo
     return $n >= 2;
 }
 
+function plMusePb2NormIdolName(string $name): string {
+    $name = trim($name);
+    $name = preg_replace('/\s+/u', '', $name) ?? $name;
+    return function_exists('mb_strtolower') ? mb_strtolower($name) : strtolower($name);
+}
+
+/** Canonical μ's idol, or '' when the name is not one of the nine. */
+function plMusePb2CanonicalMuseIdol(string $name): string {
+    static $map = null;
+    if ($map === null) {
+        $pairs = [
+            'Honoka Kosaka' => 'Honoka Kosaka',
+            '高坂穂乃果' => 'Honoka Kosaka',
+            'Eli Ayase' => 'Eli Ayase',
+            '絢瀬絵里' => 'Eli Ayase',
+            'Kotori Minami' => 'Kotori Minami',
+            '南ことり' => 'Kotori Minami',
+            'Umi Sonoda' => 'Umi Sonoda',
+            '園田海未' => 'Umi Sonoda',
+            'Rin Hoshizora' => 'Rin Hoshizora',
+            '星空凛' => 'Rin Hoshizora',
+            'Maki Nishikino' => 'Maki Nishikino',
+            '西木野真姫' => 'Maki Nishikino',
+            'Nozomi Tojo' => 'Nozomi Tojo',
+            '東條希' => 'Nozomi Tojo',
+            'Hanayo Koizumi' => 'Hanayo Koizumi',
+            '小泉花陽' => 'Hanayo Koizumi',
+            'Nico Yazawa' => 'Nico Yazawa',
+            '矢澤にこ' => 'Nico Yazawa',
+        ];
+        $map = [];
+        foreach ($pairs as $from => $to) {
+            $map[plMusePb2NormIdolName($from)] = $to;
+        }
+    }
+    return $map[plMusePb2NormIdolName($name)] ?? '';
+}
+
+/**
+ * Distinct μ's idols a card contributes (#283).
+ * Catalog group wins, including a blank group, so an older copy tagged μ's
+ * (Anju / A-RISE) does not count. A compound name contributes each listed
+ * μ's idol, not the whole string as an extra person.
+ *
+ * @return list<string>
+ */
+function plMusePb2MuseIdolKeys(array $card, string $group): array {
+    mergeCardCatalogFields($card);
+    $no = (string)($card['card_no'] ?? '');
+    if ($no !== '' && function_exists('tcgCatalogCardByNo')) {
+        $base = tcgCatalogCardByNo($no);
+        if (is_array($base) && array_key_exists('group', $base)) {
+            $card['group'] = $base['group'];
+        }
+    }
+    if (!isMemberCard($card) || !cardMatchesGroup($card, $group, 'member')) {
+        return [];
+    }
+    $parts = memberDistinctNameOptions($card);
+    $keys = [];
+    foreach ($parts as $part) {
+        $canon = plMusePb2CanonicalMuseIdol((string)$part);
+        if ($canon !== '') {
+            $keys[$canon] = true;
+        }
+    }
+    if ($keys === [] && count($parts) === 1) {
+        $keys[plMusePb2NormIdolName((string)$parts[0])] = true;
+    }
+    return array_keys($keys);
+}
+
 function plMusePb2ResolveEffect(array $state, string $pid, array $source, array $ab, array $ctx = []): array {
     $type = $ab['type'] ?? '';
     $name = $source['name_en'] ?? $source['name'] ?? 'Card';
@@ -1536,22 +1608,33 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'score_per_distinct_group_name_stage_and_yell': {
-            // Bokutachi: “this card's score +1” per distinct μ's name on Stage + Yell (#248).
+            // Bokutachi: “this card's score +1” per distinct μ's idol on Stage + this
+            // player's Yell (#248 / #283). Compound names are the idols on the card,
+            // not a new person, and the other performer's Yell is not this pool.
             $group = $ab['group'] ?? "μ's";
-            $names = [];
+            $yell = $ctx['yell_cards'] ?? null;
+            if (!is_array($yell)) {
+                $yell = $p['_pending_yell_wr']
+                    ?? $p['yell_cards']
+                    ?? ($state['yell_reveal'][$pid] ?? null)
+                    ?? ($state['_last_yell_cards_' . $pid] ?? null)
+                    ?? [];
+            }
+            $pool = [];
             foreach ($p['stage'] ?? [] as $m) {
-                if ($m && cardMatchesGroup($m, $group, 'member')) {
-                    $names[cardDisplayName($m)] = true;
+                if (is_array($m)) {
+                    $pool[] = $m;
                 }
             }
-            $yell = $state['players'][$pid]['yell_cards']
-                ?? $state['yell_reveal'][$pid]
-                ?? $state['_last_yell_cards_' . $pid]
-                ?? $state['_last_yell_cards']
-                ?? [];
             foreach ($yell as $c) {
-                if ($c && isMemberCard($c) && cardMatchesGroup($c, $group, 'member')) {
-                    $names[cardDisplayName($c)] = true;
+                if (is_array($c)) {
+                    $pool[] = $c;
+                }
+            }
+            $names = [];
+            foreach ($pool as $c) {
+                foreach (plMusePb2MuseIdolKeys($c, $group) as $key) {
+                    $names[$key] = true;
                 }
             }
             $amt = count($names) * intval($ab['amount'] ?? 1);

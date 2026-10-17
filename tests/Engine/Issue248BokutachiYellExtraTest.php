@@ -278,4 +278,140 @@ final class Issue248BokutachiYellExtraTest extends TestCase
         $this->assertSame(3, intval($live['_effect_score_bonus'] ?? 0));
         $this->assertSame($printed + 3, intval($live['score'] ?? 0));
     }
+
+    public function testAnjuAndCompoundNameDoNotAddExtraPeople(): void
+    {
+        $bokutachi = $this->cardByNo('PL!-pb2-039-L', 'bokutachi');
+        $printed = intval($bokutachi['score'] ?? 0);
+        $honoka = $this->museMember('honoka', 'Honoka Kosaka', 1);
+        $eli = $this->museMember('eli', 'Eli Ayase', 1);
+        // Stale deck copy tagged μ's. Catalog group is A-RISE.
+        $anju = $this->cardByNo('PL!-bp5-222-R', 'anju');
+        $anju['group'] = "μ's";
+        $trio = $this->cardByNo('LL-bp4-001-R＋', 'trio');
+
+        $state = $this->successState($bokutachi, [
+            'left' => $honoka,
+            'center' => $eli,
+            'right' => null,
+        ], [$anju, $trio]);
+
+        $state = resolveAbilityEffect($state, 'p1', $bokutachi, $bokutachi['abilities'][1], [
+            'phase' => 'live_success',
+            'yell_cards' => [$anju, $trio],
+        ]);
+
+        $live = $state['players']['p1']['live_zone'][0];
+        // Honoka + Eli. Anju is A-RISE. The trio is Eli, not a tenth name.
+        $this->assertSame(2, intval($live['_effect_score_bonus'] ?? 0));
+        $this->assertSame($printed + 2, intval($live['score'] ?? 0));
+    }
+
+    public function testNineMusePlusCompoundCardIsNine(): void
+    {
+        $bokutachi = $this->cardByNo('PL!-pb2-039-L', 'bokutachi');
+        $printed = intval($bokutachi['score'] ?? 0);
+        $names = [
+            'Honoka Kosaka', 'Eli Ayase', 'Kotori Minami', 'Umi Sonoda',
+            'Rin Hoshizora', 'Maki Nishikino', 'Nozomi Tojo', 'Hanayo Koizumi',
+            'Nico Yazawa',
+        ];
+        $stage = ['left' => null, 'center' => null, 'right' => null];
+        $slots = ['left', 'center', 'right'];
+        $yell = [];
+        foreach ($names as $i => $name) {
+            $card = $this->museMember('m' . $i, $name, 1);
+            if ($i < 3) {
+                $stage[$slots[$i]] = $card;
+            } else {
+                $yell[] = $card;
+            }
+        }
+        $yell[] = $this->cardByNo('LL-bp4-001-R＋', 'trio');
+
+        $state = $this->successState($bokutachi, $stage, $yell);
+        $state = resolveAbilityEffect($state, 'p1', $bokutachi, $bokutachi['abilities'][1], [
+            'phase' => 'live_success',
+            'yell_cards' => $yell,
+        ]);
+
+        $live = $state['players']['p1']['live_zone'][0];
+        $this->assertSame(9, intval($live['_effect_score_bonus'] ?? 0));
+        $this->assertSame($printed + 9, intval($live['score'] ?? 0));
+    }
+
+    public function testSuccessUsesHeartCheckYellNotOtherPerformer(): void
+    {
+        $bokutachi = $this->cardByNo('PL!-pb2-039-L', 'bokutachi');
+        $printed = intval($bokutachi['score'] ?? 0);
+        $honoka = $this->museMember('honoka', 'Honoka Kosaka', 1);
+        $mine = [$this->museMember('yk', 'Kotori Minami', 1)];
+        $theirs = [];
+        foreach ([
+            'Eli Ayase', 'Umi Sonoda', 'Rin Hoshizora', 'Maki Nishikino',
+            'Nozomi Tojo', 'Hanayo Koizumi', 'Nico Yazawa',
+        ] as $i => $name) {
+            $theirs[] = $this->museMember('o' . $i, $name, 1);
+        }
+
+        $state = $this->successState($bokutachi, [
+            'left' => $honoka,
+            'center' => null,
+            'right' => null,
+        ], null);
+        unset($state['players']['p1']['yell_cards']);
+        $state['yell_reveal']['p1'] = $theirs;
+        $state['_last_yell_cards'] = $theirs;
+        $state['players']['p1']['_pending_yell_wr'] = $theirs;
+
+        $state = resolveAbilityEffect($state, 'p1', $bokutachi, $bokutachi['abilities'][1], [
+            'phase' => 'live_success',
+            'yell_cards' => $mine,
+        ]);
+
+        $live = $state['players']['p1']['live_zone'][0];
+        // Honoka on stage + Kotori in this heart-check Yell. Not the other 7.
+        $this->assertSame(2, intval($live['_effect_score_bonus'] ?? 0));
+        $this->assertSame($printed + 2, intval($live['score'] ?? 0));
+    }
+
+    private function successState(array $bokutachi, array $stage, ?array $yell): array
+    {
+        $p1 = [
+            'id' => 'p1',
+            'name' => 'P1',
+            'hand' => [],
+            'waiting_room' => [],
+            'stage' => $stage,
+            'live_zone' => [$bokutachi],
+            'success_lives' => [],
+            'energy_zone' => [],
+            'main_deck' => [],
+        ];
+        if ($yell !== null) {
+            $p1['yell_cards'] = $yell;
+        }
+        return [
+            'status' => 'playing',
+            'phase' => 'live_success_effects',
+            'seq' => 3,
+            'turn' => 3,
+            'active_player' => 'p1',
+            'log' => [],
+            'players' => [
+                'p1' => $p1,
+                'p2' => [
+                    'id' => 'p2',
+                    'name' => 'P2',
+                    'hand' => [],
+                    'waiting_room' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'live_zone' => [],
+                    'success_lives' => [],
+                    'energy_zone' => [],
+                    'main_deck' => [],
+                ],
+            ],
+        ];
+    }
 }
