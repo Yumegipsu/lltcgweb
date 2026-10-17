@@ -98839,8 +98839,9 @@
           "trigger": "live_start",
           "type": "score_if_stage_member_hearts",
           "group": "Superstar",
-          "min_blades": 4,
-          "amount": 1
+          "min_hearts": 4,
+          "amount": 1,
+          "for_each": true
         }
       ],
       "text_es": "[Inicio de Live] Por cada Miembro de Liella! en tu Escenario con 4+ corazones, la puntuación de esta carta +1.",

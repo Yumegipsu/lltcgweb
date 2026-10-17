@@ -162,6 +162,75 @@ final class Issue63CardBugsTest extends TestCase
         );
     }
 
+    public function testAbsoluteLoverScoresEachLiellaWithFourHearts(): void
+    {
+        $live = $this->cardByNo('PL!SP-pb2-045-L', 'absolute_lover');
+        $member = static function (string $id, string $group, int $hearts): array {
+            return [
+                'instance_id' => $id,
+                'card_no' => 'SYN-' . $id,
+                'card_type' => 'メンバー',
+                'card_type_en' => 'Member',
+                'name_en' => $id,
+                'group' => $group,
+                'hearts' => [['color' => 'pink', 'count' => $hearts]],
+                'active' => true,
+            ];
+        };
+
+        $state = [
+            'status' => 'playing',
+            'phase' => 'live_start_effects',
+            'seq' => 1,
+            'turn' => 2,
+            'first_player' => 'p1',
+            'active_player' => 'p1',
+            'live_attempt' => ['p1'],
+            'log' => [],
+            'players' => $this->basePlayers(),
+        ];
+        $threePlusBonus = $member('liella3', 'Superstar', 3);
+        $threePlusBonus['bonus_hearts'] = ['pink'];
+        $state['players']['p1']['live_zone'] = [$live];
+        $state['players']['p1']['stage']['center'] = $member('liella4', 'Superstar', 4);
+        $state['players']['p1']['stage']['left'] = $threePlusBonus;
+        $state['players']['p1']['stage']['right'] = $member('aqours6', 'Sunshine', 6);
+
+        $state = \resolveLiveStartAbilities($state, 'p1');
+
+        $this->assertEmpty($state['pending_prompt'] ?? null);
+        $this->assertSame(6, intval($state['players']['p1']['live_zone'][0]['score'] ?? 0));
+    }
+
+    public function testAbsoluteLoverNoScoreWithoutFourHeartLiella(): void
+    {
+        $live = $this->cardByNo('PL!SP-pb2-045-L', 'absolute_lover_none');
+        $state = [
+            'status' => 'playing',
+            'phase' => 'live_start_effects',
+            'seq' => 1,
+            'turn' => 2,
+            'first_player' => 'p1',
+            'active_player' => 'p1',
+            'live_attempt' => ['p1'],
+            'log' => [],
+            'players' => $this->basePlayers(),
+        ];
+        $state['players']['p1']['live_zone'] = [$live];
+        $state['players']['p1']['stage']['center'] = [
+            'instance_id' => 'short',
+            'card_type' => 'メンバー',
+            'group' => 'Superstar',
+            'hearts' => [['color' => 'red', 'count' => 2], ['color' => 'blue', 'count' => 1]],
+            'active' => true,
+        ];
+
+        $state = \resolveLiveStartAbilities($state, 'p1');
+
+        $this->assertEmpty($state['pending_prompt'] ?? null);
+        $this->assertSame(4, intval($state['players']['p1']['live_zone'][0]['score'] ?? 0));
+    }
+
     public function testSayakaOpensUpToTwoWrMemberPick(): void
     {
         $sayaka = $this->cardByNo('PL!HS-bp2-002-P', 'sayaka1');

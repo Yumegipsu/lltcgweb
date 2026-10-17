@@ -236,6 +236,33 @@ function tryResolveAbilityEffectSwitchScore(
 
         case 'score_if_stage_member_hearts':
             if (!empty($state['pending_prompt'])) break;
+            // Absolute LOVER: +score for each matching Member, no pick (#289).
+            // SUKI for you still chooses 1 Member (no for_each).
+            if (!empty($ab['for_each'])) {
+                $group = (string)($ab['group'] ?? '');
+                $threshold = intval($ab['min_hearts'] ?? 4);
+                $per = intval($ab['amount'] ?? 1);
+                $matched = 0;
+                foreach ($p['stage'] as $slot => $mbr) {
+                    if (!$mbr || !is_array($mbr) || !isMemberCard($mbr)) {
+                        continue;
+                    }
+                    if ($group !== '' && !cardMatchesGroup($mbr, $group, 'member')) {
+                        continue;
+                    }
+                    $hearts = stageMemberTotalHeartCount($state, $pid, $mbr, (string)$slot);
+                    if ($hearts >= $threshold) {
+                        $matched++;
+                    }
+                }
+                if ($matched > 0 && $per > 0) {
+                    $bonus = $matched * $per;
+                    bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', $bonus);
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] score +$bonus ($matched Member(s) with $threshold+ hearts).");
+                }
+                break;
+            }
             $group = $ab['group'] ?? 'Sunshine';
             $checkBlades = !empty($ab['min_blades']);
             $threshold = $checkBlades
