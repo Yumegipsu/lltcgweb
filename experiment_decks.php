@@ -40,6 +40,45 @@ function experimentDeckPath(string $password): string {
     return EXPERIMENT_DECKS_DIR . $password . '.json';
 }
 
+/** Canonical card-number list so + / ＋ aliases compare equal. */
+function experimentDeckListKey(array $cards): string {
+    $norm = [];
+    foreach ($cards as $no) {
+        $norm[] = str_replace('＋', '+', trim((string) $no));
+    }
+    return json_encode($norm, JSON_UNESCAPED_UNICODE) ?: '[]';
+}
+
+function experimentStoredListsMatch(array $storedMain, array $storedEnergy, array $main, array $energy): bool {
+    return experimentDeckListKey($storedMain) === experimentDeckListKey($main)
+        && experimentDeckListKey($storedEnergy) === experimentDeckListKey($energy);
+}
+
+/**
+ * A share password loads whatever deck file it points at. If that file is missing
+ * or is another slot's list, drop it so this preset stops advertising slot 1's code.
+ * Returns true when the stored password was cleared.
+ */
+function tcgDropStaleExperimentSharePassword(string $uid, int $slot, string $password, array $main, array $energy): bool {
+    $password = normalizeExperimentPassword($password);
+    if ($uid === '' || $slot < 1 || $password === '') {
+        return false;
+    }
+    $stored = readExperimentDeckFile($password);
+    if (is_array($stored) && experimentStoredListsMatch(
+        $stored['main_deck'] ?? [],
+        $stored['energy_deck'] ?? [],
+        $main,
+        $energy
+    )) {
+        return false;
+    }
+    tcgDb()->prepare('UPDATE tcg_experiment_presets SET share_password = NULL
+        WHERE discord_id = ? AND slot = ? AND share_password = ?')
+        ->execute([$uid, $slot, $password]);
+    return true;
+}
+
 /** True when the join/create body selects a Deck Experiment deck (password or account preset). */
 function tcgBodyUsesExperimentDeck(array $body): bool {
     $deck = trim((string)($body['deck'] ?? ''));

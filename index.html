@@ -11777,6 +11777,15 @@ function renderExperimentSlots() {
   }
 }
 
+function experimentPasswordUsedByOtherSlot(password, slot) {
+  const pwd = normalizeExperimentPasswordInput(password);
+  if (!pwd) return false;
+  const current = Number(slot) || 1;
+  return (A.experimentDecks || []).some(d =>
+    Number(d.slot) !== current && normalizeExperimentPasswordInput(d.share_password) === pwd
+  );
+}
+
 function selectExperimentSlot(slot) {
   A.experimentSlot = slot;
   const saved = (A.experimentDecks || []).find(d => d.slot === slot);
@@ -11787,13 +11796,15 @@ function selectExperimentSlot(slot) {
   if (saved) {
     A.deckMain = [...(saved.main_deck || [])];
     A.deckEnergy = [...(saved.energy_deck || [])];
-    if (saved.share_password) {
-      A.experimentPassword = saved.share_password;
-    }
   } else {
     A.deckMain = [];
     A.deckEnergy = [];
   }
+  // Only this slot's password. Leaving the previous slot's code here made
+  // Save/Copy stamp slot 1's password onto every other experiment slot.
+  A.experimentPassword = saved?.share_password || '';
+  const loadInp = el('inp-experiment-load-pwd');
+  if (loadInp) loadInp.value = A.experimentPassword;
   renderExperimentSlots();
   syncExperimentPasswordDisplay();
   renderDeckBuilder();
@@ -14562,7 +14573,9 @@ async function saveExperimentDeckPassword() {
       playmat_id: normalizeDeckPlaymatId(A.deckPlaymatId),
       playmat_brightness: normalizeDeckPlaymatBrightness(A.deckPlaymatBrightness),
     };
-    if (A.experimentPassword) body.password = A.experimentPassword;
+    if (A.experimentPassword && !experimentPasswordUsedByOtherSlot(A.experimentPassword, A.experimentSlot || 1)) {
+      body.password = A.experimentPassword;
+    }
     const res = await apiExperimentCall('experiment_deck_save', body);
     A.experimentPassword = res.password;
     rememberExperimentPassword(res.password, 'Deck Experiment');
@@ -14625,7 +14638,9 @@ async function saveExperimentPresetToAccount() {
       playmat_id: normalizeDeckPlaymatId(A.deckPlaymatId),
       playmat_brightness: normalizeDeckPlaymatBrightness(A.deckPlaymatBrightness),
     };
-    if (legal && A.experimentPassword) body.share_password = A.experimentPassword;
+    if (legal && A.experimentPassword && !experimentPasswordUsedByOtherSlot(A.experimentPassword, A.experimentSlot || 1)) {
+      body.share_password = A.experimentPassword;
+    }
     const sleeveId = body.sleeve_id;
     const playmatId = body.playmat_id;
     const playmatBrightness = body.playmat_brightness;

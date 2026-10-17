@@ -792,6 +792,10 @@ function tcgApiExperimentPresetList(array $body): array {
         $main = json_decode((string)$row['main_deck'], true) ?: [];
         $energy = json_decode((string)$row['energy_deck'], true) ?: [];
         $legal = tcgValidateDeckLists($main, $energy, $cardMap, null)['valid'];
+        $sharePassword = $row['share_password'] ? (string)$row['share_password'] : '';
+        if ($sharePassword !== '' && tcgDropStaleExperimentSharePassword($uid, intval($row['slot']), $sharePassword, $main, $energy)) {
+            $sharePassword = '';
+        }
         $decks[] = [
             'id' => intval($row['id']),
             'slot' => intval($row['slot']),
@@ -801,7 +805,7 @@ function tcgApiExperimentPresetList(array $body): array {
             'sleeve_id' => tcgNormalizeSleeveId($row['sleeve_id'] ?? ''),
             'playmat_id' => tcgNormalizePlaymatId($row['playmat_id'] ?? ''),
             'playmat_brightness' => tcgNormalizePlaymatBrightness($row['playmat_brightness'] ?? 1.0),
-            'share_password' => $row['share_password'] ? (string)$row['share_password'] : null,
+            'share_password' => $sharePassword !== '' ? $sharePassword : null,
             'updated_at' => intval($row['updated_at']),
             'main_count' => count($main),
             'energy_count' => count($energy),
@@ -1012,6 +1016,10 @@ function tcgApiExperimentPresetGet(array $body): array {
     }
     $main = json_decode((string)$row['main_deck'], true) ?: [];
     $energy = json_decode((string)$row['energy_deck'], true) ?: [];
+    $sharePassword = $row['share_password'] ? (string)$row['share_password'] : '';
+    if ($sharePassword !== '' && tcgDropStaleExperimentSharePassword($uid, $slot, $sharePassword, $main, $energy)) {
+        $sharePassword = '';
+    }
     return [
         'success' => true,
         'deck' => [
@@ -1022,7 +1030,7 @@ function tcgApiExperimentPresetGet(array $body): array {
             'sleeve_id' => tcgNormalizeSleeveId($row['sleeve_id'] ?? ''),
             'playmat_id' => tcgNormalizePlaymatId($row['playmat_id'] ?? ''),
             'playmat_brightness' => tcgNormalizePlaymatBrightness($row['playmat_brightness'] ?? 1.0),
-            'share_password' => $row['share_password'] ? (string)$row['share_password'] : null,
+            'share_password' => $sharePassword !== '' ? $sharePassword : null,
             'updated_at' => intval($row['updated_at']),
         ],
     ];

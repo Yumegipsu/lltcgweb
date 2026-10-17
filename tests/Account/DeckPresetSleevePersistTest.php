@@ -100,4 +100,52 @@ final class DeckPresetSleevePersistTest extends TestCase
             'tcgWriteDeckPreset must not wipe sleeve_id on starter rewrite'
         );
     }
+
+    public function testStaleExperimentSharePasswordIsClearedWhenItLoadsAnotherSlot(): void
+    {
+        require_once dirname(__DIR__, 2) . '/experiment_decks.php';
+        $password = 'SLOT1PWD';
+        $slot1Main = ['PL!N-bp1-001-N'];
+        $slot1Energy = ['PL!N-bp1-E1'];
+        $slot2Main = ['PL!S-bp1-001-N'];
+        $slot2Energy = ['PL!S-bp1-E1'];
+        $now = time();
+        $db = tcgDb();
+        $insert = $db->prepare('INSERT INTO tcg_experiment_presets
+            (discord_id, slot, name, main_deck, energy_deck, share_password, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)');
+        $insert->execute([
+            $this->discordId, 1, 'Slot 1',
+            json_encode($slot1Main), json_encode($slot1Energy), $password, $now,
+        ]);
+        $insert->execute([
+            $this->discordId, 2, 'Slot 2',
+            json_encode($slot2Main), json_encode($slot2Energy), $password, $now,
+        ]);
+        writeExperimentDeckFile($password, 'Slot 1', $slot1Main, $slot1Energy, '');
+        try {
+            $this->assertFalse(tcgDropStaleExperimentSharePassword(
+                $this->discordId, 1, $password, $slot1Main, $slot1Energy
+            ));
+            $this->assertTrue(tcgDropStaleExperimentSharePassword(
+                $this->discordId, 2, $password, $slot2Main, $slot2Energy
+            ));
+            $read = $db->prepare('SELECT slot, share_password FROM tcg_experiment_presets WHERE discord_id = ? ORDER BY slot');
+            $read->execute([$this->discordId]);
+            $rows = $read->fetchAll(\PDO::FETCH_ASSOC);
+            $this->assertSame($password, $rows[0]['share_password']);
+            $this->assertNull($rows[1]['share_password']);
+            $this->assertTrue(experimentStoredListsMatch(
+                ['PL!N-bp1-001＋N'],
+                $slot1Energy,
+                ['PL!N-bp1-001+N'],
+                $slot1Energy
+            ));
+        } finally {
+            $path = experimentDeckPath($password);
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
+    }
 }
