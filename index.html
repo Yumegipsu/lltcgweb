@@ -30975,6 +30975,9 @@ function aggregateYellBladeHeartsFromCards(cards, resolveCtx = null, pid = null)
     liveCards = perfSpectacleLiveCards(resolveCtx.prev, resolveCtx.next, pid).map(enrichCard);
     yellWildcard = liveCardsHaveYellHeartsWildcard(liveCards);
   }
+  const forcedBlade = (typeof yellBladeForcedColor === 'function')
+    ? yellBladeForcedColor(resolveCtx, pid)
+    : null;
   (cards || []).forEach(card => {
     (card.blade_hearts || []).forEach(bh => {
       let raw = 'any';
@@ -30990,12 +30993,14 @@ function aggregateYellBladeHeartsFromCards(cards, resolveCtx = null, pid = null)
       const copies = isDoubleColorlessBladeHeart(raw) ? 2 : 1;
       const base = isDoubleColorlessBladeHeart(raw) ? 'any' : raw;
       for (let i = 0; i < copies; i++) {
-        let color = base;
-        if (yellWildcard) {
+        let color = forcedBlade || base;
+        if (!forcedBlade && yellWildcard) {
           color = resolveAllBladeHeartColorForPool(ownedPool, liveCards);
           ownedPool.push(normalizeHeartColor(color));
-        } else if (['all', 'gray', 'wild', 'any'].includes(String(color).toLowerCase()) && resolveCtx && pid) {
+        } else if (!forcedBlade && ['all', 'gray', 'wild', 'any'].includes(String(color).toLowerCase()) && resolveCtx && pid) {
           color = resolveYellBladeHeartColor(color, resolveCtx, pid, { extraOwned: ownedPool, liveCards });
+          ownedPool.push(normalizeHeartColor(color));
+        } else if (forcedBlade) {
           ownedPool.push(normalizeHeartColor(color));
         }
         const key = normalizeHeartColor(color);
@@ -37235,7 +37240,7 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/live-round-director.js?v=3"></script>
-<script src="client/js/spectacle.js?v=121"></script>
+<script src="client/js/spectacle.js?v=122"></script>
 <script src="client/js/board-render.js?v=51"></script>
 <script src="client/js/components/board-zones.js?v=2"></script>
 <script src="client/js/cpu-policy-data.js?v=1"></script>
@@ -37245,7 +37250,7 @@ function mkNoImg(card){
 <script src="client/js/cpu-meta-weights.js?v=7"></script>
 <script src="client/js/cpu-eval.js?v=8"></script>
 <script src="client/js/cpu-expert.js?v=8"></script>
-<script src="client/js/cpu-loop.js?v=53"></script>
+<script src="client/js/cpu-loop.js?v=54"></script>
 <script src="client/js/cpu-ai.js?v=14"></script>
 <script src="client/js/portrait-bridge.js?v=31"></script>
 <script src="client/js/match-chat.js?v=7"></script>

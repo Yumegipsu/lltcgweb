@@ -3649,38 +3649,18 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     $totalBlade = computeYellBladeTotal($state, $pid);
 
     $state = initLiveModifiers($state);
+    $yellBladeColor = '';
     if (!empty($state['live_modifiers'][$pid]['yell_blades_to_blue'])) {
-        foreach ($yellCards as &$yc) {
-            if (empty($yc['blade_hearts'])) {
-                continue;
-            }
-            $yc['blade_hearts'] = array_map(function ($bh) {
-                if (is_string($bh)) {
-                    return $bh === 'draw' ? $bh : 'blue';
-                }
-                if (($bh['type'] ?? '') === 'draw') {
-                    return $bh;
-                }
-                return ['type' => 'blue'];
-            }, $yc['blade_hearts']);
-        }
-        unset($yc);
+        $yellBladeColor = 'blue';
+    } elseif (!empty($state['live_modifiers'][$pid]['yell_blades_to_color'])) {
+        $yellBladeColor = (string) $state['live_modifiers'][$pid]['yell_blades_to_color'];
     }
-    $yellBladeColor = $state['live_modifiers'][$pid]['yell_blades_to_color'] ?? '';
     if ($yellBladeColor !== '') {
         foreach ($yellCards as &$yc) {
-            if (empty($yc['blade_hearts'])) {
+            if (empty($yc['blade_hearts']) || !is_array($yc['blade_hearts'])) {
                 continue;
             }
-            $yc['blade_hearts'] = array_map(function ($bh) use ($yellBladeColor) {
-                if (is_string($bh)) {
-                    return $bh === 'draw' ? $bh : $yellBladeColor;
-                }
-                if (($bh['type'] ?? '') === 'draw') {
-                    return $bh;
-                }
-                return ['type' => $yellBladeColor];
-            }, $yc['blade_hearts']);
+            $yc['blade_hearts'] = recolorYellBladeHeartsForLive($yc['blade_hearts'], $yellBladeColor);
         }
         unset($yc);
     }

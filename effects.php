@@ -1602,6 +1602,38 @@ function hydrateYellCardsForPerformance(array &$yellCards): void {
 }
 
 /**
+ * Live Start "yelled Blade Hearts become {color}" (VIVID WORLD).
+ * Draw and score icons stay. A double-colorless blade is two hearts, so it
+ * becomes two of the target color. Printed blade_hearts on the card are left
+ * alone — callers pass a heart-check copy.
+ *
+ * @param list<string|array<string,mixed>> $bladeHearts
+ * @return list<string|array<string,mixed>>
+ */
+function recolorYellBladeHeartsForLive(array $bladeHearts, string $color): array {
+    $color = strtolower(trim($color));
+    if ($color === '' || $color === 'draw' || $color === 'score') {
+        return $bladeHearts;
+    }
+    $out = [];
+    foreach ($bladeHearts as $bh) {
+        $type = is_string($bh) ? $bh : (string) ($bh['type'] ?? $bh['color'] ?? '');
+        $type = strtolower(trim($type));
+        if ($type === 'draw' || $type === 'score') {
+            $out[] = $bh;
+            continue;
+        }
+        if (in_array($type, ['all2', 'all_2', 'b_heart07', 'heart07'], true)) {
+            $out[] = $color;
+            $out[] = $color;
+            continue;
+        }
+        $out[] = $color;
+    }
+    return $out;
+}
+
+/**
  * Legacy continuous path (Love U my friends used to misuse printed hearts).
  * Kept for any remaining continuous live_score_if_yell_has_hearts entries.
  */

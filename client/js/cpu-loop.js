@@ -570,10 +570,25 @@ function cpuExpectedYellHeartPool(cpu, s, pid, tier) {
   return pool.concat(cpuLiveStartSkillHeartPool(cpu));
 }
 
+function cpuYellBladesForcedColor(s, pid, live) {
+  if (typeof yellBladeForcedColor === 'function') {
+    const fromLive = yellBladeForcedColor(s, pid);
+    if (fromLive) return fromLive;
+  }
+  const abs = cpuLookupYellCard(live)?.abilities || [];
+  if (abs.some((ab) => ab?.type === 'yell_blades_to_blue')) return 'blue';
+  const colorAb = abs.find((ab) => ab?.type === 'yell_blades_to_color' && ab.color);
+  if (colorAb) return String(colorAb.color).toLowerCase();
+  return null;
+}
+
 function cpuYellBackedPool(cpu, s, pid, tier, live) {
   const stage = stageHeartPool(cpu);
   const yell = cpuExpectedYellHeartPool(cpu, s, pid, tier);
-  const hearts = cpuLiveHasYellWildcard(live) ? yell.map(() => 'any') : yell;
+  const forced = cpuYellBladesForcedColor(s, pid, live);
+  const hearts = forced
+    ? yell.map(() => forced)
+    : (cpuLiveHasYellWildcard(live) ? yell.map(() => 'any') : yell);
   return stage.concat(hearts);
 }
 

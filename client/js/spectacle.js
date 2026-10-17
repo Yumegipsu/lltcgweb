@@ -5027,13 +5027,36 @@ function cardYellBladeHeartColors(card) {
   return colors;
 }
 
+/** Live Start override: yelled Blade Hearts become this color until the Live ends (VIVID WORLD). */
+function yellBladeForcedColorFromState(state, pid) {
+  const lm = state?.live_modifiers?.[pid] || {};
+  if (lm.yell_blades_to_blue) return 'blue';
+  const forced = lm.yell_blades_to_color;
+  if (typeof forced === 'string' && forced) {
+    const color = forced.toLowerCase();
+    if (color && color !== 'draw' && color !== 'score') return color;
+  }
+  return null;
+}
+
+function yellBladeForcedColor(ctx, pid) {
+  if (!pid) return null;
+  return yellBladeForcedColorFromState(ctx?.next, pid)
+    || yellBladeForcedColorFromState(ctx?.prev, pid)
+    || yellBladeForcedColorFromState(ctx, pid);
+}
+
 /** Ordered yell blade-heart rows for spectacle icons + fly anims (card order, no pool grouping). */
 function cardYellBladeHeartEntries(card, opts = {}) {
   const yellWildcard = !!opts.yellWildcard;
-  return cardYellBladeHeartColors(card).map(raw => ({
-    raw,
-    display: yellWildcard ? 'any' : bladeHeartDisplayColor(raw),
-  }));
+  const forced = opts.forcedBladeColor || null;
+  return cardYellBladeHeartColors(card).map(raw => {
+    if (forced) return { raw: forced, display: forced };
+    return {
+      raw,
+      display: yellWildcard ? 'any' : bladeHeartDisplayColor(raw),
+    };
+  });
 }
 
 function cardYellDrawIconCount(card) {
@@ -5594,6 +5617,8 @@ function resolveAllBladeHeartColorForPool(pool, liveCards, state = null, pid = n
 
 function resolveYellBladeHeartColor(color, ctx, pid, opts = {}) {
   const raw = String(color || 'any').toLowerCase();
+  const forced = opts.forcedBladeColor || yellBladeForcedColor(ctx, pid);
+  if (forced && raw !== 'draw' && raw !== 'score') return forced;
   const pool = opts.extraOwned
     ? opts.extraOwned
     : buildHeartPoolFromRows(perfStageHeartsForPlayer(ctx, pid));
@@ -7425,7 +7450,10 @@ function perfSetYellSideInstant(ctx, pid, showAllCards) {
         G._perfYellShownIids[pid].add(c.instance_id);
       }
       appendPerfYellCardFace(chip, c);
-      perfMarkYellBladeHearts(chip, c, { yellWildcard: liveCardsHaveYellHeartsWildcard(liveCards) });
+      perfMarkYellBladeHearts(chip, c, {
+        yellWildcard: liveCardsHaveYellHeartsWildcard(liveCards),
+        forcedBladeColor: yellBladeForcedColor(ctx, pid),
+      });
       yellRow.appendChild(chip);
     });
     layoutPerfYellStack(yellRow);
@@ -7803,8 +7831,9 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
     const scoreIcons = card ? cardYellScoreIconCount(card) : 0;
     const drawIcons = card ? cardYellDrawIconCount(card) : 0;
     // Paint draw/score icons as soon as the yell card lands (before hearts fly).
-    const bladeEntries = card ? cardYellBladeHeartEntries(card, { yellWildcard }) : [];
-    const bladeWrap = card ? perfMarkYellBladeHearts(chip, card, { yellWildcard }) : null;
+    const forcedBladeColor = yellBladeForcedColor(ctx, pid);
+    const bladeEntries = card ? cardYellBladeHeartEntries(card, { yellWildcard, forcedBladeColor }) : [];
+    const bladeWrap = card ? perfMarkYellBladeHearts(chip, card, { yellWildcard, forcedBladeColor }) : null;
     if (scoreIcons > 0) {
       await perfApplyYellScoreBonus(ctx, pid, scoreIcons, { pace: cardPace });
     }
@@ -7823,6 +7852,7 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
           extraOwned: ownedPool,
           yellWildcard,
           liveCards,
+          forcedBladeColor,
         });
         ownedPool.push(normalizeHeartColor(resolved));
         const flyResolved = yellWildcard

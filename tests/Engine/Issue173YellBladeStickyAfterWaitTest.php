@@ -114,4 +114,84 @@ final class Issue173YellBladeStickyAfterWaitTest extends TestCase
         $this->assertNotEmpty($line);
         $this->assertStringContainsString('Blades: 5 ', $line[0]);
     }
+
+    /**
+     * VIVID WORLD (PL!N-bp4-025-L) Live Start: yelled colored blades and ALL
+     * blades pay as blue. Draw and score icons stay. Double-colorless is two blues.
+     * Refs #285.
+     */
+    public function testVividWorldLiveStartPaysYelledBladesAsBlue(): void
+    {
+        $recolored = \recolorYellBladeHeartsForLive(
+            ['pink', 'all', 'draw', 'score', 'all2'],
+            'blue'
+        );
+        $this->assertSame(['blue', 'blue', 'draw', 'score', 'blue', 'blue'], $recolored);
+
+        $base = [
+            'status' => 'playing',
+            'phase' => 'live_performance_first',
+            'seq' => 1,
+            'turn' => 2,
+            'first_player' => 'p1',
+            'active_player' => 'p1',
+            'log' => [],
+            'live_modifiers' => [
+                'p1' => ['yell_blades_to_blue' => true],
+                'p2' => [],
+            ],
+            'players' => [
+                'p1' => [
+                    'id' => 'p1',
+                    'name' => 'Niji',
+                    'hand' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'waiting_room' => [],
+                    'energy_zone' => [],
+                    'main_deck' => [],
+                    'live_zone' => [[
+                        'instance_id' => 'vivid',
+                        'card_no' => 'PL!N-bp4-025-L',
+                        'card_type' => 'ライブ',
+                        'card_type_en' => 'Live',
+                        'name_en' => 'VIVID WORLD',
+                        'score' => 6,
+                        'required_hearts' => [['color' => 'blue', 'count' => 1]],
+                        'abilities' => [],
+                    ]],
+                    'success_lives' => [],
+                    'yell_cards' => [[
+                        'instance_id' => 'y1',
+                        'card_type' => 'メンバー',
+                        'card_type_en' => 'Member',
+                        'blade_hearts' => ['pink'],
+                    ]],
+                ],
+                'p2' => [
+                    'id' => 'p2',
+                    'name' => 'Opp',
+                    'hand' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'waiting_room' => [],
+                    'energy_zone' => [],
+                    'main_deck' => [],
+                    'live_zone' => [],
+                    'success_lives' => [],
+                ],
+            ],
+        ];
+
+        $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true;
+        try {
+            $with = \resolvePerformanceHeartCheck($base, 'p1', false);
+            $withoutFlag = $base;
+            $withoutFlag['live_modifiers']['p1'] = [];
+            $without = \resolvePerformanceHeartCheck($withoutFlag, 'p1', false);
+        } finally {
+            unset($GLOBALS['TUT_PERF_MANUAL_PHASES']);
+        }
+
+        $this->assertTrue($with['live_round_success']['p1'] ?? false);
+        $this->assertFalse($without['live_round_success']['p1'] ?? true);
+    }
 }
