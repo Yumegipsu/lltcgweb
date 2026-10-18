@@ -171,4 +171,44 @@ final class Issue90StackEnergyAndHonokaLeaveTest extends TestCase
         $this->assertSame(['a1'], array_column($taken, 'instance_id'));
         $this->assertCount(2, $p['energy_zone']);
     }
+
+    /** #290 — energy stacked under Ayumu returns to the Energy deck on Baton Touch. */
+    public function testAyumuBatonReturnsStackedEnergyToDeck(): void
+    {
+        $ayumu = $this->cardByNo('PL!N-bp3-001-P', 'ayumu_stage');
+        $ayumu['entered_turn'] = 1;
+        $ayumu['stacked_energy'] = [[
+            'instance_id' => 'under_ayumu',
+            'card_type' => 'エネルギー',
+            'active' => false,
+        ]];
+        $incoming = $this->cardByNo('PL!N-bp3-001-P', 'ayumu_in');
+
+        $state = $this->baseState();
+        $state['turn'] = 3;
+        $state['players']['p1']['stage']['center'] = $ayumu;
+        $state['players']['p1']['hand'] = [$incoming];
+        $state['players']['p1']['main_deck'] = [['instance_id' => 'deck_pad', 'card_type' => 'ライブ']];
+        $state['players']['p1']['energy_deck'] = [['instance_id' => 'ed_existing', 'card_type' => 'エネルギー']];
+
+        $state = \actionPlayMember($state, 'p1', [
+            'card_id' => 'ayumu_in',
+            'slot' => 'center',
+            'baton_id' => 'ayumu_stage',
+        ]);
+
+        $onStage = $state['players']['p1']['stage']['center'] ?? null;
+        $this->assertSame('ayumu_in', $onStage['instance_id'] ?? null);
+        $this->assertSame([], $onStage['stacked_energy'] ?? []);
+        $deckIds = array_column($state['players']['p1']['energy_deck'] ?? [], 'instance_id');
+        $this->assertSame(['ed_existing', 'under_ayumu'], $deckIds);
+        $left = null;
+        foreach ($state['players']['p1']['waiting_room'] ?? [] as $c) {
+            if (($c['instance_id'] ?? '') === 'ayumu_stage') {
+                $left = $c;
+            }
+        }
+        $this->assertNotNull($left);
+        $this->assertSame([], $left['stacked_energy'] ?? []);
+    }
 }

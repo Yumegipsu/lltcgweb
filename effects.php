@@ -1709,10 +1709,13 @@ function returnStackedEnergyOnLeave(array &$p, array &$member): int {
         unset($member['stacked_energy'], $member['stacked_energy_ids']);
         return 0;
     }
+    if (!isset($p['energy_deck']) || !is_array($p['energy_deck'])) {
+        $p['energy_deck'] = [];
+    }
     $returned = 0;
     foreach ($stack as $e) {
-        $e['active'] = false;
-        $p['energy_zone'][] = $e;
+        unset($e['active'], $e['skip_activate_next_turn']);
+        $p['energy_deck'][] = $e;
         $returned++;
     }
     unset($member['stacked_energy'], $member['stacked_energy_ids']);
@@ -7463,7 +7466,7 @@ function resolveOnLeaveStageAbilities(array $state, string $pid, array &$member,
     if ($returned > 0) {
         $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
         $state = addLog($state, $state['players'][$pid]['name'] .
-            " — $returned Energy under [$mName] returned to Energy Zone (inactive).");
+            " — $returned Energy under [$mName] returned to the Energy deck.");
     }
     // BP07 authors its leave triggers as `trigger: auto`, so they are not in on_leave_stage.
     $state = bp7ResolveOnLeaveAbilities($state, $pid, $member, $ctx);

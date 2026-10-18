@@ -2005,7 +2005,6 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     $batonCount = 0;
     $batonGroups = [];
     $batonWrMembers = [];
-    $batonTransferredEnergyCards = [];
     $batonReplacedDrawListeners = [];
     // Defer on_leave until after the incoming Member is placed so Position Change
     // (and similar) can see the post-replace Stage, then resume On Enter (#104).
@@ -2034,14 +2033,9 @@ function actionPlayMember(array $state, string $pid, array $data): array {
         if (batch99MemberHasBatonEnterDraw($existing)) {
             $batonReplacedDrawListeners[] = $existing;
         }
-        $stackedUnder = count(getMemberStackedEnergyCards($p, $existing));
         if (memberBlocksBaton($existing)) {
             throw new Exception('This Member cannot be sent to the Waiting Room via Baton Touch');
         }
-        $batonTransferredEnergyCards = array_merge(
-            $batonTransferredEnergyCards,
-            detachStackedEnergyForBatonTransfer($existing, $p)
-        );
         $hostWrIdx = count($p['waiting_room'] ?? []);
         $state = appendCardsToWaitingRoom($state, $pid, [$existing]);
         $p = &$state['players'][$pid];
@@ -2074,8 +2068,7 @@ function actionPlayMember(array $state, string $pid, array $data): array {
             $batonGroups[] = $existing['group'];
         }
         $state = addLog($state, $state['players'][$pid]['name'] .
-            ' used Baton Touch! Cost reduced to ' . $cost . '.' .
-            ($stackedUnder > 0 ? " ($stackedUnder Energy under replaced Member carried over.)" : ''));
+            ' used Baton Touch! Cost reduced to ' . $cost . '.');
     }
     if ($allowsDoubleBaton && $batonCardId2) {
         foreach ($p['stage'] as $slot => $existing2) {
@@ -2087,10 +2080,6 @@ function actionPlayMember(array $state, string $pid, array $data): array {
             if (memberBlocksBaton($existing2)) {
                 throw new Exception('This Member cannot be sent to the Waiting Room via Baton Touch');
             }
-            $batonTransferredEnergyCards = array_merge(
-                $batonTransferredEnergyCards,
-                detachStackedEnergyForBatonTransfer($existing2, $p)
-            );
             $hostWrIdx2 = count($p['waiting_room'] ?? []);
             $state = appendCardsToWaitingRoom($state, $pid, [$existing2]);
             $p = &$state['players'][$pid];
@@ -2125,16 +2114,13 @@ function actionPlayMember(array $state, string $pid, array $data): array {
         }
     }
 
-    // Pay energy cost — rested Energy stays in the zone (inactive). Only energy stacked
-    // under the replaced Member (Baton) is carried to the new Member.
+    // Pay energy cost — rested Energy stays in the zone (inactive). Energy stacked
+    // under a replaced Member returns to the Energy deck when that Member leaves (#290).
     $p = &$state['players'][$pid];
     $paidIds = payEnergyCostIds($p, $cost);
     if (count($paidIds) < $cost) {
         throw new Exception('Not enough active energy (need ' . $cost . ', have ' .
             countActiveEnergyInZone($p) . ')');
-    }
-    if (!empty($batonTransferredEnergyCards)) {
-        attachStackedEnergyCardsToMember($card, $batonTransferredEnergyCards);
     }
 
     // Place member in slot — always from hand in this action (incl. Baton Touch / overplay).

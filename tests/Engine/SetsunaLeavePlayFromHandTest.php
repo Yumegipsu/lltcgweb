@@ -183,12 +183,12 @@ final class SetsunaLeavePlayFromHandTest extends TestCase
         $p1 = $after['players']['p1'];
         $this->assertSame('hand_setsuna', $p1['stage']['center']['instance_id'] ?? null);
         $this->assertSame('TEST-ONENTER-DRAW', $p1['stage']['center']['card_no'] ?? null);
-        // Leaving Setsuna's stacked Energy returned; chip may sit in Energy Zone (inactive).
-        $underIds = [];
-        foreach ($p1['energy_zone'] as $e) {
-            $underIds[] = (string)($e['instance_id'] ?? '');
-        }
-        $this->assertContains('under1', $underIds);
+        // Leaving Setsuna's stacked Energy returns to the Energy deck.
+        $deckIds = array_map(
+            static fn($e) => (string)($e['instance_id'] ?? ''),
+            $p1['energy_deck'] ?? []
+        );
+        $this->assertContains('under1', $deckIds);
         // Leaving Member is in WR, or was shuffled into the deck after On Enter drew the last card.
         $leftIds = array_map(
             static fn($c) => (string)($c['instance_id'] ?? ''),
@@ -200,8 +200,8 @@ final class SetsunaLeavePlayFromHandTest extends TestCase
                 $this->assertEmpty($c['stacked_energy'] ?? []);
             }
         }
-        // Zone: original 3 + 1 returned from leave − 1 stacked under new = 3.
-        $this->assertCount($zoneBefore, $p1['energy_zone']);
+        // Zone: original 3 − 1 stacked under the new Member. The leaving stack went to the deck.
+        $this->assertCount($zoneBefore - 1, $p1['energy_zone']);
         $this->assertSame(1, countMemberStackedEnergy($p1, $p1['stage']['center']));
         // On Enter draw from the Member played from hand.
         $this->assertCount(1, $p1['hand']);

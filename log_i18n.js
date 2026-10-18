@@ -532,6 +532,7 @@
     [/ resigned\. (.+) wins!$/, ' リタイア。$1 の勝利！'],
     [/ WINS with 3 successful Lives!$/, ' ライブ3回成功で勝利！'],
     [/ used Baton Touch! Cost reduced to (\d+)\.$/, ' バトンタッチ！コストが$1に減少。'],
+    [/ — (\d+) Energy under \[(.+)\] returned to the Energy deck\.$/, ' — [$2]の下のエネルギー$1枚をエネルギーデッキに置いた。'],
     [/ used Baton Touch! Cost reduced to (\d+)\. \((\d+) Energy under replaced Member carried over\.\)$/, ' バトンタッチ！コストが$1に減少。（置き換えメンバー下のエネルギー$2枚を引き継ぎ）'],
     [/ used second Baton Touch! Cost reduced to (\d+)\.$/, ' 2枚目のバトンタッチ！コストが$1に減少。'],
     [/ placed (\d+) card\(s\) face-down in storage \((\d+)\/3\)\.$/, ' $1枚を置き場に裏向きでセット（$2/3）。'],
