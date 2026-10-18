@@ -338,10 +338,11 @@ function tcgBanComputeAdjustments(string $bannedId): array {
             $bRating = $bannedRatings[$mode];
             if ($oppWon) {
                 $agg[$key]['wins']++;
-                $agg[$key]['rating'] -= tcgBanEloDelta($oppRating, $bRating);
+                // Stored like wins: ban subtracts Elo the opponent gained.
+                $agg[$key]['rating'] += tcgBanEloDelta($oppRating, $bRating);
             } else {
                 $agg[$key]['losses']++;
-                $agg[$key]['rating'] += tcgBanEloDelta($bRating, $oppRating);
+                $agg[$key]['rating'] -= tcgBanEloDelta($bRating, $oppRating);
             }
         } elseif ($oppWon) {
             $agg[$key]['wins']++;

@@ -49,12 +49,13 @@ final class SocialBanTest extends TestCase
     {
         tcgBanAccount($this->alt, $this->owner, 'alt_abuse');
 
-        $st = tcgDb()->prepare('SELECT wins, losses, games FROM tcg_rank WHERE discord_id = ? AND game_mode = ?');
+        $st = tcgDb()->prepare('SELECT wins, losses, games, rating FROM tcg_rank WHERE discord_id = ? AND game_mode = ?');
         $st->execute([$this->main, 'standard']);
         $row = $st->fetch(\PDO::FETCH_ASSOC);
         $this->assertSame(9, intval($row['wins']));
         $this->assertSame(2, intval($row['losses']));
         $this->assertSame(11, intval($row['games']));
+        $this->assertSame(1188, intval($row['rating']));
 
         $gone = tcgDb()->prepare('SELECT 1 FROM tcg_users WHERE discord_id = ?');
         $gone->execute([$this->alt]);
