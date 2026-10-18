@@ -603,18 +603,81 @@ function tcgBanComputeSeasonAdjustments(string $bannedId): array {
             'peak_after' => $peakAfter,
             'wins_after' => $winsAfter,
             'losses_after' => $lossesAfter,
+            'events' => $evs,
         ];
     }
     return $out;
 }
 
 /**
- * @param array<string,mixed> $adjustment
+ * Put this season's games vs the banned account back on top of the row as it
+ * stands now, so matches played while the ban was active are kept.
+ *
+ * @param list<array<string,mixed>> $events chronological won/delta pairs
  */
+function tcgBanReapplySeasonEvents(string $uid, string $seasonId, array $events): void {
+    require_once __DIR__ . '/season.php';
+    $db = tcgDb();
+    $st = $db->prepare(
+        'SELECT step, points, peak_step, wins, losses FROM tcg_season_rank
+         WHERE discord_id = ? AND game_mode = ? AND season_id = ?'
+    );
+    $st->execute([$uid, TCG_GAME_MODE_STANDARD, $seasonId]);
+    $row = $st->fetch(PDO::FETCH_ASSOC);
+    if (!$row) {
+        return;
+    }
+    $step = (int)$row['step'];
+    $points = (int)$row['points'];
+    $peak = (int)$row['peak_step'];
+    $won = 0;
+    $lost = 0;
+    foreach ($events as $ev) {
+        if (!is_array($ev)) {
+            continue;
+        }
+        $win = !empty($ev['won']);
+        $moved = tcgSeasonMovePoints($step, $points, (int)($ev['delta'] ?? 0), $win);
+        $step = (int)$moved['step'];
+        $points = (int)$moved['points'];
+        $peak = max($peak, $step);
+        if ($win) {
+            $won++;
+        } else {
+            $lost++;
+        }
+    }
+    $db->prepare(
+        'UPDATE tcg_season_rank SET
+            step = ?,
+            points = ?,
+            peak_step = ?,
+            wins = ?,
+            losses = ?,
+            updated_at = ?
+         WHERE discord_id = ? AND game_mode = ? AND season_id = ?'
+    )->execute([
+        $step,
+        $points,
+        $peak,
+        (int)$row['wins'] + $won,
+        (int)$row['losses'] + $lost,
+        time(),
+        $uid,
+        TCG_GAME_MODE_STANDARD,
+        $seasonId,
+    ]);
+}
+
 function tcgBanApplySeasonAdjustment(array $adjustment, int $sign): void {
     $uid = (string)($adjustment['discord_id'] ?? '');
     $seasonId = (string)($adjustment['season_id'] ?? '');
     if ($uid === '' || $seasonId === '') {
+        return;
+    }
+    $events = $adjustment['events'] ?? null;
+    if ($sign >= 0 && is_array($events)) {
+        tcgBanReapplySeasonEvents($uid, $seasonId, $events);
         return;
     }
     $prefix = $sign < 0 ? 'after' : 'before';

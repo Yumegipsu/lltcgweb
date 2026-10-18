@@ -131,4 +131,29 @@ final class SeasonBanAdjustTest extends TestCase
         tcgUnbanAccount($alt, 'owner_season_ban');
         $this->assertSame($lost, $this->season($main));
     }
+
+    public function testUnbanKeepsSeasonGamesPlayedWhileBanned(): void
+    {
+        $main = $this->user('main');
+        $alt = $this->user('alt');
+        $other = $this->user('other');
+        $t = strtotime('2026-10-08 12:00:00 UTC');
+        $this->win($main, $alt, $t);
+
+        tcgBanAccount($alt, 'owner_season_ban', 'alt_abuse');
+        $this->assertSame(0, (int)$this->season($main)['wins']);
+        $this->assertSame(0, (int)$this->season($main)['points']);
+
+        $this->win($main, $other, $t + 10);
+        $during = $this->season($main);
+        $this->assertSame(1, (int)$during['wins']);
+        $this->assertSame(16, (int)$during['points']);
+
+        tcgUnbanAccount($alt, 'owner_season_ban');
+        $after = $this->season($main);
+        $this->assertSame(2, (int)$after['wins']);
+        $this->assertSame(32, (int)$after['points']);
+        $this->assertSame(0, (int)$after['step']);
+        $this->assertSame(0, (int)$after['losses']);
+    }
 }
