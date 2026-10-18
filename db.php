@@ -1487,9 +1487,19 @@ function tcgApplyBoosterPullWithGems(string $discordId, array $cardNos, array $c
         // printing. Four of the regular card already makes this PR a duplicate.
         $have = tcgOwnedCopiesTowardDupeLimit($owned, is_array($card) ? $card : null, $no);
         if ($have >= $max) {
-            $sealReward = $dupeReward === 'seals'
-                ? tcgDupeSealReward(is_array($card) ? $card : null, $no)
-                : null;
+            // One switch. Seals mode pays seals. Gems mode pays Star Gems. A maxed
+            // PR never lands on a 0-gem conversion.
+            $isPrPool = is_array($card) && tcgCardEligibleForPrBoosterPool($card);
+            $sealReward = null;
+            if ($dupeReward === 'seals') {
+                $sealReward = tcgDupeSealReward(is_array($card) ? $card : null, $no);
+                if ($isPrPool && ($sealReward === null || ($sealReward['tier'] ?? '') !== 'PR')) {
+                    $sealReward = [
+                        'tier' => 'PR',
+                        'amount' => max(1, intdiv(tcgSealBuyCostForTier('PR'), 2)),
+                    ];
+                }
+            }
             if ($sealReward !== null) {
                 $sealsEarned[$sealReward['tier']] = ($sealsEarned[$sealReward['tier']] ?? 0) + $sealReward['amount'];
                 $pulls[] = [
@@ -1501,8 +1511,10 @@ function tcgApplyBoosterPullWithGems(string $discordId, array $cardNos, array $c
                 ];
                 continue;
             }
-            // Gems mode, or a rarity with no seal tier: Star Gems as before.
             $dupeGems = tcgStarGemsForDupe(is_array($card) ? $card : null, $no);
+            if ($dupeGems < 1) {
+                $dupeGems = TCG_STAR_GEMS_PER_DUPE;
+            }
             $gemsEarned += $dupeGems;
             $pulls[] = [
                 'card_no' => $no,

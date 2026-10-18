@@ -3323,7 +3323,7 @@ try {
 <script src="client/js/shop-new.js?v=2"></script>
 <script src="client/js/gacha-spotlight.js?v=17"></script>
 <script src="client/js/gacha.js?v=23"></script>
-<script src="client/js/ranked-pr-reward.js?v=7"></script>
+<script src="client/js/ranked-pr-reward.js?v=8"></script>
 <script src="client/js/missions.js?v=14"></script>
 <script src="client/js/admin-events.js?v=2"></script>
 <script src="client/js/login-bonus.js?v=3"></script>
@@ -5452,7 +5452,9 @@ function buildPackOpenCardEl(c, stackIndex, total, preferSrc = '') {
     inner.appendChild(shine);
   }
   card.appendChild(inner);
-  if (converted) {
+  const sealPaid = !!(c && c.seal_tier && Number(c.seals) > 0);
+  const gemsPaid = Number(c?.star_gems) > 0;
+  if (converted && (sealPaid || gemsPaid)) {
     const gemOverlay = document.createElement('div');
     gemOverlay.className = 'pack-open-gem-overlay';
     gemOverlay.innerHTML = convertBadgeHtml(c);

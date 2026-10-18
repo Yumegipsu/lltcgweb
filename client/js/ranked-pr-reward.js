@@ -185,9 +185,12 @@
   }
 
   function rankedPrSubText(reward, cards) {
+    const paid = cards.filter((c) => c.converted && (
+      (c.seal_tier && Number(c.seals) > 0) || Number(c.star_gems) > 0
+    ));
     const gems = Number(reward.star_gems_earned || 0)
-      || cards.reduce((sum, c) => sum + (Number(c.star_gems) || 0), 0);
-    const converted = cards.filter((c) => c.converted).length;
+      || paid.reduce((sum, c) => sum + (Number(c.star_gems) || 0), 0);
+    const converted = paid.length;
     // Seals preference: PR duplicates paid PR seals instead of Star Gems (#277).
     const prSeals = cards.reduce((sum, c) => sum + (c.seal_tier === 'PR' ? (Number(c.seals) || 0) : 0), 0);
     const nSeals = cards.reduce((sum, c) => sum + (c.seal_tier === 'N' ? (Number(c.seals) || 0) : 0), 0);

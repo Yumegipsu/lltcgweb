@@ -90,7 +90,9 @@ final class PrPackDupePrefTest extends TestCase
         $this->assertGreaterThan($gemsBefore, tcgGetStarGems($this->discordId));
         $this->assertSame($before['pr'], tcgSealBalances($this->discordId)['pr']);
         foreach ($pack['cards'] as $c) {
+            $this->assertTrue($c['converted']);
             $this->assertSame('', $c['seal_tier']);
+            $this->assertGreaterThan(0, $c['star_gems'], 'a maxed PR pays gems, never 0');
         }
     }
 
