@@ -304,6 +304,50 @@ function tcgSeasonMovePoints(int $step, int $points, int $delta, bool $win): arr
 }
 
 /**
+ * Reverse one seasonal win. Pink S is scored as Green S, matching move().
+ *
+ * @return array{step:int,points:int}
+ */
+function tcgSeasonUndoWin(int $step, int $points, int $delta): array {
+    $step = tcgSeasonClampStep($step);
+    if ($step >= TCG_SEASON_PINK_S_STEP) {
+        $step = TCG_SEASON_GREEN_S_STEP;
+    }
+    $points = max(0, $points) - max(0, $delta);
+    while ($points < 0 && $step > 0) {
+        $step--;
+        $points += TCG_SEASON_POINTS;
+    }
+    if ($points < 0) {
+        $points = 0;
+    }
+    return ['step' => $step, 'points' => $points];
+}
+
+/**
+ * Reverse one seasonal loss. A zero delta is a protected C loss and changes nothing.
+ *
+ * @return array{step:int,points:int}
+ */
+function tcgSeasonUndoLoss(int $step, int $points, int $delta): array {
+    $step = tcgSeasonClampStep($step);
+    if ($step >= TCG_SEASON_PINK_S_STEP) {
+        $step = TCG_SEASON_GREEN_S_STEP;
+    }
+    $points = max(0, $points);
+    $delta = max(0, $delta);
+    if ($delta === 0) {
+        return ['step' => $step, 'points' => $points];
+    }
+    $points += $delta;
+    while ($points >= TCG_SEASON_POINTS && $step < TCG_SEASON_GREEN_S_STEP) {
+        $points -= TCG_SEASON_POINTS;
+        $step++;
+    }
+    return ['step' => $step, 'points' => $points];
+}
+
+/**
  * Pink S is the current top 10 players in this mode who have filled Green S
  * (100 points on that step). A higher score takes the slot and the previous
  * 10th returns to Green S. The Pink S peak is live: only the current holders

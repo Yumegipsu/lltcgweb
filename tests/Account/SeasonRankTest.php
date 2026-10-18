@@ -424,4 +424,21 @@ final class SeasonRankTest extends TestCase
         $this->assertSame(1, $public['overall_rank']);
         $this->assertSame('2026 Season 1', $public['label']);
     }
+
+    public function testUndoWinAndLossRestoreThePreviousBar(): void
+    {
+        $promoted = tcgSeasonMovePoints(0, 96, 16, true);
+        $back = tcgSeasonUndoWin($promoted['step'], $promoted['points'], 16);
+        $this->assertSame(0, $back['step']);
+        $this->assertSame(96, $back['points']);
+
+        $greenS = tcgSeasonMovePoints(6, 90, 32, true);
+        $this->assertSame(['step' => 6, 'points' => 90], tcgSeasonUndoWin($greenS['step'], $greenS['points'], 32));
+
+        $demoted = tcgSeasonMovePoints(2, 10, 32, false);
+        $this->assertSame(['step' => 2, 'points' => 10], tcgSeasonUndoLoss($demoted['step'], $demoted['points'], 32));
+
+        $protected = tcgSeasonMovePoints(1, 40, 16, false);
+        $this->assertSame(['step' => 1, 'points' => 40], tcgSeasonUndoLoss($protected['step'], $protected['points'], 0));
+    }
 }

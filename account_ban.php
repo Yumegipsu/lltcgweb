@@ -1,7 +1,8 @@
 <?php
 /**
  * Owner banlist: snapshot + wipe a Discord account, reverse ranked W–L
- * opponents earned against it, restore from snapshot on unban.
+ * opponents earned against it, rewind current-season points from those
+ * games, restore from snapshot on unban.
  */
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/game_mode.php';
@@ -43,6 +44,7 @@ function tcgBanDiscordTables(): array {
         'tcg_deck_presets',
         'tcg_experiment_presets',
         'tcg_rank',
+        'tcg_season_rank',
         'tcg_match_queue',
         'tcg_casual_queue',
         'tcg_replays',
@@ -351,6 +353,320 @@ function tcgBanComputeAdjustments(string $bannedId): array {
 }
 
 /**
+ * @return array{step:int,points:int,wins:int,losses:int,peak:int}
+ */
+function tcgBanSeasonBlank(): array {
+    return ['step' => 0, 'points' => 0, 'wins' => 0, 'losses' => 0, 'peak' => 0];
+}
+
+/**
+ * @param array{step:int,points:int,wins:int,losses:int,peak:int} $state
+ * @return array{step:int,points:int,wins:int,losses:int,peak:int}
+ */
+function tcgBanSeasonStepState(array $state, int $delta, bool $win): array {
+    $moved = tcgSeasonMovePoints((int)$state['step'], (int)$state['points'], $delta, $win);
+    $step = (int)$moved['step'];
+    return [
+        'step' => $step,
+        'points' => (int)$moved['points'],
+        'wins' => (int)$state['wins'] + ($win ? 1 : 0),
+        'losses' => (int)$state['losses'] + ($win ? 0 : 1),
+        'peak' => max((int)$state['peak'], $step),
+    ];
+}
+
+/**
+ * UTC month of the active season. Season ids are UTC (2026-10), so every
+ * standard game already played this month is in range, not only games after
+ * the server's local midnight.
+ *
+ * @param array{id?:string} $clock
+ * @return array{0:int,1:int}
+ */
+function tcgBanActiveSeasonBounds(array $clock): array {
+    $id = (string)($clock['id'] ?? '');
+    if (!preg_match('/^(\d{4})-(\d{2})$/', $id, $m)) {
+        return [0, 0];
+    }
+    $year = (int)$m[1];
+    $month = (int)$m[2];
+    $tz = new DateTimeZone('UTC');
+    $start = DateTimeImmutable::createFromFormat('!Y-m-d', sprintf('%04d-%02d-01', $year, $month), $tz);
+    if (!$start) {
+        return [0, 0];
+    }
+    $end = $start->modify('first day of next month');
+    return [$start->getTimestamp(), $end->getTimestamp()];
+}
+
+/**
+ * Standard ranked games in the open season, oldest first.
+ * A match created just before the month boundary still counts when it
+ * finished inside the season, which is when the points were applied.
+ *
+ * @return list<array{room_id:string,p1_id:string,p2_id:string,winner_pid:string,created_at:int,ended_at:int}>
+ */
+function tcgBanSeasonMatches(int $start, int $end): array {
+    $db = tcgDb();
+    if (!tcgBanTableExists($db, 'tcg_ranked_matches')) {
+        return [];
+    }
+    $pvpEnded = [];
+    $pvpWinner = [];
+    if (tcgBanTableExists($db, 'tcg_pvp_results')) {
+        $pvp = $db->prepare(
+            "SELECT room_id, winner_id, ended_at FROM tcg_pvp_results
+             WHERE ended_at >= ? AND ended_at < ? AND lower(mode) = 'ranked'"
+        );
+        $pvp->execute([$start - 2 * 86400, $end]);
+        while ($row = $pvp->fetch(PDO::FETCH_ASSOC)) {
+            $rid = strtoupper(preg_replace('/[^A-Z0-9]/', '', (string)($row['room_id'] ?? '')) ?? '');
+            if ($rid === '') {
+                continue;
+            }
+            $pvpEnded[$rid] = intval($row['ended_at'] ?? 0);
+            $win = trim((string)($row['winner_id'] ?? ''));
+            if ($win !== '') {
+                $pvpWinner[$rid] = $win;
+            }
+        }
+    }
+    $st = $db->prepare(
+        "SELECT room_id, p1_id, p2_id, winner_pid, created_at, game_mode
+         FROM tcg_ranked_matches
+         WHERE status = 'done' AND created_at >= ? AND created_at < ?"
+    );
+    $st->execute([$start - 2 * 86400, $end]);
+    $rows = [];
+    while ($row = $st->fetch(PDO::FETCH_ASSOC)) {
+        if (strtolower(trim((string)($row['game_mode'] ?? ''))) !== TCG_GAME_MODE_STANDARD) {
+            continue;
+        }
+        $rid = strtoupper(preg_replace('/[^A-Z0-9]/', '', (string)($row['room_id'] ?? '')) ?? '');
+        $created = intval($row['created_at'] ?? 0);
+        $ended = $pvpEnded[$rid] ?? 0;
+        $when = $ended > 0 ? $ended : $created;
+        if ($when < $start || $when >= $end) {
+            continue;
+        }
+        $rows[] = [
+            'room_id' => $rid,
+            'p1_id' => (string)($row['p1_id'] ?? ''),
+            'p2_id' => (string)($row['p2_id'] ?? ''),
+            'winner_pid' => (string)($row['winner_pid'] ?? ''),
+            'created_at' => $created,
+            'ended_at' => $when,
+            'pvp_winner' => $pvpWinner[$rid] ?? '',
+        ];
+    }
+    usort($rows, static function (array $a, array $b): int {
+        $cmp = $a['ended_at'] <=> $b['ended_at'];
+        return $cmp !== 0 ? $cmp : strcmp($a['room_id'], $b['room_id']);
+    });
+    return $rows;
+}
+
+/**
+ * Rewind the current season for opponents who played this account.
+ * Points are removed in reverse match order using the delta from each
+ * game. Wins and losses against everyone else stay.
+ *
+ * @return list<array<string,mixed>>
+ */
+function tcgBanComputeSeasonAdjustments(string $bannedId): array {
+    $bannedId = trim($bannedId);
+    if ($bannedId === '') {
+        return [];
+    }
+    require_once __DIR__ . '/season.php';
+    $clock = tcgSeasonClockInfo();
+    if (empty($clock['active'])) {
+        return [];
+    }
+    [$start, $end] = tcgBanActiveSeasonBounds($clock);
+    if ($start <= 0 || $end <= $start) {
+        return [];
+    }
+    $matches = tcgBanSeasonMatches($start, $end);
+    if ($matches === []) {
+        return [];
+    }
+
+    $live = [];
+    $shadow = [];
+    $events = [];
+    foreach ($matches as $match) {
+        $p1 = $match['p1_id'];
+        $p2 = $match['p2_id'];
+        if ($p1 === '' || $p2 === '' || $p1 === $p2) {
+            continue;
+        }
+        $wp = $match['winner_pid'];
+        if ($wp === 'p1') {
+            $winner = $p1;
+            $loser = $p2;
+        } elseif ($wp === 'p2') {
+            $winner = $p2;
+            $loser = $p1;
+        } elseif ($match['pvp_winner'] === $p1 || $match['pvp_winner'] === $p2) {
+            $winner = (string)$match['pvp_winner'];
+            $loser = $winner === $p1 ? $p2 : $p1;
+        } else {
+            continue;
+        }
+        $wState = $live[$winner] ?? tcgBanSeasonBlank();
+        $lState = $live[$loser] ?? tcgBanSeasonBlank();
+        $base = tcgSeasonPointDelta((int)$wState['step'], (int)$lState['step']);
+        $lossDelta = tcgSeasonLossDelta($base, (int)$lState['step']);
+        $vsBanned = $winner === $bannedId || $loser === $bannedId;
+        if ($vsBanned) {
+            $opp = $winner === $bannedId ? $loser : $winner;
+            $events[$opp][] = [
+                'won' => $winner === $opp ? 1 : 0,
+                'delta' => $winner === $opp ? $base : $lossDelta,
+            ];
+        } else {
+            foreach ([[$winner, $loser, true, $base], [$loser, $winner, false, $lossDelta]] as $side) {
+                [$id, $otherId, $won, $delta] = $side;
+                $self = $shadow[$id] ?? tcgBanSeasonBlank();
+                $otherLive = $live[$otherId] ?? tcgBanSeasonBlank();
+                if ($won) {
+                    $shadowDelta = tcgSeasonPointDelta((int)$self['step'], (int)$otherLive['step']);
+                } else {
+                    $shadowBase = tcgSeasonPointDelta((int)$otherLive['step'], (int)$self['step']);
+                    $shadowDelta = tcgSeasonLossDelta($shadowBase, (int)$self['step']);
+                }
+                $shadow[$id] = tcgBanSeasonStepState($self, $shadowDelta, $won);
+            }
+        }
+        $live[$winner] = tcgBanSeasonStepState($wState, $base, true);
+        $live[$loser] = tcgBanSeasonStepState($lState, $lossDelta, false);
+    }
+    if ($events === []) {
+        return [];
+    }
+
+    $db = tcgDb();
+    if (!tcgBanTableExists($db, 'tcg_season_rank')) {
+        return [];
+    }
+    $rowSt = $db->prepare(
+        'SELECT step, points, peak_step, wins, losses, season_id
+         FROM tcg_season_rank WHERE discord_id = ? AND game_mode = ?'
+    );
+    $seasonId = (string)$clock['id'];
+    $out = [];
+    foreach ($events as $opp => $evs) {
+        if ($opp === '' || $opp === $bannedId || $evs === []) {
+            continue;
+        }
+        $rowSt->execute([$opp, TCG_GAME_MODE_STANDARD]);
+        $row = $rowSt->fetch(PDO::FETCH_ASSOC);
+        if (!$row || (string)($row['season_id'] ?? '') !== $seasonId) {
+            continue;
+        }
+        $step = (int)$row['step'];
+        $points = (int)$row['points'];
+        $won = 0;
+        $lost = 0;
+        foreach (array_reverse($evs) as $ev) {
+            if (!empty($ev['won'])) {
+                $next = tcgSeasonUndoWin($step, $points, (int)$ev['delta']);
+                $won++;
+            } else {
+                $next = tcgSeasonUndoLoss($step, $points, (int)$ev['delta']);
+                $lost++;
+            }
+            $step = (int)$next['step'];
+            $points = (int)$next['points'];
+        }
+        $winsAfter = max(0, (int)$row['wins'] - $won);
+        $lossesAfter = max(0, (int)$row['losses'] - $lost);
+        $shadowState = $shadow[$opp] ?? tcgBanSeasonBlank();
+        if ((int)$shadowState['wins'] === $winsAfter && (int)$shadowState['losses'] === $lossesAfter) {
+            $peakAfter = max($step, (int)$shadowState['peak']);
+        } else {
+            $peakAfter = max((int)$row['peak_step'], $step);
+        }
+        $out[] = [
+            'kind' => 'season',
+            'discord_id' => $opp,
+            'game_mode' => TCG_GAME_MODE_STANDARD,
+            'season_id' => $seasonId,
+            'step_before' => (int)$row['step'],
+            'points_before' => (int)$row['points'],
+            'peak_before' => (int)$row['peak_step'],
+            'wins_before' => (int)$row['wins'],
+            'losses_before' => (int)$row['losses'],
+            'step_after' => $step,
+            'points_after' => $points,
+            'peak_after' => $peakAfter,
+            'wins_after' => $winsAfter,
+            'losses_after' => $lossesAfter,
+        ];
+    }
+    return $out;
+}
+
+/**
+ * @param array<string,mixed> $adjustment
+ */
+function tcgBanApplySeasonAdjustment(array $adjustment, int $sign): void {
+    $uid = (string)($adjustment['discord_id'] ?? '');
+    $seasonId = (string)($adjustment['season_id'] ?? '');
+    if ($uid === '' || $seasonId === '') {
+        return;
+    }
+    $prefix = $sign < 0 ? 'after' : 'before';
+    $db = tcgDb();
+    if (!tcgBanTableExists($db, 'tcg_season_rank')) {
+        return;
+    }
+    $db->prepare(
+        'UPDATE tcg_season_rank SET
+            step = ?,
+            points = ?,
+            peak_step = ?,
+            wins = ?,
+            losses = ?,
+            updated_at = ?
+         WHERE discord_id = ? AND game_mode = ? AND season_id = ?'
+    )->execute([
+        intval($adjustment['step_' . $prefix] ?? 0),
+        intval($adjustment['points_' . $prefix] ?? 0),
+        intval($adjustment['peak_' . $prefix] ?? 0),
+        max(0, intval($adjustment['wins_' . $prefix] ?? 0)),
+        max(0, intval($adjustment['losses_' . $prefix] ?? 0)),
+        time(),
+        $uid,
+        TCG_GAME_MODE_STANDARD,
+        $seasonId,
+    ]);
+}
+
+/**
+ * @param list<array<string,mixed>> $adjustments
+ */
+function tcgBanRefreshSeasonPink(array $adjustments): void {
+    $touched = false;
+    foreach ($adjustments as $a) {
+        if (($a['kind'] ?? '') === 'season') {
+            $touched = true;
+            break;
+        }
+    }
+    if (!$touched) {
+        return;
+    }
+    require_once __DIR__ . '/season.php';
+    $clock = tcgSeasonClockInfo();
+    if (empty($clock['active'])) {
+        return;
+    }
+    tcgSeasonAssignPinkSlots(TCG_GAME_MODE_STANDARD, (string)$clock['id']);
+}
+
+/**
  * @param list<array{discord_id:string,game_mode:string,wins:int,losses:int,draws:int,games:int,rating:int,unranked_games?:int}> $adjustments
  * @param int $sign -1 when banning (remove W/L), +1 when unbanning (restore)
  */
@@ -358,6 +674,10 @@ function tcgBanApplyAdjustments(array $adjustments, int $sign): void {
     $db = tcgDb();
     $now = time();
     foreach ($adjustments as $a) {
+        if (($a['kind'] ?? '') === 'season') {
+            tcgBanApplySeasonAdjustment($a, $sign);
+            continue;
+        }
         $uid = (string)($a['discord_id'] ?? '');
         $mode = tcgNormalizeGameMode($a['game_mode'] ?? TCG_GAME_MODE_STANDARD);
         if ($uid === '') {
@@ -452,7 +772,10 @@ function tcgBanAccount(string $target, string $actorId, string $reason): array {
     $userSt->execute([$target]);
     $username = (string)($userSt->fetchColumn() ?: '');
     $snapshot = tcgBanSnapshotUser($target);
-    $adjustments = tcgBanComputeAdjustments($target);
+    $adjustments = array_merge(
+        tcgBanComputeAdjustments($target),
+        tcgBanComputeSeasonAdjustments($target)
+    );
     $db->beginTransaction();
     try {
         tcgBanApplyAdjustments($adjustments, -1);
@@ -484,6 +807,7 @@ function tcgBanAccount(string $target, string $actorId, string $reason): array {
         $db->rollBack();
         throw $e;
     }
+    tcgBanRefreshSeasonPink($adjustments);
     return ['success' => true, 'banned' => $target, 'adjustments' => count($adjustments)];
 }
 
@@ -515,6 +839,7 @@ function tcgUnbanAccount(string $target, string $actorId): array {
         $db->rollBack();
         throw $e;
     }
+    tcgBanRefreshSeasonPink($adjustments);
     return ['success' => true, 'restored' => $target];
 }
 
