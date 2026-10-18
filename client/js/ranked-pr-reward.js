@@ -35,10 +35,12 @@
     if (Array.isArray(reward.cards) && reward.cards.length) {
       return reward.cards.map((c) => Object.assign({}, c || {}, {
         card_no: c.card_no || reward.card_no,
-        converted: !!(c.converted || reward.converted),
-        star_gems: c.star_gems || 0,
+        // reward.converted is only the first card. Copying it onto every pull
+        // painted Star Gems on cards that were kept (#290 follow-up).
+        converted: !!c.converted,
+        star_gems: Number(c.star_gems) || 0,
         seal_tier: c.seal_tier || '',
-        seals: c.seals || 0,
+        seals: Number(c.seals) || 0,
       }));
     }
     if (reward.card_no || reward.card?.card_no) {

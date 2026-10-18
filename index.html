@@ -4359,7 +4359,9 @@ function convertBadgeHtml(c) {
   if (c && c.seal_tier) {
     return sealIconHtml(c.seal_tier, 24) + '<span>' + Number(c.seals || 0) + '</span>';
   }
-  return starGemIconHtml(24) + '<span>' + Number(c?.star_gems || STAR_GEMS_PER_DUPE) + '</span>';
+  const gems = Number(c?.star_gems);
+  const shown = Number.isFinite(gems) ? gems : STAR_GEMS_PER_DUPE;
+  return starGemIconHtml(24) + '<span>' + shown + '</span>';
 }
 
 function appendGemConvertOverlay(parent, c) {

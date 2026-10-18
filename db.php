@@ -1435,6 +1435,27 @@ function tcgResolveDupeRewardFromRequest(string $discordId, array $body): string
     return tcgSetDupeRewardPref($discordId, $body['dupe_reward']);
 }
 
+/**
+ * Copies that count toward the duplicate limit for this pull.
+ * PR-pool cards (including reprints and protein-bar promos) share a copy slot
+ * with every other printing of the same card. Other pulls stay per card number,
+ * so a parallel from a normal pack is still collected on its own.
+ */
+function tcgOwnedCopiesTowardDupeLimit(array $owned, ?array $card, string $cardNo): int {
+    $cardNo = trim($cardNo);
+    if ($cardNo === '' || !is_array($card) || !tcgCardEligibleForPrBoosterPool($card) || !function_exists('tcgDeckCopyIdentity')) {
+        return intval($owned[$cardNo] ?? 0);
+    }
+    $id = tcgDeckCopyIdentity($cardNo);
+    $n = 0;
+    foreach ($owned as $ownedNo => $qty) {
+        if (tcgDeckCopyIdentity((string)$ownedNo) === $id) {
+            $n += intval($qty);
+        }
+    }
+    return $n;
+}
+
 function tcgApplyBoosterPullWithGems(string $discordId, array $cardNos, array $cardMap, string $dupeReward = 'gems'): array {
     $dupeReward = tcgNormalizeDupeReward($dupeReward);
     if (empty($cardNos)) {
@@ -1462,7 +1483,9 @@ function tcgApplyBoosterPullWithGems(string $discordId, array $cardNos, array $c
         }
         $card = $cardMap[$no] ?? null;
         $max = tcgGetDeckMaxCopies(is_array($card) ? $card : null, $no);
-        $have = intval($owned[$no] ?? 0);
+        // PR-pool cards share the 4-copy (or 12 Energy) slot with their non-PR
+        // printing. Four of the regular card already makes this PR a duplicate.
+        $have = tcgOwnedCopiesTowardDupeLimit($owned, is_array($card) ? $card : null, $no);
         if ($have >= $max) {
             $sealReward = $dupeReward === 'seals'
                 ? tcgDupeSealReward(is_array($card) ? $card : null, $no)
@@ -1487,7 +1510,7 @@ function tcgApplyBoosterPullWithGems(string $discordId, array $cardNos, array $c
                 'star_gems' => $dupeGems,
             ];
         } else {
-            $owned[$no] = $have + 1;
+            $owned[$no] = intval($owned[$no] ?? 0) + 1;
             $addCounts[$no] = ($addCounts[$no] ?? 0) + 1;
             $pulls[] = [
                 'card_no' => $no,
