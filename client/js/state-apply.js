@@ -587,7 +587,7 @@
   };
 
   /** Apply one server state snapshot: spectacle gate, log anims, or direct render. */
-  global.applyStateUpdate = async function applyStateUpdate(s) {
+  async function applyStateUpdateInner(s) {
     if (G.isTutorial && !G.tutorialLive) return;
     if (isReplayViewingState(s) && !G._replayForwardApply) {
       await applyReplayStateUpdate(G.gameState, s);
@@ -977,9 +977,12 @@
       G.animating = true;
       try {
         await playLogSyncedSequence(prev, s, newEntries, G.playerId);
+        // Never roll a newer board back to this (older) snapshot: overlapping applies
+        // used to land here last and the CPU then acted on a seq-7 view of a seq-9 prompt.
         if (!G.gameState || (G.gameState.seq ?? 0) < (s.seq ?? 0)
-            || G.gameState.phase !== s.phase
-            || G.gameState.active_player !== s.active_player) {
+            || ((G.gameState.seq ?? 0) === (s.seq ?? 0)
+              && (G.gameState.phase !== s.phase
+                || G.gameState.active_player !== s.active_player))) {
           G.gameState = s;
           if (typeof renderGame === 'function') {
             renderGame(s, { skipLog: true });
@@ -1026,7 +1029,12 @@
       const livePlan = liveRoundPresentationPlan(livePrev, s);
       const emptySkip = !liveSetPlacementInProgress(s)
         && (livePlan.wantsEmptyRound || shouldPresentEmptyLiveRound(livePrev, s));
-      if (!spectacleGateActive && pendingSpectacleTurn == null
+      // A settled Main (On Enter / baton / play) skips presentLiveRound without painting.
+      // Entering this branch for it left the board on the old seq forever (CPU stuck on a
+      // resolved prompt), so those snapshots take the direct-render path below.
+      const settledMainNoLive = typeof settledMainBlocksLiveSpectacle === 'function'
+        && settledMainBlocksLiveSpectacle(livePrev, s);
+      if (!spectacleGateActive && pendingSpectacleTurn == null && !settledMainNoLive
           && (livePlan.needsLiveReveal || livePlan.wantsSpectacle || emptySkip)) {
         TCG_DEBUG.log('apply', 'presentLiveRound', { ...livePlan, emptySkip, solo: isSoloPlayerEmptyLiveRound(livePrev, s) }, TCG_DEBUG.trans(livePrev, s));
         G.animating = true;
@@ -1052,6 +1060,13 @@
             }
           }
           releaseLivePollsAndFlush();
+          // presentLiveRound can bail without painting; never leave the board on an old seq.
+          if (!replayForward && !G._liveRoundPlaybackActive && !G._perfSpectacleActive
+              && (G.gameState?.seq ?? 0) < (s.seq ?? 0)) {
+            G.gameState = s;
+            G.lastSeq = Math.max(G.lastSeq ?? 0, s.seq ?? 0);
+            renderGame(s, { skipLog: true });
+          }
         }
       } else {
           const emptyPending = emptyLiveRoundPresentationPending(prev, s);
@@ -1148,6 +1163,16 @@
           captureHandShiftBaselines(moves, G.playerId);
           captureFlightArtClones(moves, G.playerId, animPrev);
           prepareWrPileAnimPending(animPrev, s, moves);
+          // A newer snapshot may have committed while this one waited on a presentation
+          // await; painting the older one now would roll the board (and the CPU's view) back.
+          if (!replayForward && !G.isSpectator && (G.gameState?.seq ?? 0) > (s.seq ?? 0)) {
+            TCG_DEBUG.warn('state', 'skip stale direct-render commit', { incoming: s.seq, board: G.gameState?.seq });
+            clearWrPileAnimPending(s, G.playerId);
+            clearHandArrivingFlags();
+            G._animHideIids = null;
+            flushPendingState();
+            return;
+          }
           G.gameState = s;
           G.lastSeq = Math.max(G.lastSeq ?? 0, s.seq ?? 0);
           renderGame(s, { skipHand: deferHand, skipOppHand: deferOppHand });
@@ -1326,6 +1351,34 @@
       G.lastSeq = Math.max(G.lastSeq ?? 0, s.seq ?? 0);
     }
     if (G._applyInFlightSeq === (s.seq ?? 0)) G._applyInFlightSeq = null;
+  }
+
+  /**
+   * Overlapping applies (poll + action response + queue flush) can finish out of order:
+   * an older snapshot's long log-sync used to commit last and roll the board back to a
+   * stale seq (CPU then acted on a hand/prompt that no longer existed).
+   */
+  global.applyStateUpdate = async function applyStateUpdate(s) {
+    try {
+      return await applyStateUpdateInner(s);
+    } finally {
+      const seq = s?.seq ?? 0;
+      if (G._newestAppliedRoom !== G.roomId) {
+        G._newestAppliedRoom = G.roomId;
+        G._newestAppliedBoard = null;
+      }
+      const done = G._newestAppliedBoard;
+      if (!done || seq >= (done.seq ?? 0)) {
+        G._newestAppliedBoard = s;
+      } else if (!G.isSpectator && !G.isTutorial && (G.gameState?.seq ?? 0) < (done.seq ?? 0)) {
+        TCG_DEBUG.warn('state', 'older apply finished last — restoring newer board', {
+          applied: seq, board: G.gameState?.seq, newest: done.seq,
+        });
+        G.gameState = done;
+        G.lastSeq = Math.max(G.lastSeq ?? 0, done.seq ?? 0);
+        if (typeof renderGame === 'function') renderGame(done, { skipLog: true });
+      }
+    }
   };
 
   global.enqueuePendingState = function enqueuePendingState(s) {

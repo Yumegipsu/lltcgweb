@@ -3332,7 +3332,7 @@ try {
 <script src="client/js/spectate-pip.js?v=3"></script>
 <script src="client/js/resign-escape.js?v=1"></script>
 <script src="client/js/game-sync.js?v=71"></script>
-<script src="client/js/state-apply.js?v=83"></script>
+<script src="client/js/state-apply.js?v=84"></script>
 <script src="client/js/stamps.js?v=21"></script>
 <script src="client/js/replay-debug.js?v=15"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
@@ -26869,7 +26869,7 @@ function scheduleCpuResolvePrompt(s, cpu) {
   const pr = s?.pending_prompt;
   const waitForHand = typeof isDrawThenHandPickPrompt === 'function' && isDrawThenHandPickPrompt(pr)
     && !!(G.animating || G._livePollHold || G._perfSpectacleActive || G._liveSpectacleGateRunning);
-  const delay = waitForHand ? cpuDelay(420) : (G.animating ? cpuDelay(120) : cpuDelay(850));
+  const delay = waitForHand ? cpuDelay(250) : (G.animating ? cpuDelay(120) : cpuDelay(300));
   G._cpuPromptTimer = setTimeout(() => {
     G._cpuPromptTimer = null;
     const live = G.gameState;
@@ -37291,7 +37291,7 @@ function mkNoImg(card){
 <script src="client/js/cpu-meta-weights.js?v=7"></script>
 <script src="client/js/cpu-eval.js?v=8"></script>
 <script src="client/js/cpu-expert.js?v=8"></script>
-<script src="client/js/cpu-loop.js?v=54"></script>
+<script src="client/js/cpu-loop.js?v=55"></script>
 <script src="client/js/cpu-ai.js?v=14"></script>
 <script src="client/js/portrait-bridge.js?v=31"></script>
 <script src="client/js/match-chat.js?v=7"></script>

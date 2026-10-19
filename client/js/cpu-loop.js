@@ -2883,7 +2883,7 @@ function doCPU(s) {
     if (!flip.ready?.[cpuId]) {
       if (G.tutorialLive && !tutorialLiveCoinActive()) return;
       TCG_DEBUG.log('cpu', 'ack_coin_flip');
-      const ackDelay = G.tutorialLive ? 280 : 1100;
+      const ackDelay = G.tutorialLive ? 280 : 500;
       cpuSchedule(() => cpuAct('ack_coin_flip', {}), ackDelay);
       return;
     }
@@ -2898,7 +2898,7 @@ function doCPU(s) {
       G._cpuCoinFlipChooseKey = chooseKey;
       const pick = cpuPickCoinFirstPlayer(s);
       TCG_DEBUG.log('cpu', 'choose_first_player', { pick, diff: cpuDiff() });
-      cpuSchedule(() => cpuAct('choose_first_player', { first_player: pick }), 600);
+      cpuSchedule(() => cpuAct('choose_first_player', { first_player: pick }), 300);
       return;
     }
     return;
@@ -2906,7 +2906,7 @@ function doCPU(s) {
   if (ph === 'setup' && !cpu.ready_mulligan) {
     if (G.tutorialLive && tutorialLiveStepId() !== 'mulligan') return;
     TCG_DEBUG.log('cpu', 'mulligan', { diff: cpuDiff() });
-    cpuSchedule(() => cpuMulligan(), 700);
+    cpuSchedule(() => cpuMulligan(), 350);
     return;
   }
   if ((ph === 'main_first' || ph === 'main_second') && s.active_player === cpuId) {
@@ -2915,13 +2915,13 @@ function doCPU(s) {
       return;
     }
     TCG_DEBUG.log('cpu', 'main phase', { turn: s.turn, hand: cpu.hand?.length, diff: cpuDiff() });
-    cpuSchedule(() => { void cpuMain(); }, 900);
+    cpuSchedule(() => { void cpuMain(); }, 250);
     return;
   }
   if (ph === 'live_set' && s.active_player === cpuId && !s.live_ready?.[cpuId]) {
     TCG_DEBUG.log('cpu', 'live_set', { hand: cpu.hand?.length, liveZone: cpu.live_zone?.length, diff: cpuDiff() });
     if (typeof armCpuLiveSetHangWatch === 'function') armCpuLiveSetHangWatch(s);
-    cpuSchedule(() => cpuLiveSet(), 750);
+    cpuSchedule(() => cpuLiveSet(), 250);
     return;
   }
   if (typeof clearCpuLiveSetHangWatch === 'function') clearCpuLiveSetHangWatch();

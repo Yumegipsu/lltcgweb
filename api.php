@@ -6113,7 +6113,14 @@ function filterStateForPlayer(array $state, string $token): array {
     $prompt = $filtered['pending_prompt'] ?? null;
     if (is_array($prompt)) {
         $responder = (string)($prompt['responder'] ?? $prompt['owner'] ?? '');
-        if ($myId && $responder !== $myId && pendingPromptIsPrivateLook($prompt)) {
+        // In a CPU solo match the CPU brain runs in the human's browser and reads the human's view of the match. The CPU's
+        // own "look at the top cards" prompts must reach it unredacted (its hand is already visible in solo), otherwise
+        // it only ever sees the empty `wait_look` placeholder, cannot answer and the skill hangs until the 12s timeout.
+        $cpuOwnsPrompt = $myId && $responder !== $myId && isCpuSoloMatch($state)
+            && isCpuPlayer($state['players'][$responder] ?? null);
+        if ($cpuOwnsPrompt) {
+            // keep prompt + surveil stash as they are
+        } elseif ($myId && $responder !== $myId && pendingPromptIsPrivateLook($prompt)) {
             $filtered['pending_prompt'] = [
                 'type' => 'wait_look',
                 'owner' => $prompt['owner'] ?? $responder,
