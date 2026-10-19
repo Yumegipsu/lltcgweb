@@ -3596,13 +3596,21 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             }
             discardFromHandByIds($ownerP, $ids, $state, $owner);
             $sourceId = $prompt['source_id'] ?? '';
+            $paidWait = false;
             foreach ($ownerP['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
-                    waitMember($mbr, $state);
+                    $paidWait = tryPutMemberIntoWait($mbr, $state);
                     break;
                 }
             }
             unset($mbr);
+            if (!$paidWait) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] is already in Wait, so cannot put into Wait.');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishPromptEffects($state);
+            }
             $cfg = $ability;
             unset($state['pending_prompt']);
             $state = beginLookRevealPick(
@@ -3642,13 +3650,21 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 discardFromHandByIds($ownerP, $ids, $state, $owner);
             }
             $sourceId = $prompt['source_id'] ?? '';
+            $paidWait = false;
             foreach ($ownerP['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
-                    waitMember($mbr, $state);
+                    $paidWait = tryPutMemberIntoWait($mbr, $state);
                     break;
                 }
             }
             unset($mbr);
+            if (!$paidWait) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] is already in Wait, so cannot put into Wait.');
+                unset($state['pending_prompt']);
+                $state['seq']++;
+                return finishPromptEffects($state);
+            }
             $cfg = $ability;
             unset($state['pending_prompt']);
             $state = beginLookRevealPick(

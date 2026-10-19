@@ -5025,6 +5025,18 @@ function activateMemberFully(array &$member): void {
     clearMemberWait($member);
 }
 
+/**
+ * "Put this Member into Wait" is a cost. Already in Wait cannot pay it.
+ * Returns false when the member was already in Wait and was not changed.
+ */
+function tryPutMemberIntoWait(array &$member, array $state): bool {
+    if (memberIsInWait($member)) {
+        return false;
+    }
+    waitMember($member, $state);
+    return true;
+}
+
 function waitMember(array &$member, array $state): void {
     if (memberIsInWait($member)) {
         return;

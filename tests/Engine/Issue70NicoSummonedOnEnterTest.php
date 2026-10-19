@@ -178,4 +178,56 @@ final class Issue70NicoSummonedOnEnterTest extends TestCase
         $this->assertSame('p2', $state['pending_prompt']['responder'] ?? null);
         $this->assertEmpty($state['_resume_both_wr_member_to_empty_stage'] ?? null);
     }
+
+    /** #293 — cost-2 Keke enters in Wait via Nico, so she cannot pay "put into Wait". */
+    public function testBp4KekeAlreadyInWaitDoesNotLookWhenSummonedByNico(): void
+    {
+        $nico = $this->cardByNo('PL!-pb1-018-R', 'nico293');
+        $keke = $this->cardByNo('PL!SP-bp4-002-R', 'keke293');
+        $state = $this->baseState();
+        $state['players']['p1']['stage']['center'] = $nico;
+        $state['players']['p1']['stage']['right'] = array_merge($this->filler('p1_fill'), ['cost' => 5]);
+        $state['players']['p1']['waiting_room'] = [$keke];
+        $deck = [
+            $this->filler('d1', 'ライブ'),
+            $this->filler('d2', 'ライブ'),
+            $this->filler('d3', 'ライブ'),
+            $this->filler('d4', 'ライブ'),
+        ];
+        $state['players']['p1']['main_deck'] = $deck;
+        $blocker = $this->filler('blk');
+        $state['players']['p2']['stage'] = [
+            'left' => array_merge($blocker, ['instance_id' => 'b1']),
+            'center' => array_merge($blocker, ['instance_id' => 'b2']),
+            'right' => array_merge($blocker, ['instance_id' => 'b3']),
+        ];
+
+        $state = \resolveOnEnterAbilities($state, 'p1', $nico, 'center');
+
+        $onStage = $state['players']['p1']['stage']['left'] ?? null;
+        $this->assertSame('keke293', $onStage['instance_id'] ?? null);
+        $this->assertTrue(\memberIsInWait($onStage));
+        $this->assertNotSame('optional_wait_self_look_reveal', $state['pending_prompt']['type'] ?? null);
+        $this->assertNotSame('pick_looked_deck_hand', $state['pending_prompt']['type'] ?? null);
+        $this->assertSame(
+            array_column($deck, 'instance_id'),
+            array_column($state['players']['p1']['main_deck'] ?? [], 'instance_id')
+        );
+    }
+
+    public function testBp4KekeActiveOnEnterStillOffersPutIntoWait(): void
+    {
+        $keke = $this->cardByNo('PL!SP-bp4-002-P', 'keke_active');
+        $state = $this->baseState();
+        $state['players']['p1']['stage']['center'] = $keke;
+        $state['players']['p1']['main_deck'] = [
+            $this->filler('d1', 'ライブ'),
+            $this->filler('d2', 'ライブ'),
+        ];
+
+        $state = \resolveOnEnterAbilities($state, 'p1', $keke, 'center');
+
+        $this->assertSame('optional_wait_self_look_reveal', $state['pending_prompt']['type'] ?? null);
+        $this->assertFalse(\memberIsInWait($state['players']['p1']['stage']['center']));
+    }
 }

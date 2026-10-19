@@ -1811,6 +1811,12 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
         }
 
         case 'optional_wait_self_discard_look_reveal': {
+            // Already in Wait cannot pay "put this Member into Wait" (#293).
+            if (memberIsInWait($source)) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    ' — [' . $name . '] is already in Wait, so cannot put into Wait.');
+                break;
+            }
             // Reuse the shared optional_wait_self_look_reveal prompt (UI + PromptResolver).
             $discardNeed = intval($ab['discard'] ?? 1);
             $look = intval($ab['look'] ?? 3);

@@ -1038,6 +1038,13 @@ function tryResolveAbilityEffectSwitchOptional(
 
         case 'optional_wait_self_look_reveal':
             if (!empty($state['pending_prompt'])) break;
+            // Already in Wait (Nico PL!-pb1-018 puts the Member on Stage in Wait).
+            // "Put this Member into Wait" cannot be paid (#293).
+            if (memberIsInWait($source)) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    ' — [' . $name . '] is already in Wait, so cannot put into Wait.');
+                break;
+            }
             $discardNeed = intval($ab['discard'] ?? 0);
             $state['pending_prompt'] = [
                 'type'          => 'optional_wait_self_look_reveal',
