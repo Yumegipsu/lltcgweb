@@ -65,8 +65,9 @@
     if (!s?.players?.p1 || !s?.players?.p2) return false;
     const status = s.status;
     if (status === 'finished' || status === 'waiting') return false;
+    // Never in CPU matches (no one to send to, and it must not count toward missions).
+    if (global.G?.isCPU || s.cpu_difficulty) return false;
     if (isHumanPvpMatch(s)) return true;
-    if (isDebugStampsEnabled() && global.G?.isCPU) return true;
     return false;
   }
 

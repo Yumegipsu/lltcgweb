@@ -1293,7 +1293,7 @@ function handleAction(array $body): array {
                 // Finished room already saved — ranked/tournament/mission side effects are best-effort.
             }
         } else {
-            if ($type === 'send_stamp') {
+            if ($type === 'send_stamp' && !isCpuSoloMatch($state)) {
                 require_once __DIR__ . '/missions.php';
                 $discordId = tcgMissionResolveActingDiscordId($state, $playerId, $body);
                 if ($discordId) {
@@ -5059,10 +5059,8 @@ function isStampMatchAllowed(array $state, array $data = []): bool {
     if (isHumanVsHumanRoster($state)) {
         return true;
     }
-    if (!isCpuSoloMatch($state)) {
-        return false;
-    }
-    return !empty($data['debug_mode']);
+    // CPU matches never allow stamps (also keeps them out of the daily mission).
+    return false;
 }
 
 function actionSendStamp(array $state, string $playerId, array $data): array {

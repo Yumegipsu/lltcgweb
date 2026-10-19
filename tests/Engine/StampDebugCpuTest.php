@@ -37,17 +37,16 @@ final class StampDebugCpuTest extends TestCase
         ]);
     }
 
-    public function testCpuMatchAllowsStampWithDebugMode(): void
+    public function testCpuMatchRejectsStampEvenInDebugMode(): void
     {
         $state = $this->cpuMainPhaseState();
-        $after = applyAction($state, 'p1', 'send_stamp', [
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('player vs player');
+        applyAction($state, 'p1', 'send_stamp', [
             'stamp_id' => 'st_000_010',
             'locale' => 'ja',
             'debug_mode' => true,
         ]);
-        $this->assertSame('st_000_010', $after['stamp_pop']['p1']['id'] ?? '');
-        $this->assertSame('ja', $after['stamp_pop']['p1']['locale'] ?? '');
-        $this->assertSame(1, $after['stamp_pop']['p1']['n'] ?? 0);
     }
 
     public function testReplayViewSkipsStampCooldown(): void
