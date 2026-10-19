@@ -8,7 +8,7 @@
  */
 
 /** Relative weight of the birthday idol's cards versus the rest of their rarity band. */
-const TCG_GACHA_BDAY_BOOST = 2.0;
+const TCG_GACHA_BDAY_BOOST = 4.0;
 
 /** Banner background = the idol color darkened by this factor. */
 const TCG_GACHA_BDAY_DARKEN = 0.55;

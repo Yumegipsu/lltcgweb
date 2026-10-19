@@ -331,8 +331,11 @@ function tcgGachaEnsureMultiSrPlus(array &$out, array $pools, array $cardMap): v
 function tcgGachaRollPulls(int $count, array $cardsData, array $cardMap, ?array $pools = null): array {
     $pools = $pools ?? tcgGachaBuildPools($cardsData);
     $count = max(1, min(20, $count));
+    // Birthday banner 10+1: the 11th card is always the birthday idol (SR+ rate), so only the first 10 are rolled freely.
+    $birthdayFinal = $count >= TCG_GACHA_MULTI_COUNT && !empty($pools['_w']);
+    $freeRolls = $birthdayFinal ? $count - 1 : $count;
     $out = [];
-    for ($i = 0; $i < $count; $i++) {
+    for ($i = 0; $i < $freeRolls; $i++) {
         $tier = tcgGachaPickTier();
         $no = tcgGachaPickCardNo($pools, $tier);
         $card = $cardMap[$no] ?? null;
@@ -345,11 +348,54 @@ function tcgGachaRollPulls(int $count, array $cardsData, array $cardMap, ?array 
             'rarity' => $r,
         ];
     }
+    if ($birthdayFinal) {
+        $out[] = tcgGachaBirthdayFinalPull($pools, $cardMap);
+        return $out;
+    }
     // Multi scout (gems 10+1 or tickets ×10): at least one SR+ (gold/rainbow).
     if ($count >= TCG_GACHA_TICKET_MULTI_COUNT) {
         tcgGachaEnsureMultiSrPlus($out, $pools, $cardMap);
     }
     return $out;
+}
+
+/**
+ * Final card of a birthday 10+1: one of the birthday idol's cards, with the usual SR+ split (SR vs UR as in the pity roll).
+ * Falls back to the idol's other SR+ rarity, then any of her cards, if she has none in the rolled rarity.
+ *
+ * @param array{n:list<string>,sr:list<string>,ur:list<string>,all:list<string>,_w:array<string,float>} $pools
+ * @return array{card_no:string,tier:string,rarity:string}
+ */
+function tcgGachaBirthdayFinalPull(array $pools, array $cardMap): array {
+    $idolNos = array_keys($pools['_w'] ?? []);
+    $inTier = static fn(string $t): array => array_values(array_intersect($pools[$t] ?? [], $idolNos));
+    $tier = tcgGachaPickSrPlusTier();
+    $other = $tier === 'ur' ? 'sr' : 'ur';
+    $list = $inTier($tier);
+    if (!$list) {
+        $tier = $other;
+        $list = $inTier($tier);
+    }
+    if (!$list) {
+        $list = array_values(array_intersect($pools['all'] ?? [], $idolNos));
+        $tier = 'n';
+        if (!$list) {
+            throw new Exception('Birthday pool has no cards for this idol', 500);
+        }
+    }
+    $no = $list[random_int(0, count($list) - 1)];
+    foreach (['ur', 'sr', 'n'] as $t) {
+        if (in_array($no, $pools[$t] ?? [], true)) {
+            $tier = $t;
+            break;
+        }
+    }
+    $card = $cardMap[$no] ?? null;
+    return [
+        'card_no' => $no,
+        'tier' => $tier,
+        'rarity' => is_array($card) ? tcgNormalizePoolRarity((string)($card['rarity'] ?? 'N'), $no) : 'N',
+    ];
 }
 
 /**
@@ -621,7 +667,8 @@ function tcgComputeGachaRates(array $cardsData, ?array $pools = null, ?array $ba
                 . '× as likely as other cards in their rarity band.',
             'Each pull first rolls a scout band, then picks one card from that band.',
             'Percents are chance per single Scout ×1 pull.',
-            'Scout 10+1 guarantees at least one SR+ (gold/rainbow); UR within that guarantee stays rare.',
+            'Scout 10+1: the final (11th) card is always one of ' . (string)($banner['name_en'] ?? 'this idol')
+                . "'s cards, at SR+ rarity (gold, with rainbow staying rare).",
             'PR cards are not in this pool.',
         ];
     }
