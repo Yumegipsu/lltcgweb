@@ -410,6 +410,9 @@ function isQueuedOptionalLiveStart(array $ab): bool {
         'optional_discard_same_group',
         'optional_discard_prompt',
         'optional_discard_blade_named_extra',
+        // Awakening Promise (PL!N-bp3-025-L): the resolver case is a no-op, so without queueing
+        // the skill logged "Live Start:" and silently did nothing (#291).
+        'optional_return_member_energy',
     ], true);
 }
 

@@ -733,7 +733,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                     'source_id'     => $sourceId,
                     'source_name'   => $prompt['source_name'] ?? 'Live',
                     'prompt'        => 'Choose a Stage Member and how many stacked Energy to return to your Energy deck.',
-                    'members'       => array_map(function ($row) {
+                    'members'       => array_map(function ($row) use ($ownerP) {
                         $m = $row['member'];
                         return [
                             'instance_id'   => $m['instance_id'] ?? '',
