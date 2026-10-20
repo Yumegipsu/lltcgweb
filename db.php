@@ -1387,7 +1387,7 @@ function tcgDeductScoutingTierTickets(string $discordId, string $tier, int $amou
             $stmt->execute([$discordId]);
             $have = max(0, intval($stmt->fetchColumn() ?: 0));
             if ($have < $amount) {
-                throw new Exception('Not enough ' . strtoupper($tier) . ' Scouting Tickets', 400);
+                throw new Exception('Not enough ' . strtoupper($tier) . '+ Scouting Tickets', 400);
             }
             $db->prepare(
                 "UPDATE tcg_users SET $col = $col - ?, updated_at = ? WHERE discord_id = ?"

@@ -211,6 +211,45 @@
     }
   }
 
+  // SR / UR tickets: one guaranteed-rarity pull each, standard banner only, never mixed with other tickets.
+  const TIER_TICKETS = ['sr', 'ur'];
+
+  function tierTicketBalance(kind) {
+    const key = kind === 'ur' ? 'scoutingTicketsUr' : 'scoutingTicketsSr';
+    if (global.A && Number.isFinite(Number(global.A[key]))) return Math.max(0, Number(global.A[key]));
+    const infoKey = kind === 'ur' ? 'scouting_tickets_ur' : 'scouting_tickets_sr';
+    return Math.max(0, Number((_info && _info[infoKey]) || 0));
+  }
+
+  function syncTierTickets(sr, ur) {
+    const next = { sr, ur };
+    TIER_TICKETS.forEach((kind) => {
+      const infoKey = 'scouting_tickets_' + kind;
+      const n = Number.isFinite(Number(next[kind])) ? Math.max(0, Number(next[kind])) : tierTicketBalance(kind);
+      if (global.A) global.A[kind === 'ur' ? 'scoutingTicketsUr' : 'scoutingTicketsSr'] = n;
+      if (_info) _info[infoKey] = n;
+      const owned = n > 0;
+      const pill = el('gacha-' + kind + '-tickets-bar');
+      const count = el('gacha-' + kind + '-tickets');
+      if (pill) pill.hidden = !owned;
+      if (count) count.textContent = n.toLocaleString();
+      const btn = el('btn-gacha-use-' + kind + '-ticket');
+      if (btn) {
+        const label = btn.querySelector('span') || btn;
+        label.textContent = kind === 'ur'
+          ? tt('gacha.useUrTicket', 'Scout with UR+ Ticket (×{n})', { n })
+          : tt('gacha.useSrTicket', 'Scout with SR+ Ticket (×{n})', { n });
+        btn.hidden = !owned;
+        btn.disabled = !owned || _bannerId !== 'standard';
+      }
+    });
+    const anyOwned = TIER_TICKETS.some((kind) => tierTicketBalance(kind) > 0);
+    const wrap = el('gacha-tier-ticket-actions');
+    if (wrap) wrap.hidden = !anyOwned;
+    const note = el('gacha-tier-ticket-note');
+    if (note) note.hidden = _bannerId === 'standard';
+  }
+
   function updateRateCopy(info) {
     const ratesEl = el('gacha-rates');
     if (ratesEl) {
@@ -240,6 +279,7 @@
       multi.textContent = tt('gacha.multi', 'Scout 10+1 ({n})', { n: mc });
     }
     syncTickets(info.scouting_tickets);
+    syncTierTickets(info.scouting_tickets_sr, info.scouting_tickets_ur);
   }
 
   function formatRatePercent(n) {
@@ -900,6 +940,14 @@
   function gachaAgainCost() {
     const cur = (global.A && global.A._gachaLastCurrency) || 'star_gems';
     const mode = (global.A && global.A._gachaLastMode) || _lastMode || 'single';
+    if (cur === 'ticket_sr' || cur === 'ticket_ur') {
+      const kind = cur === 'ticket_ur' ? 'ur' : 'sr';
+      return {
+        kind: cur,
+        amount: 1,
+        canAfford: tierTicketBalance(kind) >= 1 && _bannerId === 'standard',
+      };
+    }
     if (cur === 'tickets') {
       const n = Math.max(1, Number((global.A && global.A._gachaLastTicketCount) || _lastTicketCount || 1));
       return { kind: 'tickets', amount: n, canAfford: ticketBalance() >= n };
@@ -925,7 +973,11 @@
     again.hidden = false;
     again.disabled = !cost.canAfford;
     const label = tt('gacha.scoutAgain', 'Scout again');
-    if (cost.kind === 'tickets') {
+    if (cost.kind === 'ticket_sr' || cost.kind === 'ticket_ur') {
+      again.textContent = cost.kind === 'ticket_ur'
+        ? tt('gacha.scoutAgainUrTicket', 'Scout again · UR+ Ticket')
+        : tt('gacha.scoutAgainSrTicket', 'Scout again · SR+ Ticket');
+    } else if (cost.kind === 'tickets') {
       again.textContent = tt(
         'gacha.scoutAgainTickets',
         'Scout again · {n} ticket(s)',
@@ -945,7 +997,10 @@
     global.A = global.A || {};
     global.A._fromGacha = true;
     global.A._gachaLastMode = res.mode || _lastMode;
-    global.A._gachaLastCurrency = res.currency === 'scouting_tickets' ? 'tickets' : 'star_gems';
+    global.A._gachaLastCurrency = res.currency === 'scouting_tickets'
+      ? 'tickets'
+      : (res.currency === 'scouting_ticket_sr' ? 'ticket_sr'
+        : (res.currency === 'scouting_ticket_ur' ? 'ticket_ur' : 'star_gems'));
     if (res.currency === 'scouting_tickets' && Number(res.count) > 0) {
       global.A._gachaLastTicketCount = Number(res.count);
       _lastTicketCount = Number(res.count);
@@ -953,6 +1008,7 @@
     if (res.cost != null) global.A._gachaLastCost = Number(res.cost);
     syncGems(res.star_gems);
     syncTickets(res.scouting_tickets);
+    syncTierTickets(res.scouting_tickets_sr, res.scouting_tickets_ur);
     if (typeof global.showPackResults !== 'function') {
       closeGachaOverlay();
       showScr('gacha');
@@ -999,13 +1055,31 @@
     const err = el('gacha-err');
     if (err) err.textContent = '';
     _pullBusy = true;
-    const payWith = currency === 'tickets' ? 'tickets' : 'star_gems';
+    const payWith = currency === 'tickets' || currency === 'ticket_sr' || currency === 'ticket_ur'
+      ? currency
+      : 'star_gems';
     const body = {
       currency: payWith,
       banner: _bannerId,
       dupe_reward: typeof global.getDupeRewardPref === 'function' ? global.getDupeRewardPref() : 'gems',
     };
-    if (payWith === 'tickets') {
+    if (payWith === 'ticket_sr' || payWith === 'ticket_ur') {
+      const kind = payWith === 'ticket_ur' ? 'ur' : 'sr';
+      if (tierTicketBalance(kind) < 1 || _bannerId !== 'standard') {
+        _pullBusy = false;
+        toast(
+          _bannerId !== 'standard'
+            ? tt('gacha.tierTicketStandardOnly', 'SR+ and UR+ Tickets can only be used on the Standard Gacha.')
+            : tt('gacha.noTierTickets', 'No tickets of that kind'),
+          2400
+        );
+        if (global.A && global.A._fromGacha) updateGachaAgainButton();
+        return;
+      }
+      body.count = 1;
+      body.mode = 'single';
+      _lastMode = 'single';
+    } else if (payWith === 'tickets') {
       const n = clampTicketQty(count != null ? count : (_lastTicketCount || 1));
       if (ticketBalance() < n) {
         _pullBusy = false;
@@ -1041,9 +1115,12 @@
         ...(_info || {}),
         star_gems: res.star_gems,
         scouting_tickets: res.scouting_tickets,
+        scouting_tickets_sr: res.scouting_tickets_sr,
+        scouting_tickets_ur: res.scouting_tickets_ur,
       };
       syncGems(res.star_gems);
       syncTickets(res.scouting_tickets);
+      syncTierTickets(res.scouting_tickets_sr, res.scouting_tickets_ur);
     } catch (e) {
       closeGachaOverlay();
       if (/no longer active/i.test(String(e && e.message))) {
@@ -1074,7 +1151,7 @@
         const cost = gachaAgainCost();
         if (!cost.canAfford) {
           toast(
-            cost.kind === 'tickets'
+            cost.kind === 'tickets' || cost.kind === 'ticket_sr' || cost.kind === 'ticket_ur'
               ? tt('gacha.noTickets', 'No Scouting Tickets')
               : tt('gacha.notEnoughGems', 'Not enough Star Gems'),
             2200
@@ -1087,7 +1164,9 @@
         const mode = global.A._gachaLastMode || 'single';
         const ticketN = global.A._gachaLastTicketCount || 1;
         // Keep _fromGacha set until the next results screen rewrites it.
-        if (cur === 'tickets') {
+        if (cur === 'ticket_sr' || cur === 'ticket_ur') {
+          void openGacha('single', cur);
+        } else if (cur === 'tickets') {
           void openGacha('single', 'tickets', ticketN);
         } else {
           void openGacha(mode, 'star_gems');
@@ -1119,6 +1198,8 @@
     el('btn-gacha-single')?.addEventListener('click', () => openGacha('single', 'star_gems'));
     el('btn-gacha-multi')?.addEventListener('click', () => openGacha('multi', 'star_gems'));
     el('btn-gacha-use-tickets')?.addEventListener('click', () => openTicketPicker());
+    el('btn-gacha-use-sr-ticket')?.addEventListener('click', () => openGacha('single', 'ticket_sr'));
+    el('btn-gacha-use-ur-ticket')?.addEventListener('click', () => openGacha('single', 'ticket_ur'));
     el('btn-gacha-tickets-close')?.addEventListener('click', () => closeTicketPicker());
     el('modal-gacha-tickets')?.addEventListener('click', (e) => {
       if (e.target === el('modal-gacha-tickets')) closeTicketPicker();

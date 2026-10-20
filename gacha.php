@@ -821,14 +821,14 @@ function tcgApiOpenGacha(array $body): array {
         // SR / UR ticket: exactly one pull on the standard banner; cannot be combined with other tickets.
         $bannerReq = trim((string)($body['banner'] ?? 'standard'));
         if ($bannerReq !== '' && $bannerReq !== 'standard') {
-            throw new Exception('SR and UR Tickets can only be used on the Standard Gacha', 400);
+            throw new Exception('SR+ and UR+ Tickets can only be used on the Standard Gacha', 400);
         }
         $count = 1;
         $cost = TCG_GACHA_TIER_TICKET_COST;
         $mode = 'single';
         $have = tcgGetScoutingTierTickets($uid, $tierTicket);
         if ($have < $cost) {
-            throw new Exception('Not enough ' . strtoupper($tierTicket) . ' Scouting Tickets', 400);
+            throw new Exception('Not enough ' . strtoupper($tierTicket) . '+ Scouting Tickets', 400);
         }
     } elseif ($useTickets) {
         // 1 ticket = 1 pull. Prefer explicit count from the ticket picker.
