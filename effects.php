@@ -4458,6 +4458,10 @@ function flushPendingYellToWr(array $state, string $pid): array {
     if (!empty($pending)) {
         $p['waiting_room'] = array_merge($p['waiting_room'], $pending);
         unset($p['_pending_yell_wr']);
+        // Yell cleanup is still "put from deck into the Waiting Room" (Mia #295).
+        if (function_exists('bp7ResolveAutoSelfMilled')) {
+            $state = bp7ResolveAutoSelfMilled($state, $pid, $pending);
+        }
     }
     return $state;
 }
@@ -4501,6 +4505,12 @@ function finishLiveSuccessEffects(array $state): array {
     }
     if ($pid && empty($GLOBALS['TUT_PERF_MANUAL_PHASES'])) {
         $state = flushPendingYellToWr($state, $pid);
+        if (!empty($state['pending_prompt'])) {
+            // Mia (etc.) deck→WR auto after Yell — park until the prompt chain ends.
+            $state['phase'] = 'live_success_effects';
+            $state['_performance_continue'] = $pid;
+            return $state;
+        }
         unset($state['_performance_continue']);
         $state = clearLiveSuccessResumeState($state, $pid);
         if (!empty($state['_perf_yell_both_done'])) {

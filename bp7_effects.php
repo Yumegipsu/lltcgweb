@@ -2582,6 +2582,9 @@ function bp7ResolveAutoSelfMilled(array $state, string $pid, array $milled): arr
     }
     foreach ($milled as $c) {
         if (!is_array($c)) continue;
+        if (function_exists('mergeCardCatalogFields')) {
+            mergeCardCatalogFields($c);
+        }
         foreach ($c['abilities'] ?? [] as $ab) {
             if (($ab['trigger'] ?? '') !== 'auto') continue;
             if (($ab['type'] ?? '') !== 'auto_self_milled_discard_recover') continue;

@@ -3476,6 +3476,13 @@ function resolvePerformanceHeartsAfterYell(array $state): array {
             return $state;
         }
         $state = flushPendingYellToWr($state, $pid);
+        if (!empty($state['pending_prompt'])) {
+            // Deck→WR auto (Mia) after Yell cleanup — resume hearts after it.
+            $state['phase'] = 'live_success_effects';
+            $state['_performance_continue'] = $pid;
+            $state['_perf_hearts_resolved'] = $resolved;
+            return $state;
+        }
         $resolved[$pid] = true;
     }
 
@@ -3855,6 +3862,12 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
         return $state;
     }
     $state = flushPendingYellToWr($state, $pid);
+    if (!empty($state['pending_prompt'])) {
+        // Deck→WR auto (Mia) after Yell — pause before advancing the round.
+        $state['phase'] = 'live_success_effects';
+        $state['_performance_continue'] = $pid;
+        return $state;
+    }
     if ($continueAfter) {
         $state = continuePerformancePhase($state, $pid);
     }
