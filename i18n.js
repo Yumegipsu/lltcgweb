@@ -2600,6 +2600,11 @@
       "presetDeckIncomplete": "Preset deck is incomplete."
     },
     "deck": {
+      "playmatPickClose": "閉じる",
+      "playmatOwnedHint": "プレイマットショップで入手した所持プレイマットです。",
+      "playmatEmptyHint": "プレイマットショップでプレイマットを購入しましょう。",
+      "playmatChange": "変更",
+      "playmatNone": "標準",
       "basicDecks": "基本デッキ",
       "starters": {
         "nijigasaki": "虹ヶ咲スタートデッキ",
@@ -2823,13 +2828,13 @@
       "experimentSaved": "Experiment deck saved.",
       "experimentSlot": "Experiment slot",
       "more": "More",
-      "playmat": "Playmat",
-      "playmatBrightness": "Brightness",
-      "playmatConfirm": "Confirm",
-      "playmatEmpty": "No playmats available yet.",
-      "playmatHint": "Equipped playmat appears on your seat in matches. Default board if none.",
-      "playmatPickLead": "Select an owned playmat, adjust brightness, then confirm.",
-      "playmatPickTitle": "Choose playmat",
+      "playmat": "プレイマット",
+      "playmatBrightness": "明るさ",
+      "playmatConfirm": "確定",
+      "playmatEmpty": "プレイマットはまだありません。",
+      "playmatHint": "装備したプレイマットが対戦中の自分の席に表示されます。未装備の場合は標準のボードです。",
+      "playmatPickLead": "所持しているプレイマットを選び、明るさを調整して確定してください。",
+      "playmatPickTitle": "プレイマットを選択",
       "saveExperiment": "Save experiment",
       "savedPresets": "Saved presets",
       "sort": "Sort"
@@ -3001,14 +3006,14 @@
       "title": "スリーブショップ",
       "backHub": "← ハブ",
       "backChars": "← キャラクター",
-      "hint": "マッチを完了してコインを獲得。世代を選んでからキャラクターを選んでください。",
+      "hint": "スリーブをタップしてプレビュー、その後に購入または装備します。",
       "coinsAria": "コイン",
       "freeClaims": "無料選択: {n}",
       "owned": "所持済み",
       "buy": "購入",
       "buyConfirm": "「{name}」を {price} コインで購入しますか？\n\nこの操作は取り消せません。",
-      "claimFree": "無料で獲得",
-      "hoverEmpty": "スリーブにカーソルを合わせてプレビュー",
+      "claimFree": "無料で受け取る",
+      "hoverEmpty": "スリーブを選択",
       "bdayName": "{name} バースデービジュアル {year}",
       "hgVolName": "スリーブコレクション HG Vol.{vol}: {title}",
       "extraVolName": "スリーブコレクション エクストラ Vol.{vol}: {title}",
@@ -3036,7 +3041,7 @@
         "loveliveSeries": "ラブライブ！シリーズ",
         "hasunosoraSchool": "蓮ノ空女学院"
       },
-      "backShop": "← Shop"
+      "backShop": "← ショップ"
     },
     "cardList": {
       "title": "カードリスト",
@@ -3970,7 +3975,7 @@
       "couldNotCopyLog": "ログをコピーできませんでした",
       "alreadyInRanked": "Already in a ranked match.",
       "leftDeadMatch": "Left a finished/disconnected match.",
-      "playmatBought": "Playmat unlocked!",
+      "playmatBought": "プレイマットを解放しました！",
       "resolveSkillFirst": "Resolve the skill prompt first.",
       "signInShop": "Sign in to use the shop.",
       "liveLockFailed": "ライブカードを置けませんでした。もう一度ロックインしてください。"
@@ -4348,21 +4353,25 @@
       }
     },
     "playmatShop": {
-      "backChars": "← Characters",
-      "backShop": "← Shop",
-      "buyConfirm": "Buy this playmat for {price} Coins?",
-      "hint": "Tap a playmat to preview, then buy or equip.",
-      "hoverEmpty": "Select a playmat",
-      "title": "Playmats"
+      "previewClose": "プレイマットのプレビュー — タップで閉じる",
+      "previewOpen": "原寸で表示",
+      "buy": "購入",
+      "owned": "所持済み",
+      "backChars": "← キャラクター",
+      "backShop": "← ショップ",
+      "buyConfirm": "このプレイマットを {price} コインで購入しますか？",
+      "hint": "プレイマットをタップしてプレビュー、その後に購入または装備します。",
+      "hoverEmpty": "プレイマットを選択",
+      "title": "プレイマット"
     },
     "shop": {
       "backHub": "← Hub",
-      "hint": "Spend Coins on sleeves and playmats.",
-      "playmatsSub": "Board backgrounds",
-      "playmatsTitle": "Playmats",
-      "sleevesSub": "Card backs",
-      "sleevesTitle": "Sleeves",
-      "title": "Shop"
+      "hint": "コインをスリーブとプレイマットに使いましょう。",
+      "playmatsSub": "席に敷くボードアート",
+      "playmatsTitle": "プレイマット",
+      "sleevesSub": "デッキのカード裏面",
+      "sleevesTitle": "スリーブ",
+      "title": "ショップ"
     },
     "lang": {
       "label": "Language"
@@ -4491,8 +4500,8 @@
         "title": "Tienda"
       },
       "sleeveShop": {
-        "sub": "Buy sleeves with Coins",
-        "title": "Sleeve Shop"
+        "sub": "Compra fundas con monedas",
+        "title": "Tienda de fundas"
       },
       "sticker": {
         "sub": "Convert spare cards",
@@ -4560,14 +4569,19 @@
       "cpuCosmeticDefault": "Default",
       "cpuCosmeticRandom": "Random (owned)",
       "cpuCosmeticsHint": "Pick owned cosmetics or randomize from what you own.",
-      "cpuPlaymat": "CPU playmat",
-      "cpuSleeve": "CPU sleeve",
+      "cpuPlaymat": "Tapete de la CPU",
+      "cpuSleeve": "Funda de la CPU",
       "experimentDeckIncomplete": "Experiment deck is incomplete.",
       "freeDeckEmpty": "No free/experiment decks saved yet.",
       "otherModesQueuedLead": "Players waiting in other modes:",
       "presetDeckIncomplete": "Preset deck is incomplete."
     },
     "deck": {
+      "playmatPickClose": "Cerrar",
+      "playmatOwnedHint": "Tapetes que tienes de la tienda de tapetes.",
+      "playmatEmptyHint": "Compra tapetes en la tienda de tapetes.",
+      "playmatChange": "Cambiar",
+      "playmatNone": "Por defecto",
       "title": "Constructor de mazos",
       "experimentTitle": "Experimento de mazo",
       "deckName": "Nombre del mazo",
@@ -4781,20 +4795,20 @@
       "experimentSaved": "Experiment deck saved.",
       "experimentSlot": "Experiment slot",
       "more": "More",
-      "playmat": "Playmat",
-      "playmatBrightness": "Brightness",
-      "playmatConfirm": "Confirm",
-      "playmatEmpty": "No playmats available yet.",
-      "playmatHint": "Equipped playmat appears on your seat in matches. Default board if none.",
-      "playmatPickLead": "Select an owned playmat, adjust brightness, then confirm.",
-      "playmatPickTitle": "Choose playmat",
+      "playmat": "Tapete",
+      "playmatBrightness": "Brillo",
+      "playmatConfirm": "Confirmar",
+      "playmatEmpty": "Aún no hay tapetes disponibles.",
+      "playmatHint": "El tapete equipado aparece en tu lado en las partidas. Si no hay ninguno, se usa el tablero por defecto.",
+      "playmatPickLead": "Elige un tapete que tengas, ajusta el brillo y confirma.",
+      "playmatPickTitle": "Elegir tapete",
       "saveExperiment": "Save experiment",
       "savedPresets": "Saved presets",
-      "sleeve": "Sleeve",
-      "sleeveEmpty": "No sleeves available yet.",
-      "sleeveHint": "Equipped sleeve replaces your card back in matches. Default: none.",
-      "sleevePickLead": "Tap a sleeve you own to equip it on this deck.",
-      "sleevePickTitle": "Choose sleeve",
+      "sleeve": "Funda",
+      "sleeveEmpty": "Aún no hay fundas disponibles.",
+      "sleeveHint": "La funda equipada sustituye el reverso de tus cartas en las partidas. Por defecto: ninguna.",
+      "sleevePickLead": "Toca una funda que tengas para equiparla en este mazo.",
+      "sleevePickTitle": "Elegir funda",
       "sort": "Sort"
     },
     "booster": {
@@ -5083,7 +5097,7 @@
         "lead": "This clears local account data on this device.",
         "title": "Reset account"
       },
-      "sleeveConform": "Fit sleeves to card size (rounded corners, no square overflow)",
+      "sleeveConform": "Ajustar las fundas al tamaño de la carta (esquinas redondeadas, sin bordes cuadrados)",
       "stuck": {
         "lead": "If the game is stuck, leave the match and return to the hub.",
         "title": "Stuck?"
@@ -5819,12 +5833,12 @@
       "coinsEarned": "+{n} Coins",
       "eventPointsEarned": "+{n} Event Points",
       "leftDeadMatch": "Left a finished/disconnected match.",
-      "playmatBought": "Playmat unlocked!",
+      "playmatBought": "¡Tapete desbloqueado!",
       "signInShop": "Sign in to use the shop.",
-      "signInSleeveShop": "Sign in to use the sleeve shop.",
-      "sleeveBought": "Sleeve unlocked!",
-      "sleeveClaimedFree": "Free sleeve claimed!",
-      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop.",
+      "signInSleeveShop": "Inicia sesión para usar la tienda de fundas.",
+      "sleeveBought": "¡Funda desbloqueada!",
+      "sleeveClaimedFree": "¡Funda gratis reclamada!",
+      "sleeveShopLoadFailed": "No se pudo cargar la tienda de fundas.",
       "liveLockFailed": "No se pudieron guardar tus cartas Live; vuelve a confirmar."
     },
     "tutorialUi": {
@@ -6382,29 +6396,38 @@
       "hubSub": "Browse all cards"
     },
     "playmatShop": {
-      "backChars": "← Characters",
-      "backShop": "← Shop",
-      "buyConfirm": "Buy this playmat for {price} Coins?",
-      "hint": "Tap a playmat to preview, then buy or equip.",
-      "hoverEmpty": "Select a playmat",
-      "title": "Playmats"
+      "previewClose": "Vista previa del tapete: toca para cerrar",
+      "previewOpen": "Ver a tamaño completo",
+      "buy": "Comprar",
+      "owned": "Tienes",
+      "backChars": "← Personajes",
+      "backShop": "← Tienda",
+      "buyConfirm": "¿Comprar este tapete por {price} monedas?",
+      "hint": "Toca un tapete para previsualizarlo y luego cómpralo o equípalo.",
+      "hoverEmpty": "Elige un tapete",
+      "title": "Tapetes"
     },
     "shop": {
       "backHub": "← Hub",
-      "hint": "Spend Coins on sleeves and playmats.",
-      "playmatsSub": "Board backgrounds",
-      "playmatsTitle": "Playmats",
-      "sleevesSub": "Card backs",
-      "sleevesTitle": "Sleeves",
-      "title": "Shop"
+      "hint": "Gasta monedas en fundas y tapetes.",
+      "playmatsSub": "Arte de tablero para tu lado",
+      "playmatsTitle": "Tapetes",
+      "sleevesSub": "Reversos de carta para tus mazos",
+      "sleevesTitle": "Fundas",
+      "title": "Tienda"
     },
     "sleeveShop": {
-      "backChars": "← Characters",
-      "backShop": "← Shop",
-      "buyConfirm": "Buy this sleeve for {price} Coins?",
-      "hint": "Tap a sleeve to preview, then buy or equip.",
-      "hoverEmpty": "Select a sleeve",
-      "title": "Sleeves"
+      "bdayName": "{name} Imagen de cumpleaños {year}",
+      "claimFree": "Reclamar gratis",
+      "freeClaims": "Elecciones gratis: {n}",
+      "buy": "Comprar",
+      "owned": "Tienes",
+      "backChars": "← Personajes",
+      "backShop": "← Tienda",
+      "buyConfirm": "¿Comprar esta funda por {price} monedas?",
+      "hint": "Toca una funda para previsualizarla y luego cómprala o equípala.",
+      "hoverEmpty": "Elige una funda",
+      "title": "Fundas"
     },
     "gameMode": {
       "free": "Free",
@@ -6550,8 +6573,8 @@
         "title": "상점"
       },
       "sleeveShop": {
-        "sub": "Buy sleeves with Coins",
-        "title": "Sleeve Shop"
+        "sub": "코인으로 슬리브 구매",
+        "title": "슬리브 샵"
       },
       "sticker": {
         "sub": "Convert spare cards",
@@ -6619,14 +6642,19 @@
       "cpuCosmeticDefault": "Default",
       "cpuCosmeticRandom": "Random (owned)",
       "cpuCosmeticsHint": "Pick owned cosmetics or randomize from what you own.",
-      "cpuPlaymat": "CPU playmat",
-      "cpuSleeve": "CPU sleeve",
+      "cpuPlaymat": "CPU 플레이매트",
+      "cpuSleeve": "CPU 슬리브",
       "experimentDeckIncomplete": "Experiment deck is incomplete.",
       "freeDeckEmpty": "No free/experiment decks saved yet.",
       "otherModesQueuedLead": "Players waiting in other modes:",
       "presetDeckIncomplete": "Preset deck is incomplete."
     },
     "deck": {
+      "playmatPickClose": "닫기",
+      "playmatOwnedHint": "플레이매트 샵에서 보유한 플레이매트입니다.",
+      "playmatEmptyHint": "플레이매트 샵에서 플레이매트를 구매하세요.",
+      "playmatChange": "변경",
+      "playmatNone": "기본",
       "title": "덱 빌더",
       "experimentTitle": "덱 실험",
       "deckName": "덱 이름",
@@ -6850,20 +6878,20 @@
       "experimentSaved": "Experiment deck saved.",
       "experimentSlot": "Experiment slot",
       "more": "More",
-      "playmat": "Playmat",
-      "playmatBrightness": "Brightness",
-      "playmatConfirm": "Confirm",
-      "playmatEmpty": "No playmats available yet.",
-      "playmatHint": "Equipped playmat appears on your seat in matches. Default board if none.",
-      "playmatPickLead": "Select an owned playmat, adjust brightness, then confirm.",
-      "playmatPickTitle": "Choose playmat",
+      "playmat": "플레이매트",
+      "playmatBrightness": "밝기",
+      "playmatConfirm": "확인",
+      "playmatEmpty": "아직 사용할 수 있는 플레이매트가 없습니다.",
+      "playmatHint": "장착한 플레이매트가 대전 중 내 자리에 표시됩니다. 없으면 기본 보드가 사용됩니다.",
+      "playmatPickLead": "보유한 플레이매트를 선택하고 밝기를 조절한 뒤 확인하세요.",
+      "playmatPickTitle": "플레이매트 선택",
       "saveExperiment": "Save experiment",
       "savedPresets": "Saved presets",
-      "sleeve": "Sleeve",
-      "sleeveEmpty": "No sleeves available yet.",
-      "sleeveHint": "Equipped sleeve replaces your card back in matches. Default: none.",
-      "sleevePickLead": "Tap a sleeve you own to equip it on this deck.",
-      "sleevePickTitle": "Choose sleeve",
+      "sleeve": "슬리브",
+      "sleeveEmpty": "아직 사용할 수 있는 슬리브가 없습니다.",
+      "sleeveHint": "장착한 슬리브가 대전 중 카드 뒷면을 대체합니다. 기본값: 없음.",
+      "sleevePickLead": "보유한 슬리브를 눌러 이 덱에 장착하세요.",
+      "sleevePickTitle": "슬리브 선택",
       "sort": "Sort"
     },
     "booster": {
@@ -7152,7 +7180,7 @@
         "lead": "This clears local account data on this device.",
         "title": "Reset account"
       },
-      "sleeveConform": "Fit sleeves to card size (rounded corners, no square overflow)",
+      "sleeveConform": "슬리브를 카드 크기에 맞추기 (둥근 모서리, 사각형 삐져나옴 없음)",
       "stuck": {
         "lead": "If the game is stuck, leave the match and return to the hub.",
         "title": "Stuck?"
@@ -7902,12 +7930,12 @@
       "coinsEarned": "+{n} Coins",
       "eventPointsEarned": "+{n} Event Points",
       "leftDeadMatch": "Left a finished/disconnected match.",
-      "playmatBought": "Playmat unlocked!",
+      "playmatBought": "플레이매트를 해금했어요!",
       "signInShop": "Sign in to use the shop.",
-      "signInSleeveShop": "Sign in to use the sleeve shop.",
-      "sleeveBought": "Sleeve unlocked!",
-      "sleeveClaimedFree": "Free sleeve claimed!",
-      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop.",
+      "signInSleeveShop": "슬리브 샵을 이용하려면 로그인하세요.",
+      "sleeveBought": "슬리브를 해금했어요!",
+      "sleeveClaimedFree": "무료 슬리브를 받았어요!",
+      "sleeveShopLoadFailed": "슬리브 샵을 불러오지 못했습니다.",
       "liveLockFailed": "라이브 카드를 보관하지 못했습니다. 다시 확정해 주세요."
     },
     "tutorialUi": {
@@ -8465,29 +8493,38 @@
       "hubSub": "Browse all cards"
     },
     "playmatShop": {
-      "backChars": "← Characters",
-      "backShop": "← Shop",
-      "buyConfirm": "Buy this playmat for {price} Coins?",
-      "hint": "Tap a playmat to preview, then buy or equip.",
-      "hoverEmpty": "Select a playmat",
-      "title": "Playmats"
+      "previewClose": "플레이매트 미리보기 — 눌러서 닫기",
+      "previewOpen": "원본 크기로 보기",
+      "buy": "구매",
+      "owned": "보유 중",
+      "backChars": "← 캐릭터",
+      "backShop": "← 상점",
+      "buyConfirm": "이 플레이매트를 {price} 코인에 구매하시겠습니까?",
+      "hint": "플레이매트를 눌러 미리 보고, 구매하거나 장착하세요.",
+      "hoverEmpty": "플레이매트를 선택하세요",
+      "title": "플레이매트"
     },
     "shop": {
       "backHub": "← Hub",
-      "hint": "Spend Coins on sleeves and playmats.",
-      "playmatsSub": "Board backgrounds",
-      "playmatsTitle": "Playmats",
-      "sleevesSub": "Card backs",
-      "sleevesTitle": "Sleeves",
-      "title": "Shop"
+      "hint": "코인으로 슬리브와 플레이매트를 구매하세요.",
+      "playmatsSub": "내 자리에 깔리는 보드 아트",
+      "playmatsTitle": "플레이매트",
+      "sleevesSub": "덱의 카드 뒷면",
+      "sleevesTitle": "슬리브",
+      "title": "상점"
     },
     "sleeveShop": {
-      "backChars": "← Characters",
-      "backShop": "← Shop",
-      "buyConfirm": "Buy this sleeve for {price} Coins?",
-      "hint": "Tap a sleeve to preview, then buy or equip.",
-      "hoverEmpty": "Select a sleeve",
-      "title": "Sleeves"
+      "bdayName": "{name} 생일 비주얼 {year}",
+      "claimFree": "무료로 받기",
+      "freeClaims": "무료 선택: {n}",
+      "buy": "구매",
+      "owned": "보유 중",
+      "backChars": "← 캐릭터",
+      "backShop": "← 상점",
+      "buyConfirm": "이 슬리브를 {price} 코인에 구매하시겠습니까?",
+      "hint": "슬리브를 눌러 미리 보고, 구매하거나 장착하세요.",
+      "hoverEmpty": "슬리브를 선택하세요",
+      "title": "슬리브"
     },
     "gameMode": {
       "free": "Free",
@@ -8629,12 +8666,12 @@
         "title": "Replays"
       },
       "shop": {
-        "sub": "卡套和垫布",
+        "sub": "卡套和游戏垫",
         "title": "商店"
       },
       "sleeveShop": {
-        "sub": "Buy sleeves with Coins",
-        "title": "Sleeve Shop"
+        "sub": "用金币购买卡套",
+        "title": "卡套商店"
       },
       "sticker": {
         "sub": "Convert spare cards",
@@ -8702,14 +8739,19 @@
       "cpuCosmeticDefault": "Default",
       "cpuCosmeticRandom": "Random (owned)",
       "cpuCosmeticsHint": "Pick owned cosmetics or randomize from what you own.",
-      "cpuPlaymat": "CPU playmat",
-      "cpuSleeve": "CPU sleeve",
+      "cpuPlaymat": "CPU 游戏垫",
+      "cpuSleeve": "CPU 卡套",
       "experimentDeckIncomplete": "Experiment deck is incomplete.",
       "freeDeckEmpty": "No free/experiment decks saved yet.",
       "otherModesQueuedLead": "Players waiting in other modes:",
       "presetDeckIncomplete": "Preset deck is incomplete."
     },
     "deck": {
+      "playmatPickClose": "关闭",
+      "playmatOwnedHint": "你从游戏垫商店获得的游戏垫。",
+      "playmatEmptyHint": "在游戏垫商店购买游戏垫。",
+      "playmatChange": "更换",
+      "playmatNone": "默认",
       "title": "牌组构筑",
       "experimentTitle": "牌组实验",
       "deckName": "牌组名称",
@@ -8933,20 +8975,20 @@
       "experimentSaved": "Experiment deck saved.",
       "experimentSlot": "Experiment slot",
       "more": "More",
-      "playmat": "Playmat",
-      "playmatBrightness": "Brightness",
-      "playmatConfirm": "Confirm",
-      "playmatEmpty": "No playmats available yet.",
-      "playmatHint": "Equipped playmat appears on your seat in matches. Default board if none.",
-      "playmatPickLead": "Select an owned playmat, adjust brightness, then confirm.",
-      "playmatPickTitle": "Choose playmat",
+      "playmat": "游戏垫",
+      "playmatBrightness": "亮度",
+      "playmatConfirm": "确认",
+      "playmatEmpty": "暂无可用的游戏垫。",
+      "playmatHint": "装备的游戏垫会显示在你对战时的位置。未装备则使用默认牌桌。",
+      "playmatPickLead": "选择一张已拥有的游戏垫，调整亮度后确认。",
+      "playmatPickTitle": "选择游戏垫",
       "saveExperiment": "Save experiment",
       "savedPresets": "Saved presets",
-      "sleeve": "Sleeve",
-      "sleeveEmpty": "No sleeves available yet.",
-      "sleeveHint": "Equipped sleeve replaces your card back in matches. Default: none.",
-      "sleevePickLead": "Tap a sleeve you own to equip it on this deck.",
-      "sleevePickTitle": "Choose sleeve",
+      "sleeve": "卡套",
+      "sleeveEmpty": "暂无可用的卡套。",
+      "sleeveHint": "装备的卡套会在对战中替换你的卡背。默认：无。",
+      "sleevePickLead": "点按你拥有的卡套，即可装备到这副牌组。",
+      "sleevePickTitle": "选择卡套",
       "sort": "Sort"
     },
     "booster": {
@@ -9235,7 +9277,7 @@
         "lead": "This clears local account data on this device.",
         "title": "Reset account"
       },
-      "sleeveConform": "Fit sleeves to card size (rounded corners, no square overflow)",
+      "sleeveConform": "让卡套贴合卡牌尺寸（圆角，无方形溢出）",
       "stuck": {
         "lead": "If the game is stuck, leave the match and return to the hub.",
         "title": "Stuck?"
@@ -9985,12 +10027,12 @@
       "coinsEarned": "+{n} Coins",
       "eventPointsEarned": "+{n} Event Points",
       "leftDeadMatch": "Left a finished/disconnected match.",
-      "playmatBought": "Playmat unlocked!",
+      "playmatBought": "已解锁游戏垫！",
       "signInShop": "Sign in to use the shop.",
-      "signInSleeveShop": "Sign in to use the sleeve shop.",
-      "sleeveBought": "Sleeve unlocked!",
-      "sleeveClaimedFree": "Free sleeve claimed!",
-      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop.",
+      "signInSleeveShop": "请登录后使用卡套商店。",
+      "sleeveBought": "已解锁卡套！",
+      "sleeveClaimedFree": "已领取免费卡套！",
+      "sleeveShopLoadFailed": "无法加载卡套商店。",
       "liveLockFailed": "无法放置你的 Live 卡牌，请再次确认。"
     },
     "tutorialUi": {
@@ -10041,7 +10083,7 @@
       "weekly": {
         "rankedRandom": "在随机卡组模式中进行一场排名对战",
         "ranked10": "进行 10 场排名对战",
-        "shopBuy": "在商店购买一张垫布或卡套",
+        "shopBuy": "在商店购买一张游戏垫或一个卡套",
         "stickerExchange": "在贴纸商店用印章兑换一张卡牌",
         "login7": "本周每天登录（7 天）",
         "completeAll": "完成所有每周任务"
@@ -10070,7 +10112,7 @@
         "playLiveSubunit": "使用 {subunit} 的 Live 卡 {n} 次",
         "loginDays10": "在 10 个不同的日子登录（JST）",
         "sleeves10": "拥有 10 个卡套",
-        "playmats10": "拥有 10 张垫布",
+        "playmats10": "拥有 10 张游戏垫",
         "gachaScout1": "在扭蛋中进行招募",
         "gachaScout10": "在扭蛋中招募 10 次",
         "gachaBirthday": "在限定生日扭蛋中进行招募",
@@ -10548,29 +10590,38 @@
       "hubSub": "Browse all cards"
     },
     "playmatShop": {
-      "backChars": "← Characters",
-      "backShop": "← Shop",
-      "buyConfirm": "Buy this playmat for {price} Coins?",
-      "hint": "Tap a playmat to preview, then buy or equip.",
-      "hoverEmpty": "Select a playmat",
-      "title": "Playmats"
+      "previewClose": "游戏垫预览 — 点按关闭",
+      "previewOpen": "查看原图",
+      "buy": "购买",
+      "owned": "已拥有",
+      "backChars": "← 角色",
+      "backShop": "← 商店",
+      "buyConfirm": "要用 {price} 金币购买这张游戏垫吗？",
+      "hint": "点按游戏垫预览，然后购买或装备。",
+      "hoverEmpty": "选择一张游戏垫",
+      "title": "游戏垫"
     },
     "shop": {
       "backHub": "← Hub",
-      "hint": "Spend Coins on sleeves and playmats.",
-      "playmatsSub": "Board backgrounds",
-      "playmatsTitle": "Playmats",
-      "sleevesSub": "Card backs",
-      "sleevesTitle": "Sleeves",
-      "title": "Shop"
+      "hint": "用金币购买卡套和游戏垫。",
+      "playmatsSub": "你座位上的牌桌图案",
+      "playmatsTitle": "游戏垫",
+      "sleevesSub": "为你的牌组更换卡背",
+      "sleevesTitle": "卡套",
+      "title": "商店"
     },
     "sleeveShop": {
-      "backChars": "← Characters",
-      "backShop": "← Shop",
-      "buyConfirm": "Buy this sleeve for {price} Coins?",
-      "hint": "Tap a sleeve to preview, then buy or equip.",
-      "hoverEmpty": "Select a sleeve",
-      "title": "Sleeves"
+      "bdayName": "{name} 生日视觉图 {year}",
+      "claimFree": "免费领取",
+      "freeClaims": "免费选择：{n}",
+      "buy": "购买",
+      "owned": "已拥有",
+      "backChars": "← 角色",
+      "backShop": "← 商店",
+      "buyConfirm": "要用 {price} 金币购买这个卡套吗？",
+      "hint": "点按卡套预览，然后购买或装备。",
+      "hoverEmpty": "选择一个卡套",
+      "title": "卡套"
     },
     "gameMode": {
       "free": "Free",
@@ -10712,12 +10763,12 @@
         "title": "Replays"
       },
       "shop": {
-        "sub": "ซองการ์ดและเพลย์แมต",
+        "sub": "สลีฟและเพลย์แมต",
         "title": "ร้านค้า"
       },
       "sleeveShop": {
-        "sub": "Buy sleeves with Coins",
-        "title": "Sleeve Shop"
+        "sub": "ซื้อสลีฟด้วยเหรียญ",
+        "title": "ร้านสลีฟ"
       },
       "sticker": {
         "sub": "Convert spare cards",
@@ -10785,14 +10836,19 @@
       "cpuCosmeticDefault": "Default",
       "cpuCosmeticRandom": "Random (owned)",
       "cpuCosmeticsHint": "Pick owned cosmetics or randomize from what you own.",
-      "cpuPlaymat": "CPU playmat",
-      "cpuSleeve": "CPU sleeve",
+      "cpuPlaymat": "เพลย์แมตของ CPU",
+      "cpuSleeve": "สลีฟของ CPU",
       "experimentDeckIncomplete": "Experiment deck is incomplete.",
       "freeDeckEmpty": "No free/experiment decks saved yet.",
       "otherModesQueuedLead": "Players waiting in other modes:",
       "presetDeckIncomplete": "Preset deck is incomplete."
     },
     "deck": {
+      "playmatPickClose": "ปิด",
+      "playmatOwnedHint": "เพลย์แมตที่คุณมีจากร้านเพลย์แมต",
+      "playmatEmptyHint": "ซื้อเพลย์แมตได้ที่ร้านเพลย์แมต",
+      "playmatChange": "เปลี่ยน",
+      "playmatNone": "ค่าเริ่มต้น",
       "title": "สร้างเด็ค",
       "experimentTitle": "ทดลองเด็ค",
       "deckName": "ชื่อเด็ค",
@@ -11006,20 +11062,20 @@
       "experimentSaved": "Experiment deck saved.",
       "experimentSlot": "Experiment slot",
       "more": "More",
-      "playmat": "Playmat",
-      "playmatBrightness": "Brightness",
-      "playmatConfirm": "Confirm",
-      "playmatEmpty": "No playmats available yet.",
-      "playmatHint": "Equipped playmat appears on your seat in matches. Default board if none.",
-      "playmatPickLead": "Select an owned playmat, adjust brightness, then confirm.",
-      "playmatPickTitle": "Choose playmat",
+      "playmat": "เพลย์แมต",
+      "playmatBrightness": "ความสว่าง",
+      "playmatConfirm": "ยืนยัน",
+      "playmatEmpty": "ยังไม่มีเพลย์แมตให้ใช้",
+      "playmatHint": "เพลย์แมตที่สวมใส่จะแสดงที่ฝั่งของคุณในการแข่ง หากไม่มีจะใช้กระดานเริ่มต้น",
+      "playmatPickLead": "เลือกเพลย์แมตที่คุณมี ปรับความสว่าง แล้วกดยืนยัน",
+      "playmatPickTitle": "เลือกเพลย์แมต",
       "saveExperiment": "Save experiment",
       "savedPresets": "Saved presets",
-      "sleeve": "Sleeve",
-      "sleeveEmpty": "No sleeves available yet.",
-      "sleeveHint": "Equipped sleeve replaces your card back in matches. Default: none.",
-      "sleevePickLead": "Tap a sleeve you own to equip it on this deck.",
-      "sleevePickTitle": "Choose sleeve",
+      "sleeve": "สลีฟ",
+      "sleeveEmpty": "ยังไม่มีสลีฟให้ใช้",
+      "sleeveHint": "สลีฟที่สวมใส่จะแทนที่หลังการ์ดของคุณในการแข่ง ค่าเริ่มต้น: ไม่มี",
+      "sleevePickLead": "แตะสลีฟที่คุณมีเพื่อสวมใส่ให้เด็คนี้",
+      "sleevePickTitle": "เลือกสลีฟ",
       "sort": "Sort"
     },
     "booster": {
@@ -11308,7 +11364,7 @@
         "lead": "This clears local account data on this device.",
         "title": "Reset account"
       },
-      "sleeveConform": "Fit sleeves to card size (rounded corners, no square overflow)",
+      "sleeveConform": "ปรับสลีฟให้พอดีกับขนาดการ์ด (มุมโค้ง ไม่มีขอบเหลี่ยมล้น)",
       "stuck": {
         "lead": "If the game is stuck, leave the match and return to the hub.",
         "title": "Stuck?"
@@ -12044,12 +12100,12 @@
       "coinsEarned": "+{n} Coins",
       "eventPointsEarned": "+{n} Event Points",
       "leftDeadMatch": "Left a finished/disconnected match.",
-      "playmatBought": "Playmat unlocked!",
+      "playmatBought": "ปลดล็อกเพลย์แมตแล้ว!",
       "signInShop": "Sign in to use the shop.",
-      "signInSleeveShop": "Sign in to use the sleeve shop.",
-      "sleeveBought": "Sleeve unlocked!",
-      "sleeveClaimedFree": "Free sleeve claimed!",
-      "sleeveShopLoadFailed": "Couldn’t load the sleeve shop.",
+      "signInSleeveShop": "ลงชื่อเข้าใช้เพื่อใช้ร้านสลีฟ",
+      "sleeveBought": "ปลดล็อกสลีฟแล้ว!",
+      "sleeveClaimedFree": "รับสลีฟฟรีแล้ว!",
+      "sleeveShopLoadFailed": "โหลดร้านสลีฟไม่สำเร็จ",
       "liveLockFailed": "ไม่สามารถวางการ์ด Live ของคุณได้ โปรดล็อกอีกครั้ง"
     },
     "tutorialUi": {
@@ -12100,7 +12156,7 @@
       "weekly": {
         "rankedRandom": "เล่นแมตช์แรงก์ในโหมดเด็คสุ่ม",
         "ranked10": "เล่นแมตช์แรงก์ 10 ครั้ง",
-        "shopBuy": "ซื้อเพลย์แมตหรือซองการ์ดจากร้านค้า",
+        "shopBuy": "ซื้อเพลย์แมตหรือสลีฟจากร้านค้า",
         "stickerExchange": "แลกซีลเป็นการ์ดในร้านสติกเกอร์",
         "login7": "ล็อกอินทุกวันในสัปดาห์นี้ (7 วัน)",
         "completeAll": "ทำภารกิจรายสัปดาห์ทั้งหมดให้สำเร็จ"
@@ -12127,7 +12183,7 @@
         "playLiveGroup": "เล่นการ์ดไลฟ์ของ {group} {n} ครั้ง",
         "playLiveSubunit": "เล่นการ์ดไลฟ์ของ {subunit} {n} ครั้ง",
         "loginDays10": "ล็อกอิน 10 วันที่ต่างกัน (JST)",
-        "sleeves10": "มีซองการ์ด 10 ชิ้น",
+        "sleeves10": "มีสลีฟ 10 ชิ้น",
         "playmats10": "มีเพลย์แมต 10 ชิ้น",
         "gachaScout1": "สเกาต์ในกาชา",
         "gachaScout10": "สเกาต์ในกาชา 10 ครั้ง",
@@ -12180,8 +12236,8 @@
       "title": "ภารกิจ",
       "rewardCoinsAndPrPack": "+{coins} เหรียญ · แพ็ก PR",
       "claimedCoinsAndPrToast": "รับ {title} แล้ว (+{coins} เหรียญ · แพ็ก PR)",
-      "rewardFreeSleeve": "รับซองฟรี",
-      "claimedFreeSleeveToast": "รับ {title} แล้ว — รับซองฟรีได้ที่ร้านซองการ์ด",
+      "rewardFreeSleeve": "รับสลีฟฟรี",
+      "claimedFreeSleeveToast": "รับ {title} แล้ว — รับสลีฟฟรีได้ที่ร้านสลีฟ",
       "claimedCoinsToast": "รับ {title} แล้ว (+{coins} เหรียญ)",
       "claimedGemsAndCoinsToast": "รับ {title} แล้ว (+{gems} · +{coins} เหรียญ)"
     },
@@ -12607,29 +12663,38 @@
       "hubSub": "Browse all cards"
     },
     "playmatShop": {
-      "backChars": "← Characters",
-      "backShop": "← Shop",
-      "buyConfirm": "Buy this playmat for {price} Coins?",
-      "hint": "Tap a playmat to preview, then buy or equip.",
-      "hoverEmpty": "Select a playmat",
-      "title": "Playmats"
+      "previewClose": "ตัวอย่างเพลย์แมต — แตะเพื่อปิด",
+      "previewOpen": "ดูขนาดเต็ม",
+      "buy": "ซื้อ",
+      "owned": "มีแล้ว",
+      "backChars": "← ตัวละคร",
+      "backShop": "← ร้านค้า",
+      "buyConfirm": "ซื้อเพลย์แมตนี้ด้วย {price} เหรียญหรือไม่?",
+      "hint": "แตะเพลย์แมตเพื่อดูตัวอย่าง จากนั้นซื้อหรือสวมใส่",
+      "hoverEmpty": "เลือกเพลย์แมต",
+      "title": "เพลย์แมต"
     },
     "shop": {
       "backHub": "← Hub",
-      "hint": "Spend Coins on sleeves and playmats.",
-      "playmatsSub": "Board backgrounds",
-      "playmatsTitle": "Playmats",
-      "sleevesSub": "Card backs",
-      "sleevesTitle": "Sleeves",
-      "title": "Shop"
+      "hint": "ใช้เหรียญซื้อสลีฟและเพลย์แมต",
+      "playmatsSub": "ลายกระดานสำหรับฝั่งของคุณ",
+      "playmatsTitle": "เพลย์แมต",
+      "sleevesSub": "หลังการ์ดสำหรับเด็คของคุณ",
+      "sleevesTitle": "สลีฟ",
+      "title": "ร้านค้า"
     },
     "sleeveShop": {
-      "backChars": "← Characters",
-      "backShop": "← Shop",
-      "buyConfirm": "Buy this sleeve for {price} Coins?",
-      "hint": "Tap a sleeve to preview, then buy or equip.",
-      "hoverEmpty": "Select a sleeve",
-      "title": "Sleeves"
+      "bdayName": "{name} ภาพวันเกิด {year}",
+      "claimFree": "รับฟรี",
+      "freeClaims": "เลือกฟรี: {n}",
+      "buy": "ซื้อ",
+      "owned": "มีแล้ว",
+      "backChars": "← ตัวละคร",
+      "backShop": "← ร้านค้า",
+      "buyConfirm": "ซื้อสลีฟนี้ด้วย {price} เหรียญหรือไม่?",
+      "hint": "แตะสลีฟเพื่อดูตัวอย่าง จากนั้นซื้อหรือสวมใส่",
+      "hoverEmpty": "เลือกสลีฟ",
+      "title": "สลีฟ"
     },
     "gameMode": {
       "free": "Free",
@@ -12950,6 +13015,11 @@
       "creating": "Criando sala…"
     },
     "deck": {
+      "playmatPickClose": "Fechar",
+      "playmatOwnedHint": "Playmats que você possui da loja de playmats.",
+      "playmatEmptyHint": "Compre playmats na loja de playmats.",
+      "playmatChange": "Alterar",
+      "playmatNone": "Padrão",
       "basicDecks": "Decks básicos",
       "starters": {
         "nijigasaki": "Deck Inicial Nijigasaki",
@@ -14621,6 +14691,10 @@
       "hubSub": "Navegar por todas as cartas"
     },
     "playmatShop": {
+      "previewClose": "Pré-visualização do playmat — toque para fechar",
+      "previewOpen": "Ver em tamanho real",
+      "buy": "Comprar",
+      "owned": "Possui",
       "backChars": "← Personagens",
       "backShop": "← Loja",
       "buyConfirm": "Comprar este playmat por {price} Moedas?",
@@ -14631,13 +14705,18 @@
     "shop": {
       "backHub": "← Menu",
       "hint": "Gaste Moedas em sleeves e playmats.",
-      "playmatsSub": "Planos de fundo do tabuleiro",
+      "playmatsSub": "Arte de tabuleiro para o seu lado",
       "playmatsTitle": "Playmats",
-      "sleevesSub": "Versos de cartas",
+      "sleevesSub": "Versos de carta para os seus decks",
       "sleevesTitle": "Sleeves",
       "title": "Loja"
     },
     "sleeveShop": {
+      "bdayName": "{name} Visual de aniversário {year}",
+      "claimFree": "Resgatar grátis",
+      "freeClaims": "Escolhas grátis: {n}",
+      "buy": "Comprar",
+      "owned": "Possui",
       "backChars": "← Personagens",
       "backShop": "← Loja",
       "buyConfirm": "Comprar este sleeve por {price} Moedas?",
@@ -14888,12 +14967,12 @@
         "title": "Replays"
       },
       "shop": {
-        "sub": "Sleeves et playmats",
+        "sub": "Protège-cartes et tapis de jeu",
         "title": "Boutique"
       },
       "sleeveShop": {
-        "sub": "Achetez des sleeves avec des Pièces",
-        "title": "Boutique de sleeves"
+        "sub": "Achetez des protège-cartes avec des pièces",
+        "title": "Boutique de protège-cartes"
       },
       "sticker": {
         "sub": "Convertir les cartes en double",
@@ -14951,7 +15030,7 @@
       "weekly": {
         "rankedRandom": "Jouer une partie classée en mode decks aléatoires",
         "ranked10": "Jouer 10 parties classées",
-        "shopBuy": "Acheter un playmat ou un sleeve dans la boutique",
+        "shopBuy": "Acheter un tapis de jeu ou des protège-cartes dans la boutique",
         "stickerExchange": "Échanger des sceaux contre une carte dans la boutique de sceaux",
         "login7": "Se connecter chaque jour cette semaine (7 jours)",
         "completeAll": "Terminer toutes les missions hebdomadaires"
@@ -14974,8 +15053,8 @@
         "playLiveGroup": "Jouer des cartes Live de {group} {n} fois",
         "playLiveSubunit": "Jouer des cartes Live de {subunit} {n} fois",
         "loginDays10": "Se connecter 10 jours différents (JST)",
-        "sleeves10": "Posséder 10 sleeves",
-        "playmats10": "Posséder 10 playmats",
+        "sleeves10": "Posséder 10 protège-cartes",
+        "playmats10": "Posséder 10 tapis de jeu",
         "gachaScout1": "Faire un Scout au Gacha",
         "gachaScout10": "Faire 10 Scouts au Gacha",
         "gachaBirthday": "Faire un Scout dans un Gacha d'anniversaire limité",
@@ -15014,8 +15093,8 @@
       "starterPickCancel": "Annuler",
       "rewardCoinsAndPrPack": "+{coins} Pièces · Pack PR",
       "claimedCoinsAndPrToast": "Demandé {title} (+{coins} Pièces · Pack RP)",
-      "rewardFreeSleeve": "Récupération de sleeve gratuit",
-      "claimedFreeSleeveToast": "Revendiqué {title} — manche libre déverrouillée dans la boutique de manches",
+      "rewardFreeSleeve": "Protège-cartes gratuit à récupérer",
+      "claimedFreeSleeveToast": "{title} récupéré — protège-cartes gratuit disponible dans la boutique de protège-cartes",
       "claimedCoinsToast": "Demandé {title} (+{coins} jeton)",
       "claimedGemsAndCoinsToast": "Demandé {title} (+{gems} · +{coins} pièces)"
     },
@@ -15073,8 +15152,8 @@
       "cpuCosmeticDefault": "Par défaut",
       "cpuCosmeticRandom": "Aléatoire (possédés)",
       "cpuCosmeticsHint": "Choisissez des cosmétiques possédés ou tirez au hasard parmi ceux que vous avez.",
-      "cpuPlaymat": "Playmat de la CPU",
-      "cpuSleeve": "Sleeve de la CPU",
+      "cpuPlaymat": "Tapis de jeu de la CPU",
+      "cpuSleeve": "Protège-cartes de la CPU",
       "experimentDeckIncomplete": "Le deck d'expérience est incomplet.",
       "freeDeckEmpty": "Aucun deck libre/expérience enregistré pour le moment.",
       "otherModesQueuedLead": "Joueurs en attente dans d'autres modes :",
@@ -15085,6 +15164,11 @@
       "creating": "Création du salon…"
     },
     "deck": {
+      "playmatPickClose": "Fermer",
+      "playmatOwnedHint": "Tapis de jeu que vous possédez, obtenus à la boutique de tapis de jeu.",
+      "playmatEmptyHint": "Achetez des tapis de jeu dans la boutique de tapis de jeu.",
+      "playmatChange": "Changer",
+      "playmatNone": "Par défaut",
       "basicDecks": "Decks de base",
       "starters": {
         "nijigasaki": "Deck initial Nijigasaki",
@@ -15295,20 +15379,20 @@
       "experimentSaved": "Deck d'expérience enregistré.",
       "experimentSlot": "Emplacement d'expérience",
       "more": "Plus",
-      "playmat": "Playmat",
+      "playmat": "Tapis de jeu",
       "playmatBrightness": "Luminosité",
       "playmatConfirm": "Confirmer",
-      "playmatEmpty": "Aucun playmat disponible pour le moment.",
-      "playmatHint": "Le playmat équipé apparaît à votre place en partie. Plateau par défaut si aucun n'est choisi.",
-      "playmatPickLead": "Sélectionnez un playmat que vous possédez, ajustez la luminosité, puis confirmez.",
-      "playmatPickTitle": "Choisir le playmat",
+      "playmatEmpty": "Aucun tapis de jeu disponible pour le moment.",
+      "playmatHint": "Le tapis de jeu équipé apparaît de votre côté en partie. Plateau par défaut si aucun n'est choisi.",
+      "playmatPickLead": "Sélectionnez un tapis de jeu que vous possédez, ajustez la luminosité, puis confirmez.",
+      "playmatPickTitle": "Choisir le tapis de jeu",
       "saveExperiment": "Enregistrer l'expérience",
       "savedPresets": "Prédéfinitions enregistrées",
-      "sleeve": "Sleeve",
-      "sleeveEmpty": "Aucun sleeve disponible pour le moment.",
-      "sleeveHint": "Le sleeve équipé remplace le dos de vos cartes en partie. Par défaut : aucun.",
-      "sleevePickLead": "Touchez un sleeve que vous possédez pour l'équiper sur ce deck.",
-      "sleevePickTitle": "Choisir le sleeve",
+      "sleeve": "Protège-cartes",
+      "sleeveEmpty": "Aucun protège-cartes disponible pour le moment.",
+      "sleeveHint": "Le protège-cartes équipé remplace le dos de vos cartes en partie. Par défaut : aucun.",
+      "sleevePickLead": "Touchez un protège-cartes que vous possédez pour l'équiper sur ce deck.",
+      "sleevePickTitle": "Choisir le protège-cartes",
       "sort": "Trier",
       "saved": "Deck enregistré",
       "savedInProgress": "Brouillon enregistré. Terminez les comptes de cartes avant de l'utiliser en partie.",
@@ -15580,7 +15664,7 @@
         "lead": "Cela efface les données locales du compte sur cet appareil.",
         "title": "Réinitialiser le compte"
       },
-      "sleeveConform": "Ajuster les sleeves à la taille des cartes (coins arrondis, sans débord carré)",
+      "sleeveConform": "Ajuster les protège-cartes à la taille des cartes (coins arrondis, sans débord carré)",
       "stuck": {
         "lead": "Si le jeu est bloqué, quittez la partie et revenez au menu.",
         "title": "Bloqué ?"
@@ -16171,7 +16255,7 @@
       "intro_card_member": "Les cartes **Membre** sont les idoles qui se produisent sur la Scène. Paie une **Énergie** égale à leur coût pour les jouer depuis ta main. Chaque Membre a un certain nombre de **Cœurs** colorés (verticaux) utilisés lors des Lives. Il y a aussi des **Blades** (icônes de penlight rondes) et des **cœurs Blade** (cœurs couchés), mais on se concentre sur le cœur vertical pour l'instant. Shiki ici a **1 cœur violet**.",
       "intro_card_live": "Les cartes **Live** sont les chansons que tu présentes. Tu peux en jouer jusqu'à 3 à la fois. Les Lives réussissent grâce aux cartes **Membre** placées sur ta Scène — on en reparlera plus tard.",
       "intro_card_energy": "Les cartes **Énergie** de ton **Deck d'Énergie** se placent ici. Tu commences avec **3 Énergie** et gagnes **+1** à chaque tour (jusqu'à ce que tes **12** énergies soient en jeu). L'Énergie sert à placer des cartes **Membre** sur ta **Scène**.",
-      "intro_demo": "Je vais te guider dans une démo — **Liella!** vs **μ's** sur le tapis. Tu es en bas ; ton adversaire est en haut.",
+      "intro_demo": "Je vais te guider dans une démo — **Liella!** vs **μ's** sur le tapis de jeu. Tu es en bas ; ton adversaire est en haut.",
       "intro_deck_piles": "La pile du haut est ton **Deck principal**, d'où tu pioches. En dessous se trouve le **Deck d'Énergie**.",
       "intro_stage": "Voici ta **Scène** — Gauche, Centre et Droite. Les Membres que tu fais entrer se placent ici, et les **Cœurs** qu'ils portent décident si ton Live réussit.",
       "intro_live": "À côté de la Scène se trouve ta **zone de cartes Live**. Elle contient jusqu'à **3** cartes face cachée pendant la Phase Live — tu vois les tiennes, mais celles de l'adversaire restent cachées.",
@@ -16350,13 +16434,13 @@
       "coinsEarned": "+ pièces{n}",
       "eventPointsEarned": "+{n} points d'événement",
       "leftDeadMatch": "Laisser une correspondance terminée/déconnectée.",
-      "playmatBought": "Jeu déverrouillé !",
+      "playmatBought": "Tapis de jeu débloqué !",
       "resolveSkillFirst": "Résoudre d'abord l'appel de compétences.",
       "signInShop": "Connectez-vous pour utiliser la boutique.",
-      "signInSleeveShop": "Connectez-vous pour utiliser le magasin à manches.",
-      "sleeveBought": "Manche déverrouillée !",
-      "sleeveClaimedFree": "C'est ce qu'on a dit !",
-      "sleeveShopLoadFailed": "Je ne pouvais pas charger la boutique.",
+      "signInSleeveShop": "Connectez-vous pour utiliser la boutique de protège-cartes.",
+      "sleeveBought": "Protège-cartes débloqué !",
+      "sleeveClaimedFree": "Protège-cartes gratuit récupéré !",
+      "sleeveShopLoadFailed": "Impossible de charger la boutique de protège-cartes.",
       "liveLockFailed": "Impossible de ranger vos cartes Live ; veuillez confirmer à nouveau."
     },
     "tutorialUi": {
@@ -16794,29 +16878,38 @@
       "hubSub": "Parcourir toutes les cartes"
     },
     "playmatShop": {
+      "previewClose": "Aperçu du tapis de jeu — touchez pour fermer",
+      "previewOpen": "Voir en taille réelle",
+      "buy": "Acheter",
+      "owned": "Possédé",
       "backChars": "← Personnages",
       "backShop": "← Boutique",
-      "buyConfirm": "Acheter ce playmat pour {price} Pièces ?",
-      "hint": "Touchez un playmat pour prévisualiser, puis achetez ou équipez.",
-      "hoverEmpty": "Sélectionnez un playmat",
-      "title": "Playmats"
+      "buyConfirm": "Acheter ce tapis de jeu pour {price} pièces ?",
+      "hint": "Touchez un tapis de jeu pour l'aperçu, puis achetez-le ou équipez-le.",
+      "hoverEmpty": "Sélectionnez un tapis de jeu",
+      "title": "Tapis de jeu"
     },
     "shop": {
       "backHub": "← Hub",
-      "hint": "Dépensez des pièces sur les manches et les jeux.",
-      "playmatsSub": "Historique du conseil",
-      "playmatsTitle": "Jeux",
-      "sleevesSub": "Dossiers de cartes",
-      "sleevesTitle": "Manches",
-      "title": "Magasiner"
+      "hint": "Dépensez vos pièces en protège-cartes et tapis de jeu.",
+      "playmatsSub": "Illustration de plateau pour votre côté",
+      "playmatsTitle": "Tapis de jeu",
+      "sleevesSub": "Dos de cartes pour vos decks",
+      "sleevesTitle": "Protège-cartes",
+      "title": "Boutique"
     },
     "sleeveShop": {
-      "backChars": "← personnages",
-      "backShop": "← Magasiner",
-      "buyConfirm": "Acheter cette manche pour les pièces{price}?",
-      "hint": "Appuyez sur un manchon pour prévisualiser, puis achetez ou équipez.",
-      "hoverEmpty": "Sélectionner une manche",
-      "title": "Manches"
+      "bdayName": "{name} Visuel d'anniversaire {year}",
+      "claimFree": "Récupérer gratuitement",
+      "freeClaims": "Choix gratuits : {n}",
+      "buy": "Acheter",
+      "owned": "Possédé",
+      "backChars": "← Personnages",
+      "backShop": "← Boutique",
+      "buyConfirm": "Acheter ce protège-cartes pour {price} pièces ?",
+      "hint": "Touchez un protège-cartes pour l'aperçu, puis achetez-le ou équipez-le.",
+      "hoverEmpty": "Sélectionnez un protège-cartes",
+      "title": "Protège-cartes"
     },
     "gameMode": {
       "free": "Libre",
