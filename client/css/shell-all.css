@@ -9497,6 +9497,40 @@ body.gacha-pull-open{overflow:hidden}
 .gacha-banner--birthday .gacha-banner__sub{color:var(--bday-fg,#fff);text-shadow:none}
 .gacha-banner--birthday .gacha-banner__sub{font-size:14px;font-weight:700;opacity:.92}
 .gacha-banner--birthday .gacha-banner__render.is-card-art{width:auto;height:100%;max-width:100%;left:auto;right:8px;object-fit:contain;object-position:center}
+@property --bn-fade-l{syntax:'<length>';inherits:false;initial-value:0px}
+@property --bn-fade-r{syntax:'<length>';inherits:false;initial-value:0px}
+/* Edge fades + arrows: the banner that continues off-screen fades out instead of hard-cutting. */
+.gacha-banners-wrap{position:relative}
+.gacha-banners-wrap .gacha-banners{
+  --bn-fade-l:0px;--bn-fade-r:0px;
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 var(--bn-fade-l),#000 calc(100% - var(--bn-fade-r)),transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0,#000 var(--bn-fade-l),#000 calc(100% - var(--bn-fade-r)),transparent 100%);
+  transition:--bn-fade-l .25s,--bn-fade-r .25s
+}
+.gacha-banners-wrap.can-prev .gacha-banners{--bn-fade-l:64px}
+.gacha-banners-wrap.can-next .gacha-banners{--bn-fade-r:64px}
+.gacha-banners-arrow{
+  position:absolute;top:50%;z-index:6;width:38px;height:38px;margin-top:-19px;padding:0;
+  display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(255,255,255,.55);border-radius:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.14));
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  color:#fff;cursor:pointer;
+  box-shadow:0 4px 14px rgba(20,60,120,.35),inset 0 1px 0 rgba(255,255,255,.5);
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .15s
+}
+.gacha-banners-arrow svg{filter:drop-shadow(0 1px 2px rgba(20,60,120,.55))}
+.gacha-banners-arrow--prev{left:8px}
+.gacha-banners-arrow--prev svg{transform:scaleX(-1)}
+.gacha-banners-arrow--next{right:8px}
+.gacha-banners-arrow:hover{transform:scale(1.08)}
+.gacha-banners-arrow:active{transform:scale(.94)}
+.gacha-banners-arrow:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.gacha-banners-wrap.can-prev .gacha-banners-arrow--prev,
+.gacha-banners-wrap.can-next .gacha-banners-arrow--next{opacity:1;pointer-events:auto}
+.gacha-banners-wrap.can-next .gacha-banners-arrow--next{animation:gachaArrowNudge 1.6s ease-in-out infinite}
+@keyframes gachaArrowNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){.gacha-banners-wrap.can-next .gacha-banners-arrow--next{animation:none}}
 
 /* ── Pinned deck (deck log import) ── */
 .deck-pin-fab{flex:0 0 auto}

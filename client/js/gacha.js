@@ -615,6 +615,48 @@
     return root;
   }
 
+  const CHEVRON_SVG = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  /** Wrap the strip once: edge fades + prev/next arrows overlay it (the strip keeps its id and scroll-snap). */
+  function ensureBannerWrap(strip) {
+    let wrap = strip.parentElement;
+    if (wrap && wrap.classList.contains('gacha-banners-wrap')) return wrap;
+    wrap = document.createElement('div');
+    wrap.className = 'gacha-banners-wrap';
+    strip.parentNode.insertBefore(wrap, strip);
+    wrap.appendChild(strip);
+    ['prev', 'next'].forEach((dir) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'gacha-banners-arrow gacha-banners-arrow--' + dir;
+      b.setAttribute('aria-label', dir === 'next' ? 'Next banner' : 'Previous banner');
+      b.innerHTML = CHEVRON_SVG;
+      b.addEventListener('click', (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const ids = [...strip.querySelectorAll('.gacha-banner')].map((n) => n.dataset.bannerId);
+        const i = ids.indexOf(_bannerId);
+        const j = dir === 'next' ? Math.min(ids.length - 1, i + 1) : Math.max(0, i - 1);
+        if (j !== i && ids[j]) selectBanner(ids[j]);
+      });
+      wrap.appendChild(b);
+    });
+    strip.addEventListener('scroll', () => syncBannerEdges(), { passive: true });
+    global.addEventListener('resize', () => syncBannerEdges());
+    return wrap;
+  }
+
+  /** Show the fade + arrow only on the side that still has banners to scroll to. */
+  function syncBannerEdges() {
+    const strip = el('gacha-banners');
+    const wrap = strip && strip.parentElement;
+    if (!wrap || !wrap.classList.contains('gacha-banners-wrap')) return;
+    const max = strip.scrollWidth - strip.clientWidth;
+    const multi = strip.classList.contains('gacha-banners--multi') && max > 4;
+    wrap.classList.toggle('can-prev', multi && strip.scrollLeft > 4);
+    wrap.classList.toggle('can-next', multi && strip.scrollLeft < max - 4);
+  }
+
   function renderBanners() {
     const strip = el('gacha-banners');
     if (!strip) return;
@@ -622,7 +664,11 @@
     const birthdays = bannerList().filter((b) => b.type === 'birthday');
     birthdays.forEach((b) => strip.appendChild(buildBirthdayBanner(b)));
     strip.classList.toggle('gacha-banners--multi', birthdays.length > 0);
+    ensureBannerWrap(strip);
     selectBanner(bannerById(_bannerId) ? _bannerId : 'standard', { scroll: false });
+    syncBannerEdges();
+    // Layout settles after the new banners are in the DOM (and images/fonts load).
+    global.requestAnimationFrame(() => syncBannerEdges());
   }
 
   function selectBanner(id, opts) {
