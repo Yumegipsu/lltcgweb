@@ -5154,15 +5154,23 @@ function mergeColoredHeartDemandClient(a, b) {
 
 function isWildcardHeartColorClient(color) {
   const c = normalizeHeartColor(color || 'any');
-  return c === 'any';
+  return c === 'any' || c === 'all';
 }
 
-/** Prefer exact, then wild; for any-slots prefer surplus colors (issue #66). */
+function isAllBladeHeartColorClientLocal(color) {
+  if (typeof isAllBladeHeartColorClient === 'function') {
+    return isAllBladeHeartColorClient(color);
+  }
+  return normalizeHeartColor(color || '') === 'all';
+}
+
+/** Prefer exact, then ALL; for any-slots prefer surplus colors (issue #66). */
 function heartSlotCandidateIndicesClient(pool, needColor, reservedColored = {}) {
   if (needColor !== 'any') {
     const indices = [];
     pool.forEach((h, i) => { if (h === needColor) indices.push(i); });
-    pool.forEach((h, i) => { if (isWildcardHeartColorClient(h)) indices.push(i); });
+    // Only ALL may pay a chosen color. Colorless/all2 may not (#296).
+    pool.forEach((h, i) => { if (isAllBladeHeartColorClientLocal(h)) indices.push(i); });
     return indices;
   }
   const counts = {};
@@ -5601,7 +5609,7 @@ function liveCardsHaveYellHeartsWildcard(liveCards) {
 function resolveAllBladeHeartColorForPool(pool, liveCards, state = null, pid = null) {
   const specifics = (pool || [])
     .map(h => normalizeHeartColor(h))
-    .filter(h => h !== 'any');
+    .filter(h => h !== 'any' && h !== 'all');
   for (const lc of liveCards || []) {
     let req = lc.required_hearts || [];
     if (typeof effectiveLiveRequiredHearts === 'function' && state && pid) {
@@ -5615,18 +5623,18 @@ function resolveAllBladeHeartColorForPool(pool, liveCards, state = null, pid = n
   return 'any';
 }
 
-/** True when a Yell blade pays as a wild (gray / any / ALL / all2). */
-function isYellWildBladeColor(color) {
+/** True when a Yell blade is colorless (gray / any / all2) — not ALL. */
+function isYellColorlessBladeColor(color) {
   const raw = String(color || '').toLowerCase();
-  return raw === 'all' || raw === 'gray' || raw === 'wild' || raw === 'any'
+  return raw === 'gray' || raw === 'wild' || raw === 'any'
     || (typeof isDoubleColorlessBladeHeart === 'function' && isDoubleColorlessBladeHeart(raw));
 }
 
 /**
- * Assign the next missing Live color for a wild Yell blade, mutating opts.extraOwned
- * so a second gray/ALL does not also paint as the first missing color (#294).
+ * Assign the next missing Live color for an ALL Yell blade, mutating opts.extraOwned
+ * so a second ALL does not also paint as the first missing color (#294).
  */
-function assignYellWildBladeColor(ctx, pid, opts = {}) {
+function assignYellAllBladeColor(ctx, pid, opts = {}) {
   const pool = opts.extraOwned
     ? opts.extraOwned
     : buildHeartPoolFromRows(perfStageHeartsForPlayer(ctx, pid));
@@ -5635,8 +5643,9 @@ function assignYellWildBladeColor(ctx, pid, opts = {}) {
   const assigned = normalizeHeartColor(
     resolveAllBladeHeartColorForPool(pool, liveCards, ctx?.next, pid)
   );
-  if (opts.extraOwned) opts.extraOwned.push(assigned);
-  return assigned;
+  const token = assigned === 'any' ? 'all' : assigned;
+  if (opts.extraOwned) opts.extraOwned.push(token);
+  return token;
 }
 
 function resolveYellBladeHeartColor(color, ctx, pid, opts = {}) {
@@ -5652,9 +5661,8 @@ function resolveYellBladeHeartColor(color, ctx, pid, opts = {}) {
   if (opts.yellWildcard && raw !== 'draw') {
     return resolveAllBladeHeartColorForPool(pool, liveCards, ctx?.next, pid);
   }
-  // Printed gray/any stay wild for display + Live-req payment (#294).
-  // Only the ALL blade icon paints as the missing color it fills.
-  if (raw === 'gray' || raw === 'wild' || raw === 'any') return 'any';
+  // Colorless / all2 stay gray for display and pay only gray slots (#294/#296).
+  if (isYellColorlessBladeColor(raw)) return 'any';
   if (raw !== 'all') return raw;
 
   return resolveAllBladeHeartColorForPool(pool, liveCards, ctx?.next, pid);
@@ -7876,23 +7884,32 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
         const { raw: rawColor } = bladeEntries[j];
         const icon = icons[j] || null;
         const raw = String(rawColor || 'any').toLowerCase();
-        const isWild = !!forcedBladeColor || yellWildcard || isYellWildBladeColor(raw);
         let panelColor;
         let payColor;
         if (forcedBladeColor) {
           panelColor = forcedBladeColor;
           payColor = forcedBladeColor;
           ownedPool.push(normalizeHeartColor(forcedBladeColor));
-        } else if (isWild) {
-          // Reserve the next missing color for later ALL blades, but keep printed
-          // gray/any as gray on the panel and pay them as wild (#294).
-          const assigned = assignYellWildBladeColor(ctx, pid, {
+        } else if (yellWildcard && raw !== 'draw' && raw !== 'score') {
+          // Card skill: yell hearts count as any color — pay like ALL (#296).
+          const assigned = assignYellAllBladeColor(ctx, pid, {
             extraOwned: ownedPool,
             liveCards,
           });
-          const paintAssigned = yellWildcard || raw === 'all';
-          panelColor = paintAssigned ? assigned : 'any';
+          panelColor = assigned === 'all' ? 'any' : assigned;
+          payColor = assigned;
+        } else if (raw === 'all') {
+          const assigned = assignYellAllBladeColor(ctx, pid, {
+            extraOwned: ownedPool,
+            liveCards,
+          });
+          panelColor = assigned === 'all' ? 'all' : assigned;
+          payColor = assigned;
+        } else if (isYellColorlessBladeColor(raw)) {
+          // Colorless / all2: gray on the panel; pay gray slots only (#294/#296).
+          panelColor = 'any';
           payColor = 'any';
+          ownedPool.push('any');
         } else {
           panelColor = resolveYellBladeHeartColor(rawColor, ctx, pid, {
             extraOwned: ownedPool,

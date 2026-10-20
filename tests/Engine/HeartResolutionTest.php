@@ -35,13 +35,14 @@ final class HeartResolutionTest extends TestCase
         $this->assertSame('pink', resolveAllBladeHeartColor($pool, [$live]));
     }
 
-    public function testCheckHeartsUsesWildcardsForMissingColorsBeforeGenericAnySlots(): void {
+    public function testCheckHeartsUsesAllBladeForMissingColorsBeforeGenericAnySlots(): void {
         $required = [
             ['color' => 'pink', 'count' => 1],
             ['color' => 'purple', 'count' => 1],
             ['color' => 'green', 'count' => 1],
         ];
-        [$ok, $remaining] = checkHearts(['pink', 'any', 'green'], $required);
+        // ALL may pay purple; colorless "any" may not (#296).
+        [$ok, $remaining] = checkHearts(['pink', 'all', 'green'], $required);
 
         $this->assertTrue($ok);
         $this->assertSame([], $remaining);
@@ -52,7 +53,7 @@ final class HeartResolutionTest extends TestCase
             ['color' => 'pink', 'count' => 1],
             ['color' => 'purple', 'count' => 1],
         ];
-        [$ok] = checkHearts(['pink', 'any'], $required);
+        [$ok] = checkHearts(['pink', 'all'], $required);
 
         $this->assertTrue($ok);
     }

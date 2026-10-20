@@ -2932,13 +2932,23 @@ function doCPU(s) {
 // Heart colors currently provided by CPU's stage (mirrors stage_heart_pool in sim_test.py)
 function normalizeHeartColor(color) {
   const c = String(color || 'any').toLowerCase().trim();
+  // ALL blade stays "all" — only ALL may pay a chosen color (#296).
+  if (c === 'all' || c === 'all1' || c === 'b_all') return 'all';
   if (
-    c === 'all' || c === 'gray' || c === 'wild' || c === 'any' || c === ''
+    c === 'gray' || c === 'wild' || c === 'any' || c === ''
     || c === 'all2' || c === 'all_2' || c === 'b_heart07' || c === 'heart07'
   ) {
     return 'any';
   }
   return c;
+}
+
+function isAllBladeHeartColorClient(color) {
+  return normalizeHeartColor(color) === 'all';
+}
+
+function isColorlessHeartColorClient(color) {
+  return normalizeHeartColor(color) === 'any';
 }
 
 function stageHeartPool(p) {

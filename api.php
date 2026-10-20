@@ -4425,18 +4425,40 @@ function finalizeLiveJudge(array $state, array $ctx): array {
 // ─────────────────────────────────────────────
 // Heart Resolution
 // ─────────────────────────────────────────────
-function isWildcardHeartColor(string $color): bool {
+/**
+ * Colorless / gray / all2 owned hearts (無色). Count toward totals and gray
+ * requirement slots only — they do not pay a chosen pink/red/… slot (#296).
+ * ALL blade icons are separate (isAllBladeHeartColor).
+ */
+function isColorlessHeartColor(string $color): bool {
     $c = strtolower(trim($color));
     return in_array($c, [
-        'any', 'wild', 'gray', 'all',
-        // Double colorless blade hearts resolve to two wilds; treat the token as wild too
-        // so HUD merges never keep a separate "all2" chip beside "any".
-        'all2', 'all_2', 'b_heart07', 'heart07', '',
+        'any', 'wild', 'gray', '',
+        // Double colorless blade (BP07 無色×2): two colorless hearts, not two ALLs.
+        'all2', 'all_2', 'b_heart07', 'heart07',
     ], true);
 }
 
+/** ALL blade icon — official 8.3.15.1.1: may be treated as any one color. */
+function isAllBladeHeartColor(string $color): bool {
+    $c = strtolower(trim($color));
+    return $c === 'all' || $c === 'all1' || $c === 'b_all';
+}
+
+/** Non-specific owned heart (colorless or ALL). */
+function isWildcardHeartColor(string $color): bool {
+    return isColorlessHeartColor($color) || isAllBladeHeartColor($color);
+}
+
 function normalizeHeartColor(string $color): string {
-    return isWildcardHeartColor($color) ? 'any' : strtolower(trim($color));
+    $c = strtolower(trim($color));
+    if (isAllBladeHeartColor($c)) {
+        return 'all';
+    }
+    if (isColorlessHeartColor($c)) {
+        return 'any';
+    }
+    return $c;
 }
 
 function sortHeartRequirements(array $required): array {
@@ -4481,8 +4503,9 @@ function heartSlotCandidateIndices(array $pool, string $needColor, array $reserv
                 $indices[] = $i;
             }
         }
+        // Only ALL may pay a chosen color (8.3.15.1.1). Colorless/all2 may not (#296).
         foreach ($pool as $i => $h) {
-            if (isWildcardHeartColor((string)$h)) {
+            if (isAllBladeHeartColor((string)$h)) {
                 $indices[] = $i;
             }
         }
@@ -4556,35 +4579,43 @@ function consumeColoredHeartSlotsByCount(array $pool, array $coloredSlots): ?arr
         $need[$color] = ($need[$color] ?? 0) + 1;
     }
     $exactHave = [];
-    $wildCount = 0;
+    $allCount = 0;
     foreach ($pool as $h) {
-        if (isWildcardHeartColor((string)$h)) {
-            $wildCount++;
+        if (isAllBladeHeartColor((string)$h)) {
+            // ALL may pay a chosen color (8.3.15.1.1).
+            $allCount++;
+        } elseif (isColorlessHeartColor((string)$h)) {
+            // Colorless / all2 stay for gray requirement slots + total only (#296).
+            continue;
         } else {
             $exactHave[$h] = ($exactHave[$h] ?? 0) + 1;
         }
     }
     $exactUsed = [];
-    $wildUsed = 0;
+    $allUsed = 0;
     foreach ($need as $color => $n) {
         $have = intval($exactHave[$color] ?? 0);
         $takeExact = min($have, $n);
         $exactUsed[$color] = $takeExact;
         $short = $n - $takeExact;
         if ($short > 0) {
-            if ($wildCount - $wildUsed < $short) {
+            if ($allCount - $allUsed < $short) {
                 return null;
             }
-            $wildUsed += $short;
+            $allUsed += $short;
         }
     }
     $remaining = [];
     foreach ($pool as $h) {
-        if (isWildcardHeartColor((string)$h)) {
-            if ($wildUsed > 0) {
-                $wildUsed--;
+        if (isAllBladeHeartColor((string)$h)) {
+            if ($allUsed > 0) {
+                $allUsed--;
                 continue;
             }
+            $remaining[] = $h;
+            continue;
+        }
+        if (isColorlessHeartColor((string)$h)) {
             $remaining[] = $h;
             continue;
         }
@@ -4656,7 +4687,7 @@ function checkHearts(array $available, array $required, array $reservedColored =
     return [true, $remaining];
 }
 
-/** First colored live requirement not covered by exact matches (wildcards reserved for checkHearts). */
+/** First colored live requirement not covered by exact matches (ALL reserved for checkHearts). */
 function firstMissingColoredHeartForRequirements(array $pool, array $required): ?string {
     $specifics = array_values(array_filter(
         array_map(fn($h) => normalizeHeartColor((string)$h), $pool),
@@ -4719,7 +4750,7 @@ function resolveAllBladeHeartColor(
 ): string {
     $specifics = array_values(array_filter(
         array_map(fn($h) => normalizeHeartColor((string)$h), $pool),
-        fn($h) => !isWildcardHeartColor((string)$h)
+        fn($h) => !isWildcardHeartColor((string)$h) // drop colorless + unresolved ALL
     ));
     foreach ($liveCards as $lc) {
         $required = ($state !== null && $pid !== null)
@@ -4780,24 +4811,26 @@ function getHeartIconsFromBladeHeart(
     if ($type === 'draw' || $type === 'score') {
         return [];
     }
-    // ALL blade icon: paint as the next missing Live color (and reserve it in the
-    // resolve pool so a later ALL does not take the same color).
-    if ($resolvePool !== null && $liveCards !== null && $type === 'all') {
-        $color = resolveAllBladeHeartColor($resolvePool, $liveCards, $state, $pid);
-        $resolvePool[] = normalizeHeartColor($color);
-        return [$color];
+    // ALL blade icon: may pay any one color (8.3.15.1.1). Prefer a still-missing
+    // Live color when the resolve pool is available; otherwise keep the ALL token.
+    if ($type === 'all' || $type === 'all1' || $type === 'b_all') {
+        if ($resolvePool !== null && $liveCards !== null) {
+            $color = resolveAllBladeHeartColor($resolvePool, $liveCards, $state, $pid);
+            $color = normalizeHeartColor($color);
+            $resolvePool[] = $color;
+            return [$color === 'any' ? 'all' : $color];
+        }
+        return ['all'];
     }
-    // Printed gray/any and double-colorless (all2): stay wild for payment + HUD (#294).
-    // Still reserve the next missing color(s) so a later ALL blade does not also
-    // claim them — but the hearts themselves remain "any" in the owned pool.
-    if ($resolvePool !== null && $liveCards !== null
-        && in_array($type, ['gray', 'wild', 'any', 'all2', 'all_2', 'b_heart07', 'heart07'], true)) {
+    // Printed gray/any and double-colorless (all2 / 無色×2): colorless hearts.
+    // They fill gray requirement slots and totals only — not purple/pink/… (#296).
+    if (in_array($type, ['gray', 'wild', 'any', 'all2', 'all_2', 'b_heart07', 'heart07'], true)) {
         $copies = in_array($type, ['all2', 'all_2', 'b_heart07', 'heart07'], true) ? 2 : 1;
-        $out = [];
-        for ($i = 0; $i < $copies; $i++) {
-            $assigned = resolveAllBladeHeartColor($resolvePool, $liveCards, $state, $pid);
-            $resolvePool[] = normalizeHeartColor($assigned);
-            $out[] = 'any';
+        $out = array_fill(0, $copies, 'any');
+        if ($resolvePool !== null) {
+            foreach ($out as $c) {
+                $resolvePool[] = $c;
+            }
         }
         return $out;
     }
@@ -4805,21 +4838,10 @@ function getHeartIconsFromBladeHeart(
         'pink'   => 'pink',   'red'    => 'red',
         'yellow' => 'yellow', 'green'  => 'green',
         'blue'   => 'blue',   'purple' => 'purple',
-        'any'    => 'any',    'gray'   => 'any', 'wild' => 'any', 'all' => 'any',
-        'all2'   => 'any', 'all_2' => 'any', 'b_heart07' => 'any', 'heart07' => 'any',
     ];
     if (isset($heartsMap[$type])) {
-        // Fixed-color Yell blades must enter the resolve pool too (#130): later ALL /
-        // gray blades prioritize colors still missing after these printed hearts.
-        if (in_array($type, ['all2', 'all_2', 'b_heart07', 'heart07'], true)) {
-            $pair = [$heartsMap[$type], $heartsMap[$type]];
-            if ($resolvePool !== null) {
-                foreach ($pair as $c) {
-                    $resolvePool[] = normalizeHeartColor($c);
-                }
-            }
-            return $pair;
-        }
+        // Fixed-color Yell blades must enter the resolve pool too (#130): later ALL
+        // blades prioritize colors still missing after these printed hearts.
         $color = $heartsMap[$type];
         if ($resolvePool !== null) {
             $resolvePool[] = normalizeHeartColor($color);

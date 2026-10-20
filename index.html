@@ -31038,29 +31038,26 @@ function aggregateYellBladeHeartsFromCards(cards, resolveCtx = null, pid = null)
         if (forcedBlade) {
           ownedPool.push(normalizeHeartColor(color));
         } else if (yellWildcard && ownedPool && liveCards) {
-          // Wildcard skill: hearts pay as any color, but HUD still shows gray (#294).
-          if (typeof assignYellWildBladeColor === 'function') {
-            assignYellWildBladeColor(resolveCtx, pid, { extraOwned: ownedPool, liveCards });
+          // Card skill: yell hearts count as any color — like ALL (#296).
+          if (typeof assignYellAllBladeColor === 'function') {
+            color = assignYellAllBladeColor(resolveCtx, pid, { extraOwned: ownedPool, liveCards });
           } else {
-            ownedPool.push(normalizeHeartColor(
-              resolveAllBladeHeartColorForPool(ownedPool, liveCards)
-            ));
+            color = normalizeHeartColor(resolveAllBladeHeartColorForPool(ownedPool, liveCards));
+            ownedPool.push(color === 'any' ? 'all' : color);
+            if (color === 'any') color = 'all';
           }
-          color = 'any';
         } else if (['all', 'gray', 'wild', 'any'].includes(String(color).toLowerCase()) && resolveCtx && pid && ownedPool) {
           if (String(color).toLowerCase() === 'all') {
-            color = resolveYellBladeHeartColor(color, resolveCtx, pid, { extraOwned: ownedPool, liveCards });
-            ownedPool.push(normalizeHeartColor(color));
-          } else {
-            // Printed gray/any (incl. all2): stay gray on the HUD. Still reserve the
-            // next missing color so a later ALL blade does not also take it (#294).
-            if (typeof assignYellWildBladeColor === 'function') {
-              assignYellWildBladeColor(resolveCtx, pid, { extraOwned: ownedPool, liveCards });
+            if (typeof assignYellAllBladeColor === 'function') {
+              color = assignYellAllBladeColor(resolveCtx, pid, { extraOwned: ownedPool, liveCards });
             } else {
-              const assigned = resolveAllBladeHeartColorForPool(ownedPool, liveCards);
-              ownedPool.push(normalizeHeartColor(assigned));
+              color = resolveYellBladeHeartColor(color, resolveCtx, pid, { extraOwned: ownedPool, liveCards });
+              ownedPool.push(normalizeHeartColor(color === 'any' ? 'all' : color));
             }
+          } else {
+            // Colorless / all2: gray on the HUD; do not pay chosen colors (#296).
             color = 'any';
+            ownedPool.push('any');
           }
         }
         const key = normalizeHeartColor(color);
@@ -37300,7 +37297,7 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/live-round-director.js?v=3"></script>
-<script src="client/js/spectacle.js?v=123"></script>
+<script src="client/js/spectacle.js?v=124"></script>
 <script src="client/js/board-render.js?v=51"></script>
 <script src="client/js/components/board-zones.js?v=2"></script>
 <script src="client/js/cpu-policy-data.js?v=1"></script>
@@ -37310,7 +37307,7 @@ function mkNoImg(card){
 <script src="client/js/cpu-meta-weights.js?v=7"></script>
 <script src="client/js/cpu-eval.js?v=8"></script>
 <script src="client/js/cpu-expert.js?v=8"></script>
-<script src="client/js/cpu-loop.js?v=55"></script>
+<script src="client/js/cpu-loop.js?v=56"></script>
 <script src="client/js/cpu-ai.js?v=14"></script>
 <script src="client/js/portrait-bridge.js?v=31"></script>
 <script src="client/js/match-chat.js?v=7"></script>
