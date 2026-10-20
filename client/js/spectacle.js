@@ -5615,6 +5615,30 @@ function resolveAllBladeHeartColorForPool(pool, liveCards, state = null, pid = n
   return 'any';
 }
 
+/** True when a Yell blade pays as a wild (gray / any / ALL / all2). */
+function isYellWildBladeColor(color) {
+  const raw = String(color || '').toLowerCase();
+  return raw === 'all' || raw === 'gray' || raw === 'wild' || raw === 'any'
+    || (typeof isDoubleColorlessBladeHeart === 'function' && isDoubleColorlessBladeHeart(raw));
+}
+
+/**
+ * Assign the next missing Live color for a wild Yell blade, mutating opts.extraOwned
+ * so a second gray/ALL does not also paint as the first missing color (#294).
+ */
+function assignYellWildBladeColor(ctx, pid, opts = {}) {
+  const pool = opts.extraOwned
+    ? opts.extraOwned
+    : buildHeartPoolFromRows(perfStageHeartsForPlayer(ctx, pid));
+  const liveCards = opts.liveCards
+    || perfSpectacleLiveCards(ctx.prev, ctx.next, pid).map(enrichCard);
+  const assigned = normalizeHeartColor(
+    resolveAllBladeHeartColorForPool(pool, liveCards, ctx?.next, pid)
+  );
+  if (opts.extraOwned) opts.extraOwned.push(assigned);
+  return assigned;
+}
+
 function resolveYellBladeHeartColor(color, ctx, pid, opts = {}) {
   const raw = String(color || 'any').toLowerCase();
   const forced = opts.forcedBladeColor || yellBladeForcedColor(ctx, pid);
@@ -5628,7 +5652,10 @@ function resolveYellBladeHeartColor(color, ctx, pid, opts = {}) {
   if (opts.yellWildcard && raw !== 'draw') {
     return resolveAllBladeHeartColorForPool(pool, liveCards, ctx?.next, pid);
   }
-  if (raw !== 'all') return raw === 'gray' ? 'any' : raw;
+  // Printed gray/any stay wild for display + Live-req payment (#294).
+  // Only the ALL blade icon paints as the missing color it fills.
+  if (raw === 'gray' || raw === 'wild' || raw === 'any') return 'any';
+  if (raw !== 'all') return raw;
 
   return resolveAllBladeHeartColorForPool(pool, liveCards, ctx?.next, pid);
 }
@@ -7848,20 +7875,40 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
         const heartPace = cardPace * (1 - (j / Math.max(1, bladeEntries.length)) * 0.22);
         const { raw: rawColor } = bladeEntries[j];
         const icon = icons[j] || null;
-        const resolved = resolveYellBladeHeartColor(rawColor, ctx, pid, {
-          extraOwned: ownedPool,
-          yellWildcard,
-          liveCards,
-          forcedBladeColor,
-        });
-        ownedPool.push(normalizeHeartColor(resolved));
-        const flyResolved = yellWildcard
-          || ['all', 'gray', 'wild', 'any'].includes(String(rawColor || '').toLowerCase());
-        await perfFlyBladeHeartToPanel(icon, heartsEl, resolved, chip, rawColor, {
+        const raw = String(rawColor || 'any').toLowerCase();
+        const isWild = !!forcedBladeColor || yellWildcard || isYellWildBladeColor(raw);
+        let panelColor;
+        let payColor;
+        if (forcedBladeColor) {
+          panelColor = forcedBladeColor;
+          payColor = forcedBladeColor;
+          ownedPool.push(normalizeHeartColor(forcedBladeColor));
+        } else if (isWild) {
+          // Reserve the next missing color for later ALL blades, but keep printed
+          // gray/any as gray on the panel and pay them as wild (#294).
+          const assigned = assignYellWildBladeColor(ctx, pid, {
+            extraOwned: ownedPool,
+            liveCards,
+          });
+          const paintAssigned = yellWildcard || raw === 'all';
+          panelColor = paintAssigned ? assigned : 'any';
+          payColor = 'any';
+        } else {
+          panelColor = resolveYellBladeHeartColor(rawColor, ctx, pid, {
+            extraOwned: ownedPool,
+            yellWildcard,
+            liveCards,
+            forcedBladeColor,
+          });
+          payColor = panelColor;
+          ownedPool.push(normalizeHeartColor(panelColor));
+        }
+        const flyResolved = yellWildcard || raw === 'all';
+        await perfFlyBladeHeartToPanel(icon, heartsEl, panelColor, chip, rawColor, {
           flyResolvedColor: flyResolved,
           pace: heartPace,
         });
-        await perfApplyHeartsToLiveReqs(ctx, pid, [resolved], { animate: true });
+        await perfApplyHeartsToLiveReqs(ctx, pid, [payColor], { animate: true });
       }
     }
     layoutPerfYellRail(yellRail);

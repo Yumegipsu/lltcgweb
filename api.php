@@ -4780,22 +4780,24 @@ function getHeartIconsFromBladeHeart(
     if ($type === 'draw' || $type === 'score') {
         return [];
     }
-    if ($resolvePool !== null && $liveCards !== null
-        && in_array($type, ['all', 'gray', 'wild', 'any'], true)) {
+    // ALL blade icon: paint as the next missing Live color (and reserve it in the
+    // resolve pool so a later ALL does not take the same color).
+    if ($resolvePool !== null && $liveCards !== null && $type === 'all') {
         $color = resolveAllBladeHeartColor($resolvePool, $liveCards, $state, $pid);
         $resolvePool[] = normalizeHeartColor($color);
         return [$color];
     }
-    # Double colorless blade heart (BP07+ / b_heart07): two wild gray/any Yell hearts.
-    # Do not treat as ALL blades (icon_b_all) — those are a separate token.
+    // Printed gray/any and double-colorless (all2): stay wild for payment + HUD (#294).
+    // Still reserve the next missing color(s) so a later ALL blade does not also
+    // claim them — but the hearts themselves remain "any" in the owned pool.
     if ($resolvePool !== null && $liveCards !== null
-        && in_array($type, ['all2', 'all_2', 'b_heart07', 'heart07'], true)) {
+        && in_array($type, ['gray', 'wild', 'any', 'all2', 'all_2', 'b_heart07', 'heart07'], true)) {
+        $copies = in_array($type, ['all2', 'all_2', 'b_heart07', 'heart07'], true) ? 2 : 1;
         $out = [];
-        for ($i = 0; $i < 2; $i++) {
-            // Same payment path as printed gray/any blade hearts (may fill missing colors).
-            $color = resolveAllBladeHeartColor($resolvePool, $liveCards, $state, $pid);
-            $resolvePool[] = normalizeHeartColor($color);
-            $out[] = $color;
+        for ($i = 0; $i < $copies; $i++) {
+            $assigned = resolveAllBladeHeartColor($resolvePool, $liveCards, $state, $pid);
+            $resolvePool[] = normalizeHeartColor($assigned);
+            $out[] = 'any';
         }
         return $out;
     }

@@ -31035,14 +31035,33 @@ function aggregateYellBladeHeartsFromCards(cards, resolveCtx = null, pid = null)
       const base = isDoubleColorlessBladeHeart(raw) ? 'any' : raw;
       for (let i = 0; i < copies; i++) {
         let color = forcedBlade || base;
-        if (!forcedBlade && yellWildcard) {
-          color = resolveAllBladeHeartColorForPool(ownedPool, liveCards);
+        if (forcedBlade) {
           ownedPool.push(normalizeHeartColor(color));
-        } else if (!forcedBlade && ['all', 'gray', 'wild', 'any'].includes(String(color).toLowerCase()) && resolveCtx && pid) {
-          color = resolveYellBladeHeartColor(color, resolveCtx, pid, { extraOwned: ownedPool, liveCards });
-          ownedPool.push(normalizeHeartColor(color));
-        } else if (forcedBlade) {
-          ownedPool.push(normalizeHeartColor(color));
+        } else if (yellWildcard && ownedPool && liveCards) {
+          // Wildcard skill: hearts pay as any color, but HUD still shows gray (#294).
+          if (typeof assignYellWildBladeColor === 'function') {
+            assignYellWildBladeColor(resolveCtx, pid, { extraOwned: ownedPool, liveCards });
+          } else {
+            ownedPool.push(normalizeHeartColor(
+              resolveAllBladeHeartColorForPool(ownedPool, liveCards)
+            ));
+          }
+          color = 'any';
+        } else if (['all', 'gray', 'wild', 'any'].includes(String(color).toLowerCase()) && resolveCtx && pid && ownedPool) {
+          if (String(color).toLowerCase() === 'all') {
+            color = resolveYellBladeHeartColor(color, resolveCtx, pid, { extraOwned: ownedPool, liveCards });
+            ownedPool.push(normalizeHeartColor(color));
+          } else {
+            // Printed gray/any (incl. all2): stay gray on the HUD. Still reserve the
+            // next missing color so a later ALL blade does not also take it (#294).
+            if (typeof assignYellWildBladeColor === 'function') {
+              assignYellWildBladeColor(resolveCtx, pid, { extraOwned: ownedPool, liveCards });
+            } else {
+              const assigned = resolveAllBladeHeartColorForPool(ownedPool, liveCards);
+              ownedPool.push(normalizeHeartColor(assigned));
+            }
+            color = 'any';
+          }
         }
         const key = normalizeHeartColor(color);
         map[key] = (map[key] || 0) + 1;
@@ -37281,7 +37300,7 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/live-round-director.js?v=3"></script>
-<script src="client/js/spectacle.js?v=122"></script>
+<script src="client/js/spectacle.js?v=123"></script>
 <script src="client/js/board-render.js?v=51"></script>
 <script src="client/js/components/board-zones.js?v=2"></script>
 <script src="client/js/cpu-policy-data.js?v=1"></script>
