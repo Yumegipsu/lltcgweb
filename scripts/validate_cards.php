@@ -90,7 +90,13 @@ foreach ($data['starter_decks'] ?? [] as $key => $starter) {
     }
 }
 
-// Protein-bar promo reprints must not use another card's face art (issue #179).
+// Protein-bar promo reprints must not reuse the base print's face art (issues #179, Mia Taylor mislabel).
+// The official site files some of them under another card number (e.g. bp1-023 -> PR/PL!N-sd1-023-PR.png),
+// so check the art is distinct from the base print rather than matching the filename.
+$byNo = [];
+foreach ($data['cards'] ?? [] as $card) {
+    $byNo[(string)($card['card_no'] ?? '')] = $card;
+}
 foreach ($data['cards'] ?? [] as $card) {
     $no = (string)($card['card_no'] ?? '');
     if (!str_ends_with($no, '-PRproteinbar')) {
@@ -98,15 +104,21 @@ foreach ($data['cards'] ?? [] as $card) {
     }
     $identity = substr($no, 0, -strlen('-PRproteinbar'));
     $image = (string)($card['image'] ?? '');
-    $base = basename(parse_url($image, PHP_URL_PATH) ?: $image);
-    if ($base === '' || $identity === '') {
-        fwrite(STDERR, "ERROR $no: missing proteinbar image\n");
+    if ($image === '' || $identity === '') {
+        fwrite(STDERR, "ERROR $no: missing proteinbar image
+");
         $errors++;
         continue;
     }
-    if (!str_starts_with($base, $identity . '-') && !str_starts_with($base, $identity . '.')) {
-        fwrite(STDERR, "ERROR $no: image basename '$base' does not match identity '$identity' (wrong promo art)\n");
-        $errors++;
+    foreach ($byNo as $otherNo => $other) {
+        if ($otherNo === $no || !str_starts_with($otherNo, $identity . '-')) {
+            continue;
+        }
+        if ((string)($other['image'] ?? '') === $image && !str_ends_with($otherNo, '-PR')) {
+            fwrite(STDERR, "ERROR $no: image is the same as $otherNo (wrong promo art)
+");
+            $errors++;
+        }
     }
 }
 

@@ -1325,8 +1325,18 @@
       "sticker100": "แลกซีลในร้านสติกเกอร์ 100 ครั้ง",
       "cards2400": "มีการ์ดครบ 2,400 ใบ",
       "winTurn3": "ชนะเกมในเทิร์นที่ 3",
-      "yellScore20": "ได้คะแนน Yell 20 ขึ้นไป",
-      "liveScore15": "ได้คะแนน Live 15 ขึ้นไปในรอบเดียว"
+      "yellScore20": "เปิดเผยการ์ด Yell 20 ใบขึ้นไปใน Live Performance เดียว",
+      "liveScore15": "ได้คะแนน Live 15 ขึ้นไปในรอบเดียว",
+      "friend20": "เพิ่มเพื่อน 20 คน",
+      "sleeves10": "มีซองการ์ด 10 ชิ้น",
+      "playmats10": "มีเพลย์แมต 10 ชิ้น",
+      "gachaScout1": "สเกาต์ในกาชา",
+      "gachaScout10": "สเกาต์ในกาชา 10 ครั้ง",
+      "gachaBirthday": "สเกาต์ในกาชาวันเกิดแบบจำกัดเวลา",
+      "loginDays10": "ล็อกอิน 10 วันที่ต่างกัน (JST)",
+      "playIdol": "เล่นการ์ดของ {idol} {n} ครั้ง",
+      "playLiveGroup": "เล่นการ์ดไลฟ์ของ {group} {n} ครั้ง",
+      "playLiveSubunit": "เล่นการ์ดไลฟ์ของ {subunit} {n} ครั้ง"
     },
     "rewardStarter": "เลือกเด็คสตาร์ทเตอร์",
     "rewardStarterOwned": "มีอยู่แล้ว",
@@ -1344,7 +1354,33 @@
     "claimedCoinsAndPrToast": "รับ {title} แล้ว (+{coins} เหรียญ · แพ็ก PR)",
     "rewardFreeSleeve": "รับซองฟรี",
     "claimedFreeSleeveToast": "รับ {title} แล้ว — รับซองฟรีได้ที่ร้านซองการ์ด",
-    "claimedCoinsToast": "+{coins} Coins"
+    "claimedCoinsToast": "+{coins} Coins",
+    "tabWeekly": "รายสัปดาห์",
+    "tabMonthly": "รายเดือน",
+    "resetWeekly": "ภารกิจรายสัปดาห์รีเซ็ตทุกวันจันทร์ เวลา 00:00 น. (JST)",
+    "resetMonthly": "ภารกิจรายเดือนรีเซ็ตทุกวันที่ 1 ของเดือน เวลา 00:00 น. (UTC) พร้อมกับซีซันแรงก์",
+    "rewardGems": "สตาร์เจม ×{n}",
+    "rewardCoins": "เหรียญ ×{n}",
+    "rewardTickets": "ตั๋วสเกาต์ ×{n}",
+    "rewardTicketSr": "ตั๋ว SR+ ×{n}",
+    "rewardTicketUr": "ตั๋ว UR+ ×{n}",
+    "rewardSeal": "ซีล {tier} ×{n}",
+    "claimedRewardsToast": "รับ {title} แล้ว (+{rewards})",
+    "weekly": {
+      "rankedRandom": "เล่นแมตช์แรงก์ในโหมดเด็คสุ่ม",
+      "ranked10": "เล่นแมตช์แรงก์ 10 ครั้ง",
+      "shopBuy": "ซื้อเพลย์แมตหรือซองการ์ดจากร้านค้า",
+      "stickerExchange": "แลกซีลเป็นการ์ดในร้านสติกเกอร์",
+      "login7": "ล็อกอินทุกวันในสัปดาห์นี้ (7 วัน)",
+      "completeAll": "ทำภารกิจรายสัปดาห์ทั้งหมดให้สำเร็จ"
+    },
+    "monthly": {
+      "tournament": "เข้าร่วมทัวร์นาเมนต์",
+      "ranked30": "เล่นแมตช์แรงก์ 30 ครั้ง",
+      "pinkC": "ไปถึงแรงก์ชมพู C ในซีซันปัจจุบัน",
+      "weeklyAll4": "ทำภารกิจรายสัปดาห์ทั้งหมดให้สำเร็จ 4 ครั้ง",
+      "completeAll": "ทำภารกิจรายเดือนทั้งหมดให้สำเร็จ"
+    }
   },
   "stamps": {
     "audio": "เสียงแสตมป์",

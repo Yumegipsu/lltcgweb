@@ -21,6 +21,9 @@ function tcgApkAssetUrlEligible(string $url): bool
     if (preg_match('#_catalog\.json$#', $path)) {
         return false;
     }
+    if (preg_match('#(?:playmat|lltcg-back)\.png$#', $path)) {
+        return true;
+    }
     if (preg_match('#cardimg\.php$#', $path)) {
         return true;
     }
@@ -105,6 +108,12 @@ function tcgBuildApkAssetManifestEntries(string $root): array
     $walkDir($root . '/assets/playmats', 'assets/playmats');
     $walkDir($root . '/assets/stamps', 'assets/stamps');
     $walkDir($root . '/assets/sfx', 'assets/sfx');
+    foreach (['playmat.png', 'lltcg-back.png'] as $rootAsset) {
+        $path = $root . '/' . $rootAsset;
+        if (is_file($path)) {
+            $add($rootAsset, filesize($path) ?: null);
+        }
+    }
 
     $sfxMan = $root . '/sfx_manifest.web.json';
     if (is_file($sfxMan)) {

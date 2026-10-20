@@ -1325,8 +1325,18 @@
       "sticker100": "Canjeaste sellos en la tienda de stickers 100 veces",
       "cards2400": "Posee 2.400 cartas",
       "winTurn3": "Gana una partida en tu 3.er turno",
-      "yellScore20": "Consigue una puntuación Yell de 20 o más",
-      "liveScore15": "Consigue una puntuación Live de 15 o más en una sola ronda"
+      "yellScore20": "Revela 20 o más cartas Yell en una sola actuación Live",
+      "liveScore15": "Consigue una puntuación Live de 15 o más en una sola ronda",
+      "friend20": "Añade 20 amigos",
+      "sleeves10": "Consigue 10 fundas",
+      "playmats10": "Consigue 10 tapetes",
+      "gachaScout1": "Haz un Scout en el Gacha",
+      "gachaScout10": "Haz 10 Scouts en el Gacha",
+      "gachaBirthday": "Haz un Scout en un Gacha de cumpleaños limitado",
+      "loginDays10": "Inicia sesión en 10 días distintos (JST)",
+      "playIdol": "Juega cartas de {idol} {n} veces",
+      "playLiveGroup": "Juega cartas Live de {group} {n} veces",
+      "playLiveSubunit": "Juega cartas Live de {subunit} {n} veces"
     },
     "rewardStarter": "Elige un mazo inicial",
     "rewardStarterOwned": "Ya lo tienes",
@@ -1344,7 +1354,33 @@
     "claimedCoinsAndPrToast": "Reclamaste {title} (+{coins} monedas · Pack PR)",
     "rewardFreeSleeve": "Funda gratis",
     "claimedFreeSleeveToast": "Reclamaste {title} — funda gratis en la Tienda de fundas",
-    "claimedCoinsToast": "+{coins} Coins"
+    "claimedCoinsToast": "+{coins} Coins",
+    "tabWeekly": "Semanales",
+    "tabMonthly": "Mensuales",
+    "resetWeekly": "Las misiones semanales se reinician cada lunes a las 00:00 (JST).",
+    "resetMonthly": "Las misiones mensuales se reinician el día 1 de cada mes a las 00:00 (UTC), junto con la temporada clasificatoria.",
+    "rewardGems": "Star Gems ×{n}",
+    "rewardCoins": "Monedas ×{n}",
+    "rewardTickets": "Entrada de Scout ×{n}",
+    "rewardTicketSr": "Entrada SR+ ×{n}",
+    "rewardTicketUr": "Entrada UR+ ×{n}",
+    "rewardSeal": "Sello {tier} ×{n}",
+    "claimedRewardsToast": "Reclamaste {title} (+{rewards})",
+    "weekly": {
+      "rankedRandom": "Juega una partida clasificatoria en el modo de mazos aleatorios",
+      "ranked10": "Juega 10 partidas clasificatorias",
+      "shopBuy": "Compra un tapete o una funda en la tienda",
+      "stickerExchange": "Canjea sellos por una carta en la tienda de stickers",
+      "login7": "Inicia sesión todos los días de esta semana (7 días)",
+      "completeAll": "Completa todas las misiones semanales"
+    },
+    "monthly": {
+      "tournament": "Participa en un torneo",
+      "ranked30": "Juega 30 partidas clasificatorias",
+      "pinkC": "Alcanza el rango C rosa en la temporada actual",
+      "weeklyAll4": "Completa todas las misiones semanales 4 veces",
+      "completeAll": "Completa todas las misiones mensuales"
+    }
   },
   "stamps": {
     "audio": "Audio de sellos",

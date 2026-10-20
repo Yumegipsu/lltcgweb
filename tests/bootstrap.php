@@ -34,6 +34,7 @@ putenv('TCG_CARDIMG_DIR=' . $testBase . '/cardimg');
 putenv('TCG_RATE_LIMIT_DIR=' . $testBase . '/data/rate_limits/');
 putenv('TCG_CARDS_FILE=' . $root . '/cards.json');
 putenv('TCG_SYNC_ENABLED=0');
+putenv('TCG_DEBUG=1');
 
 require_once $root . '/config/paths.php';
 tcgDefinePathConstants();
@@ -60,6 +61,11 @@ register_shutdown_function(static function () use ($testBase): void {
 });
 
 putenv('TCG_SYNC_ENABLED=0');
+putenv('TCG_DEBUG=1');
+// create_room() loads llr_auth via tcgRequireAuthLoader(); set local fake auth before api.php
+// so replay/account tests can mint tokens without a production llr_auth.php checkout.
+putenv('TCG_LOCAL_FAKE_AUTH=1');
+putenv('TCG_LLR_AUTH_FILE=' . $root . '/llr_auth_local.php');
 
 $_SERVER['REQUEST_METHOD'] = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 

@@ -6,8 +6,8 @@ VPS_DIR="${VPS_TCG_DIR:-/opt/lltcgweb}"
 REPO_URL="${LLTCGWEB_REPO:-https://github.com/Yumegipsu/lltcgweb.git}"
 LOCAL_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-echo "==> Prune unused docker images on VPS (free disk)"
-ssh "$VPS_HOST" 'docker image prune -af >/dev/null 2>&1 || true; df -h / | tail -1'
+echo "==> Prune unused docker images on VPS (best-effort, time-capped)"
+ssh "$VPS_HOST" 'timeout 60 docker image prune -af >/dev/null 2>&1 || true; df -h / | tail -1'
 
 echo "==> Clone/update ${VPS_DIR}"
 ssh "$VPS_HOST" "mkdir -p '${VPS_DIR}' && if [ -d '${VPS_DIR}/.git' ]; then

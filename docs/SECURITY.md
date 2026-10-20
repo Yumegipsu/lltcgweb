@@ -28,8 +28,8 @@ File-based limits in `config/rate_limit.php` (10-minute window unless noted):
 |--------|-------|-----|
 | `create_room` | 30 | client IP |
 | `join_room` | 60 | client IP |
-| `action` | 300 | IP + room_id |
-| `get_state` | 120 | client IP |
+| `action` | 1200 | IP + room_id |
+| `get_state` | 4000 (in-room) / 60 (no room_id) | IP + room_id, else IP |
 | `cache_card_image` | 120 | client IP |
 | `casual_join` | 30 | client IP |
 | `open_booster` | 20 | auth token (fallback IP) |

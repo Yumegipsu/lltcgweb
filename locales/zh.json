@@ -1349,8 +1349,18 @@
       "sticker100": "在贴纸商店兑换印章 100 次",
       "cards2400": "拥有 2,400 张卡",
       "winTurn3": "在第3回合获胜",
-      "yellScore20": "Yell分数达到20或以上",
-      "liveScore15": "单回合Live分数达到15或以上"
+      "yellScore20": "在单次 Live 表演中公开 20 张或以上 Yell 卡",
+      "liveScore15": "单回合Live分数达到15或以上",
+      "friend20": "添加 20 位好友",
+      "sleeves10": "拥有 10 个卡套",
+      "playmats10": "拥有 10 张垫布",
+      "gachaScout1": "在扭蛋中进行招募",
+      "gachaScout10": "在扭蛋中招募 10 次",
+      "gachaBirthday": "在限定生日扭蛋中进行招募",
+      "loginDays10": "在 10 个不同的日子登录（JST）",
+      "playIdol": "使用 {idol} 的卡牌 {n} 次",
+      "playLiveGroup": "使用 {group} 的 Live 卡 {n} 次",
+      "playLiveSubunit": "使用 {subunit} 的 Live 卡 {n} 次"
     },
     "rewardStarter": "选择入门牌组",
     "rewardStarterOwned": "已拥有",
@@ -1368,7 +1378,33 @@
     "claimedCoinsAndPrToast": "已领取 {title}（+{coins} 金币 · PR包）",
     "rewardFreeSleeve": "免费卡套领取",
     "claimedFreeSleeveToast": "已领取 {title} — 可在卡套商店免费领取",
-    "claimedCoinsToast": "+{coins} Coins"
+    "claimedCoinsToast": "+{coins} Coins",
+    "tabWeekly": "每周",
+    "tabMonthly": "每月",
+    "resetWeekly": "每周任务于每周一 00:00（JST）重置。",
+    "resetMonthly": "每月任务于每月 1 日 00:00（UTC）重置，与排名赛季同步。",
+    "rewardGems": "星宝石×{n}",
+    "rewardCoins": "金币×{n}",
+    "rewardTickets": "招募券×{n}",
+    "rewardTicketSr": "SR+券×{n}",
+    "rewardTicketUr": "UR+券×{n}",
+    "rewardSeal": "{tier}印章×{n}",
+    "claimedRewardsToast": "已领取 {title}（+{rewards}）",
+    "weekly": {
+      "rankedRandom": "在随机卡组模式中进行一场排名对战",
+      "ranked10": "进行 10 场排名对战",
+      "shopBuy": "在商店购买一张垫布或卡套",
+      "stickerExchange": "在贴纸商店用印章兑换一张卡牌",
+      "login7": "本周每天登录（7 天）",
+      "completeAll": "完成所有每周任务"
+    },
+    "monthly": {
+      "tournament": "参加一场锦标赛",
+      "ranked30": "进行 30 场排名对战",
+      "pinkC": "在当前赛季达到粉 C 段位",
+      "weeklyAll4": "完成所有每周任务 4 次",
+      "completeAll": "完成所有每月任务"
+    }
   },
   "stamps": {
     "audio": "贴纸语音",

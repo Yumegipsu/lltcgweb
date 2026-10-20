@@ -16,13 +16,16 @@ const batchesDir = path.join(reportsDir, 'skill_audit_batches');
 
 const BATCH_SIZE = 55;
 
-/** Booster box id → cards.json booster_pack filter string. */
+/** Booster box / starter deck id → cards.json booster_pack filter string. */
 const BOOSTER_FILTERS = {
   bp_vol1: 'ブースターパック vol.1',
   bp_next: 'ブースターパック NEXT STEP',
   bp_summer: 'ブースターパック　夏、はじまる。',
   bp_sapphire: 'ブースターパック SAPPHIRE MOON',
   bp_royal: 'ブースターパック Royal Holiday',
+  bp_mellow: 'ブースターパック MELLOW MOMENT',
+  bp_anniv: 'ブースターパック Anniversary 2026',
+  sd_niji_cheer: 'スタートデッキ ラブライブ！虹ヶ咲学園スクールアイドル同好会 cheer',
 };
 
 /** Product-line order for batching (plan execution order). */

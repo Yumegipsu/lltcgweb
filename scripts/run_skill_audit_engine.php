@@ -172,6 +172,55 @@ function skillAuditGetAbilityAtPath(array $card, string $path): ?array
     return $card['abilities'][$idx] ?? null;
 }
 
+/** Prompt types the client renders with a bespoke UI built from board state. */
+function skillAuditClientPromptTypes(): array
+{
+    static $types = null;
+    if ($types !== null) {
+        return $types;
+    }
+    $types = [];
+    $path = __DIR__ . '/../client/js/prompt-renderer.js';
+    $js = is_file($path) ? (string)file_get_contents($path) : '';
+    if ($js !== '') {
+        if (preg_match_all("/type\s*===\s*'([a-z0-9_]+)'/i", $js, $m)) {
+            $types = $m[1];
+        }
+        // ['a','b'].includes(pr.type)
+        if (preg_match_all("/\[([^\]]*)\]\s*\.includes\(\s*pr\??\.type/i", $js, $lists)) {
+            foreach ($lists[1] as $list) {
+                if (preg_match_all("/'([a-z0-9_]+)'/i", $list, $inner)) {
+                    $types = array_merge($types, $inner[1]);
+                }
+            }
+        }
+    }
+    $types = array_values(array_unique($types));
+    return $types;
+}
+
+/**
+ * A prompt the client cannot build a control for is a softlock: the overlay opens
+ * with no buttons and the player has no way to pass. Types with a bespoke renderer
+ * derive their options from board state; every other type has to carry them.
+ */
+function skillAuditPromptUnanswerableReason(array $prompt): ?string
+{
+    $type = (string)($prompt['type'] ?? '');
+    if ($type === '') {
+        return 'SOFTLOCK: prompt has no type';
+    }
+    foreach (['choices', 'candidates', 'cards', 'options'] as $key) {
+        if (!empty($prompt[$key]) && is_array($prompt[$key])) {
+            return null;
+        }
+    }
+    if (in_array($type, skillAuditClientPromptTypes(), true)) {
+        return null;
+    }
+    return 'SOFTLOCK: no client renderer branch and no choices/candidates';
+}
+
 function skillAuditLogHasEffect(array $state): bool
 {
     foreach ($state['log'] ?? [] as $entry) {
@@ -711,6 +760,10 @@ function skillAuditRunTrigger(
     if (!empty($state['pending_prompt'])) {
         $pt = $state['pending_prompt']['type'] ?? '';
         $notes[] = 'prompt=' . $pt;
+        $unanswerable = skillAuditPromptUnanswerableReason($state['pending_prompt']);
+        if ($unanswerable !== null) {
+            return ['FAIL', implode('; ', $notes) . '; ' . $unanswerable, $state];
+        }
         return ['ENGINE_PASS', implode('; ', $notes), $state];
     }
 

@@ -171,8 +171,18 @@
       "cards2000": "Possua 2.000 cartas",
       "cards2400": "Possua 2.400 cartas",
       "winTurn3": "Vença uma partida no seu 3º turno",
-      "yellScore20": "Alcance uma pontuação de Grito de 20 ou mais",
-      "liveScore15": "Alcance uma pontuação de Live de 15 ou mais pontos em uma única rodada"
+      "yellScore20": "Revele 20 ou mais cartas de Grito numa única performance Live",
+      "liveScore15": "Alcance uma pontuação de Live de 15 ou mais pontos em uma única rodada",
+      "friend20": "Adicione 20 amigos",
+      "sleeves10": "Tenha 10 sleeves",
+      "playmats10": "Tenha 10 playmats",
+      "gachaScout1": "Faça um Scout no Gacha",
+      "gachaScout10": "Faça 10 Scouts no Gacha",
+      "gachaBirthday": "Faça um Scout em um Gacha de aniversário limitado",
+      "loginDays10": "Entre em 10 dias diferentes (JST)",
+      "playIdol": "Jogue cartas de {idol} {n} vezes",
+      "playLiveGroup": "Jogue cartas Live de {group} {n} vezes",
+      "playLiveSubunit": "Jogue cartas Live de {subunit} {n} vezes"
     },
     "rewardStarter": "Escolha um deck inicial",
     "rewardStarterOwned": "Já obtido",
@@ -185,7 +195,33 @@
     "rewardFreeSleeve": "Resgate de sleeve grátis",
     "claimedFreeSleeveToast": "Resgatado {title} — sleeve grátis desbloqueado na Loja de Sleeves",
     "claimedCoinsToast": "Resgatado {title} (+{coins} Moedas)",
-    "claimedGemsAndCoinsToast": "Resgatado {title} (+{gems} · +{coins} Moedas)"
+    "claimedGemsAndCoinsToast": "Resgatado {title} (+{gems} · +{coins} Moedas)",
+    "tabWeekly": "Semanais",
+    "tabMonthly": "Mensais",
+    "resetWeekly": "As missões semanais reiniciam toda segunda-feira às 00:00 (JST).",
+    "resetMonthly": "As missões mensais reiniciam no dia 1 de cada mês às 00:00 (UTC), junto com a temporada ranqueada.",
+    "rewardGems": "Star Gems ×{n}",
+    "rewardCoins": "Moedas ×{n}",
+    "rewardTickets": "Bilhete de Scout ×{n}",
+    "rewardTicketSr": "Bilhete SR+ ×{n}",
+    "rewardTicketUr": "Bilhete UR+ ×{n}",
+    "rewardSeal": "Selo {tier} ×{n}",
+    "claimedRewardsToast": "Resgatado {title} (+{rewards})",
+    "weekly": {
+      "rankedRandom": "Jogue uma partida ranqueada no modo de decks aleatórios",
+      "ranked10": "Jogue 10 partidas ranqueadas",
+      "shopBuy": "Compre um playmat ou sleeve na loja",
+      "stickerExchange": "Troque selos por uma carta na loja de selos",
+      "login7": "Entre todos os dias desta semana (7 dias)",
+      "completeAll": "Complete todas as missões semanais"
+    },
+    "monthly": {
+      "tournament": "Participe de um torneio",
+      "ranked30": "Jogue 30 partidas ranqueadas",
+      "pinkC": "Alcance o rank C rosa na temporada atual",
+      "weeklyAll4": "Complete todas as missões semanais 4 vezes",
+      "completeAll": "Complete todas as missões mensais"
+    }
   },
   "language": {
     "label": "Idioma",

@@ -180,8 +180,18 @@
       "cards2000": "Own 2,000 cards",
       "cards2400": "Own 2,400 cards",
       "winTurn3": "Win a game on your 3rd turn",
-      "yellScore20": "Achieve a Yell score of 20 or more",
-      "liveScore15": "Achieve a Live score of 15 or more points in a single round"
+      "yellScore20": "Reveal 20 or more Yell cards in a single Live performance",
+      "liveScore15": "Achieve a Live score of 15 or more points in a single round",
+      "friend20": "Add 20 friends",
+      "sleeves10": "Own 10 sleeves",
+      "playmats10": "Own 10 playmats",
+      "gachaScout1": "Scout in Gacha Scouting",
+      "gachaScout10": "Scout in Gacha Scouting 10 times",
+      "gachaBirthday": "Scout in a limited Birthday Gacha",
+      "loginDays10": "Log in on 10 different days (JST)",
+      "playIdol": "Play {idol} cards {n} times",
+      "playLiveGroup": "Play {group} Live cards {n} times",
+      "playLiveSubunit": "Play {subunit} Live cards {n} times"
     },
     "rewardStarter": "Choose a starter deck",
     "rewardStarterOwned": "Already owned",
@@ -194,7 +204,33 @@
     "rewardFreeSleeve": "Free sleeve claim",
     "claimedFreeSleeveToast": "Claimed {title} — free sleeve unlocked in the Sleeve Shop",
     "claimedCoinsToast": "Claimed {title} (+{coins} Coins)",
-    "claimedGemsAndCoinsToast": "Claimed {title} (+{gems} · +{coins} Coins)"
+    "claimedGemsAndCoinsToast": "Claimed {title} (+{gems} · +{coins} Coins)",
+    "tabWeekly": "Weekly",
+    "tabMonthly": "Monthly",
+    "resetWeekly": "Weekly missions reset every Monday at 00:00 JST.",
+    "resetMonthly": "Monthly missions reset on the 1st of each month at 00:00 UTC, together with the ranked season.",
+    "rewardGems": "Star Gems ×{n}",
+    "rewardCoins": "Coins ×{n}",
+    "rewardTickets": "Scouting Ticket ×{n}",
+    "rewardTicketSr": "SR+ Ticket ×{n}",
+    "rewardTicketUr": "UR+ Ticket ×{n}",
+    "rewardSeal": "{tier} Seal ×{n}",
+    "claimedRewardsToast": "Claimed {title} (+{rewards})",
+    "weekly": {
+      "rankedRandom": "Play a ranked match in Random decks mode",
+      "ranked10": "Play 10 ranked matches",
+      "shopBuy": "Buy a playmat or sleeve from the shop",
+      "stickerExchange": "Exchange seals for a card in the Sticker Shop",
+      "login7": "Log in every day this week (7 days)",
+      "completeAll": "Complete all weekly missions"
+    },
+    "monthly": {
+      "tournament": "Participate in a tournament",
+      "ranked30": "Play 30 ranked matches",
+      "pinkC": "Reach Pink C rank in the current season",
+      "weeklyAll4": "Complete all weekly missions 4 times",
+      "completeAll": "Complete all monthly missions"
+    }
   },
   "language": {
     "label": "Language",

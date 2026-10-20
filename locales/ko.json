@@ -1349,8 +1349,18 @@
       "sticker100": "스티커 샵에서 실을 100회 교환했다",
       "cards2400": "카드 2,400장 보유",
       "winTurn3": "3번째 턴에 승리하기",
-      "yellScore20": "Yell 스코어 20 이상 달성",
-      "liveScore15": "한 라운드에서 Live 스코어 15점 이상 달성"
+      "yellScore20": "한 번의 Live 퍼포먼스에서 Yell 카드 20장 이상 공개",
+      "liveScore15": "한 라운드에서 Live 스코어 15점 이상 달성",
+      "friend20": "친구 20명 추가",
+      "sleeves10": "슬리브 10개 보유",
+      "playmats10": "플레이매트 10개 보유",
+      "gachaScout1": "가챠 스카우트 1회 진행",
+      "gachaScout10": "가챠 스카우트 10회 진행",
+      "gachaBirthday": "기간 한정 생일 가챠에서 스카우트",
+      "loginDays10": "서로 다른 10일 로그인 (JST)",
+      "playIdol": "{idol} 카드를 {n}회 플레이",
+      "playLiveGroup": "{group} 라이브 카드를 {n}회 플레이",
+      "playLiveSubunit": "{subunit} 라이브 카드를 {n}회 플레이"
     },
     "rewardStarter": "스타터 덱 선택",
     "rewardStarterOwned": "이미 보유 중",
@@ -1368,7 +1378,33 @@
     "claimedCoinsAndPrToast": "{title} 수령 (+{coins} 코인 · PR 팩)",
     "rewardFreeSleeve": "무료 슬리브",
     "claimedFreeSleeveToast": "{title} 수령 — 슬리브 샵에서 무료 수령 가능",
-    "claimedCoinsToast": "+{coins} Coins"
+    "claimedCoinsToast": "+{coins} Coins",
+    "tabWeekly": "주간",
+    "tabMonthly": "월간",
+    "resetWeekly": "주간 미션은 매주 월요일 00:00(JST)에 초기화됩니다.",
+    "resetMonthly": "월간 미션은 매월 1일 00:00(UTC)에 랭크 시즌과 함께 초기화됩니다.",
+    "rewardGems": "스타 젬 ×{n}",
+    "rewardCoins": "코인 ×{n}",
+    "rewardTickets": "스카우트 티켓 ×{n}",
+    "rewardTicketSr": "SR+ 티켓 ×{n}",
+    "rewardTicketUr": "UR+ 티켓 ×{n}",
+    "rewardSeal": "{tier} 실 ×{n}",
+    "claimedRewardsToast": "{title} 수령 (+{rewards})",
+    "weekly": {
+      "rankedRandom": "랜덤 덱 모드로 랭크 매치 1회 플레이",
+      "ranked10": "랭크 매치 10회 플레이",
+      "shopBuy": "상점에서 플레이매트 또는 슬리브 구매",
+      "stickerExchange": "스티커 샵에서 실을 카드로 교환",
+      "login7": "이번 주 매일 로그인 (7일)",
+      "completeAll": "모든 주간 미션 완료"
+    },
+    "monthly": {
+      "tournament": "토너먼트 참가",
+      "ranked30": "랭크 매치 30회 플레이",
+      "pinkC": "이번 시즌에 핑크 C 랭크 달성",
+      "weeklyAll4": "모든 주간 미션을 4회 완료",
+      "completeAll": "모든 월간 미션 완료"
+    }
   },
   "stamps": {
     "audio": "스탬프 오디오",

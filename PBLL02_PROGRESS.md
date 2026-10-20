@@ -14,7 +14,7 @@ Scrape API: `manage/card-list-user/list?expansion=PBLL02` (113 cards)
 - `tools/scrape_expansion_v2.py PBLL02` → Chiichan `all_cards_pbll02_*.json`
 - `tools/import_pbll02_from_scrape.py` → `cards.json` (bypasses SQLCipher DB)
 - Abilities: `pl_muse_pb2_abilities.py` + handlers `pl_muse_pb2_effects.php`
-- Locale helpers: `tools/fill_pbll02_locale_texts.py`, `tools/apply_pbll02_exact_overrides.py`, `tools/audit_pbll02_locales.py`
+- Locale helpers: `tools/fill_pbll02_locale_texts.py`, `tools/apply_pbll02_exact_overrides.py`, `tools/build_pbll02_exact_locales.py` (curated full-string EXACT → `locales/pbll02_locale_exact.json`), `tools/audit_pbll02_locales.py`
 - Skills JP dump: `docs/PBLL02_SKILLS_JP.md`
 
 ## Totals
@@ -51,15 +51,15 @@ Legend: `[S]` scraped `[E]` EN text `[L]` locales es/ko/zh/th/pt/fr `[A]` abilit
 ### Locales / tests / deploy / prompts
 
 - [x] Locale fields present for ability cards (es/ko/zh/th/pt/fr)
-- [~] Full non-EN bodies — **partial**:
-  - **ko: clean** (0 EN leftovers via glossary + exact)
-  - **es/fr/pt: improved** but still mixed EN on ~20–40 ability cards (glossary partial)
-  - **zh/th: brackets localized**; bodies still largely EN (MT APIs rate-limited/echo; short-word glossaries mangled — avoided)
-  - Continue via expanding `tools/apply_pbll02_exact_overrides.py` EXACT map; audit with `tools/audit_pbll02_locales.py`
+- [x] Full non-EN skill bodies — **clean** (`tools/audit_pbll02_locales.py` → 0 leftovers each for es/ko/zh/th/pt/fr; ja via `text_jp`):
+  - Curated EXACT map: 52 unique EN skill strings → es/fr/pt/zh/th (`tools/build_pbll02_exact_locales.py`)
+  - Applied to **73** card rows (incl. reprint/parallel printings sharing the same EN body)
+  - Avoided short-word glossary mangling on zh/th; pack UI uses `name_en`/`name_jp` + `booster.pb_duo` locale strings (no raw i18n key exposure)
 - [x] Multi-step prompt stubs deepened in `plMusePb2ResolvePrompt` (wait+discard→opp Wait, hand↔success swap, activate opp Wait+draw, distinct discard→opp Wait, center Blade, unstack+toggle, per-success choose, BiBi auto choose, Printemps activated cost modes). `optional_wait_self_discard_look_reveal` remapped to shared `optional_wait_self_look_reveal`
 - [x] Client: discard counts + branch choice types for new DUO prompts (`prompt-renderer.js`)
 - [x] Focused PHPUnit: `MusePb2PromptResolverTest`, `MusePb2000DoubleBatonTest`
 - [x] Hostinger deploy + VPS pull — follow-up `49e537d` (prompts/locales); VPS ping OK
+- [x] Hostinger redeploy `tcg/cards.json` after curated locale EXACT pass (text-only; **no VPS** — abilities/PHP unchanged)
 
 ## Novel effect types (pl_muse_pb2_effects.php)
 
