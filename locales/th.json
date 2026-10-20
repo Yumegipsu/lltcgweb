@@ -101,12 +101,12 @@
       "title": "Replays"
     },
     "shop": {
-      "sub": "Sleeves & playmats",
+      "sub": "สลีฟและเพลย์แมต",
       "title": "Shop"
     },
     "sleeveShop": {
-      "sub": "Buy sleeves with Coins",
-      "title": "Sleeve Shop"
+      "sub": "ซื้อสลีฟด้วยเหรียญ",
+      "title": "ร้านสลีฟ"
     },
     "sticker": {
       "sub": "Convert spare cards",
@@ -176,8 +176,8 @@
     "cpuCosmeticDefault": "Default",
     "cpuCosmeticRandom": "Random (owned)",
     "cpuCosmeticsHint": "Pick owned cosmetics or randomize from what you own.",
-    "cpuPlaymat": "CPU playmat",
-    "cpuSleeve": "CPU sleeve",
+    "cpuPlaymat": "เพลย์แมตของ CPU",
+    "cpuSleeve": "สลีฟของ CPU",
     "experimentDeckIncomplete": "Experiment deck is incomplete.",
     "freeDeckEmpty": "No free/experiment decks saved yet.",
     "otherModesQueuedLead": "Players waiting in other modes:",
@@ -383,21 +383,26 @@
     "experimentSaved": "Experiment deck saved.",
     "experimentSlot": "Experiment slot",
     "more": "More",
-    "playmat": "Playmat",
-    "playmatBrightness": "Brightness",
-    "playmatConfirm": "Confirm",
-    "playmatEmpty": "No playmats available yet.",
-    "playmatHint": "Equipped playmat appears on your seat in matches. Default board if none.",
-    "playmatPickLead": "Select an owned playmat, adjust brightness, then confirm.",
-    "playmatPickTitle": "Choose playmat",
+    "playmat": "เพลย์แมต",
+    "playmatBrightness": "ความสว่าง",
+    "playmatConfirm": "ยืนยัน",
+    "playmatEmpty": "ยังไม่มีเพลย์แมตให้ใช้",
+    "playmatHint": "เพลย์แมตที่สวมใส่จะแสดงที่ฝั่งของคุณในการแข่ง หากไม่มีจะใช้กระดานเริ่มต้น",
+    "playmatPickLead": "เลือกเพลย์แมตที่คุณมี ปรับความสว่าง แล้วกดยืนยัน",
+    "playmatPickTitle": "เลือกเพลย์แมต",
     "saveExperiment": "Save experiment",
     "savedPresets": "Saved presets",
-    "sleeve": "Sleeve",
-    "sleeveEmpty": "No sleeves available yet.",
-    "sleeveHint": "Equipped sleeve replaces your card back in matches. Default: none.",
-    "sleevePickLead": "Tap a sleeve you own to equip it on this deck.",
-    "sleevePickTitle": "Choose sleeve",
-    "sort": "Sort"
+    "sleeve": "สลีฟ",
+    "sleeveEmpty": "ยังไม่มีสลีฟให้ใช้",
+    "sleeveHint": "สลีฟที่สวมใส่จะแทนที่หลังการ์ดของคุณในการแข่ง ค่าเริ่มต้น: ไม่มี",
+    "sleevePickLead": "แตะสลีฟที่คุณมีเพื่อสวมใส่ให้เด็คนี้",
+    "sleevePickTitle": "เลือกสลีฟ",
+    "sort": "Sort",
+    "playmatNone": "ค่าเริ่มต้น",
+    "playmatChange": "เปลี่ยน",
+    "playmatEmptyHint": "ซื้อเพลย์แมตได้ที่ร้านเพลย์แมต",
+    "playmatOwnedHint": "เพลย์แมตที่คุณมีจากร้านเพลย์แมต",
+    "playmatPickClose": "ปิด"
   },
   "booster": {
     "title": "เปิดบูสเตอร์",
@@ -521,7 +526,7 @@
       "lead": "This clears local account data on this device.",
       "title": "Reset account"
     },
-    "sleeveConform": "Fit sleeves to card size (rounded corners, no square overflow)",
+    "sleeveConform": "ปรับสลีฟให้พอดีกับขนาดการ์ด (มุมโค้ง ไม่มีขอบเหลี่ยมล้น)",
     "stuck": {
       "lead": "If the game is stuck, leave the match and return to the hub.",
       "title": "Stuck?"
@@ -1245,12 +1250,12 @@
     "alreadyInRanked": "Already in a ranked match.",
     "coinsEarned": "+{n} Coins",
     "leftDeadMatch": "Left a finished/disconnected match.",
-    "playmatBought": "Playmat unlocked!",
+    "playmatBought": "ปลดล็อกเพลย์แมตแล้ว!",
     "signInShop": "Sign in to use the shop.",
-    "signInSleeveShop": "Sign in to use the sleeve shop.",
-    "sleeveBought": "Sleeve unlocked!",
-    "sleeveClaimedFree": "Free sleeve claimed!",
-    "sleeveShopLoadFailed": "Couldn’t load the sleeve shop."
+    "signInSleeveShop": "ลงชื่อเข้าใช้เพื่อใช้ร้านสลีฟ",
+    "sleeveBought": "ปลดล็อกสลีฟแล้ว!",
+    "sleeveClaimedFree": "รับสลีฟฟรีแล้ว!",
+    "sleeveShopLoadFailed": "โหลดร้านสลีฟไม่สำเร็จ"
   },
   "tutorialUi": {
     "exitTitle": "ออกไปหน้าชื่อเรื่อง",
@@ -1328,7 +1333,7 @@
       "yellScore20": "เปิดเผยการ์ด Yell 20 ใบขึ้นไปใน Live Performance เดียว",
       "liveScore15": "ได้คะแนน Live 15 ขึ้นไปในรอบเดียว",
       "friend20": "เพิ่มเพื่อน 20 คน",
-      "sleeves10": "มีซองการ์ด 10 ชิ้น",
+      "sleeves10": "มีสลีฟ 10 ชิ้น",
       "playmats10": "มีเพลย์แมต 10 ชิ้น",
       "gachaScout1": "สเกาต์ในกาชา",
       "gachaScout10": "สเกาต์ในกาชา 10 ครั้ง",
@@ -1352,8 +1357,8 @@
     "title": "ภารกิจ",
     "rewardCoinsAndPrPack": "+{coins} เหรียญ · แพ็ก PR",
     "claimedCoinsAndPrToast": "รับ {title} แล้ว (+{coins} เหรียญ · แพ็ก PR)",
-    "rewardFreeSleeve": "รับซองฟรี",
-    "claimedFreeSleeveToast": "รับ {title} แล้ว — รับซองฟรีได้ที่ร้านซองการ์ด",
+    "rewardFreeSleeve": "รับสลีฟฟรี",
+    "claimedFreeSleeveToast": "รับ {title} แล้ว — รับสลีฟฟรีได้ที่ร้านสลีฟ",
     "claimedCoinsToast": "+{coins} Coins",
     "tabWeekly": "รายสัปดาห์",
     "tabMonthly": "รายเดือน",
@@ -1369,7 +1374,7 @@
     "weekly": {
       "rankedRandom": "เล่นแมตช์แรงก์ในโหมดเด็คสุ่ม",
       "ranked10": "เล่นแมตช์แรงก์ 10 ครั้ง",
-      "shopBuy": "ซื้อเพลย์แมตหรือซองการ์ดจากร้านค้า",
+      "shopBuy": "ซื้อเพลย์แมตหรือสลีฟจากร้านค้า",
       "stickerExchange": "แลกซีลเป็นการ์ดในร้านสติกเกอร์",
       "login7": "ล็อกอินทุกวันในสัปดาห์นี้ (7 วัน)",
       "completeAll": "ทำภารกิจรายสัปดาห์ทั้งหมดให้สำเร็จ"
@@ -1765,29 +1770,38 @@
     "hubSub": "Browse all cards"
   },
   "playmatShop": {
-    "backChars": "← Characters",
-    "backShop": "← Shop",
-    "buyConfirm": "Buy this playmat for {price} Coins?",
-    "hint": "Tap a playmat to preview, then buy or equip.",
-    "hoverEmpty": "Select a playmat",
-    "title": "Playmats"
+    "backChars": "← ตัวละคร",
+    "backShop": "← ร้านค้า",
+    "buyConfirm": "ซื้อเพลย์แมตนี้ด้วย {price} เหรียญหรือไม่?",
+    "hint": "แตะเพลย์แมตเพื่อดูตัวอย่าง จากนั้นซื้อหรือสวมใส่",
+    "hoverEmpty": "เลือกเพลย์แมต",
+    "title": "เพลย์แมต",
+    "owned": "มีแล้ว",
+    "buy": "ซื้อ",
+    "previewOpen": "ดูขนาดเต็ม",
+    "previewClose": "ตัวอย่างเพลย์แมต — แตะเพื่อปิด"
   },
   "shop": {
     "backHub": "← Hub",
-    "hint": "Spend Coins on sleeves and playmats.",
-    "playmatsSub": "Board backgrounds",
-    "playmatsTitle": "Playmats",
-    "sleevesSub": "Card backs",
-    "sleevesTitle": "Sleeves",
-    "title": "Shop"
+    "hint": "ใช้เหรียญซื้อสลีฟและเพลย์แมต",
+    "playmatsSub": "ลายกระดานสำหรับฝั่งของคุณ",
+    "playmatsTitle": "เพลย์แมต",
+    "sleevesSub": "หลังการ์ดสำหรับเด็คของคุณ",
+    "sleevesTitle": "สลีฟ",
+    "title": "ร้านค้า"
   },
   "sleeveShop": {
-    "backChars": "← Characters",
-    "backShop": "← Shop",
-    "buyConfirm": "Buy this sleeve for {price} Coins?",
-    "hint": "Tap a sleeve to preview, then buy or equip.",
-    "hoverEmpty": "Select a sleeve",
-    "title": "Sleeves"
+    "backChars": "← ตัวละคร",
+    "backShop": "← ร้านค้า",
+    "buyConfirm": "ซื้อสลีฟนี้ด้วย {price} เหรียญหรือไม่?",
+    "hint": "แตะสลีฟเพื่อดูตัวอย่าง จากนั้นซื้อหรือสวมใส่",
+    "hoverEmpty": "เลือกสลีฟ",
+    "title": "สลีฟ",
+    "owned": "มีแล้ว",
+    "buy": "ซื้อ",
+    "freeClaims": "เลือกฟรี: {n}",
+    "claimFree": "รับฟรี",
+    "bdayName": "{name} ภาพวันเกิด {year}"
   },
   "gameMode": {
     "free": "Free",

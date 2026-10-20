@@ -101,12 +101,12 @@
       "title": "Rejoue"
     },
     "shop": {
-      "sub": "Manches et tapis de jeu",
+      "sub": "Protège-cartes et tapis de jeu",
       "title": "Acheter"
     },
     "sleeveShop": {
-      "sub": "Acheter des manches avec des pièces",
-      "title": "Magasin de manches"
+      "sub": "Achetez des protège-cartes avec des pièces",
+      "title": "Boutique de protège-cartes"
     },
     "sticker": {
       "sub": "Convertir des cartes de rechange",
@@ -174,8 +174,8 @@
       "yellScore20": "Révéler 20 cartes Yell ou plus lors d'une même performance Live",
       "liveScore15": "Atteignez un score en direct de 15 points ou plus en un seul tour",
       "friend20": "Ajoutez 20 amis",
-      "sleeves10": "Posséder 10 sleeves",
-      "playmats10": "Posséder 10 playmats",
+      "sleeves10": "Posséder 10 protège-cartes",
+      "playmats10": "Posséder 10 tapis de jeu",
       "gachaScout1": "Faire un Scout au Gacha",
       "gachaScout10": "Faire 10 Scouts au Gacha",
       "gachaBirthday": "Faire un Scout dans un Gacha d'anniversaire limité",
@@ -192,8 +192,8 @@
     "starterPickCancel": "Annuler",
     "rewardCoinsAndPrPack": "+{coins} Pièces · Pack RP",
     "claimedCoinsAndPrToast": "Demandé {title} (+{coins} Pièces · Pack RP)",
-    "rewardFreeSleeve": "Free sleeve claim",
-    "claimedFreeSleeveToast": "Revendiqué {title} — manche libre déverrouillée dans la boutique de manches",
+    "rewardFreeSleeve": "Protège-cartes gratuit à récupérer",
+    "claimedFreeSleeveToast": "{title} récupéré — protège-cartes gratuit disponible dans la boutique de protège-cartes",
     "claimedCoinsToast": "Demandé {title} (+{coins} jeton)",
     "claimedGemsAndCoinsToast": "Demandé {title} (+{gems} · +{coins} pièces)",
     "tabWeekly": "Hebdomadaires",
@@ -210,7 +210,7 @@
     "weekly": {
       "rankedRandom": "Jouer une partie classée en mode decks aléatoires",
       "ranked10": "Jouer 10 parties classées",
-      "shopBuy": "Acheter un playmat ou un sleeve dans la boutique",
+      "shopBuy": "Acheter un tapis de jeu ou des protège-cartes dans la boutique",
       "stickerExchange": "Échanger des sceaux contre une carte dans la boutique de sceaux",
       "login7": "Se connecter chaque jour cette semaine (7 jours)",
       "completeAll": "Terminer toutes les missions hebdomadaires"
@@ -277,8 +277,8 @@
     "cpuCosmeticDefault": "Default",
     "cpuCosmeticRandom": "Aléatoire (détenu)",
     "cpuCosmeticsHint": "Pick owned cosmetics or randomize from what you own.",
-    "cpuPlaymat": "Tapis de jeu CPU",
-    "cpuSleeve": "Manchon CPU",
+    "cpuPlaymat": "Tapis de jeu de la CPU",
+    "cpuSleeve": "Protège-cartes de la CPU",
     "experimentDeckIncomplete": "Experiment deck is incomplete.",
     "freeDeckEmpty": "No free/experiment decks saved yet.",
     "otherModesQueuedLead": "Players waiting in other modes:",
@@ -488,24 +488,29 @@
     "experimentSaved": "Experiment deck saved.",
     "experimentSlot": "Experiment slot",
     "more": "More",
-    "playmat": "Playmat",
+    "playmat": "Tapis de jeu",
     "playmatBrightness": "Luminosité",
     "playmatConfirm": "Confirmer",
-    "playmatEmpty": "No playmats available yet.",
-    "playmatHint": "Equipped playmat appears on your seat in matches. Default board if none.",
-    "playmatPickLead": "Sélectionnez un tapis de jeu, réglez la luminosité, puis confirmez.",
-    "playmatPickTitle": "Choisir un tapis de jeu",
+    "playmatEmpty": "Aucun tapis de jeu disponible pour le moment.",
+    "playmatHint": "Le tapis de jeu équipé apparaît de votre côté en partie. Plateau par défaut si aucun n'est choisi.",
+    "playmatPickLead": "Sélectionnez un tapis de jeu que vous possédez, ajustez la luminosité, puis confirmez.",
+    "playmatPickTitle": "Choisir le tapis de jeu",
     "saveExperiment": "Enregistrer l'expérience",
     "savedPresets": "Messages prédéfinis enregistrés",
-    "sleeve": "Manchon",
-    "sleeveEmpty": "No sleeves available yet.",
-    "sleeveHint": "Equipped sleeve replaces your card back in matches. Default: none.",
-    "sleevePickLead": "Tap a sleeve you own to equip it on this deck.",
-    "sleevePickTitle": "Choisir une manche",
+    "sleeve": "Protège-cartes",
+    "sleeveEmpty": "Aucun protège-cartes disponible pour le moment.",
+    "sleeveHint": "Le protège-cartes équipé remplace le dos de vos cartes en partie. Par défaut : aucun.",
+    "sleevePickLead": "Touchez un protège-cartes que vous possédez pour l'équiper sur ce deck.",
+    "sleevePickTitle": "Choisir le protège-cartes",
     "sort": "Trier",
     "saved": "Enregistré !",
     "savedInProgress": "Enregistré en tant que deck en cours. Terminez le comptage des cartes avant de l'utiliser dans une partie.",
-    "inProgress": "In progress"
+    "inProgress": "In progress",
+    "playmatNone": "Par défaut",
+    "playmatChange": "Changer",
+    "playmatEmptyHint": "Achetez des tapis de jeu dans la boutique de tapis de jeu.",
+    "playmatOwnedHint": "Tapis de jeu que vous possédez, obtenus à la boutique de tapis de jeu.",
+    "playmatPickClose": "Fermer"
   },
   "booster": {
     "title": "Open Boosters",
@@ -702,7 +707,7 @@
       "lead": "This clears local account data on this device.",
       "title": "Réinitialiser le compte"
     },
-    "sleeveConform": "Fit sleeves to card size (rounded corners, no square overflow)",
+    "sleeveConform": "Ajuster les protège-cartes à la taille des cartes (coins arrondis, sans débord carré)",
     "stuck": {
       "lead": "If the game is stuck, leave the match and return to the hub.",
       "title": "Stuck"
@@ -1408,13 +1413,13 @@
     "alreadyInRanked": "Déjà dans un match classé.",
     "coinsEarned": "382b",
     "leftDeadMatch": "Left a finished/disconnected match.",
-    "playmatBought": "Playmat unlocked!",
+    "playmatBought": "Tapis de jeu débloqué !",
     "resolveSkillFirst": "Résolvez d'abord l'invite de compétences.",
     "signInShop": "Connectez-vous pour utiliser la boutique.",
-    "signInSleeveShop": "Connectez-vous pour utiliser la boutique de manchons.",
-    "sleeveBought": "Manche déverrouillée !",
-    "sleeveClaimedFree": "Free sleeve claimed!",
-    "sleeveShopLoadFailed": "Impossible de charger la boutique de manchons."
+    "signInSleeveShop": "Connectez-vous pour utiliser la boutique de protège-cartes.",
+    "sleeveBought": "Protège-cartes débloqué !",
+    "sleeveClaimedFree": "Protège-cartes gratuit récupéré !",
+    "sleeveShopLoadFailed": "Impossible de charger la boutique de protège-cartes."
   },
   "tutorialUi": {
     "exitTitle": "Exit to Title",
@@ -1782,29 +1787,38 @@
     "hubSub": "Parcourir toutes les cartes"
   },
   "playmatShop": {
-    "backChars": "← Characters",
-    "backShop": "← Shop",
-    "buyConfirm": "Acheter ce tapis de jeu pour {price} pièces ?",
-    "hint": "Tap a playmat to preview, then buy or equip.",
-    "hoverEmpty": "Sélectionner un tapis de jeu",
-    "title": "Playmats"
+    "backChars": "← Personnages",
+    "backShop": "← Boutique",
+    "buyConfirm": "Acheter ce tapis de jeu pour {price} pièces ?",
+    "hint": "Touchez un tapis de jeu pour l'aperçu, puis achetez-le ou équipez-le.",
+    "hoverEmpty": "Sélectionnez un tapis de jeu",
+    "title": "Tapis de jeu",
+    "owned": "Possédé",
+    "buy": "Acheter",
+    "previewOpen": "Voir en taille réelle",
+    "previewClose": "Aperçu du tapis de jeu — touchez pour fermer"
   },
   "shop": {
     "backHub": "← Hub",
-    "hint": "Dépensez des pièces sur des manches et des tapis de jeu.",
-    "playmatsSub": "Arrière-plans du tableau",
-    "playmatsTitle": "Playmats",
-    "sleevesSub": "Note sur les dos de cartes",
-    "sleevesTitle": "Manchons",
-    "title": "Acheter"
+    "hint": "Dépensez vos pièces en protège-cartes et tapis de jeu.",
+    "playmatsSub": "Illustration de plateau pour votre côté",
+    "playmatsTitle": "Tapis de jeu",
+    "sleevesSub": "Dos de cartes pour vos decks",
+    "sleevesTitle": "Protège-cartes",
+    "title": "Boutique"
   },
   "sleeveShop": {
-    "backChars": "← Characters",
-    "backShop": "← Shop",
-    "buyConfirm": "Acheter cette pochette pour {price} pièces ?",
-    "hint": "Tap a sleeve to preview, then buy or equip.",
-    "hoverEmpty": "Sélectionner une manche",
-    "title": "Manchons"
+    "backChars": "← Personnages",
+    "backShop": "← Boutique",
+    "buyConfirm": "Acheter ce protège-cartes pour {price} pièces ?",
+    "hint": "Touchez un protège-cartes pour l'aperçu, puis achetez-le ou équipez-le.",
+    "hoverEmpty": "Sélectionnez un protège-cartes",
+    "title": "Protège-cartes",
+    "owned": "Possédé",
+    "buy": "Acheter",
+    "freeClaims": "Choix gratuits : {n}",
+    "claimFree": "Récupérer gratuitement",
+    "bdayName": "{name} Visuel d'anniversaire {year}"
   },
   "gameMode": {
     "free": "Free",

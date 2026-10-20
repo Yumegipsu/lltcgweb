@@ -505,7 +505,12 @@
     "sort": "Ordenar",
     "saved": "Deck salvo",
     "savedInProgress": "Rascunho salvo",
-    "inProgress": "Edição em andamento"
+    "inProgress": "Edição em andamento",
+    "playmatNone": "Padrão",
+    "playmatChange": "Alterar",
+    "playmatEmptyHint": "Compre playmats na loja de playmats.",
+    "playmatOwnedHint": "Playmats que você possui da loja de playmats.",
+    "playmatPickClose": "Fechar"
   },
   "booster": {
     "title": "Abrir Boosters",
@@ -1787,14 +1792,18 @@
     "buyConfirm": "Comprar este playmat por {price} Moedas?",
     "hint": "Toque em um playmat para pré-visualizar e depois compre ou equipe.",
     "hoverEmpty": "Selecione um playmat",
-    "title": "Playmats"
+    "title": "Playmats",
+    "owned": "Possui",
+    "buy": "Comprar",
+    "previewOpen": "Ver em tamanho real",
+    "previewClose": "Pré-visualização do playmat — toque para fechar"
   },
   "shop": {
     "backHub": "← Menu",
     "hint": "Gaste Moedas em sleeves e playmats.",
-    "playmatsSub": "Planos de fundo do tabuleiro",
+    "playmatsSub": "Arte de tabuleiro para o seu lado",
     "playmatsTitle": "Playmats",
-    "sleevesSub": "Versos de cartas",
+    "sleevesSub": "Versos de carta para os seus decks",
     "sleevesTitle": "Sleeves",
     "title": "Loja"
   },
@@ -1804,7 +1813,12 @@
     "buyConfirm": "Comprar este sleeve por {price} Moedas?",
     "hint": "Toque em um sleeve para pré-visualizar e depois compre ou equipe.",
     "hoverEmpty": "Selecione um sleeve",
-    "title": "Sleeves"
+    "title": "Sleeves",
+    "owned": "Possui",
+    "buy": "Comprar",
+    "freeClaims": "Escolhas grátis: {n}",
+    "claimFree": "Resgatar grátis",
+    "bdayName": "{name} Visual de aniversário {year}"
   },
   "gameMode": {
     "free": "Livre",

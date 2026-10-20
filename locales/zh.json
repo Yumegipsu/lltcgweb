@@ -101,12 +101,12 @@
       "title": "Replays"
     },
     "shop": {
-      "sub": "Sleeves & playmats",
+      "sub": "卡套和游戏垫",
       "title": "Shop"
     },
     "sleeveShop": {
-      "sub": "Buy sleeves with Coins",
-      "title": "Sleeve Shop"
+      "sub": "用金币购买卡套",
+      "title": "卡套商店"
     },
     "sticker": {
       "sub": "Convert spare cards",
@@ -176,8 +176,8 @@
     "cpuCosmeticDefault": "Default",
     "cpuCosmeticRandom": "Random (owned)",
     "cpuCosmeticsHint": "Pick owned cosmetics or randomize from what you own.",
-    "cpuPlaymat": "CPU playmat",
-    "cpuSleeve": "CPU sleeve",
+    "cpuPlaymat": "CPU 游戏垫",
+    "cpuSleeve": "CPU 卡套",
     "experimentDeckIncomplete": "Experiment deck is incomplete.",
     "freeDeckEmpty": "No free/experiment decks saved yet.",
     "otherModesQueuedLead": "Players waiting in other modes:",
@@ -393,21 +393,26 @@
     "experimentSaved": "Experiment deck saved.",
     "experimentSlot": "Experiment slot",
     "more": "More",
-    "playmat": "Playmat",
-    "playmatBrightness": "Brightness",
-    "playmatConfirm": "Confirm",
-    "playmatEmpty": "No playmats available yet.",
-    "playmatHint": "Equipped playmat appears on your seat in matches. Default board if none.",
-    "playmatPickLead": "Select an owned playmat, adjust brightness, then confirm.",
-    "playmatPickTitle": "Choose playmat",
+    "playmat": "游戏垫",
+    "playmatBrightness": "亮度",
+    "playmatConfirm": "确认",
+    "playmatEmpty": "暂无可用的游戏垫。",
+    "playmatHint": "装备的游戏垫会显示在你对战时的位置。未装备则使用默认牌桌。",
+    "playmatPickLead": "选择一张已拥有的游戏垫，调整亮度后确认。",
+    "playmatPickTitle": "选择游戏垫",
     "saveExperiment": "Save experiment",
     "savedPresets": "Saved presets",
-    "sleeve": "Sleeve",
-    "sleeveEmpty": "No sleeves available yet.",
-    "sleeveHint": "Equipped sleeve replaces your card back in matches. Default: none.",
-    "sleevePickLead": "Tap a sleeve you own to equip it on this deck.",
-    "sleevePickTitle": "Choose sleeve",
-    "sort": "Sort"
+    "sleeve": "卡套",
+    "sleeveEmpty": "暂无可用的卡套。",
+    "sleeveHint": "装备的卡套会在对战中替换你的卡背。默认：无。",
+    "sleevePickLead": "点按你拥有的卡套，即可装备到这副牌组。",
+    "sleevePickTitle": "选择卡套",
+    "sort": "Sort",
+    "playmatNone": "默认",
+    "playmatChange": "更换",
+    "playmatEmptyHint": "在游戏垫商店购买游戏垫。",
+    "playmatOwnedHint": "你从游戏垫商店获得的游戏垫。",
+    "playmatPickClose": "关闭"
   },
   "booster": {
     "title": "开启补充包",
@@ -531,7 +536,7 @@
       "lead": "This clears local account data on this device.",
       "title": "Reset account"
     },
-    "sleeveConform": "Fit sleeves to card size (rounded corners, no square overflow)",
+    "sleeveConform": "让卡套贴合卡牌尺寸（圆角，无方形溢出）",
     "stuck": {
       "lead": "If the game is stuck, leave the match and return to the hub.",
       "title": "Stuck?"
@@ -1269,12 +1274,12 @@
     "alreadyInRanked": "Already in a ranked match.",
     "coinsEarned": "+{n} Coins",
     "leftDeadMatch": "Left a finished/disconnected match.",
-    "playmatBought": "Playmat unlocked!",
+    "playmatBought": "已解锁游戏垫！",
     "signInShop": "Sign in to use the shop.",
-    "signInSleeveShop": "Sign in to use the sleeve shop.",
-    "sleeveBought": "Sleeve unlocked!",
-    "sleeveClaimedFree": "Free sleeve claimed!",
-    "sleeveShopLoadFailed": "Couldn’t load the sleeve shop."
+    "signInSleeveShop": "请登录后使用卡套商店。",
+    "sleeveBought": "已解锁卡套！",
+    "sleeveClaimedFree": "已领取免费卡套！",
+    "sleeveShopLoadFailed": "无法加载卡套商店。"
   },
   "tutorialUi": {
     "exitTitle": "退出到标题",
@@ -1353,7 +1358,7 @@
       "liveScore15": "单回合Live分数达到15或以上",
       "friend20": "添加 20 位好友",
       "sleeves10": "拥有 10 个卡套",
-      "playmats10": "拥有 10 张垫布",
+      "playmats10": "拥有 10 张游戏垫",
       "gachaScout1": "在扭蛋中进行招募",
       "gachaScout10": "在扭蛋中招募 10 次",
       "gachaBirthday": "在限定生日扭蛋中进行招募",
@@ -1393,7 +1398,7 @@
     "weekly": {
       "rankedRandom": "在随机卡组模式中进行一场排名对战",
       "ranked10": "进行 10 场排名对战",
-      "shopBuy": "在商店购买一张垫布或卡套",
+      "shopBuy": "在商店购买一张游戏垫或一个卡套",
       "stickerExchange": "在贴纸商店用印章兑换一张卡牌",
       "login7": "本周每天登录（7 天）",
       "completeAll": "完成所有每周任务"
@@ -1789,29 +1794,38 @@
     "hubSub": "Browse all cards"
   },
   "playmatShop": {
-    "backChars": "← Characters",
-    "backShop": "← Shop",
-    "buyConfirm": "Buy this playmat for {price} Coins?",
-    "hint": "Tap a playmat to preview, then buy or equip.",
-    "hoverEmpty": "Select a playmat",
-    "title": "Playmats"
+    "backChars": "← 角色",
+    "backShop": "← 商店",
+    "buyConfirm": "要用 {price} 金币购买这张游戏垫吗？",
+    "hint": "点按游戏垫预览，然后购买或装备。",
+    "hoverEmpty": "选择一张游戏垫",
+    "title": "游戏垫",
+    "owned": "已拥有",
+    "buy": "购买",
+    "previewOpen": "查看原图",
+    "previewClose": "游戏垫预览 — 点按关闭"
   },
   "shop": {
     "backHub": "← Hub",
-    "hint": "Spend Coins on sleeves and playmats.",
-    "playmatsSub": "Board backgrounds",
-    "playmatsTitle": "Playmats",
-    "sleevesSub": "Card backs",
-    "sleevesTitle": "Sleeves",
-    "title": "Shop"
+    "hint": "用金币购买卡套和游戏垫。",
+    "playmatsSub": "你座位上的牌桌图案",
+    "playmatsTitle": "游戏垫",
+    "sleevesSub": "为你的牌组更换卡背",
+    "sleevesTitle": "卡套",
+    "title": "商店"
   },
   "sleeveShop": {
-    "backChars": "← Characters",
-    "backShop": "← Shop",
-    "buyConfirm": "Buy this sleeve for {price} Coins?",
-    "hint": "Tap a sleeve to preview, then buy or equip.",
-    "hoverEmpty": "Select a sleeve",
-    "title": "Sleeves"
+    "backChars": "← 角色",
+    "backShop": "← 商店",
+    "buyConfirm": "要用 {price} 金币购买这个卡套吗？",
+    "hint": "点按卡套预览，然后购买或装备。",
+    "hoverEmpty": "选择一个卡套",
+    "title": "卡套",
+    "owned": "已拥有",
+    "buy": "购买",
+    "freeClaims": "免费选择：{n}",
+    "claimFree": "免费领取",
+    "bdayName": "{name} 生日视觉图 {year}"
   },
   "gameMode": {
     "free": "Free",

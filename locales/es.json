@@ -101,12 +101,12 @@
       "title": "Replays"
     },
     "shop": {
-      "sub": "Sleeves & playmats",
+      "sub": "Fundas y tapetes",
       "title": "Shop"
     },
     "sleeveShop": {
-      "sub": "Buy sleeves with Coins",
-      "title": "Sleeve Shop"
+      "sub": "Compra fundas con monedas",
+      "title": "Tienda de fundas"
     },
     "sticker": {
       "sub": "Convert spare cards",
@@ -176,8 +176,8 @@
     "cpuCosmeticDefault": "Default",
     "cpuCosmeticRandom": "Random (owned)",
     "cpuCosmeticsHint": "Pick owned cosmetics or randomize from what you own.",
-    "cpuPlaymat": "CPU playmat",
-    "cpuSleeve": "CPU sleeve",
+    "cpuPlaymat": "Tapete de la CPU",
+    "cpuSleeve": "Funda de la CPU",
     "experimentDeckIncomplete": "Experiment deck is incomplete.",
     "freeDeckEmpty": "No free/experiment decks saved yet.",
     "otherModesQueuedLead": "Players waiting in other modes:",
@@ -383,21 +383,26 @@
     "experimentSaved": "Experiment deck saved.",
     "experimentSlot": "Experiment slot",
     "more": "More",
-    "playmat": "Playmat",
-    "playmatBrightness": "Brightness",
-    "playmatConfirm": "Confirm",
-    "playmatEmpty": "No playmats available yet.",
-    "playmatHint": "Equipped playmat appears on your seat in matches. Default board if none.",
-    "playmatPickLead": "Select an owned playmat, adjust brightness, then confirm.",
-    "playmatPickTitle": "Choose playmat",
+    "playmat": "Tapete",
+    "playmatBrightness": "Brillo",
+    "playmatConfirm": "Confirmar",
+    "playmatEmpty": "Aún no hay tapetes disponibles.",
+    "playmatHint": "El tapete equipado aparece en tu lado en las partidas. Si no hay ninguno, se usa el tablero por defecto.",
+    "playmatPickLead": "Elige un tapete que tengas, ajusta el brillo y confirma.",
+    "playmatPickTitle": "Elegir tapete",
     "saveExperiment": "Save experiment",
     "savedPresets": "Saved presets",
-    "sleeve": "Sleeve",
-    "sleeveEmpty": "No sleeves available yet.",
-    "sleeveHint": "Equipped sleeve replaces your card back in matches. Default: none.",
-    "sleevePickLead": "Tap a sleeve you own to equip it on this deck.",
-    "sleevePickTitle": "Choose sleeve",
-    "sort": "Sort"
+    "sleeve": "Funda",
+    "sleeveEmpty": "Aún no hay fundas disponibles.",
+    "sleeveHint": "La funda equipada sustituye el reverso de tus cartas en las partidas. Por defecto: ninguna.",
+    "sleevePickLead": "Toca una funda que tengas para equiparla en este mazo.",
+    "sleevePickTitle": "Elegir funda",
+    "sort": "Sort",
+    "playmatNone": "Por defecto",
+    "playmatChange": "Cambiar",
+    "playmatEmptyHint": "Compra tapetes en la tienda de tapetes.",
+    "playmatOwnedHint": "Tapetes que tienes de la tienda de tapetes.",
+    "playmatPickClose": "Cerrar"
   },
   "booster": {
     "title": "Abrir sobres",
@@ -521,7 +526,7 @@
       "lead": "This clears local account data on this device.",
       "title": "Reset account"
     },
-    "sleeveConform": "Fit sleeves to card size (rounded corners, no square overflow)",
+    "sleeveConform": "Ajustar las fundas al tamaño de la carta (esquinas redondeadas, sin bordes cuadrados)",
     "stuck": {
       "lead": "If the game is stuck, leave the match and return to the hub.",
       "title": "Stuck?"
@@ -1245,12 +1250,12 @@
     "alreadyInRanked": "Already in a ranked match.",
     "coinsEarned": "+{n} Coins",
     "leftDeadMatch": "Left a finished/disconnected match.",
-    "playmatBought": "Playmat unlocked!",
+    "playmatBought": "¡Tapete desbloqueado!",
     "signInShop": "Sign in to use the shop.",
-    "signInSleeveShop": "Sign in to use the sleeve shop.",
-    "sleeveBought": "Sleeve unlocked!",
-    "sleeveClaimedFree": "Free sleeve claimed!",
-    "sleeveShopLoadFailed": "Couldn’t load the sleeve shop."
+    "signInSleeveShop": "Inicia sesión para usar la tienda de fundas.",
+    "sleeveBought": "¡Funda desbloqueada!",
+    "sleeveClaimedFree": "¡Funda gratis reclamada!",
+    "sleeveShopLoadFailed": "No se pudo cargar la tienda de fundas."
   },
   "tutorialUi": {
     "exitTitle": "Salir al título",
@@ -1765,29 +1770,38 @@
     "hubSub": "Browse all cards"
   },
   "playmatShop": {
-    "backChars": "← Characters",
-    "backShop": "← Shop",
-    "buyConfirm": "Buy this playmat for {price} Coins?",
-    "hint": "Tap a playmat to preview, then buy or equip.",
-    "hoverEmpty": "Select a playmat",
-    "title": "Playmats"
+    "backChars": "← Personajes",
+    "backShop": "← Tienda",
+    "buyConfirm": "¿Comprar este tapete por {price} monedas?",
+    "hint": "Toca un tapete para previsualizarlo y luego cómpralo o equípalo.",
+    "hoverEmpty": "Elige un tapete",
+    "title": "Tapetes",
+    "owned": "Tienes",
+    "buy": "Comprar",
+    "previewOpen": "Ver a tamaño completo",
+    "previewClose": "Vista previa del tapete: toca para cerrar"
   },
   "shop": {
     "backHub": "← Hub",
-    "hint": "Spend Coins on sleeves and playmats.",
-    "playmatsSub": "Board backgrounds",
-    "playmatsTitle": "Playmats",
-    "sleevesSub": "Card backs",
-    "sleevesTitle": "Sleeves",
-    "title": "Shop"
+    "hint": "Gasta monedas en fundas y tapetes.",
+    "playmatsSub": "Arte de tablero para tu lado",
+    "playmatsTitle": "Tapetes",
+    "sleevesSub": "Reversos de carta para tus mazos",
+    "sleevesTitle": "Fundas",
+    "title": "Tienda"
   },
   "sleeveShop": {
-    "backChars": "← Characters",
-    "backShop": "← Shop",
-    "buyConfirm": "Buy this sleeve for {price} Coins?",
-    "hint": "Tap a sleeve to preview, then buy or equip.",
-    "hoverEmpty": "Select a sleeve",
-    "title": "Sleeves"
+    "backChars": "← Personajes",
+    "backShop": "← Tienda",
+    "buyConfirm": "¿Comprar esta funda por {price} monedas?",
+    "hint": "Toca una funda para previsualizarla y luego cómprala o equípala.",
+    "hoverEmpty": "Elige una funda",
+    "title": "Fundas",
+    "owned": "Tienes",
+    "buy": "Comprar",
+    "freeClaims": "Elecciones gratis: {n}",
+    "claimFree": "Reclamar gratis",
+    "bdayName": "{name} Imagen de cumpleaños {year}"
   },
   "gameMode": {
     "free": "Free",
