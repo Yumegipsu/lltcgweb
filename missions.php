@@ -1501,8 +1501,106 @@ function tcgMissionOnGachaScout(string $discordId, bool $birthday): array {
     return $completions;
 }
 
+/**
+ * Credit what the existing history already proves for the CURRENT week / month, once per user per month:
+ * completed ranked matches (counters, Random-decks credit), a tournament played this month, a sleeve or
+ * playmat bought in the shop this week, and the last recorded login day. Every match is recorded with the
+ * same per-room marker as the live hook, so a retried finish can never count the same room twice.
+ * Not recoverable (no history is stored): sticker-shop exchanges, gacha scouts and earlier login days.
+ */
+function tcgMissionBackfillPeriodHistory(string $discordId): void {
+    $month = tcgMissionMonthKey();
+    $marker = 'retro_period:' . $month;
+    if (!tcgMissionEventOnce($discordId, $marker)) {
+        return;
+    }
+    try {
+        $db = tcgDb();
+        $tz = new DateTimeZone('Asia/Tokyo');
+        $now = tcgMissionNow();
+        $monthStart = gmmktime(0, 0, 0, (int)gmdate('n', $now), 1, (int)gmdate('Y', $now));
+        $monthEnd = tcgMissionMonthEndsAt($now);
+        $weekKey = tcgMissionWeekKey();
+        $weekStart = (new DateTimeImmutable($weekKey, $tz))->getTimestamp();
+        $weekEnd = tcgMissionWeekEndsAt();
+
+        // Ranked matches played this month (this week's share feeds the weekly counter).
+        $stmt = $db->prepare('SELECT room_id, game_mode, created_at FROM tcg_ranked_matches
+            WHERE status = "done" AND (p1_id = ? OR p2_id = ?) AND created_at >= ? AND created_at < ?');
+        $stmt->execute([$discordId, $discordId, $monthStart, $monthEnd]);
+        $randomThisWeek = false;
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $room = (string)($row['room_id'] ?? '');
+            $at = intval($row['created_at'] ?? 0);
+            $inWeek = $at >= $weekStart && $at < $weekEnd;
+            if ($room !== '' && tcgMissionEventOnce($discordId, 'ranked_room:' . $room)) {
+                tcgMissionCounterBump($discordId, 'ranked', $month, 1);
+                if ($inWeek) {
+                    tcgMissionCounterBump($discordId, 'ranked', $weekKey, 1);
+                }
+            }
+            if ($inWeek && strtolower((string)($row['game_mode'] ?? '')) === 'randomized') {
+                $randomThisWeek = true;
+            }
+        }
+        if ($randomThisWeek) {
+            tcgMissionMarkCompleted($discordId, 'weekly_ranked_random');
+        }
+
+        // Tournament played this month (registered-only and no-show entrants do not count).
+        try {
+            $t = $db->prepare('SELECT 1 FROM tcg_tournament_entrants e
+                JOIN tcg_tournaments tt ON tt.id = e.tournament_id
+                WHERE e.discord_id = ? AND tt.start_at >= ? AND tt.start_at < ?
+                  AND e.status NOT IN ("registered", "dq")
+                  AND COALESCE(e.elim_reason, "") != "afk_forfeit" LIMIT 1');
+            $t->execute([$discordId, $monthStart, $monthEnd]);
+            if ($t->fetchColumn()) {
+                tcgMissionMarkCompleted($discordId, 'monthly_tournament');
+            }
+        } catch (Throwable $e) {
+            // Tournament tables / elim_reason may not exist on every database.
+        }
+
+        // Sleeve / playmat bought in the shop this week.
+        foreach (['tcg_owned_sleeves', 'tcg_owned_playmats'] as $table) {
+            try {
+                $q = $db->prepare("SELECT 1 FROM {$table} WHERE discord_id = ? AND source = 'shop'
+                    AND acquired_at >= ? AND acquired_at < ? LIMIT 1");
+                $q->execute([$discordId, $weekStart, $weekEnd]);
+                if ($q->fetchColumn()) {
+                    tcgMissionMarkCompleted($discordId, 'weekly_shop_buy');
+                    break;
+                }
+            } catch (Throwable $e) {
+                // table missing on a fresh database
+            }
+        }
+
+        // Last recorded login day, when it falls inside this week.
+        $l = $db->prepare('SELECT login_days_last_date FROM tcg_users WHERE discord_id = ?');
+        $l->execute([$discordId]);
+        $last = (string)($l->fetchColumn() ?: '');
+        $weekEndDay = (new DateTimeImmutable($weekKey, $tz))->modify('+6 days')->format('Y-m-d');
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $last) && $last >= $weekKey && $last <= $weekEndDay) {
+            $db->prepare('INSERT OR IGNORE INTO tcg_login_days_log (discord_id, day) VALUES (?, ?)')
+                ->execute([$discordId, $last]);
+        }
+    } catch (Throwable $e) {
+        // Let the next call retry the whole pass.
+        try {
+            tcgDb()->prepare('DELETE FROM tcg_mission_events WHERE discord_id = ? AND event_key = ?')
+                ->execute([$discordId, $marker]);
+        } catch (Throwable $e2) {
+            // ignore
+        }
+        tcgMissionLogFailure('period history backfill', $e);
+    }
+}
+
 /** Catch-up for anything that may have been earned outside a hooked action. */
 function tcgMissionCheckPeriodic(string $discordId): void {
+    tcgMissionBackfillPeriodHistory($discordId);
     try {
         tcgMissionCheckRankedPeriodic($discordId);
         tcgMissionCheckSeasonRank($discordId);

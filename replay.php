@@ -521,14 +521,40 @@ function convertReplayPayloadToV2(array $replay): array {
     ]);
 }
 
+/** True when a previous seek/convert gave up on recorded actions (#280). */
+function replayPayloadSeekDiverged(array $replay): bool {
+    $full = $replay['full_log'] ?? null;
+    if (!is_array($full)) {
+        return false;
+    }
+    foreach ($full as $line) {
+        $msg = is_array($line) ? (string)($line['msg'] ?? '') : (string)$line;
+        if ($msg === '') {
+            continue;
+        }
+        if (str_contains($msg, 'Replay seek — skipped')
+            || str_contains($msg, 'log index #')
+            || str_contains($msg, 'convert #')) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function ensureReplayPayloadV2(array $replay): array {
     validateReplayFile($replay);
     $actions = $replay['actions'] ?? [];
     $frames = $replay['frames'] ?? null;
     if (intval($replay['schema_version'] ?? 0) >= 2
         && is_array($frames)
-        && count($frames) === count($actions) + 1) {
+        && count($frames) === count($actions) + 1
+        && !replayPayloadSeekDiverged($replay)) {
         return convertReplayPayloadToV2($replay);
+    }
+    if (replayPayloadSeekDiverged($replay)) {
+        // Saved frames/log were built from a drifted seek. Rebuild from actions.
+        unset($replay['frames'], $replay['full_log'], $replay['log_ends']);
+        $replay['schema_version'] = 1;
     }
     return convertReplayPayloadToV2($replay);
 }
@@ -1171,6 +1197,40 @@ function replayNormalizePromptData(array $data): array {
     return $data;
 }
 
+/**
+ * Live Success order is sometimes stored as one clicked card_id.
+ * Seek still has every successful Live, so put the recorded card first
+ * and keep the rest in candidate order (#280).
+ */
+function replayFillLiveSuccessOrder(array $state, array $data): array {
+    $prompt = $state['pending_prompt'] ?? null;
+    if (!is_array($prompt) || ($prompt['type'] ?? '') !== 'live_success_order_sources') {
+        return $data;
+    }
+    if (!empty($data['card_ids']) || !empty($data['order_ids'])) {
+        return $data;
+    }
+    $ids = [];
+    foreach ($prompt['candidates'] ?? [] as $cand) {
+        if (!is_array($cand)) {
+            continue;
+        }
+        $id = (string)($cand['instance_id'] ?? '');
+        if ($id !== '') {
+            $ids[] = $id;
+        }
+    }
+    if ($ids === []) {
+        return $data;
+    }
+    $picked = (string)($data['card_id'] ?? '');
+    if ($picked !== '' && in_array($picked, $ids, true)) {
+        $ids = array_values(array_unique(array_merge([$picked], $ids)));
+    }
+    $data['card_ids'] = $ids;
+    return $data;
+}
+
 /** Clear a stuck pending prompt so seek can keep applying later recorded actions. */
 function replaySoftSkipPendingPrompt(array $state, string $note = '', string $forType = ''): array {
     foreach (replayTransientPromptStateKeys() as $key) {
@@ -1435,7 +1495,10 @@ function replayPrepareStateForRecordedAction(array $state, string $pid, string $
         return $state;
     }
     $pr = $state['pending_prompt'] ?? null;
-    if (is_array($pr) && ($pr['responder'] ?? '') !== $pid) {
+    // A live-show ack during Live Success is the client tapping through a beat
+    // the server has not reached yet. Dropping the prompt here re-runs the
+    // heart check when a later ack catches the cursor up (#280).
+    if ($type !== 'live_show_ack' && is_array($pr) && ($pr['responder'] ?? '') !== $pid) {
         unset($state['pending_prompt']);
     }
 
@@ -1638,9 +1701,46 @@ function replayTryApplyRecordedActionOnce(array $state, string $pid, string $typ
     }
 }
 
+/**
+ * A later live_show_ack means the table already moved past this beat.
+ * Stage 2 can be acked while a Live Start prompt is open and then never
+ * re-acked, so seek would sit on that beat and play the next Main Phase
+ * inside the Live (#280).
+ */
+function replayCatchUpLiveShowForAck(array $state, array $data): array {
+    $want = intval($data['stage_seq'] ?? -1);
+    if ($want < 0 || empty($state['live_show']) || !is_array($state['live_show'])) {
+        return $state;
+    }
+    if (!function_exists('advanceLiveShowStage') || !function_exists('liveShowProgressSignature')) {
+        return $state;
+    }
+    for ($n = 0; $n < 8; $n++) {
+        if (!empty($state['pending_prompt']) || empty($state['live_show'])) {
+            break;
+        }
+        $cur = intval($state['live_show']['stage_seq'] ?? 0);
+        if ($cur >= $want) {
+            break;
+        }
+        $before = liveShowProgressSignature($state);
+        $state = advanceLiveShowStage($state);
+        if (liveShowProgressSignature($state) === $before) {
+            break;
+        }
+    }
+    return $state;
+}
+
 function replayApplyRecordedAction(array $state, string $pid, string $type, array $data, int $index): array {
     if ($type === 'resolve_prompt' || $type === 'anti_softlock_skip') {
         $data = replayNormalizePromptData($data);
+        if ($type === 'resolve_prompt') {
+            $data = replayFillLiveSuccessOrder($state, $data);
+        }
+    }
+    if ($type === 'live_show_ack') {
+        $state = replayCatchUpLiveShowForAck($state, $data);
     }
     $lastError = null;
     for ($attempt = 0; $attempt < 3; $attempt++) {
@@ -1698,7 +1798,38 @@ function replayRestoreFromBaseline(
         $state['status'] = 'playing';
         unset($state['winner'], $state['end_reason'], $state['resigned_by']);
     }
+    replayHydrateCatalogCards($state);
     return $state;
+}
+
+/**
+ * Deck stubs in a replay baseline are `{instance_id, card_no}` only.
+ * Without catalog cost / Blade / type, seek misses hand filters (Chisato
+ * cost 10/20) and the Live never reaches Yell (#280).
+ */
+function replayHydrateCatalogCards(array &$state): void {
+    if (!function_exists('mergeCardCatalogFields')) {
+        return;
+    }
+    foreach (['p1', 'p2'] as $pid) {
+        if (!isset($state['players'][$pid]) || !is_array($state['players'][$pid])) {
+            continue;
+        }
+        replayHydrateCardTree($state['players'][$pid]);
+    }
+}
+
+function replayHydrateCardTree(array &$node): void {
+    if (isset($node['card_no']) && is_string($node['card_no']) && $node['card_no'] !== '') {
+        mergeCardCatalogFields($node);
+    }
+    foreach ($node as &$child) {
+        if (!is_array($child)) {
+            continue;
+        }
+        replayHydrateCardTree($child);
+    }
+    unset($child);
 }
 
 /**
