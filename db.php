@@ -471,6 +471,12 @@ function tcgDbMigrate(PDO $db): void {
         tcgSeasonEnsureSchema($db);
     });
 
+    // The Mandarake "Rubber Play Mat" and Bushiroad Vol.328 Nijigasaki mats were the same art; the
+    // duplicate entry is gone, so anyone who bought either keeps the surviving one.
+    tcgDbRunMigrationOnce($db, 'merge_playmat_md10736756_20261020', function (PDO $db): void {
+        tcgDbMergePlaymatId($db, 'md-10736756', 'br-rmv2-328');
+    });
+
     tcgDbRunMigrationOnce($db, 'grant_ms_yell_20_issue209_kyra_20260929', function (PDO $db): void {
         $kyraDiscordId = '940179345845145660';
         $check = $db->prepare('SELECT 1 FROM tcg_users WHERE discord_id = ? LIMIT 1');
@@ -842,6 +848,23 @@ function tcgDbMigrateGameModeRank(PDO $db): void {
             SELECT discord_id, \'standard\', rating, joined_at FROM tcg_match_queue');
         $db->exec('DROP TABLE tcg_match_queue');
         $db->exec('ALTER TABLE tcg_match_queue_gm RENAME TO tcg_match_queue');
+    }
+}
+
+/** Move ownership and equipped-preset references from a retired playmat id to its replacement. */
+function tcgDbMergePlaymatId(PDO $db, string $from, string $to): void {
+    $db->prepare('INSERT OR IGNORE INTO tcg_owned_playmats (discord_id, playmat_id, acquired_at, source)
+        SELECT discord_id, ?, acquired_at, source FROM tcg_owned_playmats WHERE playmat_id = ?')
+        ->execute([$to, $from]);
+    // Owners of both keep the earlier acquisition time.
+    $db->prepare('UPDATE tcg_owned_playmats SET acquired_at = MIN(acquired_at, COALESCE(
+            (SELECT o.acquired_at FROM tcg_owned_playmats o
+              WHERE o.discord_id = tcg_owned_playmats.discord_id AND o.playmat_id = ?), acquired_at))
+        WHERE playmat_id = ?')
+        ->execute([$from, $to]);
+    $db->prepare('DELETE FROM tcg_owned_playmats WHERE playmat_id = ?')->execute([$from]);
+    foreach (['tcg_deck_presets', 'tcg_experiment_presets'] as $table) {
+        $db->prepare("UPDATE $table SET playmat_id = ? WHERE playmat_id = ?")->execute([$to, $from]);
     }
 }
 

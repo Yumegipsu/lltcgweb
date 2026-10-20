@@ -3,6 +3,13 @@
  * Playmat ids stored on deck presets / match seats.
  * Catalog: playmats_catalog.json; server sanitizes id + brightness.
  */
+/** Retired playmat ids → the entry that replaced them (same art; ownership is merged by a db.php migration). */
+if (!defined('TCG_PLAYMAT_ID_ALIASES')) {
+    define('TCG_PLAYMAT_ID_ALIASES', [
+        'md-10736756' => 'br-rmv2-328',
+    ]);
+}
+
 if (!function_exists('tcgNormalizePlaymatId')) {
     function tcgNormalizePlaymatId(mixed $raw): string {
         $id = strtolower(trim((string)$raw));
@@ -12,7 +19,7 @@ if (!function_exists('tcgNormalizePlaymatId')) {
         if (!preg_match('/^[a-z0-9][a-z0-9._-]{0,63}$/', $id)) {
             return '';
         }
-        return $id;
+        return TCG_PLAYMAT_ID_ALIASES[$id] ?? $id;
     }
 }
 

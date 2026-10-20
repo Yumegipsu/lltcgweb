@@ -1143,7 +1143,7 @@
     },
     {
       "id": "br-rmv2-328",
-      "name": "Vol.328 『ラブライブ！虹ヶ咲学園スクールアイドル同好会』",
+      "name": "Love Live! Nijigasaki High School School Idol Club Rubber Play Mat",
       "group": "Nijigasaki",
       "idol": "Group",
       "vol": 328,
@@ -2028,17 +2028,6 @@
       "line": "mandarake_1999",
       "listing_url": "https://www.1999.co.jp/eng/10608555",
       "src": "assets/playmats/md-10608555.webp",
-      "added_at": "2026-08-26"
-    },
-    {
-      "id": "md-10736756",
-      "name": "Love Live! Nijigasaki High School School Idol Club Rubber Play Mat",
-      "group": "Nijigasaki",
-      "idol": "Group",
-      "vol": null,
-      "line": "mandarake_1999",
-      "listing_url": "https://www.1999.co.jp/eng/10736756",
-      "src": "assets/playmats/md-10736756.webp",
       "added_at": "2026-08-26"
     },
     {
