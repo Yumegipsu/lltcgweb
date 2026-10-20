@@ -58,4 +58,77 @@ final class ScoutingTicketsTest extends TestCase
         $this->assertSame(['amount' => 3], $payload);
         $this->assertSame('scouting_ticket', tcgEventsNormalizeRewardType('scouting_ticket'));
     }
+
+    public function testTierTicketsAreSeparateCountersAndDeductOne(): void
+    {
+        $this->assertSame(['sr' => 0, 'ur' => 0], tcgGetScoutingTierTicketCounts($this->discordId));
+        tcgAddScoutingTierTickets($this->discordId, 'sr', 3);
+        tcgAddScoutingTierTickets($this->discordId, 'ur', 1);
+        tcgAddScoutingTickets($this->discordId, 4);
+        $this->assertSame(['sr' => 3, 'ur' => 1], tcgGetScoutingTierTicketCounts($this->discordId));
+        $this->assertSame(4, tcgGetScoutingTickets($this->discordId));
+
+        tcgDeductScoutingTierTickets($this->discordId, 'sr', TCG_GACHA_TIER_TICKET_COST);
+        $this->assertSame(['sr' => 2, 'ur' => 1], tcgGetScoutingTierTicketCounts($this->discordId));
+        $this->assertSame(4, tcgGetScoutingTickets($this->discordId));
+    }
+
+    public function testTierTicketCannotOverspend(): void
+    {
+        tcgAddScoutingTierTickets($this->discordId, 'ur', 1);
+        $this->expectException(\Exception::class);
+        try {
+            tcgDeductScoutingTierTickets($this->discordId, 'sr', 1);
+        } finally {
+            $this->assertSame(1, tcgGetScoutingTierTickets($this->discordId, 'ur'));
+        }
+    }
+
+    public function testInvalidTierRejected(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        tcgGetScoutingTierTickets($this->discordId, 'n');
+    }
+
+    public function testEventRewardGrantsTierTickets(): void
+    {
+        tcgEventsGrantReward($this->discordId, 'scouting_ticket_sr', ['amount' => 2]);
+        tcgEventsGrantReward($this->discordId, 'scouting_ticket_ur', ['amount' => 5]);
+        $this->assertSame(['sr' => 2, 'ur' => 5], tcgGetScoutingTierTicketCounts($this->discordId));
+        $this->assertSame(0, tcgGetScoutingTickets($this->discordId));
+        $this->assertSame(['amount' => 4], tcgEventsNormalizeRewardPayload('scouting_ticket_ur', ['amount' => 4]));
+        $this->assertSame('scouting_ticket_sr', tcgEventsNormalizeRewardType('scouting_ticket_sr'));
+    }
+
+    public function testTierTicketCurrencyParsing(): void
+    {
+        $this->assertSame('sr', tcgGachaTierTicketFromCurrency('ticket_sr'));
+        $this->assertSame('ur', tcgGachaTierTicketFromCurrency('ticket_ur'));
+        $this->assertNull(tcgGachaTierTicketFromCurrency('tickets'));
+        $this->assertNull(tcgGachaTierTicketFromCurrency('star_gems'));
+    }
+
+    public function testSrTicketGuaranteesSrOrBetter(): void
+    {
+        $cards = tcgLoadCardsData();
+        $map = tcgBuildCardMap($cards);
+        for ($i = 0; $i < 300; $i++) {
+            $rolled = tcgGachaRollTierTicketPull('sr', $cards, $map);
+            $this->assertCount(1, $rolled);
+            $this->assertContains($rolled[0]['tier'], ['sr', 'ur']);
+            $this->assertNotSame('n', tcgGachaTierForRarity($rolled[0]['rarity']));
+        }
+    }
+
+    public function testUrTicketAlwaysRollsTopTier(): void
+    {
+        $cards = tcgLoadCardsData();
+        $map = tcgBuildCardMap($cards);
+        for ($i = 0; $i < 300; $i++) {
+            $rolled = tcgGachaRollTierTicketPull('ur', $cards, $map);
+            $this->assertCount(1, $rolled);
+            $this->assertSame('ur', $rolled[0]['tier']);
+            $this->assertSame('ur', tcgGachaTierForRarity($rolled[0]['rarity']));
+        }
+    }
 }

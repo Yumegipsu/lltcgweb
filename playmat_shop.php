@@ -115,4 +115,13 @@ function tcgGrantOwnedPlaymat(string $discordId, string $playmatId, string $sour
     $db->prepare('INSERT OR IGNORE INTO tcg_owned_playmats (discord_id, playmat_id, acquired_at, source)
         VALUES (?, ?, ?, ?)')
         ->execute([$discordId, $playmatId, time(), $source]);
+    // "Own 10 playmats" milestone — however the playmat was obtained.
+    try {
+        if (!function_exists('tcgMissionCheckOwnedCosmetics')) {
+            require_once __DIR__ . '/missions.php';
+        }
+        tcgMissionCheckOwnedCosmetics($discordId);
+    } catch (Throwable $e) {
+        // ignore
+    }
 }

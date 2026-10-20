@@ -1,5 +1,5 @@
 /**
- * Star Gem missions — daily tasks and milestones (signed-in accounts).
+ * Missions — daily / weekly / monthly tasks and milestones (signed-in accounts).
  */
 (function (global) {
   'use strict';
@@ -73,6 +73,54 @@
       + 'px;object-fit:contain;display:block">';
   }
 
+  const MISSION_TABS = ['daily', 'weekly', 'monthly', 'milestone'];
+  const TICKET_ICONS = {
+    tickets: 'assets/Scout_Ticket.webp',
+    ticket_sr: 'assets/Scout_Ticket_SR.webp',
+    ticket_ur: 'assets/Scout_Ticket_UR.webp',
+  };
+
+  function fmtN(n) {
+    return Number(n || 0).toLocaleString();
+  }
+
+  /** Plain-text name of one reward item (tooltips, toasts) in the active locale. */
+  function rewardItemLabel(item) {
+    const n = fmtN(item.amount);
+    switch (item.type) {
+      case 'gems': return t('missions.rewardGems', { n });
+      case 'coins': return t('missions.rewardCoins', { n });
+      case 'tickets': return t('missions.rewardTickets', { n });
+      case 'ticket_sr': return t('missions.rewardTicketSr', { n });
+      case 'ticket_ur': return t('missions.rewardTicketUr', { n });
+      case 'seal': return t('missions.rewardSeal', { tier: String(item.tier || 'N').toUpperCase(), n });
+      default: return '';
+    }
+  }
+
+  function rewardItemHtml(item) {
+    const label = rewardItemLabel(item).replace(/"/g, '&quot;');
+    const n = fmtN(item.amount);
+    let inner;
+    if (item.type === 'gems') {
+      inner = '+' + n + ' <span class="star-gem-inline">' + starGemIconHtml(16) + '</span>';
+    } else if (item.type === 'coins') {
+      inner = '+' + n + ' <span class="star-gem-inline">' + coinIconHtml(16) + '</span>';
+    } else if (item.type === 'seal' && typeof global.sealIconHtml === 'function') {
+      inner = '×' + n + ' ' + global.sealIconHtml(item.tier, 16);
+    } else if (TICKET_ICONS[item.type]) {
+      inner = '×' + n + ' <img src="' + TICKET_ICONS[item.type]
+        + '" alt="" aria-hidden="true" width="16" height="16" style="width:16px;height:16px;object-fit:contain">';
+    } else {
+      inner = label;
+    }
+    return '<span class="missions-reward-item" title="' + label + '" aria-label="' + label + '">' + inner + '</span>';
+  }
+
+  function rewardsHtml(rewards) {
+    return rewards.map(rewardItemHtml).join('<span class="missions-reward-sep">·</span>');
+  }
+
   function overlayEl() {
     return el('overlay-missions');
   }
@@ -128,6 +176,14 @@
   }
 
   function rewardSubHtml(m) {
+    if (Array.isArray(m.rewards) && m.rewards.length) {
+      let progressBit = '';
+      if (m.threshold != null && m.status !== 'claimed') {
+        const cur = Number(m.progress != null ? m.progress : 0);
+        progressBit = ' · ' + cur.toLocaleString() + ' / ' + Number(m.threshold).toLocaleString();
+      }
+      return rewardsHtml(m.rewards) + progressBit + ' · ' + missionStatusLabel(m.status);
+    }
     if (m.reward_type === 'starter_choice') {
       const available = Number(m.available_starter_count || 0);
       let rewardBit;
@@ -342,6 +398,9 @@
     if (res.pr_pack && typeof global.queueRankedPrReward === 'function') {
       global.queueRankedPrReward(res.pr_pack);
     }
+    if (res.seals && typeof global.syncSealsFromPayload === 'function') {
+      global.syncSealsFromPayload({ seals: res.seals });
+    }
     syncHubBadge(res.claimable_count ?? 0);
     await loadMissions();
     if (typeof global.toastSuccess === 'function') {
@@ -351,6 +410,11 @@
           title,
           deck: res.starter_granted.label,
         }), 3200);
+      } else if (Array.isArray(res.rewards) && res.rewards.length) {
+        global.toastSuccess(t('missions.claimedRewardsToast', {
+          title,
+          rewards: res.rewards.map(rewardItemLabel).filter(Boolean).join(' · '),
+        }), 3600);
       } else if ((res.mission?.reward_type || res.reward_type) === 'free_sleeve') {
         global.toastSuccess(t('missions.claimedFreeSleeveToast', { title })
           || ('Claimed ' + title + ' — free sleeve unlocked'), 3200);
@@ -381,10 +445,21 @@
     }
   }
 
+  function syncResetNote() {
+    const note = el('missions-reset-note');
+    if (!note) return;
+    const key = state.tab === 'weekly' ? 'missions.resetWeekly'
+      : state.tab === 'monthly' ? 'missions.resetMonthly' : '';
+    note.hidden = !key;
+    note.textContent = key ? t(key) : '';
+  }
+
   function setTab(tab) {
-    state.tab = tab === 'milestone' ? 'milestone' : 'daily';
-    el('btn-missions-tab-daily')?.classList.toggle('active', state.tab === 'daily');
-    el('btn-missions-tab-milestone')?.classList.toggle('active', state.tab === 'milestone');
+    state.tab = MISSION_TABS.includes(tab) ? tab : 'daily';
+    MISSION_TABS.forEach((name) => {
+      el('btn-missions-tab-' + name)?.classList.toggle('active', state.tab === name);
+    });
+    syncResetNote();
     el('missions-scroll')?.scrollTo(0, 0);
     renderList();
   }
@@ -481,8 +556,9 @@
     document.body.dataset.missionsBound = '1';
     el('hub-missions')?.addEventListener('click', () => openMissionsModal());
     el('btn-missions-close')?.addEventListener('click', () => closeMissionsModal());
-    el('btn-missions-tab-daily')?.addEventListener('click', () => setTab('daily'));
-    el('btn-missions-tab-milestone')?.addEventListener('click', () => setTab('milestone'));
+    MISSION_TABS.forEach((name) => {
+      el('btn-missions-tab-' + name)?.addEventListener('click', () => setTab(name));
+    });
     overlayEl()?.addEventListener('click', (ev) => {
       if (ev.target === overlayEl()) closeMissionsModal();
     });
@@ -495,7 +571,13 @@
     });
     if (global.LLTCG_I18N && typeof global.LLTCG_I18N.onLocaleChange === 'function') {
       global.LLTCG_I18N.onLocaleChange(() => {
-        if (overlayEl()?.classList.contains('open')) renderList();
+        if (overlayEl()?.classList.contains('open')) {
+          if (global.LLTCG_I18N && typeof global.LLTCG_I18N.applyI18n === 'function') {
+            global.LLTCG_I18N.applyI18n(overlayEl());
+          }
+          syncResetNote();
+          renderList();
+        }
       });
     }
   }

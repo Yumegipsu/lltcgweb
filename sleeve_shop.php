@@ -180,6 +180,15 @@ function tcgGrantOwnedSleeve(string $discordId, string $sleeveId, string $source
     $db->prepare('INSERT OR IGNORE INTO tcg_owned_sleeves (discord_id, sleeve_id, acquired_at, source, equip_intro_seen)
         VALUES (?, ?, ?, ?, 0)')
         ->execute([$discordId, $sleeveId, time(), $source]);
+    // "Own 10 sleeves" milestone — however the sleeve was obtained.
+    try {
+        if (!function_exists('tcgMissionCheckOwnedCosmetics')) {
+            require_once __DIR__ . '/missions.php';
+        }
+        tcgMissionCheckOwnedCosmetics($discordId);
+    } catch (Throwable $e) {
+        // ignore
+    }
 }
 
 function tcgSleeveEquipIntroSeen(string $discordId, string $sleeveId): bool {
@@ -237,6 +246,15 @@ function tcgTouchLoginDays(string $discordId): int {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$row) {
         return 0;
+    }
+    // Weekly "log in 7 days": remember every distinct JST day (best effort, never blocks login).
+    try {
+        if (!function_exists('tcgMissionOnLoginDay')) {
+            require_once __DIR__ . '/missions.php';
+        }
+        tcgMissionOnLoginDay($discordId);
+    } catch (Throwable $e) {
+        // ignore
     }
     $days = max(0, intval($row['login_days'] ?? 0));
     $last = isset($row['login_days_last_date']) && $row['login_days_last_date'] !== ''

@@ -9,7 +9,7 @@ require_once __DIR__ . '/coins.php';
 /** Hub Events tab gate — flip to true when player UI should open. */
 const TCG_EVENTS_HUB_ENABLED = false;
 
-const TCG_EVENT_REWARD_TYPES = ['coins', 'star_gems', 'scouting_ticket', 'card', 'sleeve', 'playmat'];
+const TCG_EVENT_REWARD_TYPES = ['coins', 'star_gems', 'scouting_ticket', 'scouting_ticket_sr', 'scouting_ticket_ur', 'card', 'sleeve', 'playmat'];
 
 function tcgEventsEnsureSchema(?PDO $db = null): void {
     $db = $db ?? tcgDb();
@@ -142,6 +142,8 @@ function tcgEventsNormalizeRewardPayload(string $type, array $payload): array {
         case 'coins':
         case 'star_gems':
         case 'scouting_ticket':
+        case 'scouting_ticket_sr':
+        case 'scouting_ticket_ur':
             $amount = max(1, intval($payload['amount'] ?? 0));
             return ['amount' => $amount];
         case 'card':
@@ -179,6 +181,12 @@ function tcgEventsGrantReward(string $discordId, string $type, array $payload): 
             break;
         case 'scouting_ticket':
             tcgAddScoutingTickets($discordId, max(1, intval($payload['amount'] ?? 0)));
+            break;
+        case 'scouting_ticket_sr':
+            tcgAddScoutingTierTickets($discordId, 'sr', max(1, intval($payload['amount'] ?? 0)));
+            break;
+        case 'scouting_ticket_ur':
+            tcgAddScoutingTierTickets($discordId, 'ur', max(1, intval($payload['amount'] ?? 0)));
             break;
         case 'card':
             $cardNo = (string)($payload['card_no'] ?? '');

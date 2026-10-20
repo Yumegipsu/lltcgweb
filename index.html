@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=179">
+<link rel="stylesheet" href="client/css/shell-all.css?v=180">
 <link rel="stylesheet" href="client/css/season-rank.css?v=11">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -1143,6 +1143,14 @@ try {
           <img src="assets/Scout_Ticket.webp" alt="" width="22" height="22" aria-hidden="true">
           <b id="gacha-tickets">0</b>
         </div>
+        <div class="hub-coins-pill sticker-seals-bar gacha-tickets-bar" id="gacha-sr-tickets-bar" hidden data-i18n-aria-label="gacha.srTicketsAria" aria-label="SR Scouting Tickets">
+          <img src="assets/Scout_Ticket_SR.webp" alt="" width="22" height="22" aria-hidden="true">
+          <b id="gacha-sr-tickets">0</b>
+        </div>
+        <div class="hub-coins-pill sticker-seals-bar gacha-tickets-bar" id="gacha-ur-tickets-bar" hidden data-i18n-aria-label="gacha.urTicketsAria" aria-label="UR Scouting Tickets">
+          <img src="assets/Scout_Ticket_UR.webp" alt="" width="22" height="22" aria-hidden="true">
+          <b id="gacha-ur-tickets">0</b>
+        </div>
       </div>
       <div class="gacha-banners" id="gacha-banners" role="radiogroup" data-i18n-aria-label="gacha.bannersAria" aria-label="Gacha banners">
       <div class="gacha-banner is-selected" id="gacha-banner" data-banner-id="standard" role="radio" aria-checked="true" tabindex="0" aria-label="Standard Gacha">
@@ -1175,6 +1183,17 @@ try {
           <img src="assets/Scout_Ticket.webp" alt="" width="18" height="18" aria-hidden="true">
           <span data-i18n="gacha.useTickets">Use Scouting Tickets</span>
         </button>
+      </div>
+      <div class="gacha-actions gacha-actions--tickets" id="gacha-tier-ticket-actions" hidden>
+        <button class="btn-out gacha-btn-ticket" id="btn-gacha-use-sr-ticket" type="button" hidden>
+          <img src="assets/Scout_Ticket_SR.webp" alt="" width="18" height="18" aria-hidden="true">
+          <span>Scout with SR Ticket</span>
+        </button>
+        <button class="btn-out gacha-btn-ticket" id="btn-gacha-use-ur-ticket" type="button" hidden>
+          <img src="assets/Scout_Ticket_UR.webp" alt="" width="18" height="18" aria-hidden="true">
+          <span>Scout with UR Ticket</span>
+        </button>
+        <p class="hub-stat gacha-tier-ticket-note" id="gacha-tier-ticket-note" hidden data-i18n="gacha.tierTicketStandardOnly">SR and UR Tickets can only be used on the Standard Gacha.</p>
       </div>
       <div class="gacha-sim-panel" id="gacha-sim-panel" hidden>
         <div class="gacha-sim-banner" role="group" aria-label="Admin pull simulation">
@@ -2365,8 +2384,11 @@ try {
       </div>
       <div class="missions-tab-bar">
         <button type="button" class="missions-tab active" id="btn-missions-tab-daily" data-i18n="missions.tabDaily">Daily</button>
+        <button type="button" class="missions-tab" id="btn-missions-tab-weekly" data-i18n="missions.tabWeekly">Weekly</button>
+        <button type="button" class="missions-tab" id="btn-missions-tab-monthly" data-i18n="missions.tabMonthly">Monthly</button>
         <button type="button" class="missions-tab" id="btn-missions-tab-milestone" data-i18n="missions.tabMilestone">Milestones</button>
       </div>
+      <p class="missions-reset-note" id="missions-reset-note" hidden></p>
       <div class="missions-scroll" id="missions-scroll">
         <div class="llc-menu-list" id="missions-list"></div>
         <p class="lerr" id="missions-err"></p>
@@ -3296,7 +3318,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=231"></script>
+<script src="i18n.js?v=232"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=46"></script>
@@ -3324,7 +3346,7 @@ try {
 <script src="client/js/gacha-spotlight.js?v=17"></script>
 <script src="client/js/gacha.js?v=24"></script>
 <script src="client/js/ranked-pr-reward.js?v=8"></script>
-<script src="client/js/missions.js?v=14"></script>
+<script src="client/js/missions.js?v=15"></script>
 <script src="client/js/admin-events.js?v=2"></script>
 <script src="client/js/login-bonus.js?v=3"></script>
 <script src="client/js/discord-presence.js?v=12"></script>

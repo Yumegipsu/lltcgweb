@@ -14,6 +14,8 @@ const TCG_GACHA_MULTI_COUNT = 11;
 const TCG_GACHA_TICKET_SINGLE_COST = 1;
 const TCG_GACHA_TICKET_MULTI_COST = 10;
 const TCG_GACHA_TICKET_MULTI_COUNT = 10;
+/** SR / UR tickets: one pull each, standard banner only, never mixed with other tickets. */
+const TCG_GACHA_TIER_TICKET_COST = 1;
 
 /**
  * Preview allowlist for general gacha. Empty = open to everyone.
@@ -357,6 +359,33 @@ function tcgGachaRollPulls(int $count, array $cardsData, array $cardMap, ?array 
         tcgGachaEnsureMultiSrPlus($out, $pools, $cardMap);
     }
     return $out;
+}
+
+/**
+ * Single pull from an SR (SR+ guaranteed, same SR/UR split as the 10+1 guarantee) or UR (rainbow
+ * tier: SEC / SECL / SECE / SECS / SEC+ / LLE) ticket.
+ *
+ * @return list<array{card_no:string,tier:string,rarity:string}>
+ */
+function tcgGachaRollTierTicketPull(string $ticketTier, array $cardsData, array $cardMap, ?array $pools = null): array {
+    $pools = $pools ?? tcgGachaBuildPools($cardsData);
+    $tier = strtolower($ticketTier) === 'ur' ? 'ur' : tcgGachaPickSrPlusTier();
+    $no = tcgGachaPickCardNo($pools, $tier);
+    $card = $cardMap[$no] ?? null;
+    return [[
+        'card_no' => $no,
+        'tier' => $tier,
+        'rarity' => is_array($card) ? tcgNormalizePoolRarity((string)($card['rarity'] ?? 'N'), $no) : 'N',
+    ]];
+}
+
+/** Ticket tier ('sr'|'ur') for a pay-with value, or null if it is not an SR/UR ticket. */
+function tcgGachaTierTicketFromCurrency(string $payWith): ?string {
+    return match ($payWith) {
+        'ticket_sr', 'sr_ticket', 'scouting_ticket_sr' => 'sr',
+        'ticket_ur', 'ur_ticket', 'scouting_ticket_ur' => 'ur',
+        default => null,
+    };
 }
 
 /**
@@ -736,6 +765,8 @@ function tcgApiGachaInfo(array $body): array {
         'locked' => !$unlocked,
         'star_gems' => tcgGetStarGems($uid),
         'scouting_tickets' => tcgGetScoutingTickets($uid),
+        'scouting_tickets_sr' => tcgGetScoutingTierTickets($uid, 'sr'),
+        'scouting_tickets_ur' => tcgGetScoutingTierTickets($uid, 'ur'),
         'single_cost' => TCG_GACHA_SINGLE_COST,
         'multi_cost' => TCG_GACHA_MULTI_COST,
         'multi_count' => TCG_GACHA_MULTI_COUNT,
@@ -779,12 +810,27 @@ function tcgApiOpenGacha(array $body): array {
         throw new Exception('Choose a starter deck first', 400);
     }
     $payWith = strtolower(trim((string)($body['currency'] ?? $body['pay_with'] ?? 'star_gems')));
-    $useTickets = in_array($payWith, ['ticket', 'tickets', 'scouting_ticket', 'scouting_tickets'], true);
+    $tierTicket = tcgGachaTierTicketFromCurrency($payWith);
+    $useTickets = $tierTicket === null
+        && in_array($payWith, ['ticket', 'tickets', 'scouting_ticket', 'scouting_tickets'], true);
     $mode = trim(strtolower((string)($body['mode'] ?? $body['pull'] ?? 'single')));
     $wantMulti = in_array($mode, ['multi', '10', '10+1', 'eleven', 'x11', 'x10'], true)
         || intval($body['count'] ?? 0) === TCG_GACHA_MULTI_COUNT
         || intval($body['count'] ?? 0) === TCG_GACHA_TICKET_MULTI_COUNT;
-    if ($useTickets) {
+    if ($tierTicket !== null) {
+        // SR / UR ticket: exactly one pull on the standard banner; cannot be combined with other tickets.
+        $bannerReq = trim((string)($body['banner'] ?? 'standard'));
+        if ($bannerReq !== '' && $bannerReq !== 'standard') {
+            throw new Exception('SR and UR Tickets can only be used on the Standard Gacha', 400);
+        }
+        $count = 1;
+        $cost = TCG_GACHA_TIER_TICKET_COST;
+        $mode = 'single';
+        $have = tcgGetScoutingTierTickets($uid, $tierTicket);
+        if ($have < $cost) {
+            throw new Exception('Not enough ' . strtoupper($tierTicket) . ' Scouting Tickets', 400);
+        }
+    } elseif ($useTickets) {
         // 1 ticket = 1 pull. Prefer explicit count from the ticket picker.
         $reqCount = intval($body['count'] ?? $body['tickets'] ?? 0);
         if ($reqCount > 0) {
@@ -823,9 +869,13 @@ function tcgApiOpenGacha(array $body): array {
     $cardMap = tcgBuildCardMap($cards);
     // Validate the banner BEFORE spending anything (an expired birthday banner must not charge).
     [$bannerPools, $activeBanner] = tcgGachaResolveBanner($cards, (string)($body['banner'] ?? 'standard'));
-    $rolled = tcgGachaRollPulls($count, $cards, $cardMap, $bannerPools);
+    $rolled = $tierTicket !== null
+        ? tcgGachaRollTierTicketPull($tierTicket, $cards, $cardMap)
+        : tcgGachaRollPulls($count, $cards, $cardMap, $bannerPools);
     $nos = array_map(static fn ($r) => $r['card_no'], $rolled);
-    if ($useTickets) {
+    if ($tierTicket !== null) {
+        tcgDeductScoutingTierTickets($uid, $tierTicket, $cost);
+    } elseif ($useTickets) {
         tcgDeductScoutingTickets($uid, $cost);
     } else {
         tcgDeductStarGems($uid, $cost);
@@ -853,10 +903,22 @@ function tcgApiOpenGacha(array $body): array {
         require_once __DIR__ . '/missions.php';
         $completions = tcgMissionCheckCollectionThresholds($uid);
     }
+    // Gacha Scouting milestones: every scouting action counts once (a 10+1 is one scout).
+    try {
+        require_once __DIR__ . '/missions.php';
+        $completions = tcgMissionMergeCompletions(
+            $completions,
+            tcgMissionOnGachaScout($uid, $activeBanner !== null && (($activeBanner['type'] ?? '') === 'birthday'))
+        );
+    } catch (Throwable $e) {
+        tcgMissionLogFailure('gacha scout', $e);
+    }
     $payload = [
         'success' => true,
         'mode' => $mode,
-        'currency' => $useTickets ? 'scouting_tickets' : 'star_gems',
+        'currency' => $tierTicket !== null
+            ? 'scouting_ticket_' . $tierTicket
+            : ($useTickets ? 'scouting_tickets' : 'star_gems'),
         'cost' => $cost,
         'count' => $count,
         'pulls' => $pulls,
@@ -867,6 +929,8 @@ function tcgApiOpenGacha(array $body): array {
         'seals_earned' => $applied['seals_earned'] ?? [],
         'seals' => $applied['seals'] ?? null,
         'scouting_tickets' => tcgGetScoutingTickets($uid),
+        'scouting_tickets_sr' => tcgGetScoutingTierTickets($uid, 'sr'),
+        'scouting_tickets_ur' => tcgGetScoutingTierTickets($uid, 'ur'),
     ];
     if (function_exists('tcgMissionAttachCompletions')) {
         return tcgMissionAttachCompletions($payload, $completions);

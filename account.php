@@ -275,6 +275,8 @@ function tcgApiMe(array $body): array {
         'ranked_pr' => $rankedPr,
         'star_gems' => tcgGetStarGems($uid),
         'scouting_tickets' => tcgGetScoutingTickets($uid),
+        'scouting_tickets_sr' => tcgGetScoutingTierTickets($uid, 'sr'),
+        'scouting_tickets_ur' => tcgGetScoutingTierTickets($uid, 'ur'),
         'coins' => tcgGetCoins($uid),
         'login_days' => $loginDays,
         'free_sleeve_claims' => tcgGetFreeSleeveClaims($uid),
@@ -490,7 +492,7 @@ function tcgApiStickerBuy(array $body): array {
     $cardMap = tcgBuildCardMap($cardsData);
     $result = tcgStickerBuyCard($uid, $cardNo, $cardMap, $cardsData, $productId !== '' ? $productId : null);
     require_once __DIR__ . '/missions.php';
-    $completions = tcgMissionCheckStickerExchangeThresholds($uid);
+    $completions = tcgMissionOnStickerExchange($uid);
     return tcgMissionAttachCompletions($result, $completions);
 }
 
@@ -517,6 +519,8 @@ function tcgApiDailyStatus(array $body): array {
         'ranked_pr' => tcgRankedPrDailyAllowance($uid),
         'star_gems' => tcgGetStarGems($uid),
         'scouting_tickets' => tcgGetScoutingTickets($uid),
+        'scouting_tickets_sr' => tcgGetScoutingTierTickets($uid, 'sr'),
+        'scouting_tickets_ur' => tcgGetScoutingTierTickets($uid, 'ur'),
         'star_gems_per_card' => TCG_STAR_GEMS_PER_CARD,
         'star_gems_pack_cost' => TCG_STAR_GEMS_PACK_COST,
         'star_gems_box_cost' => TCG_STAR_GEMS_BOX_COST,
@@ -3139,13 +3143,20 @@ function tcgApiSleeveBuy(array $body): array {
     }
     tcgDeductCoins($uid, TCG_SLEEVE_SHOP_PRICE);
     tcgGrantOwnedSleeve($uid, $sleeveId, 'shop');
-    return [
+    require_once __DIR__ . '/missions.php';
+    $completions = [];
+    try {
+        $completions = tcgMissionOnShopPurchase($uid);
+    } catch (Throwable $e) {
+        tcgMissionLogFailure('shop purchase', $e);
+    }
+    return tcgMissionAttachCompletions([
         'success' => true,
         'sleeve_id' => $sleeveId,
         'coins' => tcgGetCoins($uid),
         'owned_sleeves' => tcgOwnedSleeveIds($uid),
         'free_sleeve_claims' => tcgGetFreeSleeveClaims($uid),
-    ];
+    ], $completions);
 }
 
 function tcgApiSleeveClaimFree(array $body): array {
@@ -3337,12 +3348,19 @@ function tcgApiPlaymatBuy(array $body): array {
     }
     tcgDeductCoins($uid, TCG_PLAYMAT_SHOP_PRICE);
     tcgGrantOwnedPlaymat($uid, $playmatId, 'shop');
-    return [
+    require_once __DIR__ . '/missions.php';
+    $completions = [];
+    try {
+        $completions = tcgMissionOnShopPurchase($uid);
+    } catch (Throwable $e) {
+        tcgMissionLogFailure('shop purchase', $e);
+    }
+    return tcgMissionAttachCompletions([
         'success' => true,
         'playmat_id' => $playmatId,
         'coins' => tcgGetCoins($uid),
         'owned_playmats' => tcgOwnedPlaymatIds($uid),
-    ];
+    ], $completions);
 }
 
 /**

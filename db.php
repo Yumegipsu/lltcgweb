@@ -229,6 +229,29 @@ function tcgDbMigrate(PDO $db): void {
         tcgDbMigrateDupeRewardColumn($db);
     });
 
+    // Weekly / monthly missions. Production never re-runs tcgDbMigrateBootstrap, so the new
+    // tables must be created here (tcgDbRunMigrationOnce) or the mission list 500s.
+    tcgDbRunMigrationOnce($db, 'weekly_monthly_missions_20261020', function (PDO $db): void {
+        $db->exec('CREATE TABLE IF NOT EXISTS tcg_mission_counters (
+            discord_id TEXT NOT NULL,
+            counter_key TEXT NOT NULL,
+            period_key TEXT NOT NULL DEFAULT "",
+            count INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY (discord_id, counter_key, period_key)
+        )');
+        $db->exec('CREATE TABLE IF NOT EXISTS tcg_mission_events (
+            discord_id TEXT NOT NULL,
+            event_key TEXT NOT NULL,
+            created_at INTEGER NOT NULL,
+            PRIMARY KEY (discord_id, event_key)
+        )');
+        $db->exec('CREATE TABLE IF NOT EXISTS tcg_login_days_log (
+            discord_id TEXT NOT NULL,
+            day TEXT NOT NULL,
+            PRIMARY KEY (discord_id, day)
+        )');
+    });
+
     // Per-mode ranked ELO + same-mode queues (Standard / Starters).
     tcgDbRunMigrationOnce($db, 'game_mode_rank_20260731', function (PDO $db): void {
         tcgDbMigrateGameModeRank($db);
@@ -438,6 +461,11 @@ function tcgDbMigrate(PDO $db): void {
         tcgDbEnsureColumn($db, 'tcg_users', 'scouting_tickets', 'INTEGER NOT NULL DEFAULT 0');
     });
 
+    tcgDbRunMigrationOnce($db, 'scouting_tickets_sr_ur_20261020', function (PDO $db): void {
+        tcgDbEnsureColumn($db, 'tcg_users', 'scouting_tickets_sr', 'INTEGER NOT NULL DEFAULT 0');
+        tcgDbEnsureColumn($db, 'tcg_users', 'scouting_tickets_ur', 'INTEGER NOT NULL DEFAULT 0');
+    });
+
     tcgDbRunMigrationOnce($db, 'season_rank_20261001', function (PDO $db): void {
         require_once __DIR__ . '/season.php';
         tcgSeasonEnsureSchema($db);
@@ -630,6 +658,30 @@ function tcgDbMigrateBootstrap(PDO $db): void {
     $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_mission_progress_user
         ON tcg_mission_progress(discord_id)');
 
+    // Weekly / monthly / lifetime mission counters (period_key '' = lifetime).
+    $db->exec('CREATE TABLE IF NOT EXISTS tcg_mission_counters (
+        discord_id TEXT NOT NULL,
+        counter_key TEXT NOT NULL,
+        period_key TEXT NOT NULL DEFAULT "",
+        count INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (discord_id, counter_key, period_key)
+    )');
+
+    // One-shot markers so a retried match-finish hook never counts the same room twice.
+    $db->exec('CREATE TABLE IF NOT EXISTS tcg_mission_events (
+        discord_id TEXT NOT NULL,
+        event_key TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        PRIMARY KEY (discord_id, event_key)
+    )');
+
+    // Distinct JST login days (weekly "log in 7 days" mission).
+    $db->exec('CREATE TABLE IF NOT EXISTS tcg_login_days_log (
+        discord_id TEXT NOT NULL,
+        day TEXT NOT NULL,
+        PRIMARY KEY (discord_id, day)
+    )');
+
     $db->exec('CREATE TABLE IF NOT EXISTS tcg_starter_owned (
         discord_id TEXT NOT NULL,
         starter_key TEXT NOT NULL,
@@ -675,6 +727,8 @@ function tcgDbMigrateBootstrap(PDO $db): void {
     tcgDbEnsureColumn($db, 'tcg_users', 'ranked_starter_key', 'TEXT');
     tcgDbEnsureColumn($db, 'tcg_users', 'star_gems', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'scouting_tickets', 'INTEGER NOT NULL DEFAULT 0');
+    tcgDbEnsureColumn($db, 'tcg_users', 'scouting_tickets_sr', 'INTEGER NOT NULL DEFAULT 0');
+    tcgDbEnsureColumn($db, 'tcg_users', 'scouting_tickets_ur', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'dupe_gem_migration_done', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'unranked_games', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_users', 'sticker_exchanges', 'INTEGER NOT NULL DEFAULT 0');
@@ -1290,6 +1344,71 @@ function tcgDeductScoutingTickets(string $discordId, int $amount): int {
         }
         return tcgGetScoutingTickets($discordId);
     });
+}
+
+/** Guaranteed-rarity scouting tickets: 'sr' (SR+ pull) and 'ur' (UR pull). Standard gacha only. */
+function tcgScoutingTierTicketColumn(string $tier): string {
+    return match (strtolower($tier)) {
+        'sr' => 'scouting_tickets_sr',
+        'ur' => 'scouting_tickets_ur',
+        default => throw new InvalidArgumentException('Invalid ticket tier'),
+    };
+}
+
+function tcgGetScoutingTierTickets(string $discordId, string $tier): int {
+    $col = tcgScoutingTierTicketColumn($tier);
+    $stmt = tcgDb()->prepare("SELECT $col FROM tcg_users WHERE discord_id = ?");
+    $stmt->execute([$discordId]);
+    $val = $stmt->fetchColumn();
+    return $val === false ? 0 : max(0, intval($val));
+}
+
+function tcgAddScoutingTierTickets(string $discordId, string $tier, int $amount): int {
+    $col = tcgScoutingTierTicketColumn($tier);
+    if ($amount <= 0) {
+        return tcgGetScoutingTierTickets($discordId, $tier);
+    }
+    tcgDb()->prepare(
+        "UPDATE tcg_users SET $col = COALESCE($col, 0) + ?, updated_at = ? WHERE discord_id = ?"
+    )->execute([$amount, time(), $discordId]);
+    return tcgGetScoutingTierTickets($discordId, $tier);
+}
+
+function tcgDeductScoutingTierTickets(string $discordId, string $tier, int $amount): int {
+    $col = tcgScoutingTierTicketColumn($tier);
+    if ($amount <= 0) {
+        return tcgGetScoutingTierTickets($discordId, $tier);
+    }
+    return tcgDbRetry(function () use ($discordId, $tier, $col, $amount) {
+        $db = tcgDb();
+        $db->beginTransaction();
+        try {
+            $stmt = $db->prepare("SELECT $col FROM tcg_users WHERE discord_id = ?");
+            $stmt->execute([$discordId]);
+            $have = max(0, intval($stmt->fetchColumn() ?: 0));
+            if ($have < $amount) {
+                throw new Exception('Not enough ' . strtoupper($tier) . ' Scouting Tickets', 400);
+            }
+            $db->prepare(
+                "UPDATE tcg_users SET $col = $col - ?, updated_at = ? WHERE discord_id = ?"
+            )->execute([$amount, time(), $discordId]);
+            $db->commit();
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) {
+                $db->rollBack();
+            }
+            throw $e;
+        }
+        return tcgGetScoutingTierTickets($discordId, $tier);
+    });
+}
+
+/** @return array{sr:int,ur:int} */
+function tcgGetScoutingTierTicketCounts(string $discordId): array {
+    return [
+        'sr' => tcgGetScoutingTierTickets($discordId, 'sr'),
+        'ur' => tcgGetScoutingTierTickets($discordId, 'ur'),
+    ];
 }
 
 function tcgGetUnrankedGames(string $discordId): int {
