@@ -1542,6 +1542,56 @@
     tryFlushSpectacleRecovery();
   };
 
+  /**
+   * Safety net for a stuck post-judge hold. After a successful Live the board keeps the old Live
+   * storage on the mat (`_liveStorageOutcomePending` + `_livePostRevealBoard`) until the
+   * Live → Success flight hands off. If that hand-off never ran (flight superseded by the next
+   * state, a filtered race), the flag stayed set and the card graphic sat in Live storage next to
+   * the Success pile until the next round reset it. Only acts on a settled Main/Active board whose
+   * server Live zones are empty, with every presentation flag idle for a moment, so it can never
+   * cut a flight short.
+   */
+  const GHOST_IDLE_MS = 1500;
+  let ghostSince = 0;
+  function liveStorageGhostWatchTick() {
+    const G_ = global.G;
+    if (!G_ || (!G_._liveStorageOutcomePending && !G_._livePostRevealBoard)) { ghostSince = 0; return; }
+    const s = G_.gameState;
+    const ph = s?.phase;
+    const mainLike = ph === 'main_first' || ph === 'main_second' || ph === 'active_first' || ph === 'active_second';
+    const director = typeof global.LiveRoundDirector !== 'undefined' && global.LiveRoundDirector.active;
+    const busy = G_.animating || G_._perfSpectacleActive || G_._liveSpectacleGateRunning
+      || G_._liveRoundPlaybackActive || G_._liveWrDiscardInProgress || G_._livePollHold
+      || G_._liveShowRunnerActive || director || (G_._pendingStateQueue && G_._pendingStateQueue.length);
+    const liveLeft = ['p1', 'p2'].some((pid) => (s?.players?.[pid]?.live_zone || []).some(Boolean));
+    if (!s || s.status === 'finished' || !mainLike || s.pending_prompt || busy || liveLeft) { ghostSince = 0; return; }
+    const now = Date.now();
+    if (!ghostSince) { ghostSince = now; return; }
+    if (now - ghostSince < GHOST_IDLE_MS) return;
+    ghostSince = 0;
+    global.__liveStorageGhostFired = (global.__liveStorageGhostFired || 0) + 1;
+    TCG_DEBUG.warn('live', 'clearing stuck post-judge Live storage hold', { seq: s.seq, phase: ph });
+    try {
+      if (typeof global.commitLiveRoundAfterOutcomes === 'function') {
+        global.commitLiveRoundAfterOutcomes(s);
+      } else {
+        G_._liveStorageOutcomePending = false;
+        G_._livePostRevealBoard = null;
+      }
+      if (typeof global.syncLiveStorageSlotsFromState === 'function') {
+        global.syncLiveStorageSlotsFromState(G_.gameState || s, G_.playerId);
+      }
+    } catch (e) {
+      G_._liveStorageOutcomePending = false;
+      G_._livePostRevealBoard = null;
+      TCG_DEBUG.warn('live', 'stuck-hold cleanup failed', e);
+    }
+  }
+  if (!global.__liveStorageGhostWatch) {
+    global.__liveStorageGhostWatch = setInterval(liveStorageGhostWatchTick, 500);
+  }
+  global.liveStorageGhostWatchTick = liveStorageGhostWatchTick;
+
   const _origApplyStateUpdate = global.applyStateUpdate;
   if (typeof _origApplyStateUpdate === 'function' && !_origApplyStateUpdate.__stampsHooked) {
     const wrapped = async function applyStateUpdateWithStamps(s) {
