@@ -649,6 +649,15 @@
       "orientation": "portrait"
     },
     {
+      "id": "bday-ginko-2026",
+      "name": "Ginko Birthday Visual 2026",
+      "group": "Hasunosora",
+      "idol": "Ginko",
+      "src": "assets/sleeves/bday-ginko-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-10-20"
+    },
+    {
       "id": "br-hs-2000201700158",
       "name": "Reバース for you スリーブ&カード デラックスセット ラブライブ！蓮ノ空女学院スクールアイドルクラブ『百生 吟子』",
       "group": "Hasunosora",
