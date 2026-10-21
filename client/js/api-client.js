@@ -938,3 +938,26 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initApiErrorPopup);
   else initApiErrorPopup();
 })(window);
+
+/**
+ * A Discord avatar URL that 404s (the player changed or removed it since their last login) falls back to
+ * their Discord default avatar instead of a broken image. Capture phase: <img> errors do not bubble.
+ */
+(function () {
+  if (typeof document === 'undefined' || window.__avatarFallbackBound) return;
+  window.__avatarFallbackBound = true;
+  var RE = /^https:\/\/cdn\.discordapp\.com\/avatars\/(\d+)\//;
+  function defaultAvatar(id) {
+    var idx = 0;
+    try { idx = Number((BigInt(id) >> BigInt(22)) % BigInt(6)); } catch (e) { idx = 0; }
+    return 'https://cdn.discordapp.com/embed/avatars/' + idx + '.png';
+  }
+  document.addEventListener('error', function (ev) {
+    var img = ev.target;
+    if (!img || img.tagName !== 'IMG' || (img.dataset && img.dataset.avatarFallback === '1')) return;
+    var m = RE.exec(img.currentSrc || img.src || '');
+    if (!m) return;
+    if (img.dataset) img.dataset.avatarFallback = '1';
+    img.src = defaultAvatar(m[1]);
+  }, true);
+})();

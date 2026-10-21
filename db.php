@@ -471,6 +471,11 @@ function tcgDbMigrate(PDO $db): void {
         tcgSeasonEnsureSchema($db);
     });
 
+    // Last time the player's current Discord avatar was re-read from Discord (tcgFreshenDiscordAvatar).
+    tcgDbRunMigrationOnce($db, 'avatar_checked_at_20261021', function (PDO $db): void {
+        tcgDbEnsureColumn($db, 'tcg_users', 'avatar_checked_at', 'INTEGER NOT NULL DEFAULT 0');
+    });
+
     // The Mandarake "Rubber Play Mat" and Bushiroad Vol.328 Nijigasaki mats were the same art; the
     // duplicate entry is gone, so anyone who bought either keeps the surviving one.
     tcgDbRunMigrationOnce($db, 'merge_playmat_md10736756_20261020', function (PDO $db): void {
@@ -1084,6 +1089,14 @@ function tcgEnsureUser(string $discordId, array $profile = []): array {
         $wantUser = $profileName !== ''
             && !(function_exists('tcgIsPlaceholderUsername') && tcgIsPlaceholderUsername($profileName));
         $wantAvatar = array_key_exists('avatar_url', $profile);
+        // A profile that could only guess the CDN default (no hash found anywhere) must not overwrite a
+        // custom avatar we already stored.
+        if ($wantAvatar && array_key_exists('avatar_known', $profile) && empty($profile['avatar_known'])) {
+            $storedAvatar = trim((string)($row['avatar_url'] ?? ''));
+            if ($storedAvatar !== '' && !str_contains($storedAvatar, '/embed/avatars/')) {
+                $wantAvatar = false;
+            }
+        }
         $storedName = trim((string)($row['username'] ?? ''));
         if (!$wantUser
             && function_exists('tcgIsPlaceholderUsername')

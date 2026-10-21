@@ -3298,7 +3298,7 @@ try {
 <button type="button" id="btn-anti-softlock" hidden title="Skip this skill without applying it (files a debug bug report). Shift+T forces your own timer to expire instead.">Anti-softlock</button>
 
 <div id="overlay-win">
-  <div class="wtitle" id="wtitle" style="color:var(--pink)" data-i18n="win.youWin">You Win!</div>
+  <div class="wtitle" id="wtitle" style="color:var(--pink)"></div>
   <div class="wsub"   id="wsub"></div>
   <div class="wstats" id="wstats"></div>
   <div class="win-season" id="win-season" hidden></div>
@@ -3327,7 +3327,7 @@ try {
 <script src="client/js/season-rank.js?v=14"></script>
 <script src="client/js/friend-push.js?v=12"></script>
 <script src="client/js/runtime-flags.js?v=7"></script>
-<script src="client/js/api-client.js?v=45"></script>
+<script src="client/js/api-client.js?v=46"></script>
 <script>
 /* Local Docker fake Discord only — skipped on production (no 404 for missing file). */
 (function () {
@@ -33949,8 +33949,12 @@ function resolveFinishedWinnerPid(s) {
 }
 
 function showWin(s){
-  dismissAllGameplayOverlays();
-  if (typeof perfCloseSpectacle === 'function') perfCloseSpectacle();
+  try {
+    dismissAllGameplayOverlays();
+    if (typeof perfCloseSpectacle === 'function') perfCloseSpectacle();
+  } catch (e) {
+    TCG_DEBUG.warn('win', 'win overlay cleanup failed', e);
+  }
   // Keep tcg_active_game so a refresh returns to this overlay (hub/rematch buttons),
   // not the menu. Cleared only when the player leaves via hub / play-again / leave.
   const isSpec = !!G.isSpectator;
@@ -33983,21 +33987,26 @@ function showWin(s){
   const iResigned=!isSpec && resignedBy===myId;
   const disconnectedPid=s.disconnected_player||null;
   const iDisconnected=!isSpec && disconnectedPid===myId;
-  G.lastFinishedMode = s.mode || null;
-  G.lastFinishedPvp = pvp;
-  G.lastFinishedRematch = isSpec ? null : captureRematchSettings(s);
-  if (G.roomId && G.token && !G.isTutorial && !G.replayMode && !isSpec) {
-    G.lastFinishedExport = {
-      roomId: G.roomId,
-      token: G.token,
-      playerId: G.playerId || s.my_id,
-      winner: s.winner || null,
-      endReason: s.end_reason || null,
-      resignedBy: gameResignedBy(s),
-      finishedAt: new Date().toISOString(),
-      mode: s.mode || null,
-      pvp,
-    };
+  // The headline below must always run — bookkeeping that throws must never leave the stale default.
+  try {
+    G.lastFinishedMode = s.mode || null;
+    G.lastFinishedPvp = pvp;
+    G.lastFinishedRematch = isSpec ? null : captureRematchSettings(s);
+    if (G.roomId && G.token && !G.isTutorial && !G.replayMode && !isSpec) {
+      G.lastFinishedExport = {
+        roomId: G.roomId,
+        token: G.token,
+        playerId: G.playerId || s.my_id,
+        winner: s.winner || null,
+        endReason: s.end_reason || null,
+        resignedBy: gameResignedBy(s),
+        finishedAt: new Date().toISOString(),
+        mode: s.mode || null,
+        pvp,
+      };
+    }
+  } catch (e) {
+    TCG_DEBUG.warn('win', 'win bookkeeping failed', e);
   }
   if (isSpec) {
     el('wtitle').textContent = t('win.spectatorWinner', { name: wName });

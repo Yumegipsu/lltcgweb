@@ -152,7 +152,7 @@ function tcgLookupStoredTcgUserProfile(string $userId): ?array
     }
 }
 
-function tcgLookupDiscordBotProfile(string $userId): ?array
+function tcgDiscordBotToken(): string
 {
     $token = '';
     if (defined('TCG_DISCORD_BOT_TOKEN')) {
@@ -164,6 +164,12 @@ function tcgLookupDiscordBotProfile(string $userId): ?array
             $token = trim($env);
         }
     }
+    return $token;
+}
+
+function tcgLookupDiscordBotProfile(string $userId): ?array
+{
+    $token = tcgDiscordBotToken();
     if ($token === '' || !preg_match('/^\d{5,32}$/', $userId)) {
         return null;
     }
@@ -310,9 +316,17 @@ function tcgBuildAuthUserProfile(string $userId): array
         ? $uniqueUsername
         : (!tcgIsPlaceholderUsername($displayName) ? $displayName : 'Player');
 
-    if (!$avatarUrl && function_exists('tcgDiscordAvatarUrl')) {
-        $avatarUrl = tcgDiscordAvatarUrl($userId, is_string($avatarHash) ? $avatarHash : null);
-    } elseif (!$avatarUrl) {
+    // A real hash (session / user cache / bearer / bot) is fresher than any URL stored in snake_scores or
+    // tcg_users, so it wins; a stored URL is only the fallback. Without either the CDN default embed is
+    // used, and `avatar_known` stays false so callers never overwrite a stored custom avatar with it.
+    $avatarKnown = is_string($avatarHash) && $avatarHash !== '';
+    if ($avatarKnown && function_exists('tcgDiscordAvatarUrl')) {
+        $avatarUrl = tcgDiscordAvatarUrl($userId, $avatarHash);
+    } elseif ($avatarUrl) {
+        $avatarKnown = !str_contains((string)$avatarUrl, '/embed/avatars/');
+    } elseif (function_exists('tcgDiscordAvatarUrl')) {
+        $avatarUrl = tcgDiscordAvatarUrl($userId, null);
+    } else {
         $avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
     }
 
@@ -321,7 +335,46 @@ function tcgBuildAuthUserProfile(string $userId): array
         'username' => $username,
         'display_name' => !tcgIsPlaceholderUsername($displayName) ? $displayName : $username,
         'avatar_url' => $avatarUrl,
+        'avatar_known' => $avatarKnown,
     ];
+}
+
+/** How long a player's Discord avatar is trusted before the next refresh from Discord. */
+const TCG_AVATAR_REFRESH_TTL = 21600;
+
+/**
+ * Re-read the player's CURRENT Discord avatar (the session / cache only know the avatar from their last
+ * OAuth login, and Discord's CDN 404s a hash once it is changed) at most once per TTL, and fold it into
+ * $profile. Needs TCG_DISCORD_BOT_TOKEN; without it, or when Discord is unreachable, $profile is unchanged.
+ */
+function tcgFreshenDiscordAvatar(string $userId, array $profile): array
+{
+    if (tcgDiscordBotToken() === '' || !function_exists('tcgDb') || !function_exists('tcgDiscordAvatarUrl')) {
+        return $profile;
+    }
+    try {
+        $db = tcgDb();
+        $st = $db->prepare('SELECT avatar_checked_at FROM tcg_users WHERE discord_id = ?');
+        $st->execute([$userId]);
+        $last = (int)($st->fetchColumn() ?: 0);
+        $now = time();
+        if ($last > 0 && ($now - $last) < TCG_AVATAR_REFRESH_TTL) {
+            return $profile;
+        }
+        $bot = tcgLookupDiscordBotProfile($userId);
+        // Success: trust it for a full TTL. Failure (rate limit / outage): retry in ~15 minutes, not every request.
+        $stamp = is_array($bot) ? $now : $now - TCG_AVATAR_REFRESH_TTL + 900;
+        $db->prepare('UPDATE tcg_users SET avatar_checked_at = ? WHERE discord_id = ?')->execute([$stamp, $userId]);
+        if (!is_array($bot)) {
+            return $profile;
+        }
+        $hash = isset($bot['avatar_hash']) && is_string($bot['avatar_hash']) ? $bot['avatar_hash'] : null;
+        $profile['avatar_url'] = tcgDiscordAvatarUrl($userId, $hash);
+        $profile['avatar_known'] = true;
+    } catch (Throwable $e) {
+        // Never fail login / me over an avatar refresh.
+    }
+    return $profile;
 }
 
 /**

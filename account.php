@@ -233,6 +233,9 @@ try {
 function tcgApiMe(array $body): array {
     $uid = tcgRequireAuthUser($body);
     $profile = tcgAuthUserProfile($uid);
+    if (function_exists('tcgFreshenDiscordAvatar')) {
+        $profile = tcgFreshenDiscordAvatar($uid, $profile);
+    }
     $user = tcgEnsureUser($uid, $profile);
     require_once __DIR__ . '/sleeve_shop.php';
     $loginDays = tcgTouchLoginDays($uid);
