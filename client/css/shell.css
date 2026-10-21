@@ -4763,18 +4763,21 @@ html:not(.foil-fx-off) #screen-game .mslot.card-tilt-enabled.foil-tilt-hover{
 
 /* Big pointer to the other menu when players are queueing there (Ranked <-> Unranked). */
 .llc-menu-screen .queue-other-menu{
-  display:block;width:100%;margin:8px 0 12px;padding:6px 8px;
-  background:none;border:0;cursor:pointer;text-align:center;
-  font:inherit;font-family:'Fredoka One',cursive;font-size:20px;line-height:1.2;letter-spacing:.3px;
-  color:#ff9fd6;
-  text-shadow:0 0 6px rgba(255,105,180,.95),0 0 14px rgba(255,64,160,.8),0 0 28px rgba(255,64,160,.55);
+  display:block;width:100%;box-sizing:border-box;margin:8px 0 12px;padding:9px 12px;
+  cursor:pointer;text-align:center;
+  font:inherit;font-family:'Fredoka One',cursive;font-size:19px;line-height:1.2;letter-spacing:.3px;
+  color:#ffc2e6;
+  background:rgba(34,10,34,.72);
+  border:1px solid rgba(255,120,200,.75);border-radius:12px;
+  text-shadow:0 0 6px rgba(255,105,180,.95),0 0 14px rgba(255,64,160,.8),0 0 26px rgba(255,64,160,.55);
+  box-shadow:0 0 12px rgba(255,64,160,.55),inset 0 0 10px rgba(255,64,160,.25);
   animation:queueOtherMenuGlow 2.2s ease-in-out infinite;
 }
 .llc-menu-screen .queue-other-menu[hidden]{display:none}
 .llc-menu-screen .queue-other-menu:hover,
-.llc-menu-screen .queue-other-menu:focus-visible{color:#ffd0ea;outline:none;text-decoration:underline}
+.llc-menu-screen .queue-other-menu:focus-visible{color:#fff;outline:none;border-color:#ffb3de}
 @keyframes queueOtherMenuGlow{
-  0%,100%{text-shadow:0 0 6px rgba(255,105,180,.95),0 0 14px rgba(255,64,160,.8),0 0 28px rgba(255,64,160,.55)}
-  50%{text-shadow:0 0 10px rgba(255,130,200,1),0 0 22px rgba(255,64,160,.95),0 0 44px rgba(255,64,160,.75)}
+  0%,100%{box-shadow:0 0 12px rgba(255,64,160,.55),inset 0 0 10px rgba(255,64,160,.25)}
+  50%{box-shadow:0 0 22px rgba(255,64,160,.95),inset 0 0 16px rgba(255,64,160,.45)}
 }
 @media (prefers-reduced-motion:reduce){.llc-menu-screen .queue-other-menu{animation:none}}

@@ -888,18 +888,24 @@ function tcgRankedOtherModesWithWaiting(string $currentMode): array {
  */
 function tcgQueuePublicStats(?string $gameMode = null): array {
     $stats = tcgQueuePublicStatsCore($gameMode);
-    // Players queueing in the Unranked menu, so the Ranked menu can point at them.
-    $stats['other_menu_waiting'] = tcgRankedOtherMenuWaiting();
+    // Everyone waiting for Ranked, across modes. The Unranked menu runs on the match host (a different
+    // database from this one), so it reads this total over the account API instead of counting locally.
+    $stats['queue_total'] = tcgRankedQueueTotal();
     return $stats;
 }
 
-/** Unranked (casual) queue size across every mode; 0 when the table is missing. */
-function tcgRankedOtherMenuWaiting(): int {
+/** Ranked queue size across every mode (players already paired into a pending match excluded). */
+function tcgRankedQueueTotal(): int {
     try {
-        $maxWait = defined('TCG_CASUAL_QUEUE_MAX_WAIT') ? (int)TCG_CASUAL_QUEUE_MAX_WAIT : 600;
-        $stmt = tcgDb()->prepare('SELECT COUNT(*) FROM tcg_casual_queue WHERE joined_at >= ?');
-        $stmt->execute([time() - $maxWait]);
-        return (int)$stmt->fetchColumn();
+        $stmt = tcgDb()->query(
+            'SELECT COUNT(*) FROM tcg_match_queue q
+             WHERE NOT EXISTS (
+               SELECT 1 FROM tcg_ranked_matches m
+               WHERE m.status = "pending"
+                 AND (m.p1_id = q.discord_id OR m.p2_id = q.discord_id)
+             )'
+        );
+        return $stmt === false ? 0 : (int)$stmt->fetchColumn();
     } catch (Throwable $e) {
         return 0;
     }
