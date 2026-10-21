@@ -1398,8 +1398,6 @@
     "weekly": {
       "rankedRandom": "在随机卡组模式中进行一场排名对战",
       "ranked10": "进行 10 场排名对战",
-      "shopBuy": "在商店购买一张游戏垫或一个卡套",
-      "stickerExchange": "在贴纸商店用印章兑换一张卡牌",
       "login7": "本周每天登录（7 天）",
       "completeAll": "完成所有每周任务"
     },

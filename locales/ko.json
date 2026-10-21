@@ -1398,8 +1398,6 @@
     "weekly": {
       "rankedRandom": "랜덤 덱 모드로 랭크 매치 1회 플레이",
       "ranked10": "랭크 매치 10회 플레이",
-      "shopBuy": "상점에서 플레이매트 또는 슬리브 구매",
-      "stickerExchange": "스티커 샵에서 실을 카드로 교환",
       "login7": "이번 주 매일 로그인 (7일)",
       "completeAll": "모든 주간 미션 완료"
     },

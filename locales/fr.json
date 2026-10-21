@@ -210,8 +210,6 @@
     "weekly": {
       "rankedRandom": "Jouer une partie classée en mode decks aléatoires",
       "ranked10": "Jouer 10 parties classées",
-      "shopBuy": "Acheter un tapis de jeu ou des protège-cartes dans la boutique",
-      "stickerExchange": "Échanger des sceaux contre une carte dans la boutique de sceaux",
       "login7": "Se connecter chaque jour cette semaine (7 jours)",
       "completeAll": "Terminer toutes les missions hebdomadaires"
     },
