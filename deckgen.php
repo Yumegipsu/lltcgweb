@@ -992,6 +992,164 @@ function deckgenPickEnergy(array $energies, ?string $group): string {
     return $pool[0]['card_no'] ?? ($energies[0]['card_no'] ?? 'LL-E-003-SD');
 }
 
+/** Index of a weighted random pick (weights > 0); falls back to uniform when all weights are 0. */
+function deckgenWeightedIndex(array $weights): int {
+    $total = 0.0;
+    foreach ($weights as $w) {
+        $total += max(0.0, (float)$w);
+    }
+    if ($total <= 0.0) {
+        return array_rand($weights);
+    }
+    $r = mt_rand() / mt_getrandmax() * $total;
+    foreach ($weights as $i => $w) {
+        $r -= max(0.0, (float)$w);
+        if ($r <= 0.0) {
+            return $i;
+        }
+    }
+    return array_key_last($weights);
+}
+
+/**
+ * Per-deck copy style so some random decks are wide (lots of 1-ofs) and others stack more 3-4 copies.
+ * Weights are for 1, 2, 3 and 4 copies of a card.
+ */
+function deckgenRandomCopyProfile(): array {
+    $profiles = [
+        'wide'    => [1 => 62, 2 => 26, 3 => 9,  4 => 3],
+        'mixed'   => [1 => 44, 2 => 31, 3 => 17, 4 => 8],
+        'stacked' => [1 => 24, 2 => 30, 3 => 27, 4 => 19],
+    ];
+    $name = array_rand($profiles);
+    // Jitter each weight a little so no two decks share the exact curve.
+    $out = [];
+    foreach ($profiles[$name] as $copies => $w) {
+        $out[$copies] = max(1, $w + mt_rand(-6, 6));
+    }
+    return $out;
+}
+
+/** Random copy count for one card using a deck's copy profile. */
+function deckgenRandomCopyCount(array $profile, int $max = DECKGEN_MAX_COPIES): int {
+    $allowed = array_filter($profile, fn($copies) => $copies <= $max, ARRAY_FILTER_USE_KEY);
+    return max(1, deckgenWeightedIndex($allowed ?: [1 => 1]));
+}
+
+/** One random printing per copy-identity (parallel / rarity printings must not get extra odds), shuffled. */
+function deckgenShuffledIdentityPool(array $cards): array {
+    $byIdentity = [];
+    foreach ($cards as $c) {
+        $no = (string)($c['card_no'] ?? '');
+        if ($no === '') {
+            continue;
+        }
+        $byIdentity[tcgDeckCopyIdentity($no)][] = $c;
+    }
+    $pool = [];
+    foreach ($byIdentity as $variants) {
+        $pool[] = $variants[array_rand($variants)];
+    }
+    shuffle($pool);
+    return $pool;
+}
+
+/**
+ * Random 48 Members drawn from EVERY Member in the catalog (any group, any set, including cards added
+ * later). Only the cost curve is kept loosely balanced: tier targets start at the usual 4-9-15 ramp
+ * shape but are jittered per deck, and within a tier cards are picked uniformly at random.
+ */
+function deckgenRandomMemberMain(array $memberPool, array $copyProfile): array {
+    $targets = ['ramp4' => 8, 'low' => 6, 'mid' => 12, 'high' => 14, 'top' => 8];
+    $floor   = ['ramp4' => 4, 'low' => 2, 'mid' => 6, 'high' => 6, 'top' => 3];
+    $tiers = array_keys($targets);
+    for ($i = 0; $i < 14; $i++) {
+        $from = $tiers[array_rand($tiers)];
+        $to   = $tiers[array_rand($tiers)];
+        if ($from !== $to && $targets[$from] > $floor[$from]) {
+            $targets[$from]--;
+            $targets[$to]++;
+        }
+    }
+    $main = [];
+    $counts = [];
+    $fillFrom = function (array $cards, int $want) use (&$main, &$counts, $copyProfile): void {
+        foreach (deckgenShuffledIdentityPool($cards) as $c) {
+            if ($want <= 0) {
+                return;
+            }
+            $copies = min($want, deckgenRandomCopyCount($copyProfile));
+            $want -= deckgenAddCopies($main, (string)$c['card_no'], $copies, $counts, null);
+        }
+    };
+    foreach ($targets as $tier => $want) {
+        $fillFrom(deckgenMembersInCostTier($memberPool, $tier), $want);
+    }
+    // Thin tiers (or Loveca point caps) can leave gaps: top up from the whole pool.
+    for ($guard = 0; count($main) < DECKGEN_MEMBER_SLOTS && $guard < 6; $guard++) {
+        $fillFrom($memberPool, DECKGEN_MEMBER_SLOTS - count($main));
+    }
+    return array_slice($main, 0, DECKGEN_MEMBER_SLOTS);
+}
+
+/**
+ * Random 12 Lives from every Live in the catalog: low / mid / high score buckets stay loosely balanced,
+ * picks inside a bucket are random with a mild lean toward Lives the Members can actually power.
+ */
+function deckgenRandomLives(array $lives, ?string $group, array $mainPrefix, callable $fitFn, array $copyProfile): array {
+    $pool = array_values(array_filter($lives, fn($c) => ($c['card_no'] ?? '') !== ''));
+    if ($group !== null && $group !== '') {
+        $grouped = array_values(array_filter($pool, function ($c) use ($group) {
+            $g = $c['group'] ?? '';
+            return $g === '' || $g === $group;
+        }));
+        if (count($grouped) >= DECKGEN_LIVE_SLOTS) {
+            $pool = $grouped;
+        }
+    }
+    $buckets = ['low' => [], 'mid' => [], 'high' => []];
+    foreach ($pool as $c) {
+        $sc = intval($c['score'] ?? 0);
+        $buckets[$sc <= 3 ? 'low' : ($sc <= 6 ? 'mid' : 'high')][] = $c;
+    }
+    $targets = ['low' => 4, 'mid' => 4, 'high' => 4];
+    for ($i = 0; $i < 3; $i++) {
+        $from = array_rand($targets);
+        $to   = array_rand($targets);
+        if ($from !== $to && $targets[$from] > 1) {
+            $targets[$from]--;
+            $targets[$to]++;
+        }
+    }
+    $picked = [];
+    $counts = [];
+    $draw = function (array $cards, int $want) use (&$picked, &$counts, $mainPrefix, $fitFn, $copyProfile): void {
+        $identityPool = deckgenShuffledIdentityPool($cards);
+        while ($want > 0 && $identityPool) {
+            $weights = array_map(fn($c) => $fitFn($c) >= 5000 ? 4 : 1, $identityPool);
+            $idx = deckgenWeightedIndex($weights);
+            $c = $identityPool[$idx];
+            array_splice($identityPool, $idx, 1);
+            $no = (string)$c['card_no'];
+            $copies = min($want, deckgenRandomCopyCount($copyProfile, 3));
+            $copies = min($copies, DECKGEN_MAX_COPIES - deckgenIdentityCount($counts, $no));
+            $copies = deckgenLovecaCapCopies(array_merge($mainPrefix, $picked), $no, $copies);
+            for ($j = 0; $j < $copies; $j++) {
+                $picked[] = $no;
+                $counts[$no] = ($counts[$no] ?? 0) + 1;
+                $want--;
+            }
+        }
+    };
+    foreach ($targets as $bucket => $want) {
+        $draw($buckets[$bucket], $want);
+    }
+    for ($guard = 0; count($picked) < DECKGEN_LIVE_SLOTS && $guard < 6; $guard++) {
+        $draw($pool, DECKGEN_LIVE_SLOTS - count($picked));
+    }
+    return array_slice($picked, 0, DECKGEN_LIVE_SLOTS);
+}
+
 function generateRandomDeckLists(array $allCards, ?string $forcedGroup = null, ?string $preferSubunit = null): array {
     $cardMap  = [];
     $members  = [];
@@ -1026,21 +1184,29 @@ function generateRandomDeckLists(array $allCards, ?string $forcedGroup = null, ?
         $liveGroup    = $group;
         $display      = deckgenGroupDisplay($group);
         $nameEn       = "Random ($display)";
-        $nameJp       = "ランダム（$display）";
+        $nameJp       = "ランダム（{$display}）";
     }
     $preferSubunit = deckgenNormalizePreferSubunit($preferSubunit);
     $subLabel = $preferSubunit !== null ? deckgenSubunitDisplay($preferSubunit) : '';
     if ($subLabel !== '') {
         if ($mixed) {
             $nameEn = "Random Deck ($subLabel)";
-            $nameJp = "ランダムデッキ（$subLabel）";
+            $nameJp = "ランダムデッキ（{$subLabel}）";
         } else {
             $nameEn = "Random ($display · $subLabel)";
-            $nameJp = "ランダム（$display · $subLabel）";
+            $nameJp = "ランダム（{$display} · {$subLabel}）";
         }
     }
     $memberScoreFn = fn($c) => deckgenMemberBuildScore($c) + deckgenSubunitScoreBonus($c, $preferSubunit);
-    $main = deckgenBuildMembersPreferSubunit($memberPool, null, $preferSubunit, $memberScoreFn);
+    // Random Decks draw uniformly from the whole catalog; an explicit subunit preference keeps the scored builder.
+    $copyProfile = deckgenRandomCopyProfile();
+    $main = [];
+    if ($preferSubunit === null) {
+        $main = deckgenRandomMemberMain($memberPool, $copyProfile);
+    }
+    if (count($main) < DECKGEN_MEMBER_SLOTS) {
+        $main = deckgenBuildMembersPreferSubunit($memberPool, null, $preferSubunit, $memberScoreFn);
+    }
     $counts = deckgenRebuildCounts($main);
     $membersAdded = count($main);
 
@@ -1050,15 +1216,20 @@ function generateRandomDeckLists(array $allCards, ?string $forcedGroup = null, ?
 
     $colorCounts = deckgenColorCountsFromMain($main, $cardMap);
     $liveFitFn   = fn($c) => deckgenLiveBuildScore($c, $colorCounts) + deckgenSubunitLiveBonus($c, $preferSubunit);
-    $liveNos     = deckgenPickLives(
-        deckgenPreferSubunitLivePool($lives, $preferSubunit),
-        $liveGroup,
-        $colorCounts,
-        null,
-        null,
-        $liveFitFn,
-        $main
-    );
+    $liveNos     = $preferSubunit === null
+        ? deckgenRandomLives($lives, $liveGroup, $main, $liveFitFn, $copyProfile)
+        : [];
+    if (count($liveNos) < DECKGEN_LIVE_SLOTS) {
+        $liveNos = deckgenPickLives(
+            deckgenPreferSubunitLivePool($lives, $preferSubunit),
+            $liveGroup,
+            $colorCounts,
+            null,
+            null,
+            $liveFitFn,
+            $main
+        );
+    }
     $energyNo    = deckgenPickEnergy($energies, $mixed ? null : $group);
     $energyDeck  = array_fill(0, DECKGEN_ENERGY_SLOTS, $energyNo);
 

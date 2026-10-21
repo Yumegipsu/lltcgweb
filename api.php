@@ -1169,7 +1169,11 @@ function handleAction(array $body): array {
         // Stale/duplicate resolve_prompt / LIVE lock-in: leave game state untouched
         // (no replay record, no save) so the client just resyncs to the current seq.
         if (!empty($state['_resolve_prompt_noop']) || !empty($state['_live_set_noop'])) {
-            return ['ok' => true, 'seq' => $state['seq'], 'noop' => true];
+            $noop = ['ok' => true, 'seq' => $state['seq'], 'noop' => true];
+            if (($state['status'] ?? '') === 'finished') {
+                $noop['finished'] = true;
+            }
+            return $noop;
         }
         if (intval($state['seq'] ?? 0) > $prevSeq
             && rankedActionShowsPlayerActivity($type)) {
@@ -1758,6 +1762,12 @@ function applyAction(array $state, string $playerId, string $type, array $data):
 
         // ── MISC ────────────────────────────
         case 'resign':
+            // A late resign (hung client mashing Resign, side-game auto-resign, leave-on-unload) must never
+            // rewrite a finished match: it used to flip a natural 3-Live win into a loss for the winner.
+            if (($state['status'] ?? '') === 'finished') {
+                $state['_resolve_prompt_noop'] = true;
+                return $state;
+            }
             unset(
                 $state['pending_prompt'],
                 $state['surveil_stash'],
