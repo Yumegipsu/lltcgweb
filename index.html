@@ -14931,20 +14931,45 @@ function applyRankBannerStyles(img, crop) {
   img.style.objectPosition = 'left top';
 }
 
+function rankBannerArtUrl(banner) {
+  if (!banner) return '';
+  // Prefer Hostinger cardimg — official CDN outages (maintenance) blank the strip.
+  if (banner.card_no && typeof cachedCardImgUrl === 'function') {
+    return cachedCardImgUrl(banner.card_no, 0);
+  }
+  if (banner.card_no) {
+    return './cardimg.php?card_no=' + encodeURIComponent(banner.card_no);
+  }
+  return banner.image || '';
+}
+
 function applyRankBanner(container, banner) {
   container.replaceChildren();
-  container.classList.toggle('empty', !banner?.image);
-  if (!banner?.image) return;
+  const hasArt = !!(banner?.card_no || banner?.image);
+  container.classList.toggle('empty', !hasArt);
+  if (!hasArt) return;
   const cropIn = banner.crop || { x: 0, y: 0.35, w: 1, h: 1 / BANNER_CROP_ASPECT };
   const img = document.createElement('img');
   img.className = 'rank-banner-img';
-  img.src = banner.image;
   img.alt = cardLocaleName(banner) || banner.card_no || '';
   const paint = () => {
     if (!img.naturalWidth) return;
     applyRankBannerStyles(img, bannerNormalizeCropForImage(img, cropIn));
   };
   img.addEventListener('load', paint);
+  const local = rankBannerArtUrl(banner);
+  const remote = banner.image || '';
+  if (local) {
+    img.onerror = () => {
+      if (remote && img.getAttribute('src') !== remote) {
+        img.onerror = null;
+        img.src = remote;
+      }
+    };
+    img.src = local;
+  } else {
+    img.src = remote;
+  }
   if (img.complete) paint();
   container.appendChild(img);
 }
@@ -15009,7 +15034,7 @@ function renderLeaderboardRows(data) {
     if (row.is_you) card.id = 'leaderboard-row-you';
 
     const bannerWrap = document.createElement('div');
-    bannerWrap.className = 'rank-banner-wrap' + (row.banner?.image ? '' : ' empty');
+    bannerWrap.className = 'rank-banner-wrap' + ((row.banner?.card_no || row.banner?.image) ? '' : ' empty');
     applyRankBanner(bannerWrap, row.banner);
 
     const body = document.createElement('div');
@@ -15416,7 +15441,7 @@ function loadBannerCropCard(cardNo) {
     return;
   }
   const c = enrichCard(G.allCards[cardNo]);
-  if (!c?.image) return;
+  if (!c?.card_no && !c?.image) return;
   const saved = (A.profile?.banner?.card_no === cardNo && A.profile?.banner?.crop)
     ? A.profile.banner.crop
     : null;
@@ -15427,7 +15452,17 @@ function loadBannerCropCard(cardNo) {
     );
     layoutBannerCropWindow();
   };
-  img.src = c.image;
+  const local = (typeof cachedCardImgUrl === 'function')
+    ? cachedCardImgUrl(cardNo, 0)
+    : ('./cardimg.php?card_no=' + encodeURIComponent(cardNo));
+  const remote = c.image || '';
+  img.onerror = () => {
+    if (remote && img.getAttribute('src') !== remote) {
+      img.onerror = null;
+      img.src = remote;
+    }
+  };
+  img.src = local || remote;
   if (img.complete && img.naturalWidth) img.onload();
 }
 
