@@ -15970,6 +15970,11 @@ function setRankedSearchingUI(active, waitSeconds) {
     A.rankedWaitSecondsShown = null;
   }
   syncRankedScreenSearchControls(active);
+  if (wasSearching && !active) {
+    // Search over: the menu follows the currently selected mode again.
+    syncGameModeSelects();
+    try { renderRankedDeckOptions({ preferRemembered: true }); } catch (e) { /* ignore */ }
+  }
   // Only push Discord presence when search starts/stops — polling wait_seconds
   // used to remint/revoke Join tokens every few seconds and drop the button.
   if (wasSearching !== !!active) {
@@ -15981,6 +15986,7 @@ function applyRankedStatusResponse(res) {
   if (res.queue_stats) updateRankedQueueStats(res.queue_stats);
   const st = res.ranked || {};
   if (st.status === 'searching') {
+    if (!A.rankedQueuedGameMode && st.game_mode) A.rankedQueuedGameMode = normalizeRankedGameMode(st.game_mode);
     setRankedSearchingUI(true, st.wait_seconds || 0);
     return 'searching';
   }
@@ -16395,23 +16401,30 @@ function rememberedLobbyDeckForMode(mode) {
 /** Snapshot current select values under a mode before switching away. */
 function rememberCurrentDecksForMode(mode) {
   const m = normalizeGameMode(mode);
-  const ranked = el('sel-ranked-deck')?.value;
+  // A searching menu is locked on its queued mode's deck — do not file that under another mode.
+  const ranked = A.rankedSearching ? '' : el('sel-ranked-deck')?.value;
   if (ranked) rememberRankedDeckForMode(m, ranked);
-  const lobby = el('sel-deck')?.value;
+  const lobby = A.casualSearching ? '' : el('sel-deck')?.value;
   if (lobby) rememberLobbyDeckForMode(m, lobby);
 }
 
 function syncGameModeSelects(mode) {
   const m = normalizeGameMode(mode ?? currentGameMode());
-  const rankedM = normalizeRankedGameMode(m);
+  // A menu that is mid-search keeps showing the mode its queue was joined in.
+  const rankedM = (A.rankedSearching && A.rankedQueuedGameMode)
+    ? normalizeRankedGameMode(A.rankedQueuedGameMode)
+    : normalizeRankedGameMode(m);
+  const lobbyM = (A.casualSearching && A.casualQueuedGameMode)
+    ? normalizeGameMode(A.casualQueuedGameMode)
+    : m;
   const lobbySel = el('sel-lobby-game-mode');
-  if (lobbySel && lobbySel.value !== m) lobbySel.value = m;
+  if (lobbySel && lobbySel.value !== lobbyM) lobbySel.value = lobbyM;
   const rankedSel = el('sel-ranked-game-mode');
   if (rankedSel && rankedSel.value !== rankedM) rankedSel.value = rankedM;
   const rankedDesc = el('ranked-game-mode-desc');
   if (rankedDesc) rankedDesc.textContent = gameModeDescription(rankedM);
   const lobbyDesc = el('lobby-game-mode-desc');
-  if (lobbyDesc) lobbyDesc.textContent = gameModeDescription(m);
+  if (lobbyDesc) lobbyDesc.textContent = gameModeDescription(lobbyM);
   syncDeckPickVisibilityForMode(m);
 }
 
@@ -16458,19 +16471,13 @@ async function onGameModeSelectChange(sourceSelId) {
     syncGameModeSelects(next);
     return;
   }
-  const queuedRankedMode = A.rankedQueuedGameMode || rankedGameMode();
-  const wasRankedSearching = !!A.rankedSearching;
+  // Queues keep running when you browse other modes: each stays in the mode it was joined in (the
+  // searching menu keeps showing that mode, with its controls locked, until the search ends).
   rememberCurrentDecksForMode(prev);
   persistGameMode(next);
   syncGameModeSelects(next);
-  if (wasRankedSearching) {
-    try { await cancelRankedSearch({ gameMode: queuedRankedMode }); } catch (e) {}
-  }
-  if (A.casualSearching) {
-    try { await cancelCasualSearch(); } catch (e) {}
-  }
-  renderRankedDeckOptions({ preferRemembered: true });
-  renderLobbyDeckOptions({ preferRemembered: true });
+  if (!A.rankedSearching) renderRankedDeckOptions({ preferRemembered: true });
+  if (!A.casualSearching) renderLobbyDeckOptions({ preferRemembered: true });
   if (el('screen-ranked')?.classList.contains('active')) {
     await refreshRankedScreenModeStats();
   }
@@ -16946,7 +16953,10 @@ function syncCasualLobbySearchControls(searching) {
 }
 
 function setCasualSearchingUI(active, waitSeconds) {
+  const wasCasualSearching = !!A.casualSearching;
   A.casualSearching = !!active;
+  if (!active) A.casualQueuedGameMode = null;
+  else if (!A.casualQueuedGameMode) A.casualQueuedGameMode = currentGameMode();
   if (active && Number.isFinite(waitSeconds)) A.casualWaitSeconds = waitSeconds;
   const fl = el('casual-search-float');
   if (fl) fl.hidden = !active;
@@ -16957,6 +16967,11 @@ function setCasualSearchingUI(active, waitSeconds) {
     A.casualWaitSecondsShown = null;
   }
   syncCasualLobbySearchControls(active);
+  if (wasCasualSearching && !active) {
+    // Search over: the menu follows the currently selected mode again.
+    syncGameModeSelects();
+    try { renderLobbyDeckOptions({ preferRemembered: true }); } catch (e) { /* ignore */ }
+  }
 }
 
 function updateCasualSearchTimerUI(force = false) {
@@ -17029,6 +17044,7 @@ function applyCasualStatusResponse(res) {
   if (res.queue_stats) updateCasualQueueStats(res.queue_stats);
   const st = res.casual || {};
   if (st.status === 'searching') {
+    if (!A.casualQueuedGameMode && st.game_mode) A.casualQueuedGameMode = normalizeGameMode(st.game_mode);
     setCasualSearchingUI(true, st.wait_seconds || 0);
     return 'searching';
   }

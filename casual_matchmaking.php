@@ -232,13 +232,14 @@ function tcgCasualQueueStatus(string $queueKey): array {
 
     $db = tcgDb();
     tcgCasualPurgeExpiredQueue(time());
-    $stmt = $db->prepare('SELECT joined_at FROM tcg_casual_queue WHERE queue_key = ?');
+    $stmt = $db->prepare('SELECT joined_at, game_mode FROM tcg_casual_queue WHERE queue_key = ?');
     $stmt->execute([$queueKey]);
     $q = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($q) {
         return [
             'status' => 'searching',
             'wait_seconds' => time() - intval($q['joined_at']),
+            'game_mode' => tcgNormalizeGameMode($q['game_mode'] ?? TCG_GAME_MODE_STANDARD),
         ];
     }
 
