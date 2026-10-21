@@ -156,6 +156,7 @@
     "phaseTimerSec": "วินาทีต่อเฟส (10–120)",
     "backHub": "← ฮับ",
     "orJoinFriend": "หรือเข้าร่วมกับเพื่อน",
+    "orPlayFriend": "หรือเล่นกับเพื่อน",
     "orMatchRandomly": "หรือจับคู่แบบสุ่ม",
     "casualHint": "PvP สบายๆ — ไม่มี ELO หรือสถิติแรงก์",
     "experimentDeckPassword": "รหัสผ่านเด็คทดลอง",

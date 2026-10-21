@@ -264,6 +264,7 @@
     "phaseTimerSec": "Secondes par phase (10–120)",
     "backHub": "← Hub",
     "orJoinFriend": "or join a friend",
+    "orPlayFriend": "ou jouer avec un ami",
     "orMatchRandomly": "or match randomly",
     "casualHint": "PvP décontracté — pas d'Elo ou d'enregistrement classé",
     "experimentDeckPassword": "Experiment deck password",

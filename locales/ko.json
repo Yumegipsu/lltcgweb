@@ -156,6 +156,7 @@
     "phaseTimerSec": "페이즈당 초 (10–120)",
     "backHub": "← 허브",
     "orJoinFriend": "또는 친구와 참가",
+    "orPlayFriend": "또는 친구와 플레이",
     "orMatchRandomly": "또는 무작위 매칭",
     "casualHint": "캐주얼 PvP — ELO나 랭크 기록 없음",
     "experimentDeckPassword": "실험 덱 비밀번호",

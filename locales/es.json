@@ -156,6 +156,7 @@
     "phaseTimerSec": "Segundos por fase (10–120)",
     "backHub": "← Hub",
     "orJoinFriend": "o únete a una amistad",
+    "orPlayFriend": "o juega con un amigo",
     "orMatchRandomly": "o empareja al azar",
     "casualHint": "PvP casual: sin ELO ni registro clasificatorio",
     "experimentDeckPassword": "Contraseña de mazo experimental",

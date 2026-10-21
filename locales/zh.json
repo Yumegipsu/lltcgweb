@@ -156,6 +156,7 @@
     "phaseTimerSec": "每阶段秒数（10–120）",
     "backHub": "← 主页",
     "orJoinFriend": "或加入好友",
+    "orPlayFriend": "或与好友对战",
     "orMatchRandomly": "或随机匹配",
     "casualHint": "休闲对战 — 不计 ELO 与排名战绩",
     "experimentDeckPassword": "实验牌组密码",
