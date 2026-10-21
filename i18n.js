@@ -225,6 +225,7 @@
       "weekly": {
         "rankedRandom": "Play a ranked match in Random decks mode",
         "ranked10": "Play 10 ranked matches",
+        "rankedWin": "Win a ranked match (any mode)",
         "login7": "Log in every day this week (7 days)",
         "completeAll": "Complete all weekly missions"
       },
@@ -2451,6 +2452,7 @@
       "weekly": {
         "rankedRandom": "ランダムデッキでランクマッチを1回プレイ",
         "ranked10": "ランクマッチを10回プレイ",
+        "rankedWin": "ランクマッチで1勝する（どのモードでも可）",
         "login7": "今週は毎日ログイン（7日間）",
         "completeAll": "すべてのウィークリーミッションを達成"
       },
@@ -5885,6 +5887,7 @@
       "weekly": {
         "rankedRandom": "Juega una partida clasificatoria en el modo de mazos aleatorios",
         "ranked10": "Juega 10 partidas clasificatorias",
+        "rankedWin": "Gana una partida clasificatoria (cualquier modo)",
         "login7": "Inicia sesión todos los días de esta semana (7 días)",
         "completeAll": "Completa todas las misiones semanales"
       },
@@ -7980,6 +7983,7 @@
       "weekly": {
         "rankedRandom": "랜덤 덱 모드로 랭크 매치 1회 플레이",
         "ranked10": "랭크 매치 10회 플레이",
+        "rankedWin": "랭크 매치 1승 달성 (모든 모드)",
         "login7": "이번 주 매일 로그인 (7일)",
         "completeAll": "모든 주간 미션 완료"
       },
@@ -10075,6 +10079,7 @@
       "weekly": {
         "rankedRandom": "在随机卡组模式中进行一场排名对战",
         "ranked10": "进行 10 场排名对战",
+        "rankedWin": "赢得一场排名对战（任意模式）",
         "login7": "本周每天登录（7 天）",
         "completeAll": "完成所有每周任务"
       },
@@ -12146,6 +12151,7 @@
       "weekly": {
         "rankedRandom": "เล่นแมตช์แรงก์ในโหมดเด็คสุ่ม",
         "ranked10": "เล่นแมตช์แรงก์ 10 ครั้ง",
+        "rankedWin": "ชนะแมตช์แรงก์ 1 ครั้ง (ทุกโหมด)",
         "login7": "ล็อกอินทุกวันในสัปดาห์นี้ (7 วัน)",
         "completeAll": "ทำภารกิจรายสัปดาห์ทั้งหมดให้สำเร็จ"
       },
@@ -12869,6 +12875,7 @@
       "weekly": {
         "rankedRandom": "Jogue uma partida ranqueada no modo de decks aleatórios",
         "ranked10": "Jogue 10 partidas ranqueadas",
+        "rankedWin": "Vença uma partida ranqueada (qualquer modo)",
         "login7": "Entre todos os dias desta semana (7 dias)",
         "completeAll": "Complete todas as missões semanais"
       },
@@ -15016,6 +15023,7 @@
       "weekly": {
         "rankedRandom": "Jouer une partie classée en mode decks aléatoires",
         "ranked10": "Jouer 10 parties classées",
+        "rankedWin": "Gagner une partie classée (tous modes)",
         "login7": "Se connecter chaque jour cette semaine (7 jours)",
         "completeAll": "Terminer toutes les missions hebdomadaires"
       },

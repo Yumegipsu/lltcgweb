@@ -15,6 +15,7 @@ const TCG_MISSION_DAILY_SUB_IDS = [
 const TCG_MISSION_WEEKLY_SUB_IDS = [
     'weekly_ranked_random',
     'weekly_ranked_10',
+    'weekly_ranked_win',
     'weekly_login_7',
 ];
 const TCG_MISSION_MONTHLY_SUB_IDS = [
@@ -38,8 +39,9 @@ function tcgMissionDefinitions(): array {
         // Weekly (JST Monday reset). `rewards` = list of {type: gems|coins|tickets|ticket_sr|ticket_ur|seal, amount, tier?}.
         ['id' => 'weekly_ranked_random', 'type' => 'weekly', 'reward' => 100, 'reward_type' => 'multi', 'rewards' => [['type' => 'gems', 'amount' => 100]], 'sort' => 10, 'i18n_key' => 'missions.weekly.rankedRandom'],
         ['id' => 'weekly_ranked_10', 'type' => 'weekly', 'reward' => 10, 'reward_type' => 'multi', 'rewards' => [['type' => 'seal', 'tier' => 'N', 'amount' => 10]], 'sort' => 20, 'i18n_key' => 'missions.weekly.ranked10', 'threshold' => 10],
-        ['id' => 'weekly_login_7', 'type' => 'weekly', 'reward' => 10, 'reward_type' => 'multi', 'rewards' => [['type' => 'tickets', 'amount' => 10]], 'sort' => 30, 'i18n_key' => 'missions.weekly.login7', 'threshold' => 7],
-        ['id' => 'weekly_complete_all', 'type' => 'weekly', 'reward' => 1, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 1]], 'sort' => 40, 'i18n_key' => 'missions.weekly.completeAll', 'threshold' => 3],
+        ['id' => 'weekly_ranked_win', 'type' => 'weekly', 'reward' => 100, 'reward_type' => 'multi', 'rewards' => [['type' => 'coins', 'amount' => 100], ['type' => 'seal', 'tier' => 'R', 'amount' => 1]], 'sort' => 30, 'i18n_key' => 'missions.weekly.rankedWin'],
+        ['id' => 'weekly_login_7', 'type' => 'weekly', 'reward' => 10, 'reward_type' => 'multi', 'rewards' => [['type' => 'tickets', 'amount' => 10]], 'sort' => 40, 'i18n_key' => 'missions.weekly.login7', 'threshold' => 7],
+        ['id' => 'weekly_complete_all', 'type' => 'weekly', 'reward' => 1, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 1]], 'sort' => 50, 'i18n_key' => 'missions.weekly.completeAll', 'threshold' => 4],
 
         // Monthly (resets with the ranked season, 00:00 UTC on the 1st).
         ['id' => 'monthly_tournament', 'type' => 'monthly', 'reward' => 500, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 1], ['type' => 'coins', 'amount' => 500]], 'sort' => 10, 'i18n_key' => 'missions.monthly.tournament'],
@@ -1410,6 +1412,13 @@ function tcgMissionOnRankedFinished(string $discordId, array $state): array {
     if ($gameMode === TCG_GAME_MODE_RANDOMIZED) {
         $completions = tcgMissionMergeCompletions($completions, tcgMissionMarkCompleted($discordId, 'weekly_ranked_random'));
     }
+    // Weekly: a win in any ranked mode (a resign or disconnect by the opponent is still a win).
+    foreach (['p1', 'p2'] as $pid) {
+        if (($state['winner'] ?? null) === $pid && tcgPlayerDiscordId($state, $pid) === $discordId) {
+            $completions = tcgMissionMergeCompletions($completions, tcgMissionMarkCompleted($discordId, 'weekly_ranked_win'));
+            break;
+        }
+    }
     $completions = tcgMissionMergeCompletions($completions, tcgMissionCheckRankedPeriodic($discordId));
     $completions = tcgMissionMergeCompletions($completions, tcgMissionCheckSeasonRank($discordId));
     return $completions;
@@ -1583,7 +1592,17 @@ function tcgMissionCheckPeriodic(string $discordId): void {
         if (tcgMissionLoginDaysThisWeek($discordId) >= 7) {
             tcgMissionMarkCompleted($discordId, 'weekly_login_7');
         }
-        // The weekly set shrank to three missions: someone who already finished all of them gets the bonus.
+        // A ranked win earlier this week (any mode) that the finish hook never saw.
+        if (!tcgMissionIsCompleted($discordId, 'weekly_ranked_win', tcgMissionWeekKey())) {
+            $weekStart = (new DateTimeImmutable(tcgMissionWeekKey(), new DateTimeZone('Asia/Tokyo')))->getTimestamp();
+            $w = tcgDb()->prepare('SELECT 1 FROM tcg_ranked_matches WHERE status = "done" AND created_at >= ? AND created_at < ?
+                AND ((p1_id = ? AND winner_pid = "p1") OR (p2_id = ? AND winner_pid = "p2")) LIMIT 1');
+            $w->execute([$weekStart, tcgMissionWeekEndsAt(), $discordId, $discordId]);
+            if ($w->fetchColumn()) {
+                tcgMissionMarkCompleted($discordId, 'weekly_ranked_win');
+            }
+        }
+        // The weekly set changed: someone who already finished all of them gets the bonus: someone who already finished all of them gets the bonus.
         $week = tcgMissionWeekKey();
         $allWeekly = true;
         foreach (TCG_MISSION_WEEKLY_SUB_IDS as $subId) {
