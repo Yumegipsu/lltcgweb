@@ -353,6 +353,7 @@
       "experimentDeckIncomplete": "Experiment deck is incomplete.",
       "freeDeckEmpty": "No free/experiment decks saved yet.",
       "otherModesQueuedLead": "Players waiting in other modes:",
+      "otherMenuQueued": "Players are queueing in {menu}",
       "presetDeckIncomplete": "Preset deck is incomplete."
     },
     "deck": {
@@ -2592,6 +2593,7 @@
       "secondsLabel": "{n}秒",
       "casualQueueStats": "待機 {waiting} · カジュアル対戦中 {inGame}",
       "otherModesQueuedLead": "他のモードで待機中のプレイヤーがいます：",
+      "otherMenuQueued": "{menu}で待機中のプレイヤーがいます",
       "casualSearching": "相手を検索中…（{seconds}秒）",
       "experimentDeckIncomplete": "Experiment deck is incomplete.",
       "freeDeckEmpty": "No free/experiment decks saved yet.",
@@ -4572,6 +4574,7 @@
       "experimentDeckIncomplete": "Experiment deck is incomplete.",
       "freeDeckEmpty": "No free/experiment decks saved yet.",
       "otherModesQueuedLead": "Players waiting in other modes:",
+      "otherMenuQueued": "Hay jugadores en cola en {menu}",
       "presetDeckIncomplete": "Preset deck is incomplete."
     },
     "deck": {
@@ -6644,6 +6647,7 @@
       "experimentDeckIncomplete": "Experiment deck is incomplete.",
       "freeDeckEmpty": "No free/experiment decks saved yet.",
       "otherModesQueuedLead": "Players waiting in other modes:",
+      "otherMenuQueued": "{menu}에서 대기 중인 플레이어가 있습니다",
       "presetDeckIncomplete": "Preset deck is incomplete."
     },
     "deck": {
@@ -8740,6 +8744,7 @@
       "experimentDeckIncomplete": "Experiment deck is incomplete.",
       "freeDeckEmpty": "No free/experiment decks saved yet.",
       "otherModesQueuedLead": "Players waiting in other modes:",
+      "otherMenuQueued": "有玩家正在 {menu} 中排队",
       "presetDeckIncomplete": "Preset deck is incomplete."
     },
     "deck": {
@@ -10836,6 +10841,7 @@
       "experimentDeckIncomplete": "Experiment deck is incomplete.",
       "freeDeckEmpty": "No free/experiment decks saved yet.",
       "otherModesQueuedLead": "Players waiting in other modes:",
+      "otherMenuQueued": "มีผู้เล่นกำลังรอคิวใน {menu}",
       "presetDeckIncomplete": "Preset deck is incomplete."
     },
     "deck": {
@@ -13001,6 +13007,7 @@
       "experimentDeckIncomplete": "O deck experimental está incompleto.",
       "freeDeckEmpty": "Nenhum deck experimental salvo ainda.",
       "otherModesQueuedLead": "Jogadores aguardando em outros modos:",
+      "otherMenuQueued": "Há jogadores na fila em {menu}",
       "presetDeckIncomplete": "O deck predefinido está incompleto.",
       "inviteFriend": "Convidar um amigo",
       "inviteFriendHint": "Cria uma sala e o notifica. Se o amigo aceitar, ele se junta à sua partida.",
@@ -15149,6 +15156,7 @@
       "experimentDeckIncomplete": "Le deck d'expérience est incomplet.",
       "freeDeckEmpty": "Aucun deck libre/expérience enregistré pour le moment.",
       "otherModesQueuedLead": "Joueurs en attente dans d'autres modes :",
+      "otherMenuQueued": "Des joueurs sont en file d'attente en {menu}",
       "presetDeckIncomplete": "Le deck prédéfini est incomplet.",
       "inviteFriend": "Inviter un ami",
       "inviteFriendHint": "Crée un salon et le notifie. S'il accepte, il rejoint votre partie.",

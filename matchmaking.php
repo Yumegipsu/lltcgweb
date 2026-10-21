@@ -887,6 +887,25 @@ function tcgRankedOtherModesWithWaiting(string $currentMode): array {
  * pending-row probe loop, or the client aborts at 12s with "Request timed out".
  */
 function tcgQueuePublicStats(?string $gameMode = null): array {
+    $stats = tcgQueuePublicStatsCore($gameMode);
+    // Players queueing in the Unranked menu, so the Ranked menu can point at them.
+    $stats['other_menu_waiting'] = tcgRankedOtherMenuWaiting();
+    return $stats;
+}
+
+/** Unranked (casual) queue size across every mode; 0 when the table is missing. */
+function tcgRankedOtherMenuWaiting(): int {
+    try {
+        $maxWait = defined('TCG_CASUAL_QUEUE_MAX_WAIT') ? (int)TCG_CASUAL_QUEUE_MAX_WAIT : 600;
+        $stmt = tcgDb()->prepare('SELECT COUNT(*) FROM tcg_casual_queue WHERE joined_at >= ?');
+        $stmt->execute([time() - $maxWait]);
+        return (int)$stmt->fetchColumn();
+    } catch (Throwable $e) {
+        return 0;
+    }
+}
+
+function tcgQueuePublicStatsCore(?string $gameMode = null): array {
     $gameMode = tcgNormalizeRankedGameMode($gameMode ?? TCG_GAME_MODE_STANDARD);
     $cacheFile = tcgPath('data') . 'queue_stats_cache_' . preg_replace('/[^a-z0-9_]/', '', $gameMode) . '.json';
 

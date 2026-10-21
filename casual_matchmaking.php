@@ -571,6 +571,30 @@ function tcgCasualOtherModesWithWaiting(string $currentMode): array {
 }
 
 function tcgCasualQueuePublicStats(?string $gameMode = null): array {
+    $stats = tcgCasualQueuePublicStatsCore($gameMode);
+    // Players queueing in the Ranked menu, so the Unranked menu can point at them.
+    $stats['other_menu_waiting'] = tcgCasualOtherMenuWaiting();
+    return $stats;
+}
+
+/** Ranked queue size across every mode (excluding players already paired); 0 when unavailable. */
+function tcgCasualOtherMenuWaiting(): int {
+    try {
+        $stmt = tcgDb()->query(
+            'SELECT COUNT(*) FROM tcg_match_queue q
+             WHERE NOT EXISTS (
+               SELECT 1 FROM tcg_ranked_matches m
+               WHERE m.status = "pending"
+                 AND (m.p1_id = q.discord_id OR m.p2_id = q.discord_id)
+             )'
+        );
+        return $stmt === false ? 0 : (int)$stmt->fetchColumn();
+    } catch (Throwable $e) {
+        return 0;
+    }
+}
+
+function tcgCasualQueuePublicStatsCore(?string $gameMode = null): array {
     require_once __DIR__ . '/game_mode.php';
     $gameMode = ($gameMode !== null && $gameMode !== '')
         ? tcgNormalizeGameMode($gameMode)
