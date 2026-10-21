@@ -225,8 +225,6 @@
       "weekly": {
         "rankedRandom": "Play a ranked match in Random decks mode",
         "ranked10": "Play 10 ranked matches",
-        "shopBuy": "Buy a playmat or sleeve from the shop",
-        "stickerExchange": "Exchange seals for a card in the Sticker Shop",
         "login7": "Log in every day this week (7 days)",
         "completeAll": "Complete all weekly missions"
       },
@@ -2453,8 +2451,6 @@
       "weekly": {
         "rankedRandom": "ランダムデッキでランクマッチを1回プレイ",
         "ranked10": "ランクマッチを10回プレイ",
-        "shopBuy": "ショップでプレイマットまたはスリーブを購入",
-        "stickerExchange": "シール交換でシールをカードと交換",
         "login7": "今週は毎日ログイン（7日間）",
         "completeAll": "すべてのウィークリーミッションを達成"
       },
@@ -5889,8 +5885,6 @@
       "weekly": {
         "rankedRandom": "Juega una partida clasificatoria en el modo de mazos aleatorios",
         "ranked10": "Juega 10 partidas clasificatorias",
-        "shopBuy": "Compra un tapete o una funda en la tienda",
-        "stickerExchange": "Canjea sellos por una carta en la tienda de stickers",
         "login7": "Inicia sesión todos los días de esta semana (7 días)",
         "completeAll": "Completa todas las misiones semanales"
       },
@@ -7986,8 +7980,6 @@
       "weekly": {
         "rankedRandom": "랜덤 덱 모드로 랭크 매치 1회 플레이",
         "ranked10": "랭크 매치 10회 플레이",
-        "shopBuy": "상점에서 플레이매트 또는 슬리브 구매",
-        "stickerExchange": "스티커 샵에서 실을 카드로 교환",
         "login7": "이번 주 매일 로그인 (7일)",
         "completeAll": "모든 주간 미션 완료"
       },
@@ -10083,8 +10075,6 @@
       "weekly": {
         "rankedRandom": "在随机卡组模式中进行一场排名对战",
         "ranked10": "进行 10 场排名对战",
-        "shopBuy": "在商店购买一张游戏垫或一个卡套",
-        "stickerExchange": "在贴纸商店用印章兑换一张卡牌",
         "login7": "本周每天登录（7 天）",
         "completeAll": "完成所有每周任务"
       },
@@ -12156,8 +12146,6 @@
       "weekly": {
         "rankedRandom": "เล่นแมตช์แรงก์ในโหมดเด็คสุ่ม",
         "ranked10": "เล่นแมตช์แรงก์ 10 ครั้ง",
-        "shopBuy": "ซื้อเพลย์แมตหรือสลีฟจากร้านค้า",
-        "stickerExchange": "แลกซีลเป็นการ์ดในร้านสติกเกอร์",
         "login7": "ล็อกอินทุกวันในสัปดาห์นี้ (7 วัน)",
         "completeAll": "ทำภารกิจรายสัปดาห์ทั้งหมดให้สำเร็จ"
       },
@@ -12881,8 +12869,6 @@
       "weekly": {
         "rankedRandom": "Jogue uma partida ranqueada no modo de decks aleatórios",
         "ranked10": "Jogue 10 partidas ranqueadas",
-        "shopBuy": "Compre um playmat ou sleeve na loja",
-        "stickerExchange": "Troque selos por uma carta na loja de selos",
         "login7": "Entre todos os dias desta semana (7 dias)",
         "completeAll": "Complete todas as missões semanais"
       },
@@ -15030,8 +15016,6 @@
       "weekly": {
         "rankedRandom": "Jouer une partie classée en mode decks aléatoires",
         "ranked10": "Jouer 10 parties classées",
-        "shopBuy": "Acheter un tapis de jeu ou des protège-cartes dans la boutique",
-        "stickerExchange": "Échanger des sceaux contre une carte dans la boutique de sceaux",
         "login7": "Se connecter chaque jour cette semaine (7 jours)",
         "completeAll": "Terminer toutes les missions hebdomadaires"
       },

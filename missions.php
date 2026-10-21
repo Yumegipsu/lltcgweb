@@ -15,8 +15,6 @@ const TCG_MISSION_DAILY_SUB_IDS = [
 const TCG_MISSION_WEEKLY_SUB_IDS = [
     'weekly_ranked_random',
     'weekly_ranked_10',
-    'weekly_shop_buy',
-    'weekly_sticker_exchange',
     'weekly_login_7',
 ];
 const TCG_MISSION_MONTHLY_SUB_IDS = [
@@ -40,10 +38,8 @@ function tcgMissionDefinitions(): array {
         // Weekly (JST Monday reset). `rewards` = list of {type: gems|coins|tickets|ticket_sr|ticket_ur|seal, amount, tier?}.
         ['id' => 'weekly_ranked_random', 'type' => 'weekly', 'reward' => 100, 'reward_type' => 'multi', 'rewards' => [['type' => 'gems', 'amount' => 100]], 'sort' => 10, 'i18n_key' => 'missions.weekly.rankedRandom'],
         ['id' => 'weekly_ranked_10', 'type' => 'weekly', 'reward' => 10, 'reward_type' => 'multi', 'rewards' => [['type' => 'seal', 'tier' => 'N', 'amount' => 10]], 'sort' => 20, 'i18n_key' => 'missions.weekly.ranked10', 'threshold' => 10],
-        ['id' => 'weekly_shop_buy', 'type' => 'weekly', 'reward' => 100, 'reward_type' => 'multi', 'rewards' => [['type' => 'coins', 'amount' => 100]], 'sort' => 30, 'i18n_key' => 'missions.weekly.shopBuy'],
-        ['id' => 'weekly_sticker_exchange', 'type' => 'weekly', 'reward' => 1, 'reward_type' => 'multi', 'rewards' => [['type' => 'seal', 'tier' => 'R', 'amount' => 1]], 'sort' => 40, 'i18n_key' => 'missions.weekly.stickerExchange'],
-        ['id' => 'weekly_login_7', 'type' => 'weekly', 'reward' => 10, 'reward_type' => 'multi', 'rewards' => [['type' => 'tickets', 'amount' => 10]], 'sort' => 50, 'i18n_key' => 'missions.weekly.login7', 'threshold' => 7],
-        ['id' => 'weekly_complete_all', 'type' => 'weekly', 'reward' => 1, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 1]], 'sort' => 60, 'i18n_key' => 'missions.weekly.completeAll', 'threshold' => 5],
+        ['id' => 'weekly_login_7', 'type' => 'weekly', 'reward' => 10, 'reward_type' => 'multi', 'rewards' => [['type' => 'tickets', 'amount' => 10]], 'sort' => 30, 'i18n_key' => 'missions.weekly.login7', 'threshold' => 7],
+        ['id' => 'weekly_complete_all', 'type' => 'weekly', 'reward' => 1, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 1]], 'sort' => 40, 'i18n_key' => 'missions.weekly.completeAll', 'threshold' => 3],
 
         // Monthly (resets with the ranked season, 00:00 UTC on the 1st).
         ['id' => 'monthly_tournament', 'type' => 'monthly', 'reward' => 500, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 1], ['type' => 'coins', 'amount' => 500]], 'sort' => 10, 'i18n_key' => 'missions.monthly.tournament'],
@@ -1472,20 +1468,14 @@ function tcgMissionCheckOwnedCosmetics(string $discordId): array {
     return $completions;
 }
 
-/** Bought a sleeve or playmat in the shop (weekly) + ownership milestones. */
+/** Bought a sleeve or playmat in the shop: ownership milestones. */
 function tcgMissionOnShopPurchase(string $discordId): array {
-    return tcgMissionMergeCompletions(
-        tcgMissionMarkCompleted($discordId, 'weekly_shop_buy'),
-        tcgMissionCheckOwnedCosmetics($discordId)
-    );
+    return tcgMissionCheckOwnedCosmetics($discordId);
 }
 
-/** Exchanged seals for a card in the Sticker Shop (weekly) + the lifetime exchange milestones. */
+/** Exchanged seals for a card in the Sticker Shop: the lifetime exchange milestones. */
 function tcgMissionOnStickerExchange(string $discordId): array {
-    return tcgMissionMergeCompletions(
-        tcgMissionMarkCompleted($discordId, 'weekly_sticker_exchange'),
-        tcgMissionCheckStickerExchangeThresholds($discordId)
-    );
+    return tcgMissionCheckStickerExchangeThresholds($discordId);
 }
 
 /** One Gacha Scouting action (any banner); $birthday = it was a limited birthday banner. */
@@ -1503,8 +1493,8 @@ function tcgMissionOnGachaScout(string $discordId, bool $birthday): array {
 
 /**
  * Credit what the existing history already proves for the CURRENT week / month, once per user per month:
- * completed ranked matches (counters, Random-decks credit), a tournament played this month, a sleeve or
- * playmat bought in the shop this week, and the last recorded login day. Every match is recorded with the
+ * completed ranked matches (counters, Random-decks credit), a tournament played this month, and the last
+ * recorded login day. Every match is recorded with the
  * same per-room marker as the live hook, so a retried finish can never count the same room twice.
  * Not recoverable (no history is stored): sticker-shop exchanges, gacha scouts and earlier login days.
  */
@@ -1562,21 +1552,6 @@ function tcgMissionBackfillPeriodHistory(string $discordId): void {
             // Tournament tables / elim_reason may not exist on every database.
         }
 
-        // Sleeve / playmat bought in the shop this week.
-        foreach (['tcg_owned_sleeves', 'tcg_owned_playmats'] as $table) {
-            try {
-                $q = $db->prepare("SELECT 1 FROM {$table} WHERE discord_id = ? AND source = 'shop'
-                    AND acquired_at >= ? AND acquired_at < ? LIMIT 1");
-                $q->execute([$discordId, $weekStart, $weekEnd]);
-                if ($q->fetchColumn()) {
-                    tcgMissionMarkCompleted($discordId, 'weekly_shop_buy');
-                    break;
-                }
-            } catch (Throwable $e) {
-                // table missing on a fresh database
-            }
-        }
-
         // Last recorded login day, when it falls inside this week.
         $l = $db->prepare('SELECT login_days_last_date FROM tcg_users WHERE discord_id = ?');
         $l->execute([$discordId]);
@@ -1607,6 +1582,18 @@ function tcgMissionCheckPeriodic(string $discordId): void {
         tcgMissionCheckOwnedCosmetics($discordId);
         if (tcgMissionLoginDaysThisWeek($discordId) >= 7) {
             tcgMissionMarkCompleted($discordId, 'weekly_login_7');
+        }
+        // The weekly set shrank to three missions: someone who already finished all of them gets the bonus.
+        $week = tcgMissionWeekKey();
+        $allWeekly = true;
+        foreach (TCG_MISSION_WEEKLY_SUB_IDS as $subId) {
+            if (!tcgMissionIsCompleted($discordId, $subId, $week)) {
+                $allWeekly = false;
+                break;
+            }
+        }
+        if ($allWeekly) {
+            tcgMissionMarkCompleted($discordId, 'weekly_complete_all');
         }
         if (tcgMissionCounterGet($discordId, 'gacha_scouts', '') >= 10) {
             tcgMissionMarkCompleted($discordId, 'ms_gacha_scout_10');
