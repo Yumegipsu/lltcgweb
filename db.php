@@ -471,6 +471,13 @@ function tcgDbMigrate(PDO $db): void {
         tcgSeasonEnsureSchema($db);
     });
 
+    // Avatars are cached on our own domain (avatar.php): existing CDN URLs become local-cache URLs and
+    // accounts stuck on a missing / default avatar recover the real one from the site's login cache.
+    tcgDbRunMigrationOnce($db, 'avatar_local_cache_20261021', function (PDO $db): void {
+        require_once __DIR__ . '/avatar_cache.php';
+        tcgAvatarSweepAllUsers($db);
+    });
+
     // Last time the player's current Discord avatar was re-read from Discord (tcgFreshenDiscordAvatar).
     tcgDbRunMigrationOnce($db, 'avatar_checked_at_20261021', function (PDO $db): void {
         tcgDbEnsureColumn($db, 'tcg_users', 'avatar_checked_at', 'INTEGER NOT NULL DEFAULT 0');
@@ -1077,6 +1084,9 @@ function tcgEnsureUser(string $discordId, array $profile = []): array {
     if (!function_exists('tcgIsPlaceholderUsername') && is_file(__DIR__ . '/auth_profile.php')) {
         require_once __DIR__ . '/auth_profile.php';
     }
+    if (!function_exists('tcgAvatarNormalizeForStorage') && is_file(__DIR__ . '/avatar_cache.php')) {
+        require_once __DIR__ . '/avatar_cache.php';
+    }
     $db = tcgDb();
     $now = time();
     $stmt = $db->prepare('SELECT * FROM tcg_users WHERE discord_id = ?');
@@ -1113,6 +1123,9 @@ function tcgEnsureUser(string $discordId, array $profile = []): array {
         if ($wantUser || $wantAvatar) {
             $username = $wantUser ? $profileName : (string)($row['username'] ?? 'Player');
             $avatar = $wantAvatar ? ($profile['avatar_url'] ?? null) : ($row['avatar_url'] ?? null);
+            if ($wantAvatar && function_exists('tcgAvatarNormalizeForStorage')) {
+                $avatar = tcgAvatarNormalizeForStorage($discordId, $avatar !== null ? (string)$avatar : null);
+            }
             if ($username !== (string)($row['username'] ?? '')
                 || (string)($avatar ?? '') !== (string)($row['avatar_url'] ?? '')) {
                 $db->prepare('UPDATE tcg_users SET username = ?, avatar_url = ?, updated_at = ? WHERE discord_id = ?')
@@ -1156,7 +1169,9 @@ function tcgEnsureUser(string $discordId, array $profile = []): array {
         ->execute([
             $discordId,
             $insertName,
-            $profile['avatar_url'] ?? null,
+            function_exists('tcgAvatarNormalizeForStorage')
+                ? tcgAvatarNormalizeForStorage($discordId, isset($profile['avatar_url']) ? (string)$profile['avatar_url'] : null)
+                : ($profile['avatar_url'] ?? null),
             $now,
             $now,
         ]);

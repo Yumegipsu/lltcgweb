@@ -411,7 +411,9 @@ function tcgRepairPlaceholderUsernames(int $sampleLimit = 20): array
         $db->prepare('UPDATE tcg_users SET username = ?, avatar_url = ?, updated_at = ? WHERE discord_id = ?')
             ->execute([
                 $newName,
-                $profile['avatar_url'] ?? null,
+                function_exists('tcgAvatarNormalizeForStorage')
+                    ? tcgAvatarNormalizeForStorage($uid, isset($profile['avatar_url']) ? (string)$profile['avatar_url'] : null)
+                    : ($profile['avatar_url'] ?? null),
                 $now,
                 $uid,
             ]);

@@ -955,6 +955,8 @@
   document.addEventListener('error', function (ev) {
     var img = ev.target;
     if (!img || img.tagName !== 'IMG' || (img.dataset && img.dataset.avatarFallback === '1')) return;
+    // Images with their own onerror fallback (leaderboard, tournaments) handle it themselves.
+    if (typeof img.onerror === 'function') return;
     var m = RE.exec(img.currentSrc || img.src || '');
     if (!m) return;
     if (img.dataset) img.dataset.avatarFallback = '1';

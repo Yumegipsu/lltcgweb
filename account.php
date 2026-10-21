@@ -2720,6 +2720,9 @@ function tcgApplyUsernameUpdates(array $updates): array
             continue;
         }
         $avatar = array_key_exists('avatar_url', $row) ? ($row['avatar_url'] ?? null) : null;
+        if ($avatar !== null && function_exists('tcgAvatarNormalizeForStorage')) {
+            $avatar = tcgAvatarNormalizeForStorage($uid, (string)$avatar);
+        }
         $stmt = $db->prepare('UPDATE tcg_users SET username = ?, avatar_url = COALESCE(?, avatar_url), updated_at = ? WHERE discord_id = ?');
         $stmt->execute([$username, $avatar, $now, $uid]);
         if ($stmt->rowCount() > 0) {
