@@ -7298,7 +7298,8 @@ function syncLobbyExperimentField() {
 }
 
 function leaveLobbyToMenu() {
-  if (A.casualSearching) void cancelCasualSearch();
+  // The unranked queue keeps running after you leave this menu (like Ranked): the floating search
+  // pill stays on every screen and has its own cancel button.
   if (A.profile) enterHub(A.profile);
   else showGuestAuth(null, 'auth.guestPrompt');
 }
