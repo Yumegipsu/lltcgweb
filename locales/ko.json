@@ -181,6 +181,7 @@
     "experimentDeckIncomplete": "Experiment deck is incomplete.",
     "freeDeckEmpty": "No free/experiment decks saved yet.",
     "otherModesQueuedLead": "Players waiting in other modes:",
+    "otherMenuQueued": "{menu}에서 대기 중인 플레이어가 있습니다",
     "presetDeckIncomplete": "Preset deck is incomplete."
   },
   "deck": {

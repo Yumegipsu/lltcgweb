@@ -281,6 +281,7 @@
     "experimentDeckIncomplete": "O deck experimental está incompleto.",
     "freeDeckEmpty": "Nenhum deck experimental salvo ainda.",
     "otherModesQueuedLead": "Jogadores aguardando em outros modos:",
+    "otherMenuQueued": "Há jogadores na fila em {menu}",
     "presetDeckIncomplete": "O deck predefinido está incompleto.",
     "inviteFriend": "Convidar um amigo",
     "inviteFriendHint": "Cria uma sala e o notifica. Se o amigo aceitar, ele se junta à sua partida.",

@@ -292,6 +292,7 @@
     "experimentDeckIncomplete": "Experiment deck is incomplete.",
     "freeDeckEmpty": "No free/experiment decks saved yet.",
     "otherModesQueuedLead": "Players waiting in other modes:",
+    "otherMenuQueued": "Players are queueing in {menu}",
     "presetDeckIncomplete": "Preset deck is incomplete."
   },
   "deck": {
