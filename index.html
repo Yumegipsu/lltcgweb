@@ -3320,7 +3320,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=237"></script>
+<script src="i18n.js?v=238"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=46"></script>
@@ -30306,6 +30306,70 @@ function cardShuffleWrMembersPlayOpt(card) {
   return (abs || []).find(ab =>
     ab.trigger === 'continuous' && ab.type === 'play_cost_reduction_if_shuffle_wr_members') || null;
 }
+/** LL-bp7-001 Always: put 1 each of three named Members from hand into the Waiting Room → cost becomes 10. */
+function cardDiscardNamedPlayOpt(card) {
+  const abs = (typeof clientCatalogAbilities === 'function')
+    ? clientCatalogAbilities(card)
+    : (card?.abilities || []);
+  return (abs || []).find(ab =>
+    ab && ab.trigger === 'continuous' && ab.type === 'play_cost_set_if_discard_named') || null;
+}
+/** Name lists interleave EN + JP for each character — pair them (mirrors bp7GroupNameAliases). */
+function discardNamedAliasGroups(names) {
+  const list = (names || []).filter(n => typeof n === 'string');
+  const groups = [];
+  for (let i = 0; i < list.length; i += 2) {
+    groups.push(i + 1 < list.length ? [list[i], list[i + 1]] : [list[i]]);
+  }
+  return groups;
+}
+/** Mirrors the server's cardMatchesNames (exact, substring, or one part of "A & B"). */
+function discardNamedCardMatches(card, aliases) {
+  const labels = [card?.name_en, card?.name].filter(x => typeof x === 'string' && x !== '');
+  for (const n of aliases) {
+    for (const label of labels) {
+      if (label === n || label.includes(n)) return true;
+      if (/[&＆]/.test(label) && label.split(/[&＆]/).some(part => part.trim() === n)) return true;
+    }
+  }
+  return false;
+}
+/**
+ * The hand Members that would pay the option, or null when the set is incomplete. Single-named cards only
+ * (a combined "A & B" card would match two characters and the server needs exactly one card per name), the
+ * played card itself never counts, and the cheapest copy of each is offered.
+ */
+function discardNamedHandPick(card, me) {
+  const ab = cardDiscardNamedPlayOpt(card);
+  if (!ab) return null;
+  const groups = discardNamedAliasGroups(ab.names);
+  if (!groups.length) return null;
+  const each = Math.max(1, Number(ab.count_each || 1));
+  const hand = (me?.hand || []).filter(c => c && c.instance_id !== card.instance_id
+    && (c.card_type === 'メンバー' || c.card_type_en === 'Member'));
+  const used = new Set();
+  const ids = [];
+  const cards = [];
+  for (const aliases of groups) {
+    const cands = hand
+      .filter(c => !used.has(c.instance_id)
+        && discardNamedCardMatches(c, aliases)
+        && groups.filter(g => discardNamedCardMatches(c, g)).length === 1)
+      .sort((a, b) => (Number(a.cost) || 0) - (Number(b.cost) || 0));
+    if (cands.length < each) return null;
+    for (let i = 0; i < each; i++) {
+      used.add(cands[i].instance_id);
+      ids.push(cands[i].instance_id);
+      cards.push(cands[i]);
+    }
+  }
+  return { ab, ids, cards };
+}
+function playCostAfterDiscardNamedOpt(card, me, baseEc) {
+  const pick = discardNamedHandPick(card, me);
+  if (!pick) return baseEc;
+  return Math.min(baseEc, Math.max(0, Number(pick.ab.cost || 10)));
+}
 function waitingRoomMemberCount(me) {
   return (me?.waiting_room || []).filter(c =>
     c && (c.card_type === 'メンバー' || c.card_type_en === 'Member')).length;
@@ -30334,6 +30398,8 @@ function playCostWithOptionalOpts(card, me, baseEc, excludeSlot = null) {
   if (shuf < costs[0]) costs.push(shuf);
   const wait = playCostAfterPb2WaitOpt(card, me, baseEc, excludeSlot);
   if (wait < costs[0]) costs.push(wait);
+  const named = playCostAfterDiscardNamedOpt(card, me, baseEc);
+  if (named < costs[0]) costs.push(named);
   return Math.min(...costs);
 }
 function canAffordBatonWithOptionalDouble(me, card, primarySlot, primaryMember, ae, ec) {
@@ -30343,6 +30409,8 @@ function canAffordBatonWithOptionalDouble(me, card, primarySlot, primaryMember, 
   if (shuf < ec) costs.push(shuf);
   const wait = playCostAfterPb2WaitOpt(card, me, ec, primarySlot);
   if (wait < ec) costs.push(wait);
+  const named = playCostAfterDiscardNamedOpt(card, me, ec);
+  if (named < ec) costs.push(named);
   for (const c of costs) {
     const primaryRem = Math.max(0, c - stageMemberEffectiveCost(primaryMember, me));
     if (ae >= primaryRem) return true;
@@ -30357,6 +30425,8 @@ function batonPlayCostWithBestDouble(me, card, primarySlot, primaryMember, ec) {
   if (shuf < ec) costs.push(shuf);
   const wait = playCostAfterPb2WaitOpt(card, me, ec, primarySlot);
   if (wait < ec) costs.push(wait);
+  const named = playCostAfterDiscardNamedOpt(card, me, ec);
+  if (named < ec) costs.push(named);
   let bestRem = Infinity;
   for (const c of costs) {
     const primaryRem = Math.max(0, c - stageMemberEffectiveCost(primaryMember, me));
@@ -30366,7 +30436,49 @@ function batonPlayCostWithBestDouble(me, card, primarySlot, primaryMember, ec) {
   }
   return bestRem === Infinity ? Math.max(0, ec - stageMemberEffectiveCost(primaryMember, me)) : bestRem;
 }
-function sendPlayMemberMaybeShuffleOpt(card, payload, me, ec, payCost = null) {
+/** LL-bp7-001: offer "put the named Members into the Waiting Room → cost 10"; "No" continues the normal chain. */
+function sendPlayMemberMaybeDiscardNamedOpt(card, payload, me, ec, payCost = null) {
+  const pick = discardNamedHandPick(card, me);
+  const basePay = payCost != null ? Number(payCost) : Number(ec || 0);
+  const newCost = pick ? Math.max(0, Number(pick.ab.cost || 10)) : basePay;
+  if (!pick || newCost >= basePay) return false;
+  const ae = (me?.energy_zone || []).filter(energyChipActive).length;
+  const names = pick.cards.map(c => c.name_en || c.name).join(', ');
+  el('prompt-ttl').textContent = card.name_en || card.name || 'Play';
+  el('prompt-msg').textContent = t('game.discardNamedCost', { names, cost: newCost });
+  const box = el('prompt-btns');
+  box.innerHTML = '';
+  const yes = document.createElement('button');
+  yes.className = 'btn-grad';
+  yes.textContent = t('game.payCostYes', { cost: newCost });
+  if (ae < newCost) {
+    yes.disabled = true;
+    yes.title = 'Not enough Energy';
+  } else {
+    yes.onclick = () => {
+      closeM('overlay-prompt');
+      sendAct('play_member', Object.assign({}, payload, { bp7_discard_named_ids: pick.ids }));
+    };
+  }
+  box.appendChild(yes);
+  const no = document.createElement('button');
+  no.className = 'btn-grad';
+  no.textContent = t('game.payCostNo', { cost: basePay });
+  if (ae < basePay) {
+    no.disabled = true;
+    no.title = 'Not enough Energy without the option';
+  } else {
+    no.onclick = () => {
+      closeM('overlay-prompt');
+      sendPlayMemberMaybeShuffleOpt(card, payload, me, ec, payCost, true);
+    };
+  }
+  box.appendChild(no);
+  openM('overlay-prompt');
+  return true;
+}
+function sendPlayMemberMaybeShuffleOpt(card, payload, me, ec, payCost = null, skipNamedOpt = false) {
+  if (!skipNamedOpt && sendPlayMemberMaybeDiscardNamedOpt(card, payload, me, ec, payCost)) return;
   const ab = cardShuffleWrMembersPlayOpt(card);
   const n = waitingRoomMemberCount(me);
   const basePay = payCost != null ? Number(payCost) : Number(ec || 0);
