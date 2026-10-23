@@ -5001,7 +5001,10 @@ function appendPerfMemberLiveCostBadge(cardEl, member) {
 }
 
 function perfHeartStatKey(color) {
-  return normalizeHeartColor(color || 'any');
+  // An unresolved ALL Yell heart has no heart icon of its own and is drawn with the gray one, so it shares
+  // the gray row. Keyed apart it showed two gray hearts side by side ("2" and "1") (#299).
+  const key = normalizeHeartColor(color || 'any');
+  return key === 'all' ? 'any' : key;
 }
 
 function cardYellBladeHeartColors(card) {
