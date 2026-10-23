@@ -2088,6 +2088,42 @@ function optionalDiscardPromptHandViable(array $p, array $ab): bool {
 }
 
 /**
+ * "Put N cards from hand into the Waiting Room: add 1 <filter> card from your Waiting Room to your hand" is only
+ * worth offering when a card could be added afterwards: one already in the Waiting Room, or a hand card that
+ * matches (it lands in the Waiting Room as the cost and can be taken back).
+ */
+function optionalDiscardAddFromWrViable(array $p, array $ab, array $then): bool {
+    $cfg = wrPickCfgFromAbility($then);
+    if (isset($then['min_score'])) {
+        $cfg['min_score'] = intval($then['min_score']);
+    }
+    if (isset($then['min_live_score'])) {
+        $cfg['min_live_score'] = intval($then['min_live_score']);
+    }
+    if (!empty(wrCandidatesMatching($p, $cfg))) {
+        return true;
+    }
+    $filter = (string)($ab['filter'] ?? '');
+    foreach ($p['hand'] ?? [] as $hc) {
+        if (!is_array($hc)) {
+            continue;
+        }
+        if ($filter === 'live' && !isLiveTypeCard($hc)) {
+            continue;
+        }
+        if ($filter === 'member' && !isMemberCard($hc)) {
+            continue;
+        }
+        $probe = $p;
+        $probe['waiting_room'][] = $hc;
+        if (!empty(wrCandidatesMatching($probe, $cfg))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * True when an optional cost ability should be offered: the player can pay,
  * and at least one follow-up can still resolve (e.g. a legal opp Wait target,
  * or a player_choice branch such as Draw when Wait has none).
@@ -2107,6 +2143,9 @@ function optionalCostAbilityShouldOpen(array $state, string $pid, array $ab): bo
             $then = [];
         }
         if (!optionalDiscardThenViable($p, $then)) {
+            return false;
+        }
+        if (($then['type'] ?? '') === 'add_from_wr' && !optionalDiscardAddFromWrViable($p, $ab, $then)) {
             return false;
         }
         return optionalThenEffectViable($state, $pid, $then);

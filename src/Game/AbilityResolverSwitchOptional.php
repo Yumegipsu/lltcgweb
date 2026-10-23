@@ -455,7 +455,8 @@ function tryResolveAbilityEffectSwitchOptional(
                     $state = addLog($state, $state['players'][$pid]['name'] .
                         ' — [' . $name . '] optional On Enter skipped (no cards left in deck).');
                 } elseif (!optionalDiscardPromptHandViable($p, $ab)
-                    || !optionalThenEffectViable($state, $pid, $then)) {
+                    || !optionalThenEffectViable($state, $pid, $then)
+                    || (($then['type'] ?? '') === 'add_from_wr' && !optionalDiscardAddFromWrViable($p, $ab, $then))) {
                     $state = addLog($state, $state['players'][$pid]['name'] .
                         ' — [' . $name . '] optional On Enter skipped (no legal targets).');
                 }
