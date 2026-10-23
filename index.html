@@ -12260,7 +12260,9 @@ async function startDebugReplayFromFile() {
   }
   el('debug-replay-err').textContent = '';
   try {
-    const r = await apiPost('replay_start', { replay });
+    // A downloaded v2 file carries every board frame (10+ MB); the server rebuilds them from baseline + actions.
+    const slim = (replay.frames && typeof stripReplayForTransfer === 'function') ? stripReplayForTransfer(replay) : null;
+    const r = await apiPost('replay_start', { replay: slim && slim.baseline ? slim : replay });
     if (r.error) throw new Error(r.error);
     await bootReplayFromPayload(r, replay);
   } catch (e) {

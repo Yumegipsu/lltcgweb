@@ -391,6 +391,10 @@ function tcgPlayStatsSeatIsTrackable(array $state, string $pid): ?string {
     if (tcgMatchIsTutorial($state)) {
         return null;
     }
+    // Replay seek/convert re-simulates a finished match: it must not credit the players again.
+    if (!empty($state['replay_resim'])) {
+        return null;
+    }
     $player = $state['players'][$pid] ?? null;
     if (!is_array($player)) {
         return null;

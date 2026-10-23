@@ -6918,6 +6918,13 @@ function cleanupOldGames(): array {
             }
         }
     }
+    // Replay seek frames sit beside their room file (ROOM.frames).
+    foreach (glob(GAMES_DIR . '*.frames') ?: [] as $f) {
+        $mtime = @filemtime($f);
+        if ($mtime !== false && $mtime < $cutoff && @unlink($f)) {
+            $cleaned++;
+        }
+    }
     return ['cleaned' => $cleaned, 'max_age_sec' => $maxAge];
 }
 

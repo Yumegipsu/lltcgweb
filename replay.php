@@ -217,6 +217,12 @@ function replaySurfaceSkippedPlayOrActivate(array $state, string $pid, string $t
     return $state;
 }
 
+/**
+ * Bump when frame contents change so stored/imported replays are re-simulated on open.
+ * 2: stage Members keep all per-Live state (bonus_hearts, …) and frames keep live_modifiers (#308).
+ */
+const REPLAY_FRAME_FORMAT = 2;
+
 /** Fields kept on face-up zone cards inside a frame (UI + activate). */
 const REPLAY_FRAME_CARD_KEEP = [
     'instance_id', 'card_no', 'card_type', 'card_type_en',
@@ -231,12 +237,12 @@ const REPLAY_FRAME_CARD_KEEP = [
 const REPLAY_FRAME_DROP_TOP = [
     'action_log', 'replay_baseline', 'replay', 'replay_handoff', 'mode',
     'log', 'ranked', 'phase_timer', 'phase_timer_cfg', 'mulligan_declare',
-    '_play_stat_deltas', 'stamp_pop', 'stamp_last_at', 'live_modifiers',
+    '_play_stat_deltas', 'stamp_pop', 'stamp_last_at',
     'presence', 'rate_limit', 'chat',
 ];
 
 /** Slim a single card blob for frame storage. Face-down decks keep id+no only. */
-function slimReplayFrameCard($card, bool $deckStub = false) {
+function slimReplayFrameCard($card, bool $deckStub = false, bool $keepAll = false) {
     if (!is_array($card)) {
         return $card;
     }
@@ -251,9 +257,22 @@ function slimReplayFrameCard($card, bool $deckStub = false) {
         return $out;
     }
     $out = [];
-    foreach (REPLAY_FRAME_CARD_KEEP as $k) {
-        if (array_key_exists($k, $card)) {
-            $out[$k] = $card[$k];
+    if ($keepAll) {
+        // Stage Members carry per-Live state (bonus_hearts, live_blade_bonus, wait flags, …) that
+        // seek/handoff must restore; keep it all except bulky catalog copies (images, locale text,
+        // full Baton Touch card blobs).
+        $out = $card;
+        foreach (array_keys($out) as $k) {
+            if ($k === 'image' || $k === 'baton_wr_member' || $k === 'baton_wr_members'
+                || ($k !== 'text' && str_starts_with((string)$k, 'text_'))) {
+                unset($out[$k]);
+            }
+        }
+    } else {
+        foreach (REPLAY_FRAME_CARD_KEEP as $k) {
+            if (array_key_exists($k, $card)) {
+                $out[$k] = $card[$k];
+            }
         }
     }
     // Nested stacks under members: recurse with the same keep list.
@@ -304,7 +323,7 @@ function sanitizeReplayFrame(array $state): array {
             } elseif ($zone === 'stage') {
                 foreach ($val as $slot => $mbr) {
                     if (is_array($mbr)) {
-                        $val[$slot] = slimReplayFrameCard($mbr, false);
+                        $val[$slot] = slimReplayFrameCard($mbr, false, true);
                     }
                 }
             }
@@ -510,6 +529,7 @@ function convertReplayPayloadToV2(array $replay): array {
     }
     $meta = is_array($replay['meta'] ?? null) ? $replay['meta'] : [];
     $meta['frame_count'] = count($frames);
+    $meta['frame_format'] = REPLAY_FRAME_FORMAT;
     return ensureReplayLogIndex([
         'schema_version' => REPLAY_SCHEMA_VERSION,
         'meta' => $meta,
@@ -545,14 +565,19 @@ function ensureReplayPayloadV2(array $replay): array {
     validateReplayFile($replay);
     $actions = $replay['actions'] ?? [];
     $frames = $replay['frames'] ?? null;
+    $staleFrames = intval($replay['meta']['frame_format'] ?? 0) < REPLAY_FRAME_FORMAT;
     if (intval($replay['schema_version'] ?? 0) >= 2
         && is_array($frames)
         && count($frames) === count($actions) + 1
+        && !$staleFrames
         && !replayPayloadSeekDiverged($replay)) {
         return convertReplayPayloadToV2($replay);
     }
-    if (replayPayloadSeekDiverged($replay)) {
-        // Saved frames/log were built from a drifted seek. Rebuild from actions.
+    if ($staleFrames || replayPayloadSeekDiverged($replay)) {
+        // Saved frames/log were built from a drifted seek or an older frame format. Rebuild from actions.
+        if (empty($replay['baseline']) && is_array($frames) && !empty($frames[0])) {
+            $replay['baseline'] = $frames[0];
+        }
         unset($replay['frames'], $replay['full_log'], $replay['log_ends']);
         $replay['schema_version'] = 1;
     }
@@ -1783,6 +1808,7 @@ function replayRestoreFromBaseline(
 ): array {
     $state = json_decode(json_encode($baseline), true);
     $state['room_id'] = $roomId;
+    $state['replay_resim'] = true;
     if (!isset($state['players']['p1']) || !isset($state['players']['p2'])) {
         throw new Exception('Replay baseline missing both players');
     }
@@ -1837,6 +1863,65 @@ function replayHydrateCardTree(array &$node): void {
  *
  * @param array $replayBag Slim replay blob kept on the room (frames, actions, …)
  */
+/** Frames live beside the room (one JSON frame per line) so seeking never decodes the whole replay. */
+function replayFramesPath(string $roomId): string {
+    return GAMES_DIR . preg_replace('/[^A-Z0-9]/', '', strtoupper($roomId)) . '.frames';
+}
+
+/** Write all frames to the room's sidecar; returns the byte offset of each frame. */
+function replayFramesWrite(string $roomId, array $frames): array {
+    $path = replayFramesPath($roomId);
+    $fh = @fopen($path, 'wb');
+    if (!$fh) {
+        throw new Exception('Could not store replay frames');
+    }
+    $offsets = [];
+    $pos = 0;
+    foreach (array_values($frames) as $frame) {
+        $line = json_encode($frame, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
+        if ($line === false) {
+            fclose($fh);
+            throw new Exception('Could not encode replay frame');
+        }
+        $line .= "\n";
+        $offsets[] = $pos;
+        $pos += strlen($line);
+        fwrite($fh, $line);
+    }
+    fclose($fh);
+    return $offsets;
+}
+
+/** Number of frames in a replay bag (sidecar offsets, or legacy inline frames). */
+function replayBagFrameCount(array $bag): int {
+    if (is_array($bag['frame_offsets'] ?? null)) {
+        return count($bag['frame_offsets']);
+    }
+    return is_array($bag['frames'] ?? null) ? count($bag['frames']) : 0;
+}
+
+/** One frame from a replay bag, or null when missing. */
+function replayBagFrame(string $roomId, array $bag, int $i): ?array {
+    if (is_array($bag['frame_offsets'] ?? null)) {
+        $off = $bag['frame_offsets'][$i] ?? null;
+        $path = replayFramesPath($roomId);
+        if ($off === null || !is_file($path)) {
+            return null;
+        }
+        $fh = @fopen($path, 'rb');
+        if (!$fh) {
+            return null;
+        }
+        fseek($fh, (int)$off);
+        $line = fgets($fh);
+        fclose($fh);
+        $frame = is_string($line) ? json_decode($line, true) : null;
+        return is_array($frame) ? $frame : null;
+    }
+    $frame = $bag['frames'][$i] ?? null;
+    return is_array($frame) ? $frame : null;
+}
+
 function replayInstallFrame(
     array $frame,
     string $roomId,
@@ -1944,7 +2029,7 @@ function apiReplayStart(array $body): array {
         'saver_pid' => $saverPid,
         'actions'   => $actions,
         'baseline'  => $baseline,
-        'frames'    => $frames,
+        'frame_offsets' => replayFramesWrite($roomId, $frames),
         'full_log'  => $replay['full_log'] ?? [],
         'log_ends'  => $replay['log_ends'] ?? [],
         'step'      => 0,
@@ -2062,13 +2147,17 @@ function apiReplayGoto(array $body): array {
         $maxStep = count($actions);
         $step = max(0, min($step, $maxStep));
         $frames = $replay['frames'] ?? null;
+        $frameOffsets = is_array($replay['frame_offsets'] ?? null) ? $replay['frame_offsets'] : null;
         $baseline = $replay['baseline'] ?? null;
         $p1Token = $state['players']['p1']['token'] ?? generateToken();
         $p2Token = $state['players']['p2']['token'] ?? generateToken();
         $cpuDiff = $state['cpu_difficulty'] ?? 'normal';
 
         // Legacy room without frames: materialize once from baseline+actions.
-        if (!is_array($frames) || count($frames) !== $maxStep + 1) {
+        if ($frameOffsets !== null && count($frameOffsets) === $maxStep + 1 && is_file(replayFramesPath($roomId))) {
+            $frames = null;
+        } elseif (!is_array($frames) || count($frames) !== $maxStep + 1) {
+            $frameOffsets = null;
             if (!$baseline) {
                 throw new Exception('Replay baseline missing from room');
             }
@@ -2087,7 +2176,17 @@ function apiReplayGoto(array $body): array {
             $replay['log_ends'] = $converted['log_ends'] ?? [];
         }
 
+        if ($frameOffsets === null) {
+            // Legacy inline frames (or just rebuilt): move them to the sidecar once.
+            $frameOffsets = replayFramesWrite($roomId, $frames);
+        }
+        $frameBag = ['frame_offsets' => $frameOffsets];
+
         if (empty($replay['full_log']) || empty($replay['log_ends'])) {
+            $frames = [];
+            for ($fi = 0; $fi <= $maxStep; $fi++) {
+                $frames[] = replayBagFrame($roomId, $frameBag, $fi) ?? [];
+            }
             $indexed = ensureReplayLogIndex([
                 'schema_version' => REPLAY_SCHEMA_VERSION,
                 'meta' => ['saver_player_id' => $replay['saver_pid'] ?? 'p1'],
@@ -2101,7 +2200,11 @@ function apiReplayGoto(array $body): array {
 
         $handoff = $wantsHandoff && $step >= $maxStep;
         if ($handoff) {
-            $newState = replayRestoreFromBaseline($frames[$step], $roomId, $p1Token, $p2Token);
+            $handoffFrame = replayBagFrame($roomId, $frameBag, $step);
+            if (!$handoffFrame) {
+                throw new Exception('Replay frame missing');
+            }
+            $newState = replayRestoreFromBaseline($handoffFrame, $roomId, $p1Token, $p2Token);
             $newState['cpu_difficulty'] = $cpuDiff;
             unset($newState['replay']);
             $newState['mode'] = null;
@@ -2120,15 +2223,19 @@ function apiReplayGoto(array $body): array {
                 'saver_pid' => $replay['saver_pid'],
                 'actions'   => $actions,
                 'baseline'  => $baseline,
-                'frames'    => $frames,
+                'frame_offsets' => $frameOffsets,
                 'full_log'  => $replay['full_log'] ?? [],
                 'log_ends'  => $replay['log_ends'] ?? [],
                 'step'      => $step,
                 'handoff'   => false,
                 'schema_version' => REPLAY_SCHEMA_VERSION,
             ];
+            $stepFrame = replayBagFrame($roomId, $frameBag, $step);
+            if (!$stepFrame) {
+                throw new Exception('Replay frame missing');
+            }
             $newState = replayInstallFrame(
-                $frames[$step],
+                $stepFrame,
                 $roomId,
                 $p1Token,
                 $p2Token,
@@ -2152,10 +2259,10 @@ function apiReplayGoto(array $body): array {
 function enrichReplayFieldsForClient(array $filtered, array $state): array {
     if (!empty($state['replay']) && is_array($state['replay'])) {
         $actions = $state['replay']['actions'] ?? [];
-        $frames = $state['replay']['frames'] ?? null;
+        $frameCount = replayBagFrameCount($state['replay']);
         $total = is_array($actions) ? count($actions) : 0;
-        if (is_array($frames) && count($frames) > 0) {
-            $total = max($total, count($frames) - 1);
+        if ($frameCount > 0) {
+            $total = max($total, $frameCount - 1);
         }
         $filtered['replay'] = [
             'step'    => intval($state['replay']['step'] ?? 0),

@@ -1685,6 +1685,7 @@ function tcgReplayPayloadFromRow(array $row): array {
         || !isset($payload['frames'])
         || empty($payload['full_log'])
         || empty($payload['log_ends'])
+        || intval($payload['meta']['frame_format'] ?? 0) < REPLAY_FRAME_FORMAT
         || (is_array($upgraded['frames'] ?? null)
             && count($upgraded['frames']) !== count($payload['frames'] ?? []))) {
         $id = intval($row['id'] ?? 0);

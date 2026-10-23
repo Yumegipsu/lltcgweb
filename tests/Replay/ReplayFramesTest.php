@@ -97,9 +97,11 @@ final class ReplayFramesTest extends TestCase
 
         $room = loadGame($roomId);
         $this->assertSame('replay_view', $room['mode'] ?? null);
-        $this->assertArrayHasKey('frames', $room['replay'] ?? []);
+        // Frames live in the room's sidecar file, not in the room JSON (keeps seeks light).
+        $this->assertArrayNotHasKey('frames', $room['replay'] ?? []);
         $this->assertSame($mid, intval($room['replay']['step'] ?? -1));
-        $this->assertCount($total + 1, $room['replay']['frames']);
+        $this->assertCount($total + 1, $room['replay']['frame_offsets']);
+        $this->assertIsArray(replayBagFrame($roomId, $room['replay'], $mid));
         $this->assertNotEmpty($room['log'] ?? []);
         $this->assertGreaterThan(0, count($room['log']));
     }

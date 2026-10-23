@@ -68,6 +68,10 @@ final class JsonFileGameStore implements GameStoreInterface
         if (is_file($file)) {
             @unlink($file);
         }
+        $frames = $this->gamesDir . $this->normalizeRoomId($roomId) . '.frames';
+        if (is_file($frames)) {
+            @unlink($frames);
+        }
     }
 
     public function withLock(string $roomId, callable $fn, ?float $timeoutSec = null): mixed
