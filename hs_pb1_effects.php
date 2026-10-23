@@ -830,10 +830,14 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
 
         case 'live_success_add_wr_member_if_hand_max':
             if (count($p['hand'] ?? []) > intval($ab['max_hand'] ?? 6)) break;
-            $added = addFromWaitingRoomFiltered($p, '', $ab['filter'] ?? 'member', 1);
-            if ($added > 0) {
+            // The player chooses which Member to add (never the first match).
+            $added = addFromWaitingRoomWithChoice(
+                $state, $pid, $source, $ab, $ctx,
+                ['group' => '', 'filter' => $ab['filter'] ?? 'member'], 1
+            );
+            if ($added === null) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] added Member from Waiting Room (hand ≤" . intval($ab['max_hand'] ?? 6) . ').');
+                    " — [$name] choose a Member from Waiting Room (hand ≤" . intval($ab['max_hand'] ?? 6) . ').');
             }
             break;
 

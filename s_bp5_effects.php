@@ -340,6 +340,7 @@ function sBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
                 'step'          => 'discard',
                 'owner'         => $pid,
                 'responder'     => $pid,
+                'source_id'     => $source['instance_id'] ?? '',
                 'source_name'   => $name,
                 'max_discard'   => intval($ab['max_discard'] ?? 2),
                 'ability'       => $ab,
@@ -686,17 +687,28 @@ function sBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
             }
             discardFromHandByIds($ownerP, $ids, $state, $owner);
             $count = count($ids);
-            $added = addFromWaitingRoomFiltered(
-                $ownerP,
-                $ability['group'] ?? 'Sunshine',
-                $ability['filter'] ?? 'live',
-                $count
-            );
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                " — added $added Live card(s) from WR (discarded $count bladeless).");
+            // "Add the same number of Live cards": the player chooses which ones.
+            $cfg = ['group' => $ability['group'] ?? 'Sunshine', 'filter' => $ability['filter'] ?? 'live'];
+            $avail = count(wrCandidatesMatching($ownerP, $cfg));
+            $n = min($count, $avail);
             unset($state['pending_prompt']);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — discarded $count bladeless Member(s); adding $n Live card(s) from WR.");
+            if ($n < 1) {
+                $state['seq']++;
+                return finishPromptEffects($state);
+            }
+            $srcName = (string)($prompt['source_name'] ?? 'Member');
+            $source = findSourceCard($state, $owner, (string)($prompt['source_id'] ?? '')) ?? [
+                'instance_id' => (string)($prompt['source_id'] ?? ''), 'name_en' => $srcName, 'name' => $srcName,
+            ];
+            addFromWaitingRoomWithChoice($state, $owner, $source, ['type' => 'add_from_wr'] + $ability, [], $cfg, $n);
+            // Exactly N (not "up to N"): the number added equals the number discarded.
+            if (isset($state['pending_prompt'])) {
+                $state['pending_prompt']['up_to'] = false;
+            }
             $state['seq']++;
-            return finishPromptEffects($state);
+            return $state;
         }
     }
 
@@ -867,15 +879,24 @@ function sBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
         $cost = intval($ability['cost'] ?? 1);
         if (countActiveEnergyInZone($ownerP) < $cost) throw new Exception('Not enough Energy');
         if (!payEnergyCost($ownerP, $cost)) throw new Exception('Not enough Energy');
-        $added = addFromWaitingRoomFiltered($ownerP, '', '', 1, null, ['subunit' => $ability['subunit'] ?? 'Saint Snow']);
-        if ($added < 1) throw new Exception('No matching card in Waiting Room');
-        $state = applyModifierEffect($state, $owner, [
-            'type'   => 'blade_bonus',
-            'amount' => intval($ability['blade_amount'] ?? 2),
-        ]);
+        // "Add 1 Saint Snow card from your Waiting Room": the player chooses which one (Live or Member).
+        // The +Blade is "if you do", so it is applied when the pick resolves (pick_wr_to_hand, then_blade_bonus).
+        $cfg = ['group' => '', 'filter' => '', 'subunit' => $ability['subunit'] ?? 'Saint Snow'];
+        if (empty(wrCandidatesMatching($ownerP, $cfg))) throw new Exception('No matching card in Waiting Room');
+        $srcId = (string)($prompt['source_id'] ?? '');
+        $source = findSourceCard($state, $owner, $srcId) ?? [
+            'instance_id' => $srcId,
+            'name_en' => $prompt['source_name'] ?? 'Member',
+            'name' => $prompt['source_name'] ?? 'Member',
+        ];
         unset($state['pending_prompt']);
+        $pickAb = [
+            'type' => 'add_from_wr', 'subunit' => $cfg['subunit'], 'count' => 1,
+            'then_blade_bonus' => intval($ability['blade_amount'] ?? 2),
+        ];
+        addFromWaitingRoomWithChoice($state, $owner, $source, $pickAb, [], $cfg, 1);
         $state['seq']++;
-        return finishPromptEffects($state);
+        return $state;
     }
 
     if ($promptType === 'sbp5_pick_revealed_member') {

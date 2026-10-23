@@ -1592,6 +1592,134 @@
   }
   global.liveStorageGhostWatchTick = liveStorageGhostWatchTick;
 
+  /**
+   * Match watchdog — a hung win/loss presentation used to need a manual refresh.
+   *  1. A finished match whose win overlay never opens (final-round presentation or queued apply
+   *     wedged) is forced onto the win screen after FINISH_STALL_MS.
+   *  2. Presentation chrome that stays busy with no state / cursor / spectacle-phase progress for
+   *     PRESENTATION_STALL_MS (polls held, so even the finished state never arrives) reloads the page
+   *     once; the saved session restores the board or the win screen exactly like a manual refresh.
+   * The server advances a stuck Live show itself after 25s (PvP) / 90s (solo), so any real show beats
+   * these limits. Never acts while hidden, with a skill prompt open, or outside a live player seat.
+   */
+  const MATCH_WATCH_TICK_MS = 1000;
+  let mwFinishedAt = 0;
+  let mwFinishedRoom = null;
+  let mwForced = false;
+  let mwBusySince = 0;
+  let mwLastSig = '';
+
+  function matchWatchReset() {
+    mwFinishedAt = 0; mwFinishedRoom = null; mwForced = false; mwBusySince = 0; mwLastSig = '';
+  }
+
+  function matchWatchForceWin(G_, fin) {
+    TCG_DEBUG.warn('state', 'match watchdog — win overlay never opened, forcing it', { seq: fin?.seq });
+    try {
+      if (typeof global.abortGameplayPresentation === 'function') {
+        global.abortGameplayPresentation({ skipAbortFlag: true });
+      }
+    } catch (e) { /* ignore */ }
+    G_.animating = false;
+    G_._perfSpectacleActive = false;
+    G_._liveRoundPlaybackActive = false;
+    G_._liveSpectacleGateRunning = false;
+    G_._liveShowRunnerActive = false;
+    G_._livePostRevealBoard = null;
+    G_._liveStorageOutcomePending = false;
+    try {
+      if (G_.gameState !== fin) {
+        G_.gameState = fin;
+        G_.lastSeq = Math.max(G_.lastSeq ?? 0, fin.seq ?? 0);
+      }
+      if (typeof global.renderGame === 'function') global.renderGame(fin, { skipLog: true });
+    } catch (e) { TCG_DEBUG.warn('state', 'match watchdog render failed', e); }
+    if (typeof global.showWin === 'function') global.showWin(fin);
+  }
+
+  function matchWatchdogTick() {
+    const G_ = global.G;
+    const guards = global.LLTCG_PRESENTATION_GUARDS;
+    const notPlayer = !G_ || !G_.roomId || !G_.token || G_.isTutorial || G_.replayMode || G_.isSpectator;
+    if (notPlayer || !guards || typeof guards.finishedStallAction !== 'function') { matchWatchReset(); return; }
+    const now = Date.now();
+    const ov = global.__matchWatchdogMs || {};
+    const board = G_.gameState;
+    const onGame = document.querySelector('.screen.active')?.id === 'screen-game';
+
+    // 1) finished match, no win overlay
+    const fin = (G_._finishedSeenState && G_._finishedSeenRoom === G_.roomId)
+      ? G_._finishedSeenState
+      : (board?.status === 'finished' ? board : null);
+    if (fin && onGame) {
+      if (!mwFinishedAt || mwFinishedRoom !== G_.roomId) {
+        mwFinishedAt = now; mwFinishedRoom = G_.roomId; mwForced = false;
+      }
+      const winOpen = !!document.getElementById('overlay-win')?.classList.contains('open');
+      if (winOpen) { mwForced = true; }
+      const act = guards.finishedStallAction({
+        now, finishedSeenAt: mwFinishedAt, winOverlayOpen: winOpen, forced: mwForced, finishStallMs: ov.finish,
+      });
+      if (act === 'force_win') {
+        mwForced = true;
+        matchWatchForceWin(G_, G_._finishedSeenState && G_._finishedSeenRoom === G_.roomId ? G_._finishedSeenState : fin);
+      }
+    } else {
+      mwFinishedAt = 0; mwFinishedRoom = null; mwForced = false;
+    }
+
+    // 2) presentation busy with zero progress
+    const director = typeof global.LiveRoundDirector !== 'undefined' && !!global.LiveRoundDirector.active;
+    const busy = !!(G_.animating || G_._perfSpectacleActive || G_._liveSpectacleGateRunning
+      || G_._liveRoundPlaybackActive || G_._liveShowRunnerActive || G_._livePollHold || director);
+    const sig = [
+      board?.seq, board?.phase, board?.live_show?.stage, board?.live_show?.stage_seq,
+      G_.lastSeq, G_._perfSpectaclePhase || '', (G_._pendingStateQueue || []).length, G_.roomId,
+    ].join('|');
+    if (!busy || sig !== mwLastSig || document.hidden) mwBusySince = now;
+    mwLastSig = sig;
+    let lastReloadAt = 0;
+    try { lastReloadAt = Number(sessionStorage.getItem('tcg_stall_reload_at') || 0); } catch (e) { /* ignore */ }
+    const act2 = guards.presentationStallAction({
+      busy, busySince: mwBusySince, now, hidden: document.hidden, hasPrompt: !!board?.pending_prompt,
+      finished: board?.status === 'finished' || !!fin, notPlayerSession: !onGame, lastReloadAt, stallMs: ov.stall,
+    });
+    if (act2 === 'reload') {
+      TCG_DEBUG.warn('state', 'match watchdog — presentation stalled, reloading to resume', {
+        seq: board?.seq, phase: board?.phase, stage: board?.live_show?.stage || null,
+        flags: { anim: !!G_.animating, spec: !!G_._perfSpectacleActive, hold: !!G_._livePollHold, runner: !!G_._liveShowRunnerActive },
+      });
+      mwBusySince = now;
+      try { sessionStorage.setItem('tcg_stall_reload_at', String(now)); } catch (e) { /* ignore */ }
+      try { if (typeof global.saveActiveGameSession === 'function') global.saveActiveGameSession(); } catch (e) { /* ignore */ }
+      const reload = global.__matchWatchdogReloadFn || function () { global.location.reload(); };
+      reload();
+    }
+  }
+  if (!global.__matchWatchdog) {
+    global.__matchWatchdog = setInterval(matchWatchdogTick, MATCH_WATCH_TICK_MS);
+  }
+  global.matchWatchdogTick = matchWatchdogTick;
+  global.matchWatchdogReset = matchWatchReset;
+
+  const _origOnState = global.onState;
+  if (typeof _origOnState === 'function' && !_origOnState.__matchWatchHooked) {
+    const hooked = function onStateWithMatchWatch(s) {
+      try {
+        if (s && s.status === 'finished') {
+          global.G._finishedSeenState = s;
+          global.G._finishedSeenRoom = global.G.roomId;
+        } else if (s) {
+          global.G._finishedSeenState = null;
+          global.G._finishedSeenRoom = null;
+        }
+      } catch (e) { /* ignore */ }
+      return _origOnState.apply(this, arguments);
+    };
+    hooked.__matchWatchHooked = true;
+    global.onState = hooked;
+  }
+
   const _origApplyStateUpdate = global.applyStateUpdate;
   if (typeof _origApplyStateUpdate === 'function' && !_origApplyStateUpdate.__stampsHooked) {
     const wrapped = async function applyStateUpdateWithStamps(s) {

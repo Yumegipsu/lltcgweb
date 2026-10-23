@@ -430,17 +430,16 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
 
         case 'add_from_wr_if_stage_min_members':
             if (countStageMembers($p) >= intval($ab['min_stage_members'] ?? 2)) {
-                $added = addFromWaitingRoomFiltered(
-                    $p,
-                    $ab['group'] ?? '',
-                    'live',
-                    1,
-                    null,
-                    ['max_live_score' => intval($ab['max_live_score'] ?? 3)]
-                );
-                if ($added > 0) {
+                // The player chooses which Live to add (never the first match).
+                $cfg = [
+                    'group' => $ab['group'] ?? '',
+                    'filter' => 'live',
+                    'max_live_score' => intval($ab['max_live_score'] ?? 3),
+                ];
+                $added = addFromWaitingRoomWithChoice($state, $pid, $source, $ab, $ctx, $cfg, 1);
+                if ($added === null) {
                     $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] added $added Live from Waiting Room.");
+                        " — [$name] choose a Live from Waiting Room.");
                 }
             }
             break;

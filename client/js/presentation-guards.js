@@ -333,7 +333,39 @@
     return false;
   }
 
+  /** A finished match whose win overlay never opened (hung final-round presentation / queued apply). */
+  const FINISH_STALL_MS = 30000;
+  /** Presentation chrome busy with no state / cursor / spectacle-phase progress at all. */
+  const PRESENTATION_STALL_MS = 100000;
+  /** At most one automatic recovery reload per window. */
+  const STALL_RELOAD_COOLDOWN_MS = 300000;
+
+  /** 'force_win' once a finished match has waited FINISH_STALL_MS without the win overlay. */
+  function finishedStallAction(ctx) {
+    ctx = ctx || {};
+    if (!ctx.finishedSeenAt || ctx.winOverlayOpen || ctx.forced) return null;
+    if ((ctx.now - ctx.finishedSeenAt) < (ctx.finishStallMs || FINISH_STALL_MS)) return null;
+    return 'force_win';
+  }
+
+  /**
+   * 'reload' when presentation flags have been busy with no progress for PRESENTATION_STALL_MS.
+   * Never while the tab is hidden, a skill prompt is open (it has its own timer), or the match is
+   * already over / not a live player session.
+   */
+  function presentationStallAction(ctx) {
+    ctx = ctx || {};
+    if (!ctx.busy || ctx.hidden || ctx.hasPrompt || ctx.finished || ctx.notPlayerSession) return null;
+    if (!ctx.busySince || (ctx.now - ctx.busySince) < (ctx.stallMs || PRESENTATION_STALL_MS)) return null;
+    if (ctx.lastReloadAt && (ctx.now - ctx.lastReloadAt) < STALL_RELOAD_COOLDOWN_MS) return null;
+    return 'reload';
+  }
+
   return {
+    FINISH_STALL_MS,
+    PRESENTATION_STALL_MS,
+    finishedStallAction,
+    presentationStallAction,
     MAIN_UNSTICK_HYSTERESIS_MS,
     MAIN_HIDE_IID_UNSTICK_MS,
     liveShowInFlight,

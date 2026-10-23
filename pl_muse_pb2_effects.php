@@ -57,6 +57,53 @@ function plMusePb2IsEffectType(string $type): bool {
     return in_array($type, plMusePb2EffectTypes(), true);
 }
 
+/**
+ * PL!-pb2-002 Eli, Always: Members with N or fewer printed hearts that enter the Member area opposite this
+ * Member enter in Wait. Marks each entry once (per turn) so a Member that later changes area is never re-waited.
+ */
+function plMusePb2ApplyOppositeEnterWait(array $state): array {
+    $turn = intval($state['turn'] ?? 1);
+    foreach (['p1', 'p2'] as $pid) {
+        $opp = $pid === 'p1' ? 'p2' : 'p1';
+        foreach (['left', 'center', 'right'] as $slot) {
+            $m = $state['players'][$pid]['stage'][$slot] ?? null;
+            if (!is_array($m) || intval($m['entered_turn'] ?? 0) !== $turn) {
+                continue;
+            }
+            if (intval($m['_enter_wait_checked'] ?? 0) === $turn) {
+                continue;
+            }
+            $state['players'][$pid]['stage'][$slot]['_enter_wait_checked'] = $turn;
+            $facing = hsPb1FacingStageSlot($slot);
+            $eli = $state['players'][$opp]['stage'][$facing] ?? null;
+            if (!is_array($eli) || memberIsInWait($m)) {
+                continue;
+            }
+            $max = null;
+            foreach ($eli['abilities'] ?? [] as $ab) {
+                if (($ab['trigger'] ?? '') === 'continuous' && ($ab['type'] ?? '') === 'opp_enter_opposite_wait_max_printed_hearts') {
+                    $max = intval($ab['max_printed_hearts'] ?? 4);
+                    break;
+                }
+            }
+            if ($max === null || memberHeartCount($m) > $max) {
+                continue;
+            }
+            // Entering in Wait is not "being put into Wait": no Wait triggers, just the state.
+            $mm = &$state['players'][$pid]['stage'][$slot];
+            $mm['_was_active_before_wait'] = true;
+            $mm['in_wait'] = true;
+            $mm['waited_turn'] = $turn;
+            $mm['waited_active_player'] = (string)($state['active_player'] ?? '');
+            $mm['active'] = false;
+            unset($mm);
+            $state = addLog($state, ($state['players'][$pid]['name'] ?? $pid) . ' — ' . ($m['name_en'] ?? $m['name'] ?? 'Member')
+                . ' entered in Wait ([' . ($eli['name_en'] ?? $eli['name'] ?? 'Eli') . '] Always).');
+        }
+    }
+    return $state;
+}
+
 function plMusePb2SetPendingPrompt(array $state, array $prompt): array {
     $owner = (string)($prompt['owner'] ?? $prompt['player_id'] ?? '');
     if ($owner !== '') {

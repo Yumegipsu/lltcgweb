@@ -2137,6 +2137,14 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             ' — [' . ($prompt['source_name'] ?? 'Member') . '] added ' .
             implode(', ', $names) . ' from Waiting Room to hand.');
         unset($state['pending_prompt']);
+        // "If you do, this card gains N Blade" (PL!S-bp5-009): only once the card was actually added.
+        if (intval($ability['then_blade_bonus'] ?? 0) > 0) {
+            $bladeSrc = findSourceCard($state, $owner, (string)($prompt['source_id'] ?? '')) ?? [];
+            $state = applyModifierEffect($state, $owner, [
+                'type'   => 'blade_bonus',
+                'amount' => intval($ability['then_blade_bonus']),
+            ], $bladeSrc);
+        }
         $state['seq']++;
         if (function_exists('notifyCardsAddedFromWrToHand')) {
             $state = notifyCardsAddedFromWrToHand($state, $owner, $picked);

@@ -3352,11 +3352,11 @@ try {
 <script src="client/js/admin-events.js?v=3"></script>
 <script src="client/js/login-bonus.js?v=3"></script>
 <script src="client/js/discord-presence.js?v=12"></script>
-<script src="client/js/presentation-guards.js?v=11"></script>
+<script src="client/js/presentation-guards.js?v=12"></script>
 <script src="client/js/spectate-pip.js?v=3"></script>
 <script src="client/js/resign-escape.js?v=1"></script>
 <script src="client/js/game-sync.js?v=71"></script>
-<script src="client/js/state-apply.js?v=85"></script>
+<script src="client/js/state-apply.js?v=86"></script>
 <script src="client/js/stamps.js?v=22"></script>
 <script src="client/js/replay-debug.js?v=15"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
@@ -30475,7 +30475,9 @@ function batonPlayCostWithBestDouble(me, card, primarySlot, primaryMember, ec) {
 function sendPlayMemberMaybeDiscardNamedOpt(card, payload, me, ec, payCost = null) {
   const pick = discardNamedHandPick(card, me);
   const basePay = payCost != null ? Number(payCost) : Number(ec || 0);
-  const newCost = pick ? Math.max(0, Number(pick.ab.cost || 10)) : basePay;
+  // "Cost becomes 10" happens before Baton Touch, so the Baton Member still comes off the new cost (#306).
+  const batonRed = payCost != null ? Math.max(0, Number(ec || 0) - basePay) : 0;
+  const newCost = pick ? Math.max(0, Math.max(0, Number(pick.ab.cost || 10)) - batonRed) : basePay;
   if (!pick || newCost >= basePay) return false;
   const ae = (me?.energy_zone || []).filter(energyChipActive).length;
   const names = pick.cards.map(c => c.name_en || c.name).join(', ');

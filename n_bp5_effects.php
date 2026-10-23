@@ -504,15 +504,15 @@ function nBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
                 }
             }
             if ($liveScore < intval($ab['min_score'] ?? 3)) break;
-            $added = addFromWaitingRoomFiltered(
-                $p,
-                $ab['group'] ?? 'Nijigasaki',
-                '',
+            // The player chooses which card to add (never the first match).
+            $added = addFromWaitingRoomWithChoice(
+                $state, $pid, $source, $ab, $ctx,
+                ['group' => $ab['group'] ?? 'Nijigasaki', 'filter' => ''],
                 intval($ab['count'] ?? 1)
             );
-            if ($added > 0) {
+            if ($added === null) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] added $added card(s) from Waiting Room.");
+                    " — [$name] choose a card from Waiting Room.");
             }
             break;
 

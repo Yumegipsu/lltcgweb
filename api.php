@@ -1707,7 +1707,20 @@ function addSecondPlayer(array $state, array $p2, ?string $firstPlayerOverride =
 // ─────────────────────────────────────────────
 // Action Application (Game Rules Engine)
 // ─────────────────────────────────────────────
+/**
+ * Every player action goes through here. After the action resolves, Members that just entered the Stage
+ * are checked against the opposite Member's "enters in Wait" Always (PL!-pb2-002 Eli, #303) — one hook for
+ * all the ways a Member can enter (hand, Baton, effects, prompts).
+ */
 function applyAction(array $state, string $playerId, string $type, array $data): array {
+    $state = applyActionCore($state, $playerId, $type, $data);
+    if (function_exists('plMusePb2ApplyOppositeEnterWait')) {
+        $state = plMusePb2ApplyOppositeEnterWait($state);
+    }
+    return $state;
+}
+
+function applyActionCore(array $state, string $playerId, string $type, array $data): array {
     // Heal rooms that never flipped setup→playing (softlock skip / Shift+T / client gates).
     if (function_exists('tcgMatchInProgress') && tcgMatchInProgress($state)
         && ($state['status'] ?? '') === 'setup') {
@@ -1981,7 +1994,10 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     }
     // BP07 optional play-cost options (PL!N-bp7-011 shuffle WR Members, LL-bp7-001 discard
     // named set). The client opts in explicitly, so a plain play still pays full cost.
+    // LL-bp7-001 "cost becomes 10" applies before Baton Touch (#306): pass how much the Baton already took off.
+    $batonReduction = $isBaton ? max(0, getEffectiveHandCost($state, $pid, $card) - $cost) : 0;
     [$cost, $bp7CostOption] = bp7AdjustHandPlayCost($state, $pid, $card, $cost, [
+        'baton_reduction'    => $batonReduction,
         'shuffle_wr_members' => !empty($data['bp7_shuffle_wr_members']),
         'discard_named_ids'  => is_array($data['bp7_discard_named_ids'] ?? null)
             ? $data['bp7_discard_named_ids']

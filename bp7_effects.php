@@ -854,7 +854,9 @@ function bp7AdjustHandPlayCost(array $state, string $pid, array $card, int $cost
             $ids = $opts['discard_named_ids'] ?? [];
             if (!is_array($ids) || empty($ids)) continue;
             if (!bp7HandCoversNamedSet($p, $ab, $ids)) continue;
-            return [max(0, intval($ab['cost'] ?? 10)), $ab];
+            // "This card's cost becomes N" happens first, then Baton Touch reduces that (#306).
+            $set = max(0, intval($ab['cost'] ?? 10));
+            return [max(0, $set - max(0, intval($opts['baton_reduction'] ?? 0))), $ab];
         }
     }
     return [$cost, null];
