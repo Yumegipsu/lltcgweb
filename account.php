@@ -105,6 +105,7 @@ try {
         case 'deck_reset_starter': echo json_encode(tcgApiDeckResetStarter($body)); break;
         case 'deck_auto_build':    echo json_encode(tcgApiDeckAutoBuild($body)); break;
         case 'deck_import_decklog': echo json_encode(tcgApiDeckImportDecklog($body)); break;
+        case 'pinned_deck_set':    echo json_encode(tcgApiPinnedDeckSet($body)); break;
         case 'reset_account':      echo json_encode(tcgApiResetAccount($body)); break;
         case 'ranked_join':        echo json_encode(tcgApiRankedJoin($body)); break;
         case 'ranked_leave':       echo json_encode(tcgApiRankedLeave($body)); break;
@@ -230,6 +231,52 @@ try {
 }
 }
 
+/** Decoded pinned deck of a tcg_users row, or null. */
+function tcgPinnedDeckFromRow(array $user): ?array {
+    $raw = (string)($user['pinned_deck'] ?? '');
+    if ($raw === '' || $raw === 'null') {
+        return null;
+    }
+    $pin = json_decode($raw, true);
+    return (is_array($pin) && !empty($pin['code']) && is_array($pin['rows'] ?? null)) ? $pin : null;
+}
+
+/** Save (or clear with pin = null) the account's pinned deck. */
+function tcgApiPinnedDeckSet(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    return tcgPinnedDeckSave($uid, $body['pin'] ?? null);
+}
+
+function tcgPinnedDeckSave(string $uid, mixed $pin): array {
+    tcgEnsureUser($uid, []);
+    if ($pin === null || $pin === false) {
+        // '' (not NULL) records "cleared on purpose" so a stale browser copy is not uploaded again.
+        $store = '';
+    } else {
+        if (!is_array($pin)) {
+            throw new Exception('Invalid pinned deck', 400);
+        }
+        $code = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', (string)($pin['code'] ?? '')) ?? '');
+        if ($code === '' || strlen($code) > 40 || !is_array($pin['rows'] ?? null)) {
+            throw new Exception('Invalid pinned deck', 400);
+        }
+        $clean = [
+            'code' => $code,
+            'name' => mb_substr((string)($pin['name'] ?? ''), 0, 120),
+            'rows' => array_slice(array_values($pin['rows']), 0, 400),
+            'deck' => is_array($pin['deck'] ?? null) ? $pin['deck'] : new stdClass(),
+            'pinned_at' => intval($pin['pinned_at'] ?? 0),
+        ];
+        $store = json_encode($clean, JSON_UNESCAPED_UNICODE);
+        if ($store === false || strlen($store) > 65536) {
+            throw new Exception('Pinned deck too large', 400);
+        }
+    }
+    tcgDb()->prepare('UPDATE tcg_users SET pinned_deck = ?, updated_at = ? WHERE discord_id = ?')
+        ->execute([$store, time(), $uid]);
+    return ['success' => true, 'pinned_deck' => $store === '' ? null : json_decode($store, true)];
+}
+
 function tcgApiMe(array $body): array {
     $uid = tcgRequireAuthUser($body);
     $profile = tcgAuthUserProfile($uid);
@@ -264,6 +311,9 @@ function tcgApiMe(array $body): array {
             'starter_deck' => $user['starter_deck'] ?? null,
             'starter_deck_label' => !empty($user['starter_deck']) ? tcgStarterLabel($user['starter_deck']) : null,
             'needs_starter' => empty($user['starter_deck']),
+            'pinned_deck' => tcgPinnedDeckFromRow($user),
+            // false until the player pins/unpins on any device; lets the client upload a pre-existing local pin once.
+            'pinned_deck_set' => isset($user['pinned_deck']) && $user['pinned_deck'] !== null,
             'friend_code' => (function () use ($uid, $user) {
                 try {
                     return tcgSocialEnsureFriendCode($uid);

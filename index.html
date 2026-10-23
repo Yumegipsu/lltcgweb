@@ -13645,7 +13645,7 @@ function decklogCardDisplayName(rowOrCard) {
 
 // ── Pinned deck (deck log import) ───────────────────────────────────────────
 // A deck-log import that is short on cards can be pinned: the deck builder keeps a shortcut to it and the Sticker
-// Exchange lists the still-missing cards. Stored per account in this browser.
+// Exchange lists the still-missing cards. Stored on the account (tcg_users.pinned_deck); this browser keeps a cached copy.
 const PINNED_DECK_KEY = 'tcg_pinned_deck_v1';
 
 function pushpinSvg(size) {
@@ -13673,8 +13673,43 @@ function invalidatePinnedDeckCache() {
   _pinnedDeckCache = { key: '', val: null };
 }
 
+/**
+ * The pin follows the account: adopt the server copy when the profile loads (browser copy is a cache). A pin made
+ * before this existed lives only in the browser, so it is uploaded once when the account has never stored one.
+ */
+function adoptServerPinnedDeck() {
+  const u = A.profile?.user;
+  if (!u?.id || !('pinned_deck_set' in u) || A._pinAdoptedFor === u) return;
+  A._pinAdoptedFor = u;
+  const key = pinnedDeckStorageKey();
+  try {
+    const srv = u.pinned_deck;
+    if (srv && srv.code && Array.isArray(srv.rows)) {
+      localStorage.setItem(key, JSON.stringify(srv));
+    } else if (u.pinned_deck_set) {
+      localStorage.removeItem(key);
+    } else {
+      const local = JSON.parse(localStorage.getItem(key) || 'null');
+      if (local && local.code && Array.isArray(local.rows)) savePinnedDeckToServer(local);
+    }
+  } catch (e) { /* ignore */ }
+  invalidatePinnedDeckCache();
+}
+
+/** Best-effort account save (null clears); the local copy already works if the request fails. */
+function savePinnedDeckToServer(pin) {
+  const u = A.profile?.user;
+  if (!u?.id || typeof isSignedInAccount !== 'function' || !isSignedInAccount()) return;
+  if (u.pinned_deck_set && JSON.stringify(u.pinned_deck || null) === JSON.stringify(pin || null)) return;
+  u.pinned_deck = pin || null;
+  u.pinned_deck_set = true;
+  A._pinAdoptedFor = u;
+  accountPost('pinned_deck_set', { pin: pin || null }).catch(() => { /* ignore */ });
+}
+
 function getPinnedDeck() {
   if (!A.profile?.user?.id) return null;
+  adoptServerPinnedDeck();
   const key = pinnedDeckStorageKey();
   if (_pinnedDeckCache.key === key) return _pinnedDeckCache.val;
   let val = null;
@@ -13713,6 +13748,7 @@ function setPinnedDeck(pin) {
     if (pin) localStorage.setItem(pinnedDeckStorageKey(), JSON.stringify(pin));
     else localStorage.removeItem(pinnedDeckStorageKey());
   } catch (e) { /* ignore */ }
+  savePinnedDeckToServer(pin);
   invalidatePinnedDeckCache();
   refreshPinnedDeckUI();
   // Collection tiles carry the pin marker, so repaint them when the pin changes.
@@ -13800,6 +13836,7 @@ async function backfillPinnedDeckCounts() {
     if (!fresh || fresh.code !== pin.code) return;
     fresh.deck = counts;
     try { localStorage.setItem(pinnedDeckStorageKey(), JSON.stringify(fresh)); } catch (e) { /* ignore */ }
+    savePinnedDeckToServer(fresh);
     invalidatePinnedDeckCache();
     refreshPinnedDeckUI();
     if (el('screen-deck')?.classList.contains('active')) {
@@ -14350,6 +14387,7 @@ function renderDecklogMissingModal(payload) {
     const counts = pinnedDeckCountsFromPayload(_decklogMissingPending);
     if (Object.keys(counts).length) pinned.deck = counts;
     try { localStorage.setItem(pinnedDeckStorageKey(), JSON.stringify(pinned)); } catch (e) { /* ignore */ }
+    savePinnedDeckToServer(pinned);
     invalidatePinnedDeckCache();
   }
   const subs = _decklogMissingPending.substitutions || {};

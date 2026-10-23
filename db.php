@@ -222,6 +222,11 @@ function tcgDbMigrate(PDO $db): void {
         tcgDbEnsureColumn($db, 'tcg_users', 'seal_pr', 'INTEGER NOT NULL DEFAULT 0');
     });
 
+    // Pinned Deck Builder deck (deck-log import) follows the account, not the browser.
+    tcgDbRunMigrationOnce($db, 'pinned_deck_column_20261023', function (PDO $db): void {
+        tcgDbEnsureColumn($db, 'tcg_users', 'pinned_deck', 'TEXT');
+    });
+
     // dupe_reward lives in tcgDbMigrateBootstrap, which production never re-runs once
     // bootstrap_v2 is set. The seals toggle then fails its UPDATE, and ranked / login /
     // mission / tournament PR duplicates keep paying Star Gems.
