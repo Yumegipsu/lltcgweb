@@ -3695,9 +3695,10 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
                 if ($bh_item === 'draw' || $bh_item === 'score') {
                     continue;
                 }
+                // ALL tokens stay unresolved here; they are colored below once every fixed Yell heart is in the pool (#310).
                 $yellHearts = array_merge(
                     $yellHearts,
-                    getHeartIconsFromBladeHeart($bh_item, $yellResolvePool, $liveCards, $state, $pid)
+                    getHeartIconsFromBladeHeart($bh_item, $yellResolvePool, null, $state, $pid)
                 );
                 continue;
             }
@@ -3707,9 +3708,19 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
             }
             $yellHearts = array_merge(
                 $yellHearts,
-                getHeartIconsFromBladeHeart($bh_item, $yellResolvePool, $liveCards, $state, $pid)
+                getHeartIconsFromBladeHeart($bh_item, $yellResolvePool, null, $state, $pid)
             );
         }
+    }
+    // Color each ALL against the complete pool. Doing it in reveal order let an early ALL see "pink still
+    // short" and take pink although later Yell hearts supplied plenty, leaving purple one short (#310).
+    foreach ($yellHearts as $hi => $heart) {
+        if ($heart !== 'all') {
+            continue;
+        }
+        $color = normalizeHeartColor(resolveAllBladeHeartColor($yellResolvePool, $liveCards, $state, $pid));
+        $yellResolvePool[] = $color;
+        $yellHearts[$hi] = $color === 'any' ? 'all' : $color;
     }
 
     $yellWildcard = liveCardsGrantYellHeartsWildcard($liveCards);
