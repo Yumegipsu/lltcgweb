@@ -1112,7 +1112,8 @@ function plMusePb2ResolveEffect(array $state, string $pid, array $source, array 
             if ($hasAll) {
                 $state = applyModifierEffect($state, $pid, [
                     'type' => 'grant_bonus_hearts',
-                    'hearts' => [['color' => 'any', 'count' => intval($ab['all_blade_icon_wild_heart'] ?? 1)]],
+                    // The printed icon is the ALL heart (icon_all): it may count as any one color, unlike a gray heart.
+                    'hearts' => [['color' => 'all', 'count' => intval($ab['all_blade_icon_wild_heart'] ?? 1)]],
                     'source' => $name,
                 ]);
             }

@@ -31265,6 +31265,8 @@ function aggregateYellBladeHeartsFromCards(cards, resolveCtx = null, pid = null)
   const forcedBlade = (typeof yellBladeForcedColor === 'function')
     ? yellBladeForcedColor(resolveCtx, pid)
     : null;
+  // ALL blades are colored after every fixed Yell heart is in the pool (mirrors the server, #310).
+  let pendingAll = 0;
   (cards || []).forEach(card => {
     (card.blade_hearts || []).forEach(bh => {
       let raw = 'any';
@@ -31294,23 +31296,32 @@ function aggregateYellBladeHeartsFromCards(cards, resolveCtx = null, pid = null)
           }
         } else if (['all', 'gray', 'wild', 'any'].includes(String(color).toLowerCase()) && resolveCtx && pid && ownedPool) {
           if (String(color).toLowerCase() === 'all') {
-            if (typeof assignYellAllBladeColor === 'function') {
-              color = assignYellAllBladeColor(resolveCtx, pid, { extraOwned: ownedPool, liveCards });
-            } else {
-              color = resolveYellBladeHeartColor(color, resolveCtx, pid, { extraOwned: ownedPool, liveCards });
-              ownedPool.push(normalizeHeartColor(color === 'any' ? 'all' : color));
-            }
+            pendingAll++;
+            continue;
           } else {
             // Colorless / all2: gray on the HUD; do not pay chosen colors (#296).
             color = 'any';
             ownedPool.push('any');
           }
+        } else if (ownedPool) {
+          ownedPool.push(normalizeHeartColor(color));
         }
         const key = normalizeHeartColor(color);
         map[key] = (map[key] || 0) + 1;
       }
     });
   });
+  for (let i = 0; i < pendingAll; i++) {
+    let color;
+    if (typeof assignYellAllBladeColor === 'function') {
+      color = assignYellAllBladeColor(resolveCtx, pid, { extraOwned: ownedPool, liveCards });
+    } else {
+      color = resolveYellBladeHeartColor('all', resolveCtx, pid, { extraOwned: ownedPool, liveCards });
+      ownedPool.push(normalizeHeartColor(color === 'any' ? 'all' : color));
+    }
+    const key = normalizeHeartColor(color);
+    map[key] = (map[key] || 0) + 1;
+  }
   return sortHeartsByDisplayOrder(Object.keys(map).map(color => ({ color, count: map[color] })));
 }
 
