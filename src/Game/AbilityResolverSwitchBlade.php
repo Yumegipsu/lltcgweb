@@ -69,7 +69,8 @@ function tryResolveAbilityEffectSwitchBlade(
             break;
         case 'blade_if_entered_or_moved':
             if (!empty($ab['heart_color'])) {
-                addBonusHeartsToModifier($state, $pid, [[
+                // "This card gains 1 <color> heart": on that Member, not the whole Stage.
+                sBp5GrantHeartsToSourceMember($state, $pid, $source, [[
                     'color' => $ab['heart_color'],
                     'count' => 1,
                 ]]);

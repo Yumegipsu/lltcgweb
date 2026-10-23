@@ -891,7 +891,8 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         if ($wrIdx === null) throw new Exception('Card not in Waiting Room');
         $played = $member;
         array_splice($p['waiting_room'], $wrIdx, 1);
-        $played['active'] = false;
+        // A Member put onto the Stage enters Active (it used to enter rested, so its Blades did not count that turn: #305).
+        clearMemberWait($played);
         $played['entered_turn'] = intval($state['turn'] ?? 1);
         $p['stage'][$targetSlot] = $played;
         $state = resolveOnEnterAbilities($state, $pid, $played, $targetSlot);

@@ -5920,6 +5920,18 @@ function resolveAreaMoveEnterAutos(
                 if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) {
                     continue;
                 }
+                // Tomari / Kanon / Keke / Sumire (SD2): "this card gains 1 <color> heart", not a Blade (#307).
+                if (!empty($ab['heart_color'])) {
+                    addBonusHeartsToMember($member, [['color' => (string)$ab['heart_color'], 'count' => 1]]);
+                    if (!empty($ab['once_per_turn'])) {
+                        markAbilityUsed($member, $idx);
+                    }
+                    $p['stage'][$slot] = $member;
+                    $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$mName] gained 1 " . ucfirst((string)$ab['heart_color']) . ' heart (moved).');
+                    continue;
+                }
                 $state = applyModifierEffect($state, $pid, [
                     'type'   => 'blade_bonus',
                     'amount' => intval($ab['amount'] ?? 1),

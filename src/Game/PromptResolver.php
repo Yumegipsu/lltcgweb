@@ -5542,7 +5542,8 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                     break;
                 }
             }
-            $member['active'] = false;
+            // "Put onto your Stage" (no "in Wait") enters Active: its Blades count this turn (#305).
+            clearMemberWait($member);
             $member['entered_turn'] = intval($state['turn'] ?? 1);
             $ownerP['stage'][$slot] = $member;
             $names[] = cardDisplayName($member);
