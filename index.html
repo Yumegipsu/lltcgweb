@@ -6522,6 +6522,12 @@ async function reconnectToGame(saved, opts = {}) {
       tcgLockApiOrigin(apiOrigin === 'overflow' ? 'overflow' : 'hostinger');
     }
     saved.apiOrigin = apiOrigin;
+    if (saved.replayMode && !saved.replayHandoff && (s.mode === 'replay_view') && s.status === 'finished') {
+      // The replay already ended: nothing to resume (it used to reopen as a "You Win" screen).
+      clearActiveGameSession();
+      G._reconnectLastFail = 'gone';
+      return false;
+    }
     G.roomId = saved.roomId;
     G.token = saved.token;
     G.playerId = s.my_id || saved.playerId || 'p1';
@@ -12165,6 +12171,8 @@ async function bootReplayFromPayload(startResult, replay) {
   G.replayLoadedMeta = replay.meta || null;
   G.replayMode = true;
   G.replayHandoff = false;
+  // A replay never owes PR packs: drop any memory of the previous ranked win (it would be re-queued on exit).
+  G.lastRankedPrReward = null;
   G.replayStep = 0;
   G.replayTotal = startResult.total_steps ?? (replay.actions?.length || 0);
   G._replaySeekGen = 0;
@@ -34172,6 +34180,9 @@ function showWin(s){
   // Keep tcg_active_game so a refresh returns to this overlay (hub/rematch buttons),
   // not the menu. Cleared only when the player leaves via hub / play-again / leave.
   const isSpec = !!G.isSpectator;
+  // Watching a replay is not "my" match: no PR pack, Season change, rematch, Replay save or saved session
+  // (that session used to be restored after a refresh as a "You Win" screen for a room that no longer exists).
+  const replayView = !isSpec && (isReplayViewing() || (s.mode || '') === 'replay_view');
   const myId = isSpec ? null : (s.my_id || G.playerId);
   if (myId) G.playerId = myId;
   const winnerPid = resolveFinishedWinnerPid(s);
@@ -34222,7 +34233,7 @@ function showWin(s){
   } catch (e) {
     TCG_DEBUG.warn('win', 'win bookkeeping failed', e);
   }
-  if (isSpec) {
+  if (isSpec || replayView) {
     el('wtitle').textContent = t('win.spectatorWinner', { name: wName });
     el('wtitle').style.color = 'var(--pink)';
     if (s.end_reason === 'disconnect') {
@@ -34256,20 +34267,20 @@ function showWin(s){
     el('wtitle').style.color = win ? 'var(--pink)' : 'rgba(255,255,255,.5)';
     el('wsub').textContent = t('win.threeLives', { name: wName });
   }
-  if (!isSpec) {
+  if (!isSpec && !replayView) {
     el('wstats').textContent = t('win.statsLine', {
       turn: s.turn || '?',
       yours: (me?.success_lives || []).length,
       opp: (opp?.success_lives || []).length,
     });
   }
-  if (isSpec) {
+  if (isSpec || replayView) {
     const rewardEl = el('win-pr-reward');
     if (rewardEl) { rewardEl.hidden = true; rewardEl.textContent = ''; }
     const seasonEl = el('win-season');
     if (seasonEl) { seasonEl.hidden = true; seasonEl.replaceChildren(); }
     // Ranked spectating: show both players' rank changes side by side.
-    if (seasonEl && s.mode === 'ranked'
+    if (isSpec && seasonEl && s.mode === 'ranked'
         && typeof TCGSeason !== 'undefined' && TCGSeason.syncSpectatorMatchChanges) {
       void TCGSeason.syncSpectatorMatchChanges(seasonEl, s);
     }
@@ -34277,13 +34288,13 @@ function showWin(s){
     syncWinRankedPrReward(s, win);
     syncWinSeasonChange(s);
   }
-  el('btn-again').hidden = isSpec;
+  el('btn-again').hidden = isSpec || replayView;
   el('btn-win-hub').hidden = false;
-  el('btn-win-leaderboard').hidden = isSpec || !(pvp && s.mode === 'ranked');
+  el('btn-win-leaderboard').hidden = isSpec || replayView || !(pvp && s.mode === 'ranked');
   const saveReplayBtn = el('btn-win-save-replay');
-  saveReplayBtn.hidden = isSpec || !replaySaveEnabled();
+  saveReplayBtn.hidden = isSpec || replayView || !replaySaveEnabled();
   syncWinSaveReplayButton();
-  if (!isSpec) {
+  if (!isSpec && !replayView) {
     el('btn-again').textContent = (pvp && (s.mode === 'ranked' || G.casualRandomMatch))
       ? t('win.findAnother')
       : (isFriendPvpRematchEligible(G.lastFinishedRematch) ? t('win.rematchOffer') : t('win.playAgain'));
@@ -34293,6 +34304,11 @@ function showWin(s){
   if (remHint) { remHint.hidden = true; remHint.textContent = ''; }
   syncWinDebugTools(s);
   el('overlay-win').classList.add('open');
+  if (replayView) {
+    // A finished replay room is throwaway: never resume it into a win screen after a refresh.
+    try { clearActiveGameSession(); } catch (e) { /* ignore */ }
+    return;
+  }
   if (!isSpec && typeof saveActiveGameSession === 'function') {
     try { saveActiveGameSession(); } catch (e) { /* ignore */ }
   }
@@ -36367,6 +36383,12 @@ async function onWinPlayAgain() {
 
 function onWinReturnToMenu() {
   G._bo3SpectateFollowGen = (G._bo3SpectateFollowGen || 0) + 1;
+  if (!G.isSpectator && isReplayViewing()) {
+    // Not the player's own match: do not queue the previous ranked win's PR pack or touch the account.
+    el('overlay-win')?.classList.remove('open');
+    exitReplayViewing();
+    return;
+  }
   if (G.isSpectator) {
     el('overlay-win')?.classList.remove('open');
     void leaveSpectatorMode();
