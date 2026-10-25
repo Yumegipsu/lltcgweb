@@ -123,6 +123,7 @@ try {
         case 'rank_stats':         echo json_encode(tcgApiRankStats($body)); break;
         case 'season_stats':       echo json_encode(tcgApiSeasonStats($body)); break;
         case 'season_feedback_submit': echo json_encode(tcgApiSeasonFeedbackSubmit($body)); break;
+        case 'season_feedback_status': echo json_encode(tcgApiSeasonFeedbackStatus($body)); break;
         case 'season_feedback_list':   echo json_encode(tcgApiSeasonFeedbackList($body)); break;
         case 'rank_banner_set':    echo json_encode(tcgApiRankBannerSet($body)); break;
         case 'rank_flag_set':      echo json_encode(tcgApiRankFlagSet($body)); break;

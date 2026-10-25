@@ -6,7 +6,7 @@
  * main-deck snapshots. A card counts once per deck ("decks"), so usage % is
  * decks using the card / decks played. Energy cards are not tracked.
  *
- * Feedback opens on the last UTC day of a season and goes to the owner inbox.
+ * Feedback opens for the last 7 UTC days of a season (players who played ranked) and goes to the owner inbox.
  */
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/season.php';
@@ -226,30 +226,65 @@ function tcgSeasonStatsSheet(?string $seasonId, string $gameMode = 'standard', i
     return $out;
 }
 
-/** @return array{open:bool,season_id:string,label:string,opens_at:int,closes_at:int,submitted:bool} */
+/** Feedback is collected during the last week of a season. */
+const TCG_SEASON_FEEDBACK_WINDOW_SEC = 7 * 86400;
+
+/** True when the player has played at least one ranked match in this season (any mode). */
+function tcgSeasonFeedbackParticipated(string $discordId, string $seasonId): bool {
+    if ($discordId === '' || $seasonId === '') {
+        return false;
+    }
+    $q = tcgDb()->prepare('SELECT 1 FROM tcg_season_rank
+        WHERE discord_id = ? AND season_id = ? AND (wins + losses) > 0 LIMIT 1');
+    $q->execute([$discordId, $seasonId]);
+    return (bool)$q->fetchColumn();
+}
+
+/**
+ * open: inside the feedback window. eligible: this player played ranked this season.
+ * The form is usable when both hold; body is the player's earlier answer (to edit it).
+ *
+ * @return array<string,mixed>
+ */
 function tcgSeasonFeedbackWindow(?string $discordId = null): array {
     $clock = tcgSeasonClockInfo();
     if (empty($clock['active'])) {
-        return ['open' => false, 'season_id' => '', 'label' => '', 'opens_at' => 0, 'closes_at' => 0, 'submitted' => false];
+        return ['open' => false, 'eligible' => false, 'season_id' => '', 'label' => '', 'opens_at' => 0,
+            'closes_at' => 0, 'days_left' => 0, 'submitted' => false, 'body' => ''];
     }
     $closes = (int)$clock['ends_at'];
-    $opens = $closes - 86400;
+    $opens = $closes - TCG_SEASON_FEEDBACK_WINDOW_SEC;
     $submitted = false;
+    $body = '';
+    $eligible = false;
     if ($discordId !== null && $discordId !== '') {
         $db = tcgDb();
         tcgSeasonStatsEnsureSchema($db);
-        $q = $db->prepare('SELECT 1 FROM tcg_season_feedback WHERE season_id = ? AND discord_id = ?');
+        $q = $db->prepare('SELECT body FROM tcg_season_feedback WHERE season_id = ? AND discord_id = ?');
         $q->execute([(string)$clock['id'], $discordId]);
-        $submitted = (bool)$q->fetchColumn();
+        $found = $q->fetchColumn();
+        $submitted = $found !== false;
+        $body = $submitted ? (string)$found : '';
+        $eligible = $submitted || tcgSeasonFeedbackParticipated($discordId, (string)$clock['id']);
     }
+    $now = (int)$clock['now'];
     return [
-        'open' => (int)$clock['now'] >= $opens && (int)$clock['now'] < $closes,
+        'open' => $now >= $opens && $now < $closes,
+        'eligible' => $eligible,
         'season_id' => (string)$clock['id'],
         'label' => (string)$clock['label'],
         'opens_at' => $opens,
         'closes_at' => $closes,
+        'days_left' => max(0, (int)ceil(($closes - $now) / 86400)),
         'submitted' => $submitted,
+        'body' => $body,
     ];
+}
+
+/** @param array<string,mixed> $body */
+function tcgApiSeasonFeedbackStatus(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    return ['success' => true, 'feedback' => tcgSeasonFeedbackWindow($uid)];
 }
 
 /** @param array<string,mixed> $body */
@@ -274,7 +309,10 @@ function tcgApiSeasonFeedbackSubmit(array $body): array {
     $uid = tcgRequireAuthUser($body);
     $win = tcgSeasonFeedbackWindow($uid);
     if (!$win['open']) {
-        throw new Exception('Season feedback opens on the last day of the season', 400);
+        throw new Exception('Season feedback opens during the last week of the season', 400);
+    }
+    if (!$win['eligible']) {
+        throw new Exception('Play at least one ranked match this season to leave feedback', 403);
     }
     $text = trim((string)($body['body'] ?? ''));
     if ($text === '') {

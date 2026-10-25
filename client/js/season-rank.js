@@ -148,6 +148,7 @@
       + '      <h2 class="season-ladder-title"></h2>'
       + '    </div>'
       + '    <p class="account-lead season-ladder-lead"></p>'
+      + '    <div class="season-feedback-slot"></div>'
       + '    <div class="season-ladder-scroll"><ol class="season-ladder-list"></ol></div>'
       + '    <button type="button" class="btn-grad season-ladder-stats"></button>'
       + '  </div>'
@@ -204,19 +205,63 @@
     try { return new Date(sec * 1000).toLocaleString(); } catch (e) { return String(sec); }
   }
 
-  function renderFeedbackForm(host, data) {
-    const fb = data.feedback || {};
-    if (!fb.open) return;
-    const box = el('div', 'season-stats-feedback');
-    box.appendChild(el('h3', '', tt('season.feedbackTitle', 'Season feedback')));
-    box.appendChild(el('p', 'account-lead', tt('season.feedbackLead',
+  /** Feedback is for players who played ranked this season, during the last week. */
+  function feedbackAvailable(fb) {
+    return !!(fb && fb.open && fb.eligible);
+  }
+
+  function feedbackOverlay() {
+    let root = document.getElementById('overlay-season-feedback');
+    if (root) return root;
+    root = el('div', 'season-ladder-overlay season-stats-overlay');
+    root.id = 'overlay-season-feedback';
+    root.setAttribute('role', 'dialog');
+    root.setAttribute('aria-modal', 'true');
+    root.setAttribute('aria-hidden', 'true');
+    root.innerHTML = ''
+      + '<div class="season-ladder-shell season-stats-shell">'
+      + '  <div class="season-ladder-panel">'
+      + '    <div class="account-screen-head">'
+      + '      <button type="button" class="btn-ghost season-feedback-close"></button>'
+      + '      <h2 class="season-ladder-title"></h2>'
+      + '    </div>'
+      + '    <div class="season-ladder-scroll season-feedback-body"></div>'
+      + '  </div>'
+      + '</div>';
+    document.body.appendChild(root);
+    const close = () => {
+      root.classList.remove('open');
+      root.setAttribute('aria-hidden', 'true');
+    };
+    root.querySelector('.season-feedback-close').addEventListener('click', close);
+    root.addEventListener('click', (e) => { if (e.target === root) close(); });
+    return root;
+  }
+
+  /** The form itself, in its own dialog. onSaved(fb) runs after a successful send. */
+  function openFeedbackDialog(fb, onSaved) {
+    const root = feedbackOverlay();
+    root.querySelector('.season-ladder-title').textContent = tt('season.feedbackTitle', 'Season feedback');
+    root.querySelector('.season-feedback-close').textContent = tt('news.close', 'Close');
+    const body = root.querySelector('.season-feedback-body');
+    body.replaceChildren();
+    body.appendChild(el('p', 'season-feedback-season', seasonLabelFromId(fb.season_id) || fb.label || ''));
+    body.appendChild(el('p', 'account-lead', tt('season.feedbackLead',
       'What should we improve for the next season? Open until the season ends.')));
     const ta = el('textarea', 'season-stats-textarea');
     ta.maxLength = 2000;
-    ta.rows = 5;
+    ta.rows = 8;
+    ta.value = fb.body || '';
     ta.placeholder = tt('season.feedbackPlaceholder', 'Your suggestions…');
+    const count = el('p', 'season-feedback-count');
+    const syncCount = () => { count.textContent = ta.value.length + ' / 2000'; };
+    ta.addEventListener('input', syncCount);
+    syncCount();
     const msg = el('p', 'season-stats-msg');
-    const btn = el('button', 'btn-primary', fb.submitted
+    if (fb.submitted) {
+      msg.textContent = tt('season.feedbackSent', 'You already sent feedback this season. Sending again replaces it.');
+    }
+    const btn = el('button', 'btn-grad', fb.submitted
       ? tt('season.feedbackUpdate', 'Update feedback')
       : tt('season.feedbackSend', 'Send feedback'));
     btn.type = 'button';
@@ -226,21 +271,63 @@
       btn.disabled = true;
       try {
         await global.accountPost('season_feedback_submit', { body: text });
+        fb.submitted = true;
+        fb.body = text;
         msg.textContent = tt('season.feedbackThanks', 'Thanks! Your feedback was sent.');
-        ta.value = '';
         btn.textContent = tt('season.feedbackUpdate', 'Update feedback');
+        if (typeof onSaved === 'function') onSaved(fb);
       } catch (e) {
-        msg.textContent = tt('season.feedbackError', 'Could not send feedback');
+        msg.textContent = (e && e.message) || tt('season.feedbackError', 'Could not send feedback');
       }
       btn.disabled = false;
     });
-    if (fb.submitted) {
-      msg.textContent = tt('season.feedbackSent', 'You already sent feedback this season. Sending again replaces it.');
-    }
-    box.appendChild(ta);
+    body.appendChild(ta);
+    body.appendChild(count);
+    body.appendChild(btn);
+    body.appendChild(msg);
+    root.classList.add('open');
+    root.setAttribute('aria-hidden', 'false');
+  }
+
+  /** Call-out card shown on the season screens while the form is open for this player. */
+  function feedbackBanner(fb) {
+    const box = el('div', 'season-feedback-banner');
+    const text = el('div', 'season-feedback-banner-text');
+    text.appendChild(el('strong', '', tt('season.feedbackBannerTitle', 'Tell us how the season went')));
+    const sub = el('span', '', '');
+    const syncSub = () => {
+      sub.textContent = fb.submitted
+        ? tt('season.feedbackBannerSent', 'Thanks — you can still edit your feedback.')
+        : tt('season.feedbackBannerSub', 'Open to everyone who played ranked · {n} day(s) left', { n: fb.days_left });
+    };
+    syncSub();
+    text.appendChild(sub);
+    const btn = el('button', 'btn-grad', fb.submitted
+      ? tt('season.feedbackEdit', 'Edit feedback')
+      : tt('season.feedbackOpen', 'Give feedback'));
+    btn.type = 'button';
+    btn.addEventListener('click', () => openFeedbackDialog(fb, () => {
+      syncSub();
+      btn.textContent = tt('season.feedbackEdit', 'Edit feedback');
+    }));
+    box.appendChild(text);
     box.appendChild(btn);
-    box.appendChild(msg);
-    host.appendChild(box);
+    return box;
+  }
+
+  function renderFeedbackForm(host, data) {
+    if (!feedbackAvailable(data.feedback)) return;
+    host.appendChild(feedbackBanner(data.feedback));
+  }
+
+  /** Fill the ladder screen's feedback slot (signed-in players only). */
+  async function fillLadderFeedbackSlot(slot) {
+    slot.replaceChildren();
+    if (typeof global.isSignedInAccount === 'function' && !global.isSignedInAccount()) return;
+    try {
+      const res = await global.accountPost('season_feedback_status', {});
+      if (feedbackAvailable(res.feedback)) slot.appendChild(feedbackBanner(res.feedback));
+    } catch (e) { /* the ladder works without it */ }
   }
 
   // Owner-only inbox: its own overlay, opened from the Admin screen.
@@ -452,6 +539,11 @@
       lead.textContent = label;
     } else {
       lead.textContent = tt('season.notStarted', 'The seasonal ladder starts in October 2026.');
+    }
+    const feedbackSlot = root.querySelector('.season-feedback-slot');
+    if (feedbackSlot) {
+      if (mine) void fillLadderFeedbackSlot(feedbackSlot);
+      else feedbackSlot.replaceChildren();
     }
     list.replaceChildren();
     const here = Number(season.step) || 0;
