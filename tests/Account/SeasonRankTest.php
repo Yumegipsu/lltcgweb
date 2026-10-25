@@ -308,6 +308,50 @@ final class SeasonRankTest extends TestCase
         $this->assertSame(10, (int)$count->fetchColumn());
     }
 
+    public function testPinkSAssignSurvivesUnrelatedActiveBan(): void
+    {
+        require_once dirname(__DIR__, 2) . '/account_ban.php';
+        $this->at('2026-10-20 12:00:00');
+        $now = tcgSeasonNow();
+        $filled = $this->user('filled');
+        $banned = $this->user('bannedOther');
+        tcgDb()->prepare('INSERT INTO tcg_season_rank
+            (discord_id, game_mode, season_id, step, points, peak_step, wins, losses, updated_at)
+            VALUES (?, ?, ?, 6, 101, 6, 10, 0, ?)')
+            ->execute([$filled, TCG_GAME_MODE_STANDARD, '2026-10', $now]);
+        tcgBanEnsureSchema();
+        tcgDb()->prepare(
+            'INSERT OR REPLACE INTO tcg_account_bans
+                (discord_id, username, reason, snapshot_json, adjustments_json, banned_by, banned_at, restored_at, restored_by)
+             VALUES (?, ?, ?, ?, ?, ?, ?, NULL, NULL)'
+        )->execute([$banned, 'bannedOther', 'test', '{}', '[]', 'admin', $now]);
+
+        // Old unqualified ban SQL emptied the pool whenever any ban existed.
+        tcgSeasonAssignPinkSlots(TCG_GAME_MODE_STANDARD, '2026-10');
+        $row = tcgSeasonLoadRow($filled, TCG_GAME_MODE_STANDARD);
+        $this->assertSame(7, (int)$row['step']);
+        $this->assertSame(7, (int)$row['peak_step']);
+
+        tcgDb()->prepare('DELETE FROM tcg_account_bans WHERE discord_id = ?')->execute([$banned]);
+    }
+
+    public function testFillingGreenSViaMatchPromotesToPinkS(): void
+    {
+        $this->at('2026-10-20 12:00:00');
+        $now = tcgSeasonNow();
+        $winner = $this->user('fillW');
+        $loser = $this->user('fillL');
+        $ins = tcgDb()->prepare('INSERT INTO tcg_season_rank
+            (discord_id, game_mode, season_id, step, points, peak_step, wins, losses, updated_at)
+            VALUES (?, ?, ?, 6, ?, 6, 5, 0, ?)');
+        $ins->execute([$winner, TCG_GAME_MODE_STANDARD, '2026-10', 90, $now]);
+        $ins->execute([$loser, TCG_GAME_MODE_STANDARD, '2026-10', 40, $now]);
+        tcgApplyRankResult($winner, $loser, false, TCG_GAME_MODE_STANDARD);
+        $row = tcgSeasonLoadRow($winner, TCG_GAME_MODE_STANDARD);
+        $this->assertGreaterThanOrEqual(100, (int)$row['points']);
+        $this->assertSame(7, (int)$row['step']);
+    }
+
     public function testSeasonLadderIsStandardOnly(): void
     {
         $this->at('2026-10-15 12:00:00');

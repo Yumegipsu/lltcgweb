@@ -2468,9 +2468,12 @@ function tcgApiRankStats(array $body): array {
         tcgBanEnsureSchema();
     }
     $clock = tcgSeasonClockInfo();
-    $seasonMap = (!empty($clock['active']) && $gameMode === TCG_GAME_MODE_STANDARD)
-        ? tcgSeasonMapForMode($gameMode, (string)$clock['id'])
-        : [];
+    $seasonMap = [];
+    if (!empty($clock['active']) && $gameMode === TCG_GAME_MODE_STANDARD) {
+        // Recompute Pink S on read so a missed assign (or a fixed query) heals without waiting for a match.
+        tcgSeasonAssignPinkSlots($gameMode, (string)$clock['id']);
+        $seasonMap = tcgSeasonMapForMode($gameMode, (string)$clock['id']);
+    }
     $leaderboard = [];
     if ($board === 'season' && empty($clock['active'])) {
         // Season has not opened yet — do not fall back to the all-time list.

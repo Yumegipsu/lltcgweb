@@ -361,7 +361,9 @@ function tcgSeasonAssignPinkSlots(string $gameMode, string $seasonId): void {
     $banExclude = '';
     if (function_exists('tcgBanEnsureSchema') && function_exists('tcgBanLeaderboardExcludeSql')) {
         tcgBanEnsureSchema();
-        $banExclude = tcgBanLeaderboardExcludeSql('discord_id');
+        // Must qualify the outer table — bare "discord_id" resolves to b.discord_id
+        // inside the NOT EXISTS, so any active ban empties the Pink S pool.
+        $banExclude = tcgBanLeaderboardExcludeSql('tcg_season_rank.discord_id');
     }
     $stmt = $db->prepare('SELECT discord_id FROM tcg_season_rank
         WHERE game_mode = ? AND season_id = ? AND step >= ? AND points >= ?' . $banExclude . '
