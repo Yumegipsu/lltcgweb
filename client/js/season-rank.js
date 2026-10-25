@@ -248,6 +248,10 @@
     body.appendChild(el('p', 'season-feedback-season', seasonLabelFromId(fb.season_id) || fb.label || ''));
     body.appendChild(el('p', 'account-lead', tt('season.feedbackLead',
       'What should we improve for the next season? Open until the season ends.')));
+    if (fb.milestone) {
+      body.appendChild(el('p', 'season-feedback-reward', tt('season.feedbackReward',
+        'Send it to earn 1 SR+ Ticket — see Missions › Milestones')));
+    }
     const ta = el('textarea', 'season-stats-textarea');
     ta.maxLength = 2000;
     ta.rows = 8;
@@ -302,6 +306,10 @@
     };
     syncSub();
     text.appendChild(sub);
+    if (fb.milestone) {
+      text.appendChild(el('span', 'season-feedback-reward', tt('season.feedbackReward',
+        'Send it to earn 1 SR+ Ticket — see Missions › Milestones')));
+    }
     const btn = el('button', 'btn-grad', fb.submitted
       ? tt('season.feedbackEdit', 'Edit feedback')
       : tt('season.feedbackOpen', 'Give feedback'));

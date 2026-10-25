@@ -278,6 +278,8 @@ function tcgSeasonFeedbackWindow(?string $discordId = null): array {
         'days_left' => max(0, (int)ceil(($closes - $now) / 86400)),
         'submitted' => $submitted,
         'body' => $body,
+        // Temporary Season 1 milestone that rewards sending the form (see missions.php).
+        'milestone' => (string)$clock['id'] === '2026-10' ? 'ms_season_feedback_2026_10' : '',
     ];
 }
 
@@ -307,6 +309,11 @@ function tcgApiSeasonStats(array $body): array {
 /** @param array<string,mixed> $body */
 function tcgApiSeasonFeedbackSubmit(array $body): array {
     $uid = tcgRequireAuthUser($body);
+    return tcgSeasonFeedbackSave($uid, (string)($body['body'] ?? ''));
+}
+
+/** @return array<string,mixed> */
+function tcgSeasonFeedbackSave(string $uid, string $rawText): array {
     $win = tcgSeasonFeedbackWindow($uid);
     if (!$win['open']) {
         throw new Exception('Season feedback opens during the last week of the season', 400);
@@ -314,7 +321,7 @@ function tcgApiSeasonFeedbackSubmit(array $body): array {
     if (!$win['eligible']) {
         throw new Exception('Play at least one ranked match this season to leave feedback', 403);
     }
-    $text = trim((string)($body['body'] ?? ''));
+    $text = trim($rawText);
     if ($text === '') {
         throw new Exception('Feedback is empty', 400);
     }
@@ -323,9 +330,13 @@ function tcgApiSeasonFeedbackSubmit(array $body): array {
     } else {
         $text = substr($text, 0, TCG_SEASON_FEEDBACK_MAX_LEN);
     }
-    $profile = tcgAuthUserProfile($uid);
-    $name = (string)($profile['username'] ?? '');
     $db = tcgDb();
+    $nameQ = $db->prepare('SELECT username FROM tcg_users WHERE discord_id = ?');
+    $nameQ->execute([$uid]);
+    $name = (string)($nameQ->fetchColumn() ?: '');
+    if ($name === '' && function_exists('tcgAuthUserProfile')) {
+        $name = (string)(tcgAuthUserProfile($uid)['username'] ?? '');
+    }
     tcgSeasonStatsEnsureSchema($db);
     $now = time();
     $db->prepare('INSERT INTO tcg_season_feedback (season_id, discord_id, username, body, created_at, updated_at)
@@ -333,7 +344,20 @@ function tcgApiSeasonFeedbackSubmit(array $body): array {
         ON CONFLICT(season_id, discord_id) DO UPDATE SET
             body = excluded.body, username = excluded.username, updated_at = excluded.updated_at, read_at = NULL')
         ->execute([$win['season_id'], $uid, $name, $text, $now, $now]);
-    return ['success' => true, 'feedback' => tcgSeasonFeedbackWindow($uid)];
+    // Temporary Season 1 milestone (SR+ Ticket); a no-op once that season is over or already completed.
+    $completions = [];
+    if ((string)$win['season_id'] === '2026-10') {
+        if (!function_exists('tcgMissionOnSeasonFeedback')) {
+            require_once __DIR__ . '/missions.php';
+        }
+        $completions = tcgMissionOnSeasonFeedback($uid);
+    }
+    return [
+        'success' => true,
+        'feedback' => tcgSeasonFeedbackWindow($uid),
+        'mission_completions' => $completions,
+        'missions' => function_exists('tcgMissionSummaryForUser') ? tcgMissionSummaryForUser($uid) : null,
+    ];
 }
 
 /** Owner inbox. @param array<string,mixed> $body */

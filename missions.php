@@ -28,8 +28,25 @@ const TCG_MISSION_MONTHLY_SUB_IDS = [
 /** JST calendar day missions launched — one-day retroactive credit for daily_open_all_boosters. */
 const TCG_MISSION_DAILY_BOOSTERS_BACKFILL_JST = '2026-07-08';
 
+/** A def with only_season exists only while that ranked season is the current one. */
+function tcgMissionDefIsLive(array $def): bool {
+    if (empty($def['only_season'])) {
+        return true;
+    }
+    if (!function_exists('tcgSeasonClockInfo')) {
+        require_once __DIR__ . '/season.php';
+    }
+    $clock = tcgSeasonClockInfo();
+    return !empty($clock['active']) && (string)($clock['id'] ?? '') === (string)$def['only_season'];
+}
+
 /** @return list<array{id: string, type: string, reward: int, sort: int, i18n_key: string, group?: string, threshold?: int}> */
 function tcgMissionDefinitions(): array {
+    return array_values(array_filter(tcgMissionDefinitionsRaw(), 'tcgMissionDefIsLive'));
+}
+
+/** @return list<array<string,mixed>> */
+function tcgMissionDefinitionsRaw(): array {
     return [
         ['id' => 'daily_open_all_boosters', 'type' => 'daily', 'reward' => 50, 'sort' => 10, 'i18n_key' => 'missions.daily.openAllBoosters'],
         ['id' => 'daily_ranked_match', 'type' => 'daily', 'reward' => 50, 'sort' => 20, 'i18n_key' => 'missions.daily.rankedMatch'],
@@ -50,6 +67,8 @@ function tcgMissionDefinitions(): array {
         ['id' => 'monthly_weekly_4', 'type' => 'monthly', 'reward' => 3, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 3]], 'sort' => 40, 'i18n_key' => 'missions.monthly.weeklyAll4', 'threshold' => 4],
         ['id' => 'monthly_complete_all', 'type' => 'monthly', 'reward' => 1, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_ur', 'amount' => 1]], 'sort' => 50, 'i18n_key' => 'missions.monthly.completeAll', 'threshold' => 4],
 
+        // Temporary: only exists during ranked season 2026-10 (Season 1); gone once Season 2 starts. Pinned above the other milestones.
+        ['id' => 'ms_season_feedback_2026_10', 'type' => 'milestone', 'reward' => 1, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 1]], 'sort' => 1, 'pinned_top' => true, 'only_season' => '2026-10', 'i18n_key' => 'missions.milestone.seasonFeedback1'],
         ['id' => 'ms_profile_banner', 'type' => 'milestone', 'reward' => 100, 'sort' => 100, 'i18n_key' => 'missions.milestone.profileBanner'],
         ['id' => 'ms_profile_flag', 'type' => 'milestone', 'reward' => 100, 'sort' => 105, 'i18n_key' => 'missions.milestone.profileFlag'],
         ['id' => 'ms_profile_stamps', 'type' => 'milestone', 'reward' => 100, 'sort' => 110, 'i18n_key' => 'missions.milestone.profileStamps'],
@@ -511,7 +530,10 @@ function tcgMissionStatusForDef(string $discordId, array $def): string {
     return 'active';
 }
 
-function tcgMissionSortRank(string $status, int $sort): int {
+function tcgMissionSortRank(string $status, int $sort, bool $pinnedTop = false): int {
+    if ($pinnedTop && $status !== 'claimed') {
+        return -1;
+    }
     return match ($status) {
         'completed' => 0,
         'active' => 1,
@@ -559,7 +581,7 @@ function tcgMissionListForUser(string $discordId): array {
             'period_key' => $periodKey,
             'completed_at' => $row['completed_at'] ?? null,
             'claimed_at' => $row['claimed_at'] ?? null,
-            'sort_rank' => tcgMissionSortRank($status, intval($def['sort'])),
+            'sort_rank' => tcgMissionSortRank($status, intval($def['sort']), !empty($def['pinned_top'])),
         ];
         if (!empty($def['i18n_vars']) && is_array($def['i18n_vars'])) {
             $entry['i18n_vars'] = $def['i18n_vars'];
@@ -1661,12 +1683,34 @@ function tcgMissionOnStampFavoritesSet(string $discordId, array $favorites): arr
     return tcgMissionMarkCompleted($discordId, 'ms_profile_stamps');
 }
 
+/** Season 1 feedback form submitted: completes the temporary Season 1 milestone. */
+function tcgMissionOnSeasonFeedback(string $discordId): array {
+    return tcgMissionMarkCompleted($discordId, 'ms_season_feedback_2026_10');
+}
+
+function tcgMissionBackfillSeasonFeedback(string $discordId): void {
+    if (!tcgMissionDefById('ms_season_feedback_2026_10')) {
+        return;
+    }
+    if (!function_exists('tcgSeasonStatsEnsureSchema')) {
+        require_once __DIR__ . '/season_stats.php';
+    }
+    $db = tcgDb();
+    tcgSeasonStatsEnsureSchema($db);
+    $q = $db->prepare('SELECT 1 FROM tcg_season_feedback WHERE season_id = ? AND discord_id = ?');
+    $q->execute(['2026-10', $discordId]);
+    if ($q->fetchColumn()) {
+        tcgMissionOnSeasonFeedback($discordId);
+    }
+}
+
 function tcgMissionBackfillRetroactive(string $discordId): void {
     static $ran = [];
     if (isset($ran[$discordId])) {
         return;
     }
     $ran[$discordId] = true;
+    tcgMissionBackfillSeasonFeedback($discordId);
 
     require_once __DIR__ . '/matchmaking.php';
     $db = tcgDb();
