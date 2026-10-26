@@ -476,6 +476,12 @@ function tcgDbMigrate(PDO $db): void {
         tcgSeasonEnsureSchema($db);
     });
 
+    // Season 2 rank-up rewards: one row per tier reached per season.
+    tcgDbRunMigrationOnce($db, 'season_rankup_20261026', function (PDO $db): void {
+        require_once __DIR__ . '/season.php';
+        tcgSeasonEnsureSchema($db);
+    });
+
     // Avatars are cached on our own domain (avatar.php): existing CDN URLs become local-cache URLs and
     // accounts stuck on a missing / default avatar recover the real one from the site's login cache.
     tcgDbRunMigrationOnce($db, 'avatar_local_cache_20261021', function (PDO $db): void {

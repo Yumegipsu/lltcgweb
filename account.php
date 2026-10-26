@@ -366,6 +366,7 @@ function tcgApiMe(array $body): array {
         'season' => $seasonBundle['season'],
         'seasons' => $seasonBundle['seasons'],
         'season_rewards' => $seasonBundle['season_rewards'],
+        'season_rankups' => $seasonBundle['season_rankups'] ?? [],
     ];
 }
 

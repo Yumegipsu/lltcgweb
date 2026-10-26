@@ -149,6 +149,7 @@
       + '    </div>'
       + '    <p class="account-lead season-ladder-lead"></p>'
       + '    <div class="season-feedback-slot"></div>'
+      + '    <div class="season-rates-slot"></div>'
       + '    <div class="season-ladder-scroll"><ol class="season-ladder-list"></ol></div>'
       + '    <button type="button" class="btn-grad season-ladder-stats"></button>'
       + '  </div>'
@@ -528,6 +529,70 @@
     }
   }
 
+  /** "Coins ×500 · Star Gems ×150 · …" for a season / rank-up reward object. */
+  function formatSeasonReward(r) {
+    if (!r) return '';
+    const parts = [];
+    if (Number(r.coins) > 0) parts.push(tt('missions.rewardCoins', 'Coins ×{n}', { n: r.coins }));
+    if (Number(r.gems) > 0) parts.push(tt('missions.rewardGems', 'Star Gems ×{n}', { n: r.gems }));
+    if (Number(r.packs) > 0) parts.push(tt('season.rewardPack', 'PR pack ({n} cards)', { n: r.packs }));
+    if (Number(r.tickets) > 0) parts.push(tt('missions.rewardTickets', 'Scouting Ticket ×{n}', { n: r.tickets }));
+    if (Number(r.ticket_sr) > 0) parts.push(tt('missions.rewardTicketSr', 'SR+ Ticket ×{n}', { n: r.ticket_sr }));
+    return parts.join(' · ');
+  }
+
+  /** The "how points and rewards work" box shown above the ranks. */
+  function renderRatesBox(slot, season) {
+    slot.replaceChildren();
+    const rates = season && season.rates;
+    if (!rates) return;
+    const steps = ladderSteps(season);
+    const byStep = {};
+    steps.forEach((s) => { byStep[Number(s.step)] = s; });
+    const floorRank = byStep[Number(rates.floor_step)] ? rankName(byStep[Number(rates.floor_step)]) : '';
+    const box = document.createElement('details');
+    box.className = 'season-rates';
+    const sum = document.createElement('summary');
+    sum.textContent = tt('season.ratesTitle', 'How points and rewards work');
+    box.appendChild(sum);
+    const add = (text) => {
+      const p = document.createElement('p');
+      p.textContent = text;
+      box.appendChild(p);
+    };
+    add(tt('season.ratesWin', 'Win: +{min} to +{max} points ({same} against your own rank). Beating a higher rank pays more.',
+      { min: rates.win_min, max: rates.win_max, same: rates.win_same }));
+    if (Number(rates.rules_version) >= 2) {
+      add(tt('season.ratesFloorV2', 'Losses cost no points below {rank}. From {rank} up, losses cost less than a win pays (see each rank below), and once you reach {rank} you can\u2019t drop below it for the rest of the season.',
+        { rank: floorRank }));
+    } else {
+      add(tt('season.ratesFloorV1', 'C ranks lose no points, and you can\u2019t drop below {rank}.', { rank: floorRank }));
+    }
+    add(tt('season.ratesPinkS', 'Pink S is held by the top {n} players who have filled Green S.', { n: rates.pink_s_slots }));
+    if (Number(rates.rules_version) >= 2) {
+      add(tt('season.ratesRankUp', 'Rank-up rewards are paid once, the first time you reach each rank in a season. Season-end rewards are paid for your highest rank.'));
+    }
+    slot.appendChild(box);
+  }
+
+  /** Small detail lines under a rank on the ladder: point rates and rewards. */
+  function rankDetailLines(rates, stepIndex) {
+    const row = rates && Array.isArray(rates.steps) ? rates.steps.find((r) => Number(r.step) === Number(stepIndex)) : null;
+    if (!row) return [];
+    const lines = [];
+    lines.push(row.protected
+      ? tt('season.rowNoLoss', 'Win +{wmin}–{wmax} · No points lost', { wmin: rates.win_min, wmax: rates.win_max })
+      : tt('season.rowWinLoss', 'Win +{wmin}–{wmax} · Loss −{lmin}–{lmax}',
+        { wmin: rates.win_min, wmax: rates.win_max, lmin: row.loss_min, lmax: row.loss_max }));
+    if (row.rankup_reward) {
+      lines.push(tt('season.rowRankUp', 'Rank-up: {rewards}', { rewards: formatSeasonReward(row.rankup_reward) }));
+    }
+    if (row.season_reward) {
+      lines.push(tt('season.rowSeasonEnd', 'Season end: {rewards}', { rewards: formatSeasonReward(row.season_reward) }));
+    }
+    return lines;
+  }
+
   function openLadder(season, opts) {
     if (!seasonVisible(season)) return;
     const mine = !opts || opts.mine !== false;
@@ -553,6 +618,8 @@
       if (mine) void fillLadderFeedbackSlot(feedbackSlot);
       else feedbackSlot.replaceChildren();
     }
+    const ratesSlot = root.querySelector('.season-rates-slot');
+    if (ratesSlot) renderRatesBox(ratesSlot, season);
     list.replaceChildren();
     const here = Number(season.step) || 0;
     let currentRow = null;
@@ -568,7 +635,15 @@
       img.decoding = 'async';
       const name = document.createElement('span');
       name.className = 'season-ladder-name';
-      name.textContent = rankName(step);
+      const nameText = document.createElement('span');
+      nameText.textContent = rankName(step);
+      name.appendChild(nameText);
+      rankDetailLines(season.rates, step.step).forEach((line) => {
+        const small = document.createElement('small');
+        small.className = 'season-ladder-detail';
+        small.textContent = line;
+        name.appendChild(small);
+      });
       row.appendChild(img);
       row.appendChild(name);
       if (current) {
@@ -652,7 +727,17 @@
     host.appendChild(name);
   }
 
+  function showRankUpToasts(list) {
+    if (!Array.isArray(list) || typeof global.toast !== 'function') return;
+    list.forEach((r) => {
+      if (!r) return;
+      global.toast(tt('season.rankUpToast', 'Rank-up reward ({rank}): {rewards}',
+        { rank: rankName(r), rewards: formatSeasonReward(r) }), 5200);
+    });
+  }
+
   function showRewardToasts(me) {
+    if (me && Array.isArray(me.season_rankups) && me.season_rankups.length) showRankUpToasts(me.season_rankups);
     const list = me && me.season_rewards;
     if (!Array.isArray(list) || typeof global.toast !== 'function') return;
     list.forEach((reward) => {
@@ -739,6 +824,8 @@
     const delta = Number(change.delta) || 0;
     if (change.win) {
       pts.textContent = tt('season.pointsGain', '+{n} season pts', { n: delta });
+    } else if (change.protected) {
+      pts.textContent = tt('season.pointsProtectedRank', '{rank} — points protected', { rank: rankName(change.before) });
     } else if (delta > 0 && (change.demoted || beforePct !== sideProgress(change.after) || change.before.step !== change.after.step)) {
       pts.textContent = tt('season.pointsLoss', '−{n} season pts', { n: delta });
     } else if (!change.win && change.before.step <= 1) {
@@ -750,6 +837,13 @@
     host.appendChild(badge);
     host.appendChild(msg);
     host.appendChild(pts);
+    const rankUps = Array.isArray(change.rankup_rewards) ? change.rankup_rewards : [];
+    rankUps.forEach((r) => {
+      const line = document.createElement('p');
+      line.className = 'win-season-rankup';
+      line.textContent = tt('season.rankUpResult', 'Rank-up reward: {rewards}', { rewards: formatSeasonReward(r) });
+      host.appendChild(line);
+    });
 
     const afterPct = sideProgress(change.after);
     const promoted = !!change.promoted || Number(change.after.step) > Number(change.before.step);

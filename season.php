@@ -9,7 +9,12 @@
  * Ladder points are independent of all-time Elo. Match win deltas use each
  * player's current seasonal step only (same-step ≈ 16; upsets vs higher steps
  * pay more). Loss deltas use that same base, then scale down by the loser's
- * step so early ranks bleed much less than they gain; S is near 1:1.
+ * step so early ranks bleed much less than they gain.
+ *
+ * Rule sets: Season 1 (2026-10) keeps its original curve. From Season 2 on
+ * (every later season id) losses cost nothing below A Green, A Green is the
+ * floor once reached, losses from A up are softer, and each tier pays a
+ * one-time rank-up reward the first time it is reached in a season.
  */
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/game_mode.php';
@@ -44,6 +49,61 @@ const TCG_SEASON_REWARDS = [
     6 => ['coins' => 4500, 'gems' => 1300, 'packs' => 4],
     7 => ['coins' => 6000, 'gems' => 2000, 'packs' => 5],
 ];
+
+/** Season ids after this one use rule set 2. */
+const TCG_SEASON_RULES_V2_AFTER = '2026-10';
+
+/**
+ * Loss scale by the loser's step (Pink S scores as Green S), per rule set.
+ * Same-step base is 16, so e.g. v2 A Green loses about 5, A Pink 7, S 10.
+ *
+ * @var array<int,array<int,float>>
+ */
+const TCG_SEASON_LOSS_SCALES = [
+    1 => [0 => 0.0, 1 => 0.0, 2 => 0.25, 3 => 0.40, 4 => 0.60, 5 => 0.80, 6 => 1.0],
+    2 => [0 => 0.0, 1 => 0.0, 2 => 0.0, 3 => 0.0, 4 => 0.30, 5 => 0.45, 6 => 0.60],
+];
+
+/**
+ * One-time rewards the first time a tier is reached in a season (rule set 2 only).
+ * Step 7 (Pink S) pays when the top-10 slot is first held.
+ *
+ * @var array<int,array{coins:int,gems:int,tickets:int,ticket_sr:int}>
+ */
+const TCG_SEASON_RANKUP_REWARDS = [
+    1 => ['coins' => 100, 'gems' => 0, 'tickets' => 0, 'ticket_sr' => 0],
+    2 => ['coins' => 200, 'gems' => 50, 'tickets' => 0, 'ticket_sr' => 0],
+    3 => ['coins' => 300, 'gems' => 100, 'tickets' => 0, 'ticket_sr' => 0],
+    4 => ['coins' => 500, 'gems' => 150, 'tickets' => 5, 'ticket_sr' => 0],
+    5 => ['coins' => 750, 'gems' => 200, 'tickets' => 5, 'ticket_sr' => 1],
+    6 => ['coins' => 1000, 'gems' => 300, 'tickets' => 10, 'ticket_sr' => 1],
+    7 => ['coins' => 1500, 'gems' => 500, 'tickets' => 10, 'ticket_sr' => 2],
+];
+
+/** Rule set for a season id (default: the current season). 1 = Season 1, 2 = Season 2 onward. */
+function tcgSeasonRulesVersion(?string $seasonId = null): int {
+    if ($seasonId === null) {
+        $clock = tcgSeasonClockInfo();
+        $seasonId = !empty($clock['active']) ? (string)($clock['id'] ?? '') : '';
+    }
+    if ($seasonId === '' || !preg_match('/^\d{4}-\d{2}$/', $seasonId)) {
+        return 1;
+    }
+    return strcmp($seasonId, TCG_SEASON_RULES_V2_AFTER) > 0 ? 2 : 1;
+}
+
+/**
+ * protect_below: steps under this lose no points. floor: a loss can never demote below this step.
+ *
+ * @return array{version:int,protect_below:int,floor:int}
+ */
+function tcgSeasonRules(?int $version = null): array {
+    $version = $version ?? tcgSeasonRulesVersion();
+    if ($version >= 2) {
+        return ['version' => 2, 'protect_below' => 4, 'floor' => 4];
+    }
+    return ['version' => 1, 'protect_below' => 2, 'floor' => 1];
+}
 
 function tcgSeasonNow(): int {
     if (isset($GLOBALS['TCG_SEASON_NOW']) && is_numeric($GLOBALS['TCG_SEASON_NOW'])) {
@@ -87,6 +147,17 @@ function tcgSeasonEnsureSchema(PDO $db): void {
     )');
     $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_season_rank_board
         ON tcg_season_rank(game_mode, season_id, step, points)');
+    // One row per tier reached in a season (rank-up rewards are paid once). notified = shown to the player.
+    $db->exec('CREATE TABLE IF NOT EXISTS tcg_season_rankup (
+        discord_id TEXT NOT NULL,
+        game_mode TEXT NOT NULL,
+        season_id TEXT NOT NULL,
+        step INTEGER NOT NULL,
+        granted_at INTEGER NOT NULL,
+        notified INTEGER NOT NULL DEFAULT 0,
+        PRIMARY KEY (discord_id, game_mode, season_id, step),
+        FOREIGN KEY (discord_id) REFERENCES tcg_users(discord_id) ON DELETE CASCADE
+    )');
     tcgDbEnsureColumn($db, 'tcg_match_queue', 'season_step', 'INTEGER NOT NULL DEFAULT -1');
 }
 
@@ -199,29 +270,21 @@ function tcgSeasonPointDelta(int $winnerStep, int $loserStep): int {
  *
  * Same-step base 16 → approx loss: B−4, B+−6, A−10, A+−13, S−16.
  */
-function tcgSeasonLossScale(int $loserStep): float {
+function tcgSeasonLossScale(int $loserStep, ?int $rulesVersion = null): float {
     $step = tcgSeasonClampStep($loserStep);
     if ($step >= TCG_SEASON_PINK_S_STEP) {
         $step = TCG_SEASON_GREEN_S_STEP;
     }
-    static $scales = [
-        0 => 0.0,
-        1 => 0.0,
-        2 => 0.25,
-        3 => 0.40,
-        4 => 0.60,
-        5 => 0.80,
-        6 => 1.0,
-    ];
-    return $scales[$step] ?? 1.0;
+    $version = tcgSeasonRules($rulesVersion)['version'];
+    return TCG_SEASON_LOSS_SCALES[$version][$step] ?? 1.0;
 }
 
 /**
  * Apply the loser's step soft-loss curve to a win-side base delta.
  */
-function tcgSeasonLossDelta(int $baseDelta, int $loserStep): int {
+function tcgSeasonLossDelta(int $baseDelta, int $loserStep, ?int $rulesVersion = null): int {
     $base = tcgSeasonClampDelta($baseDelta);
-    $scale = tcgSeasonLossScale($loserStep);
+    $scale = tcgSeasonLossScale($loserStep, $rulesVersion);
     if ($scale <= 0) {
         return 0;
     }
@@ -269,23 +332,24 @@ function tcgSeasonClampStep(int $step): int {
  *
  * @return array{step:int,points:int}
  */
-function tcgSeasonMovePoints(int $step, int $points, int $delta, bool $win): array {
+function tcgSeasonMovePoints(int $step, int $points, int $delta, bool $win, ?int $rulesVersion = null): array {
     $step = tcgSeasonClampStep($step);
     if ($step >= TCG_SEASON_PINK_S_STEP) {
         $step = TCG_SEASON_GREEN_S_STEP;
     }
     $points = max(0, $points);
     if (!$win) {
+        $rules = tcgSeasonRules($rulesVersion);
         // Soft-scaled loss amounts may be below the win floor of 8.
         $delta = tcgSeasonClampLossDelta($delta);
-        // C (0–1): fully protected — no point loss, no demotion.
-        if ($step <= 1) {
+        // Protected ranks (Season 1: C; Season 2+: C and B): no point loss, no demotion.
+        if ($step < $rules['protect_below']) {
             return ['step' => $step, 'points' => $points];
         }
         $points -= $delta;
-        // Demote while the bar is overdrawn. Land on the lower tier with the
-        // remainder (e.g. 10 − 32 → Pink C at 78), never wipe to 0 in place.
-        while ($points < 0 && $step > 1) {
+        // Demote while the bar is overdrawn, never below the floor (Season 1: Pink C; Season 2+: A Green).
+        // Land on the lower tier with the remainder (e.g. 10 − 32 → 78), never wipe to 0 in place.
+        while ($points < 0 && $step > $rules['floor']) {
             $step--;
             $points += TCG_SEASON_POINTS;
         }
@@ -353,9 +417,9 @@ function tcgSeasonUndoLoss(int $step, int $points, int $delta): array {
  * 10th returns to Green S. The Pink S peak is live: only the current holders
  * keep it for the end-of-season reward.
  */
-function tcgSeasonAssignPinkSlots(string $gameMode, string $seasonId): void {
+function tcgSeasonAssignPinkSlots(string $gameMode, string $seasonId): array {
     if ($gameMode === '' || $seasonId === '') {
-        return;
+        return [];
     }
     $db = tcgDb();
     $banExclude = '';
@@ -407,6 +471,86 @@ function tcgSeasonAssignPinkSlots(string $gameMode, string $seasonId): void {
         }
         throw $e;
     }
+    // Rank-up reward for holding Pink S (paid once per season; not unpaid again if the slot is lost and regained).
+    $paid = [];
+    foreach ($keep as $id) {
+        $reward = tcgSeasonGrantRankUp($id, $gameMode, $seasonId, TCG_SEASON_PINK_S_STEP, false);
+        if ($reward !== null) {
+            $paid[$id] = $reward;
+        }
+    }
+    return $paid;
+}
+
+/**
+ * Pay the one-time rank-up reward for $step in $seasonId (rule set 2). Returns the reward
+ * payload when it was paid now, or null (already paid, not in rule set 2, or no reward).
+ *
+ * @return array<string,mixed>|null
+ */
+function tcgSeasonGrantRankUp(string $discordId, string $gameMode, string $seasonId, int $step, bool $notified): ?array {
+    if (tcgSeasonRulesVersion($seasonId) < 2 || !isset(TCG_SEASON_RANKUP_REWARDS[$step])) {
+        return null;
+    }
+    $db = tcgDb();
+    $ins = $db->prepare('INSERT OR IGNORE INTO tcg_season_rankup
+        (discord_id, game_mode, season_id, step, granted_at, notified) VALUES (?, ?, ?, ?, ?, ?)');
+    $ins->execute([$discordId, $gameMode, $seasonId, $step, tcgSeasonNow(), $notified ? 1 : 0]);
+    if ($ins->rowCount() < 1) {
+        return null;
+    }
+    $reward = TCG_SEASON_RANKUP_REWARDS[$step];
+    if (!function_exists('tcgAddCoins')) {
+        require_once __DIR__ . '/coins.php';
+    }
+    if ($reward['coins'] > 0) {
+        tcgAddCoins($discordId, $reward['coins']);
+    }
+    if ($reward['gems'] > 0) {
+        tcgAddStarGems($discordId, $reward['gems']);
+    }
+    if ($reward['tickets'] > 0 || $reward['ticket_sr'] > 0) {
+        if (!function_exists('tcgAddScoutingTickets')) {
+            require_once __DIR__ . '/booster.php';
+        }
+        if ($reward['tickets'] > 0) {
+            tcgAddScoutingTickets($discordId, $reward['tickets']);
+        }
+        if ($reward['ticket_sr'] > 0) {
+            tcgAddScoutingTierTickets($discordId, 'sr', $reward['ticket_sr']);
+        }
+    }
+    $def = tcgSeasonStepDef($step);
+    return ['step' => $step, 'key' => $def['key'], 'letter' => $def['letter'], 'tone' => $def['tone']] + $reward;
+}
+
+/**
+ * Rank-up rewards paid while the player was not looking (e.g. a Pink S slot opening up),
+ * returned once and then marked as shown.
+ *
+ * @return list<array<string,mixed>>
+ */
+function tcgSeasonTakePendingRankUps(string $discordId): array {
+    $db = tcgDb();
+    $stmt = $db->prepare('SELECT game_mode, season_id, step FROM tcg_season_rankup
+        WHERE discord_id = ? AND notified = 0 ORDER BY granted_at ASC, step ASC');
+    $stmt->execute([$discordId]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (!$rows) {
+        return [];
+    }
+    $out = [];
+    foreach ($rows as $r) {
+        $step = (int)$r['step'];
+        if (!isset(TCG_SEASON_RANKUP_REWARDS[$step])) {
+            continue;
+        }
+        $def = tcgSeasonStepDef($step);
+        $out[] = ['season_id' => (string)$r['season_id'], 'step' => $step, 'key' => $def['key'],
+            'letter' => $def['letter'], 'tone' => $def['tone']] + TCG_SEASON_RANKUP_REWARDS[$step];
+    }
+    $db->prepare('UPDATE tcg_season_rankup SET notified = 1 WHERE discord_id = ? AND notified = 0')->execute([$discordId]);
+    return $out;
 }
 
 function tcgSeasonSoftResetStep(int $finalStep): int {
@@ -822,7 +966,10 @@ function tcgSeasonBump(string $discordId, string $gameMode, int $delta, bool $wi
     $wins = $row ? (int)$row['wins'] : 0;
     $losses = $row ? (int)$row['losses'] : 0;
     $before = tcgSeasonChangeSide($step, $points);
-    $moved = tcgSeasonMovePoints($step, $points, $delta, $win);
+    $rulesVersion = tcgSeasonRulesVersion((string)$clock['id']);
+    $rules = tcgSeasonRules($rulesVersion);
+    $moved = tcgSeasonMovePoints($step, $points, $delta, $win, $rulesVersion);
+    $oldPeak = $peak;
     if ($win) {
         $wins++;
     } else {
@@ -855,7 +1002,24 @@ function tcgSeasonBump(string $discordId, string $gameMode, int $delta, bool $wi
             $losses,
             $now,
         ]);
-    tcgSeasonAssignPinkSlots($gameMode, (string)$clock['id']);
+    // Rank-up rewards for tiers reached for the first time this season (Pink S is paid in the slot assignment).
+    $rankUps = [];
+    if ($win && $rulesVersion >= 2) {
+        for ($s = $oldPeak + 1; $s <= min($moved['step'], TCG_SEASON_GREEN_S_STEP); $s++) {
+            $reward = tcgSeasonGrantRankUp($discordId, $gameMode, (string)$clock['id'], $s, true);
+            if ($reward !== null) {
+                $rankUps[] = $reward;
+            }
+        }
+    }
+    $pinkPaid = tcgSeasonAssignPinkSlots($gameMode, (string)$clock['id']);
+    if (isset($pinkPaid[$discordId])) {
+        // Shown in this match's result instead of waiting for the next profile load.
+        $db->prepare('UPDATE tcg_season_rankup SET notified = 1
+            WHERE discord_id = ? AND game_mode = ? AND season_id = ? AND step = ?')
+            ->execute([$discordId, $gameMode, (string)$clock['id'], TCG_SEASON_PINK_S_STEP]);
+        $rankUps[] = $pinkPaid[$discordId];
+    }
     $afterRow = tcgSeasonLoadRow($discordId, $gameMode);
     $afterStep = $afterRow ? (int)$afterRow['step'] : $moved['step'];
     $afterPoints = $afterRow ? (int)$afterRow['points'] : $moved['points'];
@@ -870,6 +1034,9 @@ function tcgSeasonBump(string $discordId, string $gameMode, int $delta, bool $wi
         'win' => $win,
         'promoted' => $after['step'] > $before['step'],
         'demoted' => $after['step'] < $before['step'],
+        // A loss on a protected rank (no points lost) — lets the result screen say so.
+        'protected' => !$win && $before['step'] < $rules['protect_below'],
+        'rankup_rewards' => $rankUps,
     ];
 }
 
@@ -889,7 +1056,7 @@ function tcgSeasonApplyResult(string $winnerId, string $loserId, bool $isDraw, s
     $winnerStep = tcgSeasonStepForDelta($winnerId, $mode);
     $loserStep = tcgSeasonStepForDelta($loserId, $mode);
     $winDelta = tcgSeasonPointDelta($winnerStep, $loserStep);
-    $lossDelta = tcgSeasonLossDelta($winDelta, $loserStep);
+    $lossDelta = tcgSeasonLossDelta($winDelta, $loserStep, tcgSeasonRulesVersion());
     $out = [];
     $wChange = tcgSeasonBump($winnerId, $mode, $winDelta, true);
     $lChange = tcgSeasonBump($loserId, $mode, $lossDelta, false);
@@ -1001,6 +1168,43 @@ function tcgSeasonOverallPlacement(string $discordId, string $gameMode): ?int {
     return (int)$stmt->fetchColumn() + 1;
 }
 
+/**
+ * What the Season ranks screen shows: point rates and rewards per rank for the current rule set.
+ * loss.* are the point losses at that rank (min = beaten by a much higher rank, same = same rank,
+ * max = upset by a much lower rank). protected ranks lose nothing.
+ *
+ * @return array<string,mixed>
+ */
+function tcgSeasonRatesPayload(?string $seasonId = null): array {
+    $version = tcgSeasonRulesVersion($seasonId);
+    $rules = tcgSeasonRules($version);
+    $rows = [];
+    foreach (TCG_SEASON_STEPS as $i => $def) {
+        $scoreStep = min($i, TCG_SEASON_GREEN_S_STEP);
+        $protected = $i < $rules['protect_below'];
+        $row = [
+            'step' => $i,
+            'protected' => $protected,
+            'loss_min' => $protected ? 0 : tcgSeasonLossDelta(8, $scoreStep, $version),
+            'loss_same' => $protected ? 0 : tcgSeasonLossDelta(16, $scoreStep, $version),
+            'loss_max' => $protected ? 0 : tcgSeasonLossDelta(32, $scoreStep, $version),
+            'season_reward' => TCG_SEASON_REWARDS[$i],
+            'rankup_reward' => ($version >= 2 && isset(TCG_SEASON_RANKUP_REWARDS[$i])) ? TCG_SEASON_RANKUP_REWARDS[$i] : null,
+        ];
+        $rows[] = $row;
+    }
+    return [
+        'rules_version' => $version,
+        'win_min' => 8,
+        'win_same' => 16,
+        'win_max' => 32,
+        'protect_below' => $rules['protect_below'],
+        'floor_step' => $rules['floor'],
+        'pink_s_slots' => TCG_SEASON_PINK_S_SLOTS,
+        'steps' => $rows,
+    ];
+}
+
 function tcgSeasonPublic(string $discordId, string $gameMode): array {
     $clock = tcgSeasonClockInfo();
     $mode = tcgSeasonRankedMode($gameMode);
@@ -1010,6 +1214,7 @@ function tcgSeasonPublic(string $discordId, string $gameMode): array {
     if (empty($clock['active'])) {
         $preview = tcgSeasonPreviewPublic();
         $preview['game_mode'] = $mode;
+        $preview['rates'] = tcgSeasonRatesPayload('2026-10');
         return $preview;
     }
     $row = tcgSeasonLoadRow($discordId, $mode);
@@ -1020,6 +1225,7 @@ function tcgSeasonPublic(string $discordId, string $gameMode): array {
     $public['game_mode'] = $mode;
     $public['started'] = true;
     $public['steps'] = tcgSeasonLadderSteps();
+    $public['rates'] = tcgSeasonRatesPayload((string)$clock['id']);
     $public['rank_name'] = tcgSeasonRankDisplayName($public);
     $public['overall_rank'] = tcgSeasonOverallPlacement($discordId, $mode);
     return $public;
@@ -1036,6 +1242,7 @@ function tcgSeasonBundleForUser(string $discordId): array {
         'season' => $season,
         'seasons' => [$mode => $season],
         'season_rewards' => $grant ? [$grant] : [],
+        'season_rankups' => tcgSeasonTakePendingRankUps($discordId),
     ];
 }
 

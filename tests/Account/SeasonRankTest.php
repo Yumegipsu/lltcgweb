@@ -19,7 +19,8 @@ final class SeasonRankTest extends TestCase
         require_once dirname(__DIR__, 2) . '/season.php';
         require_once dirname(__DIR__, 2) . '/matchmaking.php';
         require_once dirname(__DIR__, 2) . '/titles.php';
-        unset($GLOBALS['TCG_SEASON_NOW']);
+        // Season 1 rules (the original loss curve) unless a test moves the clock.
+        $GLOBALS['TCG_SEASON_NOW'] = strtotime('2026-10-15 12:00:00 UTC');
     }
 
     protected function tearDown(): void
