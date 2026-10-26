@@ -538,6 +538,7 @@
     if (Number(r.packs) > 0) parts.push(tt('season.rewardPack', 'PR pack ({n} cards)', { n: r.packs }));
     if (Number(r.tickets) > 0) parts.push(tt('missions.rewardTickets', 'Scouting Ticket ×{n}', { n: r.tickets }));
     if (Number(r.ticket_sr) > 0) parts.push(tt('missions.rewardTicketSr', 'SR+ Ticket ×{n}', { n: r.ticket_sr }));
+    if (Number(r.ticket_ur) > 0) parts.push(tt('missions.rewardTicketUr', 'UR+ Ticket ×{n}', { n: r.ticket_ur }));
     return parts.join(' · ');
   }
 
@@ -848,7 +849,12 @@
     list.forEach((reward) => {
       if (!reward) return;
       const packs = Number(reward.pr_packs || 0);
-      const msg = packs > 0
+      const hasTickets = Number(reward.ticket_sr || 0) > 0 || Number(reward.ticket_ur || 0) > 0;
+      const msg = hasTickets
+        ? tt('season.rewardToastFull', 'Season reward: {rewards}', {
+          rewards: formatSeasonReward({ coins: reward.coins, gems: reward.gems, packs, ticket_sr: reward.ticket_sr, ticket_ur: reward.ticket_ur }),
+        })
+        : packs > 0
         ? tt('season.rewardToastPacks', 'Season reward: {coins} Coins, {gems} Star Gems, a {cards}-card PR pack', {
           coins: reward.coins,
           gems: reward.gems,

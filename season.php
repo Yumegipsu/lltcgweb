@@ -50,6 +50,19 @@ const TCG_SEASON_REWARDS = [
     7 => ['coins' => 6000, 'gems' => 2000, 'packs' => 5],
 ];
 
+/**
+ * Extra Scouting Tickets in the season-end reward from Season 2 on, by the highest rank reached.
+ *
+ * @var array<int,array{ticket_sr:int,ticket_ur:int}>
+ */
+const TCG_SEASON_END_TICKETS = [
+    3 => ['ticket_sr' => 1, 'ticket_ur' => 0],
+    4 => ['ticket_sr' => 1, 'ticket_ur' => 0],
+    5 => ['ticket_sr' => 2, 'ticket_ur' => 0],
+    6 => ['ticket_sr' => 2, 'ticket_ur' => 1],
+    7 => ['ticket_sr' => 2, 'ticket_ur' => 2],
+];
+
 /** Season ids after this one use rule set 2. */
 const TCG_SEASON_RULES_V2_AFTER = '2026-10';
 
@@ -564,9 +577,13 @@ function tcgSeasonSoftResetStep(int $finalStep): int {
 }
 
 /** @return array{coins:int,gems:int,packs:int} */
-function tcgSeasonRewardForStep(int $step): array {
+function tcgSeasonRewardForStep(int $step, ?string $seasonId = null): array {
     $step = tcgSeasonClampStep($step);
-    return TCG_SEASON_REWARDS[$step];
+    $reward = TCG_SEASON_REWARDS[$step] + ['ticket_sr' => 0, 'ticket_ur' => 0];
+    if (tcgSeasonRulesVersion($seasonId) >= 2 && isset(TCG_SEASON_END_TICKETS[$step])) {
+        $reward = TCG_SEASON_END_TICKETS[$step] + $reward;
+    }
+    return $reward;
 }
 
 /** @return array{key:string,letter:string,tone:string} */
@@ -800,7 +817,7 @@ function tcgSeasonCloseRow(string $discordId, string $gameMode, array $row, arra
     $oldId = (string)$row['season_id'];
     $finalStep = tcgSeasonClampStep((int)$row['step']);
     $peak = tcgSeasonClampStep(max($finalStep, (int)$row['peak_step']));
-    $reward = tcgSeasonRewardForStep($peak);
+    $reward = tcgSeasonRewardForStep($peak, $oldId);
     $titleId = tcgSeasonTitleId($oldId, $peak);
     $number = tcgSeasonNumberFromId($oldId);
     tcgSeasonEnsureTitleFile($oldId, $peak);
@@ -852,6 +869,13 @@ function tcgSeasonCloseRow(string $discordId, string $gameMode, array $row, arra
             if ($reward['gems'] > 0) {
                 tcgAddStarGems($discordId, $reward['gems']);
             }
+            // Season 2+: SR+ / UR+ Tickets for the higher ranks (paid with the history row, so only once).
+            if ($reward['ticket_sr'] > 0) {
+                tcgAddScoutingTierTickets($discordId, 'sr', $reward['ticket_sr']);
+            }
+            if ($reward['ticket_ur'] > 0) {
+                tcgAddScoutingTierTickets($discordId, 'ur', $reward['ticket_ur']);
+            }
         }
         $db->prepare('UPDATE tcg_season_rank
             SET season_id = ?, step = ?, points = 0, peak_step = ?, wins = 0, losses = 0, updated_at = ?
@@ -883,6 +907,8 @@ function tcgSeasonCloseRow(string $discordId, string $gameMode, array $row, arra
         'coins' => $reward['coins'],
         'gems' => $reward['gems'],
         'pr_packs' => $reward['packs'],
+        'ticket_sr' => $reward['ticket_sr'],
+        'ticket_ur' => $reward['ticket_ur'],
         'title_id' => $titleId,
     ];
 }
@@ -1190,6 +1216,12 @@ function tcgSeasonOverallPlacement(string $discordId, string $gameMode): ?int {
 function tcgSeasonRatesPayload(?string $seasonId = null): array {
     $version = tcgSeasonRulesVersion($seasonId);
     $rules = tcgSeasonRules($version);
+    if ($seasonId === null) {
+        $clock = tcgSeasonClockInfo();
+        $rewardSeasonId = !empty($clock['active']) ? (string)($clock['id'] ?? '') : '2026-10';
+    } else {
+        $rewardSeasonId = $seasonId;
+    }
     $rows = [];
     foreach (TCG_SEASON_STEPS as $i => $def) {
         $scoreStep = min($i, TCG_SEASON_GREEN_S_STEP);
@@ -1200,7 +1232,7 @@ function tcgSeasonRatesPayload(?string $seasonId = null): array {
             'loss_min' => $protected ? 0 : tcgSeasonLossDelta(8, $scoreStep, $version),
             'loss_same' => $protected ? 0 : tcgSeasonLossDelta(16, $scoreStep, $version),
             'loss_max' => $protected ? 0 : tcgSeasonLossDelta(32, $scoreStep, $version),
-            'season_reward' => TCG_SEASON_REWARDS[$i],
+            'season_reward' => tcgSeasonRewardForStep($i, $rewardSeasonId),
             'rankup_reward' => ($version >= 2 && isset(TCG_SEASON_RANKUP_REWARDS[$i])) ? TCG_SEASON_RANKUP_REWARDS[$i] : null,
         ];
         $rows[] = $row;
