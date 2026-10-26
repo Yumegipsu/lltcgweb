@@ -518,7 +518,10 @@ function tcgBanComputeSeasonAdjustments(string $bannedId): array {
         $wState = $live[$winner] ?? tcgBanSeasonBlank();
         $lState = $live[$loser] ?? tcgBanSeasonBlank();
         $base = tcgSeasonPointDelta((int)$wState['step'], (int)$lState['step']);
-        $lossDelta = tcgSeasonLossDelta($base, (int)$lState['step']);
+        $lossDelta = tcgSeasonLossDelta(
+            tcgSeasonPointDelta((int)$wState['step'], (int)$lState['step'], null, true),
+            (int)$lState['step']
+        );
         $vsBanned = $winner === $bannedId || $loser === $bannedId;
         if ($vsBanned) {
             $opp = $winner === $bannedId ? $loser : $winner;
@@ -534,7 +537,7 @@ function tcgBanComputeSeasonAdjustments(string $bannedId): array {
                 if ($won) {
                     $shadowDelta = tcgSeasonPointDelta((int)$self['step'], (int)$otherLive['step']);
                 } else {
-                    $shadowBase = tcgSeasonPointDelta((int)$otherLive['step'], (int)$self['step']);
+                    $shadowBase = tcgSeasonPointDelta((int)$otherLive['step'], (int)$self['step'], null, true);
                     $shadowDelta = tcgSeasonLossDelta($shadowBase, (int)$self['step']);
                 }
                 $shadow[$id] = tcgBanSeasonStepState($self, $shadowDelta, $won);

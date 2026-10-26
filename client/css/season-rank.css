@@ -310,24 +310,99 @@ body.season-ladder-open {
   opacity: 0.88;
 }
 
-.season-rates {
-  margin: 0 0 10px;
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  background: rgba(0, 0, 0, 0.16);
-  font-size: 12px;
+.season-rates-slot { margin: 0 0 10px; }
+
+.season-rates-btn {
+  width: 100%;
+}
+
+.season-info-overlay { z-index: 8820; }
+.season-info-shell { width: min(620px, 100%); }
+
+.season-info-text {
+  margin: 0 0 8px;
+  font-size: 13px;
   line-height: 1.45;
 }
 
-.season-rates summary {
-  cursor: pointer;
+.season-info-heading {
+  margin: 14px 0 6px;
+  font-size: 15px;
   font-weight: 800;
 }
 
-.season-rates p {
-  margin: 6px 0 0;
+.season-info-note {
+  margin: 8px 0 0;
+  font-size: 12px;
+  opacity: 0.85;
 }
+
+.season-chart-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.season-chart {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.season-chart th,
+.season-chart td {
+  padding: 4px 3px;
+  border-radius: 6px;
+}
+
+.season-chart-corner {
+  min-width: 110px;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: left;
+  opacity: 0.85;
+}
+
+.season-chart-col img,
+.season-chart-row img {
+  display: block;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.season-chart-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: left;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.season-chart-row img { margin: 0; flex: 0 0 auto; }
+
+.season-chart-cell {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  min-width: 34px;
+}
+
+@media (max-width: 480px) {
+  .season-chart { border-spacing: 1px; font-size: 11px; }
+  .season-chart th,
+  .season-chart td { padding: 3px 1px; }
+  .season-chart-corner { min-width: 0; width: 84px; font-size: 9px; }
+  .season-chart-row { gap: 3px; font-size: 10px; }
+  .season-chart-row img { width: 16px; height: 16px; }
+  .season-chart-col img { width: 18px; height: 18px; }
+  .season-chart-cell { min-width: 0; font-size: 11px; }
+}
+
+.season-chart--win .season-chart-cell { background: rgba(72, 168, 120, 0.34); }
+.season-chart--loss .season-chart-cell { background: rgba(214, 92, 120, 0.34); }
+.season-chart--loss .season-chart-cell.is-none { background: rgba(255, 255, 255, 0.1); opacity: 0.7; }
+.season-chart-cell.is-you { outline: 1px solid rgba(255, 224, 138, 0.85); }
 
 .win-season-rankup {
   margin: 2px 0 0;

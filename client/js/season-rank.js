@@ -541,27 +541,116 @@
     return parts.join(' · ');
   }
 
-  /** The "how points and rewards work" box shown above the ranks. */
-  function renderRatesBox(slot, season) {
-    slot.replaceChildren();
+  function rankingInfoOverlay() {
+    let root = document.getElementById('overlay-season-info');
+    if (root) return root;
+    root = el('div', 'season-ladder-overlay season-info-overlay');
+    root.id = 'overlay-season-info';
+    root.setAttribute('role', 'dialog');
+    root.setAttribute('aria-modal', 'true');
+    root.setAttribute('aria-hidden', 'true');
+    root.innerHTML = ''
+      + '<div class="season-ladder-shell season-info-shell">'
+      + '  <div class="season-ladder-panel">'
+      + '    <div class="account-screen-head">'
+      + '      <button type="button" class="btn-ghost season-info-close"></button>'
+      + '      <h2 class="season-ladder-title"></h2>'
+      + '    </div>'
+      + '    <div class="season-ladder-scroll season-info-body"></div>'
+      + '  </div>'
+      + '</div>';
+    document.body.appendChild(root);
+    const close = () => {
+      root.classList.remove('open');
+      root.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', root._onKey, true);
+    };
+    // Escape closes this window on top, not the ranks screen underneath.
+    root._onKey = (event) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      event.stopPropagation();
+      close();
+    };
+    root._close = close;
+    root.querySelector('.season-info-close').addEventListener('click', close);
+    root.addEventListener('click', (e) => { if (e.target === root) close(); });
+    return root;
+  }
+
+  /** One of the two point charts: rows = your rank, columns = the opponent's rank. */
+  function rankChartTable(season, grid, kind) {
+    const steps = ladderSteps(season).slice().reverse().filter((s) => Number(s.step) <= 6);
+    const label = (step) => {
+      // Pink S scores as Green S, so the top row / column stands for both.
+      const base = rankName(step);
+      if (Number(step.step) !== 6) return base;
+      const pink = ladderSteps(season).find((x) => Number(x.step) === 7);
+      return pink ? base + ' / ' + rankName(pink) : base;
+    };
+    const wrap = el('div', 'season-chart-wrap');
+    const table = el('table', 'season-chart season-chart--' + kind);
+    const head = el('tr');
+    head.appendChild(el('th', 'season-chart-corner', tt('season.chartCorner', 'Your rank ↓ · Opponent\u2019s rank →')));
+    steps.forEach((st) => {
+      const th = el('th', 'season-chart-col');
+      const img = document.createElement('img');
+      img.src = st.icon;
+      img.alt = label(st);
+      img.width = 22;
+      img.height = 22;
+      img.decoding = 'async';
+      th.title = label(st);
+      th.setAttribute('aria-label', label(st));
+      th.appendChild(img);
+      head.appendChild(th);
+    });
+    table.appendChild(el('thead')).appendChild(head);
+    const body = el('tbody');
+    steps.forEach((row) => {
+      const tr = el('tr');
+      const th = el('th', 'season-chart-row');
+      const img = document.createElement('img');
+      img.src = row.icon;
+      img.alt = '';
+      img.width = 22;
+      img.height = 22;
+      img.decoding = 'async';
+      th.appendChild(img);
+      th.appendChild(el('span', '', label(row)));
+      tr.appendChild(th);
+      steps.forEach((col) => {
+        const n = Number(((grid || [])[Number(row.step)] || [])[Number(col.step)]) || 0;
+        const td = el('td', 'season-chart-cell' + (row.step === season.step || (Number(season.step) >= 7 && row.step === 6) ? ' is-you' : ''));
+        if (kind === 'loss') {
+          td.textContent = n > 0 ? '\u2212' + n : '\u2014';
+          if (n <= 0) td.classList.add('is-none');
+        } else {
+          td.textContent = '+' + n;
+        }
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
+  /** "Ranking info": the rules and the full win / loss point charts, in a window above the ranks screen. */
+  function openRankingInfo(season) {
     const rates = season && season.rates;
     if (!rates) return;
-    const steps = ladderSteps(season);
+    const root = rankingInfoOverlay();
+    root.querySelector('.season-ladder-title').textContent = tt('season.ratesTitle', 'Ranking info');
+    root.querySelector('.season-info-close').textContent = tt('news.close', 'Close');
+    const body = root.querySelector('.season-info-body');
+    body.replaceChildren();
     const byStep = {};
-    steps.forEach((s) => { byStep[Number(s.step)] = s; });
+    ladderSteps(season).forEach((s) => { byStep[Number(s.step)] = s; });
     const floorRank = byStep[Number(rates.floor_step)] ? rankName(byStep[Number(rates.floor_step)]) : '';
-    const box = document.createElement('details');
-    box.className = 'season-rates';
-    const sum = document.createElement('summary');
-    sum.textContent = tt('season.ratesTitle', 'How points and rewards work');
-    box.appendChild(sum);
-    const add = (text) => {
-      const p = document.createElement('p');
-      p.textContent = text;
-      box.appendChild(p);
-    };
-    add(tt('season.ratesWin', 'Win: +{min} to +{max} points ({same} against your own rank). Beating a higher rank pays more.',
-      { min: rates.win_min, max: rates.win_max, same: rates.win_same }));
+    const add = (text) => body.appendChild(el('p', 'season-info-text', text));
+    add(tt('season.ratesWin', 'Points depend on both players\u2019 ranks: beating a higher rank pays more, and losing to a lower rank costs more. Pink S counts as Green S.'));
     if (Number(rates.rules_version) >= 2) {
       add(tt('season.ratesFloorV2', 'Losses cost no points below {rank}. From {rank} up, losses cost less than a win pays (see each rank below), and once you reach {rank} you can\u2019t drop below it for the rest of the season.',
         { rank: floorRank }));
@@ -572,18 +661,34 @@
     if (Number(rates.rules_version) >= 2) {
       add(tt('season.ratesRankUp', 'Rank-up rewards are paid once, the first time you reach each rank in a season. Season-end rewards are paid for your highest rank.'));
     }
-    slot.appendChild(box);
+    const matrix = rates.matrix || {};
+    body.appendChild(el('h3', 'season-info-heading', tt('season.chartWin', 'If you win: points gained')));
+    body.appendChild(rankChartTable(season, matrix.win, 'win'));
+    body.appendChild(el('h3', 'season-info-heading', tt('season.chartLoss', 'If you lose: points lost')));
+    body.appendChild(rankChartTable(season, matrix.loss, 'loss'));
+    body.appendChild(el('p', 'season-info-note', tt('season.chartNoLoss', 'A dash (\u2014) means no points are lost at that rank.')));
+    root.classList.add('open');
+    root.setAttribute('aria-hidden', 'false');
+    document.removeEventListener('keydown', root._onKey, true);
+    document.addEventListener('keydown', root._onKey, true);
+    body.scrollTop = 0;
   }
 
-  /** Small detail lines under a rank on the ladder: point rates and rewards. */
+  /** The "Ranking info" button above the ranks. */
+  function renderRatesBox(slot, season) {
+    slot.replaceChildren();
+    if (!(season && season.rates)) return;
+    const btn = el('button', 'btn-ghost season-rates-btn', tt('season.ratesTitle', 'Ranking info'));
+    btn.type = 'button';
+    btn.addEventListener('click', () => openRankingInfo(season));
+    slot.appendChild(btn);
+  }
+
+  /** Small detail lines under a rank on the ladder: its rank-up and season-end rewards. */
   function rankDetailLines(rates, stepIndex) {
     const row = rates && Array.isArray(rates.steps) ? rates.steps.find((r) => Number(r.step) === Number(stepIndex)) : null;
     if (!row) return [];
     const lines = [];
-    lines.push(row.protected
-      ? tt('season.rowNoLoss', 'Win +{wmin}–{wmax} · No points lost', { wmin: rates.win_min, wmax: rates.win_max })
-      : tt('season.rowWinLoss', 'Win +{wmin}–{wmax} · Loss −{lmin}–{lmax}',
-        { wmin: rates.win_min, wmax: rates.win_max, lmin: row.loss_min, lmax: row.loss_max }));
     if (row.rankup_reward) {
       lines.push(tt('season.rowRankUp', 'Rank-up: {rewards}', { rewards: formatSeasonReward(row.rankup_reward) }));
     }

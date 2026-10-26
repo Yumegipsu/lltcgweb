@@ -94,15 +94,18 @@ function tcgSeasonRulesVersion(?string $seasonId = null): int {
 
 /**
  * protect_below: steps under this lose no points. floor: a loss can never demote below this step.
+ * win_k / win_min / win_max: the win-side point scale (Season 2 pays about 25% more). Loss amounts are
+ * always scaled from the original Season 1 win scale (see tcgSeasonPointDelta $lossBase), so raising wins
+ * does not raise losses.
  *
- * @return array{version:int,protect_below:int,floor:int}
+ * @return array{version:int,protect_below:int,floor:int,win_k:int,win_min:int,win_max:int}
  */
 function tcgSeasonRules(?int $version = null): array {
     $version = $version ?? tcgSeasonRulesVersion();
     if ($version >= 2) {
-        return ['version' => 2, 'protect_below' => 4, 'floor' => 4];
+        return ['version' => 2, 'protect_below' => 4, 'floor' => 4, 'win_k' => 40, 'win_min' => 10, 'win_max' => 40];
     }
-    return ['version' => 1, 'protect_below' => 2, 'floor' => 1];
+    return ['version' => 1, 'protect_below' => 2, 'floor' => 1, 'win_k' => 32, 'win_min' => 8, 'win_max' => 32];
 }
 
 function tcgSeasonNow(): int {
@@ -220,13 +223,14 @@ function tcgSeasonClockInfo(): array {
     ];
 }
 
-function tcgSeasonClampDelta(int $delta): int {
+function tcgSeasonClampDelta(int $delta, ?int $rulesVersion = null): int {
+    $rules = tcgSeasonRules($rulesVersion);
     $n = abs($delta);
-    if ($n < 8) {
-        $n = 8;
+    if ($n < $rules['win_min']) {
+        $n = $rules['win_min'];
     }
-    if ($n > 32) {
-        $n = 32;
+    if ($n > $rules['win_max']) {
+        $n = $rules['win_max'];
     }
     return $n;
 }
@@ -248,7 +252,7 @@ function tcgSeasonClampLossDelta(int $delta): int {
  * Pink S scores as Green S. Same-step matches yield 16; beating a higher
  * seasonal rank yields more (up to 32), beating a lower one less (floor 8).
  */
-function tcgSeasonPointDelta(int $winnerStep, int $loserStep): int {
+function tcgSeasonPointDelta(int $winnerStep, int $loserStep, ?int $rulesVersion = null, bool $lossBase = false): int {
     $w = tcgSeasonClampStep($winnerStep);
     $l = tcgSeasonClampStep($loserStep);
     if ($w >= TCG_SEASON_PINK_S_STEP) {
@@ -257,10 +261,12 @@ function tcgSeasonPointDelta(int $winnerStep, int $loserStep): int {
     if ($l >= TCG_SEASON_PINK_S_STEP) {
         $l = TCG_SEASON_GREEN_S_STEP;
     }
-    $k = 32;
-    // Scale 2 across 0–6 steps: ±2 ranks ≈ underdog ~29 / favorite floor 8.
+    // $lossBase: the original (Season 1) scale, which the loser's loss is taken from in every season.
+    $version = $lossBase ? 1 : tcgSeasonRules($rulesVersion)['version'];
+    $k = tcgSeasonRules($version)['win_k'];
+    // Scale 2 across 0–6 steps: ±2 ranks ≈ underdog ~29 / favorite floor 8 (Season 2 win scale: 37 / 10).
     $expectedW = 1 / (1 + pow(10, ($l - $w) / 2));
-    return tcgSeasonClampDelta((int)round($k * (1 - $expectedW)));
+    return tcgSeasonClampDelta((int)round($k * (1 - $expectedW)), $version);
 }
 
 /**
@@ -283,7 +289,7 @@ function tcgSeasonLossScale(int $loserStep, ?int $rulesVersion = null): float {
  * Apply the loser's step soft-loss curve to a win-side base delta.
  */
 function tcgSeasonLossDelta(int $baseDelta, int $loserStep, ?int $rulesVersion = null): int {
-    $base = tcgSeasonClampDelta($baseDelta);
+    $base = tcgSeasonClampDelta($baseDelta, 1);
     $scale = tcgSeasonLossScale($loserStep, $rulesVersion);
     if ($scale <= 0) {
         return 0;
@@ -358,7 +364,7 @@ function tcgSeasonMovePoints(int $step, int $points, int $delta, bool $win, ?int
         }
         return ['step' => $step, 'points' => $points];
     }
-    $delta = tcgSeasonClampDelta($delta);
+    $delta = tcgSeasonClampDelta($delta, $rulesVersion);
     $points += $delta;
     while ($points >= TCG_SEASON_POINTS && $step < TCG_SEASON_GREEN_S_STEP) {
         $points -= TCG_SEASON_POINTS;
@@ -1025,7 +1031,7 @@ function tcgSeasonBump(string $discordId, string $gameMode, int $delta, bool $wi
     $afterPoints = $afterRow ? (int)$afterRow['points'] : $moved['points'];
     $after = tcgSeasonChangeSide($afterStep, $afterPoints);
     $reportedDelta = $win
-        ? tcgSeasonClampDelta($delta)
+        ? tcgSeasonClampDelta($delta, $rulesVersion)
         : tcgSeasonClampLossDelta($delta);
     return [
         'before' => $before,
@@ -1055,8 +1061,13 @@ function tcgSeasonApplyResult(string $winnerId, string $loserId, bool $isDraw, s
     tcgSeasonSettle($loserId, $mode);
     $winnerStep = tcgSeasonStepForDelta($winnerId, $mode);
     $loserStep = tcgSeasonStepForDelta($loserId, $mode);
-    $winDelta = tcgSeasonPointDelta($winnerStep, $loserStep);
-    $lossDelta = tcgSeasonLossDelta($winDelta, $loserStep, tcgSeasonRulesVersion());
+    $rulesVersion = tcgSeasonRulesVersion();
+    $winDelta = tcgSeasonPointDelta($winnerStep, $loserStep, $rulesVersion);
+    $lossDelta = tcgSeasonLossDelta(
+        tcgSeasonPointDelta($winnerStep, $loserStep, $rulesVersion, true),
+        $loserStep,
+        $rulesVersion
+    );
     $out = [];
     $wChange = tcgSeasonBump($winnerId, $mode, $winDelta, true);
     $lChange = tcgSeasonBump($loserId, $mode, $lossDelta, false);
@@ -1171,7 +1182,8 @@ function tcgSeasonOverallPlacement(string $discordId, string $gameMode): ?int {
 /**
  * What the Season ranks screen shows: point rates and rewards per rank for the current rule set.
  * loss.* are the point losses at that rank (min = beaten by a much higher rank, same = same rank,
- * max = upset by a much lower rank). protected ranks lose nothing.
+ * max = upset by a much lower rank). protected ranks lose nothing. matrix = the full chart
+ * (win[you][opponent] gained, loss[you][opponent] lost).
  *
  * @return array<string,mixed>
  */
@@ -1193,11 +1205,23 @@ function tcgSeasonRatesPayload(?string $seasonId = null): array {
         ];
         $rows[] = $row;
     }
+    // Points by rank pairing, rows = your step, columns = the opponent's step (0–6; Pink S scores as Green S).
+    $win = [];
+    $loss = [];
+    for ($a = 0; $a <= TCG_SEASON_GREEN_S_STEP; $a++) {
+        for ($b = 0; $b <= TCG_SEASON_GREEN_S_STEP; $b++) {
+            $win[$a][$b] = tcgSeasonPointDelta($a, $b, $version);
+            $loss[$a][$b] = $a < $rules['protect_below']
+                ? 0
+                : tcgSeasonLossDelta(tcgSeasonPointDelta($b, $a, $version, true), $a, $version);
+        }
+    }
     return [
         'rules_version' => $version,
-        'win_min' => 8,
-        'win_same' => 16,
-        'win_max' => 32,
+        'matrix' => ['win' => $win, 'loss' => $loss],
+        'win_min' => $rules['win_min'],
+        'win_same' => (int)round($rules['win_k'] / 2),
+        'win_max' => $rules['win_max'],
         'protect_below' => $rules['protect_below'],
         'floor_step' => $rules['floor'],
         'pink_s_slots' => TCG_SEASON_PINK_S_SLOTS,
