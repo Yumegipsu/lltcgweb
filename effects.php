@@ -1201,6 +1201,19 @@ function resolveAutoYellLiveZoneAbilities(
                 }
                 continue;
             }
+            if ($type === 'auto_yell_wr_members_extra_yell') {
+                // MIRAI TICKET PL!S-bp6-021-L (#316): a Live card's own "When you Yell" offer — it used to be handled
+                // only for Stage Members, so the prompt never appeared.
+                $state = sBp6ResolveEffect($state, $pid, $live, $ab, ['yell_cards' => $yellCards]);
+                if (isset($state['players'][$pid]['live_zone'][$li])) {
+                    markAbilityUsed($state['players'][$pid]['live_zone'][$li], $idx);
+                }
+                if (!empty($state['pending_prompt'])) {
+                    $state['_auto_yell_resume'] = ['pid' => $pid, 'li' => $li, 'idx' => $idx];
+                    return $state;
+                }
+                continue;
+            }
             if ($type === 'auto_yell_wait_opp_if_named_members_and_center') {
                 // PSYCHIC FIRE PL!-pb2-042 (#220): after this player's Yell only
                 // (per-performer Live Start → Yell), Wait an opp Member if names + Center BiBi.

@@ -3320,7 +3320,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=243"></script>
+<script src="i18n.js?v=244"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=46"></script>
@@ -16096,6 +16096,28 @@ function applyRankedStatusResponse(res) {
   return st.status || 'idle';
 }
 
+/**
+ * A live game against another PLAYER (friend room / invite): conceding it for a matchmade game would end a real
+ * opponent's match out of nowhere (#314). CPU / solo "side games" are still dropped when a ranked match is found.
+ */
+function isLiveHumanSideGame() {
+  const s = G.gameState;
+  if (!G.roomId || !G.token || G.isCPU || G.isSpectator || !s) return false;
+  if (s.status === 'finished' || s.cpu_solo) return false;
+  if (s.mode === 'ranked' || s.mode === 'tournament') return false;
+  return true;
+}
+
+/** Starting a friend-room match ends any matchmaking search so that a queue pairing cannot interrupt it later (#314). */
+async function leaveQueuesBeforeFriendMatch() {
+  try {
+    if (A.rankedSearching || isRankedSearchActiveLocally()) await cancelRankedSearch();
+  } catch (e) { /* the queue row may already be gone */ }
+  try {
+    if (A.casualSearching || isCasualSearchActiveLocally()) await cancelCasualSearch();
+  } catch (e) { /* ignore */ }
+}
+
 async function leaveSideGameForRankedMatch(incomingRoomId = null) {
   if (!G.roomId || !G.token) return;
   // Rejoining the same ranked room (reconnect / ranked_status matched) must never concede it.
@@ -16152,6 +16174,12 @@ async function enterRankedMatch(st) {
       && G.gameState?.status !== 'finished') {
     try { stopPoll(); } catch (e) { /* ignore */ }
     toast(t('toast.alreadyInRanked') || 'Already in a ranked match — finish or resign before starting another.', 4200);
+    return;
+  }
+  if (isLiveHumanSideGame() && st?.room_id && G.roomId !== st.room_id) {
+    // Never concede a match against a real opponent because the ranked queue paired up meanwhile.
+    try { stopRankedPoll(); } catch (e) { /* ignore */ }
+    toast(t('toast.alreadyInMatch') || 'You are in a match against another player — finish it before joining the ranked match.', 5200);
     return;
   }
   await leaveSideGameForRankedMatch(st?.room_id || null);
@@ -21920,6 +21948,7 @@ async function doCreate() {
   const timerOpts = lobbyPhaseTimerOpts();
   setErr('');
   try {
+    await leaveQueuesBeforeFriendMatch();
     if (typeof stopPoll === 'function') stopPoll();
     if (typeof tcgClearApiOriginLock === 'function') tcgClearApiOriginLock();
     await ensureLobbyExperimentDeckReady();
@@ -21949,6 +21978,7 @@ async function doJoin() {
   const name=el('inp-name').value.trim()||defaultPlayerName(2);
   setErr(''); G.roomId=code;
   try {
+    await leaveQueuesBeforeFriendMatch();
     await ensureLobbyExperimentDeckReady();
     const deckKey = currentLobbyDeckChoiceKey();
     const r = await apiPost('join_room',{room_id:code,name,...lobbyDeckPayload()});
