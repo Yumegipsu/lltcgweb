@@ -2084,6 +2084,7 @@ function optionalDiscardPromptHandViable(array $p, array $ab): bool {
         return true;
     }
     $filter = (string)($ab['filter'] ?? '');
+    $group = (string)($ab['group'] ?? '');
     $n = 0;
     foreach ($p['hand'] ?? [] as $hc) {
         if (!$hc) {
@@ -2093,6 +2094,10 @@ function optionalDiscardPromptHandViable(array $p, array $ab): bool {
             continue;
         }
         if ($filter === 'member' && !isMemberCard($hc)) {
+            continue;
+        }
+        // "Put 1 μ's card from your hand…": only cards of that group can pay it.
+        if ($group !== '' && ($ab['type'] ?? '') === 'optional_discard_prompt' && !cardInGroup($hc, $group)) {
             continue;
         }
         $n++;

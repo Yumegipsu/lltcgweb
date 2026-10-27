@@ -1157,6 +1157,25 @@ function resolveOptionalDiscardPromptChoice(
                     }
                 }
             }
+            // "Put 1 μ's card from your hand…" (Umi PL!-pb2-031): the discard itself must be of that group.
+            $discardGroup = (string)($promptAbility['group'] ?? '');
+            if ($discardGroup !== '') {
+                foreach ($ids as $id) {
+                    $found = null;
+                    foreach ($ownerP['hand'] ?? [] as $hc) {
+                        if (($hc['instance_id'] ?? '') === $id) {
+                            $found = $hc;
+                            break;
+                        }
+                    }
+                    if (!$found) {
+                        throw new Exception('Invalid discarded card');
+                    }
+                    if (!cardInGroup($found, $discardGroup)) {
+                        throw new Exception('Must discard a ' . groupPromptLabel($discardGroup) . ' card');
+                    }
+                }
+            }
             if (!empty($ids)) {
                 $discardedCards = takeDiscardedHandCards($ownerP, $ids, $state, $owner);
             } else {
@@ -1634,6 +1653,27 @@ function resolveOptionalDiscardPromptChoice(
                         $state['seq']++;
                         return $state;
                     }
+                }
+            } elseif (($then['type'] ?? '') !== '' && ($then['type'] ?? '') !== 'optional_play_wr_empty_slot') {
+                // Any other follow-up goes through the normal effect resolver. Without this the discard was paid and the
+                // effect silently dropped: Umi PL!-pb2-031 (grant_bonus_hearts, #317), Keke PL!SP-bp5-013
+                // (look_reveal_subunit_or_blade_group), Honoka PL!-bp5-010 (mill_then_add_wr_group).
+                $source = findSourceCard($state, $owner, $prompt['source_id'] ?? '')
+                    ?: [
+                        'instance_id' => $prompt['source_id'] ?? '',
+                        'name_en' => $prompt['source_name'] ?? 'Member',
+                        'name' => $prompt['source_name'] ?? 'Member',
+                    ];
+                unset($state['pending_prompt']);
+                $state = resolveAbilityEffect($state, $owner, $source, $then, [
+                    'phase'           => !empty($prompt['live_start']) ? 'live_start' : 'on_enter',
+                    'ability_index'   => intval($prompt['ability_index'] ?? 0),
+                    'discarded_count' => count($ids),
+                ]);
+                $ownerP = &$state['players'][$owner];
+                if (!empty($state['pending_prompt'])) {
+                    $state['seq']++;
+                    return $state;
                 }
             }
         } else {
