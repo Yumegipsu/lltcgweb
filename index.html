@@ -5908,6 +5908,19 @@ function clearLovecaSpectate() {
   try { sessionStorage.removeItem(LOVECA_SPECTATE_KEY); } catch (e) {}
 }
 
+/**
+ * A pending spectate / challenge link must not lose to the leftover win screen of a finished match: the
+ * saved 'finished' session used to be restored first and returned early, so the invite was never consumed and
+ * the player landed on an old Win/Lost screen instead of the match they opened (#312).
+ */
+function dropFinishedSessionForInvite() {
+  try {
+    if (!peekLovecaSpectate() && !peekLovecaChallenge()) return;
+    const saved = readActiveGameSession();
+    if (saved && saved.screen === 'finished') clearActiveGameSession();
+  } catch (e) { /* ignore */ }
+}
+
 async function consumeLovecaSpectateInvite() {
   const roomId = peekLovecaSpectate();
   if (!roomId) return;
@@ -6975,6 +6988,7 @@ async function resumeActiveGameIfAny() {
 
 async function initAccountFlow() {
   captureLovecaChallengeFromUrl();
+  dropFinishedSessionForInvite();
   // Only a fresh ?resign on this load may escape. Do not OR peekResignEscape() —
   // capture already clears stale flags when resign is absent (so ?debug reconnects).
   const resignEscape = captureResignEscapeFromUrl();
@@ -21456,7 +21470,8 @@ function isHumanPvpFinishedState(s) {
 }
 
 function isFriendPvpRematchEligible(rematch) {
-  return !!(rematch?.pvp && !rematch?.cpuSolo && rematch?.mode !== 'ranked' && !rematch?.casualRandom);
+  // Ranked has its own queue; tournament matches are scheduled by the bracket and cannot be replayed (#313).
+  return !!(rematch?.pvp && !rematch?.cpuSolo && rematch?.mode !== 'ranked' && rematch?.mode !== 'tournament' && !rematch?.casualRandom);
 }
 window.isFriendPvpRematchEligible = isFriendPvpRematchEligible;
 
@@ -34339,7 +34354,9 @@ function showWin(s){
     syncWinRankedPrReward(s, win);
     syncWinSeasonChange(s);
   }
-  el('btn-again').hidden = isSpec || replayView;
+  // Tournament matches have no rematch / play-again (the bracket schedules the next game).
+  const tournamentMatch = (s.mode || '') === 'tournament';
+  el('btn-again').hidden = isSpec || replayView || tournamentMatch;
   el('btn-win-hub').hidden = false;
   el('btn-win-leaderboard').hidden = isSpec || replayView || !(pvp && s.mode === 'ranked');
   const saveReplayBtn = el('btn-win-save-replay');

@@ -5079,6 +5079,9 @@ function startRematchGame(array $state): array {
     if (($state['mode'] ?? '') === 'ranked') {
         throw new Exception('Use ranked queue for a new match');
     }
+    if (($state['mode'] ?? '') === 'tournament') {
+        throw new Exception('Rematches are not available in tournament matches');
+    }
     if (!isHumanVsHumanRoster($state)) {
         throw new Exception('Rematch only available for player vs player');
     }
@@ -5106,6 +5109,9 @@ function actionRequestRematch(array $state, string $playerId): array {
     }
     if (($state['mode'] ?? '') === 'ranked') {
         throw new Exception('Use ranked queue for a new match');
+    }
+    if (($state['mode'] ?? '') === 'tournament') {
+        throw new Exception('Rematches are not available in tournament matches');
     }
     if (!isHumanVsHumanRoster($state)) {
         throw new Exception('Rematch only available for player vs player');
