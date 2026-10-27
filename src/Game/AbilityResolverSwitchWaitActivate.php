@@ -239,7 +239,7 @@ function tryResolveAbilityEffectSwitchWaitActivate(
             if ($fromCost < intval($ab['min_baton_cost'] ?? 10)) {
                 break;
             }
-            if (($ab['group'] ?? '') !== '' && $fromGroup !== ($ab['group'] ?? '')) {
+            if (($ab['group'] ?? '') !== '' && !cardInGroup($ab, $fromGroup)) {
                 break;
             }
             $want = intval($ab['count'] ?? 2);
@@ -279,7 +279,7 @@ function tryResolveAbilityEffectSwitchWaitActivate(
             foreach ($p['stage'] as $mbr) {
                 if (!$mbr) continue;
                 if (($mbr['instance_id'] ?? '') === ($source['instance_id'] ?? '')) continue;
-                if (($mbr['group'] ?? '') === $group) {
+                if (cardInGroup($mbr, $group)) {
                     $hasOther = true;
                     break;
                 }

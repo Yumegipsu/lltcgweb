@@ -68,7 +68,7 @@ function tryResolveAbilityEffectSwitchWaitingRoomSuccess(
                 $group = $ab['group'] ?? 'μ\'s';
                 $scored = 0;
                 foreach ($p['success_lives'] ?? [] as $c) {
-                    if (($c['group'] ?? '') !== $group) {
+                    if (!cardInGroup($c, $group)) {
                         continue;
                     }
                     if (cardYellScoreIconCount($c) > 0) {

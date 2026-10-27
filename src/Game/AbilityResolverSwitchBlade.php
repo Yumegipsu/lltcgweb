@@ -21,7 +21,7 @@ function tryResolveAbilityEffectSwitchBlade(
             $candidates = [];
             foreach ($p['stage'] as $slot => $mbr) {
                 if (!$mbr) continue;
-                if (($ab['group'] ?? '') !== '' && ($mbr['group'] ?? '') !== ($ab['group'] ?? '')) continue;
+                if (($ab['group'] ?? '') !== '' && !cardInGroup($mbr, ($ab['group'] ?? ''))) continue;
                 $candidates[] = cardPromptSummary($mbr) + ['slot' => $slot];
             }
             if (empty($candidates)) {

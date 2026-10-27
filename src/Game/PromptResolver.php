@@ -15,7 +15,7 @@ function applyWaitGroupMemberDrawDiscard(
     $found = false;
     foreach ($ownerP['stage'] as &$mbr) {
         if ($mbr && ($mbr['instance_id'] ?? '') === $memberId
-            && ($mbr['group'] ?? '') === $group) {
+            && cardInGroup($mbr, $group)) {
             waitMember($mbr, $state);
             $found = true;
             break;
@@ -55,7 +55,7 @@ function applyOptionalWaitGroupMemberBlade(
     $found = false;
     foreach ($ownerP['stage'] as &$mbr) {
         if ($mbr && ($mbr['instance_id'] ?? '') === $memberId
-            && ($mbr['group'] ?? '') === $group
+            && cardInGroup($mbr, $group)
             && !memberIsInWait($mbr)) {
             waitMember($mbr, $state);
             $found = true;
@@ -101,7 +101,7 @@ function applyOptionalWaitMusHearts(
     $waitedName = 'Member';
     foreach ($ownerP['stage'] as &$mbr) {
         if ($mbr && ($mbr['instance_id'] ?? '') === $memberId
-            && ($mbr['group'] ?? '') === $group
+            && cardInGroup($mbr, $group)
             && !memberIsInWait($mbr)) {
             $waitedName = $mbr['name_en'] ?? $mbr['name'] ?? 'Member';
             waitMember($mbr, $state);
@@ -137,8 +137,8 @@ function applyAutoOnAllyWaitActivateBlade(array $state, string $owner, array $pr
             clearMemberWait($wMbr);
             $wMbr['live_blade_bonus'] = intval($wMbr['live_blade_bonus'] ?? 0) + $amt;
             $src = ($slot !== '' && !empty($ownerP['stage'][$slot])) ? $ownerP['stage'][$slot] : null;
-            if (($src['group'] ?? '') === 'Nijigasaki'
-                || (($prompt['ability']['group'] ?? '') === 'Nijigasaki')) {
+            if (cardInGroup($src, 'Nijigasaki')
+                || (cardInGroup($prompt['ability'], 'Nijigasaki'))) {
                 $ownerP['_niji_turn_flags']['activated_wait_member'] = true;
             }
             $state = addLog($state, $state['players'][$owner]['name'] .
@@ -852,7 +852,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                         if (!cardMatchesNames($c, $names)) {
                             throw new Exception('Must choose a matching Member');
                         }
-                    } elseif (!$anyGroup && ($c['group'] ?? '') !== $group) {
+                    } elseif (!$anyGroup && !cardInGroup($c, $group)) {
                         throw new Exception("Must choose a $group Member");
                     }
                     if (intval($c['cost'] ?? 0) > intval($ability['max_cost'] ?? 4)) {
@@ -912,7 +912,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                     if (!cardMatchesNames($c, $names)) {
                         throw new Exception('Must choose a matching Member');
                     }
-                } elseif (!$anyGroup && ($c['group'] ?? '') !== $group) {
+                } elseif (!$anyGroup && !cardInGroup($c, $group)) {
                     throw new Exception("Must choose a $group Member");
                 }
                 if (intval($c['cost'] ?? 0) > intval($ability['max_cost'] ?? 4)) {
@@ -1080,7 +1080,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                         break;
                     }
                 }
-                if (!$match || ($match['group'] ?? '') !== $group) {
+                if (!$match || !cardInGroup($match, $group)) {
                     throw new Exception('Choose a ' . groupPromptLabel($group) . ' card from Waiting Room');
                 }
             }
@@ -1101,7 +1101,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             $cands = $prompt['candidates'] ?? [];
             if (empty($cands)) {
                 foreach ($ownerP['waiting_room'] as $wrCard) {
-                    if ($group !== '' && ($wrCard['group'] ?? '') !== $group) {
+                    if ($group !== '' && !cardInGroup($wrCard, $group)) {
                         continue;
                     }
                     $cands[] = cardPromptSummary($wrCard);
@@ -1263,7 +1263,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 if (!$mbr || !in_array($mbr['instance_id'] ?? '', $ids, true)) {
                     continue;
                 }
-                if (($mbr['group'] ?? '') !== $group) {
+                if (!cardInGroup($mbr, $group)) {
                     continue;
                 }
                 waitMember($mbr, $state);
@@ -1376,8 +1376,8 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             $src = findSourceCard($state, $owner, (string)($prompt['source_id'] ?? ''));
             if (!empty($ownerP['_effect_source_is_niji'])
                 || !empty($prompt['from_niji_effect'])
-                || ($src['group'] ?? '') === 'Nijigasaki'
-                || (($prompt['ability']['group'] ?? '') === 'Nijigasaki')) {
+                || cardInGroup($src, 'Nijigasaki')
+                || (cardInGroup($prompt['ability'], 'Nijigasaki'))) {
                 $ownerP['_niji_turn_flags']['activated_wait_member'] = true;
             }
         }
@@ -2081,7 +2081,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         }
         $group = (string)($prompt['group'] ?? $ability['group'] ?? 'Nijigasaki');
         $mbr = $ownerP['stage'][$slot];
-        if ($group !== '' && ($mbr['group'] ?? '') !== $group) {
+        if ($group !== '' && !cardInGroup($mbr, $group)) {
             throw new Exception("Choose a $group Member");
         }
         $amount = intval($prompt['blade_amount'] ?? $ability['amount'] ?? 2);
@@ -3166,7 +3166,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         $applied = 0;
         foreach ($state['players'][$owner]['stage'] as &$mbr) {
             if (!$mbr || ($mbr['instance_id'] ?? '') === $excludeId) continue;
-            if (($ability['group'] ?? '') !== '' && ($mbr['group'] ?? '') !== ($ability['group'] ?? '')) {
+            if (($ability['group'] ?? '') !== '' && !cardInGroup($mbr, ($ability['group'] ?? ''))) {
                 continue;
             }
             if (!isset($mbr['bonus_hearts'])) $mbr['bonus_hearts'] = [];
@@ -3732,7 +3732,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 if (!$ombr || $oslot === $slot) {
                     continue;
                 }
-                if (($ombr['group'] ?? '') !== $group) {
+                if (!cardInGroup($ombr, $group)) {
                     continue;
                 }
                 $otherCandidates[] = array_merge(cardPromptSummary($ombr), [
@@ -3769,7 +3769,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 throw new Exception('Choose a different Member');
             }
             $mbr = $ownerP['stage'][$slot] ?? null;
-            if (!$mbr || ($mbr['group'] ?? '') !== $group) {
+            if (!$mbr || !cardInGroup($mbr, $group)) {
                 throw new Exception('Choose another Liella! Member');
             }
             $firstSlot = $prompt['first_slot'] ?? '';
@@ -3820,7 +3820,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 if (!$ombr || $oslot === $slot) {
                     continue;
                 }
-                if (($ombr['group'] ?? '') !== $group) {
+                if (!cardInGroup($ombr, $group)) {
                     continue;
                 }
                 $otherCandidates[] = array_merge(cardPromptSummary($ombr), [
@@ -3858,7 +3858,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 throw new Exception('Choose a different Member');
             }
             $mbr = $ownerP['stage'][$slot] ?? null;
-            if (!$mbr || ($mbr['group'] ?? '') !== $group) {
+            if (!$mbr || !cardInGroup($mbr, $group)) {
                 throw new Exception('Choose another Liella! Member');
             }
             $firstSlot = $prompt['first_slot'] ?? '';
@@ -4061,7 +4061,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         }
         $mbr = $ownerP['stage'][$slot] ?? null;
         $group = $prompt['group'] ?? $ability['group'] ?? 'Sunshine';
-        if (!$mbr || ($mbr['group'] ?? '') !== $group) {
+        if (!$mbr || !cardInGroup($mbr, $group)) {
             throw new Exception('Choose an Aqours Member');
         }
         $checkBlades = !empty($prompt['check_blades'])
@@ -5286,14 +5286,14 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 throw new Exception('Choose another Member on Stage');
             }
             $mbr = $ownerP['stage'][$slot];
-            if ($group !== '' && ($mbr['group'] ?? '') !== $group) {
+            if ($group !== '' && !cardInGroup($mbr, $group)) {
                 throw new Exception('Must choose a group Member');
             }
             $targetCost = intval($mbr['cost'] ?? 0) + $bonus;
             $wrCands = [];
             foreach ($ownerP['waiting_room'] as $c) {
                 if (($c['card_type'] ?? '') !== 'メンバー') continue;
-                if ($group !== '' && ($c['group'] ?? '') !== $group) continue;
+                if ($group !== '' && !cardInGroup($c, $group)) continue;
                 if (intval($c['cost'] ?? 0) !== $targetCost) continue;
                 $wrCands[] = cardPromptSummary($c);
             }
@@ -5333,7 +5333,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             foreach ($ownerP['waiting_room'] as $i => $c) {
                 if (($c['instance_id'] ?? '') === $cardId
                     && ($c['card_type'] ?? '') === 'メンバー'
-                    && ($group === '' || ($c['group'] ?? '') === $group)
+                    && ($group === '' || cardInGroup($c, $group))
                     && intval($c['cost'] ?? 0) === $targetCost) {
                     $played = $c;
                     array_splice($ownerP['waiting_room'], $i, 1);

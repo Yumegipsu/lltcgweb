@@ -192,7 +192,7 @@ function hsPb1WrCandidates(array $player, string $filter, string $group = '', st
         static function (array $card) use ($filter, $group, $subunit): bool {
             if ($filter === 'live' && !isLiveTypeCard($card)) return false;
             if ($filter === 'member' && !isMemberCard($card)) return false;
-            if ($group !== '' && ($card['group'] ?? '') !== $group) return false;
+            if ($group !== '' && !cardInGroup($card, $group)) return false;
             if ($subunit !== '' && !cardMatchesSubunit($card, $subunit)) return false;
             return true;
         }
@@ -322,7 +322,7 @@ function hsPb1ExtendAutoOnOtherMemberEnter(array $state, string $pid, array $ent
             if ($type === 'auto_group_enter_blade') {
                 // FAQ Q245: also fires when this Member herself enters Center.
                 $group = $ab['group'] ?? '';
-                if ($group !== '' && ($entered['group'] ?? '') !== $group) continue;
+                if ($group !== '' && !cardInGroup($entered, $group)) continue;
                 if (!empty($ab['center_only'])) {
                     $srcSlot = findMemberSlot($p, $member['instance_id'] ?? '');
                     if ($srcSlot !== 'center') continue;
@@ -805,13 +805,13 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
             $group = $ab['group'] ?? 'Hasunosora';
             $cnt = count(array_filter(
                 $p['waiting_room'],
-                fn($c) => ($c['card_type'] ?? '') === 'メンバー' && ($c['group'] ?? '') === $group
+                fn($c) => ($c['card_type'] ?? '') === 'メンバー' && cardInGroup($c, $group)
             ));
             if ($cnt < intval($ab['min_wr_members'] ?? 10)) break;
             if (!empty($state['pending_prompt'])) break;
             $candidates = [];
             foreach ($p['stage'] as $slot => $mbr) {
-                if ($mbr && ($mbr['group'] ?? '') === $group) {
+                if ($mbr && cardInGroup($mbr, $group)) {
                     $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
                 }
             }

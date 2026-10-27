@@ -55,7 +55,7 @@ function tryResolveAbilityEffectSwitchMemberBlade(
                 if (!$lc || ($lc['card_type'] ?? '') !== 'ライブ') continue;
                 $ln = $lc['name_en'] ?? $lc['name'] ?? '';
                 if ($exclude !== '' && str_contains($ln, $exclude)) continue;
-                if (($lc['group'] ?? '') === ($ab['group'] ?? 'Sunshine')) {
+                if (cardInGroup($lc, ($ab['group'] ?? 'Sunshine'))) {
                     $hasOther = true;
                     break;
                 }

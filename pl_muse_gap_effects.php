@@ -96,7 +96,7 @@ function plMuseGapNotifyMemberAbilityResolved(
     if (!$center || ($center['instance_id'] ?? '') !== $resolvedId) {
         return $state;
     }
-    if (($center['group'] ?? '') !== "μ's") {
+    if (!cardInGroup($center, "μ's")) {
         return $state;
     }
 
@@ -155,7 +155,7 @@ function plMuseGapCountDistinctGroupsOnStage(array $p): int {
 }
 
 function plMuseGapCardMusSurveilEligible(array $card, string $group): bool {
-    if (($card['group'] ?? '') !== $group) return false;
+    if (!cardInGroup($card, $group)) return false;
     $abilities = $card['abilities'] ?? [];
     if (empty($abilities)) return true;
     foreach ($abilities as $ab) {
@@ -170,7 +170,7 @@ function plMuseGapApplySuccessLivePassiveReductions(array $state, string $pid, a
     mergeCardCatalogFields($liveCard);
     $required = $liveCard['required_hearts'] ?? $liveCard['hearts'] ?? [];
     if (($liveCard['card_type'] ?? '') !== 'ライブ') return $required;
-    if (($liveCard['group'] ?? '') !== "μ's") return $required;
+    if (!cardInGroup($liveCard, "μ's")) return $required;
     // Dreamin' Go! Go!!: 元々のスコア (printed), not buffed Live-zone score.
     $printedScore = liveCardPrintedScore($liveCard);
     if ($printedScore < 5) return $required;
@@ -222,7 +222,7 @@ function plMuseGapApplyContinuousHearts(array $state, string $pid, array $member
         $selfId = $member['instance_id'] ?? '';
         foreach ($p['stage'] as $mbr) {
             if (!$mbr || ($mbr['instance_id'] ?? '') === $selfId) continue;
-            if (($mbr['group'] ?? '') === $group) {
+            if (cardInGroup($mbr, $group)) {
                 foreach ($ab['hearts'] ?? [] as $h) {
                     for ($i = 0; $i < intval($h['count'] ?? 1); $i++) {
                         $hearts[] = $h['color'] ?? 'blue';
@@ -288,7 +288,7 @@ function plMuseGapApplyContinuousBlade(int $blade, array $member, array $state, 
         $selfId = $member['instance_id'] ?? '';
         foreach ($p['stage'] as $mbr) {
             if (!$mbr || ($mbr['instance_id'] ?? '') === $selfId) continue;
-            if (($mbr['group'] ?? '') === $group) {
+            if (cardInGroup($mbr, $group)) {
                 $blade += intval($ab['amount'] ?? 2);
             }
         }
@@ -301,7 +301,7 @@ function plMuseGapApplyContinuousBlade(int $blade, array $member, array $state, 
     if ($type === 'continuous_mus_blade_if_live_zone') {
         $group = $ab['group'] ?? "μ's";
         foreach ($p['live_zone'] ?? [] as $lc) {
-            if ($lc && isLiveTypeCard($lc) && ($lc['group'] ?? '') === $group) {
+            if ($lc && isLiveTypeCard($lc) && cardInGroup($lc, $group)) {
                 $blade += intval($ab['amount'] ?? 2);
                 break;
             }
@@ -326,7 +326,7 @@ function plMuseGapApplyHandCostReduction(array $state, string $pid, array $card,
             if (!empty($ab['require_success_has_group'])) {
                 $hasGroup = false;
                 foreach ($p['success_lives'] ?? [] as $lc) {
-                    if ($lc && ($lc['group'] ?? '') === $group) {
+                    if ($lc && cardInGroup($lc, $group)) {
                         $hasGroup = true;
                         break;
                     }
@@ -337,7 +337,7 @@ function plMuseGapApplyHandCostReduction(array $state, string $pid, array $card,
             } elseif (empty($p['success_lives'])) {
                 continue;
             }
-            if (($card['group'] ?? '') !== $group) {
+            if (!cardInGroup($card, $group)) {
                 continue;
             }
             // Default 17 for Muse Music S.T.A.R.T!!; Niji cheer uses min_original_cost: 0.
@@ -371,7 +371,7 @@ function plMuseGapApplyHandCostReduction(array $state, string $pid, array $card,
                 continue;
             }
             $group = $ab['group'] ?? "μ's";
-            if (($card['group'] ?? '') !== $group) {
+            if (!cardInGroup($card, $group)) {
                 continue;
             }
             if (intval($card['cost'] ?? 0) < intval($ab['min_original_cost'] ?? 17)) {
@@ -529,7 +529,7 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
                 discardFromHandByIds($p, array_slice($ids, 0, $need), $state, $pid);
                 $discarded = array_slice($p['waiting_room'] ?? [], -$need);
                 $last = $discarded[count($discarded) - 1] ?? null;
-                $isGroup = $last && ($last['group'] ?? '') === ($ab['group'] ?? "μ's");
+                $isGroup = $last && cardInGroup($last, ($ab['group'] ?? "μ's"));
                 if ($isGroup) {
                     $then = [
                         'type'   => 'look_reveal_filter',
@@ -610,7 +610,7 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
 
         case 'reduce_hearts_center_mus_blade_pairs':
             $center = $p['stage']['center'] ?? null;
-            if ($center && ($center['group'] ?? '') === ($ab['group'] ?? "μ's")) {
+            if ($center && cardInGroup($center, ($ab['group'] ?? "μ's"))) {
                 $countColor = $ab['count_heart_color'] ?? null;
                 if ($countColor) {
                     $hearts = plMuseGapMemberHeartsOfColor($center, $countColor);
@@ -661,7 +661,7 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
                     $group = $ab['group'] ?? '';
                     foreach ($p['stage'] as $s => &$mbr) {
                         if (!$mbr) continue;
-                        if ($group !== '' && ($mbr['group'] ?? '') !== $group) continue;
+                        if ($group !== '' && !cardInGroup($mbr, $group)) continue;
                         addBonusHeartsToMember($mbr, [[
                             'color' => $ab['heart_color'],
                             'count' => intval($ab['heart_count'] ?? 1),
@@ -758,7 +758,7 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
         case 'live_start_arise_choice':
             $hasArise = false;
             foreach ($p['stage'] as $mbr) {
-                if ($mbr && ($mbr['group'] ?? '') === ($ab['group'] ?? 'A-RISE')) $hasArise = true;
+                if ($mbr && cardInGroup($mbr, ($ab['group'] ?? 'A-RISE'))) $hasArise = true;
             }
             if (!$hasArise) break;
             if (!empty($state['pending_prompt'])) break;
@@ -882,7 +882,7 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
 
         case 'draw_if_success_mus':
             foreach ($p['success_lives'] ?? [] as $sl) {
-                if (($sl['group'] ?? '') === ($ab['group'] ?? "μ's")) {
+                if (cardInGroup($sl, ($ab['group'] ?? "μ's"))) {
                     $state = resolveAbilityEffect($state, $pid, $source, ['type' => 'draw_cards', 'draw' => intval($ab['draw'] ?? 1)], $ctx);
                     break;
                 }
@@ -986,7 +986,7 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
             $group = $ab['group'] ?? "μ's";
             $hasLive = false;
             foreach ($p['live_zone'] ?? [] as $lc) {
-                if ($lc && ($lc['group'] ?? '') === $group) {
+                if ($lc && cardInGroup($lc, $group)) {
                     $hasLive = true;
                     break;
                 }
@@ -1036,7 +1036,7 @@ function plMuseGapResolveEffect(array $state, string $pid, array $source, array 
             $group = $ab['group'] ?? "μ's";
             $found = false;
             foreach ($p['stage'] as $mbr) {
-                if (!$mbr || ($mbr['group'] ?? '') !== $group) {
+                if (!$mbr || !cardInGroup($mbr, $group)) {
                     continue;
                 }
                 if (empty($mbr['blade_hearts'])) {
@@ -1538,7 +1538,7 @@ function plMuseGapResolveColorThresholdReveal5(
 
     $musCands = array_values(array_filter(
         $revealed,
-        static fn($c) => ($c['group'] ?? '') === $group
+        static fn($c) => cardInGroup($c, $group)
     ));
     if ($musCands === []) {
         $p['waiting_room'] = array_merge($p['waiting_room'] ?? [], $revealed);
@@ -1603,7 +1603,7 @@ function plMuseGapFinishColorThresholdReveal5Pick(
     $rest = [];
     foreach ($revealed as $rc) {
         if ($picked === null && ($rc['instance_id'] ?? '') === $pickId
-            && ($rc['group'] ?? '') === $group) {
+            && cardInGroup($rc, $group)) {
             $picked = $rc;
             continue;
         }
@@ -1776,7 +1776,7 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
         discardFromHandByIds($p, $ids, $state, $owner);
         $discarded = array_slice($p['waiting_room'] ?? [], -$need);
         $last = $discarded[count($discarded) - 1] ?? null;
-        $isGroup = $last && ($last['group'] ?? '') === ($ab['group'] ?? "μ's");
+        $isGroup = $last && cardInGroup($last, ($ab['group'] ?? "μ's"));
         $sourceId = $prompt['source_id'] ?? '';
         $source = null;
         $slot = $prompt['source_slot'] ?? '';
@@ -2366,7 +2366,7 @@ function plMuseGapResolvePrompt(array $state, string $owner, array $prompt, stri
                 throw new Exception('Choose a μ\'s Member on your Stage');
             }
             $leaving = $p['stage'][$slot];
-            if (($leaving['group'] ?? '') !== $group) {
+            if (!cardInGroup($leaving, $group)) {
                 throw new Exception('Choose a μ\'s Member');
             }
             $p['stage'][$slot] = null;

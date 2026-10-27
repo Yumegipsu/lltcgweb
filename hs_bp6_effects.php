@@ -295,7 +295,7 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
             $milled = array_splice($p['main_deck'], 0, min($n, count($p['main_deck'])));
             $allMatch = !empty($milled);
             foreach ($milled as $c) {
-                if (($c['group'] ?? '') !== $group) {
+                if (!cardInGroup($c, $group)) {
                     $allMatch = false;
                     break;
                 }
@@ -528,7 +528,7 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
             $group = $ab['group'] ?? 'Hasunosora';
             $groupSum = 0;
             foreach ($p['stage'] as $mbr) {
-                if ($mbr && ($mbr['group'] ?? '') === $group) {
+                if ($mbr && cardInGroup($mbr, $group)) {
                     $groupSum += getEffectiveStageMemberCost($state, $pid, $mbr);
                 }
             }
@@ -638,7 +638,7 @@ function yellCardHasScoreIcon(array $card): bool {
 /** Eligible for Tsukuyomi Kurage Auto: Hasunosora, no Blade hearts, no Score icon. */
 function yellCardEligibleForKurageMill(array $card, string $group = 'Hasunosora'): bool {
     mergeYellCardCatalogFields($card);
-    if (($card['group'] ?? '') !== $group) {
+    if (!cardInGroup($card, $group)) {
         return false;
     }
     if (yellCardHasBladeHeart($card) || yellCardHasScoreIcon($card)) {

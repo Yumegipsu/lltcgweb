@@ -42,7 +42,7 @@ function spBp5IsEffectType(string $type): bool {
 function spBp5CountLiveZoneGroupRequiredHearts(array $p, string $group): int {
     $total = 0;
     foreach ($p['live_zone'] ?? [] as $lc) {
-        if (!$lc || ($lc['group'] ?? '') !== $group) continue;
+        if (!$lc || !cardInGroup($lc, $group)) continue;
         foreach ($lc['required_hearts'] ?? $lc['hearts'] ?? [] as $h) {
             $total += intval($h['count'] ?? 1);
         }
@@ -53,7 +53,7 @@ function spBp5CountLiveZoneGroupRequiredHearts(array $p, string $group): int {
 function spBp5CountStageGroupHearts(array $p, string $group): int {
     $total = 0;
     foreach ($p['stage'] as $mbr) {
-        if (!$mbr || ($mbr['group'] ?? '') !== $group) continue;
+        if (!$mbr || !cardInGroup($mbr, $group)) continue;
         foreach ($mbr['hearts'] ?? [] as $h) {
             $total += intval($h['count'] ?? 1);
         }
@@ -64,7 +64,7 @@ function spBp5CountStageGroupHearts(array $p, string $group): int {
 
 function spBp5StageGroupMovedThisTurn(array $p, string $group): bool {
     foreach ($p['stage'] as $mbr) {
-        if (!$mbr || ($mbr['group'] ?? '') !== $group) continue;
+        if (!$mbr || !cardInGroup($mbr, $group)) continue;
         if (!empty($mbr['moved_this_turn'])) return true;
     }
     return false;
@@ -289,7 +289,7 @@ function spBp5ResolveEffect(array $state, string $pid, array $source, array $ab,
             }
             foreach ($p['stage'] as $slot => &$mbr) {
                 if (!$mbr) continue;
-                if ($group !== '' && ($mbr['group'] ?? '') !== $group) continue;
+                if ($group !== '' && !cardInGroup($mbr, $group)) continue;
                 activateMemberFully($mbr);
                 $p['stage'][$slot] = $mbr;
             }
@@ -442,7 +442,7 @@ function spBp5ResolveEffect(array $state, string $pid, array $source, array $ab,
             $matches = array_values(array_filter($top, function ($c) use ($group, $sub) {
                 if (($c['card_type'] ?? '') !== 'メンバー') return false;
                 if (cardMatchesSubunit($c, $sub)) return true;
-                return ($c['group'] ?? '') === $group && !empty($c['blade_hearts']);
+                return cardInGroup($c, $group) && !empty($c['blade_hearts']);
             }));
             if (count($matches) === 1) {
                 $pick = $matches[0];
@@ -577,7 +577,7 @@ function spBp5ResolveActivatedAbility(
         $group = $ab['group'] ?? 'Superstar';
         $bladeCnt = 0;
         foreach ($milled as $c) {
-            if (($c['card_type'] ?? '') === 'メンバー' && ($c['group'] ?? '') === $group) {
+            if (($c['card_type'] ?? '') === 'メンバー' && cardInGroup($c, $group)) {
                 $bladeCnt += intval($ab['blade_per'] ?? 1);
             }
         }

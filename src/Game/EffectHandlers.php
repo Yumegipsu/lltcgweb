@@ -256,7 +256,7 @@ final class EffectHandlers
         if (!empty($ab['group'])) {
             $succ = array_values(array_filter(
                 $succ,
-                static fn($c) => ($c['group'] ?? '') === ($ab['group'] ?? '')
+                static fn($c) => cardInGroup($c, ($ab['group'] ?? ''))
             ));
         }
         if (!empty($succ)) {

@@ -1320,7 +1320,7 @@ function resolveOptionalDiscardPromptChoice(
                     if (!$mbr) continue;
                     $ok = ($then['type'] ?? '') === 'pick_subunit_member_heart'
                         ? cardMatchesSubunit($mbr, $then['subunit'] ?? '')
-                        : (($mbr['group'] ?? '') === ($then['group'] ?? ''));
+                        : (cardInGroup($mbr, ($then['group'] ?? '')));
                     if ($ok) {
                         $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
                     }

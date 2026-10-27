@@ -38,7 +38,7 @@ function tryResolveAbilityEffectSwitchSet(
 
         case 'set_center_group_hearts':
             $center = $p['stage']['center'] ?? null;
-            if ($center && ($center['group'] ?? '') === ($ab['group'] ?? '')) {
+            if ($center && cardInGroup($center, ($ab['group'] ?? ''))) {
                 $cnt = intval($ab['heart_count'] ?? 3);
                 $center['printed_heart_override'] = $cnt;
                 $p['stage']['center'] = $center;
@@ -49,7 +49,7 @@ function tryResolveAbilityEffectSwitchSet(
 
         case 'set_center_group_blades':
             $center = $p['stage']['center'] ?? null;
-            if ($center && ($center['group'] ?? '') === ($ab['group'] ?? '')) {
+            if ($center && cardInGroup($center, ($ab['group'] ?? ''))) {
                 $cnt = intval($ab['blade_count'] ?? 3);
                 $center['printed_blade_override'] = $cnt;
                 $p['stage']['center'] = $center;

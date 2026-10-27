@@ -41,7 +41,7 @@ function tryResolveAbilityEffectSwitchPickNamedMembersGrant(
                 if ($namedOnly) {
                     continue;
                 }
-                if (($mbr['group'] ?? '') === ($ab['group'] ?? '')) {
+                if (cardInGroup($mbr, ($ab['group'] ?? ''))) {
                     $already = false;
                     foreach ($candidates as $c) {
                         if (($c['slot'] ?? '') === $slot) { $already = true; break; }
@@ -119,7 +119,7 @@ function tryResolveAbilityEffectSwitchPickNamedMembersGrant(
                         break;
                     }
                 }
-                if (($mbr['group'] ?? '') === ($ab['group'] ?? '')) {
+                if (cardInGroup($mbr, ($ab['group'] ?? ''))) {
                     $already = false;
                     foreach ($candidates as $c) {
                         if (($c['slot'] ?? '') === $slot) { $already = true; break; }

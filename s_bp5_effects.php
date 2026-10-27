@@ -116,7 +116,7 @@ function sBp5StageHasGroupAndSubunit(array $p, string $group, string $subunit, i
     foreach ($p['stage'] as $mbr) {
         if (!$mbr) continue;
         $cost = intval($mbr['cost'] ?? 0);
-        if (($mbr['group'] ?? '') === $group) {
+        if (cardInGroup($mbr, $group)) {
             $hasGroup = true;
             $combined += $cost;
         }
@@ -132,7 +132,7 @@ function sBp5SlotHasGroupOrSubunit(array $p, string $slot, array $ab): bool {
     $mbr = $p['stage'][$slot] ?? null;
     if (!$mbr) return false;
     $group = $ab['group'] ?? 'Sunshine';
-    if ($group !== '' && ($mbr['group'] ?? '') === $group) return true;
+    if ($group !== '' && cardInGroup($mbr, $group)) return true;
     foreach ($ab['subunits'] ?? [] as $sub) {
         if (cardMatchesSubunit($mbr, $sub)) return true;
     }
@@ -561,7 +561,7 @@ function sBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $count = 0;
             foreach ($p['stage'] as $slot => &$mbr) {
                 if (!$mbr || empty($mbr['moved_this_turn'])) continue;
-                if ($group !== '' && ($mbr['group'] ?? '') !== $group) continue;
+                if ($group !== '' && !cardInGroup($mbr, $group)) continue;
                 $mbr['live_blade_bonus'] = intval($mbr['live_blade_bonus'] ?? 0) + $amt;
                 $p['stage'][$slot] = $mbr;
                 $count++;
@@ -719,7 +719,7 @@ function sBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
             $candidates = [];
             foreach ($ownerP['stage'] as $slot => $mbr) {
                 if (!$mbr || ($mbr['instance_id'] ?? '') === $srcId) continue;
-                if (($mbr['group'] ?? '') !== ($ab['group'] ?? 'Sunshine')) continue;
+                if (!cardInGroup($mbr, ($ab['group'] ?? 'Sunshine'))) continue;
                 $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
             }
             if (empty($candidates)) {
@@ -855,7 +855,7 @@ function sBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
             $granted = 0;
             foreach ($ownerP['stage'] as $slot => &$mbr) {
                 if (!$mbr || empty($mbr['entered_this_turn'])) continue;
-                if (($mbr['group'] ?? '') === $exclude) continue;
+                if (cardInGroup($mbr, $exclude)) continue;
                 if (!isset($mbr['bonus_hearts'])) $mbr['bonus_hearts'] = [];
                 $mbr['bonus_hearts'][] = $choice;
                 $ownerP['stage'][$slot] = $mbr;

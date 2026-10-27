@@ -33,7 +33,7 @@ function tryResolveAbilityEffectSwitchTreat(
             $grp = $ab['group'] ?? 'Hasunosora';
             $candidates = [];
             foreach ($p['stage'] as $slot => $mbr) {
-                if (!$mbr || ($mbr['group'] ?? '') !== $grp) continue;
+                if (!$mbr || !cardInGroup($mbr, $grp)) continue;
                 $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
             }
             if (empty($candidates)) break;

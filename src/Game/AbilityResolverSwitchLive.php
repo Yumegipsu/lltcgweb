@@ -171,7 +171,7 @@ function tryResolveAbilityEffectSwitchLive(
             }
             $canBoth = !empty(array_filter(
                 $p['success_lives'] ?? [],
-                fn($c) => ($c['group'] ?? '') === ($ab['group'] ?? 'Nijigasaki')
+                fn($c) => cardInGroup($c, ($ab['group'] ?? 'Nijigasaki'))
             ));
             $state['pending_prompt'] = [
                 'type'          => 'live_success_pick_energy_or_member',
@@ -254,7 +254,7 @@ function tryResolveAbilityEffectSwitchLive(
                 function ($c) use ($ab) {
                     if (($c['card_type'] ?? '') !== 'ライブ') return false;
                     $group = $ab['group'] ?? '';
-                    return $group === '' || ($c['group'] ?? '') === $group;
+                    return $group === '' || cardInGroup($c, $group);
                 }
             ));
             if (empty($pool)) {

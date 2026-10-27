@@ -32,7 +32,7 @@ function hsCl1StageMemberBladeCandidates(
     foreach ($p['stage'] as $slot => $mbr) {
         if (!$mbr) continue;
         if ($excludeId !== '' && ($mbr['instance_id'] ?? '') === $excludeId) continue;
-        if ($group !== '' && ($mbr['group'] ?? '') !== $group) continue;
+        if ($group !== '' && !cardInGroup($mbr, $group)) continue;
         if ($subunit !== '' && !cardMatchesSubunit($mbr, $subunit)) continue;
         // Issue #94: AWOKE / wait-pick Blade need Live-temp cost (bonus/override), not printed.
         $effCost = getEffectiveStageMemberCost($state, $pid, $mbr);

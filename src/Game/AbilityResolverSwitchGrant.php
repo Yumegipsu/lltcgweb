@@ -29,7 +29,7 @@ function tryResolveAbilityEffectSwitchGrant(
         case 'grant_hearts_if_slot_blade_hearts':
             $slot = $ab['slot'] ?? 'left';
             $mbr = $p['stage'][$slot] ?? null;
-            if ($mbr && ($mbr['group'] ?? '') === ($ab['group'] ?? '')
+            if ($mbr && cardInGroup($mbr, ($ab['group'] ?? ''))
                 && memberBladeHeartCount($mbr) >= intval($ab['min_blade_hearts'] ?? 3)) {
                 addBonusHeartsToMember($mbr, $ab['hearts'] ?? [], 1);
                 $p['stage'][$slot] = $mbr;
@@ -42,7 +42,7 @@ function tryResolveAbilityEffectSwitchGrant(
             $slot = $ab['slot'] ?? 'left';
             $mbr = $p['stage'][$slot] ?? null;
             $color = $ab['heart_color'] ?? 'red';
-            if ($mbr && ($mbr['group'] ?? '') === ($ab['group'] ?? '')
+            if ($mbr && cardInGroup($mbr, ($ab['group'] ?? ''))
                 && memberHeartColorCount($mbr, $color) >= intval($ab['min_hearts'] ?? 3)) {
                 $amt = intval($ab['blade'] ?? 2);
                 $mbr['live_blade_bonus'] = intval($mbr['live_blade_bonus'] ?? 0) + $amt;
@@ -81,7 +81,7 @@ function tryResolveAbilityEffectSwitchGrant(
                 if (!$mbr) {
                     continue;
                 }
-                if ($group !== '' && ($mbr['group'] ?? '') !== $group) {
+                if ($group !== '' && !cardInGroup($mbr, $group)) {
                     continue;
                 }
                 $blade = memberBladeIconCount($mbr) + intval($mbr['live_blade_bonus'] ?? 0);

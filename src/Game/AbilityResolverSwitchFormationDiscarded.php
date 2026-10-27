@@ -64,7 +64,7 @@ function tryResolveAbilityEffectSwitchFormationDiscarded(
             if ($discGroup === '') break;
             $candidates = [];
             foreach ($p['stage'] as $slot => $mbr) {
-                if (!$mbr || ($mbr['group'] ?? '') !== $discGroup) continue;
+                if (!$mbr || !cardInGroup($mbr, $discGroup)) continue;
                 $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
             }
             if (empty($candidates)) break;

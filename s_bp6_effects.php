@@ -40,7 +40,7 @@ function sBp6CountLiveZoneColorTotal(array $p, string $group, array $colors): in
     foreach ($p['live_zone'] ?? [] as $lc) {
         if (!$lc || !is_array($lc)) continue;
         mergeCardCatalogFields($lc);
-        if ($group !== '' && ($lc['group'] ?? '') !== $group) continue;
+        if ($group !== '' && !cardInGroup($lc, $group)) continue;
         foreach ($lc['required_hearts'] ?? $lc['hearts'] ?? [] as $h) {
             $c = $h['color'] ?? '';
             if (in_array($c, $colors, true)) {
@@ -71,7 +71,7 @@ function sBp6AllLiveZoneMatchGroup(array $p, string $group): bool {
         if (!$lc || !is_array($lc)) continue;
         mergeCardCatalogFields($lc);
         $found = true;
-        if (($lc['group'] ?? '') !== $group) return false;
+        if (!cardInGroup($lc, $group)) return false;
     }
     return $found;
 }
@@ -99,7 +99,7 @@ function sBp6ResolveAutoOnLiveWr(array $state, string $pid, array $liveCard): ar
             if (($ab['type'] ?? '') !== 'auto_on_live_wr_deck_position') continue;
             if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) continue;
             $group = $ab['group'] ?? 'Sunshine';
-            if ($group !== '' && ($liveCard['group'] ?? '') !== $group) continue;
+            if ($group !== '' && !cardInGroup($liveCard, $group)) continue;
             if (($liveCard['card_type'] ?? '') !== 'ライブ') continue;
             $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
             markAbilityUsed($member, $idx);
@@ -207,7 +207,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $eligible = array_values(array_filter(
                 $p['live_zone'],
                 function ($c) use ($ab) {
-                    if (($c['group'] ?? '') !== ($ab['group'] ?? 'Sunshine')) {
+                    if (!cardInGroup($c, ($ab['group'] ?? 'Sunshine'))) {
                         return false;
                     }
                     if (!empty($ab['no_live_start'])) {
@@ -314,7 +314,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
                 < intval($ab['min_opp_success'] ?? 2)) break;
             $aqours = array_values(array_filter(
                 listStageMemberChoices($p),
-                fn($c) => ($c['group'] ?? '') === ($ab['group'] ?? 'Sunshine')
+                fn($c) => cardInGroup($c, ($ab['group'] ?? 'Sunshine'))
             ));
             if (empty($aqours)) break;
             $state['pending_prompt'] = [
@@ -370,7 +370,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $group = $ab['group'] ?? 'Sunshine';
             $found = false;
             foreach ($yellCards as $yc) {
-                if (($yc['group'] ?? '') !== $group) continue;
+                if (!cardInGroup($yc, $group)) continue;
                 if (($yc['card_type'] ?? '') !== 'ライブ') continue;
                 if (!empty($ab['requires_score']) && cardYellScoreIconCount($yc) < 1) continue;
                 $found = true;
@@ -449,7 +449,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             foreach ($p['stage'] as $mbr) {
                 if (!$mbr) continue;
                 $hasMember = true;
-                if (($mbr['group'] ?? '') !== $group) {
+                if (!cardInGroup($mbr, $group)) {
                     $allGroup = false;
                     break;
                 }
@@ -503,7 +503,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $candidates = [];
             foreach ($p['stage'] as $slot => $mbr) {
                 if (!$mbr) continue;
-                if (($mbr['group'] ?? '') !== $group) continue;
+                if (!cardInGroup($mbr, $group)) continue;
                 if (empty($mbr['entered_via_baton']) || empty($mbr['entered_this_turn'])) continue;
                 $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
             }
@@ -555,7 +555,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $yellCards = $ctx['yell_cards'] ?? [];
             $candidates = array_values(array_filter(
                 $yellCards,
-                fn($c) => ($c['group'] ?? '') === ($ab['group'] ?? 'Sunshine')
+                fn($c) => cardInGroup($c, ($ab['group'] ?? 'Sunshine'))
                     && ($c['card_type'] ?? '') === 'メンバー'
                     && !yellCardHasBladeHeart($c)
             ));
@@ -801,7 +801,7 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
             $max = intval($ability['max_members'] ?? 2);
             $cands = array_values(array_filter(
                 listStageMemberChoices($ownerP),
-                fn($c) => ($c['group'] ?? '') === ($ability['group'] ?? 'Sunshine')
+                fn($c) => cardInGroup($c, ($ability['group'] ?? 'Sunshine'))
             ));
             if (count($cands) <= $max) {
                 foreach ($cands as $c) {
@@ -901,7 +901,7 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
             foreach ($ownerP['stage'] as $slot => $mbr) {
                 if (!$mbr) continue;
                 if (($mbr['instance_id'] ?? '') === $srcId) continue;
-                if (($mbr['group'] ?? '') !== $group) continue;
+                if (!cardInGroup($mbr, $group)) continue;
                 $targetCost = getEffectiveStageMemberCost($state, $owner, $mbr) + $plus;
                 $hasWr = false;
                 foreach ($ownerP['waiting_room'] as $c) {

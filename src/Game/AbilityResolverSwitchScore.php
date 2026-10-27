@@ -51,7 +51,7 @@ function tryResolveAbilityEffectSwitchScore(
 
         case 'score_if_center_blade':
             $center = $p['stage']['center'] ?? null;
-            if ($center && ($center['group'] ?? '') === ($ab['group'] ?? 'μ\'s')) {
+            if ($center && cardInGroup($center, ($ab['group'] ?? 'μ\'s'))) {
                 $blade = getMemberBlade($center, $state, $pid, 'center');
                 if ($blade >= intval($ab['min_blade'] ?? 9)) {
                     bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['amount'] ?? 2));
@@ -271,7 +271,7 @@ function tryResolveAbilityEffectSwitchScore(
             // Card text: choose any Aqours Member, then check Blades/hearts.
             $eligible = [];
             foreach ($p['stage'] as $slot => $mbr) {
-                if (!$mbr || ($mbr['group'] ?? '') !== $group) continue;
+                if (!$mbr || !cardInGroup($mbr, $group)) continue;
                 $eligible[] = ['slot' => $slot, 'summary' => cardPromptSummary($mbr)];
             }
             if (empty($eligible)) break;
@@ -343,7 +343,7 @@ function tryResolveAbilityEffectSwitchScore(
             $opp = ($pid === 'p1') ? 'p2' : 'p1';
             $theirs = $state['players'][$opp]['stage']['center'] ?? null;
             if ($mine && $theirs
-                && ($mine['group'] ?? '') === ($ab['group'] ?? '')
+                && cardInGroup($mine, ($ab['group'] ?? ''))
                 && getEffectiveStageMemberCost($state, $pid, $mine)
                     > getEffectiveStageMemberCost($state, $opp, $theirs)) {
                 bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['amount'] ?? 1));
@@ -354,7 +354,7 @@ function tryResolveAbilityEffectSwitchScore(
 
         case 'score_if_center_group_moved':
             $center = $p['stage']['center'] ?? null;
-            if ($center && ($center['group'] ?? '') === ($ab['group'] ?? '')
+            if ($center && cardInGroup($center, ($ab['group'] ?? ''))
                 && !empty($center['moved_this_turn'])) {
                 bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['amount'] ?? 1));
                 $state = addLog($state, $state['players'][$pid]['name'] .

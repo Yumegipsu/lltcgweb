@@ -309,6 +309,10 @@
       "card_type": "メンバー",
       "card_type_en": "Member",
       "group": "Nijigasaki",
+      "extra_groups": [
+        "Superstar",
+        "Hasunosora"
+      ],
       "booster_pack": "ブースターパック vol.1",
       "cost": 20,
       "blade": 5,
@@ -381,6 +385,10 @@
       "card_type": "メンバー",
       "card_type_en": "Member",
       "group": "Sunshine",
+      "extra_groups": [
+        "Superstar",
+        "Hasunosora"
+      ],
       "booster_pack": "ブースターパック NEXT STEP",
       "cost": 20,
       "blade": 6,
@@ -456,6 +464,10 @@
       "card_type": "メンバー",
       "card_type_en": "Member",
       "group": "μ's",
+      "extra_groups": [
+        "Sunshine",
+        "Nijigasaki"
+      ],
       "booster_pack": "ブースターパック　夏、はじまる。",
       "cost": 20,
       "blade": 5,
@@ -531,6 +543,10 @@
       "card_type": "メンバー",
       "card_type_en": "Member",
       "group": "μ's",
+      "extra_groups": [
+        "Nijigasaki",
+        "Superstar"
+      ],
       "booster_pack": "ブースターパック SAPPHIRE MOON",
       "cost": 20,
       "blade": 6,
@@ -720,6 +736,10 @@
       "card_type": "メンバー",
       "card_type_en": "Member",
       "group": "μ's",
+      "extra_groups": [
+        "Sunshine",
+        "Hasunosora"
+      ],
       "booster_pack": "ブースターパック Royal Holiday",
       "cost": 20,
       "blade": 7,
@@ -781,6 +801,10 @@
       "card_type": "メンバー",
       "card_type_en": "Member",
       "group": "Sunshine",
+      "extra_groups": [
+        "Nijigasaki",
+        "Superstar"
+      ],
       "booster_pack": "ブースターパック MELLOW MOMENT",
       "cost": 15,
       "hearts": [

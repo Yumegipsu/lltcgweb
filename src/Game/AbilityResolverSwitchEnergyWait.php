@@ -58,7 +58,7 @@ function tryResolveAbilityEffectSwitchEnergyWait(
         case 'energy_wait_if_baton_group_min_energy':
             if (empty($source['entered_via_baton'])) break;
             $batonGroup = $source['baton_from_group'] ?? '';
-            if ($batonGroup !== ($ab['group'] ?? '')) break;
+            if (!cardInGroup($ab, $batonGroup)) break;
             if (countEnergyInZone($p) < intval($ab['min_energy'] ?? 7)) break;
             $n = intval($ab['count'] ?? 2);
             for ($i = 0; $i < $n; $i++) {

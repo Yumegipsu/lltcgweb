@@ -908,7 +908,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         $pick = $data['pick'] ?? '';
         if ($pick === 'energy') {
             $activated = activateEnergyForPlayer($p, 1);
-            if ($activated > 0 && (($member['group'] ?? '') === 'Nijigasaki' || ($ab['group'] ?? '') === 'Nijigasaki')) {
+            if ($activated > 0 && (cardInGroup($member, 'Nijigasaki') || cardInGroup($ab, 'Nijigasaki'))) {
                 $p['_niji_turn_flags']['activated_wait_energy'] = true;
             }
             markAbilityUsed($member, $abilityIdx);
@@ -920,7 +920,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             $activated = 0;
             foreach ($p['stage'] as &$mbr) {
                 if ($mbr && ($mbr['instance_id'] ?? '') === $mid
-                    && ($mbr['group'] ?? '') === ($ab['group'] ?? 'Nijigasaki')
+                    && cardInGroup($mbr, ($ab['group'] ?? 'Nijigasaki'))
                     && memberIsInWait($mbr)) {
                     clearMemberWait($mbr);
                     $activated = 1;
@@ -931,7 +931,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             if ($activated < 1) {
                 throw new Exception('Choose a Nijigasaki Member in Wait to activate');
             }
-            if (($member['group'] ?? '') === 'Nijigasaki' || ($ab['group'] ?? '') === 'Nijigasaki') {
+            if (cardInGroup($member, 'Nijigasaki') || cardInGroup($ab, 'Nijigasaki')) {
                 $p['_niji_turn_flags']['activated_wait_member'] = true;
             }
             markAbilityUsed($member, $abilityIdx);
@@ -1263,7 +1263,7 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             discardFromHandByIds($p, array_slice($ids, 0, $need), $state, $pid);
             $discarded = array_slice($p['waiting_room'] ?? [], -$need);
             $last = $discarded[count($discarded) - 1] ?? null;
-            $isGroup = $last && ($last['group'] ?? '') === ($ab['group'] ?? "μ's");
+            $isGroup = $last && cardInGroup($last, ($ab['group'] ?? "μ's"));
             if ($isGroup) {
                 $then = [
                     'type'   => 'look_reveal_filter',

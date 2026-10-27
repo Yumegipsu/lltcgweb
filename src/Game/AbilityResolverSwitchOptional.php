@@ -635,7 +635,7 @@ function tryResolveAbilityEffectSwitchOptional(
             if ($mid !== '') {
                 foreach ($p['stage'] as &$mbr) {
                     if ($mbr && ($mbr['instance_id'] ?? '') === $mid
-                        && ($mbr['group'] ?? '') === $group
+                        && cardInGroup($mbr, $group)
                         && !memberIsInWait($mbr)) {
                         waitMember($mbr, $state);
                         addBonusHeartsToModifier($state, $pid, $ab['hearts'] ?? []);
@@ -873,7 +873,7 @@ function tryResolveAbilityEffectSwitchOptional(
             $group = (string)($ab['group'] ?? '');
             $cands = [];
             foreach ($p['waiting_room'] as $wrCard) {
-                if ($group !== '' && ($wrCard['group'] ?? '') !== $group) {
+                if ($group !== '' && !cardInGroup($wrCard, $group)) {
                     continue;
                 }
                 $cands[] = $wrCard;
@@ -1192,7 +1192,7 @@ function tryResolveAbilityEffectSwitchOptional(
             $candidates = [];
             foreach ($p['stage'] as $slot => $mbr) {
                 if (!$mbr) continue;
-                if (($mbr['group'] ?? '') !== ($ab['group'] ?? '')) continue;
+                if (!cardInGroup($mbr, ($ab['group'] ?? ''))) continue;
                 if (cardMatchesNames($mbr, $ab['exclude_names'] ?? [])) continue;
                 $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
             }

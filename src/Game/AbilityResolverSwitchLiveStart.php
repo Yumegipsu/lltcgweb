@@ -59,7 +59,7 @@ function tryResolveAbilityEffectSwitchLiveStart(
             if (!empty($state['pending_prompt'])) break;
             $group = $ab['group'] ?? 'Sunshine';
             $center = $p['stage']['center'] ?? null;
-            if (!$center || ($center['group'] ?? '') !== $group) break;
+            if (!$center || !cardInGroup($center, $group)) break;
             if (getEffectiveStageMemberCost($state, $pid, $center) < intval($ab['min_center_cost'] ?? 9)) {
                 break;
             }

@@ -357,7 +357,7 @@ function spBp2CountYellGroupMembersNoBlade(array $yellCards, string $group): int
         if (($yc['card_type'] ?? '') !== 'メンバー') {
             continue;
         }
-        if ($group !== '' && ($yc['group'] ?? '') !== $group) {
+        if ($group !== '' && !cardInGroup($yc, $group)) {
             continue;
         }
         if (!empty($yc['blade_hearts'])) {

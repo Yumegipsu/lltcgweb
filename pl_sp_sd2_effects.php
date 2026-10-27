@@ -169,7 +169,7 @@ function plSpSd2ResolveEffect(array $state, string $pid, array $source, array $a
             foreach ($p['stage'] as $slot => $mbr) {
                 if (!$mbr) continue;
                 if (($mbr['instance_id'] ?? '') === ($source['instance_id'] ?? '')) continue;
-                if (($ab['group'] ?? '') !== '' && ($mbr['group'] ?? '') !== ($ab['group'] ?? '')) continue;
+                if (($ab['group'] ?? '') !== '' && !cardInGroup($mbr, ($ab['group'] ?? ''))) continue;
                 $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
             }
             $amt = intval($ab['amount'] ?? 1);

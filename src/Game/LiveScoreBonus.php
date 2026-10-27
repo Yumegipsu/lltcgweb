@@ -176,7 +176,7 @@ function getLiveScoreBonusBreakdown(array $state, string $pid, bool $omitUnrevea
                 $group = (string)($ab['group'] ?? '');
                 $ok = count($onStage) === intval($ab['exact_count'] ?? 2);
                 foreach ($onStage as $m) {
-                    if (($m['group'] ?? '') !== $group) {
+                    if (!cardInGroup($m, $group)) {
                         $ok = false;
                     }
                 }

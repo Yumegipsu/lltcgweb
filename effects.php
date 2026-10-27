@@ -184,7 +184,7 @@ function estimateBatonWrEnergyActivation(array $leaving, array $incoming, array 
                 if (!cardMatchesGroup($incoming, $group, 'member')) {
                     continue;
                 }
-            } elseif (($incoming['group'] ?? '') !== $group) {
+            } elseif (!cardInGroup($incoming, $group)) {
                 continue;
             }
         }
@@ -261,7 +261,7 @@ function liveCardsGrantYellHeartsWildcard(array $liveCards): bool {
 
 function waitFirstGroupMember(array &$p, string $group, array $state): bool {
     foreach ($p['stage'] as &$mbr) {
-        if ($mbr && ($mbr['group'] ?? '') === $group) {
+        if ($mbr && cardInGroup($mbr, $group)) {
             waitMember($mbr, $state);
             unset($mbr);
             return true;
@@ -273,7 +273,7 @@ function waitFirstGroupMember(array &$p, string $group, array $state): bool {
 
 function stageHasGroupMember(array $p, string $group): bool {
     foreach ($p['stage'] as $mbr) {
-        if ($mbr && ($mbr['group'] ?? '') === $group) return true;
+        if ($mbr && cardInGroup($mbr, $group)) return true;
     }
     return false;
 }
@@ -639,7 +639,7 @@ function countDistinctWrLives(array $p, string $group): int {
         if (($c['card_type'] ?? '') !== 'ライブ') {
             continue;
         }
-        if ($group !== '' && ($c['group'] ?? '') !== $group) {
+        if ($group !== '' && !cardInGroup($c, $group)) {
             continue;
         }
         $label = $c['name_en'] ?? $c['name'] ?? '';
@@ -674,7 +674,7 @@ function stageFullGroupMembersMinCost(array $p, string $group, int $minCost): bo
     $total = 0;
     foreach ($slots as $slot) {
         $mbr = $p['stage'][$slot] ?? null;
-        if (!$mbr || ($mbr['group'] ?? '') !== $group) {
+        if (!$mbr || !cardInGroup($mbr, $group)) {
             return false;
         }
         $total += intval($mbr['cost'] ?? 0);
@@ -758,7 +758,7 @@ function listNewlyWaitedStageMembers(array $p, string $group = ''): array {
         if ($mbr['active'] ?? true) {
             continue;
         }
-        if ($group !== '' && (string)($mbr['group'] ?? '') !== $group) {
+        if ($group !== '' && !cardInGroup($mbr, $group)) {
             continue;
         }
         $out[] = ['slot' => $slot, 'member' => $mbr];
@@ -899,7 +899,7 @@ function resolveAutoOnAllyWaitAbilities(array $state, string $pid, array $waited
                 $wMbr = &$p['stage'][$wSlot];
                 clearMemberWait($wMbr);
                 $wMbr['live_blade_bonus'] = intval($wMbr['live_blade_bonus'] ?? 0) + $amt;
-                if (($ally['group'] ?? '') === 'Nijigasaki' || ($ab['group'] ?? '') === 'Nijigasaki') {
+                if (cardInGroup($ally, 'Nijigasaki') || cardInGroup($ab, 'Nijigasaki')) {
                     $p['_niji_turn_flags']['activated_wait_member'] = true;
                 }
                 $state = addLog($state, $state['players'][$pid]['name'] .
@@ -987,7 +987,7 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                     if (!isLiveTypeCard($yc)) {
                         continue;
                     }
-                    if ($group !== '' && ($yc['group'] ?? '') !== $group) {
+                    if ($group !== '' && !cardInGroup($yc, $group)) {
                         continue;
                     }
                     if ($needScore
@@ -2540,7 +2540,7 @@ function sumGroupStageHearts(
     $n = 0;
     $want = $color === '' ? '' : normalizeHeartColor($color);
     foreach ($p['stage'] as $slot => $m) {
-        if (!$m || ($m['group'] ?? '') !== $group) {
+        if (!$m || !cardInGroup($m, $group)) {
             continue;
         }
         if ($want === '') {
@@ -2602,7 +2602,7 @@ function countCombinedSuccessLives(array $state): int {
 
 function stageHasGroupMemberMinHearts(array $p, string $group, int $minHearts): bool {
     foreach ($p['stage'] as $m) {
-        if (!$m || ($m['group'] ?? '') !== $group) continue;
+        if (!$m || !cardInGroup($m, $group)) continue;
         if (memberHeartCount($m) >= $minHearts) return true;
     }
     return false;
@@ -3017,7 +3017,7 @@ function countDistinctNamesAndCostsOnStage(array $p): int {
 function countStageGroupMinCost(array $p, string $group, int $minCost, ?array $state = null, ?string $pid = null): int {
     $n = 0;
     foreach ($p['stage'] as $mbr) {
-        if (!$mbr || ($mbr['group'] ?? '') !== $group) continue;
+        if (!$mbr || !cardInGroup($mbr, $group)) continue;
         $cost = ($state !== null && $pid !== null)
             ? getEffectiveStageMemberCost($state, $pid, $mbr)
             : intval($mbr['cost'] ?? 0);
@@ -3031,7 +3031,7 @@ function countDistinctSubunitsOnStage(array $p, string $requireGroup = ''): int 
     $hasRequiredGroup = $requireGroup === '';
     foreach ($p['stage'] as $mbr) {
         if (!$mbr) continue;
-        if ($requireGroup !== '' && ($mbr['group'] ?? '') === $requireGroup) {
+        if ($requireGroup !== '' && cardInGroup($mbr, $requireGroup)) {
             $hasRequiredGroup = true;
         }
         foreach (cardEffectiveSubunits($mbr) as $su) {
@@ -3096,7 +3096,7 @@ function countOtherLiveZoneGroup(array $p, string $group, string $excludeId = ''
         if (!$lc) continue;
         if ($excludeId !== '' && ($lc['instance_id'] ?? '') === $excludeId) continue;
         if (!isLiveTypeCard($lc)) continue;
-        if (($lc['group'] ?? '') === $group) $n++;
+        if (cardInGroup($lc, $group)) $n++;
     }
     return $n;
 }
@@ -3105,7 +3105,7 @@ function countBatonEnteredGroupThisTurn(array $p, string $group, int $turn): int
     $n = 0;
     foreach ($p['stage'] as $mbr) {
         if (!$mbr) continue;
-        if (($mbr['group'] ?? '') !== $group) continue;
+        if (!cardInGroup($mbr, $group)) continue;
         if (!($mbr['entered_via_baton'] ?? false)) continue;
         if (intval($mbr['entered_turn'] ?? 0) !== $turn) continue;
         $n++;
@@ -3116,7 +3116,7 @@ function countBatonEnteredGroupThisTurn(array $p, string $group, int $turn): int
 function groupMemberEnteredThisTurn(array $p, string $group, int $turn): bool {
     foreach ($p['stage'] as $mbr) {
         if (!$mbr) continue;
-        if (($mbr['group'] ?? '') !== $group) continue;
+        if (!cardInGroup($mbr, $group)) continue;
         if (intval($mbr['entered_turn'] ?? 0) === $turn) return true;
     }
     return false;
@@ -3318,7 +3318,7 @@ function notifyLiveCardPlacedFaceUp(array $state, string $pid, array $card): arr
             if (!$mbr) {
                 continue;
             }
-            if ($group !== '' && ($mbr['group'] ?? '') !== $group) {
+            if ($group !== '' && !cardInGroup($mbr, $group)) {
                 continue;
             }
             $members[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
@@ -3434,7 +3434,7 @@ function findActivatedAbilitySource(array &$p, string $instanceId): ?array {
 function countLiveZoneGroup(array $liveZone, string $group): int {
     return count(array_filter(
         $liveZone,
-        fn($c) => $c && isLiveTypeCard($c) && ($c['group'] ?? '') === $group
+        fn($c) => $c && isLiveTypeCard($c) && cardInGroup($c, $group)
     ));
 }
 
@@ -3479,7 +3479,7 @@ function memberBladeBonusStageCandidates(array $state, string $pid, array $effec
         if (!$mbr) {
             continue;
         }
-        if ($group !== '' && ($mbr['group'] ?? '') !== $group) {
+        if ($group !== '' && !cardInGroup($mbr, $group)) {
             continue;
         }
         if ($excludeId !== '' && ($mbr['instance_id'] ?? '') === $excludeId) {
@@ -3510,7 +3510,7 @@ function applyMemberBladeBonusToSlots(array &$state, string $pid, array $effect,
             unset($mbr);
             continue;
         }
-        if ($group !== '' && ($mbr['group'] ?? '') !== $group) {
+        if ($group !== '' && !cardInGroup($mbr, $group)) {
             unset($mbr);
             continue;
         }
@@ -3537,7 +3537,7 @@ function applyMemberBladeBonus(array &$state, string $pid, array $effect): int {
     $applied = 0;
     foreach ($state['players'][$pid]['stage'] as $slot => &$mbr) {
         if (!$mbr || $applied >= $max) continue;
-        if ($group !== '' && ($mbr['group'] ?? '') !== $group) continue;
+        if ($group !== '' && !cardInGroup($mbr, $group)) continue;
         if ($excludeId !== '' && ($mbr['instance_id'] ?? '') === $excludeId) continue;
         if ($slotFilter !== '' && $slot !== $slotFilter) continue;
         $mbr['live_blade_bonus'] = intval($mbr['live_blade_bonus'] ?? 0) + $amount;
@@ -3645,7 +3645,7 @@ function resolvePickMemberBladeBonusPrompt(
 
 function applyCenterGroupBladeBonus(array &$state, string $pid, string $group, int $amount): bool {
     $mbr = $state['players'][$pid]['stage']['center'] ?? null;
-    if (!$mbr || ($mbr['group'] ?? '') !== $group) return false;
+    if (!$mbr || !cardInGroup($mbr, $group)) return false;
     $mbr['live_blade_bonus'] = intval($mbr['live_blade_bonus'] ?? 0) + $amount;
     $state['players'][$pid]['stage']['center'] = $mbr;
     return true;
@@ -3669,7 +3669,7 @@ function stageAllMembersInGroup(array $p, string $group): bool {
     foreach ($p['stage'] as $m) {
         if (!$m) continue;
         $found = true;
-        if (($m['group'] ?? '') !== $group) return false;
+        if (!cardInGroup($m, $group)) return false;
     }
     return $found;
 }
@@ -3733,7 +3733,7 @@ function getSuccessLiveCenterBladeBonus(array $state, string $pid, array $member
         foreach ($sl['abilities'] ?? [] as $ab) {
             if (($ab['trigger'] ?? '') !== 'continuous') continue;
             if (($ab['type'] ?? '') === 'center_group_blade_while_in_success') {
-                if (($member['group'] ?? '') === ($ab['group'] ?? 'μ\'s')) {
+                if (cardInGroup($member, ($ab['group'] ?? 'μ\'s'))) {
                     $bonus += intval($ab['amount'] ?? 1);
                 }
             }
@@ -3744,7 +3744,7 @@ function getSuccessLiveCenterBladeBonus(array $state, string $pid, array $member
 
 function grantHeartToFirstGroupMember(array &$state, string $pid, string $group, string $color): bool {
     foreach ($state['players'][$pid]['stage'] as &$mbr) {
-        if ($mbr && ($mbr['group'] ?? '') === $group) {
+        if ($mbr && cardInGroup($mbr, $group)) {
             if (!isset($mbr['bonus_hearts'])) $mbr['bonus_hearts'] = [];
             $mbr['bonus_hearts'][] = $color;
             unset($mbr);
@@ -3794,7 +3794,7 @@ function successZoneExactStageScoreBonus(array $p): int {
             $group = (string) ($ab['group'] ?? '');
             $ok = count($onStage) === intval($ab['exact_count'] ?? 2);
             foreach ($onStage as $m) {
-                if (($m['group'] ?? '') !== $group) {
+                if (!cardInGroup($m, $group)) {
                     $ok = false;
                 }
             }
@@ -3820,7 +3820,7 @@ function sumSuccessLiveScores(array $p, ?array $state = null, ?string $pid = nul
                 if (($ab['type'] ?? '') === 'success_self_score_bonus') {
                     $hasGroup = false;
                     foreach ($state['players'][$pid]['stage'] as $m) {
-                        if ($m && ($m['group'] ?? '') === ($ab['group'] ?? 'μ\'s')) {
+                        if ($m && cardInGroup($m, ($ab['group'] ?? 'μ\'s'))) {
                             $hasGroup = true;
                             break;
                         }
@@ -4621,7 +4621,7 @@ function handMembersMatchingPlayAbility(array $p, array $ab): array {
             if (!cardMatchesNames($c, $names)) {
                 continue;
             }
-        } elseif (!$anyGroup && ($c['group'] ?? '') !== $group) {
+        } elseif (!$anyGroup && !cardInGroup($c, $group)) {
             continue;
         }
         $out[] = $c;
@@ -4654,7 +4654,7 @@ function getEffectiveHandCost(array $state, string $pid, array $card): int {
             && ($ab['type'] ?? '') === 'hand_cost_reduction_if_wait_group') {
             $group = $ab['group'] ?? 'Nijigasaki';
             foreach ($p['stage'] as $w) {
-                if (!$w || ($w['group'] ?? '') !== $group) {
+                if (!$w || !cardInGroup($w, $group)) {
                     continue;
                 }
                 // Wait Members use in_wait (active=false is also set); prefer the Wait flag.
@@ -5223,7 +5223,7 @@ function listSubunitStageMembers(array $p, string $subunit): array {
 function listGroupStageMembers(array $p, string $group): array {
     $out = [];
     foreach ($p['stage'] as $slot => $mbr) {
-        if ($mbr && ($mbr['group'] ?? '') === $group) {
+        if ($mbr && cardInGroup($mbr, $group)) {
             $out[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
         }
     }
@@ -5233,7 +5233,7 @@ function listGroupStageMembers(array $p, string $group): array {
 function listGroupStageMembersNotWaiting(array $p, string $group): array {
     $out = [];
     foreach ($p['stage'] as $slot => $mbr) {
-        if (!$mbr || ($mbr['group'] ?? '') !== $group) {
+        if (!$mbr || !cardInGroup($mbr, $group)) {
             continue;
         }
         if (memberIsInWait($mbr)) {
@@ -5291,7 +5291,7 @@ function activateMembersForPlayer(array &$p, int $max, string $group = ''): int 
     foreach ($p['stage'] as &$mbr) {
         if ($n >= $max) break;
         if (!$mbr) continue;
-        if ($group !== '' && ($mbr['group'] ?? '') !== $group) continue;
+        if ($group !== '' && !cardInGroup($mbr, $group)) continue;
         // Wait only blocks printed Blade contribution — "Activate" clears Wait.
         if (memberIsInWait($mbr)) {
             clearMemberWait($mbr);
@@ -5314,7 +5314,7 @@ function listActivatableStageMembers(array $p, string $group = ''): array {
     $out = [];
     foreach ($p['stage'] as $slot => $mbr) {
         if (!$mbr) continue;
-        if ($group !== '' && ($mbr['group'] ?? '') !== $group) continue;
+        if ($group !== '' && !cardInGroup($mbr, $group)) continue;
         if (memberIsInWait($mbr) || !memberIsActiveForGame($mbr)) {
             $out[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
         }
@@ -5548,7 +5548,7 @@ function listStageMemberChoices(array $p, string $group = '', string $excludeId 
     foreach ($p['stage'] as $slot => $mbr) {
         if (!$mbr) continue;
         if ($excludeId !== '' && ($mbr['instance_id'] ?? '') === $excludeId) continue;
-        if ($group !== '' && ($mbr['group'] ?? '') !== $group) continue;
+        if ($group !== '' && !cardInGroup($mbr, $group)) continue;
         $out[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
     }
     return $out;
@@ -5602,7 +5602,7 @@ function listOppStageMembersByMaxOriginalHearts(
 function takeWrMemberExactCost(array &$p, string $group, int $exactCost): ?array {
     foreach ($p['waiting_room'] as $i => $c) {
         if (($c['card_type'] ?? '') !== 'メンバー') continue;
-        if ($group !== '' && ($c['group'] ?? '') !== $group) continue;
+        if ($group !== '' && !cardInGroup($c, $group)) continue;
         if (intval($c['cost'] ?? 0) !== $exactCost) continue;
         $member = $c;
         array_splice($p['waiting_room'], $i, 1);
@@ -5614,11 +5614,11 @@ function takeWrMemberExactCost(array &$p, string $group, int $exactCost): ?array
 function waitSwapHasValidTarget(array $p, string $group, int $bonus, string $excludeSlot): bool {
     foreach ($p['stage'] as $s => $mbr) {
         if (!$mbr || $s === $excludeSlot) continue;
-        if ($group !== '' && ($mbr['group'] ?? '') !== $group) continue;
+        if ($group !== '' && !cardInGroup($mbr, $group)) continue;
         $targetCost = intval($mbr['cost'] ?? 0) + $bonus;
         foreach ($p['waiting_room'] as $c) {
             if (($c['card_type'] ?? '') === 'メンバー'
-                && ($c['group'] ?? '') === $group
+                && cardInGroup($c, $group)
                 && intval($c['cost'] ?? 0) === $targetCost) {
                 return true;
             }
@@ -6082,7 +6082,7 @@ function countDistinctYellMembers(array $yellCards, string $group = ''): int {
     $names = [];
     foreach ($yellCards as $c) {
         if (($c['card_type'] ?? '') !== 'メンバー') continue;
-        if ($group !== '' && ($c['group'] ?? '') !== $group) continue;
+        if ($group !== '' && !cardInGroup($c, $group)) continue;
         $label = $c['name_en'] ?? $c['name'] ?? '';
         if ($label !== '') $names[$label] = true;
     }
@@ -6332,8 +6332,52 @@ function applyStagePositionChange(array $state, string $pid, string $fromSlot, s
     return $state;
 }
 
+/**
+ * Every group a card counts as: its printed group plus extra_groups. Three-in-one crossover Members
+ * (LL-bpN-001, e.g. Ayumu & Kanon & Kaho) belong to the group of each character on the card (#311).
+ *
+ * @return list<string>
+ */
+function cardGroupList($card): array {
+    if (!is_array($card)) {
+        return [];
+    }
+    $g = (string)($card['group'] ?? '');
+    $list = $g !== '' ? [$g] : [];
+    $extra = $card['extra_groups'] ?? null;
+    if ($extra === null) {
+        $no = (string)($card['card_no'] ?? '');
+        // Cards in a game may be stubs without the catalog field; only crossover prints carry extra groups.
+        if ($no !== '' && str_starts_with($no, 'LL-bp') && function_exists('tcgCatalogCardByNo')) {
+            $base = tcgCatalogCardByNo($no);
+            $extra = is_array($base) ? ($base['extra_groups'] ?? null) : null;
+        }
+    }
+    if (is_array($extra)) {
+        foreach ($extra as $x) {
+            if (is_string($x) && $x !== '' && !in_array($x, $list, true)) {
+                $list[] = $x;
+            }
+        }
+    }
+    return $list;
+}
+
+/** True when the card counts as a member of $group ('' = the card has no group at all). */
+function cardInGroup($card, $group): bool {
+    $group = (string)$group;
+    $printed = is_array($card) ? (string)($card['group'] ?? '') : '';
+    if ($group === '') {
+        return $printed === '';
+    }
+    if ($printed === $group) {
+        return true;
+    }
+    return in_array($group, cardGroupList($card), true);
+}
+
 function cardMatchesGroup(array $card, string $group, string $filter = ''): bool {
-    if ($group !== '' && ($card['group'] ?? '') !== $group) return false;
+    if ($group !== '' && !cardInGroup($card, $group)) return false;
     if ($filter === 'member') return isMemberCard($card);
     if ($filter === 'live') return isLiveTypeCard($card);
     return true;
@@ -6502,7 +6546,7 @@ function memberHasAnyHeart(array $card): bool {
 function countStageGroupMembers(array $p, string $group): int {
     $n = 0;
     foreach ($p['stage'] ?? [] as $mbr) {
-        if ($mbr && ($mbr['group'] ?? '') === $group) {
+        if ($mbr && cardInGroup($mbr, $group)) {
             $n++;
         }
     }
@@ -6569,7 +6613,7 @@ function validateSameGroupDiscard(array $p, array $ids, int $need): bool {
 function countWrGroup(array $p, string $group): int {
     return count(array_filter(
         $p['waiting_room'] ?? [],
-        fn($c) => ($c['group'] ?? '') === $group
+        fn($c) => cardInGroup($c, $group)
     ));
 }
 

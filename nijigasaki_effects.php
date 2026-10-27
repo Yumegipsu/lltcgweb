@@ -20,7 +20,7 @@ function nijiCountLiveZoneCards(array $p): int {
 function nijiLiveZoneHasGroupLive(array $p, string $group): bool {
     foreach ($p['live_zone'] ?? [] as $lc) {
         if (!$lc || !isLiveTypeCard($lc)) continue;
-        if (($lc['group'] ?? '') === $group) return true;
+        if (cardInGroup($lc, $group)) return true;
     }
     return false;
 }
@@ -526,7 +526,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
             $filterColor = $ab['heart_color'] ?? '';
             $found = false;
             foreach (array_merge($p['success_lives'] ?? [], array_filter($p['live_zone'] ?? [])) as $lc) {
-                if (!$lc || ($lc['group'] ?? '') !== $group || ($lc['card_type'] ?? '') !== 'ライブ') continue;
+                if (!$lc || !cardInGroup($lc, $group) || ($lc['card_type'] ?? '') !== 'ライブ') continue;
                 $byColor = countHeartsByColor($lc);
                 if ($filterColor !== '') {
                     if (nijiHeartCountMatches(intval($byColor[$filterColor] ?? 0), $ab, 4)) {
@@ -557,7 +557,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
             $checkColor = $ab['check_color'] ?? 'pink';
             $ok = false;
             foreach (array_merge($p['success_lives'] ?? [], array_filter($p['live_zone'] ?? [])) as $lc) {
-                if (!$lc || ($lc['group'] ?? '') !== $group) continue;
+                if (!$lc || !cardInGroup($lc, $group)) continue;
                 if (nijiHeartCountMatches(countRequiredHeartsOfColor($lc, $checkColor), $ab, 3)) {
                     $ok = true;
                     break;
@@ -570,7 +570,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
             $maxMembers = intval($ab['max_members'] ?? 1);
             $candidates = [];
             foreach ($p['stage'] as $slot => $mbr) {
-                if (!$mbr || ($mbr['group'] ?? '') !== $group) continue;
+                if (!$mbr || !cardInGroup($mbr, $group)) continue;
                 $cnt = 0;
                 foreach ($mbr['hearts'] ?? [] as $h) {
                     if (($h['color'] ?? '') === $memberColor) $cnt += intval($h['count'] ?? 1);
@@ -636,7 +636,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
             $min = intval($ab['min_count'] ?? 3);
             $ok = false;
             foreach (array_merge($p['success_lives'] ?? [], array_filter($p['live_zone'] ?? [])) as $lc) {
-                if (!$lc || ($lc['group'] ?? '') !== $group) continue;
+                if (!$lc || !cardInGroup($lc, $group)) continue;
                 foreach (countHeartsByColor($lc) as $cnt) {
                     if ($cnt >= $min) { $ok = true; break 2; }
                 }
@@ -659,7 +659,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
             $group = $ab['group'] ?? 'Nijigasaki';
             $names = [];
             foreach ($p['stage'] as $mbr) {
-                if (!$mbr || ($mbr['group'] ?? '') !== $group) {
+                if (!$mbr || !cardInGroup($mbr, $group)) {
                     continue;
                 }
                 $k = cardNameKey($mbr);
@@ -755,7 +755,7 @@ function nijiResolveActivatedEffect(array $state, string $pid, array &$p, array 
     // Activated Nijigasaki skills skip resolveAbilityEffect(), so attribute Cara Tesoro
     // Wait Energy / Member tracking for the duration of this handler.
     $prevNijiAttr = !empty($p['_effect_source_is_niji']);
-    $attrNiji = (($member['group'] ?? '') === 'Nijigasaki' || ($ab['group'] ?? '') === 'Nijigasaki');
+    $attrNiji = (cardInGroup($member, 'Nijigasaki') || cardInGroup($ab, 'Nijigasaki'));
     if ($attrNiji) {
         $p['_effect_source_is_niji'] = true;
     }
@@ -1170,7 +1170,7 @@ function nijiApplyWaitOtherGroupDraw(array $state, string $pid, array $prompt, s
         if (($mbr['instance_id'] ?? '') === $srcId) {
             throw new Exception('Cannot put this Member into Wait for its own ability');
         }
-        if (($mbr['group'] ?? '') !== $group) {
+        if (!cardInGroup($mbr, $group)) {
             throw new Exception("Choose a $group Member");
         }
         if (memberIsInWait($mbr)) {
