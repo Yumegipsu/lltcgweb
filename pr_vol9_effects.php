@@ -534,6 +534,12 @@ function prVol9ResolvePrompt(array $state, string $owner, array $prompt, string 
     }
 
     if ($type === 'pr_vol9_wait_opp_max_blade') {
+        if ($choice === 'skip' || $choice === 'no' || $choice === 'cancel') {
+            // Client safety net when candidates raced away; normal path auto-skips empty pools.
+            unset($state['pending_prompt']);
+            $state['seq']++;
+            return finishPromptEffects($state);
+        }
         $opp = $prompt['opp'] ?? (($owner === 'p1') ? 'p2' : 'p1');
         $slot = $data['slot'] ?? $choice;
         $valid = [];

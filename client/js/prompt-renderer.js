@@ -3127,6 +3127,25 @@ global.renderPrompt = function renderPrompt(s, myId){
     openWrMembersDeckTopPick({...pr, pick_count:Number(pr.need||3)||3, up_to:false});
     return;
   }
+  // Ginko PR-035 (#318): after WR→deck bottom, Wait 1 opp Stage Member (Blade ≤N).
+  // Without this branch the Respond overlay shows the text with no stage picker → softlock.
+  if(pr?.type==='pr_vol9_wait_opp_max_blade'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    G._promptSubmitKey = null;
+    G._resolvePromptSentKey = null;
+    G._lastResolvedPromptKey = null;
+    const members = (pr.candidates || []).filter(c => c && c.slot);
+    if(!members.length){
+      sendAct('resolve_prompt',{choice:'skip'});
+      return;
+    }
+    openStageSlotPick({
+      ...pr,
+      candidates: members,
+      prompt: promptDisplayText(pr, pr.prompt || 'Choose 1 opponent Stage Member to Wait.'),
+    });
+    return;
+  }
   if(pr?.type==='pick_wr_members_deck_top'&&pr.responder===myId){
     ovl.classList.remove('open');
     openWrMembersDeckTopPick(pr);
