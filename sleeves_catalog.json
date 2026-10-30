@@ -1092,6 +1092,15 @@
       "orientation": "portrait"
     },
     {
+      "id": "bday-mei-2026",
+      "name": "Mei Birthday Visual 2026",
+      "group": "Liella!",
+      "idol": "Mei",
+      "src": "assets/sleeves/bday-mei-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-10-29"
+    },
+    {
       "id": "bday-natsumi-2025",
       "name": "Natsumi Birthday Visual 2025",
       "group": "Liella!",
