@@ -34,6 +34,8 @@ const TCG_PR_EXCLUDED_ENERGY_CARD_NOS = [
 const TCG_PR_EXTRA_BOOSTER_PACKS = [
     // Collection Clear Pocket — Hasunosora (CLHS01, PL!HS-cl1-*, rarity CL).
     'コレクション クリアポケット ラブライブ！蓮ノ空女学院スクールアイドルクラブ',
+    // Collection Clear Pocket — Sunshine!! (CLLS01, PL!S-cl1-*, rarity CL).
+    'コレクション クリアポケット ラブライブ！サンシャイン!!',
 ];
 
 function tcgIsStarterBasicEnergyCard(string $cardNo): bool {

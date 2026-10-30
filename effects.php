@@ -966,6 +966,8 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
     $myCount = count($yellCards);
     $opp = ($pid === 'p1') ? 'p2' : 'p1';
     $oppCount = count($state['players'][$opp]['_pending_yell_wr'] ?? $state['players'][$opp]['yell_cards'] ?? []);
+    // Stage abilities that open a prompt (Dia PL!S-cl1-004) run after the others so they cannot cut the pass short.
+    $deferredYellWaits = [];
 
     foreach (array_keys($state['players'][$pid]['stage'] ?? []) as $slot) {
         $member = $state['players'][$pid]['stage'][$slot] ?? null;
@@ -1138,12 +1140,63 @@ function resolveAutoYellAbilities(array $state, string $pid, array $yellCards): 
                 if ($resolved !== null) {
                     $state = $resolved;
                 }
+            } elseif ($type === 'auto_yell_wait_opp_if_yell_lives') {
+                if (!empty($ab['center_only']) && $slot !== 'center') {
+                    continue;
+                }
+                $deferredYellWaits[] = ['slot' => (string)$slot, 'idx' => intval($idx)];
             }
+        }
+    }
+
+    foreach ($deferredYellWaits as $d) {
+        $state = resolveYellLivesWaitOppAuto($state, $pid, $d['slot'], $d['idx'], $yellCards);
+        if (!empty($state['pending_prompt'])) {
+            // The Wait pick parks the Yell pass; Live-zone autos still resolve once it finishes.
+            $state['_auto_yell_resume'] = ['pid' => $pid, 'li' => -1, 'idx' => -1];
+            return $state;
         }
     }
 
     unset($state['_auto_yell_resume']);
     return resolveAutoYellLiveZoneAbilities($state, $pid, $yellCards);
+}
+
+/**
+ * Dia Kurosawa PL!S-cl1-004: [Automatic] [Center] [Once per turn] When you Yell, if 2+ Live cards were revealed,
+ * put 1 opponent Stage Member with 4 or fewer printed hearts into Wait.
+ */
+function resolveYellLivesWaitOppAuto(array $state, string $pid, string $slot, int $abilityIndex, array $yellCards): array {
+    $member = $state['players'][$pid]['stage'][$slot] ?? null;
+    if (!$member || !is_array($member)) {
+        return $state;
+    }
+    $ab = $member['abilities'][$abilityIndex] ?? null;
+    if (!is_array($ab) || ($ab['type'] ?? '') !== 'auto_yell_wait_opp_if_yell_lives') {
+        return $state;
+    }
+    if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $abilityIndex)) {
+        return $state;
+    }
+    $need = intval($ab['min_yell_lives'] ?? 2);
+    if (countYellLiveCards($yellCards) < $need) {
+        return $state;
+    }
+    $mName = $member['name_en'] ?? $member['name'] ?? 'Member';
+    markAbilityUsed($state['players'][$pid]['stage'][$slot], $abilityIndex);
+    $state = addLog($state, $state['players'][$pid]['name'] .
+        " — [$mName] Yell revealed $need+ Live cards — Wait an opponent Member.");
+    return beginWaitOpponentStagePick(
+        $state,
+        $pid,
+        $mName,
+        [
+            'max_original_hearts' => intval($ab['max_printed_hearts'] ?? 4),
+            'pick_count' => 1,
+        ],
+        (string)($member['instance_id'] ?? ''),
+        false
+    );
 }
 
 /**

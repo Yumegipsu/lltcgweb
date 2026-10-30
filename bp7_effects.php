@@ -89,6 +89,15 @@ function bp7EffectTypes(): array {
         'blade_bonus_if_more_energy_than_opp',
         'live_start_shuffle_wr_group_members_deck_bottom_blade',
         'live_success_score_if_all_yell_group',
+        // --- Sunshine Clear Pocket (CLLS01) ---
+        'live_success_yell_group_to_deck_bottom',
+        'auto_yell_wait_opp_if_yell_lives',
+        'live_start_optional_hand_deck_bottom_blade',
+        'live_start_optional_discard_yell_from_bottom',
+        'live_start_wr_live_icons_deck_bottom_center_blade',
+        'live_success_yell_pick_member_shared_heart',
+        'live_start_success_live_same_name_wr_deck_top',
+        'live_start_wr_bladeless_members_deck_bottom_hearts',
         // --- Cross-series ---
         'play_cost_set_if_discard_named',
     ];
@@ -817,6 +826,10 @@ function bp7ProtectedFromOppWait(array $state, string $pid, array $member): bool
 
 /** PL!S-bp7-022: this seat performs Yell from the bottom of the deck. */
 function bp7YellFromDeckBottom(array $state, string $pid): bool {
+    // PL!S-cl1-007: "until this Live ends" is a Live modifier, not a Stage ability.
+    if (!empty($state['live_modifiers'][$pid]['yell_from_deck_bottom'])) {
+        return true;
+    }
     foreach ($state['players'][$pid]['stage'] ?? [] as $mbr) {
         if (!$mbr) continue;
         foreach ($mbr['abilities'] ?? [] as $ab) {
@@ -826,6 +839,185 @@ function bp7YellFromDeckBottom(array $state, string $pid): bool {
         }
     }
     return false;
+}
+
+/* ------------------------------------------------------------------ *
+ * Sunshine Clear Pocket (CLLS01 / PL!S-cl1-*) helpers
+ * ------------------------------------------------------------------ */
+
+/** Put cards on the top of the main deck; the first card listed ends up on top. */
+function bp7PutCardsOnMainDeckTop(array &$state, string $pid, array $cards): int {
+    $cards = array_values(array_filter($cards, 'is_array'));
+    if (empty($cards)) {
+        return 0;
+    }
+    array_splice($state['players'][$pid]['main_deck'], 0, 0, $cards);
+    return count($cards);
+}
+
+/** Cards revealed by this Yell that are still waiting to go to the Waiting Room (not already moved by another effect). */
+function bp7Cl1YellPool(array $state, string $pid, array $ctx): array {
+    $yell = array_values(array_filter(bp7YellCards($state, $pid, $ctx), 'is_array'));
+    $p = $state['players'][$pid] ?? [];
+    if (array_key_exists('_pending_yell_wr', $p)) {
+        $pending = [];
+        foreach ($p['_pending_yell_wr'] ?? [] as $c) {
+            if (is_array($c)) {
+                $pending[(string)($c['instance_id'] ?? '')] = true;
+            }
+        }
+        $yell = array_values(array_filter(
+            $yell,
+            static fn($c) => isset($pending[(string)($c['instance_id'] ?? '')])
+        ));
+    }
+    foreach ($yell as $i => $c) {
+        if (function_exists('mergeYellCardCatalogFields')) {
+            mergeYellCardCatalogFields($c);
+        }
+        $yell[$i] = $c;
+    }
+    return $yell;
+}
+
+/** Remove one still-pending Yell card from the pool and return it. */
+function bp7Cl1TakeFromYellPool(array &$state, string $pid, string $cardId): ?array {
+    if ($cardId === '') {
+        return null;
+    }
+    foreach ($state['players'][$pid]['_pending_yell_wr'] ?? [] as $i => $c) {
+        if (is_array($c) && ($c['instance_id'] ?? '') === $cardId) {
+            array_splice($state['players'][$pid]['_pending_yell_wr'], $i, 1);
+            return $c;
+        }
+    }
+    return null;
+}
+
+/** Which of the three icon slots of 未体験HORIZON a Live card can fill: score / all / all2. */
+function bp7Cl1LiveIconKinds(array $card): array {
+    $kinds = [];
+    if (function_exists('cardYellScoreIconCount') && cardYellScoreIconCount($card) > 0) {
+        $kinds[] = 'score';
+    }
+    $all = false;
+    $all2 = false;
+    foreach ($card['blade_hearts'] ?? [] as $bh) {
+        $t = strtolower(is_array($bh) ? strval($bh['type'] ?? $bh['color'] ?? '') : strval($bh));
+        if (in_array($t, ['all', 'all_blades', 'all1'], true)) {
+            $all = true;
+        } elseif (in_array($t, ['all2', 'all_2', 'b_heart07', 'heart07'], true)) {
+            $all2 = true;
+        }
+    }
+    if ($all) {
+        $kinds[] = 'all';
+    }
+    if ($all2) {
+        $kinds[] = 'all2';
+    }
+    return $kinds;
+}
+
+/**
+ * Largest subset of $cards (earlier picks win ties) that fills distinct icon slots: at most one Score-icon
+ * card, one ALL-icon card and one double-ALL-icon card. A card with two icons may fill either slot.
+ */
+function bp7Cl1AssignLiveIcons(array $cards): array {
+    $cards = array_values($cards);
+    $n = count($cards);
+    $best = [];
+    $rec = function (int $i, array $used, array $chosen) use (&$rec, &$best, $cards, $n): void {
+        if (count($chosen) > count($best)) {
+            $best = $chosen;
+        }
+        if ($i >= $n) {
+            return;
+        }
+        foreach (bp7Cl1LiveIconKinds($cards[$i]) as $kind) {
+            if (isset($used[$kind])) {
+                continue;
+            }
+            $used2 = $used;
+            $used2[$kind] = true;
+            $rec($i + 1, $used2, array_merge($chosen, [$cards[$i]]));
+        }
+        $rec($i + 1, $used, $chosen);
+    };
+    $rec(0, [], []);
+    return $best;
+}
+
+function bp7Cl1CardNameKey(array $card): string {
+    return trim((string)($card['name'] ?? $card['name_en'] ?? ''));
+}
+
+/** Heart colors (not wild hearts) shared by every $group Member on the Stage; [] when fewer than $minMembers. */
+function bp7Cl1SharedStageHeartColors(array $p, string $group, int $minMembers): array {
+    $real = ['pink', 'red', 'yellow', 'green', 'blue', 'purple'];
+    $sets = [];
+    foreach ($p['stage'] ?? [] as $mbr) {
+        if (!$mbr || !is_array($mbr)) {
+            continue;
+        }
+        if ($group !== '' && !cardMatchesGroup($mbr, $group, 'member')) {
+            continue;
+        }
+        $colors = [];
+        foreach (memberPerformanceHeartsFlat($mbr) as $c) {
+            if (in_array($c, $real, true)) {
+                $colors[$c] = true;
+            }
+        }
+        $sets[] = array_keys($colors);
+    }
+    if (count($sets) < max(1, $minMembers)) {
+        return [];
+    }
+    $shared = array_shift($sets);
+    foreach ($sets as $s) {
+        $shared = array_values(array_intersect($shared, $s));
+    }
+    return $shared;
+}
+
+function bp7Cl1CardHasAnyHeartColor(array $card, array $colors): bool {
+    foreach ($card['hearts'] ?? [] as $h) {
+        if (in_array(normalizeHeartColor((string)($h['color'] ?? '')), $colors, true)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** Until this Live ends, +$amount Blade on the source Member, or the whole seat when the source left the Stage. */
+function bp7Cl1GrantSourceBlade(array $state, string $owner, string $sourceId, int $amount): array {
+    if ($amount <= 0) {
+        return $state;
+    }
+    $slot = $sourceId !== '' ? bp7FindSlotByInstance($state['players'][$owner], $sourceId) : '';
+    if ($slot !== '') {
+        $state['players'][$owner]['stage'][$slot]['live_blade_bonus'] =
+            intval($state['players'][$owner]['stage'][$slot]['live_blade_bonus'] ?? 0) + $amount;
+        return $state;
+    }
+    return applyModifierEffect($state, $owner, ['type' => 'blade_bonus', 'amount' => $amount]);
+}
+
+function bp7Cl1GrantBonusHearts(array $state, string $owner, string $slot, array $hearts, int $times): array {
+    $member = $state['players'][$owner]['stage'][$slot] ?? null;
+    if (!$member || $times < 1) {
+        return $state;
+    }
+    $bonus = $member['bonus_hearts'] ?? [];
+    foreach ($hearts as $h) {
+        $bonus[] = [
+            'color' => $h['color'] ?? 'blue',
+            'count' => max(1, intval($h['count'] ?? 1)) * $times,
+        ];
+    }
+    $state['players'][$owner]['stage'][$slot]['bonus_hearts'] = $bonus;
+    return $state;
 }
 
 /* ------------------------------------------------------------------ *
@@ -1765,6 +1957,169 @@ function bp7ResolveEffect(array $state, string $pid, array $source, array $ab, a
                 "Put up to $max " . ($ab['group'] ?? '') .
                 ' Member card(s) from your Waiting Room on the bottom of your deck (pick order = deck order): +' .
                 intval($ab['blade_per'] ?? 1) . ' Blade for each.'
+            );
+            break;
+        }
+
+        /* ---------------- Sunshine Clear Pocket (CLLS01) ---------------- */
+
+        case 'live_success_yell_group_to_deck_bottom': {
+            if (!empty($state['pending_prompt'])) break;
+            $group = (string)($ab['group'] ?? '');
+            $cands = array_values(array_filter(
+                bp7Cl1YellPool($state, $pid, $ctx),
+                fn($c) => $group === '' || cardMatchesGroup($c, $group, '')
+            ));
+            if (empty($cands)) break;
+            $max = max(1, intval($ab['max_pick'] ?? 3));
+            $state = bp7StartCardPick(
+                $state, $pid, $source, $ab, $ctx, 'cl1_yell_group_deck_bottom', $cands, 0, $max,
+                "Put up to $max " . groupPromptLabel($group) .
+                ' card(s) revealed by Yell on the bottom of your deck (pick order = deck order).'
+            );
+            break;
+        }
+
+        case 'auto_yell_wait_opp_if_yell_lives': {
+            // Dia PL!S-cl1-004 — resolved from resolveAutoYellAbilities (effects.php) when its owner Yells.
+            break;
+        }
+
+        case 'live_start_optional_hand_deck_bottom_blade': {
+            if (!empty($state['pending_prompt'])) break;
+            $hand = array_values(array_filter($state['players'][$pid]['hand'] ?? [], 'is_array'));
+            if (empty($hand)) break;
+            $n = max(1, intval($ab['count'] ?? 1));
+            $amt = intval($ab['amount'] ?? 2);
+            $state = bp7StartCardPick(
+                $state, $pid, $source, $ab, $ctx, 'cl1_hand_deck_bottom_blade', $hand, 0, $n,
+                "You may put $n card(s) from your hand on the bottom of your deck: until this Live ends, " .
+                "this card gains +$amt Blade.",
+                ['pick_zone' => 'hand']
+            );
+            break;
+        }
+
+        case 'live_start_optional_discard_yell_from_bottom': {
+            if (!empty($state['pending_prompt'])) break;
+            $hand = array_values(array_filter($state['players'][$pid]['hand'] ?? [], 'is_array'));
+            if (empty($hand)) break;
+            $n = max(1, intval($ab['count'] ?? 1));
+            $state = bp7StartCardPick(
+                $state, $pid, $source, $ab, $ctx, 'cl1_hand_discard_yell_bottom', $hand, 0, $n,
+                "You may put $n card(s) from your hand into the Waiting Room: until this Live ends, " .
+                'perform your Yell from the bottom of your deck instead of the top.',
+                ['pick_zone' => 'hand']
+            );
+            break;
+        }
+
+        case 'live_start_wr_live_icons_deck_bottom_center_blade': {
+            if (!empty($state['pending_prompt'])) break;
+            $group = (string)($ab['group'] ?? '');
+            $cands = array_values(array_filter(
+                $state['players'][$pid]['waiting_room'] ?? [],
+                fn($c) => is_array($c) && bp7IsLiveCard($c)
+                    && ($group === '' || cardMatchesGroup($c, $group, 'live'))
+                    && !empty(bp7Cl1LiveIconKinds($c))
+            ));
+            if (empty($cands)) break;
+            $state = bp7StartCardPick(
+                $state, $pid, $source, $ab, $ctx, 'cl1_wr_live_icons_bottom', $cands, 0, 3,
+                'Choose up to 1 ' . groupPromptLabel($group) . ' Live card with a Score icon, up to 1 with an ' .
+                'ALL Blade heart icon and up to 1 with a double ALL Blade heart icon from your Waiting Room ' .
+                '(pick order = deck order, bottom of your deck). The ' . groupPromptLabel($group) .
+                ' Member in your Center area gains +1 Blade for each.',
+                ['pick_zone' => 'wr']
+            );
+            break;
+        }
+
+        case 'live_success_yell_pick_member_shared_heart': {
+            if (!empty($state['pending_prompt'])) break;
+            $group = (string)($ab['group'] ?? '');
+            $colors = bp7Cl1SharedStageHeartColors(
+                $state['players'][$pid], $group, intval($ab['min_members'] ?? 3)
+            );
+            if (empty($colors)) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] needs " . intval($ab['min_members'] ?? 3) . '+ ' . groupPromptLabel($group) .
+                    ' Members on Stage that share a heart color; nothing added.');
+                break;
+            }
+            $cands = array_values(array_filter(
+                bp7Cl1YellPool($state, $pid, $ctx),
+                fn($c) => bp7IsMemberCard($c)
+                    && ($group === '' || cardMatchesGroup($c, $group, 'member'))
+                    && bp7Cl1CardHasAnyHeartColor($c, $colors)
+            ));
+            if (empty($cands)) {
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    " — [$name] no matching Member among the cards revealed by Yell.");
+                break;
+            }
+            if (count($cands) === 1) {
+                $card = bp7Cl1TakeFromYellPool($state, $pid, (string)($cands[0]['instance_id'] ?? ''));
+                if ($card) {
+                    $state['players'][$pid]['hand'][] = $card;
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] added " . cardDisplayName($card) . ' from Yell to hand.');
+                }
+                break;
+            }
+            $state = bp7StartCardPick(
+                $state, $pid, $source, $ab, $ctx, 'cl1_yell_shared_heart_to_hand', $cands, 1, 1,
+                'Add 1 ' . groupPromptLabel($group) . ' Member with a ' . implode('/', $colors) .
+                ' heart revealed by Yell to your hand.'
+            );
+            break;
+        }
+
+        case 'live_start_success_live_same_name_wr_deck_top': {
+            if (!empty($state['pending_prompt'])) break;
+            $group = (string)($ab['group'] ?? '');
+            $names = [];
+            $success = 0;
+            foreach ($state['players'][$pid]['success_lives'] ?? [] as $c) {
+                if (!is_array($c) || !bp7IsLiveCard($c)) continue;
+                if ($group !== '' && !cardMatchesGroup($c, $group, 'live')) continue;
+                $key = bp7Cl1CardNameKey($c);
+                $names[$key] = ($names[$key] ?? 0) + 1;
+                $success++;
+            }
+            if ($success < 1) break;
+            $cands = array_values(array_filter(
+                $state['players'][$pid]['waiting_room'] ?? [],
+                fn($c) => is_array($c) && bp7IsLiveCard($c) && isset($names[bp7Cl1CardNameKey($c)])
+            ));
+            if (empty($cands)) break;
+            $state = bp7StartCardPick(
+                $state, $pid, $source, $ab, $ctx, 'cl1_success_name_wr_deck_top', $cands, 0, $success,
+                'For each ' . groupPromptLabel($group) . ' Live card in your Success Live area, choose up to 1 ' .
+                'Live card with the same card name from your Waiting Room and put them on top of your deck ' .
+                '(pick order = top to bottom).',
+                ['pick_zone' => 'wr']
+            );
+            break;
+        }
+
+        case 'live_start_wr_bladeless_members_deck_bottom_hearts': {
+            if (!empty($state['pending_prompt'])) break;
+            $group = (string)($ab['group'] ?? '');
+            $cands = array_values(array_filter(
+                $state['players'][$pid]['waiting_room'] ?? [],
+                fn($c) => is_array($c) && bp7IsBladelessMember($c)
+                    && ($group === '' || cardMatchesGroup($c, $group, 'member'))
+            ));
+            if (empty($cands)) break;
+            $max = max(1, intval($ab['max_pick'] ?? 6));
+            $per = max(1, intval($ab['per'] ?? 2));
+            $state = bp7StartCardPick(
+                $state, $pid, $source, $ab, $ctx, 'cl1_wr_bladeless_bottom_hearts', $cands, 0, $max,
+                "Choose up to $max " . groupPromptLabel($group) . ' Member card(s) without Blade hearts from your ' .
+                'Waiting Room. They are shuffled and put on the bottom of your deck; for every ' . $per .
+                ' cards, 1 ' . groupPromptLabel($group) . ' Member on your Stage gains 2 Blue hearts.',
+                ['pick_zone' => 'wr']
             );
             break;
         }
@@ -3415,6 +3770,220 @@ function bp7ResolvePrompt(array $state, string $owner, array $prompt, string $ch
             $state = bp7PlayHandMemberToSlot(
                 $state, $owner, (string)($prompt['play_card_id'] ?? ''), $choice, $name, $turn, false
             );
+            break;
+        }
+
+        /* ---------------- Sunshine Clear Pocket (CLLS01) ---------------- */
+
+        case 'cl1_yell_group_deck_bottom': {
+            $allowed = [];
+            foreach ($prompt['candidates'] ?? [] as $cand) {
+                $allowed[(string)($cand['instance_id'] ?? '')] = true;
+            }
+            $max = max(1, intval($ab['max_pick'] ?? 3));
+            $picked = [];
+            foreach (array_slice(array_values(array_unique($ids)), 0, $max) as $id) {
+                if (!isset($allowed[$id])) continue;
+                $card = bp7Cl1TakeFromYellPool($state, $owner, $id);
+                if ($card) $picked[] = $card;
+            }
+            if (empty($picked)) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [$name] put no cards on the bottom of the deck.");
+                break;
+            }
+            putCardsOnMainDeckBottom($state, $owner, $picked);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$name] put " . count($picked) . ' card(s) revealed by Yell on the bottom of the deck.');
+            break;
+        }
+
+        case 'cl1_hand_deck_bottom_blade': {
+            $n = max(1, intval($ab['count'] ?? 1));
+            $picked = bp7TakeCardsFromHand($state['players'][$owner], array_slice(array_values(array_unique($ids)), 0, $n));
+            if (empty($picked)) {
+                $state = addLog($state, $state['players'][$owner]['name'] . " — [$name] declined.");
+                break;
+            }
+            putCardsOnMainDeckBottom($state, $owner, $picked);
+            $amount = intval($ab['amount'] ?? 2);
+            $state = bp7Cl1GrantSourceBlade($state, $owner, (string)($prompt['source_id'] ?? ''), $amount);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$name] put " . count($picked) . " card(s) from hand on the bottom of the deck and gains +$amount Blade.");
+            break;
+        }
+
+        case 'cl1_hand_discard_yell_bottom': {
+            $n = max(1, intval($ab['count'] ?? 1));
+            $picked = bp7TakeCardsFromHand($state['players'][$owner], array_slice(array_values(array_unique($ids)), 0, $n));
+            if (empty($picked)) {
+                $state = addLog($state, $state['players'][$owner]['name'] . " — [$name] declined.");
+                break;
+            }
+            $state = appendCardsToWaitingRoom($state, $owner, $picked);
+            $state = initLiveModifiers($state);
+            $state['live_modifiers'][$owner]['yell_from_deck_bottom'] = true;
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$name] discarded " . count($picked) . ' card(s): Yell is performed from the bottom of the deck until this Live ends.');
+            break;
+        }
+
+        case 'cl1_wr_live_icons_bottom': {
+            $allowed = [];
+            foreach ($prompt['candidates'] ?? [] as $cand) {
+                $allowed[(string)($cand['instance_id'] ?? '')] = true;
+            }
+            $cards = [];
+            foreach (array_values(array_unique($ids)) as $id) {
+                if (!isset($allowed[$id])) continue;
+                foreach ($state['players'][$owner]['waiting_room'] as $c) {
+                    if (($c['instance_id'] ?? '') === $id) {
+                        $cards[] = $c;
+                        break;
+                    }
+                }
+            }
+            $chosen = bp7Cl1AssignLiveIcons($cards);
+            if (empty($chosen)) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [$name] put no cards on the bottom of the deck.");
+                break;
+            }
+            $taken = bp7TakeCardsFromWaitingRoom(
+                $state['players'][$owner],
+                array_map(fn($c) => (string)($c['instance_id'] ?? ''), $chosen)
+            );
+            putCardsOnMainDeckBottom($state, $owner, $taken);
+            $count = count($taken);
+            $bonus = 0;
+            $center = $state['players'][$owner]['stage']['center'] ?? null;
+            $group = (string)($ab['group'] ?? '');
+            if ($center && ($group === '' || cardMatchesGroup($center, $group, 'member'))) {
+                $state['players'][$owner]['stage']['center']['live_blade_bonus'] =
+                    intval($center['live_blade_bonus'] ?? 0) + $count;
+                $bonus = $count;
+            }
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$name] put $count Live card(s) on the bottom of the deck" .
+                ($bonus > 0 ? "; the Center Member gains +$bonus Blade." : '.'));
+            break;
+        }
+
+        case 'cl1_yell_shared_heart_to_hand': {
+            $allowed = [];
+            foreach ($prompt['candidates'] ?? [] as $cand) {
+                $allowed[(string)($cand['instance_id'] ?? '')] = true;
+            }
+            $id = '';
+            foreach ($ids as $cid) {
+                if (isset($allowed[$cid])) {
+                    $id = $cid;
+                    break;
+                }
+            }
+            if ($id === '') {
+                // "Add 1 …" is not optional: skipping the pick still adds the first legal card.
+                $id = (string)array_key_first($allowed);
+            }
+            $card = bp7Cl1TakeFromYellPool($state, $owner, $id);
+            if ($card) {
+                $state['players'][$owner]['hand'][] = $card;
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [$name] added " . cardDisplayName($card) . ' from Yell to hand.');
+            }
+            break;
+        }
+
+        case 'cl1_success_name_wr_deck_top': {
+            $group = (string)($ab['group'] ?? '');
+            $allowance = [];
+            foreach ($state['players'][$owner]['success_lives'] ?? [] as $c) {
+                if (!is_array($c) || !bp7IsLiveCard($c)) continue;
+                if ($group !== '' && !cardMatchesGroup($c, $group, 'live')) continue;
+                $key = bp7Cl1CardNameKey($c);
+                $allowance[$key] = ($allowance[$key] ?? 0) + 1;
+            }
+            $allowed = [];
+            foreach ($prompt['candidates'] ?? [] as $cand) {
+                $allowed[(string)($cand['instance_id'] ?? '')] = true;
+            }
+            $take = [];
+            foreach (array_values(array_unique($ids)) as $id) {
+                if (!isset($allowed[$id])) continue;
+                foreach ($state['players'][$owner]['waiting_room'] as $c) {
+                    if (($c['instance_id'] ?? '') !== $id) continue;
+                    $key = bp7Cl1CardNameKey($c);
+                    if (($allowance[$key] ?? 0) > 0) {
+                        $allowance[$key]--;
+                        $take[] = $id;
+                    }
+                    break;
+                }
+            }
+            $taken = bp7TakeCardsFromWaitingRoom($state['players'][$owner], $take);
+            if (empty($taken)) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [$name] put no cards on top of the deck.");
+                break;
+            }
+            bp7PutCardsOnMainDeckTop($state, $owner, $taken);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$name] put " . count($taken) . ' Live card(s) from the Waiting Room on top of the deck.');
+            break;
+        }
+
+        case 'cl1_wr_bladeless_bottom_hearts': {
+            $group = (string)($ab['group'] ?? '');
+            $max = max(1, intval($ab['max_pick'] ?? 6));
+            $per = max(1, intval($ab['per'] ?? 2));
+            $allowed = [];
+            foreach ($prompt['candidates'] ?? [] as $cand) {
+                $allowed[(string)($cand['instance_id'] ?? '')] = true;
+            }
+            $pickIds = [];
+            foreach (array_values(array_unique($ids)) as $id) {
+                if (isset($allowed[$id]) && count($pickIds) < $max) {
+                    $pickIds[] = $id;
+                }
+            }
+            $picked = bp7TakeCardsFromWaitingRoom($state['players'][$owner], $pickIds);
+            if (empty($picked)) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [$name] put no cards on the bottom of the deck.");
+                break;
+            }
+            shuffle($picked);
+            putCardsOnMainDeckBottom($state, $owner, $picked);
+            $pairs = intdiv(count($picked), $per);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$name] shuffled " . count($picked) . ' Member card(s) onto the bottom of the deck.');
+            if ($pairs < 1) break;
+            $stageCands = bp7StageMemberCandidates($state['players'][$owner], ['group' => $group]);
+            if (empty($stageCands)) break;
+            if (count($stageCands) === 1) {
+                $state = bp7Cl1GrantBonusHearts($state, $owner, (string)$stageCands[0]['slot'], $ab['hearts'] ?? [], $pairs);
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    " — [$name] " . cardDisplayName($state['players'][$owner]['stage'][$stageCands[0]['slot']]) .
+                    ' gains ' . (2 * $pairs) . ' Blue hearts until this Live ends.');
+                break;
+            }
+            $chained = bp7StartStagePick(
+                $state, $owner, $source, $ab, [], 'cl1_bladeless_hearts_member', $stageCands,
+                'Choose 1 ' . groupPromptLabel($group) . ' Member on your Stage to gain ' . (2 * $pairs) .
+                ' Blue hearts until this Live ends.',
+                ['hearts_pairs' => $pairs]
+            );
+            $state = bp7QueueChain($chained);
+            break;
+        }
+
+        case 'cl1_bladeless_hearts_member': {
+            $pairs = max(1, intval($prompt['hearts_pairs'] ?? 1));
+            if ($slot === '' || empty($state['players'][$owner]['stage'][$slot])) break;
+            $state = bp7Cl1GrantBonusHearts($state, $owner, $slot, $ab['hearts'] ?? [], $pairs);
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$name] " . cardDisplayName($state['players'][$owner]['stage'][$slot]) .
+                ' gains ' . (2 * $pairs) . ' Blue hearts until this Live ends.');
             break;
         }
 

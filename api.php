@@ -3390,7 +3390,8 @@ function executeExtraYellDraws(array $state, string $pid, int $count, string $so
     if ($count <= 0) {
         return $state;
     }
-    $drawn = drawMainDeckCards($state, $pid, $count);
+    // Extra Yells are Yell too: honour "Yell from the bottom of the deck" (PL!S-cl1-007, PL!S-bp7-022).
+    $drawn = drawYellDeckCards($state, $pid, $count);
     foreach ($drawn as &$yc) {
         mergeYellCardCatalogFields($yc);
     }

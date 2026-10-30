@@ -73605,6 +73605,678 @@
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP07/PL!S-bp7-E08-PE2.png"
     },
     {
+      "card_no": "PL!S-cl1-001-CL",
+      "name": "高海千歌",
+      "name_en": "Chika Takami",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "CL",
+      "text": "[On Enter] Put the top 5 cards of your deck into the Waiting Room.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/toujyou.png\" alt=\"登場\" />自分のデッキの上からカードを5枚控え室に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-001-CL.png",
+      "abilities": [
+        {
+          "trigger": "on_enter",
+          "type": "mill_deck_to_wr",
+          "count": 5
+        }
+      ],
+      "subunit": "CYaRon！",
+      "blade": 1,
+      "text_es": "[Al entrar] Coloca las 5 cartas superiores de tu mazo en la Sala de espera.",
+      "text_ko": "[등장 시] 자신의 덱 위에서 5장을 대기실에 놓는다.",
+      "text_zh": "[入场时] 将你牌组顶的5张牌放入等候室。",
+      "text_th": "[เมื่อเข้าสนาม] นำการ์ด 5 ใบบนสุดของเด็คของคุณไปไว้ในห้องรอ",
+      "text_pt": "[Ao Entrar] Coloque as 5 cartas do topo do seu deck na Sala de Espera.",
+      "text_fr": "[À l'entrée] Placez les 5 cartes du dessus de votre deck dans la Salle d'attente."
+    },
+    {
+      "card_no": "PL!S-cl1-002-CL",
+      "name": "桜内梨子",
+      "name_en": "Riko Sakurauchi",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "cost": 9,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "green",
+          "count": 1
+        },
+        {
+          "color": "blue",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "CL",
+      "text": "[Live Success] From cards revealed by Yell, put up to 3 Aqours cards on the bottom of your deck in any order.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_success.png\" alt=\"ライブ成功時\" />エールにより公開された自分のカードの中から、『Aqours』のカードを3枚まで、好きな順番でデッキの下に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-002-CL.png",
+      "abilities": [
+        {
+          "trigger": "live_success",
+          "type": "live_success_yell_group_to_deck_bottom",
+          "group": "Sunshine",
+          "max_pick": 3
+        }
+      ],
+      "subunit": "Guilty Kiss",
+      "blade": 4,
+      "text_es": "[Éxito de Live] De las cartas reveladas por Yell, coloca hasta 3 cartas de Aqours en la parte inferior de tu mazo en el orden que quieras.",
+      "text_ko": "[라이브 성공] Yell로 공개된 카드 중에서 Aqours 카드를 최대 3장까지 원하는 순서대로 덱 맨 아래에 놓는다.",
+      "text_zh": "[现场成功] 从Yell公开的卡中，将至多3张Aqours卡按任意顺序放置到牌组底部。",
+      "text_th": "[Live สำเร็จ] จากการ์ดที่เปิดเผยโดย Yell วางการ์ด Aqours สูงสุด 3 ใบไว้ที่ด้านล่างสุดของเด็คของคุณตามลำดับที่ต้องการ",
+      "text_pt": "[Live Bem-Sucedida] Das cartas reveladas por Yell, coloque até 3 cartas Aqours no fundo do seu deck em qualquer ordem.",
+      "text_fr": "[Live réussi] Parmi les cartes révélées par Yell, placez jusqu'à 3 cartes Aqours en dessous de votre deck dans n'importe quel ordre."
+    },
+    {
+      "card_no": "PL!S-cl1-003-CL",
+      "name": "松浦果南",
+      "name_en": "Kanan Matsuura",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "green",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "green"
+      ],
+      "rarity": "CL",
+      "text": "[Activated] Put this Member from the Stage into the Waiting Room: add 1 Aqours card from your Waiting Room to your hand.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/kidou.png\" alt=\"起動\" />このメンバーをステージから控え室に置く：自分の控え室から『Aqours』のカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-003-CL.png",
+      "abilities": [
+        {
+          "trigger": "activated",
+          "type": "leave_stage_add_from_wr",
+          "group": "Sunshine",
+          "filter": "",
+          "count": 1
+        }
+      ],
+      "subunit": "AZALEA",
+      "blade": 2,
+      "text_es": "[Activada] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta Aqours de tu Sala de espera a tu mano.",
+      "text_ko": "[기동] 이 멤버를 스테이지에서 대기실에 놓는다: 자신의 대기실에서 Aqours 카드 1장을 패에 추가한다.",
+      "text_zh": "[起动] 将舞台上的该成员放入等候室：将等候室中的1张Aqours卡加入手牌。",
+      "text_th": "[เปิดใช้] นำสมาชิกคนนี้จากเวทีไปที่ห้องรอ: เพิ่มการ์ด Aqours 1 ใบจากห้องรอของคุณขึ้นมือ",
+      "text_pt": "[Ativado] Coloque este Membro do Palco na Sala de Espera: adicione 1 carta Aqours da sua Sala de Espera à sua mão.",
+      "text_fr": "[Activé] Placez ce Membre de la Scène dans la Salle d'attente : ajoutez 1 carte Aqours de votre Salle d'attente à votre main."
+    },
+    {
+      "card_no": "PL!S-cl1-004-CL",
+      "name": "黒澤ダイヤ",
+      "name_en": "Dia Kurosawa",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "cost": 15,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "green",
+          "count": 3
+        },
+        {
+          "color": "blue",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "green"
+      ],
+      "rarity": "CL",
+      "text": "[Automatic] [Center] [Once per turn] When you Yell, if there are 2 or more Live cards among the cards revealed by Yell, put 1 opponent Stage Member with 4 or fewer printed hearts into Wait.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/jidou.png\" alt=\"自動\" />[センター]<img class=\"\" src=\"/wordpress/wp-content/images/texticon/turn1.png\" alt=\"ターン1回\" />自分がエールしたとき、エールにより公開された自分のカードの中にライブカードが2枚以上ある場合、相手のステージにいる元々持つハートの数が4つ以下のメンバー1人をウェイトにする。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-004-CL.png",
+      "abilities": [
+        {
+          "trigger": "auto",
+          "type": "auto_yell_wait_opp_if_yell_lives",
+          "center_only": true,
+          "once_per_turn": true,
+          "min_yell_lives": 2,
+          "max_printed_hearts": 4
+        }
+      ],
+      "subunit": "AZALEA",
+      "blade": 7,
+      "text_es": "[Automático] [Centro] [Una vez por turno] Cuando haces Yell, si hay 2 o más cartas de Live entre las cartas reveladas por Yell, pon en Wait a 1 Miembro del Escenario rival con 4 corazones impresos o menos.",
+      "text_ko": "[자동] [센터] [턴당 1회] 자신이 Yell했을 때, Yell로 공개된 카드 중에 라이브 카드가 2장 이상 있는 경우, 상대 스테이지에 있는 원래 가진 하트 수가 4개 이하인 멤버 1명을 Wait로 만든다.",
+      "text_zh": "[自动] [中央] [每回合1次] 当你Yell时，若Yell公开的卡中有2张以上的Live卡，将对手舞台上原本心形数为4以下的1名成员置于等待状态。",
+      "text_th": "[อัตโนมัติ] [เซ็นเตอร์] [เทิร์นละ 1 ครั้ง] เมื่อคุณ Yell ถ้ามีการ์ด Live 2 ใบขึ้นไปในการ์ดที่เปิดเผยโดย Yell ทำให้สมาชิกบนเวทีฝ่ายตรงข้ามที่มีหัวใจพิมพ์ 4 หรือน้อยกว่า 1 คนเป็น Wait",
+      "text_pt": "[Automático] [Centro] [Uma vez por turno] Quando você der Yell, se houver 2 ou mais cartas Live entre as cartas reveladas por Yell, coloque em Wait 1 Membro do Palco oponente com 4 ou menos corações impressos.",
+      "text_fr": "[Automatique] [Centre] [Une fois par tour] Lorsque vous Yell, s'il y a 2 cartes Live ou plus parmi les cartes révélées par Yell, mettez en Wait 1 Membre de la Scène adverse avec 4 cœurs imprimés ou moins."
+    },
+    {
+      "card_no": "PL!S-cl1-005-CL",
+      "name": "渡辺 曜",
+      "name_en": "You Watanabe",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "cost": 11,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "green",
+          "count": 1
+        },
+        {
+          "color": "blue",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "CL",
+      "text": "[Live Start] Look at the top card of your deck. You may put it on the bottom of your deck.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />自分のデッキの一番上のカードを見る。それをデッキの一番下に置いてもよい。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-005-CL.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "look_top_optional_deck_bottom",
+          "look": 1
+        }
+      ],
+      "subunit": "CYaRon！",
+      "blade": 4,
+      "text_es": "[Inicio de Live] Mira la carta superior de tu mazo. Puedes colocarla en la parte inferior de tu mazo.",
+      "text_ko": "[라이브 개시] 자신의 덱 맨 위 카드를 확인한다. 그 카드를 덱 맨 아래에 놓아도 된다.",
+      "text_zh": "[现场开始] 查看你牌组顶的1张牌。你可以将其放置到牌组底部。",
+      "text_th": "[เริ่ม Live] ดูการ์ดใบบนสุดของเด็คของคุณ คุณสามารถวางการ์ดนั้นไว้ที่ด้านล่างสุดของเด็คได้",
+      "text_pt": "[Início de Live] Olhe a carta do topo do seu deck. Você pode colocá-la no fundo do seu deck.",
+      "text_fr": "[Début de Live] Regardez la carte du dessus de votre deck. Vous pouvez la placer en dessous de votre deck."
+    },
+    {
+      "card_no": "PL!S-cl1-006-CL",
+      "name": "津島善子",
+      "name_en": "Yoshiko Tsushima",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "cost": 7,
+      "hearts": [
+        {
+          "color": "green",
+          "count": 1
+        },
+        {
+          "color": "blue",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "CL",
+      "text": "[Live Start] You may put 1 card from your hand on the bottom of your deck: until this Live ends, this card gains 2<blade>.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />手札を1枚デッキの一番下に置いてもよい：ライブ終了時まで、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" /><img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" />を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-006-CL.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "live_start_optional_hand_deck_bottom_blade",
+          "count": 1,
+          "amount": 2
+        }
+      ],
+      "subunit": "Guilty Kiss",
+      "blade": 2,
+      "text_es": "[Inicio de Live] Puedes colocar 1 carta de tu mano en la parte inferior de tu mazo: hasta que termine este Live, esta carta gana 2<blade>.",
+      "text_ko": "[라이브 개시] 패에서 카드 1장을 덱 맨 아래에 놓아도 된다: 이 라이브가 끝날 때까지 이 카드는 2<blade>를 얻는다.",
+      "text_zh": "[现场开始] 你可以将1张手牌放置到牌组底部：直到本场Live结束，该卡获得2<blade>。",
+      "text_th": "[เริ่ม Live] คุณสามารถวางการ์ด 1 ใบจากมือของคุณไว้ที่ด้านล่างสุดของเด็ค: จนกว่า Live นี้จะจบ การ์ดใบนี้ได้รับ 2<blade>",
+      "text_pt": "[Início de Live] Você pode colocar 1 carta da sua mão no fundo do seu deck: até o fim desta Live, esta carta ganha 2<blade>.",
+      "text_fr": "[Début de Live] Vous pouvez placer 1 carte de votre main en dessous de votre deck : jusqu'à la fin de ce Live, cette carte gagne 2<blade>."
+    },
+    {
+      "card_no": "PL!S-cl1-007-CL",
+      "name": "国木田花丸",
+      "name_en": "Hanamaru Kunikida",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "cost": 5,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "green",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [],
+      "rarity": "CL",
+      "text": "[Live Start] You may put 1 card from your hand into the Waiting Room: until this Live ends, perform your Yell from the bottom of your deck instead of the top.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />手札を1枚控え室に置いてもよい：ライブ終了時まで、自分のエールは、デッキの上から行う代わりにデッキの下から行う。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-007-CL.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "live_start_optional_discard_yell_from_bottom",
+          "count": 1
+        }
+      ],
+      "subunit": "AZALEA",
+      "blade": 2,
+      "text_es": "[Inicio de Live] Puedes colocar 1 carta de tu mano en la Sala de espera: hasta que termine este Live, realizas tu Yell desde la parte inferior de tu mazo en lugar de la superior.",
+      "text_ko": "[라이브 개시] 패에서 카드 1장을 대기실에 놓아도 된다: 이 라이브가 끝날 때까지 자신의 Yell을 덱 맨 위가 아닌 맨 아래에서 수행한다.",
+      "text_zh": "[现场开始] 你可以将1张手牌放入等候室：直到本场Live结束，你的Yell从牌组底部而不是顶部进行。",
+      "text_th": "[เริ่ม Live] คุณสามารถนำการ์ด 1 ใบจากมือของคุณไปไว้ในห้องรอ: จนกว่า Live นี้จะจบ ทำ Yell ของคุณจากด้านล่างสุดของเด็คแทนที่จะเป็นด้านบน",
+      "text_pt": "[Início de Live] Você pode colocar 1 carta da sua mão na Sala de Espera: até o fim desta Live, realize seu Yell a partir do fundo do seu deck em vez do topo.",
+      "text_fr": "[Début de Live] Vous pouvez placer 1 carte de votre main dans la Salle d'attente : jusqu'à la fin de ce Live, effectuez votre Yell depuis le dessous de votre deck au lieu du dessus."
+    },
+    {
+      "card_no": "PL!S-cl1-008-CL",
+      "name": "小原鞠莉",
+      "name_en": "Mari Ohara",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "cost": 4,
+      "hearts": [
+        {
+          "color": "blue",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "blue"
+      ],
+      "rarity": "CL",
+      "text": "[Activated] [Once per turn] Put this Member into Wait and put 1 card from your hand into the Waiting Room: draw 1 card.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/kidou.png\" alt=\"起動\" /><img class=\"\" src=\"/wordpress/wp-content/images/texticon/turn1.png\" alt=\"ターン1回\" />このメンバーをウェイトにし、手札を1枚控え室に置く：カードを1枚引く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-008-CL.png",
+      "abilities": [
+        {
+          "trigger": "activated",
+          "type": "wait_self_discard_draw",
+          "discard": 1,
+          "draw": 1,
+          "once_per_turn": true
+        }
+      ],
+      "subunit": "Guilty Kiss",
+      "blade": 2,
+      "text_es": "[Activada] [Una vez por turno] Coloca este Miembro en Wait y coloca 1 carta de tu mano en la Sala de espera: roba 1 carta.",
+      "text_ko": "[기동] [턴당 1회] 이 멤버를 Wait로 보내고 패에서 카드 1장을 대기실에 놓는다: 카드 1장을 드로우한다.",
+      "text_zh": "[起动] [每回合1次] 将该成员置于等待状态，并将自己手牌中的1张卡放入等候室：抽1张卡。",
+      "text_th": "[เปิดใช้] [เทิร์นละ 1 ครั้ง] นำสมาชิกคนนี้ไปรอ และนำการ์ด 1 ใบจากมือของคุณไปที่ห้องรอ: จั่วการ์ด 1 ใบ",
+      "text_pt": "[Ativado] [Uma vez por turno] Coloque este Membro em Wait e coloque 1 carta da sua mão na Sala de Espera: compre 1 carta.",
+      "text_fr": "[Activé] [Une fois par tour] Placez ce Membre en Wait et placez 1 carte de votre main dans la Salle d'attente : piochez 1 carte."
+    },
+    {
+      "card_no": "PL!S-cl1-009-CL",
+      "name": "黒澤ルビィ",
+      "name_en": "Ruby Kurosawa",
+      "card_type": "メンバー",
+      "card_type_en": "Member",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "cost": 2,
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        }
+      ],
+      "blade_hearts": [
+        "red"
+      ],
+      "rarity": "CL",
+      "text": "[Activated] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/kidou.png\" alt=\"起動\" />このメンバーをステージから控え室に置く：自分の控え室からメンバーカードを1枚手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-009-CL.png",
+      "abilities": [
+        {
+          "trigger": "activated",
+          "type": "leave_stage_add_from_wr",
+          "group": "",
+          "filter": "member",
+          "count": 1
+        }
+      ],
+      "subunit": "CYaRon！",
+      "blade": 1,
+      "text_es": "[Activada] Coloca este Miembro del Escenario en la Sala de espera: añade 1 carta de Miembro de tu Sala de espera a tu mano.",
+      "text_ko": "[기동] 이 멤버를 스테이지에서 대기실에 놓는다: 자신의 대기실에서 멤버 카드 1장을 패에 추가한다.",
+      "text_zh": "[起动] 将舞台上的该成员放入等候室：将等候室中的1张成员卡加入手牌。",
+      "text_th": "[เปิดใช้] นำสมาชิกคนนี้จากเวทีไปที่ห้องรอ: เพิ่มการ์ดสมาชิก 1 ใบจากห้องรอของคุณขึ้นมือ",
+      "text_pt": "[Ativado] Coloque este Membro do Palco na Sala de Espera: adicione 1 carta Membro da sua Sala de Espera à sua mão.",
+      "text_fr": "[Activé] Placez ce Membre de la Scène dans la Salle d'attente : ajoutez 1 carte Membre de votre Salle d'attente à votre main."
+    },
+    {
+      "card_no": "PL!S-cl1-010-CL",
+      "name": "未体験HORIZON",
+      "name_en": "Mitaiken HORIZON",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "green",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [
+        "all"
+      ],
+      "rarity": "CL",
+      "text": "[Live Start] Choose up to 1 Aqours Live card with a Score icon, up to 1 with an ALL <blade> icon, and up to 1 with a double ALL <blade> icon from your Waiting Room and put them on the bottom of your deck in any order. Then, until this Live ends, the Aqours Member in your Center area gains 1<blade> for each card put on the bottom of your deck this way.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />自分の控え室から、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_score.png\" alt=\"スコア\" />を持つ『Aqours』のライブカード1枚までと、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_b_all.png\" alt=\"ALLブレード\" />を持つ『Aqours』のライブカード1枚までと、[<img class=\"\" src=\"/wordpress/wp-content/images/texticon/blade_heart07.png\" alt=\"無2\" />]を持つ『Aqours』のライブカード1枚までを選び、それらを好きな順番でデッキの下に置く。その後、ライブ終了時まで、自分のセンターエリアにいる『Aqours』のメンバーは、これによりデッキの下に置いたカード1枚につき、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" />を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-010-CL.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "live_start_wr_live_icons_deck_bottom_center_blade",
+          "group": "Sunshine"
+        }
+      ],
+      "score": 2,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 1
+        },
+        {
+          "color": "green",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ],
+      "text_es": "[Inicio de Live] Elige de tu Sala de espera hasta 1 carta Live de Aqours con icono de Score, hasta 1 con icono ALL <blade> y hasta 1 con icono ALL <blade> doble, y colócalas en la parte inferior de tu mazo en el orden que quieras. Luego, hasta que termine este Live, el Miembro de Aqours en tu área Central gana 1<blade> por cada carta colocada así en la parte inferior de tu mazo.",
+      "text_ko": "[라이브 개시] 자신의 대기실에서 Score 아이콘을 가진 Aqours 라이브 카드 1장까지, ALL <blade> 아이콘을 가진 Aqours 라이브 카드 1장까지, 더블 ALL <blade> 아이콘을 가진 Aqours 라이브 카드 1장까지를 선택하여 원하는 순서대로 덱 맨 아래에 놓는다. 그 후, 이 라이브가 끝날 때까지 자신의 센터 영역에 있는 Aqours 멤버는 이렇게 덱 맨 아래에 놓은 카드 1장당 1<blade>를 얻는다.",
+      "text_zh": "[现场开始] 从你的等候室中选择至多1张带有Score图标的Aqours Live卡、至多1张带有ALL <blade>图标的Aqours Live卡、至多1张带有双重ALL <blade>图标的Aqours Live卡，按任意顺序放置到牌组底部。然后，直到本场Live结束，你中央区域的Aqours成员每有1张以这种方式放置到牌组底部的卡，就获得1<blade>。",
+      "text_th": "[เริ่ม Live] เลือกการ์ด Live ของ Aqours ที่มีไอคอน Score สูงสุด 1 ใบ, ที่มีไอคอน ALL <blade> สูงสุด 1 ใบ และที่มีไอคอน ALL <blade> คู่สูงสุด 1 ใบ จากห้องรอของคุณ แล้ววางไว้ที่ด้านล่างสุดของเด็คตามลำดับที่ต้องการ จากนั้น จนกว่า Live นี้จะจบ สมาชิก Aqours ในพื้นที่เซ็นเตอร์ของคุณได้รับ 1<blade> ต่อการ์ดแต่ละใบที่วางไว้ด้านล่างสุดของเด็คด้วยวิธีนี้",
+      "text_pt": "[Início de Live] Escolha da sua Sala de Espera até 1 carta Live Aqours com ícone de Score, até 1 com ícone ALL <blade> e até 1 com ícone ALL <blade> duplo, e coloque-as no fundo do seu deck em qualquer ordem. Depois, até o fim desta Live, o Membro Aqours na sua área Central ganha 1<blade> para cada carta colocada no fundo do seu deck desta forma.",
+      "text_fr": "[Début de Live] Choisissez dans votre Salle d'attente jusqu'à 1 carte Live Aqours avec une icône Score, jusqu'à 1 avec une icône ALL <blade> et jusqu'à 1 avec une icône ALL <blade> double, et placez-les en dessous de votre deck dans n'importe quel ordre. Ensuite, jusqu'à la fin de ce Live, le Membre Aqours dans votre zone Centre gagne 1<blade> pour chaque carte placée ainsi en dessous de votre deck."
+    },
+    {
+      "card_no": "PL!S-cl1-011-CL",
+      "name": "想いよひとつになれ",
+      "name_en": "Omoi yo Hitotsu ni Nare",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "green",
+          "count": 1
+        },
+        {
+          "color": "blue",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ],
+      "blade_hearts": [
+        "all"
+      ],
+      "rarity": "CL",
+      "text": "[Live Success] If you have 3 or more Aqours Members on your Stage and they all have a heart of the same color, add 1 Aqours Member card with a heart of that color from the cards revealed by Yell to your hand.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_success.png\" alt=\"ライブ成功時\" />自分のステージに『Aqours』のメンバーが3人以上おり、かつ、それらのメンバーが同じ色のハートを持つ場合、エールにより公開された自分のカードの中から、その色のハートを持つ『Aqours』のメンバーカード1枚を手札に加える。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-011-CL.png",
+      "abilities": [
+        {
+          "trigger": "live_success",
+          "type": "live_success_yell_pick_member_shared_heart",
+          "group": "Sunshine",
+          "min_members": 3
+        }
+      ],
+      "score": 3,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "green",
+          "count": 1
+        },
+        {
+          "color": "blue",
+          "count": 1
+        },
+        {
+          "color": "any",
+          "count": 3
+        }
+      ],
+      "text_es": "[Éxito de Live] Si tienes 3 o más Miembros de Aqours en tu Escenario y todos tienen un corazón del mismo color, añade a tu mano 1 carta de Miembro de Aqours con un corazón de ese color de entre las cartas reveladas por Yell.",
+      "text_ko": "[라이브 성공] 자신의 스테이지에 Aqours 멤버가 3명 이상 있고 그 멤버들이 모두 같은 색의 하트를 가지고 있는 경우, Yell로 공개된 카드 중에서 그 색의 하트를 가진 Aqours 멤버 카드 1장을 패에 추가한다.",
+      "text_zh": "[现场成功] 若你的舞台上有3名以上的Aqours成员，且这些成员都拥有同一颜色的心形，则从Yell公开的卡中，将1张拥有该颜色心形的Aqours成员卡加入手牌。",
+      "text_th": "[Live สำเร็จ] ถ้าคุณมีสมาชิก Aqours 3 คนขึ้นไปบนเวที และสมาชิกเหล่านั้นทั้งหมดมีหัวใจสีเดียวกัน ให้เพิ่มการ์ดสมาชิก Aqours 1 ใบที่มีหัวใจสีนั้นจากการ์ดที่เปิดเผยโดย Yell ขึ้นมือของคุณ",
+      "text_pt": "[Live Bem-Sucedida] Se você tiver 3 ou mais Membros Aqours no seu Palco e todos eles tiverem um coração da mesma cor, adicione à sua mão 1 carta Membro Aqours com um coração dessa cor dentre as cartas reveladas por Yell.",
+      "text_fr": "[Live réussi] Si vous avez 3 Membres Aqours ou plus sur votre Scène et qu'ils ont tous un cœur de la même couleur, ajoutez à votre main 1 carte Membre Aqours avec un cœur de cette couleur parmi les cartes révélées par Yell."
+    },
+    {
+      "card_no": "PL!S-cl1-012-CL",
+      "name": "キセキヒカル",
+      "name_en": "Kiseki Hikaru",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "green",
+          "count": 2
+        },
+        {
+          "color": "blue",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 6
+        }
+      ],
+      "blade_hearts": [
+        "blue"
+      ],
+      "rarity": "CL",
+      "text": "[Live Start] For each Aqours Live card in your Success Live area, choose up to 1 Live card with the same card name from your Waiting Room and put them on top of your deck in any order.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />自分の成功ライブカード置き場にある『Aqours』の各ライブカードにつき、自分の控え室から、それぞれそのカードと同じカード名を持つライブカードを1枚まで選び、それらを好きな順番でデッキの上に置く。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-012-CL.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "live_start_success_live_same_name_wr_deck_top",
+          "group": "Sunshine"
+        }
+      ],
+      "special_heart": "icon_draw.png",
+      "yell_draw_icon": true,
+      "score": 5,
+      "required_hearts": [
+        {
+          "color": "red",
+          "count": 2
+        },
+        {
+          "color": "green",
+          "count": 2
+        },
+        {
+          "color": "blue",
+          "count": 2
+        },
+        {
+          "color": "any",
+          "count": 6
+        }
+      ],
+      "text_es": "[Inicio de Live] Por cada carta Live de Aqours en tu área de Lives exitosos, elige de tu Sala de espera hasta 1 carta Live con el mismo nombre y colócalas en la parte superior de tu mazo en el orden que quieras.",
+      "text_ko": "[라이브 개시] 자신의 성공 라이브 카드 영역에 있는 Aqours 라이브 카드 1장마다, 자신의 대기실에서 그 카드와 같은 카드명을 가진 라이브 카드 1장까지를 선택하여 원하는 순서대로 덱 맨 위에 놓는다.",
+      "text_zh": "[现场开始] 对于你成功Live区域中的每张Aqours Live卡，从你的等候室中选择至多1张同名的Live卡，按任意顺序放置到牌组顶部。",
+      "text_th": "[เริ่ม Live] สำหรับการ์ด Live ของ Aqours แต่ละใบในพื้นที่ Live สำเร็จของคุณ เลือกการ์ด Live ที่มีชื่อเดียวกันสูงสุด 1 ใบจากห้องรอของคุณ แล้ววางไว้ที่ด้านบนสุดของเด็คตามลำดับที่ต้องการ",
+      "text_pt": "[Início de Live] Para cada carta Live Aqours na sua área de Lives Bem-Sucedidas, escolha da sua Sala de Espera até 1 carta Live com o mesmo nome e coloque-as no topo do seu deck em qualquer ordem.",
+      "text_fr": "[Début de Live] Pour chaque carte Live Aqours dans votre zone de Lives réussis, choisissez dans votre Salle d'attente jusqu'à 1 carte Live portant le même nom et placez-les au-dessus de votre deck dans n'importe quel ordre."
+    },
+    {
+      "card_no": "PL!S-cl1-013-CL",
+      "name": "WATER BLUE NEW WORLD",
+      "name_en": "WATER BLUE NEW WORLD",
+      "card_type": "ライブ",
+      "card_type_en": "Live",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "hearts": [
+        {
+          "color": "blue",
+          "count": 15
+        },
+        {
+          "color": "any",
+          "count": 9
+        }
+      ],
+      "blade_hearts": [
+        "all2"
+      ],
+      "rarity": "CL",
+      "text": "[Live Start] Choose up to 6 Aqours Member cards without Blade hearts from your Waiting Room, shuffle them, and put them on the bottom of your deck. Until this Live ends, 1 Aqours Member on your Stage gains <blueH><blueH> for every 2 cards put on the bottom of your deck this way.",
+      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />自分の控え室にある、ブレードハートを持たない『Aqours』のメンバーカードを6枚まで選ぶ。それらをシャッフルし、デッキの一番下に置く。ライブ終了時まで、自分のステージにいる『Aqours』のメンバー1人は、これによりデッキの下に置いたカード2枚につき、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/heart_05.png\" alt=\"heart05\" /><img class=\"\" src=\"/wordpress/wp-content/images/texticon/heart_05.png\" alt=\"heart05\" />を得る。",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-013-CL.png",
+      "abilities": [
+        {
+          "trigger": "live_start",
+          "type": "live_start_wr_bladeless_members_deck_bottom_hearts",
+          "group": "Sunshine",
+          "max_pick": 6,
+          "per": 2,
+          "hearts": [
+            {
+              "color": "blue",
+              "count": 2
+            }
+          ]
+        }
+      ],
+      "score": 10,
+      "required_hearts": [
+        {
+          "color": "blue",
+          "count": 15
+        },
+        {
+          "color": "any",
+          "count": 9
+        }
+      ],
+      "text_es": "[Inicio de Live] Elige de tu Sala de espera hasta 6 cartas de Miembro de Aqours sin corazones de Blade, barájalas y colócalas en la parte inferior de tu mazo. Hasta que termine este Live, 1 Miembro de Aqours en tu Escenario gana <blueH><blueH> por cada 2 cartas colocadas así en la parte inferior de tu mazo.",
+      "text_ko": "[라이브 개시] 자신의 대기실에서 블레이드 하트를 가지지 않은 Aqours 멤버 카드를 6장까지 선택하여 섞은 뒤 덱 맨 아래에 놓는다. 이 라이브가 끝날 때까지 자신의 스테이지에 있는 Aqours 멤버 1명은 이렇게 덱 맨 아래에 놓은 카드 2장마다 <blueH><blueH>를 얻는다.",
+      "text_zh": "[现场开始] 从你的等候室中选择至多6张没有刀刃心形的Aqours成员卡，将它们洗牌后放置到牌组底部。直到本场Live结束，你舞台上的1名Aqours成员每有2张以这种方式放置到牌组底部的卡，就获得<blueH><blueH>。",
+      "text_th": "[เริ่ม Live] เลือกการ์ดสมาชิก Aqours ที่ไม่มีหัวใจเบลดสูงสุด 6 ใบจากห้องรอของคุณ สับการ์ดเหล่านั้น แล้ววางไว้ที่ด้านล่างสุดของเด็ค จนกว่า Live นี้จะจบ สมาชิก Aqours 1 คนบนเวทีของคุณได้รับ <blueH><blueH> ต่อทุก 2 ใบที่วางไว้ด้านล่างสุดของเด็คด้วยวิธีนี้",
+      "text_pt": "[Início de Live] Escolha da sua Sala de Espera até 6 cartas Membro Aqours sem corações de Blade, embaralhe-as e coloque-as no fundo do seu deck. Até o fim desta Live, 1 Membro Aqours no seu Palco ganha <blueH><blueH> para cada 2 cartas colocadas no fundo do seu deck desta forma.",
+      "text_fr": "[Début de Live] Choisissez dans votre Salle d'attente jusqu'à 6 cartes Membre Aqours sans cœurs de Blade, mélangez-les et placez-les en dessous de votre deck. Jusqu'à la fin de ce Live, 1 Membre Aqours sur votre Scène gagne <blueH><blueH> pour chaque tranche de 2 cartes placées ainsi en dessous de votre deck."
+    },
+    {
+      "card_no": "PL!S-cl1-014-CL",
+      "name": "CYaRon！",
+      "name_en": "CYaRon！",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "rarity": "CL",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-014-CL.png",
+      "subunit": "CYaRon！"
+    },
+    {
+      "card_no": "PL!S-cl1-015-CL",
+      "name": "AZALEA",
+      "name_en": "AZALEA",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "rarity": "CL",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-015-CL.png",
+      "subunit": "AZALEA"
+    },
+    {
+      "card_no": "PL!S-cl1-016-CL",
+      "name": "Guilty Kiss",
+      "name_en": "Guilty Kiss",
+      "card_type": "エネルギー",
+      "card_type_en": "Energy",
+      "group": "Sunshine",
+      "booster_pack": "コレクション クリアポケット ラブライブ！サンシャイン!!",
+      "rarity": "CL",
+      "text": "",
+      "text_jp": "",
+      "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-016-CL.png",
+      "subunit": "Guilty Kiss"
+    },
+    {
       "card_no": "PL!S-pb1-001-P＋",
       "name": "高海千歌",
       "name_en": "Chika Takami",
