@@ -73624,7 +73624,7 @@
       ],
       "rarity": "CL",
       "text": "[On Enter] Put the top 5 cards of your deck into the Waiting Room.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/toujyou.png\" alt=\"登場\" />自分のデッキの上からカードを5枚控え室に置く。",
+      "text_jp": "[登場時] 自分のデッキの上からカードを5枚控え室に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-001-CL.png",
       "abilities": [
         {
@@ -73668,7 +73668,7 @@
       "blade_hearts": [],
       "rarity": "CL",
       "text": "[Live Success] From cards revealed by Yell, put up to 3 Aqours cards on the bottom of your deck in any order.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_success.png\" alt=\"ライブ成功時\" />エールにより公開された自分のカードの中から、『Aqours』のカードを3枚まで、好きな順番でデッキの下に置く。",
+      "text_jp": "[ライブ成功時] エールにより公開された自分のカードの中から、『Aqours』のカードを3枚まで、好きな順番でデッキの下に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-002-CL.png",
       "abilities": [
         {
@@ -73707,7 +73707,7 @@
       ],
       "rarity": "CL",
       "text": "[Activated] Put this Member from the Stage into the Waiting Room: add 1 Aqours card from your Waiting Room to your hand.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/kidou.png\" alt=\"起動\" />このメンバーをステージから控え室に置く：自分の控え室から『Aqours』のカードを1枚手札に加える。",
+      "text_jp": "[起動] このメンバーをステージから控え室に置く：自分の控え室から『Aqours』のカードを1枚手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-003-CL.png",
       "abilities": [
         {
@@ -73755,7 +73755,7 @@
       ],
       "rarity": "CL",
       "text": "[Automatic] [Center] [Once per turn] When you Yell, if there are 2 or more Live cards among the cards revealed by Yell, put 1 opponent Stage Member with 4 or fewer printed hearts into Wait.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/jidou.png\" alt=\"自動\" />[センター]<img class=\"\" src=\"/wordpress/wp-content/images/texticon/turn1.png\" alt=\"ターン1回\" />自分がエールしたとき、エールにより公開された自分のカードの中にライブカードが2枚以上ある場合、相手のステージにいる元々持つハートの数が4つ以下のメンバー1人をウェイトにする。",
+      "text_jp": "[自動] [センター] [ターン1回] 自分がエールしたとき、エールにより公開された自分のカードの中にライブカードが2枚以上ある場合、相手のステージにいる元々持つハートの数が4つ以下のメンバー1人をウェイトにする。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-004-CL.png",
       "abilities": [
         {
@@ -73804,7 +73804,7 @@
       ],
       "rarity": "CL",
       "text": "[Live Start] Look at the top card of your deck. You may put it on the bottom of your deck.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />自分のデッキの一番上のカードを見る。それをデッキの一番下に置いてもよい。",
+      "text_jp": "[ライブ開始時] 自分のデッキの一番上のカードを見る。それをデッキの一番下に置いてもよい。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-005-CL.png",
       "abilities": [
         {
@@ -73844,7 +73844,7 @@
       "blade_hearts": [],
       "rarity": "CL",
       "text": "[Live Start] You may put 1 card from your hand on the bottom of your deck: until this Live ends, this card gains 2<blade>.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />手札を1枚デッキの一番下に置いてもよい：ライブ終了時まで、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" /><img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" />を得る。",
+      "text_jp": "[ライブ開始時] 手札を1枚デッキの一番下に置いてもよい：ライブ終了時まで、＋2ブレードを得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-006-CL.png",
       "abilities": [
         {
@@ -73885,7 +73885,7 @@
       "blade_hearts": [],
       "rarity": "CL",
       "text": "[Live Start] You may put 1 card from your hand into the Waiting Room: until this Live ends, perform your Yell from the bottom of your deck instead of the top.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />手札を1枚控え室に置いてもよい：ライブ終了時まで、自分のエールは、デッキの上から行う代わりにデッキの下から行う。",
+      "text_jp": "[ライブ開始時] 手札を1枚控え室に置いてもよい：ライブ終了時まで、自分のエールは、デッキの上から行う代わりにデッキの下から行う。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-007-CL.png",
       "abilities": [
         {
@@ -73923,7 +73923,7 @@
       ],
       "rarity": "CL",
       "text": "[Activated] [Once per turn] Put this Member into Wait and put 1 card from your hand into the Waiting Room: draw 1 card.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/kidou.png\" alt=\"起動\" /><img class=\"\" src=\"/wordpress/wp-content/images/texticon/turn1.png\" alt=\"ターン1回\" />このメンバーをウェイトにし、手札を1枚控え室に置く：カードを1枚引く。",
+      "text_jp": "[起動] [ターン1回] このメンバーをウェイトにし、手札を1枚控え室に置く：カードを1枚引く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-008-CL.png",
       "abilities": [
         {
@@ -73963,7 +73963,7 @@
       ],
       "rarity": "CL",
       "text": "[Activated] Put this Member from the Stage into the Waiting Room: add 1 Member card from your Waiting Room to your hand.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/kidou.png\" alt=\"起動\" />このメンバーをステージから控え室に置く：自分の控え室からメンバーカードを1枚手札に加える。",
+      "text_jp": "[起動] このメンバーをステージから控え室に置く：自分の控え室からメンバーカードを1枚手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-009-CL.png",
       "abilities": [
         {
@@ -74010,7 +74010,7 @@
       ],
       "rarity": "CL",
       "text": "[Live Start] Choose up to 1 Aqours Live card with a Score icon, up to 1 with an ALL <blade> icon, and up to 1 with a double ALL <blade> icon from your Waiting Room and put them on the bottom of your deck in any order. Then, until this Live ends, the Aqours Member in your Center area gains 1<blade> for each card put on the bottom of your deck this way.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />自分の控え室から、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_score.png\" alt=\"スコア\" />を持つ『Aqours』のライブカード1枚までと、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_b_all.png\" alt=\"ALLブレード\" />を持つ『Aqours』のライブカード1枚までと、[<img class=\"\" src=\"/wordpress/wp-content/images/texticon/blade_heart07.png\" alt=\"無2\" />]を持つ『Aqours』のライブカード1枚までを選び、それらを好きな順番でデッキの下に置く。その後、ライブ終了時まで、自分のセンターエリアにいる『Aqours』のメンバーは、これによりデッキの下に置いたカード1枚につき、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/icon_blade.png\" alt=\"ブレード\" />を得る。",
+      "text_jp": "[ライブ開始時] 自分の控え室から、スコアを持つ『Aqours』のライブカード1枚までと、ALLブレードを持つ『Aqours』のライブカード1枚までと、[無2]を持つ『Aqours』のライブカード1枚までを選び、それらを好きな順番でデッキの下に置く。その後、ライブ終了時まで、自分のセンターエリアにいる『Aqours』のメンバーは、これによりデッキの下に置いたカード1枚につき、＋1ブレードを得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-010-CL.png",
       "abilities": [
         {
@@ -74072,7 +74072,7 @@
       ],
       "rarity": "CL",
       "text": "[Live Success] If you have 3 or more Aqours Members on your Stage and they all have a heart of the same color, add 1 Aqours Member card with a heart of that color from the cards revealed by Yell to your hand.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_success.png\" alt=\"ライブ成功時\" />自分のステージに『Aqours』のメンバーが3人以上おり、かつ、それらのメンバーが同じ色のハートを持つ場合、エールにより公開された自分のカードの中から、その色のハートを持つ『Aqours』のメンバーカード1枚を手札に加える。",
+      "text_jp": "[ライブ成功時] 自分のステージに『Aqours』のメンバーが3人以上おり、かつ、それらのメンバーが同じ色のハートを持つ場合、エールにより公開された自分のカードの中から、その色のハートを持つ『Aqours』のメンバーカード1枚を手札に加える。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-011-CL.png",
       "abilities": [
         {
@@ -74139,7 +74139,7 @@
       ],
       "rarity": "CL",
       "text": "[Live Start] For each Aqours Live card in your Success Live area, choose up to 1 Live card with the same card name from your Waiting Room and put them on top of your deck in any order.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />自分の成功ライブカード置き場にある『Aqours』の各ライブカードにつき、自分の控え室から、それぞれそのカードと同じカード名を持つライブカードを1枚まで選び、それらを好きな順番でデッキの上に置く。",
+      "text_jp": "[ライブ開始時] 自分の成功ライブカード置き場にある『Aqours』の各ライブカードにつき、自分の控え室から、それぞれそのカードと同じカード名を持つライブカードを1枚まで選び、それらを好きな順番でデッキの上に置く。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-012-CL.png",
       "abilities": [
         {
@@ -74199,7 +74199,7 @@
       ],
       "rarity": "CL",
       "text": "[Live Start] Choose up to 6 Aqours Member cards without Blade hearts from your Waiting Room, shuffle them, and put them on the bottom of your deck. Until this Live ends, 1 Aqours Member on your Stage gains <blueH><blueH> for every 2 cards put on the bottom of your deck this way.",
-      "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />自分の控え室にある、ブレードハートを持たない『Aqours』のメンバーカードを6枚まで選ぶ。それらをシャッフルし、デッキの一番下に置く。ライブ終了時まで、自分のステージにいる『Aqours』のメンバー1人は、これによりデッキの下に置いたカード2枚につき、<img class=\"\" src=\"/wordpress/wp-content/images/texticon/heart_05.png\" alt=\"heart05\" /><img class=\"\" src=\"/wordpress/wp-content/images/texticon/heart_05.png\" alt=\"heart05\" />を得る。",
+      "text_jp": "[ライブ開始時] 自分の控え室にある、ブレードハートを持たない『Aqours』のメンバーカードを6枚まで選ぶ。それらをシャッフルし、デッキの一番下に置く。ライブ終了時まで、自分のステージにいる『Aqours』のメンバー1人は、これによりデッキの下に置いたカード2枚につき、青ハート2つを得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/CLLS01/PL!S-cl1-013-CL.png",
       "abilities": [
         {
