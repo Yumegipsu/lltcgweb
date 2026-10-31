@@ -9579,6 +9579,8 @@ body.gacha-pull-open{overflow:hidden}
 .deck-pin-row{position:absolute;top:-22px;right:6px;z-index:2;display:flex;margin:0;padding:0}
 .deck-pin-row[hidden]{display:none!important}
 #deck-account-decklog-wrap{position:relative}
+/* The pin button floats over the top-right corner: keep the label text out from under it (it wraps instead). */
+.deck-pin-row:not([hidden]) + label{padding-right:48px}
 #deck-account-decklog-wrap .deck-pin-fab .news-fab-icon{width:36px;height:36px}
 #deck-account-decklog-wrap .deck-pin-fab .news-fab-icon svg{width:19px;height:19px}
 .deck-pin-fab-badge{position:absolute;top:-7px;right:-10px;min-width:20px;padding:1px 5px;border-radius:999px;
