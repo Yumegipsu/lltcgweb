@@ -4,8 +4,8 @@
  * GET ?u=<discord id>&h=<avatar hash>  → image/png (immutable: the hash is part of the URL)
  *
  * The image is downloaded from Discord once and kept under data/avatars/. If Discord no longer serves
- * that hash (the player changed it), the newest hash we can learn is fetched instead; failing that the
- * last cached picture, then Discord's default avatar, is served so a card never shows a broken image.
+ * that hash (the player changed it), the newest hash we can learn is fetched instead; failing that we
+ * redirect to Discord's default avatar (never another hash's cached file — that looked like a stuck avatar).
  */
 declare(strict_types=1);
 
@@ -22,7 +22,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS') {
 function tcgAvatarSend(string $file, string $cache): never
 {
     tcgSendCorsHeaders();
-    header('Content-Type: image/png');
+    header('Content-Type: ' . tcgAvatarContentType($file));
     header('Cache-Control: ' . $cache);
     header('Content-Length: ' . filesize($file));
     readfile($file);
@@ -79,11 +79,13 @@ if ($allowed) {
     }
 }
 
-// Discord does not serve this hash: look for the player's current one, fetch it, and remember it.
-$fresh = $loginHash !== null && $loginHash !== '' && $loginHash !== $hash ? $loginHash : null;
-if ($fresh === null) {
-    $looked = tcgAvatarFreshHash($id, true);
-    $fresh = ($looked !== null && $looked !== '' && $looked !== $hash) ? $looked : null;
+// Discord does not serve this hash: look for the player's current one (bot first, then login cache).
+$fresh = null;
+$looked = tcgAvatarFreshHash($id, true);
+if ($looked !== null && $looked !== '' && $looked !== $hash) {
+    $fresh = $looked;
+} elseif ($loginHash !== null && $loginHash !== '' && $loginHash !== $hash) {
+    $fresh = $loginHash;
 }
 if ($fresh !== null) {
     $got = tcgAvatarDownload($id, $fresh);
@@ -98,8 +100,6 @@ if ($fresh !== null) {
     }
 }
 
-$last = tcgAvatarNewestCached($id);
-if ($last !== null) {
-    tcgAvatarSend($last, 'public, max-age=300');
-}
+// Do not serve a different hash's file for a URL that named $hash — that made changed avatars look
+// stuck on the previous picture. Fall through to Discord's default instead.
 tcgAvatarDefaultRedirect($id);

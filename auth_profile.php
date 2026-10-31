@@ -340,37 +340,103 @@ function tcgBuildAuthUserProfile(string $userId): array
 }
 
 /** How long a player's Discord avatar is trusted before the next refresh from Discord. */
-const TCG_AVATAR_REFRESH_TTL = 21600;
+const TCG_AVATAR_REFRESH_TTL = 1800;
+
+/**
+ * Prefer a previously stored proxy avatar over a stale session/OAuth hash so ensureUser cannot undo a
+ * successful bot freshen on the next /me inside the TTL window.
+ */
+function tcgFreshenPreferStoredAvatar(string $userId, array $profile, ?string $storedUrl): array
+{
+    $storedUrl = trim((string)$storedUrl);
+    if ($storedUrl === '' || !function_exists('tcgAvatarParseUrl')) {
+        return $profile;
+    }
+    $parsed = tcgAvatarParseUrl($storedUrl);
+    if ($parsed === null || $parsed[0] !== $userId) {
+        // Keep default/embed stored URLs as known too (player removed their custom avatar).
+        if (str_contains($storedUrl, '/embed/avatars/')) {
+            $profile['avatar_url'] = $storedUrl;
+            $profile['avatar_known'] = true;
+        }
+        return $profile;
+    }
+    $profile['avatar_url'] = function_exists('tcgAvatarProxyUrl')
+        ? tcgAvatarProxyUrl($userId, $parsed[1])
+        : $storedUrl;
+    $profile['avatar_known'] = true;
+    return $profile;
+}
 
 /**
  * Re-read the player's CURRENT Discord avatar (the session / cache only know the avatar from their last
  * OAuth login, and Discord's CDN 404s a hash once it is changed) at most once per TTL, and fold it into
- * $profile. Needs TCG_DISCORD_BOT_TOKEN; without it, or when Discord is unreachable, $profile is unchanged.
+ * $profile. Needs TCG_DISCORD_BOT_TOKEN for a live Discord lookup; without it, prefers the stored URL /
+ * login-cache hash so a stale $_SESSION['avatar'] cannot overwrite a fresher value.
  */
 function tcgFreshenDiscordAvatar(string $userId, array $profile): array
 {
-    if (tcgDiscordBotToken() === '' || !function_exists('tcgDb') || !function_exists('tcgDiscordAvatarUrl')) {
+    if (!function_exists('tcgDb') || !function_exists('tcgDiscordAvatarUrl')) {
         return $profile;
     }
     try {
+        if (!function_exists('tcgAvatarParseUrl') && is_file(__DIR__ . '/avatar_cache.php')) {
+            require_once __DIR__ . '/avatar_cache.php';
+        }
         $db = tcgDb();
-        $st = $db->prepare('SELECT avatar_checked_at FROM tcg_users WHERE discord_id = ?');
+        $st = $db->prepare('SELECT avatar_url, avatar_checked_at FROM tcg_users WHERE discord_id = ?');
         $st->execute([$userId]);
-        $last = (int)($st->fetchColumn() ?: 0);
+        $row = $st->fetch(PDO::FETCH_ASSOC) ?: null;
+        $storedUrl = is_array($row) ? (string)($row['avatar_url'] ?? '') : '';
+        $last = is_array($row) ? (int)($row['avatar_checked_at'] ?? 0) : 0;
         $now = time();
-        if ($last > 0 && ($now - $last) < TCG_AVATAR_REFRESH_TTL) {
+
+        if (tcgDiscordBotToken() === '') {
+            // No live Discord lookup: OAuth login-cache wins when present (refreshed on Discord login);
+            // otherwise keep a stored proxy URL so a stale $_SESSION['avatar'] cannot undo it.
+            if (function_exists('tcgAvatarHashFromLoginCache')) {
+                $cacheHash = tcgAvatarHashFromLoginCache($userId);
+                if ($cacheHash !== null) {
+                    $profile['avatar_url'] = tcgDiscordAvatarUrl($userId, $cacheHash !== '' ? $cacheHash : null);
+                    $profile['avatar_known'] = true;
+                    return $profile;
+                }
+            }
+            if ($storedUrl !== '' && function_exists('tcgAvatarIsProxyUrl') && tcgAvatarIsProxyUrl($storedUrl)) {
+                return tcgFreshenPreferStoredAvatar($userId, $profile, $storedUrl);
+            }
             return $profile;
         }
+
+        if ($last > 0 && ($now - $last) < TCG_AVATAR_REFRESH_TTL) {
+            // Critical: do NOT return the session-built profile unchanged — that hash is often from the
+            // last OAuth login and would make ensureUser overwrite a newer bot-freshened avatar_url.
+            return tcgFreshenPreferStoredAvatar($userId, $profile, $storedUrl);
+        }
+
         $bot = tcgLookupDiscordBotProfile($userId);
         // Success: trust it for a full TTL. Failure (rate limit / outage): retry in ~15 minutes, not every request.
         $stamp = is_array($bot) ? $now : $now - TCG_AVATAR_REFRESH_TTL + 900;
         $db->prepare('UPDATE tcg_users SET avatar_checked_at = ? WHERE discord_id = ?')->execute([$stamp, $userId]);
         if (!is_array($bot)) {
-            return $profile;
+            return tcgFreshenPreferStoredAvatar($userId, $profile, $storedUrl);
         }
         $hash = isset($bot['avatar_hash']) && is_string($bot['avatar_hash']) ? $bot['avatar_hash'] : null;
         $profile['avatar_url'] = tcgDiscordAvatarUrl($userId, $hash);
         $profile['avatar_known'] = true;
+        if (function_exists('tcgSessionStart')) {
+            tcgSessionStart();
+            if ((string)($_SESSION['user_id'] ?? '') === $userId) {
+                $_SESSION['avatar'] = $hash;
+            }
+        }
+        if ($hash !== null && $hash !== '' && function_exists('tcgAvatarDownload')) {
+            try {
+                tcgAvatarDownload($userId, $hash);
+            } catch (Throwable $e) {
+                // Serving can retry the download; never fail /me over a warm-cache miss.
+            }
+        }
     } catch (Throwable $e) {
         // Never fail login / me over an avatar refresh.
     }

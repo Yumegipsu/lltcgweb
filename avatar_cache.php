@@ -122,8 +122,35 @@ function tcgAvatarPurgeOthers(string $discordId, string $keepHash): void
     }
 }
 
+/** Content-Type for a cached avatar file from its magic bytes (files are always named .png). */
+function tcgAvatarContentType(string $file): string
+{
+    $fh = @fopen($file, 'rb');
+    if ($fh === false) {
+        return 'image/png';
+    }
+    $magic = (string)fread($fh, 12);
+    fclose($fh);
+    if (str_starts_with($magic, "\x89PNG")) {
+        return 'image/png';
+    }
+    if (str_starts_with($magic, 'GIF8')) {
+        return 'image/gif';
+    }
+    if (str_starts_with($magic, 'RIFF') && substr($magic, 8, 4) === 'WEBP') {
+        return 'image/webp';
+    }
+    if (str_starts_with($magic, "\xFF\xD8\xFF")) {
+        return 'image/jpeg';
+    }
+    return 'image/png';
+}
+
 /**
  * Download one avatar from Discord's CDN into the cache and drop the player's older files.
+ *
+ * Always requests the .png form (for animated hashes Discord still serves a static PNG frame). The
+ * animated .gif can be multi‑MB and exceeds TCG_AVATAR_MAX_BYTES.
  *
  * @return string|null path of the cached file, null when Discord does not serve this hash (any more)
  */
@@ -140,7 +167,8 @@ function tcgAvatarDownload(string $discordId, string $hash): ?string
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => false,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS => 3,
         CURLOPT_TIMEOUT => 8,
         CURLOPT_CONNECTTIMEOUT => 4,
         CURLOPT_USERAGENT => 'LovecaAvatarCache/1.0',
@@ -170,8 +198,8 @@ function tcgAvatarDownload(string $discordId, string $hash): ?string
 
 /**
  * Newest avatar hash we can learn for a player without them logging in.
- * Order: the site's Discord login cache (refreshed at every OAuth login), then the Discord API via the
- * optional bot token. null = unknown, '' = the player has no custom avatar.
+ * When $allowBot is true, prefer a live Discord bot lookup — the OAuth login cache can be days/weeks
+ * stale for players who stay signed in without a full Discord re-auth. null = unknown, '' = no custom avatar.
  */
 function tcgAvatarLoginCache(): array
 {
@@ -195,15 +223,21 @@ function tcgAvatarLoginCache(): array
     return $cache;
 }
 
-function tcgAvatarFreshHash(string $discordId, bool $allowBot = true): ?string
+function tcgAvatarHashFromLoginCache(string $discordId): ?string
 {
     $entry = tcgAvatarLoginCache()[$discordId] ?? null;
-    if (is_array($entry) && array_key_exists('avatar', $entry)) {
-        $h = is_string($entry['avatar']) ? trim($entry['avatar']) : '';
-        if ($h === '' || tcgAvatarValidHash($h)) {
-            return $h;
-        }
+    if (!is_array($entry) || !array_key_exists('avatar', $entry)) {
+        return null;
     }
+    $h = is_string($entry['avatar']) ? trim($entry['avatar']) : '';
+    if ($h === '' || tcgAvatarValidHash($h)) {
+        return $h;
+    }
+    return null;
+}
+
+function tcgAvatarFreshHash(string $discordId, bool $allowBot = true): ?string
+{
     if ($allowBot) {
         if (!function_exists('tcgLookupDiscordBotProfile') && is_file(__DIR__ . '/auth_profile.php')) {
             require_once __DIR__ . '/auth_profile.php';
@@ -218,7 +252,7 @@ function tcgAvatarFreshHash(string $discordId, bool $allowBot = true): ?string
             }
         }
     }
-    return null;
+    return tcgAvatarHashFromLoginCache($discordId);
 }
 
 /** Point a player's stored avatar at this hash's local-cache URL. */
