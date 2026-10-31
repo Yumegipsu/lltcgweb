@@ -67975,7 +67975,7 @@
       "text_zh": "[现场开始] 如果你的现场卡区中的卡牌所需心形总数为4颗或更多绿心，则直到本场比赛结束为止，你获得1颗绿心。",
       "text_th": "[เริ่ม Live] หากหัวใจที่ต้องการบนการ์ดในโซนไลฟ์การ์ดของคุณมีหัวใจสีเขียวรวม 4 ดวงขึ้นไป จนกว่า Live นี้จบลง คุณจะได้รับหัวใจสีเขียว 1 ดวง",
       "text_pt": "[Início de Live] Se o Requisito de Corações nas cartas na sua área de Lives incluírem 4 ou mais <greenH> no total, até o fim desta Live, esta carta ganha 1<greenH>.",
-      "text_fr": "[Début de Live] Si los Cœurs requis en las cartes de tu Zona de cartes Live incluyen 4 ou plus cœurs verdes en total, jusqu'à la fin de ce Live, vous gagnez 1 cœur verde."
+      "text_fr": "[Début de Live] Si les Cœurs requis des cartes de votre zone de cartes Live incluent 4 cœurs verts ou plus au total, jusqu'à la fin de ce Live, cette carte gagne 1 cœur vert."
     },
     {
       "card_no": "PL!S-bp5-014-N",
@@ -68124,14 +68124,14 @@
         "blue"
       ],
       "rarity": "N",
-      "text": "[Live Start] If the Required Hearts on cards in your Success Live storage include 4 or more<blueH> in total, until this Live ends, this card gains 1<blueH>.",
+      "text": "[Live Start] If the Required Hearts on cards in your Live storage include 4 or more<blueH> in total, until this Live ends, this card gains 1<blueH>.",
       "text_jp": "[ライブ開始時] 自分のライブカード置き場にあるカードの必要ハートに含まれる青ハートの合計が4以上の場合、ライブ終了時まで、青ハートを得る。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP05/PL!S-bp5-017-N.png",
       "subunit": "Guilty Kiss",
       "abilities": [
         {
           "trigger": "live_start",
-          "type": "live_start_heart_if_success_zone_color_total",
+          "type": "live_start_heart_if_live_zone_color_total",
           "color": "blue",
           "min_total": 4,
           "hearts": [
@@ -68142,12 +68142,12 @@
           ]
         }
       ],
-      "text_es": "[Inicio de Live] Si los Corazones requeridos en las cartas de tu área de Live exitoso incluyen 4 o más corazones azules en total, hasta que termine este Live, obtienes 1 corazón azul.",
-      "text_ko": "[라이브 개시] 자신의 성공 라이브 영역에 있는 카드들의 필요 하트에 파란색 하트가 합쳐서 4개 이상 포함되어 있다면, 이 라이브가 끝날 때까지 파란색 하트 1개를 얻는다.",
-      "text_zh": "[现场开始] 如果你的成功现场区卡牌上的所需心形总数为 4 颗或更多蓝心，则直到本次现场结束，你获得 1 颗蓝心。",
-      "text_th": "[เริ่ม Live] หากหัวใจที่ต้องการบนการ์ดในพื้นที่ สำเร็จ Live ของคุณมีหัวใจสีฟ้ารวม 4 ดวงขึ้นไป จนกว่า Live นี้จบลง คุณจะได้รับหัวใจสีฟ้า 1 ดวง",
-      "text_pt": "[Início de Live] Se o Requisito de Corações nas cartas na sua área de Lives Bem-Sucedidas incluírem 4 ou mais <blueH> no total, até o fim desta Live, esta carta ganha 1<blueH>.",
-      "text_fr": "[Début de Live] Si los Cœurs requis en las cartes de tu área de Live réussi incluyen 4 ou plus cœurs azules en total, jusqu'à la fin de ce Live, vous gagnez 1 cœur azul."
+      "text_es": "[Inicio de Live] Si los Corazones requeridos en las cartas de tu Zona de cartas Live incluyen 4 o más corazones azules en total, hasta que termine este Live, obtienes 1 corazón azul.",
+      "text_ko": "[라이브 개시] 자신의 라이브 카드 구역에 있는 카드들의 필요 하트에 파란색 하트가 합쳐서 4개 이상 포함되어 있다면, 이 라이브가 끝날 때까지 파란색 하트 1개를 얻는다.",
+      "text_zh": "[现场开始] 如果你的现场卡区中的卡牌所需心形总数为4颗或更多蓝心，则直到本场比赛结束为止，你获得1颗蓝心。",
+      "text_th": "[เริ่ม Live] หากหัวใจที่ต้องการบนการ์ดในโซนไลฟ์การ์ดของคุณมีหัวใจสีฟ้ารวม 4 ดวงขึ้นไป จนกว่า Live นี้จบลง คุณจะได้รับหัวใจสีฟ้า 1 ดวง",
+      "text_pt": "[Início de Live] Se o Requisito de Corações nas cartas na sua área de Lives incluírem 4 ou mais <blueH> no total, até o fim desta Live, esta carta ganha 1<blueH>.",
+      "text_fr": "[Début de Live] Si les Cœurs requis des cartes de votre zone de cartes Live incluent 4 cœurs bleus ou plus au total, jusqu'à la fin de ce Live, cette carte gagne 1 cœur bleu."
     },
     {
       "card_no": "PL!S-bp5-018-N",
