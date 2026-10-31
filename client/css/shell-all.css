@@ -7184,11 +7184,18 @@ body.tcg-spectator-mode #btn-stamp{display:none!important}
   flex-direction:column;
   overflow:hidden;
 }
-/* Small desktop windows / zoomed-in browsers: keep both card panes usable and let the whole editor scroll
-   (phones already scroll as one page below). Same pink scrollbar as the card list and mission panels. */
-html:not(.tcg-mobile-viewport) #screen-deck .deck-builder-shell{min-height:760px}
-@media (max-width:1100px){
-  html:not(.tcg-mobile-viewport) #screen-deck .deck-builder-shell{min-height:880px}
+/* Small desktop windows / zoomed-in browsers: the Collection and Current deck panes keep their full height
+   (about 5 rows of cards) and the whole editor scrolls to reach them, instead of the panes shrinking to a sliver.
+   Tall windows still stretch the panes to fill the screen. Phones already scroll as one page (rules below). */
+html:not(.tcg-mobile-viewport) #screen-deck .deck-builder-shell{
+  max-height:none;
+  min-height:calc(100dvh - 4px);
+  flex:1 0 auto;
+  overflow:visible;
+}
+html:not(.tcg-mobile-viewport) #screen-deck .deck-builder-lists{
+  flex:1 1 0;
+  min-height:640px;
 }
 #screen-deck{
   scrollbar-width:thin;
