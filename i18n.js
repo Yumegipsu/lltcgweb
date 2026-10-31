@@ -226,7 +226,7 @@
         "rankedRandom": "Play a ranked match in Random decks mode",
         "ranked10": "Play 10 ranked matches",
         "rankedWin": "Win a ranked match (any mode)",
-        "login7": "Log in on 5 days this week",
+        "login7": "Log in 5 days this week",
         "completeAll": "Complete all weekly missions"
       },
       "monthly": {
@@ -2489,7 +2489,7 @@
         "rankedRandom": "ランダムデッキでランクマッチを1回プレイ",
         "ranked10": "ランクマッチを10回プレイ",
         "rankedWin": "ランクマッチで1勝する（どのモードでも可）",
-        "login7": "今週5日間ログイン",
+        "login7": "今週5日ログインする",
         "completeAll": "すべてのウィークリーミッションを達成"
       },
       "monthly": {
