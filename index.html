@@ -112,7 +112,7 @@ try {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="client/css/shell-all.css?v=190">
-<link rel="stylesheet" href="client/css/season-rank.css?v=17">
+<link rel="stylesheet" href="client/css/season-rank.css?v=18">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
 <link rel="stylesheet" href="client/css/playmats.css?v=6">
@@ -1856,6 +1856,10 @@ try {
         <button class="btn-ghost" id="btn-leaderboard-board-elo" type="button" data-board="elo" data-i18n="leaderboard.boardAllTime">All-time</button>
       </div>
       <p id="leaderboard-season-meta" class="season-countdown" hidden></p>
+      <div class="leaderboard-past" id="leaderboard-past-wrap" hidden>
+        <button type="button" class="btn-ghost leaderboard-past-toggle" id="btn-leaderboard-past" aria-expanded="false" aria-controls="leaderboard-past-menu" data-i18n="leaderboard.pastSeasons">Past seasons</button>
+        <div class="leaderboard-past-menu" id="leaderboard-past-menu" hidden role="listbox" aria-label="Past seasons"></div>
+      </div>
       <div class="leaderboard-actions">
         <button class="btn-out" id="btn-leaderboard-banner" type="button" data-i18n="leaderboard.editBanner">Edit profile</button>
       </div>
@@ -3347,7 +3351,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=251"></script>
+<script src="i18n.js?v=252"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=46"></script>
@@ -15138,7 +15142,9 @@ function renderLeaderboardRows(data) {
     const empty = document.createElement('div');
     empty.className = 'leaderboard-empty';
     empty.textContent = data?.board === 'season'
-      ? (data.season_active ? t('leaderboard.seasonEmpty') : t('season.notStarted'))
+      ? (data.season_archived
+        ? t('leaderboard.pastSeasonEmpty', 'No final standings for this season.')
+        : (data.season_active ? t('leaderboard.seasonEmpty') : t('season.notStarted')))
       : t('leaderboard.empty');
     list.appendChild(empty);
     return;
@@ -16436,21 +16442,88 @@ function leaderboardBoard() {
   return A.leaderboardBoard === 'elo' ? 'elo' : 'season';
 }
 
+function leaderboardPastSeasonId() {
+  const id = String(A.leaderboardPastSeasonId || '').trim();
+  return /^\d{4}-\d{2}$/.test(id) ? id : '';
+}
+
 function leaderboardStatsQuery() {
   const board = leaderboardBoard();
-  return {
+  const q = {
     game_mode: board === 'season' ? 'standard' : leaderboardViewMode(),
     board: board,
   };
+  const past = leaderboardPastSeasonId();
+  if (board === 'season' && past) q.season_id = past;
+  return q;
+}
+
+function closeLeaderboardPastMenu() {
+  const menu = el('leaderboard-past-menu');
+  const btn = el('btn-leaderboard-past');
+  if (menu) menu.hidden = true;
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+
+function syncLeaderboardPastChrome(data) {
+  const wrap = el('leaderboard-past-wrap');
+  const menu = el('leaderboard-past-menu');
+  const btn = el('btn-leaderboard-past');
+  if (!wrap || !menu || !btn) return;
+  const board = leaderboardBoard();
+  const past = Array.isArray(data?.past_seasons) ? data.past_seasons : [];
+  if (board !== 'season' || !past.length) {
+    wrap.hidden = true;
+    closeLeaderboardPastMenu();
+    return;
+  }
+  wrap.hidden = false;
+  const selected = leaderboardPastSeasonId();
+  const viewingPast = !!(data?.season_archived && selected);
+  btn.classList.toggle('is-on', viewingPast);
+  btn.textContent = viewingPast
+    ? t('leaderboard.pastSeasonViewing', 'Past: {label}', {
+      label: (window.TCGSeason && data?.season)
+        ? TCGSeason.label(data.season)
+        : (data?.season?.label || selected),
+    })
+    : t('leaderboard.pastSeasons', 'Past seasons');
+  menu.replaceChildren();
+  past.forEach((s) => {
+    const id = String(s.season_id || '');
+    if (!id) return;
+    const opt = document.createElement('button');
+    opt.type = 'button';
+    opt.className = 'btn-ghost leaderboard-past-option' + (id === selected ? ' is-on' : '');
+    opt.setAttribute('role', 'option');
+    opt.setAttribute('aria-selected', id === selected ? 'true' : 'false');
+    opt.dataset.seasonId = id;
+    opt.textContent = (window.TCGSeason && typeof TCGSeason.label === 'function')
+      ? TCGSeason.label(s)
+      : (s.label || id);
+    opt.addEventListener('click', () => {
+      A.leaderboardBoard = 'season';
+      A.leaderboardPastSeasonId = id;
+      closeLeaderboardPastMenu();
+      syncLeaderboardBoardChrome();
+      void refreshLeaderboardForMode();
+    });
+    menu.appendChild(opt);
+  });
 }
 
 function syncLeaderboardBoardChrome() {
   const board = leaderboardBoard();
+  const pastId = leaderboardPastSeasonId();
   document.querySelectorAll('#leaderboard-boards button, .leaderboard-boards button').forEach((btn) => {
-    const on = btn.getAttribute('data-board') === board;
-    btn.classList.toggle('is-on', on);
-    btn.classList.toggle('btn-out', on);
-    btn.classList.toggle('btn-ghost', !on);
+    const b = btn.getAttribute('data-board');
+    // While browsing a past season, neither top tab looks "selected" — the Past seasons control is.
+    const seasonTabOn = b === 'season' && board === 'season' && !pastId;
+    const eloOn = b === 'elo' && board === 'elo';
+    const active = seasonTabOn || eloOn;
+    btn.classList.toggle('is-on', active);
+    btn.classList.toggle('btn-out', active);
+    btn.classList.toggle('btn-ghost', !active);
   });
   const modeField = document.querySelector('#screen-leaderboard .leaderboard-mode-field');
   if (modeField) modeField.hidden = board === 'season';
@@ -16461,16 +16534,24 @@ function syncLeaderboardBoardChrome() {
         || A.lastLeaderboardData?.you?.season
         || A.profile?.season
         || null;
-      TCGSeason.paintCountdown(meta, season, { requireActive: true });
-      if (meta.hidden && season && season.active === false) {
+      if (season && season.archived) {
         meta.hidden = false;
-        meta.textContent = t('season.notStarted');
+        meta.textContent = t('leaderboard.pastSeasonFinal', 'Final standings — {label}', {
+          label: TCGSeason.label(season),
+        });
+      } else {
+        TCGSeason.paintCountdown(meta, season, { requireActive: true });
+        if (meta.hidden && season && season.active === false) {
+          meta.hidden = false;
+          meta.textContent = t('season.notStarted');
+        }
       }
     } else {
       meta.textContent = '';
       meta.hidden = true;
     }
   }
+  syncLeaderboardPastChrome(A.lastLeaderboardData);
 }
 
 function syncLeaderboardModeChrome() {
@@ -19090,9 +19171,20 @@ async function bootApp() {
   document.querySelectorAll('.leaderboard-boards button').forEach((btn) => {
     btn.addEventListener('click', () => {
       A.leaderboardBoard = btn.getAttribute('data-board') === 'season' ? 'season' : 'elo';
+      // Leaving an archived view (or switching to all-time) clears the past-season filter.
+      A.leaderboardPastSeasonId = '';
+      closeLeaderboardPastMenu();
       syncLeaderboardBoardChrome();
       void refreshLeaderboardForMode();
     });
+  });
+  on('btn-leaderboard-past', 'click', () => {
+    const menu = el('leaderboard-past-menu');
+    const btn = el('btn-leaderboard-past');
+    if (!menu || !btn || el('leaderboard-past-wrap')?.hidden) return;
+    const open = menu.hidden;
+    menu.hidden = !open;
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
   on('btn-banner-save', 'click', saveBannerCrop);
   on('btn-profile-flag-equip', 'click', saveProfileFlag);

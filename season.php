@@ -1401,3 +1401,170 @@ function tcgSeasonMapForMode(string $gameMode, string $seasonId): array {
     }
     return $map;
 }
+
+/** True when $seasonId is a YYYY-MM before the live season (or any closed id while seasons are active). */
+function tcgSeasonIdIsArchived(string $seasonId, ?array $clock = null): bool {
+    if (!preg_match('/^\d{4}-\d{2}$/', $seasonId)) {
+        return false;
+    }
+    $clock = $clock ?? tcgSeasonClockInfo();
+    if (empty($clock['active'])) {
+        return false;
+    }
+    return strcmp($seasonId, (string)$clock['id']) < 0;
+}
+
+/**
+ * Clock-shaped payload for a finished season (badges / meta; not a live countdown).
+ *
+ * @return array{active:bool,archived:bool,id:string,number:int,label:string,starts_at:int,ends_at:int,now:int}
+ */
+function tcgSeasonArchivedClock(string $seasonId): array {
+    $year = (int)substr($seasonId, 0, 4);
+    $month = (int)substr($seasonId, 5, 2);
+    $starts = gmmktime(0, 0, 0, $month, 1, $year);
+    $ends = gmmktime(0, 0, 0, $month + 1, 1, $year);
+    return [
+        'active' => false,
+        'archived' => true,
+        'id' => $seasonId,
+        'number' => tcgSeasonNumberFromId($seasonId),
+        'label' => tcgSeasonLabel($seasonId),
+        'starts_at' => $starts,
+        'ends_at' => $ends,
+        'now' => tcgSeasonNow(),
+    ];
+}
+
+/**
+ * Seasons with a preserved final board (history and/or unsettled live rows), newest first.
+ * Excludes the live season id.
+ *
+ * @return list<array{season_id:string,season_number:int,label:string}>
+ */
+function tcgSeasonPastSeasonsList(string $gameMode = TCG_GAME_MODE_STANDARD): array {
+    $mode = tcgSeasonRankedMode($gameMode);
+    if ($mode === null) {
+        return [];
+    }
+    $clock = tcgSeasonClockInfo();
+    $current = !empty($clock['active']) ? (string)$clock['id'] : '';
+    $ids = [];
+    $db = tcgDb();
+    foreach ($db->query(
+        'SELECT DISTINCT season_id, season_number FROM tcg_season_history WHERE game_mode = '
+        . $db->quote($mode)
+    )->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $id = (string)($row['season_id'] ?? '');
+        if ($id === '' || ($current !== '' && $id === $current)) {
+            continue;
+        }
+        $ids[$id] = (int)($row['season_number'] ?? tcgSeasonNumberFromId($id));
+    }
+    // Players who have not settled yet still hold the old season_id on the live row.
+    $stmt = $db->prepare('SELECT DISTINCT season_id FROM tcg_season_rank WHERE game_mode = ?');
+    $stmt->execute([$mode]);
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $id = (string)($row['season_id'] ?? '');
+        if ($id === '' || ($current !== '' && $id === $current) || !preg_match('/^\d{4}-\d{2}$/', $id)) {
+            continue;
+        }
+        if (!isset($ids[$id])) {
+            $ids[$id] = tcgSeasonNumberFromId($id);
+        }
+    }
+    krsort($ids, SORT_STRING);
+    $out = [];
+    foreach ($ids as $id => $number) {
+        $out[] = [
+            'season_id' => $id,
+            'season_number' => $number,
+            'label' => tcgSeasonLabel($id),
+        ];
+    }
+    return $out;
+}
+
+/**
+ * Final (or still-unsettled) standings for a past season_id.
+ * History rows win; live rows with that season_id fill gaps until each player settles.
+ *
+ * @return list<array<string,mixed>>
+ */
+function tcgSeasonArchivedBoardRows(string $gameMode, string $seasonId): array {
+    $mode = tcgSeasonRankedMode($gameMode);
+    if ($mode === null || !preg_match('/^\d{4}-\d{2}$/', $seasonId)) {
+        return [];
+    }
+    $db = tcgDb();
+    $byId = [];
+    $hist = $db->prepare('SELECT discord_id, wins, losses, step, points, peak_step, season_id
+        FROM tcg_season_history
+        WHERE game_mode = ? AND season_id = ? AND (wins + losses) > 0');
+    $hist->execute([$mode, $seasonId]);
+    while ($row = $hist->fetch(PDO::FETCH_ASSOC)) {
+        $byId[(string)$row['discord_id']] = $row;
+    }
+    $live = $db->prepare('SELECT discord_id, wins, losses, step, points, peak_step, season_id
+        FROM tcg_season_rank
+        WHERE game_mode = ? AND season_id = ? AND (wins + losses) > 0');
+    $live->execute([$mode, $seasonId]);
+    while ($row = $live->fetch(PDO::FETCH_ASSOC)) {
+        $id = (string)$row['discord_id'];
+        if (!isset($byId[$id])) {
+            $byId[$id] = $row;
+        }
+    }
+    $rows = array_values($byId);
+    usort($rows, static function (array $a, array $b): int {
+        $cmp = tcgSeasonClampStep((int)$b['step']) <=> tcgSeasonClampStep((int)$a['step']);
+        if ($cmp !== 0) {
+            return $cmp;
+        }
+        $cmp = (int)$b['points'] <=> (int)$a['points'];
+        if ($cmp !== 0) {
+            return $cmp;
+        }
+        return (int)$b['wins'] <=> (int)$a['wins'];
+    });
+    return $rows;
+}
+
+/**
+ * Badge payload for an archived board row (active=true so the client still paints the icon).
+ *
+ * @param array<string,mixed> $row
+ * @return array<string,mixed>
+ */
+function tcgSeasonFormatArchivedPublic(array $row, string $seasonId): array {
+    $arch = tcgSeasonArchivedClock($seasonId);
+    $step = tcgSeasonClampStep((int)($row['step'] ?? 0));
+    $points = max(0, (int)($row['points'] ?? 0));
+    $peak = tcgSeasonClampStep(max($step, (int)($row['peak_step'] ?? $step)));
+    $def = tcgSeasonStepDef($step);
+    $peakDef = tcgSeasonStepDef($peak);
+    return [
+        'active' => true,
+        'archived' => true,
+        'has_row' => true,
+        'season_id' => $seasonId,
+        'season_number' => $arch['number'],
+        'label' => $arch['label'],
+        'starts_at' => $arch['starts_at'],
+        'ends_at' => $arch['ends_at'],
+        'now' => $arch['now'],
+        'step' => $step,
+        'points' => $points,
+        'progress' => (int)max(0, min(100, $points)),
+        'peak_step' => $peak,
+        'wins' => (int)($row['wins'] ?? 0),
+        'losses' => (int)($row['losses'] ?? 0),
+        'letter' => $def['letter'],
+        'tone' => $def['tone'],
+        'key' => $def['key'],
+        'icon' => tcgSeasonIconUrl($step),
+        'peak_letter' => $peakDef['letter'],
+        'peak_tone' => $peakDef['tone'],
+        'peak_icon' => tcgSeasonIconUrl($peak),
+    ];
+}

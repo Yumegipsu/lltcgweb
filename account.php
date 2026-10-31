@@ -2473,15 +2473,70 @@ function tcgApiRankStats(array $body): array {
         tcgBanEnsureSchema();
     }
     $clock = tcgSeasonClockInfo();
+    $requestedSeasonId = trim((string)($body['season_id'] ?? $_GET['season_id'] ?? ''));
+    $viewingArchived = false;
+    $viewSeasonId = !empty($clock['active']) ? (string)$clock['id'] : '';
+    if ($board === 'season' && $requestedSeasonId !== '' && preg_match('/^\d{4}-\d{2}$/', $requestedSeasonId)) {
+        if (tcgSeasonIdIsArchived($requestedSeasonId, $clock)) {
+            $viewingArchived = true;
+            $viewSeasonId = $requestedSeasonId;
+        } elseif (!empty($clock['active']) && $requestedSeasonId === (string)$clock['id']) {
+            $viewSeasonId = (string)$clock['id'];
+        }
+    }
+    $pastSeasons = ($board === 'season' && $gameMode === TCG_GAME_MODE_STANDARD)
+        ? tcgSeasonPastSeasonsList($gameMode)
+        : [];
     $seasonMap = [];
-    if (!empty($clock['active']) && $gameMode === TCG_GAME_MODE_STANDARD) {
+    if (!$viewingArchived && !empty($clock['active']) && $gameMode === TCG_GAME_MODE_STANDARD) {
         // Recompute Pink S on read so a missed assign (or a fixed query) heals without waiting for a match.
         tcgSeasonAssignPinkSlots($gameMode, (string)$clock['id']);
         $seasonMap = tcgSeasonMapForMode($gameMode, (string)$clock['id']);
     }
     $leaderboard = [];
-    if ($board === 'season' && empty($clock['active'])) {
+    if ($board === 'season' && empty($clock['active']) && !$viewingArchived) {
         // Season has not opened yet — do not fall back to the all-time list.
+    } elseif ($board === 'season' && $viewingArchived) {
+        if (!function_exists('tcgBanIsActive') && is_file(__DIR__ . '/account_ban.php')) {
+            require_once __DIR__ . '/account_ban.php';
+        }
+        $rankNum = 0;
+        $ust = $db->prepare('SELECT discord_id, username, avatar_url, banner_card_no, banner_crop, equipped_flag, title_id
+            FROM tcg_users WHERE discord_id = ?');
+        foreach (tcgSeasonArchivedBoardRows($gameMode, $viewSeasonId) as $row) {
+            $discordId = (string)$row['discord_id'];
+            if (function_exists('tcgBanIsActive') && tcgBanIsActive($discordId)) {
+                continue;
+            }
+            $ust->execute([$discordId]);
+            $u = $ust->fetch(PDO::FETCH_ASSOC);
+            if (!$u) {
+                continue;
+            }
+            $rankNum++;
+            $wins = (int)$row['wins'];
+            $losses = (int)$row['losses'];
+            $decided = max(1, $wins + $losses);
+            $season = tcgSeasonFormatArchivedPublic($row, $viewSeasonId);
+            $leaderboard[] = [
+                'rank' => $rankNum,
+                'user_id' => $discordId,
+                'username' => $u['username'] ?: 'Player',
+                'avatar_url' => $u['avatar_url'] ?? null,
+                'wins' => $wins,
+                'losses' => $losses,
+                'draws' => 0,
+                'games' => $wins + $losses,
+                'win_rate' => round(($wins / $decided) * 100, 1),
+                'loss_rate' => round(($losses / $decided) * 100, 1),
+                'points' => (int)$row['points'],
+                'banner' => tcgFormatUserBanner($u, $cards),
+                'equipped_flag' => tcgFormatEquippedFlag($u['equipped_flag'] ?? null),
+                'title' => tcgFormatEquippedTitle($u['title_id'] ?? null),
+                'season' => $season,
+                'is_you' => $discordId === $uid,
+            ];
+        }
     } elseif ($board === 'season') {
         $banExclude = function_exists('tcgBanLeaderboardExcludeSql') ? tcgBanLeaderboardExcludeSql('s.discord_id') : '';
         $stmt = $db->prepare('SELECT s.discord_id, s.wins, s.losses, s.step, s.points, s.season_id,
@@ -2490,7 +2545,7 @@ function tcgApiRankStats(array $body): array {
             JOIN tcg_users u ON u.discord_id = s.discord_id
             WHERE s.game_mode = ? AND s.season_id = ? AND (s.wins + s.losses) > 0' . $banExclude . '
             ORDER BY s.step DESC, s.points DESC, s.wins DESC');
-        $stmt->execute([$gameMode, $clock['id']]);
+        $stmt->execute([$gameMode, $viewSeasonId !== '' ? $viewSeasonId : (string)$clock['id']]);
         $rankNum = 0;
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $rankNum++;
@@ -2558,30 +2613,49 @@ function tcgApiRankStats(array $body): array {
             break;
         }
     }
+    if ($viewingArchived) {
+        $arch = tcgSeasonArchivedClock($viewSeasonId);
+        $seasonPayload = [
+            'active' => false,
+            'archived' => true,
+            'season_id' => $arch['id'],
+            'season_number' => $arch['number'],
+            'label' => $arch['label'],
+            'starts_at' => $arch['starts_at'],
+            'ends_at' => $arch['ends_at'],
+            'now' => $arch['now'],
+        ];
+    } elseif (!empty($clock['active'])) {
+        $seasonPayload = [
+            'active' => true,
+            'archived' => false,
+            'season_id' => (string)$clock['id'],
+            'season_number' => (int)$clock['number'],
+            'label' => (string)$clock['label'],
+            'starts_at' => (int)($clock['starts_at'] ?? 0),
+            'ends_at' => (int)($clock['ends_at'] ?? 0),
+            'now' => (int)($clock['now'] ?? time()),
+        ];
+    } else {
+        $seasonPayload = [
+            'active' => false,
+            'archived' => false,
+            'label' => tcgSeasonLabel('2026-10'),
+            'season_id' => '2026-10',
+            'season_number' => 1,
+            'starts_at' => TCG_SEASON_EPOCH,
+            'ends_at' => gmmktime(0, 0, 0, 11, 1, 2026),
+            'now' => (int)($clock['now'] ?? time()),
+        ];
+    }
     return [
         'success' => true,
         'game_mode' => $gameMode,
         'board' => $board,
         'season_active' => !empty($clock['active']),
-        'season' => !empty($clock['active'])
-            ? [
-                'active' => true,
-                'season_id' => (string)$clock['id'],
-                'season_number' => (int)$clock['number'],
-                'label' => (string)$clock['label'],
-                'starts_at' => (int)($clock['starts_at'] ?? 0),
-                'ends_at' => (int)($clock['ends_at'] ?? 0),
-                'now' => (int)($clock['now'] ?? time()),
-            ]
-            : [
-                'active' => false,
-                'label' => tcgSeasonLabel('2026-10'),
-                'season_id' => '2026-10',
-                'season_number' => 1,
-                'starts_at' => TCG_SEASON_EPOCH,
-                'ends_at' => gmmktime(0, 0, 0, 11, 1, 2026),
-                'now' => (int)($clock['now'] ?? time()),
-            ],
+        'season_archived' => $viewingArchived,
+        'season' => $seasonPayload,
+        'past_seasons' => $pastSeasons,
         'you' => array_merge(
             tcgFormatRankSummary($rank),
             [

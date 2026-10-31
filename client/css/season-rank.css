@@ -128,6 +128,47 @@
   box-shadow: inset 0 0 0 2px rgba(255, 224, 138, 0.85);
 }
 
+.leaderboard-past {
+  margin: -4px 0 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.leaderboard-past-toggle {
+  width: auto;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  opacity: 0.85;
+}
+
+.leaderboard-past-toggle.is-on {
+  opacity: 1;
+  box-shadow: inset 0 0 0 1px rgba(255, 224, 138, 0.7);
+}
+
+.leaderboard-past-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.leaderboard-past-menu[hidden] {
+  display: none;
+}
+
+.leaderboard-past-option {
+  width: auto;
+  padding: 4px 10px;
+  font-size: 0.82rem;
+}
+
+.leaderboard-past-option.is-on {
+  box-shadow: inset 0 0 0 1px rgba(255, 224, 138, 0.85);
+}
+
 .rank-name-row .season-badge {
   margin-right: 2px;
 }
