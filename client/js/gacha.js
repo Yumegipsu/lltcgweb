@@ -250,6 +250,44 @@
     if (note) note.hidden = _bannerId === 'standard';
   }
 
+  /** μ's Premium banner selected: only its ticket button shows (gems and other tickets don't apply). */
+  function syncMuseUi() {
+    const onMuse = isMuseBanner(bannerById(_bannerId));
+    const screen = el('screen-gacha');
+    if (screen) screen.classList.toggle('is-muse-banner', onMuse);
+    const n = museTicketBalance();
+    const pill = el('gacha-muse-tickets-bar');
+    if (pill) pill.hidden = n < 1;
+    const count = el('gacha-muse-tickets');
+    if (count) count.textContent = n.toLocaleString();
+    const btn = el('btn-gacha-use-muse-ticket');
+    if (btn) {
+      const label = btn.querySelector('span') || btn;
+      label.textContent = tt('gacha.useMuseTicket', 'Scout 10 with Premium Ticket (×{n})', { n });
+      btn.disabled = n < 1;
+    }
+    document.querySelectorAll('.gacha-banner--muse .gacha-banner__ticket-num').forEach((node) => {
+      node.textContent = '×' + n.toLocaleString();
+    });
+  }
+
+  /** Ticket count changed (pull / claim): update state and drop the banner once the last ticket is spent. */
+  function applyMuseTickets(n) {
+    const v = Number.isFinite(Number(n)) ? Math.max(0, Number(n)) : museTicketBalance();
+    if (global.A) global.A.musePremiumTickets = v;
+    if (_info) {
+      _info.muse_premium_tickets = v;
+      if (Array.isArray(_info.banners)) {
+        const had = _info.banners.some((b) => isMuseBanner(b));
+        if (v < 1) _info.banners = _info.banners.filter((b) => !isMuseBanner(b));
+        else _info.banners.forEach((b) => { if (isMuseBanner(b)) b.tickets = v; });
+        // renderBanners() falls back to Standard when the selected banner is gone.
+        if (had && v < 1) renderBanners();
+      }
+    }
+    syncMuseUi();
+  }
+
   function updateRateCopy(info) {
     const ratesEl = el('gacha-rates');
     if (ratesEl) {
@@ -280,6 +318,8 @@
     }
     syncTickets(info.scouting_tickets);
     syncTierTickets(info.scouting_tickets_sr, info.scouting_tickets_ur);
+    if (global.A) global.A.musePremiumTickets = Number(info.muse_premium_tickets) || 0;
+    syncMuseUi();
   }
 
   function formatRatePercent(n) {
@@ -338,7 +378,14 @@
     return row.name_en || row.card_no || '?';
   }
 
+  function isMuseBanner(b) {
+    return !!(b && b.type === 'muse_premium');
+  }
+
   function ratesTitleFor(banner) {
+    if (isMuseBanner(banner)) {
+      return tt('gacha.museRatesTitle', "μ's Premium 10-Pull");
+    }
     if (banner && banner.type === 'birthday') {
       return tt('gacha.birthdayRatesTitle', 'Birthday Gacha — {name}', { name: banner.name_en });
     }
@@ -486,7 +533,13 @@
       '—'
     );
 
-    const notes = [
+    const notes = isMuseBanner(banner) ? [
+      tt('gacha.museNoteTicket', "One μ's Premium 10-Pull Ticket = one 10-pull on this banner."),
+      tt('gacha.museNotePool', "Only μ's Member cards are in this pool (no PR cards)."),
+      tt('gacha.museNoteBoost', "Honoka's cards are 4× as likely as other cards in their rarity band."),
+      tt('gacha.museNoteEqual', 'Each pull first rolls a scout band, then picks one card from that band.'),
+      tt('gacha.museNoteFinal', 'The 10th pull is always an SR+ Honoka card (gold, with rainbow staying rare).'),
+    ] : [
       tt('gacha.noteEqual', 'Each pull first rolls a scout band, then picks one card uniformly from that band.'),
       tt('gacha.notePerPull', 'Percents are chance per single Scout ×1 pull.'),
       tt('gacha.noteGuarantee', 'Scout 10+1 guarantees at least one SR+ (gold/rainbow); UR within that guarantee stays rare.'),
@@ -590,6 +643,73 @@
 
   function bannerById(id) {
     return bannerList().find((b) => b.id === id) || null;
+  }
+
+  function museTicketBalance() {
+    if (global.A && Number.isFinite(Number(global.A.musePremiumTickets))) {
+      return Math.max(0, Number(global.A.musePremiumTickets));
+    }
+    return Math.max(0, Number((_info && _info.muse_premium_tickets) || 0));
+  }
+
+  function buildMuseBanner(b) {
+    const root = document.createElement('div');
+    root.className = 'gacha-banner gacha-banner--muse';
+    root.dataset.bannerId = b.id;
+    root.setAttribute('role', 'radio');
+    root.setAttribute('aria-checked', 'false');
+    root.tabIndex = -1;
+    const title = tt('gacha.museTitle', "μ's Premium 10-Pull");
+    root.setAttribute('aria-label', title);
+
+    const info = document.createElement('button');
+    info.type = 'button';
+    info.className = 'box-info-btn gacha-banner-info-btn';
+    info.textContent = tt('gacha.infoBtn', 'Info');
+    info.setAttribute('aria-label', tt('gacha.infoAria', 'Gacha rates and pool'));
+    info.setAttribute('aria-haspopup', 'dialog');
+    info.setAttribute('aria-controls', 'modal-gacha-rates');
+    root.appendChild(info);
+
+    const copy = document.createElement('span');
+    copy.className = 'gacha-banner__copy';
+    const chip = document.createElement('span');
+    chip.className = 'gacha-banner__premium';
+    chip.textContent = tt('gacha.museChip', 'Premium');
+    const label = document.createElement('span');
+    label.className = 'gacha-banner__label';
+    label.textContent = title;
+    const sub = document.createElement('span');
+    sub.className = 'gacha-banner__sub';
+    sub.textContent = tt('gacha.museSub', "μ's only · boosted Honoka · SR+ Honoka guaranteed");
+    copy.append(chip, label, sub);
+    root.appendChild(copy);
+
+    const visual = document.createElement('span');
+    visual.className = 'gacha-banner__visual';
+    visual.setAttribute('aria-hidden', 'true');
+    const img = document.createElement('img');
+    img.className = 'gacha-banner__render';
+    img.alt = '';
+    img.decoding = 'async';
+    img.src = b.art || 'assets/gacha/renders/muse_honoka_full.png';
+    img.addEventListener('error', () => { img.hidden = true; });
+    visual.appendChild(img);
+    root.appendChild(visual);
+
+    const count = document.createElement('span');
+    count.className = 'gacha-banner__ticket-count';
+    const ico = document.createElement('img');
+    ico.src = 'assets/Muse_Premium_Ticket.webp';
+    ico.alt = '';
+    ico.width = 22;
+    ico.height = 22;
+    const num = document.createElement('span');
+    num.className = 'gacha-banner__ticket-num';
+    num.textContent = '×' + Number(b.tickets || museTicketBalance()).toLocaleString();
+    count.append(ico, num);
+    root.appendChild(count);
+    return root;
   }
 
   function birthdayArtUrl(b) {
@@ -700,10 +820,12 @@
   function renderBanners() {
     const strip = el('gacha-banners');
     if (!strip) return;
-    strip.querySelectorAll('.gacha-banner--birthday').forEach((n) => n.remove());
+    strip.querySelectorAll('.gacha-banner--birthday, .gacha-banner--muse').forEach((n) => n.remove());
+    const specials = bannerList().filter((b) => b.type === 'muse_premium');
+    specials.forEach((b) => strip.appendChild(buildMuseBanner(b)));
     const birthdays = bannerList().filter((b) => b.type === 'birthday');
     birthdays.forEach((b) => strip.appendChild(buildBirthdayBanner(b)));
-    strip.classList.toggle('gacha-banners--multi', birthdays.length > 0);
+    strip.classList.toggle('gacha-banners--multi', birthdays.length + specials.length > 0);
     ensureBannerWrap(strip);
     selectBanner(bannerById(_bannerId) ? _bannerId : 'standard', { scroll: false });
     syncBannerEdges();
@@ -940,6 +1062,13 @@
   function gachaAgainCost() {
     const cur = (global.A && global.A._gachaLastCurrency) || 'star_gems';
     const mode = (global.A && global.A._gachaLastMode) || _lastMode || 'single';
+    if (cur === 'muse_ticket') {
+      return {
+        kind: cur,
+        amount: 1,
+        canAfford: museTicketBalance() >= 1 && isMuseBanner(bannerById(_bannerId)),
+      };
+    }
     if (cur === 'ticket_sr' || cur === 'ticket_ur') {
       const kind = cur === 'ticket_ur' ? 'ur' : 'sr';
       return {
@@ -973,7 +1102,9 @@
     again.hidden = false;
     again.disabled = !cost.canAfford;
     const label = tt('gacha.scoutAgain', 'Scout again');
-    if (cost.kind === 'ticket_sr' || cost.kind === 'ticket_ur') {
+    if (cost.kind === 'muse_ticket') {
+      again.textContent = tt('gacha.scoutAgainMuseTicket', "Scout again · Premium Ticket");
+    } else if (cost.kind === 'ticket_sr' || cost.kind === 'ticket_ur') {
       again.textContent = cost.kind === 'ticket_ur'
         ? tt('gacha.scoutAgainUrTicket', 'Scout again · UR+ Ticket')
         : tt('gacha.scoutAgainSrTicket', 'Scout again · SR+ Ticket');
@@ -1000,7 +1131,8 @@
     global.A._gachaLastCurrency = res.currency === 'scouting_tickets'
       ? 'tickets'
       : (res.currency === 'scouting_ticket_sr' ? 'ticket_sr'
-        : (res.currency === 'scouting_ticket_ur' ? 'ticket_ur' : 'star_gems'));
+        : (res.currency === 'scouting_ticket_ur' ? 'ticket_ur'
+          : (res.currency === 'muse_premium_ticket' ? 'muse_ticket' : 'star_gems')));
     if (res.currency === 'scouting_tickets' && Number(res.count) > 0) {
       global.A._gachaLastTicketCount = Number(res.count);
       _lastTicketCount = Number(res.count);
@@ -1009,6 +1141,7 @@
     syncGems(res.star_gems);
     syncTickets(res.scouting_tickets);
     syncTierTickets(res.scouting_tickets_sr, res.scouting_tickets_ur);
+    if (res.muse_premium_tickets != null) global.A.musePremiumTickets = Number(res.muse_premium_tickets) || 0;
     if (typeof global.showPackResults !== 'function') {
       closeGachaOverlay();
       showScr('gacha');
@@ -1019,7 +1152,9 @@
       ? tt('gacha.simResultsTitle', 'Gacha (simulation)')
       : (String(res.banner || '').startsWith('birthday:')
         ? tt('gacha.birthdayTitle', 'Birthday Gacha')
-        : tt('gacha.title', 'Gacha'));
+        : (res.banner === 'muse10'
+          ? tt('gacha.museTitle', "μ's Premium 10-Pull")
+          : tt('gacha.title', 'Gacha')));
     // Build results under the overlay, then fly spotlight cards into place.
     global.showPackResults(cards, title, {
       godPack: false,
@@ -1055,7 +1190,9 @@
     const err = el('gacha-err');
     if (err) err.textContent = '';
     _pullBusy = true;
+    const museWasSelected = isMuseBanner(bannerById(_bannerId));
     const payWith = currency === 'tickets' || currency === 'ticket_sr' || currency === 'ticket_ur'
+      || currency === 'muse_ticket'
       ? currency
       : 'star_gems';
     const body = {
@@ -1063,7 +1200,18 @@
       banner: _bannerId,
       dupe_reward: typeof global.getDupeRewardPref === 'function' ? global.getDupeRewardPref() : 'gems',
     };
-    if (payWith === 'ticket_sr' || payWith === 'ticket_ur') {
+    if (payWith === 'muse_ticket') {
+      if (museTicketBalance() < 1 || !isMuseBanner(bannerById(_bannerId))) {
+        _pullBusy = false;
+        toast(tt('gacha.noMuseTickets', "No μ's Premium 10-Pull Tickets"), 2400);
+        if (global.A && global.A._fromGacha) updateGachaAgainButton();
+        return;
+      }
+      body.currency = 'muse_ticket';
+      body.count = 10;
+      body.mode = 'multi';
+      _lastMode = 'multi';
+    } else if (payWith === 'ticket_sr' || payWith === 'ticket_ur') {
       const kind = payWith === 'ticket_ur' ? 'ur' : 'sr';
       if (tierTicketBalance(kind) < 1 || _bannerId !== 'standard') {
         _pullBusy = false;
@@ -1121,12 +1269,15 @@
       syncGems(res.star_gems);
       syncTickets(res.scouting_tickets);
       syncTierTickets(res.scouting_tickets_sr, res.scouting_tickets_ur);
+      applyMuseTickets(res.muse_premium_tickets);
     } catch (e) {
       closeGachaOverlay();
       if (/no longer active/i.test(String(e && e.message))) {
         _bannerId = 'standard';
         void refreshGachaBanners();
-        toast(tt('gacha.bannerEnded', 'That birthday banner has ended.'), 3200);
+        toast(museWasSelected
+          ? tt('gacha.museEnded', "That banner needs a μ's Premium 10-Pull Ticket.")
+          : tt('gacha.bannerEnded', 'That birthday banner has ended.'), 3200);
         return;
       }
       if (err) err.textContent = e.message || tt('gacha.pullError', 'Could not scout');
@@ -1198,6 +1349,7 @@
     el('btn-gacha-single')?.addEventListener('click', () => openGacha('single', 'star_gems'));
     el('btn-gacha-multi')?.addEventListener('click', () => openGacha('multi', 'star_gems'));
     el('btn-gacha-use-tickets')?.addEventListener('click', () => openTicketPicker());
+    el('btn-gacha-use-muse-ticket')?.addEventListener('click', () => openGacha('multi', 'muse_ticket'));
     el('btn-gacha-use-sr-ticket')?.addEventListener('click', () => openGacha('single', 'ticket_sr'));
     el('btn-gacha-use-ur-ticket')?.addEventListener('click', () => openGacha('single', 'ticket_ur'));
     el('btn-gacha-tickets-close')?.addEventListener('click', () => closeTicketPicker());

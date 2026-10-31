@@ -74,6 +74,7 @@
     deck_auto_build: 1, deck_import_decklog: 1,
     daily_status: 1, open_booster: 1, open_gacha: 1, gacha_info: 1, gacha_rates: 1, pick_starter: 1,
     missions_list: 1, missions_claim: 1,
+    gifts_list: 1, gift_claim: 1, gifts_admin_create: 1,
     rank_stats: 1, rank_banner_set: 1, rank_flag_set: 1,
     season_stats: 1, season_feedback_submit: 1, season_feedback_list: 1, season_feedback_status: 1,
     stamp_favorites_set: 1, public_profile: 1, public_leaderboard: 1,

@@ -107,6 +107,9 @@ function tcgRateLimitForAction(string $action, array $body = [], ?string $authTo
         case 'open_gacha':
             tcgRateLimitCheck('open_gacha', tcgRateLimitAuthKey($body, $authToken), 20, TCG_RATE_WINDOW_SEC);
             break;
+        case 'gift_claim':
+            tcgRateLimitCheck('gift_claim', tcgRateLimitAuthKey($body, $authToken), 20, TCG_RATE_WINDOW_SEC);
+            break;
         case 'ranked_join':
             tcgRateLimitCheck('ranked_join', tcgRateLimitAuthKey($body, $authToken), 20, TCG_RATE_WINDOW_SEC);
             break;

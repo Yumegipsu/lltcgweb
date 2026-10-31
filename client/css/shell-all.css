@@ -9655,3 +9655,113 @@ html.tcg-portrait-play #screen-deck .deck-pin-fab .news-fab-icon svg{width:16px;
   50%{box-shadow:0 0 22px rgba(255,64,160,.95),inset 0 0 16px rgba(255,64,160,.45)}
 }
 @media (prefers-reduced-motion:reduce){.llc-menu-screen .queue-other-menu{animation:none}}
+
+/* ═══ Hub Gifts: FAB + overlay (mirrors the News overlay chrome) ═══ */
+#overlay-gifts.llc-menu-screen{
+  position:fixed;inset:0;z-index:8750;display:none;align-items:center;justify-content:center;
+  overflow:hidden;padding:clamp(12px,3vw,24px) 16px;
+  background:rgba(4,10,24,.78);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+#overlay-gifts.open{display:flex}
+#overlay-gifts .gifts-shell{
+  max-width:min(520px,94vw);width:100%;margin-block:auto;min-height:0;
+  display:flex;flex-direction:column;overflow:hidden;
+  padding:clamp(16px,2.6vw,24px) clamp(14px,2.2vw,20px);
+  border-radius:16px;border:1px solid rgba(255,255,255,.44);
+  background:url("../../bg/ptn.png") top center/200px 200px repeat,rgba(38,132,210,.9);
+  box-shadow:0 18px 52px rgba(0,0,0,.45),0 0 32px rgba(52,163,243,.24),inset 0 1px 0 rgba(255,255,255,.16);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+#overlay-gifts .account-shell{width:100%;margin-block:0;gap:0;flex:0 1 auto;min-height:0}
+#overlay-gifts .gifts-panel-shell{
+  display:flex;flex-direction:column;min-height:0;overflow:hidden;width:100%;max-height:min(78vh,680px);
+  background:transparent;border:none;border-radius:0;padding:0;box-shadow:none;backdrop-filter:none}
+#overlay-gifts .account-screen-head{margin-bottom:8px;flex:0 0 auto}
+#overlay-gifts .gifts-scroll{
+  flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+  padding-right:6px;margin-right:-2px;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;scrollbar-color:rgba(255,179,209,.75) rgba(255,255,255,.12)}
+#overlay-gifts .gifts-scroll::-webkit-scrollbar{width:6px}
+#overlay-gifts .gifts-scroll::-webkit-scrollbar-track{background:rgba(255,255,255,.12);border-radius:999px;margin:6px 0}
+#overlay-gifts .gifts-scroll::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,var(--pink-l),var(--pink));border-radius:999px;
+  border:1px solid rgba(255,255,255,.28);box-shadow:0 0 8px rgba(255,107,168,.28)}
+#overlay-gifts .gifts-list{display:flex;flex-direction:column;gap:12px}
+#overlay-gifts .gifts-empty{font-size:14px;color:rgba(255,255,255,.94);text-align:center;margin:18px 8px;line-height:1.55;letter-spacing:.04em}
+.gift-card{
+  display:flex;gap:14px;align-items:flex-start;padding:14px;border-radius:14px;
+  border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1)}
+.gift-card--new{
+  border-color:rgba(255,107,168,.7);
+  box-shadow:0 0 0 1px rgba(255,107,168,.35),0 8px 22px rgba(255,107,168,.2);
+  background:linear-gradient(135deg,rgba(255,107,168,.22),rgba(255,255,255,.06))}
+.gift-card--claimed{opacity:.78}
+.gift-card__art{
+  flex:0 0 96px;width:96px;height:96px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  background:rgba(4,10,24,.35);border:1px solid rgba(255,255,255,.25)}
+.gift-card__art img{width:84px;height:84px;object-fit:contain;display:block}
+.gift-card__main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:6px}
+.gift-card__title{margin:0;font-size:1.05rem;line-height:1.25;color:#fff}
+.gift-card__body{margin:0;font-size:.9rem;line-height:1.5;color:rgba(255,255,255,.92);overflow-wrap:anywhere}
+.gift-card__link{color:#bae4ff;font-weight:700;text-decoration:underline;text-underline-offset:2px}
+.gift-card__link:hover{color:#fff}
+.gift-card__rewards{margin:0;font-size:.82rem;font-weight:800;color:var(--pink-l);letter-spacing:.02em}
+.gift-card__foot{margin-top:4px;display:flex;align-items:center}
+.gift-card__claim{width:auto;min-width:140px;padding:9px 22px}
+.gift-card__claimed{font-size:.85rem;font-weight:800;letter-spacing:.04em;color:rgba(255,255,255,.8)}
+@media (max-width:480px){
+  .gift-card{flex-direction:column;align-items:stretch}
+  .gift-card__art{flex:0 0 auto;align-self:center}
+  .gift-card__claim{width:100%}
+}
+
+/* ═══ μ's Premium 10-Pull banner (ticket-gated, full-body Honoka art) ═══ */
+.gacha-banner--muse{
+  background:
+    radial-gradient(120% 140% at 82% 18%,rgba(255,196,92,.42) 0%,rgba(255,196,92,0) 56%),
+    linear-gradient(135deg,#7c1d52 0%,#b6384f 52%,#e07a3a 100%);
+  border-color:rgba(255,225,150,.62);
+  box-shadow:0 10px 28px rgba(0,0,0,.28),0 0 0 1px rgba(255,214,120,.28) inset}
+.gacha-banner--muse::after{display:none}
+.gacha-banner--muse .gacha-banner__copy{text-shadow:0 2px 10px rgba(60,10,30,.7);padding-left:30px}
+.gacha-banner--muse .gacha-banner__label{color:#fff}
+.gacha-banner--muse .gacha-banner__sub{color:#ffe9b8;font-size:14px;font-weight:700}
+.gacha-banner__premium{
+  align-self:flex-start;margin-bottom:4px;padding:2px 9px;border-radius:999px;
+  font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#5b1a00;
+  background:linear-gradient(135deg,#fff3c4,#ffc84a);border:1px solid rgba(255,255,255,.7);
+  box-shadow:0 2px 8px rgba(0,0,0,.25)}
+html[lang="ja"] .gacha-banner__premium,html[lang="ko"] .gacha-banner__premium,
+html[lang="zh"] .gacha-banner__premium,html[lang="th"] .gacha-banner__premium{text-transform:none;letter-spacing:.04em}
+.gacha-banner--muse .gacha-banner__visual{width:50%}
+/* Full-body art (672×790, tall): fit the whole figure inside the banner, anchored to the bottom right. */
+.gacha-banner--muse .gacha-banner__render{
+  left:auto;right:34px;top:auto;bottom:0;width:auto;height:100%;max-width:100%;
+  object-fit:contain;object-position:right bottom}
+.gacha-banner__ticket-count{
+  position:absolute;z-index:3;left:48px;bottom:10px;display:inline-flex;align-items:center;gap:6px;
+  padding:3px 10px 3px 4px;border-radius:999px;font-size:13px;font-weight:900;color:#fff;
+  background:rgba(60,10,30,.62);border:1px solid rgba(255,225,150,.6);pointer-events:none}
+.gacha-banner__ticket-count img{width:22px;height:22px;object-fit:contain;display:block}
+@media (max-width:640px){
+  .gacha-banner--muse .gacha-banner__visual{width:48%}
+  .gacha-banner--muse .gacha-banner__render{height:100%;right:26px}
+}
+.gacha-actions--muse{margin-top:4px}
+.gacha-actions--muse .gacha-btn-ticket{flex:1 1 100%;padding-block:14px}
+.gacha-actions--muse[hidden],.gacha-actions[hidden]{display:none!important}
+#screen-gacha:not(.is-muse-banner) .gacha-actions--muse{display:none}
+#screen-gacha.is-muse-banner .gacha-actions:not(.gacha-actions--muse){display:none!important}
+#screen-gacha.is-muse-banner .dupe-reward{margin-top:6px}
+/* Gifts button in the social rail (next to Friends / Profile): unclaimed count badge + glow */
+.social-rail-btn.is-gifts{position:relative}
+.social-rail-gift-badge{
+  position:absolute;top:-2px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;
+  background:linear-gradient(135deg,var(--pink),var(--pink-d));border:1px solid rgba(255,255,255,.7);
+  color:#fff;font-size:11px;font-weight:900;line-height:18px;text-align:center;
+  box-shadow:0 2px 10px rgba(255,107,168,.55);pointer-events:none}
+.social-rail-gift-badge[hidden]{display:none!important}
+.social-rail-btn.is-gifts.has-new img{animation:giftRailGlow 1.6s ease-in-out infinite}
+@keyframes giftRailGlow{
+  0%,100%{filter:drop-shadow(0 2px 4px rgba(0,0,0,.35)) drop-shadow(0 0 4px rgba(255,107,168,.55))}
+  50%{filter:drop-shadow(0 2px 4px rgba(0,0,0,.35)) drop-shadow(0 0 12px rgba(255,107,168,.95))}
+}
+@media (prefers-reduced-motion:reduce){.social-rail-btn.is-gifts.has-new img{animation:none}}

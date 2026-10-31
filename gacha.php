@@ -6,6 +6,7 @@ require_once __DIR__ . '/booster.php';
 require_once __DIR__ . '/deck_validate.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/gacha_birthdays.php';
+require_once __DIR__ . '/gacha_muse.php';
 
 const TCG_GACHA_SINGLE_COST = 20;
 const TCG_GACHA_MULTI_COST = 200;
@@ -330,11 +331,11 @@ function tcgGachaEnsureMultiSrPlus(array &$out, array $pools, array $cardMap): v
 /**
  * @return list<array{card_no:string,tier:string,rarity:string}>
  */
-function tcgGachaRollPulls(int $count, array $cardsData, array $cardMap, ?array $pools = null): array {
+function tcgGachaRollPulls(int $count, array $cardsData, array $cardMap, ?array $pools = null, bool $forceIdolFinal = false): array {
     $pools = $pools ?? tcgGachaBuildPools($cardsData);
     $count = max(1, min(20, $count));
     // Birthday banner 10+1: the 11th card is always the birthday idol (SR+ rate), so only the first 10 are rolled freely.
-    $birthdayFinal = $count >= TCG_GACHA_MULTI_COUNT && !empty($pools['_w']);
+    $birthdayFinal = ($count >= TCG_GACHA_MULTI_COUNT || $forceIdolFinal) && !empty($pools['_w']);
     $freeRolls = $birthdayFinal ? $count - 1 : $count;
     $out = [];
     for ($i = 0; $i < $freeRolls; $i++) {
@@ -687,7 +688,17 @@ function tcgComputeGachaRates(array $cardsData, ?array $pools = null, ?array $ba
         'PR, DUO, and Premium Booster cards are not in this pool.',
         'New standard booster packs join this pool one month after release.',
     ];
-    if ($banner !== null) {
+    if ($banner !== null && ($banner['type'] ?? '') === 'muse_premium') {
+        $boost = rtrim(rtrim(number_format(TCG_GACHA_BDAY_BOOST, 2), '0'), '.');
+        $notes = [
+            "μ's Premium 10-Pull — pulled with a μ's Premium 10-Pull Ticket (one ticket = one 10-pull).",
+            "Only μ's Member cards are in this pool (no PR cards).",
+            "All of Honoka's cards are {$boost}× as likely as other cards in their rarity band.",
+            'Each pull first rolls a scout band, then picks one card from that band.',
+            'Percents are chance per single pull for the first 9 pulls.',
+            "The 10th pull is always an SR+ Honoka card (gold, with rainbow staying rare).",
+        ];
+    } elseif ($banner !== null) {
         $notes = [
             'Birthday Gacha for ' . (string)($banner['name_en'] ?? '') . ' — limited to their birthday (JST).',
             'Same pool as the standard Gacha, plus every non-PR card of ' . (string)($banner['name_en'] ?? 'this idol')
@@ -727,10 +738,17 @@ function tcgComputeGachaRates(array $cardsData, ?array $pools = null, ?array $ba
  *
  * @return array{0:?array,1:?array} [pools|null, banner|null]
  */
-function tcgGachaResolveBanner(array $cardsData, string $bannerId, ?int $now = null): array {
+function tcgGachaResolveBanner(array $cardsData, string $bannerId, ?int $now = null, ?string $uid = null): array {
     $bannerId = trim($bannerId);
     if ($bannerId === '' || $bannerId === 'standard') {
         return [null, null];
+    }
+    if ($bannerId === TCG_GACHA_MUSE_BANNER_ID) {
+        $banner = $uid !== null ? tcgGachaMuseBanner($uid) : null;
+        if ($banner === null) {
+            throw new Exception('That banner is no longer active', 400);
+        }
+        return [tcgGachaBuildMusePools($cardsData), $banner];
     }
     if (!str_starts_with($bannerId, 'birthday:')) {
         throw new Exception('Unknown gacha banner', 400);
@@ -756,6 +774,14 @@ function tcgApiGachaInfo(array $body): array {
         'success' => true,
         'banners' => array_merge(
             [['id' => 'standard', 'type' => 'standard', 'pool_total' => count($pools['all'])]],
+            (static function () use ($cards, $uid): array {
+                $muse = tcgGachaMuseBanner($uid);
+                if ($muse === null) {
+                    return [];
+                }
+                $muse['pool_total'] = count(tcgGachaBuildMusePools($cards)['all']);
+                return [$muse];
+            })(),
             array_map(static function (array $b) use ($cards): array {
                 $b['pool_total'] = count(tcgGachaBuildBirthdayPools($cards, (string)$b['idol_key'])['all']);
                 return $b;
@@ -767,6 +793,7 @@ function tcgApiGachaInfo(array $body): array {
         'scouting_tickets' => tcgGetScoutingTickets($uid),
         'scouting_tickets_sr' => tcgGetScoutingTierTickets($uid, 'sr'),
         'scouting_tickets_ur' => tcgGetScoutingTierTickets($uid, 'ur'),
+        'muse_premium_tickets' => tcgGetMusePremiumTickets($uid),
         'single_cost' => TCG_GACHA_SINGLE_COST,
         'multi_cost' => TCG_GACHA_MULTI_COST,
         'multi_count' => TCG_GACHA_MULTI_COUNT,
@@ -792,7 +819,7 @@ function tcgApiGachaRates(array $body): array {
     $uid = tcgRequireAuthUser($body);
     tcgEnsureUser($uid, tcgAuthUserProfile($uid));
     $cards = tcgLoadCardsData();
-    [$pools, $banner] = tcgGachaResolveBanner($cards, (string)($body['banner'] ?? 'standard'));
+    [$pools, $banner] = tcgGachaResolveBanner($cards, (string)($body['banner'] ?? 'standard'), null, $uid);
     return [
         'success' => true,
         'rates' => tcgComputeGachaRates($cards, $pools, $banner),
@@ -810,6 +837,14 @@ function tcgApiOpenGacha(array $body): array {
         throw new Exception('Choose a starter deck first', 400);
     }
     $payWith = strtolower(trim((string)($body['currency'] ?? $body['pay_with'] ?? 'star_gems')));
+    $museTicket = tcgGachaIsMuseTicketCurrency($payWith);
+    $bannerReq = trim((string)($body['banner'] ?? 'standard'));
+    $onMuseBanner = $bannerReq === TCG_GACHA_MUSE_BANNER_ID;
+    if ($museTicket !== $onMuseBanner) {
+        throw new Exception($onMuseBanner
+            ? "The μ's Premium banner can only be scouted with a μ's Premium 10-Pull Ticket"
+            : "μ's Premium 10-Pull Tickets can only be used on the μ's Premium banner", 400);
+    }
     $tierTicket = tcgGachaTierTicketFromCurrency($payWith);
     $useTickets = $tierTicket === null
         && in_array($payWith, ['ticket', 'tickets', 'scouting_ticket', 'scouting_tickets'], true);
@@ -817,7 +852,14 @@ function tcgApiOpenGacha(array $body): array {
     $wantMulti = in_array($mode, ['multi', '10', '10+1', 'eleven', 'x11', 'x10'], true)
         || intval($body['count'] ?? 0) === TCG_GACHA_MULTI_COUNT
         || intval($body['count'] ?? 0) === TCG_GACHA_TICKET_MULTI_COUNT;
-    if ($tierTicket !== null) {
+    if ($museTicket) {
+        $count = TCG_GACHA_MUSE_PULL_COUNT;
+        $cost = TCG_GACHA_MUSE_TICKET_COST;
+        $mode = 'multi';
+        if (tcgGetMusePremiumTickets($uid) < $cost) {
+            throw new Exception('Not enough Premium Scouting Tickets', 400);
+        }
+    } elseif ($tierTicket !== null) {
         // SR / UR ticket: exactly one pull on the standard banner; cannot be combined with other tickets.
         $bannerReq = trim((string)($body['banner'] ?? 'standard'));
         if ($bannerReq !== '' && $bannerReq !== 'standard') {
@@ -868,12 +910,14 @@ function tcgApiOpenGacha(array $body): array {
     $cards = tcgLoadCardsData();
     $cardMap = tcgBuildCardMap($cards);
     // Validate the banner BEFORE spending anything (an expired birthday banner must not charge).
-    [$bannerPools, $activeBanner] = tcgGachaResolveBanner($cards, (string)($body['banner'] ?? 'standard'));
+    [$bannerPools, $activeBanner] = tcgGachaResolveBanner($cards, (string)($body['banner'] ?? 'standard'), null, $uid);
     $rolled = $tierTicket !== null
         ? tcgGachaRollTierTicketPull($tierTicket, $cards, $cardMap)
-        : tcgGachaRollPulls($count, $cards, $cardMap, $bannerPools);
+        : tcgGachaRollPulls($count, $cards, $cardMap, $bannerPools, $museTicket);
     $nos = array_map(static fn ($r) => $r['card_no'], $rolled);
-    if ($tierTicket !== null) {
+    if ($museTicket) {
+        tcgDeductMusePremiumTickets($uid, $cost);
+    } elseif ($tierTicket !== null) {
         tcgDeductScoutingTierTickets($uid, $tierTicket, $cost);
     } elseif ($useTickets) {
         tcgDeductScoutingTickets($uid, $cost);
@@ -916,9 +960,11 @@ function tcgApiOpenGacha(array $body): array {
     $payload = [
         'success' => true,
         'mode' => $mode,
-        'currency' => $tierTicket !== null
-            ? 'scouting_ticket_' . $tierTicket
-            : ($useTickets ? 'scouting_tickets' : 'star_gems'),
+        'currency' => $museTicket
+            ? 'muse_premium_ticket'
+            : ($tierTicket !== null
+                ? 'scouting_ticket_' . $tierTicket
+                : ($useTickets ? 'scouting_tickets' : 'star_gems')),
         'cost' => $cost,
         'count' => $count,
         'pulls' => $pulls,
@@ -931,6 +977,7 @@ function tcgApiOpenGacha(array $body): array {
         'scouting_tickets' => tcgGetScoutingTickets($uid),
         'scouting_tickets_sr' => tcgGetScoutingTierTickets($uid, 'sr'),
         'scouting_tickets_ur' => tcgGetScoutingTierTickets($uid, 'ur'),
+        'muse_premium_tickets' => tcgGetMusePremiumTickets($uid),
     ];
     if (function_exists('tcgMissionAttachCompletions')) {
         return tcgMissionAttachCompletions($payload, $completions);

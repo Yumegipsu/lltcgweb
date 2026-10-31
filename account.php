@@ -10,7 +10,7 @@ ini_set('log_errors', '1');
  *
  * Endpoints (action=):
  *   me, pick_starter, collection, booster_boxes, booster_rates, daily_status, open_booster,
- *   gacha_info, gacha_rates, open_gacha, gacha_sim,
+ *   gacha_info, gacha_rates, open_gacha, gacha_sim, gifts_list, gift_claim, gifts_admin_create,
  *   deck_list, deck_save, deck_set_sleeve, deck_delete, deck_equip, deck_equip_starter, deck_reset_starter, deck_auto_build, deck_import_decklog, reset_account,
  *   ranked_join, ranked_leave, ranked_status, ranked_apply_result, mission_stamp_sent, mission_game_finished, rank_stats, rank_banner_set, rank_flag_set, titles_list, title_set, stamp_favorites_set, active_game, leave_active_game,
  *   replay_save, replay_list, replay_get, replay_start, missions_list, missions_claim, login_bonus_status, login_bonus_claim, public_profile,
@@ -59,6 +59,7 @@ require_once __DIR__ . '/matchmaking.php';
 require_once __DIR__ . '/deckgen.php';
 require_once __DIR__ . '/missions.php';
 require_once __DIR__ . '/login_bonus.php';
+require_once __DIR__ . '/gifts.php';
 require_once __DIR__ . '/presence_actions.php';
 require_once __DIR__ . '/tournament.php';
 require_once __DIR__ . '/social.php';
@@ -139,6 +140,9 @@ try {
         case 'replay_preserve':    echo json_encode(tcgApiReplayPreserve($body)); break;
         case 'missions_list':      echo json_encode(tcgApiMissionsList($body)); break;
         case 'missions_claim':     echo json_encode(tcgApiMissionsClaim($body)); break;
+        case 'gifts_list':         echo json_encode(tcgApiGiftsList($body)); break;
+        case 'gift_claim':         echo json_encode(tcgApiGiftClaim($body)); break;
+        case 'gifts_admin_create': echo json_encode(tcgApiGiftsAdminCreate($body)); break;
         case 'login_bonus_status': echo json_encode(tcgApiLoginBonusStatus($body)); break;
         case 'login_bonus_claim':  echo json_encode(tcgApiLoginBonusClaim($body)); break;
         case 'public_leaderboard': echo json_encode(tcgApiPublicLeaderboard($_GET + $body)); break;
