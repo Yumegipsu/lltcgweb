@@ -830,6 +830,8 @@
       "daysLeft": "{n} days left",
       "dayLeft": "1 day left",
       "endsToday": "Ends today",
+      "endsInHM": "Ends in {h}h {m}m",
+      "endsInM": "Ends in {m}m",
       "metaLine": "{label} · {remain}",
       "rank": {
         "c-green": "Green C",
@@ -3164,6 +3166,8 @@
       "daysLeft": "残り {n} 日",
       "dayLeft": "残り 1 日",
       "endsToday": "本日終了",
+      "endsInHM": "終了まで{h}時間{m}分",
+      "endsInM": "終了まで{m}分",
       "metaLine": "{label} · {remain}",
       "rank": {
         "c-green": "緑C",
@@ -5022,6 +5026,8 @@
       "daysLeft": "Quedan {n} días",
       "dayLeft": "Queda 1 día",
       "endsToday": "Termina hoy",
+      "endsInHM": "Termina en {h} h {m} min",
+      "endsInM": "Termina en {m} min",
       "metaLine": "{label} · {remain}",
       "rank": {
         "c-green": "C verde",
@@ -7134,6 +7140,8 @@
       "daysLeft": "{n}일 남음",
       "dayLeft": "1일 남음",
       "endsToday": "오늘 종료",
+      "endsInHM": "종료까지 {h}시간 {m}분",
+      "endsInM": "종료까지 {m}분",
       "metaLine": "{label} · {remain}",
       "rank": {
         "c-green": "그린 C",
@@ -9260,6 +9268,8 @@
       "daysLeft": "剩余 {n} 天",
       "dayLeft": "剩余 1 天",
       "endsToday": "今日结束",
+      "endsInHM": "{h}小时{m}分钟后结束",
+      "endsInM": "{m}分钟后结束",
       "metaLine": "{label} · {remain}",
       "rank": {
         "c-green": "绿 C",
@@ -11376,6 +11386,8 @@
       "daysLeft": "เหลือ {n} วัน",
       "dayLeft": "เหลือ 1 วัน",
       "endsToday": "สิ้นสุดวันนี้",
+      "endsInHM": "สิ้นสุดใน {h} ชม. {m} นาที",
+      "endsInM": "สิ้นสุดใน {m} นาที",
       "metaLine": "{label} · {remain}",
       "rank": {
         "c-green": "เขียว C",
@@ -13622,6 +13634,8 @@
       "daysLeft": "{n} dias restantes",
       "dayLeft": "1 dia restante",
       "endsToday": "Termina hoje",
+      "endsInHM": "Termina em {h} h {m} min",
+      "endsInM": "Termina em {m} min",
       "metaLine": "{label} · {remain}",
       "rank": {
         "c-green": "C verde",
@@ -15731,6 +15745,8 @@
       "daysLeft": "{n} jours restants",
       "dayLeft": "1 jour restant",
       "endsToday": "Se termine aujourd'hui",
+      "endsInHM": "Se termine dans {h} h {m} min",
+      "endsInM": "Se termine dans {m} min",
       "metaLine": "{label} · {remain}",
       "rank": {
         "c-green": "C vert",

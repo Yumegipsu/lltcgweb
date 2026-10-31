@@ -53,8 +53,16 @@
 
   function seasonNowSec(season) {
     const n = Number(season && season.now);
-    if (Number.isFinite(n) && n > 0) return n;
-    return Math.floor(Date.now() / 1000);
+    const local = Date.now() / 1000;
+    if (Number.isFinite(n) && n > 0) {
+      // Keep counting from the server clock the payload came with, so a page that stays open
+      // on the final day still shows the real time left.
+      if (season.__clockSkew == null) {
+        try { Object.defineProperty(season, '__clockSkew', { value: n - local, enumerable: false }); } catch (e) { /* frozen */ }
+      }
+      return local + (season.__clockSkew != null ? season.__clockSkew : n - local);
+    }
+    return Math.floor(local);
   }
 
   /** Whole days remaining until ends_at; null if unknown. */
@@ -70,7 +78,17 @@
   function remainText(season) {
     const days = daysRemaining(season);
     if (days == null) return '';
-    if (days <= 0) return tt('season.endsToday', 'Ends today');
+    if (days <= 0) {
+      // Final day: count down to the exact end instead of the vague "Ends today".
+      const left = Math.floor(Number(season.ends_at) - seasonNowSec(season));
+      if (left > 0) {
+        const h = Math.floor(left / 3600);
+        const m = Math.floor((left % 3600) / 60);
+        if (h > 0) return tt('season.endsInHM', 'Ends in {h}h {m}m', { h: h, m: m });
+        return tt('season.endsInM', 'Ends in {m}m', { m: Math.max(1, m) });
+      }
+      return tt('season.endsToday', 'Ends today');
+    }
     if (days === 1) return tt('season.dayLeft', '1 day left');
     return tt('season.daysLeft', '{n} days left', { n: days });
   }
