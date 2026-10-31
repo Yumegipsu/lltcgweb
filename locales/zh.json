@@ -1405,7 +1405,7 @@
     "weekly": {
       "rankedRandom": "在随机卡组模式中进行一场排名对战",
       "ranked10": "进行 10 场排名对战",
-      "login7": "本周每天登录（7 天）",
+      "login7": "本周登录 5 天",
       "completeAll": "完成所有每周任务"
     },
     "monthly": {

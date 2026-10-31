@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""Import PBLL02 scrape JSON directly into cards.json (no Chiichan SQLCipher DB).
+"""Import an expansion scrape JSON directly into cards.json (no Chiichan SQLCipher DB).
+
+Defaults to PBLL02; pass --expansion for any other set scraped with tools/scrape_expansion_v2.py.
 
 Usage:
   python tools/import_pbll02_from_scrape.py
   python tools/import_pbll02_from_scrape.py --scrape ../Chiichan/all_cards_pbll02_*.json
+  python tools/import_pbll02_from_scrape.py --expansion CLLS01
 """
 from __future__ import annotations
 
@@ -27,21 +30,22 @@ CHIICHAN = ROOT.parent / "Chiichan"
 PACK_JP = "プレミアムブースター ラブライブ！DUO"
 
 
-def newest_scrape() -> Path:
-    files = sorted(CHIICHAN.glob("all_cards_pbll02_*.json"))
+def newest_scrape(expansion: str = "PBLL02") -> Path:
+    pattern = f"all_cards_{expansion.lower()}_*.json"
+    files = sorted(CHIICHAN.glob(pattern))
     if not files:
-        raise SystemExit("No all_cards_pbll02_*.json in Chiichan")
+        raise SystemExit(f"No {pattern} in Chiichan")
     return files[-1]
 
 
-def scrape_row_to_db_row(card: dict) -> dict:
+def scrape_row_to_db_row(card: dict, pack_jp: str = PACK_JP) -> dict:
     """Map scrape JSON row → shape expected by row_to_card()."""
     return {
         "card_number": card.get("card_number") or "",
         "card_name": card.get("card_name") or "",
         "card_type": card.get("card_type") or "",
         "rarity": (card.get("rarity") or "").replace("＋", "+"),
-        "booster_pack": PACK_JP,
+        "booster_pack": pack_jp,
         "series_name": card.get("series_name") or "",
         "participating_units": card.get("participating_units") or "",
         "cost": card.get("cost") or 0,
@@ -57,6 +61,7 @@ def scrape_row_to_db_row(card: dict) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--scrape", default="", help="Path or glob to scrape JSON")
+    ap.add_argument("--expansion", default="PBLL02", help="Expansion code of the newest scrape to import")
     args = ap.parse_args()
     if args.scrape:
         matches = [Path(p) for p in sorted(glob.glob(args.scrape))]
@@ -66,13 +71,14 @@ def main() -> int:
             raise SystemExit(f"No scrape file: {args.scrape}")
         path = matches[-1]
     else:
-        path = newest_scrape()
+        path = newest_scrape(args.expansion)
 
     payload = json.loads(path.read_text(encoding="utf-8"))
     scrape_cards = payload.get("cards") or []
     print(f"Loading {len(scrape_cards)} cards from {path.name}")
 
-    rows = [scrape_row_to_db_row(c) for c in scrape_cards]
+    pack_jp = PACK_JP if args.expansion.upper() == "PBLL02" else (payload.get("expansion_name") or PACK_JP)
+    rows = [scrape_row_to_db_row(c, pack_jp) for c in scrape_cards]
     new_cards = [row_to_card(r) for r in rows if r["card_number"]]
 
     data = json.loads(CARDS_JSON.read_text(encoding="utf-8"))

@@ -212,7 +212,7 @@
     "weekly": {
       "rankedRandom": "Jouer une partie classée en mode decks aléatoires",
       "ranked10": "Jouer 10 parties classées",
-      "login7": "Se connecter chaque jour cette semaine (7 jours)",
+      "login7": "Se connecter 5 jours cette semaine",
       "completeAll": "Terminer toutes les missions hebdomadaires"
     },
     "monthly": {

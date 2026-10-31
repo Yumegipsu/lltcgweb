@@ -1405,7 +1405,7 @@
     "weekly": {
       "rankedRandom": "랜덤 덱 모드로 랭크 매치 1회 플레이",
       "ranked10": "랭크 매치 10회 플레이",
-      "login7": "이번 주 매일 로그인 (7일)",
+      "login7": "이번 주 5일 로그인",
       "completeAll": "모든 주간 미션 완료"
     },
     "monthly": {

@@ -1381,7 +1381,7 @@
     "weekly": {
       "rankedRandom": "Juega una partida clasificatoria en el modo de mazos aleatorios",
       "ranked10": "Juega 10 partidas clasificatorias",
-      "login7": "Inicia sesión todos los días de esta semana (7 días)",
+      "login7": "Inicia sesión 5 días esta semana",
       "completeAll": "Completa todas las misiones semanales"
     },
     "monthly": {
