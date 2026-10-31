@@ -15,6 +15,8 @@ require_once __DIR__ . '/events.php';
 /** Built-in gift: everyone gets one μ's Premium 10-Pull Ticket (Honoka "Love Live Champions" celebration). */
 const TCG_GIFT_MUSE_CHAMPIONS_ID = 'muse-champions-2026';
 const TCG_GIFT_MUSE_CHAMPIONS_LINK = 'https://x.com/LoveLiveChamps/status/2114748892055326956?a=bFoY9HXw-Cav1vqfPv4&s=20';
+/** Available to claim through 2026-11-30 (UTC); becomes hidden at this instant. */
+const TCG_GIFT_MUSE_CHAMPIONS_EXPIRES_AT = 1796083200; // 2026-12-01 00:00:00 UTC
 
 /** @return list<string> */
 function tcgGiftRewardTypes(): array {
@@ -44,12 +46,16 @@ function tcgGiftsEnsureSchema(?PDO $db = null): void {
     $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_gift_claims_user ON tcg_gift_claims(discord_id)');
 }
 
-/** Insert the built-in gift(s) once; never overwrites an edited row. */
+/**
+ * Insert the built-in gift(s) once. Audience is everyone (`all`), so any account —
+ * including players who sign up later — can claim until expires_at.
+ * Always keeps the Champions gift's expiry on the Nov 30 window (does not rewrite copy).
+ */
 function tcgGiftsSeedDefaults(?PDO $db = null): void {
     $db = $db ?? tcgDb();
     $stmt = $db->prepare(
         'INSERT OR IGNORE INTO tcg_gifts (id, title_key, title_en, body_en, link_url, image, rewards, audience, created_at, expires_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, \'all\', ?, NULL)'
+         VALUES (?, ?, ?, ?, ?, ?, ?, \'all\', ?, ?)'
     );
     $stmt->execute([
         TCG_GIFT_MUSE_CHAMPIONS_ID,
@@ -60,7 +66,11 @@ function tcgGiftsSeedDefaults(?PDO $db = null): void {
         'assets/Muse_Premium_Ticket.webp',
         json_encode([['type' => 'muse_premium_ticket', 'amount' => 1]]),
         time(),
+        TCG_GIFT_MUSE_CHAMPIONS_EXPIRES_AT,
     ]);
+    // Rows inserted before the expiry window existed still need the deadline.
+    $db->prepare('UPDATE tcg_gifts SET expires_at = ? WHERE id = ?')
+        ->execute([TCG_GIFT_MUSE_CHAMPIONS_EXPIRES_AT, TCG_GIFT_MUSE_CHAMPIONS_ID]);
 }
 
 /**
@@ -133,6 +143,10 @@ function tcgGiftsForUser(string $uid, ?int $now = null): array {
             continue;
         }
         $id = (string)$row['id'];
+        $expiresAt = $row['expires_at'] ?? null;
+        $expiresAt = ($expiresAt !== null && $expiresAt !== '' && intval($expiresAt) > 0)
+            ? intval($expiresAt)
+            : null;
         $out[] = [
             'id' => $id,
             'title_key' => (string)$row['title_key'],
@@ -142,6 +156,7 @@ function tcgGiftsForUser(string $uid, ?int $now = null): array {
             'image' => (string)$row['image'],
             'rewards' => json_decode((string)$row['rewards'], true) ?: [],
             'created_at' => intval($row['created_at']),
+            'expires_at' => $expiresAt,
             'claimed' => isset($claims[$id]),
             'claimed_at' => $claims[$id] ?? null,
         ];

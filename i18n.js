@@ -658,6 +658,10 @@
       "claimError": "Could not claim the gift.",
       "loadError": "Could not load gifts.",
       "empty": "No gifts right now.",
+      "expiresInDays": "Expires in {n}d",
+      "expiresIn1Day": "Expires in 1d",
+      "expiresInHours": "Expires in {n}h",
+      "expired": "Expired",
       "muse10": {
         "title": "μ's Premium 10-Pull Ticket",
         "body": "In celebration of Honoka winning \"[[Love Live Champions]]\"! Scout in a μ's-only gacha with boosted Honoka rates and a guaranteed SR+ Honoka."
@@ -2984,6 +2988,10 @@
       "claimError": "ギフトを受け取れませんでした。",
       "loadError": "ギフトを読み込めませんでした。",
       "empty": "現在ギフトはありません。",
+      "expiresInDays": "残り{n}日で期限切れ",
+      "expiresIn1Day": "残り1日で期限切れ",
+      "expiresInHours": "残り{n}時間で期限切れ",
+      "expired": "期限切れ",
       "muse10": {
         "title": "μ's プレミアム10連チケット",
         "body": "穂乃果の「[[Love Live Champions]]」優勝を記念して！μ's限定ガチャで、穂乃果の排出率アップ＆SR以上の穂乃果が1枚確定です。"
@@ -5031,6 +5039,10 @@
       "claimError": "No se pudo reclamar el regalo.",
       "loadError": "No se pudieron cargar los regalos.",
       "empty": "No hay regalos por ahora.",
+      "expiresInDays": "Caduca en {n}d",
+      "expiresIn1Day": "Caduca en 1d",
+      "expiresInHours": "Caduca en {n}h",
+      "expired": "Caducado",
       "muse10": {
         "title": "Entrada Premium de 10 tiradas de μ's",
         "body": "¡Para celebrar que Honoka ganó \"[[Love Live Champions]]\"! Haz scout en un gacha solo de μ's con probabilidades aumentadas de Honoka y una Honoka SR+ garantizada."
@@ -7189,6 +7201,10 @@
       "claimError": "선물을 받을 수 없습니다.",
       "loadError": "선물을 불러올 수 없습니다.",
       "empty": "지금은 선물이 없습니다.",
+      "expiresInDays": "{n}일 후 만료",
+      "expiresIn1Day": "1일 후 만료",
+      "expiresInHours": "{n}시간 후 만료",
+      "expired": "만료됨",
       "muse10": {
         "title": "μ's 프리미엄 10연차 티켓",
         "body": "호노카의 \"[[Love Live Champions]]\" 우승을 기념하여! μ's 전용 가챠에서 호노카 확률 UP, SR 이상 호노카 1장이 확정됩니다."
@@ -9361,6 +9377,10 @@
       "claimError": "无法领取礼物。",
       "loadError": "无法加载礼物。",
       "empty": "目前没有礼物。",
+      "expiresInDays": "{n} 天后到期",
+      "expiresIn1Day": "1 天后到期",
+      "expiresInHours": "{n} 小时后到期",
+      "expired": "已过期",
       "muse10": {
         "title": "μ's 高级10连券",
         "body": "庆祝穗乃果赢得\"[[Love Live Champions]]\"！在仅限μ's的扭蛋中招募，穗乃果出率提升，并保底1张SR以上的穗乃果。"
@@ -11523,6 +11543,10 @@
       "claimError": "ไม่สามารถรับของขวัญได้",
       "loadError": "ไม่สามารถโหลดของขวัญได้",
       "empty": "ตอนนี้ยังไม่มีของขวัญ",
+      "expiresInDays": "หมดอายุใน {n} วัน",
+      "expiresIn1Day": "หมดอายุใน 1 วัน",
+      "expiresInHours": "หมดอายุใน {n} ชม.",
+      "expired": "หมดอายุแล้ว",
       "muse10": {
         "title": "ตั๋วพรีเมียม 10 ครั้ง μ's",
         "body": "เพื่อเฉลิมฉลองที่โฮโนกะคว้าแชมป์ \"[[Love Live Champions]]\"! สเกาต์ในกาชาเฉพาะ μ's อัตราออกโฮโนกะสูงขึ้น และรับประกันโฮโนกะ SR ขึ้นไป 1 ใบ"
@@ -13769,6 +13793,10 @@
       "claimError": "Não foi possível resgatar o presente.",
       "loadError": "Não foi possível carregar os presentes.",
       "empty": "Nenhum presente no momento.",
+      "expiresInDays": "Expira em {n}d",
+      "expiresIn1Day": "Expira em 1d",
+      "expiresInHours": "Expira em {n}h",
+      "expired": "Expirado",
       "muse10": {
         "title": "Bilhete Premium de 10 giros do μ's",
         "body": "Para comemorar a vitória da Honoka no \"[[Love Live Champions]]\"! Faça scout em um gacha só de μ's com chances aumentadas da Honoka e uma Honoka SR+ garantida."
@@ -17628,6 +17656,10 @@
       "claimError": "Impossible de récupérer le cadeau.",
       "loadError": "Impossible de charger les cadeaux.",
       "empty": "Aucun cadeau pour le moment.",
+      "expiresInDays": "Expire dans {n}j",
+      "expiresIn1Day": "Expire dans 1j",
+      "expiresInHours": "Expire dans {n}h",
+      "expired": "Expiré",
       "muse10": {
         "title": "Ticket Premium 10 tirages μ's",
         "body": "Pour célébrer la victoire de Honoka à « [[Love Live Champions]] » ! Recrutez dans un gacha réservé aux μ's avec des taux de Honoka augmentés et une Honoka SR+ garantie."

@@ -9704,6 +9704,7 @@ html.tcg-portrait-play #screen-deck .deck-pin-fab .news-fab-icon svg{width:16px;
 .gift-card__link{color:#bae4ff;font-weight:700;text-decoration:underline;text-underline-offset:2px}
 .gift-card__link:hover{color:#fff}
 .gift-card__rewards{margin:0;font-size:.82rem;font-weight:800;color:var(--pink-l);letter-spacing:.02em}
+.gift-card__expires{margin:0;font-size:.78rem;font-weight:700;letter-spacing:.02em;color:rgba(255,220,180,.92)}
 .gift-card__foot{margin-top:4px;display:flex;align-items:center}
 .gift-card__claim{width:auto;min-width:140px;padding:9px 22px}
 .gift-card__claimed{font-size:.85rem;font-weight:800;letter-spacing:.04em;color:rgba(255,255,255,.8)}

@@ -93,6 +93,20 @@
     }
   }
 
+  /** Countdown under gifts that have expires_at (e.g. "Expires in 29d"). */
+  function expiresLabel(g) {
+    const exp = Number(g && g.expires_at);
+    if (!Number.isFinite(exp) || exp <= 0) return '';
+    const now = Math.floor(Date.now() / 1000);
+    const left = exp - now;
+    if (left <= 0) return tt('gifts.expired', 'Expired');
+    const days = Math.ceil(left / 86400);
+    if (days >= 2) return tt('gifts.expiresInDays', 'Expires in {n}d', { n: days });
+    if (days === 1) return tt('gifts.expiresIn1Day', 'Expires in 1d');
+    const hours = Math.max(1, Math.ceil(left / 3600));
+    return tt('gifts.expiresInHours', 'Expires in {n}h', { n: hours });
+  }
+
   function buildCard(g) {
     const card = document.createElement('article');
     card.className = 'gift-card' + (g.claimed ? ' gift-card--claimed' : ' gift-card--new');
@@ -128,6 +142,14 @@
       rw.className = 'gift-card__rewards';
       rw.textContent = labels.join(' · ');
       main.appendChild(rw);
+    }
+
+    const expText = expiresLabel(g);
+    if (expText) {
+      const exp = document.createElement('p');
+      exp.className = 'gift-card__expires';
+      exp.textContent = expText;
+      main.appendChild(exp);
     }
 
     const foot = document.createElement('div');
