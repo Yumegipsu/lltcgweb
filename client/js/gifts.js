@@ -72,6 +72,8 @@
     switch (r.type) {
       case 'muse_premium_ticket':
         return tt('gifts.reward.musePremiumTicket', "μ's Premium 10-Pull Ticket ×{n}", { n });
+      case 'pr_pack':
+        return tt('gifts.reward.prPack', 'PR pack ({n} cards)', { n });
       case 'coins':
         return tt('gifts.reward.coins', '{n} Coins', { n });
       case 'star_gems':

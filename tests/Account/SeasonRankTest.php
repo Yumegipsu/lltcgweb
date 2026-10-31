@@ -35,6 +35,11 @@ final class SeasonRankTest extends TestCase
             $db->prepare('DELETE FROM tcg_season_history WHERE discord_id = ?')->execute([$id]);
             $db->prepare('DELETE FROM tcg_season_rank WHERE discord_id = ?')->execute([$id]);
             $db->prepare('DELETE FROM tcg_rank WHERE discord_id = ?')->execute([$id]);
+            try {
+                $db->prepare('DELETE FROM tcg_gift_claims WHERE discord_id = ?')->execute([$id]);
+                $db->prepare('DELETE FROM tcg_gifts WHERE id LIKE ?')->execute(['%' . $id . '%']);
+            } catch (\Throwable $e) {
+            }
             $db->prepare('DELETE FROM tcg_users WHERE discord_id = ?')->execute([$id]);
         }
     }
@@ -237,13 +242,33 @@ final class SeasonRankTest extends TestCase
             VALUES (?, ?, ?, 7, 40, 7, 8, 2, ?)')
             ->execute([$id, TCG_GAME_MODE_STANDARD, '2026-10', $now]);
         $this->at('2026-11-02 12:00:00');
+        $coins0 = tcgGetCoins($id);
+        $gems0 = tcgGetStarGems($id);
         $grant = tcgSeasonSettle($id, TCG_GAME_MODE_STANDARD);
         $this->assertNotNull($grant);
         $this->assertSame(6000, $grant['coins']);
         $this->assertSame(2000, $grant['gems']);
         $this->assertSame(5, $grant['pr_packs']);
-        $this->assertSame(6000, tcgGetCoins($id));
-        $this->assertGreaterThanOrEqual(2000, tcgGetStarGems($id));
+        $this->assertTrue(!empty($grant['via_gift']));
+        $this->assertSame($coins0, tcgGetCoins($id), 'season-end coins wait for Gifts claim');
+        $this->assertSame($gems0, tcgGetStarGems($id));
+        require_once dirname(__DIR__, 2) . '/gifts.php';
+        $giftId = (string)($grant['gift_id'] ?? '');
+        $this->assertNotSame('', $giftId);
+        $gifts = array_values(array_filter(tcgGiftsForUser($id), static fn ($g) => $g['id'] === $giftId));
+        $this->assertCount(1, $gifts);
+        $this->assertFalse($gifts[0]['claimed']);
+        foreach ($gifts[0]['rewards'] as $rw) {
+            if (($rw['type'] ?? '') === 'pr_pack') {
+                tcgGiftGrantReward($id, $rw);
+            } elseif (is_array($rw)) {
+                tcgGiftGrantReward($id, $rw);
+            }
+        }
+        tcgDb()->prepare('INSERT OR IGNORE INTO tcg_gift_claims (gift_id, discord_id, claimed_at) VALUES (?, ?, ?)')
+            ->execute([$giftId, $id, time()]);
+        $this->assertSame($coins0 + 6000, tcgGetCoins($id));
+        $this->assertGreaterThanOrEqual($gems0 + 2000, tcgGetStarGems($id));
         $live = tcgSeasonLoadRow($id, TCG_GAME_MODE_STANDARD);
         $this->assertSame('2026-11', $live['season_id']);
         $this->assertSame(4, (int)$live['step']);
@@ -268,7 +293,7 @@ final class SeasonRankTest extends TestCase
         $this->assertFalse(tcgTitleIsUnlocked($id, tcgTitleDefById('title_m_0001_01001_0001')));
         $again = tcgSeasonSettle($id, TCG_GAME_MODE_STANDARD);
         $this->assertNull($again);
-        $this->assertSame(6000, tcgGetCoins($id));
+        $this->assertSame($coins0 + 6000, tcgGetCoins($id));
     }
 
     public function testPinkSIsTopTenAndCanBeDisplaced(): void

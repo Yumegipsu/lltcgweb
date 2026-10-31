@@ -6,6 +6,7 @@
  * A gift carries its own copy (title/body, with `gifts.<key>.*` i18n for built-in gifts), an
  * optional image + external link, and a list of rewards:
  *   {"type":"muse_premium_ticket","amount":1}   — gift-only item (see gacha_muse.php)
+ *   {"type":"pr_pack","amount":N}               — N-card ranked PR pack (gift / season-end only)
  *   {"type":"coins|star_gems|scouting_ticket|scouting_ticket_sr|scouting_ticket_ur","amount":N}
  *   {"type":"card","card_no":"…","qty":N} / sleeve / playmat — same payloads as event rewards.
  */
@@ -20,7 +21,7 @@ const TCG_GIFT_MUSE_CHAMPIONS_EXPIRES_AT = 1796083200; // 2026-12-01 00:00:00 UT
 
 /** @return list<string> */
 function tcgGiftRewardTypes(): array {
-    return array_merge(['muse_premium_ticket'], TCG_EVENT_REWARD_TYPES);
+    return array_merge(['muse_premium_ticket', 'pr_pack'], TCG_EVENT_REWARD_TYPES);
 }
 
 function tcgGiftsEnsureSchema(?PDO $db = null): void {
@@ -94,6 +95,11 @@ function tcgGiftNormalizeRewards($raw): array {
             $out[] = ['type' => $type, 'amount' => max(1, min(100, intval($row['amount'] ?? 1)))];
             continue;
         }
+        if ($type === 'pr_pack') {
+            // amount = card count in the single PR pack (season-end uses 2–5).
+            $out[] = ['type' => $type, 'amount' => max(1, min(15, intval($row['amount'] ?? 1)))];
+            continue;
+        }
         $out[] = ['type' => $type] + tcgEventsNormalizeRewardPayload($type, $row);
     }
     return $out;
@@ -106,7 +112,58 @@ function tcgGiftGrantReward(string $uid, array $reward): void {
         tcgAddMusePremiumTickets($uid, max(1, intval($reward['amount'] ?? 1)));
         return;
     }
+    if ($type === 'pr_pack') {
+        if (!function_exists('tcgGrantPrPackCards')) {
+            require_once __DIR__ . '/ranked_pr_rewards.php';
+        }
+        tcgGrantPrPackCards($uid, max(1, min(15, intval($reward['amount'] ?? 1))));
+        return;
+    }
     tcgEventsGrantReward($uid, $type, $reward);
+}
+
+/**
+ * Publish a one-player gift (INSERT OR IGNORE). Used for season-end / rank-up rewards so the
+ * player claims from the Gifts menu instead of receiving currency instantly.
+ *
+ * @param list<array<string,mixed>> $rewards
+ * @return bool true when a new gift row was inserted
+ */
+function tcgGiftsOfferToUser(
+    string $discordId,
+    string $giftId,
+    string $titleEn,
+    string $bodyEn,
+    array $rewards,
+    string $titleKey = '',
+    string $image = '',
+    ?int $expiresAt = null
+): bool {
+    if ($discordId === '' || !preg_match('/^[A-Za-z0-9_-]{3,80}$/', $giftId)) {
+        return false;
+    }
+    if ($rewards === []) {
+        return false;
+    }
+    tcgGiftsEnsureSchema();
+    $normalized = tcgGiftNormalizeRewards($rewards);
+    $stmt = tcgDb()->prepare(
+        'INSERT OR IGNORE INTO tcg_gifts
+            (id, title_key, title_en, body_en, link_url, image, rewards, audience, created_at, expires_at)
+         VALUES (?, ?, ?, ?, \'\', ?, ?, ?, ?, ?)'
+    );
+    $stmt->execute([
+        $giftId,
+        $titleKey,
+        $titleEn,
+        $bodyEn,
+        $image,
+        json_encode($normalized, JSON_UNESCAPED_UNICODE),
+        json_encode([$discordId]),
+        time(),
+        ($expiresAt !== null && $expiresAt > 0) ? $expiresAt : null,
+    ]);
+    return $stmt->rowCount() > 0;
 }
 
 /** @param array<string,mixed> $row */

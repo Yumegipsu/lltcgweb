@@ -666,7 +666,16 @@
         "title": "μ's Premium 10-Pull Ticket",
         "body": "In celebration of Honoka winning \"[[Love Live Champions]]\"! Scout in a μ's-only gacha with boosted Honoka rates and a guaranteed SR+ Honoka."
       },
+      "seasonEnd": {
+        "title": "Season rewards",
+        "body": "Season over! Claim your end-of-season rewards for your peak rank."
+      },
+      "seasonRankUp": {
+        "title": "Rank-up reward",
+        "body": "You reached a new seasonal rank. Claim your rank-up rewards here."
+      },
       "reward": {
+        "prPack": "PR pack ({n} cards)",
         "musePremiumTicket": "μ's Premium 10-Pull Ticket ×{n}",
         "coins": "{n} Coins",
         "starGems": "{n} Star Gems",
@@ -904,12 +913,15 @@
       "chartLoss": "If you lose: points lost",
       "chartCorner": "Your rank ↓ · Opponent’s rank →",
       "chartNoLoss": "A dash (—) means no points are lost at that rank.",
-      "ratesRankUp": "Rank-up rewards are paid once, the first time you reach each rank in a season. Season-end rewards are paid for your highest rank.",
+      "ratesRankUp": "Rank-up rewards are offered once in Gifts the first time you reach each rank in a season. Season-end rewards for your highest rank also arrive in Gifts when the next season starts.",
       "rowSeasonEnd": "Season end: {rewards}",
       "rowRankUp": "Rank-up: {rewards}",
       "rewardPack": "PR pack ({n} cards)",
       "rankUpToast": "Rank-up reward ({rank}): {rewards}",
+      "rankUpGiftToast": "Rank-up rewards are ready in Gifts",
+      "rewardGiftToast": "Season rewards are ready in Gifts",
       "rankUpResult": "Rank-up reward: {rewards}",
+      "rankUpResultGift": "Rank-up gift ready: {rewards}",
       "pointsProtectedRank": "{rank} — points protected",
       "pointsProtected": "C rank — points protected"
     },
@@ -2997,6 +3009,7 @@
         "body": "穂乃果の「[[Love Live Champions]]」優勝を記念して！μ's限定ガチャで、穂乃果の排出率アップ＆SR以上の穂乃果が1枚確定です。"
       },
       "reward": {
+        "prPack": "PR pack ({n} cards)",
         "musePremiumTicket": "μ's プレミアム10連チケット ×{n}",
         "coins": "{n} コイン",
         "starGems": "スタージェム ×{n}",
@@ -3293,6 +3306,9 @@
       "rowRankUp": "ランクアップ報酬：{rewards}",
       "rewardPack": "PRパック（{n}枚）",
       "rankUpToast": "ランクアップ報酬（{rank}）：{rewards}",
+      "rankUpGiftToast": "ランクアップ報酬はギフトで受け取れます",
+      "rewardGiftToast": "シーズン報酬はギフトで受け取れます",
+      "rankUpResultGift": "ランクアップギフト準備完了: {rewards}",
       "rankUpResult": "ランクアップ報酬：{rewards}",
       "pointsProtectedRank": "{rank} — ポイント保護",
       "pointsProtected": "Cランク — ポイント保護"
@@ -5048,6 +5064,7 @@
         "body": "¡Para celebrar que Honoka ganó \"[[Love Live Champions]]\"! Haz scout en un gacha solo de μ's con probabilidades aumentadas de Honoka y una Honoka SR+ garantizada."
       },
       "reward": {
+        "prPack": "PR pack ({n} cards)",
         "musePremiumTicket": "Entrada Premium de 10 tiradas de μ's ×{n}",
         "coins": "{n} monedas",
         "starGems": "{n} Star Gems",
@@ -5197,6 +5214,9 @@
       "rowRankUp": "Ascenso: {rewards}",
       "rewardPack": "Sobre PR ({n} cartas)",
       "rankUpToast": "Recompensa de ascenso ({rank}): {rewards}",
+      "rankUpGiftToast": "Las recompensas de ascenso están en Regalos",
+      "rewardGiftToast": "Las recompensas de temporada están en Regalos",
+      "rankUpResultGift": "Regalo de ascenso listo: {rewards}",
       "rankUpResult": "Recompensa de ascenso: {rewards}",
       "pointsProtectedRank": "{rank} — puntos protegidos",
       "pointsProtected": "Rango C — puntos protegidos",
@@ -7210,6 +7230,7 @@
         "body": "호노카의 \"[[Love Live Champions]]\" 우승을 기념하여! μ's 전용 가챠에서 호노카 확률 UP, SR 이상 호노카 1장이 확정됩니다."
       },
       "reward": {
+        "prPack": "PR pack ({n} cards)",
         "musePremiumTicket": "μ's 프리미엄 10연차 티켓 ×{n}",
         "coins": "{n} 코인",
         "starGems": "스타 젬 ×{n}",
@@ -7359,6 +7380,9 @@
       "rowRankUp": "랭크업: {rewards}",
       "rewardPack": "PR 팩 ({n}장)",
       "rankUpToast": "랭크업 보상 ({rank}): {rewards}",
+      "rankUpGiftToast": "랭크업 보상은 선물함에서 받을 수 있습니다",
+      "rewardGiftToast": "시즌 보상은 선물함에서 받을 수 있습니다",
+      "rankUpResultGift": "랭크업 선물 준비됨: {rewards}",
       "rankUpResult": "랭크업 보상: {rewards}",
       "pointsProtectedRank": "{rank} — 포인트 보호",
       "pointsProtected": "C 랭크 — 포인트 보호",
@@ -9386,6 +9410,7 @@
         "body": "庆祝穗乃果赢得\"[[Love Live Champions]]\"！在仅限μ's的扭蛋中招募，穗乃果出率提升，并保底1张SR以上的穗乃果。"
       },
       "reward": {
+        "prPack": "PR pack ({n} cards)",
         "musePremiumTicket": "μ's 高级10连券 ×{n}",
         "coins": "{n} 金币",
         "starGems": "星宝石 ×{n}",
@@ -9535,6 +9560,9 @@
       "rowRankUp": "晋级：{rewards}",
       "rewardPack": "PR 卡包（{n} 张）",
       "rankUpToast": "晋级奖励（{rank}）：{rewards}",
+      "rankUpGiftToast": "晋级奖励已放入礼物",
+      "rewardGiftToast": "赛季奖励已放入礼物",
+      "rankUpResultGift": "晋级礼物已就绪：{rewards}",
       "rankUpResult": "晋级奖励：{rewards}",
       "pointsProtectedRank": "{rank} — 积分受保护",
       "pointsProtected": "C段 — 积分保护",
@@ -11552,6 +11580,7 @@
         "body": "เพื่อเฉลิมฉลองที่โฮโนกะคว้าแชมป์ \"[[Love Live Champions]]\"! สเกาต์ในกาชาเฉพาะ μ's อัตราออกโฮโนกะสูงขึ้น และรับประกันโฮโนกะ SR ขึ้นไป 1 ใบ"
       },
       "reward": {
+        "prPack": "PR pack ({n} cards)",
         "musePremiumTicket": "ตั๋วพรีเมียม 10 ครั้ง μ's ×{n}",
         "coins": "{n} เหรียญ",
         "starGems": "สตาร์เจม ×{n}",
@@ -11701,6 +11730,9 @@
       "rowRankUp": "เลื่อนแรงก์: {rewards}",
       "rewardPack": "แพ็ก PR ({n} ใบ)",
       "rankUpToast": "รางวัลเลื่อนแรงก์ ({rank}): {rewards}",
+      "rankUpGiftToast": "รางวัลเลื่อนแรงก์พร้อมในของขวัญ",
+      "rewardGiftToast": "รางวัลซีซันพร้อมในของขวัญ",
+      "rankUpResultGift": "ของขวัญเลื่อนแรงก์พร้อม: {rewards}",
       "rankUpResult": "รางวัลเลื่อนแรงก์: {rewards}",
       "pointsProtectedRank": "{rank} — คะแนนได้รับการคุ้มครอง",
       "pointsProtected": "แรงก์ C — แต้มถูกป้องกัน",
@@ -13802,6 +13834,7 @@
         "body": "Para comemorar a vitória da Honoka no \"[[Love Live Champions]]\"! Faça scout em um gacha só de μ's com chances aumentadas da Honoka e uma Honoka SR+ garantida."
       },
       "reward": {
+        "prPack": "PR pack ({n} cards)",
         "musePremiumTicket": "Bilhete Premium de 10 giros do μ's ×{n}",
         "coins": "{n} moedas",
         "starGems": "{n} Star Gems",
@@ -14001,6 +14034,9 @@
       "rowRankUp": "Subida de rank: {rewards}",
       "rewardPack": "Pacote PR ({n} cartas)",
       "rankUpToast": "Recompensa de subida de rank ({rank}): {rewards}",
+      "rankUpGiftToast": "Recompensas de subida estão em Presentes",
+      "rewardGiftToast": "Recompensas da temporada estão em Presentes",
+      "rankUpResultGift": "Presente de subida pronto: {rewards}",
       "rankUpResult": "Recompensa de subida de rank: {rewards}",
       "pointsProtectedRank": "{rank} — pontos protegidos",
       "pointsProtected": "Rank C — pontos protegidos",
@@ -16116,6 +16152,9 @@
       "rowRankUp": "Promotion : {rewards}",
       "rewardPack": "Paquet PR ({n} cartes)",
       "rankUpToast": "Récompense de promotion ({rank}) : {rewards}",
+      "rankUpGiftToast": "Récompenses de promotion prêtes dans Cadeaux",
+      "rewardGiftToast": "Récompenses de saison prêtes dans Cadeaux",
+      "rankUpResultGift": "Cadeau de promotion prêt : {rewards}",
       "rankUpResult": "Récompense de promotion : {rewards}",
       "pointsProtectedRank": "{rank} — points protégés",
       "pointsProtected": "Rang C — points protégés",
@@ -17665,6 +17704,7 @@
         "body": "Pour célébrer la victoire de Honoka à « [[Love Live Champions]] » ! Recrutez dans un gacha réservé aux μ's avec des taux de Honoka augmentés et une Honoka SR+ garantie."
       },
       "reward": {
+        "prPack": "PR pack ({n} cards)",
         "musePremiumTicket": "Ticket Premium 10 tirages μ's ×{n}",
         "coins": "{n} pièces",
         "starGems": "{n} Star Gems",

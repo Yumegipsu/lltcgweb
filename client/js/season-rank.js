@@ -852,38 +852,18 @@
   }
 
   function showRankUpToasts(list) {
-    if (!Array.isArray(list) || typeof global.toast !== 'function') return;
-    list.forEach((r) => {
-      if (!r) return;
-      global.toast(tt('season.rankUpToast', 'Rank-up reward ({rank}): {rewards}',
-        { rank: rankName(r), rewards: formatSeasonReward(r) }), 5200);
-    });
+    if (!Array.isArray(list) || !list.length || typeof global.toast !== 'function') return;
+    // Rank-ups land in Gifts now; one toast is enough even when several tiers unlocked.
+    global.toast(tt('season.rankUpGiftToast', 'Rank-up rewards are ready in Gifts'), 4800);
+    if (typeof global.refreshGiftsBadge === 'function') void global.refreshGiftsBadge();
   }
 
   function showRewardToasts(me) {
     if (me && Array.isArray(me.season_rankups) && me.season_rankups.length) showRankUpToasts(me.season_rankups);
     const list = me && me.season_rewards;
-    if (!Array.isArray(list) || typeof global.toast !== 'function') return;
-    list.forEach((reward) => {
-      if (!reward) return;
-      const packs = Number(reward.pr_packs || 0);
-      const hasTickets = Number(reward.ticket_sr || 0) > 0 || Number(reward.ticket_ur || 0) > 0;
-      const msg = hasTickets
-        ? tt('season.rewardToastFull', 'Season reward: {rewards}', {
-          rewards: formatSeasonReward({ coins: reward.coins, gems: reward.gems, packs, ticket_sr: reward.ticket_sr, ticket_ur: reward.ticket_ur }),
-        })
-        : packs > 0
-        ? tt('season.rewardToastPacks', 'Season reward: {coins} Coins, {gems} Star Gems, a {cards}-card PR pack', {
-          coins: reward.coins,
-          gems: reward.gems,
-          cards: packs,
-        })
-        : tt('season.rewardToast', 'Season reward: {coins} Coins, {gems} Star Gems', {
-          coins: reward.coins,
-          gems: reward.gems,
-        });
-      global.toast(msg, 4600);
-    });
+    if (!Array.isArray(list) || !list.length || typeof global.toast !== 'function') return;
+    global.toast(tt('season.rewardGiftToast', 'Season rewards are ready in Gifts'), 4800);
+    if (typeof global.refreshGiftsBadge === 'function') void global.refreshGiftsBadge();
   }
 
   function sideProgress(side) {
@@ -970,9 +950,10 @@
     rankUps.forEach((r) => {
       const line = document.createElement('p');
       line.className = 'win-season-rankup';
-      line.textContent = tt('season.rankUpResult', 'Rank-up reward: {rewards}', { rewards: formatSeasonReward(r) });
+      line.textContent = tt('season.rankUpResultGift', 'Rank-up gift ready: {rewards}', { rewards: formatSeasonReward(r) });
       host.appendChild(line);
     });
+    if (rankUps.length && typeof global.refreshGiftsBadge === 'function') void global.refreshGiftsBadge();
 
     const afterPct = sideProgress(change.after);
     const promoted = !!change.promoted || Number(change.after.step) > Number(change.before.step);

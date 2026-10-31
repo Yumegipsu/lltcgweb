@@ -3,7 +3,9 @@
  * Monthly seasonal ladder beside lifetime Elo.
  *
  * Season 1 starts 2026-10-01 00:00 UTC. One ladder for standard ranked only.
- * Rollover is lazy (next account or ranked request). Rewards use the peak step.
+ * Rollover is lazy (next account or ranked request after the month flips). Peak-rank
+ * season-end rewards and (from Season 2) one-time rank-up rewards are published as
+ * per-player Gifts — claimed from the hub Gifts menu, not paid into the wallet instantly.
  * Pink S is the live top 10 who have filled Green S, not a permanent promotion.
  *
  * Ladder points are independent of all-time Elo. Match win deltas use each
@@ -502,8 +504,72 @@ function tcgSeasonAssignPinkSlots(string $gameMode, string $seasonId): array {
 }
 
 /**
- * Pay the one-time rank-up reward for $step in $seasonId (rule set 2). Returns the reward
- * payload when it was paid now, or null (already paid, not in rule set 2, or no reward).
+ * Turn a season / rank-up reward array into gift reward rows (coins, gems, tickets, PR pack).
+ *
+ * @param array<string,mixed> $reward
+ * @return list<array<string,mixed>>
+ */
+function tcgSeasonRewardToGiftItems(array $reward): array {
+    $out = [];
+    $coins = max(0, (int)($reward['coins'] ?? 0));
+    $gems = max(0, (int)($reward['gems'] ?? $reward['star_gems'] ?? 0));
+    $tickets = max(0, (int)($reward['tickets'] ?? 0));
+    $sr = max(0, (int)($reward['ticket_sr'] ?? 0));
+    $ur = max(0, (int)($reward['ticket_ur'] ?? 0));
+    $packs = max(0, (int)($reward['packs'] ?? $reward['pr_packs'] ?? 0));
+    if ($coins > 0) {
+        $out[] = ['type' => 'coins', 'amount' => $coins];
+    }
+    if ($gems > 0) {
+        $out[] = ['type' => 'star_gems', 'amount' => $gems];
+    }
+    if ($tickets > 0) {
+        $out[] = ['type' => 'scouting_ticket', 'amount' => $tickets];
+    }
+    if ($sr > 0) {
+        $out[] = ['type' => 'scouting_ticket_sr', 'amount' => $sr];
+    }
+    if ($ur > 0) {
+        $out[] = ['type' => 'scouting_ticket_ur', 'amount' => $ur];
+    }
+    if ($packs > 0) {
+        $out[] = ['type' => 'pr_pack', 'amount' => max(1, min(15, $packs))];
+    }
+    return $out;
+}
+
+function tcgSeasonGiftIdShortMode(string $gameMode): string {
+    return $gameMode === 'starters' ? 'starters' : 'standard';
+}
+
+/**
+ * Offer (or re-offer) a per-player gift. Returns the gift id when the gift row exists after the call.
+ *
+ * @param list<array<string,mixed>> $items
+ */
+function tcgSeasonOfferRewardGift(
+    string $discordId,
+    string $giftId,
+    string $titleEn,
+    string $bodyEn,
+    array $items,
+    string $titleKey = '',
+    string $image = ''
+): ?string {
+    if ($items === []) {
+        return null;
+    }
+    if (!function_exists('tcgGiftsOfferToUser')) {
+        require_once __DIR__ . '/gifts.php';
+    }
+    tcgGiftsOfferToUser($discordId, $giftId, $titleEn, $bodyEn, $items, $titleKey, $image, null);
+    return $giftId;
+}
+
+/**
+ * Record the one-time rank-up and publish a Gifts-menu claim (rule set 2). Currencies are not
+ * added to the wallet until the player claims. Returns the reward payload when newly offered,
+ * or null (already offered, not in rule set 2, or no reward).
  *
  * @return array<string,mixed>|null
  */
@@ -512,64 +578,50 @@ function tcgSeasonGrantRankUp(string $discordId, string $gameMode, string $seaso
         return null;
     }
     $db = tcgDb();
+    // notified=1 always: the hub Gifts badge is the notice (no instant wallet toast).
     $ins = $db->prepare('INSERT OR IGNORE INTO tcg_season_rankup
-        (discord_id, game_mode, season_id, step, granted_at, notified) VALUES (?, ?, ?, ?, ?, ?)');
-    $ins->execute([$discordId, $gameMode, $seasonId, $step, tcgSeasonNow(), $notified ? 1 : 0]);
+        (discord_id, game_mode, season_id, step, granted_at, notified) VALUES (?, ?, ?, ?, ?, 1)');
+    $ins->execute([$discordId, $gameMode, $seasonId, $step, tcgSeasonNow()]);
     if ($ins->rowCount() < 1) {
         return null;
     }
     $reward = TCG_SEASON_RANKUP_REWARDS[$step];
-    if (!function_exists('tcgAddCoins')) {
-        require_once __DIR__ . '/coins.php';
-    }
-    if ($reward['coins'] > 0) {
-        tcgAddCoins($discordId, $reward['coins']);
-    }
-    if ($reward['gems'] > 0) {
-        tcgAddStarGems($discordId, $reward['gems']);
-    }
-    if ($reward['tickets'] > 0 || $reward['ticket_sr'] > 0) {
-        if (!function_exists('tcgAddScoutingTickets')) {
-            require_once __DIR__ . '/booster.php';
-        }
-        if ($reward['tickets'] > 0) {
-            tcgAddScoutingTickets($discordId, $reward['tickets']);
-        }
-        if ($reward['ticket_sr'] > 0) {
-            tcgAddScoutingTierTickets($discordId, 'sr', $reward['ticket_sr']);
-        }
-    }
     $def = tcgSeasonStepDef($step);
-    return ['step' => $step, 'key' => $def['key'], 'letter' => $def['letter'], 'tone' => $def['tone']] + $reward;
+    $rankLabel = trim($def['letter'] . ' ' . ucfirst($def['tone']));
+    $giftId = 'season-rankup-' . $seasonId . '-' . tcgSeasonGiftIdShortMode($gameMode) . '-' . $discordId . '-s' . $step;
+    $items = tcgSeasonRewardToGiftItems($reward);
+    // title_key left empty so the personalized title/body (rank + season) are shown as-is.
+    tcgSeasonOfferRewardGift(
+        $discordId,
+        $giftId,
+        tcgSeasonLabel($seasonId) . ' — Rank-up (' . $rankLabel . ')',
+        'You reached ' . $rankLabel . ' for the first time this season. Claim your rank-up rewards in Gifts.',
+        $items,
+        '',
+        tcgSeasonIconUrl($step)
+    );
+    return [
+        'step' => $step,
+        'key' => $def['key'],
+        'letter' => $def['letter'],
+        'tone' => $def['tone'],
+        'via_gift' => true,
+        'gift_id' => $giftId,
+    ] + $reward;
 }
 
 /**
- * Rank-up rewards paid while the player was not looking (e.g. a Pink S slot opening up),
- * returned once and then marked as shown.
+ * Legacy: rank-ups used to toast from here. Rewards now sit in Gifts, so this always returns [].
+ * Kept so /me callers stay compatible.
  *
  * @return list<array<string,mixed>>
  */
 function tcgSeasonTakePendingRankUps(string $discordId): array {
-    $db = tcgDb();
-    $stmt = $db->prepare('SELECT game_mode, season_id, step FROM tcg_season_rankup
-        WHERE discord_id = ? AND notified = 0 ORDER BY granted_at ASC, step ASC');
-    $stmt->execute([$discordId]);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    if (!$rows) {
-        return [];
+    if ($discordId !== '') {
+        tcgDb()->prepare('UPDATE tcg_season_rankup SET notified = 1 WHERE discord_id = ? AND notified = 0')
+            ->execute([$discordId]);
     }
-    $out = [];
-    foreach ($rows as $r) {
-        $step = (int)$r['step'];
-        if (!isset(TCG_SEASON_RANKUP_REWARDS[$step])) {
-            continue;
-        }
-        $def = tcgSeasonStepDef($step);
-        $out[] = ['season_id' => (string)$r['season_id'], 'step' => $step, 'key' => $def['key'],
-            'letter' => $def['letter'], 'tone' => $def['tone']] + TCG_SEASON_RANKUP_REWARDS[$step];
-    }
-    $db->prepare('UPDATE tcg_season_rankup SET notified = 1 WHERE discord_id = ? AND notified = 0')->execute([$discordId]);
-    return $out;
+    return [];
 }
 
 function tcgSeasonSoftResetStep(int $finalStep): int {
@@ -837,10 +889,11 @@ function tcgSeasonCloseRow(string $discordId, string $gameMode, array $row, arra
             $db->commit();
             return null;
         }
+        // packs_granted=1: PR packs (if any) ship inside the gift claim, not via FinishPendingPacks.
         $ins = $db->prepare('INSERT INTO tcg_season_history (
             discord_id, game_mode, season_id, season_number, step, points, peak_step,
             wins, losses, coins, star_gems, pr_packs, packs_granted, title_id, closed_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)');
         $ins->execute([
             $discordId,
             $gameMode,
@@ -854,29 +907,10 @@ function tcgSeasonCloseRow(string $discordId, string $gameMode, array $row, arra
             $reward['coins'],
             $reward['gems'],
             $reward['packs'],
-            $reward['packs'] > 0 ? 0 : 1,
             $titleId,
             $now,
         ]);
         $paid = $ins->rowCount() > 0;
-        if ($paid) {
-            if (!function_exists('tcgAddCoins')) {
-                require_once __DIR__ . '/coins.php';
-            }
-            if ($reward['coins'] > 0) {
-                tcgAddCoins($discordId, $reward['coins']);
-            }
-            if ($reward['gems'] > 0) {
-                tcgAddStarGems($discordId, $reward['gems']);
-            }
-            // Season 2+: SR+ / UR+ Tickets for the higher ranks (paid with the history row, so only once).
-            if ($reward['ticket_sr'] > 0) {
-                tcgAddScoutingTierTickets($discordId, 'sr', $reward['ticket_sr']);
-            }
-            if ($reward['ticket_ur'] > 0) {
-                tcgAddScoutingTierTickets($discordId, 'ur', $reward['ticket_ur']);
-            }
-        }
         $db->prepare('UPDATE tcg_season_rank
             SET season_id = ?, step = ?, points = 0, peak_step = ?, wins = 0, losses = 0, updated_at = ?
             WHERE discord_id = ? AND game_mode = ? AND season_id = ?')
@@ -898,6 +932,20 @@ function tcgSeasonCloseRow(string $discordId, string $gameMode, array $row, arra
     if (!$paid) {
         return null;
     }
+    $peakDef = tcgSeasonStepDef($peak);
+    $rankLabel = trim($peakDef['letter'] . ' ' . ucfirst($peakDef['tone']));
+    $giftId = 'season-end-' . $oldId . '-' . tcgSeasonGiftIdShortMode($gameMode) . '-' . $discordId;
+    $items = tcgSeasonRewardToGiftItems($reward);
+    // title_key left empty so the personalized title/body (peak rank + season) are shown as-is.
+    tcgSeasonOfferRewardGift(
+        $discordId,
+        $giftId,
+        tcgSeasonLabel($oldId) . ' — ' . $rankLabel . ' rewards',
+        'Season over! Your peak rank was ' . $rankLabel . '. Claim your end-of-season rewards in Gifts.',
+        $items,
+        '',
+        tcgSeasonIconUrl($peak)
+    );
     return [
         'game_mode' => $gameMode,
         'season_id' => $oldId,
@@ -910,6 +958,8 @@ function tcgSeasonCloseRow(string $discordId, string $gameMode, array $row, arra
         'ticket_sr' => $reward['ticket_sr'],
         'ticket_ur' => $reward['ticket_ur'],
         'title_id' => $titleId,
+        'via_gift' => true,
+        'gift_id' => $giftId,
     ];
 }
 
