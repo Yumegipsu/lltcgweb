@@ -12,9 +12,81 @@ require_once __DIR__ . '/season.php';
 const TCG_QUEUE_MAX_WAIT = 300;
 const TCG_RATING_BAND = 150;
 
+/** Elo inactivity decay: after this many idle days a player loses TCG_RANK_DECAY_PER_DAY per further day. */
+const TCG_RANK_DECAY_GRACE_DAYS = 7;
+const TCG_RANK_DECAY_PER_DAY = 10;
+/** Decay stops here: it is the rating new players start with. */
+const TCG_RANK_DECAY_FLOOR = 1000;
+
+/**
+ * Pure decay rule. Idle time counts from the last game (plus the grace period) or from the point
+ * decay was last applied, whichever is later, so running it twice never double-charges.
+ *
+ * @return array{0:int,1:int} [new rating, new decayed_at]
+ */
+function tcgRankDecayStep(int $rating, int $lastGameAt, int $decayedAt, int $now): array {
+    if ($rating <= TCG_RANK_DECAY_FLOOR) {
+        return [$rating, $decayedAt];
+    }
+    $from = max($lastGameAt + TCG_RANK_DECAY_GRACE_DAYS * 86400, $decayedAt);
+    $days = intdiv($now - $from, 86400);
+    if ($days < 1) {
+        return [$rating, $decayedAt];
+    }
+    return [
+        max(TCG_RANK_DECAY_FLOOR, $rating - TCG_RANK_DECAY_PER_DAY * $days),
+        $from + $days * 86400,
+    ];
+}
+
+/**
+ * Apply inactivity decay to one player (all modes unless $gameMode is given) or to everyone.
+ * Leaves updated_at (last game) alone. Returns how many ratings changed.
+ */
+function tcgRankApplyInactivityDecay(?string $discordId = null, ?string $gameMode = null, ?int $now = null): int {
+    $now ??= time();
+    $db = tcgDb();
+    $sql = 'SELECT discord_id, game_mode, rating, updated_at, decayed_at FROM tcg_rank
+        WHERE rating > ? AND games > 0 AND updated_at <= ?';
+    $args = [TCG_RANK_DECAY_FLOOR, $now - TCG_RANK_DECAY_GRACE_DAYS * 86400];
+    if ($discordId !== null) {
+        $sql .= ' AND discord_id = ?';
+        $args[] = $discordId;
+    }
+    if ($gameMode !== null) {
+        $sql .= ' AND game_mode = ?';
+        $args[] = $gameMode;
+    }
+    try {
+        $stmt = $db->prepare($sql);
+        $stmt->execute($args);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        return 0; // decayed_at column not migrated yet
+    }
+    $changed = 0;
+    foreach ($rows as $r) {
+        [$new, $decayedAt] = tcgRankDecayStep(
+            intval($r['rating']),
+            intval($r['updated_at']),
+            intval($r['decayed_at'] ?? 0),
+            $now
+        );
+        if ($new === intval($r['rating']) && $decayedAt === intval($r['decayed_at'] ?? 0)) {
+            continue;
+        }
+        $upd = $db->prepare('UPDATE tcg_rank SET rating = ?, decayed_at = ?
+            WHERE discord_id = ? AND game_mode = ? AND rating = ?');
+        $upd->execute([$new, $decayedAt, $r['discord_id'], $r['game_mode'], intval($r['rating'])]);
+        $changed += $upd->rowCount();
+    }
+    return $changed;
+}
+
 function tcgRankRow(string $discordId, string $gameMode = TCG_GAME_MODE_STANDARD): array {
     $gameMode = tcgNormalizeGameMode($gameMode);
     $db = tcgDb();
+    tcgRankApplyInactivityDecay($discordId, $gameMode);
     $stmt = $db->prepare('SELECT * FROM tcg_rank WHERE discord_id = ? AND game_mode = ?');
     $stmt->execute([$discordId, $gameMode]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);

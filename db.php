@@ -222,6 +222,11 @@ function tcgDbMigrate(PDO $db): void {
         tcgDbEnsureColumn($db, 'tcg_users', 'seal_pr', 'INTEGER NOT NULL DEFAULT 0');
     });
 
+    // Elo inactivity decay remembers how far it has already decayed (tcg_rank.updated_at stays "last game").
+    tcgDbRunMigrationOnce($db, 'rank_decayed_at_column_20261031', function (PDO $db): void {
+        tcgDbEnsureColumn($db, 'tcg_rank', 'decayed_at', 'INTEGER NOT NULL DEFAULT 0');
+    });
+
     // Pinned Deck Builder deck (deck-log import) follows the account, not the browser.
     tcgDbRunMigrationOnce($db, 'pinned_deck_column_20261023', function (PDO $db): void {
         tcgDbEnsureColumn($db, 'tcg_users', 'pinned_deck', 'TEXT');
@@ -610,6 +615,7 @@ function tcgDbMigrateBootstrap(PDO $db): void {
         draws INTEGER NOT NULL DEFAULT 0,
         games INTEGER NOT NULL DEFAULT 0,
         updated_at INTEGER NOT NULL,
+        decayed_at INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY (discord_id, game_mode),
         FOREIGN KEY (discord_id) REFERENCES tcg_users(discord_id) ON DELETE CASCADE
     )');
@@ -857,6 +863,8 @@ function tcgDbMigrateGameModeRank(PDO $db): void {
         $db->exec('DROP TABLE tcg_rank');
         $db->exec('ALTER TABLE tcg_rank_gm RENAME TO tcg_rank');
     }
+    // The rebuild above drops later columns; fresh databases need the Elo decay marker back.
+    tcgDbEnsureColumn($db, 'tcg_rank', 'decayed_at', 'INTEGER NOT NULL DEFAULT 0');
 
     if (!tcgDbTableHasColumn($db, 'tcg_match_queue', 'game_mode')) {
         $db->exec('CREATE TABLE tcg_match_queue_gm (

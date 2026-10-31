@@ -2514,6 +2514,7 @@ function tcgApiRankStats(array $body): array {
             ];
         }
     } else {
+        tcgRankApplyInactivityDecay(null, $gameMode);
         $banExclude = function_exists('tcgBanLeaderboardExcludeSql') ? tcgBanLeaderboardExcludeSql('r.discord_id') : '';
         $stmt = $db->prepare('SELECT r.discord_id, r.rating, r.wins, r.losses, r.draws, r.games, r.game_mode,
                 u.username, u.avatar_url, u.banner_card_no, u.banner_crop, u.equipped_flag, u.title_id, u.stamp_favorites
@@ -2689,6 +2690,7 @@ function tcgApiPublicLeaderboard(array $params): array {
     if (function_exists('tcgBanEnsureSchema')) {
         tcgBanEnsureSchema();
     }
+    tcgRankApplyInactivityDecay(null, $gameMode);
     $banExclude = function_exists('tcgBanLeaderboardExcludeSql') ? tcgBanLeaderboardExcludeSql('r.discord_id') : '';
     $sql = 'SELECT r.discord_id, r.rating, r.wins, r.losses, r.draws, r.games, u.username
          FROM tcg_rank r

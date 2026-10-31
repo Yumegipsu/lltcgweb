@@ -11,6 +11,9 @@ const TCG_MISSION_DAILY_SUB_IDS = [
     'daily_use_stamp',
 ];
 
+/** Distinct JST login days needed in a week for `weekly_login_7` (id kept: it is stored on completed rows). */
+const TCG_MISSION_WEEKLY_LOGIN_DAYS = 5;
+
 /** Weekly / monthly "complete all" missions are credited when every one of these is completed. */
 const TCG_MISSION_WEEKLY_SUB_IDS = [
     'weekly_ranked_random',
@@ -57,7 +60,7 @@ function tcgMissionDefinitionsRaw(): array {
         ['id' => 'weekly_ranked_random', 'type' => 'weekly', 'reward' => 100, 'reward_type' => 'multi', 'rewards' => [['type' => 'gems', 'amount' => 100]], 'sort' => 10, 'i18n_key' => 'missions.weekly.rankedRandom'],
         ['id' => 'weekly_ranked_10', 'type' => 'weekly', 'reward' => 10, 'reward_type' => 'multi', 'rewards' => [['type' => 'seal', 'tier' => 'N', 'amount' => 10]], 'sort' => 20, 'i18n_key' => 'missions.weekly.ranked10', 'threshold' => 10],
         ['id' => 'weekly_ranked_win', 'type' => 'weekly', 'reward' => 100, 'reward_type' => 'multi', 'rewards' => [['type' => 'coins', 'amount' => 100], ['type' => 'seal', 'tier' => 'R', 'amount' => 1]], 'sort' => 30, 'i18n_key' => 'missions.weekly.rankedWin'],
-        ['id' => 'weekly_login_7', 'type' => 'weekly', 'reward' => 10, 'reward_type' => 'multi', 'rewards' => [['type' => 'tickets', 'amount' => 10]], 'sort' => 40, 'i18n_key' => 'missions.weekly.login7', 'threshold' => 7],
+        ['id' => 'weekly_login_7', 'type' => 'weekly', 'reward' => 10, 'reward_type' => 'multi', 'rewards' => [['type' => 'tickets', 'amount' => 10]], 'sort' => 40, 'i18n_key' => 'missions.weekly.login7', 'threshold' => TCG_MISSION_WEEKLY_LOGIN_DAYS],
         ['id' => 'weekly_complete_all', 'type' => 'weekly', 'reward' => 1, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 1]], 'sort' => 50, 'i18n_key' => 'missions.weekly.completeAll', 'threshold' => 4],
 
         // Monthly (resets with the ranked season, 00:00 UTC on the 1st).
@@ -1477,11 +1480,11 @@ function tcgMissionCheckSeasonRank(string $discordId): array {
     return tcgMissionMarkCompleted($discordId, 'monthly_pink_c');
 }
 
-/** Weekly "log in 7 days": record today's JST day and check the week. */
+/** Weekly login mission: record today's JST day and check the week. */
 function tcgMissionOnLoginDay(string $discordId): array {
     tcgDb()->prepare('INSERT OR IGNORE INTO tcg_login_days_log (discord_id, day) VALUES (?, ?)')
         ->execute([$discordId, tcgTodayJst()]);
-    if (tcgMissionLoginDaysThisWeek($discordId) >= 7) {
+    if (tcgMissionLoginDaysThisWeek($discordId) >= TCG_MISSION_WEEKLY_LOGIN_DAYS) {
         return tcgMissionMarkCompleted($discordId, 'weekly_login_7');
     }
     return [];
@@ -1611,7 +1614,7 @@ function tcgMissionCheckPeriodic(string $discordId): void {
         tcgMissionCheckRankedPeriodic($discordId);
         tcgMissionCheckSeasonRank($discordId);
         tcgMissionCheckOwnedCosmetics($discordId);
-        if (tcgMissionLoginDaysThisWeek($discordId) >= 7) {
+        if (tcgMissionLoginDaysThisWeek($discordId) >= TCG_MISSION_WEEKLY_LOGIN_DAYS) {
             tcgMissionMarkCompleted($discordId, 'weekly_login_7');
         }
         // A ranked win earlier this week (any mode) that the finish hook never saw.

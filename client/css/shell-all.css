@@ -4956,6 +4956,8 @@ body.missions-overlay-open .llc-sky-dim::after{
 .sticker-upgrade-btn:disabled{opacity:.42;cursor:not-allowed}
 .sticker-upgrade-btn-cost,.sticker-upgrade-btn-gain{display:inline-flex;align-items:center;gap:4px}
 .sticker-upgrade-btn-arrow{opacity:.7}
+.sticker-upgrade-step{display:inline-flex;align-items:stretch;gap:4px}
+.sticker-upgrade-max{padding:6px 8px;font-size:12px;letter-spacing:.02em;color:rgba(186,228,255,.95);border-style:dashed}
 .sticker-info-upgrade-lead{margin-top:-6px}
 .sticker-info-upgrade-block{display:flex;flex-direction:column;gap:8px}
 .sticker-info-upgrade-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -7182,6 +7184,22 @@ body.tcg-spectator-mode #btn-stamp{display:none!important}
   flex-direction:column;
   overflow:hidden;
 }
+/* Small desktop windows / zoomed-in browsers: keep both card panes usable and let the whole editor scroll
+   (phones already scroll as one page below). Same pink scrollbar as the card list and mission panels. */
+html:not(.tcg-mobile-viewport) #screen-deck .deck-builder-shell{min-height:760px}
+@media (max-width:1100px){
+  html:not(.tcg-mobile-viewport) #screen-deck .deck-builder-shell{min-height:880px}
+}
+#screen-deck{
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,179,209,.75) rgba(255,255,255,.12);
+}
+#screen-deck::-webkit-scrollbar{width:8px}
+#screen-deck::-webkit-scrollbar-track{background:rgba(255,255,255,.12);border-radius:999px;margin:6px 0}
+#screen-deck::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,var(--pink-l),var(--pink));border-radius:999px;
+  border:1px solid rgba(255,255,255,.28);box-shadow:0 0 8px rgba(255,107,168,.28)}
+#screen-deck::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#fff,var(--pink-l))}
 #screen-deck .logo{
   margin-bottom:2px;
   max-width:min(240px,62vw);

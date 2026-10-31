@@ -226,7 +226,7 @@
         "rankedRandom": "Play a ranked match in Random decks mode",
         "ranked10": "Play 10 ranked matches",
         "rankedWin": "Win a ranked match (any mode)",
-        "login7": "Log in every day this week (7 days)",
+        "login7": "Log in on 5 days this week",
         "completeAll": "Complete all weekly missions"
       },
       "monthly": {
@@ -754,6 +754,10 @@
       "upgradeConfirm": "Convert {cost} {from} seals for 1 {to} seal?",
       "upgradeOk": "Converted · 1 {to} seal",
       "upgradeNeed": "Need {cost} {from} seals.",
+      "upgradeMax": "Max ×{n}",
+      "upgradeMaxTitle": "Convert all: {spent} {from} → {n} {to}",
+      "upgradeConfirmBatch": "Convert {spent} {from} seals for {n} {to} seals?",
+      "upgradeOkBatch": "Converted · {n} {to} seals",
       "infoUpgrade": "Seal upgrades",
       "infoUpgradeLead": "You can also trade lower-tier seals upward: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. PR seals do not upgrade.",
       "infoUpgradePr": "PR seals do not upgrade.",
@@ -2485,7 +2489,7 @@
         "rankedRandom": "ランダムデッキでランクマッチを1回プレイ",
         "ranked10": "ランクマッチを10回プレイ",
         "rankedWin": "ランクマッチで1勝する（どのモードでも可）",
-        "login7": "今週は毎日ログイン（7日間）",
+        "login7": "今週5日間ログイン",
         "completeAll": "すべてのウィークリーミッションを達成"
       },
       "monthly": {
@@ -3031,6 +3035,10 @@
       "upgradeConfirm": "{from} シール {cost} 枚を {to} シール 1 枚に変換しますか？",
       "upgradeOk": "変換しました · {to} シール 1",
       "upgradeNeed": "{from} シールが {cost} 枚必要です。",
+      "upgradeMax": "最大 ×{n}",
+      "upgradeMaxTitle": "すべて変換：{from} {spent} → {to} {n}",
+      "upgradeConfirmBatch": "{from} シール {spent} 枚を {to} シール {n} 枚に変換しますか？",
+      "upgradeOkBatch": "変換しました · {to} シール {n}",
       "infoUpgrade": "シール昇格",
       "infoUpgradeLead": "下位シールを上位に交換できます：5 N → 1 R、6 R → 1 P、10 P → 1 SEC。PRシールは昇格できません。",
       "infoUpgradePr": "PRシールは昇格できません。"
@@ -5983,7 +5991,7 @@
         "rankedRandom": "Juega una partida clasificatoria en el modo de mazos aleatorios",
         "ranked10": "Juega 10 partidas clasificatorias",
         "rankedWin": "Gana una partida clasificatoria (cualquier modo)",
-        "login7": "Inicia sesión todos los días de esta semana (7 días)",
+        "login7": "Inicia sesión 5 días esta semana",
         "completeAll": "Completa todas las misiones semanales"
       },
       "monthly": {
@@ -6133,6 +6141,10 @@
       "upgradeConfirm": "¿Convertir {cost} sellos {from} por 1 sello {to}?",
       "upgradeOk": "Convertido · 1 sello {to}",
       "upgradeNeed": "Necesitas {cost} sellos {from}.",
+      "upgradeMax": "Máx. ×{n}",
+      "upgradeMaxTitle": "Convertir todo: {spent} {from} → {n} {to}",
+      "upgradeConfirmBatch": "¿Convertir {spent} sellos {from} por {n} sellos {to}?",
+      "upgradeOkBatch": "Convertido · {n} sellos {to}",
       "infoUpgrade": "Mejoras de sellos",
       "infoUpgradeLead": "También puedes canjear sellos de menor rareza: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. Los sellos PR no se mejoran.",
       "infoUpgradePr": "Los sellos PR no se mejoran.",
@@ -8111,7 +8123,7 @@
         "rankedRandom": "랜덤 덱 모드로 랭크 매치 1회 플레이",
         "ranked10": "랭크 매치 10회 플레이",
         "rankedWin": "랭크 매치 1승 달성 (모든 모드)",
-        "login7": "이번 주 매일 로그인 (7일)",
+        "login7": "이번 주 5일 로그인",
         "completeAll": "모든 주간 미션 완료"
       },
       "monthly": {
@@ -8261,6 +8273,10 @@
       "upgradeConfirm": "{from} 실 {cost}개를 {to} 실 1개로 변환할까요?",
       "upgradeOk": "변환 완료 · {to} 실 1",
       "upgradeNeed": "{from} 실이 {cost}개 필요합니다.",
+      "upgradeMax": "최대 ×{n}",
+      "upgradeMaxTitle": "모두 변환: {from} {spent} → {to} {n}",
+      "upgradeConfirmBatch": "{from} 실 {spent}개를 {to} 실 {n}개로 변환할까요?",
+      "upgradeOkBatch": "변환 완료 · {to} 실 {n}",
       "infoUpgrade": "실 승급",
       "infoUpgradeLead": "낮은 등급 실을 올려 교환할 수 있습니다: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. PR 실은 승급할 수 없습니다.",
       "infoUpgradePr": "PR 실은 승급할 수 없습니다.",
@@ -10239,7 +10255,7 @@
         "rankedRandom": "在随机卡组模式中进行一场排名对战",
         "ranked10": "进行 10 场排名对战",
         "rankedWin": "赢得一场排名对战（任意模式）",
-        "login7": "本周每天登录（7 天）",
+        "login7": "本周登录 5 天",
         "completeAll": "完成所有每周任务"
       },
       "monthly": {
@@ -10389,6 +10405,10 @@
       "upgradeConfirm": "将 {cost} 枚 {from} 印章转换为 1 枚 {to} 印章？",
       "upgradeOk": "已转换 · 1 枚 {to} 印章",
       "upgradeNeed": "需要 {cost} 枚 {from} 印章。",
+      "upgradeMax": "最大 ×{n}",
+      "upgradeMaxTitle": "全部转换：{spent} 枚 {from} → {n} 枚 {to}",
+      "upgradeConfirmBatch": "将 {spent} 枚 {from} 印章转换为 {n} 枚 {to} 印章？",
+      "upgradeOkBatch": "已转换 · {n} 枚 {to} 印章",
       "infoUpgrade": "印章升级",
       "infoUpgradeLead": "也可用低阶印章向上兑换：5 N → 1 R、6 R → 1 P、10 P → 1 SEC。PR 印章不可升级。",
       "infoUpgradePr": "PR 印章不可升级。",
@@ -12343,7 +12363,7 @@
         "rankedRandom": "เล่นแมตช์แรงก์ในโหมดเด็คสุ่ม",
         "ranked10": "เล่นแมตช์แรงก์ 10 ครั้ง",
         "rankedWin": "ชนะแมตช์แรงก์ 1 ครั้ง (ทุกโหมด)",
-        "login7": "ล็อกอินทุกวันในสัปดาห์นี้ (7 วัน)",
+        "login7": "ล็อกอิน 5 วันในสัปดาห์นี้",
         "completeAll": "ทำภารกิจรายสัปดาห์ทั้งหมดให้สำเร็จ"
       },
       "monthly": {
@@ -12493,6 +12513,10 @@
       "upgradeConfirm": "แปลงซีล {from} {cost} อันเป็นซีล {to} 1 อัน?",
       "upgradeOk": "แปลงแล้ว · ซีล {to} 1",
       "upgradeNeed": "ต้องมีซีล {from} {cost} อัน",
+      "upgradeMax": "สูงสุด ×{n}",
+      "upgradeMaxTitle": "แปลงทั้งหมด: ซีล {from} {spent} อัน → ซีล {to} {n} อัน",
+      "upgradeConfirmBatch": "แปลงซีล {from} {spent} อันเป็นซีล {to} {n} อัน?",
+      "upgradeOkBatch": "แปลงแล้ว · ซีล {to} {n} อัน",
       "infoUpgrade": "อัปเกรดซีล",
       "infoUpgradeLead": "แลกซีลระดับต่ำขึ้นได้: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC ซีล PR อัปเกรดไม่ได้",
       "infoUpgradePr": "ซีล PR อัปเกรดไม่ได้",
@@ -13068,7 +13092,7 @@
         "rankedRandom": "Jogue uma partida ranqueada no modo de decks aleatórios",
         "ranked10": "Jogue 10 partidas ranqueadas",
         "rankedWin": "Vença uma partida ranqueada (qualquer modo)",
-        "login7": "Entre todos os dias desta semana (7 dias)",
+        "login7": "Entre em 5 dias desta semana",
         "completeAll": "Complete todas as missões semanais"
       },
       "monthly": {
@@ -13586,6 +13610,10 @@
       "upgradeConfirm": "Converter {cost} selos {from} por 1 selo {to}?",
       "upgradeOk": "Convertido · 1 selo {to}",
       "upgradeNeed": "Precisa de {cost} selos {from}.",
+      "upgradeMax": "Máx. ×{n}",
+      "upgradeMaxTitle": "Converter tudo: {spent} {from} → {n} {to}",
+      "upgradeConfirmBatch": "Converter {spent} selos {from} em {n} selos {to}?",
+      "upgradeOkBatch": "Convertido · {n} selos {to}",
       "infoUpgrade": "Melhorias de selos",
       "infoUpgradeLead": "Você também pode trocar selos de raridade menor: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. Selos PR não sobem de nível.",
       "infoUpgradePr": "Selos PR não sobem de nível.",
@@ -15248,7 +15276,7 @@
         "rankedRandom": "Jouer une partie classée en mode decks aléatoires",
         "ranked10": "Jouer 10 parties classées",
         "rankedWin": "Gagner une partie classée (tous modes)",
-        "login7": "Se connecter chaque jour cette semaine (7 jours)",
+        "login7": "Se connecter 5 jours cette semaine",
         "completeAll": "Terminer toutes les missions hebdomadaires"
       },
       "monthly": {
@@ -15701,12 +15729,16 @@
       "batchOk": "Fait",
       "batchSelected": "Sélectionné",
       "batchSelectedCount": "{count} sélectionné",
-      "upgradeTitle": "Mise à niveau des joints",
+      "upgradeTitle": "Mise à niveau des scellés",
       "upgradeAria": "Mises à niveau des scellés",
-      "upgradeBtn": "{cost}{from}→ 1{to}",
-      "upgradeConfirm": "Convertir Joints{cost}{from}pour 1 joint{to}?",
-      "upgradeOk": "Converti · 1 joint{to}",
-      "upgradeNeed": "Besoin de joints{cost}{from}.",
+      "upgradeBtn": "{cost} {from} → 1 {to}",
+      "upgradeConfirm": "Convertir {cost} scellés {from} en 1 scellé {to} ?",
+      "upgradeOk": "Converti · 1 scellé {to}",
+      "upgradeNeed": "Il faut {cost} scellés {from}.",
+      "upgradeMax": "Max ×{n}",
+      "upgradeMaxTitle": "Tout convertir : {spent} {from} → {n} {to}",
+      "upgradeConfirmBatch": "Convertir {spent} scellés {from} en {n} scellés {to} ?",
+      "upgradeOkBatch": "Converti · {n} scellés {to}",
       "infoUpgrade": "Mises à niveau des scellés",
       "infoUpgradeLead": "Vous pouvez également échanger des joints inférieurs vers le haut: 5 N → 1 R, 6 R → 1 P, 10 P → 1 SEC. Les scellés PR ne sont pas mis à niveau.",
       "infoUpgradePr": "Les scellés PR ne sont pas mis à niveau."

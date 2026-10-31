@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=182">
+<link rel="stylesheet" href="client/css/shell-all.css?v=183">
 <link rel="stylesheet" href="client/css/season-rank.css?v=17">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -3922,30 +3922,51 @@ function renderStickerSealUpgrades() {
     btn.setAttribute('aria-label', label);
     btn.title = label;
     btn.onclick = () => void upgradeSealTier(from, to, cost);
-    row.appendChild(btn);
+    // "Max ×N": convert every full set of spare seals in one go (the server already takes `times`).
+    const maxN = Math.floor(have / cost);
+    const maxBtn = document.createElement('button');
+    maxBtn.type = 'button';
+    maxBtn.className = 'sticker-upgrade-btn sticker-upgrade-max';
+    maxBtn.disabled = maxN < 2;
+    maxBtn.dataset.from = from;
+    maxBtn.dataset.times = String(maxN);
+    maxBtn.textContent = tt('sticker.upgradeMax', 'Max ×{n}', { n: String(maxN) });
+    const maxLabel = tt('sticker.upgradeMaxTitle', 'Convert all: {spent} {from} → {n} {to}', {
+      spent: String(maxN * cost), from, to, n: String(maxN),
+    });
+    maxBtn.setAttribute('aria-label', maxLabel);
+    maxBtn.title = maxLabel;
+    maxBtn.onclick = () => void upgradeSealTier(from, to, cost, maxN);
+    const group = document.createElement('div');
+    group.className = 'sticker-upgrade-step';
+    group.append(btn, maxBtn);
+    row.appendChild(group);
   });
 }
 
-async function upgradeSealTier(from, to, cost) {
+async function upgradeSealTier(from, to, cost, times = 1) {
+  times = Math.max(1, Math.floor(Number(times) || 1));
   const have = sealBalanceForTier(from);
+  const total = cost * times;
   const vars = { cost: String(cost), from, to };
-  if (have < cost) {
+  if (have < total) {
     toast(tt('sticker.upgradeNeed', 'Need {cost} {from} seals.', vars), 2400);
     return;
   }
-  const msg = tt(
-    'sticker.upgradeConfirm',
-    'Convert {cost} {from} seals for 1 {to} seal?',
-    vars
-  );
+  const msg = times > 1
+    ? tt('sticker.upgradeConfirmBatch', 'Convert {spent} {from} seals for {n} {to} seals?',
+      { spent: String(total), from, to, n: String(times) })
+    : tt('sticker.upgradeConfirm', 'Convert {cost} {from} seals for 1 {to} seal?', vars);
   if (!window.confirm(msg)) return;
   const err = el('sticker-err');
   if (err) err.textContent = '';
   try {
-    const res = await accountPost('upgrade_seals', { from_tier: from, times: 1 });
+    const res = await accountPost('upgrade_seals', { from_tier: from, times });
     syncSealsFromPayload(res);
     const toTier = String(res.to_tier || to);
-    toast(tt('sticker.upgradeOk', 'Converted · 1 {to} seal', { to: toTier }), 2400);
+    toast(times > 1
+      ? tt('sticker.upgradeOkBatch', 'Converted · {n} {to} seals', { n: String(res.gained || times), to: toTier })
+      : tt('sticker.upgradeOk', 'Converted · 1 {to} seal', { to: toTier }), 2400);
     if (A.stickerProductId) {
       try {
         const refreshed = await accountGet('sticker_shop_cards', { product_id: A.stickerProductId });
