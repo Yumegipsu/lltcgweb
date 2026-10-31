@@ -584,9 +584,17 @@ function filterStateForSpectator(array $state, string $roomId, string $spectator
         $p = $filtered['players'][$pid];
         $filtered['players'][$pid]['hand_count'] = count($p['hand'] ?? []);
         // Spectators see both players' hands (broadcast view); decks stay hidden below.
-        $filtered['players'][$pid]['main_deck_count'] = count($p['main_deck'] ?? []);
+        // Prefer stored *_count when delayed tournament snapshots already stripped the arrays.
+        if (function_exists('tcgTournamentSpectatePileCount')) {
+            $mainCount = tcgTournamentSpectatePileCount($p, 'main_deck');
+            $energyCount = tcgTournamentSpectatePileCount($p, 'energy_deck');
+        } else {
+            $mainCount = count($p['main_deck'] ?? []);
+            $energyCount = count($p['energy_deck'] ?? []);
+        }
+        $filtered['players'][$pid]['main_deck_count'] = $mainCount;
         $filtered['players'][$pid]['main_deck'] = [];
-        $filtered['players'][$pid]['energy_deck_count'] = count($p['energy_deck'] ?? []);
+        $filtered['players'][$pid]['energy_deck_count'] = $energyCount;
         $filtered['players'][$pid]['energy_deck'] = [];
         $filtered['players'][$pid]['token'] = '';
         // Broadcast view: hands are visible; live storage stays full so card art renders (not card_no '?' stubs).

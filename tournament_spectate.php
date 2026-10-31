@@ -25,6 +25,24 @@ function tcgTournamentStreamDelaySecs(array $state): int {
     return in_array($delay, [0, 15, 30, 60], true) ? $delay : 0;
 }
 
+/**
+ * Public pile sizes for spectate (faces stay hidden). Prefer stored *_count when
+ * the deck arrays were already stripped for the delay ring.
+ *
+ * @param array<string, mixed> $p
+ */
+function tcgTournamentSpectatePileCount(array $p, string $zoneKey): int {
+    $arr = $p[$zoneKey] ?? null;
+    if (is_array($arr) && count($arr) > 0) {
+        return count($arr);
+    }
+    $countKey = $zoneKey . '_count';
+    if (array_key_exists($countKey, $p) && $p[$countKey] !== null && $p[$countKey] !== '') {
+        return max(0, (int)$p[$countKey]);
+    }
+    return is_array($arr) ? count($arr) : 0;
+}
+
 /** @param array<string, mixed>|null $p */
 function tcgTournamentSpectateHoldPlayer(?array $p): array {
     if (!is_array($p)) {
@@ -37,7 +55,9 @@ function tcgTournamentSpectateHoldPlayer(?array $p): array {
             'clock' => [],
             'score' => 0,
             'main_deck' => [],
+            'main_deck_count' => 0,
             'energy_deck' => [],
+            'energy_deck_count' => 0,
         ];
     }
     return [
@@ -53,7 +73,9 @@ function tcgTournamentSpectateHoldPlayer(?array $p): array {
         'playmat_id' => $p['playmat_id'] ?? '',
         'playmat_brightness' => $p['playmat_brightness'] ?? 1.0,
         'main_deck' => [],
+        'main_deck_count' => tcgTournamentSpectatePileCount($p, 'main_deck'),
         'energy_deck' => [],
+        'energy_deck_count' => tcgTournamentSpectatePileCount($p, 'energy_deck'),
         'deck_label' => (string)($p['deck_label'] ?? ''),
     ];
 }
@@ -119,6 +141,9 @@ function tcgTournamentRecordDelayedSnapshot(string $roomId, array $state): void 
         if (!isset($snap['players'][$pid]) || !is_array($snap['players'][$pid])) {
             continue;
         }
+        // Keep public pile sizes; strip card faces so delayed spectate cannot leak order.
+        $snap['players'][$pid]['main_deck_count'] = tcgTournamentSpectatePileCount($snap['players'][$pid], 'main_deck');
+        $snap['players'][$pid]['energy_deck_count'] = tcgTournamentSpectatePileCount($snap['players'][$pid], 'energy_deck');
         unset($snap['players'][$pid]['token'], $snap['players'][$pid]['main_deck'], $snap['players'][$pid]['energy_deck']);
     }
     $ring[] = ['ts' => $now, 'seq' => (int)($state['seq'] ?? 0), 'state' => $snap];
