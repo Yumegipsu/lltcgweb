@@ -270,7 +270,9 @@ function batch99ResolveEffect(array $state, string $pid, array $source, array $a
         case 'stack_wr_member_under':
             if (!empty($state['pending_prompt'])) break;
             $group = $ab['group'] ?? '';
-            $maxCost = intval($ab['max_cost'] ?? 9);
+            // You Watanabe (PL!S-bp7-005): any WR Member, any Stage host — no default cost cap (#321).
+            $maxCost = array_key_exists('max_cost', $ab) ? intval($ab['max_cost']) : PHP_INT_MAX;
+            $selfOnly = !empty($ab['self_only']);
             $candidates = array_values(array_filter(
                 $p['waiting_room'],
                 fn($c) => ($c['card_type'] ?? '') === 'メンバー'
@@ -278,22 +280,35 @@ function batch99ResolveEffect(array $state, string $pid, array $source, array $a
                     && intval($c['cost'] ?? 0) <= $maxCost
             ));
             if (empty($candidates)) {
+                $label = $group !== '' ? $group . ' ' : '';
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] no eligible $group Member in Waiting Room to stack.");
+                    " — [$name] no eligible {$label}Member in Waiting Room to stack.");
                 break;
             }
+            $sourceSlot = $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? '');
+            $stageTargets = $selfOnly
+                ? []
+                : listStageMemberChoices($p);
+            $underAny = !$selfOnly && count($stageTargets) > 0;
+            $costNote = $maxCost < PHP_INT_MAX ? " (cost ≤$maxCost)" : '';
+            $groupNote = $group !== '' ? "$group " : '';
+            $underNote = $underAny
+                ? 'under 1 Member on your Stage'
+                : 'under this Member';
             $state['pending_prompt'] = [
-                'type'        => 'batch99_stack_wr_member',
-                'owner'       => $pid,
-                'responder'   => $pid,
-                'source_id'   => $source['instance_id'] ?? '',
-                'source_slot' => $ctx['slot'] ?? findMemberSlot($p, $source['instance_id'] ?? ''),
-                'source_name' => $name,
-                'candidates'  => array_map('cardPromptSummary', $candidates),
-                'prompt'      => "Place 1 $group Member (cost ≤$maxCost) from your Waiting Room under this Member?",
+                'type'             => 'batch99_stack_wr_member',
+                'owner'            => $pid,
+                'responder'        => $pid,
+                'source_id'        => $source['instance_id'] ?? '',
+                'source_slot'      => $sourceSlot,
+                'source_name'      => $name,
+                'candidates'       => array_map('cardPromptSummary', $candidates),
+                'stage_targets'    => $stageTargets,
+                'under_any_stage'  => $underAny,
+                'prompt'           => "Place 1 {$groupNote}Member{$costNote} from your Waiting Room $underNote?",
             ];
             $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$name] stack WR Member under self.");
+                " — [$name] stack WR Member $underNote.");
             break;
 
         case 'live_success_score_if_yell_or_hearts_or_moved':
@@ -431,7 +446,6 @@ function batch99ResolvePrompt(array $state, string $owner, array $prompt, string
         return null;
     }
     $ownerP = &$state['players'][$owner];
-    $slot = $prompt['source_slot'] ?? '';
     if ($choice === 'skip' || $choice === 'no') {
         unset($state['pending_prompt']);
         $state['seq']++;
@@ -441,6 +455,22 @@ function batch99ResolvePrompt(array $state, string $owner, array $prompt, string
     }
     $pickId = $data['pick_id'] ?? $data['card_id'] ?? '';
     if ($pickId === '') throw new Exception('Choose a Member to stack');
+    // Prefer explicit Stage host (#321 You); fall back to the entering Member.
+    $slot = (string)($data['target_slot'] ?? $data['slot'] ?? '');
+    if ($slot === '' || empty($ownerP['stage'][$slot])) {
+        $slot = (string)($prompt['source_slot'] ?? '');
+    }
+    if (!empty($prompt['under_any_stage'])) {
+        $allowed = [];
+        foreach ($prompt['stage_targets'] ?? [] as $t) {
+            if (!empty($t['slot'])) {
+                $allowed[$t['slot']] = true;
+            }
+        }
+        if ($slot === '' || empty($allowed[$slot]) || empty($ownerP['stage'][$slot])) {
+            throw new Exception('Choose a Stage Member to stack under');
+        }
+    }
     $stacked = null;
     $ownerP['waiting_room'] = array_values(array_filter(
         $ownerP['waiting_room'],
@@ -459,11 +489,12 @@ function batch99ResolvePrompt(array $state, string $owner, array $prompt, string
         $ownerP['stage'][$slot]['stacked_members'] = [];
     }
     $ownerP['stage'][$slot]['stacked_members'][] = $stacked;
+    $host = $ownerP['stage'][$slot];
     unset($state['pending_prompt']);
     $state['seq']++;
     $state = addLog($state, $state['players'][$owner]['name'] .
         ' — stacked ' . ($stacked['name_en'] ?? $stacked['name']) .
-        ' under ' . ($prompt['source_name'] ?? 'Member') . '.');
+        ' under ' . ($host['name_en'] ?? $host['name'] ?? ($prompt['source_name'] ?? 'Member')) . '.');
     return finishPromptEffects($state);
 }
 

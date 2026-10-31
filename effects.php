@@ -2069,7 +2069,8 @@ function optionalThenEffectViable(array $state, string $pid, array $effect): boo
     if ($type === '') {
         return true;
     }
-    if ($type === 'wait_opponent_stage_max_cost') {
+    if ($type === 'wait_opponent_stage_max_cost'
+        || $type === 'wait_opponent_max_cost_skip_next_activate') {
         return waitOpponentStageEffectHasTargets($state, $pid, $effect);
     }
     if ($type === 'wait_opp_max_original_blade_if_stage_group') {
@@ -7080,6 +7081,31 @@ function activatedAbilityWrBlockReason(array $p, array $ab): ?string {
                 }
             }
             return 'no matching Member in hand.';
+
+        // You Watanabe PL!S-bp7-005 — needs hand cards + another On Enter ally (#321).
+        case 'activated_discard_trigger_on_enter_self_and_other': {
+            $need = max(1, intval($ab['discard'] ?? 2));
+            if (count($p['hand'] ?? []) < $need) {
+                return "not enough cards in hand (need $need).";
+            }
+            $group = $ab['group'] ?? '';
+            $withEnter = 0;
+            foreach ($p['stage'] ?? [] as $mbr) {
+                if (!$mbr) {
+                    continue;
+                }
+                if ($group !== '' && !cardMatchesGroup($mbr, $group, 'member')) {
+                    continue;
+                }
+                if (!empty(getAbilitiesByTrigger($mbr, 'on_enter'))) {
+                    $withEnter++;
+                }
+            }
+            if ($withEnter < 2) {
+                return 'no other eligible Member with an [On Enter] ability.';
+            }
+            return null;
+        }
 
         default:
             return null;

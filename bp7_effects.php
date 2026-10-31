@@ -1343,6 +1343,29 @@ function bp7ResolveActivatedAbility(
         throw new Exception("Need $cost active Energy");
     }
 
+    // You Watanabe: refuse before consuming once-per-turn when no valid ally (#321).
+    if (($ab['type'] ?? '') === 'activated_discard_trigger_on_enter_self_and_other') {
+        $need = max(1, intval($ab['discard'] ?? 2));
+        if (count($p['hand'] ?? []) < $need) {
+            throw new Exception("Need $need card(s) in hand");
+        }
+        $srcId = $member['instance_id'] ?? '';
+        $others = bp7StageMemberCandidates($p, [
+            'group'      => $ab['group'] ?? '',
+            'exclude_id' => $srcId,
+        ]);
+        $others = array_values(array_filter(
+            $others,
+            fn($c) => !empty(getAbilitiesByTrigger($p['stage'][$c['slot']] ?? [], 'on_enter'))
+        ));
+        if (empty($others)) {
+            throw new Exception('No other eligible Member with an [On Enter] ability');
+        }
+        if (!empty($ab['center_only']) && ($slot ?? '') !== 'center') {
+            throw new Exception('Must be in the Center area');
+        }
+    }
+
     // Costs are paid inside the effect, so commit the use counters before resolving:
     // an abandoned prompt must not hand back a free re-mill / re-discard.
     if (!empty($ab['once_per_turn'])) {
@@ -1877,10 +1900,9 @@ function bp7ResolveEffect(array $state, string $pid, array $source, array $ab, a
         case 'activated_discard_trigger_on_enter_self_and_other': {
             if (!empty($state['pending_prompt'])) break;
             $need = max(1, intval($ab['discard'] ?? 2));
+            // Viability already enforced in bp7ResolveActivatedAbility before once-per-turn.
             if (count($state['players'][$pid]['hand'] ?? []) < $need) {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] needs $need card(s) in hand.");
-                break;
+                throw new Exception("Need $need card(s) in hand");
             }
             $others = bp7StageMemberCandidates($state['players'][$pid], [
                 'group'      => $ab['group'] ?? '',
@@ -1891,9 +1913,7 @@ function bp7ResolveEffect(array $state, string $pid, array $source, array $ab, a
                 fn($c) => !empty(getAbilitiesByTrigger($state['players'][$pid]['stage'][$c['slot']] ?? [], 'on_enter'))
             ));
             if (empty($others)) {
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] no other " . ($ab['group'] ?? '') . ' Member with an [On Enter] ability.');
-                break;
+                throw new Exception('No other eligible Member with an [On Enter] ability');
             }
             $state = bp7StartCardPick(
                 $state, $pid, $source, $ab, $ctx, 'discard_trigger_on_enter_pair',

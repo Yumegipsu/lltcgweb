@@ -5164,6 +5164,18 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'effect') . '] chose no Members to put into Wait.');
         }
+        // Guilty Night, Guilty Kiss! etc.: mark Waited Members to skip next Active Phase (#325).
+        if (!empty($state['_bp7_wait_skip_activate'])
+            && ($state['_bp7_wait_skip_activate']['pid'] ?? '') === $owner
+            && function_exists('bp7MarkOppWaitSkipActivate')) {
+            $maxSkipCost = intval($state['_bp7_wait_skip_activate']['max_cost'] ?? $maxCost);
+            $state = bp7MarkOppWaitSkipActivate(
+                $state,
+                $owner,
+                $maxSkipCost,
+                $prompt['source_name'] ?? 'effect'
+            );
+        }
         unset($state['pending_prompt']);
         $state['seq']++;
         return finishAfterBranchChoicePrompt($state, $prompt);

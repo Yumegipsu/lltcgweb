@@ -50,6 +50,17 @@ html.tcg-portrait-play.tcg-mobile-portrait #opp-skill-wait-banner{
 html.tcg-portrait-play #tcg-phone-fs-btn,
 html.tcg-portrait-play #tcg-phone-fs-btn.show{display:none!important}
 html.tcg-portrait-play.tcg-phone-fs-web #tcg-phone-fs-btn.show{display:block!important}
+/* Keep the fullscreen chip above the hand overhang (it used to sit on the cards). */
+html.tcg-portrait-play.tcg-phone-fs-web #tcg-phone-fs-btn.show{
+  top:auto!important;
+  bottom:calc(
+    var(--p-hand-mine, 90px)
+    + (var(--p-card-h, 140px) * 0.22)
+    + 10px
+    + env(safe-area-inset-bottom, 0px)
+    + var(--tcg-chrome-bottom, 0px)
+  )!important;
+}
 html.tcg-portrait-play #llc-sky-bg{opacity:.55}
 
 /* ═══════════════════════════════════════════
@@ -1292,9 +1303,9 @@ html.tcg-portrait-play{
   --p-hand-pad-x: 0px;
   --p-card-w: calc((100vw / var(--p-hand-visible)) * 1.55);
   --p-card-h: calc(var(--p-card-w) * 88 / 63);
-  /* Strip shorter than the card so the fan peeks over the stage, but tall
-     enough that card bottoms stay above the home indicator. */
-  --p-hand-mine: calc(var(--p-card-h) * 0.58);
+  /* Hand rail shows most of the card face (readable on iOS Safari); a short
+     overhang still peeks into the stage without burying the bottom art. */
+  --p-hand-mine: calc(var(--p-card-h) * 0.72);
   --p-hand-opp: calc(var(--p-card-h) * 0.50);
   --p-card-w-opp: calc(var(--p-card-w) * 0.92);
   --p-gap: 0px;
@@ -1329,9 +1340,9 @@ html.tcg-portrait-play{
    Also shrink hand / stage / live so the whole board stays proportional. */
 html.tcg-portrait-play.tcg-portrait-phone-sm{
   --p-field-min: 96px;
-  --p-card-w: calc((100vw / var(--p-hand-visible)) * 1.55 * var(--p-ui-scale, 1));
-  --p-hand-mine: calc(var(--p-card-h) * 0.54);
-  --p-hand-opp: calc(var(--p-card-h) * 0.46);
+  --p-card-w: calc((100vw / var(--p-hand-visible)) * 1.48 * var(--p-ui-scale, 1));
+  --p-hand-mine: calc(var(--p-card-h) * 0.68);
+  --p-hand-opp: calc(var(--p-card-h) * 0.44);
   --p-stage-outline-scale: calc(0.62 * var(--p-ui-scale, 1));
   --p-live-outline-scale: calc(0.78 * var(--p-ui-scale, 1));
   --p-live-row: calc(14.5vw * var(--p-ui-scale, 1));
@@ -1471,10 +1482,11 @@ html.tcg-portrait-play .pb-my-hand{
   width:100vw;
   max-width:100vw;
   margin-left:calc(50% - 50vw);
-  /* Pull the fan up into the unused field gap so card bottoms stay on-screen. */
-  margin-top: calc(var(--p-card-h) * -0.36);
-  padding-top: 32px;
-  padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+  /* Mild overhang into the field; keep most of the face in the hand rail. */
+  margin-top: calc(var(--p-card-h) * -0.18);
+  padding-top: 28px;
+  /* Home indicator + Safari toolbar chrome so card bottoms are not buried. */
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px) + var(--tcg-chrome-bottom, 0px));
   box-sizing:border-box;
   touch-action:pan-x;
   -webkit-overflow-scrolling:touch;

@@ -959,18 +959,50 @@ global.openWrMembersDeckTopPick = function openWrMembersDeckTopPick(pr){
 
 global.openBatch99StackWrPick = function openBatch99StackWrPick(pr){
   const cards=pr.candidates||[];
+  const stageTargets=(pr.stage_targets||[]).filter(t=>t&&t.slot);
+  const underAny=!!pr.under_any_stage && stageTargets.length>0;
   el('pick-ttl').textContent=promptDisplayTitle(pr, 'Stack Member');
-  el('pick-msg').textContent=promptDisplayText(pr, 'Choose a Member from your Waiting Room to stack under this Member.');
+  el('pick-msg').textContent=promptDisplayText(pr,
+    underAny
+      ? 'Choose a Member from your Waiting Room to place under a Stage Member.'
+      : 'Choose a Member from your Waiting Room to stack under this Member.');
   const g=el('pick-grid'); g.innerHTML='';
   const btnOk=el('btn-pick-ok');
   const btnCancel=el('btn-pick-cancel');
   if(btnOk) btnOk.style.display='none';
   if(btnCancel) btnCancel.style.display='none';
   G.pickCtx=null;
+  const sendStack=(pickId, targetSlot)=>{
+    const payload={pick_id:pickId};
+    if(targetSlot) payload.target_slot=targetSlot;
+    sendAct('resolve_prompt', payload);
+  };
+  const openStageHostPick=(pickId)=>{
+    if(!underAny){
+      sendStack(pickId, pr.source_slot||null);
+      return;
+    }
+    if(stageTargets.length===1){
+      sendStack(pickId, stageTargets[0].slot);
+      return;
+    }
+    el('pick-ttl').textContent=promptDisplayTitle(pr, 'Stack under…');
+    el('pick-msg').textContent=promptDisplayText(pr, 'Choose which Stage Member receives the stacked card.');
+    g.innerHTML='';
+    stageTargets.forEach(t=>{
+      const card=typeof enrichCard==='function'?enrichCard(t):t;
+      g.appendChild(mkPickCardEl(card,'pickcard',()=>{
+        closeM('overlay-pick');
+        sendStack(pickId, t.slot);
+      }));
+    });
+    el('pick-count').textContent='';
+    openM('overlay-pick');
+  };
   cards.forEach(card=>{
     g.appendChild(mkPickCardEl(card,'pickcard',()=>{
       closeM('overlay-pick');
-      sendAct('resolve_prompt',{pick_id:card.instance_id});
+      openStageHostPick(card.instance_id);
     }));
   });
   const skipBtn=document.createElement('button');
@@ -3260,12 +3292,14 @@ global.renderPrompt = function renderPrompt(s, myId){
     });
     return;
   }
-  if(pr?.type==='auto_yell_mill_extra_yell'&&pr.responder===myId){
+  // Kurage (auto_yell_mill_extra_yell) + MIRAI TICKET (sbp6_yell_mill_extra_yell) (#320/#322).
+  if((pr?.type==='auto_yell_mill_extra_yell'||pr?.type==='sbp6_yell_mill_extra_yell')&&pr.responder===myId){
     ovl.classList.remove('open');
     const owner = pr.owner || myId;
     const cands = pr.candidates || [];
     const idSet = new Set(cands.map(c => c.instance_id).filter(Boolean));
     const fromHand = !!(pr.from_hand || pr.ability?.filter === 'live');
+    const isMirai = pr.type === 'sbp6_yell_mill_extra_yell';
     const max = pr.max_pick || (fromHand ? 1 : cands.length) || 1;
 
     let pickPool = [];
@@ -3313,7 +3347,9 @@ global.renderPrompt = function renderPrompt(s, myId){
     el('prompt-msg').textContent = promptDisplayText(pr,
       fromHand
         ? `Put 1 Live card from your hand into the Waiting Room for additional Yell?`
-        : `Put up to ${max} Yell card(s) without Blade hearts or Score icons into the Waiting Room for extra Yell?`, s);
+        : (isMirai
+          ? `Put up to ${max} bladeless Aqours Member(s) revealed by Yell into the Waiting Room for extra Yell?`
+          : `Put up to ${max} Yell card(s) without Blade hearts or Score icons into the Waiting Room for extra Yell?`), s);
     const box = el('prompt-btns');
     box.innerHTML = '';
     const labels = pr.choice_labels || ['Yes', 'No — Skip'];

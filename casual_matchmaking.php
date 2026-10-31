@@ -158,9 +158,9 @@ function tcgCasualQueueJoin(string $queueKey, array $body): array {
         }
         $db->prepare('DELETE FROM tcg_casual_queue WHERE queue_key = ?')->execute([$queueKey]);
 
-        $db->prepare('INSERT INTO tcg_casual_queue (queue_key, discord_id, player_name, join_body, joined_at, game_mode)
-            VALUES (?, ?, ?, ?, ?, ?)')
-            ->execute([$queueKey, $discordId, $name, $joinBody, $now, $gameMode]);
+        $db->prepare('INSERT INTO tcg_casual_queue (queue_key, discord_id, player_name, join_body, joined_at, last_seen_at, game_mode)
+            VALUES (?, ?, ?, ?, ?, ?, ?)')
+            ->execute([$queueKey, $discordId, $name, $joinBody, $now, $now, $gameMode]);
 
         return ['queued' => true, 'joined_at' => $now, 'game_mode' => $gameMode];
     });
@@ -231,14 +231,20 @@ function tcgCasualQueueStatus(string $queueKey): array {
     }
 
     $db = tcgDb();
-    tcgCasualPurgeExpiredQueue(time());
+    $now = time();
+    tcgCasualPurgeExpiredQueue($now);
     $stmt = $db->prepare('SELECT joined_at, game_mode FROM tcg_casual_queue WHERE queue_key = ?');
     $stmt->execute([$queueKey]);
     $q = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($q) {
+        // Heartbeat: active pollers stay in queue past the abandoned-row TTL (#323).
+        try {
+            $db->prepare('UPDATE tcg_casual_queue SET last_seen_at = ? WHERE queue_key = ?')
+                ->execute([$now, $queueKey]);
+        } catch (Throwable $e) { /* column may be mid-migrate */ }
         return [
             'status' => 'searching',
-            'wait_seconds' => time() - intval($q['joined_at']),
+            'wait_seconds' => $now - intval($q['joined_at']),
             'game_mode' => tcgNormalizeGameMode($q['game_mode'] ?? TCG_GAME_MODE_STANDARD),
         ];
     }
@@ -478,7 +484,15 @@ function tcgCreateCasualRoomPair(array $p1Row, array $p2Row): ?array {
 
 function tcgCasualPurgeExpiredQueue(int $now): void {
     $cutoff = $now - TCG_CASUAL_QUEUE_MAX_WAIT;
-    tcgDb()->prepare('DELETE FROM tcg_casual_queue WHERE joined_at < ?')->execute([$cutoff]);
+    // Prefer last_seen_at so foreground pollers are not kicked after 5 minutes (#323).
+    // Fall back to joined_at for rows that never received a heartbeat.
+    try {
+        tcgDb()->prepare(
+            'DELETE FROM tcg_casual_queue WHERE COALESCE(NULLIF(last_seen_at, 0), joined_at) < ?'
+        )->execute([$cutoff]);
+    } catch (Throwable $e) {
+        tcgDb()->prepare('DELETE FROM tcg_casual_queue WHERE joined_at < ?')->execute([$cutoff]);
+    }
 }
 
 function tcgCasualEnsureApiHelpers(): void {
@@ -583,7 +597,9 @@ function tcgCasualQueuePublicStats(?string $gameMode = null): array {
 function tcgCasualQueueTotal(): int {
     try {
         $maxWait = defined('TCG_CASUAL_QUEUE_MAX_WAIT') ? (int)TCG_CASUAL_QUEUE_MAX_WAIT : 600;
-        $stmt = tcgDb()->prepare('SELECT COUNT(*) FROM tcg_casual_queue WHERE joined_at >= ?');
+        $stmt = tcgDb()->prepare(
+            'SELECT COUNT(*) FROM tcg_casual_queue WHERE COALESCE(NULLIF(last_seen_at, 0), joined_at) >= ?'
+        );
         $stmt->execute([time() - $maxWait]);
         return (int)$stmt->fetchColumn();
     } catch (Throwable $e) {

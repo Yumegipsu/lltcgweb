@@ -5391,7 +5391,7 @@ function cpuResolvePromptBody(s, cpu, pr) {
     cpuAct('resolve_prompt', { choice: hasLive ? 'no' : 'yes' });
     return;
   }
-  if(pr.type==='auto_yell_mill_extra_yell'){
+  if(pr.type==='auto_yell_mill_extra_yell'||pr.type==='sbp6_yell_mill_extra_yell'){
     const max = Math.max(1, Number(pr.max_pick) || (pr.from_hand || pr.ability?.filter === 'live' ? 1 : 2));
     const ids = (pr.candidates || []).slice(0, max).map(c => c.instance_id).filter(Boolean);
     cpuAct('resolve_prompt', { choice: ids.length ? 'yes' : 'no', card_ids: ids });
@@ -5436,8 +5436,12 @@ function cpuResolvePromptBody(s, cpu, pr) {
   }
   if(pr.type==='batch99_stack_wr_member'){
     const id=pr.candidates?.[0]?.instance_id;
-    if(id) cpuAct('resolve_prompt',{pick_id:id});
-    else cpuAct('resolve_prompt',{choice:'skip'});
+    if(!id){ cpuAct('resolve_prompt',{choice:'skip'}); return; }
+    const targets=pr.stage_targets||[];
+    const slot=pr.under_any_stage
+      ? (targets.find(t=>t.slot&&t.slot!==pr.source_slot)?.slot || targets[0]?.slot || pr.source_slot)
+      : pr.source_slot;
+    cpuAct('resolve_prompt', slot ? {pick_id:id, target_slot:slot} : {pick_id:id});
     return;
   }
   if(pr.type==='spbp2_stack_wr_member'){

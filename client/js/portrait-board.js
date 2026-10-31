@@ -372,7 +372,9 @@
       if (Number.isFinite(parsed) && parsed > 0) uiScale = parsed;
     }
     let cardMul = 1.55;
-    let mineFrac = 0.52;
+    // Phone: keep most of the card face in the hand rail so iOS Safari players
+    // can read what they hold (season feedback: hands felt buried / unreadable).
+    let mineFrac = 0.72;
     let oppFrac = 0.50;
     if (size === 'square') {
       cardMul = 1.28;
@@ -384,9 +386,9 @@
       oppFrac = 0.48;
     } else {
       // Small phones: shrink hand with the same density factor as HUD chrome.
-      cardMul = 1.55 * uiScale;
-      mineFrac = 0.52 * (0.9 + 0.1 * uiScale);
-      oppFrac = 0.50 * (0.9 + 0.1 * uiScale);
+      cardMul = 1.48 * uiScale;
+      mineFrac = 0.72 * (0.92 + 0.08 * uiScale);
+      oppFrac = 0.48 * (0.9 + 0.1 * uiScale);
     }
     const cardSlots = 5;
     const cardW = Math.max(40, (layoutW / cardSlots) * cardMul);

@@ -654,6 +654,7 @@ function tcgDbMigrateBootstrap(PDO $db): void {
         player_name TEXT NOT NULL,
         join_body TEXT NOT NULL,
         joined_at INTEGER NOT NULL,
+        last_seen_at INTEGER NOT NULL DEFAULT 0,
         game_mode TEXT NOT NULL DEFAULT \'standard\'
     )');
 
@@ -852,6 +853,11 @@ function tcgDbMigrateGameModeRank(PDO $db): void {
     tcgDbEnsureColumn($db, 'tcg_ranked_matches', 'winner_pid', 'TEXT');
     tcgDbEnsureColumn($db, 'tcg_ranked_matches', 'pr_rewarded', 'INTEGER NOT NULL DEFAULT 0');
     tcgDbEnsureColumn($db, 'tcg_casual_queue', 'game_mode', "TEXT NOT NULL DEFAULT 'standard'");
+    tcgDbEnsureColumn($db, 'tcg_casual_queue', 'last_seen_at', 'INTEGER NOT NULL DEFAULT 0');
+    // Backfill last_seen_at for rows created before the heartbeat column existed.
+    try {
+        $db->exec('UPDATE tcg_casual_queue SET last_seen_at = joined_at WHERE last_seen_at IS NULL OR last_seen_at = 0');
+    } catch (Throwable $e) { /* ignore */ }
 
     if (!tcgDbTableHasColumn($db, 'tcg_rank', 'game_mode')) {
         $db->exec('CREATE TABLE tcg_rank_gm (

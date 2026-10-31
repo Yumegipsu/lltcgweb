@@ -1428,6 +1428,7 @@ function clearStalePerfDeferState(prev, next) {
     const def = G._deferredPromptState?.pending_prompt;
     if (def && (def.type === 'spbp5_repeat_mill_blade'
         || def.type === 'auto_yell_mill_extra_yell'
+        || def.type === 'sbp6_yell_mill_extra_yell'
         || def.type === 'auto_yell_no_live_retry'
         || def.type === 'optional_live_start'
         || isLiveSpectaclePipelinePhase(G._deferredPromptState?.phase))) {
@@ -2073,6 +2074,8 @@ const PERF_SPECTACLE_DEFERRED_PROMPTS = new Set([
 const PERF_SPECTACLE_MID_PROMPTS = new Set([
   'auto_yell_no_live_retry',
   'auto_yell_mill_extra_yell',
+  // MIRAI TICKET (PL!S-bp6-021-L) — same mid-Yell timing as Kurage mill (#320/#322).
+  'sbp6_yell_mill_extra_yell',
 ]);
 
 function isMidSpectacleYellRetryPrompt(s) {
@@ -8241,7 +8244,8 @@ async function awaitMidSpectacleYellRetryPrompts(ctx, myId) {
         if ((s.seq ?? 0) > seqBefore && !isMidSpectacleYellRetryPrompt(s)) return true;
         if (!s.pending_prompt) return true;
         if (s.pending_prompt.type !== 'auto_yell_no_live_retry'
-            && s.pending_prompt.type !== 'auto_yell_mill_extra_yell') return true;
+            && s.pending_prompt.type !== 'auto_yell_mill_extra_yell'
+            && s.pending_prompt.type !== 'sbp6_yell_mill_extra_yell') return true;
         return false;
       },
     });

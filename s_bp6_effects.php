@@ -1161,42 +1161,79 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
     }
 
     if ($promptType === 'sbp6_yell_mill_extra_yell') {
-        if ($choice === 'no') {
+        $sourceName = $prompt['source_name'] ?? 'Member';
+        if ($choice !== 'yes') {
             unset($state['pending_prompt']);
             $state['seq']++;
-            return $state;
+            $state = addLog($state, $state['players'][$owner]['name'] .
+                " — [$sourceName] declined Yell mill for extra Yell.");
+            return continuePerformanceAfterYellAbilities($state, $owner);
         }
         $ids = $data['card_ids'] ?? [];
-        $costPer = intval($ability['cost_per_extra'] ?? 5);
+        if (!is_array($ids)) {
+            $ids = $ids !== '' && $ids !== null ? [$ids] : [];
+        }
+        $costPer = max(1, intval($ability['cost_per_extra'] ?? 5));
         $maxExtra = intval($ability['max_extra_yell'] ?? 4);
-        $extra = 0;
+        $group = $ability['group'] ?? 'Sunshine';
+        $maxPick = max(1, intval($prompt['max_pick'] ?? 1));
+        $pool = function_exists('currentPlayerYellCards')
+            ? currentPlayerYellCards($state, $owner)
+            : ($state['_last_yell_cards'] ?? []);
+        $validIds = [];
         $milledCost = 0;
-        $pool = $state['_last_yell_cards'] ?? [];
-        foreach ($ids as $id) {
-            foreach ($pool as $i => $c) {
-                if (($c['instance_id'] ?? '') !== $id) continue;
-                $ownerP['waiting_room'][] = $c;
-                $milledCost += intval($c['cost'] ?? 0);
-                unset($pool[$i]);
+        foreach ($pool as &$c) {
+            $iid = $c['instance_id'] ?? '';
+            if ($iid === '' || !in_array($iid, $ids, true)) {
+                continue;
+            }
+            if (($c['card_type'] ?? '') !== 'メンバー') {
+                continue;
+            }
+            if (!cardInGroup($c, $group) || yellCardHasBladeHeart($c)) {
+                continue;
+            }
+            if (function_exists('mergeYellCardCatalogFields')) {
+                mergeYellCardCatalogFields($c);
+            }
+            $validIds[] = $iid;
+            $milledCost += intval($c['cost'] ?? 0);
+            if (count($validIds) >= $maxPick) {
                 break;
             }
         }
+        unset($c);
+        if (empty($validIds)) {
+            throw new Exception('Choose at least 1 eligible Yell card');
+        }
+        if (function_exists('millPlayerYellCardsToWr')) {
+            $state = millPlayerYellCardsToWr($state, $owner, $validIds);
+        } else {
+            // Fallback: manual mill into WR + sync yell pools.
+            $ownerP = &$state['players'][$owner];
+            $remaining = [];
+            foreach ($pool as $c) {
+                if (in_array($c['instance_id'] ?? '', $validIds, true)) {
+                    $ownerP['waiting_room'][] = $c;
+                } else {
+                    $remaining[] = $c;
+                }
+            }
+            unset($ownerP);
+            $state = syncPlayerYellPools($state, $owner, $remaining);
+        }
         $extra = min($maxExtra, intdiv($milledCost, $costPer));
+        $state = addLog($state, $state['players'][$owner]['name'] .
+            " — [$sourceName] milled for +$extra extra Yell.");
+        unset($state['pending_prompt']);
+        $state['seq']++;
         if ($extra > 0) {
-            $state = syncPlayerYellPools($state, $owner, array_values($pool));
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Member') . "] milled for +$extra extra Yell.");
-            unset($state['pending_prompt']);
-            $state['seq']++;
-            $state = executeExtraYellDraws($state, $owner, $extra, $prompt['source_name'] ?? 'Member');
+            $state = executeExtraYellDraws($state, $owner, $extra, $sourceName);
             if (!empty($state['pending_prompt'])) {
                 $state['_performance_continue'] = $owner;
                 return $state;
             }
-            return continuePerformanceAfterYellAbilities($state, $owner);
         }
-        unset($state['pending_prompt']);
-        $state['seq']++;
         return continuePerformanceAfterYellAbilities($state, $owner);
     }
 

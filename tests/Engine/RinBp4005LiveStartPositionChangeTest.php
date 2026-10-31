@@ -147,6 +147,8 @@ final class RinBp4005LiveStartPositionChangeTest extends TestCase
         $this->assertArrayNotHasKey('min_original_blades', $rin['abilities'][2]);
         $this->assertStringContainsString('5 or more Blade icons', $rin['text'] ?? '');
         $this->assertStringNotContainsString('original Blade icons', $rin['text'] ?? '');
+        $this->assertStringNotContainsString('printed <blade>', $rin['text'] ?? '');
+        $this->assertStringNotContainsString('printed Blade', $rin['text'] ?? '');
 
         $umi = [
             'instance_id' => 'umi4',
