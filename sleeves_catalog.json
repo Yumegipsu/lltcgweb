@@ -2253,6 +2253,15 @@
       "orientation": "portrait"
     },
     {
+      "id": "bday-rin-2026",
+      "name": "Rin Birthday Visual 2026",
+      "group": "µ's",
+      "idol": "Rin",
+      "src": "assets/sleeves/bday-rin-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-11-01"
+    },
+    {
       "id": "bday-umi-2025",
       "name": "Umi Birthday Visual 2025",
       "group": "µ's",
