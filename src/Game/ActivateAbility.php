@@ -135,6 +135,10 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         if ($zone !== 'hand') throw new Exception('Activate from hand only');
         return hsResolveHandDiscardNamedBlade($state, $pid, $p, $ab, $data);
     }
+    if (($ab['type'] ?? '') === 'hand_discard_for_stage_blade') {
+        if ($zone !== 'hand') throw new Exception('Activate from hand only');
+        return nijiResolveHandDiscardForStageBlade($state, $pid, $p, $ab, $data);
+    }
 
     if (($ab['type'] ?? '') === 'shuffle_named_from_waiting') {
         $names = $ab['names'] ?? [];

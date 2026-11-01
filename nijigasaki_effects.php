@@ -964,10 +964,68 @@ function nijiResolveActivatedEffectBody(
         return $state;
     }
     if ($type === 'hand_discard_for_stage_blade') {
-        if (($member['card_type'] ?? '') !== 'メンバー') throw new Exception('Must activate from hand');
-        throw new Exception('Use hand-activated ability from hand UI');
+        // Resolved via actionActivateAbility → nijiResolveHandDiscardForStageBlade (hand zone).
+        return null;
     }
     return null;
+}
+
+/**
+ * PL!N-pb1-003 Shizuku — pay Energy, discard this from hand, draw, grant Blade to a Stage Member.
+ */
+function nijiResolveHandDiscardForStageBlade(
+    array $state,
+    string $pid,
+    array &$p,
+    array $ab,
+    array $data
+): array {
+    $cost = intval($ab['energy_cost'] ?? $ab['cost'] ?? 0);
+    if ($cost > 0 && !payEnergyCost($p, $cost)) {
+        throw new Exception('Not enough Energy');
+    }
+    $handId = $data['hand_card_id'] ?? $data['card_id'] ?? '';
+    $found = false;
+    foreach ($p['hand'] as $i => $c) {
+        if (($c['instance_id'] ?? '') === $handId) {
+            $p['waiting_room'][] = $c;
+            array_splice($p['hand'], $i, 1);
+            $found = true;
+            break;
+        }
+    }
+    if (!$found) {
+        throw new Exception('Choose this card from your hand');
+    }
+    $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
+    $group = (string)($ab['group'] ?? 'Nijigasaki');
+    $candidates = [];
+    foreach ($p['stage'] as $slot => $mbr) {
+        if (!$mbr) {
+            continue;
+        }
+        if ($group !== '' && !cardInGroup($mbr, $group)) {
+            continue;
+        }
+        $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
+    }
+    if (empty($candidates)) {
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            " — discarded from hand; drew $drawn (no matching Member on Stage).");
+        return $state;
+    }
+    $state['pending_prompt'] = [
+        'type'        => 'pick_named_member_blade',
+        'owner'       => $pid,
+        'responder'   => $pid,
+        'source_name' => 'Hand ability',
+        'candidates'  => $candidates,
+        'blade'       => intval($ab['blade'] ?? 1),
+        'prompt'      => 'Choose 1 Member for +' . intval($ab['blade'] ?? 1) . ' Blade until Live ends.',
+    ];
+    $state = addLog($state, $state['players'][$pid]['name'] .
+        " — discarded Member from hand; drew $drawn.");
+    return $state;
 }
 
 function countHeartsByColor(array $card): array {
