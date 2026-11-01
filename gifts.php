@@ -105,21 +105,27 @@ function tcgGiftNormalizeRewards($raw): array {
     return $out;
 }
 
-/** @param array<string,mixed> $reward */
-function tcgGiftGrantReward(string $uid, array $reward): void {
+/**
+ * Grant one gift reward line. PR packs return the rolled pack payload so the client can
+ * play the same reveal animation used by ranked / missions / login bonus.
+ *
+ * @param array<string,mixed> $reward
+ * @return array<string,mixed>|null pack payload when type is pr_pack, otherwise null
+ */
+function tcgGiftGrantReward(string $uid, array $reward): ?array {
     $type = (string)($reward['type'] ?? '');
     if ($type === 'muse_premium_ticket') {
         tcgAddMusePremiumTickets($uid, max(1, intval($reward['amount'] ?? 1)));
-        return;
+        return null;
     }
     if ($type === 'pr_pack') {
         if (!function_exists('tcgGrantPrPackCards')) {
             require_once __DIR__ . '/ranked_pr_rewards.php';
         }
-        tcgGrantPrPackCards($uid, max(1, min(15, intval($reward['amount'] ?? 1))));
-        return;
+        return tcgGrantPrPackCards($uid, max(1, min(15, intval($reward['amount'] ?? 1))));
     }
     tcgEventsGrantReward($uid, $type, $reward);
+    return null;
 }
 
 /**
@@ -270,10 +276,15 @@ function tcgApiGiftClaim(array $body): array {
     if ($ins->rowCount() < 1) {
         throw new Exception('Gift already claimed', 409);
     }
+    $prPacks = [];
     try {
         foreach ($rewards as $reward) {
-            if (is_array($reward)) {
-                tcgGiftGrantReward($uid, $reward);
+            if (!is_array($reward)) {
+                continue;
+            }
+            $granted = tcgGiftGrantReward($uid, $reward);
+            if (is_array($granted) && !empty($granted['cards']) && is_array($granted['cards'])) {
+                $prPacks[] = $granted;
             }
         }
     } catch (Throwable $e) {
@@ -281,11 +292,36 @@ function tcgApiGiftClaim(array $body): array {
         $db->prepare('DELETE FROM tcg_gift_claims WHERE gift_id = ? AND discord_id = ?')->execute([$giftId, $uid]);
         throw $e;
     }
-    return [
+    $out = [
         'success' => true,
         'gift_id' => $giftId,
         'rewards' => $rewards,
     ] + tcgGiftsBalances($uid);
+    if ($prPacks !== []) {
+        // One reveal overlay: merge every PR pack line from this gift into a single pack payload.
+        $cards = [];
+        $gemsEarned = 0;
+        foreach ($prPacks as $pack) {
+            foreach ($pack['cards'] as $card) {
+                if (is_array($card)) {
+                    $cards[] = $card;
+                }
+            }
+            $gemsEarned += intval($pack['star_gems_earned'] ?? 0);
+        }
+        $first = $cards[0] ?? [];
+        $out['pr_pack'] = [
+            'pack_size' => count($cards),
+            'cards' => $cards,
+            'card_no' => $first['card_no'] ?? null,
+            'card' => $first,
+            'converted' => !empty($first['converted']),
+            'star_gems_earned' => $gemsEarned,
+            'star_gems' => intval($prPacks[array_key_last($prPacks)]['star_gems'] ?? 0),
+            'seals' => $prPacks[array_key_last($prPacks)]['seals'] ?? null,
+        ];
+    }
+    return $out;
 }
 
 /**

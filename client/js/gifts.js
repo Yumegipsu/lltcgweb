@@ -249,7 +249,13 @@
       if (g) g.claimed = true;
       render();
       applyFabState();
-      toast(tt('gifts.claimedToast', 'Gift claimed!'), 2400);
+      // Season-end / admin PR packs: same reveal as ranked wins, missions, login bonus.
+      if (res.pr_pack && typeof global.queueRankedPrReward === 'function') {
+        global.queueRankedPrReward(res.pr_pack);
+        toast(tt('gifts.claimedPrPackToast', 'Gift claimed! Opening PR pack…'), 2400);
+      } else {
+        toast(tt('gifts.claimedToast', 'Gift claimed!'), 2400);
+      }
     } catch (e) {
       if (btn) btn.disabled = false;
       const already = /already claimed/i.test(String(e && e.message));
