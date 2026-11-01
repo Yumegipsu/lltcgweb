@@ -7,8 +7,9 @@ namespace LLTCG\Tests\Engine;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Issue #295 — PL!N-bp7-011 Mia: deck→WR auto also fires when she is Yelled
- * into the Waiting Room (not only when milled).
+ * PL!N-bp7-011 Mia auto: "when this card is put from your deck into the Waiting Room".
+ * Yell draws into a resolution area first, so flushPendingYellToWr must NOT offer recover
+ * (#326). Deck mills still must (#295 deck path / #169).
  */
 final class Issue295MiaYellRecoverTest extends TestCase
 {
@@ -66,21 +67,17 @@ final class Issue295MiaYellRecoverTest extends TestCase
         ];
     }
 
-    public function testYellFlushOffersMiaSelfMilledRecover(): void
+    public function testYellFlushDoesNotOfferMiaSelfMilledRecover(): void
     {
-        $mia = $this->cardByNo('PL!N-bp7-011-P', 'issue295_mia');
+        $mia = $this->cardByNo('PL!N-bp7-011-P', 'issue326_mia');
         $this->assertSame('auto_self_milled_discard_recover', $mia['abilities'][0]['type'] ?? null);
 
         $state = $this->baseState();
-        // Resolve the recover chain outside Live Success so finishPromptEffects
-        // does not advance Performance and reshuffle the discard into the deck.
         $state['phase'] = 'main_first';
         unset($state['_performance_continue']);
         $state['players']['p1']['hand'] = [
             ['instance_id' => 'h_disc', 'card_type' => 'メンバー', 'name_en' => 'Fodder', 'card_type_en' => 'Member'],
-            ['instance_id' => 'h_keep', 'card_type' => 'メンバー', 'name_en' => 'Keep', 'card_type_en' => 'Member'],
         ];
-        // Non-empty deck so empty-deck refresh does not eat the discard from WR.
         $state['players']['p1']['main_deck'] = [
             ['instance_id' => 'd_pad', 'card_type' => 'エネルギー', 'name_en' => 'Energy'],
         ];
@@ -90,29 +87,13 @@ final class Issue295MiaYellRecoverTest extends TestCase
 
         $this->assertSame([], $state['players']['p1']['_pending_yell_wr'] ?? []);
         $wrIds = array_column($state['players']['p1']['waiting_room'] ?? [], 'instance_id');
-        $this->assertContains('issue295_mia', $wrIds);
-        $this->assertSame('self_milled_recover', $state['pending_prompt']['bp7_action'] ?? null);
-        $this->assertSame('issue295_mia', $state['pending_prompt']['recover_id'] ?? null);
-
-        $state = \actionResolvePrompt($state, 'p1', ['choice' => 'yes']);
-        $this->assertSame('self_milled_discard', $state['pending_prompt']['bp7_action'] ?? null);
-
-        $state = \actionResolvePrompt($state, 'p1', [
-            'choice' => 'ok',
-            'card_ids' => ['h_disc'],
-        ]);
-
-        $handIds = array_column($state['players']['p1']['hand'] ?? [], 'instance_id');
-        $this->assertContains('issue295_mia', $handIds);
-        $this->assertNotContains('h_disc', $handIds);
-        $wrIds = array_column($state['players']['p1']['waiting_room'] ?? [], 'instance_id');
-        $this->assertNotContains('issue295_mia', $wrIds);
-        $this->assertContains('h_disc', $wrIds);
+        $this->assertContains('issue326_mia', $wrIds);
+        $this->assertNull($state['pending_prompt'] ?? null);
     }
 
-    public function testFinishLiveSuccessPausesForYellMia(): void
+    public function testFinishLiveSuccessDoesNotPauseForYellMia(): void
     {
-        $mia = $this->cardByNo('PL!N-bp7-011-SEC', 'issue295_mia_sec');
+        $mia = $this->cardByNo('PL!N-bp7-011-SEC', 'issue326_mia_sec');
         $state = $this->baseState();
         $state['players']['p1']['hand'] = [
             ['instance_id' => 'h1', 'card_type' => 'メンバー', 'name_en' => 'Fodder', 'card_type_en' => 'Member'],
@@ -121,9 +102,43 @@ final class Issue295MiaYellRecoverTest extends TestCase
 
         $state = \finishLiveSuccessEffects($state);
 
-        $this->assertSame('live_success_effects', $state['phase'] ?? null);
-        $this->assertSame('p1', $state['_performance_continue'] ?? null);
-        $this->assertSame('self_milled_recover', $state['pending_prompt']['bp7_action'] ?? null);
+        // No Mia recover prompt — Yell→WR is not "from deck into the Waiting Room".
+        $this->assertNotSame('self_milled_recover', $state['pending_prompt']['bp7_action'] ?? null);
         $this->assertSame([], $state['players']['p1']['_pending_yell_wr'] ?? []);
+        $msgs = implode("\n", array_column($state['log'] ?? [], 'msg'));
+        $this->assertStringNotContainsString('from the Waiting Room to your hand', $msgs);
+    }
+
+    public function testDeckMillStillOffersMiaRecover(): void
+    {
+        $mia = $this->cardByNo('PL!N-bp7-011-P', 'issue326_mill_mia');
+        $fodder = [
+            'instance_id' => 'h_disc',
+            'card_type' => 'メンバー',
+            'name_en' => 'Fodder',
+            'card_type_en' => 'Member',
+        ];
+        $state = $this->baseState();
+        $state['phase'] = 'main_first';
+        unset($state['_performance_continue']);
+        $state['players']['p1']['hand'] = [$fodder];
+        $state['players']['p1']['main_deck'] = [
+            $mia,
+            ['instance_id' => 'd_pad', 'card_type' => 'エネルギー', 'name_en' => 'Energy'],
+        ];
+
+        [$state, $taken] = \bp7MillFromDeckTop($state, 'p1', 1, 'Test Mill');
+        $this->assertCount(1, $taken);
+        $this->assertSame('self_milled_recover', $state['pending_prompt']['bp7_action'] ?? null);
+        $this->assertSame('issue326_mill_mia', $state['pending_prompt']['recover_id'] ?? null);
+
+        $state = \actionResolvePrompt($state, 'p1', ['choice' => 'yes']);
+        $this->assertSame('self_milled_discard', $state['pending_prompt']['bp7_action'] ?? null);
+        $state = \actionResolvePrompt($state, 'p1', [
+            'choice' => 'ok',
+            'card_ids' => ['h_disc'],
+        ]);
+        $handIds = array_column($state['players']['p1']['hand'] ?? [], 'instance_id');
+        $this->assertContains('issue326_mill_mia', $handIds);
     }
 }

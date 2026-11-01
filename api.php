@@ -3504,7 +3504,7 @@ function resolvePerformanceHeartsAfterYell(array $state): array {
         }
         $state = flushPendingYellToWr($state, $pid);
         if (!empty($state['pending_prompt'])) {
-            // Deck→WR auto (Mia) after Yell cleanup — resume hearts after it.
+            // Prompt opened during hearts/Yell cleanup — resume after it.
             $state['phase'] = 'live_success_effects';
             $state['_performance_continue'] = $pid;
             $state['_perf_hearts_resolved'] = $resolved;
@@ -3901,7 +3901,7 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     }
     $state = flushPendingYellToWr($state, $pid);
     if (!empty($state['pending_prompt'])) {
-        // Deck→WR auto (Mia) after Yell — pause before advancing the round.
+        // Prompt still open after Yell cleanup — pause before advancing the round.
         $state['phase'] = 'live_success_effects';
         $state['_performance_continue'] = $pid;
         return $state;
