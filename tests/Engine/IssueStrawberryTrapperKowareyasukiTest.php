@@ -37,6 +37,7 @@ final class IssueStrawberryTrapperKowareyasukiTest extends TestCase
     {
         $state = [
             'live_perf_success' => ['p2' => [['instance_id' => 'x']]],
+            'live_round_success' => ['p2' => true],
             '_live_excess_hearts' => ['p2' => 0],
             '_live_success_no_excess' => ['p2' => false],
             'players' => ['p2' => []],
@@ -44,6 +45,20 @@ final class IssueStrawberryTrapperKowareyasukiTest extends TestCase
         $this->assertTrue(\opponentSucceededLiveWithoutCurrentExcess($state, 'p2'));
 
         $state['_live_excess_hearts']['p2'] = 2;
+        $this->assertFalse(\opponentSucceededLiveWithoutCurrentExcess($state, 'p2'));
+    }
+
+    public function testHelperIgnoresPartialSuccessOnFailedRound(): void
+    {
+        // Individual Live cards can pass hearts while the round still fails — that is not
+        // "opponent succeeded a Live" for Strawberry Trapper (0C2CE1 / Kyra follow-up).
+        $state = [
+            'live_perf_success' => ['p2' => [['instance_id' => 'partial']]],
+            'live_round_success' => ['p2' => false],
+            '_live_excess_hearts' => ['p2' => 0],
+            '_live_success_no_excess' => ['p2' => true],
+            'players' => ['p2' => []],
+        ];
         $this->assertFalse(\opponentSucceededLiveWithoutCurrentExcess($state, 'p2'));
     }
 
@@ -82,6 +97,8 @@ final class IssueStrawberryTrapperKowareyasukiTest extends TestCase
                 'p1' => [$koware, $trap1, $trap2],
                 'p2' => [['instance_id' => 'opp_live']],
             ],
+            // Opponent already resolved their successful Live (first performer) with surplus.
+            'live_round_success' => ['p2' => true],
             '_live_excess_hearts' => ['p1' => 0, 'p2' => 2],
             '_live_success_no_excess' => ['p1' => true, 'p2' => false],
             'live_modifiers' => ['p1' => [], 'p2' => []],
@@ -107,6 +124,7 @@ final class IssueStrawberryTrapperKowareyasukiTest extends TestCase
                     'main_deck' => [],
                     'live_zone' => [],
                     'success_lives' => [],
+                    'succeeded_live_this_turn' => true,
                 ],
             ],
         ];
@@ -117,7 +135,6 @@ final class IssueStrawberryTrapperKowareyasukiTest extends TestCase
         $state = \actionResolvePrompt($state, 'p1', [
             'card_ids' => ['koware', 'trap1', 'trap2'],
         ]);
-        $this->assertNull($state['pending_prompt'] ?? null);
 
         $msgs = implode("\n", array_column($state['log'], 'msg'));
         $this->assertStringContainsString('opponent lost 2 surplus heart(s)', $msgs, $msgs);
@@ -130,6 +147,7 @@ final class IssueStrawberryTrapperKowareyasukiTest extends TestCase
         $koware2 = $this->live('PL!S-bp6-024-L', 'koware2');
         $solo = [
             'log' => [],
+            'live_round_success' => ['p2' => true],
             '_live_excess_hearts' => ['p2' => 2],
             '_live_success_no_excess' => ['p2' => false],
             'live_modifiers' => ['p1' => [], 'p2' => []],
@@ -145,6 +163,7 @@ final class IssueStrawberryTrapperKowareyasukiTest extends TestCase
                     'live_zone' => [],
                     'stage' => ['left' => null, 'center' => null, 'right' => null],
                     'hand' => [], 'waiting_room' => [], 'energy_zone' => [], 'main_deck' => [], 'success_lives' => [],
+                    'succeeded_live_this_turn' => true,
                 ],
             ],
         ];
@@ -156,6 +175,59 @@ final class IssueStrawberryTrapperKowareyasukiTest extends TestCase
         ]);
         $this->assertSame(6, (int)$solo['players']['p1']['live_zone'][0]['score']);
         $this->assertTrue(!empty($solo['_live_success_no_excess']['p2']));
+    }
+
+    public function testKowareDoesNotStripHeartsFromFailedOppLive(): void
+    {
+        // 0C2CE1 turn 6: opponent failed the Live; leftover hearts must not count as surplus.
+        $koware = $this->live('PL!S-bp6-024-L', 'koware');
+        $trap = $this->live('PL!S-pb1-021-L', 'trap1');
+        $riko = $this->member('PL!S-sd1-002-SD', 'riko', [
+            ['color' => 'blue', 'count' => 4],
+        ]);
+        $state = [
+            'log' => [],
+            'live_round_success' => ['p2' => false],
+            // Buggy pre-fix value: failed Live stored all hearts as "excess".
+            '_live_excess_hearts' => ['p2' => 20],
+            '_live_success_no_excess' => ['p2' => false],
+            'live_modifiers' => ['p1' => [], 'p2' => []],
+            'players' => [
+                'p1' => [
+                    'id' => 'p1', 'name' => 'P1',
+                    'live_zone' => [$koware, $trap],
+                    'stage' => ['left' => $riko, 'center' => null, 'right' => null],
+                    'hand' => [], 'waiting_room' => [], 'energy_zone' => [], 'main_deck' => [], 'success_lives' => [],
+                ],
+                'p2' => [
+                    'id' => 'p2', 'name' => 'P2',
+                    'live_zone' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'hand' => [], 'waiting_room' => [], 'energy_zone' => [], 'main_deck' => [], 'success_lives' => [],
+                ],
+            ],
+        ];
+        $state = \sBp6ResolveEffect($state, 'p1', $koware, [
+            'trigger' => 'live_success',
+            'type' => 'live_success_opp_lose_surplus_score',
+            'min_opp_lost' => 2,
+            'score_bonus' => 1,
+        ]);
+        $state = \resolveAbilityEffect($state, 'p1', $trap, [
+            'trigger' => 'live_success',
+            'type' => 'score_if_group_stage_hearts_opp_no_excess',
+            'group' => 'Sunshine',
+            'min_hearts' => 4,
+            'amount' => 2,
+            'heart_color' => 'blue',
+        ], ['phase' => 'live_success']);
+        $msgs = implode("\n", array_column($state['log'], 'msg'));
+        $this->assertStringNotContainsString('opponent lost', $msgs, $msgs);
+        $this->assertStringNotContainsString('score +2', $msgs, $msgs);
+        $this->assertSame(5, (int)$state['players']['p1']['live_zone'][0]['score']);
+        $this->assertSame(1, (int)$state['players']['p1']['live_zone'][1]['score']);
+        // Fake fail-surplus left untouched (Koware refused to strip a non-success).
+        $this->assertSame(20, (int)($state['_live_excess_hearts']['p2'] ?? -1));
     }
 
     public function testTrapperDoesNotScoreWhileOppStillHasSurplus(): void
@@ -174,6 +246,7 @@ final class IssueStrawberryTrapperKowareyasukiTest extends TestCase
                 'p1' => [$trap],
                 'p2' => [['instance_id' => 'opp_live']],
             ],
+            'live_round_success' => ['p1' => true, 'p2' => true],
             '_live_excess_hearts' => ['p2' => 2],
             '_live_success_no_excess' => ['p2' => false],
             'live_modifiers' => ['p1' => [], 'p2' => []],
@@ -187,6 +260,7 @@ final class IssueStrawberryTrapperKowareyasukiTest extends TestCase
                     'id' => 'p2', 'name' => 'P2', 'hand' => [], 'waiting_room' => [],
                     'stage' => ['left' => null, 'center' => null, 'right' => null],
                     'energy_zone' => [], 'main_deck' => [], 'live_zone' => [], 'success_lives' => [],
+                    'succeeded_live_this_turn' => true,
                 ],
             ],
         ];

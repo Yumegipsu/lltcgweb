@@ -3869,7 +3869,10 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
         }
         $p['live_zone'] = $memberBluffs;
         $successCards = [];
-        $remaining = $ownedHearts;
+        // A failed Live attempt has no surplus Hearts — leftover unspent hearts are not
+        // "excess" (Kowareyasuki / Strawberry Trapper must not treat a fail as surplus).
+        $remaining = [];
+        $state['live_perf_success'][$pid] = [];
     }
 
     // Hold Yell cards until live success effects finish (may add one to hand)
@@ -3877,9 +3880,9 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     unset($p['yell_cards']);
 
     $heartStr = implode(', ', $ownedHearts);
-    $excessHearts = count($remaining);
+    $excessHearts = $liveRoundSuccess ? count($remaining) : 0;
     $state['_live_excess_hearts'][$pid] = $excessHearts;
-    $state['_live_success_no_excess'][$pid] = ($excessHearts === 0);
+    $state['_live_success_no_excess'][$pid] = $liveRoundSuccess && ($excessHearts === 0);
     if ($liveRoundSuccess) {
         $state = resolveLiveSuccessAbilities($state, $pid, $successCards, $excessHearts, $remaining, $yellCards);
     }

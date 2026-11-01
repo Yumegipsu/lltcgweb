@@ -2754,11 +2754,14 @@ function isLiveScoreYellContext(array $state): bool {
 }
 
 /**
- * Strawberry Trapper etc.: opponent succeeded a Live this Performance and currently
+ * Strawberry Trapper etc.: opponent succeeded a Live this Performance/turn and currently
  * has no surplus Hearts (including after Kowareyasuki strips surplus mid–Live Success).
+ *
+ * Requires a real Live-round success — not merely individual cards that paid hearts on a
+ * failed multi-Live attempt (`live_perf_success` can list those card ids).
  */
 function opponentSucceededLiveWithoutCurrentExcess(array $state, string $opp): bool {
-    $succeeded = !empty($state['live_perf_success'][$opp])
+    $succeeded = !empty($state['live_round_success'][$opp])
         || !empty($state['players'][$opp]['succeeded_live_this_turn']);
     if (!$succeeded) {
         return false;

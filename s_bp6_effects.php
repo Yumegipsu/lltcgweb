@@ -598,6 +598,10 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $opp = ($pid === 'p1') ? 'p2' : 'p1';
             $oppExcess = intval($state['_live_excess_hearts'][$opp] ?? $state['_surplus_hearts_opp'] ?? 0);
             if ($oppExcess <= 0) break;
+            // Surplus only exists after a successful Live — never strip leftover hearts from a fail.
+            $oppSucceeded = !empty($state['live_round_success'][$opp])
+                || !empty($state['players'][$opp]['succeeded_live_this_turn']);
+            if (!$oppSucceeded) break;
             $state['_live_excess_hearts'][$opp] = 0;
             // Keep Strawberry Trapper–style checks in sync after surplus is stripped.
             $state['_live_success_no_excess'][$opp] = true;
