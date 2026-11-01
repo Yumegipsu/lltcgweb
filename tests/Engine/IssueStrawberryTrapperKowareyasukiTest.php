@@ -269,4 +269,90 @@ final class IssueStrawberryTrapperKowareyasukiTest extends TestCase
         $msgs = implode("\n", array_column($state['log'], 'msg'));
         $this->assertStringNotContainsString('score +2', $msgs);
     }
+
+    /**
+     * 4DA0F8 turn 7 (squeakychair_. vs ultra.orange): first performer resolves Live Success
+     * before the opponent has performed. Koware + both Trappers must defer, then after the
+     * opponent succeeds with surplus, Koware strips and both Trappers score +2.
+     */
+    public function testFirstPerformerDefersKowareAndTrappersUntilOppLive(): void
+    {
+        $koware = $this->live('PL!S-bp6-024-L', 'koware');
+        $trap1 = $this->live('PL!S-pb1-021-L', 'trap1');
+        $trap2 = $this->live('PL!S-pb1-021-L', 'trap2');
+        $riko = $this->member('PL!S-sd1-002-SD', 'riko', [
+            ['color' => 'blue', 'count' => 4],
+        ]);
+
+        // First performer only — opponent key absent from live_round_success.
+        $state = [
+            'status' => 'playing',
+            'phase' => 'live_success_effects',
+            'seq' => 1,
+            'turn' => 7,
+            'first_player' => 'p1',
+            'active_player' => 'p1',
+            'log' => [],
+            'live_perf_success' => ['p1' => ['koware', 'trap1', 'trap2']],
+            'live_round_success' => ['p1' => true],
+            '_live_excess_hearts' => ['p1' => 9],
+            '_live_success_no_excess' => ['p1' => false],
+            'live_modifiers' => ['p1' => [], 'p2' => []],
+            'players' => [
+                'p1' => [
+                    'id' => 'p1', 'name' => 'P1', 'hand' => [], 'waiting_room' => [],
+                    'stage' => ['left' => $riko, 'center' => null, 'right' => null],
+                    'energy_zone' => [], 'main_deck' => [],
+                    'live_zone' => [$koware, $trap1, $trap2], 'success_lives' => [],
+                ],
+                'p2' => [
+                    'id' => 'p2', 'name' => 'P2', 'hand' => [], 'waiting_room' => [],
+                    'stage' => ['left' => null, 'center' => null, 'right' => null],
+                    'energy_zone' => [], 'main_deck' => [],
+                    'live_zone' => [], 'success_lives' => [],
+                ],
+            ],
+        ];
+
+        // Skip Order prompt — resolve body with an explicit activation order.
+        $state['_live_success_ctx'] = [
+            'pid' => 'p1',
+            'success_ids' => ['koware', 'trap1', 'trap2'],
+            'order_ids' => ['koware', 'trap1', 'trap2'],
+            'excess_hearts' => 9,
+            'excess_colors' => [],
+        ];
+        $state = \resolveLiveSuccessAbilitiesBody(
+            $state,
+            'p1',
+            [$koware, $trap1, $trap2],
+            9,
+            [],
+            []
+        );
+
+        $msgs = implode("\n", array_column($state['log'], 'msg'));
+        $this->assertStringNotContainsString('opponent lost', $msgs, $msgs);
+        $this->assertStringNotContainsString('score +2', $msgs, $msgs);
+        $this->assertSame(5, (int)$state['players']['p1']['live_zone'][0]['score']);
+        $this->assertSame(1, (int)$state['players']['p1']['live_zone'][1]['score']);
+        $this->assertSame(1, (int)$state['players']['p1']['live_zone'][2]['score']);
+        $this->assertCount(3, $state['_deferred_live_success'] ?? []);
+
+        // Opponent finishes Live with surplus — flush deferred Koware then Trappers.
+        $state['live_round_success']['p2'] = true;
+        $state['_live_excess_hearts']['p2'] = 12;
+        $state['_live_success_no_excess']['p2'] = false;
+        $state['players']['p2']['succeeded_live_this_turn'] = true;
+        $state = \flushDeferredLiveSuccessAbilities($state);
+
+        $msgs = implode("\n", array_column($state['log'], 'msg'));
+        $this->assertStringContainsString('opponent lost 12 surplus heart(s)', $msgs, $msgs);
+        $this->assertSame(2, substr_count($msgs, 'score +2 (Aqours hearts + opponent no excess)'), $msgs);
+        $this->assertSame(6, (int)$state['players']['p1']['live_zone'][0]['score']); // Koware +1
+        $this->assertSame(3, (int)$state['players']['p1']['live_zone'][1]['score']);
+        $this->assertSame(3, (int)$state['players']['p1']['live_zone'][2]['score']);
+        $this->assertSame(0, (int)($state['_live_excess_hearts']['p2'] ?? -1));
+        $this->assertEmpty($state['_deferred_live_success'] ?? []);
+    }
 }

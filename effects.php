@@ -2772,6 +2772,108 @@ function opponentSucceededLiveWithoutCurrentExcess(array $state, string $opp): b
     return !empty($state['_live_success_no_excess'][$opp]);
 }
 
+/**
+ * Live Success types that read the opponent's Live outcome / surplus this Performance.
+ * When the opponent has not finished their Live attempt yet (first performer), these must
+ * wait — otherwise Kowareyasuki/Strawberry Trapper no-op before surplus exists (4DA0F8).
+ */
+function liveSuccessAbilityDependsOnOpponentLiveOutcome(array $ab): bool {
+    $type = (string)($ab['type'] ?? '');
+    return in_array($type, [
+        'live_success_opp_lose_surplus_score',
+        'score_if_group_stage_hearts_opp_no_excess',
+    ], true);
+}
+
+/** True once this seat's Live Show has recorded live_round_success for the Performance. */
+function opponentLiveAttemptResolvedThisPerformance(array $state, string $opp): bool {
+    return array_key_exists($opp, $state['live_round_success'] ?? []);
+}
+
+/**
+ * Queue a Live Success ability until the opponent's Live attempt resolves this Performance.
+ *
+ * @param array<string, mixed> $ctx
+ */
+function queueDeferredLiveSuccessAbility(
+    array $state,
+    string $pid,
+    array $source,
+    array $ab,
+    array $ctx
+): array {
+    $state['_deferred_live_success'] = $state['_deferred_live_success'] ?? [];
+    $state['_deferred_live_success'][] = [
+        'pid' => $pid,
+        'source_id' => (string)($source['instance_id'] ?? ''),
+        'ability' => $ab,
+        'ctx' => $ctx,
+    ];
+    return $state;
+}
+
+/**
+ * Resolve Live Success abilities that were waiting on the opponent's Live outcome.
+ * Call after a seat's live_round_success / surplus is written (success or fail).
+ */
+function flushDeferredLiveSuccessAbilities(array $state): array {
+    $queue = $state['_deferred_live_success'] ?? [];
+    if (!is_array($queue) || $queue === []) {
+        unset($state['_deferred_live_success']);
+        return $state;
+    }
+    unset($state['_deferred_live_success']);
+    $n = count($queue);
+    for ($i = 0; $i < $n; $i++) {
+        $item = $queue[$i];
+        if (!is_array($item)) {
+            continue;
+        }
+        $pid = (string)($item['pid'] ?? '');
+        $sourceId = (string)($item['source_id'] ?? '');
+        $ab = $item['ability'] ?? null;
+        $ctx = is_array($item['ctx'] ?? null) ? $item['ctx'] : [];
+        if ($pid === '' || $sourceId === '' || !is_array($ab)) {
+            continue;
+        }
+        $source = null;
+        foreach ($state['players'][$pid]['live_zone'] ?? [] as $lc) {
+            if ($lc && ($lc['instance_id'] ?? '') === $sourceId) {
+                $source = $lc;
+                break;
+            }
+        }
+        if ($source === null) {
+            foreach (['left', 'center', 'right'] as $slot) {
+                $m = $state['players'][$pid]['stage'][$slot] ?? null;
+                if ($m && ($m['instance_id'] ?? '') === $sourceId) {
+                    $source = $m;
+                    break;
+                }
+            }
+        }
+        if ($source === null) {
+            continue;
+        }
+        $opp = ($pid === 'p1') ? 'p2' : 'p1';
+        if (liveSuccessAbilityDependsOnOpponentLiveOutcome($ab)
+            && !opponentLiveAttemptResolvedThisPerformance($state, $opp)
+        ) {
+            $state = queueDeferredLiveSuccessAbility($state, $pid, $source, $ab, $ctx);
+            continue;
+        }
+        $state = resolveAbilityEffect($state, $pid, $source, $ab, $ctx);
+        if (!empty($state['pending_prompt'])) {
+            $state['_deferred_live_success'] = array_merge(
+                $state['_deferred_live_success'] ?? [],
+                array_slice($queue, $i + 1)
+            );
+            return $state;
+        }
+    }
+    return $state;
+}
+
 function bumpLiveCardScore(array &$state, string $pid, string $instanceId, int $amount): bool {
     if ($instanceId === '' || $amount === 0) {
         return false;
@@ -4421,13 +4523,21 @@ function resolveLiveSuccessSourceAbilities(
         $state = logAbilityChain($state, $pid, $source, 'live_success');
         foreach ($pendingAbs as [$abIdx, $ab]) {
             $state = markLiveSuccessAbilityResolved($state, 'live', $pid, $iid, $abIdx);
-            $state = resolveAbilityEffect($state, $pid, $source, $ab, [
+            $ctx = [
                 'excess_hearts'       => $excessHearts,
                 'excess_heart_colors' => $excessColors,
                 'phase'               => 'live_success',
                 'yell_cards'          => $yellCards,
                 'ability_index'       => $abIdx,
-            ]);
+            ];
+            $opp = ($pid === 'p1') ? 'p2' : 'p1';
+            if (liveSuccessAbilityDependsOnOpponentLiveOutcome($ab)
+                && !opponentLiveAttemptResolvedThisPerformance($state, $opp)
+            ) {
+                $state = queueDeferredLiveSuccessAbility($state, $pid, $source, $ab, $ctx);
+                continue;
+            }
+            $state = resolveAbilityEffect($state, $pid, $source, $ab, $ctx);
             if (!empty($state['pending_prompt'])) {
                 return [$state, true];
             }
@@ -4449,13 +4559,21 @@ function resolveLiveSuccessSourceAbilities(
     $state = logAbilityChain($state, $pid, $source, 'live_success');
     foreach ($pendingAbs as [$abIdx, $ab]) {
         $state = markLiveSuccessAbilityResolved($state, 'member', $pid, $iid, $abIdx);
-        $state = resolveAbilityEffect($state, $pid, $source, $ab, [
+        $ctx = [
             'excess_hearts'       => $excessHearts,
             'excess_heart_colors' => $excessColors,
             'phase'               => 'live_success',
             'yell_cards'          => $yellCards,
             'ability_index'       => $abIdx,
-        ]);
+        ];
+        $opp = ($pid === 'p1') ? 'p2' : 'p1';
+        if (liveSuccessAbilityDependsOnOpponentLiveOutcome($ab)
+            && !opponentLiveAttemptResolvedThisPerformance($state, $opp)
+        ) {
+            $state = queueDeferredLiveSuccessAbility($state, $pid, $source, $ab, $ctx);
+            continue;
+        }
+        $state = resolveAbilityEffect($state, $pid, $source, $ab, $ctx);
         $state = nBp5NotifyMemberAbilityResolved($state, $pid, $source, 'live_success');
         if (!empty($state['pending_prompt'])) {
             return [$state, true];

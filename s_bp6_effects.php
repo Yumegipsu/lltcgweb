@@ -171,14 +171,15 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             if (!sBp6AllLiveZoneMatchGroup($p, $group)) break;
             $colors = $ab['colors'] ?? ['red', 'green', 'blue'];
             if (sBp6CountLiveZoneColorTotal($p, $group, $colors) < intval($ab['min_total'] ?? 12)) break;
+            // Card text is 2<allH> (ALL hearts), not gray/colorless — Refs #328.
             $wilds = intval($ab['wild_count'] ?? 2);
             $hearts = [];
             for ($i = 0; $i < $wilds; $i++) {
-                $hearts[] = ['color' => 'wild', 'count' => 1];
+                $hearts[] = ['color' => 'all', 'count' => 1];
             }
             addBonusHeartsToModifier($state, $pid, $hearts);
             $state = addLog($state, $state['players'][$pid]['name'] .
-                " — [$name] gained $wilds Wild heart(s) (Live storage colors).");
+                " — [$name] gained $wilds ALL heart(s) (Live storage colors).");
             break;
 
         case 'activated_swap_stage_wr_member':

@@ -2644,7 +2644,8 @@ function beginPerformancePhase(array $state): array {
         $state['_live_perf_snapshot'],
         $state['_live_round_success_snapshot'],
         $state['_stage_hearts_snapshot'],
-        $state['_deferred_mp_extra_hearts']
+        $state['_deferred_mp_extra_hearts'],
+        $state['_deferred_live_success']
     );
     // Official 8.3.4: after reveal, Member bluffs go to WR before Live Start (8.3.8).
     // discardLiveZoneMembersToWaitingRoom runs at Live Start entry (and again at
@@ -3883,6 +3884,23 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     $excessHearts = $liveRoundSuccess ? count($remaining) : 0;
     $state['_live_excess_hearts'][$pid] = $excessHearts;
     $state['_live_success_no_excess'][$pid] = $liveRoundSuccess && ($excessHearts === 0);
+    // First performer's Kowareyasuki / Strawberry Trapper etc. wait until this seat's
+    // Live outcome (and surplus) is known — flush before this seat's own Live Success.
+    $state = flushDeferredLiveSuccessAbilities($state);
+    if (!empty($state['pending_prompt'])) {
+        $state['phase'] = 'live_success_effects';
+        $state['_performance_continue'] = $pid;
+        $bladeDrawnEarly = yellBladeDrawnTotal($state, $pid) ?? $totalBlade;
+        $state = addLog($state, $state['players'][$pid]['name'] .
+            ' performed Live! Blades: ' . $bladeDrawnEarly .
+            ' | Hearts: [' . $heartStr . ']' .
+            ' | Live success: ' . count($state['live_perf_success'][$pid]) .
+            ' | Failed: ' . count($failCards) .
+            ((!$liveRoundSuccess && !empty($liveCards))
+                ? ' | Round: failed (not all Lives succeeded)'
+                : ''), 'action', $failAnims);
+        return $state;
+    }
     if ($liveRoundSuccess) {
         $state = resolveLiveSuccessAbilities($state, $pid, $successCards, $excessHearts, $remaining, $yellCards);
     }
@@ -3925,9 +3943,35 @@ function continuePerformancePhase(array $state, string $justPlayed): array {
         if (in_array($second, $attempting, true)) {
             $state = resolvePerformancePhase($state, $second);
         } else {
+            // Second seat skipped Live — opp outcome is already known (false at begin).
+            $state = flushDeferredLiveSuccessAbilities($state);
+            if (!empty($state['pending_prompt'])) {
+                $state['phase'] = 'live_success_effects';
+                $state['_performance_continue'] = $first;
+                return $state;
+            }
             $state = continuePerformancePhase($state, $second);
         }
     } else {
+        // Phase may have been overwritten to live_success_effects by an Order prompt.
+        // If the first seat still has opp-dependent Live Success deferred, run the
+        // second performer instead of judging early (4DA0F8 Koware/Trapper).
+        if ($justPlayed === $first
+            && !empty($state['_deferred_live_success'])
+            && in_array($second, $attempting, true)
+            && !opponentLiveAttemptResolvedThisPerformance($state, $second)
+        ) {
+            $state['phase'] = 'live_performance_second';
+            return resolvePerformancePhase($state, $second);
+        }
+        if (!empty($state['_deferred_live_success'])) {
+            $state = flushDeferredLiveSuccessAbilities($state);
+            if (!empty($state['pending_prompt'])) {
+                $state['phase'] = 'live_success_effects';
+                $state['_performance_continue'] = $justPlayed;
+                return $state;
+            }
+        }
         $state = queueLiveShowOutcomes($state);
     }
     return $state;

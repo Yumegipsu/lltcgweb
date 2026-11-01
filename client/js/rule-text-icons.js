@@ -15,7 +15,7 @@
     blueH: 'blue',
     purpleH: 'purple',
     anyH: 'any',
-    allH: 'any',
+    allH: 'all',
   };
 
   const BLADE_HEART_TAG_COLOR = {
@@ -36,6 +36,7 @@
     blue: 'heart05.png',
     purple: 'heart06.png',
     any: 'heart00.png',
+    all: 'icon_all.png',
   };
 
   const BLADE_HEART_ICON = {
