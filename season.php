@@ -1298,9 +1298,18 @@ function tcgSeasonRatesPayload(?string $seasonId = null): array {
                 : tcgSeasonLossDelta(tcgSeasonPointDelta($b, $a, $version, true), $a, $version);
         }
     }
+    // End-of-season → start-of-next mapping (final step − 3, floored at Green C).
+    $softReset = [];
+    foreach (TCG_SEASON_STEPS as $i => $_def) {
+        $softReset[] = [
+            'from' => $i,
+            'to' => tcgSeasonSoftResetStep($i),
+        ];
+    }
     return [
         'rules_version' => $version,
         'matrix' => ['win' => $win, 'loss' => $loss],
+        'soft_reset' => $softReset,
         'win_min' => $rules['win_min'],
         'win_same' => (int)round($rules['win_k'] / 2),
         'win_max' => $rules['win_max'],

@@ -123,6 +123,16 @@ final class SeasonTwoRulesTest extends TestCase
         $this->assertNull($v2['steps'][0]['rankup_reward']);
         $this->assertSame(500, $v2['steps'][4]['rankup_reward']['coins']);
         $this->assertSame(2, $v2['steps'][7]['rankup_reward']['ticket_sr']);
+        $this->assertCount(8, $v2['soft_reset']);
+        $this->assertSame(
+            [['from' => 0, 'to' => 0], ['from' => 3, 'to' => 0], ['from' => 4, 'to' => 1], ['from' => 7, 'to' => 4]],
+            [
+                $v2['soft_reset'][0],
+                $v2['soft_reset'][3],
+                $v2['soft_reset'][4],
+                $v2['soft_reset'][7],
+            ]
+        );
 
         $v1 = tcgSeasonRatesPayload('2026-10');
         $this->assertSame(1, $v1['rules_version']);
@@ -130,6 +140,7 @@ final class SeasonTwoRulesTest extends TestCase
         $this->assertSame(10, $v1['steps'][4]['loss_same']);
         $this->assertTrue($v1['steps'][1]['protected']);
         $this->assertFalse($v1['steps'][2]['protected']);
+        $this->assertSame($v2['soft_reset'], $v1['soft_reset'], 'soft reset map is the same every season');
     }
 
     public function testRatesPayloadHasTheFullOpponentChart(): void

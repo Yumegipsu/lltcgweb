@@ -656,6 +656,64 @@
     return wrap;
   }
 
+  /** Two-column chart: end-of-season rank → starting rank next season. */
+  function softResetChart(season, softReset) {
+    const steps = ladderSteps(season);
+    const byStep = {};
+    steps.forEach((s) => { byStep[Number(s.step)] = s; });
+    const wrap = el('div', 'season-chart-wrap season-soft-reset-wrap');
+    const table = el('table', 'season-chart season-chart--soft-reset');
+    const head = el('tr');
+    head.appendChild(el('th', 'season-soft-reset-col', tt('season.softResetFrom', 'End of season')));
+    head.appendChild(el('th', 'season-soft-reset-arrow', ''));
+    head.appendChild(el('th', 'season-soft-reset-col', tt('season.softResetTo', 'Start next season')));
+    table.appendChild(el('thead')).appendChild(head);
+    const body = el('tbody');
+    const here = Number(season.step);
+    const rows = Array.isArray(softReset) && softReset.length
+      ? softReset
+      : steps.map((s) => ({ from: Number(s.step), to: Math.max(0, Number(s.step) - 3) }));
+    rows.slice().reverse().forEach((row) => {
+      const from = byStep[Number(row.from)];
+      const to = byStep[Number(row.to)];
+      if (!from || !to) return;
+      const tr = el('tr');
+      if (Number(row.from) === here) tr.classList.add('is-you');
+      const cellFrom = el('div', 'season-soft-reset-cell');
+      const imgFrom = document.createElement('img');
+      imgFrom.src = from.icon;
+      imgFrom.alt = '';
+      imgFrom.width = 24;
+      imgFrom.height = 24;
+      imgFrom.decoding = 'async';
+      cellFrom.appendChild(imgFrom);
+      cellFrom.appendChild(el('span', '', rankName(from)));
+      const tdFrom = el('td');
+      tdFrom.appendChild(cellFrom);
+      const tdArrow = el('td', 'season-soft-reset-arrow');
+      tdArrow.textContent = '\u2192';
+      tdArrow.setAttribute('aria-hidden', 'true');
+      const cellTo = el('div', 'season-soft-reset-cell');
+      const imgTo = document.createElement('img');
+      imgTo.src = to.icon;
+      imgTo.alt = '';
+      imgTo.width = 24;
+      imgTo.height = 24;
+      imgTo.decoding = 'async';
+      cellTo.appendChild(imgTo);
+      cellTo.appendChild(el('span', '', rankName(to)));
+      const tdTo = el('td');
+      tdTo.appendChild(cellTo);
+      tr.appendChild(tdFrom);
+      tr.appendChild(tdArrow);
+      tr.appendChild(tdTo);
+      body.appendChild(tr);
+    });
+    table.appendChild(body);
+    wrap.appendChild(table);
+    return wrap;
+  }
+
   /** "Ranking info": the rules and the full win / loss point charts, in a window above the ranks screen. */
   function openRankingInfo(season) {
     const rates = season && season.rates;
@@ -686,6 +744,9 @@
     body.appendChild(el('h3', 'season-info-heading', tt('season.chartLoss', 'If you lose: points lost')));
     body.appendChild(rankChartTable(season, matrix.loss, 'loss'));
     body.appendChild(el('p', 'season-info-note', tt('season.chartNoLoss', 'A dash (\u2014) means no points are lost at that rank.')));
+    body.appendChild(el('h3', 'season-info-heading', tt('season.chartSoftReset', 'Next season starting rank')));
+    add(tt('season.ratesSoftReset', 'When a season ends, you start the next one three ranks lower (never below Green C). Season-end rewards use your highest rank that season, not this starting rank.'));
+    body.appendChild(softResetChart(season, rates.soft_reset));
     root.classList.add('open');
     root.setAttribute('aria-hidden', 'false');
     document.removeEventListener('keydown', root._onKey, true);
