@@ -431,6 +431,29 @@
       global.closeM('overlay-prompt');
       global.closeM('overlay-hand-pick');
     }
+    // Finish presentation awaits can outlive hub / rematch / spectate boots. If the
+    // session epoch or room changed, never reopen overlay-win on the new context
+    // (seen as a random resign/win screen mid-game or while spectating).
+    const finishRoomId = G.roomId;
+    const finishEpoch = G._gameSessionEpoch;
+    const finishStillCurrent = () => (
+      G.roomId === finishRoomId && G._gameSessionEpoch === finishEpoch
+    );
+    const showWinIfCurrent = () => {
+      if (!finishStillCurrent()) {
+        TCG_DEBUG.warn('state', 'finished apply superseded — skip showWin', {
+          finishRoom: finishRoomId,
+          finishEpoch,
+          room: G.roomId,
+          epoch: G._gameSessionEpoch,
+        });
+        return false;
+      }
+      if (typeof showWin === 'function') {
+        showWin(s, { expectRoomId: finishRoomId, expectEpoch: finishEpoch });
+      }
+      return true;
+    };
     const heldPostRevealBoard = G._livePostRevealBoard;
     G._liveStorageOutcomePending = false;
     G._liveStorageOutcomesPlayedKey = null;
@@ -458,8 +481,10 @@
       if (!resigned && typeof maybePlayFinalLiveRoundPresentation === 'function') {
         playedFinalLiveRound = await maybePlayFinalLiveRoundPresentation(prev, s, newEntries);
       }
+      if (!finishStillCurrent()) return;
       if (typeof waitForLivePresentationIdle === 'function') {
         const idle = await waitForLivePresentationIdle(12000);
+        if (!finishStillCurrent()) return;
         if (!idle) {
           if (typeof abortGameplayPresentation === 'function') {
             abortGameplayPresentation({ skipAbortFlag: true });
@@ -475,6 +500,7 @@
         await global.playOwedLiveStorageOutcomesBeforeFinish(
           G._livePostRevealBoard || heldPostRevealBoard || prev, s, G.playerId);
       }
+      if (!finishStillCurrent()) return;
       G._livePostRevealBoard = null;
       if (typeof resetMovementLedger === 'function') resetMovementLedger();
 
@@ -497,11 +523,12 @@
         renderGame(s, { skipLog: true });
       }
 
+      if (!finishStillCurrent()) return;
       if (typeof catchUpGameLog === 'function') catchUpGameLog(s, prev);
       if (prev && !resigned && typeof flushPostLiveLogBanners === 'function') {
         flushPostLiveLogBanners(prev, s, G.playerId);
       }
-      showWin(s);
+      if (!showWinIfCurrent()) return;
       if (typeof maybeFollowTournamentBo3NextSpectate === 'function') {
         void maybeFollowTournamentBo3NextSpectate(s);
       }
@@ -519,9 +546,11 @@
     if (!resigned) {
       playedFinalLiveRound = await maybePlayFinalLiveRoundPresentation(prev, s, newEntries);
     }
+    if (!finishStillCurrent()) return;
     // Cap wait so a stuck spectacle cannot delay the win/loss screen until refresh.
     if (typeof waitForLivePresentationIdle === 'function') {
       const idle = await waitForLivePresentationIdle(12000);
+      if (!finishStillCurrent()) return;
       if (!idle) {
         TCG_DEBUG.warn('state', 'finished: presentation still busy — forcing win overlay');
         if (typeof abortGameplayPresentation === 'function') {
@@ -538,6 +567,7 @@
       await global.playOwedLiveStorageOutcomesBeforeFinish(
         G._livePostRevealBoard || heldPostRevealBoard || prev, s, G.playerId);
     }
+    if (!finishStillCurrent()) return;
     G._livePostRevealBoard = null;
     if (typeof resetMovementLedger === 'function') resetMovementLedger();
 
@@ -578,9 +608,10 @@
       renderGame(s, { skipLog: true });
     }
 
+    if (!finishStillCurrent()) return;
     catchUpGameLog(s, prev);
     if (prev && !resigned) flushPostLiveLogBanners(prev, s, G.playerId);
-    showWin(s);
+    if (!showWinIfCurrent()) return;
     if (G.rematchWaiting && typeof global.syncWinRematchUi === 'function') {
       global.syncWinRematchUi(s);
     }
@@ -1634,7 +1665,9 @@
       }
       if (typeof global.renderGame === 'function') global.renderGame(fin, { skipLog: true });
     } catch (e) { TCG_DEBUG.warn('state', 'match watchdog render failed', e); }
-    if (typeof global.showWin === 'function') global.showWin(fin);
+    if (typeof global.showWin === 'function') {
+      global.showWin(fin, { expectRoomId: G_.roomId, expectEpoch: G_._gameSessionEpoch });
+    }
   }
 
   function matchWatchdogTick() {

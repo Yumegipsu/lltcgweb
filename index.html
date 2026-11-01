@@ -3387,8 +3387,8 @@ try {
 <script src="client/js/presentation-guards.js?v=12"></script>
 <script src="client/js/spectate-pip.js?v=3"></script>
 <script src="client/js/resign-escape.js?v=1"></script>
-<script src="client/js/game-sync.js?v=71"></script>
-<script src="client/js/state-apply.js?v=86"></script>
+<script src="client/js/game-sync.js?v=72"></script>
+<script src="client/js/state-apply.js?v=87"></script>
 <script src="client/js/stamps.js?v=22"></script>
 <script src="client/js/replay-debug.js?v=15"></script>
 <script src="client/js/rule-text-icons.js?v=1"></script>
@@ -13356,6 +13356,12 @@ function resetMatchTransientState() {
   clearActiveGameSession();
   if (typeof closeApiErrorPopup === 'function') closeApiErrorPopup();
   dismissAllGameplayOverlays();
+  try { el('overlay-win')?.classList.remove('open'); } catch (e) { /* ignore */ }
+  G._finishedSeenState = null;
+  G._finishedSeenRoom = null;
+  if (typeof matchWatchdogReset === 'function') {
+    try { matchWatchdogReset(); } catch (e) { /* ignore */ }
+  }
   G.roomId = null;
   G.token = null;
   G.cpuToken = null;
@@ -34411,7 +34417,35 @@ function resolveFinishedWinnerPid(s) {
   return s.winner || null;
 }
 
-function showWin(s){
+function showWin(s, opts = {}){
+  // Stale finish presentation can resume after hub / rematch / spectate boots.
+  // Never reopen overlay-win for a room the client has already left.
+  const expectRoom = opts.expectRoomId;
+  const expectEpoch = opts.expectEpoch;
+  if (expectEpoch != null && G._gameSessionEpoch !== expectEpoch) {
+    TCG_DEBUG.warn('win', 'skip showWin — session epoch changed', {
+      expectEpoch, epoch: G._gameSessionEpoch,
+    });
+    return;
+  }
+  if (expectRoom !== undefined && G.roomId !== expectRoom) {
+    TCG_DEBUG.warn('win', 'skip showWin — room changed', {
+      expectRoom, room: G.roomId,
+    });
+    return;
+  }
+  const stateRoom = String(s?.room_id || '').toUpperCase();
+  const curRoom = String(G.roomId || '').toUpperCase();
+  if (stateRoom && curRoom && stateRoom !== curRoom) {
+    TCG_DEBUG.warn('win', 'skip showWin — finished payload room mismatch', {
+      stateRoom, curRoom,
+    });
+    return;
+  }
+  if (!curRoom && !G.isSpectator && !isReplayViewing() && (s?.mode || '') !== 'replay_view') {
+    TCG_DEBUG.warn('win', 'skip showWin — no active room session');
+    return;
+  }
   try {
     dismissAllGameplayOverlays();
     if (typeof perfCloseSpectacle === 'function') perfCloseSpectacle();

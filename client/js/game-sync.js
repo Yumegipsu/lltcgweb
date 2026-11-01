@@ -1109,9 +1109,12 @@
       ensurePendingPromptSurfaced(d, G.playerId);
     }
     if (d.status === 'finished') {
+      if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return false;
       if (typeof stopPoll === 'function') stopPoll();
       if (isSpec && typeof clearSpectatorSession === 'function') clearSpectatorSession();
-      if (typeof showWin === 'function') showWin(d);
+      if (typeof showWin === 'function') {
+        showWin(d, { expectRoomId: pollRoomId, expectEpoch: pollEpoch });
+      }
       return true;
     }
     if (isSpec && typeof saveSpectatorSession === 'function') saveSpectatorSession();
@@ -1256,9 +1259,12 @@
         paintMatchHudAfterTabCatchUp(d, isSpec);
 
         if (d?.status === 'finished') {
+          if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return false;
           if (typeof stopPoll === 'function') stopPoll();
           if (isSpec && typeof clearSpectatorSession === 'function') clearSpectatorSession();
-          if (typeof showWin === 'function') showWin(d);
+          if (typeof showWin === 'function') {
+            showWin(d, { expectRoomId: pollRoomId, expectEpoch: pollEpoch });
+          }
           if (isSpec && typeof maybeFollowTournamentBo3NextSpectate === 'function') {
             void maybeFollowTournamentBo3NextSpectate(d);
           }
@@ -1379,9 +1385,12 @@
 
       if (d.status === 'finished') {
         // Skip final-LIVE spectacle replay after a tab freeze — jump straight to results.
+        if (!pollResponseStillCurrent(pollEpoch, pollRoomId)) return false;
         if (typeof stopPoll === 'function') stopPoll();
         if (isSpec && typeof clearSpectatorSession === 'function') clearSpectatorSession();
-        if (typeof showWin === 'function') showWin(d);
+        if (typeof showWin === 'function') {
+          showWin(d, { expectRoomId: pollRoomId, expectEpoch: pollEpoch });
+        }
         if (isSpec && typeof maybeFollowTournamentBo3NextSpectate === 'function') {
           void maybeFollowTournamentBo3NextSpectate(d);
         }
