@@ -16489,8 +16489,8 @@ function syncLeaderboardPastChrome(data) {
   btn.classList.toggle('is-on', viewingPast);
   btn.textContent = viewingPast
     ? t('leaderboard.pastSeasonViewing', 'Past: {label}', {
-      label: (window.TCGSeason && data?.season)
-        ? TCGSeason.label(data.season)
+      label: (window.TCGSeason && typeof TCGSeason.seasonLabel === 'function' && data?.season)
+        ? TCGSeason.seasonLabel(data.season)
         : (data?.season?.label || selected),
     })
     : t('leaderboard.pastSeasons', 'Past seasons');
@@ -16504,8 +16504,8 @@ function syncLeaderboardPastChrome(data) {
     opt.setAttribute('role', 'option');
     opt.setAttribute('aria-selected', id === selected ? 'true' : 'false');
     opt.dataset.seasonId = id;
-    opt.textContent = (window.TCGSeason && typeof TCGSeason.label === 'function')
-      ? TCGSeason.label(s)
+    opt.textContent = (window.TCGSeason && typeof TCGSeason.seasonLabel === 'function')
+      ? TCGSeason.seasonLabel(s)
       : (s.label || id);
     opt.addEventListener('click', () => {
       A.leaderboardBoard = 'season';
@@ -16543,7 +16543,9 @@ function syncLeaderboardBoardChrome() {
       if (season && season.archived) {
         meta.hidden = false;
         meta.textContent = t('leaderboard.pastSeasonFinal', 'Final standings — {label}', {
-          label: TCGSeason.label(season),
+          label: (typeof TCGSeason.seasonLabel === 'function')
+            ? TCGSeason.seasonLabel(season)
+            : (season.label || season.season_id || ''),
         });
       } else {
         TCGSeason.paintCountdown(meta, season, { requireActive: true });
