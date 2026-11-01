@@ -309,9 +309,11 @@ function tryResolveAbilityEffectSwitchScore(
         case 'score_if_group_stage_hearts_opp_no_excess':
             $opp = ($pid === 'p1') ? 'p2' : 'p1';
             $heartColor = (string)($ab['heart_color'] ?? '');
+            // Use current surplus (Kowareyasuki etc. may clear it mid–Live Success),
+            // not only the snapshot flag from when the opponent performed.
             if (sumGroupStageHearts($p, $ab['group'] ?? 'Sunshine', $heartColor, $state, $pid)
                     >= intval($ab['min_hearts'] ?? 4)
-                && !empty($state['_live_success_no_excess'][$opp])) {
+                && opponentSucceededLiveWithoutCurrentExcess($state, $opp)) {
                 bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['amount'] ?? 2));
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     ' — [' . $name . '] score +' . intval($ab['amount'] ?? 2) .

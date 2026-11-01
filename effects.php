@@ -2753,6 +2753,22 @@ function isLiveScoreYellContext(array $state): bool {
     return false;
 }
 
+/**
+ * Strawberry Trapper etc.: opponent succeeded a Live this Performance and currently
+ * has no surplus Hearts (including after Kowareyasuki strips surplus mid–Live Success).
+ */
+function opponentSucceededLiveWithoutCurrentExcess(array $state, string $opp): bool {
+    $succeeded = !empty($state['live_perf_success'][$opp])
+        || !empty($state['players'][$opp]['succeeded_live_this_turn']);
+    if (!$succeeded) {
+        return false;
+    }
+    if (array_key_exists($opp, $state['_live_excess_hearts'] ?? [])) {
+        return intval($state['_live_excess_hearts'][$opp]) === 0;
+    }
+    return !empty($state['_live_success_no_excess'][$opp]);
+}
+
 function bumpLiveCardScore(array &$state, string $pid, string $instanceId, int $amount): bool {
     if ($instanceId === '' || $amount === 0) {
         return false;

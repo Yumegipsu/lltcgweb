@@ -599,6 +599,8 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $oppExcess = intval($state['_live_excess_hearts'][$opp] ?? $state['_surplus_hearts_opp'] ?? 0);
             if ($oppExcess <= 0) break;
             $state['_live_excess_hearts'][$opp] = 0;
+            // Keep Strawberry Trapper–style checks in sync after surplus is stripped.
+            $state['_live_success_no_excess'][$opp] = true;
             $state['_opp_surplus_lost_' . $opp] = $oppExcess;
             $state['live_modifiers'][$opp]['opp_lose_surplus'] = true;
             $lost = intval($state['_opp_surplus_lost_' . $opp] ?? $oppExcess);
