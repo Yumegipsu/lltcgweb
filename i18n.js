@@ -514,6 +514,7 @@
           "rarity": "Rarity",
           "name": "Name (idol)",
           "type": "Card type",
+          "cost": "Cost / Score",
           "group": "Group / school",
           "recent": "Recently acquired"
         }
@@ -2921,6 +2922,7 @@
           "rarity": "レアリティ",
           "name": "名前（メンバー）",
           "type": "カードタイプ",
+          "cost": "コスト／スコア",
           "group": "グループ／スクール",
           "recent": "最近入手"
         }
@@ -4909,6 +4911,7 @@
           "rarity": "Rareza",
           "name": "Nombre (idol)",
           "type": "Tipo de carta",
+          "cost": "Costo / Puntuación",
           "group": "Grupo / escuela",
           "recent": "Obtenidas recientemente"
         }
@@ -7070,6 +7073,7 @@
           "rarity": "레어도",
           "name": "이름 (아이돌)",
           "type": "카드 타입",
+          "cost": "코스트 / 스코어",
           "group": "그룹 / 학교",
           "recent": "최근 획득"
         }
@@ -9255,6 +9259,7 @@
           "rarity": "稀有度",
           "name": "名称（偶像）",
           "type": "卡牌类型",
+          "cost": "费用 / 得分",
           "group": "团体/学校",
           "recent": "最近获得"
         }
@@ -11448,6 +11453,7 @@
           "rarity": "ความหายาก",
           "name": "ชื่อ (ไอดอล)",
           "type": "ประเภทการ์ด",
+          "cost": "ต้นทุน / คะแนน",
           "group": "กรุ๊ป / โรงเรียน",
           "recent": "เพิ่งได้รับ"
         }
@@ -13712,6 +13718,7 @@
           "rarity": "Raridade",
           "name": "Nome (idol)",
           "type": "Tipo de carta",
+          "cost": "Custo / Pontuação",
           "group": "Grupo / escola",
           "recent": "Adquiridas recentemente"
         }
@@ -15949,6 +15956,7 @@
           "rarity": "Rareté",
           "name": "Nom (idol)",
           "type": "Type de carte",
+          "cost": "Coût / Score",
           "group": "Groupe / école",
           "recent": "Acquises récemment"
         }

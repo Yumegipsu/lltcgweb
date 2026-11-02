@@ -439,7 +439,8 @@
         "rarity": "Rareté",
         "name": "Name (idol)",
         "type": "Type de carte",
-        "group": "Group / school",
+        "cost": "Coût / Score",
+        "group": "Groupe / école",
         "recent": "Acquis récemment"
       }
     },

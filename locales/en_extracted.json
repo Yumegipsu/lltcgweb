@@ -449,6 +449,7 @@
         "rarity": "Rarity",
         "name": "Name (idol)",
         "type": "Card type",
+        "cost": "Cost / Score",
         "group": "Group / school",
         "recent": "Recently acquired"
       }

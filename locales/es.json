@@ -318,6 +318,7 @@
         "rarity": "Rareza",
         "name": "Nombre (idol)",
         "type": "Tipo de carta",
+        "cost": "Costo / Puntuación",
         "group": "Grupo / escuela",
         "recent": "Obtenidas recientemente"
       }
