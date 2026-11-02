@@ -13,6 +13,10 @@
   const state = {
     events: [],
     editingId: null,
+    // Owner-only: the server turns the Events tab on while a test event is running.
+    hubOverride: false,
+    testLabId: null,
+    testLabTimer: null,
   };
 
   function el(id) {
@@ -33,7 +37,7 @@
   }
 
   function esc(s) {
-    return String(s || '')
+    return String(s == null ? '' : s)
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
@@ -53,7 +57,7 @@
     const eventsBtn = el('btn-hub-events');
     if (!eventsBtn) return;
     eventsBtn.hidden = false;
-    if (TCG_EVENTS_HUB_ENABLED) {
+    if (TCG_EVENTS_HUB_ENABLED || state.hubOverride) {
       eventsBtn.disabled = false;
       eventsBtn.classList.remove('llc-menu-item--disabled');
       eventsBtn.removeAttribute('aria-disabled');
@@ -85,8 +89,20 @@
     if (typeof global.showScr === 'function') global.showScr('hub');
   }
 
+  async function refreshHubOverride() {
+    if (!isAdmin()) return;
+    try {
+      const res = await accountPost('events_active_summary', {});
+      const next = !!(res && res.hub_enabled) && !TCG_EVENTS_HUB_ENABLED;
+      if (next !== state.hubOverride) {
+        state.hubOverride = next;
+        syncHubButtons();
+      }
+    } catch (e) { /* hub stays as it was */ }
+  }
+
   function openEvents() {
-    if (!TCG_EVENTS_HUB_ENABLED) return;
+    if (!TCG_EVENTS_HUB_ENABLED && !state.hubOverride) return;
     if (typeof global.showScr === 'function') global.showScr('events');
     void loadPlayerEvents();
   }
@@ -123,9 +139,10 @@
       return `<article class="admin-events-card" data-id="${esc(ev.id)}">
         ${banner}
         <div class="admin-events-card-body">
-          <h3>${esc(ev.name)}</h3>
-          <p class="admin-events-meta">${esc(ev.status)} · ${esc(ev.starts_at_jst)} → ${esc(ev.ends_at_jst)} JST</p>
+          <h3>${esc(ev.name)}${ev.test_mode ? '<span class="admin-test-badge">TEST</span>' : ''}</h3>
+          <p class="admin-events-meta">${esc(ev.status)} · ${esc(ev.starts_at_jst)} → ${esc(ev.ends_at_jst)} JST${ev.test_mode && ev.clock ? ' · test clock ' + esc(ev.clock.virtual_now_jst) + ' JST' + (ev.clock.speed > 1 ? ' (×' + esc(ev.clock.speed) + ')' : '') : ''}</p>
           <div class="admin-events-card-actions">
+            ${ev.test_mode ? `<button type="button" class="btn-grad" data-lab="${esc(ev.id)}">Test lab</button>` : ''}
             <button type="button" class="btn-out" data-edit="${esc(ev.id)}">Edit</button>
             <button type="button" class="btn-ghost" data-del="${esc(ev.id)}">Delete</button>
           </div>
@@ -141,6 +158,164 @@
     });
     list.querySelectorAll('[data-del]').forEach((btn) => {
       btn.addEventListener('click', () => void deleteEvent(btn.getAttribute('data-del')));
+    });
+    list.querySelectorAll('[data-lab]').forEach((btn) => {
+      btn.addEventListener('click', () => void openTestLab(btn.getAttribute('data-lab')));
+    });
+  }
+
+  // ------------------------------------------------------------------ Test lab (owner sandbox)
+
+  function fmtReward(type, p) {
+    p = p || {};
+    if (type === 'card') return `card ${p.card_no || '?'} ×${p.qty || 1}`;
+    if (type === 'sleeve') return `sleeve ${p.sleeve_id || '?'}`;
+    if (type === 'playmat') return `playmat ${p.playmat_id || '?'}`;
+    return `${type} ×${p.amount || 0}`;
+  }
+
+  async function labAct(action, extra) {
+    const id = state.testLabId;
+    if (!id) return null;
+    setErr('');
+    try {
+      const res = await accountPost('events_test_lab', Object.assign({ event_id: id, action }, extra || {}));
+      renderTestLab(res);
+      void refreshHubOverride(); // the Events tab appears for you while a test event is active
+      return res;
+    } catch (e) {
+      setErr(e && e.message ? e.message : 'Test lab action failed');
+      return null;
+    }
+  }
+
+  async function openTestLab(id) {
+    state.testLabId = id;
+    const box = el('admin-test-lab');
+    if (box) {
+      box.hidden = false;
+      box.innerHTML = '<p class="admin-events-muted">Loading…</p>';
+      box.scrollIntoView({ block: 'nearest' });
+    }
+    await labAct('state');
+    clearInterval(state.testLabTimer);
+    // A sped-up clock moves on its own: keep the panel in step with it.
+    state.testLabTimer = setInterval(() => {
+      const scr = el('screen-admin');
+      if (!state.testLabId || !scr || scr.hidden) return;
+      if (state.labSpeed > 1 || state.labLive) void labAct('state');
+    }, 5000);
+  }
+
+  function closeTestLab() {
+    state.testLabId = null;
+    clearInterval(state.testLabTimer);
+    const box = el('admin-test-lab');
+    if (box) { box.hidden = true; box.innerHTML = ''; }
+    void loadAdminList();
+  }
+
+  function renderTestLab(res) {
+    const box = el('admin-test-lab');
+    if (!box || !res || !res.event) return;
+    const ev = res.event;
+    const clock = ev.clock || { speed: 1, virtual_now_jst: '' };
+    state.labSpeed = clock.speed;
+    state.labLive = ev.status === 'active';
+    const speeds = [1, 60, 600, 3600].map((n) =>
+      `<button type="button" class="btn-out${clock.speed === n ? ' is-on' : ''}" data-clock-speed="${n}">×${n}</button>`
+    ).join('');
+    const jumps = [['+1h', 3600], ['+6h', 21600], ['+1d', 86400], ['+3d', 259200], ['−1h', -3600]].map(([label, sec]) =>
+      `<button type="button" class="btn-out" data-clock-jump="${sec}">${label}</button>`
+    ).join('');
+    const targets = [['before_start', '5 min before start'], ['start', 'Start'], ['before_end', '5 min before end'], ['end', 'End (settle ranking)']]
+      .map(([t, label]) => `<button type="button" class="btn-out" data-clock-to="${t}">${label}</button>`).join('');
+
+    const byId = new Map((res.leaderboard || []).map((r) => [r.discord_id, r]));
+    const people = [];
+    people.push({ discord_id: res.you, username: 'You', points: (byId.get(res.you) || {}).points || 0, you: true });
+    (res.puppets || []).forEach((p) => people.push({
+      discord_id: p.discord_id, username: p.username, points: (byId.get(p.discord_id) || {}).points || 0,
+    }));
+    const rows = people.map((p) => {
+      const rank = (byId.get(p.discord_id) || {}).rank;
+      return `<div class="admin-test-row" data-who="${esc(p.discord_id)}">
+        <span class="admin-test-name">${rank ? '#' + esc(rank) + ' ' : ''}${esc(p.username)}</span>
+        <strong>${esc(p.points)} EP</strong>
+        <button type="button" class="btn-out" data-sim="ranked:win">Ranked win</button>
+        <button type="button" class="btn-out" data-sim="ranked:loss">Ranked loss</button>
+        <button type="button" class="btn-out" data-sim="cpu:win">CPU win</button>
+        <button type="button" class="btn-out" data-sim="cpu:loss">CPU loss</button>
+        <input type="number" data-award-amount value="100" aria-label="EP">
+        <button type="button" class="btn-out" data-award>Add EP</button>
+      </div>`;
+    }).join('');
+
+    const log = (res.log || []).map((l) =>
+      `<tr><td>${esc(l.virtual_at_jst)}</td><td>${esc(l.username || l.discord_id)}</td><td>${esc(l.source)} ${esc(l.source_ref)}</td><td>${esc(fmtReward(l.reward_type, l.reward_payload))}</td></tr>`
+    ).join('');
+
+    box.innerHTML = `
+      <div class="admin-test-row">
+        <h3>Test lab: ${esc(ev.name)}<span class="admin-test-badge">TEST</span></h3>
+        <button type="button" class="btn-ghost" data-lab-close>Close</button>
+      </div>
+      <p class="admin-events-meta">Only you can see this event. Real matches never count. Rewards are only listed below, never granted.</p>
+      <section>
+        <h4>Clock</h4>
+        <p class="admin-events-meta">Status <strong>${esc(ev.status)}</strong> · event time <strong>${esc(clock.virtual_now_jst)}</strong> JST
+          · window ${esc(ev.starts_at_jst)} → ${esc(ev.ends_at_jst)} JST${clock.speed > 1 ? ` · running ×${esc(clock.speed)}` : ''}</p>
+        <div class="admin-test-clock">${jumps}</div>
+        <div class="admin-test-clock">${targets}</div>
+        <div class="admin-test-clock">Speed: ${speeds}
+          <button type="button" class="btn-ghost" data-clock-reset>Reset clock</button></div>
+      </section>
+      <section>
+        <h4>Players</h4>
+        <div class="admin-test-row">
+          <input type="number" id="admin-puppet-count" min="1" max="50" value="5" aria-label="Puppets">
+          <button type="button" class="btn-out" data-puppets>Create puppets</button>
+          <span class="admin-events-muted">Simulated matches use the real EP amounts for ranked and CPU games.</span>
+        </div>
+        ${rows}
+      </section>
+      <section>
+        <h4>Rewards that would have been granted (${(res.log || []).length})</h4>
+        ${log ? `<table class="admin-test-log"><thead><tr><th>Event time (JST)</th><th>Player</th><th>From</th><th>Reward</th></tr></thead><tbody>${log}</tbody></table>`
+          : '<p class="admin-events-muted">Nothing yet. Reach a milestone or let the event end.</p>'}
+      </section>
+      <section>
+        <h4>Reset</h4>
+        <div class="admin-test-row">
+          <label><input type="checkbox" id="admin-reset-clock" checked> also reset the clock</label>
+          <button type="button" class="btn-ghost" data-reset>Wipe points, claims and reward log</button>
+        </div>
+      </section>`;
+
+    box.querySelector('[data-lab-close]')?.addEventListener('click', closeTestLab);
+    box.querySelectorAll('[data-clock-jump]').forEach((b) => b.addEventListener('click',
+      () => void labAct('clock', { mode: 'jump', seconds: Number(b.getAttribute('data-clock-jump')) })));
+    box.querySelectorAll('[data-clock-to]').forEach((b) => b.addEventListener('click',
+      () => void labAct('clock', { mode: 'jump_to', target: b.getAttribute('data-clock-to') })));
+    box.querySelectorAll('[data-clock-speed]').forEach((b) => b.addEventListener('click',
+      () => void labAct('clock', { mode: 'speed', speed: Number(b.getAttribute('data-clock-speed')) })));
+    box.querySelector('[data-clock-reset]')?.addEventListener('click', () => void labAct('clock', { mode: 'reset' }));
+    box.querySelector('[data-puppets]')?.addEventListener('click',
+      () => void labAct('puppets_create', { count: Number((el('admin-puppet-count') || {}).value || 5) }));
+    box.querySelectorAll('.admin-test-row[data-who]').forEach((row) => {
+      const who = row.getAttribute('data-who');
+      row.querySelectorAll('[data-sim]').forEach((b) => b.addEventListener('click', () => {
+        const [kind, result] = b.getAttribute('data-sim').split(':');
+        void labAct('simulate_match', { discord_id: who, kind, result });
+      }));
+      row.querySelector('[data-award]')?.addEventListener('click', () => {
+        const amount = Number((row.querySelector('[data-award-amount]') || {}).value || 0);
+        void labAct('award', { discord_id: who, points: amount });
+      });
+    });
+    box.querySelector('[data-reset]')?.addEventListener('click', () => {
+      if (!window.confirm('Wipe all points, claims and the reward log for this test event?')) return;
+      void labAct('reset', { reset_clock: !!(el('admin-reset-clock') || {}).checked });
     });
   }
 
@@ -183,6 +358,11 @@
     el('admin-event-banner').value = ev ? (ev.banner_url || '') : '';
     el('admin-event-starts').value = ev ? (ev.starts_at_jst || '') : '';
     el('admin-event-ends').value = ev ? (ev.ends_at_jst || '') : '';
+    const testBox = el('admin-event-test');
+    if (testBox) {
+      testBox.checked = !!(ev && ev.test_mode);
+      testBox.disabled = !!ev; // the flag is fixed when the event is created
+    }
     const milestones = (ev && Array.isArray(ev.milestones) ? ev.milestones : [])
       .map((m) => rewardFromServer(m, 'milestone'));
     const ranks = (ev && Array.isArray(ev.rank_rewards) ? ev.rank_rewards : [])
@@ -297,6 +477,7 @@
       banner_url: (el('admin-event-banner').value || '').trim(),
       starts_at_jst: (el('admin-event-starts').value || '').trim(),
       ends_at_jst: (el('admin-event-ends').value || '').trim(),
+      test_mode: !!(el('admin-event-test') && el('admin-event-test').checked),
       milestones: serializeRewards(collectRewardRows('admin-milestones', 'milestone')),
       rank_rewards: serializeRewards(collectRewardRows('admin-ranks', 'rank')),
     };
@@ -360,8 +541,8 @@
         ).join('') || '<li>—</li>';
         parts.push(`<section class="events-player-card">
           ${banner}
-          <h3>${esc(ev.name)}</h3>
-          <p class="admin-events-meta">${esc(ev.starts_at_jst)} → ${esc(ev.ends_at_jst)} JST</p>
+          <h3>${esc(ev.name)}${ev.test_mode ? '<span class="admin-test-badge">TEST · only you</span>' : ''}</h3>
+          <p class="admin-events-meta">${esc(ev.starts_at_jst)} → ${esc(ev.ends_at_jst)} JST${ev.test_mode && ev.clock ? ' · test clock ' + esc(ev.clock.virtual_now_jst) + ' JST' : ''}</p>
           <p class="events-my-points"><strong>${esc(ev.my_points || 0)}</strong> EP</p>
           <h4>${esc(tt('events.milestones', 'Milestones'))}</h4>
           <ul class="events-ms-list">${ms || '<li>—</li>'}</ul>
@@ -402,11 +583,23 @@
     el('btn-events-refresh')?.addEventListener('click', () => void loadPlayerEvents());
 
     syncHubButtons();
+    // The account may land after this script runs: wait for it, then ask the server about test events.
+    let adminTries = 0;
+    const adminWait = setInterval(() => {
+      if (isAdmin()) {
+        clearInterval(adminWait);
+        void refreshHubOverride();
+        syncHubButtons();
+      } else if (++adminTries > 30) {
+        clearInterval(adminWait);
+      }
+    }, 1000);
     // Re-sync when account me lands
     const prev = global.onTcgAccountReady;
     global.onTcgAccountReady = function () {
       try { if (typeof prev === 'function') prev.apply(this, arguments); } catch (e) { /* ignore */ }
       syncHubButtons();
+      void refreshHubOverride();
     };
   }
 

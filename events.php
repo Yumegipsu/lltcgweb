@@ -22,7 +22,11 @@ function tcgEventsEnsureSchema(?PDO $db = null): void {
         status TEXT NOT NULL DEFAULT \'scheduled\',
         created_at INTEGER NOT NULL,
         updated_at INTEGER NOT NULL,
-        ended_processed_at INTEGER
+        ended_processed_at INTEGER,
+        test_mode INTEGER NOT NULL DEFAULT 0,
+        clock_offset INTEGER NOT NULL DEFAULT 0,
+        clock_speed INTEGER NOT NULL DEFAULT 1,
+        clock_anchor INTEGER NOT NULL DEFAULT 0
     )');
     $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_events_status_window
         ON tcg_events(status, starts_at, ends_at)');
@@ -84,10 +88,94 @@ function tcgEventsEnsureSchema(?PDO $db = null): void {
         PRIMARY KEY (event_id, discord_id),
         FOREIGN KEY (event_id) REFERENCES tcg_events(id) ON DELETE CASCADE
     )');
+    // Test events (owner-only sandbox): rewards are written here instead of being granted.
+    $db->exec('CREATE TABLE IF NOT EXISTS tcg_event_test_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_id TEXT NOT NULL,
+        discord_id TEXT NOT NULL,
+        source TEXT NOT NULL,
+        source_ref TEXT NOT NULL DEFAULT \'\',
+        reward_type TEXT NOT NULL,
+        reward_payload TEXT NOT NULL DEFAULT \'{}\',
+        virtual_at INTEGER NOT NULL,
+        created_at INTEGER NOT NULL,
+        FOREIGN KEY (event_id) REFERENCES tcg_events(id) ON DELETE CASCADE
+    )');
+    $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_event_test_log_event
+        ON tcg_event_test_log(event_id, id)');
+    // Databases created before test events existed.
+    static $columnsChecked = false;
+    if (!$columnsChecked) {
+        $columnsChecked = true;
+        tcgDbEnsureColumn($db, 'tcg_events', 'test_mode', 'INTEGER NOT NULL DEFAULT 0');
+        tcgDbEnsureColumn($db, 'tcg_events', 'clock_offset', 'INTEGER NOT NULL DEFAULT 0');
+        tcgDbEnsureColumn($db, 'tcg_events', 'clock_speed', 'INTEGER NOT NULL DEFAULT 1');
+        tcgDbEnsureColumn($db, 'tcg_events', 'clock_anchor', 'INTEGER NOT NULL DEFAULT 0');
+    }
 }
 
-function tcgEventsNowTs(): int {
-    return time();
+/**
+ * Current time for an event. Test events run on their own virtual clock (offset + optional speed-up);
+ * everything else, and callers without an event, use the real clock.
+ *
+ * @param array<string,mixed>|null $event
+ */
+function tcgEventsNowTs(?array $event = null): int {
+    $real = time();
+    if ($event !== null && !empty($event['test_mode'])) {
+        return tcgEventsVirtualNow($event, $real);
+    }
+    return $real;
+}
+
+/** @param array<string,mixed> $event */
+function tcgEventsVirtualNow(array $event, int $real): int {
+    $offset = intval($event['clock_offset'] ?? 0);
+    $speed = max(1, intval($event['clock_speed'] ?? 1));
+    $anchor = intval($event['clock_anchor'] ?? 0);
+    if ($speed > 1 && $anchor > 0) {
+        $offset += ($speed - 1) * max(0, $real - $anchor);
+    }
+    return $real + $offset;
+}
+
+/** @return array<string,mixed>|null */
+function tcgEventsGetRow(string $eventId): ?array {
+    $stmt = tcgDb()->prepare('SELECT * FROM tcg_events WHERE id = ?');
+    $stmt->execute([$eventId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row ?: null;
+}
+
+function tcgEventsIsPuppetId(string $discordId): bool {
+    return str_starts_with($discordId, 'puppet_');
+}
+
+function tcgEventsViewerIsOwner(string $discordId): bool {
+    if (!function_exists('tcgSocialIsOwner')) {
+        require_once __DIR__ . '/social.php';
+    }
+    return tcgSocialIsOwner($discordId);
+}
+
+/**
+ * Hand out a reward. Test events never touch real inventories: the reward is written to the test log instead.
+ *
+ * @param array<string,mixed> $event
+ * @param array<string,mixed> $payload
+ */
+function tcgEventsDeliverReward(array $event, string $discordId, string $type, array $payload, string $source, string $ref = ''): void {
+    if (empty($event['test_mode'])) {
+        tcgEventsGrantReward($discordId, $type, $payload);
+        return;
+    }
+    tcgDb()->prepare(
+        'INSERT INTO tcg_event_test_log (event_id, discord_id, source, source_ref, reward_type, reward_payload, virtual_at, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    )->execute([
+        (string)$event['id'], $discordId, $source, $ref, $type, json_encode($payload),
+        tcgEventsNowTs($event), time(),
+    ]);
 }
 
 /**
@@ -220,10 +308,10 @@ function tcgEventsTickStatuses(): void {
     $db = tcgDb();
     $now = tcgEventsNowTs();
     $db->prepare("UPDATE tcg_events SET status = 'active', updated_at = ?
-        WHERE status = 'scheduled' AND starts_at <= ? AND ends_at > ?")
+        WHERE status = 'scheduled' AND starts_at <= ? AND ends_at > ? AND test_mode = 0")
         ->execute([$now, $now, $now]);
     $stmt = $db->prepare("SELECT id FROM tcg_events
-        WHERE status IN ('scheduled','active') AND ends_at <= ?");
+        WHERE status IN ('scheduled','active') AND ends_at <= ? AND test_mode = 0");
     $stmt->execute([$now]);
     $ids = $stmt->fetchAll(PDO::FETCH_COLUMN) ?: [];
     foreach ($ids as $id) {
@@ -231,18 +319,69 @@ function tcgEventsTickStatuses(): void {
             ->execute([$now, $id]);
         tcgEventsSettleEnded((string)$id);
     }
+    // Test events follow their own virtual clock (and can move backwards).
+    $tests = $db->query('SELECT * FROM tcg_events WHERE test_mode = 1')->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    foreach ($tests as $ev) {
+        tcgEventsTickTestEvent($ev);
+    }
 }
 
-/** @return list<array<string,mixed>> */
+/** @param array<string,mixed> $ev */
+function tcgEventsTickTestEvent(array $ev): void {
+    $vnow = tcgEventsNowTs($ev);
+    if ($vnow < intval($ev['starts_at'])) {
+        $status = 'scheduled';
+    } elseif ($vnow < intval($ev['ends_at'])) {
+        $status = 'active';
+    } else {
+        $status = 'ended';
+    }
+    if ($status !== (string)$ev['status']) {
+        tcgDb()->prepare('UPDATE tcg_events SET status = ?, updated_at = ? WHERE id = ?')
+            ->execute([$status, time(), (string)$ev['id']]);
+    }
+    if ($status === 'ended') {
+        tcgEventsSettleEnded((string)$ev['id']);
+    }
+}
+
+/**
+ * Events that count real matches: public events only. Test events never receive points from real play.
+ *
+ * @return list<array<string,mixed>>
+ */
 function tcgEventsActive(): array {
     tcgEventsTickStatuses();
     $db = tcgDb();
     $now = tcgEventsNowTs();
     $stmt = $db->prepare("SELECT * FROM tcg_events
-        WHERE status = 'active' AND starts_at <= ? AND ends_at > ?
+        WHERE status = 'active' AND starts_at <= ? AND ends_at > ? AND test_mode = 0
         ORDER BY starts_at ASC");
     $stmt->execute([$now, $now]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+}
+
+/**
+ * Events a given viewer may see: public ones, plus active test events for the owner only.
+ *
+ * @return list<array<string,mixed>>
+ */
+function tcgEventsActiveFor(string $viewerId): array {
+    $active = tcgEventsActive();
+    if (!tcgEventsViewerIsOwner($viewerId)) {
+        return $active;
+    }
+    $tests = tcgDb()->query("SELECT * FROM tcg_events WHERE test_mode = 1 AND status = 'active' ORDER BY starts_at ASC")
+        ->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    return array_merge($active, $tests);
+}
+
+/** Test events are invisible (404) to everyone but the owner. */
+function tcgEventsAssertVisible(?array $event, string $viewerId): array {
+    if (!$event || (!empty($event['test_mode']) && !tcgEventsViewerIsOwner($viewerId))) {
+        throw new Exception('Event not found', 404);
+    }
+    return $event;
 }
 
 function tcgEventsIsRankedMatch(array $state): bool {
@@ -363,6 +502,7 @@ function tcgEventPointsOnGameFinished(array $state): array {
  */
 function tcgEventsClaimMilestonesForPoints(string $eventId, string $discordId, int $points): array {
     $db = tcgDb();
+    $event = tcgEventsGetRow($eventId) ?? ['id' => $eventId];
     $stmt = $db->prepare(
         'SELECT id, threshold_points, reward_type, reward_payload FROM tcg_event_milestones
          WHERE event_id = ? AND threshold_points <= ? ORDER BY threshold_points ASC'
@@ -370,7 +510,7 @@ function tcgEventsClaimMilestonesForPoints(string $eventId, string $discordId, i
     $stmt->execute([$eventId, $points]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     $claimed = [];
-    $now = tcgEventsNowTs();
+    $now = tcgEventsNowTs($event);
     foreach ($rows as $row) {
         $mid = intval($row['id']);
         try {
@@ -386,7 +526,7 @@ function tcgEventsClaimMilestonesForPoints(string $eventId, string $discordId, i
             $payload = [];
         }
         try {
-            tcgEventsGrantReward($discordId, (string)$row['reward_type'], $payload);
+            tcgEventsDeliverReward($event, $discordId, (string)$row['reward_type'], $payload, 'milestone', (string)$row['threshold_points']);
         } catch (Throwable $e) {
             error_log('event milestone grant failed: ' . $e->getMessage());
         }
@@ -407,7 +547,7 @@ function tcgEventsSettleEnded(string $eventId): void {
     if (!$event || !empty($event['ended_processed_at'])) {
         return;
     }
-    $now = tcgEventsNowTs();
+    $now = tcgEventsNowTs($event);
     $lock = $db->prepare(
         'UPDATE tcg_events SET ended_processed_at = ?, updated_at = ?
          WHERE id = ? AND ended_processed_at IS NULL'
@@ -452,7 +592,7 @@ function tcgEventsSettleEnded(string $eventId): void {
                 $payload = [];
             }
             try {
-                tcgEventsGrantReward($discordId, (string)$br['reward_type'], $payload);
+                tcgEventsDeliverReward($event, $discordId, (string)$br['reward_type'], $payload, 'rank', '#' . $place);
             } catch (Throwable $e) {
                 error_log('event rank grant failed: ' . $e->getMessage());
             }
@@ -492,8 +632,18 @@ function tcgEventsSerializeEvent(array $row, bool $withRewards = false): array {
         'ends_at_jst' => tcgEventsFormatJstDatetime(intval($row['ends_at'])),
         'status' => (string)$row['status'],
         'created_at' => intval($row['created_at'] ?? 0),
-        'ended_processed_at' => $row['ended_processed_at'] !== null ? intval($row['ended_processed_at']) : null,
+        'ended_processed_at' => ($row['ended_processed_at'] ?? null) !== null ? intval($row['ended_processed_at']) : null,
+        'test_mode' => !empty($row['test_mode']),
     ];
+    if (!empty($row['test_mode'])) {
+        $vnow = tcgEventsNowTs($row);
+        $base['clock'] = [
+            'speed' => max(1, intval($row['clock_speed'] ?? 1)),
+            'offset' => intval($row['clock_offset'] ?? 0),
+            'virtual_now' => $vnow,
+            'virtual_now_jst' => tcgEventsFormatJstDatetime($vnow),
+        ];
+    }
     if (!$withRewards) {
         return $base;
     }
@@ -560,19 +710,23 @@ function tcgApiEventsAdminUpsert(array $body): array {
     if ($endsAt <= $startsAt) {
         throw new Exception('ends_at must be after starts_at', 400);
     }
+    $existing = $id !== '' ? tcgEventsGetRow($id) : null;
+    // A test event keeps its own virtual clock; the flag can only be set when creating the event.
+    $testMode = $existing ? !empty($existing['test_mode']) : !empty($body['test_mode']);
+    $statusNow = $existing && $testMode ? tcgEventsNowTs($existing) : $now;
     $status = 'scheduled';
-    if ($now >= $startsAt && $now < $endsAt) {
+    if ($statusNow >= $startsAt && $statusNow < $endsAt) {
         $status = 'active';
-    } elseif ($now >= $endsAt) {
+    } elseif ($statusNow >= $endsAt) {
         $status = 'ended';
     }
 
     if ($id === '') {
         $id = tcgEventsNewId();
         $db->prepare(
-            'INSERT INTO tcg_events (id, name, banner_url, starts_at, ends_at, status, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-        )->execute([$id, $name, $banner, $startsAt, $endsAt, $status, $now, $now]);
+            'INSERT INTO tcg_events (id, name, banner_url, starts_at, ends_at, status, created_at, updated_at, test_mode)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        )->execute([$id, $name, $banner, $startsAt, $endsAt, $status, $now, $now, $testMode ? 1 : 0]);
     } else {
         $db->prepare(
             'UPDATE tcg_events SET name = ?, banner_url = ?, starts_at = ?, ends_at = ?, status = ?, updated_at = ?
@@ -656,16 +810,19 @@ function tcgApiEventsAdminForceTick(array $body): array {
 function tcgApiEventsActiveSummary(array $body): array {
     $uid = tcgRequireAuthUser($body);
     tcgEventsTickStatuses();
-    $active = tcgEventsActive();
+    $active = tcgEventsActiveFor($uid);
     $events = [];
+    $hasTest = false;
     foreach ($active as $ev) {
         $ser = tcgEventsSerializeEvent($ev, true);
         $ser['my_points'] = tcgEventsGetPoints((string)$ev['id'], $uid);
+        $hasTest = $hasTest || !empty($ev['test_mode']);
         $events[] = $ser;
     }
     return [
         'success' => true,
-        'hub_enabled' => TCG_EVENTS_HUB_ENABLED,
+        // The owner gets the Events tab while a test event is running, even when the public tab is still off.
+        'hub_enabled' => TCG_EVENTS_HUB_ENABLED || $hasTest,
         'events' => $events,
     ];
 }
@@ -680,15 +837,17 @@ function tcgEventsGetPoints(string $eventId, string $discordId): int {
 
 /** @param array<string,mixed> $body */
 function tcgApiEventsLeaderboard(array $body): array {
-    tcgRequireAuthUser($body);
+    $viewer = tcgRequireAuthUser($body);
     tcgEventsTickStatuses();
     $eventId = trim((string)($body['event_id'] ?? $_GET['event_id'] ?? ''));
     if ($eventId === '') {
-        $active = tcgEventsActive();
+        $active = tcgEventsActiveFor($viewer);
         if ($active === []) {
             return ['success' => true, 'event_id' => null, 'rows' => []];
         }
         $eventId = (string)$active[0]['id'];
+    } else {
+        tcgEventsAssertVisible(tcgEventsGetRow($eventId), $viewer);
     }
     $limit = min(100, max(1, intval($body['limit'] ?? $_GET['limit'] ?? 50)));
     $db = tcgDb();
@@ -722,19 +881,14 @@ function tcgApiEventsMyProgress(array $body): array {
     tcgEventsTickStatuses();
     $eventId = trim((string)($body['event_id'] ?? ''));
     if ($eventId === '') {
-        $active = tcgEventsActive();
+        $active = tcgEventsActiveFor($uid);
         if ($active === []) {
             return ['success' => true, 'event' => null];
         }
         $eventId = (string)$active[0]['id'];
     }
     $db = tcgDb();
-    $stmt = $db->prepare('SELECT * FROM tcg_events WHERE id = ?');
-    $stmt->execute([$eventId]);
-    $ev = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$ev) {
-        throw new Exception('Event not found', 404);
-    }
+    $ev = tcgEventsAssertVisible(tcgEventsGetRow($eventId), $uid);
     $ser = tcgEventsSerializeEvent($ev, true);
     $points = tcgEventsGetPoints($eventId, $uid);
     $claimed = $db->prepare(
@@ -749,4 +903,232 @@ function tcgApiEventsMyProgress(array $body): array {
         'my_points' => $points,
         'claimed_milestone_ids' => $claimedIds,
     ];
+}
+
+// ------------------------------------------------------------------ Test lab (owner only, test events only)
+
+/**
+ * Add Event Points to a player of a test event and claim milestones, exactly like a finished match would.
+ *
+ * @param array<string,mixed> $event
+ * @return array{balance:int,milestones:list<array<string,mixed>>}
+ */
+function tcgEventsAddPoints(array $event, string $discordId, int $amount, string $roomId = ''): array {
+    $db = tcgDb();
+    $eventId = (string)$event['id'];
+    $now = tcgEventsNowTs($event);
+    tcgEnsureUser($discordId);
+    if ($roomId !== '') {
+        $db->prepare('INSERT INTO tcg_event_point_grants (room_id, discord_id, event_id, amount, created_at) VALUES (?, ?, ?, ?, ?)')
+            ->execute([$roomId, $discordId, $eventId, $amount, $now]);
+    }
+    $db->prepare(
+        'INSERT INTO tcg_event_points (event_id, discord_id, points, updated_at) VALUES (?, ?, ?, ?)
+         ON CONFLICT(event_id, discord_id) DO UPDATE SET points = points + excluded.points, updated_at = excluded.updated_at'
+    )->execute([$eventId, $discordId, $amount, $now]);
+    $balance = tcgEventsGetPoints($eventId, $discordId);
+    return ['balance' => $balance, 'milestones' => tcgEventsClaimMilestonesForPoints($eventId, $discordId, $balance)];
+}
+
+/** @return list<string> puppet ids created */
+function tcgEventsEnsurePuppets(int $count): array {
+    $count = max(1, min(50, $count));
+    $ids = [];
+    for ($i = 1; $i <= $count; $i++) {
+        $id = sprintf('puppet_%02d', $i);
+        tcgEnsureUser($id, ['username' => sprintf('Puppet %02d', $i)]);
+        $ids[] = $id;
+    }
+    return $ids;
+}
+
+/**
+ * A finished-match state for one human seat, scored by the real EP code (same curve as coins).
+ *
+ * @return array<string,mixed>
+ */
+function tcgEventsSimulatedMatchState(string $kind, string $result, string $cpuDifficulty = 'normal'): array {
+    $won = $result === 'win';
+    $state = [
+        'status' => 'finished',
+        'end_reason' => 'game',
+        'winner' => $won ? 'p1' : 'p2',
+        'players' => ['p1' => ['id' => 'p1'], 'p2' => ['id' => 'p2']],
+    ];
+    if ($kind === 'cpu') {
+        $state['cpu_solo'] = true;
+        $state['cpu_difficulty'] = $cpuDifficulty;
+        $state['players']['p2']['is_cpu'] = true;
+    } else {
+        $state['mode'] = 'ranked';
+    }
+    return $state;
+}
+
+/** @return array<string,mixed> */
+function tcgEventsTestLabState(array $event, string $viewerId): array {
+    $db = tcgDb();
+    $eventId = (string)$event['id'];
+    $pts = $db->prepare(
+        'SELECT ep.discord_id, ep.points, u.username FROM tcg_event_points ep
+         LEFT JOIN tcg_users u ON u.discord_id = ep.discord_id
+         WHERE ep.event_id = ? ORDER BY ep.points DESC, ep.updated_at ASC'
+    );
+    $pts->execute([$eventId]);
+    $board = [];
+    $place = 0;
+    foreach ($pts->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+        $place++;
+        $board[] = [
+            'rank' => $place,
+            'discord_id' => (string)$r['discord_id'],
+            'username' => (string)($r['username'] ?? ''),
+            'points' => intval($r['points']),
+            'is_puppet' => tcgEventsIsPuppetId((string)$r['discord_id']),
+            'is_you' => (string)$r['discord_id'] === $viewerId,
+        ];
+    }
+    $puppets = $db->query("SELECT discord_id, username FROM tcg_users WHERE discord_id LIKE 'puppet\_%' ESCAPE '\\' ORDER BY discord_id")
+        ->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    $logStmt = $db->prepare(
+        'SELECT l.*, u.username FROM tcg_event_test_log l LEFT JOIN tcg_users u ON u.discord_id = l.discord_id
+         WHERE l.event_id = ? ORDER BY l.id DESC LIMIT 500'
+    );
+    $logStmt->execute([$eventId]);
+    $log = [];
+    foreach ($logStmt->fetchAll(PDO::FETCH_ASSOC) ?: [] as $l) {
+        $payload = json_decode((string)$l['reward_payload'], true);
+        $log[] = [
+            'id' => intval($l['id']),
+            'discord_id' => (string)$l['discord_id'],
+            'username' => (string)($l['username'] ?? ''),
+            'source' => (string)$l['source'],
+            'source_ref' => (string)$l['source_ref'],
+            'reward_type' => (string)$l['reward_type'],
+            'reward_payload' => is_array($payload) ? $payload : [],
+            'virtual_at_jst' => tcgEventsFormatJstDatetime(intval($l['virtual_at'])),
+        ];
+    }
+    return [
+        'event' => tcgEventsSerializeEvent($event, true),
+        'leaderboard' => $board,
+        'puppets' => array_map(static fn($p) => ['discord_id' => (string)$p['discord_id'], 'username' => (string)$p['username']], $puppets),
+        'log' => $log,
+        'you' => $viewerId,
+    ];
+}
+
+/**
+ * Owner-only sandbox actions for a test event: puppets, simulated matches, EP awards, clock, reset, reward log.
+ *
+ * @param array<string,mixed> $body
+ * @return array<string,mixed>
+ */
+function tcgApiEventsTestLab(array $body): array {
+    $uid = tcgRequireAuthUser($body);
+    tcgEventsRequireOwner($uid);
+    tcgEventsEnsureSchema();
+    $eventId = trim((string)($body['event_id'] ?? ''));
+    $event = tcgEventsGetRow($eventId);
+    if (!$event) {
+        throw new Exception('Event not found', 404);
+    }
+    if (empty($event['test_mode'])) {
+        throw new Exception('Test lab only works on test events', 400);
+    }
+    $db = tcgDb();
+    $action = (string)($body['action'] ?? 'state');
+    $result = [];
+
+    $target = static function () use ($body, $uid): string {
+        $t = trim((string)($body['discord_id'] ?? ''));
+        if ($t === '' || (!tcgEventsIsPuppetId($t) && $t !== $uid)) {
+            throw new Exception('Target must be a puppet or your own account', 400);
+        }
+        return $t;
+    };
+
+    switch ($action) {
+        case 'state':
+            break;
+        case 'puppets_create':
+            $result['created'] = tcgEventsEnsurePuppets(intval($body['count'] ?? 5));
+            break;
+        case 'award': {
+            $amount = intval($body['points'] ?? 0);
+            if ($amount === 0 || abs($amount) > 1000000) {
+                throw new Exception('points must be a non-zero number', 400);
+            }
+            $result['award'] = tcgEventsAddPoints($event, $target(), $amount);
+            break;
+        }
+        case 'simulate_match': {
+            $kind = ($body['kind'] ?? 'ranked') === 'cpu' ? 'cpu' : 'ranked';
+            $res = ($body['result'] ?? 'win') === 'loss' ? 'loss' : 'win';
+            $diff = strtolower((string)($body['cpu_difficulty'] ?? 'normal'));
+            $state = tcgEventsSimulatedMatchState($kind, $res, $diff);
+            $amount = tcgEventPointsForFinishedMatch($state, 'p1');
+            if ($amount <= 0) {
+                throw new Exception('That match is worth no Event Points', 400);
+            }
+            $room = 'SIM' . strtoupper(bin2hex(random_bytes(4)));
+            $award = tcgEventsAddPoints($event, $target(), $amount, $room);
+            $award['amount'] = $amount;
+            $result['simulated'] = $award;
+            break;
+        }
+        case 'clock': {
+            $real = time();
+            // Fold any running speed-up into the offset first so the changes below stay exact.
+            $offset = tcgEventsVirtualNow($event, $real) - $real;
+            $speed = max(1, intval($event['clock_speed'] ?? 1));
+            $anchor = $real;
+            $mode = (string)($body['mode'] ?? 'jump');
+            if ($mode === 'jump') {
+                $offset += intval($body['seconds'] ?? 0);
+            } elseif ($mode === 'jump_to') {
+                $starts = intval($event['starts_at']);
+                $ends = intval($event['ends_at']);
+                $targetTs = match ((string)($body['target'] ?? '')) {
+                    'before_start' => $starts - 300,
+                    'start' => $starts,
+                    'before_end' => $ends - 300,
+                    'end' => $ends + 1,
+                    default => throw new Exception('Unknown jump target', 400),
+                };
+                $offset += $targetTs - ($real + $offset);
+            } elseif ($mode === 'speed') {
+                $speed = intval($body['speed'] ?? 1);
+                if (!in_array($speed, [1, 60, 600, 3600], true)) {
+                    throw new Exception('speed must be 1, 60, 600 or 3600', 400);
+                }
+            } elseif ($mode === 'reset') {
+                $offset = 0;
+                $speed = 1;
+                $anchor = 0;
+            } else {
+                throw new Exception('Unknown clock mode', 400);
+            }
+            $db->prepare('UPDATE tcg_events SET clock_offset = ?, clock_speed = ?, clock_anchor = ?, updated_at = ? WHERE id = ?')
+                ->execute([$offset, $speed, $anchor, $real, $eventId]);
+            tcgEventsTickStatuses();
+            break;
+        }
+        case 'reset': {
+            foreach (['tcg_event_points', 'tcg_event_point_grants', 'tcg_event_milestone_claims', 'tcg_event_rank_grants', 'tcg_event_test_log'] as $t) {
+                $db->prepare("DELETE FROM $t WHERE event_id = ?")->execute([$eventId]);
+            }
+            $db->prepare('UPDATE tcg_events SET ended_processed_at = NULL, updated_at = ? WHERE id = ?')->execute([time(), $eventId]);
+            if (!empty($body['reset_clock'])) {
+                $db->prepare('UPDATE tcg_events SET clock_offset = 0, clock_speed = 1, clock_anchor = 0 WHERE id = ?')->execute([$eventId]);
+            }
+            tcgEventsTickStatuses();
+            break;
+        }
+        default:
+            throw new Exception('Unknown test lab action', 400);
+    }
+
+    $event = tcgEventsGetRow($eventId) ?? $event;
+    return ['success' => true] + $result + tcgEventsTestLabState($event, $uid);
 }

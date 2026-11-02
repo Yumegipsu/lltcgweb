@@ -119,7 +119,7 @@ try {
 <link rel="stylesheet" href="client/css/tournament.css?v=24">
 <link rel="stylesheet" href="client/css/portrait.css?v=105">
 <link rel="stylesheet" href="client/css/social.css?v=32">
-<link rel="stylesheet" href="client/css/admin-events.css?v=1">
+<link rel="stylesheet" href="client/css/admin-events.css?v=3">
 
 </head>
 <body role="application" aria-label="Love Live! TCG web player">
@@ -2441,6 +2441,7 @@ try {
         <button type="button" class="btn-out" id="btn-admin-feedback" data-i18n="admin.seasonFeedback">Season feedback inbox</button>
       </div>
       <div id="admin-events-list" class="admin-events-list"></div>
+      <section id="admin-test-lab" class="admin-test-lab" hidden></section>
       <div id="admin-event-form-wrap" hidden>
         <h3 class="tournament-subhead" id="admin-event-form-title">New event</h3>
         <form class="admin-event-form" id="admin-event-form">
@@ -2456,6 +2457,10 @@ try {
           </label>
           <label><span data-i18n="admin.field.ends">End (JST)</span>
             <input id="admin-event-ends" type="datetime-local" required>
+          </label>
+          <label class="admin-test-flag">
+            <input id="admin-event-test" type="checkbox">
+            <span>Test event: only you can see it, real matches never count, rewards are only logged. Set when creating.</span>
           </label>
           <div class="admin-reward-block">
             <h4 data-i18n="admin.milestones">Milestones</h4>
@@ -3381,7 +3386,7 @@ try {
 <script src="client/js/gacha.js?v=26"></script>
 <script src="client/js/ranked-pr-reward.js?v=8"></script>
 <script src="client/js/missions.js?v=15"></script>
-<script src="client/js/admin-events.js?v=3"></script>
+<script src="client/js/admin-events.js?v=5"></script>
 <script src="client/js/login-bonus.js?v=3"></script>
 <script src="client/js/discord-presence.js?v=12"></script>
 <script src="client/js/presentation-guards.js?v=12"></script>
