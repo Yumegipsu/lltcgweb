@@ -19,15 +19,18 @@ final class DeckPoolCostSortGuardTest extends TestCase
         $h = $this->html();
         $this->assertStringContainsString("{ id: 'cost', label: 'Cost / Score' }", $h);
         $this->assertStringContainsString("case 'cost':", $h);
-        $this->assertStringContainsString('deckPoolCostFamilyRank', $h);
         $this->assertStringContainsString('deckPoolCostOrScoreValue', $h);
+        $this->assertStringContainsString(
+            '// [typeRank, value, id] — Members → Lives → Energy; asc/desc only flips value.',
+            $h
+        );
     }
 
-    public function testCostCompareKeepsMemberLiveFamilyStableOnDesc(): void
+    public function testCostCompareKeepsMemberLiveEnergyBlocksOnDesc(): void
     {
         $h = $this->html();
         $this->assertStringContainsString(
-            '// Keep Members+Lives ahead of Energy regardless of asc/desc.',
+            '// Always Members → Lives → Energy; asc/desc only changes cost/score within each type.',
             $h
         );
         $this->assertStringContainsString("if (mode === 'cost')", $h);

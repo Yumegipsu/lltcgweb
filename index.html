@@ -9339,12 +9339,12 @@ function savedDeckTypeRank(cardNo) {
 
 function sortSavedDeckCardNos(nos) {
   const list = nos || [];
-  // Cost / Score pool sort also reorders the built deck: Members+Lives by cost/score, Energy last.
+  // Cost / Score: Members (by cost) → Lives (by score) → Energy; matches collection pool order.
   if (typeof effectiveDeckPoolSort === 'function' && effectiveDeckPoolSort() === 'cost') {
     const dir = typeof deckPoolSortDir === 'function' ? deckPoolSortDir() : 'asc';
     return list.slice().sort((a, b) => compareDeckPoolEntries(
-      { card_no: a, c0: typeof enrichCard === 'function' ? enrichCard(G.allCards[a]) : G.allCards[a] },
-      { card_no: b, c0: typeof enrichCard === 'function' ? enrichCard(G.allCards[b]) : G.allCards[b] },
+      { card_no: a, c0: typeof enrichCard === 'function' ? enrichCard(G.allCards[a] || { card_no: a }) : (G.allCards[a] || { card_no: a }) },
+      { card_no: b, c0: typeof enrichCard === 'function' ? enrichCard(G.allCards[b] || { card_no: b }) : (G.allCards[b] || { card_no: b }) },
       'cost',
       dir
     ));
@@ -10245,14 +10245,6 @@ function deckPoolCardTypeRank(card) {
   return 3;
 }
 
-/** Members + Lives share a family so Cost / Score keeps them together ahead of Energy. */
-function deckPoolCostFamilyRank(card) {
-  const type = card?.card_type;
-  if (type === 'メンバー' || type === 'ライブ') return 0;
-  if (type === 'エネルギー') return 1;
-  return 2;
-}
-
 function deckPoolCostOrScoreValue(card) {
   const type = card?.card_type;
   if (type === 'メンバー') return Number(card?.cost) || 0;
@@ -10274,8 +10266,8 @@ function deckPoolSortKey(entry, mode) {
     case 'type':
       return [deckPoolCardTypeRank(c), no];
     case 'cost':
-      // [family, value, typeRank, id] — compareDeckPoolEntries applies asc/desc only to value.
-      return [deckPoolCostFamilyRank(c), deckPoolCostOrScoreValue(c), deckPoolCardTypeRank(c), no];
+      // [typeRank, value, id] — Members → Lives → Energy; asc/desc only flips value.
+      return [deckPoolCardTypeRank(c), deckPoolCostOrScoreValue(c), no];
     case 'group':
       return [(c?.group || 'zzz').toLowerCase(), no];
     case 'recent':
@@ -10302,12 +10294,11 @@ function compareDeckPoolEntries(a, b, mode, dir) {
   if (mode === 'cost') {
     const ka = deckPoolSortKey(a, mode);
     const kb = deckPoolSortKey(b, mode);
-    // Keep Members+Lives ahead of Energy regardless of asc/desc.
+    // Always Members → Lives → Energy; asc/desc only changes cost/score within each type.
     if (ka[0] !== kb[0]) return ka[0] - kb[0];
     const mul = normalizeDeckPoolSortDir(dir) === 'desc' ? -1 : 1;
     if (ka[1] !== kb[1]) return mul * (ka[1] - kb[1]);
-    if (ka[2] !== kb[2]) return ka[2] - kb[2];
-    return String(ka[3]).localeCompare(String(kb[3]), undefined, { numeric: true, sensitivity: 'base' });
+    return String(ka[2]).localeCompare(String(kb[2]), undefined, { numeric: true, sensitivity: 'base' });
   }
   const cmp = compareDeckPoolSortKeys(deckPoolSortKey(a, mode), deckPoolSortKey(b, mode));
   return normalizeDeckPoolSortDir(dir) === 'desc' ? -cmp : cmp;
