@@ -61,7 +61,7 @@ function tcgEventsKeyDefaults(): array {
                 'expert' => ['win' => 3, 'loss' => 1],
             ],
         ],
-        'event_match' => ['key_cost' => 5, 'ep_win' => 100, 'ep_loss' => 40, 'cpu_factor' => 0.5],
+        'event_match' => ['key_cost' => 5, 'ep_win' => 100, 'ep_loss' => 40, 'cpu_factor' => 0.5, 'queue_wait_sec' => 30],
         // Token coin icons: green below uncommon_from, blue below rare_from, rainbow from there up.
         'token_tiers' => ['uncommon_from' => 50, 'rare_from' => 100],
         'wheel' => [

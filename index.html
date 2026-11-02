@@ -120,7 +120,7 @@ try {
 <link rel="stylesheet" href="client/css/portrait.css?v=105">
 <link rel="stylesheet" href="client/css/social.css?v=32">
 <link rel="stylesheet" href="client/css/admin-events.css?v=3">
-<link rel="stylesheet" href="client/css/event-keys.css?v=1">
+<link rel="stylesheet" href="client/css/event-keys.css?v=2">
 
 </head>
 <body role="application" aria-label="Love Live! TCG web player">
@@ -789,9 +789,10 @@ try {
             </span>
           </button>
           <button class="llc-menu-item llc-menu-hover llc-menu-accent-violet llc-menu-item--disabled" id="btn-hub-events" type="button" disabled aria-disabled="true">
+            <span class="llc-menu-event-art" aria-hidden="true" hidden></span>
             <span class="llc-menu-item-body">
               <span class="llc-menu-item-title" data-i18n="hub.events.title">Events</span>
-              <span class="llc-menu-item-sub" data-i18n="hub.events.comingSoon">Coming soon</span>
+              <span class="llc-menu-item-sub" data-i18n="hub.events.noneActive">No active event</span>
             </span>
           </button>
         </div>
@@ -3367,7 +3368,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=256"></script>
+<script src="i18n.js?v=258"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=46"></script>
@@ -3377,7 +3378,7 @@ try {
 <script src="client/js/season-rank.js?v=23"></script>
 <script src="client/js/friend-push.js?v=12"></script>
 <script src="client/js/runtime-flags.js?v=7"></script>
-<script src="client/js/api-client.js?v=47"></script>
+<script src="client/js/api-client.js?v=48"></script>
 <script>
 /* Local Docker fake Discord only — skipped on production (no 404 for missing file). */
 (function () {
@@ -3397,8 +3398,8 @@ try {
 <script src="client/js/gacha.js?v=26"></script>
 <script src="client/js/ranked-pr-reward.js?v=8"></script>
 <script src="client/js/missions.js?v=15"></script>
-<script src="client/js/event-keys.js?v=1"></script>
-<script src="client/js/admin-events.js?v=7"></script>
+<script src="client/js/event-keys.js?v=3"></script>
+<script src="client/js/admin-events.js?v=8"></script>
 <script src="client/js/login-bonus.js?v=3"></script>
 <script src="client/js/discord-presence.js?v=12"></script>
 <script src="client/js/presentation-guards.js?v=12"></script>

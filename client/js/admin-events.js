@@ -22,6 +22,8 @@
     editingId: null,
     // Owner-only: the server turns the Events tab on while a test event is running.
     hubOverride: false,
+    hubEvent: null,
+    hubFetchedAt: 0,
     testLabId: null,
     testLabTimer: null,
   };
@@ -64,25 +66,69 @@
     const eventsBtn = el('btn-hub-events');
     if (!eventsBtn) return;
     eventsBtn.hidden = false;
-    if (TCG_EVENTS_HUB_ENABLED || state.hubOverride) {
-      eventsBtn.disabled = false;
-      eventsBtn.classList.remove('llc-menu-item--disabled');
-      eventsBtn.removeAttribute('aria-disabled');
-      const sub = eventsBtn.querySelector('.llc-menu-item-sub');
+    const he = state.hubEvent;
+    const sub = eventsBtn.querySelector('.llc-menu-item-sub');
+    const art = eventsBtn.querySelector('.llc-menu-event-art');
+    const canOpen = TCG_EVENTS_HUB_ENABLED || state.hubOverride || !!he;
+    eventsBtn.disabled = !canOpen;
+    eventsBtn.classList.toggle('llc-menu-item--disabled', !canOpen);
+    eventsBtn.classList.toggle('llc-menu-item--event', !!he);
+    if (canOpen) eventsBtn.removeAttribute('aria-disabled'); else eventsBtn.setAttribute('aria-disabled', 'true');
+    if (art) {
+      art.hidden = !he;
+      art.style.backgroundImage = he && he.banner_url ? `url("${String(he.banner_url).replace(/"/g, '%22')}")` : '';
+    }
+    const title = eventsBtn.querySelector('.llc-menu-item-title');
+    if (he) {
+      if (title) { title.removeAttribute('data-i18n'); title.textContent = he.name; }
       if (sub) {
-        sub.setAttribute('data-i18n', 'hub.events.sub');
-        sub.textContent = tt('hub.events.sub', 'Limited-time Event Points & rewards');
+        sub.removeAttribute('data-i18n');
+        sub.textContent = hubEventTimeText(he);
       }
     } else {
-      eventsBtn.disabled = true;
-      eventsBtn.classList.add('llc-menu-item--disabled');
-      eventsBtn.setAttribute('aria-disabled', 'true');
-      const sub = eventsBtn.querySelector('.llc-menu-item-sub');
+      if (title) { title.setAttribute('data-i18n', 'hub.events.title'); title.textContent = tt('hub.events.title', 'Events'); }
       if (sub) {
-        sub.setAttribute('data-i18n', 'hub.events.comingSoon');
-        sub.textContent = tt('hub.events.comingSoon', 'Coming soon');
+        const key = (TCG_EVENTS_HUB_ENABLED || state.hubOverride) ? 'hub.events.sub' : 'hub.events.noneActive';
+        sub.setAttribute('data-i18n', key);
+        sub.textContent = key === 'hub.events.sub'
+          ? tt(key, 'Limited-time Event Points & rewards')
+          : tt(key, 'No active event');
       }
     }
+  }
+
+  /** "Ends in 2d 4h" / "Starts in 3h 5m" for the hub button, from the clock the server reported. */
+  function hubEventTimeText(he) {
+    const left = Math.max(0, Number(he.seconds_left || 0) - Math.floor((Date.now() - state.hubFetchedAt) / 1000));
+    const d = Math.floor(left / 86400);
+    const h = Math.floor((left % 86400) / 3600);
+    const m = Math.floor((left % 3600) / 60);
+    const t = d > 0 ? tt('events.dur.dh', '{d}d {h}h', { d, h }) : tt('events.dur.hm', '{h}h {m}m', { h, m });
+    return he.upcoming
+      ? tt('events.startsIn', 'Starts in {t}', { t })
+      : tt('events.endsIn', 'Ends in {t}', { t });
+  }
+
+  async function refreshHubEvents() {
+    if (!(global.A && global.A.user)) return;
+    try {
+      const res = await accountPost('events_active_summary', {});
+      const events = Array.isArray(res && res.events) ? res.events : [];
+      const next = !!(res && res.hub_enabled) && !TCG_EVENTS_HUB_ENABLED;
+      const nowOf = (ev) => (ev.clock ? ev.clock.virtual_now : Math.floor(Date.now() / 1000));
+      let he = null;
+      const active = events.find((ev) => ev.event_type === 'key_event');
+      if (active) {
+        he = { id: active.id, name: active.name, banner_url: active.banner_url, upcoming: false, seconds_left: Number(active.ends_at) - nowOf(active) };
+      } else if (Array.isArray(res.upcoming) && res.upcoming.length) {
+        const up = res.upcoming[0];
+        he = { id: up.id, name: up.name, banner_url: up.banner_url, upcoming: true, seconds_left: Number(up.starts_in || 0) };
+      }
+      state.hubOverride = next;
+      state.hubEvent = he;
+      state.hubFetchedAt = Date.now();
+      syncHubButtons();
+    } catch (e) { /* hub stays as it was */ }
   }
 
   function openAdmin() {
@@ -97,19 +143,11 @@
   }
 
   async function refreshHubOverride() {
-    if (!isAdmin()) return;
-    try {
-      const res = await accountPost('events_active_summary', {});
-      const next = !!(res && res.hub_enabled) && !TCG_EVENTS_HUB_ENABLED;
-      if (next !== state.hubOverride) {
-        state.hubOverride = next;
-        syncHubButtons();
-      }
-    } catch (e) { /* hub stays as it was */ }
+    await refreshHubEvents();
   }
 
   function openEvents() {
-    if (!TCG_EVENTS_HUB_ENABLED && !state.hubOverride) return;
+    if (!TCG_EVENTS_HUB_ENABLED && !state.hubOverride && !state.hubEvent) return;
     if (typeof global.showScr === 'function') global.showScr('events');
     void loadPlayerEvents();
   }
@@ -617,7 +655,12 @@
       const summary = await accountPost('events_active_summary', {});
       const events = Array.isArray(summary.events) ? summary.events : [];
       if (!events.length) {
-        root.innerHTML = `<p class="admin-events-muted">${esc(tt('events.none', 'No active events right now.'))}</p>`;
+        const up = Array.isArray(summary.upcoming) ? summary.upcoming : [];
+        root.innerHTML = up.length
+          ? up.map((ev) => `<section class="events-player-card">${ev.banner_url ? `<img class="events-banner" src="${esc(ev.banner_url)}" alt="">` : ''}
+              <h3>${esc(ev.name)}${ev.test_mode ? `<span class="admin-test-badge">${esc(tt('events.testBadge', 'TEST · only you'))}</span>` : ''}</h3>
+              <p class="admin-events-meta">${esc(tt('events.comingUp', 'Coming soon'))} · ${esc(ev.starts_at_jst)} JST</p></section>`).join('')
+          : `<p class="admin-events-muted">${esc(tt('events.none', 'No active events right now.'))}</p>`;
         return;
       }
       const parts = [];
@@ -699,20 +742,23 @@
     // The account may land after this script runs: wait for it, then ask the server about test events.
     let adminTries = 0;
     const adminWait = setInterval(() => {
-      if (isAdmin()) {
+      if (global.A && global.A.user) {
         clearInterval(adminWait);
-        void refreshHubOverride();
+        void refreshHubEvents();
         syncHubButtons();
       } else if (++adminTries > 30) {
         clearInterval(adminWait);
       }
     }, 1000);
+    // Keep the hub button honest: re-ask every few minutes, and tick the countdown text between asks.
+    setInterval(() => void refreshHubEvents(), 5 * 60 * 1000);
+    setInterval(() => { if (state.hubEvent) syncHubButtons(); }, 30000);
     // Re-sync when account me lands
     const prev = global.onTcgAccountReady;
     global.onTcgAccountReady = function () {
       try { if (typeof prev === 'function') prev.apply(this, arguments); } catch (e) { /* ignore */ }
       syncHubButtons();
-      void refreshHubOverride();
+      void refreshHubEvents();
     };
   }
 

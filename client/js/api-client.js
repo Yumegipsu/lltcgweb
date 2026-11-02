@@ -98,6 +98,7 @@
   const MATCHMAKE_GAME = {
     create_room: 1, join_room: 1, casual_join: 1, casual_leave: 1,
     casual_status: 1,
+    event_match_join: 1, event_match_status: 1, event_match_leave: 1, event_match_cpu: 1,
     // Spectate must hit the same match host as live rooms (VPS Redis under match-primary).
     spectate_join: 1, spectate_list: 1, spectate_leave: 1,
   };

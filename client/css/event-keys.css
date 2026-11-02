@@ -45,3 +45,19 @@
 }
 .evk-toast.is-out { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .evk-result-inner, .evk-toast { animation: none; } }
+
+/* Event match queue and event decks */
+.evk-queue { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; background: rgba(255, 255, 255, .08); border: 1px dashed rgba(255, 216, 107, .6); }
+.evk-queue[hidden] { display: none; }
+.evk-decks { margin: 6px 0 14px; }
+.evk-decks summary { cursor: pointer; font-weight: 700; }
+.evk-deck-row { display: grid; grid-template-columns: minmax(90px, 140px) minmax(140px, 1fr) auto; align-items: center; gap: 10px; margin: 8px 0; }
+.evk-deck-row select { min-width: 0; max-width: 100%; }
+@media (max-width: 560px) { .evk-deck-row { grid-template-columns: 1fr; } }
+
+/* Hub Events button: plain when idle, expands with the event art while an event runs or is about to */
+.llc-menu-item--event { position: relative; overflow: hidden; flex: 2 1 0; min-height: 96px; }
+.llc-menu-item--event .llc-menu-item-body { position: relative; z-index: 1; text-shadow: 0 1px 4px rgba(0, 0, 0, .8); }
+.llc-menu-event-art { position: absolute; inset: 0; background: linear-gradient(135deg, #7a3fd0, #e0559a) center / cover no-repeat; }
+.llc-menu-event-art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20, 10, 40, .85), rgba(20, 10, 40, .15)); }
+.llc-menu-event-art[hidden] { display: none; }

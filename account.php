@@ -121,6 +121,10 @@ try {
         case 'events_test_lab':       echo json_encode(tcgApiEventsTestLab($body)); break;
         case 'events_default_template': echo json_encode(tcgApiEventsDefaultTemplate($body)); break;
         case 'events_wheel_spin':     echo json_encode(tcgApiEventsWheelSpin($body)); break;
+        case 'events_match_decks':    echo json_encode(tcgApiEventsMatchDecks($body)); break;
+        case 'events_match_set_deck': echo json_encode(tcgApiEventsMatchSetDeck($body)); break;
+        case 'events_match_start':    echo json_encode(tcgApiEventsMatchStart($body)); break;
+        case 'events_match_cancel':   echo json_encode(tcgApiEventsMatchCancel($body)); break;
         case 'events_active_summary': echo json_encode(tcgApiEventsActiveSummary($body)); break;
         case 'events_leaderboard':    echo json_encode(tcgApiEventsLeaderboard($body)); break;
         case 'events_my_progress':    echo json_encode(tcgApiEventsMyProgress($body)); break;
@@ -1606,6 +1610,7 @@ function tcgApiMissionGameFinished(array $body): array {
         'disconnected_player' => $body['disconnected_player'] ?? null,
         'cpu_solo' => !empty($body['cpu_solo']),
         'cpu_difficulty' => (string)($body['cpu_difficulty'] ?? ''),
+        'event_match' => is_array($body['event_match'] ?? null) ? $body['event_match'] : null,
         'turn' => intval($body['turn'] ?? 0),
         '_mission_peaks' => is_array($body['mission_peaks'] ?? null) ? $body['mission_peaks'] : [],
         'players' => [

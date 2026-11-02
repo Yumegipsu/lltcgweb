@@ -253,6 +253,10 @@ function tcgIsHostingerMatchWriteAction(string $action): bool {
         'join_room' => true,
         'casual_join' => true,
         'casual_leave' => true,
+        'event_match_join' => true,
+        'event_match_status' => true,
+        'event_match_leave' => true,
+        'event_match_cpu' => true,
         'action' => true,
         'dry_run_actions' => true,
         'debug_card_test_start' => true,
@@ -321,6 +325,10 @@ try {
         case 'casual_join':  echo json_encode(apiCasualJoin($body)); break;
         case 'casual_leave': echo json_encode(apiCasualLeave($body)); break;
         case 'casual_status': echo json_encode(apiCasualStatus($body)); break;
+        case 'event_match_join': require_once __DIR__ . '/events.php'; echo json_encode(apiEventMatchJoin($body)); break;
+        case 'event_match_status': require_once __DIR__ . '/events.php'; echo json_encode(apiEventMatchStatus($body)); break;
+        case 'event_match_leave': require_once __DIR__ . '/events.php'; echo json_encode(apiEventMatchLeave($body)); break;
+        case 'event_match_cpu': require_once __DIR__ . '/events.php'; echo json_encode(apiEventMatchCpu($body)); break;
         case 'spectate_list': echo json_encode(apiSpectateList($body)); break;
         case 'spectate_join': echo json_encode(apiSpectateJoin($body)); break;
         case 'spectate_leave': echo json_encode(apiSpectateLeave($body)); break;

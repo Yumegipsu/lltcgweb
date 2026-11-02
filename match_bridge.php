@@ -185,6 +185,7 @@ function tcgPostMissionGameFinishedBundleToHostinger(array $state): array {
         'cpu_solo' => !empty($state['cpu_solo']),
         'cpu_difficulty' => (string)($state['cpu_difficulty'] ?? ''),
         'turn' => intval($state['turn'] ?? 0),
+        'event_match' => is_array($state['event_match'] ?? null) ? $state['event_match'] : null,
         'mission_peaks' => function_exists('missionPeaksExport')
             ? missionPeaksExport($state)
             : (is_array($state['_mission_peaks'] ?? null) ? $state['_mission_peaks'] : []),
@@ -446,6 +447,7 @@ function tcgPostRankedApplyResultToHostinger(array &$state): bool {
         'p1_name' => (string)($p1['name'] ?? ''),
         'p2_name' => (string)($p2['name'] ?? ''),
         'turn' => intval($state['turn'] ?? 0),
+        'event_match' => is_array($state['event_match'] ?? null) ? $state['event_match'] : null,
         'mission_peaks' => function_exists('missionPeaksExport')
             ? missionPeaksExport($state)
             : (is_array($state['_mission_peaks'] ?? null) ? $state['_mission_peaks'] : []),

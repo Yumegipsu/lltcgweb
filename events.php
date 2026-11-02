@@ -466,6 +466,10 @@ function tcgEventPointsForFinishedMatch(array $state, string $pid): int {
  * @return list<array{pid:string,discord_id:string,event_id:string,amount:int,balance:int,milestones:list}>
  */
 function tcgEventPointsOnGameFinished(array $state): array {
+    if (!empty($state['event_match']) && is_array($state['event_match'])) {
+        // Event matches pay EP only (the keys were spent on the ticket) and count however they end.
+        return tcgEventsMatchOnFinished($state);
+    }
     if (!tcgCoinsNaturalFinish($state)) {
         return [];
     }
@@ -909,11 +913,26 @@ function tcgApiEventsActiveSummary(array $body): array {
         $hasTest = $hasTest || !empty($ev['test_mode']);
         $events[] = $ser;
     }
+    // Key Events about to start (a week ahead): the hub teases them. The owner also sees scheduled test events.
+    $upcoming = [];
+    $isOwner = tcgEventsViewerIsOwner($uid);
+    $rows = tcgDb()->query("SELECT * FROM tcg_events WHERE status = 'scheduled' AND event_type = 'key_event' ORDER BY starts_at ASC")
+        ->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    foreach ($rows as $row) {
+        $isTest = !empty($row['test_mode']);
+        if ($isTest ? !$isOwner : (intval($row['starts_at']) - time() > 7 * 86400)) {
+            continue;
+        }
+        $ser = tcgEventsSerializeEvent($row, true);
+        $ser['starts_in'] = max(0, intval($row['starts_at']) - tcgEventsNowTs($row));
+        $upcoming[] = $ser;
+    }
     return [
         'success' => true,
         // The owner gets the Events tab while a test event is running, even when the public tab is still off.
         'hub_enabled' => TCG_EVENTS_HUB_ENABLED || $hasTest,
         'events' => $events,
+        'upcoming' => $upcoming,
     ];
 }
 
@@ -1296,3 +1315,4 @@ function tcgApiEventsTestLab(array $body): array {
 }
 
 require_once __DIR__ . '/events_keys.php';
+require_once __DIR__ . '/events_match.php';

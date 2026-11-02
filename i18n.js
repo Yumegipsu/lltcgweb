@@ -148,6 +148,7 @@
         "joinedSub": "{title} · {n} entered"
       },
       "events": {
+        "noneActive": "No active event",
         "title": "Events",
         "sub": "Limited-time Event Points & rewards",
         "comingSoon": "Coming soon"
@@ -184,6 +185,21 @@
       }
     },
     "events": {
+      "cancel": "Cancel",
+      "needKeys": "Need {n} Event Keys to play",
+      "epRates": "Win {win} EP · Lose {loss} EP",
+      "groupIs": "This match: {group} only",
+      "searching": "Searching for an opponent… {s}s · {group} only",
+      "cpuFallback": "No opponent found. Starting a CPU match (reduced EP)…",
+      "matchError": "Could not start the event match",
+      "comingUp": "Coming soon",
+      "deckTitle": "Event decks",
+      "deckHint": "Each event match uses one group, chosen at random. Pick a saved deck for each group; missing cards are filled from that group starter deck.",
+      "deckStarter": "Starter deck only",
+      "deckCards": "{n} {group} cards",
+      "srcOwn": "Your deck",
+      "srcMixed": "{n} of your cards + starter fill",
+      "srcStarter": "Starter deck",
       "backHub": "← Hub",
       "title": "Events",
       "lead": "Earn Event Points from ranked PvP and CPU matches.",
@@ -221,6 +237,8 @@
         "playmat": "Playmat"
       },
       "dur": {
+        "dh": "{d}d {h}h",
+        "hm": "{h}h {m}m",
         "d": "{n}d",
         "h": "{n}h",
         "m": "{n}m"
@@ -2421,6 +2439,21 @@
   },
   "ja": {
     "events": {
+      "cancel": "キャンセル",
+      "needKeys": "プレイにはイベントキーが{n}個必要です",
+      "epRates": "勝利 {win}EP · 敗北 {loss}EP",
+      "groupIs": "今回の対戦：{group}のみ",
+      "searching": "対戦相手を検索中… {s}秒 · {group}のみ",
+      "cpuFallback": "対戦相手が見つかりません。CPU戦を開始します（獲得EP減）…",
+      "matchError": "イベントマッチを開始できませんでした",
+      "comingUp": "近日開催",
+      "deckTitle": "イベントデッキ",
+      "deckHint": "イベントマッチではランダムに選ばれた1つのグループのカードだけを使います。グループごとに保存デッキを選ぶと、足りないカードはそのグループのスタートデッキで補われます。",
+      "deckStarter": "スタートデッキのみ",
+      "deckCards": "{group}カード{n}枚",
+      "srcOwn": "自分のデッキ",
+      "srcMixed": "自分のカード{n}枚＋スタートデッキで補完",
+      "srcStarter": "スタートデッキ",
       "startsIn": "開始まで {t}",
       "endsIn": "終了まで {t}",
       "ended": "イベント終了",
@@ -2451,6 +2484,8 @@
         "playmat": "プレイマット"
       },
       "dur": {
+        "dh": "{d}日{h}時間",
+        "hm": "{h}時間{m}分",
         "d": "{n}日",
         "h": "{n}時間",
         "m": "{n}分"
@@ -2493,6 +2528,7 @@
       "officialVideo": "公式8分動画 ↗"
     },
     "hub": {
+      "events": { "noneActive": "開催中のイベントなし" },
       "signedIn": "サインイン済み",
       "signedInAs": "サインイン中：",
       "signedInAsHtml": "サインイン中：<b>{name}</b>",
@@ -4644,6 +4680,21 @@
   },
   "es": {
     "events": {
+      "cancel": "Cancelar",
+      "needKeys": "Necesitas {n} llaves de evento para jugar",
+      "epRates": "Victoria {win} EP · Derrota {loss} EP",
+      "groupIs": "Esta partida: solo {group}",
+      "searching": "Buscando oponente… {s} s · solo {group}",
+      "cpuFallback": "No se encontró oponente. Iniciando partida contra la CPU (menos EP)…",
+      "matchError": "No se pudo iniciar la partida de evento",
+      "comingUp": "Próximamente",
+      "deckTitle": "Mazos de evento",
+      "deckHint": "Cada partida de evento usa un grupo al azar. Elige un mazo guardado para cada grupo; las cartas que falten se completan con el mazo inicial de ese grupo.",
+      "deckStarter": "Solo mazo inicial",
+      "deckCards": "{n} cartas de {group}",
+      "srcOwn": "Tu mazo",
+      "srcMixed": "{n} de tus cartas + mazo inicial",
+      "srcStarter": "Mazo inicial",
       "startsIn": "Empieza en {t}",
       "endsIn": "Termina en {t}",
       "ended": "Evento finalizado",
@@ -4674,6 +4725,8 @@
         "playmat": "Tapete"
       },
       "dur": {
+        "dh": "{d} d {h} h",
+        "hm": "{h} h {m} min",
         "d": "{n} d",
         "h": "{n} h",
         "m": "{n} min"
@@ -4712,6 +4765,7 @@
       "officialVideo": "Vídeo oficial de 8 min ↗"
     },
     "hub": {
+      "events": { "noneActive": "Ningún evento activo" },
       "signedIn": "Sesión iniciada",
       "signedInAs": "Sesión iniciada como",
       "signedInAsHtml": "Sesión iniciada como <b>{name}</b>",
@@ -6843,6 +6897,21 @@
   },
   "ko": {
     "events": {
+      "cancel": "취소",
+      "needKeys": "플레이하려면 이벤트 열쇠 {n}개가 필요해요",
+      "epRates": "승리 {win}EP · 패배 {loss}EP",
+      "groupIs": "이번 대전: {group}만",
+      "searching": "상대를 찾는 중… {s}초 · {group}만",
+      "cpuFallback": "상대를 찾지 못했어요. CPU 대전을 시작합니다 (EP 감소)…",
+      "matchError": "이벤트 매치를 시작할 수 없어요",
+      "comingUp": "곧 시작",
+      "deckTitle": "이벤트 덱",
+      "deckHint": "이벤트 매치는 무작위로 정해진 한 그룹의 카드만 사용해요. 그룹마다 저장한 덱을 고르면 부족한 카드는 해당 그룹의 스타터 덱으로 채워져요.",
+      "deckStarter": "스타터 덱만",
+      "deckCards": "{group} 카드 {n}장",
+      "srcOwn": "내 덱",
+      "srcMixed": "내 카드 {n}장 + 스타터 덱",
+      "srcStarter": "스타터 덱",
       "startsIn": "시작까지 {t}",
       "endsIn": "종료까지 {t}",
       "ended": "이벤트 종료",
@@ -6873,6 +6942,8 @@
         "playmat": "플레이매트"
       },
       "dur": {
+        "dh": "{d}일 {h}시간",
+        "hm": "{h}시간 {m}분",
         "d": "{n}일",
         "h": "{n}시간",
         "m": "{n}분"
@@ -6911,6 +6982,7 @@
       "officialVideo": "공식 8분 영상 ↗"
     },
     "hub": {
+      "events": { "noneActive": "진행 중인 이벤트 없음" },
       "signedIn": "로그인됨",
       "signedInAs": "로그인 계정",
       "signedInAsHtml": "<b>{name}</b>님으로 로그인됨",
@@ -9066,6 +9138,21 @@
   },
   "zh": {
     "events": {
+      "cancel": "取消",
+      "needKeys": "需要 {n} 把活动钥匙才能游玩",
+      "epRates": "胜利 {win}EP · 失败 {loss}EP",
+      "groupIs": "本场对战：仅限{group}",
+      "searching": "正在寻找对手… {s}秒 · 仅限{group}",
+      "cpuFallback": "未找到对手，将开始 CPU 对战（EP 减少）…",
+      "matchError": "无法开始活动对战",
+      "comingUp": "即将开始",
+      "deckTitle": "活动卡组",
+      "deckHint": "每场活动对战会随机使用一个团体。请为每个团体选择已保存的卡组，缺少的卡牌会用该团体的入门卡组补齐。",
+      "deckStarter": "仅入门卡组",
+      "deckCards": "{n} 张{group}卡",
+      "srcOwn": "你的卡组",
+      "srcMixed": "你的 {n} 张卡 + 入门卡组补齐",
+      "srcStarter": "入门卡组",
       "startsIn": "距开始 {t}",
       "endsIn": "距结束 {t}",
       "ended": "活动已结束",
@@ -9096,6 +9183,8 @@
         "playmat": "游戏垫"
       },
       "dur": {
+        "dh": "{d}天{h}小时",
+        "hm": "{h}小时{m}分钟",
         "d": "{n}天",
         "h": "{n}小时",
         "m": "{n}分钟"
@@ -9134,6 +9223,7 @@
       "officialVideo": "官方8分钟视频 ↗"
     },
     "hub": {
+      "events": { "noneActive": "暂无进行中的活动" },
       "signedIn": "已登录",
       "signedInAs": "已登录",
       "signedInAsHtml": "以 <b>{name}</b> 登录",
@@ -11289,6 +11379,21 @@
   },
   "th": {
     "events": {
+      "cancel": "ยกเลิก",
+      "needKeys": "ต้องมีกุญแจกิจกรรม {n} ดอกจึงจะเล่นได้",
+      "epRates": "ชนะ {win} EP · แพ้ {loss} EP",
+      "groupIs": "แมตช์นี้: เฉพาะ {group}",
+      "searching": "กำลังหาคู่ต่อสู้… {s} วินาที · เฉพาะ {group}",
+      "cpuFallback": "ไม่พบคู่ต่อสู้ เริ่มแมตช์กับ CPU (EP ลดลง)…",
+      "matchError": "เริ่มแมตช์กิจกรรมไม่ได้",
+      "comingUp": "เร็ว ๆ นี้",
+      "deckTitle": "เด็คกิจกรรม",
+      "deckHint": "แต่ละแมตช์กิจกรรมใช้กลุ่มที่สุ่มได้หนึ่งกลุ่ม เลือกเด็คที่บันทึกไว้สำหรับแต่ละกลุ่ม การ์ดที่ขาดจะเติมจากสตาร์ทเด็คของกลุ่มนั้น",
+      "deckStarter": "สตาร์ทเด็คเท่านั้น",
+      "deckCards": "การ์ด {group} {n} ใบ",
+      "srcOwn": "เด็คของคุณ",
+      "srcMixed": "การ์ดของคุณ {n} ใบ + เติมจากสตาร์ทเด็ค",
+      "srcStarter": "สตาร์ทเด็ค",
       "startsIn": "เริ่มในอีก {t}",
       "endsIn": "จบในอีก {t}",
       "ended": "กิจกรรมจบแล้ว",
@@ -11319,6 +11424,8 @@
         "playmat": "เพลย์แมต"
       },
       "dur": {
+        "dh": "{d} วัน {h} ชม.",
+        "hm": "{h} ชม. {m} นาที",
         "d": "{n} วัน",
         "h": "{n} ชม.",
         "m": "{n} นาที"
@@ -11357,6 +11464,7 @@
       "officialVideo": "วิดีโอทางการ 8 นาที ↗"
     },
     "hub": {
+      "events": { "noneActive": "ไม่มีกิจกรรมที่กำลังจัด" },
       "signedIn": "เข้าสู่ระบบแล้ว",
       "signedInAs": "เข้าสู่ระบบเป็น",
       "signedInAsHtml": "เข้าสู่ระบบเป็น <b>{name}</b>",
@@ -13488,6 +13596,21 @@
   },
   "pt": {
     "events": {
+      "cancel": "Cancelar",
+      "needKeys": "Você precisa de {n} chaves de evento para jogar",
+      "epRates": "Vitória {win} EP · Derrota {loss} EP",
+      "groupIs": "Esta partida: só {group}",
+      "searching": "Procurando oponente… {s} s · só {group}",
+      "cpuFallback": "Nenhum oponente encontrado. Iniciando partida contra a CPU (menos EP)…",
+      "matchError": "Não foi possível iniciar a partida de evento",
+      "comingUp": "Em breve",
+      "deckTitle": "Decks de evento",
+      "deckHint": "Cada partida de evento usa um grupo sorteado. Escolha um deck salvo para cada grupo; as cartas que faltarem são completadas com o deck inicial desse grupo.",
+      "deckStarter": "Só deck inicial",
+      "deckCards": "{n} cartas de {group}",
+      "srcOwn": "Seu deck",
+      "srcMixed": "{n} das suas cartas + deck inicial",
+      "srcStarter": "Deck inicial",
       "startsIn": "Começa em {t}",
       "endsIn": "Termina em {t}",
       "ended": "Evento encerrado",
@@ -13518,6 +13641,8 @@
         "playmat": "Playmat"
       },
       "dur": {
+        "dh": "{d} d {h} h",
+        "hm": "{h} h {m} min",
         "d": "{n} d",
         "h": "{n} h",
         "m": "{n} min"
@@ -13556,6 +13681,7 @@
       "howToPlaySub": "Tutorial interativo para iniciantes com a Kanon"
     },
     "hub": {
+      "events": { "noneActive": "Nenhum evento ativo" },
       "signedIn": "Conectado",
       "signedInAs": "Conectado como",
       "signedInAsHtml": "Conectado como <b>{name}</b>",
@@ -15758,6 +15884,21 @@
   },
   "fr": {
     "events": {
+      "cancel": "Annuler",
+      "needKeys": "Il faut {n} clés d'événement pour jouer",
+      "epRates": "Victoire {win} PE · Défaite {loss} PE",
+      "groupIs": "Ce match : {group} uniquement",
+      "searching": "Recherche d'un adversaire… {s} s · {group} uniquement",
+      "cpuFallback": "Aucun adversaire trouvé. Lancement d'un match contre le CPU (moins de PE)…",
+      "matchError": "Impossible de lancer le match d'événement",
+      "comingUp": "Bientôt",
+      "deckTitle": "Decks d'événement",
+      "deckHint": "Chaque match d'événement utilise un groupe tiré au sort. Choisissez un deck enregistré pour chaque groupe ; les cartes manquantes sont complétées avec le deck de départ du groupe.",
+      "deckStarter": "Deck de départ uniquement",
+      "deckCards": "{n} cartes {group}",
+      "srcOwn": "Votre deck",
+      "srcMixed": "{n} de vos cartes + deck de départ",
+      "srcStarter": "Deck de départ",
       "startsIn": "Début dans {t}",
       "endsIn": "Fin dans {t}",
       "ended": "Événement terminé",
@@ -15784,10 +15925,12 @@
         "pack": "Pack PR",
         "wheel2": "Roue bonus ! {n} tours gratuits",
         "card": "Carte ×{n}",
-        "sleeve": "Sleeve",
-        "playmat": "Playmat"
+        "sleeve": "Protège-cartes",
+        "playmat": "Tapis de jeu"
       },
       "dur": {
+        "dh": "{d} j {h} h",
+        "hm": "{h} h {m} min",
         "d": "{n} j",
         "h": "{n} h",
         "m": "{n} min"
@@ -15826,6 +15969,7 @@
       "howToPlaySub": "Cours pratique pour débutants avec Kanon"
     },
     "hub": {
+      "events": { "noneActive": "Aucun événement en cours" },
       "signedIn": "Connecté",
       "signedInAs": "Connecté en tant que",
       "signedInAsHtml": "Connecté en tant que <b>{name}</b>",

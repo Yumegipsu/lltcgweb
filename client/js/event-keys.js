@@ -250,7 +250,8 @@
     const bannerHtml = ev.banner_url ? `<img class="events-banner" src="${esc(ev.banner_url)}" alt="">` : '';
     const ms = (ev.milestones || []).map((m) => milestoneRow(m, ev.my_points, cfg)).join('') || '<li>—</li>';
     const lb = (lbRows || []).map((r) => `<li>#${esc(r.rank)} ${esc(r.username)} — ${esc(r.points)} EP</li>`).join('') || '<li>—</li>';
-    const matchCost = cfg.event_match ? Number(cfg.event_match.key_cost || 0) : 0;
+    const mcfg = cfg.event_match || {};
+    const matchCost = Number(mcfg.key_cost || 0);
     const status = ev.status === 'scheduled'
       ? tt('events.startsIn', 'Starts in {t}', { t: timeLeft(ev) })
       : ev.status === 'ended' ? tt('events.ended', 'Event ended') : tt('events.endsIn', 'Ends in {t}', { t: timeLeft(ev) });
@@ -264,9 +265,20 @@
         <span class="evk-chip evk-chip--ep"><b>${esc(ev.my_points || 0)}</b><small>EP</small></span>
       </div>
       <div class="evk-match">
-        <button type="button" class="btn-grad" data-evk-play disabled>${esc(tt('events.playMatch', 'Play event match'))}</button>
-        <span class="admin-events-muted">${esc(matchCost ? tt('events.matchCost', 'An event match costs {n} keys', { n: matchCost }) : '')} · ${esc(tt('events.matchSoon', 'Event matches are coming soon'))}</span>
+        <button type="button" class="btn-grad" data-evk-play${ev.status === 'active' && Number(w.keys) >= matchCost ? '' : ' disabled'}>${esc(tt('events.playMatch', 'Play event match'))}</button>
+        <span class="admin-events-muted">${esc(Number(w.keys) >= matchCost
+          ? tt('events.matchCost', 'An event match costs {n} keys', { n: matchCost })
+          : tt('events.needKeys', 'Need {n} Event Keys to play', { n: matchCost }))} · ${esc(tt('events.epRates', 'Win {win} EP · Lose {loss} EP', { win: mcfg.ep_win || 0, loss: mcfg.ep_loss || 0 }))}</span>
+        <div class="evk-queue" data-evk-queue hidden>
+          <span data-evk-queue-text></span>
+          <button type="button" class="btn-ghost" data-evk-queue-cancel>${esc(tt('events.cancel', 'Cancel'))}</button>
+        </div>
       </div>
+      <details class="evk-decks" data-evk-decks>
+        <summary>${esc(tt('events.deckTitle', 'Event decks'))}</summary>
+        <p class="admin-events-muted">${esc(tt('events.deckHint', 'Each event match uses one group, chosen at random. Pick a saved deck for each group; missing cards are filled from that group starter deck.'))}</p>
+        <div data-evk-decks-body></div>
+      </details>
       <h4 data-evk-wheel-title>${esc(free > 0 ? tt('events.wheelBonus', 'Bonus Wheel') : tt('events.wheelTitle', 'Prize Wheel'))}</h4>
       <div class="evk-wheel-wrap">
         <div class="evk-pointer" aria-hidden="true"></div>
@@ -309,6 +321,7 @@
     const w = ev.wallet || {};
     const cost = Number((cfg.wheel || {}).spin_cost || 10);
     if (btn && Number(w.wheel2_left || 0) < 1 && Number(w.tokens || 0) < cost) btn.disabled = true;
+    bindEventMatch(card, ev, api);
     if (!btn) return;
     btn.addEventListener('click', async () => {
       btn.disabled = true;
@@ -368,6 +381,168 @@
         }, 1800);
       }
     });
+  }
+
+  // ------------------------------------------------------------------ event match + event decks
+
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  function playerName() {
+    const inp = document.getElementById('inp-name');
+    return (inp && inp.value.trim()) || (global.A && global.A.user && global.A.user.username) || 'Player';
+  }
+
+  function withToken(body) {
+    if (typeof global.getAuthToken === 'function') {
+      const token = global.getAuthToken();
+      if (token) body.token = token;
+    }
+    return body;
+  }
+
+  function matchBody(start, extra) {
+    return withToken(Object.assign({ ticket: start.ticket, decks: start.decks, name: playerName() }, extra || {}));
+  }
+
+  function statusBody(start) {
+    return withToken({ ticket_id: start.ticket_id });
+  }
+
+  function enterMatch(m) {
+    if (typeof global.enterCasualMatch === 'function') return global.enterCasualMatch(m);
+    return null;
+  }
+
+  function enterCpuMatch(r) {
+    if (typeof global.stopPoll === 'function') global.stopPoll();
+    if (typeof global.tcgClearApiOriginLock === 'function') global.tcgClearApiOriginLock();
+    const G = global.G;
+    G.roomId = r.room_id; G.token = r.player_token; G.playerId = 'p1'; G.isCPU = true; G.cpuToken = r.cpu_token;
+    if (typeof global.setCpuDifficulty === 'function') global.setCpuDifficulty(r.cpu_difficulty || 'normal');
+    if (typeof global.captureSyncMeta === 'function') global.captureSyncMeta(r);
+    global.showScr('game');
+    global.startPoll();
+  }
+
+  function bindEventMatch(card, ev, api) {
+    const play = card.querySelector('[data-evk-play]');
+    const queue = card.querySelector('[data-evk-queue]');
+    const text = card.querySelector('[data-evk-queue-text]');
+    const cancelBtn = card.querySelector('[data-evk-queue-cancel]');
+    const msg = card.querySelector('[data-evk-msg]');
+    let cancelled = false;
+    let running = false;
+
+    const say = (t) => { if (text) text.textContent = t; };
+    const showQueue = (on) => { if (queue) queue.hidden = !on; };
+    if (cancelBtn) cancelBtn.addEventListener('click', () => { cancelled = true; });
+
+    // Leave the queue; the match host only vouches for a refund if the ticket was still unused.
+    async function refund(start) {
+      try {
+        const left = await global.apiPost('event_match_leave', statusBody(start), { silent: true });
+        if (left && left.match) { await enterMatch(left.match); return true; }
+        if (left && left.left && left.proof) {
+          await api.post('events_match_cancel', { ticket_id: start.ticket_id, proof: left.proof });
+        }
+      } catch (e) { /* nothing more to do: the ticket expires on its own */ }
+      return false;
+    }
+
+    async function run() {
+      let start = null;
+      let entered = false;
+      try {
+        start = await api.post('events_match_start', { event_id: ev.id });
+        const keyChip = card.querySelector('.evk-chip b');
+        if (keyChip && start.wallet) keyChip.textContent = start.wallet.keys;
+        say(tt('events.groupIs', 'This match: {group} only', { group: start.group_label }));
+        showQueue(true);
+        let res = await global.apiPost('event_match_join', matchBody(start));
+        const t0 = Date.now();
+        const waitMs = Number(start.wait_sec || 30) * 1000;
+        while (!cancelled) {
+          if (res && res.status === 'matched') { entered = true; await enterMatch(res); return; }
+          if (Date.now() - t0 >= waitMs) {
+            say(tt('events.cpuFallback', 'No opponent found. Starting a CPU match (reduced EP)…'));
+            const r = await global.apiPost('event_match_cpu', matchBody(start, { cpu_difficulty: 'normal' }));
+            entered = true;
+            if (r && r.matched) { await enterMatch(r.matched); return; }
+            enterCpuMatch(r);
+            return;
+          }
+          say(tt('events.searching', 'Searching for an opponent… {s}s · {group} only', {
+            s: Math.floor((Date.now() - t0) / 1000), group: start.group_label,
+          }));
+          await sleep(2500);
+          if (cancelled) break;
+          res = await global.apiPost('event_match_status', statusBody(start), { silent: true });
+          if (res && res.status === 'idle') break;
+        }
+        if (cancelled) {
+          entered = await refund(start);
+        }
+      } catch (e) {
+        if (start && !entered) entered = await refund(start);
+        if (msg) msg.textContent = (e && e.message) || tt('events.matchError', 'Could not start the event match');
+      } finally {
+        running = false;
+        showQueue(false);
+        if (!entered) await api.reload();
+      }
+    }
+
+    if (play) {
+      play.addEventListener('click', () => {
+        if (running) return;
+        running = true;
+        cancelled = false;
+        play.disabled = true;
+        if (msg) msg.textContent = '';
+        void run();
+      });
+    }
+
+    const details = card.querySelector('[data-evk-decks]');
+    const body = card.querySelector('[data-evk-decks-body]');
+    let loaded = false;
+    function renderDecks(res) {
+      const presets = res.presets || [];
+      body.innerHTML = (res.groups || []).map((g) => {
+        const opts = [`<option value="0"${g.slot === 0 ? ' selected' : ''}>${esc(tt('events.deckStarter', 'Starter deck only'))}</option>`]
+          .concat(presets.map((p) => `<option value="${esc(p.slot)}"${g.slot === p.slot ? ' selected' : ''}>${esc(p.name)} · ${esc(tt('events.deckCards', '{n} {group} cards', { n: (p.by_group || {})[g.key] || 0, group: g.label }))}</option>`));
+        const src = g.source === 'own' ? tt('events.srcOwn', 'Your deck')
+          : g.source === 'mixed' ? tt('events.srcMixed', '{n} of your cards + starter fill', { n: g.own_count })
+            : tt('events.srcStarter', 'Starter deck');
+        return `<div class="evk-deck-row"><strong>${esc(g.label)}</strong>`
+          + `<select data-evk-deck-group="${esc(g.key)}" aria-label="${esc(g.label)}">${opts.join('')}</select>`
+          + `<span class="admin-events-muted">${esc(src)}</span></div>`;
+      }).join('');
+      body.querySelectorAll('select[data-evk-deck-group]').forEach((sel) => {
+        sel.addEventListener('change', async () => {
+          sel.disabled = true;
+          try {
+            renderDecks(await api.post('events_match_set_deck', { group: sel.getAttribute('data-evk-deck-group'), slot: Number(sel.value) }));
+          } catch (e) {
+            sel.disabled = false;
+            if (msg) msg.textContent = (e && e.message) || '';
+          }
+        });
+      });
+    }
+    if (details) {
+      details.addEventListener('toggle', async () => {
+        if (!details.open || loaded) return;
+        loaded = true;
+        body.textContent = '…';
+        try {
+          renderDecks(await api.post('events_match_decks', {}));
+        } catch (e) {
+          loaded = false;
+          body.textContent = (e && e.message) || '';
+        }
+      });
+    }
   }
 
   // ------------------------------------------------------------------ key toast after normal matches
