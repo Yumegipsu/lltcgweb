@@ -401,6 +401,15 @@
       "orientation": "portrait"
     },
     {
+      "id": "bday-riko-2026",
+      "name": "Riko Birthday Visual 2026",
+      "group": "Aqours",
+      "idol": "Riko",
+      "src": "assets/sleeves/bday-riko-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-09-18"
+    },
+    {
       "id": "br-br-1519",
       "name": "Vol.1519 ラブライブ！サンシャイン!! 『桜内 梨子』Part.5",
       "group": "Aqours",
@@ -463,6 +472,15 @@
       "idol": "Ruby",
       "src": "assets/sleeves/bday-ruby-2025.webp",
       "orientation": "portrait"
+    },
+    {
+      "id": "bday-ruby-2026",
+      "name": "Ruby Birthday Visual 2026",
+      "group": "Aqours",
+      "idol": "Ruby",
+      "src": "assets/sleeves/bday-ruby-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-09-20"
     },
     {
       "id": "br-br-1120",
@@ -1147,6 +1165,15 @@
       "idol": "Sumire",
       "src": "assets/sleeves/bday-sumire-2025.webp",
       "orientation": "portrait"
+    },
+    {
+      "id": "bday-sumire-2026",
+      "name": "Sumire Birthday Visual 2026",
+      "group": "Liella!",
+      "idol": "Sumire",
+      "src": "assets/sleeves/bday-sumire-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-09-27"
     },
     {
       "id": "bday-tomari-2025",
@@ -2093,6 +2120,15 @@
       "orientation": "portrait"
     },
     {
+      "id": "bday-shioriko-2026",
+      "name": "Shioriko Birthday Visual 2026",
+      "group": "Nijigasaki",
+      "idol": "Shioriko",
+      "src": "assets/sleeves/bday-shioriko-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-10-04"
+    },
+    {
       "id": "br-br-3691",
       "name": "Vol.3691 ラブライブ！虹ヶ咲学園スクールアイドル同好会 『三船栞子』 ソロアイドル衣装Vol.2ver",
       "group": "Nijigasaki",
@@ -2165,6 +2201,15 @@
       "orientation": "portrait"
     },
     {
+      "id": "bday-eli-2026",
+      "name": "Eli Birthday Visual 2026",
+      "group": "µ's",
+      "idol": "Eli",
+      "src": "assets/sleeves/bday-eli-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-10-20"
+    },
+    {
       "id": "bday-hanayo-2026",
       "name": "Hanayo Birthday Visual 2026",
       "group": "µ's",
@@ -2195,6 +2240,15 @@
       "idol": "Kotori",
       "src": "assets/sleeves/bday-kotori-2025.webp",
       "orientation": "portrait"
+    },
+    {
+      "id": "bday-kotori-2026",
+      "name": "Kotori Birthday Visual 2026",
+      "group": "µ's",
+      "idol": "Kotori",
+      "src": "assets/sleeves/bday-kotori-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-09-11"
     },
     {
       "id": "bday-maki-2025",
