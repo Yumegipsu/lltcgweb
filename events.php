@@ -9,6 +9,9 @@ require_once __DIR__ . '/coins.php';
 /** Hub Events tab gate — flip to true when player UI should open. */
 const TCG_EVENTS_HUB_ENABLED = false;
 
+/** Rewards that only exist inside Key Events (event wallet / PR pack gift). */
+const TCG_EVENT_KEY_REWARD_TYPES = ['event_keys', 'event_tokens', 'pr_pack'];
+
 const TCG_EVENT_REWARD_TYPES = ['coins', 'star_gems', 'scouting_ticket', 'scouting_ticket_sr', 'scouting_ticket_ur', 'card', 'sleeve', 'playmat'];
 
 function tcgEventsEnsureSchema(?PDO $db = null): void {
@@ -26,7 +29,9 @@ function tcgEventsEnsureSchema(?PDO $db = null): void {
         test_mode INTEGER NOT NULL DEFAULT 0,
         clock_offset INTEGER NOT NULL DEFAULT 0,
         clock_speed INTEGER NOT NULL DEFAULT 1,
-        clock_anchor INTEGER NOT NULL DEFAULT 0
+        clock_anchor INTEGER NOT NULL DEFAULT 0,
+        event_type TEXT NOT NULL DEFAULT \'classic\',
+        config_json TEXT NOT NULL DEFAULT \'{}\'
     )');
     $db->exec('CREATE INDEX IF NOT EXISTS idx_tcg_events_status_window
         ON tcg_events(status, starts_at, ends_at)');
@@ -111,6 +116,11 @@ function tcgEventsEnsureSchema(?PDO $db = null): void {
         tcgDbEnsureColumn($db, 'tcg_events', 'clock_offset', 'INTEGER NOT NULL DEFAULT 0');
         tcgDbEnsureColumn($db, 'tcg_events', 'clock_speed', 'INTEGER NOT NULL DEFAULT 1');
         tcgDbEnsureColumn($db, 'tcg_events', 'clock_anchor', 'INTEGER NOT NULL DEFAULT 0');
+        tcgDbEnsureColumn($db, 'tcg_events', 'event_type', "TEXT NOT NULL DEFAULT 'classic'");
+        tcgDbEnsureColumn($db, 'tcg_events', 'config_json', "TEXT NOT NULL DEFAULT '{}'");
+    }
+    if (function_exists('tcgEventsKeysEnsureSchema')) {
+        tcgEventsKeysEnsureSchema($db);
     }
 }
 
@@ -165,7 +175,27 @@ function tcgEventsViewerIsOwner(string $discordId): bool {
  * @param array<string,mixed> $payload
  */
 function tcgEventsDeliverReward(array $event, string $discordId, string $type, array $payload, string $source, string $ref = ''): void {
-    if (empty($event['test_mode'])) {
+    $isTest = !empty($event['test_mode']);
+    // Event keys and tokens live in the per-event wallet: credited for real in test events too (the wheel needs
+    // them), and also written to the test log so the reward list stays complete.
+    if ($type === 'event_keys' || $type === 'event_tokens') {
+        tcgEventsWalletAdd((string)$event['id'], $discordId, $type === 'event_keys' ? 'keys' : 'tokens', max(1, intval($payload['amount'] ?? 0)));
+        if (!$isTest) {
+            return;
+        }
+    } elseif ($type === 'pr_pack' && !$isTest) {
+        // PR packs are claimed from the Gifts menu so the pack reveal plays.
+        $giftId = 'evt-' . preg_replace('/[^A-Za-z0-9_-]/', '', (string)$event['id'] . '-' . $source . '-' . $ref . '-' . $discordId);
+        if (!function_exists('tcgGiftsOfferToUser')) {
+            require_once __DIR__ . '/gifts.php';
+        }
+        tcgGiftsOfferToUser(
+            $discordId, substr($giftId, 0, 80), 'Event reward: PR pack', (string)($event['name'] ?? 'Event'),
+            [['type' => 'pr_pack', 'amount' => max(1, min(15, intval($payload['amount'] ?? 5)))]]
+        );
+        return;
+    }
+    if (!$isTest) {
         tcgEventsGrantReward($discordId, $type, $payload);
         return;
     }
@@ -215,7 +245,7 @@ function tcgEventsRequireOwner(string $discordId): void {
 
 function tcgEventsNormalizeRewardType(string $type): string {
     $type = strtolower(trim($type));
-    if (!in_array($type, TCG_EVENT_REWARD_TYPES, true)) {
+    if (!in_array($type, TCG_EVENT_REWARD_TYPES, true) && !in_array($type, TCG_EVENT_KEY_REWARD_TYPES, true)) {
         throw new Exception('Invalid reward_type', 400);
     }
     return $type;
@@ -232,8 +262,13 @@ function tcgEventsNormalizeRewardPayload(string $type, array $payload): array {
         case 'scouting_ticket':
         case 'scouting_ticket_sr':
         case 'scouting_ticket_ur':
+        case 'event_keys':
+        case 'event_tokens':
             $amount = max(1, intval($payload['amount'] ?? 0));
             return ['amount' => $amount];
+        case 'pr_pack':
+            // amount = cards in the pack (gift rule: 1-15).
+            return ['amount' => max(1, min(15, intval($payload['amount'] ?? 5)))];
         case 'card':
             $cardNo = trim((string)($payload['card_no'] ?? ''));
             if ($cardNo === '') {
@@ -450,19 +485,47 @@ function tcgEventPointsOnGameFinished(array $state): array {
     $now = tcgEventsNowTs();
     foreach (['p1', 'p2'] as $pid) {
         $amount = tcgEventPointsForFinishedMatch($state, $pid);
-        if ($amount <= 0) {
-            continue;
-        }
         $discordId = tcgPlayerDiscordId($state, $pid);
         if (!$discordId) {
             continue;
         }
-        tcgEnsureUser($discordId);
         foreach ($active as $ev) {
             $eventId = (string)($ev['id'] ?? '');
             if ($eventId === '') {
                 continue;
             }
+            if (tcgEventsIsKeyType($ev)) {
+                // Key Events: normal matches of any mode pay Event Keys, never Event Points.
+                $keys = tcgEventsKeysForFinishedMatch($ev, $state, $pid);
+                if ($keys <= 0) {
+                    continue;
+                }
+                tcgEnsureUser($discordId);
+                try {
+                    $db->prepare(
+                        'INSERT INTO tcg_event_point_grants (room_id, discord_id, event_id, amount, created_at)
+                         VALUES (?, ?, ?, ?, ?)'
+                    )->execute([$roomId, $discordId, $eventId, $keys, $now]);
+                } catch (Throwable $e) {
+                    continue; // already granted
+                }
+                tcgEventsWalletAdd($eventId, $discordId, 'keys', $keys);
+                $out[] = [
+                    'pid' => $pid,
+                    'discord_id' => $discordId,
+                    'event_id' => $eventId,
+                    'amount' => 0,
+                    'keys' => $keys,
+                    'keys_balance' => tcgEventsWalletGet($eventId, $discordId)['keys'],
+                    'balance' => null,
+                    'milestones' => [],
+                ];
+                continue;
+            }
+            if ($amount <= 0) {
+                continue;
+            }
+            tcgEnsureUser($discordId);
             try {
                 $db->prepare(
                     'INSERT INTO tcg_event_point_grants (room_id, discord_id, event_id, amount, created_at)
@@ -596,7 +659,6 @@ function tcgEventsSettleEnded(string $eventId): void {
             } catch (Throwable $e) {
                 error_log('event rank grant failed: ' . $e->getMessage());
             }
-            break;
         }
     }
 }
@@ -634,7 +696,18 @@ function tcgEventsSerializeEvent(array $row, bool $withRewards = false): array {
         'created_at' => intval($row['created_at'] ?? 0),
         'ended_processed_at' => ($row['ended_processed_at'] ?? null) !== null ? intval($row['ended_processed_at']) : null,
         'test_mode' => !empty($row['test_mode']),
+        'event_type' => (string)($row['event_type'] ?? 'classic'),
     ];
+    if (function_exists('tcgEventsIsKeyType') && tcgEventsIsKeyType($row)) {
+        $cfg = tcgEventsConfig($row);
+        $base['config'] = [
+            'keys' => $cfg['keys'],
+            'event_match' => $cfg['event_match'],
+            'wheel' => tcgEventsWheelPublic($row),
+            'token_tiers' => $cfg['token_tiers'],
+        ];
+        $base['config_overrides'] = json_decode((string)($row['config_json'] ?? '{}'), true) ?: new stdClass();
+    }
     if (!empty($row['test_mode'])) {
         $vnow = tcgEventsNowTs($row);
         $base['clock'] = [
@@ -713,6 +786,17 @@ function tcgApiEventsAdminUpsert(array $body): array {
     $existing = $id !== '' ? tcgEventsGetRow($id) : null;
     // A test event keeps its own virtual clock; the flag can only be set when creating the event.
     $testMode = $existing ? !empty($existing['test_mode']) : !empty($body['test_mode']);
+    $eventType = $existing ? (string)($existing['event_type'] ?? 'classic')
+        : (($body['event_type'] ?? '') === 'key_event' ? 'key_event' : 'classic');
+    $configJson = null;
+    if (array_key_exists('config', $body)) {
+        $cfgIn = is_array($body['config']) ? $body['config'] : [];
+        $encoded = json_encode($cfgIn, JSON_UNESCAPED_UNICODE);
+        if ($encoded === false || strlen($encoded) > 60000) {
+            throw new Exception('config too large', 400);
+        }
+        $configJson = $cfgIn === [] ? '{}' : $encoded;
+    }
     $statusNow = $existing && $testMode ? tcgEventsNowTs($existing) : $now;
     $status = 'scheduled';
     if ($statusNow >= $startsAt && $statusNow < $endsAt) {
@@ -724,14 +808,17 @@ function tcgApiEventsAdminUpsert(array $body): array {
     if ($id === '') {
         $id = tcgEventsNewId();
         $db->prepare(
-            'INSERT INTO tcg_events (id, name, banner_url, starts_at, ends_at, status, created_at, updated_at, test_mode)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        )->execute([$id, $name, $banner, $startsAt, $endsAt, $status, $now, $now, $testMode ? 1 : 0]);
+            'INSERT INTO tcg_events (id, name, banner_url, starts_at, ends_at, status, created_at, updated_at, test_mode, event_type, config_json)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        )->execute([$id, $name, $banner, $startsAt, $endsAt, $status, $now, $now, $testMode ? 1 : 0, $eventType, $configJson ?? '{}']);
     } else {
         $db->prepare(
             'UPDATE tcg_events SET name = ?, banner_url = ?, starts_at = ?, ends_at = ?, status = ?, updated_at = ?
              WHERE id = ?'
         )->execute([$name, $banner, $startsAt, $endsAt, $status, $now, $id]);
+        if ($configJson !== null) {
+            $db->prepare('UPDATE tcg_events SET config_json = ? WHERE id = ?')->execute([$configJson, $id]);
+        }
         if ($db->query("SELECT changes()")->fetchColumn() == 0) {
             // verify exists
             $chk = $db->prepare('SELECT 1 FROM tcg_events WHERE id = ?');
@@ -816,6 +903,9 @@ function tcgApiEventsActiveSummary(array $body): array {
     foreach ($active as $ev) {
         $ser = tcgEventsSerializeEvent($ev, true);
         $ser['my_points'] = tcgEventsGetPoints((string)$ev['id'], $uid);
+        if (tcgEventsIsKeyType($ev)) {
+            $ser['wallet'] = tcgEventsWalletGet((string)$ev['id'], $uid);
+        }
         $hasTest = $hasTest || !empty($ev['test_mode']);
         $events[] = $ser;
     }
@@ -896,6 +986,9 @@ function tcgApiEventsMyProgress(array $body): array {
     );
     $claimed->execute([$eventId, $uid]);
     $claimedIds = array_map('intval', $claimed->fetchAll(PDO::FETCH_COLUMN) ?: []);
+    if (tcgEventsIsKeyType($ev)) {
+        $ser['wallet'] = tcgEventsWalletGet($eventId, $uid);
+    }
     return [
         'success' => true,
         'hub_enabled' => TCG_EVENTS_HUB_ENABLED,
@@ -1012,6 +1105,15 @@ function tcgEventsTestLabState(array $event, string $viewerId): array {
     return [
         'event' => tcgEventsSerializeEvent($event, true),
         'leaderboard' => $board,
+        'wallets' => (static function () use ($db, $eventId): array {
+            $w = $db->prepare('SELECT discord_id, keys, tokens, wheel2_left, spins FROM tcg_event_wallet WHERE event_id = ?');
+            $w->execute([$eventId]);
+            $o = [];
+            foreach ($w->fetchAll(PDO::FETCH_ASSOC) ?: [] as $r) {
+                $o[(string)$r['discord_id']] = ['keys' => intval($r['keys']), 'tokens' => intval($r['tokens']), 'wheel2_left' => intval($r['wheel2_left']), 'spins' => intval($r['spins'])];
+            }
+            return $o;
+        })(),
         'puppets' => array_map(static fn($p) => ['discord_id' => (string)$p['discord_id'], 'username' => (string)$p['username']], $puppets),
         'log' => $log,
         'you' => $viewerId,
@@ -1077,6 +1179,66 @@ function tcgApiEventsTestLab(array $body): array {
             $result['simulated'] = $award;
             break;
         }
+        case 'grant_wallet': {
+            if (!tcgEventsIsKeyType($event)) {
+                throw new Exception('Not a Key Event', 400);
+            }
+            $who = $target();
+            foreach (['keys' => 'keys', 'tokens' => 'tokens'] as $field => $col) {
+                $n = intval($body[$field] ?? 0);
+                if ($n !== 0 && abs($n) <= 1000000) {
+                    tcgEventsWalletAdd($eventId, $who, $col, $n);
+                }
+            }
+            break;
+        }
+        case 'simulate_normal_match': {
+            if (!tcgEventsIsKeyType($event)) {
+                throw new Exception('Not a Key Event', 400);
+            }
+            $kind = ($body['kind'] ?? 'ranked') === 'cpu' ? 'cpu' : 'ranked';
+            $res = ($body['result'] ?? 'win') === 'loss' ? 'loss' : 'win';
+            $state = tcgEventsSimulatedMatchState($kind, $res, strtolower((string)($body['cpu_difficulty'] ?? 'normal')));
+            $keys = tcgEventsKeysForFinishedMatch($event, $state, 'p1');
+            $who = $target();
+            tcgEventsWalletAdd($eventId, $who, 'keys', $keys);
+            $result['simulated_keys'] = $keys;
+            break;
+        }
+        case 'simulate_event_match': {
+            if (!tcgEventsIsKeyType($event)) {
+                throw new Exception('Not a Key Event', 400);
+            }
+            $won = ($body['result'] ?? 'win') !== 'loss';
+            $result['event_match'] = tcgEventsRecordEventMatch($event, $target(), $won, !empty($body['vs_cpu']));
+            break;
+        }
+        case 'spin': {
+            $who = $target();
+            $result['spin'] = tcgEventsWheelSpin($event, $who);
+            break;
+        }
+        case 'simulate_spins': {
+            // Run many spins for one player (topping up tokens as needed) and tally what came out: odds tuning.
+            $who = $target();
+            $n = max(1, min(1000, intval($body['count'] ?? 100)));
+            $tally = [];
+            $paid = 0;
+            for ($i = 0; $i < $n; $i++) {
+                $wallet = tcgEventsWalletGet($eventId, $who);
+                $cost = max(1, intval(tcgEventsConfig($event)['wheel']['spin_cost']));
+                if ($wallet['wheel2_left'] < 1 && $wallet['tokens'] < $cost) {
+                    tcgEventsWalletAdd($eventId, $who, 'tokens', $cost);
+                }
+                $r = tcgEventsWheelSpin($event, $who);
+                $paid += $r['paid_tokens'];
+                $key = 'w' . $r['wheel'] . ' ' . $r['reward']['type'] . ($r['reward']['amount'] ? ' x' . $r['reward']['amount'] : '');
+                $tally[$key] = ($tally[$key] ?? 0) + 1;
+            }
+            arsort($tally);
+            $result['spin_tally'] = ['spins' => $n, 'tokens_paid' => $paid, 'results' => $tally];
+            break;
+        }
         case 'clock': {
             $real = time();
             // Fold any running speed-up into the offset first so the changes below stay exact.
@@ -1115,7 +1277,7 @@ function tcgApiEventsTestLab(array $body): array {
             break;
         }
         case 'reset': {
-            foreach (['tcg_event_points', 'tcg_event_point_grants', 'tcg_event_milestone_claims', 'tcg_event_rank_grants', 'tcg_event_test_log'] as $t) {
+            foreach (['tcg_event_points', 'tcg_event_point_grants', 'tcg_event_milestone_claims', 'tcg_event_rank_grants', 'tcg_event_test_log', 'tcg_event_wallet', 'tcg_event_wheel_spins'] as $t) {
                 $db->prepare("DELETE FROM $t WHERE event_id = ?")->execute([$eventId]);
             }
             $db->prepare('UPDATE tcg_events SET ended_processed_at = NULL, updated_at = ? WHERE id = ?')->execute([time(), $eventId]);
@@ -1132,3 +1294,5 @@ function tcgApiEventsTestLab(array $body): array {
     $event = tcgEventsGetRow($eventId) ?? $event;
     return ['success' => true] + $result + tcgEventsTestLabState($event, $uid);
 }
+
+require_once __DIR__ . '/events_keys.php';

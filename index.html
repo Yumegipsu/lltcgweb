@@ -120,6 +120,7 @@ try {
 <link rel="stylesheet" href="client/css/portrait.css?v=105">
 <link rel="stylesheet" href="client/css/social.css?v=32">
 <link rel="stylesheet" href="client/css/admin-events.css?v=3">
+<link rel="stylesheet" href="client/css/event-keys.css?v=1">
 
 </head>
 <body role="application" aria-label="Love Live! TCG web player">
@@ -2458,6 +2459,15 @@ try {
           <label><span data-i18n="admin.field.ends">End (JST)</span>
             <input id="admin-event-ends" type="datetime-local" required>
           </label>
+          <label><span>Event type</span>
+            <select id="admin-event-type">
+              <option value="classic">Classic (Event Points from matches)</option>
+              <option value="key_event">Key Event (keys, tokens, prize wheel)</option>
+            </select>
+          </label>
+          <label data-key-only hidden><span>Config overrides (JSON, optional: keys, event_match, wheel, token_tiers)</span>
+            <textarea id="admin-event-config" rows="5" spellcheck="false" placeholder="{}"></textarea>
+          </label>
           <label class="admin-test-flag">
             <input id="admin-event-test" type="checkbox">
             <span>Test event: only you can see it, real matches never count, rewards are only logged. Set when creating.</span>
@@ -2466,6 +2476,7 @@ try {
             <h4 data-i18n="admin.milestones">Milestones</h4>
             <div id="admin-milestones"></div>
             <button type="button" class="btn-out" id="btn-admin-add-milestone" data-i18n="admin.addMilestone">Add milestone</button>
+            <button type="button" class="btn-out" id="btn-admin-default-template" data-key-only hidden>Fill default milestones and rank rewards</button>
           </div>
           <div class="admin-reward-block">
             <h4 data-i18n="admin.rankRewards">Rank rewards</h4>
@@ -3356,7 +3367,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=255"></script>
+<script src="i18n.js?v=256"></script>
 <script src="log_i18n.js?v=22"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=46"></script>
@@ -3386,7 +3397,8 @@ try {
 <script src="client/js/gacha.js?v=26"></script>
 <script src="client/js/ranked-pr-reward.js?v=8"></script>
 <script src="client/js/missions.js?v=15"></script>
-<script src="client/js/admin-events.js?v=5"></script>
+<script src="client/js/event-keys.js?v=1"></script>
+<script src="client/js/admin-events.js?v=7"></script>
 <script src="client/js/login-bonus.js?v=3"></script>
 <script src="client/js/discord-presence.js?v=12"></script>
 <script src="client/js/presentation-guards.js?v=12"></script>

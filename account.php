@@ -119,6 +119,8 @@ try {
         case 'events_admin_delete':   echo json_encode(tcgApiEventsAdminDelete($body)); break;
         case 'events_admin_force_tick': echo json_encode(tcgApiEventsAdminForceTick($body)); break;
         case 'events_test_lab':       echo json_encode(tcgApiEventsTestLab($body)); break;
+        case 'events_default_template': echo json_encode(tcgApiEventsDefaultTemplate($body)); break;
+        case 'events_wheel_spin':     echo json_encode(tcgApiEventsWheelSpin($body)); break;
         case 'events_active_summary': echo json_encode(tcgApiEventsActiveSummary($body)); break;
         case 'events_leaderboard':    echo json_encode(tcgApiEventsLeaderboard($body)); break;
         case 'events_my_progress':    echo json_encode(tcgApiEventsMyProgress($body)); break;

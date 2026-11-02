@@ -190,7 +190,41 @@
       "refresh": "Refresh",
       "none": "No active events right now.",
       "milestones": "Milestones",
-      "leaderboard": "Leaderboard"
+      "leaderboard": "Leaderboard",
+      "startsIn": "Starts in {t}",
+      "endsIn": "Ends in {t}",
+      "ended": "Event ended",
+      "testBadge": "TEST · only you",
+      "keys": "Event Keys",
+      "tokens": "Event Tokens",
+      "playMatch": "Play event match",
+      "matchCost": "An event match costs {n} keys",
+      "matchSoon": "Event matches are coming soon",
+      "wheelTitle": "Prize Wheel",
+      "wheelBonus": "Bonus Wheel",
+      "spin": "Spin ({n} tokens)",
+      "spinFree": "Free spin ({n} left)",
+      "spinFailed": "Spin failed",
+      "youWon": "You won",
+      "prize": {
+        "tokens": "Event Tokens ×{n}",
+        "keys": "Event Keys ×{n}",
+        "coins": "Coins ×{n}",
+        "gems": "Star Gems ×{n}",
+        "ticket": "Scouting Ticket ×{n}",
+        "ticketSr": "SR+ Ticket ×{n}",
+        "ticketUr": "UR+ Ticket ×{n}",
+        "pack": "PR Pack",
+        "wheel2": "Bonus Wheel! {n} free spins",
+        "card": "Card ×{n}",
+        "sleeve": "Sleeve",
+        "playmat": "Playmat"
+      },
+      "dur": {
+        "d": "{n}d",
+        "h": "{n}h",
+        "m": "{n}m"
+      }
     },
     "missions": {
       "title": "Missions",
@@ -1901,6 +1935,7 @@
       "alreadyInMatch": "You are in a match against another player — finish it before joining the ranked match.",
       "coinsEarned": "+{n} Coins",
       "eventPointsEarned": "+{n} Event Points",
+      "eventKeysEarned": "+{n} Event Keys",
       "leftDeadMatch": "Left a finished/disconnected match.",
       "playmatBought": "Playmat unlocked!",
       "resolveSkillFirst": "Resolve the skill prompt first.",
@@ -2385,6 +2420,42 @@
     }
   },
   "ja": {
+    "events": {
+      "startsIn": "開始まで {t}",
+      "endsIn": "終了まで {t}",
+      "ended": "イベント終了",
+      "testBadge": "テスト · あなただけ",
+      "keys": "イベントキー",
+      "tokens": "イベントトークン",
+      "playMatch": "イベントマッチをプレイ",
+      "matchCost": "イベントマッチにはキーが{n}個必要です",
+      "matchSoon": "イベントマッチは近日公開",
+      "wheelTitle": "プライズルーレット",
+      "wheelBonus": "ボーナスルーレット",
+      "spin": "回す（トークン{n}枚）",
+      "spinFree": "無料で回す（残り{n}回）",
+      "spinFailed": "ルーレットに失敗しました",
+      "youWon": "獲得！",
+      "prize": {
+        "tokens": "イベントトークン ×{n}",
+        "keys": "イベントキー ×{n}",
+        "coins": "コイン ×{n}",
+        "gems": "スタージェム ×{n}",
+        "ticket": "スカウトチケット ×{n}",
+        "ticketSr": "SR+チケット ×{n}",
+        "ticketUr": "UR+チケット ×{n}",
+        "pack": "PRパック",
+        "wheel2": "ボーナスルーレット！無料{n}回",
+        "card": "カード ×{n}",
+        "sleeve": "スリーブ",
+        "playmat": "プレイマット"
+      },
+      "dur": {
+        "d": "{n}日",
+        "h": "{n}時間",
+        "m": "{n}分"
+      }
+    },
     "logo": {
       "tagline": "非公式ウェブプレイヤー"
     },
@@ -4143,6 +4214,7 @@
       "sleeveClaimedFree": "無料スリーブを受け取りました！",
       "coinsEarned": "+{n} コイン",
       "eventPointsEarned": "+{n} イベントポイント",
+      "eventKeysEarned": "+{n} イベントキー",
       "stickerLoadFailed": "シール交換の読み込みに失敗しました",
       "stickerCardsLoadFailed": "カードの読み込みに失敗しました",
       "stickerExchangeFailed": "交換に失敗しました",
@@ -4571,6 +4643,42 @@
     }
   },
   "es": {
+    "events": {
+      "startsIn": "Empieza en {t}",
+      "endsIn": "Termina en {t}",
+      "ended": "Evento finalizado",
+      "testBadge": "PRUEBA · solo tú",
+      "keys": "Llaves de evento",
+      "tokens": "Fichas de evento",
+      "playMatch": "Jugar partida de evento",
+      "matchCost": "Una partida de evento cuesta {n} llaves",
+      "matchSoon": "Las partidas de evento llegarán pronto",
+      "wheelTitle": "Ruleta de premios",
+      "wheelBonus": "Ruleta extra",
+      "spin": "Girar ({n} fichas)",
+      "spinFree": "Giro gratis ({n} restantes)",
+      "spinFailed": "No se pudo girar",
+      "youWon": "Has ganado",
+      "prize": {
+        "tokens": "Fichas de evento ×{n}",
+        "keys": "Llaves de evento ×{n}",
+        "coins": "Monedas ×{n}",
+        "gems": "Gemas estelares ×{n}",
+        "ticket": "Ticket de scouting ×{n}",
+        "ticketSr": "Ticket SR+ ×{n}",
+        "ticketUr": "Ticket UR+ ×{n}",
+        "pack": "Sobre PR",
+        "wheel2": "¡Ruleta extra! {n} giros gratis",
+        "card": "Carta ×{n}",
+        "sleeve": "Funda",
+        "playmat": "Tapete"
+      },
+      "dur": {
+        "d": "{n} d",
+        "h": "{n} h",
+        "m": "{n} min"
+      }
+    },
     "logo": {
       "tagline": "El reproductor web no oficial"
     },
@@ -6107,6 +6215,7 @@
       "alreadyInMatch": "Estás en una partida contra otro jugador: termínala antes de unirte a la partida clasificatoria.",
       "coinsEarned": "+{n} Coins",
       "eventPointsEarned": "+{n} Event Points",
+      "eventKeysEarned": "+{n} llaves de evento",
       "leftDeadMatch": "Left a finished/disconnected match.",
       "playmatBought": "¡Tapete desbloqueado!",
       "signInShop": "Sign in to use the shop.",
@@ -6733,6 +6842,42 @@
     }
   },
   "ko": {
+    "events": {
+      "startsIn": "시작까지 {t}",
+      "endsIn": "종료까지 {t}",
+      "ended": "이벤트 종료",
+      "testBadge": "테스트 · 나만 보임",
+      "keys": "이벤트 열쇠",
+      "tokens": "이벤트 토큰",
+      "playMatch": "이벤트 매치 플레이",
+      "matchCost": "이벤트 매치에는 열쇠 {n}개가 필요해요",
+      "matchSoon": "이벤트 매치는 곧 공개됩니다",
+      "wheelTitle": "상품 룰렛",
+      "wheelBonus": "보너스 룰렛",
+      "spin": "돌리기 (토큰 {n}개)",
+      "spinFree": "무료 돌리기 ({n}회 남음)",
+      "spinFailed": "룰렛 실패",
+      "youWon": "획득!",
+      "prize": {
+        "tokens": "이벤트 토큰 ×{n}",
+        "keys": "이벤트 열쇠 ×{n}",
+        "coins": "코인 ×{n}",
+        "gems": "스타 젬 ×{n}",
+        "ticket": "스카우트 티켓 ×{n}",
+        "ticketSr": "SR+ 티켓 ×{n}",
+        "ticketUr": "UR+ 티켓 ×{n}",
+        "pack": "PR 팩",
+        "wheel2": "보너스 룰렛! 무료 {n}회",
+        "card": "카드 ×{n}",
+        "sleeve": "슬리브",
+        "playmat": "플레이매트"
+      },
+      "dur": {
+        "d": "{n}일",
+        "h": "{n}시간",
+        "m": "{n}분"
+      }
+    },
     "logo": {
       "tagline": "비공식 웹 플레이어"
     },
@@ -8293,6 +8438,7 @@
       "alreadyInMatch": "다른 플레이어와 대전 중입니다. 랭크전에 참가하기 전에 이 대전을 마쳐 주세요.",
       "coinsEarned": "+{n} Coins",
       "eventPointsEarned": "+{n} Event Points",
+      "eventKeysEarned": "+{n} 이벤트 열쇠",
       "leftDeadMatch": "Left a finished/disconnected match.",
       "playmatBought": "플레이매트를 해금했어요!",
       "signInShop": "Sign in to use the shop.",
@@ -8919,6 +9065,42 @@
     }
   },
   "zh": {
+    "events": {
+      "startsIn": "距开始 {t}",
+      "endsIn": "距结束 {t}",
+      "ended": "活动已结束",
+      "testBadge": "测试 · 仅你可见",
+      "keys": "活动钥匙",
+      "tokens": "活动代币",
+      "playMatch": "进行活动对战",
+      "matchCost": "一场活动对战需要 {n} 把钥匙",
+      "matchSoon": "活动对战即将开放",
+      "wheelTitle": "奖品转盘",
+      "wheelBonus": "奖励转盘",
+      "spin": "转动（{n} 代币）",
+      "spinFree": "免费转动（剩余 {n} 次）",
+      "spinFailed": "转动失败",
+      "youWon": "获得",
+      "prize": {
+        "tokens": "活动代币 ×{n}",
+        "keys": "活动钥匙 ×{n}",
+        "coins": "金币 ×{n}",
+        "gems": "星钻 ×{n}",
+        "ticket": "招募券 ×{n}",
+        "ticketSr": "SR+ 招募券 ×{n}",
+        "ticketUr": "UR+ 招募券 ×{n}",
+        "pack": "PR 卡包",
+        "wheel2": "奖励转盘！免费 {n} 次",
+        "card": "卡牌 ×{n}",
+        "sleeve": "卡套",
+        "playmat": "游戏垫"
+      },
+      "dur": {
+        "d": "{n}天",
+        "h": "{n}小时",
+        "m": "{n}分钟"
+      }
+    },
     "logo": {
       "tagline": "非官方网页版"
     },
@@ -10479,6 +10661,7 @@
       "alreadyInMatch": "你正在与其他玩家对战，请先结束这场对战再加入排位赛。",
       "coinsEarned": "+{n} Coins",
       "eventPointsEarned": "+{n} Event Points",
+      "eventKeysEarned": "+{n} 活动钥匙",
       "leftDeadMatch": "Left a finished/disconnected match.",
       "playmatBought": "已解锁游戏垫！",
       "signInShop": "Sign in to use the shop.",
@@ -11105,6 +11288,42 @@
     }
   },
   "th": {
+    "events": {
+      "startsIn": "เริ่มในอีก {t}",
+      "endsIn": "จบในอีก {t}",
+      "ended": "กิจกรรมจบแล้ว",
+      "testBadge": "ทดสอบ · เห็นเฉพาะคุณ",
+      "keys": "กุญแจกิจกรรม",
+      "tokens": "โทเคนกิจกรรม",
+      "playMatch": "เล่นแมตช์กิจกรรม",
+      "matchCost": "แมตช์กิจกรรมใช้กุญแจ {n} ดอก",
+      "matchSoon": "แมตช์กิจกรรมเร็ว ๆ นี้",
+      "wheelTitle": "วงล้อรางวัล",
+      "wheelBonus": "วงล้อโบนัส",
+      "spin": "หมุน (โทเคน {n})",
+      "spinFree": "หมุนฟรี (เหลือ {n})",
+      "spinFailed": "หมุนไม่สำเร็จ",
+      "youWon": "คุณได้รับ",
+      "prize": {
+        "tokens": "โทเคนกิจกรรม ×{n}",
+        "keys": "กุญแจกิจกรรม ×{n}",
+        "coins": "เหรียญ ×{n}",
+        "gems": "สตาร์เจม ×{n}",
+        "ticket": "ตั๋วสเคาท์ ×{n}",
+        "ticketSr": "ตั๋ว SR+ ×{n}",
+        "ticketUr": "ตั๋ว UR+ ×{n}",
+        "pack": "แพ็ค PR",
+        "wheel2": "วงล้อโบนัส! หมุนฟรี {n} ครั้ง",
+        "card": "การ์ด ×{n}",
+        "sleeve": "สลีฟ",
+        "playmat": "เพลย์แมต"
+      },
+      "dur": {
+        "d": "{n} วัน",
+        "h": "{n} ชม.",
+        "m": "{n} นาที"
+      }
+    },
     "logo": {
       "tagline": "เว็บเพลเยอร์อย่างไม่เป็นทางการ"
     },
@@ -12641,6 +12860,7 @@
       "alreadyInMatch": "คุณกำลังแข่งกับผู้เล่นอื่นอยู่ กรุณาจบแมตช์นี้ก่อนเข้าแมตช์แรงก์",
       "coinsEarned": "+{n} Coins",
       "eventPointsEarned": "+{n} Event Points",
+      "eventKeysEarned": "+{n} กุญแจกิจกรรม",
       "leftDeadMatch": "Left a finished/disconnected match.",
       "playmatBought": "ปลดล็อกเพลย์แมตแล้ว!",
       "signInShop": "Sign in to use the shop.",
@@ -13267,6 +13487,42 @@
     }
   },
   "pt": {
+    "events": {
+      "startsIn": "Começa em {t}",
+      "endsIn": "Termina em {t}",
+      "ended": "Evento encerrado",
+      "testBadge": "TESTE · só você",
+      "keys": "Chaves de evento",
+      "tokens": "Fichas de evento",
+      "playMatch": "Jogar partida de evento",
+      "matchCost": "Uma partida de evento custa {n} chaves",
+      "matchSoon": "As partidas de evento chegam em breve",
+      "wheelTitle": "Roleta de prêmios",
+      "wheelBonus": "Roleta bônus",
+      "spin": "Girar ({n} fichas)",
+      "spinFree": "Giro grátis ({n} restantes)",
+      "spinFailed": "Falha ao girar",
+      "youWon": "Você ganhou",
+      "prize": {
+        "tokens": "Fichas de evento ×{n}",
+        "keys": "Chaves de evento ×{n}",
+        "coins": "Moedas ×{n}",
+        "gems": "Star Gems ×{n}",
+        "ticket": "Bilhete de scouting ×{n}",
+        "ticketSr": "Bilhete SR+ ×{n}",
+        "ticketUr": "Bilhete UR+ ×{n}",
+        "pack": "Pacote PR",
+        "wheel2": "Roleta bônus! {n} giros grátis",
+        "card": "Carta ×{n}",
+        "sleeve": "Sleeve",
+        "playmat": "Playmat"
+      },
+      "dur": {
+        "d": "{n} d",
+        "h": "{n} h",
+        "m": "{n} min"
+      }
+    },
     "logo": {
       "tagline": "O Web Player Não Oficial"
     },
@@ -14950,6 +15206,7 @@
       "alreadyInMatch": "Você está em uma partida contra outro jogador — termine-a antes de entrar na partida ranqueada.",
       "coinsEarned": "+{n} Moedas",
       "eventPointsEarned": "+{n} Pontos de Evento",
+      "eventKeysEarned": "+{n} chaves de evento",
       "leftDeadMatch": "Saiu de uma partida encerrada/desconectada.",
       "playmatBought": "Playmat desbloqueado!",
       "resolveSkillFirst": "Resolva a solicitação de habilidade primeiro.",
@@ -15500,6 +15757,42 @@
     }
   },
   "fr": {
+    "events": {
+      "startsIn": "Début dans {t}",
+      "endsIn": "Fin dans {t}",
+      "ended": "Événement terminé",
+      "testBadge": "TEST · visible par vous seul",
+      "keys": "Clés d'événement",
+      "tokens": "Jetons d'événement",
+      "playMatch": "Jouer un match d'événement",
+      "matchCost": "Un match d'événement coûte {n} clés",
+      "matchSoon": "Les matchs d'événement arrivent bientôt",
+      "wheelTitle": "Roue des prix",
+      "wheelBonus": "Roue bonus",
+      "spin": "Tourner ({n} jetons)",
+      "spinFree": "Tour gratuit ({n} restants)",
+      "spinFailed": "Échec du tour",
+      "youWon": "Vous avez gagné",
+      "prize": {
+        "tokens": "Jetons d'événement ×{n}",
+        "keys": "Clés d'événement ×{n}",
+        "coins": "Pièces ×{n}",
+        "gems": "Star Gems ×{n}",
+        "ticket": "Ticket de scouting ×{n}",
+        "ticketSr": "Ticket SR+ ×{n}",
+        "ticketUr": "Ticket UR+ ×{n}",
+        "pack": "Pack PR",
+        "wheel2": "Roue bonus ! {n} tours gratuits",
+        "card": "Carte ×{n}",
+        "sleeve": "Sleeve",
+        "playmat": "Playmat"
+      },
+      "dur": {
+        "d": "{n} j",
+        "h": "{n} h",
+        "m": "{n} min"
+      }
+    },
     "logo": {
       "tagline": "Le lecteur web non officiel"
     },
@@ -17111,6 +17404,7 @@
       "alreadyInMatch": "Vous êtes en match contre un autre joueur — terminez-le avant de rejoindre la partie classée.",
       "coinsEarned": "+ pièces{n}",
       "eventPointsEarned": "+{n} points d'événement",
+      "eventKeysEarned": "+{n} clés d'événement",
       "leftDeadMatch": "Laisser une correspondance terminée/déconnectée.",
       "playmatBought": "Tapis de jeu débloqué !",
       "resolveSkillFirst": "Résoudre d'abord l'appel de compétences.",

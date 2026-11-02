@@ -428,13 +428,21 @@
     if (!grant && Array.isArray(res.event_point_grants) && res.event_point_grants.length) {
       let amount = 0;
       let balance = null;
+      let keys = 0;
+      let keysBalance = null;
       res.event_point_grants.forEach((g) => {
         amount += Number(g.amount || 0) || 0;
+        keys += Number(g.keys || 0) || 0;
         if (g.balance != null) balance = Number(g.balance) || 0;
+        if (g.keys_balance != null) keysBalance = Number(g.keys_balance) || 0;
       });
-      grant = { amount, balance };
+      grant = { amount, balance, keys, keys_balance: keysBalance };
     }
     if (!grant || typeof grant !== 'object') return;
+    const keysEarned = Number(grant.keys || 0);
+    if (keysEarned > 0 && global.TCGEventKeys && typeof global.TCGEventKeys.toastKeys === 'function') {
+      global.TCGEventKeys.toastKeys(keysEarned, grant.keys_balance);
+    }
     const amount = Number(grant.amount || 0);
     if (amount <= 0) return;
     if (typeof global.toastEventPointGrant === 'function') {

@@ -9,6 +9,13 @@
   const TCG_EVENTS_HUB_ENABLED = false;
 
   const REWARD_TYPES = ['coins', 'star_gems', 'scouting_ticket', 'scouting_ticket_sr', 'scouting_ticket_ur', 'card', 'sleeve', 'playmat'];
+  const KEY_REWARD_TYPES = ['event_tokens', 'event_keys', 'pr_pack'];
+  const AMOUNT_TYPES = ['coins', 'star_gems', 'scouting_ticket', 'scouting_ticket_sr', 'scouting_ticket_ur', 'event_tokens', 'event_keys', 'pr_pack'];
+
+  function editorType() {
+    const sel = el('admin-event-type');
+    return sel ? sel.value : 'classic';
+  }
 
   const state = {
     events: [],
@@ -174,6 +181,37 @@
     return `${type} ×${p.amount || 0}`;
   }
 
+  function keyLabSection(res, people) {
+    if (!res.event || res.event.event_type !== 'key_event') return '';
+    const wallets = res.wallets || {};
+    const rows = people.map((p) => {
+      const w = wallets[p.discord_id] || { keys: 0, tokens: 0, wheel2_left: 0, spins: 0 };
+      return `<div class="admin-test-row" data-who="${esc(p.discord_id)}" data-keyrow>
+        <span class="admin-test-name">${esc(p.username)}</span>
+        <span>Keys ${esc(w.keys)} · Tokens ${esc(w.tokens)} · bonus spins ${esc(w.wheel2_left)} · spun ${esc(w.spins)}</span>
+        <button type="button" class="btn-out" data-knorm="ranked:win">Ranked win</button>
+        <button type="button" class="btn-out" data-knorm="ranked:loss">Ranked loss</button>
+        <button type="button" class="btn-out" data-knorm="cpu:win">CPU win</button>
+        <button type="button" class="btn-out" data-knorm="cpu:loss">CPU loss</button>
+        <button type="button" class="btn-out" data-kev="win:pvp">Event win</button>
+        <button type="button" class="btn-out" data-kev="loss:pvp">Event loss</button>
+        <button type="button" class="btn-out" data-kev="win:cpu">Event CPU win</button>
+        <input type="number" data-kgrant-keys value="10" aria-label="keys">
+        <button type="button" class="btn-out" data-kgrant="keys">+Keys</button>
+        <input type="number" data-kgrant-tokens value="100" aria-label="tokens">
+        <button type="button" class="btn-out" data-kgrant="tokens">+Tokens</button>
+        <button type="button" class="btn-out" data-kspin>Spin</button>
+        <button type="button" class="btn-out" data-kspins>Spin x200 tally</button>
+      </div>`;
+    }).join('');
+    const tally = res.spin_tally
+      ? `<pre class="admin-test-log">${esc(res.spin_tally.spins)} spins, ${esc(res.spin_tally.tokens_paid)} tokens paid\n${esc(Object.entries(res.spin_tally.results).map(([k, v]) => `${v}  ${k}`).join('\n'))}</pre>` : '';
+    const last = [res.simulated_keys != null ? `normal match gave ${res.simulated_keys} keys` : '',
+      res.event_match ? `event match: ${JSON.stringify(res.event_match)}` : '',
+      res.spin ? `spin: wheel ${res.spin.wheel} -> ${JSON.stringify(res.spin.reward)}` : ''].filter(Boolean).join(' · ');
+    return `<section><h4>Key Event wallets</h4>${rows}${last ? `<p class="admin-events-meta">${esc(last)}</p>` : ''}${tally}</section>`;
+  }
+
   async function labAct(action, extra) {
     const id = state.testLabId;
     if (!id) return null;
@@ -279,6 +317,7 @@
         </div>
         ${rows}
       </section>
+      ${keyLabSection(res, people)}
       <section>
         <h4>Rewards that would have been granted (${(res.log || []).length})</h4>
         ${log ? `<table class="admin-test-log"><thead><tr><th>Event time (JST)</th><th>Player</th><th>From</th><th>Reward</th></tr></thead><tbody>${log}</tbody></table>`
@@ -312,6 +351,24 @@
         const amount = Number((row.querySelector('[data-award-amount]') || {}).value || 0);
         void labAct('award', { discord_id: who, points: amount });
       });
+    });
+    box.querySelectorAll('[data-keyrow]').forEach((row) => {
+      const who = row.getAttribute('data-who');
+      const num = (sel) => Number((row.querySelector(sel) || {}).value || 0);
+      row.querySelectorAll('[data-knorm]').forEach((b) => b.addEventListener('click', () => {
+        const [kind, result] = b.getAttribute('data-knorm').split(':');
+        void labAct('simulate_normal_match', { discord_id: who, kind, result });
+      }));
+      row.querySelectorAll('[data-kev]').forEach((b) => b.addEventListener('click', () => {
+        const [result, mode] = b.getAttribute('data-kev').split(':');
+        void labAct('simulate_event_match', { discord_id: who, result, vs_cpu: mode === 'cpu' });
+      }));
+      row.querySelectorAll('[data-kgrant]').forEach((b) => b.addEventListener('click', () => {
+        const field = b.getAttribute('data-kgrant');
+        void labAct('grant_wallet', { discord_id: who, [field]: num(field === 'keys' ? '[data-kgrant-keys]' : '[data-kgrant-tokens]') });
+      }));
+      row.querySelector('[data-kspin]')?.addEventListener('click', () => void labAct('spin', { discord_id: who }));
+      row.querySelector('[data-kspins]')?.addEventListener('click', () => void labAct('simulate_spins', { discord_id: who, count: 200 }));
     });
     box.querySelector('[data-reset]')?.addEventListener('click', () => {
       if (!window.confirm('Wipe all points, claims and the reward log for this test event?')) return;
@@ -358,6 +415,17 @@
     el('admin-event-banner').value = ev ? (ev.banner_url || '') : '';
     el('admin-event-starts').value = ev ? (ev.starts_at_jst || '') : '';
     el('admin-event-ends').value = ev ? (ev.ends_at_jst || '') : '';
+    const typeSel = el('admin-event-type');
+    if (typeSel) {
+      typeSel.value = ev && ev.event_type === 'key_event' ? 'key_event' : 'classic';
+      typeSel.disabled = !!ev; // the type is fixed when the event is created
+    }
+    const cfgBox = el('admin-event-config');
+    if (cfgBox) {
+      const ov = ev && ev.config_overrides && Object.keys(ev.config_overrides).length ? ev.config_overrides : null;
+      cfgBox.value = ov ? JSON.stringify(ov, null, 2) : '';
+    }
+    syncTypeUi();
     const testBox = el('admin-event-test');
     if (testBox) {
       testBox.checked = !!(ev && ev.test_mode);
@@ -372,6 +440,24 @@
     const form = el('admin-event-form-wrap');
     if (form) form.hidden = false;
     el('admin-event-form-title').textContent = ev ? `Edit ${ev.name}` : 'New event';
+  }
+
+  function syncTypeUi() {
+    const key = editorType() === 'key_event';
+    document.querySelectorAll('[data-key-only]').forEach((n) => { n.hidden = !key; });
+  }
+
+  async function fillDefaultTemplate() {
+    setErr('');
+    try {
+      const res = await accountPost('events_default_template', {});
+      const ms = (res.milestones || []).map((m) => rewardFromServer(m, 'milestone'));
+      const rk = (res.rank_rewards || []).map((r) => rewardFromServer(r, 'rank'));
+      renderRewardEditor('admin-milestones', ms.length ? ms : [emptyRewardRow('milestone')], 'milestone');
+      renderRewardEditor('admin-ranks', rk.length ? rk : [emptyRewardRow('rank')], 'rank');
+    } catch (e) {
+      setErr(e && e.message ? e.message : 'Could not load the default template');
+    }
   }
 
   function renderRewardEditor(containerId, rows, kind) {
@@ -394,7 +480,7 @@
   }
 
   function rewardRowHtml(row, i, kind) {
-    const typeOpts = REWARD_TYPES.map((t) =>
+    const typeOpts = (editorType() === 'key_event' ? KEY_REWARD_TYPES.concat(REWARD_TYPES) : REWARD_TYPES).map((t) =>
       `<option value="${t}"${row.reward_type === t ? ' selected' : ''}>${t}</option>`
     ).join('');
     let fields = '';
@@ -406,7 +492,7 @@
     }
     fields += `<label>Type <select data-reward-type data-f="reward_type">${typeOpts}</select></label>`;
     const rt = row.reward_type;
-    if (rt === 'coins' || rt === 'star_gems' || rt === 'scouting_ticket' || rt === 'scouting_ticket_sr' || rt === 'scouting_ticket_ur') {
+    if (AMOUNT_TYPES.includes(rt)) {
       fields += `<label>Amount <input type="number" min="1" data-f="amount" value="${esc(row.amount)}"></label>`;
     } else if (rt === 'card') {
       fields += `<label>Card no <input data-f="card_no" value="${esc(row.card_no)}" placeholder="LL01-001"></label>`;
@@ -454,7 +540,7 @@
         base.rank_from = Math.max(1, Number(row.rank_from) || 1);
         base.rank_to = Math.max(base.rank_from, Number(row.rank_to) || base.rank_from);
       }
-      if (row.reward_type === 'coins' || row.reward_type === 'star_gems' || row.reward_type === 'scouting_ticket' || row.reward_type === 'scouting_ticket_sr' || row.reward_type === 'scouting_ticket_ur') {
+      if (AMOUNT_TYPES.includes(row.reward_type)) {
         base.reward_payload = { amount: Math.max(1, Number(row.amount) || 1) };
       } else if (row.reward_type === 'card') {
         base.reward_payload = { card_no: String(row.card_no || '').trim(), qty: Math.max(1, Number(row.qty) || 1) };
@@ -478,9 +564,21 @@
       starts_at_jst: (el('admin-event-starts').value || '').trim(),
       ends_at_jst: (el('admin-event-ends').value || '').trim(),
       test_mode: !!(el('admin-event-test') && el('admin-event-test').checked),
+      event_type: editorType(),
       milestones: serializeRewards(collectRewardRows('admin-milestones', 'milestone')),
       rank_rewards: serializeRewards(collectRewardRows('admin-ranks', 'rank')),
     };
+    const cfgText = ((el('admin-event-config') || {}).value || '').trim();
+    if (body.event_type === 'key_event' && cfgText) {
+      try {
+        body.config = JSON.parse(cfgText);
+      } catch (e2) {
+        setErr('Config overrides are not valid JSON');
+        return;
+      }
+    } else if (body.event_type === 'key_event') {
+      body.config = {};
+    }
     try {
       await accountPost('events_admin_upsert', body);
       el('admin-event-form-wrap').hidden = true;
@@ -523,16 +621,22 @@
         return;
       }
       const parts = [];
+      const keyEvents = [];
       for (const ev of events) {
         let lbRows = [];
         try {
           const lb = await accountPost('events_leaderboard', { event_id: ev.id, limit: 20 });
           lbRows = Array.isArray(lb.rows) ? lb.rows : [];
         } catch (e) { /* ignore */ }
+        if (ev.event_type === 'key_event' && global.TCGEventKeys) {
+          keyEvents.push(ev);
+          parts.push(global.TCGEventKeys.cardHtml(ev, lbRows));
+          continue;
+        }
         const banner = ev.banner_url
           ? `<img class="events-banner" src="${esc(ev.banner_url)}" alt="">`
           : '';
-        const ms = (ev.milestones || []).map((m) => {
+        const ms =(ev.milestones || []).map((m) => {
           const hit = Number(ev.my_points || 0) >= Number(m.threshold_points || 0);
           return `<li class="${hit ? 'is-hit' : ''}">${esc(m.threshold_points)} EP → ${esc(m.reward_type)}</li>`;
         }).join('');
@@ -551,6 +655,9 @@
         </section>`);
       }
       root.innerHTML = parts.join('');
+      for (const ev of keyEvents) {
+        global.TCGEventKeys.bind(root, ev, { post: accountPost, reload: loadPlayerEvents });
+      }
     } catch (e) {
       root.innerHTML = `<p class="lerr">${esc(e && e.message ? e.message : 'Failed to load')}</p>`;
     }
@@ -577,6 +684,12 @@
       renderRewardEditor('admin-ranks', rows, 'rank');
     });
     el('admin-event-form')?.addEventListener('submit', (e) => void saveEvent(e));
+    el('admin-event-type')?.addEventListener('change', () => {
+      syncTypeUi();
+      renderRewardEditor('admin-milestones', collectRewardRows('admin-milestones', 'milestone'), 'milestone');
+      renderRewardEditor('admin-ranks', collectRewardRows('admin-ranks', 'rank'), 'rank');
+    });
+    el('btn-admin-default-template')?.addEventListener('click', () => void fillDefaultTemplate());
 
     el('btn-hub-events')?.addEventListener('click', () => openEvents());
     el('btn-events-back')?.addEventListener('click', () => closeEventsToHub());

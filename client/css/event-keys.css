@@ -1,0 +1,47 @@
+/* Key Event card, prize wheel and key toast */
+.evk-card .evk-wallet { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 14px; }
+.evk-chip {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 8px;
+  border-radius: 999px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .18);
+}
+.evk-chip b { font-size: 1.15rem; }
+.evk-chip small { opacity: .75; }
+.evk-chip--ep { padding-left: 14px; }
+.evk-match { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0 10px; }
+.evk-wheel-wrap { position: relative; width: min(420px, 100%); aspect-ratio: 1; margin: 8px auto; }
+.evk-wheel {
+  width: 100%; height: 100%; border-radius: 50%; display: block;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, .85), 0 8px 26px rgba(0, 0, 0, .45);
+}
+.evk-pointer {
+  position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 2;
+  width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent;
+  border-top: 26px solid #ff4f8b; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .5));
+}
+.evk-result {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+.evk-result[hidden] { display: none; }
+.evk-result-inner {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 22px;
+  background: rgba(20, 14, 34, .92); border: 2px solid #ffd86b; border-radius: 16px;
+  animation: evk-pop .35s ease-out;
+}
+.evk-result-inner strong { font-size: 1.15rem; }
+@keyframes evk-pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.evk-spin-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; margin-bottom: 14px; }
+.evk-ico { vertical-align: middle; margin-right: 6px; }
+.evk-ms li { display: flex; justify-content: space-between; gap: 10px; }
+.evk-ms-reward { display: inline-flex; align-items: center; }
+#evk-toast-host {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 9999;
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+}
+.evk-toast {
+  display: flex; align-items: center; gap: 10px; padding: 8px 18px 8px 10px; border-radius: 999px;
+  background: rgba(20, 14, 34, .94); border: 1px solid #ffd86b; color: #fff; font-weight: 700;
+  animation: evk-pop .3s ease-out; transition: opacity .5s;
+}
+.evk-toast.is-out { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { .evk-result-inner, .evk-toast { animation: none; } }
