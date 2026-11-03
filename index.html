@@ -16537,7 +16537,7 @@ function syncLeaderboardPastChrome(data) {
   const viewingPast = !!(data?.season_archived && selected);
   btn.classList.toggle('is-on', viewingPast);
   btn.textContent = viewingPast
-    ? t('leaderboard.pastSeasonViewing', 'Past: {label}', {
+    ? t('leaderboard.pastSeasonViewing', {
       label: (window.TCGSeason && typeof TCGSeason.seasonLabel === 'function' && data?.season)
         ? TCGSeason.seasonLabel(data.season)
         : (data?.season?.label || selected),
@@ -16591,7 +16591,7 @@ function syncLeaderboardBoardChrome() {
         || null;
       if (season && season.archived) {
         meta.hidden = false;
-        meta.textContent = t('leaderboard.pastSeasonFinal', 'Final standings — {label}', {
+        meta.textContent = t('leaderboard.pastSeasonFinal', {
           label: (typeof TCGSeason.seasonLabel === 'function')
             ? TCGSeason.seasonLabel(season)
             : (season.label || season.season_id || ''),
