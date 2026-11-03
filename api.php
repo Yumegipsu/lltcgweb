@@ -2235,7 +2235,7 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     } else {
         $state = resolveOnEnterAbilities($state, $pid, $card, $targetSlot);
     }
-    $state = nijiOnMemberEntered($state, $pid, $card);
+    // nijiOnMemberEntered runs inside resolveOnEnterAbilities (also after a deferred leave prompt).
     if (!empty($batonReplacedDrawListeners)) {
         $state = batch99OnMemberEnteredBatonReplaced($state, $pid, $card, $batonReplacedDrawListeners);
     }

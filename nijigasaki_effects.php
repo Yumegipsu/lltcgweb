@@ -2314,7 +2314,13 @@ function nijiOnMemberEntered(array $state, string $pid, array $entered): array {
             $mName = $mbr['name_en'] ?? $mbr['name'] ?? 'Member';
             if ($type === 'draw_on_stage_cost_enter' && $enteredCost === intval($ab['cost'] ?? 10)) {
                 if (($mbr['instance_id'] ?? '') === ($entered['instance_id'] ?? '')) continue;
+                if (!empty($ab['once_per_turn']) && isAbilityUsed($p['stage'][$slot], $abilityIdx)) {
+                    continue;
+                }
                 $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
+                if (!empty($ab['once_per_turn'])) {
+                    markAbilityUsed($p['stage'][$slot], $abilityIdx);
+                }
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$mName] drew $drawn (cost {$ab['cost']} Member entered).");
             }

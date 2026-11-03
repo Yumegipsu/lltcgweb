@@ -8071,7 +8071,10 @@ function resolveOnEnterAbilities(array $state, string $pid, array $member, strin
     // has no On Enter abilities (e.g. SD Kaho with only Automatic/on-leave text).
     $state = hsResolveAutoOnOtherMemberEnter($state, $pid, $member);
     $state = hsPb1ExtendAutoOnOtherMemberEnter($state, $pid, $member);
-    return bp7ResolveOnEnterAutos($state, $pid, $member);
+    $state = bp7ResolveOnEnterAutos($state, $pid, $member);
+    // "When a Member enters your Stage" listeners (Ai cost-10 draw, enter counts, …) must run
+    // for every entry — Waiting Room / deck / effect placements too, not only hand plays (#330).
+    return nijiOnMemberEntered($state, $pid, $member);
 }
 
 /**
