@@ -424,6 +424,188 @@
     global.startPoll();
   }
 
+  // ------------------------------------------------------------------ event deck editor
+
+  const DECK_TYPES = { member: 'メンバー', live: 'ライブ', energy: 'エネルギー' };
+
+  /**
+   * Modal editor for one group's event deck. Resolves true when a deck was saved.
+   * Uses the main client's card tiles and collection (global A / G) so cards look and behave as in the deck builder.
+   */
+  async function openDeckEditor(api, groupKey) {
+    const A = global.A;
+    const G = global.G;
+    if (!A || !G || typeof global.appendDeckCardTile !== 'function') throw new Error('Deck editor unavailable');
+    if (!Object.keys(G.allCards || {}).length && typeof global.loadCards === 'function') await global.loadCards();
+    if (typeof global.refreshCollection === 'function') await global.refreshCollection();
+    const res = await api.post('events_match_deck_get', { group: groupKey });
+    const lim = res.limits;
+    const groupName = res.group.name;
+    const cardOf = (no) => global.enrichCard(G.allCards[no]);
+
+    let main = (res.main || []).slice();
+    let energy = (res.energy || []).slice();
+    let tab = 'member';
+    let dirty = false;
+
+    return new Promise((resolve) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'evk-deck-modal';
+      wrap.setAttribute('role', 'dialog');
+      wrap.setAttribute('aria-modal', 'true');
+      wrap.innerHTML = `<div class="evk-deck-panel">
+        <div class="evk-deck-head">
+          <h3>${esc(tt('events.deckEditTitle', '{group} event deck', { group: res.group.label }))}</h3>
+          <button type="button" class="btn-ghost" data-act="close">${esc(tt('events.deckClose', 'Close'))}</button>
+        </div>
+        <p class="admin-events-muted">${esc(tt('events.deckHintEdit', 'Tap a card to add it, tap a card in the deck to remove it. Empty slots are filled from the {group} starter deck when the match starts.', { group: res.group.label }))}</p>
+        <div class="evk-deck-bar">
+          <span class="evk-deck-stats" data-stats></span>
+          <select data-import aria-label="${esc(tt('events.deckImport', 'Import saved deck'))}"></select>
+          <button type="button" class="btn-ghost" data-act="clear">${esc(tt('events.deckClear', 'Clear'))}</button>
+          <button type="button" class="btn-grad" data-act="save">${esc(tt('events.deckSave', 'Save deck'))}</button>
+        </div>
+        <p class="evk-deck-err" data-err></p>
+        <h4>${esc(tt('events.deckCurrent', 'Event deck'))}</h4>
+        <div class="deck-card-grid deck-card-grid--deck evk-deck-grid" data-deck></div>
+        <div class="evk-deck-tabs">
+          <button type="button" data-tab="member"></button><button type="button" data-tab="live"></button><button type="button" data-tab="energy"></button>
+        </div>
+        <div class="deck-card-grid deck-card-grid--pool evk-deck-grid" data-pool></div>
+      </div>`;
+      document.body.appendChild(wrap);
+      const q = (s) => wrap.querySelector(s);
+      const errEl = q('[data-err]');
+
+      function counts() {
+        const members = main.filter((n) => cardOf(n)?.card_type === DECK_TYPES.member).length;
+        return { members, lives: main.length - members };
+      }
+      function identityCount(no, list) {
+        const id = global.deckCopyIdentity(no);
+        return list.filter((n) => global.deckCopyIdentity(n) === id).length;
+      }
+      function addCard(no, type) {
+        errEl.textContent = '';
+        const c = counts();
+        if (type === DECK_TYPES.energy) {
+          if (energy.length >= lim.energy || energy.filter((n) => n === no).length >= global.ownedQtyForCardNo(no)) return;
+          energy.push(no);
+        } else {
+          if (main.filter((n) => n === no).length >= global.ownedQtyForCardNo(no)) return;
+          if (identityCount(no, main) >= DECK_MAX_COPIES) {
+            errEl.textContent = tt('events.deckCopyCap', 'You can have up to {n} copies of the same card.', { n: DECK_MAX_COPIES });
+            return;
+          }
+          if ((type === DECK_TYPES.member && c.members >= lim.members) || (type === DECK_TYPES.live && c.lives >= lim.lives)) return;
+          const pts = global.deckLovecaPointForCard(no);
+          if (pts > 0 && global.deckMainLovecaPoints(main) + pts > LOVECA_POINT_LIMIT) {
+            errEl.textContent = tt('events.deckPointCap', 'Loveca point limit reached ({n}).', { n: LOVECA_POINT_LIMIT });
+            return;
+          }
+          main.push(no);
+        }
+        dirty = true;
+        render();
+      }
+      function removeCard(no, type) {
+        const list = type === DECK_TYPES.energy ? energy : main;
+        const i = list.indexOf(no);
+        if (i >= 0) { list.splice(i, 1); dirty = true; errEl.textContent = ''; render(); }
+      }
+      function tiles(host, entries, onTap, inDeck) {
+        host.replaceChildren();
+        entries.forEach(({ no, qty }) => {
+          const c = cardOf(no);
+          if (c) global.appendDeckCardTile(host, c, qty, () => onTap(no, c.card_type), { inDeck });
+        });
+      }
+      function grouped(list) {
+        const m = new Map();
+        list.forEach((no) => m.set(no, (m.get(no) || 0) + 1));
+        const rank = (no) => { const t = cardOf(no)?.card_type; return t === DECK_TYPES.member ? 0 : t === DECK_TYPES.live ? 1 : 2; };
+        return [...m.entries()].map(([no, qty]) => ({ no, qty })).sort((a, b) => rank(a.no) - rank(b.no) || (a.no < b.no ? -1 : 1));
+      }
+      function render() {
+        const c = counts();
+        q('[data-stats]').textContent = tt('events.deckCount', 'Members {m}/{mm} · Lives {l}/{ll} · Energy {e}/{ee}', {
+          m: c.members, mm: lim.members, l: c.lives, ll: lim.lives, e: energy.length, ee: lim.energy,
+        });
+        tiles(q('[data-deck]'), grouped(main.concat(energy)), removeCard, true);
+        const tabLabels = { member: tt('events.deckMembers', 'Members'), live: tt('events.deckLives', 'Lives'), energy: tt('events.deckEnergy', 'Energy') };
+        wrap.querySelectorAll('[data-tab]').forEach((b) => {
+          b.textContent = tabLabels[b.getAttribute('data-tab')];
+          b.classList.toggle('active', b.getAttribute('data-tab') === tab);
+        });
+        const want = DECK_TYPES[tab];
+        const seen = new Set();
+        const pool = [];
+        (A.collection || []).forEach((row) => {
+          const c0 = global.enrichCard(row.card || G.allCards[row.card_no]);
+          if (!c0 || seen.has(c0.card_no) || c0.card_type !== want) return;
+          if (want !== DECK_TYPES.energy && c0.group !== groupName) return;
+          seen.add(c0.card_no);
+          const inDeck = (want === DECK_TYPES.energy ? energy : main).filter((n) => n === c0.card_no).length;
+          const left = global.ownedQtyForCardNo(c0.card_no) - inDeck;
+          if (left > 0) pool.push({ no: c0.card_no, qty: left });
+        });
+        tiles(q('[data-pool]'), pool, addCard, false);
+        if (!pool.length) {
+          const empty = document.createElement('p');
+          empty.className = 'admin-events-muted';
+          empty.textContent = tt('events.deckPoolEmpty', 'No more cards to add here.');
+          q('[data-pool]').appendChild(empty);
+        }
+      }
+
+      const imp = q('[data-import]');
+      imp.innerHTML = `<option value="">${esc(tt('events.deckImport', 'Import saved deck'))}</option>`
+        + `<option value="starter">${esc(tt('events.deckStarter', 'Starter deck only'))}</option>`
+        + (res.presets || []).map((p) => `<option value="${esc(p.slot)}">${esc(p.name)}</option>`).join('');
+      imp.addEventListener('change', () => {
+        const v = imp.value;
+        imp.value = '';
+        if (!v) return;
+        const src = v === 'starter' ? res.starter : (res.presets || []).find((p) => String(p.slot) === v);
+        if (!src) return;
+        main = [];
+        energy = [];
+        (src.main || []).forEach((no) => { if (cardOf(no)) addCard(no, cardOf(no).card_type); });
+        (src.energy || []).forEach((no) => { if (cardOf(no)) addCard(no, DECK_TYPES.energy); });
+        dirty = true;
+        errEl.textContent = '';
+        render();
+      });
+      wrap.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => { tab = b.getAttribute('data-tab'); render(); }));
+
+      function close(saved) {
+        document.removeEventListener('keydown', onKey);
+        wrap.remove();
+        resolve(saved);
+      }
+      function onKey(e) { if (e.key === 'Escape') attemptClose(); }
+      function attemptClose() {
+        if (dirty && !global.confirm(tt('events.deckDiscard', 'Discard your changes to this deck?'))) return;
+        close(false);
+      }
+      document.addEventListener('keydown', onKey);
+      q('[data-act="close"]').addEventListener('click', attemptClose);
+      q('[data-act="clear"]').addEventListener('click', () => { main = []; energy = []; dirty = true; errEl.textContent = ''; render(); });
+      q('[data-act="save"]').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        try {
+          await api.post('events_match_deck_save', { group: groupKey, main, energy });
+          close(true);
+        } catch (err) {
+          btn.disabled = false;
+          errEl.textContent = (err && err.message) || '';
+        }
+      });
+      render();
+    });
+  }
+
   function bindEventMatch(card, ev, api) {
     const play = card.querySelector('[data-evk-play]');
     const queue = card.querySelector('[data-evk-queue]');
@@ -507,25 +689,24 @@
     const body = card.querySelector('[data-evk-decks-body]');
     let loaded = false;
     function renderDecks(res) {
-      const presets = res.presets || [];
       body.innerHTML = (res.groups || []).map((g) => {
-        const opts = [`<option value="0"${g.slot === 0 ? ' selected' : ''}>${esc(tt('events.deckStarter', 'Starter deck only'))}</option>`]
-          .concat(presets.map((p) => `<option value="${esc(p.slot)}"${g.slot === p.slot ? ' selected' : ''}>${esc(p.name)} · ${esc(tt('events.deckCards', '{n} {group} cards', { n: (p.by_group || {})[g.key] || 0, group: g.label }))}</option>`));
         const src = g.source === 'own' ? tt('events.srcOwn', 'Your deck')
           : g.source === 'mixed' ? tt('events.srcMixed', '{n} of your cards + starter fill', { n: g.own_count })
             : tt('events.srcStarter', 'Starter deck');
         return `<div class="evk-deck-row"><strong>${esc(g.label)}</strong>`
-          + `<select data-evk-deck-group="${esc(g.key)}" aria-label="${esc(g.label)}">${opts.join('')}</select>`
-          + `<span class="admin-events-muted">${esc(src)}</span></div>`;
+          + `<span class="admin-events-muted">${esc(src)}</span>`
+          + `<button type="button" class="btn-ghost" data-evk-deck-edit="${esc(g.key)}">${esc(tt('events.deckEdit', 'Edit deck'))}</button></div>`;
       }).join('');
-      body.querySelectorAll('select[data-evk-deck-group]').forEach((sel) => {
-        sel.addEventListener('change', async () => {
-          sel.disabled = true;
+      body.querySelectorAll('[data-evk-deck-edit]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          btn.disabled = true;
           try {
-            renderDecks(await api.post('events_match_set_deck', { group: sel.getAttribute('data-evk-deck-group'), slot: Number(sel.value) }));
+            const done = await openDeckEditor(api, btn.getAttribute('data-evk-deck-edit'));
+            if (done) renderDecks(await api.post('events_match_decks', {}));
           } catch (e) {
-            sel.disabled = false;
             if (msg) msg.textContent = (e && e.message) || '';
+          } finally {
+            btn.disabled = false;
           }
         });
       });

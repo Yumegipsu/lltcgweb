@@ -55,6 +55,12 @@ function tcgEventsMatchEnsureSchema(PDO $db): void {
         updated_at INTEGER NOT NULL DEFAULT 0,
         PRIMARY KEY (discord_id, group_key)
     )');
+    $cols = array_column($db->query('PRAGMA table_info(tcg_event_decks)')->fetchAll(PDO::FETCH_ASSOC), 'name');
+    foreach (['main_deck', 'energy_deck'] as $col) {
+        if (!in_array($col, $cols, true)) {
+            $db->exec('ALTER TABLE tcg_event_decks ADD COLUMN ' . $col . ' TEXT');
+        }
+    }
     $db->exec('CREATE TABLE IF NOT EXISTS tcg_event_tickets (
         id TEXT PRIMARY KEY,
         event_id TEXT NOT NULL,
@@ -276,6 +282,24 @@ function tcgEventsMatchPresetLists(string $uid, int $slot): ?array {
 }
 
 /**
+ * The deck a player built for one group in the event deck editor, falling back to a linked saved deck.
+ *
+ * @return array{main:list<string>,energy:list<string>}|null
+ */
+function tcgEventsMatchSavedLists(string $uid, string $groupKey, int $linkedSlot): ?array {
+    $stmt = tcgDb()->prepare('SELECT main_deck, energy_deck FROM tcg_event_decks WHERE discord_id = ? AND group_key = ?');
+    $stmt->execute([$uid, $groupKey]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($row && $row['main_deck'] !== null) {
+        return [
+            'main' => array_values(array_map('strval', json_decode((string)$row['main_deck'], true) ?: [])),
+            'energy' => array_values(array_map('strval', json_decode((string)($row['energy_deck'] ?? '[]'), true) ?: [])),
+        ];
+    }
+    return tcgEventsMatchPresetLists($uid, $linkedSlot);
+}
+
+/**
  * All five groups' decks for a player, keyed by group key.
  *
  * @return array<string,array{main:list<string>,energy:list<string>,source:string,own_count:int}>
@@ -288,7 +312,7 @@ function tcgEventsMatchBuildAllDecks(string $uid): array {
     $slots = tcgEventsMatchSlots($uid);
     $out = [];
     foreach (tcgEventsMatchGroups() as $g) {
-        $saved = tcgEventsMatchPresetLists($uid, intval($slots[$g['key']] ?? 0));
+        $saved = tcgEventsMatchSavedLists($uid, $g['key'], intval($slots[$g['key']] ?? 0));
         $out[$g['key']] = tcgEventsMatchAssembleDeck($cardsData, $cardMap, $owned, $saved, $g);
     }
     return $out;
@@ -336,10 +360,142 @@ function tcgApiEventsMatchSetDeck(array $body): array {
     if ($slot > 0 && tcgEventsMatchPresetLists($uid, $slot) === null) {
         throw new Exception('Deck not found', 404);
     }
-    $db->prepare('INSERT INTO tcg_event_decks (discord_id, group_key, preset_slot, updated_at) VALUES (?, ?, ?, ?)
-        ON CONFLICT(discord_id, group_key) DO UPDATE SET preset_slot = excluded.preset_slot, updated_at = excluded.updated_at')
+    $db->prepare('INSERT INTO tcg_event_decks (discord_id, group_key, preset_slot, main_deck, energy_deck, updated_at) VALUES (?, ?, ?, NULL, NULL, ?)
+        ON CONFLICT(discord_id, group_key) DO UPDATE SET preset_slot = excluded.preset_slot, main_deck = NULL, energy_deck = NULL, updated_at = excluded.updated_at')
         ->execute([$uid, $g['key'], $slot, time()]);
     return tcgApiEventsMatchDecks($body);
+}
+
+/**
+ * Everything the editor needs for one group: the current deck lists, the group's starter deck, and the player's
+ * saved decks that contain cards of the group (to import from).
+ *
+ * @param array<string,mixed> $body
+ */
+function tcgApiEventsMatchDeckGet(array $body): array {
+    require_once __DIR__ . '/booster.php';
+    require_once __DIR__ . '/deckgen.php';
+    $uid = tcgRequireAuthUser($body);
+    tcgEventsMatchEnsureSchema(tcgDb());
+    $g = tcgEventsMatchGroupByKey((string)($body['group'] ?? ''));
+    if (!$g) {
+        throw new Exception('Unknown group', 400);
+    }
+    $cardsData = tcgLoadCardsData();
+    $cardMap = tcgBuildCardMap($cardsData);
+    $owned = tcgGetCollectionMap($uid);
+    $slots = tcgEventsMatchSlots($uid);
+    $saved = tcgEventsMatchSavedLists($uid, $g['key'], intval($slots[$g['key']] ?? 0)) ?? ['main' => [], 'energy' => []];
+    $assembled = tcgEventsMatchAssembleDeck($cardsData, $cardMap, $owned, $saved, $g);
+    $inGroup = fn($no): bool => ($cardMap[(string)$no]['group'] ?? '') === $g['group'];
+
+    $starter = ['main' => [], 'energy' => []];
+    foreach ($g['starters'] as $sk) {
+        $lists = tcgGetStarterDeckLists($sk, $cardsData);
+        $starter['main'] = array_merge($starter['main'], $lists['main_deck'] ?? []);
+        $starter['energy'] = array_merge($starter['energy'], $lists['energy_deck'] ?? []);
+    }
+
+    $presets = [];
+    $stmt = tcgDb()->prepare('SELECT slot, name, main_deck, energy_deck FROM tcg_deck_presets WHERE discord_id = ? ORDER BY slot ASC');
+    $stmt->execute([$uid]);
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $nos = array_values(array_filter(json_decode((string)$r['main_deck'], true) ?: [], $inGroup));
+        if ($nos) {
+            $presets[] = [
+                'slot' => intval($r['slot']),
+                'name' => tcgNormalizeDeckPresetName((string)$r['name']),
+                'main' => $nos,
+                'energy' => json_decode((string)$r['energy_deck'], true) ?: [],
+            ];
+        }
+    }
+    return [
+        'success' => true,
+        'group' => ['key' => $g['key'], 'label' => $g['label'], 'name' => $g['group']],
+        'main' => array_values(array_filter($saved['main'], $inGroup)),
+        'energy' => array_values(array_filter($saved['energy'], fn($n) => ($cardMap[(string)$n]['card_type'] ?? '') === 'エネルギー')),
+        'source' => $assembled['source'],
+        'starter' => $starter,
+        'presets' => $presets,
+        'limits' => ['main' => TCG_MAIN_DECK_SIZE, 'members' => TCG_MEMBER_SLOTS, 'lives' => TCG_LIVE_SLOTS, 'energy' => TCG_ENERGY_SLOTS],
+    ];
+}
+
+/**
+ * Save the deck built in the editor. It may be incomplete (the rest is filled from the group's starter deck at
+ * match time) but every card in it must be in the group, owned, and within the deck rules.
+ *
+ * @param array<string,mixed> $body
+ */
+function tcgApiEventsMatchDeckSave(array $body): array {
+    require_once __DIR__ . '/deck_validate.php';
+    $uid = tcgRequireAuthUser($body);
+    $db = tcgDb();
+    tcgEventsMatchEnsureSchema($db);
+    $g = tcgEventsMatchGroupByKey((string)($body['group'] ?? ''));
+    if (!$g) {
+        throw new Exception('Unknown group', 400);
+    }
+    $main = is_array($body['main'] ?? null) ? array_values(array_map('strval', $body['main'])) : [];
+    $energy = is_array($body['energy'] ?? null) ? array_values(array_map('strval', $body['energy'])) : [];
+    $cardMap = tcgBuildCardMap(tcgLoadCardsData());
+    $owned = tcgGetCollectionMap($uid);
+
+    $members = 0;
+    $lives = 0;
+    $identity = [];
+    $ownedUsed = [];
+    foreach ($main as $no) {
+        $card = $cardMap[$no] ?? null;
+        if (!$card || ($card['group'] ?? '') !== $g['group']) {
+            throw new Exception('Only ' . $g['label'] . ' cards can go in this deck', 400);
+        }
+        $type = $card['card_type'] ?? '';
+        if ($type === 'メンバー') {
+            $members++;
+        } elseif ($type === 'ライブ') {
+            $lives++;
+        } else {
+            throw new Exception('Only Members and Lives go in the main deck', 400);
+        }
+        $id = tcgDeckCopyIdentity($no);
+        $identity[$id] = ($identity[$id] ?? 0) + 1;
+        if ($identity[$id] > tcgGetDeckMaxCopies($card, $no)) {
+            throw new Exception('Too many copies of ' . $no, 400);
+        }
+        $ownedUsed[$no] = ($ownedUsed[$no] ?? 0) + 1;
+        if ($ownedUsed[$no] > tcgOwnedQtyForCardNo($owned, $no)) {
+            throw new Exception('You do not own enough copies of ' . $no, 400);
+        }
+    }
+    if ($members > TCG_MEMBER_SLOTS || $lives > TCG_LIVE_SLOTS) {
+        throw new Exception('Too many Members or Lives', 400);
+    }
+    if (($err = tcgValidateLovecaPointBudget($main)) !== null) {
+        throw new Exception($err, 400);
+    }
+    if (count($energy) > TCG_ENERGY_SLOTS) {
+        throw new Exception('Too many Energy cards', 400);
+    }
+    $energyIdentity = [];
+    $energyUsed = [];
+    foreach ($energy as $no) {
+        if (($cardMap[$no]['card_type'] ?? '') !== 'エネルギー') {
+            throw new Exception('Only Energy cards go in the Energy deck', 400);
+        }
+        $id = tcgDeckCopyIdentity($no);
+        $energyIdentity[$id] = ($energyIdentity[$id] ?? 0) + 1;
+        $energyUsed[$no] = ($energyUsed[$no] ?? 0) + 1;
+        if ($energyIdentity[$id] > TCG_MAX_ENERGY_COPIES || $energyUsed[$no] > tcgOwnedQtyForCardNo($owned, $no)) {
+            throw new Exception('Too many copies of ' . $no, 400);
+        }
+    }
+
+    $db->prepare('INSERT INTO tcg_event_decks (discord_id, group_key, preset_slot, main_deck, energy_deck, updated_at) VALUES (?, ?, 0, ?, ?, ?)
+        ON CONFLICT(discord_id, group_key) DO UPDATE SET preset_slot = 0, main_deck = excluded.main_deck, energy_deck = excluded.energy_deck, updated_at = excluded.updated_at')
+        ->execute([$uid, $g['key'], json_encode($main), json_encode($energy), time()]);
+    return tcgApiEventsMatchDeckGet($body);
 }
 
 /**

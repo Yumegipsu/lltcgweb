@@ -123,6 +123,8 @@ try {
         case 'events_wheel_spin':     echo json_encode(tcgApiEventsWheelSpin($body)); break;
         case 'events_match_decks':    echo json_encode(tcgApiEventsMatchDecks($body)); break;
         case 'events_match_set_deck': echo json_encode(tcgApiEventsMatchSetDeck($body)); break;
+        case 'events_match_deck_get': echo json_encode(tcgApiEventsMatchDeckGet($body)); break;
+        case 'events_match_deck_save': echo json_encode(tcgApiEventsMatchDeckSave($body)); break;
         case 'events_match_start':    echo json_encode(tcgApiEventsMatchStart($body)); break;
         case 'events_match_cancel':   echo json_encode(tcgApiEventsMatchCancel($body)); break;
         case 'events_active_summary': echo json_encode(tcgApiEventsActiveSummary($body)); break;

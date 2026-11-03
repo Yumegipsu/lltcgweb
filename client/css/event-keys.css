@@ -61,3 +61,16 @@
 .llc-menu-event-art { position: absolute; inset: 0; background: linear-gradient(135deg, #7a3fd0, #e0559a) center / cover no-repeat; }
 .llc-menu-event-art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20, 10, 40, .85), rgba(20, 10, 40, .15)); }
 .llc-menu-event-art[hidden] { display: none; }
+
+/* Event deck editor */
+.evk-deck-modal { position: fixed; inset: 0; z-index: 9000; background: rgba(8, 4, 20, .82); display: flex; align-items: stretch; justify-content: center; }
+.evk-deck-panel { width: min(960px, 100%); overflow-y: auto; padding: 14px 16px 24px; background: #1c1330; color: #fff; }
+.evk-deck-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.evk-deck-head h3 { margin: 0; }
+.evk-deck-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; }
+.evk-deck-stats { flex: 1 1 220px; font-weight: 700; }
+.evk-deck-err { min-height: 1.2em; margin: 0 0 6px; color: #ff9db8; }
+.evk-deck-tabs { display: flex; gap: 6px; margin: 14px 0 8px; }
+.evk-deck-tabs button { padding: 6px 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .25); background: transparent; color: inherit; cursor: pointer; }
+.evk-deck-tabs button.active { background: #ff4f8b; border-color: #ff4f8b; }
+.evk-deck-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
