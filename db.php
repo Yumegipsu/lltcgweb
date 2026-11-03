@@ -267,6 +267,12 @@ function tcgDbMigrate(PDO $db): void {
         tcgDbMigrateGameModeRank($db);
     });
 
+    // last_seen_at was added to tcgDbMigrateGameModeRank after that migration was already recorded
+    // on production databases, so they never got the column and every casual_join INSERT failed (#333).
+    tcgDbRunMigrationOnce($db, 'casual_queue_last_seen_20261103', function (PDO $db): void {
+        tcgDbMigrateCasualQueueLastSeen($db);
+    });
+
     tcgDbRunMigrationOnce($db, 'experiment_presets_20260802', function (PDO $db): void {
         $db->exec('CREATE TABLE IF NOT EXISTS tcg_experiment_presets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -844,6 +850,14 @@ function tcgDbTableHasColumn(PDO $db, string $table, string $column): bool {
         }
     }
     return false;
+}
+
+/** Queue heartbeat column for unranked matchmaking; safe to run on any DB, any number of times. */
+function tcgDbMigrateCasualQueueLastSeen(PDO $db): void {
+    tcgDbEnsureColumn($db, 'tcg_casual_queue', 'last_seen_at', 'INTEGER NOT NULL DEFAULT 0');
+    try {
+        $db->exec('UPDATE tcg_casual_queue SET last_seen_at = joined_at WHERE last_seen_at IS NULL OR last_seen_at = 0');
+    } catch (Throwable $e) { /* ignore */ }
 }
 
 /** Migrate legacy single-mode rank/queue tables to per-game_mode schema. */
