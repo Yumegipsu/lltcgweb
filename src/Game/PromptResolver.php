@@ -3,6 +3,25 @@
  * Interactive prompt resolution dispatcher — extracted from effects.php.
  */
 
+/**
+ * Kanata PL!N-bp4-006: after the played Member's On Enter, put the source Member into Wait
+ * when that Member has a Blade Heart. Works on the live $state (not a pre-resolve reference)
+ * and is shared by the direct play and the Stage-area (pick_slot) paths (#331).
+ */
+function applyWaitSelfIfPlayedHasBladeHeart(array $state, string $owner, array $ability, array $played, string $sourceId): array {
+    if (empty($ability['wait_self_if_blade_heart']) || empty($played['blade_hearts']) || $sourceId === '') {
+        return $state;
+    }
+    foreach (['left', 'center', 'right'] as $slot) {
+        $mbr = $state['players'][$owner]['stage'][$slot] ?? null;
+        if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
+            waitMember($state['players'][$owner]['stage'][$slot], $state);
+            break;
+        }
+    }
+    return $state;
+}
+
 function applyWaitGroupMemberDrawDiscard(
     array $state,
     string $owner,
@@ -877,6 +896,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             // Clear parent before On Enter so child prompts can open and the yes/no UI cannot reopen.
             unset($state['pending_prompt']);
             $state = resolveOnEnterAbilities($state, $owner, $played, $slot);
+            $state = applyWaitSelfIfPlayedHasBladeHeart($state, $owner, $ability, $played, (string)($prompt['source_id'] ?? ''));
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'Member') . '] played ' .
                 cardDisplayName($played) . ' from hand.');
@@ -985,16 +1005,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             // Clear parent before On Enter so child prompts can open and the yes/no UI cannot reopen.
             unset($state['pending_prompt']);
             $state = resolveOnEnterAbilities($state, $owner, $played, $slot);
-            $sourceId = $prompt['source_id'] ?? '';
-            if (!empty($ability['wait_self_if_blade_heart']) && !empty($played['blade_hearts'])) {
-                foreach ($ownerP['stage'] as &$mbr) {
-                    if ($mbr && ($mbr['instance_id'] ?? '') === $sourceId) {
-                        waitMember($mbr, $state);
-                        break;
-                    }
-                }
-                unset($mbr);
-            }
+            $state = applyWaitSelfIfPlayedHasBladeHeart($state, $owner, $ability, $played, (string)($prompt['source_id'] ?? ''));
             $payNote = $cost > 0 ? "paid $cost Energy; " : '';
             $state = addLog($state, $state['players'][$owner]['name'] .
                 ' — [' . ($prompt['source_name'] ?? 'Member') . '] ' . $payNote .
