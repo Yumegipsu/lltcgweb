@@ -47,21 +47,127 @@ function tcgWriteSpectators(string $roomId, array $spectators): void {
     file_put_contents($file, json_encode($spectators), LOCK_EX);
 }
 
-function tcgPurgeStaleSpectators(string $roomId, ?int $now = null): array {
-    $now = $now ?? time();
-    $spectators = tcgReadSpectators($roomId);
-    $changed = false;
-    foreach ($spectators as $token => $meta) {
-        $last = intval(is_array($meta) ? ($meta['last_seen'] ?? $meta['joined_at'] ?? 0) : 0);
-        if ($last <= 0 || ($now - $last) >= TCG_SPECTATOR_IDLE_SEC) {
-            unset($spectators[$token]);
-            $changed = true;
+/**
+ * Atomic read-modify-write of spectators_<room>.json (#334).
+ *
+ * Joins, presence touches, purges and leaves used to read the file, change it and write it back
+ * with no lock held across those steps, so concurrent requests dropped each other's entries and
+ * the dropped viewer got "Spectator session expired". $fn mutates the list and returns true when
+ * it changed something that must be written.
+ *
+ * @param callable(array &$spectators): bool $fn
+ * @return array<string, mixed> the list after $fn
+ */
+function tcgSpectatorsMutate(string $roomId, callable $fn): array {
+    $file = tcgSpectatorsFilePath($roomId);
+    $dir = dirname($file);
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    for ($attempt = 0; $attempt < 3; $attempt++) {
+        $h = @fopen($file, 'c+');
+        if ($h === false) {
+            break;
+        }
+        flock($h, LOCK_EX);
+        // A previous holder may have unlinked the file (list emptied) while we waited for the lock.
+        $st = @fstat($h);
+        if (is_array($st) && isset($st['nlink']) && $st['nlink'] === 0) {
+            flock($h, LOCK_UN);
+            fclose($h);
+            continue;
+        }
+        try {
+            $data = json_decode((string)stream_get_contents($h), true);
+            $spectators = is_array($data) ? $data : [];
+            $changed = (bool)$fn($spectators);
+            if ($changed) {
+                ftruncate($h, 0);
+                rewind($h);
+                if ($spectators) {
+                    fwrite($h, json_encode($spectators));
+                    fflush($h);
+                }
+            }
+            if (isset($GLOBALS['_tcg_spec_count_cache']) && is_array($GLOBALS['_tcg_spec_count_cache'])) {
+                unset($GLOBALS['_tcg_spec_count_cache'][$roomId]);
+            }
+            return $spectators;
+        } finally {
+            if ($changed ?? false) {
+                if (empty($spectators)) {
+                    @unlink($file); // still holding the lock; waiters re-check nlink above
+                }
+            }
+            flock($h, LOCK_UN);
+            fclose($h);
         }
     }
-    if ($changed) {
+    // Could not open the file for locking — fall back to the old unlocked path.
+    $spectators = tcgReadSpectators($roomId);
+    if ($fn($spectators)) {
         tcgWriteSpectators($roomId, $spectators);
     }
     return $spectators;
+}
+
+/** True when a spectator entry has not been seen within the idle window. */
+function tcgSpectatorEntryStale($meta, int $now): bool {
+    $last = intval(is_array($meta) ? ($meta['last_seen'] ?? $meta['joined_at'] ?? 0) : 0);
+    return $last <= 0 || ($now - $last) >= TCG_SPECTATOR_IDLE_SEC;
+}
+
+/**
+ * Register a spectator token. A viewer who rejoins (kicked, refreshed, reconnected) replaces their
+ * previous token instead of counting twice until it idles out (#334).
+ *
+ * @return array<string, mixed>
+ */
+function tcgSpectatorsAdd(string $roomId, string $token, string $viewerId = ''): array {
+    return tcgSpectatorsMutate($roomId, function (array &$spectators) use ($token, $viewerId): bool {
+        $now = time();
+        foreach ($spectators as $t => $meta) {
+            if (tcgSpectatorEntryStale($meta, $now)
+                || ($viewerId !== '' && is_array($meta) && ($meta['viewer_id'] ?? '') === $viewerId)) {
+                unset($spectators[$t]);
+            }
+        }
+        if (count($spectators) >= TCG_SPECTATOR_MAX_PER_ROOM) {
+            throw new Exception('Spectator slots full for this match');
+        }
+        $entry = ['joined_at' => $now, 'last_seen' => $now];
+        if ($viewerId !== '') {
+            $entry['viewer_id'] = $viewerId;
+        }
+        $spectators[$token] = $entry;
+        return true;
+    });
+}
+
+function tcgPurgeStaleSpectators(string $roomId, ?int $now = null): array {
+    $now = $now ?? time();
+    // Cheap unlocked look first — most calls find nothing to purge and must not take the lock.
+    $peek = tcgReadSpectators($roomId);
+    $anyStale = false;
+    foreach ($peek as $meta) {
+        if (tcgSpectatorEntryStale($meta, $now)) {
+            $anyStale = true;
+            break;
+        }
+    }
+    if (!$anyStale) {
+        return $peek;
+    }
+    return tcgSpectatorsMutate($roomId, function (array &$spectators) use ($now): bool {
+        $changed = false;
+        foreach ($spectators as $token => $meta) {
+            if (tcgSpectatorEntryStale($meta, $now)) {
+                unset($spectators[$token]);
+                $changed = true;
+            }
+        }
+        return $changed;
+    });
 }
 
 /**
@@ -129,11 +235,13 @@ function tcgTouchSpectatorPresence(string $roomId, string $token): void {
     if ($last > 0 && ($now - $last) < TCG_SPECTATOR_PRESENCE_TOUCH_SEC) {
         return;
     }
-    $spectators[$token]['last_seen'] = $now;
-    tcgWriteSpectators($roomId, $spectators);
-    if (isset($GLOBALS['_tcg_spec_count_cache']) && is_array($GLOBALS['_tcg_spec_count_cache'])) {
-        unset($GLOBALS['_tcg_spec_count_cache'][$roomId]);
-    }
+    tcgSpectatorsMutate($roomId, function (array &$fresh) use ($token, $now): bool {
+        if (!isset($fresh[$token]) || !is_array($fresh[$token])) {
+            return false;
+        }
+        $fresh[$token]['last_seen'] = $now;
+        return true;
+    });
 }
 
 /** Human PvP with at least one player still connected (presence / recent game activity). */
@@ -530,14 +638,8 @@ function tcgJoinSpectator(string $roomId, string $viewerId = ''): array {
     }
     $category = (($state['mode'] ?? '') === 'ranked') ? 'ranked'
         : ((($state['mode'] ?? '') === 'tournament') ? 'tournament' : 'casual');
-    $spectators = tcgPurgeStaleSpectators($roomId);
-    if (count($spectators) >= TCG_SPECTATOR_MAX_PER_ROOM) {
-        throw new Exception('Spectator slots full for this match');
-    }
     $token = 'spec_' . bin2hex(random_bytes(16));
-    $now = time();
-    $spectators[$token] = ['joined_at' => $now, 'last_seen' => $now];
-    tcgWriteSpectators($roomId, $spectators);
+    tcgSpectatorsAdd($roomId, $token, trim($viewerId));
     $hiddenHands = !empty($state['spectate_hidden_hands']);
     if (($state['mode'] ?? '') === 'tournament' && !array_key_exists('spectate_hidden_hands', $state)) {
         $hiddenHands = true;
@@ -558,9 +660,13 @@ function tcgLeaveSpectator(string $roomId, string $token): array {
     if ($roomId === '' || !tcgIsSpectatorToken($token)) {
         throw new Exception('Invalid spectator session');
     }
-    $spectators = tcgReadSpectators($roomId);
-    unset($spectators[$token]);
-    tcgWriteSpectators($roomId, $spectators);
+    tcgSpectatorsMutate($roomId, function (array &$spectators) use ($token): bool {
+        if (!isset($spectators[$token])) {
+            return false;
+        }
+        unset($spectators[$token]);
+        return true;
+    });
     return ['left' => true];
 }
 

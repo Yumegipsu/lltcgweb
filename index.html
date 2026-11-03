@@ -3405,7 +3405,7 @@ try {
 <script src="client/js/presentation-guards.js?v=12"></script>
 <script src="client/js/spectate-pip.js?v=3"></script>
 <script src="client/js/resign-escape.js?v=1"></script>
-<script src="client/js/game-sync.js?v=72"></script>
+<script src="client/js/game-sync.js?v=73"></script>
 <script src="client/js/state-apply.js?v=87"></script>
 <script src="client/js/stamps.js?v=22"></script>
 <script src="client/js/replay-debug.js?v=15"></script>
@@ -36568,6 +36568,14 @@ async function recoverHostingerMatchIfLive(roomId, token) {
  * that was handing free wins after coin flip when the client was on the wrong origin.
  */
 async function abandonDeadMatchSession(opts = {}) {
+  // Spectators have no player session: leave spectating (tells the server, so the count drops)
+  // rather than reading/clearing/resigning the user's own saved match (#334).
+  if (G.isSpectator && G.roomId) {
+    await leaveSpectatorMode({
+      toastMsg: opts.silent ? '' : (t('toast.leftDeadMatch') || 'That match no longer exists — returned to the menu.'),
+    });
+    return;
+  }
   const silent = !!opts.silent;
   const forceResign = !!opts.forceResign;
   const saved = (typeof readActiveGameSession === 'function') ? readActiveGameSession() : null;

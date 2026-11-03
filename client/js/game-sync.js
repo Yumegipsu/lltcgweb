@@ -710,6 +710,12 @@
         if (typeof global.isReplayViewing === 'function' && global.isReplayViewing()) {
           TCG_DEBUG.warn('poll', 'replay room miss on poll origin — keep viewing');
           pollError = e.message;
+        } else if (G.isSpectator && typeof handleSpectatorPollError === 'function') {
+          // A spectator has no player session to recover. Leave spectating cleanly instead of
+          // running the player abandon path (it reads the saved player match, may resign it, and
+          // lands on that old match's end state) (#334).
+          handleSpectatorPollError(e.message);
+          return;
         } else if (typeof global.abandonDeadMatchSession === 'function') {
           // Ranked rooms live on Hostinger — a VPS miss must recover, not resign.
           void global.abandonDeadMatchSession({ silent: false, forceResign: false });
