@@ -788,16 +788,9 @@ function hsResolveHandDiscardNamedBlade(
     array $data
 ): array {
     $handId = $data['hand_card_id'] ?? $data['card_id'] ?? '';
-    $found = false;
-    foreach ($p['hand'] as $i => $c) {
-        if (($c['instance_id'] ?? '') === $handId) {
-            $p['waiting_room'][] = $c;
-            array_splice($p['hand'], $i, 1);
-            $found = true;
-            break;
-        }
-    }
-    if (!$found) throw new Exception('Choose this card from your hand');
+    // Shared hand→WR path: fires "cards put from hand into the Waiting Room" listeners (#332 Rurino).
+    $moved = $handId === '' ? [] : discardHandCardsByIds($p, [$handId], $state, $pid);
+    if ($moved === []) throw new Exception('Choose this card from your hand');
     $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
     $names = $ab['names'] ?? [];
     $candidates = [];

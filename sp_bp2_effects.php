@@ -1011,13 +1011,13 @@ function spBp2ApplyDiscardTriggerOnEnter(
             throw new Exception('Member cost too high');
         }
         $discarded = $c;
-        array_splice($p['hand'], $i, 1);
         break;
     }
     if (!$discarded) {
         throw new Exception('Choose a Member card from your hand');
     }
-    $p['waiting_room'][] = $discarded;
+    // Shared hand→WR path so hand-discard listeners fire (#332).
+    discardHandCardsByIds($p, [$handId], $state, $pid);
     $onEnter = getAbilitiesByTrigger($discarded, 'on_enter');
     if (empty($onEnter)) {
         throw new Exception('Discarded Member has no [On Enter] abilities');

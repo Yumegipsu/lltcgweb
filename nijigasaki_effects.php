@@ -985,16 +985,9 @@ function nijiResolveHandDiscardForStageBlade(
         throw new Exception('Not enough Energy');
     }
     $handId = $data['hand_card_id'] ?? $data['card_id'] ?? '';
-    $found = false;
-    foreach ($p['hand'] as $i => $c) {
-        if (($c['instance_id'] ?? '') === $handId) {
-            $p['waiting_room'][] = $c;
-            array_splice($p['hand'], $i, 1);
-            $found = true;
-            break;
-        }
-    }
-    if (!$found) {
+    // Shared hand→WR path so hand-discard listeners fire (#332).
+    $moved = $handId === '' ? [] : discardHandCardsByIds($p, [$handId], $state, $pid);
+    if ($moved === []) {
         throw new Exception('Choose this card from your hand');
     }
     $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));
@@ -1658,8 +1651,7 @@ function nijiHandlePrompt(array $state, string $promptType, array $prompt, strin
                     throw new Exception('Must discard a Member');
                 }
                 $discarded = $c;
-                array_splice($ownerP['hand'], $i, 1);
-                $ownerP['waiting_room'][] = $c;
+                discardHandCardsByIds($ownerP, [$ids[0]], $state, $owner);
                 break;
             }
         }
