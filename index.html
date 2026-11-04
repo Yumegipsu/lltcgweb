@@ -6689,7 +6689,22 @@ async function reconnectToGame(saved, opts = {}) {
   }
 }
 
-async function reconnectToSpectator(saved, opts = {}) {
+/**
+ * The saved spectator token idled out on the server (tab asleep/frozen, laptop closed). The match may
+ * still be live: take a fresh token for the same room and reconnect with it once, instead of falling
+ * through to the player's own previous match (#334).
+ */
+async function reconnectToSpectatorWithFreshToken(saved, opts = {}) {
+  try {
+    const res = await apiPost('spectate_join', spectateJoinBody(saved.roomId), { silent: true });
+    if (!res?.spectator_token) return false;
+    return await reconnectToSpectator({ ...saved, token: res.spectator_token }, opts, true);
+  } catch (e) {
+    return false;
+  }
+}
+
+async function reconnectToSpectator(saved, opts = {}, alreadyRejoined = false) {
   if (!saved?.roomId || !saved?.token) return false;
   try {
     const { state: s, apiOrigin, roomMissingBoth } = await fetchGameStateForReconnectWithFallback(saved, {
@@ -6700,7 +6715,13 @@ async function reconnectToSpectator(saved, opts = {}) {
       clearSpectatorSession();
       return false;
     }
-    if (s.error) return false;
+    if (s.error) {
+      if (!alreadyRejoined && typeof isSpectatorTokenGoneMessage === 'function'
+          && isSpectatorTokenGoneMessage(s.error)) {
+        return await reconnectToSpectatorWithFreshToken(saved, opts);
+      }
+      return false;
+    }
     if (typeof tcgLockApiOrigin === 'function') {
       tcgLockApiOrigin(apiOrigin === 'overflow' ? 'overflow' : 'hostinger');
     }
@@ -6737,6 +6758,10 @@ async function reconnectToSpectator(saved, opts = {}) {
     toast(t('spectate.reconnected'), 2600);
     return true;
   } catch (e) {
+    if (!alreadyRejoined && typeof isSpectatorTokenGoneMessage === 'function'
+        && isSpectatorTokenGoneMessage(e && e.message)) {
+      return await reconnectToSpectatorWithFreshToken(saved, opts);
+    }
     return false;
   }
 }
@@ -37915,7 +37940,7 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/live-round-director.js?v=3"></script>
-<script src="client/js/spectacle.js?v=126"></script>
+<script src="client/js/spectacle.js?v=127"></script>
 <script src="client/js/board-render.js?v=51"></script>
 <script src="client/js/components/board-zones.js?v=2"></script>
 <script src="client/js/cpu-policy-data.js?v=1"></script>

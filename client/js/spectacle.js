@@ -4128,23 +4128,56 @@ async function presentLiveRound(prev, next, myId, opts = {}) {
   return { reveal: revealRan, spectacle: spectacleRan, empty: emptySkip, spectacleFailedOwed };
 }
 
-function handleSpectatorPollError(msg) {
-  if (!G.isSpectator) return false;
-  const text = String(msg || '');
-  // Transient get_state / delay-ring 400s during Live must not eject the viewer.
-  // Only end the session when the room or spectator token is actually gone.
-  const fatal = /room not found/i.test(text)
-    || /invalid spectator/i.test(text)
-    || /not a spectator/i.test(text)
-    || /spectator.*(expired|invalid|unknown)/i.test(text)
-    || /unauthorized/i.test(text)
-    || /forbidden/i.test(text);
-  if (!fatal) {
-    if (typeof TCG_DEBUG !== 'undefined' && TCG_DEBUG.warn) {
-      TCG_DEBUG.warn('poll', 'spectator pull non-fatal — keep watching', text);
+/** True when the server says our spectator token is gone (idle purge), not that the room is gone. */
+function isSpectatorTokenGoneMessage(text) {
+  const s = String(text || '');
+  return /invalid spectator/i.test(s)
+    || /not a spectator/i.test(s)
+    || /spectator.*(expired|invalid|unknown)/i.test(s);
+}
+
+let _spectatorRejoinPromise = null;
+
+/**
+ * The server drops a spectator token after ~2 minutes without a ping/poll. A sleeping laptop, a
+ * suspended phone tab or a frozen background tab trips that while the match is still live, and the
+ * viewer used to be thrown out of spectating (#334). Take a fresh token for the same room and carry on.
+ * Returns true when the session continues; false when the server refuses (match over, room full, …).
+ */
+function rejoinSpectatorSession() {
+  if (_spectatorRejoinPromise) return _spectatorRejoinPromise;
+  const roomId = G.roomId;
+  if (!G.isSpectator || !roomId) return Promise.resolve(false);
+  const now = Date.now();
+  G._spectatorRejoinLog = (G._spectatorRejoinLog || []).filter((ts) => now - ts < 60000);
+  if (G._spectatorRejoinLog.length >= 3) return Promise.resolve(false); // never loop on a broken server
+  G._spectatorRejoinLog.push(now);
+  _spectatorRejoinPromise = (async () => {
+    try {
+      const res = await apiPost('spectate_join', spectateJoinBody(roomId), { silent: true });
+      if (!res || !res.spectator_token) return false;
+      if (!G.isSpectator || G.roomId !== roomId) return false; // user already left / switched
+      G.token = res.spectator_token;
+      stopPoll();
+      G.syncTicket = null;
+      G.syncEnabled = null;
+      captureSyncMeta(res);
+      saveSpectatorSession();
+      startPoll();
+      if (typeof TCG_DEBUG !== 'undefined' && TCG_DEBUG.warn) {
+        TCG_DEBUG.warn('poll', 'spectator token expired — rejoined room with a fresh token', roomId);
+      }
+      return true;
+    } catch (e) {
+      return false;
+    } finally {
+      _spectatorRejoinPromise = null;
     }
-    return true;
-  }
+  })();
+  return _spectatorRejoinPromise;
+}
+
+function endSpectatorSessionAfterError(text) {
   // spectacle.js is a top-level browser script (not an IIFE with `global`).
   const fallback = (typeof t === 'function')
     ? t('spectate.sessionEnded', 'Spectator session ended.')
@@ -4158,6 +4191,32 @@ function handleSpectatorPollError(msg) {
       TCG_DEBUG.warn('poll', 'leaveSpectatorMode failed', e);
     }
   }
+}
+
+function handleSpectatorPollError(msg) {
+  if (!G.isSpectator) return false;
+  const text = String(msg || '');
+  // Transient get_state / delay-ring 400s during Live must not eject the viewer.
+  // Only end the session when the room or spectator token is actually gone.
+  const tokenGone = isSpectatorTokenGoneMessage(text);
+  const fatal = /room not found/i.test(text)
+    || tokenGone
+    || /unauthorized/i.test(text)
+    || /forbidden/i.test(text);
+  if (!fatal) {
+    if (typeof TCG_DEBUG !== 'undefined' && TCG_DEBUG.warn) {
+      TCG_DEBUG.warn('poll', 'spectator pull non-fatal — keep watching', text);
+    }
+    return true;
+  }
+  if (tokenGone) {
+    // Idle purge, not a kick: get a new token for the same room, and only leave if that is refused.
+    void rejoinSpectatorSession().then((ok) => {
+      if (!ok && G.isSpectator) endSpectatorSessionAfterError(text);
+    });
+    return true;
+  }
+  endSpectatorSessionAfterError(text);
   return true;
 }
 
