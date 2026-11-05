@@ -43555,7 +43555,7 @@
         "all"
       ],
       "rarity": "L",
-      "text": "[Always] If any card you revealed by Yell has an <allBH> icon, this card's score is increased by 1.",
+      "text": "[Live Success] If any card you revealed by Yell has an <allBH> icon, this card's score is increased by 1.",
       "text_jp": "[ライブ成功時] エールにより公開された自分のカードの中にALLブレードを持つカードが1枚以上ある場合、このカードのスコアを＋１する。",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/BP03/PL!N-bp3-L-030-L.png",
       "abilities": [
@@ -43593,8 +43593,8 @@
         }
       ],
       "loveca_point": 1,
-      "text_pt": "[Sempre] Durante sua tentativa de Live, se alguma carta que você revelou pelo Grito tiver um ícone de <allBH>, a pontuação desta carta aumenta em 1.",
-      "text_fr": "[Permanent] If any carte you révélée par Yell has an <allBH> icon, le score de cette carte est augmenté de 1."
+      "text_pt": "[Sucesso no Live] Se alguma carta que você revelou pelo Grito tiver um ícone de <allBH>, a pontuação desta carta aumenta em 1.",
+      "text_fr": "[Succès du Live] Si une carte que vous avez révélée par Yell a une icône <allBH>, le score de cette carte est augmenté de 1."
     },
     {
       "card_no": "PL!N-bp3-031-L",
