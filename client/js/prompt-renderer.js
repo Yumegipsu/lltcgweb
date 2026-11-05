@@ -4389,7 +4389,27 @@ global.renderPrompt = function renderPrompt(s, myId){
     });
     return;
   }
-  if((pr?.type==='bp5_wait_discard_look_reveal'||pr?.type==='bp5_discard_pay_wr_live_score'||pr?.type==='sbp5_discard_bladeless_wr_live'||pr?.type==='sbp5_live_start_discard_heart'||pr?.type==='spbp5_wait_draw_discard'||pr?.type==='spbp5_wait_discard_surveil'||pr?.type==='spbp5_wait_or_discard_activate')&&pr.step==='discard'&&pr.responder===myId){
+  // "Put UP TO N Members with no Blade Hearts ... add the same number of Live cards" (#335):
+  // pick 0..N bladeless Members; the generic discard picker forced exactly 1 of any card.
+  if(pr?.type==='sbp5_discard_bladeless_wr_live'&&pr.step==='discard'&&pr.responder===myId){
+    ovl.classList.remove('open');
+    const me=s.players?.[myId];
+    const maxN=Math.max(1, Number(pr.max_discard)||2);
+    const eligible=(me?.hand||[]).filter(c=>(c.card_type==='メンバー'||c.card_type_en==='Member')&&!(c.blade_hearts&&c.blade_hearts.length));
+    if(!eligible.length){ sendAct('resolve_prompt',{choice:'skip'}); return; }
+    openHandPick({
+      hand: eligible,
+      count: Math.min(maxN, eligible.length),
+      min: 0,
+      title: pr.source_name||'Discard',
+      msg: promptDisplayText(pr, `Put up to ${maxN} Members with no Blade Hearts into the Waiting Room.`, s),
+      forceConfirm: true,
+      onConfirm: (picked)=> sendAct('resolve_prompt', picked.length ? {discard_ids:picked} : {choice:'skip'}),
+      onCancel: ()=> sendAct('resolve_prompt',{choice:'skip'}),
+    });
+    return;
+  }
+  if((pr?.type==='bp5_wait_discard_look_reveal'||pr?.type==='bp5_discard_pay_wr_live_score'||pr?.type==='sbp5_live_start_discard_heart'||pr?.type==='spbp5_wait_draw_discard'||pr?.type==='spbp5_wait_discard_surveil'||pr?.type==='spbp5_wait_or_discard_activate')&&pr.step==='discard'&&pr.responder===myId){
     ovl.classList.remove('open');
     const me=s.players?.[myId];
     openHandPick({
