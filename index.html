@@ -36420,6 +36420,19 @@ function exitTutorial() {
   resetLobby();
 }
 
+/**
+ * Reset G to a fresh state WITHOUT replacing the object. Modules in client/js read `window.G`,
+ * which was assigned once at boot; `G = freshGameGlobals()` left them holding the previous match's
+ * object, so after any finished match in a tab the next session's sync ticket, origin lock and
+ * spectator flag went to a dead object (#334: kicks + stale end state that only a new tab fixed).
+ */
+function resetGameGlobalsInPlace() {
+  const next = freshGameGlobals();
+  for (const k of Object.keys(G)) delete G[k];
+  Object.assign(G, next);
+  if (window.G !== G) window.G = G;
+}
+
 function freshGameGlobals() {
   const nextEpoch = (G._gameSessionEpoch || 0) + 1;
   return {
@@ -36661,7 +36674,7 @@ async function abandonDeadMatchSession(opts = {}) {
   if (resignRanked) {
     await dropRankedActiveGameBestEffort({ confirmResign: forceResign });
   }
-  G = freshGameGlobals();
+  resetGameGlobalsInPlace();
   const authEl = el('auth-status');
   if (authEl) authEl.setAttribute('data-auth-boot', 'done');
   if (typeof window.__tcgClearAuthBootGuard === 'function') window.__tcgClearAuthBootGuard();
@@ -36692,7 +36705,7 @@ window.cancelReconnectQueue = cancelReconnectQueue;
 
 function resetLobby(){
   endGameSession();
-  G = freshGameGlobals();
+  resetGameGlobalsInPlace();
   showScr(A.profile ? 'hub' : 'lobby');
 }
 
@@ -36720,7 +36733,7 @@ async function onWinPlayAgain() {
     return;
   }
   endGameSession();
-  G = freshGameGlobals();
+  resetGameGlobalsInPlace();
   try {
     if (rematch.pvp && rematch.mode === 'ranked') {
       await openRankedScreen();
@@ -36769,7 +36782,7 @@ function onWinReturnToMenu() {
   const wasTournament = (G.lastFinishedMode || G.gameState?.mode) === 'tournament';
   const tournamentId = resolveTournamentReturnId();
   endGameSession();
-  G = freshGameGlobals();
+  resetGameGlobalsInPlace();
   if (wasTournament && openTournamentReturnMenu(tournamentId)) {
     return;
   }
@@ -36789,7 +36802,7 @@ function onWinReturnToMenu() {
 
 async function onWinViewLeaderboard() {
   endGameSession();
-  G = freshGameGlobals();
+  resetGameGlobalsInPlace();
   try {
     await openLeaderboardScreen();
   } catch (e) {
