@@ -3861,6 +3861,12 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
         fn($c) => $c && !isLiveTypeCard($c)
     ));
 
+    // Live cards leaving storage for the WR this performance (failed Lives, or every Live when the
+    // round failed) — Riko PL!S-bp6-002 [Automatic] must see them too, not only the end-of-turn drain (#338).
+    $livesToWrNow = $failCards;
+    if (!$liveRoundSuccess) {
+        $livesToWrNow = array_merge($livesToWrNow, $successCards);
+    }
     $p['waiting_room'] = array_merge($p['waiting_room'], liveCardsRestorePrintedScores($failCards));
     if ($liveRoundSuccess) {
         $p['live_zone'] = array_merge($successCards, $memberBluffs);
@@ -3882,6 +3888,18 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
         // "excess" (Kowareyasuki / Strawberry Trapper must not treat a fail as surplus).
         $remaining = [];
         $state['live_perf_success'][$pid] = [];
+    }
+
+    if (!empty($livesToWrNow) && function_exists('sBp6ResolveAutoOnLiveWr')) {
+        // Release the &$p alias: the resolver returns a new $state (copy-on-write).
+        unset($p);
+        foreach ($livesToWrNow as $movedLive) {
+            if (!empty($state['pending_prompt'])) {
+                break;
+            }
+            $state = sBp6ResolveAutoOnLiveWr($state, $pid, $movedLive);
+        }
+        $p = &$state['players'][$pid];
     }
 
     // Hold Yell cards until live success effects finish (may add one to hand)

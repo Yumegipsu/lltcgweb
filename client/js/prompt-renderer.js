@@ -4349,6 +4349,8 @@ global.renderPrompt = function renderPrompt(s, myId){
       min: 1,
       title: pr.source_name||'Choose card',
       msg: promptDisplayText(pr, 'Choose a card.', s),
+      // Optional "may" pick (Dia #337): single-tap mode hides Cancel, so force the confirm/cancel row.
+      forceConfirm: pr.type === 'sbp6_live_zone_deck_top_hearts',
       allowCancel: !mandatoryBothWr && !mandatoryUmiReveal,
       onConfirm: (picked)=> sendAct('resolve_prompt',{card_id:picked[0]}),
       onCancel: ()=> {

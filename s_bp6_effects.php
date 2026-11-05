@@ -721,7 +721,8 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
         if (!empty($state['_pending_live_finalize']) && function_exists('resumePendingLiveFinalize')) {
             return resumePendingLiveFinalize($state);
         }
-        return $state;
+        // Opened mid-Performance (failed Live, #338): resume the parked Performance chain.
+        return finishPromptEffects($state);
     }
 
     if ($promptType === 'sbp6_pick_revealed_member') {
