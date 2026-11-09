@@ -1158,7 +1158,10 @@ function resolveOptionalDiscardPromptChoice(
                 }
             }
             // "Put 1 μ's card from your hand…" (Umi PL!-pb2-031): the discard itself must be of that group.
-            $discardGroup = (string)($promptAbility['group'] ?? '');
+            // Only a real optional_discard_prompt ability (or an explicit discard_group) restricts the discard; on
+            // other abilities `group` belongs to another clause (Proof Kosuzu's stage-cost check, #341).
+            $discardGroup = (string)($promptAbility['discard_group']
+                ?? (($promptAbility['type'] ?? '') === 'optional_discard_prompt' ? ($promptAbility['group'] ?? '') : ''));
             if ($discardGroup !== '') {
                 foreach ($ids as $id) {
                     $found = null;

@@ -898,6 +898,8 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         // A Member put onto the Stage enters Active (it used to enter rested, so its Blades did not count that turn: #305).
         clearMemberWait($played);
         $played['entered_turn'] = intval($state['turn'] ?? 1);
+        $played['entered_from_wr'] = true;
+        unset($played['entered_from_hand'], $played['entered_via_baton']);
         $p['stage'][$targetSlot] = $played;
         $state = resolveOnEnterAbilities($state, $pid, $played, $targetSlot);
         $state = addLog($state, $state['players'][$pid]['name'] .

@@ -210,6 +210,8 @@ function tryResolveAbilityEffectSwitchBaton(
                 }
                 clearMemberWait($played);
                 $played['entered_turn'] = intval($state['turn'] ?? 1);
+                $played['entered_from_wr'] = true;
+                unset($played['entered_from_hand'], $played['entered_via_baton']);
                 $p['stage'][$emptySlots[0]] = $played;
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     ' — [' . $name . '] put ' . cardDisplayName($played) .

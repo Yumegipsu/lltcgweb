@@ -121,6 +121,8 @@ function sSd1ResolveEffect(array $state, string $pid, array $source, array $ab, 
                 }
                 clearMemberWait($played);
                 $played['entered_turn'] = intval($state['turn'] ?? 1);
+                $played['entered_from_wr'] = true;
+                unset($played['entered_from_hand'], $played['entered_via_baton']);
                 if (!empty($ab['block_entered_this_turn'])) {
                     $played['blocks_slot_entries'] = true;
                 }
@@ -360,6 +362,8 @@ function sSd1ResolvePrompt(
             array_splice($ownerP['waiting_room'], $i, 1);
             clearMemberWait($played);
             $played['entered_turn'] = intval($state['turn'] ?? 1);
+            $played['entered_from_wr'] = true;
+            unset($played['entered_from_hand'], $played['entered_via_baton']);
             if (!empty($ability['block_entered_this_turn'])) {
                 $played['blocks_slot_entries'] = true;
             }

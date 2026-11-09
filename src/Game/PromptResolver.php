@@ -5083,6 +5083,8 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         if (!$played) throw new Exception('Card not in Waiting Room');
         clearMemberWait($played);
         $played['entered_turn'] = intval($state['turn'] ?? 1);
+        $played['entered_from_wr'] = true;
+        unset($played['entered_from_hand'], $played['entered_via_baton']);
         $ownerP['stage'][$targetSlot] = $played;
         unset($state['pending_prompt']);
         $state = resolveOnEnterAbilities($state, $owner, $played, $targetSlot);
@@ -5568,6 +5570,8 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             // "Put onto your Stage" (no "in Wait") enters Active: its Blades count this turn (#305).
             clearMemberWait($member);
             $member['entered_turn'] = intval($state['turn'] ?? 1);
+            $member['entered_from_wr'] = true;
+            unset($member['entered_from_hand'], $member['entered_via_baton']);
             $ownerP['stage'][$slot] = $member;
             $names[] = cardDisplayName($member);
             $state = resolveOnEnterAbilities($state, $owner, $member, $slot);

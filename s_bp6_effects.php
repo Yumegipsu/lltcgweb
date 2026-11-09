@@ -132,7 +132,8 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
 
     switch ($type) {
         case 'on_enter_wr_wait_opp_side_min_cost':
-            if (empty($source['entered_via_baton'])) break;
+            // "If this card entered from the Waiting Room" — a Baton Touch from hand does not count (#340).
+            if (empty($source['entered_from_wr'])) break;
             $opp = ($pid === 'p1') ? 'p2' : 'p1';
             $minCost = intval($ab['min_cost'] ?? 13);
             $candidates = [];
@@ -298,7 +299,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             break;
 
         case 'on_enter_wr_blade_bonus':
-            if (empty($source['entered_via_baton'])) break;
+            if (empty($source['entered_from_wr'])) break;
             $state = applyModifierEffect($state, $pid, [
                 'type'   => 'blade_bonus',
                 'amount' => intval($ab['amount'] ?? 3),
@@ -397,7 +398,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             break;
 
         case 'draw_and_discard_if_wr':
-            if (empty($source['entered_from_wr']) && empty($source['entered_via_baton'])) break;
+            if (empty($source['entered_from_wr'])) break;
             $drawCount = intval($ab['draw'] ?? 2);
             $drawnCards = drawCardsForPlayerWithEffectLog($state, $pid, $name, $drawCount);
             $drawn = count($drawnCards);
@@ -419,7 +420,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             break;
 
         case 'look_reveal_filter_if_wr':
-            if (empty($source['entered_from_wr']) && empty($source['entered_via_baton'])) break;
+            if (empty($source['entered_from_wr'])) break;
             $look = intval($ab['look'] ?? 3);
             $top = array_splice($p['main_deck'], 0, min($look, count($p['main_deck'])));
             if (empty($top)) break;
@@ -1044,6 +1045,8 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
             array_splice($ownerP['waiting_room'], $i, 1);
             clearMemberWait($played);
             $played['entered_turn'] = intval($state['turn'] ?? 1);
+            $played['entered_from_wr'] = true;
+            unset($played['entered_from_hand'], $played['entered_via_baton']);
             $ownerP['stage'][$slot] = $played;
             unset($state['pending_prompt']);
             $state = resolveOnEnterAbilities($state, $owner, $played, $slot);
@@ -1139,6 +1142,8 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
         $ownerP = &$state['players'][$owner];
         clearMemberWait($played);
         $played['entered_turn'] = intval($state['turn'] ?? 1);
+        $played['entered_from_wr'] = true;
+        unset($played['entered_from_hand'], $played['entered_via_baton']);
         $ownerP['stage'][$slot] = $played;
         unset($state['pending_prompt']);
         $state = resolveOnEnterAbilities($state, $owner, $played, $slot);

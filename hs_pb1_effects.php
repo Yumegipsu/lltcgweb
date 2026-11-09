@@ -1103,6 +1103,8 @@ function hsPb1ResolvePrompt(array $state, string $owner, array $prompt, string $
         mergeCardCatalogFields($played);
         clearMemberWait($played);
         $played['entered_turn'] = intval($state['turn'] ?? 1);
+        $played['entered_from_wr'] = true;
+        unset($played['entered_from_hand'], $played['entered_via_baton']);
         $ownerP['stage'][$slot] = $played;
         unset($state['pending_prompt']);
         // Stage play counted inside resolveOnEnterAbilities → notifyMemberEnteredStage.
