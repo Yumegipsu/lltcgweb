@@ -71,6 +71,12 @@ function finishPromptEffects(array $state): array {
             return $state;
         }
     }
+    if (empty($state['pending_prompt']) && function_exists('bp8FlushPendingAutos')) {
+        $state = bp8FlushPendingAutos($state);
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
     if (empty($state['pending_prompt']) && function_exists('plMusePb2FlushPendingOppWaitAutos')) {
         $state = plMusePb2FlushPendingOppWaitAutos($state);
         if (!empty($state['pending_prompt'])) {

@@ -943,6 +943,9 @@ function beginLiveStartEffectPhase(array $state, bool $p1Attempt = true, bool $p
 
     $state = initLiveModifiers($state);
     $state['phase'] = 'live_start_effects';
+    foreach (['p1', 'p2'] as $bp8Pid) {
+        $state = bp8RefreshContinuousLiveReductions($state, $bp8Pid);
+    }
     $state['_live_start_done'] = [];
     unset(
         $state['live_start_optional_resolved'],

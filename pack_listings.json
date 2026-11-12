@@ -87,6 +87,26 @@
         }
       ]
     },
+    "bp_magical": {
+      "asin": "",
+      "amazon_url": "",
+      "pack_style": "photo",
+      "note": "Three retail pack wrappers (Mari / You / Nico) for open-screen rotation.",
+      "packs": [
+        {
+          "output": "bp_magical-a.png",
+          "local": "assets/packs/sources/magical1.png"
+        },
+        {
+          "output": "bp_magical-b.png",
+          "local": "assets/packs/sources/magical2.png"
+        },
+        {
+          "output": "bp_magical-c.png",
+          "local": "assets/packs/sources/magical3.png"
+        }
+      ]
+    },
     "bp_anniv": {
       "asin": "B0DNB1BCYP",
       "amazon_url": "https://www.amazon.co.jp/dp/B0DNB1BCYP",

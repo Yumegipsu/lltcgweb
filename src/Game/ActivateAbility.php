@@ -76,6 +76,11 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
     if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $markKey)) {
         throw new Exception('Ability already used this turn');
     }
+    // PL!HS-bp8-007 Ceras: cost ≤4 Members cannot use [Activated] while an active Izumi is out.
+    $bp8Lock = bp8ActivatedLockReason($state, $pid, $member, $zone);
+    if ($bp8Lock !== null) {
+        throw new Exception($bp8Lock);
+    }
 
     $wrBlock = activatedAbilityWrBlockReason($p, $ab);
     if ($wrBlock !== null) {
@@ -124,6 +129,11 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
     $spBp5Activated = spBp5ResolveActivatedAbility($state, $pid, $p, $member, $slot, $ab, $abilityIdx, $data);
     if ($spBp5Activated !== null) {
         return $spBp5Activated;
+    }
+
+    $bp8Activated = bp8ResolveActivatedAbility($state, $pid, $p, $member, $slot, $ab, $abilityIdx, $data, $zone);
+    if ($bp8Activated !== null) {
+        return $bp8Activated;
     }
 
     $bp7Activated = bp7ResolveActivatedAbility($state, $pid, $p, $member, $slot, $ab, $abilityIdx, $data);

@@ -153,6 +153,14 @@ function getLiveScoreBonusBreakdown(array $state, string $pid, bool $omitUnrevea
         }
     }
     unset($member);
+    // PL!HS-bp8-018 Holiday∞Holiday: +1 once one of your Yell cards was moved by your effect this turn.
+    foreach ($p['live_zone'] ?? [] as $lc) {
+        if (!is_array($lc) || !function_exists('bp8HolidayScoreBonus')) continue;
+        $hb = bp8HolidayScoreBonus($state, $pid, $lc);
+        if ($hb > 0) {
+            pushLiveScoreBonusEntry($entries, $bonus, cardDisplayName($lc), $hb, "+{$hb} Live Score (Yell card moved)");
+        }
+    }
     // PL!-pb2-038 Arashi no Naka no Koi Dakara: +1 total Live score while it sits in the Live area or Success Live area
     // and the Stage holds exactly N Members, all of the group. Members stacked under another Member are not on the
     // Stage, and the bonus does not stack across copies.

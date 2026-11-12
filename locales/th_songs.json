@@ -197,6 +197,18 @@
     "not ALONE not HITORI": { "th": "นอต อโลน นอต ฮิโตริ", "method": "phonetic" },
     "stars we chase": { "th": "สตาร์ส วี เชส", "method": "phonetic" },
     "sweet&sweet holiday": { "th": "สวีท&สวีท ฮอลิเดย์", "method": "phonetic" },
-    "絶対的LOVER": { "th": "เซ็ตไตเตกิ เลิฟเวอร์", "method": "phonetic" }
+    "絶対的LOVER": { "th": "เซ็ตไตเตกิ เลิฟเวอร์", "method": "phonetic" },
+    "Aishii": { "th": "ไอชี", "method": "phonetic" },
+    "Blueberry♡Train": { "th": "บลูเบอร์รี♡เทรน", "method": "semantic" },
+    "Circle of Love": { "th": "เซอร์เคิล ออฟ เลิฟ", "method": "phonetic" },
+    "Dress Code": { "th": "เดรส โค้ด", "method": "phonetic" },
+    "EdelinieN": { "th": "เอเดลินีเอ็น", "method": "phonetic" },
+    "Fushigi to Kimi to Library": { "th": "ฟุชิงิ โตะ คิมิ โตะ ไลบรารี", "method": "semantic" },
+    "Hello, Hoshi wo Kazoete": { "th": "เฮลโล, โฮชิ โวะ คาโซเอเตะ", "method": "semantic" },
+    "Nicopuri♡Joshidou": { "th": "นิโคปุริ♡โจชิโด", "method": "semantic" },
+    "Stay": { "th": "สเตย์", "method": "phonetic" },
+    "Tomodachi ni Nareru Basho": { "th": "โทโมดาจิ นิ นาเรรุ บาโช", "method": "semantic" },
+    "Yakusoku ni Nare Bokura no Uta": { "th": "ยาคุโซคุ นิ นาเระ โบคุระ โนะ อุตะ", "method": "semantic" },
+    "Yuujou No Change": { "th": "ยูโจ โน เชนจ์", "method": "semantic" }
   }
 }

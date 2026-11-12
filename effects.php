@@ -35,6 +35,7 @@ require_once __DIR__ . '/pl_sp_sd2_effects.php';
 require_once __DIR__ . '/pr_vol9_effects.php';
 require_once __DIR__ . '/batch99_effects.php';
 require_once __DIR__ . '/bp7_effects.php';
+require_once __DIR__ . '/bp8_effects.php';
 require_once __DIR__ . '/src/Game/LiveScoreBonus.php';
 require_once __DIR__ . '/src/Game/AbilityResolver.php';
 require_once __DIR__ . '/src/Game/LiveStartEffects.php';
@@ -211,6 +212,9 @@ function getAbilitiesByTrigger(array $card, string $trigger): array {
     }));
     if (isMemberCard($card)) {
         $abs = array_merge($abs, spBp2InheritedAbilitiesForTrigger($card, $trigger));
+        if (function_exists('bp8InheritedAbilitiesForTrigger')) {
+            $abs = array_merge($abs, bp8InheritedAbilitiesForTrigger($card, $trigger));
+        }
     }
     return $abs;
 }
@@ -2531,6 +2535,14 @@ function memberPerformanceHeartsFlat(array $member): array {
             $out[] = $color;
         }
     }
+    // PL!N-bp8-026 Solitude Rain: some colors on this Member become another color until the Live ends.
+    if (!empty($member['bp8_heart_recolor']) && is_array($member['bp8_heart_recolor'])) {
+        foreach ($out as $i => $c) {
+            if (isset($member['bp8_heart_recolor'][$c])) {
+                $out[$i] = normalizeHeartColor((string)$member['bp8_heart_recolor'][$c]);
+            }
+        }
+    }
     return $out;
 }
 
@@ -2981,6 +2993,11 @@ function applyLiveHeartReductions(array $required, array $liveCard): array {
     foreach ($liveCard['hearts_color_reduction'] ?? [] as $color => $n) {
         $req = reduceHeartRequirementsByColor($req, $color, intval($n));
     }
+    // PL!-bp8-001 Honoka continuous gray reduction (refreshed at Live Start / heart check).
+    $bp8Cont = intval($liveCard['bp8_cont_reduction'] ?? 0);
+    if ($bp8Cont > 0) {
+        $req = reduceHeartRequirementsByColor($req, 'any', $bp8Cont);
+    }
     foreach ($liveCard['hearts_color_increase'] ?? [] as $color => $n) {
         $req = increaseHeartRequirementsByColor($req, (string)$color, intval($n));
     }
@@ -3354,6 +3371,10 @@ function addLiveFromWrToZone(array &$p, array $cfg, string $preferId = ''): int 
         return 0;
     }
     $p['waiting_room'] = $rest;
+    // PL!N-bp8-030 Stay: placed from the WR into Live storage → Required Hearts −3 gray.
+    if (function_exists('bp8OnLiveFromWrToZone')) {
+        $picked = bp8OnLiveFromWrToZone($picked);
+    }
     $picked['revealed'] = true;
     $picked['preplaced_live_zone'] = true;
     $picked['live_slot'] = $slot;
@@ -4024,7 +4045,8 @@ function sumSuccessLiveScores(array $p, ?array $state = null, ?string $pid = nul
         }
         $sum += $score;
     }
-    return $sum + successZoneExactStageScoreBonus($p);
+    // PL!-bp8-013 Umi: card effects reading this total see +2 while the zone has a card.
+    return $sum + successZoneExactStageScoreBonus($p) + bp8SuccessSumBonus($p);
 }
 
 function liveZoneHasPlainLive(array $liveZone): bool {
@@ -4151,6 +4173,7 @@ function collectContinuousPerformanceHeartGrants(array $state, string $pid): arr
             }
             $memberHearts = spBp2ApplyContinuousHearts($state, $pid, $member, $ab, $memberHearts);
             $memberHearts = bp7ApplyContinuousHearts($state, $pid, $member, (string)$slot, $ab, $memberHearts);
+            $memberHearts = bp8ApplyContinuousHearts($state, $pid, $member, (string)$slot, $ab, $memberHearts);
             if (($ab['type'] ?? '') === 'blade_if_exact_stage_members' && !empty($ab['hearts'])) {
                 if (countStageMembers($state['players'][$pid]) === intval($ab['count'] ?? 2)) {
                     appendContinuousHeartsFromSpec($memberHearts, $ab['hearts']);
@@ -4173,6 +4196,8 @@ function collectContinuousPerformanceHeartGrants(array $state, string $pid): arr
         // (Tomari BP5 etc. have 3 continuous_hearts_in_slot lines; #89 tripled hearts).
         $memberHearts = spBp5ApplyContinuousHearts($state, $pid, $member, (string)$slot, $memberHearts);
         $memberHearts = batch99ApplyContinuousHearts($state, $pid, $member, (string)$slot, $memberHearts);
+        // PL!N-bp8-005 Ai: Red heart aura on Nijigasaki allies and on every opposing Member.
+        $memberHearts = bp8ApplyHeartAuras($state, $pid, $member, $memberHearts);
         foreach (hsPb1ApplyContinuousPurpleHeart($member, $state, $pid) as $color) {
             $memberHearts[] = normalizeHeartColor((string)$color);
         }
@@ -4877,6 +4902,7 @@ function getEffectiveHandCost(array $state, string $pid, array $card): int {
     if (function_exists('plMusePb2ApplyHandCostReduction')) {
         $base = plMusePb2ApplyHandCostReduction($state, $pid, $card, $base);
     }
+    $base = bp8ApplyHandCost($state, $pid, $card, $base);
     return spBp5ApplyHandCostReduction($state, $pid, $card, $base);
 }
 
@@ -4999,6 +5025,7 @@ function getEffectiveStageMemberCost(array $state, string $pid, array $member): 
         }
     }
     $base = bp7ApplyContinuousMemberCost($state, $pid, $member, $base);
+    $base = bp8ApplyContinuousMemberCost($state, $pid, $member, $base);
     return spBp2ApplyContinuousMemberCost($member, $base);
 }
 
@@ -5144,6 +5171,7 @@ function getMemberBlade(array $member, array $state, string $pid, string $slot =
             }
             $blade += sBp6ApplyContinuousBlade($state, $pid, $member, $ab);
             $blade += bp7ApplyContinuousBlade($state, $pid, $member, $slot, $ab);
+            $blade += bp8ApplyContinuousBlade($state, $pid, $member, $slot, $ab);
             if (($ab['trigger'] ?? '') === 'continuous'
                 && ($ab['type'] ?? '') === 'blade_if_moved_in_slot') {
                 $needSlot = $ab['slot'] ?? '';
@@ -5767,6 +5795,7 @@ function listOppStageMembersByMaxCost(array $state, string $oppId, int $maxCost,
         if (!$mbr) continue;
         if ($activeOnly && memberIsInWait($mbr)) continue;
         if (intval($mbr['cost'] ?? 0) > $maxCost) continue;
+        if (bp7ProtectedFromOppWait($state, $oppId, $mbr)) continue;
         $out[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
     }
     return $out;
@@ -5784,6 +5813,7 @@ function listOppStageMembersByMaxOriginalBlade(
         if (memberIsInWait($mbr)) continue;
         if ($activeOnly && !memberIsActiveForGame($mbr)) continue;
         if (intval($mbr['blade'] ?? 0) > $maxBlade) continue;
+        if (bp7ProtectedFromOppWait($state, $oppId, $mbr)) continue;
         $out[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
     }
     return $out;
@@ -5801,6 +5831,7 @@ function listOppStageMembersByMaxOriginalHearts(
         if (memberIsInWait($mbr)) continue;
         if ($activeOnly && !memberIsActiveForGame($mbr)) continue;
         if (memberHeartCount($mbr) > $maxHearts) continue;
+        if (bp7ProtectedFromOppWait($state, $oppId, $mbr)) continue;
         $out[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
     }
     return $out;

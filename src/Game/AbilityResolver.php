@@ -86,6 +86,8 @@ function resolveAbilityEffect(array $state, string $pid, array $source, array $a
         $state = plSpSd2ResolveEffect($state, $pid, $source, $ab, $ctx);
     } elseif (prVol9IsEffectType($type)) {
         $state = prVol9ResolveEffect($state, $pid, $source, $ab, $ctx);
+    } elseif (bp8IsEffectType($type)) {
+        $state = bp8ResolveEffect($state, $pid, $source, $ab, $ctx);
     } elseif (bp7IsEffectType($type)) {
         $state = bp7ResolveEffect($state, $pid, $source, $ab, $ctx);
     } elseif (batch99IsEffectType($type)) {

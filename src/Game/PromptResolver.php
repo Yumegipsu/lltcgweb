@@ -430,6 +430,11 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
         return $prVol9Prompt;
     }
 
+    $bp8Prompt = bp8ResolvePrompt($state, $owner, $prompt, $choice, $data);
+    if ($bp8Prompt !== null) {
+        return $bp8Prompt;
+    }
+
     $bp7Prompt = bp7ResolvePrompt($state, $owner, $prompt, $choice, $data);
     if ($bp7Prompt !== null) {
         return $bp7Prompt;
@@ -2986,6 +2991,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             throw new Exception('Must pick a qualifying card');
         }
         $ownerP['hand'][] = $picked;
+        bp8NotifyYellCardMoved($state, $owner);
         $state = addLog($state, $state['players'][$owner]['name'] .
             ' — [' . ($prompt['source_name'] ?? 'Live') . '] added ' .
             ($picked['name_en'] ?? $picked['name']) . ' from Yell to hand.');

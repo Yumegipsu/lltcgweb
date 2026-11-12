@@ -26,6 +26,7 @@ function tryResolveAbilityEffectSwitchPickYellMember(
                 $picked = $candidates[0];
                 $pickedId = $picked['instance_id'] ?? '';
                 $p['hand'][] = $picked;
+                bp8NotifyYellCardMoved($state, $pid);
                 if (!empty($p['_pending_yell_wr'])) {
                     $p['_pending_yell_wr'] = array_values(array_filter(
                         $p['_pending_yell_wr'],

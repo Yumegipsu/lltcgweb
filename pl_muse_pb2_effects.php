@@ -754,7 +754,7 @@ function plMusePb2SumSuccessScores(array $p): int {
             $sum += intval($c['score'] ?? 0);
         }
     }
-    return $sum;
+    return $sum + (function_exists('bp8SuccessSumBonus') ? bp8SuccessSumBonus($p) : 0);
 }
 
 function plMusePb2CountSuccessSubunit(array $p, string $subunit, ?array $effectSource = null): int {

@@ -120,6 +120,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
             if ($filter === 'live' && count($candidates) === 1) {
                 $picked = $candidates[0];
                 $p['hand'][] = $picked;
+                bp8NotifyYellCardMoved($state, $pid);
                 $p['_pending_yell_wr'] = array_values(array_filter(
                     $p['_pending_yell_wr'] ?? $yellPool,
                     fn($c) => ($c['instance_id'] ?? '') !== ($picked['instance_id'] ?? '')

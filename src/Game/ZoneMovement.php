@@ -141,6 +141,10 @@ function refreshMainDeckFromWaitingRoom(array &$state, string $pid): int {
     $p['waiting_room'] = [];
     shuffle($p['main_deck']);
     $p['_deck_refreshed_turn'] = intval($state['turn'] ?? 0);
+    // PL!N-bp8-011 Mia: [Automatic] when your deck is refreshed (queued until no prompt is open).
+    if (function_exists('bp8NotifyDeckRefreshed')) {
+        bp8NotifyDeckRefreshed($state, $pid);
+    }
     $name = $p['name'] ?? 'Player';
     $state = addLog(
         $state,
@@ -389,7 +393,9 @@ function affordableEnergyForBatonPlay(array $p, ?array $occupant, ?array $incomi
 function computeMemberPlayCostWithBaton(array $state, string $pid, array $card, ?array $occupant): int {
     $cost = getEffectiveHandCost($state, $pid, $card);
     if ($occupant) {
-        $cost = max(0, $cost - getEffectiveStageMemberCost($state, $pid, $occupant));
+        // PL!-bp8-003 Kotori: a Waiting μ's Member Baton Touched by a μ's Member reduces by its cost + 1.
+        $extra = function_exists('bp8BatonExtraReduction') ? bp8BatonExtraReduction($state, $pid, $card, $occupant) : 0;
+        $cost = max(0, $cost - getEffectiveStageMemberCost($state, $pid, $occupant) - $extra);
     }
     return $cost;
 }

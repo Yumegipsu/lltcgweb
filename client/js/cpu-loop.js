@@ -326,6 +326,12 @@ function cpuAbilityBaseScores() {
     live_score_if_stage_group_hearts_total: 2.8, live_score_per_stage_wait_member: 2.6,
     grant_live_success_yell_live_score_if_full_stage: 3.4,
     pick_stage_member: 2.8,
+    // BP08 (まじかる♡とり～と) activated abilities.
+    bp8_wait_discard_look_pick: 2.8, bp8_wr_bladeless_bottom_cost_plus: 1.6, bp8_wr_self_bottom_add_wr: 3.4,
+    bp8_stack_hand_member_under_self: 2.6, bp8_wait_self_wr_to_bottom: 1.8, bp8_wait_discard_add_wr: 3.2,
+    bp8_wr_self_bottom_grant_heart: 2.8, bp8_hand_self_discard_add_wr: 3, bp8_stack_zone_energy_add_wr: 3,
+    bp8_reveal_hand_self_bottom_wait_opp: 3, bp8_hand_bottom_draw: 3.2, bp8_discard_wr_live_to_zone_if_empty: 2.2,
+    bp8_discard_copy_on_enter: 2.6, bp8_discard_reenter_subunit_member: 2.4,
   };
 }
 
@@ -1089,6 +1095,12 @@ function cpuResolveBp7Prompt(s, cpu, pr, tier, winPressure, read) {
     const choices = (pr.choices || []).filter((c) => c != null && c !== '');
     if (!choices.length) {
       cpuAct('resolve_prompt', { choice: 'skip' });
+      return true;
+    }
+    // BP08 heart picks reuse this shape: choose the color the CPU's Lives need most.
+    if (typeof isHeartColorChoiceKey === 'function' && choices.every((c) => isHeartColorChoiceKey(c))
+        && typeof cpuPickHeartColor === 'function') {
+      cpuAct('resolve_prompt', { choice: cpuPickHeartColor(choices, cpu) });
       return true;
     }
     const ctx = cpuAbilityCtx(cpu, tier, read, winPressure,

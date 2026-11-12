@@ -791,6 +791,54 @@
     "絶対的LOVER": {
       "zh": "绝对的LOVER",
       "method": "sino"
+    },
+    "Aishii": {
+      "zh": "Aishii",
+      "method": "phonetic"
+    },
+    "Blueberry♡Train": {
+      "zh": "蓝莓♡列车",
+      "method": "semantic"
+    },
+    "Circle of Love": {
+      "zh": "Circle of Love",
+      "method": "phonetic"
+    },
+    "Dress Code": {
+      "zh": "Dress Code",
+      "method": "phonetic"
+    },
+    "EdelinieN": {
+      "zh": "EdelinieN",
+      "method": "phonetic"
+    },
+    "Fushigi to Kimi to Library": {
+      "zh": "不可思议与你与图书馆",
+      "method": "semantic"
+    },
+    "Hello, Hoshi wo Kazoete": {
+      "zh": "Hello，数着星星",
+      "method": "semantic"
+    },
+    "Nicopuri♡Joshidou": {
+      "zh": "妮可公主♡女子道",
+      "method": "semantic"
+    },
+    "Stay": {
+      "zh": "Stay",
+      "method": "phonetic"
+    },
+    "Tomodachi ni Nareru Basho": {
+      "zh": "能成为朋友的地方",
+      "method": "semantic"
+    },
+    "Yakusoku ni Nare Bokura no Uta": {
+      "zh": "化作约定吧我们的歌",
+      "method": "semantic"
+    },
+    "Yuujou No Change": {
+      "zh": "友情No Change",
+      "method": "semantic"
     }
   }
 }

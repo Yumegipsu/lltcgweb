@@ -19449,7 +19449,19 @@
   "not ALONE not HITORI": "not ALONE not 히토리",
   "stars we chase": "스타즈 위 체이스",
   "sweet&sweet holiday": "스위트&스위트 홀리데이",
-  "絶対的LOVER": "절대적 러버"
+  "絶対的LOVER": "절대적 러버",
+  "Aishii": "아이시이",
+  "Blueberry♡Train": "블루베리♡트레인",
+  "Circle of Love": "서클 오브 러브",
+  "Dress Code": "드레스 코드",
+  "EdelinieN": "에델리니엔",
+  "Fushigi to Kimi to Library": "신기하게도 너와 라이브러리",
+  "Hello, Hoshi wo Kazoete": "헬로, 별을 세며",
+  "Nicopuri♡Joshidou": "니코프리♡여자도",
+  "Stay": "스테이",
+  "Tomodachi ni Nareru Basho": "친구가 될 수 있는 곳",
+  "Yakusoku ni Nare Bokura no Uta": "약속이 되어라 우리들의 노래",
+  "Yuujou No Change": "우정 노 체인지",
 };
 
   var ZH_NAME_MAP = {
@@ -19792,7 +19804,19 @@
   "not ALONE not HITORI": "not ALONE not 一人",
   "stars we chase": "stars we chase",
   "sweet&sweet holiday": "sweet&sweet holiday",
-  "絶対的LOVER": "绝对的LOVER"
+  "絶対的LOVER": "绝对的LOVER",
+  "Aishii": "Aishii",
+  "Blueberry♡Train": "蓝莓♡列车",
+  "Circle of Love": "Circle of Love",
+  "Dress Code": "Dress Code",
+  "EdelinieN": "EdelinieN",
+  "Fushigi to Kimi to Library": "不可思议与你与图书馆",
+  "Hello, Hoshi wo Kazoete": "Hello，数着星星",
+  "Nicopuri♡Joshidou": "妮可公主♡女子道",
+  "Stay": "Stay",
+  "Tomodachi ni Nareru Basho": "能成为朋友的地方",
+  "Yakusoku ni Nare Bokura no Uta": "化作约定吧我们的歌",
+  "Yuujou No Change": "友情No Change",
 };
 
   var TH_NAME_MAP = {
@@ -20135,7 +20159,19 @@
   "not ALONE not HITORI": "นอต อโลน นอต ฮิโตริ",
   "stars we chase": "สตาร์ส วี เชส",
   "sweet&sweet holiday": "สวีท&สวีท ฮอลิเดย์",
-  "絶対的LOVER": "เซ็ตไตเตกิ เลิฟเวอร์"
+  "絶対的LOVER": "เซ็ตไตเตกิ เลิฟเวอร์",
+  "Aishii": "ไอชี",
+  "Blueberry♡Train": "บลูเบอร์รี♡เทรน",
+  "Circle of Love": "เซอร์เคิล ออฟ เลิฟ",
+  "Dress Code": "เดรส โค้ด",
+  "EdelinieN": "เอเดลินีเอ็น",
+  "Fushigi to Kimi to Library": "ฟุชิงิ โตะ คิมิ โตะ ไลบรารี",
+  "Hello, Hoshi wo Kazoete": "เฮลโล, โฮชิ โวะ คาโซเอเตะ",
+  "Nicopuri♡Joshidou": "นิโคปุริ♡โจชิโด",
+  "Stay": "สเตย์",
+  "Tomodachi ni Nareru Basho": "โทโมดาจิ นิ นาเรรุ บาโช",
+  "Yakusoku ni Nare Bokura no Uta": "ยาคุโซคุ นิ นาเระ โบคุระ โนะ อุตะ",
+  "Yuujou No Change": "ยูโจ โน เชนจ์",
 };
 
   var IDOL_LOCALE = {

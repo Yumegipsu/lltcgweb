@@ -1721,7 +1721,14 @@ function addSecondPlayer(array $state, array $p2, ?string $firstPlayerOverride =
  * all the ways a Member can enter (hand, Baton, effects, prompts).
  */
 function applyAction(array $state, string $playerId, string $type, array $data): array {
+    if (function_exists('bp8BeginAction')) {
+        bp8BeginAction($state);
+    }
     $state = applyActionCore($state, $playerId, $type, $data);
+    // BP08 queued autos (deck refresh, WR→deck, Success placement) and state checks (Kosuzu bp8-005).
+    if (function_exists('bp8AfterAction')) {
+        $state = bp8AfterAction($state);
+    }
     if (function_exists('plMusePb2ApplyOppositeEnterWait')) {
         $state = plMusePb2ApplyOppositeEnterWait($state);
     }
@@ -1966,6 +1973,9 @@ function actionPlayMember(array $state, string $pid, array $data): array {
     $card = $p['hand'][$cardIdx];
     mergeCardCatalogFields($card);
     if ($card['card_type'] !== 'メンバー') throw new Exception('Not a member card');
+    // PL!HS-bp8-005 Kosuzu: cannot be played without a DOLLCHESTRA Member on the Stage.
+    $bp8Block = bp8PlayBlockedReason($state, $pid, $card);
+    if ($bp8Block !== null) throw new Exception($bp8Block);
 
     $allowsDoubleBaton = false;
     foreach ($card['abilities'] ?? [] as $ab) {
@@ -3287,6 +3297,8 @@ function openNextYellRetryPrompt(array $state): array {
 
 /** Draw Yell cards for a player (shared by initial Yell and retry). */
 function drawYellCardsForPlayer(array $state, string $pid): array {
+    // PL!HS-bp8-001 Kaho: Blade from "a WR card was put into the deck" must land before Yell counts Blade.
+    bp8DetectWrToDeck($state);
     $p = &$state['players'][$pid];
     $totalBlade = computeYellBladeTotal($state, $pid);
     $state = initLiveModifiers($state);
@@ -3653,6 +3665,8 @@ function resolvePerformancePhase(array $state, string $pid, bool $continueAfter 
 
 /** Heart check, Live success/fail, and success effects for one player (after Yell reveal). */
 function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueAfter = true): array {
+    // PL!-bp8-001 Honoka: continuous Required Heart reduction is evaluated against the board right now.
+    $state = bp8RefreshContinuousLiveReductions($state, $pid);
     $p = &$state['players'][$pid];
     $liveCards = array_values(array_filter(
         $p['live_zone'] ?? [],
@@ -3694,6 +3708,9 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
         }
         unset($yc);
     }
+    // PL!-bp8-023 Snow halation: low-cost Members with no Blade Hearts carry an orange (gray) heart this Live.
+    bp8ApplyYellOrange($state, $pid, $yellCards);
+    bp8MarkYellRevealOrange($state, $pid);
 
     // Process blade hearts from yell cards (draw bonus)
     $drawBonus = 0;
@@ -3910,6 +3927,8 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
     $heartStr = implode(', ', $ownedHearts);
     $excessHearts = $liveRoundSuccess ? count($remaining) : 0;
     $state['_live_excess_hearts'][$pid] = $excessHearts;
+    // Colors of the surplus hearts (PL!N-bp8-029 Circle of Love counts surplus Red hearts).
+    $state['_live_excess_heart_colors'][$pid] = $liveRoundSuccess ? array_values($remaining) : [];
     $state['_live_success_no_excess'][$pid] = $liveRoundSuccess && ($excessHearts === 0);
     // First performer's Kowareyasuki / Strawberry Trapper etc. wait until this seat's
     // Live outcome (and surplus) is known — flush before this seat's own Live Success.
@@ -4189,6 +4208,8 @@ function liveJudgePlaceSuccessLive(array $state, string $winnerId, array $toAdd,
     $toAdd = $removed;
     $successIdx = count($state['players'][$winnerId]['success_lives']);
     $state['players'][$winnerId]['success_lives'][] = $toAdd;
+    // PL!-bp8-021: "when this card is placed in the Success Live storage" (queued; runs once no prompt is open).
+    bp8NotifySuccessPlaced($state, $winnerId, $toAdd);
     $state['players'][$winnerId]['succeeded_live_this_turn'] = true;
     notifyLiveEnteredSuccess($state, $winnerId, $toAdd);
     maybeLockNaturalMatchWin($state, $winnerId);
@@ -4949,7 +4970,8 @@ function getHeartIconsFromBladeHeart(
     }
     // Printed gray/any and double-colorless (all2 / 無色×2): colorless hearts.
     // They fill gray requirement slots and totals only — not purple/pink/… (#296).
-    if (in_array($type, ['gray', 'wild', 'any', 'all2', 'all_2', 'b_heart07', 'heart07'], true)) {
+    // PL!-bp8-023 orange heart: a single gray (any-color) heart in the heart check.
+    if (in_array($type, ['gray', 'wild', 'any', 'all2', 'all_2', 'b_heart07', 'heart07', 'orange', 'b_heart08', 'heart08'], true)) {
         $copies = in_array($type, ['all2', 'all_2', 'b_heart07', 'heart07'], true) ? 2 : 1;
         $out = array_fill(0, $copies, 'any');
         if ($resolvePool !== null) {

@@ -1630,13 +1630,1134 @@
     }],
   ];
 
+
+  /* BP08 (Magical Treat) prompt copy. Templates: {1}/{2} = raw capture, {G1} = capture 1 as a
+   * localized group/subunit name, [[...]] = kept only when capture 1 is non-empty. */
+  var BP8_GROUP_NAMES = {
+    ja: { 'Nijigasaki': '虹ヶ咲', 'Hasunosora': '蓮ノ空', 'Cerise Bouquet': 'スリーズブーケ', 'Mira-Cra Park!': 'みらくらぱーく！' },
+    ko: { 'Nijigasaki': '니지가사키', 'Hasunosora': '하스노소라', 'Cerise Bouquet': '스리즈부케', 'Mira-Cra Park!': '미라클파크!' },
+    zh: { 'Nijigasaki': '虹咲', 'Hasunosora': '莲之空' },
+    th: { 'Nijigasaki': 'นิจิกะซากิ', 'Hasunosora': 'ฮาซุโนะโซระ', 'Cerise Bouquet': 'ซูรีซึบูเกะ', 'Mira-Cra Park!': 'มิรากุระปาคุ!' },
+  };
+
+  function bp8Tpl(loc, tpl) {
+    return function () {
+      var caps = Array.prototype.slice.call(arguments, 1);
+      var g = caps[0] != null ? String(caps[0]) : '';
+      var map = BP8_GROUP_NAMES[loc] || {};
+      var out = String(tpl).replace(/\[\[([\s\S]*?)\]\]/g, function (_m, inner) { return g ? inner : ''; });
+      return out.replace(/\{(G?)(\d)\}/g, function (_m, isGroup, n) {
+        var v = caps[Number(n) - 1];
+        v = v != null ? String(v) : '';
+        return isGroup ? (map[v] || v) : v;
+      });
+    };
+  }
+
+  function bp8Row(re, langs) {
+    var row = {};
+    Object.keys(langs).forEach(function (loc) { row[loc] = bp8Tpl(loc, langs[loc]); });
+    return [re, row];
+  }
+
+  var BP8_PROMPT_PATTERNS = [
+    bp8Row(/^Choose (\d+) card\(s\) from your Waiting Room to put on the bottom of your deck, in order \(first chosen goes in first\)\.$/, {
+      ja: '控え室からカードを{1}枚選び、好きな順番でデッキの一番下に置く（先に選んだカードから置かれる）。',
+      es: 'Elige {1} carta(s) de tu Sala de espera para colocarlas en la parte inferior de tu mazo, en orden (la primera elegida va primero).',
+      ko: '대기실에서 덱 맨 아래에 놓을 카드 {1}장을 순서대로 선택하세요 (먼저 선택한 카드부터 놓입니다).',
+      zh: '从等候室选择{1}张卡，按顺序放置到牌组底部（先选的先放）。',
+      th: 'เลือกการ์ด {1} ใบจากห้องรอเพื่อวางไว้ที่ด้านล่างสุดของเด็คตามลำดับ (ใบที่เลือกก่อนจะถูกวางก่อน)',
+      pt: 'Escolha {1} carta(s) da sua Sala de Espera para colocar no fundo do seu deck, em ordem (a primeira escolhida vai primeiro).',
+      fr: 'Choisissez {1} carte(s) de votre Salle d\'attente à placer en dessous de votre deck, dans l\'ordre (la première choisie est placée en premier).',
+    }),
+    bp8Row(/^Choose (\d+) Members\.$/, {
+      ja: 'メンバーを{1}人選ぶ。', es: 'Elige {1} Miembros.', ko: '멤버 {1}명을 선택하세요.', zh: '选择{1}名成员。',
+      th: 'เลือกสมาชิก {1} คน', pt: 'Escolha {1} Membros.', fr: 'Choisissez {1} Membres.',
+    }),
+    bp8Row(/^Choose (\d+) card\(s\) from your hand to put into the Waiting Room \(down to (\d+)\)\.$/, {
+      ja: '手札からカードを{1}枚選び、控え室に置く（手札{2}枚まで）。',
+      es: 'Elige {1} carta(s) de tu mano para colocarlas en la Sala de espera (hasta quedarte con {2}).',
+      ko: '대기실에 놓을 패 {1}장을 선택하세요 (패 {2}장이 될 때까지).',
+      zh: '从手牌选择{1}张卡放入等候室（直到剩余{2}张）。',
+      th: 'เลือกการ์ด {1} ใบจากมือเพื่อนำไปไว้ในห้องรอ (จนเหลือ {2} ใบ)',
+      pt: 'Escolha {1} carta(s) da sua mão para colocar na Sala de Espera (até ficar com {2}).',
+      fr: 'Choisissez {1} carte(s) de votre main à placer dans la Salle d\'attente (jusqu\'à en avoir {2}).',
+    }),
+    bp8Row(/^Choose (\d+) card\(s\)\.$/, {
+      ja: 'カードを{1}枚選ぶ。', es: 'Elige {1} carta(s).', ko: '카드 {1}장을 선택하세요.', zh: '选择{1}张卡。',
+      th: 'เลือกการ์ด {1} ใบ', pt: 'Escolha {1} carta(s).', fr: 'Choisissez {1} carte(s).',
+    }),
+    bp8Row(/^Choose 1 (.+?) Member card with cost (\d+) from your hand to play to an empty area \(its \[On Enter\] does not trigger\)\.$/, {
+      ja: '手札からコスト{2}の{G1}のメンバーカード1枚を選び、空いているエリアに登場させる（[On Enter]は発動しない）。',
+      es: 'Elige 1 carta de Miembro de {G1} con coste {2} de tu mano para jugarla en un área vacía (su [On Enter] no se activa).',
+      ko: '패에서 코스트 {2}인 {G1} 멤버 카드 1장을 선택해 빈 영역에 등장시키세요 ([On Enter]는 발동하지 않습니다).',
+      zh: '从手牌选择1张费用为{2}的{G1}成员卡登场到空区域（其[On Enter]不会发动）。',
+      th: 'เลือกการ์ดสมาชิก {G1} ที่มีค่าใช้จ่าย {2} 1 ใบจากมือเพื่อให้เข้าสนามในพื้นที่ว่าง ([On Enter] จะไม่ทำงาน)',
+      pt: 'Escolha 1 carta Membro {G1} de custo {2} da sua mão para jogar em uma área vazia (seu [On Enter] não é ativado).',
+      fr: 'Choisissez 1 carte Membre {G1} de coût {2} de votre main à jouer dans une zone vide (son [On Enter] ne se déclenche pas).',
+    }),
+    bp8Row(/^Choose 1 (?:(.+?) )?Live card from your Waiting Room to place face up in your Live storage\.$/, {
+      ja: '控え室から[[{G1}の]]ライブカード1枚を選び、表向きでライブカード置き場に置く。',
+      es: 'Elige 1 carta Live[[ de {G1}]] de tu Sala de espera para colocarla boca arriba en tu zona de Lives.',
+      ko: '대기실에서 앞면으로 라이브 카드 영역에 놓을 [[{G1} ]]라이브 카드 1장을 선택하세요.',
+      zh: '从等候室选择1张[[{G1}]]Live卡以正面朝上放置到Live区。',
+      th: 'เลือกการ์ด Live[[ ของ{G1}]] 1 ใบจากห้องรอเพื่อวางแบบหงายหน้าในพื้นที่ Live',
+      pt: 'Escolha 1 carta Live[[ {G1}]] da sua Sala de Espera para colocar virada para cima na sua zona de Lives.',
+      fr: 'Choisissez 1 carte Live[[ {G1}]] de votre Salle d\'attente à placer face visible dans votre zone de Lives.',
+    }),
+    bp8Row(/^Choose 1 Live card in your Live storage to put on top of your deck\.$/, {
+      ja: 'ライブカード置き場からデッキの一番上に置くライブカード1枚を選ぶ。',
+      es: 'Elige 1 carta Live de tu zona de Lives para colocarla en la parte superior de tu mazo.',
+      ko: '라이브 카드 영역에서 덱 맨 위에 놓을 라이브 카드 1장을 선택하세요.',
+      zh: '从Live区选择1张Live卡放置到牌组顶。',
+      th: 'เลือกการ์ด Live 1 ใบในพื้นที่ Live เพื่อวางไว้ที่ด้านบนสุดของเด็ค',
+      pt: 'Escolha 1 carta Live na sua zona de Lives para colocar no topo do seu deck.',
+      fr: 'Choisissez 1 carte Live de votre zone de Lives à placer au-dessus de votre deck.',
+    }),
+    bp8Row(/^Choose 1 Member card from your hand to put under this Member\.$/, {
+      ja: '手札からこのメンバーの下に置くメンバーカード1枚を選ぶ。',
+      es: 'Elige 1 carta de Miembro de tu mano para colocarla debajo de este Miembro.',
+      ko: '패에서 이 멤버의 아래에 놓을 멤버 카드 1장을 선택하세요.',
+      zh: '从手牌选择1张成员卡放置到该成员下方。',
+      th: 'เลือกการ์ดสมาชิก 1 ใบจากมือเพื่อวางไว้ใต้สมาชิกคนนี้',
+      pt: 'Escolha 1 carta Membro da sua mão para colocar debaixo deste Membro.',
+      fr: 'Choisissez 1 carte Membre de votre main à placer sous ce Membre.',
+    }),
+    bp8Row(/^Choose 1 Member card with Blade Hearts from your Waiting Room to add to your hand\.$/, {
+      ja: '控え室からブレードハートを持つメンバーカード1枚を選び、手札に加える。',
+      es: 'Elige 1 carta de Miembro con corazones de Blade de tu Sala de espera para añadirla a tu mano.',
+      ko: '대기실에서 패에 추가할 블레이드 하트를 가진 멤버 카드 1장을 선택하세요.',
+      zh: '从等候室选择1张拥有刀刃心形的成员卡加入手牌。',
+      th: 'เลือกการ์ดสมาชิกที่มีหัวใจเบลด 1 ใบจากห้องรอเพื่อเพิ่มขึ้นมือ',
+      pt: 'Escolha 1 carta Membro com corações de Blade da sua Sala de Espera para adicionar à sua mão.',
+      fr: 'Choisissez 1 carte Membre avec des cœurs de Blade de votre Salle d\'attente à ajouter à votre main.',
+    }),
+    bp8Row(/^Choose 1 Member in Wait to activate\.$/, {
+      ja: 'アクティブにするウェイト状態のメンバー1人を選ぶ。',
+      es: 'Elige 1 Miembro en estado Wait para activarlo.',
+      ko: '액티브로 만들 Wait 상태의 멤버 1명을 선택하세요.',
+      zh: '选择1名处于等待状态的成员变为活跃状态。',
+      th: 'เลือกสมาชิกที่อยู่ในสถานะ Wait 1 คนเพื่อทำให้เป็น Active',
+      pt: 'Escolha 1 Membro em Wait para ativar.',
+      fr: 'Choisissez 1 Membre en Wait à activer.',
+    }),
+    bp8Row(/^Choose 1 (?:(.+?) )?Member on your Stage\.$/, {
+      ja: 'ステージの[[{G1}の]]メンバー1人を選ぶ。',
+      es: 'Elige 1 Miembro[[ de {G1}]] de tu Escenario.',
+      ko: '스테이지의 [[{G1} ]]멤버 1명을 선택하세요.',
+      zh: '选择你舞台上的1名[[{G1}]]成员。',
+      th: 'เลือกสมาชิก[[ {G1}]] 1 คนบนเวทีของคุณ',
+      pt: 'Escolha 1 Membro[[ {G1}]] no seu Palco.',
+      fr: 'Choisissez 1 Membre[[ {G1}]] de votre Scène.',
+    }),
+    bp8Row(/^Choose 1 (.+?) Member to put into the Waiting Room and play again\.$/, {
+      ja: '控え室に置いて再び登場させる{G1}のメンバー1人を選ぶ。',
+      es: 'Elige 1 Miembro de {G1} para colocarlo en la Sala de espera y volver a jugarlo.',
+      ko: '대기실에 놓고 다시 등장시킬 {G1} 멤버 1명을 선택하세요.',
+      zh: '选择1名{G1}成员放入等候室并重新登场。',
+      th: 'เลือกสมาชิก {G1} 1 คนเพื่อนำไปไว้ในห้องรอแล้วให้เข้าสนามอีกครั้ง',
+      pt: 'Escolha 1 Membro {G1} para colocar na Sala de Espera e jogar de novo.',
+      fr: 'Choisissez 1 Membre {G1} à placer dans la Salle d\'attente puis à rejouer.',
+    }),
+    bp8Row(/^Choose 1 (.+?) Member card from your Waiting Room to add to your hand\.$/, {
+      ja: '控え室から{G1}のメンバーカード1枚を選び、手札に加える。',
+      es: 'Elige 1 carta de Miembro de {G1} de tu Sala de espera para añadirla a tu mano.',
+      ko: '대기실에서 패에 추가할 {G1} 멤버 카드 1장을 선택하세요.',
+      zh: '从等候室选择1张{G1}成员卡加入手牌。',
+      th: 'เลือกการ์ดสมาชิก {G1} 1 ใบจากห้องรอเพื่อเพิ่มขึ้นมือ',
+      pt: 'Escolha 1 carta Membro {G1} da sua Sala de Espera para adicionar à sua mão.',
+      fr: 'Choisissez 1 carte Membre {G1} de votre Salle d\'attente à ajouter à votre main.',
+    }),
+    bp8Row(/^Choose 1 (.+?) Live card from your Waiting Room to add to your hand\.$/, {
+      ja: '控え室から{G1}のライブカード1枚を選び、手札に加える。',
+      es: 'Elige 1 carta Live de {G1} de tu Sala de espera para añadirla a tu mano.',
+      ko: '대기실에서 패에 추가할 {G1} 라이브 카드 1장을 선택하세요.',
+      zh: '从等候室选择1张{G1}Live卡加入手牌。',
+      th: 'เลือกการ์ด Live ของ{G1} 1 ใบจากห้องรอเพื่อเพิ่มขึ้นมือ',
+      pt: 'Escolha 1 carta Live {G1} da sua Sala de Espera para adicionar à sua mão.',
+      fr: 'Choisissez 1 carte Live {G1} de votre Salle d\'attente à ajouter à votre main.',
+    }),
+    bp8Row(/^Choose 1 Member to gain the heart\.$/, {
+      ja: 'ハートを得るメンバー1人を選ぶ。', es: 'Elige 1 Miembro que gane el corazón.',
+      ko: '하트를 얻을 멤버 1명을 선택하세요.', zh: '选择1名获得心形的成员。',
+      th: 'เลือกสมาชิก 1 คนที่จะได้รับหัวใจ', pt: 'Escolha 1 Membro para ganhar o coração.',
+      fr: 'Choisissez 1 Membre qui gagne le cœur.',
+    }),
+    bp8Row(/^Choose 1 \[On Enter\] ability to gain and trigger\.$/, {
+      ja: '得て発動する[On Enter]能力を1つ選ぶ。', es: 'Elige 1 habilidad [On Enter] para obtenerla y activarla.',
+      ko: '얻고 발동시킬 [On Enter] 능력 1개를 선택하세요.', zh: '选择1个要获得并发动的[On Enter]能力。',
+      th: 'เลือกความสามารถ [On Enter] 1 อย่างเพื่อรับและใช้', pt: 'Escolha 1 habilidade [On Enter] para ganhar e ativar.',
+      fr: 'Choisissez 1 capacité [On Enter] à gagner et déclencher.',
+    }),
+    bp8Row(/^Choose 1 card from your Waiting Room to put on the bottom of your deck\.$/, {
+      ja: '控え室からデッキの一番下に置くカード1枚を選ぶ。',
+      es: 'Elige 1 carta de tu Sala de espera para colocarla en la parte inferior de tu mazo.',
+      ko: '대기실에서 덱 맨 아래에 놓을 카드 1장을 선택하세요.',
+      zh: '从等候室选择1张卡放置到牌组底部。',
+      th: 'เลือกการ์ด 1 ใบจากห้องรอเพื่อวางไว้ที่ด้านล่างสุดของเด็ค',
+      pt: 'Escolha 1 carta da sua Sala de Espera para colocar no fundo do seu deck.',
+      fr: 'Choisissez 1 carte de votre Salle d\'attente à placer en dessous de votre deck.',
+    }),
+    bp8Row(/^Choose 1 card from your Waiting Room to put on top of your deck\.$/, {
+      ja: '控え室からデッキの一番上に置くカード1枚を選ぶ。',
+      es: 'Elige 1 carta de tu Sala de espera para colocarla en la parte superior de tu mazo.',
+      ko: '대기실에서 덱 맨 위에 놓을 카드 1장을 선택하세요.',
+      zh: '从等候室选择1张卡放置到牌组顶。',
+      th: 'เลือกการ์ด 1 ใบจากห้องรอเพื่อวางไว้ที่ด้านบนสุดของเด็ค',
+      pt: 'Escolha 1 carta da sua Sala de Espera para colocar no topo do seu deck.',
+      fr: 'Choisissez 1 carte de votre Salle d\'attente à placer au-dessus de votre deck.',
+    }),
+    bp8Row(/^Choose 1 card from your hand to put on the bottom of your deck\.$/, {
+      ja: '手札からデッキの一番下に置くカード1枚を選ぶ。',
+      es: 'Elige 1 carta de tu mano para colocarla en la parte inferior de tu mazo.',
+      ko: '패에서 덱 맨 아래에 놓을 카드 1장을 선택하세요.',
+      zh: '从手牌选择1张卡放置到牌组底部。',
+      th: 'เลือกการ์ด 1 ใบจากมือเพื่อวางไว้ที่ด้านล่างสุดของเด็ค',
+      pt: 'Escolha 1 carta da sua mão para colocar no fundo do seu deck.',
+      fr: 'Choisissez 1 carte de votre main à placer en dessous de votre deck.',
+    }),
+    bp8Row(/^Choose 1 card in your Live storage: its score \+1 and its Required Hearts increase\.$/, {
+      ja: 'ライブカード置き場のカード1枚を選ぶ：スコア+1、必要ハートが増える。',
+      es: 'Elige 1 carta de tu zona de Lives: su puntuación +1 y sus Corazones requeridos aumentan.',
+      ko: '라이브 카드 영역의 카드 1장을 선택하세요: 스코어 +1, 필요 하트가 늘어납니다.',
+      zh: '选择Live区中的1张卡：分数+1，所需心形增加。',
+      th: 'เลือกการ์ด 1 ใบในพื้นที่ Live: คะแนน +1 และหัวใจที่ต้องการเพิ่มขึ้น',
+      pt: 'Escolha 1 carta na sua zona de Lives: pontuação +1 e o Requisito de Corações aumenta.',
+      fr: 'Choisissez 1 carte de votre zone de Lives : score +1 et ses Cœurs requis augmentent.',
+    }),
+    bp8Row(/^Choose 1 card to add to your hand\. The rest go to the Waiting Room\.$/, {
+      ja: '手札に加えるカード1枚を選ぶ。残りは控え室に置く。',
+      es: 'Elige 1 carta para añadirla a tu mano. El resto va a la Sala de espera.',
+      ko: '패에 추가할 카드 1장을 선택하세요. 나머지는 대기실에 놓입니다.',
+      zh: '选择1张卡加入手牌。其余放入等候室。',
+      th: 'เลือกการ์ด 1 ใบเพื่อเพิ่มขึ้นมือ ที่เหลือจะไปที่ห้องรอ',
+      pt: 'Escolha 1 carta para adicionar à sua mão. O restante vai para a Sala de Espera.',
+      fr: 'Choisissez 1 carte à ajouter à votre main. Le reste va dans la Salle d\'attente.',
+    }),
+    bp8Row(/^Choose a heart color to gain until this Live ends\.$/, {
+      ja: 'このライブ終了時まで得るハートの色を選ぶ。',
+      es: 'Elige un color de corazón para ganarlo hasta que termine este Live.',
+      ko: '이 라이브가 끝날 때까지 얻을 하트의 색을 선택하세요.',
+      zh: '选择直到本场Live结束获得的心形颜色。',
+      th: 'เลือกสีหัวใจที่จะได้รับจนกว่า Live นี้จะจบ',
+      pt: 'Escolha uma cor de coração para ganhar até o fim desta Live.',
+      fr: 'Choisissez une couleur de cœur à gagner jusqu\'à la fin de ce Live.',
+    }),
+    bp8Row(/^Choose an empty area to play the Member to\.$/, {
+      ja: 'メンバーを登場させる空いているエリアを選ぶ。', es: 'Elige un área vacía en la que jugar al Miembro.',
+      ko: '멤버를 등장시킬 빈 영역을 선택하세요.', zh: '选择成员登场的空区域。',
+      th: 'เลือกพื้นที่ว่างที่จะให้สมาชิกเข้าสนาม', pt: 'Escolha uma área vazia para jogar o Membro.',
+      fr: 'Choisissez une zone vide où jouer le Membre.',
+    }),
+    bp8Row(/^Have your opponent draw 1 card\?$/, {
+      ja: '相手にカードを1枚引かせますか？', es: '¿Hacer que tu rival robe 1 carta?',
+      ko: '상대가 카드 1장을 드로우하게 하시겠습니까?', zh: '要让对手抽1张卡吗？',
+      th: 'ให้ฝ่ายตรงข้ามจั่วการ์ด 1 ใบหรือไม่?', pt: 'Fazer seu oponente comprar 1 carta?',
+      fr: 'Faire piocher 1 carte à votre adversaire ?',
+    }),
+    bp8Row(/^Look at the top (\d+) cards of your deck and arrange them\.$/, {
+      ja: 'デッキの上から{1}枚を見て、並べ替える。', es: 'Mira las {1} cartas superiores de tu mazo y ordénalas.',
+      ko: '덱 위에서 {1}장을 보고 정렬합니다.', zh: '查看牌组顶的{1}张卡并排列。',
+      th: 'ดูการ์ด {1} ใบบนสุดของเด็คแล้วจัดเรียง', pt: 'Olhe as {1} cartas do topo do seu deck e organize-as.',
+      fr: 'Regardez les {1} cartes du dessus de votre deck et réorganisez-les.',
+    }),
+    bp8Row(/^Put 1 Energy from your Energy storage under this Member\?$/, {
+      ja: 'エネルギー置き場のエネルギー1枚をこのメンバーの下に置きますか？',
+      es: '¿Colocar 1 Energía de tu zona de Energía debajo de este Miembro?',
+      ko: '에너지 영역의 에너지 1장을 이 멤버의 아래에 놓으시겠습니까?',
+      zh: '要将能量区的1张能量放置到该成员下方吗？',
+      th: 'วางพลังงาน 1 ใบจากพื้นที่พลังงานไว้ใต้สมาชิกคนนี้หรือไม่?',
+      pt: 'Colocar 1 Energia da sua zona de Energia debaixo deste Membro?',
+      fr: 'Placer 1 Énergie de votre zone d\'Énergie sous ce Membre ?',
+    }),
+    bp8Row(/^Put 1 card from your hand into the Waiting Room to add 1 (.+?) card revealed by Yell to your hand\?$/, {
+      ja: '手札1枚を控え室に置き、エールで公開された{G1}のカード1枚を手札に加えますか？',
+      es: '¿Colocar 1 carta de tu mano en la Sala de espera para añadir a tu mano 1 carta de {G1} revelada por Yell?',
+      ko: '패 1장을 대기실에 놓고 Yell로 공개된 {G1} 카드 1장을 패에 추가하시겠습니까?',
+      zh: '要将1张手牌放入等候室，并将1张通过Yell公开的{G1}卡加入手牌吗？',
+      th: 'นำการ์ด 1 ใบจากมือไปไว้ในห้องรอเพื่อเพิ่มการ์ด {G1} 1 ใบที่เปิดเผยโดย Yell ขึ้นมือหรือไม่?',
+      pt: 'Colocar 1 carta da sua mão na Sala de Espera para adicionar à sua mão 1 carta {G1} revelada por Yell?',
+      fr: 'Placer 1 carte de votre main dans la Salle d\'attente pour ajouter à votre main 1 carte {G1} révélée par Yell ?',
+    }),
+    bp8Row(/^Put the bottom card of your deck into the Waiting Room\?$/, {
+      ja: 'デッキの一番下のカードを控え室に置きますか？', es: '¿Colocar la carta inferior de tu mazo en la Sala de espera?',
+      ko: '덱 맨 아래의 카드를 대기실에 놓으시겠습니까?', zh: '要将牌组底部的卡放入等候室吗？',
+      th: 'นำการ์ดใบล่างสุดของเด็คไปไว้ในห้องรอหรือไม่?', pt: 'Colocar a carta do fundo do seu deck na Sala de Espera?',
+      fr: 'Placer la carte du dessous de votre deck dans la Salle d\'attente ?',
+    }),
+    bp8Row(/^Put the top (\d+) cards of your deck into the Waiting Room\?$/, {
+      ja: 'デッキの上から{1}枚を控え室に置きますか？', es: '¿Colocar las {1} cartas superiores de tu mazo en la Sala de espera?',
+      ko: '덱 위에서 {1}장을 대기실에 놓으시겠습니까?', zh: '要将牌组顶的{1}张卡放入等候室吗？',
+      th: 'นำการ์ด {1} ใบบนสุดของเด็คไปไว้ในห้องรอหรือไม่?', pt: 'Colocar as {1} cartas do topo do seu deck na Sala de Espera?',
+      fr: 'Placer les {1} cartes du dessus de votre deck dans la Salle d\'attente ?',
+    }),
+    bp8Row(/^Put this card on the bottom of your deck\?$/, {
+      ja: 'このカードをデッキの一番下に置きますか？', es: '¿Colocar esta carta en la parte inferior de tu mazo?',
+      ko: '이 카드를 덱 맨 아래에 놓으시겠습니까?', zh: '要将这张卡放置到牌组底部吗？',
+      th: 'วางการ์ดใบนี้ไว้ที่ด้านล่างสุดของเด็คหรือไม่?', pt: 'Colocar esta carta no fundo do seu deck?',
+      fr: 'Placer cette carte en dessous de votre deck ?',
+    }),
+    bp8Row(/^Pay (\d+) Energy to shuffle all Member cards with cost (\d+) or less from your Waiting Room to the deck bottom\?$/, {
+      ja: 'エネルギーを{1}支払い、控え室のコスト{2}以下のメンバーカードをすべてシャッフルしてデッキの一番下に置きますか？',
+      es: '¿Pagar {1} Energía para barajar todas las cartas de Miembro de coste {2} o menos de tu Sala de espera y colocarlas en la parte inferior del mazo?',
+      ko: '에너지 {1}장을 지불하고 대기실의 코스트 {2} 이하 멤버 카드를 모두 섞어 덱 맨 아래에 놓으시겠습니까?',
+      zh: '要支付{1}能量，将等候室中所有费用为{2}以下的成员卡洗切后放置到牌组底部吗？',
+      th: 'จ่ายพลังงาน {1} เพื่อสับการ์ดสมาชิกที่มีค่าใช้จ่าย {2} หรือน้อยกว่าทั้งหมดในห้องรอแล้ววางไว้ที่ด้านล่างสุดของเด็คหรือไม่?',
+      pt: 'Pagar {1} Energia para embaralhar todas as cartas Membro de custo {2} ou menos da sua Sala de Espera e colocá-las no fundo do deck?',
+      fr: 'Payer {1} Énergie pour mélanger toutes les cartes Membre de coût {2} ou moins de votre Salle d\'attente et les placer en dessous du deck ?',
+    }),
+    bp8Row(/^Put (\d+) cards from your hand into the Waiting Room to add 1 matching Live card from your Waiting Room\?$/, {
+      ja: '手札{1}枚を控え室に置き、控え室から条件に合うライブカード1枚を手札に加えますか？',
+      es: '¿Colocar {1} cartas de tu mano en la Sala de espera para añadir a tu mano 1 carta Live válida de tu Sala de espera?',
+      ko: '패 {1}장을 대기실에 놓고 대기실에서 조건에 맞는 라이브 카드 1장을 패에 추가하시겠습니까?',
+      zh: '要将{1}张手牌放入等候室，并从等候室将1张符合条件的Live卡加入手牌吗？',
+      th: 'นำการ์ด {1} ใบจากมือไปไว้ในห้องรอเพื่อเพิ่มการ์ด Live ที่ตรงเงื่อนไข 1 ใบจากห้องรอขึ้นมือหรือไม่?',
+      pt: 'Colocar {1} cartas da sua mão na Sala de Espera para adicionar à sua mão 1 carta Live válida da sua Sala de Espera?',
+      fr: 'Placer {1} cartes de votre main dans la Salle d\'attente pour ajouter à votre main 1 carte Live valide de votre Salle d\'attente ?',
+    }),
+    bp8Row(/^You may choose (\d+) Members on your Stage to put into Wait\.$/, {
+      ja: 'ステージのメンバー{1}人を選んでウェイトにしてもよい。',
+      es: 'Puedes elegir {1} Miembros de tu Escenario para ponerlos en Wait.',
+      ko: '스테이지의 멤버 {1}명을 선택해 Wait로 만들 수 있습니다.',
+      zh: '你可以选择舞台上的{1}名成员置于等待状态。',
+      th: 'คุณสามารถเลือกสมาชิก {1} คนบนเวทีเพื่อทำให้เป็น Wait',
+      pt: 'Você pode escolher {1} Membros do seu Palco para colocar em Wait.',
+      fr: 'Vous pouvez choisir {1} Membres de votre Scène à mettre en Wait.',
+    }),
+    bp8Row(/^You may choose a Member: put 1 Energy card from under it into your Energy storage in Wait\.$/, {
+      ja: 'メンバー1人を選んでもよい：その下のエネルギーカード1枚をウェイト状態でエネルギー置き場に置く。',
+      es: 'Puedes elegir un Miembro: coloca 1 carta de Energía de debajo de él en tu zona de Energía en estado Wait.',
+      ko: '멤버 1명을 선택할 수 있습니다: 그 아래의 에너지 카드 1장을 Wait 상태로 에너지 영역에 놓습니다.',
+      zh: '你可以选择1名成员：将其下方的1张能量卡以等待状态放置到能量区。',
+      th: 'คุณสามารถเลือกสมาชิก 1 คน: นำการ์ดพลังงาน 1 ใบที่อยู่ใต้สมาชิกคนนั้นไปวางในพื้นที่พลังงานในสถานะ Wait',
+      pt: 'Você pode escolher um Membro: coloque 1 carta de Energia de debaixo dele na sua zona de Energia em estado Wait.',
+      fr: 'Vous pouvez choisir un Membre : placez 1 carte Énergie se trouvant dessous dans votre zone d\'Énergie en état Wait.',
+    }),
+    bp8Row(/^You may choose another (.+?) Member to put 1 Energy under\.$/, {
+      ja: 'エネルギー1枚を下に置く他の{G1}のメンバー1人を選んでもよい。',
+      es: 'Puedes elegir otro Miembro de {G1} para colocar 1 Energía debajo de él.',
+      ko: '에너지 1장을 아래에 놓을 다른 {G1} 멤버 1명을 선택할 수 있습니다.',
+      zh: '你可以选择另1名{G1}成员，在其下方放置1张能量。',
+      th: 'คุณสามารถเลือกสมาชิก {G1} อีก 1 คนเพื่อวางพลังงาน 1 ใบไว้ด้านล่าง',
+      pt: 'Você pode escolher outro Membro {G1} para colocar 1 Energia debaixo dele.',
+      fr: 'Vous pouvez choisir un autre Membre {G1} sous lequel placer 1 Énergie.',
+    }),
+    bp8Row(/^You may put 1 (?:(.+?) )?card from your hand into the Waiting Room\.$/, {
+      ja: '手札から[[{G1}の]]カード1枚を控え室に置いてもよい。',
+      es: 'Puedes colocar 1 carta[[ de {G1}]] de tu mano en la Sala de espera.',
+      ko: '패에서 [[{G1} ]]카드 1장을 대기실에 놓을 수 있습니다.',
+      zh: '你可以将1张[[{G1}]]手牌放入等候室。',
+      th: 'คุณสามารถนำการ์ด[[ {G1}]] 1 ใบจากมือไปไว้ในห้องรอ',
+      pt: 'Você pode colocar 1 carta[[ {G1}]] da sua mão na Sala de Espera.',
+      fr: 'Vous pouvez placer 1 carte[[ {G1}]] de votre main dans la Salle d\'attente.',
+    }),
+    bp8Row(/^You may put 1 Member card with cost (\d+) or less from your Waiting Room on top of your deck\.$/, {
+      ja: '控え室からコスト{1}以下のメンバーカード1枚をデッキの一番上に置いてもよい。',
+      es: 'Puedes colocar 1 carta de Miembro de coste {1} o menos de tu Sala de espera en la parte superior de tu mazo.',
+      ko: '대기실에서 코스트 {1} 이하인 멤버 카드 1장을 덱 맨 위에 놓을 수 있습니다.',
+      zh: '你可以从等候室将1张费用为{1}以下的成员卡放置到牌组顶。',
+      th: 'คุณสามารถวางการ์ดสมาชิกที่มีค่าใช้จ่าย {1} หรือน้อยกว่า 1 ใบจากห้องรอไว้ที่ด้านบนสุดของเด็ค',
+      pt: 'Você pode colocar 1 carta Membro de custo {1} ou menos da sua Sala de Espera no topo do seu deck.',
+      fr: 'Vous pouvez placer 1 carte Membre de coût {1} ou moins de votre Salle d\'attente au-dessus de votre deck.',
+    }),
+    bp8Row(/^You may put 1 Member card with no Blade Hearts from your Waiting Room on the bottom of your deck\.$/, {
+      ja: '控え室からブレードハートを持たないメンバーカード1枚をデッキの一番下に置いてもよい。',
+      es: 'Puedes colocar 1 carta de Miembro sin corazones de Blade de tu Sala de espera en la parte inferior de tu mazo.',
+      ko: '대기실에서 블레이드 하트를 가지지 않은 멤버 카드 1장을 덱 맨 아래에 놓을 수 있습니다.',
+      zh: '你可以从等候室将1张没有刀刃心形的成员卡放置到牌组底部。',
+      th: 'คุณสามารถวางการ์ดสมาชิกที่ไม่มีหัวใจเบลด 1 ใบจากห้องรอไว้ที่ด้านล่างสุดของเด็ค',
+      pt: 'Você pode colocar 1 carta Membro sem corações de Blade da sua Sala de Espera no fundo do seu deck.',
+      fr: 'Vous pouvez placer 1 carte Membre sans cœurs de Blade de votre Salle d\'attente en dessous de votre deck.',
+    }),
+    bp8Row(/^You may return 1 (.+?) Member on your Stage to your hand\.$/, {
+      ja: 'ステージの{G1}のメンバー1人を手札に戻してもよい。',
+      es: 'Puedes devolver a tu mano 1 Miembro de {G1} de tu Escenario.',
+      ko: '스테이지의 {G1} 멤버 1명을 패로 되돌릴 수 있습니다.',
+      zh: '你可以将舞台上的1名{G1}成员返回手牌。',
+      th: 'คุณสามารถนำสมาชิก {G1} 1 คนบนเวทีกลับขึ้นมือ',
+      pt: 'Você pode devolver à sua mão 1 Membro {G1} do seu Palco.',
+      fr: 'Vous pouvez renvoyer dans votre main 1 Membre {G1} de votre Scène.',
+    }),
+    bp8Row(/^You may reveal 1 Member card with no Blade Hearts from your hand to put it on the bottom of your deck\.$/, {
+      ja: '手札からブレードハートを持たないメンバーカード1枚を公開し、デッキの一番下に置いてもよい。',
+      es: 'Puedes revelar 1 carta de Miembro sin corazones de Blade de tu mano para colocarla en la parte inferior de tu mazo.',
+      ko: '패에서 블레이드 하트를 가지지 않은 멤버 카드 1장을 공개하여 덱 맨 아래에 놓을 수 있습니다.',
+      zh: '你可以公开1张手牌中没有刀刃心形的成员卡并放置到牌组底部。',
+      th: 'คุณสามารถเปิดเผยการ์ดสมาชิกที่ไม่มีหัวใจเบลด 1 ใบจากมือเพื่อวางไว้ที่ด้านล่างสุดของเด็ค',
+      pt: 'Você pode revelar 1 carta Membro sem corações de Blade da sua mão para colocá-la no fundo do seu deck.',
+      fr: 'Vous pouvez révéler 1 carte Membre sans cœurs de Blade de votre main pour la placer en dessous de votre deck.',
+    }),
+    bp8Row(/^You may reveal 1 matching Member card from your hand to put it on the bottom of your deck\.$/, {
+      ja: '手札から条件に合うメンバーカード1枚を公開し、デッキの一番下に置いてもよい。',
+      es: 'Puedes revelar 1 carta de Miembro válida de tu mano para colocarla en la parte inferior de tu mazo.',
+      ko: '패에서 조건에 맞는 멤버 카드 1장을 공개하여 덱 맨 아래에 놓을 수 있습니다.',
+      zh: '你可以公开1张手牌中符合条件的成员卡并放置到牌组底部。',
+      th: 'คุณสามารถเปิดเผยการ์ดสมาชิกที่ตรงเงื่อนไข 1 ใบจากมือเพื่อวางไว้ที่ด้านล่างสุดของเด็ค',
+      pt: 'Você pode revelar 1 carta Membro válida da sua mão para colocá-la no fundo do seu deck.',
+      fr: 'Vous pouvez révéler 1 carte Membre valide de votre main pour la placer en dessous de votre deck.',
+    }),
+    bp8Row(/^You may reveal 1 (.+?) Member card from your hand to put it on top of your deck\.$/, {
+      ja: '手札から{G1}のメンバーカード1枚を公開し、デッキの一番上に置いてもよい。',
+      es: 'Puedes revelar 1 carta de Miembro de {G1} de tu mano para colocarla en la parte superior de tu mazo.',
+      ko: '패에서 {G1} 멤버 카드 1장을 공개하여 덱 맨 위에 놓을 수 있습니다.',
+      zh: '你可以公开1张手牌中的{G1}成员卡并放置到牌组顶。',
+      th: 'คุณสามารถเปิดเผยการ์ดสมาชิก {G1} 1 ใบจากมือเพื่อวางไว้ที่ด้านบนสุดของเด็ค',
+      pt: 'Você pode revelar 1 carta Membro {G1} da sua mão para colocá-la no topo do seu deck.',
+      fr: 'Vous pouvez révéler 1 carte Membre {G1} de votre main pour la placer au-dessus de votre deck.',
+    }),
+    bp8Row(/^You may reveal 1 Member card and put it under this Member\. The rest go to the Waiting Room\.$/, {
+      ja: 'メンバーカード1枚を公開してこのメンバーの下に置いてもよい。残りは控え室に置く。',
+      es: 'Puedes revelar 1 carta de Miembro y colocarla debajo de este Miembro. El resto va a la Sala de espera.',
+      ko: '멤버 카드 1장을 공개하여 이 멤버의 아래에 놓을 수 있습니다. 나머지는 대기실에 놓입니다.',
+      zh: '你可以公开1张成员卡并放置到该成员下方。其余放入等候室。',
+      th: 'คุณสามารถเปิดเผยการ์ดสมาชิก 1 ใบและวางไว้ใต้สมาชิกคนนี้ ที่เหลือจะไปที่ห้องรอ',
+      pt: 'Você pode revelar 1 carta Membro e colocá-la debaixo deste Membro. O restante vai para a Sala de Espera.',
+      fr: 'Vous pouvez révéler 1 carte Membre et la placer sous ce Membre. Le reste va dans la Salle d\'attente.',
+    }),
+    bp8Row(/^You may reveal 1 card and add it to your hand\. The rest go to the Waiting Room\.$/, {
+      ja: 'カード1枚を公開して手札に加えてもよい。残りは控え室に置く。',
+      es: 'Puedes revelar 1 carta y añadirla a tu mano. El resto va a la Sala de espera.',
+      ko: '카드 1장을 공개하여 패에 추가할 수 있습니다. 나머지는 대기실에 놓입니다.',
+      zh: '你可以公开1张卡并加入手牌。其余放入等候室。',
+      th: 'คุณสามารถเปิดเผยการ์ด 1 ใบและเพิ่มขึ้นมือ ที่เหลือจะไปที่ห้องรอ',
+      pt: 'Você pode revelar 1 carta e adicioná-la à sua mão. O restante vai para a Sala de Espera.',
+      fr: 'Vous pouvez révéler 1 carte et l\'ajouter à votre main. Le reste va dans la Salle d\'attente.',
+    }),
+    bp8Row(/^You need a (.+?) Member on your Stage to play this card\.$/, {
+      ja: 'このカードをプレイするには、ステージに{G1}のメンバーが必要です。',
+      es: 'Necesitas un Miembro de {G1} en tu Escenario para jugar esta carta.',
+      ko: '이 카드를 플레이하려면 스테이지에 {G1} 멤버가 필요합니다.',
+      zh: '你的舞台上需要有{G1}成员才能使用这张卡。',
+      th: 'ต้องมีสมาชิก {G1} บนเวทีจึงจะเล่นการ์ดใบนี้ได้',
+      pt: 'Você precisa de um Membro {G1} no seu Palco para jogar esta carta.',
+      fr: 'Vous avez besoin d\'un Membre {G1} sur votre Scène pour jouer cette carte.',
+    }),
+    bp8Row(/^You need a (.+?) Member on your Stage\.$/, {
+      ja: 'ステージに{G1}のメンバーが必要です。', es: 'Necesitas un Miembro de {G1} en tu Escenario.',
+      ko: '스테이지에 {G1} 멤버가 필요합니다.', zh: '你的舞台上需要有{G1}成员。',
+      th: 'ต้องมีสมาชิก {G1} บนเวที', pt: 'Você precisa de um Membro {G1} no seu Palco.',
+      fr: 'Vous avez besoin d\'un Membre {G1} sur votre Scène.',
+    }),
+    bp8Row(/^You need another (.+?) Member on your Stage\.$/, {
+      ja: 'ステージに他の{G1}のメンバーが必要です。', es: 'Necesitas otro Miembro de {G1} en tu Escenario.',
+      ko: '스테이지에 다른 {G1} 멤버가 필요합니다.', zh: '你的舞台上需要有其他{G1}成员。',
+      th: 'ต้องมีสมาชิก {G1} คนอื่นบนเวที', pt: 'Você precisa de outro Membro {G1} no seu Palco.',
+      fr: 'Vous avez besoin d\'un autre Membre {G1} sur votre Scène.',
+    }),
+    bp8Row(/^You need a card in hand to discard\.$/, {
+      ja: '捨てるための手札が必要です。', es: 'Necesitas una carta en la mano para descartar.',
+      ko: '버릴 패가 필요합니다.', zh: '需要有可弃置的手牌。', th: 'ต้องมีการ์ดในมือเพื่อทิ้ง',
+      pt: 'Você precisa de uma carta na mão para descartar.', fr: 'Vous avez besoin d\'une carte en main à défausser.',
+    }),
+    bp8Row(/^You need (\d+) cards in hand to discard\.$/, {
+      ja: '捨てるための手札が{1}枚必要です。', es: 'Necesitas {1} cartas en la mano para descartar.',
+      ko: '버릴 패가 {1}장 필요합니다.', zh: '需要有{1}张可弃置的手牌。', th: 'ต้องมีการ์ดในมือ {1} ใบเพื่อทิ้ง',
+      pt: 'Você precisa de {1} cartas na mão para descartar.', fr: 'Vous avez besoin de {1} cartes en main à défausser.',
+    }),
+    bp8Row(/^You need a card in hand\.$/, {
+      ja: '手札が必要です。', es: 'Necesitas una carta en la mano.', ko: '패가 필요합니다.', zh: '需要有手牌。',
+      th: 'ต้องมีการ์ดในมือ', pt: 'Você precisa de uma carta na mão.', fr: 'Vous avez besoin d\'une carte en main.',
+    }),
+    bp8Row(/^You have no Member card in hand\.$/, {
+      ja: '手札にメンバーカードがありません。', es: 'No tienes cartas de Miembro en la mano.', ko: '패에 멤버 카드가 없습니다.',
+      zh: '手牌中没有成员卡。', th: 'ไม่มีการ์ดสมาชิกในมือ', pt: 'Você não tem cartas Membro na mão.',
+      fr: 'Vous n\'avez aucune carte Membre en main.',
+    }),
+    bp8Row(/^This Member is already in Wait\.$/, {
+      ja: 'このメンバーはすでにウェイト状態です。', es: 'Este Miembro ya está en Wait.', ko: '이 멤버는 이미 Wait 상태입니다.',
+      zh: '该成员已处于等待状态。', th: 'สมาชิกคนนี้อยู่ในสถานะ Wait แล้ว', pt: 'Este Membro já está em Wait.',
+      fr: 'Ce Membre est déjà en Wait.',
+    }),
+    bp8Row(/^No matching Live card in your Waiting Room\.$/, {
+      ja: '控え室に条件に合うライブカードがありません。', es: 'No hay ninguna carta Live válida en tu Sala de espera.',
+      ko: '대기실에 조건에 맞는 라이브 카드가 없습니다.', zh: '等候室中没有符合条件的Live卡。',
+      th: 'ไม่มีการ์ด Live ที่ตรงเงื่อนไขในห้องรอ', pt: 'Não há carta Live válida na sua Sala de Espera.',
+      fr: 'Aucune carte Live valide dans votre Salle d\'attente.',
+    }),
+    bp8Row(/^No matching Member card in your Waiting Room\.$/, {
+      ja: '控え室に条件に合うメンバーカードがありません。', es: 'No hay ninguna carta de Miembro válida en tu Sala de espera.',
+      ko: '대기실에 조건에 맞는 멤버 카드가 없습니다.', zh: '等候室中没有符合条件的成员卡。',
+      th: 'ไม่มีการ์ดสมาชิกที่ตรงเงื่อนไขในห้องรอ', pt: 'Não há carta Membro válida na sua Sala de Espera.',
+      fr: 'Aucune carte Membre valide dans votre Salle d\'attente.',
+    }),
+    bp8Row(/^No Member card with Blade Hearts in your Waiting Room\.$/, {
+      ja: '控え室にブレードハートを持つメンバーカードがありません。',
+      es: 'No hay cartas de Miembro con corazones de Blade en tu Sala de espera.',
+      ko: '대기실에 블레이드 하트를 가진 멤버 카드가 없습니다.', zh: '等候室中没有拥有刀刃心形的成员卡。',
+      th: 'ไม่มีการ์ดสมาชิกที่มีหัวใจเบลดในห้องรอ', pt: 'Não há cartas Membro com corações de Blade na sua Sala de Espera.',
+      fr: 'Aucune carte Membre avec des cœurs de Blade dans votre Salle d\'attente.',
+    }),
+    bp8Row(/^Not enough Member cards with no Blade Hearts in your Waiting Room\.$/, {
+      ja: '控え室にブレードハートを持たないメンバーカードが足りません。',
+      es: 'No hay suficientes cartas de Miembro sin corazones de Blade en tu Sala de espera.',
+      ko: '대기실에 블레이드 하트를 가지지 않은 멤버 카드가 부족합니다.', zh: '等候室中没有刀刃心形的成员卡数量不足。',
+      th: 'การ์ดสมาชิกที่ไม่มีหัวใจเบลดในห้องรอไม่พอ',
+      pt: 'Não há cartas Membro sem corações de Blade suficientes na sua Sala de Espera.',
+      fr: 'Pas assez de cartes Membre sans cœurs de Blade dans votre Salle d\'attente.',
+    }),
+    bp8Row(/^Left$/, { ja: '左', es: 'Izquierda', ko: '왼쪽', zh: '左侧', th: 'ซ้าย', pt: 'Esquerda', fr: 'Gauche' }),
+    bp8Row(/^Center$/, { ja: 'センター', es: 'Centro', ko: '센터', zh: '中央', th: 'เซ็นเตอร์', pt: 'Centro', fr: 'Centre' }),
+    bp8Row(/^Right$/, { ja: '右', es: 'Derecha', ko: '오른쪽', zh: '右侧', th: 'ขวา', pt: 'Direita', fr: 'Droite' }),
+  ];
+
+
+  /* BP08 (Magical Treat) log lines ("Player — [Card] …"). Rules match the tail after "] " and run
+   * before the shared rules, so card/player names are still localized afterwards.
+   * Extra template tokens: {Hn} heart label ("Yellow heart"), {Cn} colour list ("Red and Blue"),
+   * {Sn} stage slot (left/center/right). */
+  var BP8_COLOR_NAMES = {
+    ja: { pink: 'ピンク', red: '赤', yellow: '黄', green: '緑', blue: '青', purple: '紫', orange: 'オレンジ', gray: '灰' },
+    es: { pink: 'rosa', red: 'rojo', yellow: 'amarillo', green: 'verde', blue: 'azul', purple: 'morado', orange: 'naranja', gray: 'gris' },
+    ko: { pink: '핑크', red: '레드', yellow: '옐로', green: '그린', blue: '블루', purple: '퍼플', orange: '오렌지', gray: '그레이' },
+    zh: { pink: '粉色', red: '红色', yellow: '黄色', green: '绿色', blue: '蓝色', purple: '紫色', orange: '橙色', gray: '灰色' },
+    th: { pink: 'ชมพู', red: 'แดง', yellow: 'เหลือง', green: 'เขียว', blue: 'น้ำเงิน', purple: 'ม่วง', orange: 'ส้ม', gray: 'เทา' },
+    pt: { pink: 'rosa', red: 'vermelho', yellow: 'amarelo', green: 'verde', blue: 'azul', purple: 'roxo', orange: 'laranja', gray: 'cinza' },
+    fr: { pink: 'rose', red: 'rouge', yellow: 'jaune', green: 'vert', blue: 'bleu', purple: 'violet', orange: 'orange', gray: 'gris' },
+  };
+  var BP8_HEART_FMT = { ja: '{c}ハート', es: 'corazón {c}', ko: '{c} 하트', zh: '{c}心形', th: 'หัวใจสี{c}', pt: 'coração {c}', fr: 'cœur {c}' };
+  var BP8_AND = { ja: 'と', es: ' y ', ko: '와 ', zh: '和', th: 'และ', pt: ' e ', fr: ' et ' };
+  var BP8_SLOT_NAMES = {
+    ja: { left: '左', center: 'センター', right: '右' },
+    es: { left: 'izquierda', center: 'centro', right: 'derecha' },
+    ko: { left: '왼쪽', center: '센터', right: '오른쪽' },
+    zh: { left: '左侧', center: '中央', right: '右侧' },
+    th: { left: 'ซ้าย', center: 'เซ็นเตอร์', right: 'ขวา' },
+    pt: { left: 'esquerda', center: 'centro', right: 'direita' },
+    fr: { left: 'gauche', center: 'centre', right: 'droite' },
+  };
+
+  function bp8Color(loc, word) {
+    var k = String(word || '').trim().toLowerCase();
+    var m = BP8_COLOR_NAMES[loc] || {};
+    return m[k] || word;
+  }
+
+  function bp8LogTpl(loc, tpl) {
+    var base = bp8Tpl(loc, tpl);
+    return function () {
+      var caps = Array.prototype.slice.call(arguments, 1);
+      var out = base.apply(null, arguments);
+      return out.replace(/\{([HCS])(\d)\}/g, function (_m, kind, n) {
+        var v = caps[Number(n) - 1];
+        v = v != null ? String(v) : '';
+        if (kind === 'S') return (BP8_SLOT_NAMES[loc] || {})[v.toLowerCase()] || v;
+        if (kind === 'H') {
+          var color = v.replace(/\s*heart$/i, '');
+          return String(BP8_HEART_FMT[loc] || '{c} heart').replace('{c}', bp8Color(loc, color));
+        }
+        return v.split(/\s+and\s+/).map(function (w) { return bp8Color(loc, w); }).join(BP8_AND[loc] || ' and ');
+      });
+    };
+  }
+
+  function bp8LogRow(re, langs) {
+    var row = {};
+    Object.keys(langs).forEach(function (loc) { row[loc] = bp8LogTpl(loc, langs[loc]); });
+    return [re, row];
+  }
+
+  var BP8_LOG_RULES = [
+    bp8LogRow(/\] no opponent Member can be put into Wait\.$/, {
+      ja: '] ウェイトにできる相手のメンバーがいない。', es: '] ningún Miembro rival puede ponerse en Wait.',
+      ko: '] Wait로 만들 수 있는 상대 멤버가 없다.', zh: '] 没有可置于等待状态的对手成员。',
+      th: '] ไม่มีสมาชิกฝ่ายตรงข้ามที่ทำให้เป็น Wait ได้', pt: '] nenhum Membro oponente pode ser colocado em Wait.',
+      fr: '] aucun Membre adverse ne peut être mis en Wait.',
+    }),
+    bp8LogRow(/ — (.+) was put into Wait \(\[(.+)\]\)\.$/, {
+      ja: ' — {1}がウェイトになった（[{2}]）。', es: ' — {1} se puso en Wait ([{2}]).', ko: ' — {1}이(가) Wait 상태가 되었다 ([{2}]).',
+      zh: ' — {1}被置于等待状态（[{2}]）。', th: ' — {1} ถูกทำให้เป็น Wait ([{2}])', pt: ' — {1} foi colocado em Wait ([{2}]).',
+      fr: ' — {1} a été mis en Wait ([{2}]).',
+    }),
+    bp8LogRow(/\] played (.+) from the Waiting Room to the (\w+) area\.$/, {
+      ja: '] {1}を控え室から{S2}エリアに登場させた。', es: '] jugó a {1} desde la Sala de espera en el área {S2}.',
+      ko: '] {1}을(를) 대기실에서 {S2} 영역에 등장시켰다.', zh: '] 将{1}从等候室登场到{S2}区域。',
+      th: '] ให้ {1} เข้าสนามจากห้องรอในพื้นที่{S2}', pt: '] jogou {1} da Sala de Espera na área {S2}.',
+      fr: '] a joué {1} depuis la Salle d\'attente dans la zone {S2}.',
+    }),
+    bp8LogRow(/\] played (.+) from hand to the (\w+) area \(\[On Enter\] does not trigger\)\.$/, {
+      ja: '] {1}を手札から{S2}エリアに登場させた（[On Enter]は発動しない）。',
+      es: '] jugó a {1} desde la mano en el área {S2} (su [On Enter] no se activa).',
+      ko: '] {1}을(를) 패에서 {S2} 영역에 등장시켰다 ([On Enter]는 발동하지 않음).',
+      zh: '] 将{1}从手牌登场到{S2}区域（[On Enter]不会发动）。',
+      th: '] ให้ {1} เข้าสนามจากมือในพื้นที่{S2} ([On Enter] ไม่ทำงาน)',
+      pt: '] jogou {1} da mão na área {S2} (seu [On Enter] não é ativado).',
+      fr: '] a joué {1} depuis la main dans la zone {S2} (son [On Enter] ne se déclenche pas).',
+    }),
+    bp8LogRow(/\] a Waiting Room card was put into the deck: \+(\d+) Blade until this Live ends\.$/, {
+      ja: '] 控え室のカードがデッキに置かれた：このライブ終了時までブレード+{1}。',
+      es: '] una carta de la Sala de espera se colocó en el mazo: +{1} Blade hasta que termine este Live.',
+      ko: '] 대기실의 카드가 덱에 놓였다: 이 라이브가 끝날 때까지 블레이드 +{1}.',
+      zh: '] 等候室的卡被放置到牌组：直到本场Live结束刀刃+{1}。',
+      th: '] การ์ดจากห้องรอถูกวางลงในเด็ค: Blade +{1} จนกว่า Live นี้จะจบ',
+      pt: '] uma carta da Sala de Espera foi colocada no deck: +{1} Blade até o fim desta Live.',
+      fr: '] une carte de la Salle d\'attente a été placée dans le deck : +{1} Blade jusqu\'à la fin de ce Live.',
+    }),
+    bp8LogRow(/\] no other (.+?) Member on the Stage: put into the Waiting Room\.$/, {
+      ja: '] ステージに他の{G1}のメンバーがいない：控え室に置いた。',
+      es: '] no hay otro Miembro de {G1} en el Escenario: se colocó en la Sala de espera.',
+      ko: '] 스테이지에 다른 {G1} 멤버가 없다: 대기실에 놓았다.', zh: '] 舞台上没有其他{G1}成员：已放入等候室。',
+      th: '] ไม่มีสมาชิก {G1} คนอื่นบนเวที: นำไปไว้ในห้องรอ', pt: '] não há outro Membro {G1} no Palco: colocado na Sala de Espera.',
+      fr: '] aucun autre Membre {G1} sur la Scène : placé dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] deck refreshed: draw (\d+), then put (\d+) card\(s\) from hand into the Waiting Room\.$/, {
+      ja: '] デッキがリフレッシュされた：{1}枚引き、手札{2}枚を控え室に置く。',
+      es: '] el mazo se recargó: roba {1} y coloca {2} carta(s) de la mano en la Sala de espera.',
+      ko: '] 덱이 리프레시되었다: {1}장 드로우하고 패 {2}장을 대기실에 놓는다.',
+      zh: '] 牌组已刷新：抽{1}张，然后将{2}张手牌放入等候室。',
+      th: '] เด็คถูกรีเฟรช: จั่ว {1} ใบ แล้วนำการ์ด {2} ใบจากมือไปไว้ในห้องรอ',
+      pt: '] o deck foi renovado: compre {1} e coloque {2} carta(s) da mão na Sala de Espera.',
+      fr: '] le deck a été renouvelé : piochez {1}, puis placez {2} carte(s) de la main dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] put (\d+) card\(s\) from hand into the Waiting Room\.$/, {
+      ja: '] 手札{1}枚を控え室に置いた。', es: '] colocó {1} carta(s) de la mano en la Sala de espera.',
+      ko: '] 패 {1}장을 대기실에 놓았다.', zh: '] 将{1}张手牌放入等候室。', th: '] นำการ์ด {1} ใบจากมือไปไว้ในห้องรอ',
+      pt: '] colocou {1} carta(s) da mão na Sala de Espera.', fr: '] a placé {1} carte(s) de la main dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] put (\d+) card\(s\) from hand on the bottom of the deck\.$/, {
+      ja: '] 手札{1}枚をデッキの一番下に置いた。', es: '] colocó {1} carta(s) de la mano en la parte inferior del mazo.',
+      ko: '] 패 {1}장을 덱 맨 아래에 놓았다.', zh: '] 将{1}张手牌放置到牌组底部。', th: '] วางการ์ด {1} ใบจากมือไว้ที่ด้านล่างสุดของเด็ค',
+      pt: '] colocou {1} carta(s) da mão no fundo do deck.', fr: '] a placé {1} carte(s) de la main en dessous du deck.',
+    }),
+    bp8LogRow(/\] put (\d+) card\(s\) from the Waiting Room on the bottom of the deck\.$/, {
+      ja: '] 控え室のカード{1}枚をデッキの一番下に置いた。', es: '] colocó {1} carta(s) de la Sala de espera en la parte inferior del mazo.',
+      ko: '] 대기실의 카드 {1}장을 덱 맨 아래에 놓았다.', zh: '] 将等候室的{1}张卡放置到牌组底部。',
+      th: '] วางการ์ด {1} ใบจากห้องรอไว้ที่ด้านล่างสุดของเด็ค', pt: '] colocou {1} carta(s) da Sala de Espera no fundo do deck.',
+      fr: '] a placé {1} carte(s) de la Salle d\'attente en dessous du deck.',
+    }),
+    bp8LogRow(/\] put (\d+) card\(s\) from the deck top into the Waiting Room; a (.+?) Live card was among them\.$/, {
+      ja: '] デッキの上から{1}枚を控え室に置いた。その中に{G2}のライブカードがあった。',
+      es: '] colocó {1} carta(s) de la parte superior del mazo en la Sala de espera; había una carta Live de {G2} entre ellas.',
+      ko: '] 덱 위에서 {1}장을 대기실에 놓았다. 그중에 {G2} 라이브 카드가 있었다.',
+      zh: '] 将牌组顶的{1}张卡放入等候室；其中有{G2}的Live卡。',
+      th: '] นำการ์ด {1} ใบบนสุดของเด็คไปไว้ในห้องรอ มีการ์ด Live ของ{G2}อยู่ในนั้น',
+      pt: '] colocou {1} carta(s) do topo do deck na Sala de Espera; havia uma carta Live {G2} entre elas.',
+      fr: '] a placé {1} carte(s) du dessus du deck dans la Salle d\'attente ; une carte Live {G2} se trouvait parmi elles.',
+    }),
+    bp8LogRow(/\] put (\d+) card\(s\) from the deck top into the Waiting Room\.$/, {
+      ja: '] デッキの上から{1}枚を控え室に置いた。', es: '] colocó {1} carta(s) de la parte superior del mazo en la Sala de espera.',
+      ko: '] 덱 위에서 {1}장을 대기실에 놓았다.', zh: '] 将牌组顶的{1}张卡放入等候室。', th: '] นำการ์ด {1} ใบบนสุดของเด็คไปไว้ในห้องรอ',
+      pt: '] colocou {1} carta(s) do topo do deck na Sala de Espera.', fr: '] a placé {1} carte(s) du dessus du deck dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] no cards to look at\.$/, {
+      ja: '] 見るカードがない。', es: '] no hay cartas que mirar.', ko: '] 볼 카드가 없다.', zh: '] 没有可查看的卡。',
+      th: '] ไม่มีการ์ดให้ดู', pt: '] não há cartas para olhar.', fr: '] aucune carte à regarder.',
+    }),
+    bp8LogRow(/\] looked at (\d+) card\(s\); none could be chosen\. They went to the Waiting Room\.$/, {
+      ja: '] {1}枚を見たが、選べるカードはなかった。控え室に置いた。',
+      es: '] miró {1} carta(s); no se podía elegir ninguna. Fueron a la Sala de espera.',
+      ko: '] {1}장을 봤지만 선택할 수 있는 카드가 없었다. 대기실에 놓였다.',
+      zh: '] 查看了{1}张卡，没有可选择的卡。已放入等候室。',
+      th: '] ดูการ์ด {1} ใบ แต่ไม่มีใบที่เลือกได้ นำไปไว้ในห้องรอ',
+      pt: '] olhou {1} carta(s); nenhuma podia ser escolhida. Foram para a Sala de Espera.',
+      fr: '] a regardé {1} carte(s) ; aucune ne pouvait être choisie. Elles sont allées dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] this card is no longer in the Waiting Room\.$/, {
+      ja: '] このカードはもう控え室にない。', es: '] esta carta ya no está en la Sala de espera.', ko: '] 이 카드는 더 이상 대기실에 없다.',
+      zh: '] 这张卡已不在等候室。', th: '] การ์ดใบนี้ไม่อยู่ในห้องรอแล้ว', pt: '] esta carta não está mais na Sala de Espera.',
+      fr: '] cette carte n\'est plus dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] put this Member into Wait\.$/, {
+      ja: '] このメンバーをウェイトにした。', es: '] puso a este Miembro en Wait.', ko: '] 이 멤버를 Wait로 만들었다.',
+      zh: '] 将该成员置于等待状态。', th: '] ทำให้สมาชิกคนนี้เป็น Wait', pt: '] colocou este Membro em Wait.', fr: '] a mis ce Membre en Wait.',
+    }),
+    bp8LogRow(/\] fewer than (\d+) matching Member cards in the Waiting Room\.$/, {
+      ja: '] 控え室の条件に合うメンバーカードが{1}枚未満。', es: '] hay menos de {1} cartas de Miembro válidas en la Sala de espera.',
+      ko: '] 대기실에 조건에 맞는 멤버 카드가 {1}장 미만이다.', zh: '] 等候室中符合条件的成员卡少于{1}张。',
+      th: '] การ์ดสมาชิกที่ตรงเงื่อนไขในห้องรอน้อยกว่า {1} ใบ', pt: '] há menos de {1} cartas Membro válidas na Sala de Espera.',
+      fr: '] moins de {1} cartes Membre valides dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] no Live card with (\w+ heart) in its Required Hearts in the Waiting Room\.$/, {
+      ja: '] 控え室に必要ハートに{H1}を含むライブカードがない。', es: '] no hay cartas Live con {H1} en sus Corazones requeridos en la Sala de espera.',
+      ko: '] 대기실에 필요 하트에 {H1}를 포함하는 라이브 카드가 없다.', zh: '] 等候室中没有所需心形含有{H1}的Live卡。',
+      th: '] ไม่มีการ์ด Live ที่มี{H1}ในหัวใจที่ต้องการอยู่ในห้องรอ', pt: '] não há carta Live com {H1} no Requisito de Corações na Sala de Espera.',
+      fr: '] aucune carte Live avec {H1} dans ses Cœurs requis dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] put this card from the Waiting Room on the bottom of the deck\.$/, {
+      ja: '] このカードを控え室からデッキの一番下に置いた。', es: '] colocó esta carta de la Sala de espera en la parte inferior del mazo.',
+      ko: '] 이 카드를 대기실에서 덱 맨 아래에 놓았다.', zh: '] 将这张卡从等候室放置到牌组底部。',
+      th: '] วางการ์ดใบนี้จากห้องรอไว้ที่ด้านล่างสุดของเด็ค', pt: '] colocou esta carta da Sala de Espera no fundo do deck.',
+      fr: '] a placé cette carte de la Salle d\'attente en dessous du deck.',
+    }),
+    bp8LogRow(/\] put this card from hand into the Waiting Room\.$/, {
+      ja: '] このカードを手札から控え室に置いた。', es: '] colocó esta carta de la mano en la Sala de espera.',
+      ko: '] 이 카드를 패에서 대기실에 놓았다.', zh: '] 将这张卡从手牌放入等候室。', th: '] นำการ์ดใบนี้จากมือไปไว้ในห้องรอ',
+      pt: '] colocou esta carta da mão na Sala de Espera.', fr: '] a placé cette carte de la main dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] put this card on the bottom of the deck\.$/, {
+      ja: '] このカードをデッキの一番下に置いた。', es: '] colocó esta carta en la parte inferior del mazo.',
+      ko: '] 이 카드를 덱 맨 아래에 놓았다.', zh: '] 将这张卡放置到牌组底部。', th: '] วางการ์ดใบนี้ไว้ที่ด้านล่างสุดของเด็ค',
+      pt: '] colocou esta carta no fundo do deck.', fr: '] a placé cette carte en dessous du deck.',
+    }),
+    bp8LogRow(/\] kept this card in the Waiting Room\.$/, {
+      ja: '] このカードを控え室に残した。', es: '] dejó esta carta en la Sala de espera.', ko: '] 이 카드를 대기실에 남겼다.',
+      zh: '] 将这张卡留在等候室。', th: '] เก็บการ์ดใบนี้ไว้ในห้องรอ', pt: '] manteve esta carta na Sala de Espera.',
+      fr: '] a laissé cette carte dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] revealed this card from hand and put it on the bottom of the deck\.$/, {
+      ja: '] このカードを手札から公開し、デッキの一番下に置いた。', es: '] reveló esta carta de la mano y la colocó en la parte inferior del mazo.',
+      ko: '] 이 카드를 패에서 공개하여 덱 맨 아래에 놓았다.', zh: '] 从手牌公开这张卡并放置到牌组底部。',
+      th: '] เปิดเผยการ์ดใบนี้จากมือแล้ววางไว้ที่ด้านล่างสุดของเด็ค', pt: '] revelou esta carta da mão e a colocou no fundo do deck.',
+      fr: '] a révélé cette carte de la main et l\'a placée en dessous du deck.',
+    }),
+    bp8LogRow(/\] returned this card to hand\.$/, {
+      ja: '] このカードを手札に戻した。', es: '] devolvió esta carta a la mano.', ko: '] 이 카드를 패로 되돌렸다.',
+      zh: '] 将这张卡返回手牌。', th: '] นำการ์ดใบนี้กลับขึ้นมือ', pt: '] devolveu esta carta à mão.', fr: '] a renvoyé cette carte dans la main.',
+    }),
+    bp8LogRow(/\] no matching card to add\.$/, {
+      ja: '] 加えられるカードがない。', es: '] no hay ninguna carta válida que añadir.', ko: '] 추가할 수 있는 카드가 없다.',
+      zh: '] 没有可加入的卡。', th: '] ไม่มีการ์ดที่ตรงเงื่อนไขให้เพิ่ม', pt: '] não há carta válida para adicionar.',
+      fr: '] aucune carte valide à ajouter.',
+    }),
+    bp8LogRow(/\] no matching card in the Waiting Room\.$/, {
+      ja: '] 控え室に条件に合うカードがない。', es: '] no hay ninguna carta válida en la Sala de espera.', ko: '] 대기실에 조건에 맞는 카드가 없다.',
+      zh: '] 等候室中没有符合条件的卡。', th: '] ไม่มีการ์ดที่ตรงเงื่อนไขในห้องรอ', pt: '] não há carta válida na Sala de Espera.',
+      fr: '] aucune carte valide dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] no card to put into the Waiting Room\.$/, {
+      ja: '] 控え室に置くカードがない。', es: '] no hay ninguna carta que colocar en la Sala de espera.', ko: '] 대기실에 놓을 카드가 없다.',
+      zh: '] 没有可放入等候室的卡。', th: '] ไม่มีการ์ดที่จะนำไปไว้ในห้องรอ', pt: '] não há carta para colocar na Sala de Espera.',
+      fr: '] aucune carte à placer dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] no cards in the Waiting Room\.$/, {
+      ja: '] 控え室にカードがない。', es: '] no hay cartas en la Sala de espera.', ko: '] 대기실에 카드가 없다.', zh: '] 等候室中没有卡。',
+      th: '] ไม่มีการ์ดในห้องรอ', pt: '] não há cartas na Sala de Espera.', fr: '] aucune carte dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] no Member card in hand\.$/, {
+      ja: '] 手札にメンバーカードがない。', es: '] no hay cartas de Miembro en la mano.', ko: '] 패에 멤버 카드가 없다.', zh: '] 手牌中没有成员卡。',
+      th: '] ไม่มีการ์ดสมาชิกในมือ', pt: '] não há cartas Membro na mão.', fr: '] aucune carte Membre en main.',
+    }),
+    bp8LogRow(/\] no Energy to place\.$/, {
+      ja: '] 置けるエネルギーがない。', es: '] no hay Energía que colocar.', ko: '] 놓을 에너지가 없다.', zh: '] 没有可放置的能量。',
+      th: '] ไม่มีพลังงานให้วาง', pt: '] não há Energia para colocar.', fr: '] aucune Énergie à placer.',
+    }),
+    bp8LogRow(/\] no matching Member in Wait on the Stage\.$/, {
+      ja: '] ステージにウェイト状態の条件に合うメンバーがいない。', es: '] no hay ningún Miembro válido en Wait en el Escenario.',
+      ko: '] 스테이지에 Wait 상태인 조건에 맞는 멤버가 없다.', zh: '] 舞台上没有处于等待状态的符合条件的成员。',
+      th: '] ไม่มีสมาชิกที่ตรงเงื่อนไขในสถานะ Wait บนเวที', pt: '] não há Membro válido em Wait no Palco.',
+      fr: '] aucun Membre valide en Wait sur la Scène.',
+    }),
+    bp8LogRow(/\] no matching Member on the Stage\.$/, {
+      ja: '] ステージに条件に合うメンバーがいない。', es: '] no hay ningún Miembro válido en el Escenario.', ko: '] 스테이지에 조건에 맞는 멤버가 없다.',
+      zh: '] 舞台上没有符合条件的成员。', th: '] ไม่มีสมาชิกที่ตรงเงื่อนไขบนเวที', pt: '] não há Membro válido no Palco.',
+      fr: '] aucun Membre valide sur la Scène.',
+    }),
+    bp8LogRow(/\] no (.+?) Member with Energy under it; no hearts gained\.$/, {
+      ja: '] 下にエネルギーがある{G1}のメンバーがいない。ハートは得られない。',
+      es: '] no hay ningún Miembro de {G1} con Energía debajo; no se gana ningún corazón.',
+      ko: '] 아래에 에너지가 있는 {G1} 멤버가 없다. 하트를 얻지 못한다.', zh: '] 没有下方有能量的{G1}成员；未获得心形。',
+      th: '] ไม่มีสมาชิก {G1} ที่มีพลังงานอยู่ด้านล่าง ไม่ได้รับหัวใจ', pt: '] não há Membro {G1} com Energia debaixo; nenhum coração ganho.',
+      fr: '] aucun Membre {G1} avec de l\'Énergie dessous ; aucun cœur gagné.',
+    }),
+    bp8LogRow(/\] no (.+?) Member on the Stage; no Wait\.$/, {
+      ja: '] ステージに{G1}のメンバーがいない。ウェイトにしない。', es: '] no hay ningún Miembro de {G1} en el Escenario; no se pone a nadie en Wait.',
+      ko: '] 스테이지에 {G1} 멤버가 없다. Wait로 만들지 않는다.', zh: '] 舞台上没有{G1}成员；不置于等待状态。',
+      th: '] ไม่มีสมาชิก {G1} บนเวที ไม่ทำให้เป็น Wait', pt: '] não há Membro {G1} no Palco; ninguém é colocado em Wait.',
+      fr: '] aucun Membre {G1} sur la Scène ; personne n\'est mis en Wait.',
+    }),
+    bp8LogRow(/\] no (.+?) Member on the Stage\.$/, {
+      ja: '] ステージに{G1}のメンバーがいない。', es: '] no hay ningún Miembro de {G1} en el Escenario.', ko: '] 스테이지에 {G1} 멤버가 없다.',
+      zh: '] 舞台上没有{G1}成员。', th: '] ไม่มีสมาชิก {G1} บนเวที', pt: '] não há Membro {G1} no Palco.', fr: '] aucun Membre {G1} sur la Scène.',
+    }),
+    bp8LogRow(/\] fewer than (\d+) (.+?) Members on the Stage; no heart gained\.$/, {
+      ja: '] ステージの{G2}のメンバーが{1}人未満。ハートは得られない。',
+      es: '] hay menos de {1} Miembros de {G2} en el Escenario; no se gana ningún corazón.',
+      ko: '] 스테이지의 {G2} 멤버가 {1}명 미만이다. 하트를 얻지 못한다.', zh: '] 舞台上的{G2}成员少于{1}名；未获得心形。',
+      th: '] สมาชิก {G2} บนเวทีน้อยกว่า {1} คน ไม่ได้รับหัวใจ', pt: '] há menos de {1} Membros {G2} no Palco; nenhum coração ganho.',
+      fr: '] moins de {1} Membres {G2} sur la Scène ; aucun cœur gagné.',
+    }),
+    bp8LogRow(/\] Success Live total score is (\d+) \(needs (\d+)\); no effect\.$/, {
+      ja: '] 成功ライブカードのスコア合計は{1}（{2}以上が必要）。効果なし。',
+      es: '] la puntuación total de Lives exitosos es {1} (se necesita {2}); sin efecto.',
+      ko: '] 성공 라이브 카드의 스코어 합계는 {1} ({2} 이상 필요). 효과 없음.', zh: '] 成功Live的分数合计为{1}（需要{2}）；无效果。',
+      th: '] คะแนนรวมของ Live สำเร็จคือ {1} (ต้องการ {2}) ไม่มีผล', pt: '] a pontuação total das Lives Bem-Sucedidas é {1} (precisa de {2}); sem efeito.',
+      fr: '] le score total des Lives réussis est de {1} (il faut {2}) ; aucun effet.',
+    }),
+    bp8LogRow(/\] (\d+) Yell card\(s\) with a (\w+) heart Blade heart \(needs (\d+)\)\.$/, {
+      ja: '] {C2}のブレードハートを持つエールのカードは{1}枚（{3}枚必要）。',
+      es: '] {1} carta(s) de Yell con corazón de Blade {C2} (se necesitan {3}).',
+      ko: '] {C2} 블레이드 하트를 가진 Yell 카드 {1}장 ({3}장 필요).', zh: '] 拥有{C2}刀刃心形的Yell卡有{1}张（需要{3}张）。',
+      th: '] การ์ด Yell ที่มีหัวใจเบลดสี{C2} {1} ใบ (ต้องการ {3} ใบ)', pt: '] {1} carta(s) de Yell com coração de Blade {C2} (precisa de {3}).',
+      fr: '] {1} carte(s) de Yell avec un cœur de Blade {C2} (il en faut {3}).',
+    }),
+    bp8LogRow(/\] Yell Member cards with cost (\d+) or less and no Blade Hearts have an orange Blade heart until this Live ends\.$/, {
+      ja: '] このライブ終了時まで、エールで公開されたコスト{1}以下でブレードハートを持たないメンバーカードはオレンジのブレードハートを持つ。',
+      es: '] hasta que termine este Live, las cartas de Miembro de Yell de coste {1} o menos y sin corazones de Blade tienen un corazón de Blade naranja.',
+      ko: '] 이 라이브가 끝날 때까지 코스트 {1} 이하이며 블레이드 하트가 없는 Yell 멤버 카드는 오렌지 블레이드 하트를 가진다.',
+      zh: '] 直到本场Live结束，费用为{1}以下且没有刀刃心形的Yell成员卡拥有橙色刀刃心形。',
+      th: '] จนกว่า Live นี้จะจบ การ์ดสมาชิก Yell ที่มีค่าใช้จ่าย {1} หรือน้อยกว่าและไม่มีหัวใจเบลดจะมีหัวใจเบลดสีส้ม',
+      pt: '] até o fim desta Live, as cartas Membro de Yell de custo {1} ou menos e sem corações de Blade têm um coração de Blade laranja.',
+      fr: '] jusqu\'à la fin de ce Live, les cartes Membre de Yell de coût {1} ou moins et sans cœurs de Blade ont un cœur de Blade orange.',
+    }),
+    bp8LogRow(/\] (\d+) Member card\(s\) with no Blade Hearts revealed by Yell: Live total score \+(\d+)\.$/, {
+      ja: '] エールで公開されたブレードハートを持たないメンバーカード{1}枚：ライブの合計スコア+{2}。',
+      es: '] {1} carta(s) de Miembro sin corazones de Blade reveladas por Yell: puntuación total del Live +{2}.',
+      ko: '] Yell로 공개된 블레이드 하트가 없는 멤버 카드 {1}장: 라이브 합계 스코어 +{2}.',
+      zh: '] 通过Yell公开的没有刀刃心形的成员卡{1}张：Live合计分数+{2}。',
+      th: '] การ์ดสมาชิกที่ไม่มีหัวใจเบลดซึ่งเปิดเผยโดย Yell {1} ใบ: คะแนนรวมของ Live +{2}',
+      pt: '] {1} carta(s) Membro sem corações de Blade reveladas por Yell: pontuação total da Live +{2}.',
+      fr: '] {1} carte(s) Membre sans cœurs de Blade révélée(s) par Yell : score total du Live +{2}.',
+    }),
+    bp8LogRow(/\] put (\d+) Energy under this Member\.$/, {
+      ja: '] このメンバーの下にエネルギー{1}枚を置いた。', es: '] colocó {1} Energía debajo de este Miembro.',
+      ko: '] 이 멤버의 아래에 에너지 {1}장을 놓았다.', zh: '] 在该成员下方放置了{1}张能量。', th: '] วางพลังงาน {1} ใบไว้ใต้สมาชิกคนนี้',
+      pt: '] colocou {1} Energia debaixo deste Membro.', fr: '] a placé {1} Énergie sous ce Membre.',
+    }),
+    bp8LogRow(/\] put 1 Energy from under (.+) into the Energy storage in Wait\.$/, {
+      ja: '] {1}の下のエネルギー1枚をウェイト状態でエネルギー置き場に置いた。',
+      es: '] colocó 1 Energía de debajo de {1} en la zona de Energía en estado Wait.',
+      ko: '] {1}의 아래에 있는 에너지 1장을 Wait 상태로 에너지 영역에 놓았다.', zh: '] 将{1}下方的1张能量以等待状态放置到能量区。',
+      th: '] นำพลังงาน 1 ใบจากใต้ {1} ไปวางในพื้นที่พลังงานในสถานะ Wait', pt: '] colocou 1 Energia de debaixo de {1} na zona de Energia em estado Wait.',
+      fr: '] a placé 1 Énergie se trouvant sous {1} dans la zone d\'Énergie en état Wait.',
+    }),
+    bp8LogRow(/\] put 1 Energy under (.+)\.$/, {
+      ja: '] {1}の下にエネルギー1枚を置いた。', es: '] colocó 1 Energía debajo de {1}.', ko: '] {1}의 아래에 에너지 1장을 놓았다.',
+      zh: '] 在{1}下方放置了1张能量。', th: '] วางพลังงาน 1 ใบไว้ใต้ {1}', pt: '] colocou 1 Energia debaixo de {1}.', fr: '] a placé 1 Énergie sous {1}.',
+    }),
+    bp8LogRow(/\] drew (\d+) card\(s\)\.$/, {
+      ja: '] {1}枚引いた。', es: '] robó {1} carta(s).', ko: '] {1}장 드로우했다.', zh: '] 抽了{1}张卡。', th: '] จั่วการ์ด {1} ใบ',
+      pt: '] comprou {1} carta(s).', fr: '] a pioché {1} carte(s).',
+    }),
+    bp8LogRow(/ drew 1 card \(\[(.+)\]\)\.$/, {
+      ja: 'がカードを1枚引いた（[{1}]）。', es: ' robó 1 carta ([{1}]).', ko: '이(가) 카드 1장을 드로우했다 ([{1}]).',
+      zh: '抽了1张卡（[{1}]）。', th: ' จั่วการ์ด 1 ใบ ([{1}])', pt: ' comprou 1 carta ([{1}]).', fr: ' a pioché 1 carte ([{1}]).',
+    }),
+    bp8LogRow(/\] put (.+) into the Waiting Room \(not a Member card\)\.$/, {
+      ja: '] {1}を控え室に置いた（メンバーカードではない）。', es: '] colocó {1} en la Sala de espera (no es una carta de Miembro).',
+      ko: '] {1}을(를) 대기실에 놓았다 (멤버 카드가 아님).', zh: '] 将{1}放入等候室（不是成员卡）。',
+      th: '] นำ {1} ไปไว้ในห้องรอ (ไม่ใช่การ์ดสมาชิก)', pt: '] colocou {1} na Sala de Espera (não é uma carta Membro).',
+      fr: '] a placé {1} dans la Salle d\'attente (ce n\'est pas une carte Membre).',
+    }),
+    bp8LogRow(/\] put (.+) into the Waiting Room; its heart colors are not all on your Stage\.$/, {
+      ja: '] {1}を控え室に置いた。そのハートの色はすべてはステージにない。',
+      es: '] colocó {1} en la Sala de espera; no todos sus colores de corazón están en tu Escenario.',
+      ko: '] {1}을(를) 대기실에 놓았다. 그 하트의 색이 모두 스테이지에 있지는 않다.', zh: '] 将{1}放入等候室；其心形颜色并非全部在你的舞台上。',
+      th: '] นำ {1} ไปไว้ในห้องรอ สีหัวใจของการ์ดนั้นไม่ได้อยู่บนเวทีครบทุกสี',
+      pt: '] colocou {1} na Sala de Espera; nem todas as suas cores de coração estão no seu Palco.',
+      fr: '] a placé {1} dans la Salle d\'attente ; toutes ses couleurs de cœur ne sont pas sur votre Scène.',
+    }),
+    bp8LogRow(/\] put (.+) into the Waiting Room: required hearts reduced by (\d+) \(one per shared color\)\.$/, {
+      ja: '] {1}を控え室に置いた：必要ハートを{2}減らす（共通する色1つにつき1）。',
+      es: '] colocó {1} en la Sala de espera: Corazones requeridos reducidos en {2} (uno por color compartido).',
+      ko: '] {1}을(를) 대기실에 놓았다: 필요 하트를 {2} 줄인다 (공통 색 1개당 1).', zh: '] 将{1}放入等候室：所需心形减少{2}（每种相同颜色1个）。',
+      th: '] นำ {1} ไปไว้ในห้องรอ: ลดหัวใจที่ต้องการลง {2} (สีที่ตรงกันสีละ 1)',
+      pt: '] colocou {1} na Sala de Espera: Requisito de Corações reduzido em {2} (um por cor em comum).',
+      fr: '] a placé {1} dans la Salle d\'attente : Cœurs requis réduits de {2} (un par couleur commune).',
+    }),
+    bp8LogRow(/\] put (.+) from the deck bottom into the Waiting Room\.$/, {
+      ja: '] デッキの一番下の{1}を控え室に置いた。', es: '] colocó {1} de la parte inferior del mazo en la Sala de espera.',
+      ko: '] 덱 맨 아래의 {1}을(를) 대기실에 놓았다.', zh: '] 将牌组底部的{1}放入等候室。', th: '] นำ {1} จากด้านล่างสุดของเด็คไปไว้ในห้องรอ',
+      pt: '] colocou {1} do fundo do deck na Sala de Espera.', fr: '] a placé {1} du dessous du deck dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] put (.+) from the Waiting Room on top of the deck\.$/, {
+      ja: '] {1}を控え室からデッキの一番上に置いた。', es: '] colocó {1} de la Sala de espera en la parte superior del mazo.',
+      ko: '] {1}을(를) 대기실에서 덱 맨 위에 놓았다.', zh: '] 将{1}从等候室放置到牌组顶。', th: '] วาง {1} จากห้องรอไว้ที่ด้านบนสุดของเด็ค',
+      pt: '] colocou {1} da Sala de Espera no topo do deck.', fr: '] a placé {1} de la Salle d\'attente au-dessus du deck.',
+    }),
+    bp8LogRow(/\] put (.+) from Live storage on top of the deck\.$/, {
+      ja: '] {1}をライブカード置き場からデッキの一番上に置いた。', es: '] colocó {1} de la zona de Lives en la parte superior del mazo.',
+      ko: '] {1}을(를) 라이브 카드 영역에서 덱 맨 위에 놓았다.', zh: '] 将{1}从Live区放置到牌组顶。', th: '] วาง {1} จากพื้นที่ Live ไว้ที่ด้านบนสุดของเด็ค',
+      pt: '] colocou {1} da zona de Lives no topo do deck.', fr: '] a placé {1} de la zone de Lives au-dessus du deck.',
+    }),
+    bp8LogRow(/\] put (.+) from hand under this Member\.$/, {
+      ja: '] {1}を手札からこのメンバーの下に置いた。', es: '] colocó {1} de la mano debajo de este Miembro.',
+      ko: '] {1}을(를) 패에서 이 멤버의 아래에 놓았다.', zh: '] 将{1}从手牌放置到该成员下方。', th: '] วาง {1} จากมือไว้ใต้สมาชิกคนนี้',
+      pt: '] colocou {1} da mão debaixo deste Membro.', fr: '] a placé {1} de la main sous ce Membre.',
+    }),
+    bp8LogRow(/\] put (.+) on the deck bottom: \+(\d+) Blade until this Live ends\.$/, {
+      ja: '] {1}をデッキの一番下に置いた：このライブ終了時までブレード+{2}。',
+      es: '] colocó {1} en la parte inferior del mazo: +{2} Blade hasta que termine este Live.',
+      ko: '] {1}을(를) 덱 맨 아래에 놓았다: 이 라이브가 끝날 때까지 블레이드 +{2}.', zh: '] 将{1}放置到牌组底部：直到本场Live结束刀刃+{2}。',
+      th: '] วาง {1} ไว้ที่ด้านล่างสุดของเด็ค: Blade +{2} จนกว่า Live นี้จะจบ',
+      pt: '] colocou {1} no fundo do deck: +{2} Blade até o fim desta Live.',
+      fr: '] a placé {1} en dessous du deck : +{2} Blade jusqu\'à la fin de ce Live.',
+    }),
+    bp8LogRow(/\] put (.+) into the Waiting Room\.$/, {
+      ja: '] {1}を控え室に置いた。', es: '] colocó {1} en la Sala de espera.', ko: '] {1}을(를) 대기실에 놓았다.', zh: '] 将{1}放入等候室。',
+      th: '] นำ {1} ไปไว้ในห้องรอ', pt: '] colocou {1} na Sala de Espera.', fr: '] a placé {1} dans la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] revealed (.+) and put it under this Member\.$/, {
+      ja: '] {1}を公開し、このメンバーの下に置いた。', es: '] reveló {1} y lo colocó debajo de este Miembro.',
+      ko: '] {1}을(를) 공개하여 이 멤버의 아래에 놓았다.', zh: '] 公开{1}并放置到该成员下方。', th: '] เปิดเผย {1} แล้ววางไว้ใต้สมาชิกคนนี้',
+      pt: '] revelou {1} e o colocou debaixo deste Membro.', fr: '] a révélé {1} et l\'a placé sous ce Membre.',
+    }),
+    bp8LogRow(/\] revealed (.+) and put it on the bottom of the deck\.$/, {
+      ja: '] {1}を公開し、デッキの一番下に置いた。', es: '] reveló {1} y lo colocó en la parte inferior del mazo.',
+      ko: '] {1}을(를) 공개하여 덱 맨 아래에 놓았다.', zh: '] 公开{1}并放置到牌组底部。', th: '] เปิดเผย {1} แล้ววางไว้ที่ด้านล่างสุดของเด็ค',
+      pt: '] revelou {1} e o colocou no fundo do deck.', fr: '] a révélé {1} et l\'a placé en dessous du deck.',
+    }),
+    bp8LogRow(/\] revealed (.+) and put it on top of the deck\.$/, {
+      ja: '] {1}を公開し、デッキの一番上に置いた。', es: '] reveló {1} y lo colocó en la parte superior del mazo.',
+      ko: '] {1}을(를) 공개하여 덱 맨 위에 놓았다.', zh: '] 公开{1}并放置到牌组顶。', th: '] เปิดเผย {1} แล้ววางไว้ที่ด้านบนสุดของเด็ค',
+      pt: '] revelou {1} e o colocou no topo do deck.', fr: '] a révélé {1} et l\'a placé au-dessus du deck.',
+    }),
+    bp8LogRow(/\] added (.+) from the Waiting Room to hand\.$/, {
+      ja: '] {1}を控え室から手札に加えた。', es: '] añadió {1} de la Sala de espera a la mano.', ko: '] {1}을(를) 대기실에서 패에 추가했다.',
+      zh: '] 将{1}从等候室加入手牌。', th: '] เพิ่ม {1} จากห้องรอขึ้นมือ', pt: '] adicionou {1} da Sala de Espera à mão.',
+      fr: '] a ajouté {1} de la Salle d\'attente à la main.',
+    }),
+    bp8LogRow(/\] added (.+) from Yell to hand\.$/, {
+      ja: '] エールから{1}を手札に加えた。', es: '] añadió {1} del Yell a la mano.', ko: '] Yell에서 {1}을(를) 패에 추가했다.',
+      zh: '] 从Yell将{1}加入手牌。', th: '] เพิ่ม {1} จาก Yell ขึ้นมือ', pt: '] adicionou {1} do Yell à mão.', fr: '] a ajouté {1} du Yell à la main.',
+    }),
+    bp8LogRow(/\] added (.+) to hand\.$/, {
+      ja: '] {1}を手札に加えた。', es: '] añadió {1} a la mano.', ko: '] {1}을(를) 패에 추가했다.', zh: '] 将{1}加入手牌。',
+      th: '] เพิ่ม {1} ขึ้นมือ', pt: '] adicionou {1} à mão.', fr: '] a ajouté {1} à la main.',
+    }),
+    bp8LogRow(/\] returned (.+) to hand\.$/, {
+      ja: '] {1}を手札に戻した。', es: '] devolvió {1} a la mano.', ko: '] {1}을(를) 패로 되돌렸다.', zh: '] 将{1}返回手牌。',
+      th: '] นำ {1} กลับขึ้นมือ', pt: '] devolveu {1} à mão.', fr: '] a renvoyé {1} dans la main.',
+    }),
+    bp8LogRow(/\] did not put the cards on the deck bottom\.$/, {
+      ja: '] カードをデッキの一番下に置かなかった。', es: '] no colocó las cartas en la parte inferior del mazo.',
+      ko: '] 카드를 덱 맨 아래에 놓지 않았다.', zh: '] 没有将卡放置到牌组底部。', th: '] ไม่ได้วางการ์ดไว้ที่ด้านล่างสุดของเด็ค',
+      pt: '] não colocou as cartas no fundo do deck.', fr: '] n\'a pas placé les cartes en dessous du deck.',
+    }),
+    bp8LogRow(/\] lost all surplus hearts\.$/, {
+      ja: '] 余剰ハートをすべて失った。', es: '] perdió todos los corazones sobrantes.', ko: '] 잉여 하트를 모두 잃었다.', zh: '] 失去了所有剩余心形。',
+      th: '] เสียหัวใจส่วนเกินทั้งหมด', pt: '] perdeu todos os corações excedentes.', fr: '] a perdu tous les cœurs excédentaires.',
+    }),
+    bp8LogRow(/\] no single Member has the most hearts; no effect\.$/, {
+      ja: '] 最も多くハートを持つメンバーが1人に決まらない。効果なし。', es: '] ningún Miembro tiene por sí solo la mayor cantidad de corazones; sin efecto.',
+      ko: '] 가장 많은 하트를 가진 멤버가 1명이 아니다. 효과 없음.', zh: '] 没有唯一拥有最多心形的成员；无效果。',
+      th: '] ไม่มีสมาชิกคนเดียวที่มีหัวใจมากที่สุด ไม่มีผล', pt: '] nenhum Membro sozinho tem mais corações; sem efeito.',
+      fr: '] aucun Membre n\'a seul le plus de cœurs ; aucun effet.',
+    }),
+    bp8LogRow(/\] (.+) has the most hearts \((\d+)\): its owner's Live total score \+(\d+)\.$/, {
+      ja: '] {1}が最も多くのハートを持つ（{2}）：その持ち主のライブの合計スコア+{3}。',
+      es: '] {1} tiene la mayor cantidad de corazones ({2}): puntuación total del Live de su dueño +{3}.',
+      ko: '] {1}이(가) 가장 많은 하트를 가졌다 ({2}): 그 주인의 라이브 합계 스코어 +{3}.',
+      zh: '] {1}拥有最多心形（{2}）：其持有者的Live合计分数+{3}。',
+      th: '] {1} มีหัวใจมากที่สุด ({2}): คะแนนรวมของ Live ของเจ้าของ +{3}',
+      pt: '] {1} tem mais corações ({2}): pontuação total da Live do dono +{3}.',
+      fr: '] {1} a le plus de cœurs ({2}) : score total du Live de son propriétaire +{3}.',
+    }),
+    bp8LogRow(/\] all were (.+?) cards: activated (\d+) Energy\.$/, {
+      ja: '] すべて{G1}のカードだった：エネルギー{2}枚をアクティブにした。', es: '] todas eran cartas de {G1}: activó {2} Energía.',
+      ko: '] 모두 {G1} 카드였다: 에너지 {2}장을 액티브로 만들었다.', zh: '] 全部是{G1}的卡：将{2}张能量变为活跃状态。',
+      th: '] ทั้งหมดเป็นการ์ด {G1}: ทำให้พลังงาน {2} ใบเป็น Active', pt: '] todas eram cartas {G1}: ativou {2} Energia.',
+      fr: '] toutes étaient des cartes {G1} : a activé {2} Énergie.',
+    }),
+    bp8LogRow(/\] shuffled (\d+) Member card\(s\) from the Waiting Room to the deck bottom \((\d+) (.+?)\)\.$/, {
+      ja: '] 控え室のメンバーカード{1}枚をシャッフルしてデッキの一番下に置いた（{G3}は{2}枚）。',
+      es: '] barajó {1} carta(s) de Miembro de la Sala de espera y las colocó en la parte inferior del mazo ({2} de {G3}).',
+      ko: '] 대기실의 멤버 카드 {1}장을 섞어 덱 맨 아래에 놓았다 ({G3} {2}장).',
+      zh: '] 将等候室的{1}张成员卡洗切后放置到牌组底部（{G3}{2}张）。',
+      th: '] สับการ์ดสมาชิก {1} ใบจากห้องรอแล้ววางไว้ที่ด้านล่างสุดของเด็ค ({G3} {2} ใบ)',
+      pt: '] embaralhou {1} carta(s) Membro da Sala de Espera e as colocou no fundo do deck ({2} {G3}).',
+      fr: '] a mélangé {1} carte(s) Membre de la Salle d\'attente et les a placées en dessous du deck ({2} {G3}).',
+    }),
+    bp8LogRow(/\] paid (\d+) Energy and shuffled (\d+) Member card\(s\) from the Waiting Room to the deck bottom\.$/, {
+      ja: '] エネルギーを{1}支払い、控え室のメンバーカード{2}枚をシャッフルしてデッキの一番下に置いた。',
+      es: '] pagó {1} Energía y barajó {2} carta(s) de Miembro de la Sala de espera en la parte inferior del mazo.',
+      ko: '] 에너지 {1}장을 지불하고 대기실의 멤버 카드 {2}장을 섞어 덱 맨 아래에 놓았다.',
+      zh: '] 支付{1}能量，将等候室的{2}张成员卡洗切后放置到牌组底部。',
+      th: '] จ่ายพลังงาน {1} แล้วสับการ์ดสมาชิก {2} ใบจากห้องรอไว้ที่ด้านล่างสุดของเด็ค',
+      pt: '] pagou {1} Energia e embaralhou {2} carta(s) Membro da Sala de Espera no fundo do deck.',
+      fr: '] a payé {1} Énergie et mélangé {2} carte(s) Membre de la Salle d\'attente en dessous du deck.',
+    }),
+    bp8LogRow(/\] gained hearts until this Live ends\.$/, {
+      ja: '] このライブ終了時までハートを得た。', es: '] ganó corazones hasta que termine este Live.', ko: '] 이 라이브가 끝날 때까지 하트를 얻었다.',
+      zh: '] 直到本场Live结束获得了心形。', th: '] ได้รับหัวใจจนกว่า Live นี้จะจบ', pt: '] ganhou corações até o fim desta Live.',
+      fr: '] a gagné des cœurs jusqu\'à la fin de ce Live.',
+    }),
+    bp8LogRow(/\] gained (\d+) (\w+ heart)\(s\) until this Live ends\.$/, {
+      ja: '] このライブ終了時まで{H2}を{1}つ得た。', es: '] ganó {H2} ×{1} hasta que termine este Live.',
+      ko: '] 이 라이브가 끝날 때까지 {H2} {1}개를 얻었다.', zh: '] 直到本场Live结束获得了{1}个{H2}。',
+      th: '] ได้รับ{H2} {1} ดวงจนกว่า Live นี้จะจบ', pt: '] ganhou {H2} ×{1} até o fim desta Live.',
+      fr: '] a gagné {H2} ×{1} jusqu\'à la fin de ce Live.',
+    }),
+    bp8LogRow(/\] gained 1 (\w+ heart) until this Live ends\.$/, {
+      ja: '] このライブ終了時まで{H1}を1つ得た。', es: '] ganó 1 {H1} hasta que termine este Live.', ko: '] 이 라이브가 끝날 때까지 {H1} 1개를 얻었다.',
+      zh: '] 直到本场Live结束获得了1个{H1}。', th: '] ได้รับ{H1} 1 ดวงจนกว่า Live นี้จะจบ', pt: '] ganhou 1 {H1} até o fim desta Live.',
+      fr: '] a gagné 1 {H1} jusqu\'à la fin de ce Live.',
+    }),
+    bp8LogRow(/\] (\w+ heart) is already on your Stage; no heart gained\.$/, {
+      ja: '] {H1}はすでにステージにある。ハートは得られない。', es: '] el {H1} ya está en tu Escenario; no se gana ningún corazón.',
+      ko: '] {H1}는 이미 스테이지에 있다. 하트를 얻지 못한다.', zh: '] {H1}已在你的舞台上；未获得心形。',
+      th: '] มี{H1}อยู่บนเวทีแล้ว ไม่ได้รับหัวใจ', pt: '] o {H1} já está no seu Palco; nenhum coração ganho.',
+      fr: '] le {H1} est déjà sur votre Scène ; aucun cœur gagné.',
+    }),
+    bp8LogRow(/\] Live storage is not 2\+ (.+?) cards; no effect\.$/, {
+      ja: '] ライブカード置き場が2枚以上の{G1}のカードではない。効果なし。',
+      es: '] la zona de Lives no tiene 2 o más cartas, todas de {G1}; sin efecto.',
+      ko: '] 라이브 카드 영역이 2장 이상의 {G1} 카드가 아니다. 효과 없음.', zh: '] Live区不是2张以上的{G1}卡；无效果。',
+      th: '] พื้นที่ Live ไม่ได้มีการ์ด {G1} 2 ใบขึ้นไป ไม่มีผล', pt: '] a zona de Lives não tem 2 ou mais cartas, todas {G1}; sem efeito.',
+      fr: '] la zone de Lives ne contient pas 2 cartes {G1} ou plus ; aucun effet.',
+    }),
+    bp8LogRow(/\] Live storage is not empty; no Live card placed\.$/, {
+      ja: '] ライブカード置き場が空ではない。ライブカードは置かれない。', es: '] la zona de Lives no está vacía; no se coloca ninguna carta Live.',
+      ko: '] 라이브 카드 영역이 비어 있지 않다. 라이브 카드를 놓지 않는다.', zh: '] Live区不为空；不放置Live卡。',
+      th: '] พื้นที่ Live ไม่ว่าง ไม่ได้วางการ์ด Live', pt: '] a zona de Lives não está vazia; nenhuma carta Live colocada.',
+      fr: '] la zone de Lives n\'est pas vide ; aucune carte Live placée.',
+    }),
+    bp8LogRow(/\] no matching Live card in Live storage\.$/, {
+      ja: '] ライブカード置き場に条件に合うライブカードがない。', es: '] no hay ninguna carta Live válida en la zona de Lives.',
+      ko: '] 라이브 카드 영역에 조건에 맞는 라이브 카드가 없다.', zh: '] Live区中没有符合条件的Live卡。',
+      th: '] ไม่มีการ์ด Live ที่ตรงเงื่อนไขในพื้นที่ Live', pt: '] não há carta Live válida na zona de Lives.',
+      fr: '] aucune carte Live valide dans la zone de Lives.',
+    }),
+    bp8LogRow(/\] placed a Live card from the Waiting Room face up in Live storage\.$/, {
+      ja: '] 控え室のライブカードを表向きでライブカード置き場に置いた。', es: '] colocó boca arriba en la zona de Lives una carta Live de la Sala de espera.',
+      ko: '] 대기실의 라이브 카드를 앞면으로 라이브 카드 영역에 놓았다.', zh: '] 将等候室的Live卡以正面朝上放置到Live区。',
+      th: '] วางการ์ด Live จากห้องรอแบบหงายหน้าในพื้นที่ Live', pt: '] colocou uma carta Live da Sala de Espera virada para cima na zona de Lives.',
+      fr: '] a placé face visible dans la zone de Lives une carte Live de la Salle d\'attente.',
+    }),
+    bp8LogRow(/\] condition not met \((\d+) cards in deck\)\.$/, {
+      ja: '] 条件未達成（デッキ{1}枚）。', es: '] condición no cumplida ({1} cartas en el mazo).', ko: '] 조건 미충족 (덱 {1}장).',
+      zh: '] 未满足条件（牌组{1}张）。', th: '] ไม่ตรงเงื่อนไข (การ์ดในเด็ค {1} ใบ)', pt: '] condição não cumprida ({1} cartas no deck).',
+      fr: '] condition non remplie ({1} cartes dans le deck).',
+    }),
+    bp8LogRow(/\] required hearts increased\.$/, {
+      ja: '] 必要ハートが増えた。', es: '] los Corazones requeridos aumentaron.', ko: '] 필요 하트가 늘었다.', zh: '] 所需心形增加了。',
+      th: '] หัวใจที่ต้องการเพิ่มขึ้น', pt: '] o Requisito de Corações aumentou.', fr: '] les Cœurs requis ont augmenté.',
+    }),
+    bp8LogRow(/\] activated this Member and drew 1 card\.$/, {
+      ja: '] このメンバーをアクティブにし、カードを1枚引いた。', es: '] activó a este Miembro y robó 1 carta.',
+      ko: '] 이 멤버를 액티브로 만들고 카드 1장을 드로우했다.', zh: '] 将该成员变为活跃状态并抽了1张卡。',
+      th: '] ทำให้สมาชิกคนนี้เป็น Active และจั่วการ์ด 1 ใบ', pt: '] ativou este Membro e comprou 1 carta.', fr: '] a activé ce Membre et pioché 1 carte.',
+    }),
+    bp8LogRow(/\] activated (.+)\.$/, {
+      ja: '] {1}をアクティブにした。', es: '] activó a {1}.', ko: '] {1}을(를) 액티브로 만들었다.', zh: '] 将{1}变为活跃状态。',
+      th: '] ทำให้ {1} เป็น Active', pt: '] ativou {1}.', fr: '] a activé {1}.',
+    }),
+    bp8LogRow(/\] (.+) gains \+(\d+) Blade until this Live ends\.$/, {
+      ja: '] {1}はこのライブ終了時までブレード+{2}。', es: '] {1} gana +{2} Blade hasta que termine este Live.',
+      ko: '] {1}은(는) 이 라이브가 끝날 때까지 블레이드 +{2}.', zh: '] {1}直到本场Live结束刀刃+{2}。',
+      th: '] {1} ได้รับ Blade +{2} จนกว่า Live นี้จะจบ', pt: '] {1} ganha +{2} Blade até o fim desta Live.',
+      fr: '] {1} gagne +{2} Blade jusqu\'à la fin de ce Live.',
+    }),
+    bp8LogRow(/\] \+(\d+) Blade until this Live ends\.$/, {
+      ja: '] このライブ終了時までブレード+{1}。', es: '] +{1} Blade hasta que termine este Live.', ko: '] 이 라이브가 끝날 때까지 블레이드 +{1}.',
+      zh: '] 直到本场Live结束刀刃+{1}。', th: '] Blade +{1} จนกว่า Live นี้จะจบ', pt: '] +{1} Blade até o fim desta Live.',
+      fr: '] +{1} Blade jusqu\'à la fin de ce Live.',
+    }),
+    bp8LogRow(/\] (.+) does not lead in hearts, Blade, or cost\.$/, {
+      ja: '] {1}はハート・ブレード・コストのいずれでも最多ではない。', es: '] {1} no supera a los demás en corazones, Blade ni coste.',
+      ko: '] {1}은(는) 하트, 블레이드, 코스트 어느 것도 가장 많지 않다.', zh: '] {1}在心形、刀刃、费用上都不是最多。',
+      th: '] {1} ไม่ได้มากที่สุดทั้งหัวใจ Blade และค่าใช้จ่าย', pt: '] {1} não lidera em corações, Blade nem custo.',
+      fr: '] {1} ne domine ni en cœurs, ni en Blade, ni en coût.',
+    }),
+    bp8LogRow(/\] (.+) gains hearts until this Live ends\.$/, {
+      ja: '] {1}はこのライブ終了時までハートを得る。', es: '] {1} gana corazones hasta que termine este Live.',
+      ko: '] {1}은(는) 이 라이브가 끝날 때까지 하트를 얻는다.', zh: '] {1}直到本场Live结束获得心形。',
+      th: '] {1} ได้รับหัวใจจนกว่า Live นี้จะจบ', pt: '] {1} ganha corações até o fim desta Live.', fr: '] {1} gagne des cœurs jusqu\'à la fin de ce Live.',
+    }),
+    bp8LogRow(/\] (.+)'s ([A-Za-z]+(?: and [A-Za-z]+)*) hearts become (\w+) \((\d+) heart\(s\)\)\.$/, {
+      ja: '] {1}の{C2}のハートが{C3}になった（{4}個）。', es: '] los corazones {C2} de {1} se vuelven {C3} ({4} corazón(es)).',
+      ko: '] {1}의 {C2} 하트가 {C3}가 되었다 ({4}개).', zh: '] {1}的{C2}心形变为{C3}（{4}个）。',
+      th: '] หัวใจสี{C2}ของ {1} กลายเป็นสี{C3} ({4} ดวง)', pt: '] os corações {C2} de {1} se tornam {C3} ({4} coração(ões)).',
+      fr: '] les cœurs {C2} de {1} deviennent {C3} ({4} cœur(s)).',
+    }),
+    bp8LogRow(/\] (.+)'s cost \+(\d+) until this Live ends\.$/, {
+      ja: '] {1}のコストはこのライブ終了時まで+{2}。', es: '] el coste de {1} +{2} hasta que termine este Live.',
+      ko: '] {1}의 코스트는 이 라이브가 끝날 때까지 +{2}.', zh: '] {1}的费用直到本场Live结束+{2}。',
+      th: '] ค่าใช้จ่ายของ {1} +{2} จนกว่า Live นี้จะจบ', pt: '] o custo de {1} +{2} até o fim desta Live.',
+      fr: '] le coût de {1} +{2} jusqu\'à la fin de ce Live.',
+    }),
+    bp8LogRow(/\] cost \+(\d+) until this Live ends\.$/, {
+      ja: '] このライブ終了時までコスト+{1}。', es: '] coste +{1} hasta que termine este Live.', ko: '] 이 라이브가 끝날 때까지 코스트 +{1}.',
+      zh: '] 直到本场Live结束费用+{1}。', th: '] ค่าใช้จ่าย +{1} จนกว่า Live นี้จะจบ', pt: '] custo +{1} até o fim desta Live.',
+      fr: '] coût +{1} jusqu\'à la fin de ce Live.',
+    }),
+    bp8LogRow(/\] cost \+(\d+) \(now (\d+)\)\.$/, {
+      ja: '] コスト+{1}（現在{2}）。', es: '] coste +{1} (ahora {2}).', ko: '] 코스트 +{1} (현재 {2}).', zh: '] 费用+{1}（现在为{2}）。',
+      th: '] ค่าใช้จ่าย +{1} (ตอนนี้ {2})', pt: '] custo +{1} (agora {2}).', fr: '] coût +{1} (maintenant {2}).',
+    }),
+    bp8LogRow(/\] Stage cost total is (\d+) \(needs (\d+)\); nothing added\.$/, {
+      ja: '] ステージのコスト合計は{1}（{2}以上が必要）。手札に加えない。',
+      es: '] el coste total del Escenario es {1} (se necesita {2}); no se añade nada.',
+      ko: '] 스테이지 코스트 합계는 {1} ({2} 이상 필요). 추가하지 않는다.', zh: '] 舞台费用合计为{1}（需要{2}）；未加入手牌。',
+      th: '] ค่าใช้จ่ายรวมบนเวทีคือ {1} (ต้องการ {2}) ไม่ได้เพิ่มการ์ด', pt: '] o custo total do Palco é {1} (precisa de {2}); nada adicionado.',
+      fr: '] le coût total de la Scène est de {1} (il faut {2}) ; rien n\'est ajouté.',
+    }),
+    bp8LogRow(/\] Stage cost total is (\d+) \(needs (\d+)\)\.$/, {
+      ja: '] ステージのコスト合計は{1}（{2}以上が必要）。', es: '] el coste total del Escenario es {1} (se necesita {2}).',
+      ko: '] 스테이지 코스트 합계는 {1} ({2} 이상 필요).', zh: '] 舞台费用合计为{1}（需要{2}）。',
+      th: '] ค่าใช้จ่ายรวมบนเวทีคือ {1} (ต้องการ {2})', pt: '] o custo total do Palco é {1} (precisa de {2}).',
+      fr: '] le coût total de la Scène est de {1} (il faut {2}).',
+    }),
+    bp8LogRow(/\] (.+) is not a matching Member card; no ability gained\.$/, {
+      ja: '] {1}は条件に合うメンバーカードではない。能力は得られない。', es: '] {1} no es una carta de Miembro válida; no se gana ninguna habilidad.',
+      ko: '] {1}은(는) 조건에 맞는 멤버 카드가 아니다. 능력을 얻지 못한다.', zh: '] {1}不是符合条件的成员卡；未获得能力。',
+      th: '] {1} ไม่ใช่การ์ดสมาชิกที่ตรงเงื่อนไข ไม่ได้รับความสามารถ', pt: '] {1} não é uma carta Membro válida; nenhuma habilidade ganha.',
+      fr: '] {1} n\'est pas une carte Membre valide ; aucune capacité gagnée.',
+    }),
+    bp8LogRow(/\] (.+) has no \[On Enter\] ability\.$/, {
+      ja: '] {1}は[On Enter]能力を持っていない。', es: '] {1} no tiene ninguna habilidad [On Enter].', ko: '] {1}은(는) [On Enter] 능력이 없다.',
+      zh: '] {1}没有[On Enter]能力。', th: '] {1} ไม่มีความสามารถ [On Enter]', pt: '] {1} não tem habilidade [On Enter].',
+      fr: '] {1} n\'a aucune capacité [On Enter].',
+    }),
+    bp8LogRow(/\] gained an \[On Enter\] ability of (.+) and triggers it\.$/, {
+      ja: '] {1}の[On Enter]能力を得て発動した。', es: '] obtuvo una habilidad [On Enter] de {1} y la activa.',
+      ko: '] {1}의 [On Enter] 능력을 얻어 발동시켰다.', zh: '] 获得{1}的[On Enter]能力并发动。',
+      th: '] ได้รับความสามารถ [On Enter] ของ {1} และใช้ความสามารถนั้น', pt: '] ganhou uma habilidade [On Enter] de {1} e a ativa.',
+      fr: '] a gagné une capacité [On Enter] de {1} et la déclenche.',
+    }),
+    bp8LogRow(/\] put (\d+) Members into Wait \(they do not activate next Active Phase\): required hearts reduced by (\d+)\.$/, {
+      ja: '] メンバー{1}人をウェイトにした（次のアクティブフェイズにアクティブにならない）：必要ハートを{2}減らした。',
+      es: '] puso {1} Miembros en Wait (no se activan en la próxima Fase activa): Corazones requeridos reducidos en {2}.',
+      ko: '] 멤버 {1}명을 Wait로 만들었다 (다음 액티브 페이즈에 액티브가 되지 않음): 필요 하트를 {2} 줄였다.',
+      zh: '] 将{1}名成员置于等待状态（下个活跃阶段不会变为活跃）：所需心形减少{2}。',
+      th: '] ทำให้สมาชิก {1} คนเป็น Wait (จะไม่เป็น Active ในเฟส Active ครั้งถัดไป): ลดหัวใจที่ต้องการลง {2}',
+      pt: '] colocou {1} Membros em Wait (não são ativados na próxima Fase Ativa): Requisito de Corações reduzido em {2}.',
+      fr: '] a mis {1} Membres en Wait (ils ne s\'activent pas lors de la prochaine Phase active) : Cœurs requis réduits de {2}.',
+    }),
+    bp8LogRow(/\] (.+): score \+(\d+), Required Hearts \+(\d+)\.$/, {
+      ja: '] {1}：スコア+{2}、必要ハート+{3}。', es: '] {1}: puntuación +{2}, Corazones requeridos +{3}.',
+      ko: '] {1}: 스코어 +{2}, 필요 하트 +{3}.', zh: '] {1}：分数+{2}，所需心形+{3}。',
+      th: '] {1}: คะแนน +{2} หัวใจที่ต้องการ +{3}', pt: '] {1}: pontuação +{2}, Requisito de Corações +{3}.',
+      fr: '] {1} : score +{2}, Cœurs requis +{3}.',
+    }),
+  ];
+
+  var bp8LogNameSet = null;
+  var bp8LogNameSetSrc = null;
+  function bp8LogNames(catalog) {
+    if (bp8LogNameSet && bp8LogNameSetSrc === catalog) return bp8LogNameSet;
+    var set = {};
+    var list = [];
+    if (Array.isArray(catalog)) list = catalog;
+    else if (catalog && Array.isArray(catalog.cards)) list = catalog.cards;
+    else if (catalog && typeof catalog === 'object') list = Object.keys(catalog).map(function (k) { return catalog[k]; });
+    list.forEach(function (c) {
+      if (!c || !/-bp8-/.test(String(c.card_no || ''))) return;
+      if (c.name_en) set[c.name_en] = true;
+      if (c.name) set[c.name] = true;
+    });
+    bp8LogNameSet = set;
+    bp8LogNameSetSrc = catalog;
+    return set;
+  }
+
+  /** Only lines whose [source] is a BP08 card, so older sets keep their existing wording. */
+  function applyBp8LogRules(msg, loc, catalog) {
+    var out = String(msg);
+    var names = bp8LogNames(catalog);
+    var re = /\[([^\]]+)\]/g;
+    var m;
+    var hit = false;
+    while ((m = re.exec(out))) {
+      if (names[m[1]]) { hit = true; break; }
+    }
+    if (!hit) return out;
+    for (var i = 0; i < BP8_LOG_RULES.length; i++) {
+      var row = BP8_LOG_RULES[i];
+      var tpl = row[1][loc];
+      if (!tpl || !row[0].test(out)) continue;
+      return out.replace(row[0], tpl);
+    }
+    return out;
+  }
+
   function applyPromptChoosePatterns(msg, loc) {
     var out = String(msg);
-    PROMPT_CHOOSE_PATTERNS.forEach(function (row) {
+    // BP08 rows are anchored full-string matches, so run them before the older partial rows.
+    BP8_PROMPT_PATTERNS.concat(PROMPT_CHOOSE_PATTERNS).forEach(function (row) {
       var tpl = row[1][loc];
       if (!tpl) return;
       out = out.replace(row[0], function () {
         var args = arguments;
+        if (typeof tpl === 'function') return tpl.apply(null, args);
         return String(tpl).replace(/\$(\d+)/g, function (_m, n) {
           var idx = Number(n);
           return args[idx] != null ? args[idx] : '';
@@ -2540,6 +3661,7 @@
     if (!i18n) return msg;
     var loc = i18n.getLocale();
     if (loc === 'en') return msg;
+    msg = applyBp8LogRules(msg, loc, catalog || (global.G && global.G.allCards));
     if (loc === 'ja') return localizeLogMessageJa(msg, catalog);
     if (loc === 'es') return localizeLogMessageEs(msg, catalog);
     if (loc === 'ko') return localizeLogMessageKo(msg, catalog);

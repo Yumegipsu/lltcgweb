@@ -26,6 +26,8 @@
     blueBH: 'blue',
     purpleBH: 'purple',
     allBH: 'all',
+    // PL!-bp8-023 Snow halation: orange blade heart (counts as a gray heart).
+    orangeBH: 'orange',
   };
 
   const HEART_ICON = {
@@ -47,6 +49,7 @@
     blue: 'blade_heart05.png',
     purple: 'blade_heart06.png',
     all: 'icon_b_all.png',
+    orange: 'blade_heart08.png',
     any: 'heart00.png',
   };
 
@@ -128,7 +131,8 @@
       .replace(/<greenBH>/g, 'Green Blade heart')
       .replace(/<blueBH>/g, 'Blue Blade heart')
       .replace(/<purpleBH>/g, 'Purple Blade heart')
-      .replace(/<allBH>/g, 'ALL Blade heart');
+      .replace(/<allBH>/g, 'ALL Blade heart')
+      .replace(/<orangeBH>/g, 'Orange Blade heart');
   }
 
   function normalizeRuleTextForCompare(text) {

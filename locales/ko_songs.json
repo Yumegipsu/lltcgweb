@@ -197,6 +197,18 @@
     "not ALONE not HITORI": { "ko": "not ALONE not 히토리", "method": "phonetic" },
     "stars we chase": { "ko": "스타즈 위 체이스", "method": "phonetic" },
     "sweet&sweet holiday": { "ko": "스위트&스위트 홀리데이", "method": "phonetic" },
-    "絶対的LOVER": { "ko": "절대적 러버", "method": "sino" }
+    "絶対的LOVER": { "ko": "절대적 러버", "method": "sino" },
+    "Aishii": { "ko": "아이시이", "method": "phonetic" },
+    "Blueberry♡Train": { "ko": "블루베리♡트레인", "method": "semantic" },
+    "Circle of Love": { "ko": "서클 오브 러브", "method": "phonetic" },
+    "Dress Code": { "ko": "드레스 코드", "method": "phonetic" },
+    "EdelinieN": { "ko": "에델리니엔", "method": "phonetic" },
+    "Fushigi to Kimi to Library": { "ko": "신기하게도 너와 라이브러리", "method": "semantic" },
+    "Hello, Hoshi wo Kazoete": { "ko": "헬로, 별을 세며", "method": "semantic" },
+    "Nicopuri♡Joshidou": { "ko": "니코프리♡여자도", "method": "semantic" },
+    "Stay": { "ko": "스테이", "method": "phonetic" },
+    "Tomodachi ni Nareru Basho": { "ko": "친구가 될 수 있는 곳", "method": "semantic" },
+    "Yakusoku ni Nare Bokura no Uta": { "ko": "약속이 되어라 우리들의 노래", "method": "semantic" },
+    "Yuujou No Change": { "ko": "우정 노 체인지", "method": "semantic" }
   }
 }

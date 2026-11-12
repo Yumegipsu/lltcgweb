@@ -5069,9 +5069,16 @@ function perfHeartStatKey(color) {
   return key === 'all' ? 'any' : key;
 }
 
+/** Blade hearts a Yell card shows, plus PL!-bp8-023's orange heart when the server flagged the card. */
+function cardYellBladeHeartsWithBp8(card) {
+  const bh = Array.isArray(card?.blade_hearts) ? card.blade_hearts : [];
+  if (card?.bp8_orange && !bh.includes('orange')) return [...bh, 'orange'];
+  return bh;
+}
+
 function cardYellBladeHeartColors(card) {
   const colors = [];
-  (card?.blade_hearts || []).forEach(bh => {
+  cardYellBladeHeartsWithBp8(card).forEach(bh => {
     if (typeof bh === 'string') {
       if (bh === 'draw' || bh === 'score') return;
       if (typeof isDoubleColorlessBladeHeart === 'function' && isDoubleColorlessBladeHeart(bh)) {
@@ -5691,7 +5698,8 @@ function resolveAllBladeHeartColorForPool(pool, liveCards, state = null, pid = n
 /** True when a Yell blade is colorless (gray / any / all2) — not ALL. */
 function isYellColorlessBladeColor(color) {
   const raw = String(color || '').toLowerCase();
-  return raw === 'gray' || raw === 'wild' || raw === 'any'
+  // Orange (PL!-bp8-023) shows orange on the card, then joins the gray pool.
+  return raw === 'gray' || raw === 'wild' || raw === 'any' || raw === 'orange'
     || (typeof isDoubleColorlessBladeHeart === 'function' && isDoubleColorlessBladeHeart(raw));
 }
 
@@ -10073,8 +10081,41 @@ function effectiveCost(card, hand){
       const has = (me?.success_lives || []).some(c => c && typeof cardMatchesSubunit === 'function' && cardMatchesSubunit(c, sub));
       if (has) base = Math.max(0, base - Number(ab.amount ?? 0));
     }
+    // PL!N-bp8-005 Ai: +1 per card in the Energy deck while in hand.
+    if (ab.type === 'bp8_hand_cost_plus_per_energy_deck') {
+      const deckN = Array.isArray(me?.energy_deck) ? me.energy_deck.length : Number(me?.energy_deck_count || 0);
+      base += deckN * Number(ab.amount ?? 1);
+    }
   }
   return base;
+}
+
+/** PL!-bp8-013 Umi: card effects read the Success total +2 while the zone has a card. */
+function bp8ClientSuccessSumBonus(me) {
+  if (!me?.success_lives?.length) return 0;
+  let bonus = 0;
+  Object.values(me.stage || {}).forEach((m) => {
+    (m?.abilities || []).forEach((ab) => {
+      if (ab?.trigger === 'continuous' && ab?.type === 'bp8_success_sum_bonus') bonus += Number(ab.amount ?? 2);
+    });
+  });
+  return bonus;
+}
+
+/** PL!-bp8-003 Kotori: a Waiting μ's Member Baton Touched by a μ's Member reduces by its cost + 1. */
+function bp8ClientBatonExtraReduction(me, incoming, occupant) {
+  if (!me || !incoming || !occupant) return 0;
+  const inWait = typeof memberInWait === 'function' ? memberInWait(occupant) : (!!occupant.in_wait || occupant.active === false);
+  if (!inWait) return 0;
+  let extra = 0;
+  Object.values(me.stage || {}).forEach((m) => {
+    (m?.abilities || []).forEach((ab) => {
+      if (ab?.trigger !== 'continuous' || ab?.type !== 'bp8_grant_group_wait_baton_cost_plus') return;
+      const g = ab.group || '';
+      if ((occupant.group || '') === g && (incoming.group || '') === g) extra = Math.max(extra, Number(ab.bonus ?? 1));
+    });
+  });
+  return extra;
 }
 function memberBlocksBaton(card){
   return (card.abilities||[]).some(ab=>ab.trigger==='continuous'&&ab.type==='no_baton');
@@ -10222,10 +10263,10 @@ function memberPlayModeForSlot(card, slot, s, myId) {
   return 'overplay';
 }
 function stageMemberEffectiveCost(member, me) {
-  let base = member?.cost || 0;
+  let base = (member?.cost || 0) + Number(member?.live_cost_bonus || 0);
   if (!member?.abilities?.length || !me) return base;
   const successLives = me.success_lives || [];
-  const successScore = successLives.reduce((s, c) => s + (c.score || 0), 0);
+  const successScore = successLives.reduce((s, c) => s + (c.score || 0), 0) + bp8ClientSuccessSumBonus(me);
   const zoneCount = (me.energy_zone || []).length;
   for (const ab of member.abilities) {
     if (ab.trigger !== 'continuous') continue;
@@ -10237,6 +10278,11 @@ function stageMemberEffectiveCost(member, me) {
     }
     if (ab.type === 'cost_bonus_if_min_energy' && zoneCount >= (ab.min_energy || 10)) {
       base += ab.amount || 0;
+    }
+    // PL!-bp8-009 Nico: +2 per distinct cost among Member cards under it.
+    if (ab.type === 'bp8_bonus_per_distinct_stacked_cost') {
+      const costs = new Set((member.stacked_members || []).filter(Boolean).map(c => Number(c.cost || 0)));
+      base += costs.size * Number(ab.cost_per ?? 2);
     }
   }
   return base;

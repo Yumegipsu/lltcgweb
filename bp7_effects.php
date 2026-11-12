@@ -810,6 +810,10 @@ function bp7StageSubunitCountMet(array $p, array $ab): bool {
 
 /** PL!S-bp7-003: Aqours Members with low original Blade ignore opponent Wait effects. */
 function bp7ProtectedFromOppWait(array $state, string $pid, array $member): bool {
+    // PL!HS-bp8-008 Izumi: immune while Ceras is on her Stage.
+    if (function_exists('bp8ProtectedFromOppWait') && bp8ProtectedFromOppWait($state, $pid, $member)) {
+        return true;
+    }
     $lm = $state['live_modifiers'][$pid]['bp7_wait_protection'] ?? [];
     if (!is_array($lm) || empty($lm)) {
         return false;
@@ -888,6 +892,9 @@ function bp7Cl1TakeFromYellPool(array &$state, string $pid, string $cardId): ?ar
     foreach ($state['players'][$pid]['_pending_yell_wr'] ?? [] as $i => $c) {
         if (is_array($c) && ($c['instance_id'] ?? '') === $cardId) {
             array_splice($state['players'][$pid]['_pending_yell_wr'], $i, 1);
+            if (function_exists('bp8NotifyYellCardMoved')) {
+                bp8NotifyYellCardMoved($state, $pid);
+            }
             return $c;
         }
     }

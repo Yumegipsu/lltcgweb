@@ -316,6 +316,7 @@ function tryResolveAbilityEffectSwitchLive(
                     fn($c) => ($c['instance_id'] ?? '') !== $pickId
                 ));
                 $p['hand'][] = $picked;
+                bp8NotifyYellCardMoved($state, $pid);
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     ' — [' . $name . '] added ' . cardDisplayName($picked) . ' from Yell to hand.');
                 break;

@@ -72,7 +72,10 @@ function clearLiveModifiers(array $state): array {
                 $mbr['hearts_treat_as'],
                 $mbr['bp7_hearts_override'],
                 $mbr['bp7_live_zone_ability_used'],
-                $mbr['on_enter_or_live_start_fired']
+                $mbr['on_enter_or_live_start_fired'],
+                $mbr['bp8_heart_recolor'],
+                $mbr['bp8_gained_abilities'],
+                $mbr['bp8_live_total_bonus']
             );
         }
         unset($mbr, $p);

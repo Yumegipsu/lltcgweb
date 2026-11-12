@@ -291,14 +291,18 @@ function spBp2ResolveActivatedAbilityIndex(array $member, $abilityIdx): ?array {
         $stackedId = $parts[1];
         $srcIdx = intval($parts[2]);
         $group = spBp2InheritGroupForMember($member);
-        if ($group === '') {
+        // LL-bp8-001 inherits by printed name instead of group.
+        $byName = function_exists('bp8InheritsStacked');
+        if ($group === '' && !$byName) {
             return null;
         }
         foreach ($member['stacked_members'] ?? [] as $stacked) {
             if (($stacked['instance_id'] ?? '') !== $stackedId) {
                 continue;
             }
-            if (!cardMatchesGroup($stacked, $group, 'member')) {
+            $inherits = ($group !== '' && cardMatchesGroup($stacked, $group, 'member'))
+                || ($byName && bp8InheritsStacked($member, $stacked));
+            if (!$inherits) {
                 return null;
             }
             mergeCardCatalogFields($stacked);
