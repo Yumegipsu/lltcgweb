@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=191">
+<link rel="stylesheet" href="client/css/shell-all.css?v=192">
 <link rel="stylesheet" href="client/css/season-rank.css?v=19">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -3369,7 +3369,7 @@ try {
   </div>
 </div>
 
-<script src="i18n.js?v=260"></script>
+<script src="i18n.js?v=261"></script>
 <script src="log_i18n.js?v=23"></script>
 <script src="sfx.js?v=20"></script>
 <script src="client/js/news.js?v=46"></script>
@@ -3962,19 +3962,43 @@ function renderStickerSealUpgrades() {
     btn.dataset.from = from;
     btn.dataset.to = to;
     btn.dataset.cost = String(cost);
-    btn.innerHTML =
-      '<span class="sticker-upgrade-btn-cost">' + sealIconHtml(from, 18) + '<b>' + cost + '</b></span>' +
-      '<span class="sticker-upgrade-btn-arrow" aria-hidden="true">→</span>' +
-      '<span class="sticker-upgrade-btn-gain">' + sealIconHtml(to, 18) + '<b>1</b></span>';
-    const label = (t('sticker.upgradeBtn') || '{cost} {from} → 1 {to}')
-      .replace('{cost}', String(cost))
-      .replace('{from}', from)
-      .replace('{to}', to);
-    btn.setAttribute('aria-label', label);
-    btn.title = label;
-    btn.onclick = () => void upgradeSealTier(from, to, cost);
     // "Max ×N": convert every full set of spare seals in one go (the server already takes `times`).
     const maxN = Math.floor(have / cost);
+    // Pick any amount between 1 and Max: the main button converts that many times.
+    let qty = 1;
+    const paintMainBtn = () => {
+      btn.innerHTML =
+        '<span class="sticker-upgrade-btn-cost">' + sealIconHtml(from, 18) + '<b>' + (cost * qty) + '</b></span>' +
+        '<span class="sticker-upgrade-btn-arrow" aria-hidden="true">→</span>' +
+        '<span class="sticker-upgrade-btn-gain">' + sealIconHtml(to, 18) + '<b>' + qty + '</b></span>';
+      const label = qty > 1
+        ? tt('sticker.upgradeConfirmBatch', 'Convert {spent} {from} seals for {n} {to} seals?',
+          { spent: String(cost * qty), from, to, n: String(qty) }).replace(/\?$/, '')
+        : (t('sticker.upgradeBtn') || '{cost} {from} → 1 {to}')
+          .replace('{cost}', String(cost)).replace('{from}', from).replace('{to}', to);
+      btn.setAttribute('aria-label', label);
+      btn.title = label;
+    };
+    paintMainBtn();
+    btn.onclick = () => void upgradeSealTier(from, to, cost, qty);
+    let qtyInput = null;
+    if (maxN >= 2) {
+      qtyInput = document.createElement('input');
+      qtyInput.type = 'number';
+      qtyInput.className = 'sticker-upgrade-qty';
+      qtyInput.min = '1';
+      qtyInput.max = String(maxN);
+      qtyInput.step = '1';
+      qtyInput.value = '1';
+      qtyInput.inputMode = 'numeric';
+      qtyInput.setAttribute('aria-label', tt('sticker.qtyAria', 'Amount'));
+      qtyInput.addEventListener('input', () => {
+        const v = Math.floor(Number(qtyInput.value));
+        qty = Number.isFinite(v) ? Math.min(maxN, Math.max(1, v)) : 1;
+        paintMainBtn();
+      });
+      qtyInput.addEventListener('change', () => { qtyInput.value = String(qty); });
+    }
     const maxBtn = document.createElement('button');
     maxBtn.type = 'button';
     maxBtn.className = 'sticker-upgrade-btn sticker-upgrade-max';
@@ -3990,7 +4014,8 @@ function renderStickerSealUpgrades() {
     maxBtn.onclick = () => void upgradeSealTier(from, to, cost, maxN);
     const group = document.createElement('div');
     group.className = 'sticker-upgrade-step';
-    group.append(btn, maxBtn);
+    if (qtyInput) group.append(btn, qtyInput, maxBtn);
+    else group.append(btn, maxBtn);
     row.appendChild(group);
   });
 }
@@ -9515,27 +9540,54 @@ function fillDeckConvertSealAction(container, cardNo) {
   row.className = 'deck-convert-seal-row';
   const bal = document.createElement('div');
   bal.className = 'deck-convert-seal-balance';
-  bal.innerHTML = (t('sticker.yourSeals') || 'Your seals') + ': ' + sealCostHtml(tier, have, 16)
-    + (spare >= 1 ? (' → ' + sealCostHtml(tier, have + 1, 16)) : '');
+  // How many spare copies to convert (1 … spare); the server re-checks spare copies.
+  let qty = 1;
+  const paintBalance = () => {
+    bal.innerHTML = (t('sticker.yourSeals') || 'Your seals') + ': ' + sealCostHtml(tier, have, 16)
+      + (spare >= 1 ? (' → ' + sealCostHtml(tier, have + qty, 16)) : '');
+  };
+  paintBalance();
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = spare >= 1 ? 'btn-grad' : 'btn-out';
   const convertLabel = t('sticker.convertOne') || 'Convert to {seal} seal';
   btn.innerHTML = convertLabel.split('{seal}').join(sealIconHtml(tier, 22));
   btn.disabled = spare < 1;
+  let qtyInput = null;
+  if (spare >= 2) {
+    qtyInput = document.createElement('input');
+    qtyInput.type = 'number';
+    qtyInput.className = 'deck-convert-seal-qty';
+    qtyInput.min = '1';
+    qtyInput.max = String(spare);
+    qtyInput.step = '1';
+    qtyInput.value = '1';
+    qtyInput.inputMode = 'numeric';
+    qtyInput.setAttribute('aria-label', tt('sticker.qtyAria', 'Amount'));
+    qtyInput.addEventListener('click', e => e.stopPropagation());
+    qtyInput.addEventListener('input', () => {
+      const v = Math.floor(Number(qtyInput.value));
+      qty = Number.isFinite(v) ? Math.min(spare, Math.max(1, v)) : 1;
+      paintBalance();
+    });
+    qtyInput.addEventListener('change', () => { qtyInput.value = String(qty); });
+  }
   if (spare >= 1) {
     btn.addEventListener('click', async e => {
       e.preventDefault();
       e.stopPropagation();
       const cardName = card.name_en || card.name || cardNo;
-      const ok = confirm(
-        t('sticker.convertConfirm', { name: cardName, seal: tier })
-        || ('Convert 1 spare copy of ' + cardName + ' into 1 ' + tier + ' seal?\n\nThis cannot be undone.')
+      const ok = confirm(qty > 1
+        ? tt('sticker.convertConfirmQty',
+          'Convert {qty} spare copies of {name} into {qty} {seal} seals?\n\nThis cannot be undone.',
+          { name: cardName, seal: tier, qty: String(qty) })
+        : (t('sticker.convertConfirm', { name: cardName, seal: tier })
+          || ('Convert 1 spare copy of ' + cardName + ' into 1 ' + tier + ' seal?\n\nThis cannot be undone.'))
       );
       if (!ok) return;
       btn.disabled = true;
       try {
-        const res = await accountPost('convert_to_seal', { card_no: cardNo, qty: 1 });
+        const res = await accountPost('convert_to_seal', { card_no: cardNo, qty });
         syncSealsFromPayload(res);
         await refreshCollection();
         if (typeof renderDeckBuilder === 'function') renderDeckBuilder();
@@ -9559,6 +9611,7 @@ function fillDeckConvertSealAction(container, cardNo) {
     ? (t('sticker.spareCopies', { n: spare }) || (spare + ' spare'))
     : (t('sticker.reservedCopies', { n: reserved }) || ('Reserved by saved decks (' + reserved + ')'));
   row.appendChild(bal);
+  if (qtyInput) row.appendChild(qtyInput);
   row.appendChild(btn);
   row.appendChild(hint);
   container.appendChild(row);
