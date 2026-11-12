@@ -17205,19 +17205,21 @@ async function cancelRankedSearch(opts = {}) {
   await pollRankedStatus();
 }
 
+let _casualQueueIdMem = null;
 function getCasualQueueId() {
-  try {
-    let id = localStorage.getItem(CASUAL_QUEUE_ID_KEY);
-    if (!id) {
-      id = (typeof crypto !== 'undefined' && crypto.randomUUID)
-        ? crypto.randomUUID()
-        : ('guest-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
-      localStorage.setItem(CASUAL_QUEUE_ID_KEY, id);
-    }
-    return id;
-  } catch (e) {
-    return 'guest-' + Date.now();
+  // Blocked site data makes localStorage throw: keep one id for the page anyway, or join and the
+  // first status poll use different ids and the search drops back to idle at "Searching 0s".
+  if (_casualQueueIdMem) return _casualQueueIdMem;
+  let id = null;
+  try { id = localStorage.getItem(CASUAL_QUEUE_ID_KEY); } catch (e) { /* storage blocked */ }
+  if (!id) {
+    id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : ('guest-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
+    try { localStorage.setItem(CASUAL_QUEUE_ID_KEY, id); } catch (e) { /* storage blocked */ }
   }
+  _casualQueueIdMem = id;
+  return id;
 }
 
 function casualJoinPayload() {

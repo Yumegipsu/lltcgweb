@@ -141,7 +141,9 @@ function tcgCasualQueueJoin(string $queueKey, array $body): array {
     } elseif ($gameMode === TCG_GAME_MODE_FREE) {
         tcgValidateCasualFreeModeDeck($body);
     }
-    resolveRoomDeckLists($body, $cards);
+    // Resolve once here, with the joiner's own auth, and keep the result: pairing runs inside the
+    // *other* player's request, where re-resolving a preset would read that player's auth header.
+    $body['_resolved'] = resolveRoomDeckLists($body, $cards);
 
     $now = time();
     $joinBody = json_encode($body, JSON_UNESCAPED_UNICODE);
@@ -386,6 +388,19 @@ function tcgTryCasualMatchmake(string $queueKey, ?string $challengeDiscordId = n
     });
 }
 
+/** Deck lists resolved at join (current rows) or, for rows queued before that, resolved now. */
+function tcgCasualResolvedDeck(array $body): ?array {
+    $r = $body['_resolved'] ?? null;
+    if (is_array($r) && is_array($r['main_nos'] ?? null) && is_array($r['energy_nos'] ?? null)) {
+        return $r;
+    }
+    try {
+        return resolveRoomDeckLists($body, tcgLoadCardsData());
+    } catch (Throwable $e) {
+        return null;
+    }
+}
+
 function tcgCreateCasualRoomPair(array $p1Row, array $p2Row): ?array {
     $body1 = json_decode((string)($p1Row['join_body'] ?? ''), true);
     $body2 = json_decode((string)($p2Row['join_body'] ?? ''), true);
@@ -403,12 +418,17 @@ function tcgCreateCasualRoomPair(array $p1Row, array $p2Row): ?array {
         return null;
     }
 
-    try {
-        $resolved1 = resolveRoomDeckLists($body1, $cards);
-        $resolved2 = resolveRoomDeckLists($body2, $cards);
-    } catch (Throwable $e) {
-        tcgCasualQueueLeaveByKey((string)($p1Row['queue_key'] ?? ''));
-        tcgCasualQueueLeaveByKey((string)($p2Row['queue_key'] ?? ''));
+    // A deck that cannot be resolved drops only its own player; the other one keeps searching
+    // (dropping both sent innocent players back to idle at "Searching 0s").
+    $resolved1 = tcgCasualResolvedDeck($body1);
+    $resolved2 = tcgCasualResolvedDeck($body2);
+    if ($resolved1 === null || $resolved2 === null) {
+        if ($resolved1 === null) {
+            tcgCasualQueueLeaveByKey((string)($p1Row['queue_key'] ?? ''));
+        }
+        if ($resolved2 === null) {
+            tcgCasualQueueLeaveByKey((string)($p2Row['queue_key'] ?? ''));
+        }
         return null;
     }
 
@@ -486,9 +506,11 @@ function tcgCasualPurgeExpiredQueue(int $now): void {
     $cutoff = $now - TCG_CASUAL_QUEUE_MAX_WAIT;
     // Prefer last_seen_at so foreground pollers are not kicked after 5 minutes (#323).
     // Fall back to joined_at for rows that never received a heartbeat.
+    // CAST: execute([...]) binds text, and COALESCE() has no column affinity, so SQLite compared
+    // integer < text — always true — and every purge wiped the whole queue ("Searching 0s").
     try {
         tcgDb()->prepare(
-            'DELETE FROM tcg_casual_queue WHERE COALESCE(NULLIF(last_seen_at, 0), joined_at) < ?'
+            'DELETE FROM tcg_casual_queue WHERE COALESCE(NULLIF(last_seen_at, 0), joined_at) < CAST(? AS INTEGER)'
         )->execute([$cutoff]);
     } catch (Throwable $e) {
         tcgDb()->prepare('DELETE FROM tcg_casual_queue WHERE joined_at < ?')->execute([$cutoff]);
@@ -598,7 +620,7 @@ function tcgCasualQueueTotal(): int {
     try {
         $maxWait = defined('TCG_CASUAL_QUEUE_MAX_WAIT') ? (int)TCG_CASUAL_QUEUE_MAX_WAIT : 600;
         $stmt = tcgDb()->prepare(
-            'SELECT COUNT(*) FROM tcg_casual_queue WHERE COALESCE(NULLIF(last_seen_at, 0), joined_at) >= ?'
+            'SELECT COUNT(*) FROM tcg_casual_queue WHERE COALESCE(NULLIF(last_seen_at, 0), joined_at) >= CAST(? AS INTEGER)'
         );
         $stmt->execute([time() - $maxWait]);
         return (int)$stmt->fetchColumn();
