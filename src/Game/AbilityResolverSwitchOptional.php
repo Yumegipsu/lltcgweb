@@ -1067,7 +1067,12 @@ function tryResolveAbilityEffectSwitchOptional(
             break;
 
         case 'optional_formation_change_group':
-            if (!stageAllMembersInGroup($p, $ab['group'] ?? '')) break;
+            // group: "only <group> Members on Stage" (Liella! Live); omitted = no condition (PL!SP-sd2-001 Kanon, #342).
+            if (($ab['group'] ?? '') !== '' && !stageAllMembersInGroup($p, (string)$ab['group'])) break;
+            // min_subunit_count: "2+ <subunit> Members on Stage" (PL!SP-pb2-050-L).
+            if (($ab['subunit'] ?? '') !== ''
+                && countSubunitMembersOnStage($p, (string)$ab['subunit']) < intval($ab['min_subunit_count'] ?? 1)) break;
+            if (countStageMembers($p) < 1) break;
             if (!empty($state['pending_prompt'])) break;
             $state['pending_prompt'] = [
                 'type'          => 'optional_formation_change_group',

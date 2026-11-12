@@ -1778,7 +1778,10 @@ function bp8ResolveEffect(array $state, string $pid, array $source, array $ab, a
 
         case 'bp8_score_per_surplus_color_lose_surplus': {
             $color = (string)($ab['color'] ?? 'red');
-            $surplus = $state['_live_excess_heart_colors'][$pid] ?? [];
+            // A zeroed surplus count (Kowareyasuki etc., #343) means no surplus colours remain either.
+            $surplus = intval($state['_live_excess_hearts'][$pid] ?? 0) > 0
+                ? ($state['_live_excess_heart_colors'][$pid] ?? [])
+                : [];
             $n = 0;
             foreach (is_array($surplus) ? $surplus : [] as $h) {
                 $c = normalizeHeartColor(is_array($h) ? (string)($h['color'] ?? '') : (string)$h);

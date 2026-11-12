@@ -550,6 +550,7 @@ function sBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $excess = intval($ctx['excess_hearts'] ?? 0);
             if ($excess < intval($ab['min_surplus'] ?? 3)) break;
             $state['_live_excess_hearts'][$pid] = 0;
+            $state['_live_excess_heart_colors'][$pid] = [];
             bumpLiveCardScore($state, $pid, $source['instance_id'] ?? '', intval($ab['score_bonus'] ?? 1));
             $state = addLog($state, $state['players'][$pid]['name'] .
                 ' — [' . $name . '] lost all surplus hearts; score +' . intval($ab['score_bonus'] ?? 1) . '.');

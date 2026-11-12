@@ -605,6 +605,8 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
                 || !empty($state['players'][$opp]['succeeded_live_this_turn']);
             if (!$oppSucceeded) break;
             $state['_live_excess_hearts'][$opp] = 0;
+            // Colours too: Circle of Love (PL!N-bp8-029) scores from the surplus colour list (#343).
+            $state['_live_excess_heart_colors'][$opp] = [];
             // Keep Strawberry Trapper–style checks in sync after surplus is stripped.
             $state['_live_success_no_excess'][$opp] = true;
             $state['_opp_surplus_lost_' . $opp] = $oppExcess;

@@ -107513,7 +107513,7 @@
         "all"
       ],
       "rarity": "L",
-      "text": "[Live Start] You may Formation Change your Stage Members.",
+      "text": "[Live Start] If you have 2 or more 5yncri5e! Members on your Stage, you may Formation Change your Stage Members.",
       "text_jp": "[ライブ開始時] 自分のステージに『5yncri5e!』のメンバーが2人以上いる場合、自分のステージにいるメンバーをフォーメーションチェンジしてもよい。(メンバーをそれぞれ好きなエリアに移動させてもよい。)",
       "image": "https://llofficial-cardgame.com/wordpress/wp-content/images/cardlist/PBSP02/PL!SP-pb2-050-L.png",
       "subunit": "5yncri5e!",
@@ -107540,15 +107540,16 @@
         {
           "trigger": "live_start",
           "type": "optional_formation_change_group",
-          "group": "Superstar"
+          "subunit": "5yncri5e!",
+          "min_subunit_count": 2
         }
       ],
-      "text_es": "[Inicio de Live] Puedes cambiar la formación de tus Miembros del Escenario.",
-      "text_ko": "[라이브 개시] 자신의 스테이지 멤버들을 포메이션 체인지해도 된다.",
-      "text_zh": "[现场开始] 你可以改变你的舞台成员。",
-      "text_th": "[เริ่ม Live] คุณสามารถเปลี่ยนรูปแบบสมาชิกสเตจของคุณได้",
-      "text_pt": "[Início de Live] Você pode Mudar a Formação dos Membros no seu Palco.",
-      "text_fr": "[Début de Live] Vous pouvez cambiar la formación de tus Membres sur Scène."
+      "text_es": "[Inicio de Live] Si tienes 2 o más Miembros de 5yncri5e! en tu Escenario, puedes cambiar la formación de los Miembros de tu Escenario.",
+      "text_ko": "[라이브 개시] 자신의 스테이지에 『5yncri5e!』 멤버가 2명 이상 있을 경우, 자신의 스테이지 멤버들을 포메이션 체인지해도 된다.",
+      "text_zh": "[现场开始] 若你的舞台上有2名以上『5yncri5e!』成员，你可以对你的舞台成员进行队形变换。",
+      "text_th": "[เริ่ม Live] ถ้าบนสเตจของคุณมีสมาชิก 5yncri5e! ตั้งแต่ 2 คนขึ้นไป คุณสามารถเปลี่ยนรูปแบบสมาชิกสเตจของคุณได้",
+      "text_pt": "[Início de Live] Se houver 2 ou mais Membros de 5yncri5e! no seu Palco, você pode Mudar a Formação dos Membros no seu Palco.",
+      "text_fr": "[Début de Live] Si vous avez 2 Membres 5yncri5e! ou plus sur votre Scène, vous pouvez changer la formation de vos Membres sur Scène."
     },
     {
       "card_no": "PL!SP-pb2-E00-SECE",
@@ -109632,8 +109633,7 @@
         },
         {
           "trigger": "live_start",
-          "type": "optional_formation_change_group",
-          "group": "Superstar"
+          "type": "optional_formation_change_group"
         }
       ],
       "text_es": "[Inicio de Live] Roba 1 carta. Puedes cambiar la formación de los Miembros en tu Escenario (cada uno a un área distinta; ninguna área puede tener 2 Miembros).",

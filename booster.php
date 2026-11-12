@@ -1431,6 +1431,57 @@ function tcgOpenBoosterPack(string $discordId, string $boxId, array $cardsData, 
     ];
 }
 
+/**
+ * A booster box open (10 packs standard, 20 premium) always holds at least one PE or PE+.
+ * The rolling pe_pity counter alone can carry over between opens, so if none landed,
+ * the last plain foil (P / RE) in a non-God pack becomes a PE+ (PE when the set has none).
+ */
+function tcgEnsureBoxOpenPeGuarantee(array &$rolls, array $pools, string $discordId, string $boxId): void {
+    $pePool = !empty($pools['PE+']) ? $pools['PE+'] : ($pools['PE'] ?? []);
+    if ($pePool === []) {
+        return;
+    }
+    foreach ($rolls as $roll) {
+        foreach ($roll['card_nos'] as $no) {
+            $r = tcgRarityForCardNo($no, $pools);
+            if ($r === 'PE' || $r === 'PE+') {
+                return;
+            }
+        }
+    }
+    $target = null;
+    for ($p = count($rolls) - 1; $p >= 0 && $target === null; $p--) {
+        if (!empty($rolls[$p]['god_pack']) || $rolls[$p]['card_nos'] === []) {
+            continue;
+        }
+        $slot = count($rolls[$p]['card_nos']) - 1;
+        $r = tcgRarityForCardNo($rolls[$p]['card_nos'][$slot], $pools);
+        if ($r === 'P' || $r === 'RE') {
+            $target = [$p, $slot];
+        }
+    }
+    if ($target === null) {
+        // No plain foil to swap: take the last non-God pack's Normal/Rare slot instead.
+        for ($p = count($rolls) - 1; $p >= 0 && $target === null; $p--) {
+            if (empty($rolls[$p]['god_pack']) && $rolls[$p]['card_nos'] !== []) {
+                $target = [$p, 0];
+            }
+        }
+    }
+    if ($target === null) {
+        return;
+    }
+    $picked = tcgPickFromPool($pePool);
+    if (!$picked) {
+        return;
+    }
+    [$p, $slot] = $target;
+    $rolls[$p]['card_nos'][$slot] = $picked;
+    $progress = tcgGetBoxProgress($discordId, $boxId);
+    $progress['pe_pity'] = min(intval($progress['pe_pity']), count($rolls) - 1 - $p);
+    tcgSaveBoxProgress($progress);
+}
+
 function tcgOpenBoosterBoxWithGems(string $discordId, string $boxId, array $cardsData, string $dupeReward = 'gems'): array {
     $box = tcgBoosterBoxById($boxId);
     if (!$box) {
@@ -1451,6 +1502,7 @@ function tcgOpenBoosterBoxWithGems(string $discordId, string $boxId, array $card
     for ($p = 0; $p < $packsPerBox; $p++) {
         $rolls[] = tcgRollBoosterPack($discordId, $boxId, $cardsData);
     }
+    tcgEnsureBoxOpenPeGuarantee($rolls, tcgBuildBoxPools($cardsData, $box), $discordId, $boxId);
 
     $packsOut = [];
     $allCardNos = [];

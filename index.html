@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=190">
+<link rel="stylesheet" href="client/css/shell-all.css?v=191">
 <link rel="stylesheet" href="client/css/season-rank.css?v=19">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -1397,6 +1397,7 @@ try {
       <p class="lerr" id="card-list-err"></p>
     </div>
   </div>
+  <button class="btn-ghost card-list-float-hub" id="btn-card-list-float-hub" type="button" data-i18n="cardList.backHub" hidden>← Hub</button>
 </div>
 
 <!-- ══ PACK RESULTS ══ -->
@@ -8898,6 +8899,8 @@ async function openCardListScreen() {
   renderCardList();
   showScr('card-list');
   el('screen-card-list')?.scrollTo(0, 0);
+  const floatHub = el('btn-card-list-float-hub');
+  if (floatHub) floatHub.hidden = true;
 }
 
 function syncBoosterOpenButton(remaining, hasBox) {
@@ -19093,6 +19096,16 @@ async function bootApp() {
   }
   on('btn-hub-card-list', 'click', () => { void openCardListScreen(); });
   on('btn-card-list-back', 'click', () => enterHub(A.profile));
+  on('btn-card-list-float-hub', 'click', () => enterHub(A.profile));
+  // Floating Hub pill once the header's Hub button scrolls out of view.
+  el('screen-card-list')?.addEventListener('scroll', () => {
+    const scr = el('screen-card-list');
+    const head = el('btn-card-list-back');
+    const pill = el('btn-card-list-float-hub');
+    if (!scr || !head || !pill) return;
+    const gone = head.getBoundingClientRect().bottom < scr.getBoundingClientRect().top;
+    if (pill.hidden === gone) pill.hidden = !gone;
+  }, { passive: true });
   on('btn-hub-deck', 'click', openDeckBuilder);
   on('btn-hub-deck-experiment', 'click', () => openDeckExperiment({ returnTo: 'hub' }));
   on('btn-hub-ranked', 'click', openRankedScreen);
