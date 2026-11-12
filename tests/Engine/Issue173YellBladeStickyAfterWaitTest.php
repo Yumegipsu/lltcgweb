@@ -126,7 +126,8 @@ final class Issue173YellBladeStickyAfterWaitTest extends TestCase
             ['pink', 'all', 'draw', 'score', 'all2'],
             'blue'
         );
-        $this->assertSame(['blue', 'blue', 'draw', 'score', 'blue', 'blue'], $recolored);
+        // Official text lists the five colors + ALL; double gray (all2) is not recolored (#349).
+        $this->assertSame(['blue', 'blue', 'draw', 'score', 'all2'], $recolored);
 
         $base = [
             'status' => 'playing',

@@ -30735,10 +30735,10 @@ function eligibleDoubleBatonSecondTargets(me, incomingCard, primarySlot, primary
 /** Best second baton member that brings remainder to <= ae (or lowest remainder if ae is Infinity). */
 function bestDoubleBatonSecond(me, card, primarySlot, primaryMember, ae, ec) {
   if (!cardAllowsDoubleBaton(card) || !primaryMember) return null;
-  const primaryRem = Math.max(0, ec - stageMemberEffectiveCost(primaryMember, me));
+  const primaryRem = Math.max(0, ec - batonCostReduction(primaryMember, me, card));
   let best = null;
   for (const t of eligibleDoubleBatonSecondTargets(me, card, primarySlot, primaryMember.instance_id)) {
-    const rem = Math.max(0, primaryRem - stageMemberEffectiveCost(t.member, me));
+    const rem = Math.max(0, primaryRem - batonCostReduction(t.member, me, card));
     if (rem > ae) continue;
     if (!best || rem < best.remainder) best = { ...t, remainder: rem };
   }
@@ -30856,9 +30856,8 @@ function canAffordBatonWithOptionalDouble(me, card, primarySlot, primaryMember, 
   if (wait < ec) costs.push(wait);
   const named = playCostAfterDiscardNamedOpt(card, me, ec);
   if (named < ec) costs.push(named);
-  const bp8Extra = (typeof bp8ClientBatonExtraReduction === 'function') ? bp8ClientBatonExtraReduction(me, card, primaryMember) : 0;
   for (const c of costs) {
-    const primaryRem = Math.max(0, c - stageMemberEffectiveCost(primaryMember, me) - bp8Extra);
+    const primaryRem = Math.max(0, c - batonCostReduction(primaryMember, me, card));
     if (ae >= primaryRem) return true;
     if (bestDoubleBatonSecond(me, card, primarySlot, primaryMember, ae, c)) return true;
   }
@@ -30874,14 +30873,13 @@ function batonPlayCostWithBestDouble(me, card, primarySlot, primaryMember, ec) {
   const named = playCostAfterDiscardNamedOpt(card, me, ec);
   if (named < ec) costs.push(named);
   let bestRem = Infinity;
-  const bp8Extra = (typeof bp8ClientBatonExtraReduction === 'function') ? bp8ClientBatonExtraReduction(me, card, primaryMember) : 0;
   for (const c of costs) {
-    const primaryRem = Math.max(0, c - stageMemberEffectiveCost(primaryMember, me) - bp8Extra);
+    const primaryRem = Math.max(0, c - batonCostReduction(primaryMember, me, card));
     const best = bestDoubleBatonSecond(me, card, primarySlot, primaryMember, Infinity, c);
     const rem = best ? Math.min(primaryRem, best.remainder) : primaryRem;
     if (rem < bestRem) bestRem = rem;
   }
-  return bestRem === Infinity ? Math.max(0, ec - stageMemberEffectiveCost(primaryMember, me) - bp8Extra) : bestRem;
+  return bestRem === Infinity ? Math.max(0, ec - batonCostReduction(primaryMember, me, card)) : bestRem;
 }
 /** LL-bp7-001: offer "put the named Members into the Waiting Room → cost 10"; "No" continues the normal chain. */
 function sendPlayMemberMaybeDiscardNamedOpt(card, payload, me, ec, payCost = null) {
@@ -31194,10 +31192,10 @@ function sendBatonMemberPlay(card, slot, batonId, batonId2, me, ec) {
   if (batonId2) payload.baton_id2 = batonId2;
   let pay = Number(ec || 0);
   const primary = Object.values(me?.stage || {}).find(m => m && (m.instance_id || '') === batonId);
-  if (primary) pay = Math.max(0, pay - stageMemberEffectiveCost(primary, me));
+  if (primary) pay = Math.max(0, pay - batonCostReduction(primary, me, card));
   if (batonId2) {
     const second = Object.values(me?.stage || {}).find(m => m && (m.instance_id || '') === batonId2);
-    if (second) pay = Math.max(0, pay - stageMemberEffectiveCost(second, me));
+    if (second) pay = Math.max(0, pay - batonCostReduction(second, me, card));
   }
   sendPlayMemberMaybeShuffleOpt(card, payload, me || {}, ec, pay);
 }
@@ -31205,7 +31203,7 @@ function openDoubleBatonSecondPick(card, slot, s, myId, primaryMember, secondTar
   const me = s?.players?.[myId];
   const ec = effectiveCost(card, me?.hand || []);
   const ae = Number(opts.ae ?? affordableEnergyForBatonPlay(me, primaryMember, card));
-  const primaryRem = Math.max(0, ec - stageMemberEffectiveCost(primaryMember, me));
+  const primaryRem = Math.max(0, ec - batonCostReduction(primaryMember, me, card));
   const requireSecond = !!opts.requireSecond || ae < primaryRem;
   const ovl = el('overlay-prompt');
   el('prompt-ttl').textContent = card.name_en || card.name || 'Baton Touch';
@@ -31226,7 +31224,7 @@ function openDoubleBatonSecondPick(card, slot, s, myId, primaryMember, secondTar
     box.appendChild(skip);
   }
   secondTargets.forEach(({ slot: sSlot, member }) => {
-    const rem = Math.max(0, primaryRem - stageMemberEffectiveCost(member, me));
+    const rem = Math.max(0, primaryRem - batonCostReduction(member, me, card));
     const b = document.createElement('button');
     b.className = 'btn-grad';
     b.textContent = (member.name_en || member.name || 'Member') + ' (' + slotLabel(sSlot) + ')';
@@ -31263,10 +31261,10 @@ function playToSlot(card, slot, s, myId, existing) {
     if(stageMemberEnteredThisTurn(exist2, s.turn)){ toast('Cannot replace a Member played this turn'); return; }
     const mode = memberPlayModeForSlot(card, slot, s, myId);
     if (mode === 'baton') {
-      const bc=Math.max(0,ec-stageMemberEffectiveCost(exist2,me));
+      const bc=Math.max(0,ec-batonCostReduction(exist2,me,card));
       const ae=affordableEnergyForBatonPlay(me, exist2, card);
       const bestSecond = bestDoubleBatonSecond(me, card, slot, exist2, ae, ec);
-      const minBc=Math.max(0, playCostWithOptionalOpts(card, me, ec, slot)-stageMemberEffectiveCost(exist2,me));
+      const minBc=Math.max(0, playCostWithOptionalOpts(card, me, ec, slot)-batonCostReduction(exist2,me,card));
       if(ae<bc && !bestSecond && ae<minBc){
         toast(`Need ${energyCostHtml(Math.min(bc, minBc))} active Energy for Baton pass`, 2500, true);
         return;
@@ -31691,9 +31689,11 @@ function aggregateYellBladeHeartsFromCards(cards, resolveCtx = null, pid = null)
       // BP07+ double colorless blade: two wild Yell hearts (not a separate "all2" HUD chip).
       const copies = isDoubleColorlessBladeHeart(raw) ? 2 : 1;
       const base = isDoubleColorlessBladeHeart(raw) ? 'any' : raw;
+      // Rin-style recolors skip gray / all2 / orange (#349).
+      const useForced = !!forcedBlade && (typeof yellBladeRecolorable !== 'function' || yellBladeRecolorable(raw));
       for (let i = 0; i < copies; i++) {
-        let color = forcedBlade || base;
-        if (forcedBlade) {
+        let color = useForced ? forcedBlade : base;
+        if (useForced) {
           ownedPool.push(normalizeHeartColor(color));
         } else if (yellWildcard && ownedPool && liveCards) {
           // Card skill: yell hearts count as any color — like ALL (#296).
@@ -38092,7 +38092,7 @@ function mkNoImg(card){
 }
 </script>
 <script src="client/js/live-round-director.js?v=3"></script>
-<script src="client/js/spectacle.js?v=128"></script>
+<script src="client/js/spectacle.js?v=129"></script>
 <script src="client/js/board-render.js?v=51"></script>
 <script src="client/js/components/board-zones.js?v=2"></script>
 <script src="client/js/cpu-policy-data.js?v=1"></script>
@@ -38102,7 +38102,7 @@ function mkNoImg(card){
 <script src="client/js/cpu-meta-weights.js?v=7"></script>
 <script src="client/js/cpu-eval.js?v=8"></script>
 <script src="client/js/cpu-expert.js?v=8"></script>
-<script src="client/js/cpu-loop.js?v=58"></script>
+<script src="client/js/cpu-loop.js?v=59"></script>
 <script src="client/js/cpu-ai.js?v=14"></script>
 <script src="client/js/portrait-bridge.js?v=31"></script>
 <script src="client/js/match-chat.js?v=7"></script>

@@ -5099,6 +5099,16 @@ function cardYellBladeHeartColors(card) {
   return colors;
 }
 
+/**
+ * Hearts a Yell recolor (Rin PL!-bp8-005, PL!N-bp4-025, PL!SP-bp4-023) turns into its color: the six colors
+ * and ALL. Gray / double gray (all2), orange (PL!-bp8-023), draw and score stay as they are (#349).
+ * Mirrors recolorYellBladeHeartsForLive on the server.
+ */
+function yellBladeRecolorable(raw) {
+  const c = String(raw || '').toLowerCase();
+  return /^(pink|red|yellow|green|blue|purple|all|all1|b_all|b_heart0[1-6]|heart0[1-6])$/.test(c);
+}
+
 /** Live Start override: yelled Blade Hearts become this color until the Live ends (VIVID WORLD). */
 function yellBladeForcedColorFromState(state, pid) {
   const lm = state?.live_modifiers?.[pid] || {};
@@ -5123,7 +5133,7 @@ function cardYellBladeHeartEntries(card, opts = {}) {
   const yellWildcard = !!opts.yellWildcard;
   const forced = opts.forcedBladeColor || null;
   return cardYellBladeHeartColors(card).map(raw => {
-    if (forced) return { raw: forced, display: forced };
+    if (forced && yellBladeRecolorable(raw)) return { raw: forced, display: forced };
     return {
       raw,
       display: yellWildcard ? 'any' : bladeHeartDisplayColor(raw),
@@ -5724,7 +5734,7 @@ function assignYellAllBladeColor(ctx, pid, opts = {}) {
 function resolveYellBladeHeartColor(color, ctx, pid, opts = {}) {
   const raw = String(color || 'any').toLowerCase();
   const forced = opts.forcedBladeColor || yellBladeForcedColor(ctx, pid);
-  if (forced && raw !== 'draw' && raw !== 'score') return forced;
+  if (forced && yellBladeRecolorable(raw)) return forced;
   const pool = opts.extraOwned
     ? opts.extraOwned
     : buildHeartPoolFromRows(perfStageHeartsForPlayer(ctx, pid));
@@ -7959,7 +7969,7 @@ async function perfAnimateYellSide(ctx, pid, opts = {}) {
         const raw = String(rawColor || 'any').toLowerCase();
         let panelColor;
         let payColor;
-        if (forcedBladeColor) {
+        if (forcedBladeColor && yellBladeRecolorable(raw)) {
           panelColor = forcedBladeColor;
           payColor = forcedBladeColor;
           ownedPool.push(normalizeHeartColor(forcedBladeColor));
@@ -10116,6 +10126,14 @@ function bp8ClientBatonExtraReduction(me, incoming, occupant) {
     });
   });
   return extra;
+}
+/**
+ * Energy a Baton Touch saves: the occupant's cost, plus PL!-bp8-003 Kotori's +1 when it applies (#348).
+ * Mirrors computeMemberPlayCostWithBaton on the server — use it for every client baton cost check.
+ */
+function batonCostReduction(occupant, me, incoming) {
+  if (!occupant) return 0;
+  return stageMemberEffectiveCost(occupant, me) + bp8ClientBatonExtraReduction(me, incoming, occupant);
 }
 function memberBlocksBaton(card){
   return (card.abilities||[]).some(ab=>ab.trigger==='continuous'&&ab.type==='no_baton');

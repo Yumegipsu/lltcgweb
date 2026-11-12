@@ -37,6 +37,8 @@ function tryResolveAbilityEffectSwitchYell(
         case 'yell_blades_to_blue':
             $state = initLiveModifiers($state);
             $state['live_modifiers'][$pid]['yell_blades_to_blue'] = true;
+            // Official Q&A (VIVID WORLD × Rin PL!-bp8-005): the recolor that resolves last decides the color.
+            unset($state['live_modifiers'][$pid]['yell_blades_to_color']);
             $state = addLog($state, $state['players'][$pid]['name'] .
                 ' — [' . $name . '] Yell Blade hearts become Blue until Live ends.');
             break;
@@ -52,6 +54,7 @@ function tryResolveAbilityEffectSwitchYell(
             $state = initLiveModifiers($state);
             $color = $ab['color'] ?? 'purple';
             $state['live_modifiers'][$pid]['yell_blades_to_color'] = $color;
+            unset($state['live_modifiers'][$pid]['yell_blades_to_blue']);
             $state = addLog($state, $state['players'][$pid]['name'] .
                 ' — [' . $name . '] Yell Blade hearts become ' . ucfirst($color) . ' until Live ends.');
             break;

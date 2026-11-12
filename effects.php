@@ -1689,16 +1689,16 @@ function recolorYellBladeHeartsForLive(array $bladeHearts, string $color): array
     foreach ($bladeHearts as $bh) {
         $type = is_string($bh) ? $bh : (string) ($bh['type'] ?? $bh['color'] ?? '');
         $type = strtolower(trim($type));
-        if ($type === 'draw' || $type === 'score') {
-            $out[] = $bh;
-            continue;
-        }
-        if (in_array($type, ['all2', 'all_2', 'b_heart07', 'heart07'], true)) {
-            $out[] = $color;
-            $out[] = $color;
-            continue;
-        }
-        $out[] = $color;
+        // Official wording on every recolor Live / Rin (PL!-bp8-005, PL!N-bp4-025, PL!SP-bp4-023): the five
+        // other colors and ALL become {color}. Gray (colorless, incl. double gray all2), orange (PL!-bp8-023),
+        // draw and score icons are not listed and stay as they are (#349).
+        static $recolorable = [
+            'pink' => true, 'red' => true, 'yellow' => true, 'green' => true, 'blue' => true, 'purple' => true,
+            'b_heart01' => true, 'b_heart02' => true, 'b_heart03' => true, 'b_heart04' => true, 'b_heart05' => true,
+            'b_heart06' => true, 'heart01' => true, 'heart02' => true, 'heart03' => true, 'heart04' => true,
+            'heart05' => true, 'heart06' => true, 'all' => true, 'all1' => true, 'b_all' => true,
+        ];
+        $out[] = isset($recolorable[$type]) ? $color : $bh;
     }
     return $out;
 }

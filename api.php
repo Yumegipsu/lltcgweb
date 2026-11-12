@@ -2040,7 +2040,9 @@ function actionPlayMember(array $state, string $pid, array $data): array {
             if (memberBlocksBaton($existing2)) {
                 throw new Exception('This Member cannot be sent to the Waiting Room via Baton Touch');
             }
-            $cost = max(0, $cost - getEffectiveStageMemberCost($state, $pid, $existing2));
+            // PL!-bp8-003 Kotori's granted ability applies to each Waiting μ's Member Baton Touched (#348).
+            $extra2 = function_exists('bp8BatonExtraReduction') ? bp8BatonExtraReduction($state, $pid, $card, $existing2) : 0;
+            $cost = max(0, $cost - getEffectiveStageMemberCost($state, $pid, $existing2) - $extra2);
             break;
         }
     }

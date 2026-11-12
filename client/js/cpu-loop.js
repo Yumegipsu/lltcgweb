@@ -2494,7 +2494,7 @@ function cpuPlanMemberPlay(s, cpu, hand, tier, read = null, opts = {}) {
     : aff.slice(0, Math.min(cpuTierHardPlus(tier) ? 8 : 6, aff.length));
 
   const buildBatonPayload = (c, slot, existing, ec, costOpts = {}) => {
-    const batonCost = Math.max(0, ec - stageMemberEffectiveCost(existing, cpu));
+    const batonCost = Math.max(0, ec - batonCostReduction(existing, cpu, c));
     const aeBaton = affordableEnergyForBatonPlay(cpu, existing, c);
     if (!canAffordBatonWithOptionalDouble(cpu, c, slot, existing, aeBaton, ec)) return null;
     const payload = Object.assign(
@@ -2817,7 +2817,7 @@ function cpuTryDebugTestCard(s, cpu, tier, winPressure, read) {
       const existing = cpu.stage?.[slot];
       if (!existing || stageMemberEnteredThisTurn(existing, s.turn)) continue;
       if (!memberBlocksBaton(existing) && !memberBatonRestricted(existing, c) && ec >= 1) {
-        const bc = Math.max(0, ec - stageMemberEffectiveCost(existing, cpu));
+        const bc = Math.max(0, ec - batonCostReduction(existing, cpu, c));
         const aeBaton = affordableEnergyForBatonPlay(cpu, existing, c);
         if (canAffordBatonWithOptionalDouble(cpu, c, slot, existing, aeBaton, ec)) {
           const payload = { card_id: c.instance_id, slot, baton_id: existing.instance_id };
