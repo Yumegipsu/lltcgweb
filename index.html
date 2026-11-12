@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=192">
+<link rel="stylesheet" href="client/css/shell-all.css?v=194">
 <link rel="stylesheet" href="client/css/season-rank.css?v=19">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -3946,6 +3946,40 @@ function stickerSealUpgradeSteps() {
   return steps;
 }
 
+/**
+ * Amount box (1…max) in the light site input style, without spinner arrows.
+ * Typed values are clamped and onChange(n) fires with the new amount.
+ */
+function sealQtyStepper(max, onChange) {
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.inputMode = 'numeric';
+  inp.className = 'seal-qty-input';
+  inp.value = '1';
+  inp.title = '1–' + max;
+  inp.setAttribute('aria-label', tt('sticker.qtyAria', 'Amount') + ' (1–' + max + ')');
+  const set = (v, fromTyping = false) => {
+    const k = Math.floor(Number(v));
+    const n = Number.isFinite(k) ? Math.min(max, Math.max(1, k)) : 1;
+    if (!fromTyping || String(n) !== inp.value) inp.value = String(n);
+    onChange(n);
+  };
+  inp.addEventListener('click', e => e.stopPropagation());
+  inp.addEventListener('input', () => {
+    inp.value = inp.value.replace(/[^0-9]/g, '');
+    if (inp.value !== '') set(inp.value, true);
+  });
+  inp.addEventListener('change', () => set(inp.value));
+  inp.addEventListener('blur', () => set(inp.value));
+  inp.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      e.preventDefault();
+      set(Number(inp.value || 1) + (e.key === 'ArrowUp' ? 1 : -1));
+    }
+  });
+  return inp;
+}
+
 function renderStickerSealUpgrades() {
   const row = el('sticker-upgrade-row');
   if (!row) return;
@@ -3981,24 +4015,9 @@ function renderStickerSealUpgrades() {
     };
     paintMainBtn();
     btn.onclick = () => void upgradeSealTier(from, to, cost, qty);
-    let qtyInput = null;
-    if (maxN >= 2) {
-      qtyInput = document.createElement('input');
-      qtyInput.type = 'number';
-      qtyInput.className = 'sticker-upgrade-qty';
-      qtyInput.min = '1';
-      qtyInput.max = String(maxN);
-      qtyInput.step = '1';
-      qtyInput.value = '1';
-      qtyInput.inputMode = 'numeric';
-      qtyInput.setAttribute('aria-label', tt('sticker.qtyAria', 'Amount'));
-      qtyInput.addEventListener('input', () => {
-        const v = Math.floor(Number(qtyInput.value));
-        qty = Number.isFinite(v) ? Math.min(maxN, Math.max(1, v)) : 1;
-        paintMainBtn();
-      });
-      qtyInput.addEventListener('change', () => { qtyInput.value = String(qty); });
-    }
+    const qtyInput = maxN >= 2
+      ? sealQtyStepper(maxN, n => { qty = n; paintMainBtn(); })
+      : null;
     const maxBtn = document.createElement('button');
     maxBtn.type = 'button';
     maxBtn.className = 'sticker-upgrade-btn sticker-upgrade-max';
@@ -9553,25 +9572,9 @@ function fillDeckConvertSealAction(container, cardNo) {
   const convertLabel = t('sticker.convertOne') || 'Convert to {seal} seal';
   btn.innerHTML = convertLabel.split('{seal}').join(sealIconHtml(tier, 22));
   btn.disabled = spare < 1;
-  let qtyInput = null;
-  if (spare >= 2) {
-    qtyInput = document.createElement('input');
-    qtyInput.type = 'number';
-    qtyInput.className = 'deck-convert-seal-qty';
-    qtyInput.min = '1';
-    qtyInput.max = String(spare);
-    qtyInput.step = '1';
-    qtyInput.value = '1';
-    qtyInput.inputMode = 'numeric';
-    qtyInput.setAttribute('aria-label', tt('sticker.qtyAria', 'Amount'));
-    qtyInput.addEventListener('click', e => e.stopPropagation());
-    qtyInput.addEventListener('input', () => {
-      const v = Math.floor(Number(qtyInput.value));
-      qty = Number.isFinite(v) ? Math.min(spare, Math.max(1, v)) : 1;
-      paintBalance();
-    });
-    qtyInput.addEventListener('change', () => { qtyInput.value = String(qty); });
-  }
+  const qtyInput = spare >= 2
+    ? sealQtyStepper(spare, n => { qty = n; paintBalance(); })
+    : null;
   if (spare >= 1) {
     btn.addEventListener('click', async e => {
       e.preventDefault();

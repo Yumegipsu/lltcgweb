@@ -4958,13 +4958,15 @@ body.missions-overlay-open .llc-sky-dim::after{
 .sticker-upgrade-btn-arrow{opacity:.7}
 .sticker-upgrade-step{display:inline-flex;align-items:stretch;gap:4px}
 .sticker-upgrade-max{padding:6px 8px;font-size:12px;letter-spacing:.02em;color:rgba(186,228,255,.95);border-style:dashed}
-/* Amount boxes: seal upgrades (1…Max) and card → seal conversion (1…spare copies). */
-.sticker-upgrade-qty,.deck-convert-seal-qty{
-  width:58px;padding:6px 6px;border-radius:10px;text-align:center;
-  border:1px solid rgba(186,228,255,.28);background:rgba(12,28,48,.72);color:#fff;
-  font-family:'Libre Baskerville',serif;font-size:13px;font-weight:700
+/* Amount box: seal upgrades (1…Max) and card → seal conversion (1…spare copies).
+   Light site input look (same as .llc-menu-screen input) everywhere, incl. the card modal. */
+.seal-qty-input,.llc-menu-screen .seal-qty-input{
+  width:52px;min-width:0;flex:0 0 auto;padding:6px 4px;margin:0;text-align:center;
+  font-family:'Zen Kaku Gothic New','Nunito',sans-serif;font-size:14px;font-weight:700;color:#fff;
+  border:1px solid #bae4ff;border-radius:8px;background:rgba(255,255,255,.12)
 }
-.sticker-upgrade-qty:focus,.deck-convert-seal-qty:focus{outline:none;border-color:rgba(255,179,209,.75)}
+.seal-qty-input:focus,.llc-menu-screen .seal-qty-input:focus{
+  border-color:#fff;background:rgba(255,255,255,.18);box-shadow:0 0 0 1px rgba(186,228,255,.35)}
 .sticker-info-upgrade-lead{margin-top:-6px}
 .sticker-info-upgrade-block{display:flex;flex-direction:column;gap:8px}
 .sticker-info-upgrade-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
