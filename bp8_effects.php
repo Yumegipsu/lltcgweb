@@ -794,7 +794,8 @@ function bp8YellCardBladeHearts(array $state, string $pid, array $card): array {
     if ($color !== '' && $bh !== []) {
         $bh = recolorYellBladeHeartsForLive($bh, $color);
     }
-    if (bp8YellCardHasOrange($state, $pid, $card)) {
+    // The revealed card may already carry it (bp8MarkYellRevealOrange) — never count it twice.
+    if (bp8YellCardHasOrange($state, $pid, $card) && !in_array('orange', $bh, true)) {
         $bh[] = 'orange';
     }
     return $bh;
@@ -1068,6 +1069,13 @@ function bp8FlushPendingAutos(array $state): array {
     if (isset($state['_bp8_wr_snapshot'])) {
         bp8DetectWrToDeck($state);
     }
+    // PL!N-bp7-011 Mia: put from the deck into the Waiting Room by any effect (#346).
+    if (function_exists('bp7FlushSelfMilled')) {
+        $state = bp7FlushSelfMilled($state);
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
     $state = bp8CheckStateAutos($state);
     while (empty($state['pending_prompt']) && !empty($state['_bp8_auto_queue'])) {
         $entry = array_shift($state['_bp8_auto_queue']);
@@ -1104,6 +1112,10 @@ function bp8FlushPendingAutos(array $state): array {
 /** Called at the start of every player action and before Yell totals are read. */
 function bp8BeginAction(array &$state): void {
     bp8SnapshotWaitingRooms($state);
+    // PL!N-bp7-011 Mia: record deck → WR moves before the snapshot is retaken (#346).
+    if (function_exists('bp7TrackSelfMilled')) {
+        bp7TrackSelfMilled($state);
+    }
 }
 
 /** Called after every player action (api.php applyAction). */
@@ -3044,19 +3056,34 @@ function bp8RunCopiedOnEnter(array $state, string $pid, array $source, array $ca
     ]);
 }
 
-/** Flag Yell cards on display (yell_reveal) that carry PL!-bp8-023's orange heart, for the client. */
+/**
+ * Yell cards on display (yell_reveal / yell_cards) that carry PL!-bp8-023's orange heart: flag them
+ * for the client and add the heart itself, so the Yell heart tally (stage_board yell_hearts) counts
+ * it as a gray heart like the heart check does (#347).
+ */
 function bp8MarkYellRevealOrange(array &$state, string $pid): void {
-    foreach (['yell_reveal'] as $key) {
-        if (empty($state[$key][$pid]) || !is_array($state[$key][$pid])) continue;
-        foreach ($state[$key][$pid] as $i => $c) {
-            if (is_array($c) && bp8YellCardHasOrange($state, $pid, $c)) {
-                $state[$key][$pid][$i]['bp8_orange'] = true;
+    $mark = static function (array $c) use ($state, $pid): array {
+        if (!bp8YellCardHasOrange($state, $pid, $c)) {
+            return $c;
+        }
+        $c['bp8_orange'] = true;
+        $bh = is_array($c['blade_hearts'] ?? null) ? $c['blade_hearts'] : [];
+        if (!in_array('orange', $bh, true)) {
+            $bh[] = 'orange';
+        }
+        $c['blade_hearts'] = $bh;
+        return $c;
+    };
+    if (!empty($state['yell_reveal'][$pid]) && is_array($state['yell_reveal'][$pid])) {
+        foreach ($state['yell_reveal'][$pid] as $i => $c) {
+            if (is_array($c)) {
+                $state['yell_reveal'][$pid][$i] = $mark($c);
             }
         }
     }
     foreach ($state['players'][$pid]['yell_cards'] ?? [] as $i => $c) {
-        if (is_array($c) && bp8YellCardHasOrange($state, $pid, $c)) {
-            $state['players'][$pid]['yell_cards'][$i]['bp8_orange'] = true;
+        if (is_array($c)) {
+            $state['players'][$pid]['yell_cards'][$i] = $mark($c);
         }
     }
 }

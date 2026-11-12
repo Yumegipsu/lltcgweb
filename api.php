@@ -3814,6 +3814,7 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
         $liveRequired[$li] = applyLiveHeartReductions($liveRequired[$li], $lc);
     }
 
+    $keepSurplusColors = surplusColorsCountedByLiveSuccess($state, $pid, $liveCards);
     foreach ($liveCards as $li => $lc) {
         $required = $liveRequired[$li];
         $reserve = [];
@@ -3823,7 +3824,7 @@ function resolvePerformanceHeartCheck(array $state, string $pid, bool $continueA
                 coloredHeartDemandFromRequirements($liveRequired[$j] ?? [])
             );
         }
-        [$ok, $newRemaining] = checkHearts($remaining, $required, $reserve);
+        [$ok, $newRemaining] = checkHearts($remaining, $required, $reserve, $keepSurplusColors);
         if ($ok) {
             $successCards[] = $lc;
             $remaining = $newRemaining;
@@ -4641,7 +4642,7 @@ function expandHeartRequirementSlots(array $required): array {
     return $slots;
 }
 
-function heartSlotCandidateIndices(array $pool, string $needColor, array $reservedColored = []): array {
+function heartSlotCandidateIndices(array $pool, string $needColor, array $reservedColored = [], array $keepColors = []): array {
     if ($needColor !== 'any') {
         $indices = [];
         foreach ($pool as $i => $h) {
@@ -4671,6 +4672,7 @@ function heartSlotCandidateIndices(array $pool, string $needColor, array $reserv
         $surplusBudget[$color] = max(0, intval($have) - intval($reservedColored[$color] ?? 0));
     }
     $surplus = [];
+    $keptSurplus = [];
     $reserved = [];
     $wild = [];
     $usedSurplus = [];
@@ -4682,13 +4684,19 @@ function heartSlotCandidateIndices(array $pool, string $needColor, array $reserv
         $used = intval($usedSurplus[$h] ?? 0);
         $budget = intval($surplusBudget[$h] ?? 0);
         if ($used < $budget) {
-            $surplus[] = $i;
+            // Colors a Live Success ability counts among surplus hearts (Circle of Love: Red)
+            // are spent last, so they stay surplus (#345).
+            if (isset($keepColors[$h])) {
+                $keptSurplus[] = $i;
+            } else {
+                $surplus[] = $i;
+            }
             $usedSurplus[$h] = $used + 1;
         } else {
             $reserved[] = $i;
         }
     }
-    return array_merge($surplus, $wild, $reserved);
+    return array_merge($surplus, $wild, $keptSurplus, $reserved);
 }
 
 function coloredHeartDemandFromRequirements(array $required): array {
@@ -4775,11 +4783,11 @@ function consumeColoredHeartSlotsByCount(array $pool, array $coloredSlots): ?arr
     return $remaining;
 }
 
-function consumeAnyHeartSlotsGreedy(array $pool, int $anyCount, array $reservedColored = []): ?array {
+function consumeAnyHeartSlotsGreedy(array $pool, int $anyCount, array $reservedColored = [], array $keepColors = []): ?array {
     if ($anyCount <= 0) {
         return array_values($pool);
     }
-    $order = heartSlotCandidateIndices($pool, 'any', $reservedColored);
+    $order = heartSlotCandidateIndices($pool, 'any', $reservedColored, $keepColors);
     if (count($order) < $anyCount) {
         return null;
     }
@@ -4795,7 +4803,7 @@ function consumeAnyHeartSlotsGreedy(array $pool, int $anyCount, array $reservedC
     return $remaining;
 }
 
-function tryConsumeHeartsForRequirementSlots(array $pool, array $slots, array $reservedColored = []): ?array {
+function tryConsumeHeartsForRequirementSlots(array $pool, array $slots, array $reservedColored = [], array $keepColors = []): ?array {
     if (empty($slots)) {
         return array_values($pool);
     }
@@ -4817,20 +4825,58 @@ function tryConsumeHeartsForRequirementSlots(array $pool, array $slots, array $r
     if ($remaining === null) {
         return null;
     }
-    return consumeAnyHeartSlotsGreedy($remaining, $anyCount, $reservedColored);
+    return consumeAnyHeartSlotsGreedy($remaining, $anyCount, $reservedColored, $keepColors);
 }
 
-function checkHearts(array $available, array $required, array $reservedColored = []): array {
+/**
+ * @param array<string,true> $keepColors colors to leave as surplus when an "any" slot can be
+ *        paid with something else (see surplusColorsCountedByLiveSuccess).
+ */
+function checkHearts(array $available, array $required, array $reservedColored = [], array $keepColors = []): array {
     $available = array_values(array_map(fn($h) => normalizeHeartColor((string)$h), $available));
     $remaining = tryConsumeHeartsForRequirementSlots(
         $available,
         expandHeartRequirementSlots($required),
-        $reservedColored
+        $reservedColored,
+        $keepColors
     );
     if ($remaining === null) {
         return [false, $available];
     }
     return [true, $remaining];
+}
+
+/**
+ * Surplus colors this player's Live Success abilities count (Circle of Love: Red, Mogyutto: pink,
+ * green-surplus Energy Lives). The player chooses which hearts pay "any" requirements, so the
+ * engine keeps these colors surplus when another heart can pay (#345).
+ * @return array<string,true>
+ */
+function surplusColorsCountedByLiveSuccess(array $state, string $pid, array $liveCards): array {
+    $keep = [];
+    $sources = $liveCards;
+    foreach ($state['players'][$pid]['stage'] ?? [] as $m) {
+        if ($m) {
+            $sources[] = $m;
+        }
+    }
+    foreach ($sources as $card) {
+        foreach ($card['abilities'] ?? [] as $ab) {
+            if (($ab['trigger'] ?? '') !== 'live_success') {
+                continue;
+            }
+            $type = (string)($ab['type'] ?? '');
+            $color = match ($type) {
+                'bp8_score_per_surplus_color_lose_surplus', 'draw_if_excess_heart' => (string)($ab['color'] ?? ''),
+                'live_success_energy_wait_if_excess' => (string)($ab['excess_color'] ?? ''),
+                default => '',
+            };
+            if ($color !== '') {
+                $keep[normalizeHeartColor($color)] = true;
+            }
+        }
+    }
+    return $keep;
 }
 
 /** First colored live requirement not covered by exact matches (ALL reserved for checkHearts). */

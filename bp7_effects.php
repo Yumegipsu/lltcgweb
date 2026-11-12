@@ -2959,6 +2959,70 @@ function bp7ResolveAutoOnAllyWait(array $state, string $pid, array $waited): arr
     return $state;
 }
 
+/** True when this card has PL!N-bp7-011 Mia's "put from the deck into the Waiting Room" automatic ability. */
+function bp7CardHasSelfMilledAuto(array $c): bool {
+    if (!isset($c['abilities']) && function_exists('mergeCardCatalogFields')) {
+        mergeCardCatalogFields($c);
+    }
+    foreach ($c['abilities'] ?? [] as $ab) {
+        if (($ab['trigger'] ?? '') === 'auto' && ($ab['type'] ?? '') === 'auto_self_milled_discard_recover') {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Track deck → Waiting Room moves of self-milled cards (Mia) from *any* effect (#346: Kosuzu's mill never
+ * called the hook; ~20 mill / reveal-remainder paths didn't). Runs at the start of every action and when
+ * prompts close: a card that was in the deck at the last check and is now in the Waiting Room is queued.
+ */
+function bp7TrackSelfMilled(array &$state): void {
+    foreach (['p1', 'p2'] as $pid) {
+        if (empty($state['players'][$pid]) || !is_array($state['players'][$pid])) continue;
+        $p = $state['players'][$pid];
+        $wr = [];
+        foreach ($p['waiting_room'] ?? [] as $c) {
+            if (is_array($c) && ($c['instance_id'] ?? '') !== '') $wr[(string)$c['instance_id']] = true;
+        }
+        foreach ($state['_bp7_selfmill_deck'][$pid] ?? [] as $id) {
+            if (isset($wr[$id]) && empty($state['_bp7_selfmill_done'][$id])
+                && !in_array($id, $state['_bp7_selfmill_pending'][$pid] ?? [], true)) {
+                $state['_bp7_selfmill_pending'][$pid][] = $id;
+            }
+        }
+        $ids = [];
+        foreach ($p['main_deck'] ?? [] as $c) {
+            if (!is_array($c) || ($c['instance_id'] ?? '') === '' || !bp7CardHasSelfMilledAuto($c)) continue;
+            $id = (string)$c['instance_id'];
+            $ids[] = $id;
+            unset($state['_bp7_selfmill_done'][$id]); // back in the deck: may trigger again next time
+        }
+        $state['_bp7_selfmill_deck'][$pid] = $ids;
+    }
+}
+
+/** Offer queued self-milled triggers while no prompt is open (hand must have a card to discard). */
+function bp7FlushSelfMilled(array $state): array {
+    bp7TrackSelfMilled($state);
+    foreach (['p1', 'p2'] as $pid) {
+        while (empty($state['pending_prompt']) && !empty($state['_bp7_selfmill_pending'][$pid])) {
+            $id = array_shift($state['_bp7_selfmill_pending'][$pid]);
+            $card = null;
+            foreach ($state['players'][$pid]['waiting_room'] ?? [] as $c) {
+                if (is_array($c) && ($c['instance_id'] ?? '') === $id) { $card = $c; break; }
+            }
+            if ($card === null || !empty($state['_bp7_selfmill_done'][$id])) continue;
+            $state = bp7ResolveAutoSelfMilled($state, $pid, [$card]);
+            $state['_bp7_selfmill_done'][$id] = true;
+        }
+        if (!empty($state['pending_prompt'])) {
+            return $state;
+        }
+    }
+    return $state;
+}
+
 /** PL!N-bp7-011: this card itself was put from the deck into the Waiting Room. */
 function bp7ResolveAutoSelfMilled(array $state, string $pid, array $milled): array {
     if (!empty($state['pending_prompt']) || empty($state['players'][$pid]['hand'])) {
@@ -2974,6 +3038,9 @@ function bp7ResolveAutoSelfMilled(array $state, string $pid, array $milled): arr
             if (($ab['type'] ?? '') !== 'auto_self_milled_discard_recover') continue;
             $iid = (string)($c['instance_id'] ?? '');
             if ($iid === '' || !bp7CardInWaitingRoom($state['players'][$pid], $iid)) continue;
+            if (!empty($state['_bp7_selfmill_done'][$iid])) continue;
+            // Handled here (direct mill paths); the action-level tracker must not offer it again.
+            $state['_bp7_selfmill_done'][$iid] = true;
             return bp7StartConfirm(
                 $state, $pid, $c, $ab, [], 'self_milled_recover',
                 'Put ' . max(1, intval($ab['discard'] ?? 1)) .
