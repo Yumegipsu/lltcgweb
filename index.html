@@ -111,7 +111,7 @@ try {
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=Kalnia:wght@500&family=Libre+Baskerville:wght@400;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Sans+Thai:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="client/css/shell-all.css?v=194">
+<link rel="stylesheet" href="client/css/shell-all.css?v=197">
 <link rel="stylesheet" href="client/css/season-rank.css?v=19">
 <link rel="stylesheet" href="client/css/prompts.css?v=4">
 <link rel="stylesheet" href="client/css/sleeves.css?v=24">
@@ -3954,6 +3954,9 @@ function sealQtyStepper(max, onChange) {
   const inp = document.createElement('input');
   inp.type = 'text';
   inp.inputMode = 'numeric';
+  inp.pattern = '[0-9]*'; // iOS: number keypad
+  inp.autocomplete = 'off';
+  inp.enterKeyHint = 'done';
   inp.className = 'seal-qty-input';
   inp.value = '1';
   inp.title = '1–' + max;
@@ -9614,8 +9617,15 @@ function fillDeckConvertSealAction(container, cardNo) {
     ? (t('sticker.spareCopies', { n: spare }) || (spare + ' spare'))
     : (t('sticker.reservedCopies', { n: reserved }) || ('Reserved by saved decks (' + reserved + ')'));
   row.appendChild(bal);
-  if (qtyInput) row.appendChild(qtyInput);
-  row.appendChild(btn);
+  if (qtyInput) {
+    // Amount box and Convert share one line (box at button height, button fills the rest).
+    const action = document.createElement('div');
+    action.className = 'deck-convert-seal-action';
+    action.append(qtyInput, btn);
+    row.appendChild(action);
+  } else {
+    row.appendChild(btn);
+  }
   row.appendChild(hint);
   container.appendChild(row);
 }

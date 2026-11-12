@@ -4960,13 +4960,19 @@ body.missions-overlay-open .llc-sky-dim::after{
 .sticker-upgrade-max{padding:6px 8px;font-size:12px;letter-spacing:.02em;color:rgba(186,228,255,.95);border-style:dashed}
 /* Amount box: seal upgrades (1…Max) and card → seal conversion (1…spare copies).
    Light site input look (same as .llc-menu-screen input) everywhere, incl. the card modal. */
-.seal-qty-input,.llc-menu-screen .seal-qty-input{
-  width:52px;min-width:0;flex:0 0 auto;padding:6px 4px;margin:0;text-align:center;
-  font-family:'Zen Kaku Gothic New','Nunito',sans-serif;font-size:14px;font-weight:700;color:#fff;
-  border:1px solid #bae4ff;border-radius:8px;background:rgba(255,255,255,.12)
+/* 16px: iOS zooms the page when a smaller text field is focused. */
+.seal-qty-input,.llc-menu-screen .seal-qty-input,#cd-actions .seal-qty-input{
+  width:54px;min-width:0;flex:0 0 auto;padding:5px 4px;margin:0;text-align:center;
+  font-family:'Zen Kaku Gothic New','Nunito',sans-serif;font-size:16px;font-weight:700;color:#fff;
+  border:1px solid #bae4ff;border-radius:8px;background:rgba(255,255,255,.12);box-shadow:none
 }
-.seal-qty-input:focus,.llc-menu-screen .seal-qty-input:focus{
+.seal-qty-input:focus,.llc-menu-screen .seal-qty-input:focus,#cd-actions .seal-qty-input:focus{
   border-color:#fff;background:rgba(255,255,255,.18);box-shadow:0 0 0 1px rgba(186,228,255,.35)}
+/* Card → seal: amount box + Convert on one line. */
+.deck-convert-seal-action{display:flex;align-items:stretch;gap:8px;width:100%}
+.deck-convert-seal-row .deck-convert-seal-action .btn-grad,
+html.tcg-portrait-play #modal-card.open #cd-actions .deck-convert-seal-action .btn-grad{flex:1 1 0;width:auto;min-width:0}
+#cd-actions .deck-convert-seal-action .seal-qty-input{width:64px;align-self:stretch;border-radius:var(--r,12px)}
 .sticker-info-upgrade-lead{margin-top:-6px}
 .sticker-info-upgrade-block{display:flex;flex-direction:column;gap:8px}
 .sticker-info-upgrade-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
