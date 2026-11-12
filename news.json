@@ -2,6 +2,32 @@
   "version": 1,
   "posts": [
     {
+      "id": "2026-11-magical-treat",
+      "date": "2026-11-11",
+      "banner": "news/bp08-magical-treat.jpg",
+      "bannerStyle": "full",
+      "title": {
+        "en": "New booster pack: Magical Treat!",
+        "ja": "新ブースターパック：まじかる♡とり～と！",
+        "es": "¡Nuevo booster: Magical Treat!",
+        "ko": "새 부스터 팩: Magical Treat!",
+        "zh": "新补充包：Magical Treat！",
+        "th": "บูสเตอร์แพ็กใหม่: Magical Treat!",
+        "pt": "Novo booster: Magical Treat!",
+        "fr": "Nouveau booster : Magical Treat !"
+      },
+      "body": {
+        "en": "**Booster Pack Magical Treat** is now collectible in Loveca Web.\n\n- Open it from **Open Boosters** on the hub — same daily free packs and Star Gem opens as other boosters.\n- All set cards are in the **card list**, **Deck Builder**, and **Deck Experiment** pools.\n- Skills from this set are fully playable in Ranked, Unranked, friend rooms, and vs CPU.\n- New **orange Blade hearts** count as any color during the heart check.\n\nHappy pulling — enjoy the treats!",
+        "ja": "**ブースターパック まじかる♡とり～と** がLoveca Webで入手できるようになりました。\n\n- ハブの **ブースターを開く** から開けます。他のブースターと同じく、無料パックやスタージェムでの開封に対応しています。\n- 収録カードは **カードリスト**・**デッキビルダー**・**デッキ実験** で確認・使用できます。\n- 本セットのスキルはランク／アンランク／フレンドルーム／CPU戦すべてでプレイ可能です。\n- 新しい **オレンジのブレードハート** は、ハート判定で任意の色として扱われます。\n\nぜひ開封を楽しんでください！",
+        "es": "**Booster Pack Magical Treat** ya se puede coleccionar en Loveca Web.\n\n- Ábrelo desde **Abrir boosters** en el hub: mismos packs diarios gratis y aperturas con Star Gems que el resto.\n- Todas las cartas del set están en la **lista de cartas**, el **Constructor de mazos** y el **Experimento de mazos**.\n- Las habilidades de este set son jugables en Clasificatoria, Unranked, salas con amigos y vs CPU.\n- Los nuevos **corazones de Blade naranjas** cuentan como cualquier color en la comprobación de corazones.\n\n¡Buena suerte con los packs!",
+        "ko": "**부스터 팩 Magical Treat**가 이제 Loveca Web에서 수집할 수 있습니다.\n\n- 허브의 **부스터 열기**에서 열 수 있습니다. 다른 부스터와 같이 일일 무료 팩과 스타 젬 개봉을 지원합니다.\n- 세트 카드는 **카드 목록**, **덱 빌더**, **덱 실험**에서 확인·사용할 수 있습니다.\n- 이 세트의 스킬은 랭크, 언랭크, 친구 방, CPU전 모두에서 플레이할 수 있습니다.\n- 새로운 **오렌지 블레이드 하트**는 하트 판정에서 아무 색으로나 취급됩니다.\n\n즐거운 개봉 되세요!",
+        "zh": "**补充包 Magical Treat** 现已可在 Loveca Web 中收集。\n\n- 可在主页的 **开启补充包** 中开启——与其他补充包相同，支持每日免费包与星宝石开启。\n- 整套卡牌已加入 **卡牌列表**、**牌组构筑** 与 **牌组实验**。\n- 本套技能可在排名赛、非排名、好友房间与对战 CPU 中使用。\n- 新的 **橙色刀刃心形** 在心形判定时可视为任意颜色。\n\n祝开包顺利！",
+        "th": "**บูสเตอร์แพ็ก Magical Treat** สามารถสะสมใน Loveca Web ได้แล้ว\n\n- เปิดได้จาก **เปิดบูสเตอร์** ที่ฮับ — แพ็กรายวันฟรีและเปิดด้วย Star Gems เหมือนบูสเตอร์อื่น\n- การ์ดทั้งเซ็ตอยู่ใน **รายการการ์ด** **ตัวสร้างเด็ค** และ **Deck Experiment**\n- สกิลของเซ็ตนี้เล่นได้ในแรงก์ อันแรงก์ ห้องเพื่อน และปะทะ CPU\n- **หัวใจเบลดสีส้ม** ใหม่นับเป็นสีใดก็ได้ตอนตรวจหัวใจ\n\nขอให้เปิดแพ็กสนุกนะ!",
+        "pt": "**Booster Pack Magical Treat** já pode ser colecionado no Loveca Web.\n\n- Abra em **Abrir Boosters** no hub — mesmos pacotes diários grátis e aberturas com Star Gems dos outros boosters.\n- Todas as cartas do set estão na **lista de cartas**, **Construtor de Deck** e **Experimentador de Decks**.\n- Habilidades deste set funcionam em Ranqueado, Casual, salas com amigos e vs CPU.\n- Os novos **corações de Blade laranja** contam como qualquer cor na verificação de corações.\n\nBoa sorte nas aberturas!",
+        "fr": "Le **Booster Pack Magical Treat** est maintenant collectionnable sur Loveca Web.\n\n- Ouvrez-le depuis **Ouvrir des boosters** sur le hub — mêmes packs gratuits quotidiens et ouvertures Star Gem que les autres boosters.\n- Toutes les cartes du set sont dans la **liste de cartes**, le **Constructeur de decks** et les pools **Deck Experiment**.\n- Les compétences de ce set sont entièrement jouables en Classé, Non classé, salles d'amis et vs CPU.\n- Les nouveaux **cœurs de Blade orange** comptent comme n'importe quelle couleur lors de la vérification des cœurs.\n\nBonnes ouvertures !"
+      }
+    },
+    {
       "id": "2026-11-season-2",
       "date": "2026-10-31",
       "publishedAt": "2026-10-31T07:15:00Z",
