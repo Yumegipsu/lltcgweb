@@ -41,6 +41,8 @@ _COLOR_JP = {
     "桃": "pink",
     "紫": "purple",
     "無": "any",
+    # 橙 = orange Blade heart (PL!-bp8-023 Snow halation); dropping it left the Live with no Yell heart (#352).
+    "橙": "orange",
 }
 
 
@@ -85,7 +87,7 @@ def _parse_heart_string(heart: str) -> dict[str, int]:
     hearts: dict[str, int] = {}
     if not heart:
         return hearts
-    for color_jp, n in re.findall(r"([赤青黄緑桃紫無])(\d+)", heart):
+    for color_jp, n in re.findall(r"([赤青黄緑桃紫無橙])(\d+)", heart):
         color = _COLOR_JP.get(color_jp)
         if not color:
             continue
@@ -105,7 +107,7 @@ def _parse_blade_hearts(blade_heart: str, attack: str, card_kind: str) -> tuple[
             blade_value = int(attack) if str(attack).isdigit() else 0
         except ValueError:
             blade_value = 0
-        for color_jp, _n in re.findall(r"([赤青黄緑桃紫無])(\d+)", blade_heart or ""):
+        for color_jp, _n in re.findall(r"([赤青黄緑桃紫無橙])(\d+)", blade_heart or ""):
             color = _COLOR_JP.get(color_jp)
             if color and color not in blade_hearts:
                 blade_hearts.append(color)
@@ -125,7 +127,7 @@ def _parse_blade_hearts(blade_heart: str, attack: str, card_kind: str) -> tuple[
         while "無2" in atk_rest:
             blade_hearts.append("all2")
             atk_rest = atk_rest.replace("無2", "", 1)
-        for color_jp, _n in re.findall(r"([赤青黄緑桃紫無])(\d+)", atk_rest):
+        for color_jp, _n in re.findall(r"([赤青黄緑桃紫無橙])(\d+)", atk_rest):
             color = _COLOR_JP.get(color_jp)
             if color and color not in blade_hearts:
                 blade_hearts.append(color)
