@@ -236,6 +236,15 @@ global.openLiveSuccessOrderPick = function openLiveSuccessOrderPick(pr) {
 
       const cardEl = mkPickCardEl(card, 'pickcard', null);
       cardEl.classList.add('sel');
+      // A card with several Live Start abilities is listed once per ability (#351): mark which one.
+      const ord = Number(card.ability_ordinal || 0);
+      if (ord > 0 && Number(card.ability_count || 0) > 1) {
+        const tag = document.createElement('div');
+        tag.className = 'pick-order-ability';
+        tag.textContent = '①②③④⑤⑥⑦⑧⑨'.charAt(ord - 1) || String(ord);
+        tag.title = ord + ' / ' + card.ability_count;
+        cardEl.appendChild(tag);
+      }
 
       const controls = document.createElement('div');
       controls.className = 'pick-order-controls';

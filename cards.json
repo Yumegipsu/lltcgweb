@@ -14808,7 +14808,9 @@
           "count": 6
         }
       ],
-      "blade_hearts": [],
+      "blade_hearts": [
+        "orange"
+      ],
       "rarity": "L",
       "text": "[Live Start] Until this Live ends, your Member cards with cost 4 or less and no Blade Hearts revealed by Yell have a <orangeBH>.\n[Live Success] If 6 or more of your cards revealed by Yell have a <orangeBH>, this card's score is increased by 2.",
       "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />ライブ終了時まで、エールによって公開される自分のコスト4以下のブレードハートを持たないメンバーカードは<img class=\"\" src=\"/wordpress/wp-content/images/texticon/blade_heart08.png\" alt=\"ハート\" />を持つ。\n<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_success.png\" alt=\"ライブ成功時\" />エールにより公開された自分のカードの中に<img class=\"\" src=\"/wordpress/wp-content/images/texticon/blade_heart08.png\" alt=\"ハート\" />を持つカードが6枚以上ある場合、このカードのスコアを＋２する。",
@@ -14879,7 +14881,9 @@
           "count": 6
         }
       ],
-      "blade_hearts": [],
+      "blade_hearts": [
+        "orange"
+      ],
       "rarity": "SECL",
       "text": "[Live Start] Until this Live ends, your Member cards with cost 4 or less and no Blade Hearts revealed by Yell have a <orangeBH>.\n[Live Success] If 6 or more of your cards revealed by Yell have a <orangeBH>, this card's score is increased by 2.",
       "text_jp": "<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_start.png\" alt=\"ライブ開始時\" />ライブ終了時まで、エールによって公開される自分のコスト4以下のブレードハートを持たないメンバーカードは<img class=\"\" src=\"/wordpress/wp-content/images/texticon/blade_heart08.png\" alt=\"ハート\" />を持つ。\n<img class=\"\" src=\"/wordpress/wp-content/images/texticon/live_success.png\" alt=\"ライブ成功時\" />エールにより公開された自分のカードの中に<img class=\"\" src=\"/wordpress/wp-content/images/texticon/blade_heart08.png\" alt=\"ハート\" />を持つカードが6枚以上ある場合、このカードのスコアを＋２する。",

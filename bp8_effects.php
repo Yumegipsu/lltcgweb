@@ -2786,13 +2786,11 @@ function bp8ResolvePrompt(array $state, string $owner, array $prompt, string $ch
             $cands = bp8StageCandidates($state['players'][$owner], fn($m) => ($m['instance_id'] ?? '') !== $selfId
                 && cardMatchesSubunit($m, (string)($ab['subunit'] ?? '')));
             if ($cands === []) break;
-            if (count($cands) === 1) {
-                $state = bp8Reenter($state, $owner, $name, $cands[0]['slot']);
-            } else {
-                $state = bp7StartStagePick($state, $owner, $source, $ab, $ctx, 'bp8:reenter', $cands,
-                    'Choose 1 ' . (string)($ab['subunit'] ?? '') . ' Member to put into the Waiting Room and play again.',
-                    bp8PromptMeta($source, $ab));
-            }
+            // Always show the Stage pick, even with one candidate: auto-picking it made the ability look like it
+            // skipped the Stage choice and only asked for hand discards (the re-entered Member's On Enter) (#353).
+            $state = bp7StartStagePick($state, $owner, $source, $ab, $ctx, 'bp8:reenter', $cands,
+                'Choose 1 ' . (string)($ab['subunit'] ?? '') . ' Member to put into the Waiting Room and play again.',
+                bp8PromptMeta($source, $ab));
             $state = bp7QueueChain($state);
             break;
         }

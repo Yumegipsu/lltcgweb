@@ -365,7 +365,9 @@ function sendCards(): void {
     $etag = '"cards-' . $mtime . '-' . strlen($payload) . '"';
 
     header('ETag: ' . $etag);
-    header('Cache-Control: public, max-age=300, stale-while-revalidate=86400');
+    // Always revalidate (cheap 304 via ETag): a stale catalog after a card update left new cards unknown —
+    // Lives not addable / not counted in the deck builder until a refresh (#350, #354).
+    header('Cache-Control: public, no-cache');
     if ($mtime > 0) {
         header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $mtime) . ' GMT');
     }

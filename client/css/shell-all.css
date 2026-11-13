@@ -3876,6 +3876,11 @@ body.deck-card-preview #modal-card{z-index:970}
 .pick-order-badge{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-weight:700;font-size:13px;background:var(--pink);color:#1a1020;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
 .pick-order-controls{display:flex;gap:4px;width:100%;justify-content:center}
+/* Which Live Start ability this entry is, when a card is listed once per ability (#351). */
+.pick-order-ability{position:absolute;top:4px;right:4px;z-index:2;min-width:26px;height:26px;padding:0 4px;border-radius:999px;
+  display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;line-height:1;color:#fff;
+  background:rgba(20,16,40,.82);box-shadow:0 0 0 1px rgba(255,179,209,.7);pointer-events:none}
+.pick-order-item .pickcard{position:relative}
 .pick-order-btn{min-width:34px;padding:4px 0;font-size:14px;line-height:1.1}
 .pickcard.ineligible{opacity:.38;filter:grayscale(.35);cursor:not-allowed}
 .pickcard.ineligible.sel{border-color:rgba(255,255,255,.2);box-shadow:none}

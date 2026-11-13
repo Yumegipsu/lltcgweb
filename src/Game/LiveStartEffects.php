@@ -137,7 +137,7 @@ function pendingLiveStartAbilitiesForSource(array $state, string $pid, array $so
  * @return list<array> prompt candidate summaries with zone (+ slot for Members)
  */
 function collectLiveStartOrderSources(array $state, string $pid): array {
-    $sources = [];
+    $rows = [];
     $p = $state['players'][$pid] ?? [];
     foreach (['left', 'center', 'right'] as $slot) {
         $member = $p['stage'][$slot] ?? null;
@@ -145,13 +145,11 @@ function collectLiveStartOrderSources(array $state, string $pid): array {
             continue;
         }
         mergeCardCatalogFields($member);
-        if (pendingLiveStartAbilitiesForSource($state, $pid, $member) === []) {
+        $pending = pendingLiveStartAbilitiesForSource($state, $pid, $member);
+        if ($pending === []) {
             continue;
         }
-        $sources[] = array_merge(cardPromptSummary($member), [
-            'zone' => 'stage',
-            'slot' => $slot,
-        ]);
+        $rows[] = ['card' => $member, 'pending' => $pending, 'zone' => 'stage', 'slot' => $slot];
     }
     $lives = [];
     foreach ($p['live_zone'] ?? [] as $i => $live) {
@@ -159,23 +157,90 @@ function collectLiveStartOrderSources(array $state, string $pid): array {
             continue;
         }
         mergeCardCatalogFields($live);
-        if (pendingLiveStartAbilitiesForSource($state, $pid, $live) === []) {
+        $pending = pendingLiveStartAbilitiesForSource($state, $pid, $live);
+        if ($pending === []) {
             continue;
         }
         $fallback = is_int($i) ? $i : 0;
         $lives[] = [
             'slot' => liveZoneSlotOf($live, $fallback),
             'card' => $live,
+            'pending' => $pending,
         ];
     }
     usort($lives, static fn(array $a, array $b): int => $a['slot'] <=> $b['slot']);
     foreach ($lives as $row) {
-        $sources[] = array_merge(cardPromptSummary($row['card']), [
-            'zone' => 'live',
-            'slot' => $row['slot'],
-        ]);
+        $rows[] = ['card' => $row['card'], 'pending' => $row['pending'], 'zone' => 'live', 'slot' => $row['slot']];
+    }
+    // Per-ability entries only matter when another card can resolve between them.
+    $allowSplit = count($rows) > 1;
+    $sources = [];
+    foreach ($rows as $row) {
+        foreach (liveStartOrderEntries($row['card'], $row['pending'], $allowSplit) as $extra) {
+            $sources[] = array_merge(cardPromptSummary($row['card']), [
+                'zone' => $row['zone'],
+                'slot' => $row['slot'],
+            ], $extra);
+        }
     }
     return $sources;
+}
+
+/**
+ * Printed [Live Start] abilities on the card (official text). Engine abilities do not always map 1:1 —
+ * one printed ability can be stored as several steps (PL!N-bp4-004 Karin: 2 printed, 3 steps).
+ */
+function liveStartPrintedAbilityCount(array $card): int {
+    $text = (string)($card['text_jp'] ?? '');
+    return $text === '' ? 0 : substr_count($text, 'ライブ開始時');
+}
+
+/**
+ * Order-of-activation entries for one card. A card with several pending [Live Start] abilities gets one entry
+ * per ability (id "instance#abilityIndex") so other cards can resolve between them — PL!HS-bp8-020-L Aishii's
+ * Wait → Sayaka → cost +5 combo (#351). A single ability keeps the plain instance id.
+ * @return list<array<string,mixed>>
+ */
+function liveStartOrderEntries(array $card, array $pending, bool $allowSplit = true): array {
+    if (!$allowSplit || count($pending) < 2) {
+        return [[]];
+    }
+    // Split only when every engine Live Start step is its own printed ability, so an entry is never half of one.
+    $engineCount = 0;
+    foreach ($card['abilities'] ?? [] as $ab) {
+        if (in_array($ab['trigger'] ?? '', ['live_start', 'on_enter_or_live_start'], true)) {
+            $engineCount++;
+        }
+    }
+    if ($engineCount !== liveStartPrintedAbilityCount($card)) {
+        return [[]];
+    }
+    $iid = (string)($card['instance_id'] ?? '');
+    $out = [];
+    $n = count($pending);
+    foreach (array_values($pending) as $k => [$kind, $abIdx, $ab]) {
+        $out[] = [
+            'instance_id' => $iid . '#' . intval($abIdx),
+            'card_instance_id' => $iid,
+            'ability_index' => intval($abIdx),
+            'ability_ordinal' => $k + 1,
+            'ability_count' => $n,
+        ];
+    }
+    return $out;
+}
+
+/** Split an order id into [instance id, ability index or null]. */
+function liveStartOrderIdParts(string $id): array {
+    $hash = strrpos($id, '#');
+    if ($hash === false) {
+        return [$id, null];
+    }
+    $idx = substr($id, $hash + 1);
+    if ($idx === '' || !ctype_digit($idx)) {
+        return [$id, null];
+    }
+    return [substr($id, 0, $hash), intval($idx)];
 }
 
 // ─────────────────────────────────────────────
@@ -291,20 +356,21 @@ function resolveLiveStartAbilitiesBody(array $state, string $pid): array {
             $byId[$iid] = $source;
         }
     }
-    // Prefer player-chosen order; fall back to any leftover L→R sources not listed.
+    // Prefer player-chosen order (whole card, or one ability via "instance#index"); then a final
+    // whole-card pass over every source L→R so nothing pending is ever skipped. Resolved
+    // abilities drop out of pendingLiveStartAbilitiesForSource, so nothing runs twice.
     $ordered = [];
     foreach ($orderIds as $rawId) {
-        $iid = (string)$rawId;
+        [$iid, $onlyIdx] = liveStartOrderIdParts((string)$rawId);
         if ($iid !== '' && isset($byId[$iid])) {
-            $ordered[] = $byId[$iid];
-            unset($byId[$iid]);
+            $ordered[] = [$byId[$iid], $onlyIdx];
         }
     }
     foreach ($byId as $source) {
-        $ordered[] = $source;
+        $ordered[] = [$source, null];
     }
 
-    foreach ($ordered as $sourceSnap) {
+    foreach ($ordered as [$sourceSnap, $onlyIdx]) {
         $instanceId = (string)($sourceSnap['instance_id'] ?? '');
         if ($instanceId === '') {
             continue;
@@ -317,6 +383,9 @@ function resolveLiveStartAbilitiesBody(array $state, string $pid): array {
         }
         mergeCardCatalogFields($source);
         $pendingAbs = pendingLiveStartAbilitiesForSource($state, $pid, $source);
+        if ($onlyIdx !== null) {
+            $pendingAbs = array_values(array_filter($pendingAbs, static fn($row) => intval($row[1]) === $onlyIdx));
+        }
         if ($pendingAbs === []) {
             continue;
         }
