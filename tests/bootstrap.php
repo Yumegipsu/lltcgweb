@@ -71,3 +71,39 @@ $_SERVER['REQUEST_METHOD'] = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 define('TCG_API_LIB_ONLY', true);
 require_once $root . '/api.php';
+
+/**
+ * Card picks always open a prompt, even with a single legal choice (player input / immersion).
+ * Tests that used to rely on the old auto-pick call this to answer such prompts the way a player
+ * would: choose the only option. Stops at any prompt with zero or several choices.
+ */
+function tcgTestPickOnlyOption(array $state, int $max = 8): array {
+    for ($i = 0; $i < $max && !empty($state['pending_prompt']); $i++) {
+        $pr = $state['pending_prompt'];
+        $list = null;
+        foreach (['candidates', 'stage_members', 'members', 'eligible', 'wr_candidates', 'wr_cards'] as $k) {
+            if (is_array($pr[$k] ?? null) && $pr[$k] !== []) {
+                $list = array_values($pr[$k]);
+                break;
+            }
+        }
+        if ($list === null || count($list) !== 1) {
+            break;
+        }
+        $c = is_array($list[0]['card'] ?? null) ? array_merge($list[0]['card'], $list[0]) : $list[0];
+        $id = (string)($c['instance_id'] ?? '');
+        $slot = (string)($c['slot'] ?? '');
+        $payload = array_filter([
+            'card_id' => $id, 'card_ids' => $id !== '' ? [$id] : null, 'member_id' => $id,
+            'pick_id' => $id, 'target_id' => $id, 'discard_ids' => null,
+            'slot' => $slot, 'slots' => $slot !== '' ? [$slot] : null, 'from_slot' => $slot,
+        ], static fn($v) => $v !== null && $v !== '' && $v !== []);
+        $seq = $state['seq'] ?? null;
+        $before = $pr;
+        $state = actionResolvePrompt($state, (string)($pr['responder'] ?? $pr['owner'] ?? 'p1'), $payload);
+        if (($state['pending_prompt'] ?? null) === $before && ($state['seq'] ?? null) === $seq) {
+            break;
+        }
+    }
+    return $state;
+}
