@@ -126,6 +126,7 @@ final class KanonSpBp5001OnEnterChoiceTest extends TestCase
         $state = $this->playKanonIntoChoice();
         // Single legal target auto-resolves wait_opponent_stage_max_cost.
         $state = \actionResolvePrompt($state, 'p1', ['choice' => 'wait']);
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertTrue(\memberIsInWait($state['players']['p2']['stage']['left']));
         $this->assertNull($state['pending_prompt'] ?? null);
     }

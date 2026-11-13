@@ -70,15 +70,7 @@ function tryResolveAbilityEffectSwitchFormationDiscarded(
             if (empty($candidates)) break;
             $hearts = $ab['hearts'] ?? [['color' => 'pink', 'count' => 1]];
             // Single match — apply immediately (avoids a one-button softlock UI).
-            if (count($candidates) === 1) {
-                $slot = $candidates[0]['slot'];
-                $mbr = &$p['stage'][$slot];
-                addBonusHeartsToMember($mbr, $hearts);
-                unset($mbr);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] granted bonus heart(s) until Live ends.");
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'        => 'buff_member_matching_discarded_group',
                 'owner'       => $pid,

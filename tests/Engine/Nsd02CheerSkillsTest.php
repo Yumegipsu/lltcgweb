@@ -173,6 +173,7 @@ final class Nsd02CheerSkillsTest extends TestCase
 
         $state = \resolveOnEnterAbilities($state, 'p1', $emma, 'center');
         // Single legal target auto-resolves.
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertNull($state['pending_prompt'] ?? null);
         $this->assertTrue(
             \memberIsInWait($state['players']['p2']['stage']['center']),

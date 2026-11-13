@@ -117,18 +117,7 @@ function nijiResolveNijigasakiEffect(array $state, string $pid, array $source, a
                 break;
             }
             if (!empty($state['pending_prompt'])) break;
-            if ($filter === 'live' && count($candidates) === 1) {
-                $picked = $candidates[0];
-                $p['hand'][] = $picked;
-                bp8NotifyYellCardMoved($state, $pid);
-                $p['_pending_yell_wr'] = array_values(array_filter(
-                    $p['_pending_yell_wr'] ?? $yellPool,
-                    fn($c) => ($c['instance_id'] ?? '') !== ($picked['instance_id'] ?? '')
-                ));
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] added ' . cardDisplayName($picked) . ' from Yell to hand.');
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $cardKind = ($filter === 'live') ? 'Live card' : 'card';
             $promptType = ($filter === 'live') ? 'live_success_pick_yell_live' : 'pick_yell_member';
             $pickPrompt = ($filter === 'live')
@@ -1164,21 +1153,7 @@ function nijiBeginWaitOtherGroupDraw(
     if ($cands === []) {
         throw new Exception("No other Active $group Member on Stage to put into Wait");
     }
-    if (count($cands) === 1) {
-        return nijiApplyWaitOtherGroupDraw(
-            $state,
-            $pid,
-            [
-                'source_id'     => $srcId,
-                'source_slot'   => $slot,
-                'source_name'   => $name,
-                'ability_index' => $abilityIdx,
-                'ability'       => $ab,
-                'group'         => $group,
-            ],
-            (string)($cands[0]['instance_id'] ?? '')
-        );
-    }
+    // Always open the pick, even with one candidate (player input / immersion).
     if ($slot !== null && isset($p['stage'][$slot])) {
         $p['stage'][$slot] = $source;
     }

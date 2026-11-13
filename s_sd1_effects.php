@@ -111,27 +111,7 @@ function sSd1ResolveEffect(array $state, string $pid, array $source, array $ab, 
                     " — [$name] no matching WR Member or empty Stage area.");
                 break;
             }
-            if (count($eligible) === 1 && count($emptySlots) === 1) {
-                $played = $eligible[0];
-                foreach ($p['waiting_room'] as $i => $c) {
-                    if (($c['instance_id'] ?? '') === ($played['instance_id'] ?? '')) {
-                        array_splice($p['waiting_room'], $i, 1);
-                        break;
-                    }
-                }
-                clearMemberWait($played);
-                $played['entered_turn'] = intval($state['turn'] ?? 1);
-                $played['entered_from_wr'] = true;
-                unset($played['entered_from_hand'], $played['entered_via_baton']);
-                if (!empty($ab['block_entered_this_turn'])) {
-                    $played['blocks_slot_entries'] = true;
-                }
-                $p['stage'][$emptySlots[0]] = $played;
-                $state = resolveOnEnterAbilities($state, $pid, $played, $emptySlots[0]);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] played ' . cardDisplayName($played) . ' from WR.');
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'        => 'ssd1_play_wr_empty',
                 'owner'       => $pid,

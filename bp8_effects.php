@@ -1496,9 +1496,7 @@ function bp8ResolveEffect(array $state, string $pid, array $source, array $ab, a
             if ($cands === []) {
                 return bp8Log($state, $pid, $source, 'no matching Member in Wait on the Stage.');
             }
-            if (count($cands) === 1) {
-                return bp8ActivateThenWaitOpp($state, $pid, $source, $ab, $ctx, $cands[0]['slot']);
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             return bp7StartStagePick($state, $pid, $source, $ab, $ctx, 'bp8:activate_then_wait_opp', $cands,
                 'Choose 1 Member in Wait to activate.', $meta);
         }
@@ -1534,9 +1532,7 @@ function bp8ResolveEffect(array $state, string $pid, array $source, array $ab, a
             if ($cands === []) {
                 return bp8Log($state, $pid, $source, 'no ' . groupPromptLabel((string)($ab['group'] ?? '')) . ' Member on the Stage.');
             }
-            if (count($cands) === 1) {
-                return bp8BladePerOppDistinct($state, $pid, $source, $cands[0]['slot']);
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             return bp7StartStagePick($state, $pid, $source, $ab, $ctx, 'bp8:blade_per_opp_distinct', $cands,
                 'Choose 1 ' . groupPromptLabel((string)($ab['group'] ?? '')) . ' Member on your Stage.', $meta);
         }
@@ -1546,9 +1542,7 @@ function bp8ResolveEffect(array $state, string $pid, array $source, array $ab, a
             if ($cands === []) {
                 return bp8Log($state, $pid, $source, 'no matching Member on the Stage.');
             }
-            if (count($cands) === 1) {
-                return bp8MostStatsScore($state, $pid, $source, $ab, $cands[0]['slot']);
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             return bp7StartStagePick($state, $pid, $source, $ab, $ctx, 'bp8:most_stats_score', $cands,
                 'Choose 1 Member on your Stage.', $meta);
         }
@@ -1583,9 +1577,7 @@ function bp8ResolveEffect(array $state, string $pid, array $source, array $ab, a
             if ($cands === []) {
                 return $state;
             }
-            if (count($cands) === 1) {
-                return bp8GrantStageHearts($state, $pid, $source, $cands[0]['slot'], $ab['hearts'] ?? []);
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             return bp7StartStagePick($state, $pid, $source, $ab, $ctx, 'bp8:grant_hearts', $cands,
                 'Choose 1 ' . groupPromptLabel((string)($ab['group'] ?? '')) . ' Member on your Stage.', $meta);
         }
@@ -1746,9 +1738,7 @@ function bp8ResolveEffect(array $state, string $pid, array $source, array $ab, a
             if ($cands === []) {
                 return bp8Log($state, $pid, $source, 'no ' . groupPromptLabel((string)($ab['group'] ?? '')) . ' Member on the Stage.');
             }
-            if (count($cands) === 1) {
-                return bp8RecolorMemberHearts($state, $pid, $source, $ab, $cands[0]['slot']);
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             return bp7StartStagePick($state, $pid, $source, $ab, $ctx, 'bp8:recolor_hearts', $cands,
                 'Choose 1 ' . groupPromptLabel((string)($ab['group'] ?? '')) . ' Member on your Stage.', $meta);
         }
@@ -2034,9 +2024,7 @@ function bp8ResolveEffect(array $state, string $pid, array $source, array $ab, a
             if ($cands === []) {
                 return bp8SubunitCostScoreCheck($state, $pid, $source, $ab);
             }
-            if (count($cands) === 1) {
-                return bp8SubunitCostPlus($state, $pid, $source, $ab, $cands[0]['slot']);
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             return bp7StartStagePick($state, $pid, $source, $ab, $ctx, 'bp8:subunit_cost_plus', $cands,
                 'Choose 1 ' . (string)($ab['subunit'] ?? '') . ' Member on your Stage.', $meta);
         }
@@ -2960,10 +2948,7 @@ function bp8ResolvePrompt(array $state, string $owner, array $prompt, string $ch
             $cands = bp8StageCandidates($state['players'][$owner], fn($m) => cardMatchesSubunit($m, (string)($ab['subunit'] ?? ''))
                 && getEffectiveStageMemberCost($state, $owner, $m) >= intval($ab['min_cost'] ?? 10));
             if ($cands === []) break;
-            if (count($cands) === 1) {
-                $state = bp8GrantStageHearts($state, $owner, $source, $cands[0]['slot'], $ab['hearts'] ?? []);
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state = bp7StartStagePick($state, $owner, $source, $ab, $ctx, 'bp8:grant_hearts', $cands,
                 'Choose 1 Member to gain the heart.', bp8PromptMeta($source, $ab));
             $state = bp7QueueChain($state);

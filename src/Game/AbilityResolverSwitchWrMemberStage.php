@@ -131,29 +131,7 @@ function continueBothWrMemberToEmptyStage(
                 ') in Waiting Room or no empty Stage area.');
             continue;
         }
-        if (count($eligible) === 1 && count($slots) === 1) {
-            $placed = putChosenWrMemberToEmptyStageWait(
-                $state['players'][$cur],
-                (string)($eligible[0]['instance_id'] ?? ''),
-                $slots[0],
-                $state,
-                true
-            );
-            if ($placed) {
-                return afterBothWrMemberPlacedToStage(
-                    $state,
-                    $cur,
-                    $placed['member'],
-                    $placed['slot'],
-                    $effectOwner,
-                    $sourceName,
-                    $ability,
-                    $remaining,
-                    $sourceId
-                );
-            }
-            continue;
-        }
+        // Always open the pick, even with one candidate (player input / immersion).
         $state['pending_prompt'] = [
             'type'          => 'both_wr_member_to_empty_stage',
             'step'          => 'pick_wr',

@@ -2782,12 +2782,7 @@ function plMusePb2ResolvePrompt(array $state, string $owner, array $prompt, stri
                     $cands[] = ['slot' => $s, 'card' => $m];
                 }
             }
-            if (count($cands) === 1) {
-                clearMemberWait($p['stage'][$cands[0]['slot']]);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] Activated " . cardDisplayName($p['stage'][$cands[0]['slot']]) . '.');
-                return plMusePb2FinishPrompt($state, $prompt);
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             if (!$cands) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
                     " — [$name] no Wait $subunit Members to Activate.");

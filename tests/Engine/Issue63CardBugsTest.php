@@ -75,6 +75,7 @@ final class Issue63CardBugsTest extends TestCase
 
         $state = \resolveOnEnterAbilities($state, 'p1', $you, 'center');
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $handIds = array_column($state['players']['p1']['hand'], 'instance_id');
         $this->assertContains('rgb_top', $handIds);
         $wrIds = array_column($state['players']['p1']['waiting_room'], 'instance_id');

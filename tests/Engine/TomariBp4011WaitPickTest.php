@@ -131,6 +131,7 @@ final class TomariBp4011WaitPickTest extends TestCase
             'slot' => 'center',
         ]);
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertNull($state['pending_prompt'] ?? null);
         $this->assertTrue(memberIsInWait($state['players']['p2']['stage']['left']));
         $this->assertFalse(memberIsInWait($state['players']['p2']['stage']['right']));
@@ -166,6 +167,7 @@ final class TomariBp4011WaitPickTest extends TestCase
             'slot' => 'center',
         ]);
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertNull($state['pending_prompt'] ?? null);
         $this->assertTrue(memberIsInWait($state['players']['p2']['stage']['left']));
     }

@@ -118,6 +118,7 @@ final class Issue251AngelicAngelMakiOppWaitAutoTest extends TestCase
         $state = actionResolvePrompt($state, 'p1', ['discard_ids' => ['hand1']]);
 
         // Opp Waited + AA Maki auto choice (or intermediate wait pick then choice).
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertTrue(memberIsInWait($state['players']['p2']['stage']['center']));
 
         $pr = $state['pending_prompt'] ?? null;

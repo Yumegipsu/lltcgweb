@@ -4410,6 +4410,9 @@ function drainLiveStorageLeftovers(array $state, array &$leftoverAnims): array {
         }
         $remaining = [];
         foreach ($zone as $lc) {
+            if (!is_array($lc)) {
+                continue; // empty Live storage slot
+            }
             $state = sBp6ResolveAutoOnLiveWr($state, $pid, $lc);
             if (!empty($state['pending_prompt'])) {
                 $remaining[] = $lc;

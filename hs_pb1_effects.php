@@ -706,18 +706,7 @@ function hsResolveHasunosoraPb1Effect(array $state, string $pid, array $source, 
             $frontSlot = hsPb1FacingStageSlot((string) $srcSlot);
             $candidates = hsPb1OppStagePosChangeCandidates($state['players'][$opp] ?? [], $frontSlot);
             if (empty($candidates)) break;
-            if (count($candidates) === 1) {
-                $fromSlot = (string) ($candidates[0]['slot'] ?? '');
-                $state = hsPb1ApplyOppFrontPositionChange(
-                    $state,
-                    $pid,
-                    $opp,
-                    $fromSlot,
-                    $frontSlot,
-                    $name
-                );
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'          => 'pos_change_opp_front_pick',
                 'owner'         => $pid,

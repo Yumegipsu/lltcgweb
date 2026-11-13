@@ -478,11 +478,7 @@ function plMuseGapExecuteLookRevealLiveScorePlus(
             " — [$name] deck empty — cannot look (score+$bonus).");
     }
 
-    if (count($top) === 1 && $pick === 1) {
-        $p['hand'][] = $top[0];
-        return addLog($state, $state['players'][$pid]['name'] .
-            " — [$name] looked at 1 card (Live score $score + $bonus); added to hand.");
-    }
+    // Always open the pick, even with one candidate (player input / immersion).
 
     $state['pending_prompt'] = [
         'type'        => 'surveil_pick_one',
@@ -1552,18 +1548,7 @@ function plMuseGapResolveColorThresholdReveal5(
         unset($state['pending_prompt']);
         return $state;
     }
-    if (count($musCands) === 1) {
-        return plMuseGapFinishColorThresholdReveal5Pick(
-            $state,
-            $pid,
-            $source,
-            $ab,
-            $revealed,
-            (string)($musCands[0]['instance_id'] ?? ''),
-            $slot,
-            $abilityIndex
-        );
-    }
+    // Always open the pick, even with one candidate (player input / immersion).
 
     $state['pending_prompt'] = [
         'type'           => 'maki_reveal5_pick_mus',

@@ -122,6 +122,7 @@ final class Issue253AngelicAngelEliOppWaitAutoTest extends TestCase
         $this->assertSame('effect_discard_hand', $state['pending_prompt']['type'] ?? null);
         $state = actionResolvePrompt($state, 'p1', ['discard_ids' => ['hand1']]);
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertTrue(memberIsInWait($state['players']['p2']['stage']['center']));
         $pr = $state['pending_prompt'] ?? null;
         $this->assertIsArray($pr);
@@ -197,6 +198,7 @@ final class Issue253AngelicAngelEliOppWaitAutoTest extends TestCase
         ]);
         $state = actionResolvePrompt($state, 'p1', ['discard_ids' => ['hand1']]);
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertTrue(memberIsInWait($state['players']['p2']['stage']['center']));
         $pr = $state['pending_prompt'] ?? null;
         $this->assertSame(

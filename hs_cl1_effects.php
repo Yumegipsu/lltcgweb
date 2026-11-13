@@ -146,12 +146,7 @@ function hsResolveHasunosoraCl1Effect(array $state, string $pid, array $source, 
             $candidates = hsCl1StageMemberBladeCandidates($state, $pid, $ab);
             if (empty($candidates)) break;
             $amt = intval($ab['amount'] ?? 1);
-            if (count($candidates) === 1) {
-                hsCl1ApplyStageMemberBlade($state, $pid, $candidates[0]['slot'], $amt);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] +$amt Blade on Stage Member until Live ends.");
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'          => 'cl1_pick_stage_member_blade',
                 'owner'         => $pid,
@@ -195,26 +190,7 @@ function hsResolveHasunosoraCl1Effect(array $state, string $pid, array $source, 
                 fn($c) => cardMatchesYellPick($c, $ab)
             ));
             if (empty($candidates)) break;
-            if (count($candidates) === 1) {
-                $picked = $candidates[0];
-                $pickedId = (string)($picked['instance_id'] ?? '');
-                if ($pickedId !== '' && function_exists('takeFromPendingYellPool')) {
-                    $fromPool = takeFromPendingYellPool(
-                        $p,
-                        $pickedId,
-                        ['candidates' => array_map('cardPromptSummary', $candidates)],
-                        $state,
-                        $pid
-                    );
-                    if ($fromPool) {
-                        $picked = $fromPool;
-                    }
-                }
-                $p['hand'][] = $picked;
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] added ' . cardDisplayName($picked) . ' from Yell to hand (tied score).');
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'        => 'pick_yell_member',
                 'owner'       => $pid,
@@ -253,14 +229,7 @@ function hsCl1ResolveActivatedAbility(
         throw new Exception('No matching Member on Stage');
     }
     $amt = intval($ab['amount'] ?? 1);
-    if (count($candidates) === 1) {
-        hsCl1ApplyStageMemberBlade($state, $pid, $candidates[0]['slot'], $amt);
-        if (!empty($ab['once_per_turn'])) markAbilityUsed($member, $abilityIdx);
-        $p['stage'][$slot] = $member;
-        $state = addLog($state, $state['players'][$pid]['name'] .
-            ' — [' . ($member['name_en'] ?? $member['name']) . "] Waited; +$amt Blade on Stage Member.");
-        return $state;
-    }
+    // Always open the pick, even with one candidate (player input / immersion).
     $state['pending_prompt'] = [
         'type'          => 'cl1_pick_stage_member_blade',
         'owner'         => $pid,

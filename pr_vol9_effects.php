@@ -323,16 +323,7 @@ function prVol9BeginWaitOwnMemberDiscardDraw(
         throw new Exception('No Stage Member available to Wait');
     }
     $abilityIdx = $ctx['ability_index'] ?? null;
-    if (count($members) === 1) {
-        return prVol9ApplyWaitOwnMemberThenDiscardDraw(
-            $state,
-            $pid,
-            $members[0]['slot'],
-            $source,
-            $ab,
-            $abilityIdx
-        );
-    }
+    // Always open the pick, even with one candidate (player input / immersion).
     $state['pending_prompt'] = [
         'type'          => 'wait_own_member_discard_draw',
         'step'          => 'pick_member',
@@ -500,15 +491,7 @@ function prVol9ResolvePrompt(array $state, string $owner, array $prompt, string 
                 $state['seq']++;
                 return finishPromptEffects($state);
             }
-            if (count($waitCands) === 1) {
-                $slot = $waitCands[0]['slot'];
-                waitMember($oppP['stage'][$slot], $state);
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — Waited ' . ($waitCands[0]['name_en'] ?? 'Member') .
-                    " (original Blade ≤$maxBlade).");
-                $state['seq']++;
-                return finishPromptEffects($state);
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'          => 'pr_vol9_wait_opp_max_blade',
                 'owner'         => $owner,

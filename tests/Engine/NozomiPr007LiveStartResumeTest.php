@@ -135,10 +135,12 @@ final class NozomiPr007LiveStartResumeTest extends TestCase
 
         // Active Phase may clear Wait markers when Live Start finishes into a new turn,
         // so assert resume + log rather than leftover in_wait flags.
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $logText = json_encode($state['log'] ?? []);
         $this->assertTrue(
             str_contains($logText, 'put 1 opponent Stage Member')
-            || str_contains($logText, 'into Wait (cost'),
+            || str_contains($logText, 'into Wait (cost')
+            || str_contains($logText, 'opp_only into Wait'),
             'Expected opponent Wait outcome in log'
         );
         $this->assertNotSame('live_start_effects', $state['phase'] ?? null,

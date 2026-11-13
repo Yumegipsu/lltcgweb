@@ -11,6 +11,10 @@ use PHPUnit\Framework\TestCase;
  */
 final class Issue175MutekiKyuuBelieverHeartsTest extends TestCase
 {
+    // Stop at the Live phase boundary: answering the pick must not run into the next turn.
+    protected function setUp(): void { $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true; }
+    protected function tearDown(): void { unset($GLOBALS['TUT_PERF_MANUAL_PHASES']); }
+
     private function cardByNo(string $cardNo, string $instanceId): array
     {
         $data = json_decode((string) file_get_contents((string) constant('CARDS_FILE')), true);
@@ -108,6 +112,7 @@ final class Issue175MutekiKyuuBelieverHeartsTest extends TestCase
         $this->assertNotNull($ab);
 
         $state = \resolveAbilityEffect($state, 'p1', $live, $ab, ['phase' => 'live_start']);
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $mbr = $state['players']['p1']['stage']['center'];
         $bonus = $mbr['bonus_hearts'] ?? [];
         $counts = array_count_values(array_map('strval', $bonus));

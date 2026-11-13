@@ -130,6 +130,7 @@ final class Issue206207SoftlockTest extends TestCase
             ],
         ];
         $state = resolveLiveStartAbilities($state, 'p2');
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertNull($state['pending_prompt'] ?? null);
         $this->assertTrue(!empty($state['players']['p1']['stage']['left']['in_wait']));
         $this->assertTrue(!empty($state['players']['p1']['stage']['center']['in_wait']));

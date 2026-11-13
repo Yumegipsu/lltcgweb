@@ -2271,11 +2271,7 @@ function beginLookRevealPick(array $state, string $pid, string $name, array &$p,
 
     $eligible = array_values(array_filter($top, fn($c) => cardMatchesLookPick($c, $cfg)));
 
-    if (count($top) === 1 && !$optional && !empty($eligible)) {
-        $rest = applyLookPickHand($p, $top, [$top[0]['instance_id'] ?? '']);
-        $state = appendDeckCardsToWaitingRoom($state, $pid, $rest);
-        return queuePublicSkillReveal($state, $pid, [$top[0]], $name, 'deck');
-    }
+    // Always open the pick, even with one candidate (player input / immersion).
 
     $eligibleIds = array_values(array_filter(array_map(
         fn($c) => $c['instance_id'] ?? '',
@@ -3542,17 +3538,7 @@ function notifyLiveCardPlacedFaceUp(array $state, string $pid, array $card): arr
             return addLog($state, $state['players'][$pid]['name'] .
                 " — [$srcName] no $group Members on Stage for Blade.");
         }
-        if (count($members) === 1) {
-            $slot = (string)($members[0]['slot'] ?? '');
-            if ($slot !== '' && !empty($state['players'][$pid]['stage'][$slot])) {
-                $state['players'][$pid]['stage'][$slot]['live_blade_bonus'] =
-                    intval($state['players'][$pid]['stage'][$slot]['live_blade_bonus'] ?? 0) + $amount;
-                $mName = cardDisplayName($state['players'][$pid]['stage'][$slot]);
-                return addLog($state, $state['players'][$pid]['name'] .
-                    " — [$srcName] $mName gains +$amount Blade until Live ends.");
-            }
-            return $state;
-        }
+        // Always open the pick, even with one candidate (player input / immersion).
         $state['pending_prompt'] = [
             'type'          => 'pick_group_member_blade_faceup',
             'owner'         => $pid,
@@ -7955,22 +7941,7 @@ function beginWaitOpponentStagePick(
     }
     $pickCount = max(1, $pickCount);
     // Exactly one legal target → auto-resolve (including "up to N" picks like Eli / Izumi).
-    if (count($members) === 1) {
-        waitOpponentMemberAtSlot($state, $opp, $members[0]['slot'], $owner);
-        $state = logOpponentMembersWaitedOutcome(
-            $state,
-            $owner,
-            $srcName,
-            1,
-            $logMax,
-            $logMode
-        );
-        return finishAfterBranchChoicePrompt($state, [
-            'live_start' => $liveStart,
-            'source_id' => $sourceId,
-            'source_name' => $srcName,
-        ]);
-    }
+    // Always open the pick, even with one candidate (player input / immersion).
     if ($oppChooses) {
         if ($pickCount > 1) {
             $prompt = $activeOnly

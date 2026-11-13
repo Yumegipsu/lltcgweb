@@ -191,6 +191,7 @@ final class HimePb1014PosChangeTest extends TestCase
 
         $state = \resolveOnEnterAbilities($state, 'p1', $hime, 'center');
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertNull($state['pending_prompt'] ?? null);
         $this->assertSame('hime_1', $state['players']['p1']['stage']['center']['instance_id'] ?? null);
         $this->assertSame('only_right', $state['players']['p2']['stage']['center']['instance_id'] ?? null);

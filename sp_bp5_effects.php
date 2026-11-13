@@ -444,13 +444,7 @@ function spBp5ResolveEffect(array $state, string $pid, array $source, array $ab,
                 if (cardMatchesSubunit($c, $sub)) return true;
                 return cardInGroup($c, $group) && !empty($c['blade_hearts']);
             }));
-            if (count($matches) === 1) {
-                $pick = $matches[0];
-                $p['hand'][] = $pick;
-                $rest = array_values(array_filter($top, fn($c) => ($c['instance_id'] ?? '') !== ($pick['instance_id'] ?? '')));
-                $p['waiting_room'] = array_merge($p['waiting_room'], $rest);
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             if (empty($matches)) {
                 $p['waiting_room'] = array_merge($p['waiting_room'], $top);
                 break;
@@ -663,15 +657,8 @@ function spBp5ResolveActivatedAbility(
             fn($c) => ($c['card_type'] ?? '') === 'ライブ'
         ));
         if (empty($eligible)) throw new Exception('No Live in Waiting Room');
-        if (count($eligible) === 1) {
-            foreach ($p['waiting_room'] as $i => $c) {
-                if (($c['instance_id'] ?? '') === ($eligible[0]['instance_id'] ?? '')) {
-                    $p['hand'][] = $c;
-                    array_splice($p['waiting_room'], $i, 1);
-                    break;
-                }
-            }
-        } else {
+        // Always open the pick, even with one candidate (player input / immersion).
+        {
             $state['pending_prompt'] = [
                 'type'          => 'spbp5_pick_wr_live',
                 'owner'         => $pid,
@@ -986,14 +973,7 @@ function spBp5ResolvePrompt(array $state, string $owner, array $prompt, string $
                     && cardMatchesGroup($c, $group, 'member')
                     && intval($c['cost'] ?? 0) >= intval($ability['min_cost'] ?? 9)
             ));
-            if (count($matches) === 1) {
-                $ownerP['hand'][] = $matches[0];
-                $rest = array_values(array_filter($top, fn($c) => ($c['instance_id'] ?? '') !== ($matches[0]['instance_id'] ?? '')));
-                $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $rest);
-                unset($state['pending_prompt']);
-                $state['seq']++;
-                return finishPromptEffects($state);
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             if (count($matches) === 0) {
                 $ownerP['waiting_room'] = array_merge($ownerP['waiting_room'], $top);
                 unset($state['pending_prompt']);

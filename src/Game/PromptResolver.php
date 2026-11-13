@@ -1176,14 +1176,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 $state['seq']++;
                 return finishPromptEffects($state);
             }
-            if (count($members) === 1) {
-                return applyWaitGroupMemberDrawDiscard(
-                    $state,
-                    $owner,
-                    $prompt,
-                    (string)($members[0]['instance_id'] ?? '')
-                );
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'          => 'optional_wait_group_member_draw_discard',
                 'step'          => 'pick_member',
@@ -1231,14 +1224,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 $state['seq']++;
                 return finishLiveStartEffects($state);
             }
-            if (count($members) === 1) {
-                return applyOptionalWaitGroupMemberBlade(
-                    $state,
-                    $owner,
-                    $prompt,
-                    (string)($members[0]['instance_id'] ?? '')
-                );
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'          => 'optional_wait_group_member_blade',
                 'step'          => 'pick_member',
@@ -2028,17 +2014,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 return finishPromptEffects($state);
             }
             $cands = $prompt['candidates'] ?? [];
-            if (count($cands) === 1) {
-                unset($state['pending_prompt']);
-                $state = placeNamedLiveFromHandFaceUp(
-                    $state,
-                    $owner,
-                    (string)($cands[0]['instance_id'] ?? ''),
-                    $ab
-                );
-                $state['seq']++;
-                return finishPromptEffects($state);
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'          => 'optional_named_live_zone_from_hand',
                 'step'          => 'pick_hand',
@@ -2987,7 +2963,10 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             }
             throw new Exception('Invalid Yell card');
         }
-        if (!cardMatchesYellPick($picked, $ability)) {
+        // Yell copies can be stripped of catalog fields (cost): check the same hydrated card the prompt offered.
+        $pickedCheck = $picked;
+        mergeCardCatalogFields($pickedCheck);
+        if (!cardMatchesYellPick($pickedCheck, $ability)) {
             throw new Exception('Must pick a qualifying card');
         }
         $ownerP['hand'][] = $picked;
@@ -3543,14 +3522,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 $state['seq']++;
                 return finishLiveStartEffects($state);
             }
-            if (count($members) === 1) {
-                return applyOptionalWaitMusHearts(
-                    $state,
-                    $owner,
-                    $prompt,
-                    (string)($members[0]['instance_id'] ?? '')
-                );
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'          => 'optional_wait_mus_hearts',
                 'step'          => 'pick_member',

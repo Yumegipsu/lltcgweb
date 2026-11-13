@@ -1527,15 +1527,7 @@ function bp7ResolveEffect(array $state, string $pid, array $source, array $ab, a
                 );
                 break;
             }
-            if (count($cands) === 1) {
-                $n = bp7EnergyDeckUnderMember($state, $pid, $cands[0]['slot'], $count);
-                if ($n > 0) {
-                    $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] put $n Energy card(s) from the Energy deck under " .
-                        $cands[0]['name_en'] . '.');
-                }
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state = bp7StartStagePick(
                 $state, $pid, $source, $ab, $ctx, 'energy_deck_stack_pick', $cands,
                 'Choose a ' . ($ab['group'] ?? '') .
@@ -1764,10 +1756,7 @@ function bp7ResolveEffect(array $state, string $pid, array $source, array $ab, a
             if (!empty($state['pending_prompt'])) break;
             $cands = bp7StageMemberCandidates($state['players'][$pid], ['group' => $ab['group'] ?? '']);
             if (empty($cands)) break;
-            if (count($cands) === 1) {
-                $state = bp7ApplyMostBladeScore($state, $pid, $source, $ab, $cands[0]['slot'], $name);
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state = bp7StartStagePick(
                 $state, $pid, $source, $ab, $ctx, 'score_if_member_most_blade', $cands,
                 'Choose 1 ' . ($ab['group'] ?? '') .
@@ -2085,15 +2074,7 @@ function bp7ResolveEffect(array $state, string $pid, array $source, array $ab, a
                     " — [$name] no matching Member among the cards revealed by Yell.");
                 break;
             }
-            if (count($cands) === 1) {
-                $card = bp7Cl1TakeFromYellPool($state, $pid, (string)($cands[0]['instance_id'] ?? ''));
-                if ($card) {
-                    $state['players'][$pid]['hand'][] = $card;
-                    $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] added " . cardDisplayName($card) . ' from Yell to hand.');
-                }
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state = bp7StartCardPick(
                 $state, $pid, $source, $ab, $ctx, 'cl1_yell_shared_heart_to_hand', $cands, 1, 1,
                 'Add 1 ' . groupPromptLabel($group) . ' Member with a ' . implode('/', $colors) .
@@ -2304,10 +2285,7 @@ function bp7ResolveEffect(array $state, string $pid, array $source, array $ab, a
                 fn($c) => $c['slot'] !== 'center'
             ));
             if (empty($cands)) break;
-            if (count($cands) === 1) {
-                $state = bp7PositionChangeToCenter($state, $pid, $cands[0]['slot'], $name);
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state = bp7StartStagePick(
                 $state, $pid, $source, $ab, $ctx, 'position_change_to_center', $cands,
                 'Position Change 1 Member on your Stage to the Center area.'
@@ -3417,15 +3395,7 @@ function bp7ResolvePrompt(array $state, string $owner, array $prompt, string $ch
             $cands = bp7StageMemberCandidates($state['players'][$owner], ['group' => $ab['group'] ?? '']);
             if (empty($cands)) break;
             $count = max(1, intval($ab['count'] ?? 1));
-            if (count($cands) === 1) {
-                $n = bp7EnergyDeckUnderMember($state, $owner, $cands[0]['slot'], $count);
-                if ($n > 0) {
-                    $state = addLog($state, $state['players'][$owner]['name'] .
-                        " — [$name] put $n Energy card(s) from the Energy deck under " .
-                        $cands[0]['name_en'] . '.');
-                }
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $chained = bp7StartStagePick(
                 $state, $owner, $source, $ab, ['phase' => !empty($prompt['live_start']) ? 'live_start' : ''],
                 'energy_deck_stack_pick', $cands,
@@ -4054,13 +4024,7 @@ function bp7ResolvePrompt(array $state, string $owner, array $prompt, string $ch
             if ($pairs < 1) break;
             $stageCands = bp7StageMemberCandidates($state['players'][$owner], ['group' => $group]);
             if (empty($stageCands)) break;
-            if (count($stageCands) === 1) {
-                $state = bp7Cl1GrantBonusHearts($state, $owner, (string)$stageCands[0]['slot'], $ab['hearts'] ?? [], $pairs);
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    " — [$name] " . cardDisplayName($state['players'][$owner]['stage'][$stageCands[0]['slot']]) .
-                    ' gains ' . (2 * $pairs) . ' Blue hearts until this Live ends.');
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $chained = bp7StartStagePick(
                 $state, $owner, $source, $ab, [], 'cl1_bladeless_hearts_member', $stageCands,
                 'Choose 1 ' . groupPromptLabel($group) . ' Member on your Stage to gain ' . (2 * $pairs) .

@@ -179,6 +179,7 @@ final class Issue235HanayoMusWaitPickTest extends TestCase
 
         $state = \resolveAbilityEffect($state, 'p1', $hanayo, $ab, ['phase' => 'live_start']);
         $state = \actionResolvePrompt($state, 'p1', ['choice' => 'yes']);
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertNull($state['pending_prompt'] ?? null);
         $this->assertTrue(memberIsInWait($state['players']['p1']['stage']['left']));
         $this->assertGreaterThanOrEqual(2, $this->yellowBonus($state, 'p1'));

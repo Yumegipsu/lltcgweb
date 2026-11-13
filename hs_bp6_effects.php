@@ -537,11 +537,8 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
             if ($groupSum < $t20) break;
             $look = intval($ab['look'] ?? 2);
             $top = array_splice($p['main_deck'], 0, min($look, count($p['main_deck'])));
-            if (count($top) === 1) {
-                $p['hand'][] = $top[0];
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] added 1 card to hand (stage cost $groupSum+).");
-            } elseif (count($top) >= 2) {
+            // Always open the pick, even with one candidate (player input / immersion).
+            if (count($top) >= 1) {
                 $state['pending_prompt'] = [
                     'type'          => 'surveil_pick_one_hand_rest_top',
                     'owner'         => $pid,

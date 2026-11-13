@@ -408,15 +408,7 @@ function sBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
                     " — [$name] looked at $look cards (none matched).");
                 break;
             }
-            if (count($matches) === 1) {
-                $pickId = $matches[0]['instance_id'] ?? '';
-                $rest = array_values(array_filter($top, fn($c) => ($c['instance_id'] ?? '') !== $pickId));
-                $p['hand'][] = $matches[0];
-                $p['waiting_room'] = array_merge($p['waiting_room'], $rest);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] added ' . cardDisplayName($matches[0]) . ' to hand.');
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['sbp5_look_stash'] = $top;
             $state['pending_prompt'] = [
                 'type'        => 'sbp5_pick_revealed_member',
@@ -633,17 +625,7 @@ function sBp5ResolveActivatedAbility(
     if (!payEnergyCost($p, $cost)) throw new Exception('Not enough Energy');
     $slots = sBp5PositionChangeSlots($p, $ab, $member['instance_id'] ?? '');
     if (empty($slots)) throw new Exception('No valid area with Aqours or Saint Snow Member');
-    if (count($slots) === 1) {
-        $targetSlot = $slots[0];
-        $fromSlot = sBp5FindMemberSlot($p, $member['instance_id'] ?? '');
-        if ($fromSlot !== null) {
-            $state = sBp5MoveMemberToSlot($state, $pid, $fromSlot, $targetSlot);
-        }
-        if (!empty($ab['once_per_turn'])) markAbilityUsed($member, $abilityIdx);
-        $state = addLog($state, $state['players'][$pid]['name'] .
-            ' — [' . ($member['name_en'] ?? $member['name']) . "] position-changed to $targetSlot.");
-        return $state;
-    }
+    // Always open the pick, even with one candidate (player input / immersion).
     $state['pending_prompt'] = [
         'type'          => 'sbp5_position_change_slot',
         'owner'         => $pid,
@@ -728,11 +710,8 @@ function sBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
                 $state['seq']++;
                 return finishPromptEffects($state);
             }
-            if (count($candidates) === 1) {
-                $ownerP['stage'][$candidates[0]['slot']]['live_blade_bonus'] =
-                    intval($ownerP['stage'][$candidates[0]['slot']]['live_blade_bonus'] ?? 0)
-                    + intval($ab['blade_amount'] ?? 1);
-            } else {
+            // Always open the pick, even with one candidate (player input / immersion).
+            {
                 $state['pending_prompt'] = [
                     'type'        => 'sbp5_pick_stage_member_blade',
                     'owner'       => $owner,
@@ -752,9 +731,8 @@ function sBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
                 if (!cardMatchesSubunit($mbr, $ab['subunit'] ?? 'Saint Snow')) continue;
                 $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
             }
-            if (count($candidates) === 1) {
-                $state = sBp5PositionChangeMember($state, $owner, $candidates[0]['instance_id'] ?? '');
-            } elseif (count($candidates) > 1) {
+            // Always open the pick, even with one candidate (player input / immersion).
+            if (count($candidates) >= 1) {
                 $state['pending_prompt'] = [
                     'type'        => 'sbp5_pick_saint_snow_position',
                     'owner'       => $owner,

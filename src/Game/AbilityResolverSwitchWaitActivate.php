@@ -173,14 +173,7 @@ function tryResolveAbilityEffectSwitchWaitActivate(
             if (empty($candidates)) {
                 break;
             }
-            if (!$upTo && $max <= 1 && count($candidates) === 1) {
-                $activated = activateStageMemberByInstanceId($p, (string)($candidates[0]['instance_id'] ?? ''));
-                if ($activated > 0) {
-                    $state = addLog($state, $state['players'][$pid]['name'] .
-                        " — [$name] activated $activated Member(s).");
-                }
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             if ($max <= 1 && count($candidates) >= 1) {
                 // Nested open would overwrite an in-flight prompt and silently
                 // consume a Live Start that was already markResolved (#201).

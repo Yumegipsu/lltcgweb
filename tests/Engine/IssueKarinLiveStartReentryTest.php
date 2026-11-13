@@ -113,6 +113,7 @@ final class IssueKarinLiveStartReentryTest extends TestCase
 
         $state = \resolveLiveStartAbilities($state, 'p2');
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertTrue(!empty($state['players']['p1']['stage']['center']['in_wait']));
         $this->assertLessThan(40, count($state['log'] ?? []));
         $this->assertArrayNotHasKey('_lltcg_in_live_start_resolve', $GLOBALS);

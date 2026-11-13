@@ -783,7 +783,8 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
             throw new Exception('No matching Member in Waiting Room');
         }
         // Multiple WR targets: open a pick prompt (energy already paid).
-        if ($preferId === '' && count($eligible) > 1) {
+        // Always open the pick, even with one candidate (player input / immersion).
+        if ($preferId === '' && count($eligible) >= 1) {
             $state['pending_prompt'] = [
                 'type'          => 'hs_leave_play_wr_slot',
                 'step'          => 'pick',
@@ -844,7 +845,8 @@ function actionActivateAbility(array $state, string $pid, array $data): array {
         }
         // activate card_id is the source Member — never treat it as the WR Live.
         $preferId = trim((string)($data['wr_card_id'] ?? $data['target_id'] ?? ''));
-        if ($preferId === '' && count($eligible) > 1) {
+        // Always open the pick, even with one candidate (player input / immersion).
+        if ($preferId === '' && count($eligible) >= 1) {
             $state['pending_prompt'] = [
                 'type'          => 'hs_pick_wr_live_to_zone',
                 'owner'         => $pid,

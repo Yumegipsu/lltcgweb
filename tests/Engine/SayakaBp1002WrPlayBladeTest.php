@@ -86,6 +86,7 @@ final class SayakaBp1002WrPlayBladeTest extends TestCase
             'ability_index' => 0,
         ]);
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $played = $state['players']['p1']['stage']['center'] ?? null;
         $this->assertNotNull($played);
         $this->assertSame('fromwr', $played['instance_id'] ?? null);
@@ -215,6 +216,7 @@ final class SayakaBp1002WrPlayBladeTest extends TestCase
             'card_id' => 'sayaka',
             'ability_index' => 0,
         ]);
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertNull($state['pending_prompt'] ?? null, 'single WR target auto-resolves');
 
         $played = $state['players']['p1']['stage']['right'] ?? null;

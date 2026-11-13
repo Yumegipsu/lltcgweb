@@ -382,6 +382,7 @@ final class NijiWaitActivateAndLiveBugsTest extends TestCase
         ]);
 
         // Only Mia is Active — auto-resolve without a pick prompt.
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertNull($state['pending_prompt'] ?? null);
         $this->assertTrue(memberIsInWait($state['players']['p1']['stage']['left']));
         $this->assertTrue(memberIsInWait($state['players']['p1']['stage']['right']), 'Mia must be put into Wait');

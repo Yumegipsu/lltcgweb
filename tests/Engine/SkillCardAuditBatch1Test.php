@@ -141,6 +141,7 @@ final class SkillCardAuditBatch1Test extends TestCase
 
         $state = \actionResolvePrompt($state, 'p1', ['choice' => 'yes']);
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertNull($state['pending_prompt'] ?? null);
         $this->assertFalse($state['players']['p1']['stage']['center']['active'] ?? true);
         $this->assertFalse($state['players']['p2']['stage']['left']['active'] ?? true);

@@ -20,7 +20,8 @@ function tryResolveAbilityEffectSwitchPositionWrLive(
                 $p['waiting_room'],
                 fn($c) => cardMatchesGroup($c, $group, 'live')
             ));
-            if (count($candidates) > 1) {
+            // Always open the pick, even with one candidate (player input / immersion).
+            if (count($candidates) >= 1) {
                 $state['pending_prompt'] = [
                     'type'          => 'pick_wr_live_deck_top',
                     'owner'         => $pid,
@@ -34,12 +35,7 @@ function tryResolveAbilityEffectSwitchPositionWrLive(
                     ' — [' . $name . '] choose a Live card from Waiting Room.');
                 break;
             }
-            if (count($candidates) === 1) {
-                putWrCardOnDeckTop($p, $candidates[0]['instance_id'] ?? '');
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] put ' .
-                    ($candidates[0]['name_en'] ?? $candidates[0]['name']) . ' on top of deck.');
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $opp = ($pid === 'p1') ? 'p2' : 'p1';
             if (stageHasWaitMember($state, $opp)) {
                 $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 1));

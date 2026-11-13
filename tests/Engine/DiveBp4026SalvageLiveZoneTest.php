@@ -113,6 +113,7 @@ final class DiveBp4026SalvageLiveZoneTest extends TestCase
 
         $state = \actionResolvePrompt($state, 'p1', ['choice' => 'yes']);
         // Two Nijigasaki Members → blade pick.
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertSame('pick_group_member_blade_faceup', $state['pending_prompt']['type'] ?? null);
         $zone = $state['players']['p1']['live_zone'];
         $this->assertCount(1, $zone);

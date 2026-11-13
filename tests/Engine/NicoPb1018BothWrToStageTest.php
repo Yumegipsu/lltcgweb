@@ -139,6 +139,7 @@ final class NicoPb1018BothWrToStageTest extends TestCase
 
         $state = \resolveOnEnterAbilities($state, 'p1', $nico, 'center');
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertEmpty($state['pending_prompt'] ?? null);
         $this->assertSame('p1_only', $state['players']['p1']['stage']['left']['instance_id'] ?? null);
         $this->assertSame('p2_only', $state['players']['p2']['stage']['left']['instance_id'] ?? null);

@@ -94,15 +94,7 @@ function tryResolveAbilityEffectSwitchGrant(
                 break;
             }
             $hearts = $ab['hearts'] ?? [];
-            if (count($candidates) === 1) {
-                applyNamedMemberHeartsBlade($state, $pid, $candidates[0]['instance_id'], [
-                    'hearts' => $hearts,
-                ]);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] granted bonus hearts to ' .
-                    ($candidates[0]['name_en'] ?? $candidates[0]['name'] ?? 'Member') . '.');
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'        => 'pick_member_grant_hearts',
                 'owner'       => $pid,

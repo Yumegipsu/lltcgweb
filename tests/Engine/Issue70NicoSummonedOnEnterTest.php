@@ -98,6 +98,7 @@ final class Issue70NicoSummonedOnEnterTest extends TestCase
 
         $state = \resolveOnEnterAbilities($state, 'p1', $nico, 'center');
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertSame('keke_wr', $state['players']['p1']['stage']['left']['instance_id'] ?? null);
         $this->assertTrue(\memberIsInWait($state['players']['p1']['stage']['left']));
         $this->assertSame('pick_looked_deck_hand', $state['pending_prompt']['type'] ?? null);
@@ -130,6 +131,7 @@ final class Issue70NicoSummonedOnEnterTest extends TestCase
 
         $state = \resolveOnEnterAbilities($state, 'p1', $nico, 'center');
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertSame('kosuzu_wr', $state['players']['p1']['stage']['left']['instance_id'] ?? null);
         $this->assertEmpty($state['pending_prompt'] ?? null);
         $this->assertSame($handBefore + 1, count($state['players']['p1']['hand']));
@@ -167,6 +169,7 @@ final class Issue70NicoSummonedOnEnterTest extends TestCase
         $state['players']['p2']['waiting_room'] = [$oppMember, $oppOther];
 
         $state = \resolveOnEnterAbilities($state, 'p1', $nico, 'center');
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertSame('keke2', $state['players']['p1']['stage']['left']['instance_id'] ?? null);
         $this->assertSame('pick_looked_deck_hand', $state['pending_prompt']['type'] ?? null);
         $this->assertNotEmpty($state['_resume_both_wr_member_to_empty_stage'] ?? null);
@@ -204,6 +207,7 @@ final class Issue70NicoSummonedOnEnterTest extends TestCase
 
         $state = \resolveOnEnterAbilities($state, 'p1', $nico, 'center');
 
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $onStage = $state['players']['p1']['stage']['left'] ?? null;
         $this->assertSame('keke293', $onStage['instance_id'] ?? null);
         $this->assertTrue(\memberIsInWait($onStage));

@@ -1350,11 +1350,8 @@ function resolveOptionalDiscardPromptChoice(
                 if (empty($candidates)) {
                     $state = addLog($state, $state['players'][$owner]['name'] .
                         ' — [' . ($prompt['source_name'] ?? 'Member') . '] no matching Member on Stage.');
-                } elseif (count($candidates) === 1) {
-                    applyNamedMemberHeartsBlade($state, $owner, $candidates[0]['instance_id'], $then);
-                    $state = addLog($state, $state['players'][$owner]['name'] .
-                        ' — [' . ($prompt['source_name'] ?? 'Member') . '] granted bonus hearts.');
                 } else {
+                    // Always open the pick, even with one candidate (player input / immersion).
                     $state['pending_prompt'] = [
                         'type'        => 'pick_member_grant_hearts',
                         'owner'       => $owner,
@@ -1374,9 +1371,8 @@ function resolveOptionalDiscardPromptChoice(
                         $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot]);
                     }
                 }
-                if (count($candidates) === 1) {
-                    applyNamedMemberHeartsBlade($state, $owner, $candidates[0]['instance_id'], $then);
-                } elseif (count($candidates) > 1) {
+                // Always open the pick, even with one candidate (player input / immersion).
+                if (count($candidates) >= 1) {
                     $state['pending_prompt'] = [
                         'type'        => 'pick_member_grant_hearts',
                         'owner'       => $owner,
@@ -1527,12 +1523,8 @@ function resolveOptionalDiscardPromptChoice(
                 if ($discardedMember) {
                     $nameKey = cardNameKey($discardedMember);
                     $candidates = stageMembersMatchingName($ownerP, $nameKey);
-                    if (count($candidates) === 1) {
-                        applyNamedMemberHeartsBlade($state, $owner, $candidates[0]['instance_id'], $then);
-                        $state = addLog($state, $state['players'][$owner]['name'] .
-                            ' — [' . ($prompt['source_name'] ?? 'Member') .
-                            "] buffed Member matching $nameKey.");
-                    } elseif (count($candidates) > 1) {
+                    // Always open the pick, even with one candidate (player input / immersion).
+                    if (count($candidates) >= 1) {
                         $state['pending_prompt'] = [
                             'type'          => 'pick_same_name_member',
                             'owner'         => $owner,

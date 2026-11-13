@@ -348,6 +348,7 @@ final class SunshineSdDeckTest extends TestCase
         $state['players']['p1']['_pending_yell_wr'] = [$yellLive];
 
         $state = \resolveLiveSuccessAbilities($state, 'p1', [$mirai], 0, [], [$yellLive]);
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertNull($state['pending_prompt'] ?? null);
         $this->assertContains('yell_only', array_column($state['players']['p1']['hand'], 'instance_id'));
     }

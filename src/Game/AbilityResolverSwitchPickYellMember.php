@@ -22,21 +22,7 @@ function tryResolveAbilityEffectSwitchPickYellMember(
                 fn($c) => cardMatchesYellPick($c, $ab)
             ));
             if (empty($candidates)) break;
-            if (count($candidates) === 1) {
-                $picked = $candidates[0];
-                $pickedId = $picked['instance_id'] ?? '';
-                $p['hand'][] = $picked;
-                bp8NotifyYellCardMoved($state, $pid);
-                if (!empty($p['_pending_yell_wr'])) {
-                    $p['_pending_yell_wr'] = array_values(array_filter(
-                        $p['_pending_yell_wr'],
-                        static fn($c) => ($c['instance_id'] ?? '') !== $pickedId
-                    ));
-                }
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] added ' . cardDisplayName($picked) . ' from Yell to hand.');
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'        => 'pick_yell_member',
                 'owner'       => $pid,

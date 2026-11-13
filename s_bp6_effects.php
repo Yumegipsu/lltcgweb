@@ -144,17 +144,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
                 $candidates[] = array_merge(cardPromptSummary($mbr), ['slot' => $slot, 'owner' => $opp]);
             }
             if (empty($candidates)) break;
-            if (count($candidates) === 1) {
-                $c = $candidates[0];
-                $om = $state['players'][$opp]['stage'][$c['slot']] ?? null;
-                if ($om) {
-                    waitMember($om, $state);
-                    $state['players'][$opp]['stage'][$c['slot']] = $om;
-                }
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] Waited 1 opponent side Member (cost $minCost+).");
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'        => 'sbp6_wait_opp_side_member',
                 'owner'       => $pid,
@@ -272,20 +262,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
                     " — [$name] looked at $look card(s); none eligible (confirm).");
                 break;
             }
-            if (count($eligible) === 1) {
-                $pickId = $eligible[0]['instance_id'] ?? '';
-                foreach ($top as $c) {
-                    if (($c['instance_id'] ?? '') === $pickId) {
-                        $p['hand'][] = $c;
-                    } else {
-                        $p['waiting_room'][] = $c;
-                    }
-                }
-                unset($state['sbp6_look_stash']);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] added 1 Member to hand.");
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'        => 'sbp6_pick_revealed_member',
                 'owner'       => $pid,
@@ -424,12 +401,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
             $look = intval($ab['look'] ?? 3);
             $top = array_splice($p['main_deck'], 0, min($look, count($p['main_deck'])));
             if (empty($top)) break;
-            if (count($top) === 1) {
-                $p['hand'][] = $top[0];
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] added 1 card to hand.");
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['surveil_stash'] = $top;
             $state['pending_prompt'] = [
                 'type'          => 'surveil_pick_one_hand_rest_wr',
@@ -514,19 +486,7 @@ function sBp6ResolveEffect(array $state, string $pid, array $source, array $ab, 
                     " — [$name] no Baton-entered {$group} Member on Stage.");
                 break;
             }
-            if (count($candidates) === 1) {
-                $slot = $candidates[0]['slot'] ?? '';
-                if ($slot !== '' && !empty($p['stage'][$slot])) {
-                    if (!isset($p['stage'][$slot]['bonus_hearts'])) {
-                        $p['stage'][$slot]['bonus_hearts'] = [];
-                    }
-                    $p['stage'][$slot]['bonus_hearts'][] = $color;
-                    $granted = 1;
-                }
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] granted $color heart to $granted Baton Member(s).");
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             if (!empty($state['pending_prompt'])) break;
             $isLiveStart = ($ctx['phase'] ?? '') === 'live_start'
                 || ($state['phase'] ?? '') === 'live_start_effects';

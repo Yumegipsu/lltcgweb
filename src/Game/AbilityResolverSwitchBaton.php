@@ -200,25 +200,7 @@ function tryResolveAbilityEffectSwitchBaton(
                 break;
             }
             // Only auto-resolve when there is no real choice (1 member + 1 slot).
-            if (count($eligible) === 1 && count($emptySlots) === 1) {
-                $played = $eligible[0];
-                foreach ($p['waiting_room'] as $i => $c) {
-                    if (($c['instance_id'] ?? '') === ($played['instance_id'] ?? '')) {
-                        array_splice($p['waiting_room'], $i, 1);
-                        break;
-                    }
-                }
-                clearMemberWait($played);
-                $played['entered_turn'] = intval($state['turn'] ?? 1);
-                $played['entered_from_wr'] = true;
-                unset($played['entered_from_hand'], $played['entered_via_baton']);
-                $p['stage'][$emptySlots[0]] = $played;
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] put ' . cardDisplayName($played) .
-                    ' from Waiting Room onto Stage.');
-                $state = resolveOnEnterAbilities($state, $pid, $played, $emptySlots[0]);
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             if (!empty($state['pending_prompt'])) {
                 break;
             }

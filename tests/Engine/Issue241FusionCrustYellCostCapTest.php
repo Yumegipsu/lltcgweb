@@ -13,6 +13,10 @@ use PHPUnit\Framework\TestCase;
  */
 final class Issue241FusionCrustYellCostCapTest extends TestCase
 {
+    // Stop at the Live phase boundary: answering the pick must not run the whole next turn.
+    protected function setUp(): void { $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true; }
+    protected function tearDown(): void { unset($GLOBALS['TUT_PERF_MANUAL_PHASES']); }
+
     private function cardByNo(string $cardNo, string $instanceId): array
     {
         $data = json_decode((string)file_get_contents((string)constant('CARDS_FILE')), true);
@@ -85,6 +89,7 @@ final class Issue241FusionCrustYellCostCapTest extends TestCase
             'phase' => 'live_success_effects',
             'seq' => 1,
             'turn' => 2,
+            'first_player' => 'p1',
             'active_player' => 'p1',
             'log' => [],
             'players' => [
@@ -120,6 +125,7 @@ final class Issue241FusionCrustYellCostCapTest extends TestCase
         ]);
 
         // Only one eligible → auto-adds to hand (no prompt).
+        $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
         $this->assertNull($state['pending_prompt'] ?? null);
         $handIds = array_column($state['players']['p1']['hand'], 'instance_id');
         $this->assertSame(['low'], $handIds);
@@ -137,6 +143,7 @@ final class Issue241FusionCrustYellCostCapTest extends TestCase
             'phase' => 'live_success_effects',
             'seq' => 1,
             'turn' => 2,
+            'first_player' => 'p1',
             'active_player' => 'p1',
             'log' => [],
             'players' => [

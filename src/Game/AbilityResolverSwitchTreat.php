@@ -39,15 +39,7 @@ function tryResolveAbilityEffectSwitchTreat(
             if (empty($candidates)) break;
             $color = $ab['color'] ?? 'pink';
             // Single Hasunosora on Stage — apply immediately (no pick UI).
-            if (count($candidates) === 1) {
-                $slot = $candidates[0]['slot'];
-                $p['stage'][$slot]['hearts_treat_as'] = $color;
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] ' .
-                    ($p['stage'][$slot]['name_en'] ?? $p['stage'][$slot]['name'] ?? 'Member') .
-                    " hearts treated as $color until Live ends.");
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'          => 'treat_pick_group_member_hearts_as',
                 'owner'         => $pid,

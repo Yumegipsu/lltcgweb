@@ -260,18 +260,7 @@ function tryResolveAbilityEffectSwitchLive(
             if (empty($pool)) {
                 break;
             }
-            if (count($pool) === 1) {
-                $picked = $pool[0];
-                $p['hand'][] = $picked;
-                $remaining = array_values(array_filter(
-                    $p['_pending_yell_wr'] ?? $pool,
-                    fn($c) => ($c['instance_id'] ?? '') !== ($picked['instance_id'] ?? '')
-                ));
-                $p['_pending_yell_wr'] = $remaining;
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] added ' . cardDisplayName($picked) . ' from Yell to hand.');
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             if (!empty($state['pending_prompt'])) {
                 break;
             }
@@ -308,19 +297,7 @@ function tryResolveAbilityEffectSwitchLive(
             if (empty($yellPool)) break;
             $eligible = filterYellPoolForAbility($yellPool, $ab);
             if (empty($eligible)) break;
-            if (count($eligible) === 1) {
-                $picked = $eligible[0];
-                $pickId = $picked['instance_id'] ?? '';
-                $p['_pending_yell_wr'] = array_values(array_filter(
-                    $p['_pending_yell_wr'] ?? $yellPool,
-                    fn($c) => ($c['instance_id'] ?? '') !== $pickId
-                ));
-                $p['hand'][] = $picked;
-                bp8NotifyYellCardMoved($state, $pid);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    ' — [' . $name . '] added ' . cardDisplayName($picked) . ' from Yell to hand.');
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $subunit = trim($ab['subunit'] ?? '');
             $maxMemberCost = isset($ab['max_member_cost']) ? intval($ab['max_member_cost'])
                 : (isset($ab['max_cost']) ? intval($ab['max_cost']) : null);

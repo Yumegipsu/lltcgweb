@@ -145,6 +145,7 @@ final class Issue94AwokeEffectiveCostTest extends TestCase
         $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true;
         try {
             $state = \resolveLiveStartAbilities($state, 'p1');
+            $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
             $center = $state['players']['p1']['stage']['center'];
             $this->assertSame(
                 2,

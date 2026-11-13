@@ -129,6 +129,7 @@ final class Issue185MutekiKyuuBelieverOneKasumiTest extends TestCase
         $GLOBALS['TUT_PERF_MANUAL_PHASES'] = true;
         try {
             $state = \resolveAbilityEffect($state, 'p1', $live, $ab, ['phase' => 'live_start']);
+            $state = \tcgTestPickOnlyOption($state); // picks always prompt now, even with one option
             $pr = $state['pending_prompt'] ?? null;
             $this->assertIsArray($pr);
             $this->assertSame('bp5_pick_kasumi_stage_hearts', $pr['type'] ?? '');

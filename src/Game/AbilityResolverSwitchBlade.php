@@ -29,17 +29,7 @@ function tryResolveAbilityEffectSwitchBlade(
                     " — [$name] no matching Member on Stage for +Blade (discarded $discarded).");
                 break;
             }
-            if (count($candidates) === 1) {
-                $bonus = intval($ab['amount'] ?? 3) * $discarded;
-                $slot = $candidates[0]['slot'] ?? '';
-                if ($slot !== '' && !empty($p['stage'][$slot])) {
-                    $p['stage'][$slot]['live_blade_bonus'] =
-                        intval($p['stage'][$slot]['live_blade_bonus'] ?? 0) + $bonus;
-                }
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] chosen Member gains +$bonus Blade.");
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             $state['pending_prompt'] = [
                 'type'          => 'blade_per_discarded_pick_member',
                 'owner'         => $pid,

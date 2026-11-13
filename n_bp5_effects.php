@@ -545,19 +545,7 @@ function nBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
                     " — [$name] milled $mill; no Live in Waiting Room.");
                 break;
             }
-            if (count($lives) === 1) {
-                $pick = $lives[0];
-                $pos = intval($ab['deck_position'] ?? 4);
-                $p['waiting_room'] = array_values(array_filter(
-                    $p['waiting_room'],
-                    fn($c) => ($c['instance_id'] ?? '') !== ($pick['instance_id'] ?? '')
-                ));
-                $top = array_splice($p['main_deck'], 0, max(0, $pos - 1));
-                $p['main_deck'] = array_merge($top, [$pick], $p['main_deck']);
-                $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] placed Live at deck position $pos.");
-                break;
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             if (!empty($state['pending_prompt'])) break;
             $state['pending_prompt'] = [
                 'type'          => 'bp5_wr_live_deck_position',
@@ -644,16 +632,10 @@ function nBp5ResolveEffect(array $state, string $pid, array $source, array $ab, 
                 $revealed,
                 fn($c) => cardMatchesNames($c, $ab['target_names'] ?? [])
             ));
-            if (count($matches) === 1) {
-                $pick = $matches[0];
-                $p['waiting_room'] = array_merge($p['waiting_room'], $revealed);
-                $state = nBp5ApplyRevealPickNamedHearts($state, $pid, $pick, $ab, $name);
-                // Re-bind $p after helper may have set pending_prompt / mutated stage.
-                $p = &$state['players'][$pid];
+            // Always open the pick, even with one candidate (player input / immersion).
+            if (count($matches) >= 1 && !empty($state['pending_prompt'])) {
                 break;
-            } elseif (count($matches) > 1 && !empty($state['pending_prompt'])) {
-                break;
-            } elseif (count($matches) > 1) {
+            } elseif (count($matches) >= 1) {
                 $state['pending_prompt'] = [
                     'type'          => 'bp5_pick_kasumi_reveal',
                     'owner'         => $pid,
@@ -1205,18 +1187,7 @@ function nBp5ResolvePrompt(array $state, string $owner, array $prompt, string $c
                     && intval($c['cost'] ?? 0) >= intval($ability['min_cost'] ?? 9)
             ));
             $srcName = $prompt['source_name'] ?? 'Member';
-            if (count($matches) === 1) {
-                $pick = $matches[0];
-                $ownerP['hand'][] = $pick;
-                $pickId = $pick['instance_id'] ?? '';
-                $rest = array_values(array_filter($top, fn($c) => ($c['instance_id'] ?? '') !== $pickId));
-                unset($state['pending_prompt']);
-                $state = appendDeckCardsToWaitingRoom($state, $owner, $rest);
-                $state = addLog($state, $state['players'][$owner]['name'] .
-                    ' — [' . $srcName . '] looked at top ' . count($top) .
-                    '; revealed ' . cardDisplayName($pick) . ' to hand.');
-                return finishAfterDeckCardsToWaitingRoom($state);
-            }
+            // Always open the pick, even with one candidate (player input / immersion).
             if (count($matches) === 0) {
                 unset($state['pending_prompt']);
                 $state = appendDeckCardsToWaitingRoom($state, $owner, $top);
