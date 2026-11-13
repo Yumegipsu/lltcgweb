@@ -197,7 +197,7 @@ function liveStartPrintedAbilityCount(array $card): int {
 
 /**
  * Order-of-activation entries for one card. A card with several pending [Live Start] abilities gets one entry
- * per ability (id "instance#abilityIndex") so other cards can resolve between them — PL!HS-bp8-020-L Aishii's
+ * per ability (id "instance#abilityIndex") so other cards can resolve between them — PL!HS-bp8-020-L Icy's
  * Wait → Sayaka → cost +5 combo (#351). A single ability keeps the plain instance id.
  * @return list<array<string,mixed>>
  */
