@@ -56,6 +56,12 @@ function stripStageWaitState(array $card): array {
         unset($card['in_wait'], $card['waited_turn'], $card['waited_active_player'], $card['_was_active_before_wait'], $card['_ally_wait_pending']);
         unset($card['active']);
     }
+    // Rule 4.1.4: a card that leaves the Member area is a new card, so its [Once per turn]
+    // usage does not follow it (#356: Ceras put into WR and replayed by Izumi bp8-008 triggers again).
+    unset($card['abilities_used']);
+    if (function_exists('clearMemberPerTurnAutoUses')) {
+        clearMemberPerTurnAutoUses($card);
+    }
     return $card;
 }
 

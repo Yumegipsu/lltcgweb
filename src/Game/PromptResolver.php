@@ -2873,7 +2873,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             $mbr = $ownerP['stage'][$slot] ?? null;
             if (!$mbr) throw new Exception('Choose a Member on Stage');
             $nameKey = cardNameKey($mbr);
-            $ownerP['waiting_room'][] = $mbr;
+            $ownerP['waiting_room'][] = stripStageWaitState($mbr);
             $ownerP['stage'][$slot] = null;
             $state = resolveOnLeaveStageAbilities($state, $owner, $mbr);
             $reenter = null;
@@ -2918,7 +2918,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             $mbr = $ownerP['stage'][$slot] ?? null;
             if (!$mbr) throw new Exception('Choose a Member on Stage');
             $nameKey = cardNameKey($mbr);
-            $ownerP['waiting_room'][] = $mbr;
+            $ownerP['waiting_room'][] = stripStageWaitState($mbr);
             $ownerP['stage'][$slot] = null;
             $state = resolveOnLeaveStageAbilities($state, $owner, $mbr);
             $reenter = null;
@@ -5324,7 +5324,7 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
                 $wrCands[] = cardPromptSummary($c);
             }
             if (empty($wrCands)) throw new Exception('No Waiting Room Member with cost ' . $targetCost);
-            $ownerP['waiting_room'][] = $mbr;
+            $ownerP['waiting_room'][] = stripStageWaitState($mbr);
             $ownerP['stage'][$slot] = null;
             $state = resolveOnLeaveStageAbilities($state, $owner, $mbr);
             $state = addLog($state, $state['players'][$owner]['name'] .

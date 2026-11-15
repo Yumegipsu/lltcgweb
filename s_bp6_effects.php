@@ -915,7 +915,7 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
                 if ($mbr && ($mbr['instance_id'] ?? '') === $stageId) {
                     $removed = $mbr;
                     $slot = $s;
-                    $ownerP['waiting_room'][] = $mbr;
+                    $ownerP['waiting_room'][] = stripStageWaitState($mbr);
                     $ownerP['stage'][$s] = null;
                     break;
                 }
@@ -960,7 +960,7 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
             if ($mbr && ($mbr['instance_id'] ?? '') === $stageId) {
                 $removed = $mbr;
                 $slot = $s;
-                $ownerP['waiting_room'][] = $mbr;
+                $ownerP['waiting_room'][] = stripStageWaitState($mbr);
                 $ownerP['stage'][$s] = null;
                 break;
             }
@@ -1098,7 +1098,7 @@ function sBp6ResolvePrompt(array $state, string $owner, array $prompt, string $c
         }
         $leaving = $ownerP['stage'][$slot];
         $ownerP['stage'][$slot] = null;
-        $ownerP['waiting_room'][] = $leaving;
+        $ownerP['waiting_room'][] = stripStageWaitState($leaving);
         $state = resolveOnLeaveStageAbilities($state, $owner, $leaving);
         // Rebind: $state reassignment detaches prior &$ownerP.
         $ownerP = &$state['players'][$owner];
