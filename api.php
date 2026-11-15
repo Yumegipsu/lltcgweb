@@ -2159,6 +2159,13 @@ function actionPlayMember(array $state, string $pid, array $data): array {
         }
     }
     if ($batonCount > 0) {
+        // #358 (official Q335): Baton Touch puts the old Member into the Waiting Room before the new one
+        // enters, so Kosuzu PL!HS-bp8-005 sees "no other DOLLCHESTRA" at that moment. A plain overplay
+        // does not (Q336), which is why this runs only for Baton Touch.
+        if (function_exists('bp8NoteStateAutosMidBaton')) {
+            bp8NoteStateAutosMidBaton($state, $pid);
+            $p = &$state['players'][$pid];
+        }
         $card['baton_count'] = $batonCount;
         $card['baton_member_groups'] = $batonGroups;
         if (!empty($batonWrMembers)) {

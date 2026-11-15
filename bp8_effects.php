@@ -1039,15 +1039,35 @@ function bp8NotifySuccessPlaced(array &$state, string $pid, array $live): void {
     }
 }
 
+/**
+ * #358 (official Q335): during a Baton Touch, after the old Member(s) left and before the new one
+ * enters. Kosuzu that has no other DOLLCHESTRA Member at that moment has triggered, and still goes
+ * to the WR even though the incoming Member is DOLLCHESTRA.
+ */
+function bp8NoteStateAutosMidBaton(array &$state, string $pid): void {
+    foreach ($state['players'][$pid]['stage'] ?? [] as $mbr) {
+        if (!$mbr) continue;
+        foreach ($mbr['abilities'] ?? [] as $ab) {
+            if (($ab['type'] ?? '') !== 'bp8_auto_leave_if_no_other_subunit') continue;
+            $iid = (string)($mbr['instance_id'] ?? '');
+            if ($iid === '' || bp8StageHasSubunit($state['players'][$pid], (string)($ab['subunit'] ?? ''), $iid)) continue;
+            $state['_bp8_state_auto_triggered'][$pid][$iid] = true;
+        }
+    }
+}
+
 /** PL!HS-bp8-005 Kosuzu: no other DOLLCHESTRA Member on the Stage → this Member goes to the WR. */
 function bp8CheckStateAutos(array $state): array {
     foreach (['p1', 'p2'] as $pid) {
         foreach ($state['players'][$pid]['stage'] ?? [] as $slot => $mbr) {
             if (!$mbr) continue;
+            $iid = (string)($mbr['instance_id'] ?? '');
             foreach ($mbr['abilities'] ?? [] as $ab) {
                 if (($ab['type'] ?? '') !== 'bp8_auto_leave_if_no_other_subunit') continue;
                 $sub = (string)($ab['subunit'] ?? '');
-                if (bp8StageHasSubunit($state['players'][$pid], $sub, (string)($mbr['instance_id'] ?? ''))) continue;
+                $triggered = !empty($state['_bp8_state_auto_triggered'][$pid][$iid]);
+                unset($state['_bp8_state_auto_triggered'][$pid][$iid]);
+                if (!$triggered && bp8StageHasSubunit($state['players'][$pid], $sub, $iid)) continue;
                 $state = addLog($state, bp8PlayerName($state, $pid) . ' — [' . bp8Name($mbr) .
                     "] no other $sub Member on the Stage: put into the Waiting Room.");
                 [$state] = bp8StageMemberToWaitingRoom($state, $pid, (string)$slot);
@@ -1057,6 +1077,11 @@ function bp8CheckStateAutos(array $state): array {
                 continue 2;
             }
         }
+        // Flags for a Kosuzu that already left the Stage are stale.
+        unset($state['_bp8_state_auto_triggered'][$pid]);
+    }
+    if (empty($state['_bp8_state_auto_triggered'])) {
+        unset($state['_bp8_state_auto_triggered']);
     }
     return $state;
 }
