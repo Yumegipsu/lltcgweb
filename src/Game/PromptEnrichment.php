@@ -833,7 +833,12 @@ function autoResolvePendingPromptForTimeout(array $state, string $pid): array {
         $src = $prompt['source_name'] ?? ($prompt['type'] ?? 'effect');
         $state = addLog($state, ($state['players'][$pid]['name'] ?? $pid) .
             " — Time expired; auto-resolved [{$src}].", 'info');
-        return actionResolvePrompt($state, $pid, $data);
+        $state = actionResolvePrompt($state, $pid, $data);
+        // #315: a live_show beat acked while this prompt was open advances now, not at the stall heal.
+        if (empty($state['pending_prompt']) && function_exists('liveShowAdvanceAfterPrompt')) {
+            $state = liveShowAdvanceAfterPrompt($state);
+        }
+        return $state;
     } catch (Throwable $e) {
         return $state;
     }

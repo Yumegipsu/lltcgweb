@@ -1726,7 +1726,11 @@ function applyAction(array $state, string $playerId, string $type, array $data):
     if (function_exists('bp8BeginAction')) {
         bp8BeginAction($state);
     }
+    $hadPrompt = !empty($state['pending_prompt']);
     $state = applyActionCore($state, $playerId, $type, $data);
+    if ($hadPrompt && empty($state['pending_prompt'])) {
+        $state = liveShowAdvanceAfterPrompt($state);
+    }
     // BP08 queued autos (deck refresh, WR→deck, Success placement) and state checks (Kosuzu bp8-005).
     if (function_exists('bp8AfterAction')) {
         $state = bp8AfterAction($state);
@@ -2972,6 +2976,29 @@ function liveShowRequiredAckPlayers(array $state): array {
     return $required;
 }
 
+/**
+ * #315: after a prompt closes, advance a live_show stage that every human already acked while
+ * the prompt was open. Without this the room waited for the stall heal (90s solo, 25s PvP).
+ */
+function liveShowAdvanceAfterPrompt(array $state): array {
+    if (empty($state['live_show']) || !is_array($state['live_show'])
+        || ($state['live_show']['stage'] ?? '') === 'done'
+        || !empty($state['pending_prompt'])
+        || ($state['status'] ?? '') === 'finished') {
+        return $state;
+    }
+    // CPU-only rooms have no required ackers; their stages advance on the CPU / timeout path.
+    if (empty(liveShowRequiredAckPlayers($state)) || !liveShowStageFullyAcked($state)) {
+        return $state;
+    }
+    $before = liveShowProgressSignature($state);
+    $state = advanceLiveShowStage($state);
+    if (liveShowProgressSignature($state) !== $before) {
+        $state['seq'] = intval($state['seq'] ?? 0) + 1;
+    }
+    return $state;
+}
+
 function liveShowStageFullyAcked(array $state): bool {
     $acks = $state['live_show']['acks'] ?? [];
     foreach (liveShowRequiredAckPlayers($state) as $pid) {
@@ -3074,14 +3101,18 @@ function actionLiveShowAck(array $state, string $pid, array $data): array {
     if ($stageSeq !== intval($state['live_show']['stage_seq'] ?? 0)) {
         return $state;
     }
-    // Skills must finish before the presentation cursor can advance.
-    if (!empty($state['pending_prompt'])) {
-        return $state;
-    }
     if (!isset($state['live_show']['acks']) || !is_array($state['live_show']['acks'])) {
         $state['live_show']['acks'] = [];
     }
+    // #315: record the ack even while a skill prompt is open (the client acks the Live Start
+    // beat while e.g. Distortion's Energy prompt is up and never re-acks the same stage_seq).
+    // Dropping it parked the room until the 90s / 25s stall heal. Skills still finish first:
+    // the cursor only advances here without a prompt, or in liveShowAdvanceAfterPrompt().
     $state['live_show']['acks'][$pid] = true;
+    if (!empty($state['pending_prompt'])) {
+        $state['seq']++;
+        return $state;
+    }
     if (liveShowStageFullyAcked($state)) {
         $state = advanceLiveShowStage($state);
     }
