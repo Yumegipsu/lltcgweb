@@ -74,6 +74,34 @@ function tryResolveAbilityEffectSwitchOptional(
             break;
 
         case 'optional_pay_energy':
+            // #355: Member [Live Success] "You may pay N Energy: …" (Natsumi PL!SP-bp5-020-N, Sumire
+            // PL!SP-pb1-004). This branch used to fall through to the pay/confirm check below and do
+            // nothing, so the ability showed in the Live Success order but never asked to pay.
+            if (($ctx['phase'] ?? '') === 'live_success' && empty($ctx['pay']) && empty($ctx['confirm'])) {
+                if (!empty($state['pending_prompt'])) break;
+                if (!optionalAbilityHasAffordableEnergy($p, $ab)) {
+                    $need = optionalAbilityEnergyCost($ab);
+                    $state = addLog($state, $state['players'][$pid]['name'] .
+                        " — [$name] could not pay $need Energy; effect skipped.");
+                    break;
+                }
+                $cost = intval($ab['cost'] ?? 0);
+                $state['pending_prompt'] = [
+                    'type'          => 'optional_pay_energy_live_success',
+                    'owner'         => $pid,
+                    'responder'     => $pid,
+                    'source_id'     => $source['instance_id'] ?? '',
+                    'source_name'   => $name,
+                    'prompt'        => 'Pay ' . $cost . ' Energy for this Live Success effect?',
+                    'choices'       => ['yes', 'no'],
+                    'choice_labels' => ['Yes — Pay', 'No — Skip'],
+                    'ability'       => $ab,
+                    'pay_cost'      => $cost,
+                ];
+                $state = addLog($state, $state['players'][$pid]['name'] .
+                    ' — [' . $name . '] optional Live Success (pay Energy).');
+                break;
+            }
             if (($ctx['phase'] ?? '') === 'on_enter' && empty($ctx['pay']) && empty($ctx['confirm'])) {
                 if (!empty($state['pending_prompt'])) break;
                 if (!optionalCostAbilityShouldOpen($state, $pid, $ab)) {

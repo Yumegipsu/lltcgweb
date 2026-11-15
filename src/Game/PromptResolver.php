@@ -2752,11 +2752,34 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             if (!payEnergyCost($ownerP, $cost)) {
                 throw new Exception("Need $cost active Energy");
             }
-            if (!empty($ability['then'])) {
-                $state = applyModifierEffect($state, $owner, $ability['then']);
+            $then = is_array($ability['then'] ?? null) ? $ability['then'] : [];
+            $thenType = (string)($then['type'] ?? '');
+            if ($thenType === '' || $thenType === 'live_score_bonus') {
+                if ($then) {
+                    $state = applyModifierEffect($state, $owner, $then);
+                }
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Live') . "] paid $cost Energy; +1 Live Score.");
+            } else {
+                // #355: generic "pay N: <effect>" Member Live Success (draw for Natsumi / Sumire).
+                unset($state['pending_prompt']);
+                $srcId = (string)($prompt['source_id'] ?? '');
+                $source = ['instance_id' => $srcId, 'name_en' => $prompt['source_name'] ?? 'Member'];
+                foreach ($state['players'][$owner]['stage'] ?? [] as $mbr) {
+                    if (is_array($mbr) && ($mbr['instance_id'] ?? '') === $srcId) {
+                        $source = $mbr;
+                        break;
+                    }
+                }
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . "] paid $cost Energy.");
+                $state = resolveAbilityEffect($state, $owner, $source, $then, ['phase' => 'live_success_then']);
+                $state['seq']++;
+                if (!empty($state['pending_prompt'])) {
+                    return $state;
+                }
+                return finishLiveSuccessEffects($state);
             }
-            $state = addLog($state, $state['players'][$owner]['name'] .
-                ' — [' . ($prompt['source_name'] ?? 'Live') . "] paid $cost Energy; +1 Live Score.");
         }
         unset($state['pending_prompt']);
         $state['seq']++;
