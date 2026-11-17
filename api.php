@@ -3643,6 +3643,13 @@ function discardLiveZoneMembersToWaitingRoom(array $state, string $pid): array {
     $p['live_zone'] = $remaining;
     $p['waiting_room'] = array_merge($p['waiting_room'] ?? [], $discarded);
     unset($p);
+    // #359: these Member cards were still placed in Live storage this turn
+    // (PL!-bp8-019 Yuujou No Change counts every placed card, not only what is left at Live Start).
+    if (function_exists('bp8NoteLiveZoneDeparture')) {
+        foreach ($discarded as $ignored) {
+            bp8NoteLiveZoneDeparture($state, $pid);
+        }
+    }
     return addLog($state, $state['players'][$pid]['name'] .
         ' — ' . count($discarded) . ' non-Live card(s) from storage sent to Waiting Room.',
         null, $discardAnims);
