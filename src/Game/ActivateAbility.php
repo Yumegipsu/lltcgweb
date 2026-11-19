@@ -8,7 +8,21 @@
 // ─────────────────────────────────────────────
 
 
+/**
+ * #360: several set modules (e.g. Superstar BP5 Ren's mill) return a resolved activation without bumping
+ * seq, so clients treated the new state (mill, opened prompt) as unchanged and never showed it.
+ * A successful activation always changes the game, so it always advances seq.
+ */
 function actionActivateAbility(array $state, string $pid, array $data): array {
+    $seqBefore = intval($state['seq'] ?? 0);
+    $out = actionActivateAbilityCore($state, $pid, $data);
+    if (intval($out['seq'] ?? 0) <= $seqBefore) {
+        $out['seq'] = $seqBefore + 1;
+    }
+    return $out;
+}
+
+function actionActivateAbilityCore(array $state, string $pid, array $data): array {
     $onEnterWr = !empty($data['_on_enter_wr_activate']);
     if (!$onEnterWr) {
         validateTurn($state, $pid, 'main');

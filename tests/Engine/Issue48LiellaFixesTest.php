@@ -250,6 +250,8 @@ final class Issue48LiellaFixesTest extends TestCase
 
         $state = $this->baseState();
         $state['players']['p1']['stage']['center'] = $ren;
+        // #360: Ren only offers the payment when 1 Energy is active.
+        $state['players']['p1']['energy_zone'] = [['instance_id' => 'issue48_ren_e', 'card_type' => 'エネルギー', 'active' => true]];
 
         $state = \appendCardsToWaitingRoom($state, 'p1', [$toWr]);
 

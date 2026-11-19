@@ -228,6 +228,7 @@ function spBp5NotifyCardsToWr(array $state, string $pid, array $cards): array {
         || ($state['active_player'] ?? '') !== $pid) {
         return $state;
     }
+    $cantPay = [];
     foreach ($state['players'][$pid]['stage'] as $slot => &$member) {
         if (!$member) continue;
         foreach ($member['abilities'] ?? [] as $idx => $ab) {
@@ -235,6 +236,12 @@ function spBp5NotifyCardsToWr(array $state, string $pid, array $cards): array {
             if (($ab['type'] ?? '') !== 'auto_main_wr_pay_energy_add_hand') continue;
             if (!empty($ab['once_per_turn']) && isAbilityUsed($member, $idx)) continue;
             if (!empty($state['pending_prompt'])) return $state;
+            // Can't pay → no "Yes — Pay" that only errors (#360).
+            if (countActiveEnergyInZone($state['players'][$pid]) < intval($ab['cost'] ?? 1)) {
+                $cantPay[] = '[' . ($member['name_en'] ?? $member['name'] ?? 'Member') . '] could not pay ' .
+                    intval($ab['cost'] ?? 1) . ' Energy; effect skipped.';
+                continue;
+            }
             $state['pending_prompt'] = [
                 'type'          => 'spbp5_wr_pay_add_hand',
                 'step'          => 'confirm',
@@ -254,6 +261,9 @@ function spBp5NotifyCardsToWr(array $state, string $pid, array $cards): array {
         }
     }
     unset($member);
+    foreach ($cantPay as $msg) {
+        $state = addLog($state, $state['players'][$pid]['name'] . ' — ' . $msg);
+    }
     return $state;
 }
 
@@ -879,12 +889,34 @@ function spBp5ResolvePrompt(array $state, string $owner, array $prompt, string $
             if (!payEnergyCost($ownerP, intval($ability['cost'] ?? 1))) {
                 throw new Exception('Need 1 active Energy');
             }
-            $state['pending_prompt'] = array_merge($prompt, [
-                'step'   => 'pick',
-                'prompt' => 'Choose 1 card just put into your Waiting Room.',
-            ]);
-            $state['seq']++;
-            return $state;
+            $slot = (string)($prompt['source_slot'] ?? '');
+            $idx = intval($prompt['ability_index'] ?? 0);
+            $source = ['instance_id' => $prompt['source_id'] ?? '', 'name_en' => $prompt['source_name'] ?? 'Member'];
+            if ($slot !== '' && !empty($ownerP['stage'][$slot])) {
+                markAbilityUsed($ownerP['stage'][$slot], $idx);
+                $source = $ownerP['stage'][$slot];
+            }
+            // #360: the pick used to keep this prompt's Yes/No choices, so the client showed a second
+            // Yes/No instead of the cards and "Yes" added nothing after the Energy was paid. Open the
+            // standard card pick (rendered by the client, answered by the CPU / timeout) instead.
+            $justMoved = array_flip(array_filter(array_map(
+                static fn($c) => (string)($c['instance_id'] ?? ''),
+                $prompt['wr_cards'] ?? []
+            )));
+            $cands = array_values(array_filter(
+                $ownerP['waiting_room'] ?? [],
+                static fn($c) => is_array($c) && isset($justMoved[(string)($c['instance_id'] ?? '')])
+            ));
+            unset($state['pending_prompt']);
+            if ($cands === []) {
+                $state = addLog($state, $state['players'][$owner]['name'] .
+                    ' — [' . ($prompt['source_name'] ?? 'Member') . '] paid 1 Energy, but those cards already left the Waiting Room.');
+                $state['seq']++;
+                return $state;
+            }
+            // Always open the pick, even with one candidate (player input / immersion).
+            return bp7StartCardPick($state, $owner, $source, $ability, [], 'bp8:wr_to_hand', $cands, 1, 1,
+                'Choose 1 of the cards just put into your Waiting Room to add to your hand.');
         }
         if (($prompt['step'] ?? '') === 'pick') {
             $cardId = $data['card_id'] ?? '';
