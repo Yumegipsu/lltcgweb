@@ -918,6 +918,15 @@
       "orientation": "portrait"
     },
     {
+      "id": "bday-tsuzuri-2026",
+      "name": "Tsuzuri Birthday Visual 2026",
+      "group": "Hasunosora",
+      "idol": "Tsuzuri",
+      "src": "assets/sleeves/bday-tsuzuri-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-11-16"
+    },
+    {
       "id": "br-hs-2000210331367",
       "name": "ブシロード スリーブコレクションエクストラ Vol.459 ラブライブ！蓮ノ空女学院スクールアイドルクラブ『夕霧綴理』Reバースver.",
       "group": "Hasunosora",
@@ -2046,6 +2055,15 @@
       "idol": "Rina",
       "src": "assets/sleeves/bday-rina-2025.webp",
       "orientation": "portrait"
+    },
+    {
+      "id": "bday-rina-2026",
+      "name": "Rina Birthday Visual 2026",
+      "group": "Nijigasaki",
+      "idol": "Rina",
+      "src": "assets/sleeves/bday-rina-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-11-12"
     },
     {
       "id": "br-br-3690",
