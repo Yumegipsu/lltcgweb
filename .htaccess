@@ -23,6 +23,14 @@
   RewriteEngine On
   RewriteBase /tcg/
 
+  # Canonical host (same rule as the site root .htaccess, which this file does not inherit):
+  # page loads on the bare domain move to www, where Discord sign-in stores the token.
+  # PHP endpoints and non-GET requests are left alone; the VPS host is unaffected.
+  RewriteCond %{HTTP_HOST} ^loveliveradio\.ca$ [NC]
+  RewriteCond %{REQUEST_METHOD} ^(GET|HEAD)$
+  RewriteCond %{REQUEST_URI} !\.php$ [NC]
+  RewriteRule ^ https://www.loveliveradio.ca%{REQUEST_URI} [R=301,L]
+
   # Match host: blank root / index; robots Disallow; block static UI trees.
   # Substitutions are site-root absolute so they work when this file is the
   # Docker docroot .htaccess (RewriteBase /tcg/ would otherwise break paths).
