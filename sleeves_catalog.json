@@ -1152,6 +1152,15 @@
       "orientation": "portrait"
     },
     {
+      "id": "bday-ren-2026",
+      "name": "Ren Birthday Visual 2026",
+      "group": "Liella!",
+      "idol": "Ren",
+      "src": "assets/sleeves/bday-ren-2026.webp",
+      "orientation": "portrait",
+      "added_at": "2026-11-23"
+    },
+    {
       "id": "bday-shiki-2025",
       "name": "Shiki Birthday Visual 2025",
       "group": "Liella!",
