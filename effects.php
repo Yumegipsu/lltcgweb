@@ -5805,6 +5805,22 @@ function listOppStageMembersByMaxOriginalBlade(
     return $out;
 }
 
+/** Drop wait-pick candidates that belong to $subunit ("… Member that is not DOLLCHESTRA"). */
+function waitPickFilterExcludedSubunit(array $members, array $state, string $oppId, string $subunit): array {
+    if ($subunit === '') {
+        return $members;
+    }
+    $out = [];
+    foreach ($members as $cand) {
+        $mbr = $state['players'][$oppId]['stage'][$cand['slot'] ?? ''] ?? null;
+        if (is_array($mbr) && cardMatchesSubunit($mbr, $subunit)) {
+            continue;
+        }
+        $out[] = $cand;
+    }
+    return array_values($out);
+}
+
 function listOppStageMembersByMaxOriginalHearts(
     array $state,
     string $oppId,
@@ -7897,6 +7913,10 @@ function beginWaitOpponentStagePick(
         $thresholdLabel = "cost ≤$maxCost";
         $logMode = 'cost';
         $logMax = $maxCost;
+    }
+    $excludeSubunit = (string)($effect['exclude_subunit'] ?? '');
+    if ($excludeSubunit !== '') {
+        $members = waitPickFilterExcludedSubunit($members, $state, $opp, $excludeSubunit);
     }
     $showThreshold = ($byBlade && $maxBlade < 99)
         || ($byHearts && $maxHearts < 99)

@@ -359,20 +359,35 @@ function hsResolveHasunosoraEffect(array $state, string $pid, array $source, arr
             break;
 
         case 'wait_opponent_max_blade_excl_subunit':
+            // PL!HS-bp6-013 Kosuzu: the player chooses which opponent Member to Wait (#362). Already-Waited
+            // and protected Members are not offered; with no legal target the effect just logs.
+            if (!empty($state['pending_prompt'])) break;
             $opp = ($pid === 'p1') ? 'p2' : 'p1';
-            $waited = hsWaitOpponentByMaxBladeExclSubunit(
+            $cfg = [
+                'max_original_blade' => intval($ab['max_blade'] ?? 3),
+                'exclude_subunit'    => (string)($ab['exclude_subunit'] ?? 'DOLLCHESTRA'),
+                'pick_count'         => max(1, intval($ab['pick_count'] ?? 1)),
+            ];
+            $cands = waitPickFilterExcludedSubunit(
+                listOppStageMembersByMaxOriginalBlade($state, $opp, $cfg['max_original_blade']),
                 $state,
                 $opp,
-                intval($ab['max_blade'] ?? 3),
-                $ab['exclude_subunit'] ?? 'DOLLCHESTRA',
-                intval($ab['pick_count'] ?? 1) ?: null,
-                $pid
+                $cfg['exclude_subunit']
             );
-            if ($waited > 0) {
+            if ($cands === []) {
                 $state = addLog($state, $state['players'][$pid]['name'] .
-                    " — [$name] put $waited opponent Member(s) into Wait.");
+                    " — [$name] no opponent Member can be put into Wait.");
+                break;
             }
-            break;
+            unset($p);
+            return beginWaitOpponentStagePick(
+                $state,
+                $pid,
+                $name,
+                $cfg,
+                (string)($source['instance_id'] ?? ''),
+                ($ctx['phase'] ?? '') === 'live_start' || ($state['phase'] ?? '') === 'live_start_effects'
+            );
 
         case 'hand_discard_named_blade':
             throw new Exception('Use hand-activated ability from hand UI');

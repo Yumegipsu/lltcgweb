@@ -91,6 +91,9 @@ final class KosuzuBp6013DualLiveStartTest extends TestCase
 
             // Simulate On Enter resolving earlier this turn (marks dual-fired flag).
             $state = \resolveOnEnterAbilities($state, 'p1', $kosuzu, 'right');
+            // #362: the player picks the target.
+            $this->assertSame('wait_opponent_stage_pick', $state['pending_prompt']['type'] ?? null);
+            $state = \actionResolvePrompt($state, 'p1', ['slot' => 'left']);
             $this->assertTrue(
                 memberIsInWait($state['players']['p2']['stage']['left'] ?? []),
                 'On Enter should Wait the eligible opponent Member'
@@ -104,6 +107,8 @@ final class KosuzuBp6013DualLiveStartTest extends TestCase
             $state['phase'] = 'live_start_effects';
             $state['live_attempt'] = ['p1'];
             $state = \resolveLiveStartAbilities($state, 'p1');
+            $this->assertSame('wait_opponent_stage_pick', $state['pending_prompt']['type'] ?? null);
+            $state = \actionResolvePrompt($state, 'p1', ['slot' => 'left']);
 
             $oppLeft = $state['players']['p2']['stage']['left'] ?? null;
             $this->assertNotNull($oppLeft);

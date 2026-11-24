@@ -5154,6 +5154,10 @@ function actionResolvePromptDispatch(array $state, string $pid, array $data): ar
             if ($maxBlade !== null && intval($picked['blade'] ?? 0) > intval($maxBlade)) {
                 throw new Exception('Member Blade too high');
             }
+            $excl = (string)($ability['exclude_subunit'] ?? '');
+            if ($excl !== '' && cardMatchesSubunit($picked, $excl)) {
+                throw new Exception("Can't choose a $excl Member");
+            }
             if ($maxHearts === null && $maxBlade === null && intval($picked['cost'] ?? 0) > $maxCost) {
                 throw new Exception('Member cost too high');
             }
