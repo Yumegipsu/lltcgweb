@@ -555,6 +555,9 @@ function spBp5ResolveActivatedAbility(
         $reqSlot = $ab['slot'] ?? 'left';
         if ($slot !== $reqSlot) throw new Exception('Ability requires Left Side');
         waitMember($member, $state);
+        // [Once per turn]: the discard can re-activate this Member, so without the mark the Wait cost could be
+        // paid again and again (#364, also via Ren PL!SP-pb2-005 inheriting it).
+        markAbilityUsed($member, $abilityIdx);
         $drawn = drawCardsForPlayer($state, $pid, intval($ab['draw'] ?? 3));
         $need = intval($ab['discard'] ?? 2);
         $state['pending_prompt'] = [

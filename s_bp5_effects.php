@@ -625,6 +625,8 @@ function sBp5ResolveActivatedAbility(
     if (!payEnergyCost($p, $cost)) throw new Exception('Not enough Energy');
     $slots = sBp5PositionChangeSlots($p, $ab, $member['instance_id'] ?? '');
     if (empty($slots)) throw new Exception('No valid area with Aqours or Saint Snow Member');
+    // [Once per turn]: Energy is paid, so it counts as played now (#364 audit: Sarah PL!S-bp5-111 repeated).
+    markAbilityUsed($member, $abilityIdx);
     // Always open the pick, even with one candidate (player input / immersion).
     $state['pending_prompt'] = [
         'type'          => 'sbp5_position_change_slot',

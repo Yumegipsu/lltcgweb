@@ -1117,7 +1117,9 @@ function actionActivateAbilityCore(array $state, string $pid, array $data): arra
             intval($ab['draw'] ?? 1),
             intval($ab['discard'] ?? 1)
         );
-        if (empty($state['pending_prompt'])) {
+        // Energy is already paid, so the ability has been played even while the discard prompt is open (#364:
+        // PL!SP-bp1-009 Natsumi could repeat it every time the discard finished).
+        if (empty($state['pending_prompt']) || $energyCost > 0) {
             markAbilityUsed($member, $abilityIdx);
             persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
         }
@@ -1334,7 +1336,9 @@ function actionActivateAbilityCore(array $state, string $pid, array $data): arra
                 $state['seq']++;
                 return $state;
             }
-            if (empty($state['pending_prompt'])) {
+            // PL!-bp5-004 Umi pays Energy before the opponent pick opens: played, even with the pick open (#364).
+            if (empty($state['pending_prompt'])
+                || ($ab['type'] ?? '') === 'activated_wait_opp_reduce_cost_per_group') {
                 markAbilityUsed($member, $abilityIdx);
                 persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
             }
@@ -1385,10 +1389,10 @@ function actionActivateAbilityCore(array $state, string $pid, array $data): arra
         if (!empty($state['pending_prompt'])) {
             $state['pending_prompt']['ability_index'] = $abilityIdx;
             $state['pending_prompt']['source_slot'] = $slot ?? '';
-        } elseif (empty($state['pending_prompt'])) {
-            markAbilityUsed($member, $abilityIdx);
-            persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
         }
+        // The discard is mandatory and any Energy is paid: played now (#364: PL!SP-bp1-010 Wien repeated).
+        markAbilityUsed($member, $abilityIdx);
+        persistActivatedMemberAfterUse($p, $member, $slot, $zone, $wrIndex);
     } elseif (($ab['type'] ?? '') === 'optional_discard_prompt') {
         if (!optionalCostAbilityShouldOpen($state, $pid, $ab)) {
             if (!optionalAbilityHasAffordableEnergy($p, $ab)) {
