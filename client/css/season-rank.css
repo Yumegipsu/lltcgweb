@@ -700,3 +700,7 @@ body.season-stats-open #modal-card, body.season-stats-open #modal-card.open { z-
 .season-stats-inbox-item.is-new { outline: 1px solid #ffd54a; }
 .season-stats-inbox-meta { font-size: 0.75rem; opacity: 0.75; }
 .season-stats-inbox-body { white-space: pre-wrap; word-break: break-word; margin-top: 4px; }
+.season-inbox-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.season-inbox-nav .btn-out { width: auto; padding: 6px 12px; }
+.season-inbox-season { font-weight: 700; }
+.season-inbox-group { margin: 14px 0 6px; font-size: 0.95rem; }

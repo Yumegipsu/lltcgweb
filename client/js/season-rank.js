@@ -265,8 +265,10 @@
     const body = root.querySelector('.season-feedback-body');
     body.replaceChildren();
     body.appendChild(el('p', 'season-feedback-season', seasonLabelFromId(fb.season_id) || fb.label || ''));
-    body.appendChild(el('p', 'account-lead', tt('season.feedbackLead',
-      'What should we improve for the next season? Open until the season ends.')));
+    body.appendChild(el('p', 'account-lead', fb.closes_at
+      ? tt('season.feedbackLeadUntil', 'What should we improve for the next season? Open until {date}.',
+        { date: fmtDate(fb.closes_at) })
+      : tt('season.feedbackLead', 'What should we improve for the next season? Open until the season ends.')));
     if (fb.milestone) {
       body.appendChild(el('p', 'season-feedback-reward', tt('season.feedbackReward',
         'Send it to earn 1 SR+ Ticket — see Missions › Milestones')));
@@ -387,7 +389,7 @@
   }
 
   document.addEventListener('click', (event) => {
-    if (event.target.closest && event.target.closest('#btn-admin-feedback')) openFeedbackInbox();
+    if (event.target.closest && event.target.closest('#btn-admin-feedback')) openFeedbackInbox(false);
   });
 
   /** Localized "2026 Season 1" from a YYYY-MM id (server label is English-only). */
@@ -418,30 +420,66 @@
     global.showCard(card, null, global.G && global.G.gameState, global.G && global.G.playerId);
   }
 
-  async function openFeedbackInbox() {
+  /**
+   * Owner inbox. The main view is the newest season with feedback; older seasons sit in
+   * the archive view, grouped by season, reached from the button at the top.
+   */
+  async function openFeedbackInbox(archive) {
+    archive = archive === true;
     const root = inboxOverlay();
-    root.querySelector('.season-ladder-title').textContent = tt('season.feedbackInbox', 'Season feedback inbox');
+    root.querySelector('.season-ladder-title').textContent = archive
+      ? tt('season.feedbackArchiveTitle', 'Archived season feedback')
+      : tt('season.feedbackInbox', 'Season feedback inbox');
     root.querySelector('.season-inbox-close').textContent = tt('news.close', 'Close');
     const box = root.querySelector('.season-inbox-body');
     root.classList.add('open');
     root.setAttribute('aria-hidden', 'false');
     box.replaceChildren(el('p', 'account-lead', '…'));
     try {
-      const res = await global.accountPost('season_feedback_list', {});
+      const res = await global.accountPost('season_feedback_list', { archive: archive });
       const rows = res.feedback || [];
       box.replaceChildren();
+      const nav = el('div', 'season-inbox-nav');
+      if (archive) {
+        const back = el('button', 'btn-out', tt('season.feedbackArchiveBack', 'Back to current season'));
+        back.type = 'button';
+        back.addEventListener('click', () => openFeedbackInbox(false));
+        nav.appendChild(back);
+      } else {
+        if (res.season_id) {
+          nav.appendChild(el('span', 'season-inbox-season',
+            (seasonLabelFromId(res.season_id) || res.label || '') + ' · ' + rows.length));
+        }
+        if (res.archive_count) {
+          const arch = el('button', 'btn-out', tt('season.feedbackArchive', 'Archive ({n})', { n: res.archive_count }));
+          arch.type = 'button';
+          arch.addEventListener('click', () => openFeedbackInbox(true));
+          nav.appendChild(arch);
+        }
+      }
+      if (nav.childNodes.length) box.appendChild(nav);
       if (!rows.length) {
-        box.appendChild(el('p', 'account-lead', tt('season.feedbackNone', 'No feedback yet.')));
+        box.appendChild(el('p', 'account-lead', archive
+          ? tt('season.feedbackArchiveNone', 'No archived feedback.')
+          : tt('season.feedbackNone', 'No feedback yet.')));
         return;
       }
+      let lastSeason = null;
       rows.forEach((r) => {
+        if (archive && r.season_id !== lastSeason) {
+          lastSeason = r.season_id;
+          const count = ((res.archive_seasons || []).find((a) => a.season_id === r.season_id) || {}).count;
+          box.appendChild(el('h3', 'season-inbox-group',
+            (seasonLabelFromId(r.season_id) || r.label) + (count ? ' · ' + count : '')));
+        }
         const item = el('div', 'season-stats-inbox-item' + (r.read_at ? '' : ' is-new'));
         item.appendChild(el('div', 'season-stats-inbox-meta',
-          r.label + ' · ' + (r.username || r.discord_id) + ' · ' + fmtDate(r.updated_at)));
+          (archive ? '' : (seasonLabelFromId(r.season_id) || r.label) + ' · ')
+          + (r.username || r.discord_id) + ' · ' + fmtDate(r.updated_at)));
         item.appendChild(el('div', 'season-stats-inbox-body', r.body));
         box.appendChild(item);
       });
-      if (res.unread) global.accountPost('season_feedback_list', { mark_read: true }).catch(() => {});
+      if (res.unread) global.accountPost('season_feedback_list', { mark_read: true, archive: archive }).catch(() => {});
     } catch (e) {
       box.replaceChildren(el('p', 'account-lead', (e && e.message) || ''));
     }

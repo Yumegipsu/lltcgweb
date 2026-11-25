@@ -229,6 +229,21 @@ function tcgSeasonStatsSheet(?string $seasonId, string $gameMode = 'standard', i
 /** Feedback is collected during the last week of a season. */
 const TCG_SEASON_FEEDBACK_WINDOW_SEC = 7 * 86400;
 
+/** Seasons whose form closes before the season ends (season id => UTC close time). */
+const TCG_SEASON_FEEDBACK_CLOSES_AT = [
+    '2026-11' => 1795996800, // Season 2: open through Nov 29 (closes 2026-11-30 00:00 UTC)
+];
+
+/** Temporary milestone rewarded for sending a season's form (see missions.php). */
+const TCG_SEASON_FEEDBACK_MILESTONES = [
+    '2026-10' => 'ms_season_feedback_2026_10',
+    '2026-11' => 'ms_season_feedback_2026_11',
+];
+
+function tcgSeasonFeedbackMilestoneId(string $seasonId): string {
+    return TCG_SEASON_FEEDBACK_MILESTONES[$seasonId] ?? '';
+}
+
 /** True when the player has played at least one ranked match in this season (any mode). */
 function tcgSeasonFeedbackParticipated(string $discordId, string $seasonId): bool {
     if ($discordId === '' || $seasonId === '') {
@@ -252,8 +267,8 @@ function tcgSeasonFeedbackWindow(?string $discordId = null): array {
         return ['open' => false, 'eligible' => false, 'season_id' => '', 'label' => '', 'opens_at' => 0,
             'closes_at' => 0, 'days_left' => 0, 'submitted' => false, 'body' => ''];
     }
-    $closes = (int)$clock['ends_at'];
-    $opens = $closes - TCG_SEASON_FEEDBACK_WINDOW_SEC;
+    $opens = (int)$clock['ends_at'] - TCG_SEASON_FEEDBACK_WINDOW_SEC;
+    $closes = (int)(TCG_SEASON_FEEDBACK_CLOSES_AT[(string)$clock['id']] ?? $clock['ends_at']);
     $submitted = false;
     $body = '';
     $eligible = false;
@@ -278,8 +293,8 @@ function tcgSeasonFeedbackWindow(?string $discordId = null): array {
         'days_left' => max(0, (int)ceil(($closes - $now) / 86400)),
         'submitted' => $submitted,
         'body' => $body,
-        // Temporary Season 1 milestone that rewards sending the form (see missions.php).
-        'milestone' => (string)$clock['id'] === '2026-10' ? 'ms_season_feedback_2026_10' : '',
+        // Temporary per-season milestone that rewards sending the form (see missions.php).
+        'milestone' => tcgSeasonFeedbackMilestoneId((string)$clock['id']),
     ];
 }
 
@@ -316,7 +331,7 @@ function tcgApiSeasonFeedbackSubmit(array $body): array {
 function tcgSeasonFeedbackSave(string $uid, string $rawText): array {
     $win = tcgSeasonFeedbackWindow($uid);
     if (!$win['open']) {
-        throw new Exception('Season feedback opens during the last week of the season', 400);
+        throw new Exception('Season feedback is not open right now', 400);
     }
     if (!$win['eligible']) {
         throw new Exception('Play at least one ranked match this season to leave feedback', 403);
@@ -344,13 +359,13 @@ function tcgSeasonFeedbackSave(string $uid, string $rawText): array {
         ON CONFLICT(season_id, discord_id) DO UPDATE SET
             body = excluded.body, username = excluded.username, updated_at = excluded.updated_at, read_at = NULL')
         ->execute([$win['season_id'], $uid, $name, $text, $now, $now]);
-    // Temporary Season 1 milestone (SR+ Ticket); a no-op once that season is over or already completed.
+    // Temporary per-season milestone (SR+ Ticket); a no-op once that season is over or already completed.
     $completions = [];
-    if ((string)$win['season_id'] === '2026-10') {
+    if (tcgSeasonFeedbackMilestoneId((string)$win['season_id']) !== '') {
         if (!function_exists('tcgMissionOnSeasonFeedback')) {
             require_once __DIR__ . '/missions.php';
         }
-        $completions = tcgMissionOnSeasonFeedback($uid);
+        $completions = tcgMissionOnSeasonFeedback($uid, (string)$win['season_id']);
     }
     return [
         'success' => true,
@@ -360,7 +375,12 @@ function tcgSeasonFeedbackSave(string $uid, string $rawText): array {
     ];
 }
 
-/** Owner inbox. @param array<string,mixed> $body */
+/**
+ * Owner inbox. The newest season that has feedback is the main view; older seasons are
+ * the archive (`archive: true`). mark_read only clears the rows of the view being shown.
+ *
+ * @param array<string,mixed> $body
+ */
 function tcgApiSeasonFeedbackList(array $body): array {
     $uid = tcgRequireAuthUser($body);
     if (!function_exists('tcgSocialIsOwner')) {
@@ -369,18 +389,45 @@ function tcgApiSeasonFeedbackList(array $body): array {
     if (!tcgSocialIsOwner($uid)) {
         throw new Exception('Admin only', 403);
     }
+    return tcgSeasonFeedbackInbox(!empty($body['archive']), !empty($body['mark_read']));
+}
+
+/** @return array<string,mixed> */
+function tcgSeasonFeedbackInbox(bool $archive, bool $markRead): array {
     $db = tcgDb();
     tcgSeasonStatsEnsureSchema($db);
-    if (!empty($body['mark_read'])) {
-        $db->prepare('UPDATE tcg_season_feedback SET read_at = ? WHERE read_at IS NULL')->execute([time()]);
+    $current = (string)($db->query('SELECT MAX(season_id) FROM tcg_season_feedback')->fetchColumn() ?: '');
+    $where = $archive ? 'season_id <> ?' : 'season_id = ?';
+    if ($markRead) {
+        $db->prepare("UPDATE tcg_season_feedback SET read_at = ? WHERE read_at IS NULL AND $where")
+            ->execute([time(), $current]);
     }
-    $rows = $db->query('SELECT id, season_id, discord_id, username, body, created_at, updated_at, read_at
-        FROM tcg_season_feedback ORDER BY season_id DESC, updated_at DESC LIMIT 500')
-        ->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    $q = $db->prepare("SELECT id, season_id, discord_id, username, body, created_at, updated_at, read_at
+        FROM tcg_season_feedback WHERE $where ORDER BY season_id DESC, updated_at DESC LIMIT 500");
+    $q->execute([$current]);
+    $rows = $q->fetchAll(PDO::FETCH_ASSOC) ?: [];
     foreach ($rows as &$r) {
         $r['label'] = tcgSeasonLabel((string)$r['season_id']);
     }
     unset($r);
-    $unread = (int)$db->query('SELECT COUNT(*) FROM tcg_season_feedback WHERE read_at IS NULL')->fetchColumn();
-    return ['success' => true, 'feedback' => $rows, 'unread' => $unread];
+    $u = $db->prepare("SELECT COUNT(*) FROM tcg_season_feedback WHERE read_at IS NULL AND $where");
+    $u->execute([$current]);
+    $arch = $db->prepare('SELECT season_id, COUNT(*) AS n FROM tcg_season_feedback
+        WHERE season_id <> ? GROUP BY season_id ORDER BY season_id DESC');
+    $arch->execute([$current]);
+    $archiveSeasons = [];
+    foreach ($arch->fetchAll(PDO::FETCH_ASSOC) ?: [] as $a) {
+        $archiveSeasons[] = ['season_id' => (string)$a['season_id'], 'label' => tcgSeasonLabel((string)$a['season_id']),
+            'count' => (int)$a['n']];
+    }
+    return [
+        'success' => true,
+        'archive' => $archive,
+        'season_id' => $current,
+        'label' => $current !== '' ? tcgSeasonLabel($current) : '',
+        'feedback' => $rows,
+        'unread' => (int)$u->fetchColumn(),
+        'archive_seasons' => $archiveSeasons,
+        'archive_count' => array_sum(array_column($archiveSeasons, 'count')),
+    ];
 }

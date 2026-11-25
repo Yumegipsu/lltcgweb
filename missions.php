@@ -70,7 +70,8 @@ function tcgMissionDefinitionsRaw(): array {
         ['id' => 'monthly_weekly_4', 'type' => 'monthly', 'reward' => 3, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 3]], 'sort' => 40, 'i18n_key' => 'missions.monthly.weeklyAll4', 'threshold' => 4],
         ['id' => 'monthly_complete_all', 'type' => 'monthly', 'reward' => 1, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_ur', 'amount' => 1]], 'sort' => 50, 'i18n_key' => 'missions.monthly.completeAll', 'threshold' => 4],
 
-        // Temporary: only exists during ranked season 2026-10 (Season 1); gone once Season 2 starts. Pinned above the other milestones.
+        // Temporary: each only exists during its ranked season (2026-10 Season 1, 2026-11 Season 2). Pinned above the other milestones.
+        ['id' => 'ms_season_feedback_2026_11', 'type' => 'milestone', 'reward' => 1, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 1]], 'sort' => 1, 'pinned_top' => true, 'only_season' => '2026-11', 'i18n_key' => 'missions.milestone.seasonFeedback2'],
         ['id' => 'ms_season_feedback_2026_10', 'type' => 'milestone', 'reward' => 1, 'reward_type' => 'multi', 'rewards' => [['type' => 'ticket_sr', 'amount' => 1]], 'sort' => 1, 'pinned_top' => true, 'only_season' => '2026-10', 'i18n_key' => 'missions.milestone.seasonFeedback1'],
         ['id' => 'ms_profile_banner', 'type' => 'milestone', 'reward' => 100, 'sort' => 100, 'i18n_key' => 'missions.milestone.profileBanner'],
         ['id' => 'ms_profile_flag', 'type' => 'milestone', 'reward' => 100, 'sort' => 105, 'i18n_key' => 'missions.milestone.profileFlag'],
@@ -1686,24 +1687,33 @@ function tcgMissionOnStampFavoritesSet(string $discordId, array $favorites): arr
     return tcgMissionMarkCompleted($discordId, 'ms_profile_stamps');
 }
 
-/** Season 1 feedback form submitted: completes the temporary Season 1 milestone. */
-function tcgMissionOnSeasonFeedback(string $discordId): array {
-    return tcgMissionMarkCompleted($discordId, 'ms_season_feedback_2026_10');
+/** Season feedback form submitted: completes that season's temporary milestone (while it is live). */
+function tcgMissionOnSeasonFeedback(string $discordId, string $seasonId = '2026-10'): array {
+    if (!function_exists('tcgSeasonFeedbackMilestoneId')) {
+        require_once __DIR__ . '/season_stats.php';
+    }
+    $id = tcgSeasonFeedbackMilestoneId($seasonId);
+    if ($id === '' || !tcgMissionDefById($id)) {
+        return [];
+    }
+    return tcgMissionMarkCompleted($discordId, $id);
 }
 
 function tcgMissionBackfillSeasonFeedback(string $discordId): void {
-    if (!tcgMissionDefById('ms_season_feedback_2026_10')) {
-        return;
-    }
-    if (!function_exists('tcgSeasonStatsEnsureSchema')) {
+    if (!function_exists('tcgSeasonFeedbackMilestoneId')) {
         require_once __DIR__ . '/season_stats.php';
     }
-    $db = tcgDb();
-    tcgSeasonStatsEnsureSchema($db);
-    $q = $db->prepare('SELECT 1 FROM tcg_season_feedback WHERE season_id = ? AND discord_id = ?');
-    $q->execute(['2026-10', $discordId]);
-    if ($q->fetchColumn()) {
-        tcgMissionOnSeasonFeedback($discordId);
+    foreach (TCG_SEASON_FEEDBACK_MILESTONES as $seasonId => $id) {
+        if (!tcgMissionDefById($id)) {
+            continue;
+        }
+        $db = tcgDb();
+        tcgSeasonStatsEnsureSchema($db);
+        $q = $db->prepare('SELECT 1 FROM tcg_season_feedback WHERE season_id = ? AND discord_id = ?');
+        $q->execute([(string)$seasonId, $discordId]);
+        if ($q->fetchColumn()) {
+            tcgMissionOnSeasonFeedback($discordId, (string)$seasonId);
+        }
     }
 }
 

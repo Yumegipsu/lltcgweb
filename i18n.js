@@ -321,6 +321,7 @@
         "gachaScout10": "Scout in Gacha Scouting 10 times",
         "gachaBirthday": "Scout in a limited Birthday Gacha",
         "seasonFeedback1": "Submit the Season 1 feedback form",
+        "seasonFeedback2": "Submit the Season 2 feedback form",
         "ranked1": "Play 1 ranked match",
         "unranked1": "Play 1 unranked match",
         "ranked5": "Play 5 ranked matches",
@@ -955,6 +956,11 @@
       "feedbackError": "Could not send feedback",
       "feedbackInbox": "Season feedback inbox",
       "feedbackNone": "No feedback yet.",
+      "feedbackLeadUntil": "What should we improve for the next season? Open until {date}.",
+      "feedbackArchive": "Archive ({n})",
+      "feedbackArchiveTitle": "Archived season feedback",
+      "feedbackArchiveBack": "Back to current season",
+      "feedbackArchiveNone": "No archived feedback.",
       "you": "You",
       "daysLeft": "{n} days left",
       "dayLeft": "1 day left",
@@ -2719,6 +2725,7 @@
         "gachaScout10": "ガチャで10回スカウトする",
         "gachaBirthday": "期間限定のバースデーガチャでスカウトする",
         "seasonFeedback1": "シーズン1のフィードバックを送信する",
+        "seasonFeedback2": "シーズン2のフィードバックを送信する",
         "ranked1": "ランクマッチを1回プレイ",
         "unranked1": "カジュアルマッチを1回プレイ",
         "ranked5": "ランクマッチを5回プレイ",
@@ -3426,6 +3433,11 @@
       "feedbackError": "送信できませんでした",
       "feedbackInbox": "シーズンフィードバック受信箱",
       "feedbackNone": "まだフィードバックはありません。",
+      "feedbackLeadUntil": "次のシーズンで改善してほしい点を教えてください。{date}まで受付中です。",
+      "feedbackArchive": "アーカイブ（{n}）",
+      "feedbackArchiveTitle": "アーカイブ済みのシーズンフィードバック",
+      "feedbackArchiveBack": "現在のシーズンに戻る",
+      "feedbackArchiveNone": "アーカイブ済みのフィードバックはありません。",
       "you": "あなた",
       "daysLeft": "残り {n} 日",
       "dayLeft": "残り 1 日",
@@ -5483,7 +5495,12 @@
       "feedbackSent": "Ya enviaste tu opinión esta temporada. Si envías otra, reemplazará la anterior.",
       "feedbackError": "No se pudo enviar la opinión",
       "feedbackInbox": "Buzón de opiniones de temporada",
-      "feedbackNone": "Aún no hay opiniones."
+      "feedbackNone": "Aún no hay opiniones.",
+      "feedbackLeadUntil": "¿Qué deberíamos mejorar para la próxima temporada? Disponible hasta el {date}.",
+      "feedbackArchive": "Archivo ({n})",
+      "feedbackArchiveTitle": "Opiniones de temporadas archivadas",
+      "feedbackArchiveBack": "Volver a la temporada actual",
+      "feedbackArchiveNone": "No hay opiniones archivadas."
     },
     "leaderboard": {
       "title": "Clasificación de clasificatoria",
@@ -6412,6 +6429,7 @@
         "gachaScout10": "Haz 10 Scouts en el Gacha",
         "gachaBirthday": "Haz un Scout en un Gacha de cumpleaños limitado",
         "seasonFeedback1": "Envía las opiniones de la Temporada 1",
+        "seasonFeedback2": "Envía las opiniones de la Temporada 2",
         "ranked1": "Juega 1 partida clasificatoria",
         "ranked10": "Juega 10 partidas clasificatorias",
         "ranked100": "Juega 100 partidas clasificatorias",
@@ -7728,7 +7746,12 @@
       "feedbackSent": "이번 시즌에 이미 피드백을 보냈습니다. 다시 보내면 기존 내용이 대체됩니다.",
       "feedbackError": "피드백을 보내지 못했습니다",
       "feedbackInbox": "시즌 피드백 수신함",
-      "feedbackNone": "아직 피드백이 없습니다."
+      "feedbackNone": "아직 피드백이 없습니다.",
+      "feedbackLeadUntil": "다음 시즌에 개선했으면 하는 점을 알려주세요. {date}까지 받습니다.",
+      "feedbackArchive": "보관함 ({n})",
+      "feedbackArchiveTitle": "보관된 시즌 피드백",
+      "feedbackArchiveBack": "현재 시즌으로 돌아가기",
+      "feedbackArchiveNone": "보관된 피드백이 없습니다."
     },
     "leaderboard": {
       "title": "랭크 리더보드",
@@ -8671,6 +8694,7 @@
         "gachaScout10": "가챠 스카우트 10회 진행",
         "gachaBirthday": "기간 한정 생일 가챠에서 스카우트",
         "seasonFeedback1": "시즌 1 피드백 제출하기",
+        "seasonFeedback2": "시즌 2 피드백 제출하기",
         "ranked1": "랭크 매치 1회 플레이",
         "ranked10": "랭크 매치 10회 플레이",
         "ranked100": "랭크 매치 100회 플레이",
@@ -9987,7 +10011,12 @@
       "feedbackSent": "你本赛季已发送过反馈，再次发送将覆盖之前的内容。",
       "feedbackError": "无法发送反馈",
       "feedbackInbox": "赛季反馈收件箱",
-      "feedbackNone": "暂无反馈。"
+      "feedbackNone": "暂无反馈。",
+      "feedbackLeadUntil": "你希望下个赛季改进什么？反馈开放至 {date}。",
+      "feedbackArchive": "归档（{n}）",
+      "feedbackArchiveTitle": "已归档的赛季反馈",
+      "feedbackArchiveBack": "返回当前赛季",
+      "feedbackArchiveNone": "暂无已归档的反馈。"
     },
     "leaderboard": {
       "title": "排行榜",
@@ -10930,6 +10959,7 @@
         "gachaScout10": "在扭蛋中招募 10 次",
         "gachaBirthday": "在限定生日扭蛋中进行招募",
         "seasonFeedback1": "提交第 1 赛季反馈",
+        "seasonFeedback2": "提交第 2 赛季反馈",
         "ranked1": "进行 1 场排名对战",
         "ranked10": "进行 10 场排名对战",
         "ranked100": "进行 100 场排名对战",
@@ -12236,7 +12266,12 @@
       "feedbackSent": "คุณส่งความคิดเห็นของซีซันนี้ไปแล้ว การส่งใหม่จะแทนที่อันเดิม",
       "feedbackError": "ส่งความคิดเห็นไม่สำเร็จ",
       "feedbackInbox": "กล่องความคิดเห็นประจำซีซัน",
-      "feedbackNone": "ยังไม่มีความคิดเห็น"
+      "feedbackNone": "ยังไม่มีความคิดเห็น",
+      "feedbackLeadUntil": "อยากให้ปรับปรุงอะไรในซีซันหน้า? เปิดรับถึง {date}",
+      "feedbackArchive": "คลังเก็บ ({n})",
+      "feedbackArchiveTitle": "ความคิดเห็นประจำซีซันที่เก็บถาวร",
+      "feedbackArchiveBack": "กลับไปซีซันปัจจุบัน",
+      "feedbackArchiveNone": "ไม่มีความคิดเห็นที่เก็บถาวร"
     },
     "leaderboard": {
       "title": "กระดานจัดอันดับแรงก์",
@@ -13164,6 +13199,7 @@
         "gachaScout10": "สเกาต์ในกาชา 10 ครั้ง",
         "gachaBirthday": "สเกาต์ในกาชาวันเกิดแบบจำกัดเวลา",
         "seasonFeedback1": "ส่งความคิดเห็นประจำซีซัน 1",
+        "seasonFeedback2": "ส่งความคิดเห็นประจำซีซัน 2",
         "ranked1": "เล่นแมตช์แรงก์ 1 ครั้ง",
         "ranked10": "เล่นแมตช์แรงก์ 10 ครั้ง",
         "ranked100": "เล่นแมตช์แรงก์ 100 ครั้ง",
@@ -13961,6 +13997,7 @@
         "gachaScout10": "Faça 10 Scouts no Gacha",
         "gachaBirthday": "Faça um Scout em um Gacha de aniversário limitado",
         "seasonFeedback1": "Envie o feedback da Temporada 1",
+        "seasonFeedback2": "Envie o feedback da Temporada 2",
         "ranked1": "Jogue 1 partida ranqueada",
         "unranked1": "Jogue 1 partida casual",
         "ranked5": "Jogue 5 partidas ranqueadas",
@@ -14621,7 +14658,12 @@
       "feedbackSent": "Você já enviou feedback nesta temporada. Enviar de novo substitui o anterior.",
       "feedbackError": "Não foi possível enviar o feedback",
       "feedbackInbox": "Caixa de feedback da temporada",
-      "feedbackNone": "Nenhum feedback ainda."
+      "feedbackNone": "Nenhum feedback ainda.",
+      "feedbackLeadUntil": "O que devemos melhorar na próxima temporada? Aberto até {date}.",
+      "feedbackArchive": "Arquivo ({n})",
+      "feedbackArchiveTitle": "Feedback de temporadas arquivado",
+      "feedbackArchiveBack": "Voltar à temporada atual",
+      "feedbackArchiveNone": "Nenhum feedback arquivado."
     },
     "leaderboard": {
       "title": "Placar de Líderes Ranqueado",
@@ -16272,6 +16314,7 @@
         "gachaScout10": "Faire 10 Scouts au Gacha",
         "gachaBirthday": "Faire un Scout dans un Gacha d'anniversaire limité",
         "seasonFeedback1": "Envoyer les retours de la Saison 1",
+        "seasonFeedback2": "Envoyer les retours de la Saison 2",
         "ranked1": "Jouez 1 partie classée",
         "unranked1": "Jouez 1 partie libre",
         "ranked5": "Jouez 5 parties classées",
@@ -16817,7 +16860,12 @@
       "feedbackSent": "Vous avez déjà envoyé un retour cette saison. En envoyer un autre remplace le précédent.",
       "feedbackError": "Impossible d'envoyer le retour",
       "feedbackInbox": "Boîte de retours de saison",
-      "feedbackNone": "Aucun retour pour le moment."
+      "feedbackNone": "Aucun retour pour le moment.",
+      "feedbackLeadUntil": "Que devrions-nous améliorer pour la prochaine saison ? Ouvert jusqu'au {date}.",
+      "feedbackArchive": "Archives ({n})",
+      "feedbackArchiveTitle": "Retours de saison archivés",
+      "feedbackArchiveBack": "Revenir à la saison en cours",
+      "feedbackArchiveNone": "Aucun retour archivé."
     },
     "leaderboard": {
       "title": "Classement classé",
